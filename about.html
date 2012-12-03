@@ -1,0 +1,132 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>About &mdash; Write An LLVM Backend Tutorial For Cpu0</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
+    <link rel="author" title="About these documents" href="#" />
+    <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-33699076-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="index.html">
+          <span>Write An LLVM Backend Tutorial For Cpu0</span></a></h1>
+        <h2 class="heading"><span>About</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        <a class="uplink" href="index.html">Contents</a>
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="about">
+<h1>About<a class="headerlink" href="#about" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="authors">
+<h2>Authors<a class="headerlink" href="#authors" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-right">
+<img alt="_images/Author_ChineseName.png" src="_images/Author_ChineseName.png" />
+</div>
+<dl class="docutils">
+<dt>Chen Chung-Shu</dt>
+<dd><a class="reference external" href="mailto:gamma_chen&#37;&#52;&#48;yahoo&#46;com&#46;tw">gamma_chen<span>&#64;</span>yahoo<span>&#46;</span>com<span>&#46;</span>tw</a></dd>
+<dt>Anoushe Jamshidi</dt>
+<dd><a class="reference external" href="mailto:ajamshidi&#37;&#52;&#48;gmail&#46;com">ajamshidi<span>&#64;</span>gmail<span>&#46;</span>com</a></dd>
+</dl>
+</div>
+<div class="section" id="revision-history">
+<h2>Revision history<a class="headerlink" href="#revision-history" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>Version 1, Released</dt>
+<dd>Chapter 1, 2, 3</dd>
+<dt>Version 2, Released February 4, 2012</dt>
+<dd>Added Chapter 0, Section 3.3
+Correct some English &amp; typing errors in book</dd>
+<dt>Version 3, Released February 19, 2012</dt>
+<dd>Shift Chapter 0..2 to Chapter 1..3; Move Section 3.1, 3.2 to 4.1, 4.2; Move     Section 3.3 to 5.1 Added Section 5.2 to 5.6; Added Chapter 6; Added Section 7.1 to 7.4
+Added first paragraph in Chapter 1; Added Section” 2.1 CPU0 processor architecture” and shift other sections in Chapter 2
+Correct some English &amp; typing errors</dd>
+<dt>Version 3.1.1, Released November 28, 2012</dt>
+<dd>Add Revision history
+Correct ldi instruction error (replace ldi instruction with addiu from the beginning and in the all example code)
+Move ldi instruction change from section 5.5 to 2.1
+Correct some English &amp; typing errors</dd>
+</dl>
+</div>
+<div class="section" id="licensing">
+<h2>Licensing<a class="headerlink" href="#licensing" title="Permalink to this headline">¶</a></h2>
+<p>LLVM documentation license, To do...</p>
+</div>
+<div class="section" id="preface">
+<h2>Preface<a class="headerlink" href="#preface" title="Permalink to this headline">¶</a></h2>
+<p>LLVM has a well structure for writing a back end. It provide a good frame work to add a new back end for a new CPU instruction set. However, it is harder in reading than front end documents in spite of back end has well documentation on it&#8217;s web site. The point is LLVM front end documents include the tutorials. Allow user writing a front end compiler by following tutorial step by step, begin from simple and expand to complex more and more.</p>
+<p>Knowledge is needed by a software engineer for his work. In computer industry, quick to learn is valuable. So, I write this document following the front end style. Start from scratch, then add more and more code in each chapter to expand it&#8217;s function.</p>
+<p>For simple, I write a back end named Cpu0 which is a simple RISC CPU designed for teaching purpose. Please refer to <a class="reference external" href="http://ccckmit.wikidot.com/ocs:cpu0">http://ccckmit.wikidot.com/ocs:cpu0</a> for it&#8217;s instruction set. I put the cpu0 example code for this book in <a class="reference external" href="https://www.dropbox.com/sh/2pkh1fewlq2zag9/r9n4gnqPm7">https://www.dropbox.com/sh/2pkh1fewlq2zag9/r9n4gnqPm7</a>.</p>
+<p>I reference llvm 3.1 Mips back end codes to write the cpu0 example code because I know Mips well more than other CPU. And since cpu0 has not defined it&#8217;s Application Binary Interface (ABI), I borrow the ABI from the MIPS architecture.</p>
+<p>Readers should know C++ well since LLVM is designed in C++, and is another state of the art example using the C++ OOP beautiful structure in compiler designed field in addition to QT in UI application. So, if you are a C++ advocate, maybe you will appreciate it, and give you a reason by real example to against people&#8217;s wrong challenge that C++ OOP is not suit for system program like OS or compiler design.</p>
+<p>I will introduce the related compiler knowledges on demand. So, you don&#8217;t need to have the deep compiler knowledge for reading this book, concept is enough. But it will offset your debug time if you have the knowledge well.</p>
+<p>Say sorry in advance for my English. I am a Chinese from Taiwan. It&#8217;s very different between English and Chinese.</p>
+<p>The book references the following materials in major,</p>
+<p>tricore_llvm.pdf (get from internet).</p>
+<p><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html">http://llvm.org/docs/CodeGenerator.html</a></p>
+<p><a class="reference external" href="http://llvm.org/docs/TableGenFundamentals.html">http://llvm.org/docs/TableGenFundamentals.html</a></p>
+<p><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html">http://llvm.org/docs/WritingAnLLVMBackend.html</a></p>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        <a class="uplink" href="index.html">Contents</a>
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, LLVM.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
