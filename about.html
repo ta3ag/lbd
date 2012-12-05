@@ -34,6 +34,7 @@
     <link rel="prev" title="Table of Contents" href="index.html" />
 <script type="text/javascript">
 
+/*
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', 'UA-33699076-1']);
   _gaq.push(['_trackPageview']);
@@ -43,7 +44,7 @@
     ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
-
+*/
 </script>
 
   </head>
@@ -101,19 +102,46 @@ Correct some English &amp; typing errors</dd>
 </div>
 <div class="section" id="licensing">
 <h2>Licensing<a class="headerlink" href="#licensing" title="Permalink to this headline">¶</a></h2>
-<p>LLVM documentation license, To do...</p>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">Add info about LLVM documentation licensing.</p>
+</div>
 </div>
 <div class="section" id="preface">
 <h2>Preface<a class="headerlink" href="#preface" title="Permalink to this headline">¶</a></h2>
-<p>The LLVM Compiler Infrastructure provides a versatile structure for creating new backends.  Creating a new backend should not be too difficult once you familiarize yourself with this structure. However, the available backend documentation is fairly high level and leaves out many details. This tutorial will provide step-by-step instructions to write a new backend for a new target architecture from scratch.</p>
-<p>We will use the Cpu0 architecture as an example to build our new backend. Cpu0 is a simple RISC architecture that has been designed for educational purposes. More information about Cpu0, including its instruction set, is available here: <a class="reference external" href="http://ccckmit.wikidot.com/ocs:cpu0">http://ccckmit.wikidot.com/ocs:cpu0</a>. The Cpu0 example code referenced in this book can be found in this <a class="reference external" href="https://www.dropbox.com/sh/2pkh1fewlq2zag9/r9n4gnqPm7">shared folder on Dropbox</a>. As you progress from one chapter to the next, you will incrementally build the backend&#8217;s functionality.</p>
-<p>This tutorial was written using the LLVM 3.1 Mips backend as a reference. Since Cpu0 is an educational architecture, it is missing some key pieces of documentation needed when developing a compiler, such as an Application Binary Interface (ABI). We implement our backend borrowing information from the Mips ABI as a guide. You may want to familiarize yourself with the relevant parts of the Mips ABI as you progress through this tutorial.</p>
+<p>The LLVM Compiler Infrastructure provides a versatile structure for creating new
+backends. Creating a new backend should not be too difficult once you
+familiarize yourself with this structure. However, the available backend
+documentation is fairly high level and leaves out many details. This tutorial
+will provide step-by-step instructions to write a new backend for a new target
+architecture from scratch.</p>
+<p>We will use the Cpu0 architecture as an example to build our new backend. Cpu0
+is a simple RISC architecture that has been designed for educational purposes.
+More information about Cpu0, including its instruction set, is available
+here: <a class="reference external" href="http://ccckmit.wikidot.com/ocs:cpu0">http://ccckmit.wikidot.com/ocs:cpu0</a>. The Cpu0 example code referenced in
+this book can be found in this
+<a class="reference external" href="https://www.dropbox.com/sh/2pkh1fewlq2zag9/r9n4gnqPm7">shared folder on Dropbox</a>.
+As you progress from one chapter to the next, you will incrementally build the
+backend&#8217;s functionality.</p>
+<p>This tutorial was written using the LLVM 3.1 Mips backend as a reference. Since
+Cpu0 is an educational architecture, it is missing some key pieces of
+documentation needed when developing a compiler, such as an Application Binary
+Interface (ABI). We implement our backend borrowing information from the Mips
+ABI as a guide. You may want to familiarize yourself with the relevant parts of
+the Mips ABI as you progress through this tutorial.</p>
 </div>
 <div class="section" id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
-<p>Readers should be comfortable with the C++ language and Object-Oriented Programming concepts. LLVM has been developed and implemented in C++, and it is written in a modular way so that various classes can be adapted and reused as often as possible.</p>
-<p>Already having conceptual knowledge of how compilers work is a plus, and if you already have implemented compilers in the past you will likely have no trouble debugging your code. As this tutorial will build up an LLVM backend step-by-step, we will introduce important concepts as necessary.</p>
-<p>This tutorial references the following materials.  We highly recommend you read these documents to get a deeper understanding of what the tutorial is teaching:</p>
+<p>Readers should be comfortable with the C++ language and Object-Oriented
+Programming concepts. LLVM has been developed and implemented in C++, and it is
+written in a modular way so that various classes can be adapted and reused as
+often as possible.</p>
+<p>Already having conceptual knowledge of how compilers work is a plus, and if you
+already have implemented compilers in the past you will likely have no trouble
+following this tutorial. As this tutorial will build up an LLVM backend
+step-by-step, we will introduce important concepts as necessary.</p>
+<p>This tutorial references the following materials.  We highly recommend you read
+these documents to get a deeper understanding of what the tutorial is teaching:</p>
 <p><a class="reference external" href="http://www.aosabook.org/en/llvm.html">The Architecture of Open Source Applications Chapter on LLVM</a></p>
 <p><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html">LLVM&#8217;s Target-Independent Code Generation documentation</a></p>
 <p><a class="reference external" href="http://llvm.org/docs/TableGenFundamentals.html">LLVM&#8217;s TableGen Fundamentals documentation</a></p>
