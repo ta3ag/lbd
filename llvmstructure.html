@@ -31,7 +31,7 @@
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
     <link rel="next" title="Back end structure" href="backendstructure.html" />
-    <link rel="prev" title="Install llvm and Cpu0 example code" href="install.html" />
+    <link rel="prev" title="Getting Started: Installing LLVM and the Cpu0 example code" href="install.html" />
 <script type="text/javascript">
 
 /*
@@ -56,7 +56,7 @@
       <div class="topnav">
       
         <p>
-        «&#160;&#160;<a href="install.html">Install llvm and Cpu0 example code</a>
+        «&#160;&#160;<a href="install.html">Getting Started: Installing LLVM and the Cpu0 example code</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
@@ -75,7 +75,7 @@
 <p>I copy and redraw figures in english in this section. This <a class="reference external" href="http://ccckmit.wikidot.com/ocs:cpu0">web site</a> is chinese version and here is <a class="reference external" href="http://translate.google.com.tw/translate?js=n&amp;prev=_t&amp;hl=zh-TW&amp;ie=UTF-8&amp;layout=2&amp;eotf=1&amp;sl=zh-CN&amp;tl=en&amp;u=http://ccckmit.wikidot.com/ocs:cpu0">english version</a>.</p>
 <div class="section" id="brief-introduction">
 <h3>Brief introduction<a class="headerlink" href="#brief-introduction" title="Permalink to this headline">¶</a></h3>
-<p>CPU0 is a 32-bit processor registers R0 .. R15, IR, MAR, MDR, etc., and its structure is shown below.</p>
+<p>CPU0 is a 32-bit processor which has registers R0 .. R15, IR, MAR, MDR, etc., and its structure is shown below.</p>
 <div class="figure align-center">
 <img alt="_images/Fig2_1.png" src="_images/Fig2_1.png" />
 <p class="caption">The structure of the processor of Figure 2.1: CPU0</p>
@@ -117,17 +117,26 @@
 </div>
 <div class="section" id="the-execution-of-the-instruction-step">
 <h3>The execution of the instruction step<a class="headerlink" href="#the-execution-of-the-instruction-step" title="Permalink to this headline">¶</a></h3>
-<p>CPU0 in executing an instruction must be extracted, decoding and execution of three stages.</p>
-<p>Extraction stage</p>
-<blockquote>
-<div>Action 1, the instruction fetch: IR = [PC]
-Action 2 update counter: PC = PC + 4</div></blockquote>
-<p>Decode stage</p>
-<blockquote>
-<div>Action 3, the decoding: the control unit for IR decoding, setting the data flow modes of operation of the switch with the ALU</div></blockquote>
-<p>Runtime stage</p>
-<blockquote>
-<div>Action 4 Execution: information inflow ALU, after the operation, the flow back into the specified register</div></blockquote>
+<p>CPU0 has three stage pipeline: Instruction fetch, Decode and Execution.</p>
+<ol class="arabic simple">
+<li>Instruction fetch</li>
+</ol>
+<ul class="simple">
+<li>Action 1. The instruction fetch: IR = [PC]</li>
+<li>Action 2. Update program counter: PC = PC + 4</li>
+</ul>
+<ol class="arabic simple">
+<li>Decode</li>
+</ol>
+<ul class="simple">
+<li>Action 3. Decode: Control unit decodes IR, then set data flow switch and ALU operation mode.</li>
+</ul>
+<ol class="arabic simple">
+<li>Execute</li>
+</ol>
+<ul class="simple">
+<li>Action 4. Execute: Data flow into ALU. After ALU done the operation, the result stored back into destination register.</li>
+</ul>
 </div>
 <div class="section" id="replace-ldi-instruction-by-addiu-instruction">
 <h3>Replace ldi instruction by addiu instruction<a class="headerlink" href="#replace-ldi-instruction-by-addiu-instruction" title="Permalink to this headline">¶</a></h3>
@@ -145,7 +154,7 @@ Action 2 update counter: PC = PC + 4</div></blockquote>
 </div>
 <div class="section" id="llvm-structure">
 <h2>LLVM structure<a class="headerlink" href="#llvm-structure" title="Permalink to this headline">¶</a></h2>
-<p>Following came from <a class="reference external" href="http://www.aosabook.org/en/llvm.html">http://www.aosabook.org/en/llvm.html</a>.</p>
+<p>Following came from <a class="reference external" href="http://www.aosabook.org/en/llvm.html">AOSA</a>.</p>
 <p>The most popular design for a traditional static compiler (like most C compilers) is the three phase design whose major components are the front end, the optimizer and the back end (Fig 2.6). The front end parses source code, checking it for errors, and builds a language-specific Abstract Syntax Tree (AST) to represent the input code. The AST is optionally converted to a new representation for optimization, and the optimizer and back end are run on the code.</p>
 <div class="figure align-center">
 <img alt="_images/Fig2_6.png" src="_images/Fig2_6.png" />
@@ -298,14 +307,14 @@ unsigned add2(unsigned a, unsigned b) {
   <span class="n">ZERO</span><span class="p">,</span> <span class="n">AT</span><span class="p">,</span> <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span> 
 </pre></div>
 </div>
-<p>In C++ the data layout is declared by class. Declare meaning tell the variable layout. The define meaning instance the variable (create the real variable). For example,</p>
+<p>In C++ the data layout is declared by class. Declaration tells the variable layout; definition allocates memory for the variable. For example,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Date</span> <span class="p">{</span>	<span class="c1">// declare Date</span>
     <span class="kt">int</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">;</span>
 <span class="p">};</span> 
 <span class="n">Date</span> <span class="n">date</span><span class="p">;</span>	<span class="c1">// define(instance) date</span>
 </pre></div>
 </div>
-<p>Just like C++ class, the keyword “class” is used for declaring data structure layout. Cpu0Reg&lt;string n&gt; declare a derived class from Register&lt;n&gt; which is declared by llvm already, and the n is the argument which type is string. In addition to Register class fields, Cpu0Reg add a new field Num of type 4 bits. Namespace same as  C++&#8217;s namespace. “Def” is used by define(instance) a concrete variable.</p>
+<p>Just like C++ class, the keyword “class” is used for declaring data structure layout. <tt class="docutils literal"><span class="pre">Cpu0Reg&lt;string</span> <span class="pre">n&gt;</span></tt> declare a derived clsas from <tt class="docutils literal"><span class="pre">Register&lt;n&gt;</span></tt> which is declared by llvm already, and the n is the argument which type is string. In addition to Register class fields, Cpu0Reg add a new field Num of type 4 bits. Namespace same as  C++&#8217;s namespace. “Def” is used by define(instance) a concrete variable.</p>
 <p>As above, we define a ZERO register which type is Cpu0GPRReg, it&#8217;s field Num is 0 (4 bits) and field n is “ZERO” (declared in Register class). Note the use of “let” expressions to override values that are initially defined in a superclass. For example, let Namespace = “Cpu0” in class Cpu0Reg of our example, will override Namespace declared in Register class. We also define CPURegs is a variable for type of RegisterClass, where the RegisterClass is llvm built-in class. The RegisterClass type is a set/group of Register, so we define a set of Register in CPURegs variable.</p>
 <p>I named the instructions td as Cpu0InstrInfo.td which contents as follows,</p>
 <div class="highlight-c++"><pre>/===- Cpu0InstrInfo.td - Target Description for Cpu0 Target -*- tablegen -*-=// 
@@ -791,8 +800,8 @@ required_libraries = CodeGen Core MC Cpu0Desc Cpu0Info SelectionDAG Support Targ
 add_to_library_groups = Cpu0 
 </pre>
 </div>
-<p>LLVMBuild.txt files are written in a simple variant of the INI or configuration file format. # is comment in both 2 files. I explain the setting for these 2 files in comments. Please spend a little time to read it.</p>
-<p>Both CMakeLists.txt and LLVMBuild.txt also exist in sub-directories MCTargetDesc and TargetInfo. Their contents indicate they will generate Cpu0Desc and Cpu0Info libraries. After build, you will find libLLVMCpu0CodeGen.a, libLLVMCpu0Desc .a and libLLVMCpu0Info .a 3 libraries in lib/ of your build directory. <a class="reference external" href="http://llvm.org/docs/CMake.html?highlight=cmake">http://llvm.org/docs/CMake.html?highlight=cmake</a> and <a class="reference external" href="http://llvm.org/docs/LLVMBuild.html">http://llvm.org/docs/LLVMBuild.html</a> are their web site.</p>
+<p>LLVMBuild.txt files are written in a simple variant of the INI or configuration file format. Comments are prefixed by <tt class="docutils literal"><span class="pre">#</span></tt> in both files. I explain the setting for these 2 files in comments. Please spend a little time to read it.</p>
+<p>Both CMakeLists.txt and LLVMBuild.txt coexist in sub-directories <tt class="docutils literal"><span class="pre">MCTargetDesc</span></tt> and <tt class="docutils literal"><span class="pre">TargetInfo</span></tt>. Their contents indicate they will generate Cpu0Desc and Cpu0Info libraries. After building, you will find three libraries: <tt class="docutils literal"><span class="pre">libLLVMCpu0CodeGen.a</span></tt>, <tt class="docutils literal"><span class="pre">libLLVMCpu0Desc.a</span></tt> and <tt class="docutils literal"><span class="pre">libLLVMCpu0Info.a</span></tt> in lib/ of your build directory. For more details please see <a class="reference external" href="http://llvm.org/docs/CMake.html">Building LLVM with CMake</a> and <a class="reference external" href="http://llvm.org/docs/LLVMBuild.html">LLVMBuild Guide</a>.</p>
 </div>
 <div class="section" id="target-registration">
 <h2>Target Registration<a class="headerlink" href="#target-registration" title="Permalink to this headline">¶</a></h2>
@@ -932,7 +941,7 @@ Aborted (core dumped)
       <div class="bottomnav">
       
         <p>
-        «&#160;&#160;<a href="install.html">Install llvm and Cpu0 example code</a>
+        «&#160;&#160;<a href="install.html">Getting Started: Installing LLVM and the Cpu0 example code</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
