@@ -1,0 +1,498 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Other instructions &mdash; Write An LLVM Backend Tutorial For Cpu0</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
+    <link rel="next" title="Global variable, struct and array" href="globalvar.html" />
+    <link rel="prev" title="Back end structure" href="backendstructure.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="index.html">
+          <span>Write An LLVM Backend Tutorial For Cpu0</span></a></h1>
+        <h2 class="heading"><span>Other instructions</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="backendstructure.html">Back end structure</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="globalvar.html">Global variable, struct and array</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="other-instructions">
+<h1>Other instructions<a class="headerlink" href="#other-instructions" title="Permalink to this headline">¶</a></h1>
+<p>I will add more cpu0 instructions support in this chapter. Begin from
+arithmetic instructions.
+Next, beyond assembly code generated which finished in last chapter, I add the
+obj file generated support in this chapter.</p>
+<div class="section" id="support-arithmetic-instructions">
+<h2>Support arithmetic instructions<a class="headerlink" href="#support-arithmetic-instructions" title="Permalink to this headline">¶</a></h2>
+<p>Run the 3/5/Cpu0 llc with input file ch4_1.bc will get the error as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch4_1.cpp</span>
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+        <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+        <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+        <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
+
+        <span class="k">return</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>clang -c ch4_1.cpp -emit-llvm -o ch4_1.bc
+<span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>llvm-dis ch4_1.bc -o ch4_1.ll
+<span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>cat ch4_1.ll
+; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch4_1.bc&#39;</span>
+target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:</span>
+<span class="s2">64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-</span>
+<span class="s2">n8:16:32:64-S128&quot;</span>
+target <span class="nv">triple</span> <span class="o">=</span> <span class="s2">&quot;x86_64-unknown-linux-gnu&quot;</span>
+
+define i32 @main<span class="o">()</span> nounwind uwtable <span class="o">{</span>
+  %1 <span class="o">=</span> alloca i32, align 4
+  %a <span class="o">=</span> alloca i32, align 4
+  %b <span class="o">=</span> alloca i32, align 4
+  %c <span class="o">=</span> alloca i32, align 4
+  store i32 0, i32* %1
+  store i32 5, i32* %a, align 4
+  store i32 2, i32* %b, align 4
+  store i32 0, i32* %c, align 4
+  %2 <span class="o">=</span> load i32* %a, align 4
+  %3 <span class="o">=</span> load i32* %b, align 4
+  %4 <span class="o">=</span> add nsw i32 %2, %3
+  store i32 %4, i32* %c, align 4
+  %5 <span class="o">=</span> load i32* %c, align 4
+  ret i32 %5
+<span class="o">}</span>
+<span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>/usr/local/llvm/3.1.test/cpu0/1/cmake_debug_build/bin/
+llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch4_1.bc -o ch4_1.cpu0.s
+LLVM ERROR: Cannot <span class="k">select</span>: 0x30da480: <span class="nv">i32</span> <span class="o">=</span> add 0x30da280, 0x30da380
+<span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>17<span class="o">]</span>
+  0x30da280: i32,ch <span class="o">=</span> load 0x30da180, 0x30d9b80, 0x30d9880&lt;LD4<span class="o">[</span>%a<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>5<span class="o">]</span>
+  <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>15<span class="o">]</span>
+        0x30d9b80: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;1&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>5<span class="o">]</span>
+        0x30d9880: <span class="nv">i32</span> <span class="o">=</span> undef <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>3<span class="o">]</span>
+  0x30da380: i32,ch <span class="o">=</span> load 0x30da180, 0x30d9e80, 0x30d9880&lt;LD4<span class="o">[</span>%b<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
+  <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>14<span class="o">]</span>
+        0x30d9e80: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;2&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>3<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>7<span class="o">]</span>
+        0x30d9880: <span class="nv">i32</span> <span class="o">=</span> undef <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>3<span class="o">]</span>
+</pre></div>
+</div>
+<p>This error say we have not instructions to translate IR DAG node add.
+The ADDiu instruction is defined for node add with operands of 1 register and 1
+immediate.
+This node add is for 2 registers.
+So, we append the following code to Cpu0InstrInfo.td and Cpu0Schedule.td in
+4/1/Cpu0,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0InstrInfo.td</span>
+<span class="c1">/// Arithmetic Instructions (3-Operand, R-Type)</span>
+<span class="n">def</span> <span class="n">CMP</span>    <span class="o">:</span> <span class="n">CmpInstr</span><span class="o">&lt;</span><span class="mh">0x10</span><span class="p">,</span> <span class="s">&quot;cmp&quot;</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">ADD</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x13</span><span class="p">,</span> <span class="s">&quot;add&quot;</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">SUB</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x14</span><span class="p">,</span> <span class="s">&quot;sub&quot;</span><span class="p">,</span> <span class="n">sub</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">MUL</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x15</span><span class="p">,</span> <span class="s">&quot;mul&quot;</span><span class="p">,</span> <span class="n">mul</span><span class="p">,</span> <span class="n">IIImul</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">DIV</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x16</span><span class="p">,</span> <span class="s">&quot;div&quot;</span><span class="p">,</span> <span class="n">sdiv</span><span class="p">,</span> <span class="n">IIIdiv</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">AND</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x18</span><span class="p">,</span> <span class="s">&quot;and&quot;</span><span class="p">,</span> <span class="n">and</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">OR</span>      <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x19</span><span class="p">,</span> <span class="s">&quot;or&quot;</span><span class="p">,</span> <span class="n">or</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">XOR</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x1A</span><span class="p">,</span> <span class="s">&quot;xor&quot;</span><span class="p">,</span> <span class="n">xor</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="c1">/// Shift Instructions</span>
+<span class="n">def</span> <span class="n">ROL</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x1C</span><span class="p">,</span> <span class="s">&quot;rol&quot;</span><span class="p">,</span> <span class="n">rotl</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">ROR</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x1D</span><span class="p">,</span> <span class="s">&quot;ror&quot;</span><span class="p">,</span> <span class="n">rotr</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">SHL</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x1E</span><span class="p">,</span> <span class="s">&quot;shl&quot;</span><span class="p">,</span> <span class="n">shl</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">SHR</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x1F</span><span class="p">,</span> <span class="s">&quot;shr&quot;</span><span class="p">,</span> <span class="n">sra</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="c1">// Cpu0Schedule.td</span>
+<span class="p">...</span>
+<span class="n">def</span> <span class="n">ALU</span>     <span class="o">:</span> <span class="n">FuncUnit</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">IMULDIV</span> <span class="o">:</span> <span class="n">FuncUnit</span><span class="p">;</span>
+
+<span class="c1">//===------------------------------------------------------------------===//</span>
+<span class="c1">// Instruction Itinerary classes used for Cpu0</span>
+<span class="c1">//===------------------------------------------------------------------===//</span>
+<span class="p">...</span>
+<span class="n">def</span> <span class="n">IIImul</span>             <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">IIIdiv</span>             <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
+
+<span class="n">def</span> <span class="n">IIPseudo</span>           <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
+
+<span class="c1">//===------------------------------------------------------------------===//</span>
+<span class="c1">// Cpu0 Generic instruction itineraries.</span>
+<span class="c1">//===------------------------------------------------------------------===//</span>
+<span class="c1">// http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html</span>
+<span class="n">def</span> <span class="n">Cpu0GenericItineraries</span> <span class="o">:</span> <span class="n">ProcessorItineraries</span><span class="o">&lt;</span><span class="p">[</span><span class="n">ALU</span><span class="p">,</span> <span class="n">IMULDIV</span><span class="p">],</span> <span class="p">[],</span> <span class="p">[</span>
+<span class="p">...</span>
+  <span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">IIImul</span>             <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">17</span><span class="p">,</span> <span class="p">[</span><span class="n">IMULDIV</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">IIIdiv</span>             <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">38</span><span class="p">,</span> <span class="p">[</span><span class="n">IMULDIV</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span>
+<span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>In RISC CPU like Mips, the multiply/divide function unit and add/sub/logic unit
+are designed from two different hardware circuits, and more, their data path is
+separate.
+So, these two function units can be executed at same time (instruction level
+parallelism).</p>
+<p>Now, let&#8217;s build 4/1/Cpu0 and run with input file ch4_2.cpp.
+This version can process <strong>+, -, *, /, &amp;, |, ^, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong> operators in C
+language.
+The corresponding llvm IR instructions are <strong>add, sub, mul, sdiv, and, or, xor,
+shl, ashr</strong>.
+IR instruction <strong>sdiv</strong> stand for signed div while <strong>udiv</strong> is for unsigned div.
+The <strong>&#8216;ashr&#8217;</strong> instruction (arithmetic shift right) returns the first operand
+shifted to the right a specified number of bits with sign extension.
+In brief, we call <em>ashr*</em> is “shift with sign extension fill”.</p>
+<div class="code highlight-c++"><div class="highlight"><pre><span class="nl">Example:</span>
+  <span class="o">&lt;</span><span class="n">result</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ashr</span> <span class="n">i32</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span>   <span class="p">;</span> <span class="n">yields</span> <span class="p">{</span><span class="n">i32</span><span class="p">}</span><span class="o">:</span><span class="n">result</span> <span class="o">=</span> <span class="mi">2</span>
+  <span class="o">&lt;</span><span class="n">result</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ashr</span> <span class="n">i8</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span>   <span class="p">;</span> <span class="n">yields</span> <span class="p">{</span><span class="n">i8</span><span class="p">}</span><span class="o">:</span><span class="n">result</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+  <span class="o">&lt;</span><span class="n">result</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ashr</span> <span class="n">i32</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">32</span>  <span class="p">;</span> <span class="n">undefined</span>
+</pre></div>
+</div>
+<p>The C operator &gt;&gt; for negative operand is dependent on implementation.
+Most compiler translate it into “shift with sign extension fill”, for example,
+Mips <strong>sra</strong> is the instruction.
+Following is the Micosoft web site explanation,</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>&gt;&gt;, Microsoft Specific</p>
+<p class="last">The result of a right shift of a signed negative quantity is implementation
+dependent.
+Although Microsoft C++ propagates the most-significant bit to fill vacated
+bit positions, there is no guarantee that other implementations will do
+likewise.</p>
+</div>
+<p>In addition to <strong>ashr</strong>, the other instruction “shift with zero filled”
+<strong>lshr</strong> in llvm (Mips implement lshr with instruction <strong>srl</strong>) has the
+following meaning.</p>
+<div class="code highlight-c++"><div class="highlight"><pre><span class="nl">Example:</span>
+<span class="o">&lt;</span><span class="n">result</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">lshr</span> <span class="n">i8</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span>   <span class="p">;</span> <span class="n">yields</span> <span class="p">{</span><span class="n">i8</span><span class="p">}</span><span class="o">:</span><span class="n">result</span> <span class="o">=</span> <span class="mh">0x7FFFFFFF</span>
+</pre></div>
+</div>
+<p>In llvm, IR node <strong>sra</strong> is defined for ashr IR instruction, node <strong>srl</strong> is
+defined for lshr instruction (I don&#8217;t know why don&#8217;t use ashr and lshr as the
+IR node name directly).
+I assume Cpu0 shr instruction is “shift with zero filled”, and define it with
+IR DAG node srl.
+But at that way, Cpu0 will fail to compile x &gt;&gt; 1 in case of x is signed
+integer because clang and most compilers translate it into ashr, which meaning
+“shift with sign extension fill”.
+Similarly, Cpu0 div instruction, has the same problem. I assume Cpu0 div
+instruction is for sdiv which can take care both positive and negative integer,
+but it will fail for divide operation “/ “on unsigned integer operand in C.</p>
+<p>If we consider the x &gt;&gt; 1 definition is x = x/2.
+In case of x is unsigned int, range x is 0 ~ 4G-1 (0 ~ 0xFFFFFFFF) in 32 bits
+register, implement shift &gt;&gt; 1 by “shift with zero filled” is correct and
+satisfy the definition x = x/2, but “shift with sign extension fill” is not
+correct for range 2G ~ 4G-1.
+In case of x is signed int, range x is -2G ~ 2G-1, implement x &gt;&gt; 1 by “shift
+with sign extension fill” is correct for the definition,
+but “shift with zero filled” is not correct for range x is -2G ~ -1.
+So, if x = x/2 is definition for x &gt;&gt; 1, in order to satisfy the definition in
+both unsigned and signed integer of x, we need those two instructions,
+“shift with zero filled” and “shift with sign extension fill”.</p>
+<p>Again, consider the x &lt;&lt; 1 definition is x = x*2.
+We apply the x &lt;&lt; 1 with “shift 1 bit to left and fill the least bit with 0”.
+In case of x is unsigned int, x &lt;&lt; 1 satisfy the definition in range 0 ~ 2G-1,
+and x is overflow when x &gt; 2G-1 (no need to care what the register value is
+because overflow). In case of x is signed int, x &lt;&lt; 1 is correct for -1G ~
+1G-1; and x is overflow for -2G ~ -1G-1 or 1G ~ 2G-1.
+So, implementation by “shift 1bit to left and fill the least bit with 0”
+satisfy the definition x = x*2 for x &lt;&lt; 1, no matter operand x is signed or
+unsigned int.</p>
+<p>References as follows,</p>
+<p><a class="reference external" href="http://msdn.microsoft.com/en-us/library/336xbhcz%28v=vs.80%29.aspx">http://msdn.microsoft.com/en-us/library/336xbhcz%28v=vs.80%29.aspx</a></p>
+<p><a class="reference external" href="http://llvm.org/docs/LangRef.html#i_ashr">http://llvm.org/docs/LangRef.html#i_ashr</a></p>
+<p><a class="reference external" href="http://llvm.org/docs/LangRef.html#i_lshr">http://llvm.org/docs/LangRef.html#i_lshr</a></p>
+<p>The 4/1 version just add 40 lines code in td files.
+With these 40 lines code, it process 9 operators more for C language and their
+corresponding llvm IR instructions.
+The arithmetic instructions are easy to implement by add the definition in td
+file only.</p>
+</div>
+<div class="section" id="translate-into-obj-file">
+<h2>Translate into obj file<a class="headerlink" href="#translate-into-obj-file" title="Permalink to this headline">¶</a></h2>
+<p>Currently, we only support translate llvm IR code into assembly code.
+If you try to run 4/1/Cpu0 to translate obj code will get the error message as
+follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>/usr/local/llvm/3.1.test/cpu0/1/cmake_debug_build/bin/
+llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch4_2.bc -o ch4_2.cpu0.o
+/usr/local/llvm/3.1.test/cpu0/1/cmake_debug_build/bin/llc: target does not
+support generation of this file <span class="nb">type</span>!
+</pre></div>
+</div>
+<p>The 4/2/Cpu0 support obj file generated.
+It can get result for big endian and little endian with command
+“llc -march=cpu0” and “llc -march=cpu0el”.
+Run it will get the obj files as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>cat ch3_2.cpu0.s
+...
+        .set    nomacro
+<span class="c"># BB#0:</span>
+        addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -72
+        addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+        st      <span class="nv">$2</span>, 68<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+        addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, 5
+        st      <span class="nv">$3</span>, 64<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+...
+
+<span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>/usr/local/llvm/3.1.test/cpu0/1/cmake_debug_build/bin/
+llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch4_2.bc -o ch4_2.cpu0.o
+<span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>objdump -s ch4_2.cpu0.o
+
+ch4_2.cpu0.o:     file format elf32-big
+
+Contents of section .text:
+ 0000 09d0ffb8 09200000 012d0044 09300005  ..... ...-.D.0..
+ 0010 013d0040 09300002 013d003c 012d0038  .<span class="o">=</span>.@.0...<span class="o">=</span>.&lt;.-.8
+ 0020 012d0034 012d0014 0930fffb 013d0010  .-.4.-...0...<span class="o">=</span>..
+ 0030 012d000c 012d0008 002d003c 003d0040  .-...-...-.&lt;.<span class="o">=</span>.@
+ 0040 13232000 012d0038 002d003c 003d0040  .# ..-.8.-.&lt;.<span class="o">=</span>.@
+ 0050 14232000 012d0034 002d003c 003d0040  .# ..-.4.-.&lt;.<span class="o">=</span>.@
+ 0060 15232000 012d0030 002d003c 003d0040  .# ..-.0.-.&lt;.<span class="o">=</span>.@
+ 0070 16232000 012d002c 002d003c 003d0040  .# ..-.,.-.&lt;.<span class="o">=</span>.@
+ 0080 18232000 012d0028 002d003c 003d0040  .# ..-.<span class="o">(</span>.-.&lt;.<span class="o">=</span>.@
+ 0090 19232000 012d0024 002d003c 003d0040  .# ..-.<span class="nv">$.</span>-.&lt;.<span class="o">=</span>.@
+ 00a0 1a232000 012d0020 002d0040 1e220002  .# ..-. .-.@.<span class="s2">&quot;..</span>
+<span class="s2"> 00b0 012d001c 002d0010 1e220002 012d0004  .-...-...&quot;</span>...-..
+ 00c0 002d0010 1f220002 012d000c 09d00048  .-...<span class="s2">&quot;...-.....H</span>
+<span class="s2"> 00d0 2c00000e                                                     ,...</span>
+<span class="s2">Contents of section .eh_frame:</span>
+<span class="s2"> 0000 00000010 00000000 017a5200 017c0e01  .........zR..|..</span>
+<span class="s2"> 0010 000c0d00 00000010 00000018 00000000  ................</span>
+<span class="s2"> 0020 000000d4 00440e48                                    .....D.H</span>
+<span class="s2">[Gamma@localhost InputFiles]$ /usr/local/llvm/3.1.test/cpu0/1/</span>
+<span class="s2">cmake_debug_build/bin/llc -march=cpu0el -relocation-model=pic -filetype=obj</span>
+<span class="s2">ch4_2.bc -o ch4_2.cpu0el.o</span>
+<span class="s2">[Gamma@localhost InputFiles]$ objdump -s ch4_2.cpu0el.o</span>
+
+<span class="s2">ch4_2.cpu0el.o:     file format elf32-little</span>
+
+<span class="s2">Contents of section .text:</span>
+<span class="s2"> 0000 b8ffd009 00002009 44002d01 05003009  ...... .D.-...0.</span>
+<span class="s2"> 0010 40003d01 02003009 3c003d01 38002d01  @.=...0.&lt;.=.8.-.</span>
+<span class="s2"> 0020 34002d01 14002d01 fbff3009 10003d01  4.-...-...0...=.</span>
+<span class="s2"> 0030 0c002d01 08002d01 3c002d00 40003d00  ..-...-.&lt;.-.@.=.</span>
+<span class="s2"> 0040 00202313 38002d01 3c002d00 40003d00  . #.8.-.&lt;.-.@.=.</span>
+<span class="s2"> 0050 00202314 34002d01 3c002d00 40003d00  . #.4.-.&lt;.-.@.=.</span>
+<span class="s2"> 0060 00202315 30002d01 3c002d00 40003d00  . #.0.-.&lt;.-.@.=.</span>
+<span class="s2"> 0070 00202316 2c002d01 3c002d00 40003d00  . #.,.-.&lt;.-.@.=.</span>
+<span class="s2"> 0080 00202318 28002d01 3c002d00 40003d00  . #.(.-.&lt;.-.@.=.</span>
+<span class="s2"> 0090 00202319 24002d01 3c002d00 40003d00  . #.$.-.&lt;.-.@.=.</span>
+<span class="s2"> 00a0 0020231a 20002d01 40002d00 0200221e  . #. .-.@.-...&quot;</span>.
+ 00b0 1c002d01 10002d00 0200221e 04002d01  ..-...-...<span class="s2">&quot;...-.</span>
+<span class="s2"> 00c0 10002d00 0200221f 0c002d01 4800d009  ..-...&quot;</span>...-.H...
+ 00d0 0e00002c                                                     ...,
+Contents of section .eh_frame:
+ 0000 10000000 00000000 017a5200 017c0e01  .........zR..|..
+ 0010 000c0d00 10000000 18000000 00000000  ................
+ 0020 d4000000 00440e48                                    .....D.H
+</pre></div>
+</div>
+<p>The first instruction is “addiu  $sp, -72” and it&#8217;s corresponding obj is
+0x09d0ffb8.
+The addiu opcode is 0x09, 8 bits, $sp register number is 13(0xd), 4bits, second
+register is useless, so assign it to 0x0, and the immediate is 16 bits
+-72(=0xffb8), so it&#8217;s correct.
+The third instruction “st  $2, 68($sp) ”  and it&#8217;s and it&#8217;s corresponding obj
+is 0x012d0044. The st opcode is 0x0a, $2 is 0x2, $sp is 0xd and immediate is
+68(0x0044).
+Thanks to cpu0 instruction format which opcode, register operand and
+offset(imediate value) size are multiple of 4 bits.
+The obj format is easy to check by eye.
+The big endian (B0, B1, B2, B3) = (09, d0, ff, b8), objdump from B0 to B3 as
+0x09d0ffb8 and the little endian is (B3, B2, B1, B0) = (09, d0, ff, b8),
+objdump from B0 to B3 as 0xb8ffd009.
+Now, let&#8217;s examine Cpu0MCTargetDesc.cpp.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0MCTargetDesc.cpp</span>
+<span class="p">...</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0TargetMC</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// Register the MC asm info.</span>
+  <span class="n">RegisterMCAsmInfoFn</span> <span class="n">X</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCAsmInfo</span><span class="p">);</span>
+  <span class="n">RegisterMCAsmInfoFn</span> <span class="n">Y</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCAsmInfo</span><span class="p">);</span>
+
+  <span class="c1">// Register the MC codegen info.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeGenInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                    <span class="n">createCpu0MCCodeGenInfo</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeGenInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                    <span class="n">createCpu0MCCodeGenInfo</span><span class="p">);</span>
+  <span class="c1">// Register the MC instruction info.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstrInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCInstrInfo</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstrInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCInstrInfo</span><span class="p">);</span>
+
+  <span class="c1">// Register the MC register info.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCRegInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCRegisterInfo</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCRegInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCRegisterInfo</span><span class="p">);</span>
+  <span class="c1">// Register the MC Code Emitter</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                    <span class="n">createCpu0MCCodeEmitterEB</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                    <span class="n">createCpu0MCCodeEmitterEL</span><span class="p">);</span>
+
+  <span class="c1">// Register the object streamer.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCObjectStreamer</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createMCStreamer</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCObjectStreamer</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createMCStreamer</span><span class="p">);</span>
+  <span class="c1">// Register the asm backend.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                   <span class="n">createCpu0AsmBackendEB32</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                   <span class="n">createCpu0AsmBackendEL32</span><span class="p">);</span>
+  <span class="c1">// Register the MC subtarget info.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCSubtargetInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                      <span class="n">createCpu0MCSubtargetInfo</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCSubtargetInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                      <span class="n">createCpu0MCSubtargetInfo</span><span class="p">);</span>
+  <span class="c1">// Register the MCInstPrinter.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstPrinter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                    <span class="n">createCpu0MCInstPrinter</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstPrinter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                    <span class="n">createCpu0MCInstPrinter</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Cpu0MCTargetDesc.cpp do the target registration as mentioned in section Target
+Registration of the last chapter.
+I draw the register function and those class it registered in
+<a class="reference internal" href="#otherinst-f1"><em>Register Cpu0MCAsmInfo</em></a> to <a class="reference internal" href="#otherinst-f9"><em>Register Cpu0InstPrinter</em></a> for explanation.</p>
+<div class="figure align-center" id="otherinst-f1">
+<a class="reference internal image-reference" href="_images/113.png"><img alt="_images/113.png" src="_images/113.png" style="width: 731.0px; height: 634.0px;" /></a>
+<p class="caption">Register Cpu0MCAsmInfo</p>
+</div>
+<div class="figure align-center" id="otherinst-f2">
+<a class="reference internal image-reference" href="_images/29.png"><img alt="_images/29.png" src="_images/29.png" style="width: 685.0px; height: 450.0px;" /></a>
+<p class="caption">Register MCCodeGenInfo</p>
+</div>
+<div class="figure align-center" id="otherinst-f3">
+<a class="reference internal image-reference" href="_images/35.png"><img alt="_images/35.png" src="_images/35.png" style="width: 606.0px; height: 313.0px;" /></a>
+<p class="caption">Register MCInstrInfo</p>
+</div>
+<div class="figure align-center" id="otherinst-f4">
+<a class="reference internal image-reference" href="_images/44.png"><img alt="_images/44.png" src="_images/44.png" style="width: 615.0px; height: 678.0px;" /></a>
+<p class="caption">Register MCRegisterInfo</p>
+</div>
+<div class="figure align-center" id="otherinst-f5">
+<a class="reference internal image-reference" href="_images/53.png"><img alt="_images/53.png" src="_images/53.png" style="width: 750.0px; height: 635.0px;" /></a>
+<p class="caption">Register Cpu0MCCodeEmitter</p>
+</div>
+<div class="figure align-center" id="otherinst-f6">
+<a class="reference internal image-reference" href="_images/63.png"><img alt="_images/63.png" src="_images/63.png" style="width: 776.0px; height: 617.0px;" /></a>
+<p class="caption">Register MCELFStreamer</p>
+</div>
+<div class="figure align-center" id="otherinst-f7">
+<a class="reference internal image-reference" href="_images/73.png"><img alt="_images/73.png" src="_images/73.png" style="width: 810.0px; height: 570.0px;" /></a>
+<p class="caption">Register Cpu0AsmBackend</p>
+</div>
+<div class="figure align-center" id="otherinst-f8">
+<a class="reference internal image-reference" href="_images/83.png"><img alt="_images/83.png" src="_images/83.png" style="width: 621.0px; height: 483.0px;" /></a>
+<p class="caption">Register Cpu0MCSubtargetInfo</p>
+</div>
+<div class="figure align-center" id="otherinst-f9">
+<a class="reference internal image-reference" href="_images/92.png"><img alt="_images/92.png" src="_images/92.png" style="width: 794.0px; height: 569.0px;" /></a>
+<p class="caption">Register Cpu0InstPrinter</p>
+</div>
+<div class="figure align-center" id="otherinst-f10">
+<a class="reference internal image-reference" href="_images/101.png"><img alt="_images/101.png" src="_images/101.png" style="width: 783.0px; height: 596.0px;" /></a>
+<p class="caption">MCELFStreamer inherit tree</p>
+</div>
+<p>In <a class="reference internal" href="#otherinst-f1"><em>Register Cpu0MCAsmInfo</em></a>, we register the object of class Cpu0AsmInfo for target
+TheCpu0Target and TheCpu0elTarget.
+TheCpu0Target is for big endian and TheCpu0elTarget is for little endian.
+Cpu0AsmInfo is derived from MCAsmInfo which is llvm built-in class.
+Most code is implemented in it&#8217;s parent, back end reuse those code by inherit.</p>
+<p>In <a class="reference internal" href="#otherinst-f2"><em>Register MCCodeGenInfo</em></a>, we instance MCCodeGenInfo, and initialize it by pass
+Roloc::PIC because we use command “llc -relocation-model=pic” to tell llc
+compile using position-independent code mode.
+Recall the addressing mode in system program book has two mode, one is PIC
+mode, the other is absolute addressing mode.
+MC stand for Machine Code.</p>
+<p>In <a class="reference internal" href="#otherinst-f3"><em>Register MCInstrInfo</em></a>, we instance MCInstrInfo object X, and initialize it by
+InitCpu0MCInstrInfo(X).
+Since InitCpu0MCInstrInfo(X) is defined in Cpu0GenInstrInfo.inc, it will add
+the information fromCpu0InstrInfo.td we specified.
+<a class="reference internal" href="#otherinst-f4"><em>Register MCRegisterInfo</em></a> is similar to <a class="reference internal" href="#otherinst-f3"><em>Register MCInstrInfo</em></a>, but it initialize the
+register information specified in Cpu0RegisterInfo.td.
+They share a lot of code with instruction/register td description.</p>
+<p><a class="reference internal" href="#otherinst-f5"><em>Register Cpu0MCCodeEmitter</em></a>, we instance two objects Cpu0MCCodeEmitter, one is for big
+endian and the other is for little endian.
+They take care the obj format generated.
+So, it&#8217;s not defined in 4/1/Cpu0 which support assembly code only.</p>
+<p><a class="reference internal" href="#otherinst-f6"><em>Register MCELFStreamer</em></a>, MCELFStreamer take care the obj format also.
+<a class="reference internal" href="#otherinst-f5"><em>Register Cpu0MCCodeEmitter</em></a> Cpu0MCCodeEmitter take care code emitter while
+MCELFStreamer take care the obj output streamer.
+<a class="reference internal" href="#otherinst-f10"><em>MCELFStreamer inherit tree</em></a> is MCELFStreamer inherit tree.
+You can find a lot of operations in that inherit tree.</p>
+<p>Reader maybe has the question for what are the actual arguments in
+createCpu0MCCodeEmitterEB(const MCInstrInfo &amp;MCII,  const MCSubtargetInfo &amp;STI,
+MCContext &amp;Ctx) and at when they are assigned.
+Yes, we didn&#8217;t assign it, we register the createXXX() function by function
+pointer only (according C, TargetRegistry::RegisterXXX(TheCpu0Target,
+createXXX()) where createXXX is function pointer).
+LLVM keep a function pointer to createXXX() when we call target registry, and
+will call these createXXX() function back at proper time with arguments
+assigned during the target registration process, RegisterXXX().</p>
+<p><a class="reference internal" href="#otherinst-f7"><em>Register Cpu0AsmBackend</em></a>, Cpu0AsmBackend class is the bridge for asm to obj.
+Two objects take care big endian and little endian also.
+It derived from MCAsmBackend.
+Most of code for object file generated is implemented by MCELFStreamer and it&#8217;s
+parent.</p>
+<p><a class="reference internal" href="#otherinst-f8"><em>Register Cpu0MCSubtargetInfo</em></a>, instance MCSubtargetInfo object and initialize with
+Cpu0.td information.
+<a class="reference internal" href="#otherinst-f9"><em>Register Cpu0InstPrinter</em></a>, instance Cpu0InstPrinter to take care printing function
+for instructions.
+Like <a class="reference internal" href="#otherinst-f1"><em>Register Cpu0MCAsmInfo</em></a> to <a class="reference internal" href="#otherinst-f4"><em>Register MCRegisterInfo</em></a>, it has been defined in
+4/1/Cpu0 code for assembly file generated support.</p>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="backendstructure.html">Back end structure</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="globalvar.html">Global variable, struct and array</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, LLVM.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
