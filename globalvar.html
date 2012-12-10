@@ -1,0 +1,1770 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Global variable, struct and array &mdash; Write An LLVM Backend Tutorial For Cpu0</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.1.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
+    <link rel="next" title="Control flow statement" href="ctrlflow.html" />
+    <link rel="prev" title="Other instructions" href="otherinst.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="index.html">
+          <span>Write An LLVM Backend Tutorial For Cpu0</span></a></h1>
+        <h2 class="heading"><span>Global variable, struct and array</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="otherinst.html">Other instructions</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="ctrlflow.html">Control flow statement</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="global-variable-struct-and-array">
+<h1>Global variable, struct and array<a class="headerlink" href="#global-variable-struct-and-array" title="Permalink to this headline">¶</a></h1>
+<p>In the previous two chapter, we only access the local variables.
+Now, we begin from global variable access translation for cpu0 instruction in
+this chapter. After that, we introduce struct and array type of variable access
+and their corresponding llvm IR statement, and cpu0 how to translate these
+llvm IR statements in <a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#array-and-struct-support">section Array and struct support</a>.
+The logic operation “not” support and translation in
+<a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#operator-not">section Operator “not” !</a>. The <a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#display-llvm-ir-nodes-with-graphviz">section Display llvm IR nodes with graphviz</a>
+will show you the DAG optimization steps and their corresponding llc display
+options.
+These DAG optimization steps result can be viewed by Graphviz graphic tool
+which display very useful information by graphic view.
+You will appreciate Graphviz support in debug, we think.
+Next, we adjust cpu0 instructions to support data type for C language in
+<a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#adjust-cpu0-instruction-and-support-type-of-local-variable-pointer">section Adjust cpu0 instruction and support type of local variable pointer</a>.
+Finally, <a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#operator-mod">section Operator mod, %</a> to take care the C operator %.</p>
+<div class="section" id="global-variable">
+<h2>Global variable<a class="headerlink" href="#global-variable" title="Permalink to this headline">¶</a></h2>
+<p>5/1/Cpu0 support the global variable, let&#8217;s compile ch5_1.cpp with this version
+first, and explain the code changes after that.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch5_1.cpp</span>
+<span class="kt">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="n">c</span> <span class="o">=</span> <span class="n">gI</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>llvm-dis ch5_1.bc -o ch5_1.ll
+<span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>cat ch5_1.ll
+; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch5_1.bc&#39;</span>
+target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:</span>
+<span class="s2">64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-</span>
+<span class="s2">n8:16:32:64-S128&quot;</span>
+target <span class="nv">triple</span> <span class="o">=</span> <span class="s2">&quot;x86_64-unknown-linux-gnu&quot;</span>
+
+@gI <span class="o">=</span> global i32 100, align 4
+
+define i32 @main<span class="o">()</span> nounwind uwtable <span class="o">{</span>
+  %1 <span class="o">=</span> alloca i32, align 4
+  %c <span class="o">=</span> alloca i32, align 4
+  store i32 0, i32* %1
+  store i32 0, i32* %c, align 4
+  %2 <span class="o">=</span> load i32* @gI, align 4
+  store i32 %2, i32* %c, align 4
+  %3 <span class="o">=</span> load i32* %c, align 4
+  ret i32 %3
+<span class="o">}</span>
+
+<span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>/usr/local/llvm/3.1.test/cpu0/1/
+cmake_debug_build/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
+ch5_1.bc -o ch5_1.cpu0.s
+<span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>cat ch5_1.cpu0.s
+    .section .mdebug.abi32
+    .previous
+    .file   <span class="s2">&quot;ch5_1.bc&quot;</span>
+    .text
+    .globl  main
+    .align  2
+    .type   main,@function
+    .ent    main                    <span class="c"># @main</span>
+main:
+    .frame  <span class="nv">$sp</span>,8,<span class="nv">$lr</span>
+    .mask   0x00000000,0
+    .set    noreorder
+    .cpload <span class="nv">$t9</span>
+    .set    nomacro
+<span class="c"># BB#0:                                 # %entry</span>
+    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -8
+    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+    st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    lw  <span class="nv">$2</span>, %got<span class="o">(</span>gI<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
+    lw  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+    st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 8
+    ret <span class="nv">$lr</span>
+    .set    macro
+    .set    reorder
+    .end    main
+<span class="nv">$tmp1</span>:
+    .size   main, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-main
+
+    .type   gI,@object              <span class="c"># @gI</span>
+    .data
+    .globl  gI
+    .align  2
+gI:
+    .4byte  100                     <span class="c"># 0x64</span>
+    .size   gI, 4
+</pre></div>
+</div>
+<p>As above code, it translate “load i32* &#64;gI, align 4” into “lw  $2, %got(gI)($gp)
+” for  llc -march=cpu0 -relocation-model=pic, position-independent mode.
+It translate the global integer variable gI address into offset of register gp
+and load from $gp+(the offset) into register $2.
+We can translate it with absolute address mode by following command,</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>/usr/local/llvm/3.1.test/cpu0/1/
+cmake_debug_build/bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>
+asm ch5_1.bc -o ch5_1.cpu0.static.s
+<span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>cat ch5_1.cpu0.static.s
+    ...
+    ldi <span class="nv">$2</span>, %hi<span class="o">(</span>gI<span class="o">)</span>
+    shl <span class="nv">$2</span>, <span class="nv">$2</span>, 16
+    ldi <span class="nv">$3</span>, %lo<span class="o">(</span>gI<span class="o">)</span>
+    add <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+    lw  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>Above code, it load the high address part of gI absolute address (16 bits) to
+register $2 and shift 16 bits.
+Now, the register $2 got it&#8217;s high part of gI absolute address.
+Next, it load the low part of gI absolute address into register 3.
+Finally, add register $2 and $3 into $2, and load the content of address
+$2+offset 0 into register $2.
+The “llc -relocation-model=static “ is for static link mode which binding the
+address in static, compile/link time, not dynamic/run time.
+Except this, you can translate code with following command,</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>/usr/local/llvm/3.1.test/cpu0/1/cmake_debug_build/
+bin/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -cpu0-islinux-format<span class="o">=</span><span class="nb">false</span>
+-filetype<span class="o">=</span>asm ch5_1.bc -o ch5_1.cpu0.islinux-format-false.s
+<span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>cat ch5_1.cpu0.islinux-format-false.s
+...
+st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+ldi <span class="nv">$2</span>, %gp_rel<span class="o">(</span>gI<span class="o">)</span>
+add <span class="nv">$2</span>, <span class="nv">$gp</span>, <span class="nv">$2</span>
+lw  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+...
+.section    .sdata,<span class="s2">&quot;aw&quot;</span>,@progbits
+.globl  gI
+</pre></div>
+</div>
+<p>As above, it translate code with “llc -relocation-model=static
+-cpu0-islinux-format=false”.
+The -cpu0-islinux-format default is true which will allocate global variables
+in data section.
+With false, it will allocate global variables in sdata section.
+Section data and sdata are areas for global variable with initial value,
+int gI = 100 in this example.
+Section bss and sbss are areas for global variables without initial value
+(for example, int gI;).
+Allocate variables in sdata or sbss sections is addressable by 16 bits + $gp.
+The static mode with -cpu0-islinux-format=false is still static mode
+(variable binding in compile/link time) even it&#8217;s use $gp relative address.
+The $gp content is assigned in compile/link time, change only in program be
+loaded, and is fixed during run the program while the -relocation-model=pic
+the $gp can be changed during program running.
+For example, if $gp is assigned to start of .sdata like this example, then
+%gp_rel(gI) = (the relative address distance between gI and $gp) (is 0 in this
+case).
+When sdata is loaded into address x, then the gI variable can be got from
+address x+0 where x is the address stored in $gp, 0 is $gp_rel(gI).</p>
+<p>To support global variable, first add IsLinuxOpt command variable to
+Cpu0Subtarget.cpp.
+After that, user can run llc with argument “llc -cpu0-islinux-format=false” to
+specify IsLinuxOpt to false.
+The IsLinuxOpt is default to true if without specify it.
+About the cl command, you can refer to <a class="reference external" href="http://llvm.org/docs/CommandLine.html">http://llvm.org/docs/CommandLine.html</a>
+further.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0Subtarget.cpp</span>
+<span class="k">static</span> <span class="n">cl</span><span class="o">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span>
+<span class="n">IsLinuxOpt</span><span class="p">(</span><span class="s">&quot;cpu0-islinux-format&quot;</span><span class="p">,</span> <span class="n">cl</span><span class="o">::</span><span class="n">Hidden</span><span class="p">,</span> <span class="n">cl</span><span class="o">::</span><span class="n">init</span><span class="p">(</span><span class="kc">true</span><span class="p">),</span>
+                 <span class="n">cl</span><span class="o">::</span><span class="n">desc</span><span class="p">(</span><span class="s">&quot;Always use linux format.&quot;</span><span class="p">));</span>
+
+    <span class="n">Next</span> <span class="n">add</span> <span class="n">the</span> <span class="n">following</span> <span class="n">code</span> <span class="n">to</span> <span class="n">Cpu0ISelLowering</span><span class="p">.</span><span class="n">cpp</span><span class="p">.</span>
+<span class="c1">//  Cpu0ISelLowering.cpp</span>
+<span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
+  <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">Cpu0TargetObjectFile</span><span class="p">()),</span>
+    <span class="n">Subtarget</span><span class="p">(</span><span class="o">&amp;</span><span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">())</span> <span class="p">{</span>
+   <span class="p">...</span>
+  <span class="c1">// Cpu0 Custom Operations</span>
+  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">GlobalAddress</span><span class="p">,</span>      <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span>   <span class="n">Custom</span><span class="p">);</span>
+   <span class="p">...</span>
+<span class="p">}</span>
+<span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">LowerOperation</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span>
+<span class="p">{</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">Op</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">())</span>
+  <span class="p">{</span>
+    <span class="k">case</span> <span class="n">ISD</span><span class="o">::</span><span class="nl">GlobalAddress:</span>      <span class="k">return</span> <span class="n">LowerGlobalAddress</span><span class="p">(</span><span class="n">Op</span><span class="p">,</span> <span class="n">DAG</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">SDValue</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//  Lower helper functions</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//  Misc Lower Operation implementation</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerGlobalAddress</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span>
+                                               <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="c1">// FIXME there isn&#39;t actually debug info here</span>
+  <span class="n">DebugLoc</span> <span class="n">dl</span> <span class="o">=</span> <span class="n">Op</span><span class="p">.</span><span class="n">getDebugLoc</span><span class="p">();</span>
+  <span class="k">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">GV</span> <span class="o">=</span> <span class="n">cast</span><span class="o">&lt;</span><span class="n">GlobalAddressSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Op</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">getGlobal</span><span class="p">();</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">getTargetMachine</span><span class="p">().</span><span class="n">getRelocationModel</span><span class="p">()</span> <span class="o">!=</span> <span class="n">Reloc</span><span class="o">::</span><span class="n">PIC_</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">SDVTList</span> <span class="n">VTs</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getVTList</span><span class="p">(</span><span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">);</span>
+
+    <span class="n">Cpu0TargetObjectFile</span> <span class="o">&amp;</span><span class="n">TLOF</span> <span class="o">=</span> <span class="p">(</span><span class="n">Cpu0TargetObjectFile</span><span class="o">&amp;</span><span class="p">)</span><span class="n">getObjFileLowering</span><span class="p">();</span>
+
+    <span class="c1">// %gp_rel relocation</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">TLOF</span><span class="p">.</span><span class="n">IsGlobalInSmallSection</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">getTargetMachine</span><span class="p">()))</span> <span class="p">{</span>
+      <span class="n">SDValue</span> <span class="n">GA</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+                                              <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_GPREL</span><span class="p">);</span>
+      <span class="n">SDValue</span> <span class="n">GPRelNode</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">GPRel</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VTs</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">GA</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+      <span class="n">SDValue</span> <span class="n">GOT</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getGLOBAL_OFFSET_TABLE</span><span class="p">(</span><span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">);</span>
+      <span class="k">return</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">GOT</span><span class="p">,</span> <span class="n">GPRelNode</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="c1">// %hi/%lo relocation</span>
+    <span class="n">SDValue</span> <span class="n">GAHi</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+                                              <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_ABS_HI</span><span class="p">);</span>
+    <span class="n">SDValue</span> <span class="n">GALo</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+                                              <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_ABS_LO</span><span class="p">);</span>
+    <span class="n">SDValue</span> <span class="n">HiPart</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Hi</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VTs</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">GAHi</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">SDValue</span> <span class="n">Lo</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Lo</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">GALo</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">HiPart</span><span class="p">,</span> <span class="n">Lo</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="n">EVT</span> <span class="n">ValTy</span> <span class="o">=</span> <span class="n">Op</span><span class="p">.</span><span class="n">getValueType</span><span class="p">();</span>
+  <span class="kt">bool</span> <span class="n">HasGotOfst</span> <span class="o">=</span> <span class="p">(</span><span class="n">GV</span><span class="o">-&gt;</span><span class="n">hasInternalLinkage</span><span class="p">()</span> <span class="o">||</span>
+                     <span class="p">(</span><span class="n">GV</span><span class="o">-&gt;</span><span class="n">hasLocalLinkage</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isa</span><span class="o">&lt;</span><span class="n">Function</span><span class="o">&gt;</span><span class="p">(</span><span class="n">GV</span><span class="p">)));</span>
+  <span class="kt">unsigned</span> <span class="n">GotFlag</span> <span class="o">=</span> <span class="p">(</span><span class="n">HasGotOfst</span> <span class="o">?</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_GOT</span> <span class="o">:</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_GOT16</span><span class="p">);</span>
+  <span class="n">SDValue</span> <span class="n">GA</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">ValTy</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">GotFlag</span><span class="p">);</span>
+  <span class="n">GA</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Wrapper</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">ValTy</span><span class="p">,</span> <span class="n">GetGlobalReg</span><span class="p">(</span><span class="n">DAG</span><span class="p">,</span> <span class="n">ValTy</span><span class="p">),</span> <span class="n">GA</span><span class="p">);</span>
+  <span class="n">SDValue</span> <span class="n">ResNode</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getLoad</span><span class="p">(</span><span class="n">ValTy</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getEntryNode</span><span class="p">(),</span> <span class="n">GA</span><span class="p">,</span>
+                                <span class="n">MachinePointerInfo</span><span class="p">(),</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="c1">// On functions and global targets not internal linked only</span>
+  <span class="c1">// a load from got/GP is necessary for PIC to work.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">HasGotOfst</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ResNode</span><span class="p">;</span>
+  <span class="n">SDValue</span> <span class="n">GALo</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">ValTy</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+                                                        <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_ABS_LO</span><span class="p">);</span>
+  <span class="n">SDValue</span> <span class="n">Lo</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Lo</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">ValTy</span><span class="p">,</span> <span class="n">GALo</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">ValTy</span><span class="p">,</span> <span class="n">ResNode</span><span class="p">,</span> <span class="n">Lo</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The setOperationAction(ISD::GlobalAddress, MVT::i32, Custom) tell llc that we
+implement global address operation in C++ function
+Cpu0TargetLowering::LowerOperation() and llvm will call it when time to
+translate load IR DAG with gI global variable into machine code.
+Since may have many setOperationAction(ISD::XXX, MVT::XXX, Custom) in
+construction function Cpu0TargetLowering() which llvm will call
+Cpu0TargetLowering::LowerOperation() for each ISD IR DAG node translation, we
+call LowerGlobalAddress(Op, DAG) by check opcode is case of ISD::GlobalAddress.
+For static mode, LowerGlobalAddress() will check the translation is for
+IsGlobalInSmallSection() or not.
+When IsLinuxOpt is true and static mode, IsGlobalInSmallSection() always
+return false.
+LowerGlobalAddress() will translate global variable by create 2 DAG IR nodes
+ABS_HI, ABS_LO for high part and low part of address and one extra node ADD
+with these two nodes by above code which we list it again as follows.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0ISelLowering.cpp</span>
+<span class="p">...</span>
+    <span class="c1">// %hi/%lo relocation</span>
+    <span class="n">SDValue</span> <span class="n">GAHi</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+                                              <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_ABS_HI</span><span class="p">);</span>
+    <span class="n">SDValue</span> <span class="n">GALo</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+                                              <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_ABS_LO</span><span class="p">);</span>
+    <span class="n">SDValue</span> <span class="n">HiPart</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Hi</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VTs</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">GAHi</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">SDValue</span> <span class="n">Lo</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Lo</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">GALo</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">HiPart</span><span class="p">,</span> <span class="n">Lo</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The DAG list form for these three DAG nodes above code created can be
+represented as (ADD (Hi(h1, h2), Lo (l1, l2)).
+Since some DAG node are not with two arguments, we will define the list as
+(ADD (Hi (...), Lo (...)) or (ADD (Hi, Lo)) sometimes in this book.
+The corresponding translation machine code of these three nodes are defined in
+Cpu0InstrInfo.td as follows,</p>
+<div class="highlight-c++"><pre>//  Cpu0InstrInfo.td
+// Hi and Lo nodes are used to handle global addresses. Used on
+// Cpu0ISelLowering to lower stuff like GlobalAddress, ExternalSymbol
+// static model. (nothing to do with Cpu0 Registers Hi and Lo)
+def Cpu0Hi    : SDNode&lt;"Cpu0ISD::Hi", SDTIntUnaryOp&gt;;
+def Cpu0Lo    : SDNode&lt;"Cpu0ISD::Lo", SDTIntUnaryOp&gt;;
+...
+// hi/lo relocs
+def : Pat&lt;(Cpu0Hi tglobaladdr:$in), (SHL (LDI ZERO, tglobaladdr:$in), 16)&gt;;
+def : Pat&lt;(Cpu0Lo tglobaladdr:$in), (LDI ZERO, tglobaladdr:$in)&gt;;
+
+def : Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
+          (ADD CPURegs:$hi, (LDI ZERO, tglobaladdr:$lo))&gt;;</pre>
+</div>
+<p>Above code meaning translate ABS_HI into LDI and SHL two instructions.
+Remember the DAG and Instruction Selection introduced in chapter 3, DAG list
+(SHL (LDI ...), 16) meaning DAG node LDI and it&#8217;s parent DAG node SHL two
+instructions nodes is for list IR DAG ABS_HI.
+The Pat&lt;&gt; has two list DAG representation.
+The left is IR DAG and the right is machine instruction DAG.
+So after Instruction Selection and Register Allocation, it translate ABS_HI to,</p>
+<div class="highlight-c++"><pre>ldi $2, %hi(gI)
+shl $2, $2, 16</pre>
+</div>
+<p>According above code, we know llvm allocate register $2 for the output operand
+of LDI instruction and $2 for SHL instruction in this example.
+Since (SHL (LDI), 16), the LDI output result will be the SHL first register.
+The result is “shl $2, 16”.
+Above code Pat&lt;&gt; also define DAG list (add $hi, (ABS_LO)) will translate into
+(ADD $hi, (LDI ZERO, ...)) where ADD is machine instruction add and LDI is
+machine instruction ldi which defined in Cpu0InstrInfo.td too.
+Remember (add $hi, (ABS_LO)) meaning add DAG has two operands, first is $hi and
+second is the register which the ABS_LO output result register save to.
+So, the IR DAG pattern and it&#8217;s corresponding machine instruction node as
+follows,</p>
+<div class="highlight-c++"><pre>ldi    $3, %lo(gI)  // def : Pat&lt;(Cpu0Lo tglobaladdr:$in), (LDI ZERO,
+                    // tglobaladdr:$in)&gt;;
+
+// def : Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)), (ADD CPURegs:$hi,
+//  (LDI ZERO, tglobaladdr:$lo))&gt;;
+// So, the second register for add is the output register of ABS_LO IR DAG
+//  translation result saved to;
+// Since LowerGlobalAddress() create list (ADD (Hi, Lo)) with 3 DAG nodes,
+//  the Hi output register $2 will be the first input register for add.
+add $2, $2, $3</pre>
+</div>
+<p>After translated as above, the register $2 is the global variable address, so
+get the global variable by IR DAG load will translate into machine instruction
+as follows,</p>
+<div class="highlight-c++"><pre>%2 = load i32* @gI, align 4
+=&gt;  lw  $2, 0($2)</pre>
+</div>
+<p>When IsLinuxOpt is false and static mode, LowerGlobalAddress() will run the
+following code to create a DAG list (ADD GOT, GPRel).</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// %gp_rel relocation</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">TLOF</span><span class="p">.</span><span class="n">IsGlobalInSmallSection</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">getTargetMachine</span><span class="p">()))</span> <span class="p">{</span>
+  <span class="n">SDValue</span> <span class="n">GA</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+                                          <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_GPREL</span><span class="p">);</span>
+  <span class="n">SDValue</span> <span class="n">GPRelNode</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">GPRel</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VTs</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">GA</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="n">SDValue</span> <span class="n">GOT</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getGLOBAL_OFFSET_TABLE</span><span class="p">(</span><span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">GOT</span><span class="p">,</span> <span class="n">GPRelNode</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>As mentioned just before, all global variables allocated in sdata or sbss
+sections which is addressable by 16 bits + $gp in compile/link time (address
+binding in compile time).
+It equal to offset+GOT where GOT is the base address for global variable and
+offset is 16 bits.
+Now, according the following Cpu0InstrInfo.td definition,</p>
+<div class="highlight-c++"><pre>//  Cpu0InstrInfo.td
+def Cpu0GPRel : SDNode&lt;"Cpu0ISD::GPRel", SDTIntUnaryOp&gt;;
+...
+// gp_rel relocs
+def : Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
+          (ADD CPURegs:$gp, (LDI ZERO, tglobaladdr:$in))&gt;;</pre>
+</div>
+<p>It translate global variable address of list (ADD GOT, GPRel) into machine
+instructions as follows,</p>
+<div class="highlight-c++"><pre>ldi $2, %gp_rel(gI)
+add $2, $gp, $2</pre>
+</div>
+<p>Last, when PIC mode, LowerGlobalAddress() will create the DAG list (load
+DAG.getEntryNode(), (Wrapper GetGlobalReg(), GA)) by the following code and
+the code in Cpu0ISeleDAGToDAG.cpp as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="kt">bool</span> <span class="n">HasGotOfst</span> <span class="o">=</span> <span class="p">(</span><span class="n">GV</span><span class="o">-&gt;</span><span class="n">hasInternalLinkage</span><span class="p">()</span> <span class="o">||</span>
+                     <span class="p">(</span><span class="n">GV</span><span class="o">-&gt;</span><span class="n">hasLocalLinkage</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isa</span><span class="o">&lt;</span><span class="n">Function</span><span class="o">&gt;</span><span class="p">(</span><span class="n">GV</span><span class="p">)));</span>
+  <span class="kt">unsigned</span> <span class="n">GotFlag</span> <span class="o">=</span> <span class="p">(</span><span class="n">HasGotOfst</span> <span class="o">?</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_GOT</span> <span class="o">:</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_GOT16</span><span class="p">);</span>
+  <span class="n">SDValue</span> <span class="n">GA</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">ValTy</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">GotFlag</span><span class="p">);</span>
+  <span class="n">GA</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Wrapper</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">ValTy</span><span class="p">,</span> <span class="n">GetGlobalReg</span><span class="p">(</span><span class="n">DAG</span><span class="p">,</span> <span class="n">ValTy</span><span class="p">),</span> <span class="n">GA</span><span class="p">);</span>
+  <span class="n">SDValue</span> <span class="n">ResNode</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getLoad</span><span class="p">(</span><span class="n">ValTy</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getEntryNode</span><span class="p">(),</span> <span class="n">GA</span><span class="p">,</span>
+                                <span class="n">MachinePointerInfo</span><span class="p">(),</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="c1">// On functions and global targets not internal linked only</span>
+  <span class="c1">// a load from got/GP is necessary for PIC to work.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">HasGotOfst</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ResNode</span><span class="p">;</span>
+
+<span class="c1">// Cpu0ISelDAGToDAG.cpp</span>
+<span class="c1">/// ComplexPattern used on Cpu0InstrInfo</span>
+<span class="c1">/// Used on Cpu0 Load/Store instructions</span>
+<span class="kt">bool</span> <span class="n">Cpu0DAGToDAGISel</span><span class="o">::</span>
+<span class="n">SelectAddr</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Parent</span><span class="p">,</span> <span class="n">SDValue</span> <span class="n">Addr</span><span class="p">,</span> <span class="n">SDValue</span> <span class="o">&amp;</span><span class="n">Base</span><span class="p">,</span> <span class="n">SDValue</span> <span class="o">&amp;</span><span class="n">Offset</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// on PIC code Load GA</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Addr</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">()</span> <span class="o">==</span> <span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Wrapper</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">Base</span>   <span class="o">=</span> <span class="n">Addr</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+    <span class="n">Offset</span> <span class="o">=</span> <span class="n">Addr</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Then it translate into the following code,</p>
+<div class="highlight-c++"><pre>lw  $2, %got(gI)($gp)</pre>
+</div>
+<p>Where DAG.getEntryNode() is the register $2 which decide by Register Allocator,
+and (Wrapper GetGlobalReg(), GA) translate into Base=$gp and the 16 bits Offset
+for $gp.</p>
+<p>Beside above code, add the following code to Cpu0AsmPrinter.cpp and it will
+emit .cpload asm sudo instruction,</p>
+<div class="highlight-c++"><pre>// Cpu0AsmPrinter.cpp
+/// EmitFunctionBodyStart - Targets can override this to emit stuff before
+/// the first basic block in the function.
+void Cpu0AsmPrinter::EmitFunctionBodyStart() {
+...
+    // Emit .cpload directive if needed.
+    if (EmitCPLoad)
+    //- .cpload $t9
+      OutStreamer.EmitRawText(StringRef("\t.cpload\t$t9"));
+...
+}
+
+// ch5_1.cpu0.s
+    .cpload $t9
+    .set    nomacro
+# BB#0:
+    ldi $sp, -8</pre>
+</div>
+<p>According Mips Application Binary Interface (ABI), $t9 ($25) is the register
+used in jalr $25 for long distance function pointer (far subroutine call).
+The jal %subroutine has 24 bits range of address offset relative to Program
+Counter (PC) while jalr has 32 bits address range for register size is 32 bits.
+One example of PIC mode is used in share library.
+Share library is re-entry code which can be loaded in different memory address
+decided on run time.
+The static mode (absolute address mode) is usually designed to load in specific
+memory address decided on compile time. Since share library can be loaded in
+different memory address, the global variable address cannot be decide in
+compile time.
+As above, the global variable address is translated into the relative address
+of $gp.
+In example code ch5_1.ll, .cpload is a asm pseudo instruction just before the
+first instruction of main(), ldi.
+When the share library main() function be loaded, the loader will assign the
+$t9 value to $gp when meet “.cpload $t9”.
+After that, the $gp value is $9 which point to main(), and the global variable
+address is the relative address to main().</p>
+<p>Above code is for global address DAG translation.
+Next, add the following code to Cpu0MCInstLower.cpp and Cpu0InstPrinter.cpp
+for global variable printing operand function.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0MCInstLower.cpp</span>
+<span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
+                                              <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
+                                              <span class="kt">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VariantKind</span> <span class="n">Kind</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">MCSymbol</span> <span class="o">*</span><span class="n">Symbol</span><span class="p">;</span>
+
+  <span class="k">switch</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getTargetFlags</span><span class="p">())</span> <span class="p">{</span>
+  <span class="k">default</span><span class="o">:</span>                   <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Invalid target flag!&quot;</span><span class="p">);</span>
+<span class="c1">// Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static</span>
+<span class="c1">//  -cpu0-islinux-format=false (global var in .sdata)</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="nl">MO_GPREL:</span>     <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GPREL</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+
+  <span class="k">case</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="nl">MO_GOT16:</span>     <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT16</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="nl">MO_GOT:</span>       <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+<span class="c1">// ABS_HI and ABS_LO is for llc -march=cpu0 -relocation-model=static</span>
+<span class="c1">//  (global var in .data)</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="nl">MO_ABS_HI:</span>    <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_ABS_HI</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="nl">MO_ABS_LO:</span>    <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_ABS_LO</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">switch</span> <span class="p">(</span><span class="n">MOTy</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_GlobalAddress:</span>
+    <span class="n">Symbol</span> <span class="o">=</span> <span class="n">Mang</span><span class="o">-&gt;</span><span class="n">getSymbol</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getGlobal</span><span class="p">());</span>
+    <span class="k">break</span><span class="p">;</span>
+
+  <span class="k">default</span><span class="o">:</span>
+    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;&lt;unknown operand type&gt;&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span><span class="o">&amp;</span> <span class="n">MO</span><span class="p">,</span>
+                                        <span class="kt">unsigned</span> <span class="n">offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">MachineOperandType</span> <span class="n">MOTy</span> <span class="o">=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getType</span><span class="p">();</span>
+
+  <span class="k">switch</span> <span class="p">(</span><span class="n">MOTy</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_GlobalAddress:</span>
+    <span class="k">return</span> <span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="n">MO</span><span class="p">,</span> <span class="n">MOTy</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
+  <span class="p">...</span>
+ <span class="p">}</span>
+
+<span class="c1">// Cpu0InstPrinter.cpp</span>
+<span class="p">...</span>
+<span class="k">static</span> <span class="kt">void</span> <span class="n">printExpr</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">default</span><span class="o">:</span>                                 <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Invalid kind!&quot;</span><span class="p">);</span>
+  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="nl">VK_None:</span>           <span class="k">break</span><span class="p">;</span>
+<span class="c1">// Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static</span>
+  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="nl">VK_Cpu0_GPREL:</span>     <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;%gp_rel(&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="nl">VK_Cpu0_GOT16:</span>     <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;%got(&quot;</span><span class="p">;</span>    <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="nl">VK_Cpu0_GOT:</span>       <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;%got(&quot;</span><span class="p">;</span>    <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="nl">VK_Cpu0_ABS_HI:</span>    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;%hi(&quot;</span><span class="p">;</span>     <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="nl">VK_Cpu0_ABS_LO:</span>    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;%lo(&quot;</span><span class="p">;</span>     <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>OS is the output stream which output to the assembly file.</p>
+<p>The global variable Instruction Selection for DAG translation not like the
+ordinary IR node translation, it has static (absolute address) and PIC mode.
+We deal this translation by create DAG nodes in function LowerGlobalAddress()
+which called by LowerOperation() which is the function take care Custom
+operation.
+We set global address for Custom operation by
+”setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);” in
+Cpu0TargetLowering() constructor.
+Different address mode has it&#8217;s corresponding DAG list be created.
+By set the pattern Pat&lt;&gt; in Cpu0InstrInfo.td, the llvm can apply the compiler
+mechanism, pattern match, in the Instruction Selection stage.</p>
+<p>There are three type for setXXXAction(), they are Promote, Expand and Custom.
+Except Custom, the other two usually no need to coding.
+<a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#InstructionSelector">http://llvm.org/docs/WritingAnLLVMBackend.html#InstructionSelector</a> is the
+references.</p>
+</div>
+<div class="section" id="array-and-struct-support">
+<h2>Array and struct support<a class="headerlink" href="#array-and-struct-support" title="Permalink to this headline">¶</a></h2>
+<p>We shift my work to iMac at this point.
+The Linux platform is fine.
+The reason we do the shift is for new platform using experience.</p>
+<p>LLVM use getelementptr to represent the array and struct type in C.
+Please reference <a class="reference external" href="http://llvm.org/docs/LangRef.html#i_getelementptr">http://llvm.org/docs/LangRef.html#i_getelementptr</a>.
+For ch5_2.cpp, the llvm IR as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch5_2.cpp</span>
+<span class="k">struct</span> <span class="n">Date</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">year</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">month</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">day</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="n">Date</span> <span class="n">date</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
+<span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
+
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">day</span> <span class="o">=</span> <span class="n">date</span><span class="p">.</span><span class="n">day</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>// ch5_2.ll
+; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch5_2.bc&#39;</span>
+target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-</span>
+<span class="s2">f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128&quot;</span>
+target <span class="nv">triple</span> <span class="o">=</span> <span class="s2">&quot;i386-apple-macosx10.8.0&quot;</span>
+
+%struct.Date <span class="o">=</span> <span class="nb">type</span> <span class="o">{</span> i32, i32, i32 <span class="o">}</span>
+
+@date <span class="o">=</span> global %struct.Date <span class="o">{</span> i32 2012, i32 10, i32 12 <span class="o">}</span>, align 4
+@a <span class="o">=</span> global <span class="o">[</span>3 x i32<span class="o">]</span> <span class="o">[</span>i32 2012, i32 10, i32 12<span class="o">]</span>, align 4
+
+define i32 @main<span class="o">()</span> nounwind ssp <span class="o">{</span>
+entry:
+  %retval <span class="o">=</span> alloca i32, align 4
+  %day <span class="o">=</span> alloca i32, align 4
+  %i <span class="o">=</span> alloca i32, align 4
+  store i32 0, i32* %retval
+  %0 <span class="o">=</span> load i32* getelementptr inbounds <span class="o">(</span>%struct.Date* @date, i32 0, i32 2<span class="o">)</span>,
+  align 4
+  store i32 %0, i32* %day, align 4
+  %1 <span class="o">=</span> load i32* getelementptr inbounds <span class="o">([</span>3 x i32<span class="o">]</span>* @a, i32 0, i32 1<span class="o">)</span>, align 4
+  store i32 %1, i32* %i, align 4
+  ret i32 0
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Run 5/1/Cpu0 with ch5_2.bc on static mode will get the incorrect asm file as
+follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>jonathantekiimac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>
+asm ch5_2.bc -o ch5_2.cpu0.static.s
+jonathantekiimac:InputFiles Jonathan<span class="nv">$ </span>cat ch5_2.cpu0.static.s
+    .section .mdebug.abi32
+    .previous
+    .file   <span class="s2">&quot;ch5_2.bc&quot;</span>
+    .text
+    .globl  main
+    .align  2
+    .type   main,@function
+    .ent    main                    <span class="c"># @main</span>
+main:
+    .frame  <span class="nv">$sp</span>,16,<span class="nv">$lr</span>
+    .mask   0x00000000,0
+    .set    noreorder
+    .set    nomacro
+<span class="c"># BB#0:                                 # %entry</span>
+    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+    st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ldi <span class="nv">$2</span>, %hi<span class="o">(</span>date<span class="o">)</span>
+    shl <span class="nv">$2</span>, <span class="nv">$2</span>, 16
+    ldi <span class="nv">$3</span>, %lo<span class="o">(</span>date<span class="o">)</span>
+    add <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+    lw  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>       // the correct one is   lw  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+    st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ldi <span class="nv">$2</span>, %hi<span class="o">(</span>a<span class="o">)</span>
+    shl <span class="nv">$2</span>, <span class="nv">$2</span>, 16
+    ldi <span class="nv">$3</span>, %lo<span class="o">(</span>a<span class="o">)</span>
+    add <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+    lw  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+    st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
+    ret <span class="nv">$lr</span>
+    .set    macro
+    .set    reorder
+    .end    main
+<span class="nv">$tmp1</span>:
+    .size   main, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-main
+
+    .type   date,@object            <span class="c"># @date</span>
+    .data
+    .globl  date
+    .align  2
+date:
+    .4byte  2012                    <span class="c"># 0x7dc</span>
+    .4byte  10                      <span class="c"># 0xa</span>
+    .4byte  12                      <span class="c"># 0xc</span>
+    .size   date, 12
+
+    .type   a,@object               <span class="c"># @a</span>
+    .globl  a
+    .align  2
+a:
+    .4byte  2012                    <span class="c"># 0x7dc</span>
+    .4byte  10                      <span class="c"># 0xa</span>
+    .4byte  12                      <span class="c"># 0xc</span>
+    .size   a, 12
+</pre></div>
+</div>
+<p>For “day = date.day”, the correct one is “lw $2, 8($2)”, not “lw $2, 0($2)”
+since date.day is offset 8(date).
+Type int is 4 bytes in cpu0, and the date.day has fields year and month before
+it.
+Let use debug option in llc to see what&#8217;s wrong,</p>
+<div class="highlight-bash"><div class="highlight"><pre>jonathantekiimac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -debug -relocation-model<span class="o">=</span>static
+-filetype<span class="o">=</span>asm ch5_2.bc -o ch5_2.cpu0.static.s
+...
+<span class="o">===</span> main
+Initial selection DAG: BB#0 <span class="s1">&#39;main:entry&#39;</span>
+SelectionDAG has 20 nodes:
+  0x7f7f5b02d210: <span class="nv">i32</span> <span class="o">=</span> undef <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+
+      0x7f7f5ac10590: <span class="nv">ch</span> <span class="o">=</span> EntryToken <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+
+      0x7f7f5b02d010: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;0&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+
+      0x7f7f5b02d110: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;0&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+
+      0x7f7f5b02d210: &lt;multiple use&gt;
+    0x7f7f5b02d310: <span class="nv">ch</span> <span class="o">=</span> store 0x7f7f5ac10590, 0x7f7f5b02d010, 0x7f7f5b02d110,
+    0x7f7f5b02d210&lt;ST4<span class="o">[</span>%retval<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+
+      0x7f7f5b02d410: <span class="nv">i32</span> <span class="o">=</span> GlobalAddress&lt;%struct.Date* @date&gt; 0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+
+      0x7f7f5b02d510: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;8&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+
+    0x7f7f5b02d610: <span class="nv">i32</span> <span class="o">=</span> add 0x7f7f5b02d410, 0x7f7f5b02d510 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+
+    0x7f7f5b02d210: &lt;multiple use&gt;
+  0x7f7f5b02d710: i32,ch <span class="o">=</span> load 0x7f7f5b02d310, 0x7f7f5b02d610, 0x7f7f5b02d210
+  &lt;LD4<span class="o">[</span>getelementptr inbounds <span class="o">(</span>%struct.Date* @date, i32 0, i32 2<span class="o">)]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>3<span class="o">]</span>
+
+  0x7f7f5b02db10: <span class="nv">i64</span> <span class="o">=</span> Constant&lt;4&gt;
+
+      0x7f7f5b02d710: &lt;multiple use&gt;
+      0x7f7f5b02d710: &lt;multiple use&gt;
+      0x7f7f5b02d810: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;1&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>4<span class="o">]</span>
+
+      0x7f7f5b02d210: &lt;multiple use&gt;
+    0x7f7f5b02d910: <span class="nv">ch</span> <span class="o">=</span> store 0x7f7f5b02d710:1, 0x7f7f5b02d710, 0x7f7f5b02d810,
+     0x7f7f5b02d210&lt;ST4<span class="o">[</span>%day<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>4<span class="o">]</span>
+
+      0x7f7f5b02da10: <span class="nv">i32</span> <span class="o">=</span> GlobalAddress&lt;<span class="o">[</span>3 x i32<span class="o">]</span>* @a&gt; 0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>5<span class="o">]</span>
+
+      0x7f7f5b02dc10: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;4&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>5<span class="o">]</span>
+
+    0x7f7f5b02dd10: <span class="nv">i32</span> <span class="o">=</span> add 0x7f7f5b02da10, 0x7f7f5b02dc10 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>5<span class="o">]</span>
+
+    0x7f7f5b02d210: &lt;multiple use&gt;
+  0x7f7f5b02de10: i32,ch <span class="o">=</span> load 0x7f7f5b02d910, 0x7f7f5b02dd10, 0x7f7f5b02d210
+  &lt;LD4<span class="o">[</span>getelementptr inbounds <span class="o">([</span>3 x i32<span class="o">]</span>* @a, i32 0, i32 1<span class="o">)]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
+
+...
+
+
+Replacing.3 0x7f7f5b02dd10: <span class="nv">i32</span> <span class="o">=</span> add 0x7f7f5b02da10, 0x7f7f5b02dc10 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>5<span class="o">]</span>
+
+With: 0x7f7f5b030010: <span class="nv">i32</span> <span class="o">=</span> GlobalAddress&lt;<span class="o">[</span>3 x i32<span class="o">]</span>* @a&gt; + 4
+
+
+Replacing.3 0x7f7f5b02d610: <span class="nv">i32</span> <span class="o">=</span> add 0x7f7f5b02d410, 0x7f7f5b02d510 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+
+With: 0x7f7f5b02db10: <span class="nv">i32</span> <span class="o">=</span> GlobalAddress&lt;%struct.Date* @date&gt; + 8
+
+Optimized lowered selection DAG: BB#0 <span class="s1">&#39;main:entry&#39;</span>
+SelectionDAG has 15 nodes:
+  0x7f7f5b02d210: <span class="nv">i32</span> <span class="o">=</span> undef <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+
+      0x7f7f5ac10590: <span class="nv">ch</span> <span class="o">=</span> EntryToken <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+
+      0x7f7f5b02d010: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;0&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+
+      0x7f7f5b02d110: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;0&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+
+      0x7f7f5b02d210: &lt;multiple use&gt;
+    0x7f7f5b02d310: <span class="nv">ch</span> <span class="o">=</span> store 0x7f7f5ac10590, 0x7f7f5b02d010, 0x7f7f5b02d110,
+    0x7f7f5b02d210&lt;ST4<span class="o">[</span>%retval<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+
+    0x7f7f5b02db10: <span class="nv">i32</span> <span class="o">=</span> GlobalAddress&lt;%struct.Date* @date&gt; + 8
+
+    0x7f7f5b02d210: &lt;multiple use&gt;
+  0x7f7f5b02d710: i32,ch <span class="o">=</span> load 0x7f7f5b02d310, 0x7f7f5b02db10, 0x7f7f5b02d210
+  &lt;LD4<span class="o">[</span>getelementptr inbounds <span class="o">(</span>%struct.Date* @date, i32 0, i32 2<span class="o">)]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>3<span class="o">]</span>
+
+      0x7f7f5b02d710: &lt;multiple use&gt;
+      0x7f7f5b02d710: &lt;multiple use&gt;
+      0x7f7f5b02d810: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;1&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>4<span class="o">]</span>
+
+      0x7f7f5b02d210: &lt;multiple use&gt;
+    0x7f7f5b02d910: <span class="nv">ch</span> <span class="o">=</span> store 0x7f7f5b02d710:1, 0x7f7f5b02d710, 0x7f7f5b02d810,
+     0x7f7f5b02d210&lt;ST4<span class="o">[</span>%day<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>4<span class="o">]</span>
+
+    0x7f7f5b030010: <span class="nv">i32</span> <span class="o">=</span> GlobalAddress&lt;<span class="o">[</span>3 x i32<span class="o">]</span>* @a&gt; + 4
+
+    0x7f7f5b02d210: &lt;multiple use&gt;
+  0x7f7f5b02de10: i32,ch <span class="o">=</span> load 0x7f7f5b02d910, 0x7f7f5b030010, 0x7f7f5b02d210
+  &lt;LD4<span class="o">[</span>getelementptr inbounds <span class="o">([</span>3 x i32<span class="o">]</span>* @a, i32 0, i32 1<span class="o">)]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
+
+…
+</pre></div>
+</div>
+<p>By llc -debug, you can see the DAG translation process. As above, the DAG list
+for date.day (add GlobalAddress&lt;[3 x i32]* &#64;a&gt; 0, Constant&lt;8&gt;) with 3 nodes is
+replaced by 1 node GlobalAddress&lt;%struct.Date* &#64;date&gt; + 8.
+The DAG list for a[1] is same.
+The replacement occurs since TargetLowering.cpp::isOffsetFoldingLegal(...)
+return true in “llc -static” static addressing mode as below.
+In Cpu0 the lw instruction format is “lw $r1, offset($r2)” which is load $r2
+address+offset to $r1.
+So, we just replace the isOffsetFoldingLegal(...) function by override
+mechanism as below.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// TargetLowering.cpp</span>
+<span class="kt">bool</span>
+<span class="n">TargetLowering</span><span class="o">::</span><span class="n">isOffsetFoldingLegal</span><span class="p">(</span><span class="k">const</span> <span class="n">GlobalAddressSDNode</span> <span class="o">*</span><span class="n">GA</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="c1">// Assume that everything is safe in static mode.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">getTargetMachine</span><span class="p">().</span><span class="n">getRelocationModel</span><span class="p">()</span> <span class="o">==</span> <span class="n">Reloc</span><span class="o">::</span><span class="n">Static</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+
+  <span class="c1">// In dynamic-no-pic mode, assume that known defined values are safe.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">getTargetMachine</span><span class="p">().</span><span class="n">getRelocationModel</span><span class="p">()</span> <span class="o">==</span> <span class="n">Reloc</span><span class="o">::</span><span class="n">DynamicNoPIC</span> <span class="o">&amp;&amp;</span>
+     <span class="n">GA</span> <span class="o">&amp;&amp;</span>
+     <span class="o">!</span><span class="n">GA</span><span class="o">-&gt;</span><span class="n">getGlobal</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">isDeclaration</span><span class="p">()</span> <span class="o">&amp;&amp;</span>
+     <span class="o">!</span><span class="n">GA</span><span class="o">-&gt;</span><span class="n">getGlobal</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">isWeakForLinker</span><span class="p">())</span>
+  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+
+  <span class="c1">// Otherwise assume nothing is safe.</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// Cpu0TargetLowering.cpp</span>
+<span class="kt">bool</span>
+<span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">isOffsetFoldingLegal</span><span class="p">(</span><span class="k">const</span> <span class="n">GlobalAddressSDNode</span> <span class="o">*</span><span class="n">GA</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="c1">// The Mips target isn&#39;t yet aware of offsets.</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Beyond that, we need to add the following code fragment to Cpu0ISelDAGToDAG.cpp,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0ISelDAGToDAG.cpp</span>
+<span class="c1">/// ComplexPattern used on Cpu0InstrInfo</span>
+<span class="c1">/// Used on Cpu0 Load/Store instructions</span>
+<span class="kt">bool</span> <span class="n">Cpu0DAGToDAGISel</span><span class="o">::</span>
+<span class="n">SelectAddr</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Parent</span><span class="p">,</span> <span class="n">SDValue</span> <span class="n">Addr</span><span class="p">,</span> <span class="n">SDValue</span> <span class="o">&amp;</span><span class="n">Base</span><span class="p">,</span> <span class="n">SDValue</span> <span class="o">&amp;</span><span class="n">Offset</span><span class="p">)</span> <span class="p">{</span>
+<span class="p">...</span>
+  <span class="c1">// Addresses of the form FI+const or FI|const</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">isBaseWithConstantOffset</span><span class="p">(</span><span class="n">Addr</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">ConstantSDNode</span> <span class="o">*</span><span class="n">CN</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">ConstantSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Addr</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">CN</span><span class="o">-&gt;</span><span class="n">getSExtValue</span><span class="p">()))</span> <span class="p">{</span>
+
+      <span class="c1">// If the first operand is a FI, get the TargetFI Node</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">FrameIndexSDNode</span> <span class="o">*</span><span class="n">FIN</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">FrameIndexSDNode</span><span class="o">&gt;</span>
+                                          <span class="p">(</span><span class="n">Addr</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span>
+        <span class="n">Base</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getTargetFrameIndex</span><span class="p">(</span><span class="n">FIN</span><span class="o">-&gt;</span><span class="n">getIndex</span><span class="p">(),</span> <span class="n">ValTy</span><span class="p">);</span>
+      <span class="k">else</span>
+        <span class="n">Base</span> <span class="o">=</span> <span class="n">Addr</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+      <span class="n">Offset</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getTargetConstant</span><span class="p">(</span><span class="n">CN</span><span class="o">-&gt;</span><span class="n">getZExtValue</span><span class="p">(),</span> <span class="n">ValTy</span><span class="p">);</span>
+      <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Recall we have translated DAG list for date.day
+(add GlobalAddress&lt;[3 x i32]* &#64;a&gt; 0, Constant&lt;8&gt;) into
+(add (add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)),
+Constant&lt;8&gt;) by the following code in Cpu0ISelLowering.cpp.</p>
+<div class="highlight-c++"><pre>// Cpu0ISelLowering.cpp
+SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
+                                    SelectionDAG &amp;DAG) const {
+  ...
+    // %hi/%lo relocation
+    SDValue GAHi = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+                                              Cpu0II::MO_ABS_HI);
+    SDValue GALo = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+                                              Cpu0II::MO_ABS_LO);
+    SDValue HiPart = DAG.getNode(Cpu0ISD::Hi, dl, VTs, &amp;GAHi, 1);
+    SDValue Lo = DAG.getNode(Cpu0ISD::Lo, dl, MVT::i32, GALo);
+    return DAG.getNode(ISD::ADD, dl, MVT::i32, HiPart, Lo);
+  …
+}</pre>
+</div>
+<p>So, when the SelectAddr(...) of Cpu0ISelDAGToDAG.cpp is called.
+The Addr SDValue in SelectAddr(..., Addr, ...) is DAG list for date.day
+(add (add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)),
+Constant&lt;8&gt;).
+Since Addr.getOpcode() = ISD:ADD, Addr.getOperand(0) =
+(add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)) and
+Addr.getOperand(1).getOpcode() = ISD::Constant, the Base = SDValue
+(add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)) and
+Offset = Constant&lt;8&gt;.
+After set Base and Offset, the load DAG will translate the global address
+date.day into machine instruction “lw $r1, 8($r2)” in Instruction Selection
+stage.</p>
+<p>5/2/Cpu0 include these changes as above, you can run it with ch5_2.cpp to get
+the correct generated instruction “lw $r1, 8($r2)” for date.day access.</p>
+</div>
+<div class="section" id="operator-not">
+<h2>Operator “not” !<a class="headerlink" href="#operator-not" title="Permalink to this headline">¶</a></h2>
+<p>Files ch5_3.cpp and ch5_3.bc are the C source code for “not” boolean operator
+and it&#8217;s corresponding llvm IR. List them as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch5_3.cpp</span>
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+    <span class="n">b</span> <span class="o">=</span> <span class="o">!</span><span class="n">a</span><span class="p">;</span>
+
+    <span class="k">return</span> <span class="n">b</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch5_3.bc&#39;</span>
+target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-</span>
+<span class="s2">f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128&quot;</span>
+target <span class="nv">triple</span> <span class="o">=</span> <span class="s2">&quot;i386-apple-macosx10.8.0&quot;</span>
+
+define i32 @main<span class="o">()</span> nounwind ssp <span class="o">{</span>
+entry:
+  %retval <span class="o">=</span> alloca i32, align 4
+  %a <span class="o">=</span> alloca i32, align 4
+  %b <span class="o">=</span> alloca i32, align 4
+  store i32 0, i32* %retval
+  store i32 5, i32* %a, align 4
+  store i32 0, i32* %b, align 4
+  %0 <span class="o">=</span> load i32* %a, align 4        // <span class="nv">a</span> <span class="o">=</span> %0
+  %tobool <span class="o">=</span> icmp ne i32 %0, 0   // ne: stand <span class="k">for </span>not egual
+  %lnot <span class="o">=</span> xor i1 %tobool, <span class="nb">true</span>
+  %conv <span class="o">=</span> zext i1 %lnot to i32
+  store i32 %conv, i32* %b, align 4
+  %1 <span class="o">=</span> load i32* %b, align 4
+  ret i32 %1
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>As above comment, b = !a, translate to (xor (icmp ne i32 %0, 0), true).
+The %0 is the virtual register of variable <strong>a</strong> and the result of
+(icmp ne i32 %0, 0) is 1 bit size.
+To prove the translation is correct.
+Let&#8217;s assume %0 != 0 first, then the (icmp ne i32 %0, 0) = 1 (or true), and
+(xor 1, 1) = 0.
+When %0 = 0, (icmp ne i32 %0, 0) = 0 (or false), and (xor 0, 1) = 1.
+So, the translation is correct.</p>
+<p>Now, let&#8217;s run ch5_3.bc with 5/3/Cpu0 with llc -debug option to get result as
+follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-16-22:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -debug -relocation-model<span class="o">=</span>pic
+-filetype<span class="o">=</span>asm ch5_3.bc -o ch5_3.cpu0.s
+...
+
+<span class="o">===</span> main
+Initial selection DAG: BB#0 <span class="s1">&#39;main:entry&#39;</span>
+SelectionDAG has 20 nodes:
+...
+    0x7fbfc282c510: &lt;multiple use&gt;
+          0x7fbfc282c510: &lt;multiple use&gt;
+          0x7fbfc282bc10: &lt;multiple use&gt;
+          0x7fbfc282c610: <span class="nv">ch</span> <span class="o">=</span> setne <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>5<span class="o">]</span>
+
+        0x7fbfc282c710: <span class="nv">i1</span> <span class="o">=</span> setcc 0x7fbfc282c510, 0x7fbfc282bc10,
+        0x7fbfc282c610 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>5<span class="o">]</span>
+
+        0x7fbfc282c810: <span class="nv">i1</span> <span class="o">=</span> Constant&lt;-1&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
+
+      0x7fbfc282c910: <span class="nv">i1</span> <span class="o">=</span> xor 0x7fbfc282c710, 0x7fbfc282c810 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
+
+    0x7fbfc282ca10: <span class="nv">i32</span> <span class="o">=</span> zero_extend 0x7fbfc282c910 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span>
+
+...
+
+
+Replacing.3 0x7fbfc282c910: <span class="nv">i1</span> <span class="o">=</span> xor 0x7fbfc282c710, 0x7fbfc282c810 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
+
+With: 0x7fbfc282ec10: <span class="nv">i1</span> <span class="o">=</span> setcc 0x7fbfc282c510, 0x7fbfc282bc10,
+0x7fbfc282e910
+
+Optimized lowered selection DAG: BB#0 <span class="s1">&#39;main:entry&#39;</span>
+SelectionDAG has 17 nodes:
+...
+      0x7fbfc282c510: &lt;multiple use&gt;
+          0x7fbfc282c510: &lt;multiple use&gt;
+          0x7fbfc282bc10: &lt;multiple use&gt;
+          0x7fbfc282e910: <span class="nv">ch</span> <span class="o">=</span> seteq
+
+        0x7fbfc282ec10: <span class="nv">i1</span> <span class="o">=</span> setcc 0x7fbfc282c510, 0x7fbfc282bc10,
+        0x7fbfc282e910
+
+      0x7fbfc282ca10: <span class="nv">i32</span> <span class="o">=</span> zero_extend 0x7fbfc282ec10 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span>
+…
+Type-legalized selection DAG: BB#0 <span class="s1">&#39;main:entry&#39;</span>
+SelectionDAG has 18 nodes:
+...
+      0x7fbfc282c510: &lt;multiple use&gt;
+          0x7fbfc282c510: &lt;multiple use&gt;
+          0x7fbfc282bc10: &lt;multiple use&gt;
+          0x7fbfc282e910: <span class="nv">ch</span> <span class="o">=</span> seteq <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>-3<span class="o">]</span>
+
+        0x7fbfc282c610: <span class="nv">i32</span> <span class="o">=</span> setcc 0x7fbfc282c510, 0x7fbfc282bc10,
+        0x7fbfc282e910 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>-3<span class="o">]</span>
+
+        0x7fbfc282c710: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;1&gt; <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>-3<span class="o">]</span>
+
+      0x7fbfc282c810: <span class="nv">i32</span> <span class="o">=</span> and 0x7fbfc282c610, 0x7fbfc282c710 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>-3<span class="o">]</span>
+
+ ...
+</pre></div>
+</div>
+<p>The (setcc %1, %2, setne) and (xor %3, -1) in “Initial selection DAG” stage
+corresponding (icmp %1, %2, ne) and (xor %3, 1) in ch5_3.bc.
+The argument in xor is 1 bit size (1 and -1 are same, they are all represented
+by 1).
+The (zero_extend %4) of “Initial selection DAG” corresponding (zext i1 %lnot
+to i32) of ch5_3.bc.
+As above it translate 2 DAG nodes (setcc %1, %2, setne) and (xor %3, -1) into
+1 DAG node (setcc %1, %2, seteq) in “Optimized lowered selection DAG” stage.
+This translation is right since for 1 bit size, (xor %3, 1) and (not %3) has
+same result, and (not (setcc %1, %2, setne)) is equal to (setcc %1, %2, seteq).
+In “Optimized lowered selection DAG” stage, it also translate (zero_extern i1
+%lnot to 32) into (and %lnot, 1).
+(zero_extern i1 %lnot to 32) just expand the %lnot to i32 32 bits result, so
+translate into (and %lnot, 1) is correct.
+Finally, translate (setcc %1, %2, seteq) into (xor (xor %1, %2), (ldi $0, 1) in
+“Instruction selection” stage by the rule defined in Cpu0InstrInfo.td as
+follows,</p>
+<div class="highlight-c++"><pre>//  Cpu0InstrInfo.td
+// setcc patterns
+multiclass SeteqPats&lt;RegisterClass RC, Instruction XOROp,
+                     Register ZEROReg&gt; {
+  def : Pat&lt;(seteq RC:$lhs, RC:$rhs),
+            (XOROp (XOROp RC:$lhs, RC:$rhs), (LDI ZERO, 1))&gt;;
+}
+
+defm : SeteqPats&lt;CPURegs, XOR, ZERO&gt;;</pre>
+</div>
+<p>After xor, the (and %4, 1) is translated into (and $2, (ldi $3, 1)) which is
+defined before already.
+List the asm file ch5_3.cpu0.s code fragment as below, you can check it with
+the final result.</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-16-22:InputFiles Jonathan<span class="nv">$ </span>cat ch5_3.cpu0.s
+...
+<span class="c"># BB#0:                                 # %entry</span>
+    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+    st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, 5
+    st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    lw  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    xor <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+    ldi <span class="nv">$3</span>, 1
+    xor <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+    addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, 1
+    and <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+    st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
+    ret <span class="nv">$lr</span>
+...
+</pre></div>
+</div>
+</div>
+<div class="section" id="display-llvm-ir-nodes-with-graphviz">
+<h2>Display llvm IR nodes with Graphviz<a class="headerlink" href="#display-llvm-ir-nodes-with-graphviz" title="Permalink to this headline">¶</a></h2>
+<p>In the previous section, you know the llc -debug will show the DAG translation
+process in text on terminal.
+The llc supply the graphic display.
+In <a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#install-other-tools-on-imac">section Install other tools on imac</a>, we mentioned the web for llc
+graphic display information.
+We introduce the llc graphic display and tool Graphviz in this section.
+The graphic display is more readable by eye than display text in terminal.
+It&#8217;s not necessary, but sometime it help when you are tired in tracking the DAG
+translation process.
+List the llc graphic support options from web
+<a class="reference external" href="http://llvm.org/docs/CodeGenerator.html?highlight=graph%20view">http://llvm.org/docs/CodeGenerator.html?highlight=graph%20view</a> as follows,</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The llc Graphviz DAG display options</p>
+<p class="last">-view-dag-combine1-dags displays the DAG after being built, before the
+first optimization pass.
+-view-legalize-dags displays the DAG before Legalization.
+-view-dag-combine2-dags displays the DAG before the second optimization
+pass.
+-view-isel-dags displays the DAG before the Select phase.
+-view-sched-dags displays the DAG before Scheduling.</p>
+</div>
+<p>By tracking llc -debug, you can see the DAG translation steps as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>Initial selection DAG
+Optimized lowered selection DAG
+Type-legalized selection DAG
+Optimized <span class="nb">type</span>-legalized selection DAG
+Legalized selection DAG
+Optimized legalized selection DAG
+Instruction selection
+Selected selection DAG
+Scheduling
+…
+</pre></div>
+</div>
+<p>Let&#8217;s run llc with option -view-dag-combine1-dags, and open the output result
+with Graphviz as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-12-177:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+cmake_debug_build/bin/Debug/llc -view-dag-combine1-dags -march<span class="o">=</span>cpu0
+-relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch5_3.bc -o ch5_3.cpu0.s
+Writing <span class="s1">&#39;/tmp/llvm_84ibpm/dag.main.dot&#39;</span>...  <span class="k">done</span>.
+118-165-12-177:InputFiles Jonathan<span class="nv">$ </span>Graphviz /tmp/llvm_84ibpm/dag.main.dot
+</pre></div>
+</div>
+<p>It will show the /tmp/llvm_84ibpm/dag.main.dot as <a class="reference internal" href="#globalvar-f1"><em>llc option -view-dag-combine1-dags graphic view</em></a>.</p>
+<div class="figure align-center" id="globalvar-f1">
+<a class="reference internal image-reference" href="_images/13.png"><img alt="_images/13.png" src="_images/13.png" style="width: 687.0px; height: 851.0px;" /></a>
+<p class="caption">llc option -view-dag-combine1-dags graphic view</p>
+</div>
+<p>From <a class="reference internal" href="#globalvar-f1"><em>llc option -view-dag-combine1-dags graphic view</em></a>, we can see the -view-dag-combine1-dags option is for
+Initial selection DAG.
+We list the other view options and their corresponding DAG translation stage as
+follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>-view-dag-combine1-dags: Initial selection DAG
+-view-legalize-dags: Optimized <span class="nb">type</span>-legalized selection DAG
+-view-dag-combine2-dags: Legalized selection DAG
+-view-isel-dags: Optimized legalized selection DAG
+-view-sched-dags: Selected selection DAG
+</pre></div>
+</div>
+<p>The -view-isel-dags is important and often used by an llvm backend writer
+because it is the DAG before instruction selection.
+The backend programmer need to know what is the DAG to write the pattern match
+instruction in target description file .td.</p>
+</div>
+<div class="section" id="adjust-cpu0-instruction-and-support-type-of-local-variable-pointer">
+<h2>Adjust cpu0 instruction and support type of local variable pointer<a class="headerlink" href="#adjust-cpu0-instruction-and-support-type-of-local-variable-pointer" title="Permalink to this headline">¶</a></h2>
+<p>We decide add instructions udiv and sra to avoid compiler errors for C language
+operators “/” in unsigned int and “&gt;&gt;” in signed int as
+<a class="reference external" href="http://jonathan2251.github.com/lbd/otherinst.html#support-arithmetic-instructions">section Support arithmetic instructions</a> mentioned.
+To support these 2 operators, we only need to add these code in
+Cpu0InstsInfo.td as follows,</p>
+<div class="highlight-c++"><pre>//  Cpu0InstsInfo.td
+...
+def UDIV    : ArithLogicR&lt;0x17, "udiv", udiv, IIIdiv, CPURegs, 1&gt;;
+…
+/// Shift Instructions
+// work, it's for ashr llvm IR instruction
+def SRA     : shift_rotate_imm32&lt;0x1B, 0x00, "sra", sra&gt;;</pre>
+</div>
+<p>Run ch5_5_1.cpp with code 5/5/Cpu0 which support udiv, sra and addiu, will get
+the result as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch5_5_1.cpp</span>
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="n">f1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+    <span class="n">f1</span> <span class="o">=</span> <span class="n">a1</span> <span class="o">/</span> <span class="n">b</span><span class="p">;</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="n">k</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-13-40:InputFiles Jonathan<span class="nv">$ </span>clang -c ch5_5_1.cpp -emit-llvm -o ch5_5_1.bc
+118-165-13-40:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
+ch5_5_1.bc -o ch5_5_1.cpu0.s
+118-165-13-40:InputFiles Jonathan<span class="nv">$ </span>cat ch5_5_1.cpu0.s
+    …
+    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
+    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+    ...
+    udiv    <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+    st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    lw  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    sra <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+    ...
+</pre></div>
+</div>
+<p>To support pointer to local variable, add this code fragment in
+Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,</p>
+<div class="highlight-c++"><pre>// Cpu0InstrInfo.td
+...
+def mem_ea : Operand&lt;i32&gt; {
+  let PrintMethod = "printMemOperandEA";
+  let MIOperandInfo = (ops CPURegs, simm16);
+  let EncoderMethod = "getMemEncoding";
+}
+...
+class EffectiveAddress&lt;string instr_asm, RegisterClass RC, Operand Mem&gt; :
+  FMem&lt;0x09, (outs RC:$ra), (ins Mem:$addr),
+     instr_asm, [(set RC:$ra, addr:$addr)], IIAlu&gt;;
+...
+// FrameIndexes are legalized when they are operands from load/store
+// instructions. The same not happens for stack address copies, so an
+// add op with mem ComplexPattern is used and the stack address copy
+// can be matched. It's similar to Sparc LEA_ADDRi
+def LEA_ADDiu : EffectiveAddress&lt;"addiu\t$ra, $addr", CPURegs, mem_ea&gt; {
+  let isCodeGenOnly = 1;
+}
+
+// Cpu0InstPrinter.cpp
+...
+void Cpu0InstPrinter::
+printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &amp;O) {
+  // when using stack locations for not load/store instructions
+  // print the same way as all normal 3 operand instructions.
+  printOperand(MI, opNum, O);
+  O &lt;&lt; ", ";
+  printOperand(MI, opNum+1, O);
+  return;
+}</pre>
+</div>
+<p>Run ch5_5_2.cpp with code 5/5/Cpu0 which support pointer to local variable,
+will get result as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch5_5_2.cpp</span>
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+
+    <span class="kt">int</span><span class="o">*</span> <span class="n">p</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">;</span>
+
+    <span class="k">return</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-80-195:InputFiles Jonathan<span class="nv">$ </span>clang -c ch5_5_2.cpp -emit-llvm -o ch5_5_2.bc
+118-165-80-195:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
+ch5_5_2.bc -o ch5_5_2.cpu0.s
+118-165-80-195:InputFiles Jonathan<span class="nv">$ </span>cat ch5_5_2.cpu0.s
+    .section .mdebug.abi32
+    .previous
+    .file   <span class="s2">&quot;ch5_5_2.bc&quot;</span>
+    .text
+    .globl  main
+    .align  2
+    .type   main,@function
+    .ent    main                    <span class="c"># @main</span>
+main:
+    .frame  <span class="nv">$sp</span>,16,<span class="nv">$lr</span>
+    .mask   0x00000000,0
+    .set    noreorder
+    .set    nomacro
+<span class="c"># BB#0:                                 # %entry</span>
+    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+    st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
+    st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    addiu   <span class="nv">$2</span>, <span class="nv">$sp</span>, 8
+    st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
+    ret <span class="nv">$lr</span>
+    .set    macro
+    .set    reorder
+    .end    main
+<span class="nv">$tmp1</span>:
+    .size   main, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-main
+</pre></div>
+</div>
+<p>According cpu0 web site instruction definition.
+There is no addiu instruction definition.
+We add addiu instruction because we find this instruction is more powerful and
+reasonable than ldi instruction.
+We highlight this change in <a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#cpu0-processor-architecture">section CPU0 processor architecture</a>.
+Even with that, we show you how to change our addiu with ldi according the cpu0
+original design.
+5/5_2 is the code changes for use ldi instruction.
+The changes is replace addiu with ldi in Cpu0InstrInfo.td and modify
+Cpu0FrameLowering.cpp as follows,</p>
+<div class="highlight-c++"><pre>// Cpu0InstrInfo.td
+…
+
+/// Arithmetic Instructions (ALU Immediate)
+def LDI     : MoveImm&lt;0x08, "ldi", add, simm16, immSExt16, CPURegs&gt;;
+// add defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
+//def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;
+…
+
+// Small immediates
+
+def : Pat&lt;(i32 immSExt16:$in),
+          (LDI ZERO, imm:$in)&gt;;
+
+// hi/lo relocs
+def : Pat&lt;(Cpu0Hi tglobaladdr:$in), (SHL (LDI ZERO, tglobaladdr:$in), 16)&gt;;
+// Expect cpu0 add LUi support, like Mips
+//def : Pat&lt;(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)&gt;;
+def : Pat&lt;(Cpu0Lo tglobaladdr:$in), (LDI ZERO, tglobaladdr:$in)&gt;;
+
+def : Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
+          (ADD CPURegs:$hi, (LDI ZERO, tglobaladdr:$lo))&gt;;
+
+// gp_rel relocs
+def : Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
+          (ADD CPURegs:$gp, (LDI ZERO, tglobaladdr:$in))&gt;;
+
+def : Pat&lt;(not CPURegs:$in),
+           (XOR CPURegs:$in, (LDI ZERO, 1))&gt;;
+
+// Cpu0FrameLowering.cpp
+...
+void Cpu0FrameLowering::emitPrologue(MachineFunction &amp;MF) const {
+  ...
+  // Adjust stack.
+  if (isInt&lt;16&gt;(-StackSize)) {
+    // ldi fp, (-stacksize)
+    // add sp, sp, fp
+    BuildMI(MBB, MBBI, dl, TII.get(Cpu0::LDI), Cpu0::FP).addReg(Cpu0::FP)
+                                                        .addImm(-StackSize);
+    BuildMI(MBB, MBBI, dl, TII.get(Cpu0::ADD), SP).addReg(SP).addReg(Cpu0::FP);
+  }
+  …
+}
+
+void Cpu0FrameLowering::emitEpilogue(MachineFunction &amp;MF,
+                                 MachineBasicBlock &amp;MBB) const {
+  …
+  // Adjust stack.
+  if (isInt&lt;16&gt;(-StackSize)) {
+    // ldi fp, (-stacksize)
+    // add sp, sp, fp
+    BuildMI(MBB, MBBI, dl, TII.get(Cpu0::LDI), Cpu0::FP).addReg(Cpu0::FP)
+                                                        .addImm(-StackSize);
+    BuildMI(MBB, MBBI, dl, TII.get(Cpu0::ADD), SP).addReg(SP).addReg(Cpu0::FP);
+  }
+  …
+}</pre>
+</div>
+<p>As above code, we use <strong>add</strong> IR binary instruction (1 register operand and 1
+immediate operand, and the register operand is fixed with ZERO) in our solution
+since we didn&#8217;t find the <strong>move</strong> IR unary in instruction.
+This code is correct since all the immediate value is translated into
+“ldi Zero, imm/address”, and IR <strong>add</strong> node with address, like
+(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)), …, is translated into
+(ADD CPURegs:$gp, (LDI ZERO, tglobaladdr:$in)).
+Let&#8217;s run 5/5_2/Cpu0 with ch5_5_1.cpp and ch5_1.cpp to get the correct result
+below.
+As you will see, “addiu $sp, $sp, -24” will be replaced with the pair
+instructions of “ldi $fp, -24” and “add $sp, $sp, $fp”.
+Since the $sp pointer adjustment is so frequently occurs (it occurs in every
+function entry and exit point),
+we reserve the $fp to the pair of stack adjustment instructions “ldi” and
+“add”.
+If we didn&#8217;t reserve the dedicate registers $fp and $sp, it need to save
+and restore them in the stack adjustment.
+It meaning more instructions running cost in this.
+Anyway, the pair of “ldi” and “add” to adjust stack pointer is double in cost
+compete to “addiu”, that&#8217;s the benefit we mentioned in section
+“2.1 CPU0 processor architecture”.</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-80-163:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
+ch5_5_1.bc -o ch5_5_1.cpu0.s
+118-165-80-195:InputFiles Jonathan<span class="nv">$ </span>cat ch5_5_1.cpu0.s
+    .section .mdebug.abi32
+    .previous
+    .file   <span class="s2">&quot;ch5_5_1.bc&quot;</span>
+    .text
+    .globl  main
+    .align  2
+    .type   main,@function
+    .ent    main                    <span class="c"># @main</span>
+main:
+    .cfi_startproc
+    .frame  <span class="nv">$sp</span>,24,<span class="nv">$lr</span>
+    .mask   0x00000000,0
+    .set    noreorder
+    .set    nomacro
+<span class="c"># BB#0:</span>
+    ldi <span class="nv">$fp</span>, -24
+    add <span class="nv">$sp</span>, <span class="nv">$sp</span>, <span class="nv">$fp</span>
+<span class="nv">$tmp1</span>:
+    .cfi_def_cfa_offset 24
+    ldi <span class="nv">$2</span>, 0
+    st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ldi <span class="nv">$3</span>, 1
+    st  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ldi <span class="nv">$3</span>, 2
+    st  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ldi <span class="nv">$3</span>, -5
+    st  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    lw  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    lw  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    udiv    <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+    st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    lw  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    sra <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+    st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ldi <span class="nv">$fp</span>, 24
+    add <span class="nv">$sp</span>, <span class="nv">$sp</span>, <span class="nv">$fp</span>
+    ret <span class="nv">$lr</span>
+    .set    macro
+    .set    reorder
+    .end    main
+<span class="nv">$tmp2</span>:
+    .size   main, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-main
+    .cfi_endproc
+
+118-165-80-195:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static
+-cpu0-islinux-format<span class="o">=</span><span class="nb">false</span> -filetype<span class="o">=</span>asm ch5_1.bc -o ch5_1.cpu0.islinux-format-
+false.s
+118-165-80-195:InputFiles Jonathan<span class="nv">$ </span>cat ch5_1.cpu0.islinux-format-false.s
+    .section .mdebug.abi32
+    .previous
+    .file   <span class="s2">&quot;ch5_1.bc&quot;</span>
+    .text
+    .globl  main
+    .align  2
+    .type   main,@function
+    .ent    main                    <span class="c"># @main</span>
+main:
+    .cfi_startproc
+    .frame  <span class="nv">$sp</span>,8,<span class="nv">$lr</span>
+    .mask   0x00000000,0
+    .set    noreorder
+    .set    nomacro
+<span class="c"># BB#0:</span>
+    ldi <span class="nv">$fp</span>, -8
+    add <span class="nv">$sp</span>, <span class="nv">$sp</span>, <span class="nv">$fp</span>
+<span class="nv">$tmp1</span>:
+    .cfi_def_cfa_offset 8
+    ldi <span class="nv">$2</span>, 0
+    st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ldi <span class="nv">$2</span>, %gp_rel<span class="o">(</span>gI<span class="o">)</span>
+    add <span class="nv">$2</span>, <span class="nv">$gp</span>, <span class="nv">$2</span>
+    lw  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+    st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ldi <span class="nv">$fp</span>, 8
+    add <span class="nv">$sp</span>, <span class="nv">$sp</span>, <span class="nv">$fp</span>
+    ret <span class="nv">$lr</span>
+    .set    macro
+    .set    reorder
+    .end    main
+<span class="nv">$tmp2</span>:
+    .size   main, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-main
+    .cfi_endproc
+
+    .type   gI,@object              <span class="c"># @gI</span>
+    .section    .sdata,<span class="s2">&quot;aw&quot;</span>,@progbits
+    .globl  gI
+    .align  2
+gI:
+    .4byte  100                     <span class="c"># 0x64</span>
+    .size   gI, 4
+</pre></div>
+</div>
+</div>
+<div class="section" id="operator-mod">
+<h2>Operator mod, %<a class="headerlink" href="#operator-mod" title="Permalink to this headline">¶</a></h2>
+<p>Example input code ch5_6.cpp which contains the C operator “%” and it&#8217;s
+corresponding llvm IR, as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch5_6.cpp</span>
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
+
+    <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="mi">12</span><span class="p">;</span>
+
+    <span class="k">return</span> <span class="n">b</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch5_6.bc&#39;</span>
+target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-</span>
+<span class="s2">f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128&quot;</span>
+target <span class="nv">triple</span> <span class="o">=</span> <span class="s2">&quot;i386-apple-macosx10.8.0&quot;</span>
+
+define i32 @main<span class="o">()</span> nounwind ssp <span class="o">{</span>
+entry:
+  %retval <span class="o">=</span> alloca i32, align 4
+  %b <span class="o">=</span> alloca i32, align 4
+  store i32 0, i32* %retval
+  store i32 11, i32* %b, align 4
+  %0 <span class="o">=</span> load i32* %b, align 4
+  %add <span class="o">=</span> add nsw i32 %0, 1
+  %rem <span class="o">=</span> srem i32 %add, 12
+  store i32 %rem, i32* %b, align 4
+  %1 <span class="o">=</span> load i32* %b, align 4
+  ret i32 %1
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>LLVM srem is the IR corresponding “%”, reference
+<a class="reference external" href="http://llvm.org/docs/LangRef.html#i_srem">http://llvm.org/docs/LangRef.html#i_srem</a>.
+Copy the reference as follows,</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>&#8216;srem&#8217; Instruction</p>
+<dl class="docutils">
+<dt>Syntax:</dt>
+<dd>&lt;result&gt; = srem &lt;ty&gt; &lt;op1&gt;, &lt;op2&gt;   ; yields {ty}:result</dd>
+</dl>
+<p>Overview:
+The &#8216;srem&#8217; instruction returns the remainder from the signed division of its
+two operands. This instruction can also take vector versions of the values in
+which case the elements must be integers.</p>
+<p>Arguments:
+The two arguments to the &#8216;srem&#8217; instruction must be integer or vector of
+integer values. Both arguments must have identical types.</p>
+<p>Semantics:
+This instruction returns the remainder of a division (where the result is
+either zero or has the same sign as the dividend, op1), not the modulo operator
+(where the result is either zero or has the same sign as the divisor, op2) of
+a value. For more information about the difference, see The Math Forum. For a
+table of how this is implemented in various languages, please see Wikipedia:
+modulo operation.</p>
+<p>Note that signed integer remainder and unsigned integer remainder are distinct
+operations; for unsigned integer remainder, use &#8216;urem&#8217;.</p>
+<p>Taking the remainder of a division by zero leads to undefined behavior.
+Overflow also leads to undefined behavior; this is a rare case, but can occur,
+for example, by taking the remainder of a 32-bit division of -2147483648 by -1.
+(The remainder doesn&#8217;t actually overflow, but this rule lets srem be
+implemented using instructions that return both the result of the division and
+the remainder.)</p>
+<dl class="last docutils">
+<dt>Example:</dt>
+<dd>&lt;result&gt; = srem i32 4, %var          ; yields {i32}:result = 4 % %var</dd>
+</dl>
+</div>
+<dl class="docutils">
+<dt>Run 5/5/Cpu0 with input file ch5_6.bc and llc option –view-isel-dags as follows,</dt>
+<dd>will get the error message as follows and the llvm DAG of :ref::<cite>globalvar_f2</cite>.</dd>
+</dl>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-79-37:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/2/
+cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -view-isel-dags -relocation-model<span class="o">=</span>
+pic -filetype<span class="o">=</span>asm ch5_6.bc -o ch5_6.cpu0.s
+...
+LLVM ERROR: Cannot <span class="k">select</span>: 0x7fa73a02ea10: <span class="nv">i32</span> <span class="o">=</span> mulhs 0x7fa73a02c610,
+0x7fa73a02e910 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>12<span class="o">]</span>
+  0x7fa73a02c610: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;12&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>5<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>7<span class="o">]</span>
+  0x7fa73a02e910: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;715827883&gt; <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>9<span class="o">]</span>
+</pre></div>
+</div>
+<div class="figure align-center" id="globalvar-f2">
+<a class="reference internal image-reference" href="_images/22.png"><img alt="_images/22.png" src="_images/22.png" style="width: 778.0px; height: 786.0px;" /></a>
+<p class="caption">ch5_6.bc DAG</p>
+</div>
+<p>LLVM replace srem divide operation with multiply operation in DAG optimization
+because DIV operation cost more in time than MUL.
+For example code “int b = 11; b=(b+1)%12;”, it translate into :ref::<cite>globalvar_f2</cite>.
+We verify the result and explain by calculate the value in each node.
+The 0xC*0x2AAAAAAB=0x200000004, (mulhs 0xC, 0x2AAAAAAAB) meaning get the Signed
+mul high word (32bits).
+Multiply with 2 operands of 1 word size generate the 2 word size of result
+(0x2, 0xAAAAAAAB).
+The high word result, in this case is 0x2.
+The final result (sub 12, 12) is 0 which match the statement (11+1)%12.</p>
+<p>Let&#8217;s run 5/6_1/Cpu0 with llc option  -view-sched-dags to get
+:ref::<cite>globalvar_f3</cite>.
+Similarly, SMMUL get the high word of multiply result.</p>
+<div class="figure align-center" id="globalvar-f3">
+<a class="reference internal image-reference" href="_images/31.png"><img alt="_images/31.png" src="_images/31.png" style="width: 657.0px; height: 781.0px;" /></a>
+<p class="caption">Translate ch5_6.bc into cpu0 backend DAG</p>
+</div>
+<p>Follows is the result of run 5/6_1/Cpu0 with ch5_6.bc.</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-71-252:InputFiles Jonathan<span class="nv">$ </span>cat ch5_6.cpu0.s
+    .section .mdebug.abi32
+    .previous
+    .file   <span class="s2">&quot;ch5_6.bc&quot;</span>
+    .text
+    .globl  main
+    .align  2
+    .type   main,@function
+    .ent    main                    <span class="c"># @main</span>
+main:
+    .frame  <span class="nv">$sp</span>,8,<span class="nv">$lr</span>
+    .mask   0x00000000,0
+    .set    noreorder
+    .set    nomacro
+<span class="c"># BB#0:                                 # %entry</span>
+    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -8
+    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+    st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 11
+    st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 10922
+    shl <span class="nv">$2</span>, <span class="nv">$2</span>, 16
+    addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, 43691
+    or  <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 12
+    smmul   <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+    shr <span class="nv">$4</span>, <span class="nv">$3</span>, 31
+    sra <span class="nv">$3</span>, <span class="nv">$3</span>, 1
+    add <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+    mul <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+    sub <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+    st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 8
+    ret <span class="nv">$lr</span>
+    .set    macro
+    .set    reorder
+    .end    main
+<span class="nv">$tmp1</span>:
+    .size   main, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-main
+</pre></div>
+</div>
+<p>The other instruction UMMUL and llvm IR mulhu are unsigned int type for
+operator %.
+You can check it by unmark the “unsigned int b = 11;” in ch5_6.cpp.</p>
+<p>Use SMMUL instruction to get the high word of multiplication result is adopted
+in ARM.
+Mips use MULT instruction and save the high &amp; low part to register HI and LO.
+After that, use mfhi/mflo to move register HI/LO to your general purpose
+register.
+ARM SMMUL is fast if you only need the HI part of result (it ignore the LO part
+of operation).
+Meanwhile Mips is fast if you need both the HI and LO result.
+If you need the LO part of result, you can use Cpu0 MUL instruction which only
+get the LO part of result.
+5/6_2/Cpu0 is implemented with Mips MULT style.
+We choose it as the implementation of this book.
+For Mips style implementation, we add the following code in
+Cpu0RegisterInfo.td, Cpu0InstrInfo.td and Cpu0ISelDAGToDAG.cpp.
+And list the related DAG nodes mulhs and mulhu which are used in 5/6_2/Cpu0
+from TargetSelectionDAG.td.</p>
+<div class="highlight-c++"><pre>// Cpu0RegisterInfo.td
+...
+  // Hi/Lo registers
+  def HI  : Register&lt;"hi"&gt;, DwarfRegNum&lt;[18]&gt;;
+  def LO  : Register&lt;"lo"&gt;, DwarfRegNum&lt;[19]&gt;;
+
+// Cpu0InstrInfo.td
+…
+// Mul, Div
+class Mult&lt;bits&lt;8&gt; op, string instr_asm, InstrItinClass itin,
+           RegisterClass RC, list&lt;Register&gt; DefRegs&gt;:
+  FL&lt;op, (outs), (ins RC:$ra, RC:$rb),
+     !strconcat(instr_asm, "\t$ra, $rb"), [], itin&gt; {
+  let imm16 = 0;
+  let isCommutable = 1;
+  let Defs = DefRegs;
+  let neverHasSideEffects = 1;
+}
+
+class Mult32&lt;bits&lt;8&gt; op, string instr_asm, InstrItinClass itin&gt;:
+  Mult&lt;op, instr_asm, itin, CPURegs, [HI, LO]&gt;;
+
+// Move from Hi/Lo
+class MoveFromLOHI&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
+                   list&lt;Register&gt; UseRegs&gt;:
+  FL&lt;op, (outs RC:$ra), (ins),
+     !strconcat(instr_asm, "\t$ra"), [], IIHiLo&gt; {
+  let rb = 0;
+  let imm16 = 0;
+  let Uses = UseRegs;
+  let neverHasSideEffects = 1;
+}
+...
+def MULT    : Mult32&lt;0x50, "mult", IIImul&gt;;
+def MULTu   : Mult32&lt;0x51, "multu", IIImul&gt;;
+
+def MFHI : MoveFromLOHI&lt;0x40, "mfhi", CPURegs, [HI]&gt;;
+def MFLO : MoveFromLOHI&lt;0x41, "mflo", CPURegs, [LO]&gt;;
+
+// Cpu0ISelDAGToDAG.cpp
+…
+/// Select multiply instructions.
+std::pair&lt;SDNode*, SDNode*&gt;
+Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
+                              bool HasLo, bool HasHi) {
+  SDNode *Lo = 0, *Hi = 0;
+  SDNode *Mul = CurDAG-&gt;getMachineNode(Opc, dl, MVT::Glue, N-&gt;getOperand(0),
+                                       N-&gt;getOperand(1));
+  SDValue InFlag = SDValue(Mul, 0);
+
+  if (HasLo) {
+    Lo = CurDAG-&gt;getMachineNode(Cpu0::MFLO, dl,
+                                Ty, MVT::Glue, InFlag);
+    InFlag = SDValue(Lo, 1);
+  }
+  if (HasHi)
+    Hi = CurDAG-&gt;getMachineNode(Cpu0::MFHI, dl,
+                                Ty, InFlag);
+
+  return std::make_pair(Lo, Hi);
+}
+
+/// Select instructions not customized! Used for
+/// expanded, promoted and normal instructions
+SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
+  unsigned Opcode = Node-&gt;getOpcode();
+  ...
+  switch(Opcode) {
+  default: break;
+
+  case ISD::MULHS:
+  case ISD::MULHU: {
+    MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
+    return SelectMULT(Node, MultOpc, dl, NodeTy, false, true).second;
+  }
+  …
+}
+
+// TargetSelectionDAG.td
+...
+def mulhs      : SDNode&lt;"ISD::MULHS"     , SDTIntBinOp, [SDNPCommutative]&gt;;
+def mulhu      : SDNode&lt;"ISD::MULHU"     , SDTIntBinOp, [SDNPCommutative]&gt;;</pre>
+</div>
+<p>Except the custom type, llvm IR operations of expand and promote type will call
+Cpu0DAGToDAGISel::Select() during instruction selection of DAG translation.
+In Select(), it return the HI part of multiplication result to HI register,
+for IR operations of mulhs or mulhu, and LO part to LO register.
+After that, MFHI instruction move the HI register to $ra register.
+MFHI instruction is FL format and only use $ra register, we set the $rb and
+imm16 to 0. :ref::<cite>globalvar_f4</cite> and ch5_6.cpu0.s are the result of compile
+ch5_6.bc.</p>
+<div class="figure align-center" id="globalvar-f4">
+<a class="reference internal image-reference" href="_images/41.png"><img alt="_images/41.png" src="_images/41.png" style="width: 309.0px; height: 807.0px;" /></a>
+<p class="caption">DAG for ch5_6.bc with Mips style MULT</p>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-71-252:InputFiles Jonathan<span class="nv">$ </span>cat ch5_6.cpu0.s
+    .section .mdebug.abi32
+    .previous
+    .file   <span class="s2">&quot;ch5_6.bc&quot;</span>
+    .text
+    .globl  main
+    .align  2
+    .type   main,@function
+    .ent    main                    <span class="c"># @main</span>
+main:
+    .frame  <span class="nv">$sp</span>,8,<span class="nv">$lr</span>
+    .mask   0x00000000,0
+    .set    noreorder
+    .set    nomacro
+<span class="c"># BB#0:                                 # %entry</span>
+    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -8
+    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+    st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 11
+    st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 10922
+    shl <span class="nv">$2</span>, <span class="nv">$2</span>, 16
+    addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, 43691
+    or  <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 12
+    mult    <span class="nv">$2</span>, <span class="nv">$3</span>
+    mfhi    <span class="nv">$3</span>
+    shr <span class="nv">$4</span>, <span class="nv">$3</span>, 31
+    sra <span class="nv">$3</span>, <span class="nv">$3</span>, 1
+    add <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+    mul <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+    sub <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+    st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 8
+    ret <span class="nv">$lr</span>
+    .set    macro
+    .set    reorder
+    .end    main
+<span class="nv">$tmp1</span>:
+    .size   main, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-main
+</pre></div>
+</div>
+<p>Example input file ch5_6_2.cpp combine the pointer variable and operator %
+support. You can compile it and check the result.</p>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="otherinst.html">Other instructions</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="ctrlflow.html">Control flow statement</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, LLVM.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
