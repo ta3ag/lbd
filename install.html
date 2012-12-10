@@ -136,8 +136,8 @@ installer.</p>
 <div class="section" id="create-llvm-xcodeproj-by-cmake-graphic-ui">
 <h3>Create LLVM.xcodeproj by cmake Graphic UI<a class="headerlink" href="#create-llvm-xcodeproj-by-cmake-graphic-ui" title="Permalink to this headline">¶</a></h3>
 <p>Currently, I cannot do debug by lldb with cmake graphic UI operations depicted
-in this section, but I can do debug by lldb with section “1.4 Create
-LLVM.xcodeproj of support cpu0 by terminal cmake command”.
+in this section, but I can do debug by lldb with <a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command">section Create LLVM.xcodeproj
+of supporting cpu0 by terminal cmake command</a>.
 Even though, let&#8217;s build LLVM project with cmake graphic UI now since this LLVM
 build is to build the release version for clang, llvm-as, llc, ..., execution
 command use, not for working backend program. First, create LLVM.xcodeproj as
@@ -211,8 +211,9 @@ if you didn&#8217;t add it after Xcode download.</p>
 </div>
 </div>
 <div class="section" id="create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command">
-<h3>Create LLVM.xcodeproj of supporting cpu0 by terminal <tt class="docutils literal"><span class="pre">cmake</span></tt> command<a class="headerlink" href="#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command" title="Permalink to this headline">¶</a></h3>
-<p>In section 2.2, we create LLVM.xcodeproj by cmake graphic UI.
+<h3>Create LLVM.xcodeproj of supporting cpu0 by terminal cmake command<a class="headerlink" href="#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command" title="Permalink to this headline">¶</a></h3>
+<p>In <a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui">section Create LLVM.xcodeproj by cmake Graphic UI</a>, we create
+LLVM.xcodeproj by cmake graphic UI.
 We can create LLVM.xcodeproj by <tt class="docutils literal"><span class="pre">cmake</span></tt> command on terminal also.
 Now, let&#8217;s repeat above steps to create llvm/3.1.test with cpu0 modified code
 as <a class="reference internal" href="#install-f13"><em>Create llvm/3.1.test with cpu0 modified code</em></a>.</p>
@@ -236,7 +237,7 @@ Now, it&#8217;s ready for building 1/Cpu0 code by command
 <tt class="docutils literal"><span class="pre">cmake</span> <span class="pre">-DCMAKE_CXX_COMPILER=clang++</span> <span class="pre">-DCMAKE_C_COMPILER=clang</span> <span class="pre">-DCMAKE_BUILD_TYPE</span>
 <span class="pre">=Debug</span> <span class="pre">-G</span> <span class="pre">&quot;Xcode&quot;</span> <span class="pre">../src/</span></tt> as <a class="reference internal" href="#install-f15"><em>Build llvm debug cpu0 working project by cmake terminal command</em></a>.
 Remind, currently, the <tt class="docutils literal"><span class="pre">cmake</span></tt> terminal command can work with lldb debug, but
-the section “1.2 cmake graphic UI steps” cannot.</p>
+the <a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui">section Create LLVM.xcodeproj by cmake Graphic UI</a> cannot.</p>
 <div class="figure align-center" id="install-f15">
 <a class="reference internal image-reference" href="_images/15.png"><img alt="_images/15.png" src="_images/15.png" style="width: 990.9px; height: 486.0px;" /></a>
 <p class="caption">Build llvm debug cpu0 working project by <tt class="docutils literal"><span class="pre">cmake</span></tt> terminal command</p>
