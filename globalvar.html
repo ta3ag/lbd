@@ -30,7 +30,7 @@
     <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
-    <link rel="next" title="Todo List" href="todo.html" />
+    <link rel="next" title="Control flow statement" href="ctrlflow.html" />
     <link rel="prev" title="Other instructions" href="otherinst.html" /> 
   </head>
   <body>
@@ -45,7 +45,7 @@
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="todo.html">Todo List</a>&#160;&#160;»
+        <a href="ctrlflow.html">Control flow statement</a>&#160;&#160;»
         </p>
 
       </div>
@@ -1098,7 +1098,7 @@ Writing <span class="s1">&#39;/tmp/llvm_84ibpm/dag.main.dot&#39;</span>...  <spa
 </div>
 <p>It will show the /tmp/llvm_84ibpm/dag.main.dot as <a class="reference internal" href="#globalvar-f1"><em>llc option -view-dag-combine1-dags graphic view</em></a>.</p>
 <div class="figure align-center" id="globalvar-f1">
-<a class="reference internal image-reference" href="_images/11.png"><img alt="_images/11.png" src="_images/11.png" style="width: 687.0px; height: 851.0px;" /></a>
+<a class="reference internal image-reference" href="_images/13.png"><img alt="_images/13.png" src="_images/13.png" style="width: 687.0px; height: 851.0px;" /></a>
 <p class="caption">llc option -view-dag-combine1-dags graphic view</p>
 </div>
 <p>From <a class="reference internal" href="#globalvar-f1"><em>llc option -view-dag-combine1-dags graphic view</em></a>, we can see the -view-dag-combine1-dags option is for
@@ -1120,8 +1120,8 @@ instruction in target description file .td.</p>
 <div class="section" id="adjust-cpu0-instruction-and-support-type-of-local-variable-pointer">
 <h2>Adjust cpu0 instruction and support type of local variable pointer<a class="headerlink" href="#adjust-cpu0-instruction-and-support-type-of-local-variable-pointer" title="Permalink to this headline">¶</a></h2>
 <p>We decide add instructions udiv and sra to avoid compiler errors for C language
-operators “/” in unsigned int and “&gt;&gt;” in signed int as section
-“4.1 Other instructions” mentioned.
+operators “/” in unsigned int and “&gt;&gt;” in signed int as
+<a class="reference external" href="http://jonathan2251.github.com/lbd/otherinst.html#support-arithmetic-instructions">section Support arithmetic instructions</a> mentioned.
 To support these 2 operators, we only need to add these code in
 Cpu0InstsInfo.td as follows,</p>
 <div class="highlight-c++"><pre>//  Cpu0InstsInfo.td
@@ -1251,7 +1251,7 @@ main:
 There is no addiu instruction definition.
 We add addiu instruction because we find this instruction is more powerful and
 reasonable than ldi instruction.
-We highlight this change in section “2.1 CPU0 processor architecture”.
+We highlight this change in <a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#cpu0-processor-architecture">section CPU0 processor architecture</a>.
 Even with that, we show you how to change our addiu with ldi according the cpu0
 original design.
 5/5_2 is the code changes for use ldi instruction.
@@ -1525,7 +1525,7 @@ LLVM ERROR: Cannot <span class="k">select</span>: 0x7fa73a02ea10: <span class="n
 </pre></div>
 </div>
 <div class="figure align-center" id="globalvar-f2">
-<a class="reference internal image-reference" href="_images/21.png"><img alt="_images/21.png" src="_images/21.png" style="width: 778.0px; height: 786.0px;" /></a>
+<a class="reference internal image-reference" href="_images/22.png"><img alt="_images/22.png" src="_images/22.png" style="width: 778.0px; height: 786.0px;" /></a>
 <p class="caption">ch5_6.bc DAG</p>
 </div>
 <p>LLVM replace srem divide operation with multiply operation in DAG optimization
@@ -1757,7 +1757,7 @@ support. You can compile it and check the result.</p>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="todo.html">Todo List</a>&#160;&#160;»
+        <a href="ctrlflow.html">Control flow statement</a>&#160;&#160;»
         </p>
 
       </div>

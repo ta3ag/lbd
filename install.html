@@ -109,7 +109,7 @@ compiler-rt source to src/project/compiler-rt as shown in <a class="reference in
 <p class="last">Should we just write out commands in a terminal for people to execute?</p>
 </div>
 <div class="figure align-center" id="install-f1">
-<img alt="_images/12.png" src="_images/12.png" />
+<img alt="_images/14.png" src="_images/14.png" />
 <p class="caption">LLVM, clang, compiler-rt source code positions on Mac OS X</p>
 </div>
 <p>Next, copy the LLVM source to /Users/Jonathan/llvm/3.1/src by executing the
@@ -123,7 +123,7 @@ lock to make changes, and under &#8220;Allow applications downloaded from:&#8221
 the radio button next to &#8220;Anywhere.&#8221; See <a class="reference internal" href="#install-f2"><em>Adjusting Mac OS X security settings to allow cmake installation.</em></a> below for an
 illustration. You may want to revert this setting after installing cmake.</p>
 <div class="figure align-center" id="install-f2">
-<img alt="_images/22.png" src="_images/22.png" />
+<img alt="_images/23.png" src="_images/23.png" />
 <p class="caption">Adjusting Mac OS X security settings to allow cmake installation.</p>
 </div>
 <p>Alternatively, you can mount the cmake .dmg image file you downloaded, right
@@ -217,7 +217,7 @@ We can create LLVM.xcodeproj by <tt class="docutils literal"><span class="pre">c
 Now, let&#8217;s repeat above steps to create llvm/3.1.test with cpu0 modified code
 as <a class="reference internal" href="#install-f13"><em>Create llvm/3.1.test with cpu0 modified code</em></a>.</p>
 <div class="figure align-center" id="install-f13">
-<img alt="_images/13.png" src="_images/13.png" />
+<img alt="_images/131.png" src="_images/131.png" />
 <p class="caption">Create llvm/3.1.test with cpu0 modified code</p>
 </div>
 <p>/Users/Jonathan/Documents/Gamma_flash/LLVMBackendTutorial/src_files_modify/src/
@@ -227,7 +227,7 @@ backend support.
 After <a class="reference internal" href="#install-f13"><em>Create llvm/3.1.test with cpu0 modified code</em></a>, copy cpu0 example code from LLVMBackendTutorial/1/Cpu0
 to src/lib/Target/ as <a class="reference internal" href="#install-f14"><em>Copy cpu0 example code from 1/Cpu0 to src/lib/Target/</em></a>.</p>
 <div class="figure align-center" id="install-f14">
-<img alt="_images/14.png" src="_images/14.png" />
+<img alt="_images/141.png" src="_images/141.png" />
 <p class="caption">Copy cpu0 example code from 1/Cpu0 to src/lib/Target/</p>
 </div>
 <p>Please remove src/tools/clang since it will waste time to build clang for our
@@ -318,7 +318,7 @@ Then select “Front document&#8217;s file” as <a class="reference internal" h
 <span class="pre">ES=ON</span> <span class="pre">-G</span> <span class="pre">&quot;Unix</span> <span class="pre">Makefiles&quot;</span> <span class="pre">../src/</span></tt>,
 shown in <a class="reference internal" href="#install-f23"><em>Create llvm 3.1 release build</em></a>.</p>
 <div class="figure align-center" id="install-f23">
-<img alt="_images/23.png" src="_images/23.png" />
+<img alt="_images/231.png" src="_images/231.png" />
 <p class="caption">Create llvm 3.1 release build</p>
 </div>
 <p>After cmake, run command <tt class="docutils literal"><span class="pre">make</span></tt>, then you can get clang, llc, llvm-as, ...,
