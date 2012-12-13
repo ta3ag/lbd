@@ -54,14 +54,20 @@
         
   <div class="section" id="back-end-structure">
 <h1>Back end structure<a class="headerlink" href="#back-end-structure" title="Permalink to this headline">¶</a></h1>
-<p>I will introduce the back end class inherit tree and class members first.
-Next, following the back end structure, add individual class implementation in
-each section.
+<p>This chapter introduce the back end class inherit tree and class members first.
+Next, following the back end structure, adding individual class implementation
+in each section.
 There are compiler knowledge like DAG (Directed-Acyclic-Graph) and instruction
 selection needed in this chapter.
-I explain these knowledge just when needed.
+This chapter explains these knowledge just when needed.
 At the end of this chapter, we will have a back end to compile llvm
 intermediate code into cpu0 assembly code.</p>
+<p>Many code are added in this chapter. They almost are common in every back end
+except the back end name (cpu0 or mips ...). Actually, we copy almost all the
+code from mips and replace the name with cpu0. Please focus on the classes
+relationship in this backend structure. Once knowing the structure, you can
+create your backend structure as quickly as we did, even though there are 3000
+lines of code in this chapter.</p>
 <div class="section" id="targetmachine-structure">
 <h2>TargetMachine structure<a class="headerlink" href="#targetmachine-structure" title="Permalink to this headline">¶</a></h2>
 <p>Your back end should define a TargetMachine class, for example, we define the
@@ -247,7 +253,7 @@ CMakeLists.txt  modified with those new added *.cpp as follows,</p>
 </pre></div>
 </div>
 <p>Please take a look for 3/1 code.
-After that, we build 3/1 by make as chapter 2 (of course, you should remove old
+After that, building 3/1 by make as chapter 2 (of course, you should remove old
 Target/Cpu0 and replace with 3/1/Cpu0).
 You can remove lib/Target/Cpu0/*.inc before do “make” to ensure your code
 rebuild completely.
@@ -262,7 +268,7 @@ Command as follows,</p>
 <h2>Add RegisterInfo<a class="headerlink" href="#add-registerinfo" title="Permalink to this headline">¶</a></h2>
 <p>As depicted in <a class="reference internal" href="#backendstructure-f1"><em>TargetMachine class diagram 1</em></a>, the Cpu0InstrInfo class should
 contains Cpu0RegisterInfo.
-So in 3/2/Cpu0, we add Cpu0RegisterInfo class (Cpu0RegisterInfo.h,
+So 3/2/Cpu0 add Cpu0RegisterInfo class (Cpu0RegisterInfo.h,
 Cpu0RegisterInfo.cpp), and Cpu0RegisterInfo class in files Cpu0InstrInfo.h,
 Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0InstrInfo.h</span>
@@ -305,9 +311,9 @@ Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,</p
   <span class="p">)</span>
 </pre></div>
 </div>
-<p>Now, let&#8217;s replace 3/1/Cpu0 with 3/2/Cpu0 for adding register class definition
+<p>Now, let&#8217;s replace 3/1/Cpu0 with 3/2/Cpu0 of adding register class definition
 and rebuild.
-After that, we try to run the llc compile command to see what happen,</p>
+After that, let&#8217;s try to run the llc compile command to see what happen,</p>
 <div class="highlight-c++"><pre>[Gamma@localhost InputFiles]$ /usr/local/llvm/3.1.test/cpu0/1/cmake_debug_build/
 bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o ch3.cpu0.s 
 llc: /usr/local/llvm/3.1.test/cpu0/1/src/lib/CodeGen/LLVMTargetMachine.cpp:78: l
@@ -455,7 +461,7 @@ Cpu0AsmPrinter to LLVMBuild.txt as follows,</p>
 <span class="n">required_libraries</span> <span class="o">=</span> <span class="n">AsmPrinter</span> <span class="n">CodeGen</span> <span class="n">Core</span> <span class="n">MC</span> <span class="n">Cpu0AsmPrinter</span> <span class="n">Cpu0Desc</span> <span class="n">Cpu0Info</span>
 </pre></div>
 </div>
-<p>Now, run 3/3/Cpu0 for AsmPrinter support, we get error message as follows,</p>
+<p>Now, run 3/3/Cpu0 for AsmPrinter support, will get error message as follows,</p>
 <div class="highlight-c++"><pre>[Gamma@localhost InputFiles]$ /usr/local/llvm/3.1.test/cpu0/1/cmake_debug_build/
 bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o ch3.cpu0.s 
 /usr/local/llvm/3.1.test/cpu0/1/cmake_debug_build/bin/llc: target does not suppo
@@ -490,13 +496,13 @@ Following is the llvm SSA instructions.</p>
 <span class="o">%</span><span class="n">a3</span> <span class="o">=</span> <span class="n">add</span> <span class="n">i32</span> <span class="o">%</span><span class="n">a2</span><span class="p">,</span> <span class="mi">1</span>  <span class="p">;</span> <span class="n">add</span> <span class="o">%</span><span class="n">a2</span> <span class="n">and</span> <span class="mi">1</span> <span class="n">and</span> <span class="n">save</span> <span class="n">to</span> <span class="o">%</span><span class="n">a3</span>
 </pre></div>
 </div>
-<p>I explain the code generation process as below.
+<p>We explain the code generation process as below.
 If you don&#8217;t feel comfortable, please check tricore_llvm.pdf section 4.2 first.
 You can  read “The LLVM Target-Independent Code Generator”
 (<a class="reference external" href="http://llvm.org/docs/CodeGenerator.html">http://llvm.org/docs/CodeGenerator.html</a>) and “LLVM Language Reference Manual”
-(<a class="reference external" href="http://llvm.org/docs/LangRef.html">http://llvm.org/docs/LangRef.html</a>) before go ahead, but I think read section
+(<a class="reference external" href="http://llvm.org/docs/LangRef.html">http://llvm.org/docs/LangRef.html</a>) before go ahead, but we think read section
 4.2 of tricore_llvm.pdf is enough.
-I suggest you read the web site documents as above only when you are still not
+We suggest you read the web site documents as above only when you are still not
 quite understand, even though you have read this section and next 2 sections
 article for DAG and Instruction Selection.</p>
 <ol class="arabic simple">
@@ -619,7 +625,7 @@ ADD is machine instruction.</p>
 <img alt="_images/8.png" src="_images/8.png" />
 <p class="caption">Instruction DAG representation</p>
 </div>
-<p>We can also represent IR DAG and machine instruction DAG as list.
+<p>The IR DAG and machine instruction DAG can also represented as list.
 For example, (+ ri, rj), (- ri, 1) are lists for IR DAG; (ADD ri, rj),
 (SUBI ri, 1) are lists for machine instruction DAG.</p>
 <p>Now, let&#8217;s recall the ADDiu instruction defined on Cpu0InstrInfo.td in the
@@ -689,7 +695,7 @@ following machine code,</p>
 </div>
 <div class="section" id="add-cpu0dagtodagisel-class">
 <h2>Add Cpu0DAGToDAGISel class<a class="headerlink" href="#add-cpu0dagtodagisel-class" title="Permalink to this headline">¶</a></h2>
-<p>We have introduced the IR DAG to machine instruction DAG transformation in the
+<p>The IR DAG to machine instruction DAG transformation is introduced in the
 previous section.
 Now, let&#8217;s check what IR DAG node the file ch3.bc has. List ch3.ll as follows,</p>
 <div class="highlight-c++"><pre>// ch3.ll
@@ -739,7 +745,7 @@ following fragment to Cpu0TargetMachine.cpp,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>In this version, we add the following code in Cpu0InstInfo.cpp to enable debug
+<p>This version adding the following code in Cpu0InstInfo.cpp to enable debug
 information which called by llvm at proper time.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0InstInfo.cpp</span>
 <span class="p">...</span>
@@ -796,7 +802,7 @@ Among them are the following points:</p>
 <img alt="_images/9.png" src="_images/9.png" />
 <p class="caption">Addressing of a variable a located on the stack. If the stack frame has a variable size, slot must be addressed relative to the frame pointer</p>
 </div>
-<p>I will explain the Prologue and Epilogue further by example code.
+<p>We will explain the Prologue and Epilogue further by example code.
 So for the following llvm IR code, Cpu0 back end will emit the corresponding
 machine instructions as follows,</p>
 <div class="highlight-c++"><pre>define i32 @main() nounwind uwtable { 
@@ -906,7 +912,7 @@ $tmp1:
 <h2>Summary of this Chapter<a class="headerlink" href="#summary-of-this-chapter" title="Permalink to this headline">¶</a></h2>
 <p>We have finished a simple assembler for cpu0 which only support <strong>addiu</strong>,
 <strong>st</strong> and <strong>ret</strong> 3 instructions.</p>
-<p>I am satisfied with this result.
+<p>We are satisfied with this result.
 But you may think “After so many codes we program, and just get the 3
 instructions”.
 The point is we have created a frame work for cpu0 target machine (please
@@ -922,7 +928,7 @@ directory which include C++ and Obj C support.
 Mips back end has only 15,000 lines with comments.
 Even the complicate X86 CPU which CISC outside and RISC inside (micro
 instruction), has only 45,000 lines with comments.
-In next chapter, I will show you that add a new instruction support is as easy
+In next chapter, we will show you that add a new instruction support is as easy
 as 123.</p>
 </div>
 </div>

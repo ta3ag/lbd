@@ -82,6 +82,11 @@ debugging LLVM using Eclipse or other major IDEs, please contact the authors.
 For information on using <tt class="docutils literal"><span class="pre">cmake</span></tt> to build LLVM, please refer to the <a class="reference external" href="http://llvm.org/docs/CMake.html?highlight=cmake">Building
 LLVM with CMake</a> documentation for further information.  We are using cmake
 version 2.8.9.</p>
+<p>We will install two llvm directories in this chapter. One is the directory
+llvm/3.1/ which contains the clang, clang++ compiler we will use to translate
+the C/C++ input file into llvm IR.
+The other is the directory llvm/3.1.test/cpu0/1 which contains our cpu0 backend
+program and without clang and clang++.</p>
 <div class="admonition-todo admonition" id="index-0">
 <p class="first admonition-title">Todo</p>
 <p class="last">Find information on debugging LLVM within Xcode for Macs.</p>
@@ -135,14 +140,17 @@ installer.</p>
 </div>
 <div class="section" id="create-llvm-xcodeproj-by-cmake-graphic-ui">
 <h3>Create LLVM.xcodeproj by cmake Graphic UI<a class="headerlink" href="#create-llvm-xcodeproj-by-cmake-graphic-ui" title="Permalink to this headline">¶</a></h3>
-<p>Currently, I cannot do debug by lldb with cmake graphic UI operations depicted
-in this section, but I can do debug by lldb with <a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command">section Create LLVM.xcodeproj
+<p>We install llvm source code with clang on directory /Users/Jonathan/llvm/3.1/
+in last section.
+Now, will generate the LLVM.xcodeproj in this chapter.</p>
+<p>Currently, we cannot do debug by lldb with cmake graphic UI operations depicted
+in this section, but we can do debug by lldb with <a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command">section Create LLVM.xcodeproj
 of supporting cpu0 by terminal cmake command</a>.
-Even though, let&#8217;s build LLVM project with cmake graphic UI now since this LLVM
-build is to build the release version for clang, llvm-as, llc, ..., execution
-command use, not for working backend program. First, create LLVM.xcodeproj as
-<a class="reference internal" href="#install-f3"><em>Start to create LLVM.xcodeproj by cmake</em></a>, then click configure button to enter <a class="reference internal" href="#install-f4"><em>Create LLVM.xcodeproj by cmake – Set option to generate Xcode project</em></a>,
-and then click Done button on <a class="reference internal" href="#install-f4"><em>Create LLVM.xcodeproj by cmake – Set option to generate Xcode project</em></a> to get <a class="reference internal" href="#install-f5"><em>Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</em></a>.</p>
+Even with that, let&#8217;s build LLVM project with cmake graphic UI since this LLVM
+directory contains the release version for clang and clang++ execution file.
+First, create LLVM.xcodeproj as
+<a class="reference internal" href="#install-f3"><em>Start to create LLVM.xcodeproj by cmake</em></a>, then click <strong>configure</strong> button to enter <a class="reference internal" href="#install-f4"><em>Create LLVM.xcodeproj by cmake – Set option to generate Xcode project</em></a>,
+and then click <strong>Done</strong> button on <a class="reference internal" href="#install-f4"><em>Create LLVM.xcodeproj by cmake – Set option to generate Xcode project</em></a> to get <a class="reference internal" href="#install-f5"><em>Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</em></a>.</p>
 <div class="figure align-center" id="install-f3">
 <img alt="_images/32.png" src="_images/32.png" />
 <p class="caption">Start to create LLVM.xcodeproj by cmake</p>
@@ -160,8 +168,8 @@ and then click Done button on <a class="reference internal" href="#install-f4"><
 <p class="last">The html will follow the appear order in *.rst source context but latexpdf didn&#8217;t. For example, the <a class="reference internal" href="#install-f4"><em>Create LLVM.xcodeproj by cmake – Set option to generate Xcode project</em></a> Figure 2.4 and <a class="reference internal" href="#install-f5"><em>Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</em></a> Figure 2.5 appear after the below text &#8220;Click OK from ...&#8221; in pdf. If find the <strong>NoReorder</strong> or <strong>newpage</strong> directive, maybe can solve this problem.</p>
 </div>
 <p>Click OK from <a class="reference internal" href="#install-f5"><em>Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</em></a> and select Cmake 2.8-9.app for CMAKE_INSTALL_NAM
-E_TOOL by click the right side button “...” of that row in <a class="reference internal" href="#install-f5"><em>Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</em></a> to
-get <a class="reference internal" href="#install-f6"><em>Select Cmake 2.8-9.app</em></a>.</p>
+E_TOOL by click the right side button <strong>“...”</strong> of that row in
+<a class="reference internal" href="#install-f5"><em>Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</em></a> to get <a class="reference internal" href="#install-f6"><em>Select Cmake 2.8-9.app</em></a>.</p>
 <div class="figure align-center" id="install-f6">
 <img alt="_images/61.png" src="_images/61.png" />
 <p class="caption">Select Cmake 2.8-9.app</p>
@@ -212,6 +220,9 @@ if you didn&#8217;t add it after Xcode download.</p>
 </div>
 <div class="section" id="create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command">
 <h3>Create LLVM.xcodeproj of supporting cpu0 by terminal cmake command<a class="headerlink" href="#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command" title="Permalink to this headline">¶</a></h3>
+<p>We have install llvm with clang on directory llvm/3.1/.
+Now, we want to install llvm with our cpu0 backend code on directory
+llvm/3.1.test/cpu0/1 in this section.</p>
 <p>In <a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui">section Create LLVM.xcodeproj by cmake Graphic UI</a>, we create
 LLVM.xcodeproj by cmake graphic UI.
 We can create LLVM.xcodeproj by <tt class="docutils literal"><span class="pre">cmake</span></tt> command on terminal also.
@@ -268,13 +279,13 @@ as <a class="reference internal" href="#install-f17"><em>Type FileMerge in Finde
 </div>
 <p>Download tool Graphviz for display llvm IR nodes in debugging,
 <a class="reference external" href="http://www.graphviz.org/Download_macos.php">http://www.graphviz.org/Download_macos.php</a>.
-I choose mountainlion as <a class="reference internal" href="#install-f19"><em>Download graphviz for llvm IR node display</em></a> since my iMac is Mountain Lion.</p>
+We choose mountainlion as <a class="reference internal" href="#install-f19"><em>Download graphviz for llvm IR node display</em></a> since our iMac is Mountain Lion.</p>
 <div class="figure align-center" id="install-f19">
 <a class="reference internal image-reference" href="_images/19.png"><img alt="_images/19.png" src="_images/19.png" style="width: 944.8px; height: 590.4px;" /></a>
 <p class="caption">Download graphviz for llvm IR node display</p>
 </div>
 <p>After install Graphviz, please set the path to .profile.
-For example, I install the Graphviz in directory
+For example, we install the Graphviz in directory
 /Applications/Graphviz.app/Contents/MacOS/, so add this path to
 /User/Jonathan/.profile as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-12-177:InputFiles Jonathan<span class="nv">$ </span>cat /Users/Jonathan/.profile
@@ -283,11 +294,14 @@ For example, I install the Graphviz in directory
 cmake_debug_build/bin/Debug
 </pre></div>
 </div>
-<p>The Graphviz information for llvm is in <a class="reference external" href="http://llvm.org/docs/CodeGenerator.html">http://llvm.org/docs/CodeGenerator.html</a>?
-highlight=graph%20view and <a class="reference external" href="http://llvm.org/docs/ProgrammersManual.html#ViewGraph">http://llvm.org/docs/ProgrammersManual.html#ViewGraph</a>
-.
+<p>The Graphviz information for llvm is in
+the section &#8220;SelectionDAG Instruction Selection Process&#8221; of
+<a class="reference external" href="http://llvm.org/docs/CodeGenerator.html">http://llvm.org/docs/CodeGenerator.html</a> and
+the section &#8220;Viewing graphs while debugging code&#8221; of
+<a class="reference external" href="http://llvm.org/docs/ProgrammersManual.html">http://llvm.org/docs/ProgrammersManual.html</a>.
 TextWrangler is for edit file with line number display and dump binary file
-like the obj file, *.o, that will be generated in chapter 3.
+like the obj file, *.o, that will be generated in chapter of Other
+instructions.
 You can download from App Store.
 To dump binary file, first, open the binary file, next, select menu
 “File – Hex Front Document” as <a class="reference internal" href="#install-f20"><em>Select Hex Dump menu</em></a>.
@@ -306,10 +320,14 @@ Then select “Front document&#8217;s file” as <a class="reference internal" h
 <h2>Setting Up Your Linux Machine<a class="headerlink" href="#setting-up-your-linux-machine" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="install-llvm-3-1-release-build-on-linux">
 <h3>Install LLVM 3.1 release build on Linux<a class="headerlink" href="#install-llvm-3-1-release-build-on-linux" title="Permalink to this headline">¶</a></h3>
-<p>First, install the llvm release build by,
-1) Untar llvm source, rename llvm source with src.
-2) Untar clang and move it src/tools/clang.
-3) Untar compiler-rt and move it to src/project/compiler-rt as <a class="reference internal" href="#install-f22"><em>Create llvm release build</em></a>.</p>
+<p>First, install the llvm release build by,</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Untar llvm source, rename llvm source with src.</li>
+<li>Untar clang and move it src/tools/clang.</li>
+<li>Untar compiler-rt and move it to src/project/compiler-rt as <a class="reference internal" href="#install-f22"><em>Create llvm release build</em></a>.</li>
+</ol>
+</div></blockquote>
 <div class="figure align-center" id="install-f22">
 <img alt="_images/221.png" src="_images/221.png" />
 <p class="caption">Create llvm release build</p>

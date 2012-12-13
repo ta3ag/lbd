@@ -54,14 +54,15 @@
         
   <div class="section" id="cpu0-instruction-and-llvm-target-description">
 <h1>Cpu0 Instruction and LLVM Target Description<a class="headerlink" href="#cpu0-instruction-and-llvm-target-description" title="Permalink to this headline">¶</a></h1>
-<p>In this chapter, I show you the cpu0 instruction format first.
-Next, I introduce the llvm structure by copy and paste the related article from
-llvm web site.
-After that I will show you how to write register and instruction definitions
+<p>This chapter shows you the cpu0 instruction format first.
+Next, the llvm structure is introduced to you by copy and paste the related
+article from llvm web site. The llvm structure introduced here is extracted
+from the asop web site. You can read the whole article from the asop web site.
+After that we will show you how to write register and instruction definitions
 (Target Description File) which will be used in next chapter.</p>
 <div class="section" id="cpu0-processor-architecture">
 <h2>CPU0 processor architecture<a class="headerlink" href="#cpu0-processor-architecture" title="Permalink to this headline">¶</a></h2>
-<p>I copy and redraw figures in english in this section. This
+<p>We copy and redraw figures in english in this section. This
 <a class="reference external" href="http://ccckmit.wikidot.com/ocs:cpu0">web site</a> is chinese version and here
 is <a class="reference external" href="http://translate.google.com.tw/translate?js=n&amp;prev=_t&amp;hl=zh-TW&amp;ie=UTF-8&amp;layout=2&amp;eotf=1&amp;sl=zh-CN&amp;tl=en&amp;u=http://ccckmit.wikidot.com/ocs:cpu0">english version</a>.</p>
 <div class="section" id="brief-introduction">
@@ -118,10 +119,6 @@ flag in the status register.</p>
 <div class="section" id="the-execution-of-the-instruction-step">
 <h3>The execution of the instruction step<a class="headerlink" href="#the-execution-of-the-instruction-step" title="Permalink to this headline">¶</a></h3>
 <p>CPU0 has three stage pipeline: Instruction fetch, Decode and Execution.</p>
-<div class="admonition-todo admonition" id="index-0">
-<p class="first admonition-title">Todo</p>
-<p class="last">Incorrect display 1. Instruction fecth 1. Decode 1. Execute</p>
-</div>
 <ol class="arabic simple">
 <li>Instruction fetch</li>
 </ol>
@@ -129,24 +126,26 @@ flag in the status register.</p>
 <li>Action 1. The instruction fetch: IR = [PC]</li>
 <li>Action 2. Update program counter: PC = PC + 4</li>
 </ul>
-<ol class="arabic simple">
+<ol class="arabic simple" start="2">
 <li>Decode</li>
 </ol>
 <ul class="simple">
-<li>Action 3. Decode: Control unit decodes IR, then set data flow switch and ALU operation mode.</li>
+<li>Action 3. Decode: Control unit decodes IR, then set data flow switch
+and ALU operation mode.</li>
 </ul>
-<ol class="arabic simple">
+<ol class="arabic simple" start="3">
 <li>Execute</li>
 </ol>
 <ul class="simple">
-<li>Action 4. Execute: Data flow into ALU. After ALU done the operation, the result stored back into destination register.</li>
+<li>Action 4. Execute: Data flow into ALU. After ALU done the operation,
+the result stored back into destination register.</li>
 </ul>
 </div>
 <div class="section" id="replace-ldi-instruction-by-addiu-instruction">
 <h3>Replace ldi instruction by addiu instruction<a class="headerlink" href="#replace-ldi-instruction-by-addiu-instruction" title="Permalink to this headline">¶</a></h3>
-<p>I have recognized the ldi instruction is a bad design and replace it with mips
+<p>We have recognized the ldi instruction is a bad design and replace it with mips
 instruction addiu.
-The reason I replace ldi with addiu is that ldi use only one register even
+The reason we replace ldi with addiu is that ldi use only one register even
 though ldi is L type format and has two registers, as <a class="reference internal" href="#llvmstructure-f4"><em>Cpu0 ldi instruction</em></a>.
 Mips addiu which allow programmer to do load constant to register like ldi,
 and add constant to a register. So, it&#8217;s powerful and fully contains the ldi
@@ -166,7 +165,7 @@ And more, addiu can do addiu $Ra, $Rb, 5 which add $Rb and 5 then save to $Ra,
 but ldi cannot.
 As a cpu design, it&#8217;s common to redesign CPU instruction when find a better
 solution during design the compiler backend for that CPU.
-So, I add addiu instruction to cpu0.
+So, we add addiu instruction to cpu0.
 The cpu0 is my brother&#8217;s work, I will find time to talk with him.</p>
 </div>
 </div>
@@ -343,7 +342,7 @@ tools.
 The *.inc file is a text file (C++ file) with table driven in concept.
 <a class="reference external" href="http://llvm.org/docs/TableGenFundamentals.html">http://llvm.org/docs/TableGenFundamentals.html</a> is the web site.</p>
 <p>Every back end has a target td which define it&#8217;s own target information.
-Td is like C++ in syntax. For example we have Cpu0.td as follows,</p>
+File td is like C++ in syntax. For example the Cpu0.td as follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="o">/===--</span> <span class="n">Cpu0</span><span class="p">.</span><span class="n">td</span> <span class="o">-</span> <span class="n">Describe</span> <span class="n">the</span> <span class="n">Cpu0</span> <span class="n">Target</span> <span class="n">Machine</span> <span class="o">---------*-</span> <span class="n">tablegen</span> <span class="o">-*-===</span><span class="c1">//</span>
 <span class="c1">// </span>
 <span class="c1">//                     The LLVM Compiler Infrastructure </span>
@@ -376,7 +375,7 @@ Td is like C++ in syntax. For example we have Cpu0.td as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The registers td named Cpu0RegisterInfo.td included by Cpu0.td defined as
+<p>The registers td named Cpu0RegisterInfo.td included by Cpu0.td is defined as
 follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0RegisterInfo.td</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
@@ -441,22 +440,22 @@ For example,</p>
 </div>
 <p>Just like C++ class, the keyword “class” is used for declaring data structure
 layout.
-<tt class="docutils literal"><span class="pre">Cpu0Reg&lt;string</span> <span class="pre">n&gt;</span></tt> declare a derived clsas from <tt class="docutils literal"><span class="pre">Register&lt;n&gt;</span></tt> which is
-declared by llvm already, and the n is the argument which type is string.
-In addition to Register class fields, Cpu0Reg add a new field Num of type 4
-bits.
-Namespace same as  C++&#8217;s namespace.
+<tt class="docutils literal"><span class="pre">Cpu0Reg&lt;string</span> <span class="pre">n&gt;</span></tt> declare a derived class from <tt class="docutils literal"><span class="pre">Register&lt;n&gt;</span></tt> which is
+declared by llvm already, where n is the argument of type string.
+In addition to inherited from all the fields of Register class, Cpu0Reg add a
+new field &#8220;Num&#8221; of type 4 bits.
+Namespace is same with  C++ namespace.
 “Def” is used by define(instance) a concrete variable.</p>
 <p>As above, we define a ZERO register which type is Cpu0GPRReg, it&#8217;s field Num
 is 0 (4 bits) and field n is “ZERO” (declared in Register class).
 Note the use of “let” expressions to override values that are initially defined
-in a superclass. For example, let Namespace = “Cpu0” in class Cpu0Reg of our
-example, will override Namespace declared in Register class.
-We also define CPURegs is a variable for type of RegisterClass, where the
-RegisterClass is llvm built-in class.
-The RegisterClass type is a set/group of Register, so we define a set of
-Register in CPURegs variable.</p>
-<p>I named the instructions td as Cpu0InstrInfo.td which contents as follows,</p>
+in a superclass. For example, let Namespace = “Cpu0” in class Cpu0Reg, will
+override Namespace declared in Register class.
+The Cpu0RegisterInfo.td also define that CPURegs is a variable for type of
+RegisterClass, where the RegisterClass is a llvm built-in class.
+The type of RegisterClass is a set/group of Register, so CPURegs variable is
+defined with a set of Register.</p>
+<p>The cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,</p>
 <div class="highlight-c++"><pre>/===- Cpu0InstrInfo.td - Target Description for Cpu0 Target -*- tablegen -*-=//
 // 
 //                     The LLVM Compiler Infrastructure 
@@ -875,14 +874,14 @@ We will use it in DAG transformations later.</p>
 </div>
 <div class="section" id="write-cmake-file">
 <h2>Write cmake file<a class="headerlink" href="#write-cmake-file" title="Permalink to this headline">¶</a></h2>
-<p>In Target/Cpu0 directory, we have 2 files CMakeLists.txt and LLVMBuild.txt,
+<p>Target/Cpu0 directory has two files CMakeLists.txt and LLVMBuild.txt,
 contents as follows,</p>
 <div class="highlight-c++"><pre># CMakeLists.txt 
 # Our td all in Cpu0.td, Cpu0RegisterInfo.td and Cpu0InstrInfo.td included in 
-Cpu0.td 
+#  Cpu0.td 
 set(LLVM_TARGET_DEFINITIONS Cpu0.td) 
 
-# Generate Cpu0GenRegisterInfo.inc and Cpu0GenInstrInfo.inc which include by
+# Generate Cpu0GenRegisterInfo.inc and Cpu0GenInstrInfo.inc which included by
 # your hand code C++ files. 
 # Cpu0GenRegisterInfo.inc came from Cpu0RegisterInfo.td, Cpu0GenInstrInfo.inc
 # came from Cpu0InstrInfo.td. 
@@ -949,9 +948,9 @@ name = Cpu0CodeGen
 parent = Cpu0 
 # If given, a list of the names of Library or LibraryGroup components which must
 #  also be linked in whenever this library is used. That is, the link time 
-# dependencies for this component. When tools are built, the build system will
+#  dependencies for this component. When tools are built, the build system will
 #  include the transitive closure of all required_libraries for the components 
-# the tool needs. 
+#  the tool needs. 
 required_libraries = CodeGen Core MC Cpu0Desc Cpu0Info SelectionDAG Support Target 
 # All LLVMBuild.txt in Target/Cpu0 and subdirectory use 'add_to_library_groups =
 #  Cpu0' 
@@ -961,7 +960,7 @@ add_to_library_groups = Cpu0
 <p>LLVMBuild.txt files are written in a simple variant of the INI or configuration
 file format.
 Comments are prefixed by <tt class="docutils literal"><span class="pre">#</span></tt> in both files.
-I explain the setting for these 2 files in comments.
+We explain the setting for these 2 files in comments.
 Please spend a little time to read it.</p>
 <p>Both CMakeLists.txt and LLVMBuild.txt coexist in sub-directories
 <tt class="docutils literal"><span class="pre">MCTargetDesc</span></tt> and <tt class="docutils literal"><span class="pre">TargetInfo</span></tt>.
@@ -985,7 +984,9 @@ Then, in the target&#8217;s TargetInfo library, the target should define that ob
 and use the RegisterTarget template to register the target.
 For example, the file TargetInfo/Cpu0TargetInfo.cpp register TheCpu0Target for
 big endian and TheCpu0elTarget for little endian, as follows.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">Target</span> <span class="n">llvm</span><span class="o">::</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">llvm</span><span class="o">::</span><span class="n">TheCpu0elTarget</span><span class="p">;</span> 
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// TargetInfo/Cpu0TargetInfo.cpp</span>
+<span class="p">...</span>
+<span class="n">Target</span> <span class="n">llvm</span><span class="o">::</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">llvm</span><span class="o">::</span><span class="n">TheCpu0elTarget</span><span class="p">;</span> 
 <span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0TargetInfo</span><span class="p">()</span> <span class="p">{</span> 
   <span class="n">RegisterTarget</span><span class="o">&lt;</span><span class="n">Triple</span><span class="o">::</span><span class="n">cpu0</span><span class="p">,</span> 
         <span class="cm">/*HasJIT=*/</span><span class="kc">true</span><span class="o">&gt;</span> <span class="n">X</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="s">&quot;cpu0&quot;</span><span class="p">,</span> <span class="s">&quot;Cpu0&quot;</span><span class="p">);</span> 
@@ -997,9 +998,15 @@ big endian and TheCpu0elTarget for little endian, as follows.</p>
 </div>
 <p>Files Cpu0TargetMachine.cpp and MCTargetDesc/Cpu0MCTargetDesc.cpp just define
 the empty initialize function since we register nothing in them for this moment.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0Target</span><span class="p">()</span> <span class="p">{</span> 
-<span class="p">}</span> 
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetMachine.cpp - Define TargetMachine for Cpu0 -------------===//</span>
+<span class="p">...</span>
 
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0Target</span><span class="p">()</span> <span class="p">{</span> 
+<span class="p">}</span> 
+<span class="p">...</span>
+
+<span class="c1">//===-- Cpu0MCTargetDesc.cpp - Cpu0 Target Descriptions -------------------===//</span>
+<span class="p">...</span>
 <span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0TargetMC</span><span class="p">()</span> <span class="p">{</span> 
 <span class="p">}</span>
 </pre></div>
@@ -1008,10 +1015,10 @@ the empty initialize function since we register nothing in them for this moment.
 </div>
 <div class="section" id="build-libraries-and-td">
 <h2>Build libraries and td<a class="headerlink" href="#build-libraries-and-td" title="Permalink to this headline">¶</a></h2>
-<p>I put my llvm3.1 source code in /usr/local/llvm/3.1/src and have llvm3.1
+<p>The llvm3.1 source code is put in /usr/local/llvm/3.1/src and have llvm3.1
 release-build in /usr/local/llvm/3.1/configure_release_build.
 About how to build llvm, please refer <a class="reference external" href="http://clang.llvm.org/get_started.html">http://clang.llvm.org/get_started.html</a>.
-I made a copy from /usr/local/llvm/3.1/src to
+We made a copy from /usr/local/llvm/3.1/src to
 /usr/local/llvm/3.1.test/cpu0/1/src for working with my Cpu0 target back end.
 Sub-directories src is for source code and cmake_debug_build is for debug
 build directory.</p>
@@ -1101,7 +1108,7 @@ List them as follows again,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch3.cpp</span>
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span> 
 <span class="p">{</span> 
-	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span> 
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span> 
 <span class="p">}</span> 
 </pre></div>
 </div>
