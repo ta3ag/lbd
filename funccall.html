@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.1.1',
+        VERSION:     '3.1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -120,25 +120,25 @@ _Z5sum_iiiiiii:
     .set    nomacro
 <span class="c"># BB#0:                                 # %entry</span>
     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -32
-    sw  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    sw  <span class="nv">$5</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    sw  <span class="nv">$6</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    sw  <span class="nv">$7</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // load argument 5
-    sw  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // load argument 6
-    sw  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    st  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    st  <span class="nv">$5</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    st  <span class="nv">$6</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    st  <span class="nv">$7</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // load argument 5
+    st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // load argument 6
+    st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     addu    <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-    lw  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     addu    <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-    lw  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     addu    <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-    lw  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     addu    <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
     addu    <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-    sw  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 32
     jr  <span class="nv">$ra</span>
     nop
@@ -161,23 +161,23 @@ main:
     .set    nomacro
 <span class="c"># BB#0:                                 # %entry</span>
     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -48
-    sw  <span class="nv">$ra</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+    st  <span class="nv">$ra</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
     .cprestore  24
-    sw  <span class="nv">$zero</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    st  <span class="nv">$zero</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 6
-    sw  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // Save argument 6 to 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // Save argument 6 to 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
-    sw  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // Save argument 5 to 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$25</span>, %call16<span class="o">(</span>_Z5sum_iiiiiii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
+    st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // Save argument 5 to 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$25</span>, %call16<span class="o">(</span>_Z5sum_iiiiiii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 1    // Pass argument 1 to <span class="nv">$4</span> <span class="o">(=</span><span class="nv">$a0</span><span class="o">)</span>
     addiu   <span class="nv">$5</span>, <span class="nv">$zero</span>, 2    // Pass argument 2 to <span class="nv">$5</span> <span class="o">(=</span><span class="nv">$a1</span><span class="o">)</span>
     addiu   <span class="nv">$6</span>, <span class="nv">$zero</span>, 3
     addiu   <span class="nv">$7</span>, <span class="nv">$zero</span>, 4
     jalr    <span class="nv">$25</span>
     nop
-    lw  <span class="nv">$gp</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    sw  <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$ra</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+    ld  <span class="nv">$gp</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    st  <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$ra</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 48
     jr  <span class="nv">$ra</span>
     nop
@@ -378,7 +378,7 @@ Second time is for main() which didn&#8217;t create any load DAG for no incoming
 argument passing into main().
 In addition to LowerFormalArguments() which create the load DAG, we need to
 define the loadRegFromStackSlot() to issue the machine instruction
-“lw $r, offset($sp)” to load incoming arguments from stack frame offset.</p>
+“ld $r, offset($sp)” to load incoming arguments from stack frame offset.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0InstrInfo.cpp</span>
 <span class="p">...</span>
 <span class="k">static</span> <span class="n">MachineMemOperand</span><span class="o">*</span> <span class="n">GetMemOperand</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="kt">int</span> <span class="n">FI</span><span class="p">,</span>
@@ -403,7 +403,7 @@ define the loadRegFromStackSlot() to issue the machine instruction
   <span class="kt">unsigned</span> <span class="n">Opc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
   <span class="k">if</span> <span class="p">(</span><span class="n">RC</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegisterClass</span><span class="p">)</span>
-    <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LW</span><span class="p">;</span>
+    <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LD</span><span class="p">;</span>
   <span class="n">assert</span><span class="p">(</span><span class="n">Opc</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Register class not handled!&quot;</span><span class="p">);</span>
   <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">get</span><span class="p">(</span><span class="n">Opc</span><span class="p">),</span> <span class="n">DestReg</span><span class="p">).</span><span class="n">addFrameIndex</span><span class="p">(</span><span class="n">FI</span><span class="p">).</span><span class="n">addImm</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="p">.</span><span class="n">addMemOperand</span><span class="p">(</span><span class="n">MMO</span><span class="p">);</span>
@@ -860,7 +860,7 @@ store outgoing arguments to stack frame offset.
 
 // Cpu0InstrInfo.cpp
 ...
-//- sw SrcReg, MOO(FI)
+//- st SrcReg, MMO(FI)
 void Cpu0InstrInfo::
 storeRegToStackSlot(MachineBasicBlock &amp;MBB, MachineBasicBlock::iterator I,
                     unsigned SrcReg, bool isKill, int FI,
@@ -873,7 +873,7 @@ storeRegToStackSlot(MachineBasicBlock &amp;MBB, MachineBasicBlock::iterator I,
   unsigned Opc = 0;
 
   if (RC == Cpu0::CPURegsRegisterClass)
-    Opc = Cpu0::SW;
+    Opc = Cpu0::ST;
   assert(Opc &amp;&amp; "Register class not handled!");
   BuildMI(MBB, I, DL, get(Opc)).addReg(SrcReg, getKillRegState(isKill))
     .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
@@ -899,26 +899,26 @@ _Z5sum_iiiiiii:
     .set    nomacro
 <span class="c"># BB#0:                                 # %entry</span>
     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -32
-    lw  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     st  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     st  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     add <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-    lw  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     add <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-    lw  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     add <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-    lw  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     add <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
     add <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
     st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
@@ -942,7 +942,7 @@ main:
     .set    nomacro
 <span class="c"># BB#0:                                 # %entry</span>
     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -40
-    BUNDLE                          <span class="c"># 4-byte Folded Spill</span>
+    st      <span class="nv">$lr</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
     addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
     st  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     !ADJCALLSTACKDOWN 24
@@ -958,11 +958,11 @@ main:
     st  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
     st  <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$6</span>, %call24<span class="o">(</span>_Z5sum_iiiiiii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
+    ld  <span class="nv">$6</span>, %call24<span class="o">(</span>_Z5sum_iiiiiii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
     jalr    <span class="nv">$6</span>
     !ADJCALLSTACKUP 24
     st  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$lr</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+    ld  <span class="nv">$lr</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 40
     ret <span class="nv">$lr</span>
     .set    macro
@@ -1074,26 +1074,26 @@ _Z5sum_iiiiiii:
     .set    nomacro
 <span class="c"># BB#0:                                 # %entry</span>
     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -32
-    lw  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     st  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     st  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     add <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-    lw  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     add <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-    lw  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     add <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-    lw  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     add <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
     add <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
     st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
@@ -1117,7 +1117,7 @@ main:
     .set    nomacro
 <span class="c"># BB#0:                                 # %entry</span>
     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -64
-    BUNDLE                          <span class="c"># 4-byte Folded Spill</span>
+    st      <span class="nv">$lr</span>, 60<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
     addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
     st  <span class="nv">$2</span>, 56<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 6
@@ -1132,10 +1132,10 @@ main:
     st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
     st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$6</span>, %call24<span class="o">(</span>_Z5sum_iiiiiii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
+    ld  <span class="nv">$6</span>, %call24<span class="o">(</span>_Z5sum_iiiiiii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
     jalr    <span class="nv">$6</span>
     st  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$lr</span>, 60<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+    ld  <span class="nv">$lr</span>, 60<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 64
     ret <span class="nv">$lr</span>
     .set    macro
@@ -1187,7 +1187,7 @@ _Z5sum_iiiiiii:
 <span class="nv">$tmp1</span>:
     .cfi_def_cfa_offset 32
 ...
-    lw  <span class="nv">$3</span>, %got<span class="o">(</span>gI<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>   // %got<span class="o">(</span>gI<span class="o">)</span> is offset of <span class="o">(</span>gI - _Z5sum_iiiiiii<span class="o">)</span>
+    ld  <span class="nv">$3</span>, %got<span class="o">(</span>gI<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>   // %got<span class="o">(</span>gI<span class="o">)</span> is offset of <span class="o">(</span>gI - _Z5sum_iiiiiii<span class="o">)</span>
 ...
     ret <span class="nv">$lr</span>
     .set    macro
@@ -1206,16 +1206,16 @@ main:
     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -72
 <span class="nv">$tmp5</span>:
     .cfi_def_cfa_offset 72
-    BUNDLE                          <span class="c"># 4-byte Folded Spill</span>
+    st      <span class="nv">$lr</span>, 68<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
 <span class="nv">$tmp6</span>:
     .cfi_offset 14, -4
     .cprestore  24  // save <span class="nv">$gp</span> to 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
 ...
-    lw  <span class="nv">$6</span>, %call24<span class="o">(</span>_Z5sum_iiiiiii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
+    ld  <span class="nv">$6</span>, %call24<span class="o">(</span>_Z5sum_iiiiiii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
     jalr    <span class="nv">$6</span>      // <span class="nv">$t9</span> register number is 6, meaning <span class="nv">$6</span> and %t9 are the
                     //  same register
-    lw  <span class="nv">$gp</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>    // restore <span class="nv">$gp</span> from 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$gp</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>    // restore <span class="nv">$gp</span> from 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
 ...
     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 72
     ret <span class="nv">$lr</span>
@@ -1236,11 +1236,11 @@ gI:
 </pre></div>
 </div>
 <p>As above code comment, “.cprestore 24” is a pseudo instruction for save $gp to
-24($sp); “lw $gp, 24($sp)” will restore the $gp.
+24($sp); “ld $gp, 24($sp)” will restore the $gp.
 In other word, $gp is caller saved register, so main() need to save/restore $gp
 before/after call the shared library _Z5sum_iiiiiii() function.
 In _Z5sum_iiiiiii() function, we translate global variable gI address by
-“lw $3, %got(gI)($gp)” where %got(gI) is offset of (gI - _Z5sum_iiiiiii)
+“ld $3, %got(gI)($gp)” where %got(gI) is offset of (gI - _Z5sum_iiiiiii)
 (we can write our cpu0 compiler to produce obj code by calculate the offset
 value).</p>
 <p>According the original cpu0 web site information, it only support “jsub” 24
@@ -1256,7 +1256,7 @@ how to use $gp to access global variable address. This solution is popular in
 reality and deserve change cpu0 official design as a compiler book.
 Mips use the same solution in 32 bits Mips32 CPU.</p>
 <p>Now, as the following code added in 7/5/Cpu0, we can issue “.cprestore” in
-emitPrologue() and emit lw $gp, ($gp save slot on stack) after jalr by create
+emitPrologue() and emit ld $gp, ($gp save slot on stack) after jalr by create
 file Cpu0EmitGPRestore.cpp which run as a function pass.</p>
 <div class="highlight-c++"><pre>// Cpu0TargetMachine.cpp
 ...
@@ -1392,10 +1392,10 @@ bool Inserter::runOnMachineFunction(MachineFunction &amp;F) {
       // Find EH_LABEL first.
       for (; I-&gt;getOpcode() != TargetOpcode::EH_LABEL; ++I) ;
 
-      // Insert lw.
+      // Insert ld.
       ++I;
       DebugLoc dl = I != MBB.end() ? I-&gt;getDebugLoc() : DebugLoc();
-      BuildMI(MBB, I, dl, TII-&gt;get(Cpu0::LW), Cpu0::GP).addFrameIndex(FI)
+      BuildMI(MBB, I, dl, TII-&gt;get(Cpu0::LD), Cpu0::GP).addFrameIndex(FI)
                                                        .addImm(0);
       Changed = true;
     }
@@ -1407,8 +1407,8 @@ bool Inserter::runOnMachineFunction(MachineFunction &amp;F) {
       }
 
       DebugLoc dl = I-&gt;getDebugLoc();
-      // emit lw $gp, ($gp save slot on stack) after jalr
-      BuildMI(MBB, ++I, dl, TII-&gt;get(Cpu0::LW), Cpu0::GP).addFrameIndex(FI)
+      // emit ld $gp, ($gp save slot on stack) after jalr
+      BuildMI(MBB, ++I, dl, TII-&gt;get(Cpu0::LD), Cpu0::GP).addFrameIndex(FI)
                                                          .addImm(0);
       Changed = true;
     }
@@ -1426,8 +1426,8 @@ FunctionPass *llvm::createCpu0EmitGPRestorePass(Cpu0TargetMachine &amp;tm) {
 // Cpu0MCInstLower.cpp
 …
 static void CreateMCInst(MCInst&amp; Inst, unsigned Opc, const MCOperand&amp; Opnd0,
-                         const MCOperand&amp; Opnd1,
-                         const MCOperand&amp; Opnd2 = MCOperand()) {
+     const MCOperand&amp; Opnd1,
+     const MCOperand&amp; Opnd2 = MCOperand()) {
   Inst.setOpcode(Opc);
   Inst.addOperand(Opnd0);
   Inst.addOperand(Opnd1);
@@ -1436,53 +1436,59 @@ static void CreateMCInst(MCInst&amp; Inst, unsigned Opc, const MCOperand&amp; Op
 }
 
 // Lower ".cpload $reg" to
-//  "lui   $gp, %hi(_gp_disp)"
+//  "addiu   $gp, zero, %hi(_gp_disp)"
+//  “shl   $gp, $gp, 16
 //  "addiu $gp, $gp, %lo(_gp_disp)"
 //  "addu  $gp, $gp, $t9"
-void MipsMCInstLower::LowerCPLOAD(SmallVector&lt;MCInst, 4&gt;&amp; MCInsts) {
-  MCOperand GPReg = MCOperand::CreateReg(Mips::GP);
-  MCOperand T9Reg = MCOperand::CreateReg(Mips::T9);
+void Cpu0MCInstLower::LowerCPLOAD(SmallVector&lt;MCInst, 4&gt;&amp; MCInsts) {
+  MCOperand GPReg = MCOperand::CreateReg(Cpu0::GP);
+  MCOperand T9Reg = MCOperand::CreateReg(Cpu0::T9);
+  MCOperand ZEROReg = MCOperand::CreateReg(Cpu0::ZERO);
   StringRef SymName("_gp_disp");
   const MCSymbol *Sym = Ctx-&gt;GetOrCreateSymbol(SymName);
   const MCSymbolRefExpr *MCSym;
 
-  MCSym = MCSymbolRefExpr::Create(Sym, MCSymbolRefExpr::VK_Mips_ABS_HI, *Ctx);
+  MCSym = MCSymbolRefExpr::Create(Sym, MCSymbolRefExpr::VK_Cpu0_ABS_HI, *Ctx);
   MCOperand SymHi = MCOperand::CreateExpr(MCSym);
-  MCSym = MCSymbolRefExpr::Create(Sym, MCSymbolRefExpr::VK_Mips_ABS_LO, *Ctx);
+  MCSym = MCSymbolRefExpr::Create(Sym, MCSymbolRefExpr::VK_Cpu0_ABS_LO, *Ctx);
   MCOperand SymLo = MCOperand::CreateExpr(MCSym);
 
-  MCInsts.resize(3);
+  MCInsts.resize(4);
 
-  CreateMCInst(MCInsts[0], Mips::LUi, GPReg, SymHi);
-  CreateMCInst(MCInsts[1], Mips::ADDiu, GPReg, GPReg, SymLo);
-  CreateMCInst(MCInsts[2], Mips::ADDu, GPReg, GPReg, T9Reg);
+  CreateMCInst(MCInsts[0], Cpu0::ADDiu, GPReg, ZEROReg, SymHi);
+  CreateMCInst(MCInsts[1], Cpu0::SHL, GPReg, GPReg, MCOperand::CreateImm(16));
+  CreateMCInst(MCInsts[2], Cpu0::ADDiu, GPReg, GPReg, SymLo);
+  CreateMCInst(MCInsts[3], Cpu0::ADD, GPReg, GPReg, T9Reg);
 }
 
-// Lower ".cprestore offset" to "sw $gp, offset($sp)".
-void MipsMCInstLower::LowerCPRESTORE(int64_t Offset,
-                                     SmallVector&lt;MCInst, 4&gt;&amp; MCInsts) {
+// Lower ".cprestore offset" to "st $gp, offset($sp)".
+void Cpu0MCInstLower::LowerCPRESTORE(int64_t Offset,
+           SmallVector&lt;MCInst, 4&gt;&amp; MCInsts) {
   assert(isInt&lt;32&gt;(Offset) &amp;&amp; (Offset &gt;= 0) &amp;&amp;
-         "Imm operand of .cprestore must be a non-negative 32-bit value.");
+   "Imm operand of .cprestore must be a non-negative 32-bit value.");
 
-  MCOperand SPReg = MCOperand::CreateReg(Mips::SP), BaseReg = SPReg;
-  MCOperand GPReg = MCOperand::CreateReg(Mips::GP);
+  MCOperand SPReg = MCOperand::CreateReg(Cpu0::SP), BaseReg = SPReg;
+  MCOperand GPReg = MCOperand::CreateReg(Cpu0::GP);
+  MCOperand ZEROReg = MCOperand::CreateReg(Cpu0::ZERO);
 
   if (!isInt&lt;16&gt;(Offset)) {
     unsigned Hi = ((Offset + 0x8000) &gt;&gt; 16) &amp; 0xffff;
     Offset &amp;= 0xffff;
-    MCOperand ATReg = MCOperand::CreateReg(Mips::AT);
+    MCOperand ATReg = MCOperand::CreateReg(Cpu0::AT);
     BaseReg = ATReg;
 
-    // lui   at,hi
-    // addu  at,at,sp
-    MCInsts.resize(2);
-    CreateMCInst(MCInsts[0], Mips::LUi, ATReg, MCOperand::CreateImm(Hi));
-    CreateMCInst(MCInsts[1], Mips::ADDu, ATReg, ATReg, SPReg);
+    // addiu   at,zero,hi
+    // shl     at,at,16
+    // add     at,at,sp
+    MCInsts.resize(3);
+    CreateMCInst(MCInsts[0], Cpu0::ADDiu, ATReg, ZEROReg, MCOperand::CreateImm(Hi));
+    CreateMCInst(MCInsts[1], Cpu0::SHL, ATReg, ATReg, MCOperand::CreateImm(16));
+    CreateMCInst(MCInsts[2], Cpu0::ADD, ATReg, ATReg, SPReg);
   }
 
-  MCInst Sw;
-  CreateMCInst(Sw, Mips::SW, GPReg, BaseReg, MCOperand::CreateImm(Offset));
-  MCInsts.push_back(Sw);
+  MCInst St;
+  CreateMCInst(St, Cpu0::ST, GPReg, BaseReg, MCOperand::CreateImm(Offset));
+  MCInsts.push_back(St);
 }</pre>
 </div>
 </div>

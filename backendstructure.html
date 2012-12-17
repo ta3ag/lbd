@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.1.1',
+        VERSION:     '3.1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -639,7 +639,7 @@ Pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]
 </div>
 <p>This pattern meaning the IR DAG node <strong>add</strong> can translate into machine
 instruction DAG node ADDiu by pattern match mechanism.
-Similarly, the machine instruction DAG node LW and ST can be got from IR DAG
+Similarly, the machine instruction DAG node LD and ST can be got from IR DAG
 node <strong>load</strong> and <strong>store</strong>.</p>
 <p>Some cpu/fpu (floating point processor) has multiply-and-add floating point
 instruction, fmadd.
@@ -712,7 +712,7 @@ So, the definitions in Cpu0InstInfo.td as follows is enough.
 IR DAG is defined in file  include/llvm/Target/TargetSelectionDAG.td.</p>
 <div class="highlight-c++"><pre>/// Load and Store Instructions 
 ///  aligned 
-defm LW      : LoadM32&lt;0x00,  "lw",  load_a&gt;; 
+defm LD      : LoadM32&lt;0x00,  "ld",  load_a&gt;; 
 defm ST      : StoreM32&lt;0x01, "st",  store_a&gt;; 
 
 /// Arithmetic Instructions (ALU Immediate)

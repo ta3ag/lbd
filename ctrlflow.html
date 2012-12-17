@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.1.1',
+        VERSION:     '3.1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -386,16 +386,16 @@ readability.</p>
 hexdump as follows,</p>
 <div class="highlight-c++"><pre>118-165-79-206:InputFiles Jonathan$ cat ch6_1_1.cpu0.s
 …
-    lw  $3, 32($sp)
+    ld  $3, 32($sp)
     cmp $3, $2
     jne $BB0_2
     jmp $BB0_1
 $BB0_1:                                 # %if.then
-    lw  $2, 32($sp)
+    ld  $2, 32($sp)
     addiu   $2, $2, 1
     st  $2, 32($sp)
 $BB0_2:                                 # %if.end
-    lw  $2, 28($sp)
+    ld  $2, 28($sp)
 …</pre>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
@@ -425,14 +425,14 @@ List and explain this again as follows,</p>
                 // instruction. Second cycle adjust <span class="nv">PC</span> <span class="o">=</span> PC+4.
     jne <span class="nv">$BB0_2</span>  // Do jne compare in decode stage. <span class="nv">PC</span> <span class="o">=</span> X+4 at this stage.
                 // When jne immediate value is 16, <span class="nv">PC</span> <span class="o">=</span> PC+16. It will fetch
-                //  X+20 which equal to label <span class="nv">$BB0_2</span> instruction, lw <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>.
+                //  X+20 which equal to label <span class="nv">$BB0_2</span> instruction, ld <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>.
     jmp <span class="nv">$BB0_1</span>
 <span class="nv">$BB0_1</span>:                                 <span class="c"># %if.then</span>
-    lw  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
     st  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
 <span class="nv">$BB0_2</span>:                                 <span class="c"># %if.end</span>
-    lw  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
 </pre></div>
 </div>
 <p>If cpu0 do jne compare in execution stage, then we should set PC=PC+12, offset
@@ -665,21 +665,21 @@ main:
     .set    nomacro
 <span class="c"># BB#0:                                 # %entry</span>
     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
-    lw  <span class="nv">$2</span>, %got<span class="o">(</span>__stack_chk_guard<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
-    lw  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, %got<span class="o">(</span>__stack_chk_guard<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
+    ld  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
     st  <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
     st  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$3</span>, %got<span class="o">(</span><span class="nv">$_ZZ4mainE1a</span><span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
+    ld  <span class="nv">$3</span>, %got<span class="o">(</span><span class="nv">$_ZZ4mainE1a</span><span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
     addiu   <span class="nv">$3</span>, <span class="nv">$3</span>, %lo<span class="o">(</span><span class="nv">$_ZZ4mainE1a</span><span class="o">)</span>
-    lw  <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
+    ld  <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
     st  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
+    ld  <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
     st  <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
+    ld  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
     st  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    lw  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
-    lw  <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+    ld  <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     cmp <span class="nv">$2</span>, <span class="nv">$3</span>
     jne <span class="nv">$BB0_2</span>
     jmp <span class="nv">$BB0_1</span>

@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.1.1',
+        VERSION:     '3.1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -580,7 +580,7 @@ multiclass StoreM32&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode,
 //===----------------------------------------------------------------------===//
 /// Load and Store Instructions 
 ///  aligned 
-defm LW      : LoadM32&lt;0x00,  "lw",  load_a&gt;; 
+defm LD      : LoadM32&lt;0x00,  "ld",  load_a&gt;; 
 defm ST      : StoreM32&lt;0x01, "st",  store_a&gt;; 
 
 /// Arithmetic Instructions (ALU Immediate)
@@ -866,7 +866,7 @@ imm16 = simm16:$imm16
 </pre>
 </div>
 <p>It&#8217;s a lousy process.
-Similarly, LW and ST instruction definition can be expanded in this way.
+Similarly, LD and ST instruction definition can be expanded in this way.
 Please notify the Pattern =
 [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))] which include keyword
 “add”.
