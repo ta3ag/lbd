@@ -68,6 +68,14 @@ for your reference.
 The section “4.5 DAG Lowering” of tricore_llvm.pdf contains some knowledge
 about Lowering process. Section “4.5.1 Calling Conventions” of tricore_llvm.pdf
 is the related materials you can reference.</p>
+<p>This chapter is more complicate than any of the previous chapter.
+It include stack frame and the related ABI support.
+If you have problem in reading the stack frame illustrated in the first three
+sections of this chapter, you can read the appendix B of “Procedure Call
+Convention” of book “Computer Organization and Design” which listed in
+section “RISC CPU knowledge” of chapter “Control flow statement”,
+“Run Time Memory” of compiler book, or “Function Call Sequence”  and
+“Stack Frame” of Mips ABI.</p>
 <div class="section" id="mips-stack-frame">
 <h2>Mips stack frame<a class="headerlink" href="#mips-stack-frame" title="Permalink to this headline">¶</a></h2>
 <p>The first thing for design the cpu0 function call is to decide how to pass
@@ -2041,7 +2049,9 @@ llvm interpreter to get the correct result as follows,</p>
 </pre></div>
 </div>
 <p>To support variable number of arguments, the following code needed only to
-add in 7/7/Cpu0.</p>
+add in 7/7/Cpu0.
+The ch7_3_2.cpp is C++ template example code, it can be translated into cpu0
+backend code too.</p>
 <div class="highlight-c++"><pre>// Cpu0TargetLowering.cpp
 ...
 Cpu0TargetLowering::
@@ -2087,6 +2097,49 @@ SDValue Cpu0TargetLowering::LowerVASTART(SDValue Op, SelectionDAG &amp;DAG) cons
             MachinePointerInfo(SV), false, false, 0);
 }</pre>
 </div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch7_3_2.cpp</span>
+<span class="p">...</span>
+<span class="c1">//#include &lt;stdio.h&gt;</span>
+<span class="cp">#include &lt;stdarg.h&gt;</span>
+
+<span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">T</span><span class="o">&gt;</span>
+<span class="n">T</span> <span class="n">sum</span><span class="p">(</span><span class="n">T</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
+<span class="p">{</span>
+  <span class="n">T</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">T</span> <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">T</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="n">va_list</span> <span class="n">vl</span><span class="p">;</span>
+  <span class="n">va_start</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">amount</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">amount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+  <span class="p">{</span>
+  <span class="n">val</span> <span class="o">=</span> <span class="n">va_arg</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">T</span><span class="p">);</span>
+  <span class="n">sum</span> <span class="o">+=</span> <span class="n">val</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">va_end</span><span class="p">(</span><span class="n">vl</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">sum</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sum</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">);</span>
+<span class="c1">//  printf(&quot;a = %d\n&quot;, a);</span>
+
+  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="summary-of-this-chapter">
+<h2>Summary of this chapter<a class="headerlink" href="#summary-of-this-chapter" title="Permalink to this headline">¶</a></h2>
+<p>Until now, we have 5,500 lines of source code around in 7/7/Cpu0.
+The cpu0 backend code now can take care the integer function call and control
+statement just like the llvm front end tutorial example code.
+Look back the chapter of “Back end structure”, there are 3,000 lines of source
+code with taking three instructions only.
+With this 80% more of code, it can translate tens of instructions, global
+variable, control flow statement and function call.</p>
 </div>
 </div>
 

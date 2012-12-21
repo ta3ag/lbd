@@ -16,6 +16,15 @@ The section “4.5 DAG Lowering” of tricore_llvm.pdf contains some knowledge
 about Lowering process. Section “4.5.1 Calling Conventions” of tricore_llvm.pdf 
 is the related materials you can reference.
 
+This chapter is more complicate than any of the previous chapter. 
+It include stack frame and the related ABI support. 
+If you have problem in reading the stack frame illustrated in the first three 
+sections of this chapter, you can read the appendix B of “Procedure Call 
+Convention” of book “Computer Organization and Design” which listed in 
+section “RISC CPU knowledge” of chapter “Control flow statement”, 
+“Run Time Memory” of compiler book, or “Function Call Sequence”  and 
+“Stack Frame” of Mips ABI.
+
 Mips stack frame
 -----------------
 
@@ -2078,7 +2087,9 @@ llvm interpreter to get the correct result as follows,
   a = 21
 
 To support variable number of arguments, the following code needed only to 
-add in 7/7/Cpu0.
+add in 7/7/Cpu0. 
+The ch7_3_2.cpp is C++ template example code, it can be translated into cpu0 
+backend code too.
 
 .. code-block:: c++
 
@@ -2128,6 +2139,51 @@ add in 7/7/Cpu0.
   }
   
 
+.. code-block:: c++
+
+  // ch7_3_2.cpp
+  ...
+  //#include <stdio.h>
+  #include <stdarg.h>
+  
+  template<class T>
+  T sum(T amount, ...)
+  {
+    T i = 0;
+    T val = 0;
+    T sum = 0;
+    
+    va_list vl;
+    va_start(vl, amount);
+    for (i = 0; i < amount; i++)
+    {
+    val = va_arg(vl, T);
+    sum += val;
+    }
+    va_end(vl);
+    
+    return sum; 
+  }
+  
+  int main()
+  {
+    int a = sum<int>(6, 1, 2, 3, 4, 5, 6);
+  //  printf("a = %d\n", a);
+    
+    return a;
+  }
+
+
+Summary of this chapter
+------------------------
+
+Until now, we have 5,500 lines of source code around in 7/7/Cpu0. 
+The cpu0 backend code now can take care the integer function call and control 
+statement just like the llvm front end tutorial example code. 
+Look back the chapter of “Back end structure”, there are 3,000 lines of source 
+code with taking three instructions only. 
+With this 80% more of code, it can translate tens of instructions, global 
+variable, control flow statement and function call.
 
 
 .. _section Global variable:
