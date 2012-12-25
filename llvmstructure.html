@@ -31,7 +31,7 @@
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
     <link rel="next" title="Back end structure" href="backendstructure.html" />
-    <link rel="prev" title="Getting Started: Installing LLVM and the Cpu0 example code" href="install.html" /> 
+    <link rel="prev" title="About" href="about.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
@@ -41,7 +41,7 @@
       <div class="topnav">
       
         <p>
-        «&#160;&#160;<a href="install.html">Getting Started: Installing LLVM and the Cpu0 example code</a>
+        «&#160;&#160;<a href="about.html">About</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
@@ -54,6 +54,21 @@
         
   <div class="section" id="cpu0-instruction-and-llvm-target-description">
 <h1>Cpu0 Instruction and LLVM Target Description<a class="headerlink" href="#cpu0-instruction-and-llvm-target-description" title="Permalink to this headline">¶</a></h1>
+<p>Before you start, you should know that you can always examine existing LLVM
+backend code and attempt to port what you find for your own target architecture
+.  The majority of this code can be found in the /lib/Target directory of your
+root LLVM directory. As most major RISC instruction set architectures have some
+similarities, this may be the avenue you might try if you are both an
+experienced programmer and knowledgable of compiler backends.
+However, there is a steep learning curve and you may easily get held up
+debugging your new backend. You can easily spend a lot of time tracing which
+methods are callbacks of some function, or which are calling some overridden
+method deep in the LLVM codebase - and with a codebase as large as LLVM, this
+can easily become a headache. This tutorial will help you work through this
+process while learning the fundamentals of LLVM backend design. It will show
+you what is necessary to get your first backend functional and complete, and it
+should help you understand how to debug your backend when it does not produce
+desirable output using the output provided by LLVM.</p>
 <p>This chapter shows you the cpu0 instruction format first.
 Next, the llvm structure is introduced to you by copy and paste the related
 article from llvm web site. The llvm structure introduced here is extracted
@@ -70,12 +85,12 @@ is <a class="reference external" href="http://translate.google.com.tw/translate?
 <p>CPU0 is a 32-bit processor which has registers R0 .. R15, IR, MAR, MDR, etc.,
 and its structure is shown below.</p>
 <div class="figure align-center" id="llvmstructure-f1">
-<img alt="_images/110.png" src="_images/110.png" />
+<img alt="_images/17.png" src="_images/17.png" />
 <p class="caption">The structure of the processor of CPU0</p>
 </div>
 <p>Uses of each register as follows:</p>
 <div class="figure align-center" id="llvmstructure-t1">
-<img alt="_images/112.png" src="_images/112.png" />
+<img alt="_images/18.png" src="_images/18.png" />
 <p class="caption">Cpu0 registers table</p>
 </div>
 </div>
@@ -86,12 +101,12 @@ instruction, A-type arithmetic instruction-based J-type usually jump
 instruction, the following figure shows the three types of instruction encoding
 format.</p>
 <div class="figure align-center" id="llvmstructure-f2">
-<img alt="_images/27.png" src="_images/27.png" />
+<img alt="_images/24.png" src="_images/24.png" />
 <p class="caption">CPU0 three instruction formats</p>
 </div>
 <p>The following is the CPU0 processor&#8217;s instruction table format</p>
 <div class="figure align-center" id="llvmstructure-t2">
-<img alt="_images/28.png" src="_images/28.png" />
+<img alt="_images/25.png" src="_images/25.png" />
 <p class="caption">CPU0 instruction table</p>
 </div>
 <p>In the second edition of CPU0_v2 we fill the following command:</p>
@@ -1157,7 +1172,7 @@ The error message say we didn&#8217;t define our target machine.</p>
       <div class="bottomnav">
       
         <p>
-        «&#160;&#160;<a href="install.html">Getting Started: Installing LLVM and the Cpu0 example code</a>
+        «&#160;&#160;<a href="about.html">About</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
