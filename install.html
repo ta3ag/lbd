@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.1.2',
+        VERSION:     '3.2.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
     <link rel="next" title="Todo List" href="todo.html" />
-    <link rel="prev" title="Function call" href="funccall.html" /> 
+    <link rel="prev" title="ELF" href="elf.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
@@ -41,7 +41,7 @@
       <div class="topnav">
       
         <p>
-        «&#160;&#160;<a href="funccall.html">Function call</a>
+        «&#160;&#160;<a href="elf.html">ELF</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
@@ -99,7 +99,7 @@ compiler-rt source to src/project/compiler-rt as shown in <a class="reference in
 <p class="last">Should we just write out commands in a terminal for people to execute?</p>
 </div>
 <div class="figure align-center" id="install-f1">
-<img alt="_images/14.png" src="_images/14.png" />
+<img alt="_images/15.png" src="_images/15.png" />
 <p class="caption">LLVM, clang, compiler-rt source code positions on Mac OS X</p>
 </div>
 <p>Next, copy the LLVM source to /Users/Jonathan/llvm/3.1/src by executing the
@@ -135,7 +135,7 @@ Even with that, let&#8217;s build LLVM project with cmake graphic UI since this 
 directory contains the release version for clang and clang++ execution file.
 First, create LLVM.xcodeproj as
 <a class="reference internal" href="#install-f3"><em>Start to create LLVM.xcodeproj by cmake</em></a>, then click <strong>configure</strong> button to enter <a class="reference internal" href="#install-f4"><em>Create LLVM.xcodeproj by cmake – Set option to generate Xcode project</em></a>,
-and then click <strong>Done</strong> button on <a class="reference internal" href="#install-f4"><em>Create LLVM.xcodeproj by cmake – Set option to generate Xcode project</em></a> to get <a class="reference internal" href="#install-f5"><em>Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</em></a>.</p>
+and then click <strong>Done</strong> button to get <a class="reference internal" href="#install-f5"><em>Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</em></a>.</p>
 <div class="figure align-center" id="install-f3">
 <img alt="_images/32.png" src="_images/32.png" />
 <p class="caption">Start to create LLVM.xcodeproj by cmake</p>
@@ -153,13 +153,13 @@ and then click <strong>Done</strong> button on <a class="reference internal" hre
 <p class="last">The html will follow the appear order in *.rst source context but latexpdf didn&#8217;t. For example, the <a class="reference internal" href="#install-f4"><em>Create LLVM.xcodeproj by cmake – Set option to generate Xcode project</em></a> Figure 2.4 and <a class="reference internal" href="#install-f5"><em>Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</em></a> Figure 2.5 appear after the below text &#8220;Click OK from ...&#8221; in pdf. If find the <strong>NoReorder</strong> or <strong>newpage</strong> directive, maybe can solve this problem.</p>
 </div>
 <p>Click OK from <a class="reference internal" href="#install-f5"><em>Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</em></a> and select Cmake 2.8-9.app for CMAKE_INSTALL_NAM
-E_TOOL by click the right side button <strong>“...”</strong> of that row in
-<a class="reference internal" href="#install-f5"><em>Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</em></a> to get <a class="reference internal" href="#install-f6"><em>Select Cmake 2.8-9.app</em></a>.</p>
+E_TOOL by click the right side button <strong>“...”</strong> of that row to get
+<a class="reference internal" href="#install-f6"><em>Select Cmake 2.8-9.app</em></a>.</p>
 <div class="figure align-center" id="install-f6">
 <img alt="_images/61.png" src="_images/61.png" />
 <p class="caption">Select Cmake 2.8-9.app</p>
 </div>
-<p>Click Configure button in <a class="reference internal" href="#install-f6"><em>Select Cmake 2.8-9.app</em></a> to get <a class="reference internal" href="#install-f7"><em>Click cmake Configure button first time</em></a>.</p>
+<p>Click Configure button to get <a class="reference internal" href="#install-f7"><em>Click cmake Configure button first time</em></a>.</p>
 <div class="figure align-center" id="install-f7">
 <img alt="_images/71.png" src="_images/71.png" />
 <p class="caption">Click cmake Configure button first time</p>
@@ -232,7 +232,7 @@ export VIRTUALENVWRAPPER_VIRTUALENV_ARGS='--no-site-packages' # optional
 </div>
 <div class="section" id="create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command">
 <h3>Create LLVM.xcodeproj of supporting cpu0 by terminal cmake command<a class="headerlink" href="#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command" title="Permalink to this headline">¶</a></h3>
-<p>We have install llvm with clang on directory llvm/3.1/.
+<p>We have installed llvm with clang on directory llvm/3.1/.
 Now, we want to install llvm with our cpu0 backend code on directory
 llvm/3.1.test/cpu0/1 in this section.</p>
 <p>In <a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui">section Create LLVM.xcodeproj by cmake Graphic UI</a>, we create
@@ -423,7 +423,7 @@ Process 6058 stopped
 <h3>Install other tools on iMac<a class="headerlink" href="#install-other-tools-on-imac" title="Permalink to this headline">¶</a></h3>
 <p>These tools mentioned in this section is for coding and debug.
 You can work even without these tools.
-Files compare tools Kdiff3 <a class="reference external" href="http://kdiff3.sourceforge.net">http://kdiff3.sourceforge.net</a>.
+Files compare tools Kdiff3 came from web site <a class="reference external" href="http://kdiff3.sourceforge.net">http://kdiff3.sourceforge.net</a>.
 FileMerge is a part of Xcode, you can type FileMerge in Finder – Applications
 as <a class="reference internal" href="#install-f11"><em>Type FileMerge in Finder – Applications</em></a> and drag it into the Dock as <a class="reference internal" href="#install-f12"><em>Drag FileMege into the Dock</em></a>.</p>
 <div class="figure align-center" id="install-f11">
@@ -468,8 +468,30 @@ Then select “Front document&#8217;s file” as <a class="reference internal" h
 <p class="caption">Select Hex Dump menu</p>
 </div>
 <div class="figure align-center" id="install-f15">
-<img alt="_images/15.png" src="_images/15.png" />
+<img alt="_images/151.png" src="_images/151.png" />
 <p class="caption">Select Front document&#8217;s file in TextWrangler</p>
+</div>
+<p>Install binutils by command “brew install binutils” as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-77-214:~ Jonathan<span class="nv">$ </span>brew install <span class="nv">binutils</span>
+<span class="o">==</span>&gt; Downloading http://ftpmirror.gnu.org/binutils/binutils-2.22.tar.gz
+<span class="c">######################################################################## 100.0%</span>
+<span class="o">==</span>&gt; ./configure --program-prefix<span class="o">=</span>g --prefix<span class="o">=</span>/usr/local/Cellar/binutils/2.22
+--infodir<span class="o">=</span>/usr/loca
+<span class="o">==</span>&gt; <span class="nv">make</span>
+<span class="o">==</span>&gt; make install
+/usr/local/Cellar/binutils/2.22: 90 files, 19M, built in 4.7 minutes
+118-165-77-214:~ Jonathan<span class="nv">$ </span>objdump --help
+-bash: objdump: <span class="nb">command </span>not found
+118-165-77-214:~ Jonathan<span class="nv">$ </span>man objdump
+No manual entry <span class="k">for </span>objdump
+118-165-77-214:~ Jonathan<span class="nv">$ </span>ls /usr/local/Cellar/binutils/2.22
+COPYING     README      lib
+ChangeLog     bin       share
+INSTALL_RECEIPT.json    include       x86_64-apple-darwin12.2.0
+118-165-77-214:binutils-2.23 Jonathan<span class="nv">$ </span>ls /usr/local/Cellar/binutils/2.22/bin
+gaddr2line  gc++filt  gnm   gobjdump  greadelf  gstrings
+gar   gelfedit  gobjcopy  granlib gsize   gstrip
+</pre></div>
 </div>
 </div>
 </div>
@@ -747,6 +769,11 @@ Quit anyway? (y or n) y
 [Gamma@localhost InputFiles]$</pre>
 </div>
 </div>
+<div class="section" id="install-other-tools-on-linux">
+<h3>Install other tools on Linux<a class="headerlink" href="#install-other-tools-on-linux" title="Permalink to this headline">¶</a></h3>
+<p>Download Graphviz from <a class="reference external" href="http://www.graphviz.org/Download..php">http://www.graphviz.org/Download..php</a> according your
+Linux distribution.</p>
+</div>
 </div>
 </div>
 
@@ -755,7 +782,7 @@ Quit anyway? (y or n) y
       <div class="bottomnav">
       
         <p>
-        «&#160;&#160;<a href="funccall.html">Function call</a>
+        «&#160;&#160;<a href="elf.html">ELF</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
