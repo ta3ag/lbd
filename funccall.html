@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.0',
+        VERSION:     '3.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -73,7 +73,7 @@ It include stack frame and the related ABI support.
 If you have problem in reading the stack frame illustrated in the first three
 sections of this chapter, you can read the appendix B of “Procedure Call
 Convention” of book “Computer Organization and Design” which listed in
-section “RISC CPU knowledge” of chapter “Control flow statement”,
+section “RISC CPU knowledge” of chapter “Control flow statement” <a class="footnote-reference" href="#id11" id="id1">[1]</a>,
 “Run Time Memory” of compiler book, or “Function Call Sequence”  and
 “Stack Frame” of Mips ABI.</p>
 <div class="section" id="mips-stack-frame">
@@ -90,8 +90,8 @@ if it over 4 arguments. <a class="reference internal" href="#funccall-f1"><em>Mi
 <a class="reference internal image-reference" href="_images/12.png"><img alt="_images/12.png" src="_images/12.png" style="width: 688.0px; height: 531.0px;" /></a>
 <p class="caption">Mips stack frame</p>
 </div>
-<p>Run llc with -march=mips for ch7_1.bc, you will get the following result.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch7_1.cpp</span>
+<p>Run llc with -march=mips for ch8_1.bc, you will get the following result.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch8_1.cpp</span>
 <span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">x1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x2</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x3</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x4</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x5</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x6</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">x2</span> <span class="o">+</span> <span class="n">x3</span> <span class="o">+</span> <span class="n">x4</span> <span class="o">+</span> <span class="n">x5</span> <span class="o">+</span> <span class="n">x6</span><span class="p">;</span>
@@ -107,14 +107,14 @@ if it over 4 arguments. <a class="reference internal" href="#funccall-f1"><em>Mi
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-79-31:InputFiles Jonathan<span class="nv">$ </span>clang -c ch7_1.cpp -emit-llvm -o ch7_1.bc
+<div class="highlight-bash"><div class="highlight"><pre>118-165-79-31:InputFiles Jonathan<span class="nv">$ </span>clang -c ch8_1.cpp -emit-llvm -o ch8_1.bc
 118-165-79-31:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>mips -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch7_1.bc -o ch7_1.mips.s
-118-165-79-31:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1.mips.s
+ch8_1.bc -o ch8_1.mips.s
+118-165-79-31:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.mips.s
     .section .mdebug.abi32
     .previous
-    .file   <span class="s2">&quot;ch7_1.bc&quot;</span>
+    .file   <span class="s2">&quot;ch8_1.bc&quot;</span>
     .text
     .globl  _Z5sum_iiiiiii
     .align  2
@@ -198,7 +198,7 @@ main:
 </div>
 <p>From the mips assembly code generated as above, we know it save the first 4
 arguments to $a0..$a3 and last 2 arguments to 16($sp) and 20($sp).
-<a class="reference internal" href="#funccall-f2"><em>Mips arguments location in stack frame</em></a> is the arguments location for example code ch7_1.cpp.
+<a class="reference internal" href="#funccall-f2"><em>Mips arguments location in stack frame</em></a> is the arguments location for example code ch8_1.cpp.
 It load argument 5 from 48($sp) in sum_i() since the argument 5 is saved to
 16($sp) in main().
 The stack size of sum_i() is 32, so 16+32($sp) is the location of incoming
@@ -207,35 +207,32 @@ argument 5.</p>
 <a class="reference internal image-reference" href="_images/21.png"><img alt="_images/21.png" src="_images/21.png" style="width: 740.0px; height: 577.0px;" /></a>
 <p class="caption">Mips arguments location in stack frame</p>
 </div>
-<p>The 007-2418-003.pdf in
-<a class="reference external" href="https://www.dropbox.com/sh/2pkh1fewlq2zag9/OHnrYn2nOs/doc/MIPSproAssemblyLanguageProgrammerGuide">https://www.dropbox.com/sh/2pkh1fewlq2zag9/OHnrYn2nOs/doc/MIPSproAssemblyLanguageProgrammerGuide</a>
-is the Mips assembly language manual.
-psABI-mips.pdf in <a class="reference external" href="https://www.dropbox.com/sh/2pkh1fewlq2zag9/buvX_zeN09/doc">https://www.dropbox.com/sh/2pkh1fewlq2zag9/buvX_zeN09/doc</a> is
-Mips Application Binary Interface which include the <a class="reference internal" href="#funccall-f1"><em>Mips stack frame</em></a>.</p>
+<p>The 007-2418-003.pdf in <a class="footnote-reference" href="#id12" id="id2">[2]</a> is the Mips assembly language manual.
+<a class="footnote-reference" href="#id13" id="id3">[3]</a> is Mips Application Binary Interface which include the <a class="reference internal" href="#funccall-f1"><em>Mips stack frame</em></a>.</p>
 </div>
 <div class="section" id="load-incoming-arguments-from-stack-frame">
 <h2>Load incoming arguments from stack frame<a class="headerlink" href="#load-incoming-arguments-from-stack-frame" title="Permalink to this headline">¶</a></h2>
 <p>From last section, to support function call, we need implementing the arguments
 pass mechanism with stack frame. Before do that, let&#8217;s run the old version of
-code 6/1/Cpu0 with ch7_1.cpp and see what happen.</p>
+code 7/1/Cpu0 with ch8_1.cpp and see what happen.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-79-31:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch7_1.bc -o ch7_1.cpu0.s
+ch8_1.bc -o ch8_1.cpu0.s
 Assertion failed: <span class="o">(</span>InVals.size<span class="o">()</span> <span class="o">==</span> Ins.size<span class="o">()</span> <span class="o">&amp;&amp;</span> <span class="s2">&quot;LowerFormalArguments didn&#39;t</span>
 <span class="s2">emit the correct number of values!&quot;</span><span class="o">)</span>, <span class="k">function </span>LowerArguments, file /Users/
 Jonathan/llvm/3.1.test/cpu0/1/src/lib/CodeGen/SelectionDAG/
 SelectionDAGBuilder.cpp, line 6671.
 Stack dump:
 0.  Program arguments: /Users/Jonathan/llvm/3.1.test/cpu0/1/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch7_1.bc -o
-ch7_1.cpu0.s
-1.  Running pass <span class="s1">&#39;Function Pass Manager&#39;</span> on module <span class="s1">&#39;ch7_1.bc&#39;</span>.
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o
+ch8_1.cpu0.s
+1.  Running pass <span class="s1">&#39;Function Pass Manager&#39;</span> on module <span class="s1">&#39;ch8_1.bc&#39;</span>.
 2.  Running pass <span class="s1">&#39;CPU0 DAG-&gt;DAG Pattern Instruction Selection&#39;</span> on <span class="k">function</span>
 <span class="s1">&#39;@_Z5sum_iiiiiii&#39;</span>
 Illegal instruction: 4
 </pre></div>
 </div>
-<p>Since 6/1/Cpu0 define the LowerFormalArguments() with empty, we get the error
+<p>Since 7/1/Cpu0 define the LowerFormalArguments() with empty, we get the error
 message as above.
 Before define LowerFormalArguments(), we have to choose how to pass arguments
 in function call. We choose pass arguments all in stack frame.
@@ -283,7 +280,7 @@ for cpu0 passing rule as follows,</p>
 and define the CC_Cpu0EABI.
 The reason we don&#8217;t define the Calling Convention directly in CC_Cpu0 is that
 a real general CPU like Mips can have several Calling Convention.
-Combine with the mechanism of <a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration">section Target Registration</a> which llvm
+Combine with the mechanism of &#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id14" id="id4">[4]</a> which llvm
 supplied, we can use different Calling Convention in  different target.
 Although cpu0 only have a Calling Convention right now, define with a dedicate
 Call Convention name (CC_Cpu0EABI in this example) is a better solution for
@@ -359,7 +356,7 @@ We define it as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Refresh <a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#global-variable">section Global variable</a>, we have take care global
+<p>Refresh &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id15" id="id5">[5]</a>, we handled global
 variable translation by create the IR DAG in LowerGlobalAddress() first, and
 then do the Instruction Selection by their corresponding machine instruction
 DAG in Cpu0InstrInfo.td.
@@ -367,7 +364,7 @@ LowerGlobalAddress() is called when llc meet the global variable access.
 LowerFormalArguments() work with the same way.
 It is called when function is entered.
 It get incoming arguments information by CCInfo(CallConv,..., ArgLocs, …)
-before enter “for loop”. In ch7_1.cpp, there are 6 arguments in sum_i(...)
+before enter “for loop”. In ch8_1.cpp, there are 6 arguments in sum_i(...)
 function call and we use the stack frame only for arguments passing without
 any arguments pass in registers.
 So ArgLocs.size() is 6, each argument information is in ArgLocs[i] and
@@ -379,7 +376,7 @@ And then create IR DAG load node and put the load node into vector InVals by
 InVals.push_back(DAG.getLoad(ValVT, dl, Chain, FIN,
 MachinePointerInfo::getFixedStack(LastFI), false, false, false, 0)).
 Cpu0FI-&gt;setVarArgsFrameIndex(0) and Cpu0FI-&gt;setLastInArgFI(LastFI) are called
-when before and after above work. In ch7_1.cpp example, LowerFormalArguments()
+when before and after above work. In ch8_1.cpp example, LowerFormalArguments()
 will be called twice. First time is for sum_i() which will create 6 load DAG
 for 6 incoming arguments passing into this function.
 Second time is for main() which didn&#8217;t create any load DAG for no incoming
@@ -420,7 +417,7 @@ variable, which is the offset.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>In addition to Calling Convention and LowerFormalArguments(), 7/2/Cpu0 add the
+<p>In addition to Calling Convention and LowerFormalArguments(), 8/2/Cpu0 add the
 following code for cpu0 instructions swi (Software Interrupt), jsub and jalr
 (function call) definition and printing.</p>
 <div class="highlight-c++"><pre>// Cpu0InstrFormats.td
@@ -563,20 +560,20 @@ public:
   void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
 };</pre>
 </div>
-<p>After above changes, you can run 7/2/Cpu0 with ch7_1.cpp and see what happens
+<p>After above changes, you can run 8/2/Cpu0 with ch8_1.cpp and see what happens
 in the following,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-79-83:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch7_1.bc -o ch7_1.cpu0.s
+ch8_1.bc -o ch8_1.cpu0.s
 Assertion failed: <span class="o">((</span>isTailCall <span class="o">||</span> InVals.size<span class="o">()</span> <span class="o">==</span> Ins.size<span class="o">())</span> <span class="o">&amp;&amp;</span>
 <span class="s2">&quot;LowerCall didn&#39;t emit the correct number of values!&quot;</span><span class="o">)</span>, <span class="k">function </span>LowerCallTo,
 file /Users/Jonathan/llvm/3.1.test/cpu0/1/src/lib/CodeGen/SelectionDAG/
 SelectionDAGBuilder.cpp, line 6482.
 Stack dump:
 0.  Program arguments: /Users/Jonathan/llvm/3.1.test/cpu0/1/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch7_1.bc -o
-ch7_1.cpu0.s
-1.  Running pass <span class="s1">&#39;Function Pass Manager&#39;</span> on module <span class="s1">&#39;ch7_1.bc&#39;</span>.
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o
+ch8_1.cpu0.s
+1.  Running pass <span class="s1">&#39;Function Pass Manager&#39;</span> on module <span class="s1">&#39;ch8_1.bc&#39;</span>.
 2.  Running pass <span class="s1">&#39;CPU0 DAG-&gt;DAG Pattern Instruction Selection&#39;</span> on <span class="k">function</span>
 <span class="s1">&#39;@main&#39;</span>
 Illegal instruction: 4
@@ -888,14 +885,14 @@ storeRegToStackSlot(MachineBasicBlock &amp;MBB, MachineBasicBlock::iterator I,
     .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
 }</pre>
 </div>
-<p>Now, let&#8217;s run 7/3/Cpu0 with ch7_1.cpp to get result as follows,</p>
+<p>Now, let&#8217;s run 8/3/Cpu0 with ch8_1.cpp to get result as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-79-83:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch7_1.bc -o ch7_1.cpu0.s
-118-165-79-83:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1.cpu0.s
+ch8_1.bc -o ch8_1.cpu0.s
+118-165-79-83:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.cpu0.s
     .section .mdebug.abi32
     .previous
-    .file   <span class="s2">&quot;ch7_1.bc&quot;</span>
+    .file   <span class="s2">&quot;ch8_1.bc&quot;</span>
     .text
     .globl  _Z5sum_iiiiiii
     .align  2
@@ -989,8 +986,8 @@ next two sections.</p>
 <h2>Fix the wrong offset in storing arguments to stack frame<a class="headerlink" href="#fix-the-wrong-offset-in-storing-arguments-to-stack-frame" title="Permalink to this headline">¶</a></h2>
 <p>To fix the wrong offset in storing arguments, we modify the following code
 in eliminateFrameIndex() as follows.
-The bold text as below is added in 7/4/Cpu0 to set the caller outgoing
-arguments into spOffset($sp) (7/3/Cpu0 set them to pOffset+stackSize($sp).</p>
+The bold text as below is added in 8/4/Cpu0 to set the caller outgoing
+arguments into spOffset($sp) (8/3/Cpu0 set them to pOffset+stackSize($sp).</p>
 <div class="highlight-c++"><pre>// Cpu0RegisterInfo.cpp
 ...
 void Cpu0RegisterInfo::
@@ -1038,16 +1035,16 @@ eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
     return FI &lt;= OutArgFIRange.first &amp;&amp; FI &gt;= OutArgFIRange.second;
   }</pre>
 </div>
-<p>Run 7/4/Cpu0 with ch7_1.cpp will get the following result.
+<p>Run 8/4/Cpu0 with ch8_1.cpp will get the following result.
 It correct arguements offset im main() from (0+40)$sp, (8+40)$sp, ..., to
 (0)$sp, (8)$sp, ..., where the stack size is 40 in main().</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>
-asm ch7_1.bc -o ch7_1.cpu0.s
-118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1.cpu0.s
+asm ch8_1.bc -o ch8_1.cpu0.s
+118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.cpu0.s
   .section .mdebug.abi32
   .previous
-  .file <span class="s2">&quot;ch7_1.bc&quot;</span>
+  .file <span class="s2">&quot;ch8_1.bc&quot;</span>
   .text
   .globl  _Z5sum_iiiiiii
   .align  2
@@ -1178,14 +1175,14 @@ eliminateCallFramePseudoInstr(MachineFunction &amp;MF, MachineBasicBlock &amp;MB
 <p>With above definition, eliminateCallFramePseudoInstr() will be called when
 llvm meet pseudo instructions ADJCALLSTACKDOWN and ADJCALLSTACKUP.
 We just discard these 2 pseudo instructions.
-Run 7/4/Cpu0 with ch7_1.cpp will get the following result.</p>
+Run 8/4/Cpu0 with ch8_1.cpp will get the following result.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype
-<span class="o">=</span>asm ch7_1.bc -o ch7_1.cpu0.s
-118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1.cpu0.s
+<span class="o">=</span>asm ch8_1.bc -o ch8_1.cpu0.s
+118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.cpu0.s
   .section .mdebug.abi32
   .previous
-  .file <span class="s2">&quot;ch7_1.bc&quot;</span>
+  .file <span class="s2">&quot;ch8_1.bc&quot;</span>
   .text
   .globl  _Z5sum_iiiiiii
   .align  2
@@ -1282,7 +1279,7 @@ main:
 </div>
 <div class="section" id="handle-gp-register-in-pic-addressing-mode">
 <h2>Handle $gp register in PIC addressing mode<a class="headerlink" href="#handle-gp-register-in-pic-addressing-mode" title="Permalink to this headline">¶</a></h2>
-<p>In <a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#global-variable">section Global variable</a>, we mentioned two addressing
+<p>In &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id16" id="id6">[6]</a>, we mentioned two addressing
 mode, the static address mode and PIC (position-independent code) mode.
 We also mentioned, one example of PIC mode is used in share library.
 Share library usually can be loaded in different memory address decided at run
@@ -1294,12 +1291,12 @@ variable address cannot be decided at compile time.
 But, we can caculate the distance between the global variable address and
 shared library function if they will be loaded to the contiguous memory space
 together.</p>
-<p>Let&#8217;s run 7/5/Cpu0 with ch7_2.cpp to get the following result of we putting the
+<p>Let&#8217;s run 8/5/Cpu0 with ch8_2.cpp to get the following result of we putting the
 comment in it for explanation.</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-67-25:InputFiles Jonathan<span class="nv">$ </span>cat ch7_2.cpu0.s
+<div class="highlight-bash"><div class="highlight"><pre>118-165-67-25:InputFiles Jonathan<span class="nv">$ </span>cat ch8_2.cpu0.s
     .section .mdebug.abi32
     .previous
-    .file   <span class="s2">&quot;ch7_2.bc&quot;</span>
+    .file   <span class="s2">&quot;ch8_2.bc&quot;</span>
     .text
     .globl  _Z5sum_iiiiiii
     .align  2
@@ -1383,7 +1380,7 @@ caller saved register $gp in calling the shared library and the shared library
 how to use $gp to access global variable address. This solution is popular in
 reality and deserve change cpu0 official design as a compiler book.
 Mips use the same solution in 32 bits Mips32 CPU.</p>
-<p>Now, as the following code added in 7/5/Cpu0, we can issue “.cprestore” in
+<p>Now, as the following code added in 8/5/Cpu0, we can issue “.cprestore” in
 emitPrologue() and emit ld $gp, ($gp save slot on stack) after jalr by create
 file Cpu0EmitGPRestore.cpp which run as a function pass.</p>
 <div class="highlight-c++"><pre>// # CMakeLists.txt
@@ -1719,7 +1716,7 @@ The above added code of Cpu0MCInstLower.cpp take care the .cpload and
 .cprestore machine instructions.
 It translate pseudo asm .cpload into four machine instructions, and .cprestore
 into one machine instruction as below.
-As mentioned in <a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#global-variable">section Global variable</a>.
+As mentioned in &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id17" id="id7">[7]</a>.
 When the share library main() function be loaded, the loader will set the
 $t9 value to $gp when meet “.cpload $t9”.
 After that, the $gp value is $t9 which point to main(), and the global variable
@@ -1752,8 +1749,8 @@ function that is strictly local to an object module.</p>
 machine code as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>
-obj ch7_2.bc -o ch7_2.cpu0.o
-118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>hexdump  ch7_2.cpu0.o
+obj ch8_2.bc -o ch8_2.cpu0.o
+118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>hexdump  ch8_2.cpu0.o
 ...
 // .cpload machine instructions <span class="s2">&quot;09 a0 00 00 to 13 aa 60 00&quot;</span>
 0000030 00 0a 00 07 09 a0 00 00 1e aa 00 10 09 aa 00 00
@@ -1767,7 +1764,7 @@ obj ch7_2.bc -o ch7_2.cpu0.o
 00000d0 01 ad 00 18 09 20 00 00 01 2d 00 40 09 20 00 06
 ...
 
-118-165-67-25:InputFiles Jonathan<span class="nv">$ </span>cat ch7_2.cpu0.s
+118-165-67-25:InputFiles Jonathan<span class="nv">$ </span>cat ch8_2.cpu0.s
 ...
   .ent  _Z5sum_iiiiiii          <span class="c"># @_Z5sum_iiiiiii</span>
 _Z5sum_iiiiiii:
@@ -1789,8 +1786,8 @@ _Z5sum_iiiiiii:
 <p>Run “llc -static” will call jsub instruction instead of jalr as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>
-asm ch7_2.bc -o ch7_2.cpu0.s
-118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch7_2.cpu0.s
+asm ch8_2.bc -o ch8_2.cpu0.s
+118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch8_2.cpu0.s
 …
   jsub  _Z5sum_iiiiiii
 ...
@@ -1799,7 +1796,7 @@ asm ch7_2.bc -o ch7_2.cpu0.s
 <p>Run with llc -obj, you can find the Cx of “jsub Cx” is 0 since the Cx is
 calculated by linker as below.
 Mips has the same 0 in it&#8217;s jal instruction.
-The ch7_1_2.cpp, ch7_1_3.cpp and ch7_1_4.cpp are example code more for test.</p>
+The ch8_1_2.cpp, ch8_1_3.cpp and ch8_1_4.cpp are example code more for test.</p>
 <div class="highlight-bash"><div class="highlight"><pre>// jsub _Z5sum_iiiiiii translate into 2B 00 00 00
 00F0: 2B 00 00 00 01 2D 00 34 00 ED 00 3C 09 DD 00 40
 </pre></div>
@@ -1811,8 +1808,8 @@ The ch7_1_2.cpp, ch7_1_3.cpp and ch7_1_4.cpp are example code more for test.</p>
 (Incoming Arguments).
 This section support variable number of arguments since C language support
 this feature.
-Run 7/7/Cpu0 with ch7_3.cpp to get the following,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch7_3.cpp</span>
+Run 8/7/Cpu0 with ch8_3.cpp to get the following,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch8_3.cpp</span>
 <span class="c1">//#include &lt;stdio.h&gt;</span>
 <span class="cp">#include &lt;stdarg.h&gt;</span>
 
@@ -1845,11 +1842,11 @@ Run 7/7/Cpu0 with ch7_3.cpp to get the following,</p>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch7_3.bc -o ch7_3.cpu0.s
-118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch7_3.cpu0.s
+ch8_3.bc -o ch8_3.cpu0.s
+118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch8_3.cpu0.s
   .section .mdebug.abi32
   .previous
-  .file <span class="s2">&quot;ch7_3.bc&quot;</span>
+  .file <span class="s2">&quot;ch8_3.bc&quot;</span>
   .text
   .globl  _Z5sum_iiz
   .align  2
@@ -1988,7 +1985,7 @@ main:
     .cfi_endproc
 </pre></div>
 </div>
-<p>We have problem in analysis of the output ch7_3.cpu0.s.
+<p>We have problem in analysis of the output ch8_3.cpu0.s.
 We guess and try to analysis as follows.
 As above code, we get the first argument “amount” from “ld $2, 56($sp)” since
 the stack size of the callee function “_Z5sum_iiz()” is 56.
@@ -2009,12 +2006,12 @@ We believe the arg &lt; 40 is satisfied because the native Intel CPU has the
 arg_ptr &lt; 40 in it&#8217;s assembly code and the Intel CPU native execution file can
 print correct result.
 You will see it soon in the bellow code.
-If the arg_ptr &lt; 40 is satisfied and <a href="#id1"><span class="problematic" id="id2">*</span></a>(20($sp)) = arg_offset = 12, then the
+If the arg_ptr &lt; 40 is satisfied and <a href="#id8"><span class="problematic" id="id9">*</span></a>(20($sp)) = arg_offset = 12, then the
 assembly output is correct.
 The llvm IR and mips assembly output as follows,</p>
-<div class="highlight-bash"><pre>118-165-78-221:InputFiles Jonathan$ llvm-dis ch7_3.bc -o ch7_3.ll
-118-165-78-221:InputFiles Jonathan$ cat ch7_3.ll
-; ModuleID = 'ch7_3.bc'
+<div class="highlight-bash"><pre>118-165-78-221:InputFiles Jonathan$ llvm-dis ch8_3.bc -o ch8_3.ll
+118-165-78-221:InputFiles Jonathan$ cat ch8_3.ll
+; ModuleID = 'ch8_3.bc'
 target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-
 f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:
 32:64-S128"
@@ -2029,10 +2026,10 @@ define i32 @_Z5sum_iiz(i32 %amount, ...) nounwind uwtable ssp {
   %12 = icmp ule i32 %11, 40
   br i1 %12, label %13, label %19
 
-118-165-67-185:InputFiles Jonathan$ cat ch7_3.mips.s
+118-165-67-185:InputFiles Jonathan$ cat ch8_3.mips.s
   .section .mdebug.abi32
   .previous
-  .file "ch7_3.bc"
+  .file "ch8_3.bc"
   .text
   .globl  _Z5sum_iiz
   .align  2
@@ -2181,29 +2178,29 @@ $tmp9:
   .size main, ($tmp9)-main
   .cfi_endproc</pre>
 </div>
-<p>We have verified the translation of ch7_3.cpp is correct by add printf in
-ch7_3.cpp to get ch7_3_3.cpp and run with “lli” llvm interpreter.
+<p>We have verified the translation of ch8_3.cpp is correct by add printf in
+ch8_3.cpp to get ch8_3_3.cpp and run with “lli” llvm interpreter.
 We also translate it into native Intel CPU code and get the correct print
 result.
-Following are the ch7_3_3.cpp, and lli, Intel native code run result.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch7_3_3.cpp</span>
-<span class="c1">// clang -c ch7_3_3.cpp -emit-llvm -I/Applications/Xcode.app/Contents/</span>
+Following are the ch8_3_3.cpp, and lli, Intel native code run result.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch8_3_3.cpp</span>
+<span class="c1">// clang -c ch8_3_3.cpp -emit-llvm -I/Applications/Xcode.app/Contents/</span>
 <span class="n">Developer</span><span class="o">/</span><span class="n">Platforms</span><span class="o">/</span><span class="n">MacOSX</span><span class="p">.</span><span class="n">platform</span><span class="o">/</span><span class="n">Developer</span><span class="o">/</span><span class="n">SDKs</span><span class="o">/</span><span class="n">MacOSX10</span><span class="mf">.8</span><span class="p">.</span><span class="n">sdk</span><span class="o">/</span><span class="n">usr</span><span class="o">/</span>
-<span class="n">include</span><span class="o">/</span> <span class="o">-</span><span class="n">o</span> <span class="n">ch7_3_3</span><span class="p">.</span><span class="n">bc</span>
+<span class="n">include</span><span class="o">/</span> <span class="o">-</span><span class="n">o</span> <span class="n">ch8_3_3</span><span class="p">.</span><span class="n">bc</span>
 <span class="c1">// /Users/Jonathan/llvm/3.1.test/cpu0/1/cmake_debug_build/bin/Debug/llc</span>
-<span class="n">ch7_3_3</span><span class="p">.</span><span class="n">bc</span> <span class="o">-</span><span class="n">o</span> <span class="n">ch7_3_3</span><span class="p">.</span><span class="n">s</span>
-<span class="c1">// clang++ ch7_3_3.s -o ch7_3_3.native</span>
-<span class="c1">// ./ch7_3_3.native</span>
-<span class="c1">// lldb -- ch7_3_3.native</span>
+<span class="n">ch8_3_3</span><span class="p">.</span><span class="n">bc</span> <span class="o">-</span><span class="n">o</span> <span class="n">ch8_3_3</span><span class="p">.</span><span class="n">s</span>
+<span class="c1">// clang++ ch8_3_3.s -o ch8_3_3.native</span>
+<span class="c1">// ./ch8_3_3.native</span>
+<span class="c1">// lldb -- ch8_3_3.native</span>
 <span class="c1">// b main</span>
 <span class="c1">// s</span>
 <span class="c1">// ...</span>
 <span class="c1">// print $rsp   ; print %rsp, choose $ instead of % in assembly code</span>
 
-<span class="c1">// mips-linux-gnu-g++ -g ch7_3_3.cpp -o ch7_3_3 -static</span>
-<span class="c1">// qemu-mips ch7_3_3</span>
-<span class="c1">// mips-linux-gnu-g++ -S ch7_3_3.cpp</span>
-<span class="c1">// cat ch7_3_3.s</span>
+<span class="c1">// mips-linux-gnu-g++ -g ch8_3_3.cpp -o ch8_3_3 -static</span>
+<span class="c1">// qemu-mips ch8_3_3</span>
+<span class="c1">// mips-linux-gnu-g++ -S ch8_3_3.cpp</span>
+<span class="c1">// cat ch8_3_3.s</span>
 
 <span class="cp">#include &lt;stdio.h&gt;</span>
 <span class="cp">#include &lt;stdarg.h&gt;</span>
@@ -2235,19 +2232,19 @@ Following are the ch7_3_3.cpp, and lli, Intel native code run result.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-221:InputFiles Jonathan<span class="nv">$ </span>lli ch7_3_3.bc
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-221:InputFiles Jonathan<span class="nv">$ </span>lli ch8_3_3.bc
 <span class="nv">a</span> <span class="o">=</span> 21
 
-118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>clang -c ch7_3_3.cpp -emit-llvm -I
+118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>clang -c ch8_3_3.cpp -emit-llvm -I
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/
-Developer/SDKs/MacOSX10.8.sdk/usr/include/ -o ch7_3_3.bc
+Developer/SDKs/MacOSX10.8.sdk/usr/include/ -o ch8_3_3.bc
 118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
-cmake_debug_build/bin/Debug/llc ch7_3_3.bc -o ch7_3_3.s
-118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>clang++ ch7_3_3.s -o ch7_3_3.native
-118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>./ch7_3_3.native
+cmake_debug_build/bin/Debug/llc ch8_3_3.bc -o ch8_3_3.s
+118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>clang++ ch8_3_3.s -o ch8_3_3.native
+118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>./ch8_3_3.native
 <span class="nv">a</span> <span class="o">=</span> 21
 
-118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>cat ch7_3_3.s
+118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>cat ch8_3_3.s
 ...
 LBB0_3:                                 <span class="c">## =&gt;This Inner Loop Header: Depth=1</span>
   movl  216<span class="o">(</span>%rsp<span class="o">)</span>, %eax
@@ -2263,14 +2260,14 @@ LBB0_3:                                 <span class="c">## =&gt;This Inner Loop 
 It get the correct print result, and the mips code has no analysis problem
 since it hasn&#8217;t the arg_ptr &lt; 40 in assembly output.
 The qemu mips gcc result as follows,</p>
-<div class="highlight-bash"><pre>[Gamma@localhost InputFiles]$ qemu-mips ch7_3_3
+<div class="highlight-bash"><pre>[Gamma@localhost InputFiles]$ qemu-mips ch8_3_3
 a = 21
-[Gamma@localhost InputFiles]$ mips-linux-gnu-g++ -g ch7_3_3.cpp -o ch7_3_3 -static
-[Gamma@localhost InputFiles]$ qemu-mips ch7_3_3
+[Gamma@localhost InputFiles]$ mips-linux-gnu-g++ -g ch8_3_3.cpp -o ch8_3_3 -static
+[Gamma@localhost InputFiles]$ qemu-mips ch8_3_3
 a = 21
-[Gamma@localhost InputFiles]$ mips-linux-gnu-g++ -S ch7_3_3.cpp
-[Gamma@localhost InputFiles]$ cat ch7_3_3.s
-  .file 1 "ch7_3_3.cpp"
+[Gamma@localhost InputFiles]$ mips-linux-gnu-g++ -S ch8_3_3.cpp
+[Gamma@localhost InputFiles]$ cat ch8_3_3.s
+  .file 1 "ch8_3_3.cpp"
   .section .mdebug.abi32
   .previous
   .gnu_attribute 4, 1
@@ -2449,8 +2446,8 @@ $LEFDE3:
 [Gamma@localhost InputFiles]$</pre>
 </div>
 <p>To support variable number of arguments, the following code needed to
-add in 7/7/Cpu0.
-The ch7_3_2.cpp is C++ template example code, it can be translated into cpu0
+add in 8/7/Cpu0.
+The ch8_3_2.cpp is C++ template example code, it can be translated into cpu0
 backend code too.</p>
 <div class="highlight-c++"><pre>// Cpu0TargetLowering.cpp
 ...
@@ -2497,7 +2494,7 @@ SDValue Cpu0TargetLowering::LowerVASTART(SDValue Op, SelectionDAG &amp;DAG) cons
             MachinePointerInfo(SV), false, false, 0);
 }</pre>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch7_3_2.cpp</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch8_3_2.cpp</span>
 <span class="p">...</span>
 <span class="c1">//#include &lt;stdio.h&gt;</span>
 <span class="cp">#include &lt;stdarg.h&gt;</span>
@@ -2530,17 +2527,65 @@ SDValue Cpu0TargetLowering::LowerVASTART(SDValue Op, SelectionDAG &amp;DAG) cons
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Mips qemu reference <a class="reference external" href="http://developer.mips.com/clang-llvm/">http://developer.mips.com/clang-llvm/</a>.</p>
+<p>Mips qemu reference <a class="footnote-reference" href="#id18" id="id10">[8]</a>.</p>
 </div>
 <div class="section" id="summary-of-this-chapter">
 <h2>Summary of this chapter<a class="headerlink" href="#summary-of-this-chapter" title="Permalink to this headline">¶</a></h2>
-<p>Until now, we have 5,500 lines of source code around in 7/7/Cpu0.
+<p>Until now, we have 5,500 lines of source code around in 8/7/Cpu0.
 The cpu0 backend code now can take care the integer function call and control
 statement just like the llvm front end tutorial example code.
 Look back the chapter of “Back end structure”, there are 3,000 lines of source
 code with taking three instructions only.
 With this 80% more of code, it can translate tens of instructions, global
 variable, control flow statement and function call.</p>
+<table class="docutils footnote" frame="void" id="id11" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/ctrlflow.html#risc-cpu-knowledge">http://jonathan2251.github.com/lbd/ctrlflow.html#risc-cpu-knowledge</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id12" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="https://www.dropbox.com/sh/2pkh1fewlq2zag9/OHnrYn2nOs/doc/MIPSproAssemblyLanguageProgrammerGuide">https://www.dropbox.com/sh/2pkh1fewlq2zag9/OHnrYn2nOs/doc/MIPSproAssemblyLanguageProgrammerGuide</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id13" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf">http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id14" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id15" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#global-variable">http://jonathan2251.github.com/lbd/globalvar.html#global-variable</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id16" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id6">[6]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#global-variable">http://jonathan2251.github.com/lbd/globalvar.html#global-variable</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id17" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id7">[7]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#global-variable">http://jonathan2251.github.com/lbd/globalvar.html#global-variable</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id18" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id10">[8]</a></td><td><a class="reference external" href="http://developer.mips.com/clang-llvm/">http://developer.mips.com/clang-llvm/</a></td></tr>
+</tbody>
+</table>
 </div>
 </div>
 

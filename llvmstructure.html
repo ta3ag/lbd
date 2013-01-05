@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.0',
+        VERSION:     '3.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -78,8 +78,7 @@ After that we will show you how to write register and instruction definitions
 <div class="section" id="cpu0-processor-architecture">
 <h2>CPU0 processor architecture<a class="headerlink" href="#cpu0-processor-architecture" title="Permalink to this headline">¶</a></h2>
 <p>We copy and redraw figures in english in this section. This
-<a class="reference external" href="http://ccckmit.wikidot.com/ocs:cpu0">web site</a> is chinese version and here
-is <a class="reference external" href="http://translate.google.com.tw/translate?js=n&amp;prev=_t&amp;hl=zh-TW&amp;ie=UTF-8&amp;layout=2&amp;eotf=1&amp;sl=zh-CN&amp;tl=en&amp;u=http://ccckmit.wikidot.com/ocs:cpu0">english version</a>.</p>
+web site <a class="footnote-reference" href="#id10" id="id1">[1]</a> is chinese version and here <a class="footnote-reference" href="#id11" id="id2">[2]</a> is english version.</p>
 <div class="section" id="brief-introduction">
 <h3>Brief introduction<a class="headerlink" href="#brief-introduction" title="Permalink to this headline">¶</a></h3>
 <p>CPU0 is a 32-bit processor which has registers R0 .. R15, IR, MAR, MDR, etc.,
@@ -171,7 +170,7 @@ These two instructions format as <a class="reference internal" href="#llvmstruct
 <p class="caption">Cpu0 ldi instruction</p>
 </div>
 <div class="figure align-center" id="llvmstructure-f5">
-<img alt="_images/52.png" src="_images/52.png" />
+<img alt="_images/53.png" src="_images/53.png" />
 <p class="caption">Mips addiu instruction format</p>
 </div>
 <p>From <a class="reference internal" href="#llvmstructure-f4"><em>Cpu0 ldi instruction</em></a> and <a class="reference internal" href="#llvmstructure-f5"><em>Mips addiu instruction format</em></a>, you can find ldi $Ra,
@@ -186,7 +185,7 @@ The cpu0 is my brother&#8217;s work, I will find time to talk with him.</p>
 </div>
 <div class="section" id="llvm-structure">
 <h2>LLVM structure<a class="headerlink" href="#llvm-structure" title="Permalink to this headline">¶</a></h2>
-<p>Following came from <a class="reference external" href="http://www.aosabook.org/en/llvm.html">AOSA</a>.</p>
+<p>Following came from AOSA <a class="footnote-reference" href="#id12" id="id3">[3]</a>.</p>
 <p>The most popular design for a traditional static compiler (like most C
 compilers) is the three phase design whose major components are the front end,
 the optimizer and the back end (<a class="reference internal" href="#llvmstructure-f6"><em>Tree major components of a Three Phase Compiler</em></a>).
@@ -195,7 +194,7 @@ language-specific Abstract Syntax Tree (AST) to represent the input code.
 The AST is optionally converted to a new representation for optimization, and
 the optimizer and back end are run on the code.</p>
 <div class="figure align-center" id="llvmstructure-f6">
-<img alt="_images/62.png" src="_images/62.png" />
+<img alt="_images/63.png" src="_images/63.png" />
 <p class="caption">Tree major components of a Three Phase Compiler</p>
 </div>
 <p>The optimizer is responsible for doing a broad variety of transformations to
@@ -217,7 +216,7 @@ front end can be written for any language that can compile to it, and a back
 end can be written for any target that can compile from it, as shown in
 <a class="reference internal" href="#llvmstructure-f7"><em>Retargetablity</em></a>.</p>
 <div class="figure align-center" id="llvmstructure-f7">
-<img alt="_images/72.png" src="_images/72.png" />
+<img alt="_images/73.png" src="_images/73.png" />
 <p class="caption">Retargetablity</p>
 </div>
 <p>With this design, porting the compiler to support a new source language (e.g.,
@@ -334,7 +333,7 @@ tblgen tool.
 The (simplified) build process for the x86 target is shown in
 <a class="reference internal" href="#llvmstructure-f8"><em>Simplified x86 Target Definition</em></a>.</p>
 <div class="figure align-center" id="llvmstructure-f8">
-<img alt="_images/82.png" src="_images/82.png" />
+<img alt="_images/83.png" src="_images/83.png" />
 <p class="caption">Simplified x86 Target Definition</p>
 </div>
 <p>The different subsystems supported by the .td files allow target authors to
@@ -355,7 +354,7 @@ instruction format.
 After finish the .td files, llvm can generate C++ files (*.inc) by llvm-tblgen
 tools.
 The *.inc file is a text file (C++ file) with table driven in concept.
-<a class="reference external" href="http://llvm.org/docs/TableGenFundamentals.html">http://llvm.org/docs/TableGenFundamentals.html</a> is the web site.</p>
+<a class="footnote-reference" href="#id13" id="id4">[4]</a> is the web site.</p>
 <p>Every back end has a target td which define it&#8217;s own target information.
 File td is like C++ in syntax. For example the Cpu0.td as follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="o">/===--</span> <span class="n">Cpu0</span><span class="p">.</span><span class="n">td</span> <span class="o">-</span> <span class="n">Describe</span> <span class="n">the</span> <span class="n">Cpu0</span> <span class="n">Target</span> <span class="n">Machine</span> <span class="o">---------*-</span> <span class="n">tablegen</span> <span class="o">-*-===</span><span class="c1">//</span>
@@ -984,8 +983,8 @@ After building, you will find three libraries: <tt class="docutils literal"><spa
 <tt class="docutils literal"><span class="pre">libLLVMCpu0Desc.a</span></tt> and <tt class="docutils literal"><span class="pre">libLLVMCpu0Info.a</span></tt> in lib/ of your build
 directory.
 For more details please see
-<a class="reference external" href="http://llvm.org/docs/CMake.html">Building LLVM with CMake</a> and
-<a class="reference external" href="http://llvm.org/docs/LLVMBuild.html">LLVMBuild Guide</a>.</p>
+&#8220;Building LLVM with CMake&#8221; <a class="footnote-reference" href="#id14" id="id5">[5]</a> and
+&#8220;LLVMBuild Guide&#8221; <a class="footnote-reference" href="#id15" id="id6">[6]</a>.</p>
 </div>
 <div class="section" id="target-registration">
 <h2>Target Registration<a class="headerlink" href="#target-registration" title="Permalink to this headline">¶</a></h2>
@@ -1026,14 +1025,13 @@ the empty initialize function since we register nothing in them for this moment.
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Please see <a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration">Target Registration</a>
-for reference.</p>
+<p>Please see &#8220;Target Registration&#8221; <a class="footnote-reference" href="#id16" id="id7">[7]</a> for reference.</p>
 </div>
 <div class="section" id="build-libraries-and-td">
 <h2>Build libraries and td<a class="headerlink" href="#build-libraries-and-td" title="Permalink to this headline">¶</a></h2>
 <p>The llvm3.1 source code is put in /usr/local/llvm/3.1/src and have llvm3.1
 release-build in /usr/local/llvm/3.1/configure_release_build.
-About how to build llvm, please refer <a class="reference external" href="http://clang.llvm.org/get_started.html">http://clang.llvm.org/get_started.html</a>.
+About how to build llvm, please refer <a class="footnote-reference" href="#id17" id="id8">[8]</a>.
 We made a copy from /usr/local/llvm/3.1/src to
 /usr/local/llvm/3.1.test/cpu0/1/src for working with my Cpu0 target back end.
 Sub-directories src is for source code and cmake_debug_build is for debug
@@ -1106,7 +1104,7 @@ LLVM (http://llvm.org/):
 </div>
 <p>The “llc -version” can display “cpu0” and “cpu0el” message, because the
 following code from file TargetInfo/Cpu0TargetInfo.cpp what in
-<a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration">section Target Registration</a> we made.
+&#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id18" id="id9">[9]</a> we made.
 List them as follows again,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0TargetInfo.cpp</span>
 <span class="n">Target</span> <span class="n">llvm</span><span class="o">::</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">llvm</span><span class="o">::</span><span class="n">TheCpu0elTarget</span><span class="p">;</span> 
@@ -1164,6 +1162,60 @@ Aborted (core dumped)
 According to LLVM structure, we need to define our target machine and include
 those td related files.
 The error message say we didn&#8217;t define our target machine.</p>
+<table class="docutils footnote" frame="void" id="id10" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://ccckmit.wikidot.com/ocs:cpu0">http://ccckmit.wikidot.com/ocs:cpu0</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id11" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://translate.google.com.tw/translate?js=n&amp;prev=_t&amp;hl=zh-TW&amp;ie=UTF-8&amp;layout=2&amp;eotf=1&amp;sl=zh-CN&amp;tl=en&amp;u=http://ccckmit.wikidot.com/ocs:cpu0">http://translate.google.com.tw/translate?js=n&amp;prev=_t&amp;hl=zh-TW&amp;ie=UTF-8&amp;layout=2&amp;eotf=1&amp;sl=zh-CN&amp;tl=en&amp;u=http://ccckmit.wikidot.com/ocs:cpu0</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id12" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.aosabook.org/en/llvm.html">http://www.aosabook.org/en/llvm.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id13" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://llvm.org/docs/TableGenFundamentals.html">http://llvm.org/docs/TableGenFundamentals.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id14" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://llvm.org/docs/CMake.html">http://llvm.org/docs/CMake.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id15" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id6">[6]</a></td><td><a class="reference external" href="http://llvm.org/docs/LLVMBuild.html">http://llvm.org/docs/LLVMBuild.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id16" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id7">[7]</a></td><td><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration">http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id17" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id8">[8]</a></td><td><a class="reference external" href="http://clang.llvm.org/get_started.html">http://clang.llvm.org/get_started.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id18" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id9">[9]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration</a></td></tr>
+</tbody>
+</table>
 </div>
 </div>
 

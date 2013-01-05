@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.0',
+        VERSION:     '3.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -59,8 +59,8 @@
 control flow statements of llvm IR into cpu0 instructions.</p>
 <div class="section" id="id1">
 <h2>Control flow statement<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p>Run ch6_1.cpp with clang will get result as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch6_1.cpp</span>
+<p>Run ch7_1.cpp with clang will get result as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch7_1.cpp</span>
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
     <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
@@ -108,7 +108,7 @@ control flow statements of llvm IR into cpu0 instructions.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch6_1_1.bc&#39;</span>
+<div class="highlight-bash"><div class="highlight"><pre>; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch7_1_1.bc&#39;</span>
 target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-</span>
 <span class="s2">f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128&quot;</span>
 target <span class="nv">triple</span> <span class="o">=</span> <span class="s2">&quot;i386-apple-macosx10.8.0&quot;</span>
@@ -254,7 +254,7 @@ entry:
 </div>
 <p>The “icmp ne” stand for integer compare NotEqual, “slt” stand for Set Less
 Than, “sle” stand for Set Less Equal.
-Run version 5/6_2/Cpu0 with llc  -view-isel-dags or -debug option, you can see
+Run version 6/2/Cpu0 with llc  -view-isel-dags or -debug option, you can see
 it has translated if statement into
 (br (brcond (%1, setcc(%2, Constant&lt;c&gt;, setne)), BasicBlock_02), BasicBlock_01).
 Ignore %1, we get the form (br (brcond (setcc(%2, Constant&lt;c&gt;, setne)),
@@ -384,7 +384,7 @@ readability.</p>
 </div>
 <p>By the following llc option, you can get the obj file and dump it&#8217;s content by
 hexdump as follows,</p>
-<div class="highlight-c++"><pre>118-165-79-206:InputFiles Jonathan$ cat ch6_1_1.cpu0.s
+<div class="highlight-c++"><pre>118-165-79-206:InputFiles Jonathan$ cat ch7_1_1.cpu0.s
 …
     ld  $3, 32($sp)
     cmp $3, $2
@@ -400,9 +400,9 @@ $BB0_2:                                 # %if.end
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj
-ch6_1_1.bc -o ch6_1_1.cpu0.o
+ch7_1_1.bc -o ch7_1_1.cpu0.o
 
-118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>hexdump ch6_1_1.cpu0.o
+118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>hexdump ch7_1_1.cpu0.o
     // jmp offset is <span class="nv">0x10</span><span class="o">=</span>16 bytes which is correct
 0000080 …......................... 10 20 20 02 21 00 00 10
 
@@ -599,10 +599,10 @@ def : Pat&lt;(brcond RC:$cond, bb:$dst),
 
 defm : BrcondPats&lt;CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO&gt;;</pre>
 </div>
-<p>The ch6_1_2.cpp is for “nest if” test. The ch6_1_3.cpp is the “for loop” as
+<p>The ch7_1_2.cpp is for “nest if” test. The ch7_1_3.cpp is the “for loop” as
 well as “while loop”, “continue”, “break”, “goto”  test.
 You can run with them if you like to test more.</p>
-<p>Finally, 6/1/Cpu0 support the local array definition by add the LowerCall()
+<p>Finally, 7/1/Cpu0 support the local array definition by add the LowerCall()
 empty function in Cpu0ISelLowering.cpp as follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0ISelLowering.cpp</span>
 <span class="n">SDValue</span>
@@ -618,9 +618,9 @@ empty function in Cpu0ISelLowering.cpp as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>With this LowerCall(), it can translate ch6_1_4.cpp, ch6_1_4.bc to
-ch6_1_4.cpu0.s as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch6_1_4.cpp</span>
+<p>With this LowerCall(), it can translate ch7_1_4.cpp, ch7_1_4.bc to
+ch7_1_4.cpu0.s as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch7_1_4.cpp</span>
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
     <span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">};</span>
@@ -629,7 +629,7 @@ ch6_1_4.cpu0.s as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch6_1_4 .bc&#39;</span>
+<div class="highlight-bash"><div class="highlight"><pre>; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch7_1_4 .bc&#39;</span>
 target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-</span>
 <span class="s2">f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128&quot;</span>
 target <span class="nv">triple</span> <span class="o">=</span> <span class="s2">&quot;i386-apple-macosx10.8.0&quot;</span>
@@ -648,10 +648,10 @@ entry:
   ret i32 0
 <span class="o">}</span>
 
-118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>cat ch6_1_4.cpu0.s
+118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1_4.cpu0.s
     .section .mdebug.abi32
     .previous
-    .file   <span class="s2">&quot;ch6_1_4.bc&quot;</span>
+    .file   <span class="s2">&quot;ch7_1_4.bc&quot;</span>
     .text
     .globl  main
     .align  2

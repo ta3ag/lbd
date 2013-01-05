@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.0',
+        VERSION:     '3.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -95,16 +95,32 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="otherinst.html">Other instructions</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="otherinst.html#support-arithmetic-instructions">Support arithmetic instructions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="otherinst.html#translate-into-obj-file">Translate into obj file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="otherinst.html#operator-not">Operator “not” !</a></li>
+<li class="toctree-l2"><a class="reference internal" href="otherinst.html#display-llvm-ir-nodes-with-graphviz">Display llvm IR nodes with Graphviz</a></li>
+<li class="toctree-l2"><a class="reference internal" href="otherinst.html#adjust-cpu0-instructions">Adjust cpu0 instructions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="otherinst.html#local-variable-pointer">Local variable pointer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="otherinst.html#operator-mod">Operator mod, %</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="otherinst.html#the-dag-of">The DAG of %</a></li>
+<li class="toctree-l3"><a class="reference internal" href="otherinst.html#arm-solution">Arm solution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="otherinst.html#mips-solution">Mips solution</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="genobj.html">Generate obj file</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="genobj.html#translate-into-obj-file">Translate into obj file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="genobj.html#backend-target-registration-structure">Backend Target Registration Structure</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="globalvar.html">Global variable, struct and array</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="globalvar.html#global-variable">Global variable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="globalvar.html#global-variable">Global variable</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="globalvar.html#static-mode">Static mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="globalvar.html#pic-mode">PIC mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="globalvar.html#global-variable-print-support">Global variable print support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="globalvar.html#summary">Summary</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="globalvar.html#array-and-struct-support">Array and struct support</a></li>
-<li class="toctree-l2"><a class="reference internal" href="globalvar.html#operator-not">Operator “not” !</a></li>
-<li class="toctree-l2"><a class="reference internal" href="globalvar.html#display-llvm-ir-nodes-with-graphviz">Display llvm IR nodes with Graphviz</a></li>
-<li class="toctree-l2"><a class="reference internal" href="globalvar.html#adjust-cpu0-instruction-and-support-type-of-local-variable-pointer">Adjust cpu0 instruction and support type of local variable pointer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="globalvar.html#operator-mod">Operator mod, %</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ctrlflow.html">Control flow statement</a><ul>

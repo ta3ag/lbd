@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.0',
+        VERSION:     '3.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -233,7 +233,7 @@ will be extracted by Cpu0InstrInfo.h.</p>
 <span class="cp">#endif </span><span class="c1">// GET_INSTRINFO_HEADER </span>
 </pre></div>
 </div>
-<p><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#TargetMachine">http://llvm.org/docs/WritingAnLLVMBackend.html#TargetMachine</a></p>
+<p>Reference Write An LLVM Backend web site <a class="footnote-reference" href="#id5" id="id1">[1]</a>.</p>
 <p>Now, the code in 3/1/Cpu0 add class Cpu0TargetMachine(Cpu0TargetMachine.h and
 cpp), Cpu0Subtarget (Cpu0Subtarget.h and .cpp), Cpu0InstrInfo (Cpu0InstrInfo.h
 and .cpp), Cpu0FrameLowering (Cpu0FrameLowering.h and .cpp), Cpu0TargetLowering
@@ -333,7 +333,7 @@ Let&#8217;s add it in next section.</p>
 </div>
 <div class="section" id="add-asmprinter">
 <h2>Add AsmPrinter<a class="headerlink" href="#add-asmprinter" title="Permalink to this headline">¶</a></h2>
-<p>3/3/cpu0 contains the Cpu0AsmPrinter definition. First, I add definitions in
+<p>3/3/cpu0 contains the Cpu0AsmPrinter definition. First, we add definitions in
 Cpu0.td to support AssemblyWriter.
 Cpu0.td is added with the following fragment,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0.td</span>
@@ -432,7 +432,7 @@ follows,</p>
 </pre></div>
 </div>
 <p>Now, it&#8217;s time to work with AsmPrinter. According section
-<a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration">section Target Registration</a>, we can register our AsmPrinter when we need it
+&#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id6" id="id2">[2]</a>, we can register our AsmPrinter when we need it
 as follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0AsmPrinter.cpp</span>
 <span class="c1">// Force static initialization.</span>
@@ -469,7 +469,7 @@ rt generation of this file type!
 </pre>
 </div>
 <p>The llc fails to compile IR code into machine code since we didn&#8217;t implement
-class Cpu0DAGToDAGISel. Before the implementation, I will introduce the LLVM
+class Cpu0DAGToDAGISel. Before the implementation, we will introduce the LLVM
 Code Generation Sequence, DAG, and LLVM instruction selection in next 3
 sections.</p>
 </div>
@@ -498,9 +498,9 @@ Following is the llvm SSA instructions.</p>
 </div>
 <p>We explain the code generation process as below.
 If you don&#8217;t feel comfortable, please check tricore_llvm.pdf section 4.2 first.
-You can  read “The LLVM Target-Independent Code Generator”
-(<a class="reference external" href="http://llvm.org/docs/CodeGenerator.html">http://llvm.org/docs/CodeGenerator.html</a>) and “LLVM Language Reference Manual”
-(<a class="reference external" href="http://llvm.org/docs/LangRef.html">http://llvm.org/docs/LangRef.html</a>) before go ahead, but we think read section
+You can  read “The LLVM Target-Independent Code Generator” from <a class="footnote-reference" href="#id7" id="id3">[3]</a>
+and “LLVM Language Reference Manual” from <a class="footnote-reference" href="#id8" id="id4">[4]</a>
+before go ahead, but we think read section
 4.2 of tricore_llvm.pdf is enough.
 We suggest you read the web site documents as above only when you are still not
 quite understand, even though you have read this section and next 2 sections
@@ -930,6 +930,30 @@ Even the complicate X86 CPU which CISC outside and RISC inside (micro
 instruction), has only 45,000 lines with comments.
 In next chapter, we will show you that add a new instruction support is as easy
 as 123.</p>
+<table class="docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#TargetMachine">http://llvm.org/docs/WritingAnLLVMBackend.html#TargetMachine</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id7" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html">http://llvm.org/docs/CodeGenerator.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id8" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://llvm.org/docs/LangRef.html">http://llvm.org/docs/LangRef.html</a></td></tr>
+</tbody>
+</table>
 </div>
 </div>
 
