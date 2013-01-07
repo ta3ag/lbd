@@ -73,7 +73,7 @@ support generation of this file <span class="nb">type</span>!
 </div>
 <p>The 5/Cpu0 support obj file generated.
 It can get result for big endian and little endian with command
-“llc -march=cpu0” and “llc -march=cpu0el”.
+<tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=cpu0</span></tt> and <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=cpu0el</span></tt>.
 Run it will get the obj files as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>cat ch4_1_2.cpu0.s
 ...
@@ -139,14 +139,14 @@ Contents of section .eh_frame:
  0020 d4000000 00440e48                                    .....D.H
 </pre></div>
 </div>
-<p>The first instruction is “addiu  $sp, -72” and it&#8217;s corresponding obj is
+<p>The first instruction is <strong>“addiu  $sp, -72”</strong> and it&#8217;s corresponding obj is
 0x09d0ffb8.
 The addiu opcode is 0x09, 8 bits, $sp register number is 13(0xd), 4bits, second
 register is useless, so assign it to 0x0, and the immediate is 16 bits
 -72(=0xffb8), so it&#8217;s correct.
-The third instruction “st  $2, 68($sp) ”  and it&#8217;s and it&#8217;s corresponding obj
-is 0x012d0044. The st opcode is 0x0a, $2 is 0x2, $sp is 0xd and immediate is
-68(0x0044).
+The third instruction <strong>“st  $2, 68($sp)”</strong> and it&#8217;s corresponding obj
+is 0x012d0044. The <strong>st</strong> opcode is <strong>0x0a</strong>, $2 is 0x2, $sp is 0xd and
+immediate is 68(0x0044).
 Thanks to cpu0 instruction format which opcode, register operand and
 offset(imediate value) size are multiple of 4 bits.
 The obj format is easy to check by eye.
@@ -253,7 +253,7 @@ TheCpu0Target is for big endian and TheCpu0elTarget is for little endian.
 Cpu0AsmInfo is derived from MCAsmInfo which is llvm built-in class.
 Most code is implemented in it&#8217;s parent, back end reuse those code by inherit.</p>
 <p>In <a class="reference internal" href="#genobj-f2"><em>Register MCCodeGenInfo</em></a>, instancing MCCodeGenInfo, and initialize it by pass
-Roloc::PIC because we use command “llc -relocation-model=pic” to tell llc
+Roloc::PIC because we use command <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span></tt> to tell <tt class="docutils literal"><span class="pre">llc</span></tt>
 compile using position-independent code mode.
 Recall the addressing mode in system program book has two mode, one is PIC
 mode, the other is absolute addressing mode.

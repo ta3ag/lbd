@@ -90,7 +90,7 @@ if it over 4 arguments. <a class="reference internal" href="#funccall-f1"><em>Mi
 <a class="reference internal image-reference" href="_images/12.png"><img alt="_images/12.png" src="_images/12.png" style="width: 688.0px; height: 531.0px;" /></a>
 <p class="caption">Mips stack frame</p>
 </div>
-<p>Run llc with -march=mips for ch8_1.bc, you will get the following result.</p>
+<p>Run <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=mips</span></tt> for ch8_1.bc, you will get the following result.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch8_1.cpp</span>
 <span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">x1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x2</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x3</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x4</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x5</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x6</span><span class="p">)</span>
 <span class="p">{</span>
@@ -360,16 +360,16 @@ We define it as follows,</p>
 variable translation by create the IR DAG in LowerGlobalAddress() first, and
 then do the Instruction Selection by their corresponding machine instruction
 DAG in Cpu0InstrInfo.td.
-LowerGlobalAddress() is called when llc meet the global variable access.
+LowerGlobalAddress() is called when <tt class="docutils literal"><span class="pre">llc</span></tt> meet the global variable access.
 LowerFormalArguments() work with the same way.
 It is called when function is entered.
 It get incoming arguments information by CCInfo(CallConv,..., ArgLocs, …)
-before enter “for loop”. In ch8_1.cpp, there are 6 arguments in sum_i(...)
+before enter <strong>“for loop”</strong>. In ch8_1.cpp, there are 6 arguments in sum_i(...)
 function call and we use the stack frame only for arguments passing without
 any arguments pass in registers.
 So ArgLocs.size() is 6, each argument information is in ArgLocs[i] and
 ArgLocs[i].isMemLoc() is true.
-In “for loop”, it create each frame index object by LastFI =
+In <strong>“for loop”</strong>, it create each frame index object by LastFI =
 MFI-&gt;CreateFixedObject(ValVT.getSizeInBits()/8,VA.getLocMemOffset(), true) and
 FIN = DAG.getFrameIndex(LastFI, getPointerTy()).
 And then create IR DAG load node and put the load node into vector InVals by
@@ -383,7 +383,7 @@ Second time is for main() which didn&#8217;t create any load DAG for no incoming
 argument passing into main().
 In addition to LowerFormalArguments() which create the load DAG, we need to
 define the loadRegFromStackSlot() to issue the machine instruction
-“ld $r, offset($sp)” to load incoming arguments from stack frame offset.
+<strong>“ld $r, offset($sp)”</strong> to load incoming arguments from stack frame offset.
 GetMemOperand(..., FI, ...) return the Memory location of the frame index
 variable, which is the offset.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0InstrInfo.cpp</span>
@@ -585,9 +585,9 @@ Illegal instruction: 4
 <p><a class="reference internal" href="#funccall-f2"><em>Mips arguments location in stack frame</em></a> depicted two steps to take care arguments passing.
 One is store outgoing arguments in caller function, and the other is load
 incoming arguments in callee function.
-We defined LowerFormalArguments() for “load incoming arguments” in callee
+We defined LowerFormalArguments() for <strong>“load incoming arguments”</strong> in callee
 function last section.
-Now, we will finish “store outgoing arguments” in caller function.
+Now, we will finish <strong>“store outgoing arguments”</strong> in caller function.
 LowerCall() is responsible to do this. The implementation as follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0ISelLowering.cpp</span>
 <span class="p">...</span>
@@ -824,15 +824,15 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
 </div>
 <p>Just like load incoming arguments from stack frame, we call
 CCInfo(CallConv,..., ArgLocs, …) to get outgoing arguments information before
-enter “for loop” and set stack alignment with 8 bytes.
-They&#8217;re almost same in “for loop” with LowerFormalArguments(), except
+enter <strong>“for loop”</strong> and set stack alignment with 8 bytes.
+They&#8217;re almost same in <strong>“for loop”</strong> with LowerFormalArguments(), except
 LowerCall() create store DAG vector instead of load DAG vector.
-After the “for loop”, it create “ld $6, %call24(_Z5sum_iiiiiii)($gp)”
+After the <strong>“for loop”</strong>, it create <strong>“ld $6, %call24(_Z5sum_iiiiiii)($gp)”</strong>
 and jalr $6 for calling subroutine (the $6 is $t9) in PIC mode.
-DAG.getCALLSEQ_START() and DAG.getCALLSEQ_END() are set before the “for loop”
-and after call subroutine, they insert CALLSEQ_START, CALLSEQ_END, and
-translate into pseudo machine instructions !ADJCALLSTACKDOWN, !ADJCALLSTACKUP
-later according Cpu0InstrInfo.td definition as follows.</p>
+DAG.getCALLSEQ_START() and DAG.getCALLSEQ_END() are set before the
+<strong>“for loop”</strong> and after call subroutine, they insert CALLSEQ_START,
+CALLSEQ_END, and translate into pseudo machine instructions !ADJCALLSTACKDOWN,
+!ADJCALLSTACKUP later according Cpu0InstrInfo.td definition as follows.</p>
 <div class="highlight-c++"><pre>// Cpu0InstrInfo.td
 ...
 def SDT_Cpu0CallSeqStart : SDCallSeqStart&lt;[SDTCisVT&lt;0, i32&gt;]&gt;;
@@ -1360,27 +1360,27 @@ gI:
     .size   gI, 4
 </pre></div>
 </div>
-<p>As above code comment, “.cprestore 24” is a pseudo instruction for saving $gp
-to 24($sp); Instruction “ld $gp, 24($sp)” will restore the $gp.
+<p>As above code comment, <strong>“.cprestore 24”</strong> is a pseudo instruction for saving
+<strong>$gp</strong> to <strong>24($sp)</strong>; Instruction <strong>“ld $gp, 24($sp)”</strong> will restore the $gp.
 In other word, $gp is caller saved register, so main() need to save/restore $gp
 before/after call the shared library _Z5sum_iiiiiii() function.
 In _Z5sum_iiiiiii() function, we translate global variable gI address by
-“ld $3, %got(gI)($gp)” where %got(gI) is offset of (gI - _Z5sum_iiiiiii)
+<strong>“ld $3, %got(gI)($gp)”</strong> where %got(gI) is offset of (gI - _Z5sum_iiiiiii)
 (we can write our cpu0 compiler to produce obj code by calculate the offset
 value).</p>
-<p>According the original cpu0 web site information, it only support “jsub” 24
+<p>According the original cpu0 web site information, it only support <strong>“jsub”</strong> 24
 bits address range access.
-We add “jalr” to cpu0 and expand it to 32 bit address. We did this change for
+We add <strong>“jalr”</strong> to cpu0 and expand it to 32 bit address. We did this change for
 two reason. One is cpu0 can be expand to 32 bit address space by only add this
 instruction.
 The other is cpu0 is designed for teaching purpose, this book has the same
-purpose for llvm backend design. We reserve “jalr” as PIC mode for shared
+purpose for llvm backend design. We reserve <strong>“jalr”</strong> as PIC mode for shared
 library or dynamic loading code to demonstrate the caller how to handle the
 caller saved register $gp in calling the shared library and the shared library
 how to use $gp to access global variable address. This solution is popular in
 reality and deserve change cpu0 official design as a compiler book.
 Mips use the same solution in 32 bits Mips32 CPU.</p>
-<p>Now, as the following code added in 8/5/Cpu0, we can issue “.cprestore” in
+<p>Now, as the following code added in 8/5/Cpu0, we can issue <strong>“.cprestore”</strong> in
 emitPrologue() and emit ld $gp, ($gp save slot on stack) after jalr by create
 file Cpu0EmitGPRestore.cpp which run as a function pass.</p>
 <div class="highlight-c++"><pre>// # CMakeLists.txt
@@ -1711,14 +1711,14 @@ void Cpu0MCInstLower::LowerCPRESTORE(int64_t Offset,
 }</pre>
 </div>
 <p>The above added code of Cpu0AsmPrinter.cpp will call the LowerCPLOAD() and
-LowerCPRESTORE() when user run with “llc -filetype=obj”.
+LowerCPRESTORE() when user run with <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></tt>.
 The above added code of Cpu0MCInstLower.cpp take care the .cpload and
 .cprestore machine instructions.
 It translate pseudo asm .cpload into four machine instructions, and .cprestore
 into one machine instruction as below.
 As mentioned in &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id17" id="id7">[7]</a>.
 When the share library main() function be loaded, the loader will set the
-$t9 value to $gp when meet “.cpload $t9”.
+$t9 value to $gp when meet <strong>“.cpload $t9”</strong>.
 After that, the $gp value is $t9 which point to main(), and the global variable
 address is the relative address to main().
 The _gp_disp is zero as the following reason from Mips ABI.</p>
@@ -1745,7 +1745,7 @@ follow.
 For example, the calculation of gp need not be done for a position-independent
 function that is strictly local to an object module.</p>
 </div>
-<p>By run with “llc -filetype=obj”, the .cpload and .cprestore are translated into
+<p>By run with <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></tt>, the .cpload and .cprestore are translated into
 machine code as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>
@@ -1783,7 +1783,7 @@ _Z5sum_iiiiiii:
 …
 </pre></div>
 </div>
-<p>Run “llc -static” will call jsub instruction instead of jalr as follows,</p>
+<p>Run <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-static</span></tt> will call jsub instruction instead of jalr as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>
 asm ch8_2.bc -o ch8_2.cpu0.s
@@ -1793,8 +1793,8 @@ asm ch8_2.bc -o ch8_2.cpu0.s
 ...
 </pre></div>
 </div>
-<p>Run with llc -obj, you can find the Cx of “jsub Cx” is 0 since the Cx is
-calculated by linker as below.
+<p>Run with <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-obj</span></tt>, you can find the Cx of <strong>“jsub Cx”</strong> is 0 since the Cx
+is calculated by linker as below.
 Mips has the same 0 in it&#8217;s jal instruction.
 The ch8_1_2.cpp, ch8_1_3.cpp and ch8_1_4.cpp are example code more for test.</p>
 <div class="highlight-bash"><div class="highlight"><pre>// jsub _Z5sum_iiiiiii translate into 2B 00 00 00
@@ -1987,8 +1987,8 @@ main:
 </div>
 <p>We have problem in analysis of the output ch8_3.cpu0.s.
 We guess and try to analysis as follows.
-As above code, we get the first argument “amount” from “ld $2, 56($sp)” since
-the stack size of the callee function “_Z5sum_iiz()” is 56.
+As above code, we get the first argument <strong>“amount”</strong> from <strong>“ld $2, 56($sp)”</strong>
+since the stack size of the callee function <strong>“_Z5sum_iiz()”</strong> is 56.
 Next, check i &lt; amount in block $BB0_1. If  i &lt; amount, than enter into $BB0_2.
 We assume arg_ptr &lt; 40 and the content of address 8($sp) is the arg_ptr.
 When it exits $BB0_2 and enter into $BB0_3, the register ($3 + $5) = (arg_ptr
@@ -2179,7 +2179,7 @@ $tmp9:
   .cfi_endproc</pre>
 </div>
 <p>We have verified the translation of ch8_3.cpp is correct by add printf in
-ch8_3.cpp to get ch8_3_3.cpp and run with “lli” llvm interpreter.
+ch8_3.cpp to get ch8_3_3.cpp and run with <tt class="docutils literal"><span class="pre">lli</span></tt> llvm interpreter.
 We also translate it into native Intel CPU code and get the correct print
 result.
 Following are the ch8_3_3.cpp, and lli, Intel native code run result.</p>

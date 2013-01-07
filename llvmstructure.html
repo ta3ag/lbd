@@ -452,18 +452,18 @@ For example,</p>
 <span class="n">Date</span> <span class="n">date</span><span class="p">;</span>	<span class="c1">// define(instance) date</span>
 </pre></div>
 </div>
-<p>Just like C++ class, the keyword “class” is used for declaring data structure
+<p>Just like C++ class, the keyword <strong>“class”</strong> is used for declaring data structure
 layout.
 <tt class="docutils literal"><span class="pre">Cpu0Reg&lt;string</span> <span class="pre">n&gt;</span></tt> declare a derived class from <tt class="docutils literal"><span class="pre">Register&lt;n&gt;</span></tt> which is
 declared by llvm already, where n is the argument of type string.
 In addition to inherited from all the fields of Register class, Cpu0Reg add a
 new field &#8220;Num&#8221; of type 4 bits.
 Namespace is same with  C++ namespace.
-“Def” is used by define(instance) a concrete variable.</p>
+<strong>“Def”</strong> is used by define(instance) a concrete variable.</p>
 <p>As above, we define a ZERO register which type is Cpu0GPRReg, it&#8217;s field Num
-is 0 (4 bits) and field n is “ZERO” (declared in Register class).
-Note the use of “let” expressions to override values that are initially defined
-in a superclass. For example, let Namespace = “Cpu0” in class Cpu0Reg, will
+is 0 (4 bits) and field n is <strong>“ZERO”</strong> (declared in Register class).
+Note the use of <strong>“let”</strong> expressions to override values that are initially defined
+in a superclass. For example, let Namespace = <strong>“Cpu0”</strong> in class Cpu0Reg, will
 override Namespace declared in Register class.
 The Cpu0RegisterInfo.td also define that CPURegs is a variable for type of
 RegisterClass, where the RegisterClass is a llvm built-in class.
@@ -883,7 +883,7 @@ imm16 = simm16:$imm16
 Similarly, LD and ST instruction definition can be expanded in this way.
 Please notify the Pattern =
 [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))] which include keyword
-“add”.
+<strong>“add”</strong>.
 We will use it in DAG transformations later.</p>
 </div>
 <div class="section" id="write-cmake-file">
@@ -1083,7 +1083,7 @@ _build
 [100%] Built target gtest_main
 </pre>
 </div>
-<p>After build, you can type command llc –version to find the cpu0 backend,</p>
+<p>After build, you can type command <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">–version</span></tt> to find the cpu0 backend,</p>
 <div class="highlight-c++"><pre>[Gamma@localhost cmake_debug_build]$ /usr/local/llvm/3.1.test/cpu0/1/cmake_debug
 _build/bin/llc --version 
 LLVM (http://llvm.org/): 
@@ -1102,8 +1102,8 @@ LLVM (http://llvm.org/):
 ...
 </pre>
 </div>
-<p>The “llc -version” can display “cpu0” and “cpu0el” message, because the
-following code from file TargetInfo/Cpu0TargetInfo.cpp what in
+<p>The <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-version</span></tt> can display <strong>“cpu0”</strong> and <strong>“cpu0el”</strong> message, because
+the following code from file TargetInfo/Cpu0TargetInfo.cpp what in
 &#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id18" id="id9">[9]</a> we made.
 List them as follows again,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0TargetInfo.cpp</span>
@@ -1118,7 +1118,7 @@ List them as follows again,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Now try to do llc command to compile input file ch3.cpp as follows,</p>
+<p>Now try to do <tt class="docutils literal"><span class="pre">llc</span></tt> command to compile input file ch3.cpp as follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch3.cpp</span>
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span> 
 <span class="p">{</span> 
