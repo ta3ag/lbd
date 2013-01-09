@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.1',
+        VERSION:     '3.2.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -1175,7 +1175,7 @@ eliminateCallFramePseudoInstr(MachineFunction &amp;MF, MachineBasicBlock &amp;MB
 <p>With above definition, eliminateCallFramePseudoInstr() will be called when
 llvm meet pseudo instructions ADJCALLSTACKDOWN and ADJCALLSTACKUP.
 We just discard these 2 pseudo instructions.
-Run 8/4/Cpu0 with ch8_1.cpp will get the following result.</p>
+Run 8/5/Cpu0 with ch8_1.cpp will get the following result.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype
 <span class="o">=</span>asm ch8_1.bc -o ch8_1.cpu0.s
@@ -1279,7 +1279,7 @@ main:
 </div>
 <div class="section" id="handle-gp-register-in-pic-addressing-mode">
 <h2>Handle $gp register in PIC addressing mode<a class="headerlink" href="#handle-gp-register-in-pic-addressing-mode" title="Permalink to this headline">¶</a></h2>
-<p>In &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id16" id="id6">[6]</a>, we mentioned two addressing
+<p>In &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id15" id="id6">[5]</a>, we mentioned two addressing
 mode, the static address mode and PIC (position-independent code) mode.
 We also mentioned, one example of PIC mode is used in share library.
 Share library usually can be loaded in different memory address decided at run
@@ -1291,7 +1291,7 @@ variable address cannot be decided at compile time.
 But, we can caculate the distance between the global variable address and
 shared library function if they will be loaded to the contiguous memory space
 together.</p>
-<p>Let&#8217;s run 8/5/Cpu0 with ch8_2.cpp to get the following result of we putting the
+<p>Let&#8217;s run 8/6/Cpu0 with ch8_2.cpp to get the following result of we putting the
 comment in it for explanation.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-67-25:InputFiles Jonathan<span class="nv">$ </span>cat ch8_2.cpu0.s
     .section .mdebug.abi32
@@ -1380,7 +1380,7 @@ caller saved register $gp in calling the shared library and the shared library
 how to use $gp to access global variable address. This solution is popular in
 reality and deserve change cpu0 official design as a compiler book.
 Mips use the same solution in 32 bits Mips32 CPU.</p>
-<p>Now, as the following code added in 8/5/Cpu0, we can issue <strong>“.cprestore”</strong> in
+<p>Now, as the following code added in 8/6/Cpu0, we can issue <strong>“.cprestore”</strong> in
 emitPrologue() and emit ld $gp, ($gp save slot on stack) after jalr by create
 file Cpu0EmitGPRestore.cpp which run as a function pass.</p>
 <div class="highlight-c++"><pre>// # CMakeLists.txt
@@ -1716,7 +1716,7 @@ The above added code of Cpu0MCInstLower.cpp take care the .cpload and
 .cprestore machine instructions.
 It translate pseudo asm .cpload into four machine instructions, and .cprestore
 into one machine instruction as below.
-As mentioned in &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id17" id="id7">[7]</a>.
+As mentioned in &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id15" id="id7">[5]</a>.
 When the share library main() function be loaded, the loader will set the
 $t9 value to $gp when meet <strong>“.cpload $t9”</strong>.
 After that, the $gp value is $t9 which point to main(), and the global variable
@@ -2527,7 +2527,40 @@ SDValue Cpu0TargetLowering::LowerVASTART(SDValue Op, SelectionDAG &amp;DAG) cons
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Mips qemu reference <a class="footnote-reference" href="#id18" id="id10">[8]</a>.</p>
+<p>Mips qemu reference <a class="footnote-reference" href="#id16" id="id10">[6]</a>.</p>
+</div>
+<div class="section" id="verify-div-for-operator">
+<h2>Verify DIV for operator %<a class="headerlink" href="#verify-div-for-operator" title="Permalink to this headline">¶</a></h2>
+<p>Now, let&#8217;s run 8/7/Cpu0 with 4_6_2.cpp to get the result as below.
+It translate <strong>“(b+1)%c”</strong> into <strong>“div $zero, $3, $2”</strong> and <strong>“mfhi $2”</strong>.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch4_6_2.cpp</span>
+<span class="cp">#include &lt;stdlib.h&gt;</span>
+
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
+<span class="c1">//  unsigned int b = 11;</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="n">rand</span><span class="p">();</span>
+
+  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="n">c</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="n">b</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-70-242:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_6_2.cpp -I/Applications/
+Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
+MacOSX10.8.sdk/usr/include/ -emit-llvm -o ch4_6_2.bc
+118-165-70-242:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/cmake
+_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
+ch4_6_2.bc -o ch4_6_2.cpu0.s
+118-165-70-242:InputFiles Jonathan<span class="nv">$ </span>cat ch4_6_2.cpu0.s
+  ...
+  div <span class="nv">$zero</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  mfhi  <span class="nv">$2</span>
+  …
+</pre></div>
+</div>
 </div>
 <div class="section" id="summary-of-this-chapter">
 <h2>Summary of this chapter<a class="headerlink" href="#summary-of-this-chapter" title="Permalink to this headline">¶</a></h2>
@@ -2571,19 +2604,7 @@ variable, control flow statement and function call.</p>
 <table class="docutils footnote" frame="void" id="id16" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id6">[6]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#global-variable">http://jonathan2251.github.com/lbd/globalvar.html#global-variable</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id17" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id7">[7]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#global-variable">http://jonathan2251.github.com/lbd/globalvar.html#global-variable</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id18" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id10">[8]</a></td><td><a class="reference external" href="http://developer.mips.com/clang-llvm/">http://developer.mips.com/clang-llvm/</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id10">[6]</a></td><td><a class="reference external" href="http://developer.mips.com/clang-llvm/">http://developer.mips.com/clang-llvm/</a></td></tr>
 </tbody>
 </table>
 </div>

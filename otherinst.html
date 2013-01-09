@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.1',
+        VERSION:     '3.2.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -825,7 +825,7 @@ entry:
 </pre></div>
 </div>
 <p>LLVM <strong>srem</strong> is the IR corresponding <strong>“%”</strong>, reference sub-section &#8220;srem instruction&#8221;
-of <a class="footnote-reference" href="#id10" id="id5">[5]</a>.
+of <a class="footnote-reference" href="#id8" id="id5">[3]</a>.
 Copy the reference as follows,</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -1139,11 +1139,262 @@ main:
 </div>
 </div>
 </div>
+<div class="section" id="full-support">
+<h2>Full support %<a class="headerlink" href="#full-support" title="Permalink to this headline">¶</a></h2>
+<p>The sensitive readers may find the llvm using <strong>“multiplication”</strong> instead
+of <strong>“div”</strong> to get the <strong>“%”</strong> result just because our example use constant as
+divider, <strong>“(b+1)%12”</strong> in our example.
+If programmer use variable as the divider like <strong>“(b+1)%a”</strong>, then what will
+happens in our code.
+The answer is our code will have error to take care this.
+In <a class="reference external" href="http://jonathan2251.github.com/lbd/otherinst.html#support-arithmetic-instructions">section Support arithmetic instructions</a>, we use <strong>“div a, b”</strong>
+to hold the quotient part in register.
+The multiplication operator <strong>“*”</strong> need 64 bits of register to hold the result
+for two 32 bits of operands multiplication.
+We modify cpu0 to use the pair of registers LO and HI which just like Mips to
+solve this issue in last section.
+Now, it&#8217;s time to modify cpu0 for integer <strong>“divide”</strong> operator again.
+We use LO and HI registers to hold the <strong>&#8220;quotient&#8221;</strong> and <strong>&#8220;remainder&#8221;</strong> and
+use instructions <strong>“mflo”</strong> and <strong>“mfhi”</strong> to get the result from LO or HI
+registers.
+With this solution, the <strong>“c = a / b”</strong> can be got by <strong>“div a, b”</strong> and
+<strong>“mflo c”</strong>; the <strong>“c = a % b”</strong> can be got by <strong>“div a, b”</strong> and <strong>“mfhi c”</strong>.</p>
+<p>4/6_4/Cpu0 support operator <strong>“%”</strong> and <strong>“/”</strong>.
+The code added in 4/6_4/Cpu0 as follows,</p>
+<div class="highlight-c++"><pre>// Cpu0InstrInfo.cpp
+...
+void Cpu0InstrInfo::
+copyPhysReg(MachineBasicBlock &amp;MBB,
+      MachineBasicBlock::iterator I, DebugLoc DL,
+      unsigned DestReg, unsigned SrcReg,
+      bool KillSrc) const {
+  unsigned Opc = 0, ZeroReg = 0;
+
+  if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
+  if (Cpu0::CPURegsRegClass.contains(SrcReg))
+    Opc = Cpu0::ADD, ZeroReg = Cpu0::ZERO;
+  else if (SrcReg == Cpu0::HI)
+    Opc = Cpu0::MFHI, SrcReg = 0;
+  else if (SrcReg == Cpu0::LO)
+    Opc = Cpu0::MFLO, SrcReg = 0;
+  }
+  else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
+  if (DestReg == Cpu0::HI)
+    Opc = Cpu0::MTHI, DestReg = 0;
+  else if (DestReg == Cpu0::LO)
+    Opc = Cpu0::MTLO, DestReg = 0;
+  }
+
+  assert(Opc &amp;&amp; "Cannot copy registers");
+
+  MachineInstrBuilder MIB = BuildMI(MBB, I, DL, get(Opc));
+
+  if (DestReg)
+  MIB.addReg(DestReg, RegState::Define);
+
+  if (ZeroReg)
+  MIB.addReg(ZeroReg);
+
+  if (SrcReg)
+  MIB.addReg(SrcReg, getKillRegState(KillSrc));
+}
+
+// Cpu0InstrInfo.h
+...
+  virtual void copyPhysReg(MachineBasicBlock &amp;MBB,
+               MachineBasicBlock::iterator MI, DebugLoc DL,
+               unsigned DestReg, unsigned SrcReg,
+               bool KillSrc) const;
+
+// Cpu0InstrInfo.td
+...
+def SDT_Cpu0DivRem       : SDTypeProfile&lt;0, 2,
+                     [SDTCisInt&lt;0&gt;,
+                      SDTCisSameAs&lt;0, 1&gt;]&gt;;
+...
+// DivRem(u) nodes
+def Cpu0DivRem    : SDNode&lt;"Cpu0ISD::DivRem", SDT_Cpu0DivRem,
+               [SDNPOutGlue]&gt;;
+def Cpu0DivRemU   : SDNode&lt;"Cpu0ISD::DivRemU", SDT_Cpu0DivRem,
+               [SDNPOutGlue]&gt;;
+...
+class Div&lt;SDNode opNode, bits&lt;8&gt; op, string instr_asm, InstrItinClass itin,
+      RegisterClass RC, list&lt;Register&gt; DefRegs&gt;:
+  FL&lt;op, (outs), (ins RC:$rb, RC:$rc),
+   !strconcat(instr_asm, "\t$$zero, $rb, $rc"),
+   [(opNode RC:$rb, RC:$rc)], itin&gt; {
+  let imm16 = 0;
+  let Defs = DefRegs;
+}
+
+class Div32&lt;SDNode opNode, bits&lt;8&gt; op, string instr_asm, InstrItinClass itin&gt;:
+  Div&lt;opNode, op, instr_asm, itin, CPURegs, [HI, LO]&gt;;
+…
+class MoveToLOHI&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
+         list&lt;Register&gt; DefRegs&gt;:
+  FL&lt;op, (outs), (ins RC:$ra),
+   !strconcat(instr_asm, "\t$ra"), [], IIHiLo&gt; {
+  let rb = 0;
+  let imm16 = 0;
+  let Defs = DefRegs;
+  let neverHasSideEffects = 1;
+}
+...
+def SDIV    : Div32&lt;Cpu0DivRem, 0x16, "div", IIIdiv&gt;;
+def UDIV    : Div32&lt;Cpu0DivRemU, 0x17, "divu", IIIdiv&gt;;
+…
+def MTHI : MoveToLOHI&lt;0x42, "mthi", CPURegs, [HI]&gt;;
+def MTLO : MoveToLOHI&lt;0x43, "mtlo", CPURegs, [LO]&gt;;
+
+// Cpu0ISelLowering.cpp
+…
+Cpu0TargetLowering::
+Cpu0TargetLowering(Cpu0TargetMachine &amp;TM)
+  : TargetLowering(TM, new TargetLoweringObjectFileELF()),
+  Subtarget(&amp;TM.getSubtarget&lt;Cpu0Subtarget&gt;()) {
+  ...
+  setOperationAction(ISD::SDIV, MVT::i32, Expand);
+  setOperationAction(ISD::SREM, MVT::i32, Expand);
+  setOperationAction(ISD::UDIV, MVT::i32, Expand);
+  setOperationAction(ISD::UREM, MVT::i32, Expand);
+
+  setTargetDAGCombine(ISD::SDIVREM);
+  setTargetDAGCombine(ISD::UDIVREM);
+  ...
+}
+...
+static SDValue PerformDivRemCombine(SDNode *N, SelectionDAG&amp; DAG,
+                  TargetLowering::DAGCombinerInfo &amp;DCI,
+                  const Cpu0Subtarget* Subtarget) {
+  if (DCI.isBeforeLegalizeOps())
+  return SDValue();
+
+  EVT Ty = N-&gt;getValueType(0);
+  unsigned LO = Cpu0::LO;
+  unsigned HI = Cpu0::HI;
+  unsigned opc = N-&gt;getOpcode() == ISD::SDIVREM ? Cpu0ISD::DivRem :
+                          Cpu0ISD::DivRemU;
+  DebugLoc dl = N-&gt;getDebugLoc();
+
+  SDValue DivRem = DAG.getNode(opc, dl, MVT::Glue,
+                 N-&gt;getOperand(0), N-&gt;getOperand(1));
+  SDValue InChain = DAG.getEntryNode();
+  SDValue InGlue = DivRem;
+
+  // insert MFLO
+  if (N-&gt;hasAnyUseOfValue(0)) {
+  SDValue CopyFromLo = DAG.getCopyFromReg(InChain, dl, LO, Ty,
+                      InGlue);
+  DAG.ReplaceAllUsesOfValueWith(SDValue(N, 0), CopyFromLo);
+  InChain = CopyFromLo.getValue(1);
+  InGlue = CopyFromLo.getValue(2);
+  }
+
+  // insert MFHI
+  if (N-&gt;hasAnyUseOfValue(1)) {
+  SDValue CopyFromHi = DAG.getCopyFromReg(InChain, dl,
+                      HI, Ty, InGlue);
+  DAG.ReplaceAllUsesOfValueWith(SDValue(N, 1), CopyFromHi);
+  }
+
+  return SDValue();
+}
+
+SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &amp;DCI)
+  const {
+  SelectionDAG &amp;DAG = DCI.DAG;
+  unsigned opc = N-&gt;getOpcode();
+
+  switch (opc) {
+  default: break;
+  case ISD::SDIVREM:
+  case ISD::UDIVREM:
+  return PerformDivRemCombine(N, DAG, DCI, Subtarget);
+  }
+
+  return SDValue();
+}
+
+// Cpu0ISelLowering.h
+…
+namespace llvm {
+  namespace Cpu0ISD {
+  enum NodeType {
+    // Start the numbering from where ISD NodeType finishes.
+    FIRST_NUMBER = ISD::BUILTIN_OP_END,
+    Ret,
+    // DivRem(u)
+    DivRem,
+    DivRemU
+  };
+  }
+…
+
+// Cpu0RegisterInfo.td
+...
+// Hi/Lo Registers
+def HILO : RegisterClass&lt;"Cpu0", [i32], 32, (add HI, LO)&gt;;</pre>
+</div>
+<p>Run with ch4_1_2.cpp can get the result for operator <strong>“/”</strong> as below.
+But run with ch4_6_1.cpp as below, cannot get the <strong>“div”</strong> for operator
+<strong>“%”</strong>.
+It still use <strong>&#8220;multiplication&#8221;</strong> instead of <strong>&#8220;div&#8221;</strong> because llvm do
+<strong>“Constant Propagation Optimization”</strong> in this.
+The ch4_6_2.cpp can get the <strong>“div”</strong> for <strong>“%”</strong> result since it make the
+llvm <strong>“Constant Propagation Optimization”</strong> useless in this.
+Unfortunately, we cannot run it now since it need the function call support.
+We will verify <strong>“%”</strong> with ch4_6_2.cpp at the end of chapter “Function Call”.
+You can run with the end of Example Code of chapter “Function Call”, if you
+like to verify it now.</p>
+<div class="highlight-c++"><pre>// ch4_1_2.cpp
+int main()
+{
+  …
+  f = a / b;
+  …
+}</pre>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-77-79:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_1_2.cpp -emit-llvm -o ch4_1_2.bc
+118-165-77-79:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/cmake_
+debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
+ch4_1_2.bc -o ch4_1_2.cpu0.s
+118-165-77-79:InputFiles Jonathan<span class="nv">$ </span>cat ch4_1_2.cpu0.s
+  div <span class="nv">$zero</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  mflo  <span class="nv">$2</span>
+  …
+
+// ch4_6_1.cpp
+int main<span class="o">()</span>
+<span class="o">{</span>
+  int <span class="nv">b</span> <span class="o">=</span> 11;
+  int <span class="nv">a</span> <span class="o">=</span> 12;
+
+  <span class="nv">b</span> <span class="o">=</span> <span class="o">(</span>b+1<span class="o">)</span>%a;
+
+  <span class="k">return </span>b;
+<span class="o">}</span>
+
+// ch4_6_2.cpp
+<span class="c">#include &lt;stdlib.h&gt;</span>
+
+int main<span class="o">()</span>
+<span class="o">{</span>
+  int <span class="nv">b</span> <span class="o">=</span> 11;
+//  unsigned int <span class="nv">b</span> <span class="o">=</span> 11;
+  int <span class="nv">c</span> <span class="o">=</span> rand<span class="o">()</span>;
+
+  <span class="nv">b</span> <span class="o">=</span> <span class="o">(</span>b+1<span class="o">)</span>%c;
+
+  <span class="k">return </span>b;
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="summary">
 <h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
 <p>We support most of C operators in this chapter.
-Until now, we have 3226 lines of source code with comments.
-With these 199 lines of source code added, it support the number of operators
+Until now, we have 3372 lines of source code with comments.
+With these 345 lines of source code added, it support the number of operators
 from three to over ten.</p>
 <table class="docutils footnote" frame="void" id="id6" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
@@ -1167,12 +1418,6 @@ from three to over ten.</p>
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html">http://llvm.org/docs/CodeGenerator.html</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id10" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://llvm.org/docs/LangRef.html">http://llvm.org/docs/LangRef.html</a></td></tr>
 </tbody>
 </table>
 </div>

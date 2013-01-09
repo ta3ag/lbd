@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.1',
+        VERSION:     '3.2.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -71,6 +71,8 @@
 <div class="section" id="revision-history">
 <h2>Revision history<a class="headerlink" href="#revision-history" title="Permalink to this headline">¶</a></h2>
 <dl class="docutils">
+<dt>Version 3.2.2, Released January 10, 2013</dt>
+<dd>Add section &#8220;Full support %&#8221; and section &#8220;Verify DIV for operator %&#8221;.</dd>
 <dt>Version 3.2.1, Released January 7, 2013</dt>
 <dd>Add Footnote for references.
 Reorganize chapters (Move bottom part of chapter &#8220;Global variable&#8221; to
@@ -155,7 +157,8 @@ LLVMBuild files, Target Registration. And shows how to start a backend and
 build it through our example code Cpu0.
 Around 750 lines of source code are added by the end of this chapter.</p>
 <p>Chapter of Back end Structure:</p>
-<p>Introduce the backend structure, and continue to add code in each section.
+<p>Introduce the backend structure by UML graph, and continue to add code in each
+section.
 Around 2300 lines of source code added in this chapter.
 These 2300 lines of source code is common in backend design.
 Many code are same from backend to backend except the backend name.
@@ -164,7 +167,7 @@ three instructions support to generate the assembly output file.</p>
 <p>Chapter of Other instructions:</p>
 <p>Over ten of C operators and their corresponding LLVM IR instructions
 introduced in this chapter. Around 200 lines of source code (most are in
-.td Target Description file) are added. With these 200 lines, it can translate
+.td Target Description file) are added. With these 345 lines, it can translate
 <strong>+, -, *, /, &amp;, |, ^, &lt;&lt;, &gt;&gt;, !</strong> and <strong>%</strong> into assembly code.
 The <tt class="docutils literal"><span class="pre">llc</span></tt> debug option and debug tool <strong>Graphviz</strong> which supported by LLVM
 introduced in this chapter.</p>
@@ -172,16 +175,16 @@ introduced in this chapter.</p>
 <p>Add the obj file format generated support in cpu0 backend, and introduce the
 cpu0 backend Target Registration structure.
 The Registration structure is common in backend design.
-Around 700 lines of code added, and cpu0 can handle big and little endian
+With these 700 lines of code added, cpu0 can handle big and little endian
 obj file generated.</p>
 <p>Chapter of Global variable, struct and array:</p>
 <p>Global variable, struct and array support added in this chapter.
-Over 300 lines of source code needed in global variable access while 200 lines
+Over 300 lines of source code needed in global variable access while 345 lines
 needed for ten of operators in chapter of Other instructions.
 The cpu0 support PIC and static addressing mode. These two modes are explained
 in this chapter.</p>
 <p>Chapter of Control flow statement:</p>
-<p>The if, else, while, for, goto statement flow control statements support is
+<p>The <strong>if, else, while, for, goto</strong> flow control statements support is
 added in this chapter.
 Around 150 lines of source code added in this chapter.</p>
 <p>Chapter of Function call:</p>
@@ -193,7 +196,7 @@ Over 700 lines of source code added in this chapter.</p>
 binutils tools (not a part of LLVM) introduced and demonstrate the backend
 designers how to use this ELF tool to verify and analysis the backend obj.</p>
 <p>Chapter of Appendix A:</p>
-<p>Include the LLVM source code , development tools installation, and environment
+<p>Include the LLVM source code, development tools installation, and environment
 setting on iMac and Linux platform.</p>
 </div>
 </div>

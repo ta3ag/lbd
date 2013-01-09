@@ -40,8 +40,6 @@ and change the llvm source code root directory into src.
 After that, move the clang source code to src/tools/clang, and move the 
 compiler-rt source to src/project/compiler-rt as shown in :ref:`install_f1`.
 
-.. todo:: Should we just write out commands in a terminal for people to execute?
-
 .. _install_f1: 
 .. figure:: ../Fig/install/1.png
 	:align: center
@@ -109,7 +107,6 @@ and then click **Done** button to get :ref:`install_f5`.
 
 	Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL
 
-.. todo:: The html will follow the appear order in \*.rst source context but latexpdf didn't. For example, the :ref:`install_f4` Figure 2.4 and :ref:`install_f5` Figure 2.5 appear after the below text "Click OK from ..." in pdf. If find the **NoReorder** or **newpage** directive, maybe can solve this problem.
 
 Click OK from :ref:`install_f5` and select Cmake 2.8-9.app for CMAKE_INSTALL_NAM
 E_TOOL by click the right side button **“...”** of that row to get 
@@ -323,7 +320,7 @@ Now, it's ready for building 1/Cpu0 code by command
 ``cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE
 =Debug -G "Xcode" ../src/`` as follows. 
 Remind, currently, the ``cmake`` terminal command can work with lldb debug, but 
-the "section Create LLVM.xcodeproj by cmake Graphic UI" [#]_ cannot.
+the "section Create LLVM.xcodeproj by cmake Graphic UI" [5]_ cannot.
 
 .. code-block:: bash
 
@@ -409,8 +406,7 @@ debug as follows,
   (lldb) quit
   118-165-65-128:InputFiles Jonathan$ 
 
-About the lldb debug command, please reference [#]_
- or lldb portal [#]_.
+About the lldb debug command, please reference [#]_ or lldb portal [#]_. 
 
 
 Install other tools on iMac
@@ -811,7 +807,7 @@ Then do make as follows,
 Install other tools on Linux
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Download Graphviz from [#]_ according your 
-Linux distribution.
+Linux distribution. Files compare tools Kdiff3 came from web site [8]_. 
 
 
 
@@ -824,8 +820,6 @@ Linux distribution.
 .. [#] http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command
 
 .. [#] http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui
-
-.. [#] http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command
 
 .. [#] http://lldb.llvm.org/lldb-gdb.html
 
