@@ -561,7 +561,7 @@ and reasonable than <strong>ldi</strong> instruction.
 We highlight this change in <a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#cpu0-processor-architecture">section CPU0 processor architecture</a>.
 Even with that, we show you how to replace our <strong>addiu</strong> with <strong>ldi</strong> according
 the cpu0 original design.
-4/5_2/Cpu0 is the code changes for use <strong>ldi</strong> instruction.
+4/4_2/Cpu0 is the code changes for use <strong>ldi</strong> instruction.
 This changes replace <strong>addiu</strong> with <strong>ldi</strong> in Cpu0InstrInfo.td and modify
 Cpu0FrameLowering.cpp as follows,</p>
 <div class="highlight-c++"><pre>// Cpu0InstrInfo.td
@@ -1082,11 +1082,12 @@ def mulhu      : SDNode&lt;"ISD::MULHU"     , SDTIntBinOp, [SDNPCommutative]&gt;
 <p>Except the custom type, llvm IR operations of expand and promote type will call
 Cpu0DAGToDAGISel::Select() during instruction selection of DAG translation.
 In Select(), it return the HI part of multiplication result to HI register,
-for IR operations of mulhs or mulhu, and LO part to LO register.
-After that, MFHI instruction move the HI register to $ra register.
-MFHI instruction is FL format and only use $ra register, we set the $rb and
-imm16 to 0. <a class="reference internal" href="#otherinst-f4"><em>DAG for ch4_6.bc with Mips style MULT</em></a> and ch4_6.cpu0.s are the result of compile
-ch4_6.bc.</p>
+for IR operations of mulhs or mulhu.
+After that, MFHI instruction move the HI register to cpu0 field &#8220;a&#8221; register,
+$ra.
+MFHI instruction is FL format and only use cpu0 field &#8220;a&#8221; register, we set
+the $rb and imm16 to 0.
+<a class="reference internal" href="#otherinst-f4"><em>DAG for ch4_6.bc with Mips style MULT</em></a> and ch4_6.cpu0.s are the result of compile ch4_6.bc.</p>
 <div class="figure align-center" id="otherinst-f4">
 <a class="reference internal image-reference" href="_images/44.png"><img alt="_images/44.png" src="_images/44.png" style="width: 231.75px; height: 605.25px;" /></a>
 <p class="caption">DAG for ch4_6.bc with Mips style MULT</p>
@@ -1393,7 +1394,7 @@ int main<span class="o">()</span>
 <div class="section" id="summary">
 <h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
 <p>We support most of C operators in this chapter.
-Until now, we have 3372 lines of source code with comments.
+Until now, we have around 3400 lines of source code with comments.
 With these 345 lines of source code added, it support the number of operators
 from three to over ten.</p>
 <table class="docutils footnote" frame="void" id="id6" rules="none">
