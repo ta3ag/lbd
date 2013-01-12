@@ -204,7 +204,11 @@ We comment the &#8220;Change Reason&#8221; in the following code. You can get th
 </div>
 <div class="section" id="verify-the-cpu0-for-3-2">
 <h2>Verify the Cpu0 for 3.2<a class="headerlink" href="#verify-the-cpu0-for-3-2" title="Permalink to this headline">¶</a></h2>
-<p>9/1/Cpu0 is the code for LLVM version 3.2.
+<p>3.2_src_files_modify include the LLVM 3.2 original files and those files
+modified for Cpu0 backend support.
+Please update the LLVM 3.2 as Appendix A indicate (just copy
+3.2_src_files_modify/src_files_modify/src to your LLVM 3.2 source directory).
+9/1/Cpu0 is the code for LLVM version 3.2.
 File ch_all.cpp include the all C/C++ operators, global variable, struct,
 array, control statement and function call test.
 Run 9/1/Cpu0 with ch_all.cpp will get the assembly code as below.
