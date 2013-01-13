@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Control flow statement &mdash; Write An LLVM Backend Tutorial For Cpu0</title>
+    <title>Control flow statements &mdash; Write An LLVM Backend Tutorial For Cpu0</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -31,17 +31,17 @@
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
     <link rel="next" title="Function call" href="funccall.html" />
-    <link rel="prev" title="Global variable, struct and array" href="globalvar.html" /> 
+    <link rel="prev" title="Global variables, structs and arrays" href="globalvar.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
           <span>Write An LLVM Backend Tutorial For Cpu0</span></a></h1>
-        <h2 class="heading"><span>Control flow statement</span></h2>
+        <h2 class="heading"><span>Control flow statements</span></h2>
       </div>
       <div class="topnav">
       
         <p>
-        «&#160;&#160;<a href="globalvar.html">Global variable, struct and array</a>
+        «&#160;&#160;<a href="globalvar.html">Global variables, structs and arrays</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
@@ -52,13 +52,13 @@
       <div class="content">
         
         
-  <div class="section" id="control-flow-statement">
-<h1>Control flow statement<a class="headerlink" href="#control-flow-statement" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="control-flow-statements">
+<span id="sec-controlflow"></span><h1>Control flow statements<a class="headerlink" href="#control-flow-statements" title="Permalink to this headline">¶</a></h1>
 <p>This chapter illustrates the corresponding IR for control flow statements, like
 <strong>“if else”</strong>, <strong>“while”</strong> and <strong>“for”</strong> loop statements in C, and how to
 translate these control flow statements of llvm IR into cpu0 instructions.</p>
-<div class="section" id="id1">
-<h2>Control flow statement<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="control-flow-statement">
+<h2>Control flow statement<a class="headerlink" href="#control-flow-statement" title="Permalink to this headline">¶</a></h2>
 <p>Run ch7_1_1.cpp with clang will get result as follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch7_1_1.cpp</span>
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
@@ -734,7 +734,7 @@ the book is written) is more complicate and deep in CPU architecture.</p>
       <div class="bottomnav">
       
         <p>
-        «&#160;&#160;<a href="globalvar.html">Global variable, struct and array</a>
+        «&#160;&#160;<a href="globalvar.html">Global variables, structs and arrays</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;

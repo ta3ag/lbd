@@ -49,7 +49,11 @@
       <div class="content">
         
         
-  <div class="section" id="table-of-contents">
+  <div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This is a work in progress. If you would like to contribution, please push updates and patches to the main github project available at <a class="reference external" href="http://github.com/Jonathan2251/lbd">http://github.com/Jonathan2251/lbd</a> for review.</p>
+</div>
+<div class="section" id="table-of-contents">
 <h1>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
@@ -59,7 +63,7 @@
 <li class="toctree-l2"><a class="reference internal" href="about.html#licensing">Licensing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="about.html#preface">Preface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="about.html#prerequisites">Prerequisites</a></li>
-<li class="toctree-l2"><a class="reference internal" href="about.html#outline-of-chapters">Outline of chapters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="about.html#outline-of-sections">Outline of Sections</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="llvmstructure.html">Cpu0 Instruction and LLVM Target Description</a><ul>
@@ -79,7 +83,7 @@
 <li class="toctree-l2"><a class="reference internal" href="llvmstructure.html#build-libraries-and-td">Build libraries and td</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="backendstructure.html">Back end structure</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="backendstructure.html">Backend structure</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="backendstructure.html#targetmachine-structure">TargetMachine structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="backendstructure.html#add-registerinfo">Add RegisterInfo</a></li>
 <li class="toctree-l2"><a class="reference internal" href="backendstructure.html#add-asmprinter">Add AsmPrinter</a></li>
@@ -91,7 +95,7 @@
 <li class="toctree-l2"><a class="reference internal" href="backendstructure.html#summary-of-this-chapter">Summary of this Chapter</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="otherinst.html">Other instructions</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="otherinst.html">Adding arithmetic and local pointer support</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="otherinst.html#support-arithmetic-instructions">Support arithmetic instructions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="otherinst.html#operator-not">Operator “not” !</a></li>
 <li class="toctree-l2"><a class="reference internal" href="otherinst.html#display-llvm-ir-nodes-with-graphviz">Display llvm IR nodes with Graphviz</a></li>
@@ -110,12 +114,12 @@
 <li class="toctree-l2"><a class="reference internal" href="otherinst.html#summary">Summary</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="genobj.html">Generate obj file</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="genobj.html">Generating object files</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="genobj.html#translate-into-obj-file">Translate into obj file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="genobj.html#backend-target-registration-structure">Backend Target Registration Structure</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="globalvar.html">Global variable, struct and array</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="globalvar.html">Global variables, structs and arrays</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="globalvar.html#global-variable">Global variable</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="globalvar.html#static-mode">Static mode</a></li>
 <li class="toctree-l3"><a class="reference internal" href="globalvar.html#pic-mode">PIC mode</a></li>
@@ -126,8 +130,8 @@
 <li class="toctree-l2"><a class="reference internal" href="globalvar.html#array-and-struct-support">Array and struct support</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="ctrlflow.html">Control flow statement</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ctrlflow.html#id1">Control flow statement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ctrlflow.html">Control flow statements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ctrlflow.html#control-flow-statement">Control flow statement</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ctrlflow.html#risc-cpu-knowledge">RISC CPU knowledge</a></li>
 </ul>
 </li>
@@ -143,7 +147,7 @@
 <li class="toctree-l2"><a class="reference internal" href="funccall.html#summary-of-this-chapter">Summary of this chapter</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="elf.html">ELF</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="elf.html">ELF Support</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="elf.html#elf-format">ELF format</a></li>
 <li class="toctree-l2"><a class="reference internal" href="elf.html#elf-header-and-section-header-table">ELF header and Section header table</a></li>
 <li class="toctree-l2"><a class="reference internal" href="elf.html#relocation-record">Relocation Record</a></li>
@@ -184,7 +188,7 @@
 </div>
 <div class="section" id="alternate-formats">
 <h2>Alternate formats<a class="headerlink" href="#alternate-formats" title="Permalink to this headline">¶</a></h2>
-<p>The book is also available in:</p>
+<p>The book is also available in the following formats:</p>
 <ul>
 <li>
 <a href="http://jonathan2251.github.com/lbd/WriteAnLLVMBackendTutorialForCpu0.pdf">PDF</a>
