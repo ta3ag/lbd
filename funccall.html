@@ -73,7 +73,7 @@ It include stack frame and the related ABI support.
 If you have problem in reading the stack frame illustrated in the first three
 sections of this chapter, you can read the appendix B of “Procedure Call
 Convention” of book “Computer Organization and Design” which listed in
-section “RISC CPU knowledge” of chapter “Control flow statement” <a class="footnote-reference" href="#id11" id="id1">[1]</a>,
+section “RISC CPU knowledge” of chapter “Control flow statement” <a class="footnote-reference" href="#id12" id="id1">[1]</a>,
 “Run Time Memory” of compiler book, or “Function Call Sequence”  and
 “Stack Frame” of Mips ABI.</p>
 <div class="section" id="mips-stack-frame">
@@ -90,7 +90,8 @@ if it over 4 arguments. <a class="reference internal" href="#funccall-f1"><em>Mi
 <a class="reference internal image-reference" href="_images/12.png"><img alt="_images/12.png" src="_images/12.png" style="width: 688.0px; height: 531.0px;" /></a>
 <p class="caption">Mips stack frame</p>
 </div>
-<p>Run <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=mips</span></tt> for ch8_1.bc, you will get the following result.</p>
+<p>Run <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=mips</span></tt> for ch8_1.bc, you will get the following result.
+See comment <strong>&#8220;//&#8221;</strong>.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch8_1.cpp</span>
 <span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">x1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x2</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x3</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x4</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x5</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x6</span><span class="p">)</span>
 <span class="p">{</span>
@@ -107,93 +108,106 @@ if it over 4 arguments. <a class="reference internal" href="#funccall-f1"><em>Mi
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-79-31:InputFiles Jonathan<span class="nv">$ </span>clang -c ch8_1.cpp -emit-llvm -o ch8_1.bc
-118-165-79-31:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
-cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>mips -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch8_1.bc -o ch8_1.mips.s
-118-165-79-31:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.mips.s
-    .section .mdebug.abi32
-    .previous
-    .file   <span class="s2">&quot;ch8_1.bc&quot;</span>
-    .text
-    .globl  _Z5sum_iiiiiii
-    .align  2
-    .type   _Z5sum_iiiiiii,@function
-    .ent    _Z5sum_iiiiiii          <span class="c"># @_Z5sum_iiiiiii</span>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -c ch8_1.cpp -emit-llvm -o ch8_1.bc
+118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>mips -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o
+ch8_1.mips.s
+118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.mips.s
+  .section .mdebug.abi32
+  .previous
+  .file <span class="s2">&quot;ch8_1.bc&quot;</span>
+  .text
+  .globl  _Z5sum_iiiiiii
+  .align  2
+  .type _Z5sum_iiiiiii,@function
+  .set  nomips16                <span class="c"># @_Z5sum_iiiiiii</span>
+  .ent  _Z5sum_iiiiiii
 _Z5sum_iiiiiii:
-    .frame  <span class="nv">$sp</span>,32,<span class="nv">$ra</span>
-    .mask   0x00000000,0
-    .fmask  0x00000000,0
-    .set    noreorder
-    .set    nomacro
-<span class="c"># BB#0:                                 # %entry</span>
-    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -32
-    st  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    st  <span class="nv">$5</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    st  <span class="nv">$6</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    st  <span class="nv">$7</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    ld  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // load argument 5
-    st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    ld  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // load argument 6
-    st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    ld  <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    ld  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    addu    <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-    ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    addu    <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-    ld  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    addu    <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-    ld  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    addu    <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-    addu    <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-    st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 32
-    jr  <span class="nv">$ra</span>
-    nop
-    .set    macro
-    .set    reorder
-    .end    _Z5sum_iiiiiii
+  .cfi_startproc
+  .frame  <span class="nv">$sp</span>,32,<span class="nv">$ra</span>
+  .mask   0x00000000,0
+  .fmask  0x00000000,0
+  .set  noreorder
+  .set  nomacro
+  .set  noat
+<span class="c"># BB#0:</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -32
 <span class="nv">$tmp1</span>:
-    .size   _Z5sum_iiiiiii, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-_Z5sum_iiiiiii
+  .cfi_def_cfa_offset 32
+  sw  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  sw  <span class="nv">$5</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  sw  <span class="nv">$6</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  sw  <span class="nv">$7</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  lw  <span class="nv">$1</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // load argument 5
+  sw  <span class="nv">$1</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  lw  <span class="nv">$1</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // load argument 6
+  sw  <span class="nv">$1</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  lw  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  lw  <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  lw  <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+  lw  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+  lw  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+  addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$1</span>
+  sw  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  jr  <span class="nv">$ra</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 32
+  .set  at
+  .set  macro
+  .set  reorder
+  .end  _Z5sum_iiiiiii
+<span class="nv">$tmp2</span>:
+  .size _Z5sum_iiiiiii, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-_Z5sum_iiiiiii
+  .cfi_endproc
 
-    .globl  main
-    .align  2
-    .type   main,@function
-    .ent    main                    <span class="c"># @main</span>
+  .globl  main
+  .align  2
+  .type main,@function
+  .set  nomips16                <span class="c"># @main</span>
+  .ent  main
 main:
-    .frame  <span class="nv">$sp</span>,48,<span class="nv">$ra</span>
-    .mask   0x80000000,-4
-    .fmask  0x00000000,0
-    .set    noreorder
-    .cpload <span class="nv">$25</span>
-    .set    nomacro
-<span class="c"># BB#0:                                 # %entry</span>
-    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -48
-    st  <span class="nv">$ra</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
-    .cprestore  24
-    st  <span class="nv">$zero</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 6
-    st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // Save argument 6 to 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
-    st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // Save argument 5 to 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    ld  <span class="nv">$25</span>, %call16<span class="o">(</span>_Z5sum_iiiiiii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
-    addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 1    // Pass argument 1 to <span class="nv">$4</span> <span class="o">(=</span><span class="nv">$a0</span><span class="o">)</span>
-    addiu   <span class="nv">$5</span>, <span class="nv">$zero</span>, 2    // Pass argument 2 to <span class="nv">$5</span> <span class="o">(=</span><span class="nv">$a1</span><span class="o">)</span>
-    addiu   <span class="nv">$6</span>, <span class="nv">$zero</span>, 3
-    addiu   <span class="nv">$7</span>, <span class="nv">$zero</span>, 4
-    jalr    <span class="nv">$25</span>
-    nop
-    ld  <span class="nv">$gp</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    st  <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    ld  <span class="nv">$ra</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
-    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 48
-    jr  <span class="nv">$ra</span>
-    nop
-    .set    macro
-    .set    reorder
-    .end    main
-<span class="nv">$tmp4</span>:
-    .size   main, <span class="o">(</span><span class="nv">$tmp4</span><span class="o">)</span>-main
+  .cfi_startproc
+  .frame  <span class="nv">$sp</span>,40,<span class="nv">$ra</span>
+  .mask   0x80000000,-4
+  .fmask  0x00000000,0
+  .set  noreorder
+  .set  nomacro
+  .set  noat
+<span class="c"># BB#0:</span>
+  lui <span class="nv">$2</span>, %hi<span class="o">(</span>_gp_disp<span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span>_gp_disp<span class="o">)</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -40
+<span class="nv">$tmp5</span>:
+  .cfi_def_cfa_offset 40
+  sw  <span class="nv">$ra</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+<span class="nv">$tmp6</span>:
+  .cfi_offset 31, -4
+  addu  <span class="nv">$gp</span>, <span class="nv">$2</span>, <span class="nv">$25</span>
+  sw  <span class="nv">$zero</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$1</span>, <span class="nv">$zero</span>, 6
+  sw  <span class="nv">$1</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // Save argument 6 to 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$1</span>, <span class="nv">$zero</span>, 5
+  sw  <span class="nv">$1</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // Save argument 5 to 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  lw  <span class="nv">$25</span>, %call16<span class="o">(</span>_Z5sum_iiiiiii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
+  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 1    // Pass argument 1 to <span class="nv">$4</span> <span class="o">(=</span><span class="nv">$a0</span><span class="o">)</span>
+  addiu <span class="nv">$5</span>, <span class="nv">$zero</span>, 2    // Pass argument 2 to <span class="nv">$5</span> <span class="o">(=</span><span class="nv">$a1</span><span class="o">)</span>
+  addiu <span class="nv">$6</span>, <span class="nv">$zero</span>, 3
+  jalr  <span class="nv">$25</span>
+  addiu <span class="nv">$7</span>, <span class="nv">$zero</span>, 4
+  sw  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  lw  <span class="nv">$ra</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+  jr  <span class="nv">$ra</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 40
+  .set  at
+  .set  macro
+  .set  reorder
+  .end  main
+<span class="nv">$tmp7</span>:
+  .size main, <span class="o">(</span><span class="nv">$tmp7</span><span class="o">)</span>-main
+  .cfi_endproc
 </pre></div>
 </div>
 <p>From the mips assembly code generated as above, we know it save the first 4
@@ -207,23 +221,23 @@ argument 5.</p>
 <a class="reference internal image-reference" href="_images/21.png"><img alt="_images/21.png" src="_images/21.png" style="width: 740.0px; height: 577.0px;" /></a>
 <p class="caption">Mips arguments location in stack frame</p>
 </div>
-<p>The 007-2418-003.pdf in <a class="footnote-reference" href="#id12" id="id2">[2]</a> is the Mips assembly language manual.
-<a class="footnote-reference" href="#id13" id="id3">[3]</a> is Mips Application Binary Interface which include the <a class="reference internal" href="#funccall-f1"><em>Mips stack frame</em></a>.</p>
+<p>The 007-2418-003.pdf in <a class="footnote-reference" href="#id13" id="id2">[2]</a> is the Mips assembly language manual.
+<a class="footnote-reference" href="#id14" id="id3">[3]</a> is Mips Application Binary Interface which include the <a class="reference internal" href="#funccall-f1"><em>Mips stack frame</em></a>.</p>
 </div>
 <div class="section" id="load-incoming-arguments-from-stack-frame">
 <h2>Load incoming arguments from stack frame<a class="headerlink" href="#load-incoming-arguments-from-stack-frame" title="Permalink to this headline">¶</a></h2>
 <p>From last section, to support function call, we need implementing the arguments
 pass mechanism with stack frame. Before do that, let&#8217;s run the old version of
 code 7/1/Cpu0 with ch8_1.cpp and see what happen.</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-79-31:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+<div class="highlight-bash"><div class="highlight"><pre>118-165-79-31:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
 ch8_1.bc -o ch8_1.cpu0.s
 Assertion failed: <span class="o">(</span>InVals.size<span class="o">()</span> <span class="o">==</span> Ins.size<span class="o">()</span> <span class="o">&amp;&amp;</span> <span class="s2">&quot;LowerFormalArguments didn&#39;t</span>
 <span class="s2">emit the correct number of values!&quot;</span><span class="o">)</span>, <span class="k">function </span>LowerArguments, file /Users/
-Jonathan/llvm/3.1.test/cpu0/1/src/lib/CodeGen/SelectionDAG/
-SelectionDAGBuilder.cpp, line 6671.
-Stack dump:
-0.  Program arguments: /Users/Jonathan/llvm/3.1.test/cpu0/1/cmake_debug_build/
+Jonathan/llvm/test/src/lib/CodeGen/SelectionDAG/
+SelectionDAGBuilder.cpp, ...
+...
+0.  Program arguments: /Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o
 ch8_1.cpu0.s
 1.  Running pass <span class="s1">&#39;Function Pass Manager&#39;</span> on module <span class="s1">&#39;ch8_1.bc&#39;</span>.
@@ -280,7 +294,7 @@ for cpu0 passing rule as follows,</p>
 and define the CC_Cpu0EABI.
 The reason we don&#8217;t define the Calling Convention directly in CC_Cpu0 is that
 a real general CPU like Mips can have several Calling Convention.
-Combine with the mechanism of &#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id14" id="id4">[4]</a> which llvm
+Combine with the mechanism of &#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id15" id="id4">[4]</a> which llvm
 supplied, we can use different Calling Convention in  different target.
 Although cpu0 only have a Calling Convention right now, define with a dedicate
 Call Convention name (CC_Cpu0EABI in this example) is a better solution for
@@ -356,7 +370,7 @@ We define it as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Refresh &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id15" id="id5">[5]</a>, we handled global
+<p>Refresh &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id16" id="id5">[5]</a>, we handled global
 variable translation by create the IR DAG in LowerGlobalAddress() first, and
 then do the Instruction Selection by their corresponding machine instruction
 DAG in Cpu0InstrInfo.td.
@@ -418,8 +432,8 @@ variable, which is the offset.</p>
 </pre></div>
 </div>
 <p>In addition to Calling Convention and LowerFormalArguments(), 8/2/Cpu0 add the
-following code for cpu0 instructions swi (Software Interrupt), jsub and jalr
-(function call) definition and printing.</p>
+following code for cpu0 instructions <strong>swi</strong> (Software Interrupt), <strong>jsub</strong> and
+<strong>jalr</strong> (function call) definition and printing.</p>
 <div class="highlight-c++"><pre>// Cpu0InstrFormats.td
 ...
 // Cpu0 Pseudo Instructions Format
@@ -441,11 +455,11 @@ def Cpu0JmpLink : SDNode&lt;"Cpu0ISD::JmpLink",SDT_Cpu0JmpLink,
 def jmptarget   : Operand&lt;OtherVT&gt; {
   let EncoderMethod = "getJumpTargetOpValue";
 }
-…
+...
 def calltarget  : Operand&lt;iPTR&gt; {
   let EncoderMethod = "getJumpTargetOpValue";
 }
-…
+...
 // Jump and Link (Call)
 let isCall=1, hasDelaySlot=0 in {
   class JumpLink&lt;bits&lt;8&gt; op, string instr_asm&gt;:
@@ -464,26 +478,26 @@ let isCall=1, hasDelaySlot=0 in {
     let shamt = 0;
   }
 }
-…
+...
 /// Jump and Branch Instructions
 def SWI  : JumpLink&lt;0x2A, "swi"&gt;;
 def JSUB : JumpLink&lt;0x2B, "jsub"&gt;;
-…
+...
 def JALR : JumpLinkReg&lt;0x2D, "jalr", CPURegs&gt;;
-…
+...
 def : Pat&lt;(Cpu0JmpLink (i32 tglobaladdr:$dst)),
           (JSUB tglobaladdr:$dst)&gt;;
-…
+...
 
 // Cpu0InstPrinter.cpp
-…
+...
 static void printExpr(const MCExpr *Expr, raw_ostream &amp;OS) {
   switch (Kind) {
   ...
   case MCSymbolRefExpr::VK_Cpu0_GOT_CALL:  OS &lt;&lt; "%call24("; break;
-  …
+  ...
   }
-…
+...
 }
 
 // Cpu0MCCodeEmitter.cpp
@@ -497,9 +511,9 @@ getMachineOpValue(const MCInst &amp;MI, const MCOperand &amp;MO,
   case MCSymbolRefExpr::VK_Cpu0_GOT_CALL:
     FixupKind = Cpu0::fixup_Cpu0_CALL24;
     break;
-  …
+  ...
   }
-…
+...
 }
 
 // Cpu0MachineFucntion.h
@@ -562,15 +576,15 @@ public:
 </div>
 <p>After above changes, you can run 8/2/Cpu0 with ch8_1.cpp and see what happens
 in the following,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-79-83:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+<div class="highlight-bash"><div class="highlight"><pre>118-165-79-83:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
 ch8_1.bc -o ch8_1.cpu0.s
-Assertion failed: <span class="o">((</span>isTailCall <span class="o">||</span> InVals.size<span class="o">()</span> <span class="o">==</span> Ins.size<span class="o">())</span> <span class="o">&amp;&amp;</span>
+Assertion failed: <span class="o">((</span>CLI.IsTailCall <span class="o">||</span> InVals.size<span class="o">()</span> <span class="o">==</span> CLI.Ins.size<span class="o">())</span> <span class="o">&amp;&amp;</span>
 <span class="s2">&quot;LowerCall didn&#39;t emit the correct number of values!&quot;</span><span class="o">)</span>, <span class="k">function </span>LowerCallTo,
-file /Users/Jonathan/llvm/3.1.test/cpu0/1/src/lib/CodeGen/SelectionDAG/
-SelectionDAGBuilder.cpp, line 6482.
-Stack dump:
-0.  Program arguments: /Users/Jonathan/llvm/3.1.test/cpu0/1/cmake_debug_build/
+file /Users/Jonathan/llvm/test/src/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.
+cpp, ...
+...
+0.  Program arguments: /Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o
 ch8_1.cpu0.s
 1.  Running pass <span class="s1">&#39;Function Pass Manager&#39;</span> on module <span class="s1">&#39;ch8_1.bc&#39;</span>.
@@ -592,16 +606,18 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0ISelLowering.cpp</span>
 <span class="p">...</span>
 <span class="n">SDValue</span>
-<span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerCall</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">InChain</span><span class="p">,</span> <span class="n">SDValue</span> <span class="n">Callee</span><span class="p">,</span>
-                              <span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">isVarArg</span><span class="p">,</span>
-                              <span class="kt">bool</span> <span class="n">doesNotRet</span><span class="p">,</span> <span class="kt">bool</span> <span class="o">&amp;</span><span class="n">isTailCall</span><span class="p">,</span>
-                              <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="o">::</span><span class="n">OutputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Outs</span><span class="p">,</span>
-                              <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">OutVals</span><span class="p">,</span>
-                              <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="o">::</span><span class="n">InputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Ins</span><span class="p">,</span>
-                              <span class="n">DebugLoc</span> <span class="n">dl</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span>
-                              <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="c1">// Cpu0 target does not yet support tail call optimization.</span>
-  <span class="n">isTailCall</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+<span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerCall</span><span class="p">(</span><span class="n">TargetLowering</span><span class="o">::</span><span class="n">CallLoweringInfo</span> <span class="o">&amp;</span><span class="n">CLI</span><span class="p">,</span>
+                <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span>                     <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">DAG</span><span class="p">;</span>
+  <span class="n">DebugLoc</span> <span class="o">&amp;</span><span class="n">dl</span>                          <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">DL</span><span class="p">;</span>
+  <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">ISD</span><span class="o">::</span><span class="n">OutputArg</span><span class="p">,</span> <span class="mi">32</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Outs</span> <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">Outs</span><span class="p">;</span>
+  <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="p">,</span> <span class="mi">32</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">OutVals</span>     <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">OutVals</span><span class="p">;</span>
+  <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">ISD</span><span class="o">::</span><span class="n">InputArg</span><span class="p">,</span> <span class="mi">32</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Ins</span>   <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">Ins</span><span class="p">;</span>
+  <span class="n">SDValue</span> <span class="n">InChain</span>                       <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">Chain</span><span class="p">;</span>
+  <span class="n">SDValue</span> <span class="n">Callee</span>                        <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">Callee</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="o">&amp;</span><span class="n">isTailCall</span>                      <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">IsTailCall</span><span class="p">;</span>
+  <span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span> <span class="n">CallConv</span>              <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">CallConv</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="n">isVarArg</span>                         <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">IsVarArg</span><span class="p">;</span>
 
   <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">();</span>
   <span class="n">MachineFrameInfo</span> <span class="o">*</span><span class="n">MFI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getFrameInfo</span><span class="p">();</span>
@@ -612,7 +628,7 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
   <span class="c1">// Analyze operands of the call, assigning locations to each operand.</span>
   <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">CCValAssign</span><span class="p">,</span> <span class="mi">16</span><span class="o">&gt;</span> <span class="n">ArgLocs</span><span class="p">;</span>
   <span class="n">CCState</span> <span class="n">CCInfo</span><span class="p">(</span><span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">(),</span>
-                 <span class="n">getTargetMachine</span><span class="p">(),</span> <span class="n">ArgLocs</span><span class="p">,</span> <span class="o">*</span><span class="n">DAG</span><span class="p">.</span><span class="n">getContext</span><span class="p">());</span>
+         <span class="n">getTargetMachine</span><span class="p">(),</span> <span class="n">ArgLocs</span><span class="p">,</span> <span class="o">*</span><span class="n">DAG</span><span class="p">.</span><span class="n">getContext</span><span class="p">());</span>
 
   <span class="n">CCInfo</span><span class="p">.</span><span class="n">AnalyzeCallOperands</span><span class="p">(</span><span class="n">Outs</span><span class="p">,</span> <span class="n">CC_Cpu0</span><span class="p">);</span>
 
@@ -622,23 +638,23 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
   <span class="c1">// If this is the first call, create a stack frame object that points to</span>
   <span class="c1">// a location to which .cprestore saves $gp.</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">IsPIC</span> <span class="o">&amp;&amp;</span> <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">globalBaseRegFixed</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getGPFI</span><span class="p">())</span>
-    <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">setGPFI</span><span class="p">(</span><span class="n">MFI</span><span class="o">-&gt;</span><span class="n">CreateFixedObject</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">true</span><span class="p">));</span>
+  <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">setGPFI</span><span class="p">(</span><span class="n">MFI</span><span class="o">-&gt;</span><span class="n">CreateFixedObject</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">true</span><span class="p">));</span>
   <span class="c1">// Get the frame index of the stack frame object that points to the location</span>
   <span class="c1">// of dynamically allocated area on the stack.</span>
   <span class="kt">int</span> <span class="n">DynAllocFI</span> <span class="o">=</span> <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getDynAllocFI</span><span class="p">();</span>
   <span class="kt">unsigned</span> <span class="n">MaxCallFrameSize</span> <span class="o">=</span> <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getMaxCallFrameSize</span><span class="p">();</span>
 
   <span class="k">if</span> <span class="p">(</span><span class="n">MaxCallFrameSize</span> <span class="o">&lt;</span> <span class="n">NextStackOffset</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">setMaxCallFrameSize</span><span class="p">(</span><span class="n">NextStackOffset</span><span class="p">);</span>
+  <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">setMaxCallFrameSize</span><span class="p">(</span><span class="n">NextStackOffset</span><span class="p">);</span>
 
-    <span class="c1">// Set the offsets relative to $sp of the $gp restore slot and dynamically</span>
-    <span class="c1">// allocated stack space. These offsets must be aligned to a boundary</span>
-    <span class="c1">// determined by the stack alignment of the ABI.</span>
-    <span class="kt">unsigned</span> <span class="n">StackAlignment</span> <span class="o">=</span> <span class="n">TFL</span><span class="o">-&gt;</span><span class="n">getStackAlignment</span><span class="p">();</span>
-    <span class="n">NextStackOffset</span> <span class="o">=</span> <span class="p">(</span><span class="n">NextStackOffset</span> <span class="o">+</span> <span class="n">StackAlignment</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span>
-                      <span class="n">StackAlignment</span> <span class="o">*</span> <span class="n">StackAlignment</span><span class="p">;</span>
+  <span class="c1">// Set the offsets relative to $sp of the $gp restore slot and dynamically</span>
+  <span class="c1">// allocated stack space. These offsets must be aligned to a boundary</span>
+  <span class="c1">// determined by the stack alignment of the ABI.</span>
+  <span class="kt">unsigned</span> <span class="n">StackAlignment</span> <span class="o">=</span> <span class="n">TFL</span><span class="o">-&gt;</span><span class="n">getStackAlignment</span><span class="p">();</span>
+  <span class="n">NextStackOffset</span> <span class="o">=</span> <span class="p">(</span><span class="n">NextStackOffset</span> <span class="o">+</span> <span class="n">StackAlignment</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span>
+            <span class="n">StackAlignment</span> <span class="o">*</span> <span class="n">StackAlignment</span><span class="p">;</span>
 
-    <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">setObjectOffset</span><span class="p">(</span><span class="n">DynAllocFI</span><span class="p">,</span> <span class="n">NextStackOffset</span><span class="p">);</span>
+  <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">setObjectOffset</span><span class="p">(</span><span class="n">DynAllocFI</span><span class="p">,</span> <span class="n">NextStackOffset</span><span class="p">);</span>
   <span class="p">}</span>
   <span class="c1">// Chain is the output chain of the last Load/Store or CopyToReg node.</span>
   <span class="c1">// ByValChain is the output chain of the last Memcpy node created for copying</span>
@@ -656,50 +672,50 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
 
   <span class="c1">// Walk the register/memloc assignments, inserting copies/loads.</span>
   <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">ArgLocs</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">e</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">SDValue</span> <span class="n">Arg</span> <span class="o">=</span> <span class="n">OutVals</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
-    <span class="n">CCValAssign</span> <span class="o">&amp;</span><span class="n">VA</span> <span class="o">=</span> <span class="n">ArgLocs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
-    <span class="n">MVT</span> <span class="n">ValVT</span> <span class="o">=</span> <span class="n">VA</span><span class="p">.</span><span class="n">getValVT</span><span class="p">(),</span> <span class="n">LocVT</span> <span class="o">=</span> <span class="n">VA</span><span class="p">.</span><span class="n">getLocVT</span><span class="p">();</span>
-    <span class="n">ISD</span><span class="o">::</span><span class="n">ArgFlagsTy</span> <span class="n">Flags</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">Flags</span><span class="p">;</span>
+  <span class="n">SDValue</span> <span class="n">Arg</span> <span class="o">=</span> <span class="n">OutVals</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+  <span class="n">CCValAssign</span> <span class="o">&amp;</span><span class="n">VA</span> <span class="o">=</span> <span class="n">ArgLocs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+  <span class="n">MVT</span> <span class="n">ValVT</span> <span class="o">=</span> <span class="n">VA</span><span class="p">.</span><span class="n">getValVT</span><span class="p">(),</span> <span class="n">LocVT</span> <span class="o">=</span> <span class="n">VA</span><span class="p">.</span><span class="n">getLocVT</span><span class="p">();</span>
+  <span class="n">ISD</span><span class="o">::</span><span class="n">ArgFlagsTy</span> <span class="n">Flags</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">Flags</span><span class="p">;</span>
 
-    <span class="c1">// ByVal Arg.</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">Flags</span><span class="p">.</span><span class="n">isByVal</span><span class="p">())</span> <span class="p">{</span>
-      <span class="n">assert</span><span class="p">(</span><span class="s">&quot;!!!Error!!!, Flags.isByVal()==true&quot;</span><span class="p">);</span>
-      <span class="n">assert</span><span class="p">(</span><span class="n">Flags</span><span class="p">.</span><span class="n">getByValSize</span><span class="p">()</span> <span class="o">&amp;&amp;</span>
-             <span class="s">&quot;ByVal args of size 0 should have been ignored by front-end.&quot;</span><span class="p">);</span>
-      <span class="k">continue</span><span class="p">;</span>
-    <span class="p">}</span>
+  <span class="c1">// ByVal Arg.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Flags</span><span class="p">.</span><span class="n">isByVal</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">assert</span><span class="p">(</span><span class="s">&quot;!!!Error!!!, Flags.isByVal()==true&quot;</span><span class="p">);</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">Flags</span><span class="p">.</span><span class="n">getByValSize</span><span class="p">()</span> <span class="o">&amp;&amp;</span>
+       <span class="s">&quot;ByVal args of size 0 should have been ignored by front-end.&quot;</span><span class="p">);</span>
+    <span class="k">continue</span><span class="p">;</span>
+  <span class="p">}</span>
 
-    <span class="c1">// Register can&#39;t get to this point...</span>
-    <span class="n">assert</span><span class="p">(</span><span class="n">VA</span><span class="p">.</span><span class="n">isMemLoc</span><span class="p">());</span>
+  <span class="c1">// Register can&#39;t get to this point...</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">VA</span><span class="p">.</span><span class="n">isMemLoc</span><span class="p">());</span>
 
-    <span class="c1">// Create the frame index object for this incoming parameter</span>
-    <span class="n">LastFI</span> <span class="o">=</span> <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">CreateFixedObject</span><span class="p">(</span><span class="n">ValVT</span><span class="p">.</span><span class="n">getSizeInBits</span><span class="p">()</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span>
-                                    <span class="n">VA</span><span class="p">.</span><span class="n">getLocMemOffset</span><span class="p">(),</span> <span class="kc">true</span><span class="p">);</span>
-    <span class="n">SDValue</span> <span class="n">PtrOff</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getFrameIndex</span><span class="p">(</span><span class="n">LastFI</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">());</span>
+  <span class="c1">// Create the frame index object for this incoming parameter</span>
+  <span class="n">LastFI</span> <span class="o">=</span> <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">CreateFixedObject</span><span class="p">(</span><span class="n">ValVT</span><span class="p">.</span><span class="n">getSizeInBits</span><span class="p">()</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span>
+                  <span class="n">VA</span><span class="p">.</span><span class="n">getLocMemOffset</span><span class="p">(),</span> <span class="kc">true</span><span class="p">);</span>
+  <span class="n">SDValue</span> <span class="n">PtrOff</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getFrameIndex</span><span class="p">(</span><span class="n">LastFI</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">());</span>
 
-    <span class="c1">// emit ISD::STORE whichs stores the</span>
-    <span class="c1">// parameter value to a stack Location</span>
-    <span class="n">MemOpChains</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getStore</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">Arg</span><span class="p">,</span> <span class="n">PtrOff</span><span class="p">,</span>
-                                       <span class="n">MachinePointerInfo</span><span class="p">(),</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span>
+  <span class="c1">// emit ISD::STORE whichs stores the</span>
+  <span class="c1">// parameter value to a stack Location</span>
+  <span class="n">MemOpChains</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getStore</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">Arg</span><span class="p">,</span> <span class="n">PtrOff</span><span class="p">,</span>
+                     <span class="n">MachinePointerInfo</span><span class="p">(),</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span>
   <span class="p">}</span>
 
   <span class="c1">// Extend range of indices of frame objects for outgoing arguments that were</span>
   <span class="c1">// created during this function call. Skip this step if no such objects were</span>
   <span class="c1">// created.</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">LastFI</span><span class="p">)</span>
-    <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">extendOutArgFIRange</span><span class="p">(</span><span class="n">FirstFI</span><span class="p">,</span> <span class="n">LastFI</span><span class="p">);</span>
+  <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">extendOutArgFIRange</span><span class="p">(</span><span class="n">FirstFI</span><span class="p">,</span> <span class="n">LastFI</span><span class="p">);</span>
 
   <span class="c1">// If a memcpy has been created to copy a byval arg to a stack, replace the</span>
   <span class="c1">// chain input of CallSeqStart with ByValChain.</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">InChain</span> <span class="o">!=</span> <span class="n">ByValChain</span><span class="p">)</span>
-    <span class="n">DAG</span><span class="p">.</span><span class="n">UpdateNodeOperands</span><span class="p">(</span><span class="n">CallSeqStart</span><span class="p">.</span><span class="n">getNode</span><span class="p">(),</span> <span class="n">ByValChain</span><span class="p">,</span>
-                           <span class="n">NextStackOffsetVal</span><span class="p">);</span>
+  <span class="n">DAG</span><span class="p">.</span><span class="n">UpdateNodeOperands</span><span class="p">(</span><span class="n">CallSeqStart</span><span class="p">.</span><span class="n">getNode</span><span class="p">(),</span> <span class="n">ByValChain</span><span class="p">,</span>
+               <span class="n">NextStackOffsetVal</span><span class="p">);</span>
 
   <span class="c1">// Transform all store nodes into one single node because all store</span>
   <span class="c1">// nodes are independent of each other.</span>
   <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">MemOpChains</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span>
-    <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">TokenFactor</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span>
-                        <span class="o">&amp;</span><span class="n">MemOpChains</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">MemOpChains</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
+  <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">TokenFactor</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span>
+            <span class="o">&amp;</span><span class="n">MemOpChains</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">MemOpChains</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
 
   <span class="c1">// If the callee is a GlobalAddress/ExternalSymbol node (quite common, every</span>
   <span class="c1">// direct call is) turn it into a TargetGlobalAddress/TargetExternalSymbol</span>
@@ -710,50 +726,50 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
   <span class="n">SDValue</span> <span class="n">CalleeLo</span><span class="p">;</span>
 
   <span class="k">if</span> <span class="p">(</span><span class="n">GlobalAddressSDNode</span> <span class="o">*</span><span class="n">G</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">GlobalAddressSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Callee</span><span class="p">))</span> <span class="p">{</span>
-    <span class="n">OpFlag</span> <span class="o">=</span> <span class="n">IsPICCall</span> <span class="o">?</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_GOT_CALL</span> <span class="o">:</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_NO_FLAG</span><span class="p">;</span>
-    <span class="n">Callee</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">G</span><span class="o">-&gt;</span><span class="n">getGlobal</span><span class="p">(),</span> <span class="n">dl</span><span class="p">,</span>
-                                          <span class="n">getPointerTy</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">OpFlag</span><span class="p">);</span>
-    <span class="n">GlobalOrExternal</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="n">OpFlag</span> <span class="o">=</span> <span class="n">IsPICCall</span> <span class="o">?</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_GOT_CALL</span> <span class="o">:</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_NO_FLAG</span><span class="p">;</span>
+  <span class="n">Callee</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">G</span><span class="o">-&gt;</span><span class="n">getGlobal</span><span class="p">(),</span> <span class="n">dl</span><span class="p">,</span>
+                      <span class="n">getPointerTy</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">OpFlag</span><span class="p">);</span>
+  <span class="n">GlobalOrExternal</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
   <span class="p">}</span>
   <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">ExternalSymbolSDNode</span> <span class="o">*</span><span class="n">S</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">ExternalSymbolSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Callee</span><span class="p">))</span> <span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">IsPIC</span><span class="p">)</span> <span class="c1">// static</span>
-      <span class="n">OpFlag</span> <span class="o">=</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_NO_FLAG</span><span class="p">;</span>
-    <span class="k">else</span> <span class="c1">// O32 &amp; PIC</span>
-      <span class="n">OpFlag</span> <span class="o">=</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_GOT_CALL</span><span class="p">;</span>
-    <span class="n">Callee</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetExternalSymbol</span><span class="p">(</span><span class="n">S</span><span class="o">-&gt;</span><span class="n">getSymbol</span><span class="p">(),</span> <span class="n">getPointerTy</span><span class="p">(),</span>
-                                         <span class="n">OpFlag</span><span class="p">);</span>
-    <span class="n">GlobalOrExternal</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">IsPIC</span><span class="p">)</span> <span class="c1">// static</span>
+    <span class="n">OpFlag</span> <span class="o">=</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_NO_FLAG</span><span class="p">;</span>
+  <span class="k">else</span> <span class="c1">// O32 &amp; PIC</span>
+    <span class="n">OpFlag</span> <span class="o">=</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_GOT_CALL</span><span class="p">;</span>
+  <span class="n">Callee</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetExternalSymbol</span><span class="p">(</span><span class="n">S</span><span class="o">-&gt;</span><span class="n">getSymbol</span><span class="p">(),</span> <span class="n">getPointerTy</span><span class="p">(),</span>
+                     <span class="n">OpFlag</span><span class="p">);</span>
+  <span class="n">GlobalOrExternal</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
   <span class="p">}</span>
 
   <span class="n">SDValue</span> <span class="n">InFlag</span><span class="p">;</span>
 
   <span class="c1">// Create nodes that load address of callee and copy it to T9</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">IsPICCall</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">GlobalOrExternal</span><span class="p">)</span> <span class="p">{</span>
-      <span class="c1">// Load callee address</span>
-      <span class="n">Callee</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Wrapper</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">(),</span>
-                           <span class="n">GetGlobalReg</span><span class="p">(</span><span class="n">DAG</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">()),</span> <span class="n">Callee</span><span class="p">);</span>
-      <span class="n">SDValue</span> <span class="n">LoadValue</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getLoad</span><span class="p">(</span><span class="n">getPointerTy</span><span class="p">(),</span> <span class="n">dl</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getEntryNode</span><span class="p">(),</span>
-                                      <span class="n">Callee</span><span class="p">,</span> <span class="n">MachinePointerInfo</span><span class="o">::</span><span class="n">getGOT</span><span class="p">(),</span>
-                                      <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">GlobalOrExternal</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// Load callee address</span>
+    <span class="n">Callee</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Wrapper</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">(),</span>
+               <span class="n">GetGlobalReg</span><span class="p">(</span><span class="n">DAG</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">()),</span> <span class="n">Callee</span><span class="p">);</span>
+    <span class="n">SDValue</span> <span class="n">LoadValue</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getLoad</span><span class="p">(</span><span class="n">getPointerTy</span><span class="p">(),</span> <span class="n">dl</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getEntryNode</span><span class="p">(),</span>
+                    <span class="n">Callee</span><span class="p">,</span> <span class="n">MachinePointerInfo</span><span class="o">::</span><span class="n">getGOT</span><span class="p">(),</span>
+                    <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
 
-      <span class="c1">// Use GOT+LO if callee has internal linkage.</span>
-      <span class="k">if</span> <span class="p">(</span><span class="n">CalleeLo</span><span class="p">.</span><span class="n">getNode</span><span class="p">())</span> <span class="p">{</span>
-        <span class="n">SDValue</span> <span class="n">Lo</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Lo</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">(),</span> <span class="n">CalleeLo</span><span class="p">);</span>
-        <span class="n">Callee</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">(),</span> <span class="n">LoadValue</span><span class="p">,</span> <span class="n">Lo</span><span class="p">);</span>
-      <span class="p">}</span> <span class="k">else</span>
-        <span class="n">Callee</span> <span class="o">=</span> <span class="n">LoadValue</span><span class="p">;</span>
-    <span class="p">}</span>
+    <span class="c1">// Use GOT+LO if callee has internal linkage.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">CalleeLo</span><span class="p">.</span><span class="n">getNode</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">SDValue</span> <span class="n">Lo</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Lo</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">(),</span> <span class="n">CalleeLo</span><span class="p">);</span>
+    <span class="n">Callee</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">(),</span> <span class="n">LoadValue</span><span class="p">,</span> <span class="n">Lo</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span>
+    <span class="n">Callee</span> <span class="o">=</span> <span class="n">LoadValue</span><span class="p">;</span>
+  <span class="p">}</span>
   <span class="p">}</span>
 
   <span class="c1">// T9 should contain the address of the callee function if</span>
   <span class="c1">// -reloction-model=pic or it is an indirect call.</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">IsPICCall</span> <span class="o">||</span> <span class="o">!</span><span class="n">GlobalOrExternal</span><span class="p">)</span> <span class="p">{</span>
-    <span class="c1">// copy to T9</span>
-    <span class="kt">unsigned</span> <span class="n">T9Reg</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">T9</span><span class="p">;</span>
-    <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyToReg</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">T9Reg</span><span class="p">,</span> <span class="n">Callee</span><span class="p">,</span> <span class="n">SDValue</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span>
-    <span class="n">InFlag</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-    <span class="n">Callee</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">T9Reg</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">());</span>
+  <span class="c1">// copy to T9</span>
+  <span class="kt">unsigned</span> <span class="n">T9Reg</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">T9</span><span class="p">;</span>
+  <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyToReg</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">T9Reg</span><span class="p">,</span> <span class="n">Callee</span><span class="p">,</span> <span class="n">SDValue</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span>
+  <span class="n">InFlag</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="n">Callee</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">T9Reg</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">());</span>
   <span class="p">}</span>
 
   <span class="c1">// Cpu0JmpLink = #chain, #target_address, #opt_in_flags...</span>
@@ -768,8 +784,8 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
   <span class="c1">// Add argument registers to the end of the list so that they are</span>
   <span class="c1">// known live into the call.</span>
   <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">RegsToPass</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">e</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
-    <span class="n">Ops</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">RegsToPass</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">first</span><span class="p">,</span>
-                                  <span class="n">RegsToPass</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">second</span><span class="p">.</span><span class="n">getValueType</span><span class="p">()));</span>
+  <span class="n">Ops</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">RegsToPass</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">first</span><span class="p">,</span>
+                  <span class="n">RegsToPass</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">second</span><span class="p">.</span><span class="n">getValueType</span><span class="p">()));</span>
 
   <span class="c1">// Add a register mask operand representing the call-preserved registers.</span>
   <span class="k">const</span> <span class="n">TargetRegisterInfo</span> <span class="o">*</span><span class="n">TRI</span> <span class="o">=</span> <span class="n">getTargetMachine</span><span class="p">().</span><span class="n">getRegisterInfo</span><span class="p">();</span>
@@ -778,44 +794,44 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
   <span class="n">Ops</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getRegisterMask</span><span class="p">(</span><span class="n">Mask</span><span class="p">));</span>
 
   <span class="k">if</span> <span class="p">(</span><span class="n">InFlag</span><span class="p">.</span><span class="n">getNode</span><span class="p">())</span>
-    <span class="n">Ops</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">InFlag</span><span class="p">);</span>
+  <span class="n">Ops</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">InFlag</span><span class="p">);</span>
 
   <span class="n">Chain</span>  <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">JmpLink</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">NodeTys</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Ops</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Ops</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
   <span class="n">InFlag</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
 
   <span class="c1">// Create the CALLSEQ_END node.</span>
   <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCALLSEQ_END</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span>
-                             <span class="n">DAG</span><span class="p">.</span><span class="n">getIntPtrConstant</span><span class="p">(</span><span class="n">NextStackOffset</span><span class="p">,</span> <span class="kc">true</span><span class="p">),</span>
-                             <span class="n">DAG</span><span class="p">.</span><span class="n">getIntPtrConstant</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">true</span><span class="p">),</span> <span class="n">InFlag</span><span class="p">);</span>
+               <span class="n">DAG</span><span class="p">.</span><span class="n">getIntPtrConstant</span><span class="p">(</span><span class="n">NextStackOffset</span><span class="p">,</span> <span class="kc">true</span><span class="p">),</span>
+               <span class="n">DAG</span><span class="p">.</span><span class="n">getIntPtrConstant</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">true</span><span class="p">),</span> <span class="n">InFlag</span><span class="p">);</span>
   <span class="n">InFlag</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
 
   <span class="c1">// Handle result values, copying them out of physregs into vregs that we</span>
   <span class="c1">// return.</span>
   <span class="k">return</span> <span class="n">LowerCallResult</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">InFlag</span><span class="p">,</span> <span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span>
-                         <span class="n">Ins</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">DAG</span><span class="p">,</span> <span class="n">InVals</span><span class="p">);</span>
+             <span class="n">Ins</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">DAG</span><span class="p">,</span> <span class="n">InVals</span><span class="p">);</span>
 <span class="p">}</span>
 
 <span class="c1">/// LowerCallResult - Lower the result values of a call into the</span>
 <span class="c1">/// appropriate copies out of appropriate physical registers.</span>
 <span class="n">SDValue</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerCallResult</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span> <span class="n">SDValue</span> <span class="n">InFlag</span><span class="p">,</span>
-                                    <span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">isVarArg</span><span class="p">,</span>
-                                    <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="o">::</span><span class="n">InputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Ins</span><span class="p">,</span>
-                                    <span class="n">DebugLoc</span> <span class="n">dl</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span>
-                                    <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+                  <span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">isVarArg</span><span class="p">,</span>
+                  <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="o">::</span><span class="n">InputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Ins</span><span class="p">,</span>
+                  <span class="n">DebugLoc</span> <span class="n">dl</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span>
+                  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="c1">// Assign locations to each value returned by this call.</span>
   <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">CCValAssign</span><span class="p">,</span> <span class="mi">16</span><span class="o">&gt;</span> <span class="n">RVLocs</span><span class="p">;</span>
   <span class="n">CCState</span> <span class="n">CCInfo</span><span class="p">(</span><span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">(),</span>
-         <span class="n">getTargetMachine</span><span class="p">(),</span> <span class="n">RVLocs</span><span class="p">,</span> <span class="o">*</span><span class="n">DAG</span><span class="p">.</span><span class="n">getContext</span><span class="p">());</span>
+     <span class="n">getTargetMachine</span><span class="p">(),</span> <span class="n">RVLocs</span><span class="p">,</span> <span class="o">*</span><span class="n">DAG</span><span class="p">.</span><span class="n">getContext</span><span class="p">());</span>
 
   <span class="n">CCInfo</span><span class="p">.</span><span class="n">AnalyzeCallResult</span><span class="p">(</span><span class="n">Ins</span><span class="p">,</span> <span class="n">RetCC_Cpu0</span><span class="p">);</span>
 
   <span class="c1">// Copy all of the result registers out of their specified physreg.</span>
   <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">RVLocs</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyFromReg</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">RVLocs</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">getLocReg</span><span class="p">(),</span>
-                               <span class="n">RVLocs</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">getValVT</span><span class="p">(),</span> <span class="n">InFlag</span><span class="p">).</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-    <span class="n">InFlag</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
-    <span class="n">InVals</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">0</span><span class="p">));</span>
+  <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyFromReg</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">RVLocs</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">getLocReg</span><span class="p">(),</span>
+                 <span class="n">RVLocs</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">getValVT</span><span class="p">(),</span> <span class="n">InFlag</span><span class="p">).</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="n">InFlag</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+  <span class="n">InVals</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">0</span><span class="p">));</span>
   <span class="p">}</span>
 
   <span class="k">return</span> <span class="n">Chain</span><span class="p">;</span>
@@ -856,192 +872,36 @@ def ADJCALLSTACKDOWN : Cpu0Pseudo&lt;(outs), (ins uimm16:$amt),
 def ADJCALLSTACKUP   : Cpu0Pseudo&lt;(outs), (ins uimm16:$amt1, uimm16:$amt2),
                                   "!ADJCALLSTACKUP $amt1",
                                   [(callseq_end timm:$amt1, timm:$amt2)]&gt;;
-}
-
-
-Like load incoming arguments, we need to implement storeRegToStackSlot() for
-store outgoing arguments to stack frame offset.
-
-.. code-block:: c++
-
-// Cpu0InstrInfo.cpp
-...
-//- st SrcReg, MMO(FI)
-void Cpu0InstrInfo::
-storeRegToStackSlot(MachineBasicBlock &amp;MBB, MachineBasicBlock::iterator I,
-                    unsigned SrcReg, bool isKill, int FI,
-                    const TargetRegisterClass *RC,
-                    const TargetRegisterInfo *TRI) const {
-  DebugLoc DL;
-  if (I != MBB.end()) DL = I-&gt;getDebugLoc();
-  MachineMemOperand *MMO = GetMemOperand(MBB, FI, MachineMemOperand::MOStore);
-
-  unsigned Opc = 0;
-
-  if (RC == Cpu0::CPURegsRegisterClass)
-    Opc = Cpu0::ST;
-  assert(Opc &amp;&amp; "Register class not handled!");
-  BuildMI(MBB, I, DL, get(Opc)).addReg(SrcReg, getKillRegState(isKill))
-    .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
 }</pre>
 </div>
-<p>Now, let&#8217;s run 8/3/Cpu0 with ch8_1.cpp to get result as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-79-83:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
-cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch8_1.bc -o ch8_1.cpu0.s
-118-165-79-83:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.cpu0.s
-    .section .mdebug.abi32
-    .previous
-    .file   <span class="s2">&quot;ch8_1.bc&quot;</span>
-    .text
-    .globl  _Z5sum_iiiiiii
-    .align  2
-    .type   _Z5sum_iiiiiii,@function
-    .ent    _Z5sum_iiiiiii          <span class="c"># @_Z5sum_iiiiiii</span>
-_Z5sum_iiiiiii:
-    .frame  <span class="nv">$sp</span>,32,<span class="nv">$lr</span>
-    .mask   0x00000000,0
-    .set    noreorder
-    .set    nomacro
-<span class="c"># BB#0:                                 # %entry</span>
-    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -32
-    ld  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    st  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    ld  <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    st  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    ld  <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    ld  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    ld  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    ld  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    ld  <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    ld  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    add <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-    ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    add <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-    ld  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    add <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-    ld  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    add <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-    add <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-    st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 32
-    ret <span class="nv">$lr</span>
-    .set    macro
-    .set    reorder
-    .end    _Z5sum_iiiiiii
-<span class="nv">$tmp1</span>:
-    .size   _Z5sum_iiiiiii, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-_Z5sum_iiiiiii
+<p>Like load incoming arguments, we need to implement storeRegToStackSlot() for
+store outgoing arguments to stack frame offset.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0InstrInfo.cpp</span>
+<span class="p">...</span>
+<span class="c1">//- st SrcReg, MMO(FI)</span>
+<span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
+<span class="n">storeRegToStackSlot</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span>
+                    <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">isKill</span><span class="p">,</span> <span class="kt">int</span> <span class="n">FI</span><span class="p">,</span>
+                    <span class="k">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span><span class="n">RC</span><span class="p">,</span>
+                    <span class="k">const</span> <span class="n">TargetRegisterInfo</span> <span class="o">*</span><span class="n">TRI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">I</span> <span class="o">!=</span> <span class="n">MBB</span><span class="p">.</span><span class="n">end</span><span class="p">())</span> <span class="n">DL</span> <span class="o">=</span> <span class="n">I</span><span class="o">-&gt;</span><span class="n">getDebugLoc</span><span class="p">();</span>
+  <span class="n">MachineMemOperand</span> <span class="o">*</span><span class="n">MMO</span> <span class="o">=</span> <span class="n">GetMemOperand</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">FI</span><span class="p">,</span> <span class="n">MachineMemOperand</span><span class="o">::</span><span class="n">MOStore</span><span class="p">);</span>
 
-    .globl  main
-    .align  2
-    .type   main,@function
-    .ent    main                    <span class="c"># @main</span>
-main:
-    .frame  <span class="nv">$sp</span>,40,<span class="nv">$lr</span>
-    .mask   0x00004000,-4
-    .set    noreorder
-    .cpload <span class="nv">$t9</span>
-    .set    nomacro
-<span class="c"># BB#0:                                 # %entry</span>
-    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -40
-    st  <span class="nv">$lr</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
-    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-    st  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    !ADJCALLSTACKDOWN 24
-    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 6
-    st  <span class="nv">$2</span>, 60<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // wrong offset
-    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
-    st  <span class="nv">$2</span>, 56<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 4
-    st  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
-    st  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
-    st  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
-    st  <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    ld  <span class="nv">$6</span>, %call24<span class="o">(</span>_Z5sum_iiiiiii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
-    jalr    <span class="nv">$6</span>
-    !ADJCALLSTACKUP 24
-    st  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    ld  <span class="nv">$lr</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
-    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 40
-    ret <span class="nv">$lr</span>
-    .set    macro
-    .set    reorder
-    .end    main
-<span class="nv">$tmp4</span>:
-    .size   main, <span class="o">(</span><span class="nv">$tmp4</span><span class="o">)</span>-main
+  <span class="kt">unsigned</span> <span class="n">Opc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">RC</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegisterClass</span><span class="p">)</span>
+    <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ST</span><span class="p">;</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">Opc</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Register class not handled!&quot;</span><span class="p">);</span>
+  <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">get</span><span class="p">(</span><span class="n">Opc</span><span class="p">)).</span><span class="n">addReg</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">,</span> <span class="n">getKillRegState</span><span class="p">(</span><span class="n">isKill</span><span class="p">))</span>
+    <span class="p">.</span><span class="n">addFrameIndex</span><span class="p">(</span><span class="n">FI</span><span class="p">).</span><span class="n">addImm</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">addMemOperand</span><span class="p">(</span><span class="n">MMO</span><span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 </div>
-<p>It store the arguments to wrong offset.
-We will fix this issue and take care !ADJCALLSTACKUP and !ADJCALLSTACKDOWN in
-next two sections.</p>
-</div>
-<div class="section" id="fix-the-wrong-offset-in-storing-arguments-to-stack-frame">
-<h2>Fix the wrong offset in storing arguments to stack frame<a class="headerlink" href="#fix-the-wrong-offset-in-storing-arguments-to-stack-frame" title="Permalink to this headline">¶</a></h2>
-<p>To fix the wrong offset in storing arguments, we modify the following code
-in eliminateFrameIndex() as follows.
-The bold text as below is added in 8/4/Cpu0 to set the caller outgoing
-arguments into spOffset($sp) (8/3/Cpu0 set them to pOffset+stackSize($sp).</p>
-<div class="highlight-c++"><pre>// Cpu0RegisterInfo.cpp
-...
-void Cpu0RegisterInfo::
-eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
-                    RegScavenger *RS) const {
-  …
-  Cpu0FunctionInfo *Cpu0FI = MF.getInfo&lt;Cpu0FunctionInfo&gt;();
-  …
-  if (Cpu0FI-&gt;isOutArgFI(FrameIndex) || Cpu0FI-&gt;isDynAllocFI(FrameIndex) ||
-      (FrameIndex &gt;= MinCSFI &amp;&amp; FrameIndex &lt;= MaxCSFI))
-    FrameReg = Cpu0::SP;
-  else
-    FrameReg = getFrameRegister(MF);
-  …
-  // Calculate final offset.
-  // - There is no need to change the offset if the frame object is one of the
-  //   following: an outgoing argument, pointer to a dynamically allocated
-  //   stack space or a $gp restore location,
-  // - If the frame object is any of the following, its offset must be adjusted
-  //   by adding the size of the stack:
-  //   incoming argument, callee-saved register location or local variable.
-  if (Cpu0FI-&gt;isOutArgFI(FrameIndex) || Cpu0FI-&gt;isGPFI(FrameIndex) ||
-      Cpu0FI-&gt;isDynAllocFI(FrameIndex))
-    Offset = spOffset;
-  else
-    Offset = spOffset + (int64_t)stackSize;
-  Offset    += MI.getOperand(i+1).getImm();
-
-  DEBUG(errs() &lt;&lt; "Offset     : " &lt;&lt; Offset &lt;&lt; "\n" &lt;&lt; "&lt;---------&gt;\n");
-
-  // If MI is not a debug value, make sure Offset fits in the 16-bit immediate
-  // field.
-  if (!MI.isDebugValue() &amp;&amp; !isInt&lt;16&gt;(Offset)) {
-    assert("(!MI.isDebugValue() &amp;&amp; !isInt&lt;16&gt;(Offset))");
-  }
-
-  MI.getOperand(i).ChangeToRegister(FrameReg, false);
-  MI.getOperand(i+1).ChangeToImmediate(Offset);
-
-}
-
-// Cpu0MachineFunction.h
-  ...
-  bool isOutArgFI(int FI) const {
-    return FI &lt;= OutArgFIRange.first &amp;&amp; FI &gt;= OutArgFIRange.second;
-  }</pre>
-</div>
-<p>Run 8/4/Cpu0 with ch8_1.cpp will get the following result.
-It correct arguements offset im main() from (0+40)$sp, (8+40)$sp, ..., to
-(0)$sp, (8)$sp, ..., where the stack size is 40 in main().</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
-cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>
-asm ch8_1.bc -o ch8_1.cpu0.s
-118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.cpu0.s
+<p>Now, let&#8217;s run 8/3/Cpu0 with ch8_1.cpp to get result as follows (see comment
+//),</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o ch8_1.cpu0.s
+118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.cpu0.s
   .section .mdebug.abi32
   .previous
   .file <span class="s2">&quot;ch8_1.bc&quot;</span>
@@ -1114,17 +974,17 @@ main:
   st  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   !ADJCALLSTACKDOWN 24
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 6
-  st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 60<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // wrong offset
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
-  st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 56<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 4
-  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
-  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
-  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   ld  <span class="nv">$6</span>, %call24<span class="o">(</span>_Z5sum_iiiiiii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
   jalr  <span class="nv">$6</span>
   !ADJCALLSTACKUP 24
@@ -1138,6 +998,92 @@ main:
 <span class="nv">$tmp7</span>:
   .size main, <span class="o">(</span><span class="nv">$tmp7</span><span class="o">)</span>-main
   .cfi_endproc
+</pre></div>
+</div>
+<p>It store the arguments to wrong offset.
+We will fix this issue and take care !ADJCALLSTACKUP and !ADJCALLSTACKDOWN in
+next two sections.</p>
+</div>
+<div class="section" id="fix-the-wrong-offset-in-storing-arguments-to-stack-frame">
+<h2>Fix the wrong offset in storing arguments to stack frame<a class="headerlink" href="#fix-the-wrong-offset-in-storing-arguments-to-stack-frame" title="Permalink to this headline">¶</a></h2>
+<p>To fix the wrong offset in storing arguments, we modify the following code
+in eliminateFrameIndex() as follows.
+The code as below is modified in 8/4/Cpu0 to set the caller outgoing
+arguments into spOffset($sp) (8/3/Cpu0 set them to pOffset+stackSize($sp).</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0RegisterInfo.cpp</span>
+<span class="p">...</span>
+<span class="kt">void</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
+<span class="n">eliminateFrameIndex</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">II</span><span class="p">,</span> <span class="kt">int</span> <span class="n">SPAdj</span><span class="p">,</span>
+                    <span class="n">RegScavenger</span> <span class="o">*</span><span class="n">RS</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">Cpu0FunctionInfo</span> <span class="o">*</span><span class="n">Cpu0FI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getInfo</span><span class="o">&lt;</span><span class="n">Cpu0FunctionInfo</span><span class="o">&gt;</span><span class="p">();</span>
+  <span class="p">...</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">isOutArgFI</span><span class="p">(</span><span class="n">FrameIndex</span><span class="p">)</span> <span class="o">||</span> <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">isDynAllocFI</span><span class="p">(</span><span class="n">FrameIndex</span><span class="p">)</span> <span class="o">||</span>
+      <span class="p">(</span><span class="n">FrameIndex</span> <span class="o">&gt;=</span> <span class="n">MinCSFI</span> <span class="o">&amp;&amp;</span> <span class="n">FrameIndex</span> <span class="o">&lt;=</span> <span class="n">MaxCSFI</span><span class="p">))</span>
+    <span class="n">FrameReg</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">;</span>
+  <span class="k">else</span>
+    <span class="n">FrameReg</span> <span class="o">=</span> <span class="n">getFrameRegister</span><span class="p">(</span><span class="n">MF</span><span class="p">);</span>
+  <span class="p">...</span>
+  <span class="c1">// Calculate final offset.</span>
+  <span class="c1">// - There is no need to change the offset if the frame object is one of the</span>
+  <span class="c1">//   following: an outgoing argument, pointer to a dynamically allocated</span>
+  <span class="c1">//   stack space or a $gp restore location,</span>
+  <span class="c1">// - If the frame object is any of the following, its offset must be adjusted</span>
+  <span class="c1">//   by adding the size of the stack:</span>
+  <span class="c1">//   incoming argument, callee-saved register location or local variable.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">isOutArgFI</span><span class="p">(</span><span class="n">FrameIndex</span><span class="p">)</span> <span class="o">||</span> <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">isGPFI</span><span class="p">(</span><span class="n">FrameIndex</span><span class="p">)</span> <span class="o">||</span>
+      <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">isDynAllocFI</span><span class="p">(</span><span class="n">FrameIndex</span><span class="p">))</span>
+    <span class="n">Offset</span> <span class="o">=</span> <span class="n">spOffset</span><span class="p">;</span>
+  <span class="k">else</span>
+    <span class="n">Offset</span> <span class="o">=</span> <span class="n">spOffset</span> <span class="o">+</span> <span class="p">(</span><span class="n">int64_t</span><span class="p">)</span><span class="n">stackSize</span><span class="p">;</span>
+  <span class="n">Offset</span>    <span class="o">+=</span> <span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">).</span><span class="n">getImm</span><span class="p">();</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="c1">// Cpu0MachineFunction.h</span>
+<span class="p">...</span>
+<span class="c1">/// SRetReturnReg - Some subtargets require that sret lowering includes</span>
+<span class="c1">/// returning the value of the returned struct in a register. This field</span>
+<span class="c1">/// holds the virtual register into which the sret argument is passed.</span>
+<span class="kt">unsigned</span> <span class="n">SRetReturnReg</span><span class="p">;</span>
+<span class="p">...</span>
+<span class="n">Cpu0FunctionInfo</span><span class="p">(</span><span class="n">MachineFunction</span><span class="o">&amp;</span> <span class="n">MF</span><span class="p">)</span>
+<span class="o">:</span> <span class="n">MF</span><span class="p">(</span><span class="n">MF</span><span class="p">),</span> <span class="n">SRetReturnReg</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="p">...</span>
+<span class="kt">bool</span> <span class="n">isOutArgFI</span><span class="p">(</span><span class="kt">int</span> <span class="n">FI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">FI</span> <span class="o">&lt;=</span> <span class="n">OutArgFIRange</span><span class="p">.</span><span class="n">first</span> <span class="o">&amp;&amp;</span> <span class="n">FI</span> <span class="o">&gt;=</span> <span class="n">OutArgFIRange</span><span class="p">.</span><span class="n">second</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="kt">unsigned</span> <span class="n">getSRetReturnReg</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">SRetReturnReg</span><span class="p">;</span> <span class="p">}</span>
+<span class="kt">void</span> <span class="n">setSRetReturnReg</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Reg</span><span class="p">)</span> <span class="p">{</span> <span class="n">SRetReturnReg</span> <span class="o">=</span> <span class="n">Reg</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">...</span>
+</pre></div>
+</div>
+<p>Run 8/4/Cpu0 with ch8_1.cpp will get the following result.
+It correct arguements offset im main() from (0+40)$sp, (8+40)$sp, ..., to
+(0)$sp, (8)$sp, ..., where the stack size is 40 in main().</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o
+ch8_1.cpu0.s
+118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.cpu0.s
+...
+  !ADJCALLSTACKDOWN 24
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 6
+  st  <span class="nv">$2</span>, 60<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // correct offset
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
+  st  <span class="nv">$2</span>, 56<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 4
+  st  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
+  st  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
+  st  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+  st  <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$6</span>, %call24<span class="o">(</span>_Z5sum_iiiiiii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
+  jalr  <span class="nv">$6</span>
+  !ADJCALLSTACKUP 24
+...
 </pre></div>
 </div>
 <p>The incoming arguments is the formal arguments defined in compiler and program
@@ -1154,32 +1100,33 @@ Summary callee incoming arguments and caller outgoing arguments as
 <p>To fix the !ADJSTACKDOWN and !1ADJSTACKUP, we call Cpu0GenInstrInfo(Cpu0::
 ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP) in Cpu0InstrInfo() constructor
 function and define eliminateCallFramePseudoInstr() as follows,</p>
-<div class="highlight-c++"><pre>// Cpu0InstrInfo.cpp
-...
-Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &amp;tm)
-  : Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
-…
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0InstrInfo.cpp</span>
+<span class="p">...</span>
+<span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">Cpu0InstrInfo</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">tm</span><span class="p">)</span>
+  <span class="o">:</span> <span class="n">Cpu0GenInstrInfo</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADJCALLSTACKDOWN</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADJCALLSTACKUP</span><span class="p">),</span>
+<span class="p">...</span>
 
-// Cpu0RegisterInfo.cpp
-...
-// Cpu0
-// This function eliminate ADJCALLSTACKDOWN,
-// ADJCALLSTACKUP pseudo instructions
-void Cpu0RegisterInfo::
-eliminateCallFramePseudoInstr(MachineFunction &amp;MF, MachineBasicBlock &amp;MBB,
-                MachineBasicBlock::iterator I) const {
-  // Simply discard ADJCALLSTACKDOWN, ADJCALLSTACKUP instructions.
-  MBB.erase(I);
-}</pre>
+<span class="c1">// Cpu0RegisterInfo.cpp</span>
+<span class="p">...</span>
+<span class="c1">// Cpu0</span>
+<span class="c1">// This function eliminate ADJCALLSTACKDOWN,</span>
+<span class="c1">// ADJCALLSTACKUP pseudo instructions</span>
+<span class="kt">void</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
+<span class="n">eliminateCallFramePseudoInstr</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span> <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
+                <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="c1">// Simply discard ADJCALLSTACKDOWN, ADJCALLSTACKUP instructions.</span>
+  <span class="n">MBB</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">I</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
 </div>
 <p>With above definition, eliminateCallFramePseudoInstr() will be called when
 llvm meet pseudo instructions ADJCALLSTACKDOWN and ADJCALLSTACKUP.
 We just discard these 2 pseudo instructions.
 Run 8/5/Cpu0 with ch8_1.cpp will get the following result.</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
-cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype
-<span class="o">=</span>asm ch8_1.bc -o ch8_1.cpu0.s
-118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.cpu0.s
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o
+ch8_1.cpu0.s
+118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.cpu0.s
   .section .mdebug.abi32
   .previous
   .file <span class="s2">&quot;ch8_1.bc&quot;</span>
@@ -1279,7 +1226,7 @@ main:
 </div>
 <div class="section" id="handle-gp-register-in-pic-addressing-mode">
 <h2>Handle $gp register in PIC addressing mode<a class="headerlink" href="#handle-gp-register-in-pic-addressing-mode" title="Permalink to this headline">¶</a></h2>
-<p>In &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id15" id="id6">[5]</a>, we mentioned two addressing
+<p>In &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id16" id="id6">[5]</a>, we mentioned two addressing
 mode, the static address mode and PIC (position-independent code) mode.
 We also mentioned, one example of PIC mode is used in share library.
 Share library usually can be loaded in different memory address decided at run
@@ -1293,15 +1240,7 @@ shared library function if they will be loaded to the contiguous memory space
 together.</p>
 <p>Let&#8217;s run 8/6/Cpu0 with ch8_2.cpp to get the following result of we putting the
 comment in it for explanation.</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-67-25:InputFiles Jonathan<span class="nv">$ </span>cat ch8_2.cpu0.s
-    .section .mdebug.abi32
-    .previous
-    .file   <span class="s2">&quot;ch8_2.bc&quot;</span>
-    .text
-    .globl  _Z5sum_iiiiiii
-    .align  2
-    .type   _Z5sum_iiiiiii,@function
-    .ent    _Z5sum_iiiiiii          <span class="c"># @_Z5sum_iiiiiii</span>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch8_2.cpu0.s
 _Z5sum_iiiiiii:
 ...
     .cpload <span class="nv">$t9</span> // assign <span class="nv">$gp</span> <span class="o">=</span> <span class="nv">$t9</span> by loader when loader load re-entry
@@ -1322,30 +1261,18 @@ _Z5sum_iiiiiii:
     .ent    main                    <span class="c"># @main</span>
 main:
     .cfi_startproc
-    .frame  <span class="nv">$sp</span>,72,<span class="nv">$lr</span>
-    .mask   0x00004000,-4
-    .set    noreorder
+...
     .cpload <span class="nv">$t9</span>
     .set    nomacro
-<span class="c"># BB#0:</span>
-    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -72
-<span class="nv">$tmp5</span>:
-    .cfi_def_cfa_offset 72
-    st  <span class="nv">$lr</span>, 68<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
-<span class="nv">$tmp6</span>:
-    .cfi_offset 14, -4
-    .cprestore  24  // save <span class="nv">$gp</span> to 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+...
+    .cprestore  24    // save <span class="nv">$gp</span> to 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
 ...
     ld  <span class="nv">$6</span>, %call24<span class="o">(</span>_Z5sum_iiiiiii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
-    jalr    <span class="nv">$6</span>      // <span class="nv">$t9</span> register number is 6, meaning <span class="nv">$6</span> and %t9 are the
-                    //  same register
-    ld  <span class="nv">$gp</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>    // restore <span class="nv">$gp</span> from 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    jalr    <span class="nv">$6</span>        // <span class="nv">$t9</span> register number is 6, meaning <span class="nv">$6</span> and %t9 are the
+                      //  same register
+    ld  <span class="nv">$gp</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>  // restore <span class="nv">$gp</span> from 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
 ...
-    addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 72
-    ret <span class="nv">$lr</span>
-    .set    macro
-    .set    reorder
     .end    main
 <span class="nv">$tmp7</span>:
     .size   main, <span class="o">(</span><span class="nv">$tmp7</span><span class="o">)</span>-main
@@ -1379,7 +1306,28 @@ library or dynamic loading code to demonstrate the caller how to handle the
 caller saved register $gp in calling the shared library and the shared library
 how to use $gp to access global variable address. This solution is popular in
 reality and deserve change cpu0 official design as a compiler book.
-Mips use the same solution in 32 bits Mips32 CPU.</p>
+Mips use the same solution in 32 bits Mips32 CPU of llvm 3.1.</p>
+<p>Mips removes these pseudo assembly code in 3.2.
+This change is good for spim (mips assembly code simulator) which run for
+Mips assembly code. According the theory of &#8220;System Software&#8221;, some pseudo
+assembly code (especially for those not in standard) cannot be translated by
+assembler. It will break down in assembly code simulator.
+Run ch_mips_llvm3.2_globalvar_changes.cpp with llvm 3.1 and 3.2 for mips, you
+will find the <strong>&#8221;.cprestore&#8221;</strong> is removed directly since 3.2 use other register
+in other the called function (like use $1 in f() and the remove <strong>.gprestore</strong>
+in sum_i()).
+<strong>&#8221;.cpload&#8221;</strong> is replaced with instructions as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>// llvm 3.1 mips
+  .cpload <span class="nv">$25</span>
+
+// llvm 3.2 mips
+  lui <span class="nv">$2</span>, %hi<span class="o">(</span>_gp_disp<span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span>_gp_disp<span class="o">)</span>
+  ...
+  addu  <span class="nv">$gp</span>, <span class="nv">$2</span>, <span class="nv">$25</span>
+</pre></div>
+</div>
+<p>Reference <a class="footnote-reference" href="#id17" id="id7">[6]</a> for <strong>&#8221;.cpload&#8221;</strong>, <strong>&#8221;.cprestore&#8221;</strong> and <strong>&#8220;_gp_disp&#8221;</strong>.</p>
 <p>Now, as the following code added in 8/6/Cpu0, we can issue <strong>“.cprestore”</strong> in
 emitPrologue() and emit ld $gp, ($gp save slot on stack) after jalr by create
 file Cpu0EmitGPRestore.cpp which run as a function pass.</p>
@@ -1396,7 +1344,7 @@ bool Cpu0PassConfig::addPreRegAlloc() {
   // Do not restore $gp if target is Cpu064.
   // In N32/64, $gp is a callee-saved register.
 
-  PM-&gt;add(createCpu0EmitGPRestorePass(getCpu0TargetMachine()));
+  addPass(createCpu0EmitGPRestorePass(getCpu0TargetMachine()));
   return true;
 }
 
@@ -1405,15 +1353,14 @@ bool Cpu0PassConfig::addPreRegAlloc() {
   FunctionPass *createCpu0EmitGPRestorePass(Cpu0TargetMachine &amp;TM);
 
 // Cpu0FrameLowering.cpp
-…
-
+...
 void Cpu0FrameLowering::emitPrologue(MachineFunction &amp;MF) const {
   ...
   unsigned RegSize = 4;
   unsigned LocalVarAreaOffset = Cpu0FI-&gt;needGPSaveRestore() ?
   (MFI-&gt;getObjectOffset(Cpu0FI-&gt;getGPFI()) + RegSize) :
   Cpu0FI-&gt;getMaxCallFrameSize();
-  ….
+  ...
   // Restore GP from the saved stack location
   if (Cpu0FI-&gt;needGPSaveRestore()) {
     unsigned Offset = MFI-&gt;getObjectOffset(Cpu0FI-&gt;getGPFI());
@@ -1423,7 +1370,7 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &amp;MF) const {
 }
 
 // Cpu0InstrInfo.td
-…
+...
 // When handling PIC code the assembler needs .cpload and .cprestore
 // directives. If the real instructions corresponding these directives
 // are used, we have the same behavior, but get also a bunch of warnings
@@ -1434,16 +1381,10 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
 
 
 // Cpu0SelLowering.cpp
-…
+...
 SDValue
-Cpu0TargetLowering::LowerCall(SDValue InChain, SDValue Callee,
-                CallingConv::ID CallConv, bool isVarArg,
-                bool doesNotRet, bool &amp;isTailCall,
-                const SmallVectorImpl&lt;ISD::OutputArg&gt; &amp;Outs,
-                const SmallVectorImpl&lt;SDValue&gt; &amp;OutVals,
-                const SmallVectorImpl&lt;ISD::InputArg&gt; &amp;Ins,
-                DebugLoc dl, SelectionDAG &amp;DAG,
-                SmallVectorImpl&lt;SDValue&gt; &amp;InVals) const {
+Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &amp;CLI,
+                              SmallVectorImpl&lt;SDValue&gt; &amp;InVals) const {
   ...
   // If this is the first call, create a stack frame object that points to
   // a location to which .cprestore saves $gp.
@@ -1452,7 +1393,7 @@ Cpu0TargetLowering::LowerCall(SDValue InChain, SDValue Callee,
   if (MaxCallFrameSize &lt; NextStackOffset) {
     if (Cpu0FI-&gt;needGPSaveRestore())
       MFI-&gt;setObjectOffset(Cpu0FI-&gt;getGPFI(), NextStackOffset);
-  …
+  ...
 }
 
 // Cpu0EmitGPRestore.cpp
@@ -1643,7 +1584,7 @@ void Cpu0AsmPrinter::EmitFunctionBodyStart() {
 }
 
 // Cpu0MCInstLower.cpp
-…
+...
 sstatic void CreateMCInst(MCInst&amp; Inst, unsigned Opc, const MCOperand&amp; Opnd0,
              const MCOperand&amp; Opnd1,
              const MCOperand&amp; Opnd2 = MCOperand()) {
@@ -1716,7 +1657,7 @@ The above added code of Cpu0MCInstLower.cpp take care the .cpload and
 .cprestore machine instructions.
 It translate pseudo asm .cpload into four machine instructions, and .cprestore
 into one machine instruction as below.
-As mentioned in &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id15" id="id7">[5]</a>.
+As mentioned in &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id16" id="id8">[5]</a>.
 When the share library main() function be loaded, the loader will set the
 $t9 value to $gp when meet <strong>“.cpload $t9”</strong>.
 After that, the $gp value is $t9 which point to main(), and the global variable
@@ -1747,7 +1688,7 @@ function that is strictly local to an object module.</p>
 </div>
 <p>By run with <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></tt>, the .cpload and .cprestore are translated into
 machine code as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+<div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>
 obj ch8_2.bc -o ch8_2.cpu0.o
 118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>hexdump  ch8_2.cpu0.o
@@ -1780,15 +1721,15 @@ _Z5sum_iiiiiii:
   .set  nomacro
 ...
   .cprestore  24  // save <span class="nv">$gp</span> to 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-…
+...
 </pre></div>
 </div>
 <p>Run <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-static</span></tt> will call jsub instruction instead of jalr as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+<div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>
 asm ch8_2.bc -o ch8_2.cpu0.s
 118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch8_2.cpu0.s
-…
+...
   jsub  _Z5sum_iiiiiii
 ...
 </pre></div>
@@ -1808,7 +1749,7 @@ The ch8_1_2.cpp, ch8_1_3.cpp and ch8_1_4.cpp are example code more for test.</p>
 (Incoming Arguments).
 This section support variable number of arguments since C language support
 this feature.
-Run 8/7/Cpu0 with ch8_3.cpp to get the following,</p>
+Run 8/6/Cpu0 with ch8_3.cpp to get the following error,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch8_3.cpp</span>
 <span class="c1">//#include &lt;stdio.h&gt;</span>
 <span class="cp">#include &lt;stdarg.h&gt;</span>
@@ -1840,7 +1781,18 @@ Run 8/7/Cpu0 with ch8_3.cpp to get the following,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -c ch8_3.cpp -emit-llvm -o ch8_3.bc
+118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_3.bc -o
+ch8_3.cpu0.s
+LLVM ERROR: Cannot <span class="k">select</span>: 0x7f8b6902fd10: <span class="nv">ch</span> <span class="o">=</span> vastart 0x7f8b6902fa10,
+0x7f8b6902fb10, 0x7f8b6902fc10 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>9<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>22<span class="o">]</span>
+  0x7f8b6902fb10: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;5&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>9<span class="o">]</span>
+In <span class="k">function</span>: _Z5sum_iiz
+</pre></div>
+</div>
+<p>Run 8/7/Cpu0 with ch8_3.cpp to get the following result,</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
 ch8_3.bc -o ch8_3.cpu0.s
 118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch8_3.cpu0.s
@@ -2006,7 +1958,7 @@ We believe the arg &lt; 40 is satisfied because the native Intel CPU has the
 arg_ptr &lt; 40 in it&#8217;s assembly code and the Intel CPU native execution file can
 print correct result.
 You will see it soon in the bellow code.
-If the arg_ptr &lt; 40 is satisfied and <a href="#id8"><span class="problematic" id="id9">*</span></a>(20($sp)) = arg_offset = 12, then the
+If the arg_ptr &lt; 40 is satisfied and <a href="#id9"><span class="problematic" id="id10">*</span></a>(20($sp)) = arg_offset = 12, then the
 assembly output is correct.
 The llvm IR and mips assembly output as follows,</p>
 <div class="highlight-bash"><pre>118-165-78-221:InputFiles Jonathan$ llvm-dis ch8_3.bc -o ch8_3.ll
@@ -2037,89 +1989,86 @@ define i32 @_Z5sum_iiz(i32 %amount, ...) nounwind uwtable ssp {
   .ent  _Z5sum_iiz              # @_Z5sum_iiz
 _Z5sum_iiz:
   .cfi_startproc
-  .frame  $sp,72,$ra
+  .frame  $sp,64,$ra
   .mask   0x80000000,-4
   .fmask  0x00000000,0
   .set  noreorder
-  .cpload $25
   .set  nomacro
+      .set    noat
 # BB#0:
-  addiu $sp, $sp, -72
+      lui     $2, %hi(_gp_disp)
+      addiu   $2, $2, %lo(_gp_disp)
+      addiu   $sp, $sp, -64
 $tmp2:
-  .cfi_def_cfa_offset 72
-  sw  $ra, 68($sp)            # 4-byte Folded Spill
+      .cfi_def_cfa_offset 64
+      sw      $ra, 60($sp)            # 4-byte Folded Spill
 $tmp3:
   .cfi_offset 31, -4
   .cprestore  16
-  sw  $7, 84($sp)
-  sw  $6, 80($sp)
-  sw  $5, 76($sp) // 76($sp) = arg[1]
-  lw  $2, %got(__stack_chk_guard)($gp)
-  lw  $2, 0($2)
-  sw  $2, 64($sp)
-  sw  $4, 60($sp) // 60($sp) = amount = arg[0]
-  sw  $zero, 56($sp)  // i
-  sw  $zero, 52($sp)  // val
-  sw  $zero, 48($sp)  // sum
-  addiu $2, $sp, 76
-  sw  $2, 24($sp) // 24($sp) = arg_ptr
-  sw  $zero, 56($sp)
+  sw  $7, 76($sp)
+  sw  $6, 72($sp)
+  sw  $5, 68($sp) // 68($sp) = arg[1]
+      lw      $3, %got(__stack_chk_guard)($gp)
+      lw      $1, 0($3)
+      sw      $1, 56($sp)
+  sw  $4, 52($sp) // 52($sp) = amount = arg[0]
+  sw  $zero, 48($sp)  // i
+  sw  $zero, 44($sp)  // val
+  sw  $zero, 40($sp)  // sum
+  addiu $2, $sp, 68
+  sw  $2, 16($sp) // 16($sp) = arg_ptr
+  sw  $zero, 48($sp)
+      b       $BB0_2
   addiu $2, $zero, 40 // $2 = 40
+$BB0_1:                                 #   in Loop: Header=BB0_2 Depth=1
+  lw  $1, 0($4)   // $4 = *arg_ptr
+  sw  $1, 44($sp) // val
+  lw  $4, 40($sp) // sum
+  addu  $1, $4, $1  //
+  sw  $1, 40($sp) // sum += val
+  lw  $1, 48($sp)
+  addiu $1, $1, 1
+  sw  $1, 48($sp) // i += 1
+$BB0_2:                                 # =&gt;This Inner Loop Header: Depth=1
+  lw  $1, 52($sp)
+  lw  $4, 48($sp)
+  slt $1, $4, $1  // set if i &lt; amount
+  beq $1, $zero, $BB0_6 // i &gt;= amount
+  nop
+# BB#3:                                 #   in Loop: Header=BB0_2 Depth=1
+  lw  $4, 16($sp) // $4 = arg_ptr
+  sltu  $1, $2, $4  // set if 40 &lt; arg_ptr
+  bne $1, $zero, $BB0_5
+  nop
+# BB#4:                                 #   in Loop: Header=BB0_2 Depth=1
+                    // arg_ptr &lt;= 40
+  addiu $1, $4, 8
+  lw  $5, 28($sp) // 28($sp) = 0, assume even though we didn't find the
+                  // 28($sp) is 0
+  sw  $4, 16($sp) // arg_ptr += 8
+  b $BB0_1
+  addu  $4, $5, $4  // arg_ptr + 0
+$BB0_5:                                 #   in Loop: Header=BB0_1 Depth=1
+                   // 40 &lt; arg_ptr
+  lw  $4, 24($sp)
+  addiu $1, $4, 8
+  sw  $1, 24($sp)
   b $BB0_1
   nop
-$BB0_5:                                 #   in Loop: Header=BB0_1 Depth=1
-  lw  $3, 0($3)   // $3 = *arg_ptr
-  sw  $3, 52($sp) // val
-  lw  $4, 48($sp) // sum
-  addu  $3, $4, $3  //
-  sw  $3, 48($sp) // sum += val
-  lw  $3, 56($sp)
-  addiu $3, $3, 1
-  sw  $3, 56($sp) // i += 1
-$BB0_1:                                 # =&gt;This Inner Loop Header: Depth=1
-  lw  $3, 60($sp)
-  lw  $4, 56($sp)
-  slt $3, $4, $3  // set if i &lt; amount
-  beq $3, $zero, $BB0_6 // i &gt;= amount
-  nop
-# BB#2:                                 #   in Loop: Header=BB0_1 Depth=1
-  lw  $3, 24($sp) // $3 = arg_ptr
-  sltu  $4, $2, $3  // set if 40 &lt; arg_ptr
-  bne $4, $zero, $BB0_4
-  nop
-# BB#3:                                 #   in Loop: Header=BB0_1 Depth=1
-                    // arg_ptr &lt;= 40
-  addiu $4, $3, 8
-  lw  $5, 36($sp) // 36($sp) = 0, assume even though we didn't find the
-                  // 36($sp) is 0
-  sw  $4, 24($sp) // arg_ptr += 8
-  addu  $3, $5, $3  // arg_ptr + 0
-  b $BB0_5
-  nop
-$BB0_4:                                 #   in Loop: Header=BB0_1 Depth=1
-                   // 40 &lt; arg_ptr
-  lw  $3, 32($sp)
-  addiu $4, $3, 8
-  sw  $4, 32($sp)
-  b $BB0_5
-  nop
 $BB0_6:
-  lw  $2, %got(__stack_chk_guard)($gp)
-  lw  $2, 0($2)
-  lw  $3, 64($sp)
-  bne $2, $3, $BB0_8
-  nop
+      lw      $1, 0($3)
+      lw      $3, 56($sp)
+      bne     $1, $3, $BB0_8
+      lw      $2, 40($sp)
 # BB#7:                                 # %SP_return
-  lw  $2, 48($sp)
-  lw  $ra, 68($sp)            # 4-byte Folded Reload
-  addiu $sp, $sp, 72
+  lw  $ra, 60($sp)            # 4-byte Folded Reload
   jr  $ra
-  nop
+  addiu $sp, $sp, 64
 $BB0_8:                                 # %CallStackCheckFailBlk
   lw  $25, %call16(__stack_chk_fail)($gp)
   jalr  $25
   nop
-  lw  $gp, 16($sp)
+  .set  at
   .set  macro
   .set  reorder
   .end  _Z5sum_iiz
@@ -2130,47 +2079,44 @@ $tmp4:
   .globl  main
   .align  2
   .type main,@function
-  .ent  main                    # @main
+  .set  nomips16                # @main
+  .ent  main
 main:
   .cfi_startproc
-  .frame  $sp,64,$ra
+  .frame  $sp,48,$ra
   .mask   0x80000000,-4
   .fmask  0x00000000,0
   .set  noreorder
-  .cpload $25
   .set  nomacro
+  .set  noat
 # BB#0:
-  addiu $sp, $sp, -64
+  lui $2, %hi(_gp_disp)
+  addiu $2, $2, %lo(_gp_disp)
+  addiu $sp, $sp, -48
 $tmp7:
-  .cfi_def_cfa_offset 64
-  sw  $ra, 60($sp)            # 4-byte Folded Spill
+  .cfi_def_cfa_offset 48
+  sw  $ra, 44($sp)            # 4-byte Folded Spill
 $tmp8:
   .cfi_offset 31, -4
-  .cprestore  40
-  sw  $zero, 56($sp)
-  addiu $2, $zero, 7
-  sw  $2, 28($sp)
-  addiu $2, $zero, 6
-  sw  $2, 24($sp)
-  addiu $2, $zero, 5
-  sw  $2, 20($sp)
-  addiu $2, $zero, 4
-  sw  $2, 16($sp)
-  addiu $4, $zero, 8
-  sw  $4, 32($sp)
+  addu  $gp, $2, $25
+  sw  $zero, 40($sp)
+  addiu $1, $zero, 5
+  sw  $1, 20($sp)
+  addiu $1, $zero, 4
+  sw  $1, 16($sp)
+  addiu $1, $zero, 6
+  sw  $1, 24($sp)
   lw  $25, %call16(_Z5sum_iiz)($gp)
+  addiu $4, $zero, 6
   addiu $5, $zero, 1
   addiu $6, $zero, 2
-  addiu $7, $zero, 3
   jalr  $25
-  nop
-  lw  $gp, 40($sp)
-  sw  $2, 52($sp)
-  addu  $2, $zero, $zero
-  lw  $ra, 60($sp)            # 4-byte Folded Reload
-  addiu $sp, $sp, 64
+  addiu $7, $zero, 3
+  sw  $2, 36($sp)
+  lw  $ra, 44($sp)            # 4-byte Folded Reload
   jr  $ra
-  nop
+  addiu $sp, $sp, 48
+  .set  at
   .set  macro
   .set  reorder
   .end  main
@@ -2187,7 +2133,7 @@ Following are the ch8_3_3.cpp, and lli, Intel native code run result.</p>
 <span class="c1">// clang -c ch8_3_3.cpp -emit-llvm -I/Applications/Xcode.app/Contents/</span>
 <span class="n">Developer</span><span class="o">/</span><span class="n">Platforms</span><span class="o">/</span><span class="n">MacOSX</span><span class="p">.</span><span class="n">platform</span><span class="o">/</span><span class="n">Developer</span><span class="o">/</span><span class="n">SDKs</span><span class="o">/</span><span class="n">MacOSX10</span><span class="mf">.8</span><span class="p">.</span><span class="n">sdk</span><span class="o">/</span><span class="n">usr</span><span class="o">/</span>
 <span class="n">include</span><span class="o">/</span> <span class="o">-</span><span class="n">o</span> <span class="n">ch8_3_3</span><span class="p">.</span><span class="n">bc</span>
-<span class="c1">// /Users/Jonathan/llvm/3.1.test/cpu0/1/cmake_debug_build/bin/Debug/llc</span>
+<span class="c1">// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc</span>
 <span class="n">ch8_3_3</span><span class="p">.</span><span class="n">bc</span> <span class="o">-</span><span class="n">o</span> <span class="n">ch8_3_3</span><span class="p">.</span><span class="n">s</span>
 <span class="c1">// clang++ ch8_3_3.s -o ch8_3_3.native</span>
 <span class="c1">// ./ch8_3_3.native</span>
@@ -2238,7 +2184,7 @@ Following are the ch8_3_3.cpp, and lli, Intel native code run result.</p>
 118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>clang -c ch8_3_3.cpp -emit-llvm -I
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/
 Developer/SDKs/MacOSX10.8.sdk/usr/include/ -o ch8_3_3.bc
-118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc ch8_3_3.bc -o ch8_3_3.s
 118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>clang++ ch8_3_3.s -o ch8_3_3.native
 118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>./ch8_3_3.native
@@ -2449,50 +2395,51 @@ $LEFDE3:
 add in 8/7/Cpu0.
 The ch8_3_2.cpp is C++ template example code, it can be translated into cpu0
 backend code too.</p>
-<div class="highlight-c++"><pre>// Cpu0TargetLowering.cpp
-...
-Cpu0TargetLowering::
-Cpu0TargetLowering(Cpu0TargetMachine &amp;TM)
-  : TargetLowering(TM, new Cpu0TargetObjectFile()),
-  Subtarget(&amp;TM.getSubtarget&lt;Cpu0Subtarget&gt;()) {
-  ...
-  setOperationAction(ISD::VASTART,            MVT::Other, Custom);
-  ...
-  // Support va_arg(): variable numbers (not fixed numbers) of arguments
-  //  (parameters) for function all
-  setOperationAction(ISD::VAARG,             MVT::Other, Expand);
-  setOperationAction(ISD::VACOPY,            MVT::Other, Expand);
-  setOperationAction(ISD::VAEND,             MVT::Other, Expand);
-  …
-}
-…
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0TargetLowering.cpp</span>
+<span class="p">...</span>
+<span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
+  <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">Cpu0TargetObjectFile</span><span class="p">()),</span>
+  <span class="n">Subtarget</span><span class="p">(</span><span class="o">&amp;</span><span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">())</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">VASTART</span><span class="p">,</span>            <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span> <span class="n">Custom</span><span class="p">);</span>
+  <span class="p">...</span>
+  <span class="c1">// Support va_arg(): variable numbers (not fixed numbers) of arguments</span>
+  <span class="c1">//  (parameters) for function all</span>
+  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">VAARG</span><span class="p">,</span>             <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span> <span class="n">Expand</span><span class="p">);</span>
+  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">VACOPY</span><span class="p">,</span>            <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span> <span class="n">Expand</span><span class="p">);</span>
+  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">VAEND</span><span class="p">,</span>             <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span> <span class="n">Expand</span><span class="p">);</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+<span class="p">...</span>
 
-SDValue Cpu0TargetLowering::
-LowerOperation(SDValue Op, SelectionDAG &amp;DAG) const
-{
-  switch (Op.getOpcode())
-  {
-  ...
-  case ISD::VASTART:            return LowerVASTART(Op, DAG);
-  }
-  return SDValue();
-}
+<span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">LowerOperation</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span>
+<span class="p">{</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">Op</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">())</span>
+  <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">case</span> <span class="n">ISD</span><span class="o">::</span><span class="nl">VASTART:</span>            <span class="k">return</span> <span class="n">LowerVASTART</span><span class="p">(</span><span class="n">Op</span><span class="p">,</span> <span class="n">DAG</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">SDValue</span><span class="p">();</span>
+<span class="p">}</span>
 
-...
-SDValue Cpu0TargetLowering::LowerVASTART(SDValue Op, SelectionDAG &amp;DAG) const {
-  MachineFunction &amp;MF = DAG.getMachineFunction();
-  Cpu0FunctionInfo *FuncInfo = MF.getInfo&lt;Cpu0FunctionInfo&gt;();
+<span class="p">...</span>
+<span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerVASTART</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">();</span>
+  <span class="n">Cpu0FunctionInfo</span> <span class="o">*</span><span class="n">FuncInfo</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getInfo</span><span class="o">&lt;</span><span class="n">Cpu0FunctionInfo</span><span class="o">&gt;</span><span class="p">();</span>
 
-  DebugLoc dl = Op.getDebugLoc();
-  SDValue FI = DAG.getFrameIndex(FuncInfo-&gt;getVarArgsFrameIndex(),
-                 getPointerTy());
+  <span class="n">DebugLoc</span> <span class="n">dl</span> <span class="o">=</span> <span class="n">Op</span><span class="p">.</span><span class="n">getDebugLoc</span><span class="p">();</span>
+  <span class="n">SDValue</span> <span class="n">FI</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getFrameIndex</span><span class="p">(</span><span class="n">FuncInfo</span><span class="o">-&gt;</span><span class="n">getVarArgsFrameIndex</span><span class="p">(),</span>
+                 <span class="n">getPointerTy</span><span class="p">());</span>
 
-  // vastart just stores the address of the VarArgsFrameIndex slot into the
-  // memory location argument.
-  const Value *SV = cast&lt;SrcValueSDNode&gt;(Op.getOperand(2))-&gt;getValue();
-  return DAG.getStore(Op.getOperand(0), dl, FI, Op.getOperand(1),
-            MachinePointerInfo(SV), false, false, 0);
-}</pre>
+  <span class="c1">// vastart just stores the address of the VarArgsFrameIndex slot into the</span>
+  <span class="c1">// memory location argument.</span>
+  <span class="k">const</span> <span class="n">Value</span> <span class="o">*</span><span class="n">SV</span> <span class="o">=</span> <span class="n">cast</span><span class="o">&lt;</span><span class="n">SrcValueSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Op</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span><span class="o">-&gt;</span><span class="n">getValue</span><span class="p">();</span>
+  <span class="k">return</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getStore</span><span class="p">(</span><span class="n">Op</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">dl</span><span class="p">,</span> <span class="n">FI</span><span class="p">,</span> <span class="n">Op</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">MachinePointerInfo</span><span class="p">(</span><span class="n">SV</span><span class="p">),</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch8_3_2.cpp</span>
 <span class="p">...</span>
@@ -2527,7 +2474,7 @@ SDValue Cpu0TargetLowering::LowerVASTART(SDValue Op, SelectionDAG &amp;DAG) cons
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Mips qemu reference <a class="footnote-reference" href="#id16" id="id10">[6]</a>.</p>
+<p>Mips qemu reference <a class="footnote-reference" href="#id18" id="id11">[7]</a>.</p>
 </div>
 <div class="section" id="verify-div-for-operator">
 <h2>Verify DIV for operator %<a class="headerlink" href="#verify-div-for-operator" title="Permalink to this headline">¶</a></h2>
@@ -2551,14 +2498,14 @@ It translate <strong>“(b+1)%c”</strong> into <strong>“div $zero, $3, $2”
 <div class="highlight-bash"><div class="highlight"><pre>118-165-70-242:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_6_2.cpp -I/Applications/
 Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
 MacOSX10.8.sdk/usr/include/ -emit-llvm -o ch4_6_2.bc
-118-165-70-242:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/cmake
+118-165-70-242:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake
 _debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
 ch4_6_2.bc -o ch4_6_2.cpu0.s
 118-165-70-242:InputFiles Jonathan<span class="nv">$ </span>cat ch4_6_2.cpu0.s
   ...
   div <span class="nv">$zero</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
   mfhi  <span class="nv">$2</span>
-  …
+  ...
 </pre></div>
 </div>
 </div>
@@ -2569,42 +2516,48 @@ The cpu0 backend code now can take care the integer function call and control
 statement just like the llvm front end tutorial example code.
 Look back the chapter of “Back end structure”, there are 3,000 lines of source
 code with taking three instructions only.
-With this 87% more of code, it can translate tens of instructions, global
+With this 90% more of code, it can translate tens of instructions, global
 variable, control flow statement and function call.</p>
-<table class="docutils footnote" frame="void" id="id11" rules="none">
+<table class="docutils footnote" frame="void" id="id12" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/ctrlflow.html#risc-cpu-knowledge">http://jonathan2251.github.com/lbd/ctrlflow.html#risc-cpu-knowledge</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id12" rules="none">
+<table class="docutils footnote" frame="void" id="id13" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="https://www.dropbox.com/sh/2pkh1fewlq2zag9/OHnrYn2nOs/doc/MIPSproAssemblyLanguageProgrammerGuide">https://www.dropbox.com/sh/2pkh1fewlq2zag9/OHnrYn2nOs/doc/MIPSproAssemblyLanguageProgrammerGuide</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id13" rules="none">
+<table class="docutils footnote" frame="void" id="id14" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf">http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id14" rules="none">
+<table class="docutils footnote" frame="void" id="id15" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id15" rules="none">
+<table class="docutils footnote" frame="void" id="id16" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#global-variable">http://jonathan2251.github.com/lbd/globalvar.html#global-variable</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id16" rules="none">
+<table class="docutils footnote" frame="void" id="id17" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id10">[6]</a></td><td><a class="reference external" href="http://developer.mips.com/clang-llvm/">http://developer.mips.com/clang-llvm/</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id7">[6]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode">http://jonathan2251.github.com/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id18" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id11">[7]</a></td><td><a class="reference external" href="http://developer.mips.com/clang-llvm/">http://developer.mips.com/clang-llvm/</a></td></tr>
 </tbody>
 </table>
 </div>

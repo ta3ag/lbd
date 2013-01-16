@@ -382,8 +382,9 @@ readability.</p>
   <span class="n">ZERO</span><span class="p">,</span> <span class="n">AT</span><span class="p">,</span> <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>By the following <tt class="docutils literal"><span class="pre">llc</span></tt> option, you can get the obj file and dump it&#8217;s content
-by hexdump as follows,</p>
+<p>7/1/Cpu0 include support for control flow statement.
+Run with it as well as the following <tt class="docutils literal"><span class="pre">llc</span></tt> option, you can get the obj file
+and dump it&#8217;s content by hexdump as follows,</p>
 <div class="highlight-c++"><pre>118-165-79-206:InputFiles Jonathan$ cat ch7_1_1.cpu0.s
 …
     ld  $3, 32($sp)
@@ -398,7 +399,7 @@ $BB0_2:                                 # %if.end
     ld  $2, 28($sp)
 …</pre>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+<div class="highlight-bash"><div class="highlight"><pre>118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj
 ch7_1_1.bc -o ch7_1_1.cpu0.o
 
@@ -435,8 +436,8 @@ List and explain this again as follows,</p>
     ld  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
 </pre></div>
 </div>
-<p>If cpu0 do jne compare in execution stage, then we should set PC=PC+12, offset
-of ($BB0_2, jn e $BB02) – 8, in this example.</p>
+<p>If cpu0 do <strong>&#8220;jne&#8221;</strong> compare in execution stage, then we should set PC=PC+12,
+offset of ($BB0_2, jn e $BB02) – 8, in this example.</p>
 <p>Cpu0 is for teaching purpose and didn&#8217;t consider the performance with design.
 In reality, the conditional branch is important in performance of CPU design.
 According bench mark information, every 7 instructions will meet 1 branch
@@ -607,15 +608,9 @@ You can run with them if you like to test more.</p>
 empty function in Cpu0ISelLowering.cpp as follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0ISelLowering.cpp</span>
 <span class="n">SDValue</span>
-<span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerCall</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">InChain</span><span class="p">,</span> <span class="n">SDValue</span> <span class="n">Callee</span><span class="p">,</span>
-                              <span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">isVarArg</span><span class="p">,</span>
-                              <span class="kt">bool</span> <span class="n">doesNotRet</span><span class="p">,</span> <span class="kt">bool</span> <span class="o">&amp;</span><span class="n">isTailCall</span><span class="p">,</span>
-                              <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="o">::</span><span class="n">OutputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Outs</span><span class="p">,</span>
-                              <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">OutVals</span><span class="p">,</span>
-                              <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="o">::</span><span class="n">InputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Ins</span><span class="p">,</span>
-                              <span class="n">DebugLoc</span> <span class="n">dl</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span>
-                              <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="n">InChain</span><span class="p">;</span>
+<span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerCall</span><span class="p">(</span><span class="n">TargetLowering</span><span class="o">::</span><span class="n">CallLoweringInfo</span> <span class="o">&amp;</span><span class="n">CLI</span><span class="p">,</span>
+                <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">CLI</span><span class="p">.</span><span class="n">Chain</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -702,6 +697,82 @@ main:
     .4byte  1                       <span class="c"># 0x1</span>
     .4byte  2                       <span class="c"># 0x2</span>
     .size   <span class="nv">$_ZZ4mainE1a</span>, 12
+</pre></div>
+</div>
+<p>The ch7_1_5.cpp is for test C operators <strong>==, !=, &amp;&amp;, ||</strong>. No code need to
+add since we have take care them before.
+But it can be test only when the control flow statement support is ready, as
+follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch7_1_5.cpp</span>
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">((</span><span class="n">a</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">b</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="n">c</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">a</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -c ch7_1_5.cpp -emit-llvm -o ch7_1_5.bc
+118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch7_1_5.bc -o ch7_1_5.cpu0.s
+118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1_5.cpu0.s
+  .section .mdebug.abi32
+  .previous
+  .file <span class="s2">&quot;ch7_1_5.bc&quot;</span>
+  .text
+  .globl  main
+  .align  2
+  .type main,@function
+  .ent  main                    <span class="c"># @main</span>
+main:
+  .cfi_startproc
+  .frame  <span class="nv">$sp</span>,16,<span class="nv">$lr</span>
+  .mask   0x00000000,0
+  .set  noreorder
+  .set  nomacro
+<span class="c"># BB#0:</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+<span class="nv">$tmp1</span>:
+  .cfi_def_cfa_offset 16
+  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
+  st  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
+  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  cmp <span class="nv">$4</span>, <span class="nv">$3</span>
+  jne <span class="nv">$BB0_2</span>          // a !<span class="o">=</span> 0
+  jmp <span class="nv">$BB0_1</span>
+<span class="nv">$BB0_1</span>:                       // <span class="nv">a</span> <span class="o">==</span> 0
+  ld  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  cmp <span class="nv">$3</span>, <span class="nv">$2</span>
+  jeq <span class="nv">$BB0_3</span>          // <span class="nv">b</span> <span class="o">==</span> 2
+  jmp <span class="nv">$BB0_2</span>
+<span class="nv">$BB0_2</span>:
+  ld  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  cmp <span class="nv">$3</span>, <span class="nv">$2</span>          // <span class="nv">c</span> <span class="o">==</span> 2
+  jeq <span class="nv">$BB0_4</span>
+  jmp <span class="nv">$BB0_3</span>
+<span class="nv">$BB0_3</span>:                       // <span class="o">(</span><span class="nv">a</span> <span class="o">==</span> 0 <span class="o">&amp;&amp;</span> <span class="nv">b</span> <span class="o">==</span> 2<span class="o">)</span> <span class="o">||</span> <span class="o">(</span>c !<span class="o">=</span> 2<span class="o">)</span>
+  ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1     // a++
+  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_4</span>:
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
+  ret <span class="nv">$lr</span>
+  .set  macro
+  .set  reorder
+  .end  main
+<span class="nv">$tmp2</span>:
+  .size main, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-main
+  .cfi_endproc
 </pre></div>
 </div>
 </div>

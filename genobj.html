@@ -65,9 +65,9 @@ this chapter.</p>
 <p>Currently, we only support translate llvm IR code into assembly code.
 If you try to run 4/6_2/Cpu0 to translate obj code will get the error message as
 follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>/usr/local/llvm/3.1.test/cpu0/1/cmake_debug_build/bin/
+<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>/usr/local/llvm/test/cmake_debug_build/bin/
 llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch4_1_2.bc -o ch4_1_2.cpu0.o
-/usr/local/llvm/3.1.test/cpu0/1/cmake_debug_build/bin/llc: target does not
+/usr/local/llvm/test/cmake_debug_build/bin/llc: target does not
 support generation of this file <span class="nb">type</span>!
 </pre></div>
 </div>
@@ -86,7 +86,7 @@ Run it will get the obj files as follows,</p>
         st      <span class="nv">$3</span>, 64<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
 ...
 
-<span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>/usr/local/llvm/3.1.test/cpu0/1/cmake_debug_build/bin/
+<span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>/usr/local/llvm/test/cmake_debug_build/bin/
 llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch4_2.bc -o ch4_2.cpu0.o
 <span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>objdump -s ch4_2.cpu0.o
 
@@ -111,7 +111,7 @@ Contents of section .text:
 <span class="s2"> 0000 00000010 00000000 017a5200 017c0e01  .........zR..|..</span>
 <span class="s2"> 0010 000c0d00 00000010 00000018 00000000  ................</span>
 <span class="s2"> 0020 000000d4 00440e48                                    .....D.H</span>
-<span class="s2">[Gamma@localhost InputFiles]$ /usr/local/llvm/3.1.test/cpu0/1/</span>
+<span class="s2">[Gamma@localhost InputFiles]$ /usr/local/llvm/test/</span>
 <span class="s2">cmake_debug_build/bin/llc -march=cpu0el -relocation-model=pic -filetype=obj</span>
 <span class="s2">ch4_2.bc -o ch4_2.cpu0el.o</span>
 <span class="s2">[Gamma@localhost InputFiles]$ objdump -s ch4_2.cpu0el.o</span>

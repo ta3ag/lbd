@@ -101,7 +101,7 @@ define i32 @main<span class="o">()</span> nounwind uwtable ssp <span class="o">{
   ret i32 %3
 <span class="o">}</span>
 
-118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/cmake_
+118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
 debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
 ch6_1.bc -o ch6_1.cpu0.s
 118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>cat ch6_1.cpu0.s
@@ -156,7 +156,7 @@ offset of register gp and load from $gp+(the offset) into register $2.</p>
 <div class="section" id="static-mode">
 <h3>Static mode<a class="headerlink" href="#static-mode" title="Permalink to this headline">¶</a></h3>
 <p>We can also translate it with absolute address mode by following command,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/cmake_
+<div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
 debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm
 ch6_1.bc -o ch6_1.cpu0.static.s
 118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>cat ch6_1.cpu0.static.s
@@ -176,7 +176,7 @@ $2+offset 0 into register $2.
 The <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=static</span></tt> is for static link mode which binding the
 address in static, compile/link time, not dynamic/run time.
 In this mode, you can also translate code with the following command,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/cmake_
+<div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
 debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -cpu0-islinux-f
 <span class="nv">ormat</span><span class="o">=</span><span class="nb">false</span> -filetype<span class="o">=</span>asm ch6_1.bc -o ch6_1.cpu0.islinux-format-false.s
 118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>cat ch6_1.cpu0.islinux-format-false.s
@@ -219,9 +219,10 @@ About the <strong>cl</strong> command variable, you can refer to <a class="footn
 <span class="k">static</span> <span class="n">cl</span><span class="o">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span>
 <span class="n">IsLinuxOpt</span><span class="p">(</span><span class="s">&quot;cpu0-islinux-format&quot;</span><span class="p">,</span> <span class="n">cl</span><span class="o">::</span><span class="n">Hidden</span><span class="p">,</span> <span class="n">cl</span><span class="o">::</span><span class="n">init</span><span class="p">(</span><span class="kc">true</span><span class="p">),</span>
                  <span class="n">cl</span><span class="o">::</span><span class="n">desc</span><span class="p">(</span><span class="s">&quot;Always use linux format.&quot;</span><span class="p">));</span>
-
-    <span class="n">Next</span> <span class="n">add</span> <span class="n">the</span> <span class="n">following</span> <span class="n">code</span> <span class="n">to</span> <span class="n">Cpu0ISelLowering</span><span class="p">.</span><span class="n">cpp</span><span class="p">.</span>
-<span class="c1">//  Cpu0ISelLowering.cpp</span>
+</pre></div>
+</div>
+<p>Next add the following code to Cpu0ISelLowering.cpp.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0ISelLowering.cpp</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span>
 <span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
   <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">Cpu0TargetObjectFile</span><span class="p">()),</span>
@@ -231,6 +232,7 @@ About the <strong>cl</strong> command variable, you can refer to <a class="footn
   <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">GlobalAddress</span><span class="p">,</span>      <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span>   <span class="n">Custom</span><span class="p">);</span>
    <span class="p">...</span>
 <span class="p">}</span>
+<span class="p">...</span>
 <span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span>
 <span class="n">LowerOperation</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span>
 <span class="p">{</span>
@@ -331,13 +333,15 @@ Since some DAG nodes are not with two arguments, we will define the list as
 (ADD (Hi (...), Lo (...)) or (ADD (Hi, Lo)) sometimes in this book.
 The corresponding machine instructions of these three IR nodes are defined in
 Cpu0InstrInfo.td as follows,</p>
-<div class="highlight-c++"><pre>  //  Cpu0InstrInfo.td
-  // Hi and Lo nodes are used to handle global addresses. Used on
-  // Cpu0ISelLowering to lower stuff like GlobalAddress, ExternalSymbol
-  // static model. (nothing to do with Cpu0 Registers Hi and Lo)
-  def Cpu0Hi    : SDNode&lt;"Cpu0ISD::Hi", SDTIntUnaryOp&gt;;
-  def Cpu0Lo    : SDNode&lt;"Cpu0ISD::Lo", SDTIntUnaryOp&gt;;
-  ...
+<div class="highlight-c++"><pre>//  Cpu0InstrInfo.td
+...
+// Hi and Lo nodes are used to handle global addresses. Used on
+// Cpu0ISelLowering to lower stuff like GlobalAddress, ExternalSymbol
+// static model. (nothing to do with Cpu0 Registers Hi and Lo)
+def Cpu0Hi    : SDNode&lt;"Cpu0ISD::Hi", SDTIntUnaryOp&gt;;
+def Cpu0Lo    : SDNode&lt;"Cpu0ISD::Lo", SDTIntUnaryOp&gt;;
+def Cpu0GPRel : SDNode&lt;"Cpu0ISD::GPRel", SDTIntUnaryOp&gt;;
+...
 // hi/lo relocs
 def : Pat&lt;(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)&gt;;
 // Expect cpu0 add LUi support, like Mips
@@ -502,8 +506,8 @@ address is the relative address to main().</p>
 <div class="section" id="global-variable-print-support">
 <h3>Global variable print support<a class="headerlink" href="#global-variable-print-support" title="Permalink to this headline">¶</a></h3>
 <p>Above code is for global address DAG translation.
-Next, add the following code to Cpu0MCInstLower.cpp and Cpu0InstPrinter.cpp
-for global variable printing operand function.</p>
+Next, add the following code to Cpu0MCInstLower.cpp, Cpu0InstPrinter.cpp and
+Cpu0ISelLowering.cpp for global variable printing operand function.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0MCInstLower.cpp</span>
 <span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
                                               <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
@@ -537,7 +541,7 @@ for global variable printing operand function.</p>
 <span class="p">}</span>
 
 <span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span><span class="o">&amp;</span> <span class="n">MO</span><span class="p">,</span>
-                                        <span class="kt">unsigned</span> <span class="n">offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+                                          <span class="kt">unsigned</span> <span class="n">offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="n">MachineOperandType</span> <span class="n">MOTy</span> <span class="o">=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getType</span><span class="p">();</span>
 
   <span class="k">switch</span> <span class="p">(</span><span class="n">MOTy</span><span class="p">)</span> <span class="p">{</span>
@@ -563,6 +567,23 @@ for global variable printing operand function.</p>
   <span class="p">}</span>
   <span class="p">...</span>
 <span class="p">}</span>
+
+<span class="n">Cpu0ISelLowering</span><span class="p">.</span><span class="n">cpp</span>
+<span class="p">...</span>
+<span class="c1">// The following function is for llc -debug DAG node name printing.</span>
+<span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">getTargetNodeName</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Opcode</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">Opcode</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="n">Cpu0ISD</span><span class="o">::</span><span class="nl">JmpLink:</span>           <span class="k">return</span> <span class="s">&quot;Cpu0ISD::JmpLink&quot;</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0ISD</span><span class="o">::</span><span class="nl">Hi:</span>                <span class="k">return</span> <span class="s">&quot;Cpu0ISD::Hi&quot;</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0ISD</span><span class="o">::</span><span class="nl">Lo:</span>                <span class="k">return</span> <span class="s">&quot;Cpu0ISD::Lo&quot;</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0ISD</span><span class="o">::</span><span class="nl">GPRel:</span>             <span class="k">return</span> <span class="s">&quot;Cpu0ISD::GPRel&quot;</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0ISD</span><span class="o">::</span><span class="nl">Ret:</span>               <span class="k">return</span> <span class="s">&quot;Cpu0ISD::Ret&quot;</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0ISD</span><span class="o">::</span><span class="nl">DivRem:</span>            <span class="k">return</span> <span class="s">&quot;MipsISD::DivRem&quot;</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0ISD</span><span class="o">::</span><span class="nl">DivRemU:</span>           <span class="k">return</span> <span class="s">&quot;MipsISD::DivRemU&quot;</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0ISD</span><span class="o">::</span><span class="nl">Wrapper:</span>           <span class="k">return</span> <span class="s">&quot;Cpu0ISD::Wrapper&quot;</span><span class="p">;</span>
+  <span class="k">default</span><span class="o">:</span>                         <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>OS is the output stream which output to the assembly file.</p>
@@ -587,9 +608,6 @@ The section &#8220;Instruction Selector&#8221; of <a class="footnote-reference" 
 </div>
 <div class="section" id="array-and-struct-support">
 <h2>Array and struct support<a class="headerlink" href="#array-and-struct-support" title="Permalink to this headline">¶</a></h2>
-<p>Shifting our work to iMac at this point.
-The Linux platform is fine.
-The reason we do the shift is for new platform using experience.</p>
 <p>LLVM use getelementptr to represent the array and struct type in C.
 Please reference section getelementptr of <a class="footnote-reference" href="#id6" id="id3">[3]</a>.
 For ch6_2.cpp, the llvm IR as follows,</p>
@@ -641,7 +659,7 @@ entry:
 </div>
 <p>Run 6/1/Cpu0 with ch6_2.bc on static mode will get the incorrect asm file as
 follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/cmake_
+<div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
 debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm
 ch6_2.bc -o ch6_2.cpu0.static.s
 118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>cat ch6_2.cpu0.static.s
@@ -709,7 +727,7 @@ a:
 Type int is 4 bytes in cpu0, and the date.day has fields year and month before
 it.
 Let use debug option in llc to see what&#8217;s wrong,</p>
-<div class="highlight-bash"><div class="highlight"><pre>jonathantekiimac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+<div class="highlight-bash"><div class="highlight"><pre>jonathantekiimac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -debug -relocation-model<span class="o">=</span>static
 -filetype<span class="o">=</span>asm ch6_2.bc -o ch6_2.cpu0.static.s
 ...
@@ -807,7 +825,8 @@ SelectionDAG has 15 nodes:
 …
 </pre></div>
 </div>
-<p>By llc -debug, you can see the DAG translation process. As above, the DAG list
+<p>By <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug</span></tt>, you can see the DAG translation process.
+As above, the DAG list
 for date.day (add GlobalAddress&lt;[3 x i32]* &#64;a&gt; 0, Constant&lt;8&gt;) with 3 nodes is
 replaced by 1 node GlobalAddress&lt;%struct.Date* &#64;date&gt; + 8.
 The DAG list for a[1] is same.

@@ -84,16 +84,17 @@ follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>clang -c ch4_1_1.cpp -emit-llvm -o ch4_1_1.bc
-<span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>llvm-dis ch4_1_1.bc -o ch4_1_1.ll
-<span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>cat ch4_1.ll
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_1_1.cpp -emit-llvm -o
+ch4_1_1.bc
+118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>llvm-dis ch4_1_1.bc -o ch4_1_1.ll
+118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch4_1_1.ll
 ; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch4_1_1.bc&#39;</span>
-target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:</span>
-<span class="s2">64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-</span>
-<span class="s2">n8:16:32:64-S128&quot;</span>
-target <span class="nv">triple</span> <span class="o">=</span> <span class="s2">&quot;x86_64-unknown-linux-gnu&quot;</span>
+target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-</span>
+<span class="s2">f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:</span>
+<span class="s2">32:64-S128&quot;</span>
+target <span class="nv">triple</span> <span class="o">=</span> <span class="s2">&quot;x86_64-apple-macosx10.8.0&quot;</span>
 
-define i32 @main<span class="o">()</span> nounwind uwtable <span class="o">{</span>
+define i32 @main<span class="o">()</span> nounwind uwtable ssp <span class="o">{</span>
   %1 <span class="o">=</span> alloca i32, align 4
   %a <span class="o">=</span> alloca i32, align 4
   %b <span class="o">=</span> alloca i32, align 4
@@ -109,19 +110,12 @@ define i32 @main<span class="o">()</span> nounwind uwtable <span class="o">{</sp
   %5 <span class="o">=</span> load i32* %c, align 4
   ret i32 %5
 <span class="o">}</span>
-<span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>/usr/local/llvm/3.1.test/cpu0/1/cmake_debug_build/bin/
-llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch4_1_1.bc -o ch4_1_1.
-cpu0.s
-LLVM ERROR: Cannot <span class="k">select</span>: 0x30da480: <span class="nv">i32</span> <span class="o">=</span> add 0x30da280, 0x30da380
-<span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>17<span class="o">]</span>
-  0x30da280: i32,ch <span class="o">=</span> load 0x30da180, 0x30d9b80, 0x30d9880&lt;LD4<span class="o">[</span>%a<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>5<span class="o">]</span>
-  <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>15<span class="o">]</span>
-        0x30d9b80: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;1&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>5<span class="o">]</span>
-        0x30d9880: <span class="nv">i32</span> <span class="o">=</span> undef <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>3<span class="o">]</span>
-  0x30da380: i32,ch <span class="o">=</span> load 0x30da180, 0x30d9e80, 0x30d9880&lt;LD4<span class="o">[</span>%b<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
-  <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>14<span class="o">]</span>
-        0x30d9e80: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;2&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>3<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>7<span class="o">]</span>
-        0x30d9880: <span class="nv">i32</span> <span class="o">=</span> undef <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>3<span class="o">]</span>
+
+118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch4_1_1.bc -o
+ch4_1_1.cpu0.s
+LLVM ERROR: Cannot <span class="k">select</span>: 0x7ff02102b010: <span class="nv">i32</span> <span class="o">=</span> add 0x7ff02102ae10, ...
+...
 </pre></div>
 </div>
 <p>This error says we have not instructions to translate IR DAG node <strong>add</strong>.
@@ -130,47 +124,91 @@ and 1 immediate.
 This node <strong>add</strong> is for 2 registers.
 So, appending the following code to Cpu0InstrInfo.td and Cpu0Schedule.td in
 4/1/Cpu0,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0InstrInfo.td</span>
-<span class="c1">/// Arithmetic Instructions (3-Operand, R-Type)</span>
-<span class="n">def</span> <span class="n">CMP</span>    <span class="o">:</span> <span class="n">CmpInstr</span><span class="o">&lt;</span><span class="mh">0x10</span><span class="p">,</span> <span class="s">&quot;cmp&quot;</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="n">def</span> <span class="n">ADD</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x13</span><span class="p">,</span> <span class="s">&quot;add&quot;</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="n">def</span> <span class="n">SUB</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x14</span><span class="p">,</span> <span class="s">&quot;sub&quot;</span><span class="p">,</span> <span class="n">sub</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="n">def</span> <span class="n">MUL</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x15</span><span class="p">,</span> <span class="s">&quot;mul&quot;</span><span class="p">,</span> <span class="n">mul</span><span class="p">,</span> <span class="n">IIImul</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="n">def</span> <span class="n">DIV</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x16</span><span class="p">,</span> <span class="s">&quot;div&quot;</span><span class="p">,</span> <span class="n">sdiv</span><span class="p">,</span> <span class="n">IIIdiv</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="n">def</span> <span class="n">AND</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x18</span><span class="p">,</span> <span class="s">&quot;and&quot;</span><span class="p">,</span> <span class="n">and</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="n">def</span> <span class="n">OR</span>      <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x19</span><span class="p">,</span> <span class="s">&quot;or&quot;</span><span class="p">,</span> <span class="n">or</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="n">def</span> <span class="n">XOR</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x1A</span><span class="p">,</span> <span class="s">&quot;xor&quot;</span><span class="p">,</span> <span class="n">xor</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="highlight-c++"><pre>// Cpu0InstrInfo.td
+...
+def shamt       : Operand&lt;i32&gt;;
+...
+// shamt field must fit in 5 bits.
+def immZExt5 : ImmLeaf&lt;i32, [{return Imm == (Imm &amp; 0x1f);}]&gt;;
+...
+// Arithmetic and logical instructions with 3 register operands.
+class ArithLogicR&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
+          InstrItinClass itin, RegisterClass RC, bit isComm = 0&gt;:
+  FA&lt;op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
+   !strconcat(instr_asm, "\t$ra, $rb, $rc"),
+   [(set RC:$ra, (OpNode RC:$rb, RC:$rc))], itin&gt; {
+  let shamt = 0;
+  let isCommutable = isComm;  // e.g. add rb rc =  add rc rb
+  let isReMaterializable = 1;
+}
 
-<span class="c1">/// Shift Instructions</span>
-<span class="n">def</span> <span class="n">ROL</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x1C</span><span class="p">,</span> <span class="s">&quot;rol&quot;</span><span class="p">,</span> <span class="n">rotl</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="n">def</span> <span class="n">ROR</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x1D</span><span class="p">,</span> <span class="s">&quot;ror&quot;</span><span class="p">,</span> <span class="n">rotr</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="n">def</span> <span class="n">SHL</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x1E</span><span class="p">,</span> <span class="s">&quot;shl&quot;</span><span class="p">,</span> <span class="n">shl</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="n">def</span> <span class="n">SHR</span>     <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x1F</span><span class="p">,</span> <span class="s">&quot;shr&quot;</span><span class="p">,</span> <span class="n">sra</span><span class="p">,</span> <span class="n">IIAlu</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+class CmpInstr&lt;bits&lt;8&gt; op, string instr_asm,
+          InstrItinClass itin, RegisterClass RC, bit isComm = 0&gt;:
+  FA&lt;op, (outs RC:$SW), (ins RC:$ra, RC:$rb),
+   !strconcat(instr_asm, "\t$ra, $rb"), [], itin&gt; {
+  let rc = 0;
+  let shamt = 0;
+  let isCommutable = isComm;
+}
+...
+// Shifts
+class shift_rotate_imm&lt;bits&lt;8&gt; op, bits&lt;4&gt; isRotate, string instr_asm,
+             SDNode OpNode, PatFrag PF, Operand ImmOpnd,
+             RegisterClass RC&gt;:
+  FA&lt;op, (outs RC:$ra), (ins RC:$rb, ImmOpnd:$shamt),
+   !strconcat(instr_asm, "\t$ra, $rb, $shamt"),
+   [(set RC:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu&gt; {
+  let rc = isRotate;
+  let shamt = shamt;
+}
 
-<span class="c1">// Cpu0Schedule.td</span>
-<span class="p">...</span>
-<span class="n">def</span> <span class="n">ALU</span>     <span class="o">:</span> <span class="n">FuncUnit</span><span class="p">;</span>
-<span class="n">def</span> <span class="n">IMULDIV</span> <span class="o">:</span> <span class="n">FuncUnit</span><span class="p">;</span>
+// 32-bit shift instructions.
+class shift_rotate_imm32&lt;bits&lt;8&gt; func, bits&lt;4&gt; isRotate, string instr_asm,
+             SDNode OpNode&gt;:
+  shift_rotate_imm&lt;func, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs&gt;;
 
-<span class="c1">//===------------------------------------------------------------------===//</span>
-<span class="c1">// Instruction Itinerary classes used for Cpu0</span>
-<span class="c1">//===------------------------------------------------------------------===//</span>
-<span class="p">...</span>
-<span class="n">def</span> <span class="n">IIImul</span>             <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
-<span class="n">def</span> <span class="n">IIIdiv</span>             <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
+// Load Upper Imediate
+class LoadUpper&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC, Operand Imm&gt;:
+  FL&lt;op, (outs RC:$ra), (ins Imm:$imm16),
+   !strconcat(instr_asm, "\t$ra, $imm16"), [], IIAlu&gt; {
+  let rb = 0;
+  let neverHasSideEffects = 1;
+  let isReMaterializable = 1;
+}
+...
+/// Arithmetic Instructions (3-Operand, R-Type)
+def CMP   : CmpInstr&lt;0x10, "cmp", IIAlu, CPURegs, 1&gt;;
+def ADD     : ArithLogicR&lt;0x13, "add", add, IIAlu, CPURegs, 1&gt;;
+def SUB     : ArithLogicR&lt;0x14, "sub", sub, IIAlu, CPURegs, 1&gt;;
+def MUL     : ArithLogicR&lt;0x15, "mul", mul, IIImul, CPURegs, 1&gt;;
+def DIV     : ArithLogicR&lt;0x16, "div", sdiv, IIIdiv, CPURegs, 1&gt;;
+def AND     : ArithLogicR&lt;0x18, "and", and, IIAlu, CPURegs, 1&gt;;
+def OR      : ArithLogicR&lt;0x19, "or", or, IIAlu, CPURegs, 1&gt;;
+def XOR     : ArithLogicR&lt;0x1A, "xor", xor, IIAlu, CPURegs, 1&gt;;
 
-<span class="n">def</span> <span class="n">IIPseudo</span>           <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
+/// Shift Instructions
+def ROL     : shift_rotate_imm32&lt;0x1C, 0x01, "rol", rotl&gt;;
+def ROR     : shift_rotate_imm32&lt;0x1D, 0x01, "ror", rotr&gt;;
+def SHL     : shift_rotate_imm32&lt;0x1E, 0x00, "shl", shl&gt;;
+// work, it's for ashr llvm IR instruction
+//def SHR     : shift_rotate_imm32&lt;0x1F, 0x00, "sra", sra&gt;;
+// work, it's for lshr llvm IR instruction
+def SHR     : shift_rotate_imm32&lt;0x1F, 0x00, "shr", srl&gt;;
 
-<span class="c1">//===------------------------------------------------------------------===//</span>
-<span class="c1">// Cpu0 Generic instruction itineraries.</span>
-<span class="c1">//===------------------------------------------------------------------===//</span>
-<span class="c1">// http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html</span>
-<span class="n">def</span> <span class="n">Cpu0GenericItineraries</span> <span class="o">:</span> <span class="n">ProcessorItineraries</span><span class="o">&lt;</span><span class="p">[</span><span class="n">ALU</span><span class="p">,</span> <span class="n">IMULDIV</span><span class="p">],</span> <span class="p">[],</span> <span class="p">[</span>
-<span class="p">...</span>
-  <span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">IIImul</span>             <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">17</span><span class="p">,</span> <span class="p">[</span><span class="n">IMULDIV</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span><span class="p">,</span>
-  <span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">IIIdiv</span>             <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">38</span><span class="p">,</span> <span class="p">[</span><span class="n">IMULDIV</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span>
-<span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-</pre></div>
+
+// Cpu0Schedule.td
+...
+def IMULDIV : FuncUnit;
+...
+def IIImul             : InstrItinClass;
+def IIIdiv             : InstrItinClass;
+...
+// http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html
+def Cpu0GenericItineraries : ProcessorItineraries&lt;[ALU, IMULDIV], [], [
+...
+  InstrItinData&lt;IIImul             , [InstrStage&lt;17, [IMULDIV]&gt;]&gt;,
+  InstrItinData&lt;IIIdiv             , [InstrStage&lt;38, [IMULDIV]&gt;]&gt;
+]&gt;;</pre>
 </div>
 <p>In RISC CPU like Mips, the multiply/divide function unit and add/sub/logic unit
 are designed from two different hardware circuits, and more, their data path is
@@ -247,8 +285,8 @@ unsigned int.</p>
 <p>Micorsoft implementation references as <a class="footnote-reference" href="#id7" id="id2">[2]</a>.</p>
 <p>The sub-section &#8220;‘ashr‘ Instruction&#8221; and sub-section &#8220;‘lshr‘ Instruction&#8221; of
 <a class="footnote-reference" href="#id8" id="id3">[3]</a>.</p>
-<p>The 4/1 version just add 40 lines code in td files.
-With these 40 lines code, it process 9 operators more for C language and their
+<p>The 4/1 version just add 70 lines code in td files.
+With these 70 lines code, it process 9 operators more for C language and their
 corresponding llvm IR instructions.
 The arithmetic instructions are easy to implement by add the definition in td
 file only.</p>
@@ -300,9 +338,9 @@ Let&#8217;s assume %0 != 0 first, then the (icmp ne i32 %0, 0) = 1 (or true), an
 (xor 1, 1) = 0.
 When %0 = 0, (icmp ne i32 %0, 0) = 0 (or false), and (xor 0, 1) = 1.
 So, the translation is correct.</p>
-<p>Now, let&#8217;s run ch4_2.bc with 4/2/Cpu0 with <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug</span></tt> option to get result
+<p>Now, let&#8217;s run ch4_2.bc with 4/1/Cpu0 with <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug</span></tt> option to get result
 as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-16-22:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+<div class="highlight-bash"><div class="highlight"><pre>118-165-16-22:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -debug -relocation-model<span class="o">=</span>pic
 -filetype<span class="o">=</span>asm ch4_3.bc -o ch4_3.cpu0.s
 ...
@@ -311,57 +349,64 @@ cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -debug -reloc
 Initial selection DAG: BB#0 <span class="s1">&#39;main:entry&#39;</span>
 SelectionDAG has 20 nodes:
 ...
-    0x7fbfc282c510: &lt;multiple use&gt;
-          0x7fbfc282c510: &lt;multiple use&gt;
-          0x7fbfc282bc10: &lt;multiple use&gt;
-          0x7fbfc282c610: <span class="nv">ch</span> <span class="o">=</span> setne <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>5<span class="o">]</span>
+  0x7ffb7982ab10: &lt;multiple use&gt;
+        0x7ffb7982ab10: &lt;multiple use&gt;
+        0x7ffb7982a210: &lt;multiple use&gt;
+        0x7ffb7982ac10: <span class="nv">ch</span> <span class="o">=</span> setne <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>5<span class="o">]</span>
 
-        0x7fbfc282c710: <span class="nv">i1</span> <span class="o">=</span> setcc 0x7fbfc282c510, 0x7fbfc282bc10,
-        0x7fbfc282c610 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>5<span class="o">]</span>
+      0x7ffb7982ad10: <span class="nv">i1</span> <span class="o">=</span> setcc 0x7ffb7982ab10, 0x7ffb7982a210, 0x7ffb7982ac10
+      <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>5<span class="o">]</span>
 
-        0x7fbfc282c810: <span class="nv">i1</span> <span class="o">=</span> Constant&lt;-1&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
+      0x7ffb7982ae10: <span class="nv">i1</span> <span class="o">=</span> Constant&lt;-1&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
 
-      0x7fbfc282c910: <span class="nv">i1</span> <span class="o">=</span> xor 0x7fbfc282c710, 0x7fbfc282c810 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
+    0x7ffb7982af10: <span class="nv">i1</span> <span class="o">=</span> xor 0x7ffb7982ad10, 0x7ffb7982ae10 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
 
-    0x7fbfc282ca10: <span class="nv">i32</span> <span class="o">=</span> zero_extend 0x7fbfc282c910 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span>
-
+  0x7ffb7982b010: <span class="nv">i32</span> <span class="o">=</span> zero_extend 0x7ffb7982af10 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span>
 ...
+Replacing.3 0x7ffb7982af10: <span class="nv">i1</span> <span class="o">=</span> xor 0x7ffb7982ad10, 0x7ffb7982ae10 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
 
+With: 0x7ffb7982d210: <span class="nv">i1</span> <span class="o">=</span> setcc 0x7ffb7982ab10, 0x7ffb7982a210, 0x7ffb7982cf10
 
-Replacing.3 0x7fbfc282c910: <span class="nv">i1</span> <span class="o">=</span> xor 0x7fbfc282c710, 0x7fbfc282c810 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
-
-With: 0x7fbfc282ec10: <span class="nv">i1</span> <span class="o">=</span> setcc 0x7fbfc282c510, 0x7fbfc282bc10,
-0x7fbfc282e910
-
-Optimized lowered selection DAG: BB#0 <span class="s1">&#39;main:entry&#39;</span>
+Optimized lowered selection DAG: BB#0 <span class="s1">&#39;main:&#39;</span>
 SelectionDAG has 17 nodes:
 ...
-      0x7fbfc282c510: &lt;multiple use&gt;
-          0x7fbfc282c510: &lt;multiple use&gt;
-          0x7fbfc282bc10: &lt;multiple use&gt;
-          0x7fbfc282e910: <span class="nv">ch</span> <span class="o">=</span> seteq
+   0x7ffb7982ab10: &lt;multiple use&gt;
+        0x7ffb7982ab10: &lt;multiple use&gt;
+        0x7ffb7982a210: &lt;multiple use&gt;
+        0x7ffb7982cf10: <span class="nv">ch</span> <span class="o">=</span> seteq
 
-        0x7fbfc282ec10: <span class="nv">i1</span> <span class="o">=</span> setcc 0x7fbfc282c510, 0x7fbfc282bc10,
-        0x7fbfc282e910
+      0x7ffb7982d210: <span class="nv">i1</span> <span class="o">=</span> setcc 0x7ffb7982ab10, 0x7ffb7982a210, 0x7ffb7982cf10
 
-      0x7fbfc282ca10: <span class="nv">i32</span> <span class="o">=</span> zero_extend 0x7fbfc282ec10 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span>
-…
+    0x7ffb7982b010: <span class="nv">i32</span> <span class="o">=</span> zero_extend 0x7ffb7982d210 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span>
+...
 Type-legalized selection DAG: BB#0 <span class="s1">&#39;main:entry&#39;</span>
 SelectionDAG has 18 nodes:
 ...
-      0x7fbfc282c510: &lt;multiple use&gt;
-          0x7fbfc282c510: &lt;multiple use&gt;
-          0x7fbfc282bc10: &lt;multiple use&gt;
-          0x7fbfc282e910: <span class="nv">ch</span> <span class="o">=</span> seteq <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>-3<span class="o">]</span>
+    0x7ffb7982ab10: &lt;multiple use&gt;
+        0x7ffb7982ab10: &lt;multiple use&gt;
+        0x7ffb7982a210: &lt;multiple use&gt;
+        0x7ffb7982cf10: <span class="nv">ch</span> <span class="o">=</span> seteq <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>-3<span class="o">]</span>
 
-        0x7fbfc282c610: <span class="nv">i32</span> <span class="o">=</span> setcc 0x7fbfc282c510, 0x7fbfc282bc10,
-        0x7fbfc282e910 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>-3<span class="o">]</span>
+      0x7ffb7982ac10: <span class="nv">i32</span> <span class="o">=</span> setcc 0x7ffb7982ab10, 0x7ffb7982a210, 0x7ffb7982cf10
+       <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>-3<span class="o">]</span>
 
-        0x7fbfc282c710: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;1&gt; <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>-3<span class="o">]</span>
+      0x7ffb7982ad10: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;1&gt; <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>-3<span class="o">]</span>
 
-      0x7fbfc282c810: <span class="nv">i32</span> <span class="o">=</span> and 0x7fbfc282c610, 0x7fbfc282c710 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>-3<span class="o">]</span>
+    0x7ffb7982ae10: <span class="nv">i32</span> <span class="o">=</span> and 0x7ffb7982ac10, 0x7ffb7982ad10 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>-3<span class="o">]</span>
+...
+ISEL: Starting pattern match on root node: 0x7ffb7982ac10: <span class="nv">i32</span> <span class="o">=</span> setcc
+0x7ffb7982ab10, 0x7ffb7982a210, 0x7ffb7982cf10 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>14<span class="o">]</span>
 
- ...
+  Initial Opcode index to 0
+  Match failed at index 0
+LLVM ERROR: Cannot <span class="k">select</span>: 0x7ffb7982ac10: <span class="nv">i32</span> <span class="o">=</span> setcc 0x7ffb7982ab10,
+0x7ffb7982a210, 0x7ffb7982cf10 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>14<span class="o">]</span>
+  0x7ffb7982ab10: i32,ch <span class="o">=</span> load 0x7ffb7982aa10, 0x7ffb7982a710,
+  0x7ffb7982a410&lt;LD4<span class="o">[</span>%a<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>4<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>13<span class="o">]</span>
+  0x7ffb7982a710: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;1&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>5<span class="o">]</span>
+  0x7ffb7982a410: <span class="nv">i32</span> <span class="o">=</span> undef <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>3<span class="o">]</span>
+  0x7ffb7982a210: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;0&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>1<span class="o">]</span>
+In <span class="k">function</span>: main
 </pre></div>
 </div>
 <p>The (setcc %1, %2, setne) and (xor %3, -1) in “Initial selection DAG” stage
@@ -378,9 +423,8 @@ In “Optimized lowered selection DAG” stage, it also translate (zero_extern i
 %lnot to 32) into (and %lnot, 1).
 (zero_extern i1 %lnot to 32) just expand the %lnot to i32 32 bits result, so
 translate into (and %lnot, 1) is correct.
-Finally, translate (setcc %1, %2, seteq) into (xor (xor %1, %2), (ldi $0, 1) in
-“Instruction selection” stage by the rule defined in Cpu0InstrInfo.td as
-follows,</p>
+It fails at (setcc %1, %2, seteq).</p>
+<p>Run it with 4/2/Cpu0 which added code as below, to get the following result.</p>
 <div class="highlight-c++"><pre>//  Cpu0InstrInfo.td
 ...
 
@@ -396,9 +440,31 @@ multiclass SeteqPats&lt;RegisterClass RC, Instruction XOROp,
 
 defm : SeteqPats&lt;CPURegs, XOR, ZERO&gt;;</pre>
 </div>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -debug -filetype<span class="o">=</span>asm ch4_2.bc
+-o ch4_2.cpu0.s
+...
+ISEL: Starting pattern match on root node: 0x7fbc6902ac10: <span class="nv">i32</span> <span class="o">=</span> setcc
+0x7fbc6902ab10, 0x7fbc6902a210, 0x7fbc6902cf10 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>14<span class="o">]</span>
+
+  Initial Opcode index to 365
+  Created node: 0x7fbc6902af10: <span class="nv">i32</span> <span class="o">=</span> XOR 0x7fbc6902ab10, 0x7fbc6902a210
+
+  Created node: 0x7fbc6902d510: <span class="nv">i32</span> <span class="o">=</span> LDI 0x7fbc6902d310, 0x7fbc6902d410
+
+  Morphed node: 0x7fbc6902ac10: <span class="nv">i32</span> <span class="o">=</span> XOR 0x7fbc6902af10, 0x7fbc6902d510
+
+ISEL: Match <span class="nb">complete</span>!
+<span class="o">=</span>&gt; 0x7fbc6902ac10: <span class="nv">i32</span> <span class="o">=</span> XOR 0x7fbc6902af10, 0x7fbc6902d510
+</pre></div>
+</div>
+<p>4/2/Cpu0 defined seteq DAG pattern.
+It translate (setcc %1, %2, seteq) into (xor (xor %1, %2), (ldi $0, 1) in
+“Instruction selection” stage by the rule defined in Cpu0InstrInfo.td as
+above.</p>
 <p>After xor, the (and %4, 1) is translated into (and $2, (ldi $3, 1)) which is
 defined before already.
-List the asm file ch4_3.cpu0.s code fragment as below, you can check it with
+List the asm file ch4_2.cpu0.s code fragment as below, you can check it with
 the final result.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-16-22:InputFiles Jonathan<span class="nv">$ </span>cat ch4_2.cpu0.s
 ...
@@ -463,7 +529,7 @@ Scheduling
 </div>
 <p>Let&#8217;s run <tt class="docutils literal"><span class="pre">llc</span></tt> with option -view-dag-combine1-dags, and open the output
 result with Graphviz as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-12-177:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+<div class="highlight-bash"><div class="highlight"><pre>118-165-12-177:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -view-dag-combine1-dags -march<span class="o">=</span>cpu0
 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch4_2.bc -o ch4_2.cpu0.s
 Writing <span class="s1">&#39;/tmp/llvm_84ibpm/dag.main.dot&#39;</span>...  <span class="k">done</span>.
@@ -472,7 +538,7 @@ Writing <span class="s1">&#39;/tmp/llvm_84ibpm/dag.main.dot&#39;</span>...  <spa
 </div>
 <p>It will show the /tmp/llvm_84ibpm/dag.main.dot as <a class="reference internal" href="#otherinst-f1"><em>llc option -view-dag-combine1-dags graphic view</em></a>.</p>
 <div class="figure align-center" id="otherinst-f1">
-<a class="reference internal image-reference" href="_images/19.png"><img alt="_images/19.png" src="_images/19.png" style="width: 687.0px; height: 851.0px;" /></a>
+<a class="reference internal image-reference" href="_images/18.png"><img alt="_images/18.png" src="_images/18.png" style="width: 687.0px; height: 851.0px;" /></a>
 <p class="caption">llc option -view-dag-combine1-dags graphic view</p>
 </div>
 <p>From <a class="reference internal" href="#otherinst-f1"><em>llc option -view-dag-combine1-dags graphic view</em></a>, we can see the -view-dag-combine1-dags option is for
@@ -503,7 +569,7 @@ Cpu0InstrInfo.td as follows,</p>
 def UDIV    : ArithLogicR&lt;0x17, "udiv", udiv, IIIdiv, CPURegs, 1&gt;;
 …
 /// Shift Instructions
-// work, it's for ashr llvm IR instruction
+// work, sra for ashr llvm IR instruction
 def SRA     : shift_rotate_imm32&lt;0x1B, 0x00, "sra", sra&gt;;</pre>
 </div>
 <p>To use addiu only instead of ldi, change Cpu0InstrInfo.td as follows,</p>
@@ -537,7 +603,7 @@ instead of ldi, will get the result as follows,</p>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-13-40:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_4.cpp -emit-llvm -o ch4_4.bc
-118-165-13-40:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+118-165-13-40:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
 ch4_4.bc -o ch4_4.cpu0.s
 118-165-13-40:InputFiles Jonathan<span class="nv">$ </span>cat ch4_4.cpu0.s
@@ -565,13 +631,13 @@ the cpu0 original design.
 This changes replace <strong>addiu</strong> with <strong>ldi</strong> in Cpu0InstrInfo.td and modify
 Cpu0FrameLowering.cpp as follows,</p>
 <div class="highlight-c++"><pre>// Cpu0InstrInfo.td
-…
+...
 
 /// Arithmetic Instructions (ALU Immediate)
 def LDI     : MoveImm&lt;0x08, "ldi", add, simm16, immSExt16, CPURegs&gt;;
 // add defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
 //def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;
-…
+...
 
 // Small immediates
 
@@ -644,7 +710,7 @@ It meaning more instructions running cost in this.
 Anyway, the pair of <strong>“ldi”</strong> and <strong>“add”</strong> to adjust stack pointer is double
 in cost compete to <strong>“addiu”</strong>, that&#8217;s the benefit we mentioned in
 <a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#cpu0-processor-architecture">section CPU0 processor architecture</a>.</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/cmake_
+<div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
 debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
 ch4_4.bc -o ch4_4.cpu0.s
 118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>cat ch4_4.cpu0.s
@@ -747,7 +813,7 @@ will get result as follows,</p>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_5.cpp -emit-llvm -o ch4_5.bc
-118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/cmake_
+118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
 debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
 ch4_5.bc -o ch4_5.cpu0.s
 118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>cat ch4_5.cpu0.s
@@ -790,9 +856,9 @@ main:
 <h2>Operator mod, %<a class="headerlink" href="#operator-mod" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="the-dag-of">
 <h3>The DAG of %<a class="headerlink" href="#the-dag-of" title="Permalink to this headline">¶</a></h3>
-<p>Example input code ch4_6.cpp which contains the C operator <strong>“%”</strong> and it&#8217;s
+<p>Example input code ch4_6_1.cpp which contains the C operator <strong>“%”</strong> and it&#8217;s
 corresponding llvm IR, as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch4_6.cpp</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch4_6_1.cpp</span>
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
@@ -804,7 +870,7 @@ corresponding llvm IR, as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch4_6.bc&#39;</span>
+<div class="highlight-bash"><div class="highlight"><pre>; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch4_6_1.bc&#39;</span>
  target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-</span>
 <span class="s2"> f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128&quot;</span>
 target <span class="nv">triple</span> <span class="o">=</span> <span class="s2">&quot;i386-apple-macosx10.8.0&quot;</span>
@@ -861,12 +927,12 @@ the remainder.)</p>
 <dd>&lt;result&gt; = <strong>srem i32 4, %var</strong>          ; yields {i32}:result = 4 % %var</dd>
 </dl>
 </div>
-<p>Run 4/5/Cpu0 with input file ch4_6.bc and <tt class="docutils literal"><span class="pre">llc</span></tt> option –view-isel-dags as
+<p>Run 4/5/Cpu0 with input file ch4_6_1.bc and <tt class="docutils literal"><span class="pre">llc</span></tt> option –view-isel-dags as
 follows, will get the error message as follows and the llvm DAG of
 <a class="reference internal" href="#otherinst-f2"><em>ch4_6.bc DAG</em></a>.</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-79-37:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/
+<div class="highlight-bash"><div class="highlight"><pre>118-165-79-37:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -view-isel-dags -relocation-model<span class="o">=</span>
-pic -filetype<span class="o">=</span>asm ch4_6.bc -o ch4_6.cpu0.s
+pic -filetype<span class="o">=</span>asm ch4_6_1.bc -o ch4_6.cpu0.s
 ...
 LLVM ERROR: Cannot <span class="k">select</span>: 0x7fa73a02ea10: <span class="nv">i32</span> <span class="o">=</span> mulhs 0x7fa73a02c610,
 0x7fa73a02e910 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>12<span class="o">]</span>
@@ -899,7 +965,7 @@ Similarly, SMMUL get the high word of multiply result.</p>
 <p class="caption">Translate ch4_6.bc into cpu0 backend DAG</p>
 </div>
 <p>Follows is the result of run 4/6_1/Cpu0 with ch4_6.bc.</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/cmake_
+<div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
 debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
 ch4_6.bc -o ch4_6.cpu0.s
 118-165-71-252:InputFiles Jonathan<span class="nv">$ </span>cat ch4_6.cpu0.s
@@ -990,7 +1056,10 @@ from TargetSelectionDAG.td.</p>
   ...
   // Hi/Lo registers
   def HI  : Register&lt;"hi"&gt;, DwarfRegNum&lt;[18]&gt;;
-    def LO  : Register&lt;"lo"&gt;, DwarfRegNum&lt;[19]&gt;;
+  def LO  : Register&lt;"lo"&gt;, DwarfRegNum&lt;[19]&gt;;
+  ...
+  // Hi/Lo Registers
+  def HILO : RegisterClass&lt;"Cpu0", [i32], 32, (add HI, LO)&gt;;
 
 // Cpu0Schedule.td
 ...
@@ -1062,7 +1131,10 @@ Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
 /// expanded, promoted and normal instructions
 SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
   unsigned Opcode = Node-&gt;getOpcode();
+  DebugLoc dl = Node-&gt;getDebugLoc();
   ...
+  EVT NodeTy = Node-&gt;getValueType(0);
+  unsigned MultOpc;
   switch(Opcode) {
   default: break;
 
@@ -1230,7 +1302,7 @@ class Div&lt;SDNode opNode, bits&lt;8&gt; op, string instr_asm, InstrItinClass i
 
 class Div32&lt;SDNode opNode, bits&lt;8&gt; op, string instr_asm, InstrItinClass itin&gt;:
   Div&lt;opNode, op, instr_asm, itin, CPURegs, [HI, LO]&gt;;
-…
+...
 class MoveToLOHI&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
          list&lt;Register&gt; DefRegs&gt;:
   FL&lt;op, (outs), (ins RC:$ra),
@@ -1243,7 +1315,7 @@ class MoveToLOHI&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
 ...
 def SDIV    : Div32&lt;Cpu0DivRem, 0x16, "div", IIIdiv&gt;;
 def UDIV    : Div32&lt;Cpu0DivRemU, 0x17, "divu", IIIdiv&gt;;
-…
+...
 def MTHI : MoveToLOHI&lt;0x42, "mthi", CPURegs, [HI]&gt;;
 def MTLO : MoveToLOHI&lt;0x43, "mtlo", CPURegs, [LO]&gt;;
 
@@ -1317,7 +1389,7 @@ SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &amp;DC
 }
 
 // Cpu0ISelLowering.h
-…
+...
 namespace llvm {
   namespace Cpu0ISD {
   enum NodeType {
@@ -1329,12 +1401,7 @@ namespace llvm {
     DivRemU
   };
   }
-…
-
-// Cpu0RegisterInfo.td
-...
-// Hi/Lo Registers
-def HILO : RegisterClass&lt;"Cpu0", [i32], 32, (add HI, LO)&gt;;</pre>
+...</pre>
 </div>
 <p>Run with ch4_1_2.cpp can get the result for operator <strong>“/”</strong> as below.
 But run with ch4_6_1.cpp as below, cannot get the <strong>“div”</strong> for operator
@@ -1356,7 +1423,7 @@ int main()
 }</pre>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-77-79:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_1_2.cpp -emit-llvm -o ch4_1_2.bc
-118-165-77-79:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/3.1.test/cpu0/1/cmake_
+118-165-77-79:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
 debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
 ch4_1_2.bc -o ch4_1_2.cpu0.s
 118-165-77-79:InputFiles Jonathan<span class="nv">$ </span>cat ch4_1_2.cpu0.s
