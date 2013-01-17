@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>ELF Support &mdash; Write An LLVM Backend Tutorial For Cpu0</title>
+    <title>ELF Support &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.3',
+        VERSION:     '3.2.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -29,13 +29,13 @@
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
-    <link rel="next" title="Porting to LLVM 3.2" href="port3.2.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
+    <link rel="next" title="Appendix A: Getting Started: Installing LLVM and the Cpu0 example code" href="install.html" />
     <link rel="prev" title="Function call" href="funccall.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
-          <span>Write An LLVM Backend Tutorial For Cpu0</span></a></h1>
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>ELF Support</span></h2>
       </div>
       <div class="topnav">
@@ -45,7 +45,7 @@
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="port3.2.html">Porting to LLVM 3.2</a>&#160;&#160;»
+        <a href="install.html">Appendix A: Getting Started: Installing LLVM and the Cpu0 example code</a>&#160;&#160;»
         </p>
 
       </div>
@@ -70,7 +70,7 @@ record at that time.
 This chapter will use the binutils which has been installed in
 &#8220;sub-section Install other tools on iMac&#8221; of Appendix A: “Installing LLVM”
 <a class="footnote-reference" href="#id9" id="id2">[2]</a> to analysis cpu0 ELF file.
-You will learn the objdump, readelf, …, tools and understand the ELF file
+You will learn the objdump, readelf, ..., tools and understand the ELF file
 format itself through using these tools to analyze the cpu0 generated obj in
 this chapter.
 LLVM has the llvm-objdump tool which like objdump but it&#8217;s only support the
@@ -96,13 +96,14 @@ demonstrate how to use binutils and gcc to analysis ELF through the example
 code in his book.
 It&#8217;s a Chinese book of “System Software” in concept and practice.
 This book does the real analysis through binutils.
-The “System Software”<a class="footnote-reference" href="#id10" id="id3">[3]</a> written by Beck is a famous book in concept of telling
-readers what is the compiler output, what is the linker output, what is the
-loader output, and how they work together.
+The “System Software”<a class="footnote-reference" href="#id10" id="id3">[3]</a> written by Beck is a famous book in concept of
+telling readers what is the compiler output, what is the linker output,
+what is the loader output, and how they work together.
 But it covers the concept only.
 You can reference it to understand how the <strong>“Relocation Record”</strong> works if you
 need to refresh or learning this knowledge for this chapter.</p>
-<p><a class="footnote-reference" href="#id11" id="id4">[4]</a>, <a class="footnote-reference" href="#id12" id="id5">[5]</a>, <a class="footnote-reference" href="#id13" id="id6">[6]</a> are the Chinese documents available from the cpu0 author on web site.</p>
+<p><a class="footnote-reference" href="#id11" id="id4">[4]</a>, <a class="footnote-reference" href="#id12" id="id5">[5]</a>, <a class="footnote-reference" href="#id13" id="id6">[6]</a> are the Chinese documents available from the cpu0 author on
+web site.</p>
 <div class="section" id="elf-format">
 <h2>ELF format<a class="headerlink" href="#elf-format" title="Permalink to this headline">¶</a></h2>
 <p>ELF is a format used both in obj and executable file.
@@ -112,8 +113,8 @@ So, there are two views in it as <a class="reference internal" href="#elf-f1"><e
 <p class="caption">ELF file format overview</p>
 </div>
 <p>As <a class="reference internal" href="#elf-f1"><em>ELF file format overview</em></a>, the “Section header table” include sections .text, .rodata,
-…, .data which are sections layout for code, read only data, …, and read/write
-data.
+..., .data which are sections layout for code, read only data, ..., and
+read/write data.
 “Program header table” include segments include run time code and data.
 The definition of segments is run time layout for code and data, and sections
 is link time layout for code and data.</p>
@@ -175,7 +176,7 @@ ELF Header:
 [Gamma@localhost InputFiles]$</pre>
 </div>
 <p>As above ELF header display, it contains information of magic number, version,
-ABI, …, . The Machine field of cpu0 is unknown while mips is MIPSR3000.
+ABI, ..., . The Machine field of cpu0 is unknown while mips is MIPSR3000.
 It is because cpu0 is not a popular CPU recognized by utility readelf.
 Let&#8217;s check ELF segments information as follows,</p>
 <div class="highlight-bash"><pre>[Gamma@localhost InputFiles]$ readelf -l ch6_1.cpu0.o
@@ -579,7 +580,7 @@ Please visit the web site <a class="footnote-reference" href="#id14" id="id7">[7
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="port3.2.html">Porting to LLVM 3.2</a>&#160;&#160;»
+        <a href="install.html">Appendix A: Getting Started: Installing LLVM and the Cpu0 example code</a>&#160;&#160;»
         </p>
 
       </div>

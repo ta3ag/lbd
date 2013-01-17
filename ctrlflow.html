@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Control flow statements &mdash; Write An LLVM Backend Tutorial For Cpu0</title>
+    <title>Control flow statements &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.3',
+        VERSION:     '3.2.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -29,13 +29,13 @@
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Function call" href="funccall.html" />
     <link rel="prev" title="Global variables, structs and arrays" href="globalvar.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
-          <span>Write An LLVM Backend Tutorial For Cpu0</span></a></h1>
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>Control flow statements</span></h2>
       </div>
       <div class="topnav">
@@ -313,7 +313,7 @@ following pattern,</p>
 multiclass BrcondPats&lt;RegisterClass RC, Instruction JEQOp, Instruction JNEOp,
   Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp,
   Instruction CMPOp&gt; {
-…
+...
 def : Pat&lt;(brcond (i32 (setne RC:$lhs, RC:$rhs)), bb:$dst),
           (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
 ...
@@ -321,8 +321,8 @@ def : Pat&lt;(brcond RC:$cond, bb:$dst),
           (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)&gt;;</pre>
 </div>
 <p>Above definition support (setne RC:$lhs, RC:$rhs) register to register compare.
-There are other compare pattern like, seteq, setlt, … . In addition to seteq,
-setne, …, we define setueq, setune, …,  by reference Mips code even though we
+There are other compare pattern like, seteq, setlt, ... . In addition to seteq,
+setne, ..., we define setueq, setune, ...,  by reference Mips code even though we
 didn&#8217;t find how setune came from.
 We have tried to define unsigned int type, but clang still generate setne
 instead of setune.
@@ -386,7 +386,7 @@ readability.</p>
 Run with it as well as the following <tt class="docutils literal"><span class="pre">llc</span></tt> option, you can get the obj file
 and dump it&#8217;s content by hexdump as follows,</p>
 <div class="highlight-c++"><pre>118-165-79-206:InputFiles Jonathan$ cat ch7_1_1.cpu0.s
-…
+...
     ld  $3, 32($sp)
     cmp $3, $2
     jne $BB0_2
@@ -397,7 +397,7 @@ $BB0_1:                                 # %if.then
     st  $2, 32($sp)
 $BB0_2:                                 # %if.end
     ld  $2, 28($sp)
-…</pre>
+...</pre>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj
@@ -405,9 +405,9 @@ ch7_1_1.bc -o ch7_1_1.cpu0.o
 
 118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>hexdump ch7_1_1.cpu0.o
     // jmp offset is <span class="nv">0x10</span><span class="o">=</span>16 bytes which is correct
-0000080 …......................... 10 20 20 02 21 00 00 10
+0000080 ............................ 10 20 20 02 21 00 00 10
 
-0000090 26 00 00 00 …............................................
+0000090 26 00 00 00 ...............................................
 </pre></div>
 </div>
 <p>The immediate value of jne (op 0x21) is 16; The offset between jne and $BB0_2
@@ -466,18 +466,18 @@ getBranchTargetOpValue(const MCInst &amp;MI, unsigned OpNo,
 MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &amp;MO,
                                               MachineOperandType MOTy,
                                               unsigned Offset) const {
-  …
+  ...
   switch(MO.getTargetFlags()) {
   default:                   llvm_unreachable("Invalid target flag!");
   case Cpu0II::MO_NO_FLAG:   Kind = MCSymbolRefExpr::VK_None; break;
-  …
+  ...
   }
   ...
   switch (MOTy) {
   case MachineOperand::MO_MachineBasicBlock:
     Symbol = MO.getMBB()-&gt;getSymbol();
     break;
-  …
+  ...
 }
 
 MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand&amp; MO,
@@ -491,9 +491,9 @@ MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand&amp; MO,
   case MachineOperand::MO_MachineBasicBlock:
   case MachineOperand::MO_GlobalAddress:
   case MachineOperand::MO_BlockAddress:
-  …
+  ...
   }
-  …
+  ...
 }
 
 // Cpu0ISelLowering.cpp
@@ -512,7 +512,7 @@ Cpu0TargetLowering(Cpu0TargetMachine &amp;TM)
 
   // Operations not directly supported by Cpu0.
   setOperationAction(ISD::BR_CC,             MVT::Other, Expand);
-  …
+  ...
 }
 
 // Cpu0InstrFormats.td
@@ -719,7 +719,9 @@ follows,</p>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -c ch7_1_5.cpp -emit-llvm -o ch7_1_5.bc
-118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch7_1_5.bc -o ch7_1_5.cpu0.s
+118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch7_1_5.bc -o
+ch7_1_5.cpu0.s
 118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1_5.cpu0.s
   .section .mdebug.abi32
   .previous

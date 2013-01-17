@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Adding arithmetic and local pointer support &mdash; Write An LLVM Backend Tutorial For Cpu0</title>
+    <title>Adding arithmetic and local pointer support &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.3',
+        VERSION:     '3.2.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -29,13 +29,13 @@
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Generating object files" href="genobj.html" />
     <link rel="prev" title="Backend structure" href="backendstructure.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
-          <span>Write An LLVM Backend Tutorial For Cpu0</span></a></h1>
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>Adding arithmetic and local pointer support</span></h2>
       </div>
       <div class="topnav">
@@ -470,8 +470,8 @@ the final result.</p>
 ...
 <span class="c"># BB#0:                                 # %entry</span>
     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
-    <span class="nv">$tmp1</span>:
-            .cfi_def_cfa_offset 16
+tmp1:
+    .cfi_def_cfa_offset 16
     addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
     st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
     addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, 5
@@ -524,7 +524,7 @@ Optimized legalized selection DAG
 Instruction selection
 Selected selection DAG
 Scheduling
-…
+...
 </pre></div>
 </div>
 <p>Let&#8217;s run <tt class="docutils literal"><span class="pre">llc</span></tt> with option -view-dag-combine1-dags, and open the output
@@ -545,12 +545,14 @@ Writing <span class="s1">&#39;/tmp/llvm_84ibpm/dag.main.dot&#39;</span>...  <spa
 Initial selection DAG.
 We list the other view options and their corresponding DAG translation stage as
 follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>-view-dag-combine1-dags: Initial selection DAG
--view-legalize-dags: Optimized <span class="nb">type</span>-legalized selection DAG
--view-dag-combine2-dags: Legalized selection DAG
--view-isel-dags: Optimized legalized selection DAG
--view-sched-dags: Selected selection DAG
-</pre></div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p><tt class="docutils literal"><span class="pre">llc</span></tt> Graphviz options and corresponding DAG translation stage</p>
+<p>-view-dag-combine1-dags: Initial selection DAG</p>
+<p>-view-legalize-dags: Optimized type-legalized selection DAG</p>
+<p>-view-dag-combine2-dags: Legalized selection DAG</p>
+<p>-view-isel-dags: Optimized legalized selection DAG</p>
+<p class="last">-view-sched-dags: Selected selection DAG</p>
 </div>
 <p>The -view-isel-dags is important and often used by an llvm backend writer
 because it is the DAG before instruction selection.
@@ -564,13 +566,14 @@ operators <strong>“/”</strong> in unsigned int and <strong>“&gt;&gt;”</s
 <a class="reference external" href="http://jonathan2251.github.com/lbd/otherinst.html#support-arithmetic-instructions">section Support arithmetic instructions</a> mentioned.
 To support these 2 operators, we only need to add these code in
 Cpu0InstrInfo.td as follows,</p>
-<div class="highlight-c++"><pre>//  Cpu0InstsInfo.td
-...
-def UDIV    : ArithLogicR&lt;0x17, "udiv", udiv, IIIdiv, CPURegs, 1&gt;;
-…
-/// Shift Instructions
-// work, sra for ashr llvm IR instruction
-def SRA     : shift_rotate_imm32&lt;0x1B, 0x00, "sra", sra&gt;;</pre>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0InstsInfo.td</span>
+<span class="p">...</span>
+<span class="n">def</span> <span class="n">UDIV</span>    <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x17</span><span class="p">,</span> <span class="s">&quot;udiv&quot;</span><span class="p">,</span> <span class="n">udiv</span><span class="p">,</span> <span class="n">IIIdiv</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">...</span>
+<span class="c1">/// Shift Instructions</span>
+<span class="c1">// work, sra for ashr llvm IR instruction</span>
+<span class="n">def</span> <span class="n">SRA</span>     <span class="o">:</span> <span class="n">shift_rotate_imm32</span><span class="o">&lt;</span><span class="mh">0x1B</span><span class="p">,</span> <span class="mh">0x00</span><span class="p">,</span> <span class="s">&quot;sra&quot;</span><span class="p">,</span> <span class="n">sra</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
 </div>
 <p>To use addiu only instead of ldi, change Cpu0InstrInfo.td as follows,</p>
 <div class="highlight-c++"><pre>//  Cpu0InstsInfo.td
@@ -607,7 +610,7 @@ instead of ldi, will get the result as follows,</p>
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
 ch4_4.bc -o ch4_4.cpu0.s
 118-165-13-40:InputFiles Jonathan<span class="nv">$ </span>cat ch4_4.cpu0.s
-    …
+    ...
     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
     addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
     ...
@@ -672,12 +675,12 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &amp;MF) const {
                                                         .addImm(-StackSize);
     BuildMI(MBB, MBBI, dl, TII.get(Cpu0::ADD), SP).addReg(SP).addReg(Cpu0::FP);
   }
-  …
+  ...
 }
 
 void Cpu0FrameLowering::emitEpilogue(MachineFunction &amp;MF,
                                  MachineBasicBlock &amp;MBB) const {
-  …
+  ...
   // Adjust stack.
   if (isInt&lt;16&gt;(-StackSize)) {
     // ldi fp, (-stacksize)
@@ -686,7 +689,7 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &amp;MF,
                                                         .addImm(-StackSize);
     BuildMI(MBB, MBBI, dl, TII.get(Cpu0::ADD), SP).addReg(SP).addReg(Cpu0::FP);
   }
-  …
+  ...
 }</pre>
 </div>
 <p>As above code, we use <strong>add</strong> IR binary instruction (1 register operand and 1
@@ -890,8 +893,8 @@ entry:
 <span class="o">}</span>
 </pre></div>
 </div>
-<p>LLVM <strong>srem</strong> is the IR corresponding <strong>“%”</strong>, reference sub-section &#8220;srem instruction&#8221;
-of <a class="footnote-reference" href="#id8" id="id5">[3]</a>.
+<p>LLVM <strong>srem</strong> is the IR corresponding <strong>“%”</strong>, reference sub-section
+&#8220;srem instruction&#8221; of <a class="footnote-reference" href="#id8" id="id5">[3]</a>.
 Copy the reference as follows,</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -1017,7 +1020,7 @@ in ARM.
 The 4/6_1/Cpu0 use the ARM solution.
 With this solution, the following code is needed.</p>
 <div class="highlight-c++"><pre>// Cpu0InstrInfo.td
-…
+...
 // Transformation Function - get the lower 16 bits.
 def LO16 : SDNodeXForm&lt;imm, [{
   return getImm(N, N-&gt;getZExtValue() &amp; 0xFFFF);
@@ -1027,10 +1030,10 @@ def LO16 : SDNodeXForm&lt;imm, [{
 def HI16 : SDNodeXForm&lt;imm, [{
   return getImm(N, (N-&gt;getZExtValue() &gt;&gt; 16) &amp; 0xFFFF);
 }]&gt;;
-…
+...
 def SMMUL   : ArithLogicR&lt;0x50, "smmul", mulhs, IIImul, CPURegs, 1&gt;;
 def UMMUL   : ArithLogicR&lt;0x51, "ummul", mulhu, IIImul, CPURegs, 1&gt;;
-…
+...
 // Arbitrary immediates
 def : Pat&lt;(i32 imm:$imm),
       (OR (SHL (ADDiu ZERO, (HI16 imm:$imm)), 16), (ADDiu ZERO, (LO16 imm:$imm)))&gt;;</pre>
@@ -1068,7 +1071,7 @@ def IIHiLo             : InstrItinClass;
 def Cpu0GenericItineraries : ProcessorItineraries&lt;[ALU, IMULDIV], [], [
   ...
   InstrItinData&lt;IIHiLo             , [InstrStage&lt;1,  [IMULDIV]&gt;]&gt;,
-  …
+  ...
 ]&gt;;
 
 // Cpu0InstrInfo.td
@@ -1320,7 +1323,7 @@ def MTHI : MoveToLOHI&lt;0x42, "mthi", CPURegs, [HI]&gt;;
 def MTLO : MoveToLOHI&lt;0x43, "mtlo", CPURegs, [LO]&gt;;
 
 // Cpu0ISelLowering.cpp
-…
+...
 Cpu0TargetLowering::
 Cpu0TargetLowering(Cpu0TargetMachine &amp;TM)
   : TargetLowering(TM, new TargetLoweringObjectFileELF()),
@@ -1414,13 +1417,14 @@ Unfortunately, we cannot run it now since it need the function call support.
 We will verify <strong>“%”</strong> with ch4_6_2.cpp at the end of chapter “Function Call”.
 You can run with the end of Example Code of chapter “Function Call”, if you
 like to verify it now.</p>
-<div class="highlight-c++"><pre>// ch4_1_2.cpp
-int main()
-{
-  …
-  f = a / b;
-  …
-}</pre>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch4_1_2.cpp</span>
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">f</span> <span class="o">=</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span><span class="p">;</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-77-79:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_1_2.cpp -emit-llvm -o ch4_1_2.bc
 118-165-77-79:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
@@ -1429,7 +1433,7 @@ ch4_1_2.bc -o ch4_1_2.cpu0.s
 118-165-77-79:InputFiles Jonathan<span class="nv">$ </span>cat ch4_1_2.cpu0.s
   div <span class="nv">$zero</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
   mflo  <span class="nv">$2</span>
-  …
+  ...
 
 // ch4_6_1.cpp
 int main<span class="o">()</span>

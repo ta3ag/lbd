@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Generating object files &mdash; Write An LLVM Backend Tutorial For Cpu0</title>
+    <title>Generating object files &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.3',
+        VERSION:     '3.2.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -29,13 +29,13 @@
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Global variables, structs and arrays" href="globalvar.html" />
     <link rel="prev" title="Adding arithmetic and local pointer support" href="otherinst.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
-          <span>Write An LLVM Backend Tutorial For Cpu0</span></a></h1>
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>Generating object files</span></h2>
       </div>
       <div class="topnav">
@@ -77,13 +77,13 @@ It can get result for big endian and little endian with command
 Run it will get the obj files as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>cat ch4_1_2.cpu0.s
 ...
-        .set    nomacro
+  .set  nomacro
 <span class="c"># BB#0:</span>
-        addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -72
-        addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-        st      <span class="nv">$2</span>, 68<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-        addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, 5
-        st      <span class="nv">$3</span>, 64<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -72
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+  st  <span class="nv">$2</span>, 68<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 5
+  st  <span class="nv">$3</span>, 64<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
 ...
 
 <span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>/usr/local/llvm/test/cmake_debug_build/bin/
@@ -166,9 +166,9 @@ objdump from B0 to B3 as 0xb8ffd009.</p>
 
   <span class="c1">// Register the MC codegen info.</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeGenInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
-                                    <span class="n">createCpu0MCCodeGenInfo</span><span class="p">);</span>
+                                          <span class="n">createCpu0MCCodeGenInfo</span><span class="p">);</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeGenInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
-                                    <span class="n">createCpu0MCCodeGenInfo</span><span class="p">);</span>
+                                          <span class="n">createCpu0MCCodeGenInfo</span><span class="p">);</span>
   <span class="c1">// Register the MC instruction info.</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstrInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCInstrInfo</span><span class="p">);</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstrInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCInstrInfo</span><span class="p">);</span>
@@ -178,28 +178,28 @@ objdump from B0 to B3 as 0xb8ffd009.</p>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCRegInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCRegisterInfo</span><span class="p">);</span>
   <span class="c1">// Register the MC Code Emitter</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
-                                    <span class="n">createCpu0MCCodeEmitterEB</span><span class="p">);</span>
+                                          <span class="n">createCpu0MCCodeEmitterEB</span><span class="p">);</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
-                                    <span class="n">createCpu0MCCodeEmitterEL</span><span class="p">);</span>
+                                          <span class="n">createCpu0MCCodeEmitterEL</span><span class="p">);</span>
 
   <span class="c1">// Register the object streamer.</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCObjectStreamer</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createMCStreamer</span><span class="p">);</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCObjectStreamer</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createMCStreamer</span><span class="p">);</span>
   <span class="c1">// Register the asm backend.</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
-                                   <span class="n">createCpu0AsmBackendEB32</span><span class="p">);</span>
+                                         <span class="n">createCpu0AsmBackendEB32</span><span class="p">);</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
-                                   <span class="n">createCpu0AsmBackendEL32</span><span class="p">);</span>
+                                         <span class="n">createCpu0AsmBackendEL32</span><span class="p">);</span>
   <span class="c1">// Register the MC subtarget info.</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCSubtargetInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
-                                      <span class="n">createCpu0MCSubtargetInfo</span><span class="p">);</span>
+                                            <span class="n">createCpu0MCSubtargetInfo</span><span class="p">);</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCSubtargetInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
-                                      <span class="n">createCpu0MCSubtargetInfo</span><span class="p">);</span>
+                                            <span class="n">createCpu0MCSubtargetInfo</span><span class="p">);</span>
   <span class="c1">// Register the MCInstPrinter.</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstPrinter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
-                                    <span class="n">createCpu0MCInstPrinter</span><span class="p">);</span>
+                                          <span class="n">createCpu0MCInstPrinter</span><span class="p">);</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstPrinter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
-                                    <span class="n">createCpu0MCInstPrinter</span><span class="p">);</span>
+                                          <span class="n">createCpu0MCInstPrinter</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>

@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Table of Contents &mdash; Write An LLVM Backend Tutorial For Cpu0</title>
+    <title>Table of Contents &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.3',
+        VERSION:     '3.2.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -29,12 +29,12 @@
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="#" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="#" />
     <link rel="next" title="About" href="about.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="#">
-          <span>Write An LLVM Backend Tutorial For Cpu0</span></a></h1>
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>Table of Contents</span></h2>
       </div>
       <div class="topnav">
@@ -157,12 +157,6 @@
 <li class="toctree-l2"><a class="reference internal" href="elf.html#lld">lld</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="port3.2.html">Porting to LLVM 3.2</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="port3.2.html#api-changes-in-llvm-3-2">API changes in LLVM 3.2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="port3.2.html#verify-the-cpu0-for-3-2">Verify the Cpu0 for 3.2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="port3.2.html#mips-backend-changes-in-3-2">Mips backend changes in 3.2</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Appendix A: Getting Started: Installing LLVM and the Cpu0 example code</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="install.html#setting-up-your-mac">Setting Up Your Mac</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="install.html#installing-llvm-xcode-and-cmake">Installing LLVM, Xcode and cmake</a></li>
@@ -178,6 +172,16 @@
 <li class="toctree-l3"><a class="reference internal" href="install.html#install-other-tools-on-linux">Install other tools on Linux</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="oldver.html">Appendix B: LLVM changes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="oldver.html#difference-between-3-2-and-3-1">Difference between 3.2 and 3.1</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="oldver.html#api-difference">API difference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="oldver.html#structure-difference">Structure difference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="oldver.html#verify-the-cpu0-for-difference">Verify the Cpu0 for difference</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="oldver.html#difference-in-mips-backend">Difference in Mips backend</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="todo.html">Todo List</a></li>

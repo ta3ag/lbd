@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Cpu0 Instruction and LLVM Target Description &mdash; Write An LLVM Backend Tutorial For Cpu0</title>
+    <title>Cpu0 Instruction and LLVM Target Description &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.3',
+        VERSION:     '3.2.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -29,13 +29,13 @@
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Backend structure" href="backendstructure.html" />
     <link rel="prev" title="About" href="about.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
-          <span>Write An LLVM Backend Tutorial For Cpu0</span></a></h1>
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>Cpu0 Instruction and LLVM Target Description</span></h2>
       </div>
       <div class="topnav">
@@ -340,9 +340,10 @@ build up the different pieces of their target.
 For example, the x86 back end defines a register class that holds all of its
 32-bit registers named &#8220;GR32&#8221; (in the .td files, target specific definitions
 are all caps) like this:</p>
-<div class="highlight-c++"><pre>def GR32 : RegisterClass&lt;[i32], 32,
-  [EAX, ECX, EDX, ESI, EDI, EBX, EBP, ESP,
-   R8D, R9D, R10D, R11D, R14D, R15D, R12D, R13D]&gt; { … }</pre>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">GR32</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span>
+  <span class="p">[</span><span class="n">EAX</span><span class="p">,</span> <span class="n">ECX</span><span class="p">,</span> <span class="n">EDX</span><span class="p">,</span> <span class="n">ESI</span><span class="p">,</span> <span class="n">EDI</span><span class="p">,</span> <span class="n">EBX</span><span class="p">,</span> <span class="n">EBP</span><span class="p">,</span> <span class="n">ESP</span><span class="p">,</span>
+   <span class="n">R8D</span><span class="p">,</span> <span class="n">R9D</span><span class="p">,</span> <span class="n">R10D</span><span class="p">,</span> <span class="n">R11D</span><span class="p">,</span> <span class="n">R14D</span><span class="p">,</span> <span class="n">R15D</span><span class="p">,</span> <span class="n">R12D</span><span class="p">,</span> <span class="n">R13D</span><span class="p">]</span><span class="o">&gt;</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span>
+</pre></div>
 </div>
 </div>
 <div class="section" id="write-td-target-description">
@@ -1151,6 +1152,14 @@ define i32 @main<span class="o">()</span> nounwind uwtable <span class="o">{</sp
 </pre></div>
 </div>
 <p>Now, compile ch3.bc into ch3.cpu0.s, we get the error message as follows,</p>
+<div class="highlight-c++"><pre>118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o
+ch3.cpu0.s
+Assertion failed: (target.get() &amp;&amp; "Could not allocate target machine!"),
+function main, file /Users/Jonathan/llvm/test/src/tools/llc/llc.cpp,
+line 271.
+...</pre>
+</div>
 <p>Currently we just define target td files (Cpu0.td, Cpu0RegisterInfo.td, ...).
 According to LLVM structure, we need to define our target machine and include
 those td related files.

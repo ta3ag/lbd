@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Global variables, structs and arrays &mdash; Write An LLVM Backend Tutorial For Cpu0</title>
+    <title>Global variables, structs and arrays &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.3',
+        VERSION:     '3.2.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -29,13 +29,13 @@
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Control flow statements" href="ctrlflow.html" />
     <link rel="prev" title="Generating object files" href="genobj.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
-          <span>Write An LLVM Backend Tutorial For Cpu0</span></a></h1>
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>Global variables, structs and arrays</span></h2>
       </div>
       <div class="topnav">
@@ -230,7 +230,7 @@ About the <strong>cl</strong> command variable, you can refer to <a class="footn
    <span class="p">...</span>
   <span class="c1">// Cpu0 Custom Operations</span>
   <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">GlobalAddress</span><span class="p">,</span>      <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span>   <span class="n">Custom</span><span class="p">);</span>
-   <span class="p">...</span>
+  <span class="p">...</span>
 <span class="p">}</span>
 <span class="p">...</span>
 <span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span>
@@ -429,7 +429,8 @@ instructions as follows,</p>
 <p>When PIC mode, LowerGlobalAddress() will create the DAG list (load
 DAG.getEntryNode(), (Wrapper GetGlobalReg(), GA)) by the following code and
 the code in Cpu0ISeleDAGToDAG.cpp as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="kt">bool</span> <span class="n">HasGotOfst</span> <span class="o">=</span> <span class="p">(</span><span class="n">GV</span><span class="o">-&gt;</span><span class="n">hasInternalLinkage</span><span class="p">()</span> <span class="o">||</span>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="p">...</span>
+  <span class="kt">bool</span> <span class="n">HasGotOfst</span> <span class="o">=</span> <span class="p">(</span><span class="n">GV</span><span class="o">-&gt;</span><span class="n">hasInternalLinkage</span><span class="p">()</span> <span class="o">||</span>
                      <span class="p">(</span><span class="n">GV</span><span class="o">-&gt;</span><span class="n">hasLocalLinkage</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isa</span><span class="o">&lt;</span><span class="n">Function</span><span class="o">&gt;</span><span class="p">(</span><span class="n">GV</span><span class="p">)));</span>
   <span class="kt">unsigned</span> <span class="n">GotFlag</span> <span class="o">=</span> <span class="p">(</span><span class="n">HasGotOfst</span> <span class="o">?</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_GOT</span> <span class="o">:</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_GOT16</span><span class="p">);</span>
   <span class="n">SDValue</span> <span class="n">GA</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">ValTy</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">GotFlag</span><span class="p">);</span>
@@ -440,6 +441,7 @@ the code in Cpu0ISeleDAGToDAG.cpp as follows,</p>
   <span class="c1">// a load from got/GP is necessary for PIC to work.</span>
   <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">HasGotOfst</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ResNode</span><span class="p">;</span>
+  <span class="p">...</span>
 
 <span class="c1">// Cpu0ISelDAGToDAG.cpp</span>
 <span class="c1">/// ComplexPattern used on Cpu0InstrInfo</span>
@@ -822,7 +824,7 @@ SelectionDAG has 15 nodes:
   0x7f7f5b02de10: i32,ch <span class="o">=</span> load 0x7f7f5b02d910, 0x7f7f5b030010, 0x7f7f5b02d210
   &lt;LD4<span class="o">[</span>getelementptr inbounds <span class="o">([</span>3 x i32<span class="o">]</span>* @a, i32 0, i32 1<span class="o">)]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>6<span class="o">]</span>
 
-…
+...
 </pre></div>
 </div>
 <p>By <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug</span></tt>, you can see the DAG translation process.
@@ -892,20 +894,21 @@ mechanism as below.</p>
 (add GlobalAddress&lt;[3 x i32]* &#64;a&gt; 0, Constant&lt;8&gt;) into
 (add (add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)),
 Constant&lt;8&gt;) by the following code in Cpu0ISelLowering.cpp.</p>
-<div class="highlight-c++"><pre>// Cpu0ISelLowering.cpp
-SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
-                                    SelectionDAG &amp;DAG) const {
-  ...
-    // %hi/%lo relocation
-    SDValue GAHi = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
-                                              Cpu0II::MO_ABS_HI);
-    SDValue GALo = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
-                                              Cpu0II::MO_ABS_LO);
-    SDValue HiPart = DAG.getNode(Cpu0ISD::Hi, dl, VTs, &amp;GAHi, 1);
-    SDValue Lo = DAG.getNode(Cpu0ISD::Lo, dl, MVT::i32, GALo);
-    return DAG.getNode(ISD::ADD, dl, MVT::i32, HiPart, Lo);
-  …
-}</pre>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0ISelLowering.cpp</span>
+<span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerGlobalAddress</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span>
+                                    <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+    <span class="c1">// %hi/%lo relocation</span>
+    <span class="n">SDValue</span> <span class="n">GAHi</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+                                              <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_ABS_HI</span><span class="p">);</span>
+    <span class="n">SDValue</span> <span class="n">GALo</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+                                              <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_ABS_LO</span><span class="p">);</span>
+    <span class="n">SDValue</span> <span class="n">HiPart</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Hi</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VTs</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">GAHi</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">SDValue</span> <span class="n">Lo</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Lo</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">GALo</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">HiPart</span><span class="p">,</span> <span class="n">Lo</span><span class="p">);</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
 </div>
 <p>So, when the SelectAddr(...) of Cpu0ISelDAGToDAG.cpp is called.
 The Addr SDValue in SelectAddr(..., Addr, ...) is DAG list for date.day

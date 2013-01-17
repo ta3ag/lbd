@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>About &mdash; Write An LLVM Backend Tutorial For Cpu0</title>
+    <title>About &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.3',
+        VERSION:     '3.2.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -29,13 +29,13 @@
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="#" />
-    <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Cpu0 Instruction and LLVM Target Description" href="llvmstructure.html" />
     <link rel="prev" title="Table of Contents" href="index.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
-          <span>Write An LLVM Backend Tutorial For Cpu0</span></a></h1>
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>About</span></h2>
       </div>
       <div class="topnav">
@@ -81,8 +81,10 @@ With his help, we can finish this book and put on web with sphinx tool.</p>
 <div class="section" id="revision-history">
 <h2>Revision history<a class="headerlink" href="#revision-history" title="Permalink to this headline">¶</a></h2>
 <dl class="docutils">
-<dt>Version 4.0, Not Released Yet</dt>
-<dd>Update for LLVM 3.2.</dd>
+<dt>Version 3.2.4, Released January 17, 2013</dt>
+<dd>Update for LLVM 3.2.
+Change title (book name) from &#8220;Write An LLVM Backend Tutorial For Cpu0&#8221; to
+&#8220;Tutorial: Creating an LLVM Backend for the Cpu0 Architecture&#8221;.</dd>
 <dt>Version 3.2.3, Released January 12, 2013</dt>
 <dd>Add chapter &#8220;Porting to LLVM 3.2&#8221;.</dd>
 <dt>Version 3.2.2, Released January 10, 2013</dt>
@@ -203,12 +205,12 @@ functions are introduced. Over 700 lines of source code are added.</p>
 format and binutils tools are not a part of LLVM, but are introduced.  This chapter
 details how to use the ELF tools to verify and analyze the object files created by the
 Cpu0 backend.</p>
-<p><a class="reference internal" href="port3.2.html#sec-porting32"><em>Porting to LLVM 3.2</em></a>:</p>
-<p>Introduces the changes of the LLVM APIs used by Cpu0 and Mips when updating this guide
-from LLVM 3.1 to 3.2.</p>
 <p><a class="reference internal" href="install.html#sec-appendix-installing"><em>Appendix A: Getting Started: Installing LLVM and the Cpu0 example code</em></a>:</p>
 <p>Details how to set up the LLVM source code, development tools, and environment
 setting for Mac OS X and Linux platforms.</p>
+<p><a class="reference internal" href="oldver.html#sec-appendix-old-llvm-ver"><em>Appendix B: LLVM changes</em></a>:</p>
+<p>Introduces the difference of the LLVM APIs used by Cpu0 and Mips when updating
+this guide between LLVM different version.</p>
 </div>
 </div>
 

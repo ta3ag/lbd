@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Function call &mdash; Write An LLVM Backend Tutorial For Cpu0</title>
+    <title>Function call &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.3',
+        VERSION:     '3.2.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -29,13 +29,13 @@
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="ELF Support" href="elf.html" />
     <link rel="prev" title="Control flow statements" href="ctrlflow.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
-          <span>Write An LLVM Backend Tutorial For Cpu0</span></a></h1>
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>Function call</span></h2>
       </div>
       <div class="topnav">
@@ -73,7 +73,7 @@ It include stack frame and the related ABI support.
 If you have problem in reading the stack frame illustrated in the first three
 sections of this chapter, you can read the appendix B of “Procedure Call
 Convention” of book “Computer Organization and Design” which listed in
-section “RISC CPU knowledge” of chapter “Control flow statement” <a class="footnote-reference" href="#id12" id="id1">[1]</a>,
+section “RISC CPU knowledge” of chapter “Control flow statement” <a class="footnote-reference" href="#id11" id="id1">[1]</a>,
 “Run Time Memory” of compiler book, or “Function Call Sequence”  and
 “Stack Frame” of Mips ABI.</p>
 <div class="section" id="mips-stack-frame">
@@ -221,8 +221,8 @@ argument 5.</p>
 <a class="reference internal image-reference" href="_images/21.png"><img alt="_images/21.png" src="_images/21.png" style="width: 740.0px; height: 577.0px;" /></a>
 <p class="caption">Mips arguments location in stack frame</p>
 </div>
-<p>The 007-2418-003.pdf in <a class="footnote-reference" href="#id13" id="id2">[2]</a> is the Mips assembly language manual.
-<a class="footnote-reference" href="#id14" id="id3">[3]</a> is Mips Application Binary Interface which include the <a class="reference internal" href="#funccall-f1"><em>Mips stack frame</em></a>.</p>
+<p>The 007-2418-003.pdf in <a class="footnote-reference" href="#id12" id="id2">[2]</a> is the Mips assembly language manual.
+<a class="footnote-reference" href="#id13" id="id3">[3]</a> is Mips Application Binary Interface which include the <a class="reference internal" href="#funccall-f1"><em>Mips stack frame</em></a>.</p>
 </div>
 <div class="section" id="load-incoming-arguments-from-stack-frame">
 <h2>Load incoming arguments from stack frame<a class="headerlink" href="#load-incoming-arguments-from-stack-frame" title="Permalink to this headline">¶</a></h2>
@@ -294,7 +294,7 @@ for cpu0 passing rule as follows,</p>
 and define the CC_Cpu0EABI.
 The reason we don&#8217;t define the Calling Convention directly in CC_Cpu0 is that
 a real general CPU like Mips can have several Calling Convention.
-Combine with the mechanism of &#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id15" id="id4">[4]</a> which llvm
+Combine with the mechanism of &#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id14" id="id4">[4]</a> which llvm
 supplied, we can use different Calling Convention in  different target.
 Although cpu0 only have a Calling Convention right now, define with a dedicate
 Call Convention name (CC_Cpu0EABI in this example) is a better solution for
@@ -356,7 +356,7 @@ We define it as follows,</p>
     <span class="n">SDValue</span> <span class="n">FIN</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getFrameIndex</span><span class="p">(</span><span class="n">LastFI</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">());</span>
     <span class="n">InVals</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getLoad</span><span class="p">(</span><span class="n">ValVT</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">Chain</span><span class="p">,</span> <span class="n">FIN</span><span class="p">,</span>
                                  <span class="n">MachinePointerInfo</span><span class="o">::</span><span class="n">getFixedStack</span><span class="p">(</span><span class="n">LastFI</span><span class="p">),</span>
-                                 <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span>
+                                   <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span>
   <span class="p">}</span>
   <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">setLastInArgFI</span><span class="p">(</span><span class="n">LastFI</span><span class="p">);</span>
   <span class="c1">// All stores are grouped in one node to allow the matching between</span>
@@ -370,14 +370,14 @@ We define it as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Refresh &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id16" id="id5">[5]</a>, we handled global
+<p>Refresh &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id15" id="id5">[5]</a>, we handled global
 variable translation by create the IR DAG in LowerGlobalAddress() first, and
 then do the Instruction Selection by their corresponding machine instruction
 DAG in Cpu0InstrInfo.td.
 LowerGlobalAddress() is called when <tt class="docutils literal"><span class="pre">llc</span></tt> meet the global variable access.
 LowerFormalArguments() work with the same way.
 It is called when function is entered.
-It get incoming arguments information by CCInfo(CallConv,..., ArgLocs, …)
+It get incoming arguments information by CCInfo(CallConv,..., ArgLocs, ...)
 before enter <strong>“for loop”</strong>. In ch8_1.cpp, there are 6 arguments in sum_i(...)
 function call and we use the stack frame only for arguments passing without
 any arguments pass in registers.
@@ -501,7 +501,7 @@ static void printExpr(const MCExpr *Expr, raw_ostream &amp;OS) {
 }
 
 // Cpu0MCCodeEmitter.cpp
-…
+...
 unsigned Cpu0MCCodeEmitter::
 getMachineOpValue(const MCInst &amp;MI, const MCOperand &amp;MO,
                   SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups) const {
@@ -839,7 +839,7 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
 </pre></div>
 </div>
 <p>Just like load incoming arguments from stack frame, we call
-CCInfo(CallConv,..., ArgLocs, …) to get outgoing arguments information before
+CCInfo(CallConv,..., ArgLocs, ...) to get outgoing arguments information before
 enter <strong>“for loop”</strong> and set stack alignment with 8 bytes.
 They&#8217;re almost same in <strong>“for loop”</strong> with LowerFormalArguments(), except
 LowerCall() create store DAG vector instead of load DAG vector.
@@ -900,7 +900,9 @@ store outgoing arguments to stack frame offset.</p>
 </div>
 <p>Now, let&#8217;s run 8/3/Cpu0 with ch8_1.cpp to get result as follows (see comment
 //),</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o ch8_1.cpu0.s
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o
+ch8_1.cpu0.s
 118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.cpu0.s
   .section .mdebug.abi32
   .previous
@@ -1226,7 +1228,7 @@ main:
 </div>
 <div class="section" id="handle-gp-register-in-pic-addressing-mode">
 <h2>Handle $gp register in PIC addressing mode<a class="headerlink" href="#handle-gp-register-in-pic-addressing-mode" title="Permalink to this headline">¶</a></h2>
-<p>In &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id16" id="id6">[5]</a>, we mentioned two addressing
+<p>In &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id15" id="id6">[5]</a>, we mentioned two addressing
 mode, the static address mode and PIC (position-independent code) mode.
 We also mentioned, one example of PIC mode is used in share library.
 Share library usually can be loaded in different memory address decided at run
@@ -1305,29 +1307,7 @@ purpose for llvm backend design. We reserve <strong>“jalr”</strong> as PIC m
 library or dynamic loading code to demonstrate the caller how to handle the
 caller saved register $gp in calling the shared library and the shared library
 how to use $gp to access global variable address. This solution is popular in
-reality and deserve change cpu0 official design as a compiler book.
-Mips use the same solution in 32 bits Mips32 CPU of llvm 3.1.</p>
-<p>Mips removes these pseudo assembly code in 3.2.
-This change is good for spim (mips assembly code simulator) which run for
-Mips assembly code. According the theory of &#8220;System Software&#8221;, some pseudo
-assembly code (especially for those not in standard) cannot be translated by
-assembler. It will break down in assembly code simulator.
-Run ch_mips_llvm3.2_globalvar_changes.cpp with llvm 3.1 and 3.2 for mips, you
-will find the <strong>&#8221;.cprestore&#8221;</strong> is removed directly since 3.2 use other register
-in other the called function (like use $1 in f() and the remove <strong>.gprestore</strong>
-in sum_i()).
-<strong>&#8221;.cpload&#8221;</strong> is replaced with instructions as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>// llvm 3.1 mips
-  .cpload <span class="nv">$25</span>
-
-// llvm 3.2 mips
-  lui <span class="nv">$2</span>, %hi<span class="o">(</span>_gp_disp<span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span>_gp_disp<span class="o">)</span>
-  ...
-  addu  <span class="nv">$gp</span>, <span class="nv">$2</span>, <span class="nv">$25</span>
-</pre></div>
-</div>
-<p>Reference <a class="footnote-reference" href="#id17" id="id7">[6]</a> for <strong>&#8221;.cpload&#8221;</strong>, <strong>&#8221;.cprestore&#8221;</strong> and <strong>&#8220;_gp_disp&#8221;</strong>.</p>
+reality and deserve change cpu0 official design as a compiler book.</p>
 <p>Now, as the following code added in 8/6/Cpu0, we can issue <strong>“.cprestore”</strong> in
 emitPrologue() and emit ld $gp, ($gp save slot on stack) after jalr by create
 file Cpu0EmitGPRestore.cpp which run as a function pass.</p>
@@ -1336,7 +1316,7 @@ file Cpu0EmitGPRestore.cpp which run as a function pass.</p>
 add_llvm_target(Cpu0CodeGen
   ...
   Cpu0EmitGPRestore.cpp
-…
+...
 
 // Cpu0TargetMachine.cpp
 ...
@@ -1497,7 +1477,7 @@ FunctionPass *llvm::createCpu0EmitGPRestorePass(Cpu0TargetMachine &amp;tm) {
 }
 
 //===-- Cpu0MachineFunctionInfo.h - Private data used for Cpu0 ----*- C++ -*-=//
-…
+...
 class Cpu0FunctionInfo : public MachineFunctionInfo {
   ...
   bool EmitNOAT;
@@ -1657,7 +1637,7 @@ The above added code of Cpu0MCInstLower.cpp take care the .cpload and
 .cprestore machine instructions.
 It translate pseudo asm .cpload into four machine instructions, and .cprestore
 into one machine instruction as below.
-As mentioned in &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id16" id="id8">[5]</a>.
+As mentioned in &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id15" id="id7">[5]</a>.
 When the share library main() function be loaded, the loader will set the
 $t9 value to $gp when meet <strong>“.cpload $t9”</strong>.
 After that, the $gp value is $t9 which point to main(), and the global variable
@@ -1958,7 +1938,7 @@ We believe the arg &lt; 40 is satisfied because the native Intel CPU has the
 arg_ptr &lt; 40 in it&#8217;s assembly code and the Intel CPU native execution file can
 print correct result.
 You will see it soon in the bellow code.
-If the arg_ptr &lt; 40 is satisfied and <a href="#id9"><span class="problematic" id="id10">*</span></a>(20($sp)) = arg_offset = 12, then the
+If the arg_ptr &lt; 40 is satisfied and <a href="#id8"><span class="problematic" id="id9">*</span></a>(20($sp)) = arg_offset = 12, then the
 assembly output is correct.
 The llvm IR and mips assembly output as follows,</p>
 <div class="highlight-bash"><pre>118-165-78-221:InputFiles Jonathan$ llvm-dis ch8_3.bc -o ch8_3.ll
@@ -2208,7 +2188,8 @@ since it hasn&#8217;t the arg_ptr &lt; 40 in assembly output.
 The qemu mips gcc result as follows,</p>
 <div class="highlight-bash"><pre>[Gamma@localhost InputFiles]$ qemu-mips ch8_3_3
 a = 21
-[Gamma@localhost InputFiles]$ mips-linux-gnu-g++ -g ch8_3_3.cpp -o ch8_3_3 -static
+[Gamma@localhost InputFiles]$ mips-linux-gnu-g++ -g ch8_3_3.cpp -o ch8_3_3
+-static
 [Gamma@localhost InputFiles]$ qemu-mips ch8_3_3
 a = 21
 [Gamma@localhost InputFiles]$ mips-linux-gnu-g++ -S ch8_3_3.cpp
@@ -2474,7 +2455,7 @@ backend code too.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Mips qemu reference <a class="footnote-reference" href="#id18" id="id11">[7]</a>.</p>
+<p>Mips qemu reference <a class="footnote-reference" href="#id16" id="id10">[6]</a>.</p>
 </div>
 <div class="section" id="verify-div-for-operator">
 <h2>Verify DIV for operator %<a class="headerlink" href="#verify-div-for-operator" title="Permalink to this headline">¶</a></h2>
@@ -2518,46 +2499,40 @@ Look back the chapter of “Back end structure”, there are 3,000 lines of sour
 code with taking three instructions only.
 With this 90% more of code, it can translate tens of instructions, global
 variable, control flow statement and function call.</p>
-<table class="docutils footnote" frame="void" id="id12" rules="none">
+<table class="docutils footnote" frame="void" id="id11" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/ctrlflow.html#risc-cpu-knowledge">http://jonathan2251.github.com/lbd/ctrlflow.html#risc-cpu-knowledge</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id13" rules="none">
+<table class="docutils footnote" frame="void" id="id12" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="https://www.dropbox.com/sh/2pkh1fewlq2zag9/OHnrYn2nOs/doc/MIPSproAssemblyLanguageProgrammerGuide">https://www.dropbox.com/sh/2pkh1fewlq2zag9/OHnrYn2nOs/doc/MIPSproAssemblyLanguageProgrammerGuide</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id14" rules="none">
+<table class="docutils footnote" frame="void" id="id13" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf">http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id15" rules="none">
+<table class="docutils footnote" frame="void" id="id14" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id16" rules="none">
+<table class="docutils footnote" frame="void" id="id15" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#global-variable">http://jonathan2251.github.com/lbd/globalvar.html#global-variable</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id17" rules="none">
+<table class="docutils footnote" frame="void" id="id16" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id7">[6]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode">http://jonathan2251.github.com/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id18" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id11">[7]</a></td><td><a class="reference external" href="http://developer.mips.com/clang-llvm/">http://developer.mips.com/clang-llvm/</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id10">[6]</a></td><td><a class="reference external" href="http://developer.mips.com/clang-llvm/">http://developer.mips.com/clang-llvm/</a></td></tr>
 </tbody>
 </table>
 </div>

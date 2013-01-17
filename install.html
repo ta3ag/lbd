@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Appendix A: Getting Started: Installing LLVM and the Cpu0 example code &mdash; Write An LLVM Backend Tutorial For Cpu0</title>
+    <title>Appendix A: Getting Started: Installing LLVM and the Cpu0 example code &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.3',
+        VERSION:     '3.2.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -29,23 +29,23 @@
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
-    <link rel="top" title="Write An LLVM Backend Tutorial For Cpu0" href="index.html" />
-    <link rel="next" title="Todo List" href="todo.html" />
-    <link rel="prev" title="Porting to LLVM 3.2" href="port3.2.html" /> 
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
+    <link rel="next" title="Appendix B: LLVM changes" href="oldver.html" />
+    <link rel="prev" title="ELF Support" href="elf.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
-          <span>Write An LLVM Backend Tutorial For Cpu0</span></a></h1>
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
         <h2 class="heading"><span>Appendix A: Getting Started: Installing LLVM and the Cpu0 example code</span></h2>
       </div>
       <div class="topnav">
       
         <p>
-        «&#160;&#160;<a href="port3.2.html">Porting to LLVM 3.2</a>
+        «&#160;&#160;<a href="elf.html">ELF Support</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="todo.html">Todo List</a>&#160;&#160;»
+        <a href="oldver.html">Appendix B: LLVM changes</a>&#160;&#160;»
         </p>
 
       </div>
@@ -539,9 +539,8 @@ project
 according the following list steps, the corresponding commands shown as follows,</p>
 <p>1) Enter /usr/local/llvm/test/ and
 <tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/usr/local/llvm/release/src</span> <span class="pre">.</span></tt>.</p>
-<p>2) Update my modified files to support cpu0 by command,
-<tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/home/Gamma/LLVMBackendTutorialExampleCode/src_files_modify/</span>
-<span class="pre">src_files_modify/src</span> <span class="pre">.</span></tt>.</p>
+<p>2) Update my modified files to support cpu0 by command, <tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/home/Gamma/</span>
+<span class="pre">LLVMBackendTutorialExampleCode/src_files_modify/src_files_modify/src</span> <span class="pre">.</span></tt>.</p>
 <p>3) Check step 2 is effective by command
 <tt class="docutils literal"><span class="pre">grep</span> <span class="pre">-R</span> <span class="pre">&quot;Cpu0&quot;</span> <span class="pre">.</span> <span class="pre">|</span> <span class="pre">more`</span></tt>. I add the Cpu0 backend support, so check with
 grep.</p>
@@ -819,11 +818,11 @@ Linux distribution. Files compare tools Kdiff3 came from web site <a class="foot
       <div class="bottomnav">
       
         <p>
-        «&#160;&#160;<a href="port3.2.html">Porting to LLVM 3.2</a>
+        «&#160;&#160;<a href="elf.html">ELF Support</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="todo.html">Todo List</a>&#160;&#160;»
+        <a href="oldver.html">Appendix B: LLVM changes</a>&#160;&#160;»
         </p>
 
       </div>
