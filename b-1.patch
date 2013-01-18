@@ -1,0 +1,39 @@
+diff --git a/source/conf.py b/source/conf.py
+index 76c6e1e..ad7965e 100644
+--- a/source/conf.py
++++ b/source/conf.py
+@@ -20,6 +20,12 @@ import sys, os
+ 
+ # -- General configuration -----------------------------------------------------
+ 
++from tblgen.tblgen import TblgenLexer
++
++def setup(app):
++    from sphinx.highlighting import lexers
++    lexers['tblgen'] = TblgenLexer()
++
+ # If your documentation needs a minimal Sphinx version, state it here.
+ #needs_sphinx = '1.0'
+ 
+diff --git a/source/llvmstructure.rst b/source/llvmstructure.rst
+index 48667a7..9177608 100644
+--- a/source/llvmstructure.rst
++++ b/source/llvmstructure.rst
+@@ -359,7 +359,7 @@ The \*.inc file is a text file (C++ file) with table driven in concept.
+ Every back end has a target td which define it's own target information. 
+ File td is like C++ in syntax. For example the Cpu0.td as follows,
+ 
+-.. code-block:: c++
++.. code-block:: tblgen
+ 
+   /===-- Cpu0.td - Describe the Cpu0 Target Machine ---------*- tablegen -*-===//
+   // 
+@@ -395,7 +395,7 @@ File td is like C++ in syntax. For example the Cpu0.td as follows,
+ The registers td named Cpu0RegisterInfo.td included by Cpu0.td is defined as 
+ follows,
+ 
+-.. code-block:: c++
++.. code-block:: tblgen
+ 
+   //  Cpu0RegisterInfo.td
+   //===----------------------------------------------------------------------===//

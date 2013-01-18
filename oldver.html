@@ -210,8 +210,27 @@ old CPURegsRegisterClass is <strong>&#8220;pointer&#8221;</strong> type. The &#8
 <span class="kt">unsigned</span> <span class="n">CPURegSize</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegisterClass</span><span class="o">-&gt;</span><span class="n">getSize</span><span class="p">();</span>
 </pre></div>
 </div>
-<ol class="arabic simple" start="2">
-<li>DebugInfo.h is moved</li>
+<p>2. The TargetData structure has been renamed to DataLayout and moved to VMCore
+to remove a dependency on Target <a class="footnote-reference" href="#id3" id="id1">[1]</a>.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// 3.1</span>
+<span class="cp">#include &quot;llvm/Target/TargetData.h&quot;</span>
+<span class="k">class</span> <span class="nc">Cpu0TargetMachine</span> <span class="o">:</span> <span class="k">public</span> <span class="n">LLVMTargetMachine</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">const</span> <span class="n">TargetData</span>    <span class="n">DataLayout</span><span class="p">;</span> <span class="c1">// Calculates type size &amp; alignment</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="c1">// 3.2</span>
+<span class="cp">#include &quot;llvm/DataLayout.h&quot;</span>
+<span class="k">class</span> <span class="nc">Cpu0TargetMachine</span> <span class="o">:</span> <span class="k">public</span> <span class="n">LLVMTargetMachine</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">const</span> <span class="n">DataLayout</span>    <span class="n">DL</span><span class="p">;</span> <span class="c1">// Calculates type size &amp; alignment</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li>DebugInfo.h is moved.</li>
 </ol>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// 3.1</span>
 <span class="cp">#include &quot;llvm/Analysis/DebugInfo.h</span>
@@ -411,8 +430,8 @@ assembly code (especially for those not in standard) cannot be translated by
 assembler. It will break down in assembly code simulator.
 Run ch_mips_llvm3.2_globalvar_changes.cpp with llvm 3.1 and 3.2 for mips, you
 will find the <strong>&#8221;.cprestore&#8221;</strong> is removed directly since 3.2 use other register
-in other the called function (like use $1 in f() and the remove <strong>.gprestore</strong>
-in sum_i()).
+instead of $gp in the callee function (as example, it use $1 in f() and remove
+<strong>.gprestore</strong> in sum_i()).
 <strong>&#8221;.cpload&#8221;</strong> is replaced with instructions as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>// llvm 3.1 mips
   .cpload <span class="nv">$25</span>
@@ -424,11 +443,17 @@ in sum_i()).
   addu  <span class="nv">$gp</span>, <span class="nv">$2</span>, <span class="nv">$25</span>
 </pre></div>
 </div>
-<p>Reference <a class="footnote-reference" href="#id2" id="id1">[1]</a> for <strong>&#8221;.cpload&#8221;</strong>, <strong>&#8221;.cprestore&#8221;</strong> and <strong>&#8220;_gp_disp&#8221;</strong>.</p>
-<table class="docutils footnote" frame="void" id="id2" rules="none">
+<p>Reference <a class="footnote-reference" href="#id4" id="id2">[2]</a> for <strong>&#8221;.cpload&#8221;</strong>, <strong>&#8221;.cprestore&#8221;</strong> and <strong>&#8220;_gp_disp&#8221;</strong>.</p>
+<table class="docutils footnote" frame="void" id="id3" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode">http://jonathan2251.github.com/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://llvm.org/releases/3.2/docs/ReleaseNotes.html">http://llvm.org/releases/3.2/docs/ReleaseNotes.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode">http://jonathan2251.github.com/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode</a></td></tr>
 </tbody>
 </table>
 </div>
