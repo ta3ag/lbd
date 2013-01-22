@@ -88,7 +88,7 @@ arguments in register $a0, $a1, $a2, $a3, and the other arguments in stack
 if it over 4 arguments. <a class="reference internal" href="#funccall-f1"><em>Mips stack frame</em></a> is the Mips stack frame.</p>
 <div class="figure align-center" id="funccall-f1">
 <a class="reference internal image-reference" href="_images/12.png"><img alt="_images/12.png" src="_images/12.png" style="width: 688.0px; height: 531.0px;" /></a>
-<p class="caption">Mips stack frame</p>
+<p class="caption">Figure 1: Mips stack frame</p>
 </div>
 <p>Run <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=mips</span></tt> for ch8_1.bc, you will get the following result.
 See comment <strong>&#8220;//&#8221;</strong>.</p>
@@ -219,7 +219,7 @@ The stack size of sum_i() is 32, so 16+32($sp) is the location of incoming
 argument 5.</p>
 <div class="figure align-center" id="funccall-f2">
 <a class="reference internal image-reference" href="_images/21.png"><img alt="_images/21.png" src="_images/21.png" style="width: 740.0px; height: 577.0px;" /></a>
-<p class="caption">Mips arguments location in stack frame</p>
+<p class="caption">Figure 2: Mips arguments location in stack frame</p>
 </div>
 <p>The 007-2418-003.pdf in <a class="footnote-reference" href="#id12" id="id2">[2]</a> is the Mips assembly language manual.
 <a class="footnote-reference" href="#id13" id="id3">[3]</a> is Mips Application Binary Interface which include the <a class="reference internal" href="#funccall-f1"><em>Mips stack frame</em></a>.</p>
@@ -1094,7 +1094,7 @@ Summary callee incoming arguments and caller outgoing arguments as
 <a class="reference internal" href="#funccall-t1"><em>Callee incoming arguments and caller outgoing arguments</em></a>.</p>
 <div class="figure align-center" id="funccall-t1">
 <a class="reference internal image-reference" href="_images/13.png"><img alt="_images/13.png" src="_images/13.png" style="width: 697.0px; height: 156.0px;" /></a>
-<p class="caption">Callee incoming arguments and caller outgoing arguments</p>
+<p class="caption">Figure 3: Callee incoming arguments and caller outgoing arguments</p>
 </div>
 </div>
 <div class="section" id="pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup">

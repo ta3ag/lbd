@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Cpu0 Instruction and LLVM Target Description &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    <title>Cpu0 Instruction Set and LLVM Target Description &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -36,7 +36,7 @@
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
-        <h2 class="heading"><span>Cpu0 Instruction and LLVM Target Description</span></h2>
+        <h2 class="heading"><span>Cpu0 Instruction Set and LLVM Target Description</span></h2>
       </div>
       <div class="topnav">
       
@@ -52,108 +52,458 @@
       <div class="content">
         
         
-  <div class="section" id="cpu0-instruction-and-llvm-target-description">
-<span id="sec-llvmstructure"></span><h1>Cpu0 Instruction and LLVM Target Description<a class="headerlink" href="#cpu0-instruction-and-llvm-target-description" title="Permalink to this headline">¶</a></h1>
-<p>Before you start, you should know that you can always examine existing LLVM
-backend code and attempt to port what you find for your own target architecture
-.  The majority of this code can be found in the /lib/Target directory of your
-root LLVM directory. As most major RISC instruction set architectures have some
-similarities, this may be the avenue you might try if you are both an
-experienced programmer and knowledgable of compiler backends.
-However, there is a steep learning curve and you may easily get held up
+  <div class="section" id="cpu0-instruction-set-and-llvm-target-description">
+<span id="sec-llvmstructure"></span><h1>Cpu0 Instruction Set and LLVM Target Description<a class="headerlink" href="#cpu0-instruction-set-and-llvm-target-description" title="Permalink to this headline">¶</a></h1>
+<p>Before you begin this tutorial, you should know that you can always try to develop your
+own backend by porting code from existing backends.  The majority of the code you will
+want to investigate can be found in the /lib/Target directory of your root LLVM
+installation. As most major RISC instruction sets have some similarities, this may be the
+avenue you might try if you are an experienced programmer and knowledgable of compiler
+backends.</p>
+<p>On the other hand, there is a steep learning curve and you may easily get stuck
 debugging your new backend. You can easily spend a lot of time tracing which
 methods are callbacks of some function, or which are calling some overridden
-method deep in the LLVM codebase - and with a codebase as large as LLVM, this
-can easily become a headache. This tutorial will help you work through this
-process while learning the fundamentals of LLVM backend design. It will show
+method deep in the LLVM codebase - and with a codebase as large as LLVM, all of this
+can easily become difficult to keep track of. This tutorial will help you work through
+this process while learning the fundamentals of LLVM backend design. It will show
 you what is necessary to get your first backend functional and complete, and it
-should help you understand how to debug your backend when it does not produce
-desirable output using the output provided by LLVM.</p>
-<p>This chapter shows you the cpu0 instruction format first.
-Next, the llvm structure is introduced to you by copy and paste the related
-article from llvm web site. The llvm structure introduced here is extracted
-from the asop web site. You can read the whole article from the asop web site.
-After that we will show you how to write register and instruction definitions
-(Target Description File) which will be used in next chapter.</p>
+should help you understand how to debug your backend when it produces incorrect machine
+code using output provided by the compiler.</p>
+<p>This section details the Cpu0 instruction set and the structure of LLVM.
+The LLVM structure information is adapted from Chris Lattner&#8217;s LLVM chapter of the
+Architecture of Open Source Applications book <a class="footnote-reference" href="#aosa-book" id="id1">[3]</a>. You can read
+the original article from the AOSA website if you prefer. Finally, you will begin to
+create a new LLVM backend by writing register and instruction definitions in the
+Target Description files which will be used in next section.</p>
 <div class="section" id="cpu0-processor-architecture">
-<h2>CPU0 processor architecture<a class="headerlink" href="#cpu0-processor-architecture" title="Permalink to this headline">¶</a></h2>
-<p>We copy and redraw figures in english in this section. This
-web site <a class="footnote-reference" href="#id10" id="id1">[1]</a> is chinese version and here <a class="footnote-reference" href="#id11" id="id2">[2]</a> is english version.</p>
+<h2>Cpu0 processor architecture<a class="headerlink" href="#cpu0-processor-architecture" title="Permalink to this headline">¶</a></h2>
+<p>This subsection is based on materials available here <a class="footnote-reference" href="#cpu0-chinese" id="id2">[1]</a> (Chinese)
+and <a class="footnote-reference" href="#cpu0-english" id="id3">[2]</a> (English).</p>
 <div class="section" id="brief-introduction">
 <h3>Brief introduction<a class="headerlink" href="#brief-introduction" title="Permalink to this headline">¶</a></h3>
-<p>CPU0 is a 32-bit processor which has registers R0 .. R15, IR, MAR, MDR, etc.,
-and its structure is shown below.</p>
+<p>Cpu0 is a 32-bit architecture. It has 16 general purpose registers (R0, ..., R15), the
+Instruction Register (IR), the memory access registers MAR &amp; MDR. Its structure is
+illustrated in <a class="pageref" href="#llvmstructure-f1">Figure  1</a> below.</p>
 <div class="figure align-center" id="llvmstructure-f1">
 <img alt="_images/16.png" src="_images/16.png" />
-<p class="caption">The structure of the processor of CPU0</p>
+<p class="caption">Figure 1: Architectural block diagram of the Cpu0 processor</p>
 </div>
-<p>Uses of each register as follows:</p>
-<div class="figure align-center" id="llvmstructure-t1">
-<img alt="_images/17.png" src="_images/17.png" />
-<p class="caption">Cpu0 registers table</p>
+<p>The registers are used for the following purposes:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="21%" />
+<col width="79%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Register</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>IR</td>
+<td>Instruction register</td>
+</tr>
+<tr class="row-odd"><td>R0</td>
+<td>Constant register, value is 0</td>
+</tr>
+<tr class="row-even"><td>R1-R11</td>
+<td>General-purpose registers</td>
+</tr>
+<tr class="row-odd"><td>R12</td>
+<td>Status Word register (SW)</td>
+</tr>
+<tr class="row-even"><td>R13</td>
+<td>Stack Pointer register (SP)</td>
+</tr>
+<tr class="row-odd"><td>R14</td>
+<td>Link Register (LR)</td>
+</tr>
+<tr class="row-even"><td>R15</td>
+<td>Program Counter (PC)</td>
+</tr>
+<tr class="row-odd"><td>MAR</td>
+<td>Memory Address Register (MAR)</td>
+</tr>
+<tr class="row-even"><td>MDR</td>
+<td>Memory Data Register (MDR)</td>
+</tr>
+</tbody>
+</table>
 </div>
-</div>
-<div class="section" id="instruction-set-for-cpu0">
-<h3>Instruction Set for CPU0<a class="headerlink" href="#instruction-set-for-cpu0" title="Permalink to this headline">¶</a></h3>
-<p>The CPU0 instruction divided into three types, L-type usually load the saved
-instruction, A-type arithmetic instruction-based J-type usually jump
-instruction, the following figure shows the three types of instruction encoding
-format.</p>
+<div class="section" id="the-cpu0-instruction-set">
+<h3>The Cpu0 Instruction Set<a class="headerlink" href="#the-cpu0-instruction-set" title="Permalink to this headline">¶</a></h3>
+<p>The Cpu0 instruction set can be divided into three types: L-type instructions, which are
+generally associated with memory operations, A-type instructions for arithmetic
+operations, and J-type instructions that are typically used when altering control flow
+(i.e. jumps).  <a class="pageref" href="#llvmstructure-f2">Figure  2</a> illustrates how the bitfields are broken
+down for each type of instruction.</p>
 <div class="figure align-center" id="llvmstructure-f2">
 <img alt="_images/24.png" src="_images/24.png" />
-<p class="caption">CPU0 three instruction formats</p>
+<p class="caption">Figure 2: Cpu0&#8217;s three instruction formats</p>
 </div>
-<p>The following is the CPU0 processor&#8217;s instruction table format</p>
-<div class="figure align-center" id="llvmstructure-t2">
-<img alt="_images/25.png" src="_images/25.png" />
-<p class="caption">CPU0 instruction table</p>
-</div>
-<p>In the second edition of CPU0_v2 we fill the following command:</p>
-<div class="figure align-center" id="llvmstructure-t3">
-<img alt="_images/33.png" src="_images/33.png" />
-<p class="caption">CPU0_v2 instruction table</p>
-</div>
+<p>The following table details the Cpu0 instruction set:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+<col width="27%" />
+<col width="16%" />
+<col width="23%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Format</th>
+<th class="head">Mnemonic</th>
+<th class="head">Opcode</th>
+<th class="head">Meaning</th>
+<th class="head">Syntax</th>
+<th class="head">Operation</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>L</td>
+<td>LD</td>
+<td>00</td>
+<td>Load word</td>
+<td>LD Ra, [Rb+Cx]</td>
+<td>Ra &lt;= [Rb+Cx]</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>ST</td>
+<td>01</td>
+<td>Store word</td>
+<td>ST Ra, [Rb+Cx]</td>
+<td>[Rb+Cx] &lt;= Ra</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>LDB</td>
+<td>02</td>
+<td>Load byte</td>
+<td>LDB Ra, [Rb+Cx]</td>
+<td>Ra &lt;= (byte)[Rb+Cx]</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>STB</td>
+<td>03</td>
+<td>Store byte</td>
+<td>STB Ra, [Rb+Cx]</td>
+<td>[Rb+Cx] &lt;= (byte)Ra</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>LDR</td>
+<td>04</td>
+<td>Load word (w/ register index)</td>
+<td>LDR Ra, [Rb+Rc]</td>
+<td>Ra &lt;= [Rb+Rc]</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>STR</td>
+<td>05</td>
+<td>Store word (w/ register index)</td>
+<td>STR Ra, [Rb+Rc]</td>
+<td>[Rb+Rc] &lt;= Ra</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>LBR</td>
+<td>06</td>
+<td>Load byte (w/ register index)</td>
+<td>LBR Ra, [Rb+Rc]</td>
+<td>Ra &lt;= (byte)[Rb+Rc]</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>SBR</td>
+<td>07</td>
+<td>Store byte (w/ register index)</td>
+<td>SBR Ra, [Rb+Cx]</td>
+<td>[Rb+Rc] &lt;= (byte)Ra</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>LDI</td>
+<td>08</td>
+<td>Load immediate</td>
+<td>LDI Ra, Cx</td>
+<td>Ra &lt;= Cx</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>CMP</td>
+<td>10</td>
+<td>Compare</td>
+<td>CMP Ra, Rb</td>
+<td>SW &lt;= (Ra &gt;/&gt;=/==/!=/&lt;=/&lt; Rb)</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>MOV</td>
+<td>12</td>
+<td>Move</td>
+<td>MOV Ra, Rb</td>
+<td>Ra &lt;= Rb</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>ADD</td>
+<td>13</td>
+<td>Add</td>
+<td>ADD Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb + Rc</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>SUB</td>
+<td>14</td>
+<td>Subtract</td>
+<td>SUB Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb - Rc</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>MUL</td>
+<td>15</td>
+<td>Multiply</td>
+<td>MUL Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb * Rc</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>DIV</td>
+<td>16</td>
+<td>Divide</td>
+<td>DIV Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb / Rc</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>AND</td>
+<td>18</td>
+<td>Bitwise and</td>
+<td>AND Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb &amp; Rc</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>OR</td>
+<td>19</td>
+<td>Bitwise or</td>
+<td>OR Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb | Rc</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>XOR</td>
+<td>1A</td>
+<td>Bitwise exclusive or</td>
+<td>XOR Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb ^ Rc</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>ROL</td>
+<td>1C</td>
+<td>Rotate left</td>
+<td>ROL Ra, Rb, Cx</td>
+<td>Ra &lt;= Rb rol Cx</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>ROR</td>
+<td>1D</td>
+<td>Rotate right</td>
+<td>ROR Ra, Rb, Cx</td>
+<td>Ra &lt;= Rb ror Cx</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>SHL</td>
+<td>1E</td>
+<td>Shift left</td>
+<td>SHL Ra, Rb, Cx</td>
+<td>Ra &lt;= Rb &lt;&lt; Cx</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>SHR</td>
+<td>1F</td>
+<td>Shift right</td>
+<td>SHR Ra, Rb, Cx</td>
+<td>Ra &lt;= Rb &gt;&gt; Cx</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>FADD</td>
+<td>41</td>
+<td>Floating-point addition</td>
+<td>FADD Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb + Rc</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>FSUB</td>
+<td>42</td>
+<td>Floating-point subtraction</td>
+<td>FSUB Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb - Rc</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>FMUL</td>
+<td>43</td>
+<td>Floating-point multiplication</td>
+<td>FMUL Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb * Rc</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>FDIV</td>
+<td>44</td>
+<td>Floating-point division</td>
+<td>FDIV Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb / Rc</td>
+</tr>
+<tr class="row-even"><td>J</td>
+<td>JEQ</td>
+<td>20</td>
+<td>Jump if equal (==)</td>
+<td>JEQ Cx</td>
+<td>if SW(==), PC &lt;= PC + Cx</td>
+</tr>
+<tr class="row-odd"><td>J</td>
+<td>JNE</td>
+<td>21</td>
+<td>Jump if not equal (!=)</td>
+<td>JNE Cx</td>
+<td>if SW(!=), PC &lt;= PC + Cx</td>
+</tr>
+<tr class="row-even"><td>J</td>
+<td>JLT</td>
+<td>22</td>
+<td>Jump if less than (&lt;)</td>
+<td>JLT Cx</td>
+<td>if SW(&lt;), PC &lt;= PC + Cx</td>
+</tr>
+<tr class="row-odd"><td>J</td>
+<td>JGT</td>
+<td>23</td>
+<td>Jump if greater than (&gt;)</td>
+<td>JGT Cx</td>
+<td>if SW(&gt;), PC &lt;= PC + Cx</td>
+</tr>
+<tr class="row-even"><td>J</td>
+<td>JLE</td>
+<td>24</td>
+<td>Jump if less than or equals (&lt;=)</td>
+<td>JLE Cx</td>
+<td>if SW(&lt;=), PC &lt;= PC + Cx</td>
+</tr>
+<tr class="row-odd"><td>J</td>
+<td>JGE</td>
+<td>25</td>
+<td>Jump if greater than or equals (&gt;=)</td>
+<td>JGE Cx</td>
+<td>if SW(&gt;=), PC &lt;= PC + Cx</td>
+</tr>
+<tr class="row-even"><td>J</td>
+<td>JMP</td>
+<td>26</td>
+<td>Jump (unconditional)</td>
+<td>JMP Cx</td>
+<td>PC &lt;= PC + Cx</td>
+</tr>
+<tr class="row-odd"><td>J</td>
+<td>SWI</td>
+<td>2A</td>
+<td>Software interrupt</td>
+<td>SWI Cx</td>
+<td>LR &lt;= PC; PC &lt;= Cx</td>
+</tr>
+<tr class="row-even"><td>J</td>
+<td>JSUB</td>
+<td>2B</td>
+<td>Jump to subroutine</td>
+<td>JSUB Cx</td>
+<td>LR &lt;= PC; PC &lt;= PC + Cx</td>
+</tr>
+<tr class="row-odd"><td>J</td>
+<td>RET</td>
+<td>2C</td>
+<td>Return from subroutine</td>
+<td>RET Cx</td>
+<td>PC &lt;= LR</td>
+</tr>
+<tr class="row-even"><td>J</td>
+<td>IRET</td>
+<td>2D</td>
+<td>Return from interrupt handler</td>
+<td>IRET</td>
+<td>PC &lt;= LR; INT 0</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>PUSH</td>
+<td>30</td>
+<td>Push word</td>
+<td>PUSH Ra</td>
+<td>[SP] &lt;= Ra; SP -= 4</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>POP</td>
+<td>31</td>
+<td>Pop word</td>
+<td>POP Ra</td>
+<td>Ra &lt;= [SP]; SP += 4</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>PUSHB</td>
+<td>32</td>
+<td>Push byte</td>
+<td>PUSHB Ra</td>
+<td>[SP] &lt;= (byte)Ra; SP -= 4</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>POPB</td>
+<td>33</td>
+<td>Pop word</td>
+<td>POP Ra</td>
+<td>Ra &lt;= (byte)[SP]; SP += 4</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section" id="status-register">
 <h3>Status register<a class="headerlink" href="#status-register" title="Permalink to this headline">¶</a></h3>
-<p>CPU0 status register contains the state of the N, Z, C, V, and I, T and other
-interrupt mode bit.
-Its structure is shown below.</p>
+<p>The Cpu0 status word register (SW) contains the state of the Negative (N), Zero (Z),
+Carry (C), Overflow (V), and Interrupt (I), Trap (T), and Mode (M) boolean flags.
+The bit layout of the SW register is shown in <a class="pageref" href="#llvmstructure-f3">Figure  3</a> below.</p>
 <div class="figure align-center" id="llvmstructure-f3">
-<img alt="_images/34.png" src="_images/34.png" />
-<p class="caption">CPU0 status register</p>
+<img alt="_images/33.png" src="_images/33.png" />
+<p class="caption">Figure 3: Cpu0 status word (SW) register</p>
 </div>
-<p>When CMP Ra, Rb instruction execution, the state flag will thus change.</p>
-<p>If Ra&gt; Rb, then the setting state of N = 0, Z = 0.
-If Ra &lt;Rb, it will set the state of N = 1, Z = 0.
-If Ra = Rb, then the setting state of N = 0, Z = 1.</p>
-<p>So conditional jump the JGT, JLT, JGE, JLE, JEQ, JNE instruction jumps N, Z
-flag in the status register.</p>
+<p>When a CMP Ra, Rb instruction executes, the condition flags will change. For example:</p>
+<ul class="simple">
+<li>If Ra &gt; Rb, then N = 0, Z = 0</li>
+<li>If Ra &lt; Rb, then N = 1, Z = 0</li>
+<li>If Ra = Rb, then N = 0, Z = 1</li>
+</ul>
+<p>The direction (i.e. taken/not taken) of the conditional jump instructions JGT, JLT, JGE,
+JLE, JEQ, JNE is determined by the N and Z flags in the SW register.</p>
 </div>
-<div class="section" id="the-execution-of-the-instruction-step">
-<h3>The execution of the instruction step<a class="headerlink" href="#the-execution-of-the-instruction-step" title="Permalink to this headline">¶</a></h3>
-<p>CPU0 has three stage pipeline: Instruction fetch, Decode and Execution.</p>
+<div class="section" id="cpu0-s-stages-of-instruction-execution">
+<h3>Cpu0&#8217;s stages of instruction execution<a class="headerlink" href="#cpu0-s-stages-of-instruction-execution" title="Permalink to this headline">¶</a></h3>
+<p>The Cpu0 architecture has a three-stage pipeline.  The stages are instruction fetch (IF),
+decode (D), and execute (EX), and they occur in that order.  Here is a description of
+what happens in the processor:</p>
 <ol class="arabic simple">
 <li>Instruction fetch</li>
 </ol>
 <ul class="simple">
-<li>Action 1. The instruction fetch: IR = [PC]</li>
-<li>Action 2. Update program counter: PC = PC + 4</li>
+<li>The Cpu0 fetches the instruction pointed to by the Program Counter (PC) into the
+Instruction Register (IR): IR = [PC].</li>
+<li>The PC is then updated to point to the next instruction: PC = PC + 4.</li>
 </ul>
 <ol class="arabic simple" start="2">
 <li>Decode</li>
 </ol>
 <ul class="simple">
-<li>Action 3. Decode: Control unit decodes IR, then set data flow switch
-and ALU operation mode.</li>
+<li>The control unit decodes the instruction stored in IR, which routes necessary data
+stored in registers to the ALU, and sets the ALU&#8217;s operation mode based on the
+current instruction&#8217;s opcode.</li>
 </ul>
 <ol class="arabic simple" start="3">
 <li>Execute</li>
 </ol>
 <ul class="simple">
-<li>Action 4. Execute: Data flow into ALU. After ALU done the operation,
-the result stored back into destination register.</li>
+<li>The ALU executes the operation designated by the control unit upon data in registers.
+After the ALU is done, the result is stored in the destination register.</li>
 </ul>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">This is actually a question: Does the &#8220;Replace ldi instruction by addiu&#8221; section
+really need to be here?  Maybe it should be a note up above with the Cpu0 ISA tables
+rather than a whole section?  If we aren&#8217;t using ldi, I don&#8217;t see much purpose
+keeping it around/mentioning it.</p>
+</div>
 </div>
 <div class="section" id="replace-ldi-instruction-by-addiu-instruction">
 <h3>Replace ldi instruction by addiu instruction<a class="headerlink" href="#replace-ldi-instruction-by-addiu-instruction" title="Permalink to this headline">¶</a></h3>
@@ -167,11 +517,11 @@ ability.
 These two instructions format as <a class="reference internal" href="#llvmstructure-f4"><em>Cpu0 ldi instruction</em></a> and <a class="reference internal" href="#llvmstructure-f5"><em>Mips addiu instruction format</em></a>.</p>
 <div class="figure align-center" id="llvmstructure-f4">
 <img alt="_images/43.png" src="_images/43.png" />
-<p class="caption">Cpu0 ldi instruction</p>
+<p class="caption">Figure 4: Cpu0 ldi instruction</p>
 </div>
 <div class="figure align-center" id="llvmstructure-f5">
 <img alt="_images/53.png" src="_images/53.png" />
-<p class="caption">Mips addiu instruction format</p>
+<p class="caption">Figure 5: Mips addiu instruction format</p>
 </div>
 <p>From <a class="reference internal" href="#llvmstructure-f4"><em>Cpu0 ldi instruction</em></a> and <a class="reference internal" href="#llvmstructure-f5"><em>Mips addiu instruction format</em></a>, you can find ldi $Ra,
 5 can be replaced by addiu $Ra, $zero, 5.
@@ -185,7 +535,7 @@ The cpu0 is my brother&#8217;s work, I will find time to talk with him.</p>
 </div>
 <div class="section" id="llvm-structure">
 <h2>LLVM structure<a class="headerlink" href="#llvm-structure" title="Permalink to this headline">¶</a></h2>
-<p>Following came from AOSA <a class="footnote-reference" href="#id12" id="id3">[3]</a>.</p>
+<p>Following came from AOSA <a class="footnote-reference" href="#aosa-book" id="id4">[3]</a>.</p>
 <p>The most popular design for a traditional static compiler (like most C
 compilers) is the three phase design whose major components are the front end,
 the optimizer and the back end (<a class="reference internal" href="#llvmstructure-f6"><em>Tree major components of a Three Phase Compiler</em></a>).
@@ -195,7 +545,7 @@ The AST is optionally converted to a new representation for optimization, and
 the optimizer and back end are run on the code.</p>
 <div class="figure align-center" id="llvmstructure-f6">
 <img alt="_images/63.png" src="_images/63.png" />
-<p class="caption">Tree major components of a Three Phase Compiler</p>
+<p class="caption">Figure 6: Tree major components of a Three Phase Compiler</p>
 </div>
 <p>The optimizer is responsible for doing a broad variety of transformations to
 try to improve the code&#8217;s running time, such as eliminating redundant
@@ -217,7 +567,7 @@ end can be written for any target that can compile from it, as shown in
 <a class="reference internal" href="#llvmstructure-f7"><em>Retargetablity</em></a>.</p>
 <div class="figure align-center" id="llvmstructure-f7">
 <img alt="_images/73.png" src="_images/73.png" />
-<p class="caption">Retargetablity</p>
+<p class="caption">Figure 7: Retargetablity</p>
 </div>
 <p>With this design, porting the compiler to support a new source language (e.g.,
 Algol or BASIC) requires implementing a new front end, but the existing
@@ -333,7 +683,7 @@ The (simplified) build process for the x86 target is shown in
 <a class="reference internal" href="#llvmstructure-f8"><em>Simplified x86 Target Definition</em></a>.</p>
 <div class="figure align-center" id="llvmstructure-f8">
 <img alt="_images/83.png" src="_images/83.png" />
-<p class="caption">Simplified x86 Target Definition</p>
+<p class="caption">Figure 8: Simplified x86 Target Definition</p>
 </div>
 <p>The different subsystems supported by the .td files allow target authors to
 build up the different pieces of their target.
@@ -353,7 +703,7 @@ instruction format.
 After finish the .td files, llvm can generate C++ files (*.inc) by llvm-tblgen
 tools.
 The *.inc file is a text file (C++ file) with table driven in concept.
-<a class="footnote-reference" href="#id13" id="id4">[4]</a> is the web site.</p>
+<a class="footnote-reference" href="#tablegen" id="id5">[4]</a> is the web site.</p>
 <p>Every back end has a target td which define it&#8217;s own target information.
 File td is like C++ in syntax. For example the Cpu0.td as follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="o">/===--</span> <span class="n">Cpu0</span><span class="p">.</span><span class="n">td</span> <span class="o">-</span> <span class="n">Describe</span> <span class="n">the</span> <span class="n">Cpu0</span> <span class="n">Target</span> <span class="n">Machine</span> <span class="o">---------*-</span> <span class="n">tablegen</span> <span class="o">-*-===</span><span class="c1">//</span>
@@ -1001,8 +1351,8 @@ After building, you will find three libraries: <tt class="docutils literal"><spa
 <tt class="docutils literal"><span class="pre">libLLVMCpu0Desc.a</span></tt> and <tt class="docutils literal"><span class="pre">libLLVMCpu0Info.a</span></tt> in lib/ of your build
 directory.
 For more details please see
-&#8220;Building LLVM with CMake&#8221; <a class="footnote-reference" href="#id14" id="id5">[5]</a> and
-&#8220;LLVMBuild Guide&#8221; <a class="footnote-reference" href="#id15" id="id6">[6]</a>.</p>
+&#8220;Building LLVM with CMake&#8221; <a class="footnote-reference" href="#cmake" id="id6">[5]</a> and
+&#8220;LLVMBuild Guide&#8221; <a class="footnote-reference" href="#llvmbuild" id="id7">[6]</a>.</p>
 </div>
 <div class="section" id="target-registration">
 <h2>Target Registration<a class="headerlink" href="#target-registration" title="Permalink to this headline">¶</a></h2>
@@ -1043,13 +1393,13 @@ the empty initialize function since we register nothing in them for this moment.
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Please see &#8220;Target Registration&#8221; <a class="footnote-reference" href="#id16" id="id7">[7]</a> for reference.</p>
+<p>Please see &#8220;Target Registration&#8221; <a class="footnote-reference" href="#target-reg" id="id8">[7]</a> for reference.</p>
 </div>
 <div class="section" id="build-libraries-and-td">
 <h2>Build libraries and td<a class="headerlink" href="#build-libraries-and-td" title="Permalink to this headline">¶</a></h2>
 <p>The llvm source code is put in /Users/Jonathan/llvm/release/src and have llvm
 release-build in /Users/Jonathan/llvm/release/configure_release_build.
-About how to build llvm, please refer <a class="footnote-reference" href="#id17" id="id8">[8]</a>.
+About how to build llvm, please refer <a class="footnote-reference" href="#clang" id="id9">[8]</a>.
 We made a copy from /Users/Jonathan/llvm/release/src to
 /Users/Jonathan/llvm/test/src for working with my Cpu0 target back end.
 Sub-directories src is for source code and cmake_debug_build is for debug
@@ -1108,7 +1458,7 @@ LLVM <span class="o">(</span>http://llvm.org/<span class="o">)</span>:
 </div>
 <p>The <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-version</span></tt> can display <strong>“cpu0”</strong> and <strong>“cpu0el”</strong> message, because
 the following code from file TargetInfo/Cpu0TargetInfo.cpp what in
-&#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id18" id="id9">[9]</a> we made.
+&#8220;section Target Registration&#8221; <a class="footnote-reference" href="#asadasd" id="id10">[9]</a> we made.
 List them as follows again,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0TargetInfo.cpp</span>
 <span class="n">Target</span> <span class="n">llvm</span><span class="o">::</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">llvm</span><span class="o">::</span><span class="n">TheCpu0elTarget</span><span class="p">;</span>
@@ -1164,58 +1514,58 @@ line 271.
 According to LLVM structure, we need to define our target machine and include
 those td related files.
 The error message say we didn&#8217;t define our target machine.</p>
-<table class="docutils footnote" frame="void" id="id10" rules="none">
+<table class="docutils footnote" frame="void" id="cpu0-chinese" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://ccckmit.wikidot.com/ocs:cpu0">http://ccckmit.wikidot.com/ocs:cpu0</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id2">[1]</a></td><td>Original Cpu0 architecture and ISA details (Chinese). <a class="reference external" href="http://ccckmit.wikidot.com/ocs:cpu0">http://ccckmit.wikidot.com/ocs:cpu0</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id11" rules="none">
+<table class="docutils footnote" frame="void" id="cpu0-english" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://translate.google.com.tw/translate?js=n&amp;prev=_t&amp;hl=zh-TW&amp;ie=UTF-8&amp;layout=2&amp;eotf=1&amp;sl=zh-CN&amp;tl=en&amp;u=http://ccckmit.wikidot.com/ocs:cpu0">http://translate.google.com.tw/translate?js=n&amp;prev=_t&amp;hl=zh-TW&amp;ie=UTF-8&amp;layout=2&amp;eotf=1&amp;sl=zh-CN&amp;tl=en&amp;u=http://ccckmit.wikidot.com/ocs:cpu0</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td>English translation of Cpu0 description. <a class="reference external" href="http://translate.google.com.tw/translate?js=n&amp;prev=_t&amp;hl=zh-TW&amp;ie=UTF-8&amp;layout=2&amp;eotf=1&amp;sl=zh-CN&amp;tl=en&amp;u=http://ccckmit.wikidot.com/ocs:cpu0">http://translate.google.com.tw/translate?js=n&amp;prev=_t&amp;hl=zh-TW&amp;ie=UTF-8&amp;layout=2&amp;eotf=1&amp;sl=zh-CN&amp;tl=en&amp;u=http://ccckmit.wikidot.com/ocs:cpu0</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id12" rules="none">
+<table class="docutils footnote" frame="void" id="aosa-book" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.aosabook.org/en/llvm.html">http://www.aosabook.org/en/llvm.html</a></td></tr>
+<tr><td class="label">[3]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> Chris Lattner, <strong>LLVM</strong>. Published in The Architecture of Open Source Applications. <a class="reference external" href="http://www.aosabook.org/en/llvm.html">http://www.aosabook.org/en/llvm.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id13" rules="none">
+<table class="docutils footnote" frame="void" id="tablegen" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://llvm.org/docs/TableGenFundamentals.html">http://llvm.org/docs/TableGenFundamentals.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id5">[4]</a></td><td><a class="reference external" href="http://llvm.org/docs/TableGenFundamentals.html">http://llvm.org/docs/TableGenFundamentals.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id14" rules="none">
+<table class="docutils footnote" frame="void" id="cmake" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://llvm.org/docs/CMake.html">http://llvm.org/docs/CMake.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id6">[5]</a></td><td><a class="reference external" href="http://llvm.org/docs/CMake.html">http://llvm.org/docs/CMake.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id15" rules="none">
+<table class="docutils footnote" frame="void" id="llvmbuild" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id6">[6]</a></td><td><a class="reference external" href="http://llvm.org/docs/LLVMBuild.html">http://llvm.org/docs/LLVMBuild.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id7">[6]</a></td><td><a class="reference external" href="http://llvm.org/docs/LLVMBuild.html">http://llvm.org/docs/LLVMBuild.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id16" rules="none">
+<table class="docutils footnote" frame="void" id="target-reg" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id7">[7]</a></td><td><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration">http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id8">[7]</a></td><td><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration">http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id17" rules="none">
+<table class="docutils footnote" frame="void" id="clang" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id8">[8]</a></td><td><a class="reference external" href="http://clang.llvm.org/get_started.html">http://clang.llvm.org/get_started.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id9">[8]</a></td><td><a class="reference external" href="http://clang.llvm.org/get_started.html">http://clang.llvm.org/get_started.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id18" rules="none">
+<table class="docutils footnote" frame="void" id="asadasd" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id9">[9]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id10">[9]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration</a></td></tr>
 </tbody>
 </table>
 </div>

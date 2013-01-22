@@ -31,7 +31,7 @@
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Adding arithmetic and local pointer support" href="otherinst.html" />
-    <link rel="prev" title="Cpu0 Instruction and LLVM Target Description" href="llvmstructure.html" /> 
+    <link rel="prev" title="Cpu0 Instruction Set and LLVM Target Description" href="llvmstructure.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
@@ -41,7 +41,7 @@
       <div class="topnav">
       
         <p>
-        «&#160;&#160;<a href="llvmstructure.html">Cpu0 Instruction and LLVM Target Description</a>
+        «&#160;&#160;<a href="llvmstructure.html">Cpu0 Instruction Set and LLVM Target Description</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
@@ -177,7 +177,7 @@ The Cpu0TargetMachine contents as follows,</p>
 </div>
 <div class="figure align-center" id="backendstructure-f1">
 <img alt="_images/1.png" src="_images/1.png" />
-<p class="caption">TargetMachine class diagram 1</p>
+<p class="caption">Figure 1: TargetMachine class diagram 1</p>
 </div>
 <p>The Cpu0TargetMachine inherit tree is TargetMachine &lt;- LLVMTargetMachine &lt;-
 Cpu0TargetMachine.
@@ -198,11 +198,11 @@ TSInfo: Cpu0SelectionDAGInfo, FrameLowering: Cpu0FrameLowering, Subtarget:
 Cpu0Subtarget and TLInfo: Cpu0TargetLowering.</p>
 <div class="figure align-center" id="backendstructure-f2">
 <img alt="_images/2.png" src="_images/2.png" />
-<p class="caption">TargetMachine class diagram 2</p>
+<p class="caption">Figure 2: TargetMachine class diagram 2</p>
 </div>
 <div class="figure align-center" id="backendstructure-f3">
 <img alt="_images/3.png" src="_images/3.png" />
-<p class="caption">TargetMachine members and operators</p>
+<p class="caption">Figure 3: TargetMachine members and operators</p>
 </div>
 <p><a class="reference internal" href="#backendstructure-f3"><em>TargetMachine members and operators</em></a> shows some members and operators (member function)
 of the parent class TargetMachine&#8217;s.
@@ -211,7 +211,7 @@ RegisterInfo and TargetLowering.
 Class DAGInfo is skipped here.</p>
 <div class="figure align-center" id="backendstructure-f4">
 <img alt="_images/4.png" src="_images/4.png" />
-<p class="caption">Other class members and operators</p>
+<p class="caption">Figure 4: Other class members and operators</p>
 </div>
 <p>Benefit from the inherit tree structure, we just need to implement few code in
 instruction, frame/stack, select DAG class.
@@ -472,7 +472,7 @@ sections.</p>
 <p>Following diagram came from tricore_llvm.pdf.</p>
 <div class="figure align-center" id="backendstructure-f5">
 <img alt="_images/5.png" src="_images/5.png" />
-<p class="caption">tricore_llvm.pdf: Code generation sequence. On the path from LLVM code to
+<p class="caption">Figure 5: tricore_llvm.pdf: Code generation sequence. On the path from LLVM code to
 assembly code, numerous passes are run through and several data structures
 are used to represent the intermediate results.</p>
 </div>
@@ -592,7 +592,7 @@ block into DAG. For example, the basic block code and it&#8217;s corresponding D
 <a class="reference internal" href="#backendstructure-f6"><em>DAG example</em></a>.</p>
 <div class="figure align-center" id="backendstructure-f6">
 <img alt="_images/6.png" src="_images/6.png" />
-<p class="caption">DAG example</p>
+<p class="caption">Figure 6: DAG example</p>
 </div>
 <p>If b is not live on exit from the block, then we can do common expression
 remove to get the following code.</p>
@@ -613,7 +613,7 @@ For example, (+ b, c), (+ b, 1) is IR DAG representation.</p>
 Selection Process as <a class="reference internal" href="#backendstructure-f7"><em>IR and it&#8217;s corresponding machine instruction</em></a>.</p>
 <div class="figure align-center" id="backendstructure-f7">
 <img alt="_images/7.png" src="_images/7.png" />
-<p class="caption">IR and it&#8217;s corresponding machine instruction</p>
+<p class="caption">Figure 7: IR and it&#8217;s corresponding machine instruction</p>
 </div>
 <p>For machine instruction selection, the better solution is represent IR and
 machine instruction by DAG.
@@ -622,7 +622,7 @@ The rj + rk is IR DAG representation (for symbol notation, not llvm SSA form).
 ADD is machine instruction.</p>
 <div class="figure align-center" id="backendstructure-f8">
 <img alt="_images/8.png" src="_images/8.png" />
-<p class="caption">Instruction DAG representation</p>
+<p class="caption">Figure 8: Instruction DAG representation</p>
 </div>
 <p>The IR DAG and machine instruction DAG can also represented as list.
 For example, (+ ri, rj), (- ri, 1) are lists for IR DAG; (ADD ri, rj),
@@ -824,7 +824,7 @@ For this purpose, LLVM’s framework offers a class named RegScavenger that
 takes care of all the details.</p>
 <div class="figure align-center" id="backendstructure-f9">
 <img alt="_images/9.png" src="_images/9.png" />
-<p class="caption">Addressing of a variable a located on the stack.
+<p class="caption">Figure 9: Addressing of a variable a located on the stack.
 If the stack frame has a variable size, slot must be addressed relative to
 the frame pointer</p>
 </div>
@@ -995,7 +995,7 @@ as 123.</p>
       <div class="bottomnav">
       
         <p>
-        «&#160;&#160;<a href="llvmstructure.html">Cpu0 Instruction and LLVM Target Description</a>
+        «&#160;&#160;<a href="llvmstructure.html">Cpu0 Instruction Set and LLVM Target Description</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;

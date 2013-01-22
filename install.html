@@ -130,7 +130,7 @@ the radio button next to &#8220;Anywhere.&#8221; See <a class="reference interna
 illustration. You may want to revert this setting after installing cmake.</p>
 <div class="figure align-center" id="install-f2">
 <img alt="_images/23.png" src="_images/23.png" />
-<p class="caption">Adjusting Mac OS X security settings to allow cmake installation.</p>
+<p class="caption">Figure 1: Adjusting Mac OS X security settings to allow cmake installation.</p>
 </div>
 <p>Alternatively, you can mount the cmake .dmg image file you downloaded, right
 -click (or
@@ -154,41 +154,41 @@ First, create LLVM.xcodeproj as
 and then click <strong>Done</strong> button to get <a class="reference internal" href="#install-f5"><em>Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</em></a>.</p>
 <div class="figure align-center" id="install-f3">
 <img alt="_images/32.png" src="_images/32.png" />
-<p class="caption">Start to create LLVM.xcodeproj by cmake</p>
+<p class="caption">Figure 2: Start to create LLVM.xcodeproj by cmake</p>
 </div>
 <div class="figure align-center" id="install-f4">
 <img alt="_images/42.png" src="_images/42.png" />
-<p class="caption">Create LLVM.xcodeproj by cmake – Set option to generate Xcode project</p>
+<p class="caption">Figure 3: Create LLVM.xcodeproj by cmake – Set option to generate Xcode project</p>
 </div>
 <div class="figure align-center" id="install-f5">
 <img alt="_images/52.png" src="_images/52.png" />
-<p class="caption">Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</p>
+<p class="caption">Figure 4: Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</p>
 </div>
 <p>Click OK from <a class="reference internal" href="#install-f5"><em>Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</em></a> and select Cmake 2.8-9.app for CMAKE_INSTALL_NAM
 E_TOOL by click the right side button <strong>“...”</strong> of that row to get
 <a class="reference internal" href="#install-f6"><em>Select Cmake 2.8-9.app</em></a>.</p>
 <div class="figure align-center" id="install-f6">
 <img alt="_images/62.png" src="_images/62.png" />
-<p class="caption">Select Cmake 2.8-9.app</p>
+<p class="caption">Figure 5: Select Cmake 2.8-9.app</p>
 </div>
 <p>Click Configure button to get <a class="reference internal" href="#install-f7"><em>Click cmake Configure button first time</em></a>.</p>
 <div class="figure align-center" id="install-f7">
 <img alt="_images/72.png" src="_images/72.png" />
-<p class="caption">Click cmake Configure button first time</p>
+<p class="caption">Figure 6: Click cmake Configure button first time</p>
 </div>
 <p>Check CLANG_BUILD_EXAMPLES, LLVM_BUILD_EXAMPLES, and uncheck LLVM_ENABLE_PIC as
 <a class="reference internal" href="#install-f8"><em>Check CLANG_BUILD_EXAMPLES, LLVM_BUILD_EXAMPLES, and uncheck
 LLVM_ENABLE_PIC in cmake</em></a>.</p>
 <div class="figure align-center" id="install-f8">
 <img alt="_images/82.png" src="_images/82.png" />
-<p class="caption">Check CLANG_BUILD_EXAMPLES, LLVM_BUILD_EXAMPLES, and uncheck
+<p class="caption">Figure 7: Check CLANG_BUILD_EXAMPLES, LLVM_BUILD_EXAMPLES, and uncheck
 LLVM_ENABLE_PIC in cmake</p>
 </div>
 <p>Click Configure button again. If the output result message has no red color,
 then click Generate button to get <a class="reference internal" href="#install-f9"><em>Click cmake Generate button second time</em></a>.</p>
 <div class="figure align-center" id="install-f9">
 <img alt="_images/92.png" src="_images/92.png" />
-<p class="caption">Click cmake Generate button second time</p>
+<p class="caption">Figure 8: Click cmake Generate button second time</p>
 </div>
 </div>
 <div class="section" id="build-llvm-by-xcode">
@@ -197,7 +197,7 @@ then click Generate button to get <a class="reference internal" href="#install-f
 Xcode and click menu <strong>“Product – Build”</strong> as <a class="reference internal" href="#install-f10"><em>Click Build button to build LLVM.xcodeproj by Xcode</em></a>.</p>
 <div class="figure align-center" id="install-f10">
 <img alt="_images/101.png" src="_images/101.png" />
-<p class="caption">Click Build button to build LLVM.xcodeproj by Xcode</p>
+<p class="caption">Figure 9: Click Build button to build LLVM.xcodeproj by Xcode</p>
 </div>
 <p>After few minutes of build, the clang, llc, llvm-as, ..., can be found in
 cmake_release_build/bin/Debug/ as follows.</p>
@@ -397,18 +397,18 @@ FileMerge is a part of Xcode, you can type FileMerge in Finder – Applications
 as <a class="reference internal" href="#install-f11"><em>Type FileMerge in Finder – Applications</em></a> and drag it into the Dock as <a class="reference internal" href="#install-f12"><em>Drag FileMege into the Dock</em></a>.</p>
 <div class="figure align-center" id="install-f11">
 <img alt="_images/111.png" src="_images/111.png" />
-<p class="caption">Type FileMerge in Finder – Applications</p>
+<p class="caption">Figure 10: Type FileMerge in Finder – Applications</p>
 </div>
 <div class="figure align-center" id="install-f12">
 <img alt="_images/121.png" src="_images/121.png" />
-<p class="caption">Drag FileMege into the Dock</p>
+<p class="caption">Figure 11: Drag FileMege into the Dock</p>
 </div>
 <p>Download tool Graphviz for display llvm IR nodes in debugging,
 <a class="footnote-reference" href="#id23" id="id10">[9]</a>.
 We choose mountainlion as <a class="reference internal" href="#install-f13"><em>Download graphviz for llvm IR node display</em></a> since our iMac is Mountain Lion.</p>
 <div class="figure align-center" id="install-f13">
 <a class="reference internal image-reference" href="_images/131.png"><img alt="_images/131.png" src="_images/131.png" style="width: 944.8px; height: 590.4px;" /></a>
-<p class="caption">Download graphviz for llvm IR node display</p>
+<p class="caption">Figure 12: Download graphviz for llvm IR node display</p>
 </div>
 <p>After install Graphviz, please set the path to .profile.
 For example, we install the Graphviz in directory
@@ -434,11 +434,11 @@ To dump binary file, first, open the binary file, next, select menu
 Then select <strong>“Front document&#8217;s file”</strong> as <a class="reference internal" href="#install-f15"><em>Select Front document&#8217;s file in TextWrangler</em></a>.</p>
 <div class="figure align-center" id="install-f14">
 <img alt="_images/141.png" src="_images/141.png" />
-<p class="caption">Select Hex Dump menu</p>
+<p class="caption">Figure 13: Select Hex Dump menu</p>
 </div>
 <div class="figure align-center" id="install-f15">
 <img alt="_images/15.png" src="_images/15.png" />
-<p class="caption">Select Front document&#8217;s file in TextWrangler</p>
+<p class="caption">Figure 14: Select Front document&#8217;s file in TextWrangler</p>
 </div>
 <p>Install binutils by command <tt class="docutils literal"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">binutils</span></tt> as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-77-214:~ Jonathan<span class="nv">$ </span>brew install <span class="nv">binutils</span>

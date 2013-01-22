@@ -538,8 +538,8 @@ Writing <span class="s1">&#39;/tmp/llvm_84ibpm/dag.main.dot&#39;</span>...  <spa
 </div>
 <p>It will show the /tmp/llvm_84ibpm/dag.main.dot as <a class="reference internal" href="#otherinst-f1"><em>llc option -view-dag-combine1-dags graphic view</em></a>.</p>
 <div class="figure align-center" id="otherinst-f1">
-<a class="reference internal image-reference" href="_images/18.png"><img alt="_images/18.png" src="_images/18.png" style="width: 687.0px; height: 851.0px;" /></a>
-<p class="caption">llc option -view-dag-combine1-dags graphic view</p>
+<a class="reference internal image-reference" href="_images/17.png"><img alt="_images/17.png" src="_images/17.png" style="width: 687.0px; height: 851.0px;" /></a>
+<p class="caption">Figure 1: llc option -view-dag-combine1-dags graphic view</p>
 </div>
 <p>From <a class="reference internal" href="#otherinst-f1"><em>llc option -view-dag-combine1-dags graphic view</em></a>, we can see the -view-dag-combine1-dags option is for
 Initial selection DAG.
@@ -944,8 +944,8 @@ LLVM ERROR: Cannot <span class="k">select</span>: 0x7fa73a02ea10: <span class="n
 </pre></div>
 </div>
 <div class="figure align-center" id="otherinst-f2">
-<a class="reference internal image-reference" href="_images/26.png"><img alt="_images/26.png" src="_images/26.png" style="width: 580.0px; height: 629.0px;" /></a>
-<p class="caption">ch4_6.bc DAG</p>
+<a class="reference internal image-reference" href="_images/25.png"><img alt="_images/25.png" src="_images/25.png" style="width: 580.0px; height: 629.0px;" /></a>
+<p class="caption">Figure 2: ch4_6.bc DAG</p>
 </div>
 <p>LLVM replace srem divide operation with multiply operation in DAG optimization
 because DIV operation cost more in time than MUL.
@@ -964,8 +964,8 @@ The final result (sub 12, 12) is 0 which match the statement (11+1)%12.</p>
 to get <a class="reference internal" href="#otherinst-f3"><em>Translate ch4_6.bc into cpu0 backend DAG</em></a>.
 Similarly, SMMUL get the high word of multiply result.</p>
 <div class="figure align-center" id="otherinst-f3">
-<a class="reference internal image-reference" href="_images/35.png"><img alt="_images/35.png" src="_images/35.png" style="width: 687.0px; height: 702.0px;" /></a>
-<p class="caption">Translate ch4_6.bc into cpu0 backend DAG</p>
+<a class="reference internal image-reference" href="_images/34.png"><img alt="_images/34.png" src="_images/34.png" style="width: 687.0px; height: 702.0px;" /></a>
+<p class="caption">Figure 3: Translate ch4_6.bc into cpu0 backend DAG</p>
 </div>
 <p>Follows is the result of run 4/6_1/Cpu0 with ch4_6.bc.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
@@ -1165,7 +1165,7 @@ the $rb and imm16 to 0.
 <a class="reference internal" href="#otherinst-f4"><em>DAG for ch4_6.bc with Mips style MULT</em></a> and ch4_6.cpu0.s are the result of compile ch4_6.bc.</p>
 <div class="figure align-center" id="otherinst-f4">
 <a class="reference internal image-reference" href="_images/44.png"><img alt="_images/44.png" src="_images/44.png" style="width: 231.75px; height: 605.25px;" /></a>
-<p class="caption">DAG for ch4_6.bc with Mips style MULT</p>
+<p class="caption">Figure 4: DAG for ch4_6.bc with Mips style MULT</p>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>cat ch4_6.cpu0.s
   .section .mdebug.abi32

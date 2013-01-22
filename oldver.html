@@ -60,15 +60,15 @@ Mips changes also mentioned in this chapter.
 If you work on the latest LLVM version only, please skip this chapter.
 LLVM version 3.2 released in 20 December, 2012.
 Version 3.1 released in 22 May, 2012.
-This book started from August, 2012.
+This book started from September, 2012.
 This chapter discuss the old version start from 3.1.</p>
 <div class="section" id="difference-between-3-2-and-3-1">
 <h2>Difference between 3.2 and 3.1<a class="headerlink" href="#difference-between-3-2-and-3-1" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="api-difference">
 <h3>API difference<a class="headerlink" href="#api-difference" title="Permalink to this headline">¶</a></h3>
 <p>Difference in API as follows,</p>
-<p>1. In llvm 3.1, the parameters of call back function for Target Registration.
-is different with 3.2.
+<p>1. In llvm 3.1, the parameters of call back function for Target Registration
+is different from 3.2.
 LLVM 3.2 add parameter &#8220;MCRegisterInfo&#8221; in the callback function for
 RegisterMCCodeEmitter() and &#8220;StringRef&#8221; in the callback function for
 RegisterMCAsmBackend.
@@ -164,7 +164,51 @@ You can get the 3.1 same information by,</p>
 </div>
 <p>As chapter &#8220;function call&#8221;, the role of LowerCall() is handling the outgoing
 arguments passing in function call.</p>
-<p>3. Above changes is mandatory.
+<p>3. The TargetData structure of LLVMTargetMachine has been renamed to DataLayout
+and the corresponding function name change as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// 3.1</span>
+<span class="k">class</span> <span class="nc">Cpu0TargetMachine</span> <span class="o">:</span> <span class="k">public</span> <span class="n">LLVMTargetMachine</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">virtual</span> <span class="k">const</span> <span class="n">TargetData</span>      <span class="o">*</span><span class="n">getTargetData</span><span class="p">()</span>    <span class="k">const</span>
+  <span class="p">{</span> <span class="k">return</span> <span class="o">&amp;</span><span class="n">DataLayout</span><span class="p">;}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// 3.2</span>
+<span class="k">class</span> <span class="nc">Cpu0TargetMachine</span> <span class="o">:</span> <span class="k">public</span> <span class="n">LLVMTargetMachine</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">virtual</span> <span class="k">const</span> <span class="n">DataLayout</span> <span class="o">*</span><span class="n">getDataLayout</span><span class="p">()</span>    <span class="k">const</span>
+  <span class="p">{</span> <span class="k">return</span> <span class="o">&amp;</span><span class="n">DL</span><span class="p">;}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li>The &#8220;add a pass&#8221; API change as follows,</li>
+</ol>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// 3.1</span>
+<span class="n">TargetPassConfig</span> <span class="o">*</span><span class="n">Cpu0TargetMachine</span><span class="o">::</span><span class="n">createPassConfig</span><span class="p">(</span><span class="n">PassManagerBase</span> <span class="o">&amp;</span><span class="n">PM</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0PassConfig</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="n">PM</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// Install an instruction selector pass using</span>
+<span class="c1">// the ISelDag to gen Cpu0 code.</span>
+<span class="kt">bool</span> <span class="n">Cpu0PassConfig</span><span class="o">::</span><span class="n">addInstSelector</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">PM</span><span class="o">-&gt;</span><span class="n">add</span><span class="p">(</span><span class="n">createCpu0ISelDag</span><span class="p">(</span><span class="n">getCpu0TargetMachine</span><span class="p">()));</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// 3.2</span>
+<span class="c1">// Install an instruction selector pass using</span>
+<span class="c1">// the ISelDag to gen Cpu0 code.</span>
+<span class="kt">bool</span> <span class="n">Cpu0PassConfig</span><span class="o">::</span><span class="n">addInstSelector</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">addPass</span><span class="p">(</span><span class="n">createCpu0ISelDag</span><span class="p">(</span><span class="n">getCpu0TargetMachine</span><span class="p">()));</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>5. Above changes is mandatory.
 There are some changes are adviced to follow. Like the below.
 We comment the &#8220;Change Reason&#8221; in the following code. You can get the
 &#8220;Change Reason&#8221; by internet searching.</p>

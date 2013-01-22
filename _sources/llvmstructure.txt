@@ -1,128 +1,395 @@
 .. _sec-llvmstructure:
 
-Cpu0 Instruction and LLVM Target Description
-============================================
+Cpu0 Instruction Set and LLVM Target Description
+================================================
 
-Before you start, you should know that you can always examine existing LLVM 
-backend code and attempt to port what you find for your own target architecture
-.  The majority of this code can be found in the /lib/Target directory of your 
-root LLVM directory. As most major RISC instruction set architectures have some 
-similarities, this may be the avenue you might try if you are both an 
-experienced programmer and knowledgable of compiler backends. 
-However, there is a steep learning curve and you may easily get held up 
+Before you begin this tutorial, you should know that you can always try to develop your 
+own backend by porting code from existing backends.  The majority of the code you will 
+want to investigate can be found in the /lib/Target directory of your root LLVM 
+installation. As most major RISC instruction sets have some similarities, this may be the 
+avenue you might try if you are an experienced programmer and knowledgable of compiler 
+backends.
+
+On the other hand, there is a steep learning curve and you may easily get stuck 
 debugging your new backend. You can easily spend a lot of time tracing which 
 methods are callbacks of some function, or which are calling some overridden 
-method deep in the LLVM codebase - and with a codebase as large as LLVM, this 
-can easily become a headache. This tutorial will help you work through this 
-process while learning the fundamentals of LLVM backend design. It will show 
+method deep in the LLVM codebase - and with a codebase as large as LLVM, all of this 
+can easily become difficult to keep track of. This tutorial will help you work through 
+this process while learning the fundamentals of LLVM backend design. It will show 
 you what is necessary to get your first backend functional and complete, and it 
-should help you understand how to debug your backend when it does not produce 
-desirable output using the output provided by LLVM.
+should help you understand how to debug your backend when it produces incorrect machine 
+code using output provided by the compiler.
 
-This chapter shows you the cpu0 instruction format first. 
-Next, the llvm structure is introduced to you by copy and paste the related 
-article from llvm web site. The llvm structure introduced here is extracted 
-from the asop web site. You can read the whole article from the asop web site. 
-After that we will show you how to write register and instruction definitions 
-(Target Description File) which will be used in next chapter.
+This section details the Cpu0 instruction set and the structure of LLVM. 
+The LLVM structure information is adapted from Chris Lattner's LLVM chapter of the 
+Architecture of Open Source Applications book [#aosa-book]_. You can read 
+the original article from the AOSA website if you prefer. Finally, you will begin to 
+create a new LLVM backend by writing register and instruction definitions in the 
+Target Description files which will be used in next section.
 
-CPU0 processor architecture
+Cpu0 processor architecture
 ---------------------------
 
-We copy and redraw figures in english in this section. This 
-web site [#]_ is chinese version and here [#]_ is english version.
+This subsection is based on materials available here [#cpu0-chinese]_ (Chinese)
+and [#cpu0-english]_ (English).
 
 Brief introduction
 ++++++++++++++++++
 
-CPU0 is a 32-bit processor which has registers R0 .. R15, IR, MAR, MDR, etc., 
-and its structure is shown below.
+Cpu0 is a 32-bit architecture. It has 16 general purpose registers (R0, ..., R15), the 
+Instruction Register (IR), the memory access registers MAR & MDR. Its structure is 
+illustrated in :num:`Figure #llvmstructure-f1` below.
 
-.. _llvmstructure_f1: 
+.. _llvmstructure-f1: 
 .. figure:: ../Fig/llvmstructure/1.png
 	:align: center
 
-	The structure of the processor of CPU0
+	Architectural block diagram of the Cpu0 processor
 
-Uses of each register as follows:
 
-.. _llvmstructure_t1: 
-.. figure:: ../Table/llvmstructure/1.png
-	:align: center
+The registers are used for the following purposes:
 
-	Cpu0 registers table
+============	===========
+Register		Description
+============	===========
+IR				Instruction register
+R0				Constant register, value is 0
+R1-R11			General-purpose registers
+R12				Status Word register (SW)
+R13				Stack Pointer register (SP)
+R14				Link Register (LR)
+R15				Program Counter (PC)
+MAR				Memory Address Register (MAR)
+MDR				Memory Data Register (MDR)
+============	===========
 
-Instruction Set for CPU0
+The Cpu0 Instruction Set
 ++++++++++++++++++++++++
 
-The CPU0 instruction divided into three types, L-type usually load the saved 
-instruction, A-type arithmetic instruction-based J-type usually jump 
-instruction, the following figure shows the three types of instruction encoding 
-format.
+The Cpu0 instruction set can be divided into three types: L-type instructions, which are 
+generally associated with memory operations, A-type instructions for arithmetic 
+operations, and J-type instructions that are typically used when altering control flow 
+(i.e. jumps).  :num:`Figure #llvmstructure-f2` illustrates how the bitfields are broken 
+down for each type of instruction.
 
-.. _llvmstructure_f2: 
+.. _llvmstructure-f2: 
 .. figure:: ../Fig/llvmstructure/2.png
 	:align: center
 
-	CPU0 three instruction formats
+	Cpu0's three instruction formats
 
-The following is the CPU0 processor's instruction table format
+The following table details the Cpu0 instruction set:
 
-.. _llvmstructure_t2: 
-.. figure:: ../Table/llvmstructure/2.png
-	:align: center
+.. list-table::
+	:widths: 5 5 5 12 7 10
+	:header-rows: 1
 
-	CPU0 instruction table
+	* - Format
+	  - Mnemonic
+	  - Opcode
+	  - Meaning
+	  - Syntax
+	  - Operation
+	* - L
+	  - LD
+	  - 00
+	  - Load word
+	  - LD Ra, [Rb+Cx]
+	  - Ra <= [Rb+Cx]
+	* - L
+	  - ST
+	  - 01
+	  - Store word
+	  - ST Ra, [Rb+Cx]
+	  - [Rb+Cx] <= Ra
+	* - L
+	  - LDB
+	  - 02
+	  - Load byte
+	  - LDB Ra, [Rb+Cx]
+	  - Ra <= (byte)[Rb+Cx]
+	* - L
+	  - STB
+	  - 03
+	  - Store byte
+	  - STB Ra, [Rb+Cx]
+	  - [Rb+Cx] <= (byte)Ra
+	* - A
+	  - LDR
+	  - 04
+	  - Load word (w/ register index)
+	  - LDR Ra, [Rb+Rc]
+	  - Ra <= [Rb+Rc]
+	* - A
+	  - STR
+	  - 05
+	  - Store word (w/ register index)
+	  - STR Ra, [Rb+Rc]
+	  - [Rb+Rc] <= Ra
+	* - A
+	  - LBR
+	  - 06
+	  - Load byte (w/ register index)
+	  - LBR Ra, [Rb+Rc]
+	  - Ra <= (byte)[Rb+Rc]
+	* - A
+	  - SBR
+	  - 07
+	  - Store byte (w/ register index)
+	  - SBR Ra, [Rb+Cx]
+	  - [Rb+Rc] <= (byte)Ra
+	* - L
+	  - LDI
+	  - 08
+	  - Load immediate
+	  - LDI Ra, Cx
+	  - Ra <= Cx
+	* - A
+	  - CMP
+	  - 10
+	  - Compare
+	  - CMP Ra, Rb
+	  - SW <= (Ra >/>=/==/!=/<=/< Rb)
+	* - A
+	  - MOV
+	  - 12
+	  - Move
+	  - MOV Ra, Rb
+	  - Ra <= Rb
+	* - A
+	  - ADD
+	  - 13
+	  - Add
+	  - ADD Ra, Rb, Rc
+	  - Ra <= Rb + Rc
+	* - A
+	  - SUB
+	  - 14
+	  - Subtract
+	  - SUB Ra, Rb, Rc
+	  - Ra <= Rb - Rc
+	* - A
+	  - MUL
+	  - 15
+	  - Multiply
+	  - MUL Ra, Rb, Rc
+	  - Ra <= Rb * Rc
+	* - A
+	  - DIV
+	  - 16
+	  - Divide
+	  - DIV Ra, Rb, Rc
+	  - Ra <= Rb / Rc
+	* - A
+	  - AND
+	  - 18
+	  - Bitwise and
+	  - AND Ra, Rb, Rc
+	  - Ra <= Rb & Rc
+	* - A
+	  - OR
+	  - 19
+	  - Bitwise or
+	  - OR Ra, Rb, Rc
+	  - Ra <= Rb | Rc
+	* - A
+	  - XOR
+	  - 1A
+	  - Bitwise exclusive or
+	  - XOR Ra, Rb, Rc
+	  - Ra <= Rb ^ Rc
+  	* - A
+	  - ROL
+	  - 1C
+	  - Rotate left
+	  - ROL Ra, Rb, Cx
+	  - Ra <= Rb rol Cx
+  	* - A
+	  - ROR
+	  - 1D
+	  - Rotate right
+	  - ROR Ra, Rb, Cx
+	  - Ra <= Rb ror Cx
+   	* - A
+	  - SHL
+	  - 1E
+	  - Shift left
+	  - SHL Ra, Rb, Cx
+	  - Ra <= Rb << Cx
+   	* - A
+	  - SHR
+	  - 1F
+	  - Shift right
+	  - SHR Ra, Rb, Cx
+	  - Ra <= Rb >> Cx
+	* - A
+	  - FADD
+	  - 41
+	  - Floating-point addition
+	  - FADD Ra, Rb, Rc
+	  - Ra <= Rb + Rc
+	* - A
+	  - FSUB
+	  - 42
+	  - Floating-point subtraction
+	  - FSUB Ra, Rb, Rc
+	  - Ra <= Rb - Rc
+	* - A
+	  - FMUL
+	  - 43
+	  - Floating-point multiplication
+	  - FMUL Ra, Rb, Rc
+	  - Ra <= Rb * Rc
+	* - A
+	  - FDIV
+	  - 44
+	  - Floating-point division
+	  - FDIV Ra, Rb, Rc
+	  - Ra <= Rb / Rc
+   	* - J
+	  - JEQ
+	  - 20
+	  - Jump if equal (==)
+	  - JEQ Cx
+	  - if SW(==), PC <= PC + Cx
+   	* - J
+	  - JNE
+	  - 21
+	  - Jump if not equal (!=)
+	  - JNE Cx
+	  - if SW(!=), PC <= PC + Cx
+   	* - J
+	  - JLT
+	  - 22
+	  - Jump if less than (<)
+	  - JLT Cx
+	  - if SW(<), PC <= PC + Cx
+   	* - J
+	  - JGT
+	  - 23
+	  - Jump if greater than (>)
+	  - JGT Cx
+	  - if SW(>), PC <= PC + Cx
+   	* - J
+	  - JLE
+	  - 24
+	  - Jump if less than or equals (<=)
+	  - JLE Cx
+	  - if SW(<=), PC <= PC + Cx
+   	* - J
+	  - JGE
+	  - 25
+	  - Jump if greater than or equals (>=)
+	  - JGE Cx
+	  - if SW(>=), PC <= PC + Cx
+   	* - J
+	  - JMP
+	  - 26
+	  - Jump (unconditional)
+	  - JMP Cx
+	  - PC <= PC + Cx
+   	* - J
+	  - SWI
+	  - 2A
+	  - Software interrupt
+	  - SWI Cx
+	  - LR <= PC; PC <= Cx
+   	* - J
+	  - JSUB
+	  - 2B
+	  - Jump to subroutine
+	  - JSUB Cx
+	  - LR <= PC; PC <= PC + Cx
+   	* - J
+	  - RET
+	  - 2C
+	  - Return from subroutine
+	  - RET Cx
+	  - PC <= LR
+   	* - J
+	  - IRET
+	  - 2D
+	  - Return from interrupt handler
+	  - IRET
+	  - PC <= LR; INT 0
+   	* - A
+	  - PUSH
+	  - 30
+	  - Push word
+	  - PUSH Ra
+	  - [SP] <= Ra; SP -= 4
+   	* - A
+	  - POP
+	  - 31
+	  - Pop word
+	  - POP Ra
+	  - Ra <= [SP]; SP += 4
+   	* - A
+	  - PUSHB
+	  - 32
+	  - Push byte
+	  - PUSHB Ra
+	  - [SP] <= (byte)Ra; SP -= 4
+   	* - A
+	  - POPB
+	  - 33
+	  - Pop word
+	  - POP Ra
+	  - Ra <= (byte)[SP]; SP += 4
 
-In the second edition of CPU0_v2 we fill the following command:
-
-.. _llvmstructure_t3: 
-.. figure:: ../Table/llvmstructure/3.png
-	:align: center
-
-	CPU0_v2 instruction table
 
 Status register
 +++++++++++++++
 
-CPU0 status register contains the state of the N, Z, C, V, and I, T and other 
-interrupt mode bit. 
-Its structure is shown below.
+The Cpu0 status word register (SW) contains the state of the Negative (N), Zero (Z), 
+Carry (C), Overflow (V), and Interrupt (I), Trap (T), and Mode (M) boolean flags. 
+The bit layout of the SW register is shown in :num:`Figure #llvmstructure-f3` below.
 
-.. _llvmstructure_f3: 
+.. _llvmstructure-f3: 
 .. figure:: ../Fig/llvmstructure/3.png
 	:align: center
 
-	CPU0 status register
+	Cpu0 status word (SW) register
 
-When CMP Ra, Rb instruction execution, the state flag will thus change.
+When a CMP Ra, Rb instruction executes, the condition flags will change. For example:
 
-If Ra> Rb, then the setting state of N = 0, Z = 0. 
-If Ra <Rb, it will set the state of N = 1, Z = 0. 
-If Ra = Rb, then the setting state of N = 0, Z = 1.
+-	If Ra > Rb, then N = 0, Z = 0
+-	If Ra < Rb, then N = 1, Z = 0
+-	If Ra = Rb, then N = 0, Z = 1
 
-So conditional jump the JGT, JLT, JGE, JLE, JEQ, JNE instruction jumps N, Z 
-flag in the status register.
+The direction (i.e. taken/not taken) of the conditional jump instructions JGT, JLT, JGE, 
+JLE, JEQ, JNE is determined by the N and Z flags in the SW register.
 
-The execution of the instruction step
-+++++++++++++++++++++++++++++++++++++
+Cpu0's stages of instruction execution
+++++++++++++++++++++++++++++++++++++++
 
-CPU0 has three stage pipeline: Instruction fetch, Decode and Execution.
+The Cpu0 architecture has a three-stage pipeline.  The stages are instruction fetch (IF), 
+decode (D), and execute (EX), and they occur in that order.  Here is a description of 
+what happens in the processor:
 
 1) Instruction fetch
 
--	Action 1. The instruction fetch: IR = [PC]
--	Action 2. Update program counter: PC = PC + 4
+-	The Cpu0 fetches the instruction pointed to by the Program Counter (PC) into the 
+	Instruction Register (IR): IR = [PC].
+-	The PC is then updated to point to the next instruction: PC = PC + 4.
 
 2) Decode
 
--	Action 3. Decode: Control unit decodes IR, then set data flow switch 
-	and ALU operation mode. 
+-	The control unit decodes the instruction stored in IR, which routes necessary data
+	stored in registers to the ALU, and sets the ALU's operation mode based on the 
+	current instruction's opcode.
 
 3) Execute
 
--	Action 4. Execute: Data flow into ALU. After ALU done the operation, 
-	the result stored back into destination register. 
+-	The ALU executes the operation designated by the control unit upon data in registers. 
+	After the ALU is done, the result is stored in the destination register. 
+
+.. todo:: This is actually a question: Does the "Replace ldi instruction by addiu" section 
+	really need to be here?  Maybe it should be a note up above with the Cpu0 ISA tables
+	rather than a whole section?  If we aren't using ldi, I don't see much purpose 
+	keeping it around/mentioning it.
+	
+.. resume editing from here
 
 Replace ldi instruction by addiu instruction
 ++++++++++++++++++++++++++++++++++++++++++++
@@ -160,7 +427,7 @@ The cpu0 is my brother's work, I will find time to talk with him.
 LLVM structure
 --------------
 
-Following came from AOSA [#]_.
+Following came from AOSA [#aosa-book]_.
 
 The most popular design for a traditional static compiler (like most C 
 compilers) is the three phase design whose major components are the front end, 
@@ -354,7 +621,7 @@ instruction format.
 After finish the .td files, llvm can generate C++ files (\*.inc) by llvm-tblgen 
 tools. 
 The \*.inc file is a text file (C++ file) with table driven in concept. 
-[#]_ is the web site.
+[#tablegen]_ is the web site.
 
 Every back end has a target td which define it's own target information. 
 File td is like C++ in syntax. For example the Cpu0.td as follows,
@@ -1034,8 +1301,8 @@ After building, you will find three libraries: ``libLLVMCpu0CodeGen.a``,
 ``libLLVMCpu0Desc.a`` and ``libLLVMCpu0Info.a`` in lib/ of your build 
 directory. 
 For more details please see 
-"Building LLVM with CMake" [#]_ and 
-"LLVMBuild Guide" [#]_.
+"Building LLVM with CMake" [#cmake]_ and 
+"LLVMBuild Guide" [#llvmbuild]_.
 
 Target Registration
 -------------------
@@ -1082,16 +1349,17 @@ the empty initialize function since we register nothing in them for this moment.
   extern "C" void LLVMInitializeCpu0TargetMC() { 
   }
 
-Please see "Target Registration" [#]_ for reference.
+Please see "Target Registration" [#target-reg]_ for reference.
 
 Build libraries and td
 ----------------------
 
+
 The llvm source code is put in /Users/Jonathan/llvm/release/src and have llvm 
 release-build in /Users/Jonathan/llvm/release/configure_release_build. 
-About how to build llvm, please refer [#]_. 
+About how to build llvm, please refer [#clang]_. 
 We made a copy from /Users/Jonathan/llvm/release/src to 
-/Users/Jonathan/llvm/test/src for working with my Cpu0 target back end. 
+/Users/Jonathan/llvm/test/src for working with my Cpu0 target back end.
 Sub-directories src is for source code and cmake_debug_build is for debug 
 build directory.
 
@@ -1158,7 +1426,7 @@ After build, you can type command ``llc –version`` to find the cpu0 backend,
 
 The ``llc -version`` can display **“cpu0”** and **“cpu0el”** message, because 
 the following code from file TargetInfo/Cpu0TargetInfo.cpp what in 
-"section Target Registration" [#]_ we made. 
+"section Target Registration" [#asadasd]_ we made. 
 List them as follows again,
 
 .. code-block:: c++
@@ -1228,20 +1496,20 @@ The error message say we didn't define our target machine.
 
 
 
-.. [#] http://ccckmit.wikidot.com/ocs:cpu0
+.. [#cpu0-chinese] Original Cpu0 architecture and ISA details (Chinese). http://ccckmit.wikidot.com/ocs:cpu0
 
-.. [#] http://translate.google.com.tw/translate?js=n&prev=_t&hl=zh-TW&ie=UTF-8&layout=2&eotf=1&sl=zh-CN&tl=en&u=http://ccckmit.wikidot.com/ocs:cpu0
+.. [#cpu0-english] English translation of Cpu0 description. http://translate.google.com.tw/translate?js=n&prev=_t&hl=zh-TW&ie=UTF-8&layout=2&eotf=1&sl=zh-CN&tl=en&u=http://ccckmit.wikidot.com/ocs:cpu0
 
-.. [#] http://www.aosabook.org/en/llvm.html
+.. [#aosa-book] Chris Lattner, **LLVM**. Published in The Architecture of Open Source Applications. http://www.aosabook.org/en/llvm.html
 
-.. [#] http://llvm.org/docs/TableGenFundamentals.html
+.. [#tablegen] http://llvm.org/docs/TableGenFundamentals.html
 
-.. [#] http://llvm.org/docs/CMake.html
+.. [#cmake] http://llvm.org/docs/CMake.html
 
-.. [#] http://llvm.org/docs/LLVMBuild.html
+.. [#llvmbuild] http://llvm.org/docs/LLVMBuild.html
 
-.. [#] http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration
+.. [#target-reg] http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration
 
-.. [#] http://clang.llvm.org/get_started.html
+.. [#clang] http://clang.llvm.org/get_started.html
 
-.. [#] http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration
+.. [#asadasd] http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration
