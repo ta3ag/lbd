@@ -75,8 +75,8 @@ Architecture of Open Source Applications book <a class="footnote-reference" href
 the original article from the AOSA website if you prefer. Finally, you will begin to
 create a new LLVM backend by writing register and instruction definitions in the
 Target Description files which will be used in next section.</p>
-<div class="section" id="cpu0-processor-architecture">
-<h2>Cpu0 processor architecture<a class="headerlink" href="#cpu0-processor-architecture" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="cpu0-processor-architecture-details">
+<h2>Cpu0 Processor Architecture Details<a class="headerlink" href="#cpu0-processor-architecture-details" title="Permalink to this headline">¶</a></h2>
 <p>This subsection is based on materials available here <a class="footnote-reference" href="#cpu0-chinese" id="id2">[1]</a> (Chinese)
 and <a class="footnote-reference" href="#cpu0-english" id="id3">[2]</a> (English).</p>
 <div class="section" id="brief-introduction">
@@ -451,8 +451,8 @@ down for each type of instruction.</p>
 </tbody>
 </table>
 </div>
-<div class="section" id="status-register">
-<h3>Status register<a class="headerlink" href="#status-register" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="the-status-register">
+<h3>The Status Register<a class="headerlink" href="#the-status-register" title="Permalink to this headline">¶</a></h3>
 <p>The Cpu0 status word register (SW) contains the state of the Negative (N), Zero (Z),
 Carry (C), Overflow (V), and Interrupt (I), Trap (T), and Mode (M) boolean flags.
 The bit layout of the SW register is shown in <a class="pageref" href="#llvmstructure-f3">Figure  3</a> below.</p>
@@ -470,7 +470,7 @@ The bit layout of the SW register is shown in <a class="pageref" href="#llvmstru
 JLE, JEQ, JNE is determined by the N and Z flags in the SW register.</p>
 </div>
 <div class="section" id="cpu0-s-stages-of-instruction-execution">
-<h3>Cpu0&#8217;s stages of instruction execution<a class="headerlink" href="#cpu0-s-stages-of-instruction-execution" title="Permalink to this headline">¶</a></h3>
+<h3>Cpu0&#8217;s Stages of Instruction Execution<a class="headerlink" href="#cpu0-s-stages-of-instruction-execution" title="Permalink to this headline">¶</a></h3>
 <p>The Cpu0 architecture has a three-stage pipeline.  The stages are instruction fetch (IF),
 decode (D), and execute (EX), and they occur in that order.  Here is a description of
 what happens in the processor:</p>
@@ -534,18 +534,19 @@ The cpu0 is my brother&#8217;s work, I will find time to talk with him.</p>
 </div>
 </div>
 <div class="section" id="llvm-structure">
-<h2>LLVM structure<a class="headerlink" href="#llvm-structure" title="Permalink to this headline">¶</a></h2>
-<p>Following came from AOSA <a class="footnote-reference" href="#aosa-book" id="id4">[3]</a>.</p>
+<h2>LLVM Structure<a class="headerlink" href="#llvm-structure" title="Permalink to this headline">¶</a></h2>
+<p>The text in this and the following section comes from the AOSA chapter on LLVM written
+by Chris Lattner <a class="footnote-reference" href="#aosa-book" id="id4">[3]</a>.</p>
 <p>The most popular design for a traditional static compiler (like most C
 compilers) is the three phase design whose major components are the front end,
-the optimizer and the back end (<a class="reference internal" href="#llvmstructure-f6"><em>Tree major components of a Three Phase Compiler</em></a>).
+the optimizer and the back end, as seen in <a class="pageref" href="#llvmstructure-f6">Figure  6</a>.
 The front end parses source code, checking it for errors, and builds a
 language-specific Abstract Syntax Tree (AST) to represent the input code.
 The AST is optionally converted to a new representation for optimization, and
 the optimizer and back end are run on the code.</p>
 <div class="figure align-center" id="llvmstructure-f6">
 <img alt="_images/63.png" src="_images/63.png" />
-<p class="caption">Figure 6: Tree major components of a Three Phase Compiler</p>
+<p class="caption">Figure 6: Three Major Components of a Three Phase Compiler</p>
 </div>
 <p>The optimizer is responsible for doing a broad variety of transformations to
 try to improve the code&#8217;s running time, such as eliminating redundant
@@ -564,9 +565,9 @@ to support multiple source languages or target architectures.
 If the compiler uses a common code representation in its optimizer, then a
 front end can be written for any language that can compile to it, and a back
 end can be written for any target that can compile from it, as shown in
-<a class="reference internal" href="#llvmstructure-f7"><em>Retargetablity</em></a>.</p>
+<a class="pageref" href="#llvmstructure-f7">Figure  7</a>.</p>
 <div class="figure align-center" id="llvmstructure-f7">
-<img alt="_images/73.png" src="_images/73.png" />
+<img alt="_images/73.png" src="_images/73.png" style="width: 600px;" />
 <p class="caption">Figure 7: Retargetablity</p>
 </div>
 <p>With this design, porting the compiler to support a new source language (e.g.,
@@ -666,8 +667,8 @@ On the other hand, it has to serve both well: it has to be designed to be easy
 for a front end to generate and be expressive enough to allow important
 optimizations to be performed for real targets.</p>
 </div>
-<div class="section" id="target-description-td">
-<h2>Target Description td<a class="headerlink" href="#target-description-td" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="td-llvm-s-target-description-files">
+<h2>.td: LLVM&#8217;s Target Description Files<a class="headerlink" href="#td-llvm-s-target-description-files" title="Permalink to this headline">¶</a></h2>
 <p>The &#8220;mix and match&#8221; approach allows target authors to choose what makes sense
 for their architecture and permits a large amount of code reuse across
 different targets.
@@ -680,9 +681,9 @@ LLVM&#8217;s solution to this is for each target to provide a target description
 in a declarative domain-specific language (a set of .td files) processed by the
 tblgen tool.
 The (simplified) build process for the x86 target is shown in
-<a class="reference internal" href="#llvmstructure-f8"><em>Simplified x86 Target Definition</em></a>.</p>
+<a class="pageref" href="#llvmstructure-f8">Figure  8</a>.</p>
 <div class="figure align-center" id="llvmstructure-f8">
-<img alt="_images/83.png" src="_images/83.png" />
+<img alt="_images/83.png" src="_images/83.png" style="width: 600px;" />
 <p class="caption">Figure 8: Simplified x86 Target Definition</p>
 </div>
 <p>The different subsystems supported by the .td files allow target authors to
@@ -696,8 +697,8 @@ are all caps) like this:</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="write-td-target-description">
-<h2>Write td (Target Description)<a class="headerlink" href="#write-td-target-description" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="writing-the-first-cpu0-td-files">
+<h2>Writing the First Cpu0 .td Files<a class="headerlink" href="#writing-the-first-cpu0-td-files" title="Permalink to this headline">¶</a></h2>
 <p>The llvm using .td file (Target Description) to describe register and
 instruction format.
 After finish the .td files, llvm can generate C++ files (*.inc) by llvm-tblgen
