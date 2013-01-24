@@ -71,7 +71,7 @@ should help you understand how to debug your backend when it produces incorrect 
 code using output provided by the compiler.</p>
 <p>This section details the Cpu0 instruction set and the structure of LLVM.
 The LLVM structure information is adapted from Chris Lattner&#8217;s LLVM chapter of the
-Architecture of Open Source Applications book <a class="footnote-reference" href="#aosa-book" id="id1">[3]</a>. You can read
+Architecture of Open Source Applications book <a class="footnote-reference" href="#aosa-book" id="id1">[4]</a>. You can read
 the original article from the AOSA website if you prefer. Finally, you will begin to
 create a new LLVM backend by writing register and instruction definitions in the
 Target Description files which will be used in next section.</p>
@@ -143,13 +143,14 @@ down for each type of instruction.</p>
 </div>
 <p>The following table details the Cpu0 instruction set:</p>
 <table border="1" class="docutils">
+<caption>Cpu0 Instruction Set</caption>
 <colgroup>
+<col width="8%" />
 <col width="11%" />
-<col width="11%" />
-<col width="11%" />
-<col width="27%" />
-<col width="16%" />
-<col width="23%" />
+<col width="8%" />
+<col width="29%" />
+<col width="18%" />
+<col width="26%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Format</th>
@@ -229,7 +230,7 @@ down for each type of instruction.</p>
 <td>10</td>
 <td>Compare</td>
 <td>CMP Ra, Rb</td>
-<td>SW &lt;= (Ra &gt;/&gt;=/==/!=/&lt;=/&lt; Rb)</td>
+<td>SW &lt;= (Ra cond Rb) <a class="footnote-reference" href="#cond-note" id="id4">[3]</a></td>
 </tr>
 <tr class="row-even"><td>A</td>
 <td>MOV</td>
@@ -497,56 +498,22 @@ current instruction&#8217;s opcode.</li>
 <li>The ALU executes the operation designated by the control unit upon data in registers.
 After the ALU is done, the result is stored in the destination register.</li>
 </ul>
-<div class="admonition-todo admonition" id="index-0">
-<p class="first admonition-title">Todo</p>
-<p class="last">This is actually a question: Does the &#8220;Replace ldi instruction by addiu&#8221; section
-really need to be here?  Maybe it should be a note up above with the Cpu0 ISA tables
-rather than a whole section?  If we aren&#8217;t using ldi, I don&#8217;t see much purpose
-keeping it around/mentioning it.</p>
-</div>
-</div>
-<div class="section" id="replace-ldi-instruction-by-addiu-instruction">
-<h3>Replace ldi instruction by addiu instruction<a class="headerlink" href="#replace-ldi-instruction-by-addiu-instruction" title="Permalink to this headline">¶</a></h3>
-<p>We have recognized the ldi instruction is a bad design and replace it with mips
-instruction addiu.
-The reason we replace ldi with addiu is that ldi use only one register even
-though ldi is L type format and has two registers, as <a class="reference internal" href="#llvmstructure-f4"><em>Cpu0 ldi instruction</em></a>.
-Mips addiu which allow programmer to do load constant to register like ldi,
-and add constant to a register. So, it&#8217;s powerful and fully contains the ldi
-ability.
-These two instructions format as <a class="reference internal" href="#llvmstructure-f4"><em>Cpu0 ldi instruction</em></a> and <a class="reference internal" href="#llvmstructure-f5"><em>Mips addiu instruction format</em></a>.</p>
-<div class="figure align-center" id="llvmstructure-f4">
-<img alt="_images/43.png" src="_images/43.png" />
-<p class="caption">Figure 4: Cpu0 ldi instruction</p>
-</div>
-<div class="figure align-center" id="llvmstructure-f5">
-<img alt="_images/53.png" src="_images/53.png" />
-<p class="caption">Figure 5: Mips addiu instruction format</p>
-</div>
-<p>From <a class="reference internal" href="#llvmstructure-f4"><em>Cpu0 ldi instruction</em></a> and <a class="reference internal" href="#llvmstructure-f5"><em>Mips addiu instruction format</em></a>, you can find ldi $Ra,
-5 can be replaced by addiu $Ra, $zero, 5.
-And more, addiu can do addiu $Ra, $Rb, 5 which add $Rb and 5 then save to $Ra,
-but ldi cannot.
-As a cpu design, it&#8217;s common to redesign CPU instruction when find a better
-solution during design the compiler backend for that CPU.
-So, we add addiu instruction to cpu0.
-The cpu0 is my brother&#8217;s work, I will find time to talk with him.</p>
 </div>
 </div>
 <div class="section" id="llvm-structure">
 <h2>LLVM Structure<a class="headerlink" href="#llvm-structure" title="Permalink to this headline">¶</a></h2>
 <p>The text in this and the following section comes from the AOSA chapter on LLVM written
-by Chris Lattner <a class="footnote-reference" href="#aosa-book" id="id4">[3]</a>.</p>
+by Chris Lattner <a class="footnote-reference" href="#aosa-book" id="id5">[4]</a>.</p>
 <p>The most popular design for a traditional static compiler (like most C
 compilers) is the three phase design whose major components are the front end,
-the optimizer and the back end, as seen in <a class="pageref" href="#llvmstructure-f6">Figure  6</a>.
+the optimizer and the back end, as seen in <a class="pageref" href="#llvmstructure-f6">Figure  4</a>.
 The front end parses source code, checking it for errors, and builds a
 language-specific Abstract Syntax Tree (AST) to represent the input code.
 The AST is optionally converted to a new representation for optimization, and
 the optimizer and back end are run on the code.</p>
 <div class="figure align-center" id="llvmstructure-f6">
 <img alt="_images/63.png" src="_images/63.png" />
-<p class="caption">Figure 6: Three Major Components of a Three Phase Compiler</p>
+<p class="caption">Figure 4: Three Major Components of a Three Phase Compiler</p>
 </div>
 <p>The optimizer is responsible for doing a broad variety of transformations to
 try to improve the code&#8217;s running time, such as eliminating redundant
@@ -565,10 +532,10 @@ to support multiple source languages or target architectures.
 If the compiler uses a common code representation in its optimizer, then a
 front end can be written for any language that can compile to it, and a back
 end can be written for any target that can compile from it, as shown in
-<a class="pageref" href="#llvmstructure-f7">Figure  7</a>.</p>
+<a class="pageref" href="#llvmstructure-f7">Figure  5</a>.</p>
 <div class="figure align-center" id="llvmstructure-f7">
 <img alt="_images/73.png" src="_images/73.png" style="width: 600px;" />
-<p class="caption">Figure 7: Retargetablity</p>
+<p class="caption">Figure 5: Retargetablity</p>
 </div>
 <p>With this design, porting the compiler to support a new source language (e.g.,
 Algol or BASIC) requires implementing a new front end, but the existing
@@ -681,10 +648,10 @@ LLVM&#8217;s solution to this is for each target to provide a target description
 in a declarative domain-specific language (a set of .td files) processed by the
 tblgen tool.
 The (simplified) build process for the x86 target is shown in
-<a class="pageref" href="#llvmstructure-f8">Figure  8</a>.</p>
+<a class="pageref" href="#llvmstructure-f8">Figure  6</a>.</p>
 <div class="figure align-center" id="llvmstructure-f8">
 <img alt="_images/83.png" src="_images/83.png" style="width: 600px;" />
-<p class="caption">Figure 8: Simplified x86 Target Definition</p>
+<p class="caption">Figure 6: Simplified x86 Target Definition</p>
 </div>
 <p>The different subsystems supported by the .td files allow target authors to
 build up the different pieces of their target.
@@ -697,16 +664,18 @@ are all caps) like this:</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="writing-the-first-cpu0-td-files">
-<h2>Writing the First Cpu0 .td Files<a class="headerlink" href="#writing-the-first-cpu0-td-files" title="Permalink to this headline">¶</a></h2>
-<p>The llvm using .td file (Target Description) to describe register and
-instruction format.
-After finish the .td files, llvm can generate C++ files (*.inc) by llvm-tblgen
-tools.
-The *.inc file is a text file (C++ file) with table driven in concept.
-<a class="footnote-reference" href="#tablegen" id="id5">[4]</a> is the web site.</p>
-<p>Every back end has a target td which define it&#8217;s own target information.
-File td is like C++ in syntax. For example the Cpu0.td as follows,</p>
+<div class="section" id="creating-the-initial-cpu0-td-files">
+<h2>Creating the Initial Cpu0 .td Files<a class="headerlink" href="#creating-the-initial-cpu0-td-files" title="Permalink to this headline">¶</a></h2>
+<p>As has been discussed in the previous section, LLVM uses target description files
+(which use the .td file extension) to describe various components of a target&#8217;s backend.
+For example, these .td files may describe a target&#8217;s register set, instruction set,
+scheduling information for instructions, and calling conventions.  When your backend is
+being compiled, the tablegen tool that ships with LLVM will translate these .td files
+into C++ source code written to files that have a .inc extension.  Please refer
+to <a class="footnote-reference" href="#tablegen" id="id6">[5]</a> for more information regarding how to use tablegen.</p>
+<p>Every backend has a .td which defines some target information, including what other .td
+files are used by the backend.  These files have a similar syntax to C++. For Cpu0, the
+target description file is called Cpu0.td, which is shown below:</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="o">/===--</span> <span class="n">Cpu0</span><span class="p">.</span><span class="n">td</span> <span class="o">-</span> <span class="n">Describe</span> <span class="n">the</span> <span class="n">Cpu0</span> <span class="n">Target</span> <span class="n">Machine</span> <span class="o">---------*-</span> <span class="n">tablegen</span> <span class="o">-*-===</span><span class="c1">//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
@@ -739,8 +708,14 @@ File td is like C++ in syntax. For example the Cpu0.td as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The registers td named Cpu0RegisterInfo.td included by Cpu0.td is defined as
-follows,</p>
+<p>Cpu0.td includes a few other .td files.  Cpu0RegisterInfo.td (shown below) describes the
+Cpu0&#8217;s set of registers.  In this file, we see that registers have been given names, i.e.
+<tt class="docutils literal"><span class="pre">def</span> <span class="pre">PC</span></tt> indicates that there is a register called PC.  Also, there is a register class
+named <tt class="docutils literal"><span class="pre">CPURegs</span></tt> that contains all of the other registers.  You may have multiple
+register classes (see the X86 backend, for example) which can help you if certain
+instructions can only write to specific registers.  In this case, there is only one set
+of general purpose registers for Cpu0, and some registers that are reserved so that they
+are not modified by instructions during execution.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0RegisterInfo.td</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">//  Declarations that describe the CPU0 register file</span>
@@ -793,32 +768,45 @@ follows,</p>
   <span class="n">ZERO</span><span class="p">,</span> <span class="n">AT</span><span class="p">,</span> <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>In C++ the data layout is declared by class. Declaration tells the variable
-layout; definition allocates memory for the variable.
-For example,</p>
+<p>In C++, classes typically provide a structure to lay out some data and functions,
+while definitions are used to allocate memory for specific instances of a class.  For
+example:</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Date</span> <span class="p">{</span>  <span class="c1">// declare Date</span>
   <span class="kt">int</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">;</span>
 <span class="p">};</span>
-<span class="n">Date</span> <span class="n">date</span><span class="p">;</span>  <span class="c1">// define(instance) date</span>
+<span class="n">Date</span> <span class="n">birthday</span><span class="p">;</span>  <span class="c1">// define birthday, an instance of Date</span>
 </pre></div>
 </div>
-<p>Just like C++ class, the keyword <strong>“class”</strong> is used for declaring data structure
-layout.
-<tt class="docutils literal"><span class="pre">Cpu0Reg&lt;string</span> <span class="pre">n&gt;</span></tt> declare a derived class from <tt class="docutils literal"><span class="pre">Register&lt;n&gt;</span></tt> which is
-declared by llvm already, where n is the argument of type string.
-In addition to inherited from all the fields of Register class, Cpu0Reg add a
-new field &#8220;Num&#8221; of type 4 bits.
-Namespace is same with  C++ namespace.
-<strong>“Def”</strong> is used by define(instance) a concrete variable.</p>
-<p>As above, we define a ZERO register which type is Cpu0GPRReg, it&#8217;s field Num
-is 0 (4 bits) and field n is <strong>“ZERO”</strong> (declared in Register class).
-Note the use of <strong>“let”</strong> expressions to override values that are initially defined
-in a superclass. For example, let Namespace = <strong>“Cpu0”</strong> in class Cpu0Reg, will
-override Namespace declared in Register class.
-The Cpu0RegisterInfo.td also define that CPURegs is a variable for type of
-RegisterClass, where the RegisterClass is a llvm built-in class.
-The type of RegisterClass is a set/group of Register, so CPURegs variable is
-defined with a set of Register.</p>
+<p>The class <tt class="docutils literal"><span class="pre">Date</span></tt> has the members <tt class="docutils literal"><span class="pre">year</span></tt>, <tt class="docutils literal"><span class="pre">month</span></tt>, and <tt class="docutils literal"><span class="pre">day</span></tt>, however these do not
+yet belong to an actual object.  By defining an instance of <tt class="docutils literal"><span class="pre">Date</span></tt> called <tt class="docutils literal"><span class="pre">birthday</span></tt>,
+you have allocated memory for a specific object, and can set the <tt class="docutils literal"><span class="pre">year</span></tt>, <tt class="docutils literal"><span class="pre">month</span></tt>, and
+<tt class="docutils literal"><span class="pre">day</span></tt> of this instance of the class.</p>
+<p>In .td files, classes describe the structure of how data is laid out, while definitions
+act as the specific instances of the classes.  If we look back at the Cpu0RegisterInfo.td
+file, we see a class called <tt class="docutils literal"><span class="pre">Cpu0Reg&lt;string</span> <span class="pre">n&gt;</span></tt> which is derived from the
+<tt class="docutils literal"><span class="pre">Register&lt;n&gt;</span></tt> class provided by LLVM.  <tt class="docutils literal"><span class="pre">Cpu0Reg</span></tt> inherits all the fields that exist
+in the <tt class="docutils literal"><span class="pre">Register</span></tt> class, and also adds a new field called <tt class="docutils literal"><span class="pre">Num</span></tt> which is four bits
+wide.</p>
+<p>The <tt class="docutils literal"><span class="pre">def</span></tt> keyword is used to create instances of classes.  In the following line, the
+ZERO register is defined as a member of the <tt class="docutils literal"><span class="pre">Cpu0GPRReg</span></tt> class:</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">ZERO</span> <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;ZERO&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">def</span> <span class="pre">ZERO</span></tt> indicates the name of this register.  <tt class="docutils literal"><span class="pre">&lt;</span> <span class="pre">0,</span> <span class="pre">&quot;ZERO&quot;&gt;</span></tt> are the
+parameters used when creating this specific instance of the <tt class="docutils literal"><span class="pre">Cpu0GPRReg</span></tt> class, thus
+the four bit <tt class="docutils literal"><span class="pre">Num</span></tt> field is set to 0, and the string <tt class="docutils literal"><span class="pre">n</span></tt> is set to <tt class="docutils literal"><span class="pre">ZERO</span></tt>.</p>
+<p>As the register lives in the <tt class="docutils literal"><span class="pre">Cpu0</span></tt> namespace, you can refer to the ZERO register in
+C++ code in a backend using <tt class="docutils literal"><span class="pre">Cpu0::ZERO</span></tt>.</p>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">I might want to re-edit the following paragraph</p>
+</div>
+<p>Notice the use of the <tt class="docutils literal"><span class="pre">let</span></tt> expressions: these allow you to override values that are
+initially defined in a superclass. For example, <tt class="docutils literal"><span class="pre">let</span> <span class="pre">Namespace</span> <span class="pre">=</span> <span class="pre">“Cpu0”</span></tt> in the
+<tt class="docutils literal"><span class="pre">Cpu0Reg</span></tt> class will override the default namespace declared in <tt class="docutils literal"><span class="pre">Register</span></tt> class.
+The Cpu0RegisterInfo.td also defines that <tt class="docutils literal"><span class="pre">CPURegs</span></tt> is an instance of the class
+<tt class="docutils literal"><span class="pre">RegisterClass</span></tt>, which is an built-in LLVM class.  A <tt class="docutils literal"><span class="pre">RegisterClass</span></tt> is a set of
+<tt class="docutils literal"><span class="pre">Register</span></tt> instances, thus <tt class="docutils literal"><span class="pre">CPURegs</span></tt> can be described as a set of registers.</p>
 <p>The cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,</p>
 <div class="highlight-c++"><pre>/===- Cpu0InstrInfo.td - Target Description for Cpu0 Target -*- tablegen -*-=//
 //
@@ -1352,8 +1340,8 @@ After building, you will find three libraries: <tt class="docutils literal"><spa
 <tt class="docutils literal"><span class="pre">libLLVMCpu0Desc.a</span></tt> and <tt class="docutils literal"><span class="pre">libLLVMCpu0Info.a</span></tt> in lib/ of your build
 directory.
 For more details please see
-&#8220;Building LLVM with CMake&#8221; <a class="footnote-reference" href="#cmake" id="id6">[5]</a> and
-&#8220;LLVMBuild Guide&#8221; <a class="footnote-reference" href="#llvmbuild" id="id7">[6]</a>.</p>
+&#8220;Building LLVM with CMake&#8221; <a class="footnote-reference" href="#cmake" id="id7">[6]</a> and
+&#8220;LLVMBuild Guide&#8221; <a class="footnote-reference" href="#llvmbuild" id="id8">[7]</a>.</p>
 </div>
 <div class="section" id="target-registration">
 <h2>Target Registration<a class="headerlink" href="#target-registration" title="Permalink to this headline">¶</a></h2>
@@ -1394,13 +1382,13 @@ the empty initialize function since we register nothing in them for this moment.
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Please see &#8220;Target Registration&#8221; <a class="footnote-reference" href="#target-reg" id="id8">[7]</a> for reference.</p>
+<p>Please see &#8220;Target Registration&#8221; <a class="footnote-reference" href="#target-reg" id="id9">[8]</a> for reference.</p>
 </div>
 <div class="section" id="build-libraries-and-td">
 <h2>Build libraries and td<a class="headerlink" href="#build-libraries-and-td" title="Permalink to this headline">¶</a></h2>
 <p>The llvm source code is put in /Users/Jonathan/llvm/release/src and have llvm
 release-build in /Users/Jonathan/llvm/release/configure_release_build.
-About how to build llvm, please refer <a class="footnote-reference" href="#clang" id="id9">[8]</a>.
+About how to build llvm, please refer <a class="footnote-reference" href="#clang" id="id10">[9]</a>.
 We made a copy from /Users/Jonathan/llvm/release/src to
 /Users/Jonathan/llvm/test/src for working with my Cpu0 target back end.
 Sub-directories src is for source code and cmake_debug_build is for debug
@@ -1459,7 +1447,7 @@ LLVM <span class="o">(</span>http://llvm.org/<span class="o">)</span>:
 </div>
 <p>The <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-version</span></tt> can display <strong>“cpu0”</strong> and <strong>“cpu0el”</strong> message, because
 the following code from file TargetInfo/Cpu0TargetInfo.cpp what in
-&#8220;section Target Registration&#8221; <a class="footnote-reference" href="#asadasd" id="id10">[9]</a> we made.
+&#8220;section Target Registration&#8221; <a class="footnote-reference" href="#asadasd" id="id11">[10]</a> we made.
 List them as follows again,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0TargetInfo.cpp</span>
 <span class="n">Target</span> <span class="n">llvm</span><span class="o">::</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">llvm</span><span class="o">::</span><span class="n">TheCpu0elTarget</span><span class="p">;</span>
@@ -1527,46 +1515,52 @@ The error message say we didn&#8217;t define our target machine.</p>
 <tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td>English translation of Cpu0 description. <a class="reference external" href="http://translate.google.com.tw/translate?js=n&amp;prev=_t&amp;hl=zh-TW&amp;ie=UTF-8&amp;layout=2&amp;eotf=1&amp;sl=zh-CN&amp;tl=en&amp;u=http://ccckmit.wikidot.com/ocs:cpu0">http://translate.google.com.tw/translate?js=n&amp;prev=_t&amp;hl=zh-TW&amp;ie=UTF-8&amp;layout=2&amp;eotf=1&amp;sl=zh-CN&amp;tl=en&amp;u=http://ccckmit.wikidot.com/ocs:cpu0</a></td></tr>
 </tbody>
 </table>
+<table class="docutils footnote" frame="void" id="cond-note" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[3]</a></td><td>Conditions include the following comparisons: &gt;, &gt;=, ==, !=, &lt;=, &lt;. SW is actually set by the subtraction of the two register operands, and the flags indicate which conditions are present.</td></tr>
+</tbody>
+</table>
 <table class="docutils footnote" frame="void" id="aosa-book" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[3]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> Chris Lattner, <strong>LLVM</strong>. Published in The Architecture of Open Source Applications. <a class="reference external" href="http://www.aosabook.org/en/llvm.html">http://www.aosabook.org/en/llvm.html</a></td></tr>
+<tr><td class="label">[4]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id5">2</a>)</em> Chris Lattner, <strong>LLVM</strong>. Published in The Architecture of Open Source Applications. <a class="reference external" href="http://www.aosabook.org/en/llvm.html">http://www.aosabook.org/en/llvm.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="tablegen" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[4]</a></td><td><a class="reference external" href="http://llvm.org/docs/TableGenFundamentals.html">http://llvm.org/docs/TableGenFundamentals.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id6">[5]</a></td><td><a class="reference external" href="http://llvm.org/docs/TableGenFundamentals.html">http://llvm.org/docs/TableGenFundamentals.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="cmake" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id6">[5]</a></td><td><a class="reference external" href="http://llvm.org/docs/CMake.html">http://llvm.org/docs/CMake.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id7">[6]</a></td><td><a class="reference external" href="http://llvm.org/docs/CMake.html">http://llvm.org/docs/CMake.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="llvmbuild" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id7">[6]</a></td><td><a class="reference external" href="http://llvm.org/docs/LLVMBuild.html">http://llvm.org/docs/LLVMBuild.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id8">[7]</a></td><td><a class="reference external" href="http://llvm.org/docs/LLVMBuild.html">http://llvm.org/docs/LLVMBuild.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="target-reg" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id8">[7]</a></td><td><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration">http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id9">[8]</a></td><td><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration">http://llvm.org/docs/WritingAnLLVMBackend.html#target-registration</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="clang" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id9">[8]</a></td><td><a class="reference external" href="http://clang.llvm.org/get_started.html">http://clang.llvm.org/get_started.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id10">[9]</a></td><td><a class="reference external" href="http://clang.llvm.org/get_started.html">http://clang.llvm.org/get_started.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="asadasd" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id10">[9]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id11">[10]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration</a></td></tr>
 </tbody>
 </table>
 </div>

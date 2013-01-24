@@ -74,12 +74,11 @@
 <li class="toctree-l3"><a class="reference internal" href="llvmstructure.html#the-cpu0-instruction-set">The Cpu0 Instruction Set</a></li>
 <li class="toctree-l3"><a class="reference internal" href="llvmstructure.html#the-status-register">The Status Register</a></li>
 <li class="toctree-l3"><a class="reference internal" href="llvmstructure.html#cpu0-s-stages-of-instruction-execution">Cpu0&#8217;s Stages of Instruction Execution</a></li>
-<li class="toctree-l3"><a class="reference internal" href="llvmstructure.html#replace-ldi-instruction-by-addiu-instruction">Replace ldi instruction by addiu instruction</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="llvmstructure.html#llvm-structure">LLVM Structure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="llvmstructure.html#td-llvm-s-target-description-files">.td: LLVM&#8217;s Target Description Files</a></li>
-<li class="toctree-l2"><a class="reference internal" href="llvmstructure.html#writing-the-first-cpu0-td-files">Writing the First Cpu0 .td Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="llvmstructure.html#creating-the-initial-cpu0-td-files">Creating the Initial Cpu0 .td Files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="llvmstructure.html#write-cmake-file">Write cmake file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="llvmstructure.html#target-registration">Target Registration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="llvmstructure.html#build-libraries-and-td">Build libraries and td</a></li>
@@ -101,10 +100,7 @@
 <li class="toctree-l2"><a class="reference internal" href="otherinst.html#support-arithmetic-instructions">Support arithmetic instructions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="otherinst.html#operator-not">Operator “not” !</a></li>
 <li class="toctree-l2"><a class="reference internal" href="otherinst.html#display-llvm-ir-nodes-with-graphviz">Display llvm IR nodes with Graphviz</a></li>
-<li class="toctree-l2"><a class="reference internal" href="otherinst.html#adjust-cpu0-instructions">Adjust cpu0 instructions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="otherinst.html#use-cpu0-official-ldi-instead-of-addiu">Use cpu0 official LDI instead of ADDiu</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="otherinst.html#adjust-cpu0-instructions">Adjust cpu0 instructions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="otherinst.html#local-variable-pointer">Local variable pointer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="otherinst.html#operator-mod">Operator mod, %</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="otherinst.html#the-dag-of">The DAG of %</a></li>
@@ -145,6 +141,7 @@
 <li class="toctree-l2"><a class="reference internal" href="funccall.html#pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup">Pseudo hook instruction ADJCALLSTACKDOWN and ADJCALLSTACKUP</a></li>
 <li class="toctree-l2"><a class="reference internal" href="funccall.html#handle-gp-register-in-pic-addressing-mode">Handle $gp register in PIC addressing mode</a></li>
 <li class="toctree-l2"><a class="reference internal" href="funccall.html#variable-number-of-arguments">Variable number of arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="funccall.html#correct-the-return-of-main">Correct the return of main()</a></li>
 <li class="toctree-l2"><a class="reference internal" href="funccall.html#verify-div-for-operator">Verify DIV for operator %</a></li>
 <li class="toctree-l2"><a class="reference internal" href="funccall.html#summary-of-this-chapter">Summary of this chapter</a></li>
 </ul>
@@ -182,6 +179,11 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="oldver.html#difference-in-mips-backend">Difference in Mips backend</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="instdiscuss.html">Appendix C: instructions discuss</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="instdiscuss.html#use-cpu0-official-ldi-instead-of-addiu">Use cpu0 official LDI instead of ADDiu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="instdiscuss.html#implicit-operand">Implicit operand</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="todo.html">Todo List</a></li>

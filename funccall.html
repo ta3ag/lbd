@@ -2457,9 +2457,196 @@ backend code too.</p>
 </div>
 <p>Mips qemu reference <a class="footnote-reference" href="#id16" id="id10">[6]</a>.</p>
 </div>
+<div class="section" id="correct-the-return-of-main">
+<h2>Correct the return of main()<a class="headerlink" href="#correct-the-return-of-main" title="Permalink to this headline">¶</a></h2>
+<p>Run 8/7/Cpu0 with ch6_2.cpp to get the incorrect main return (return register
+$2 is not 0) as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">year</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">month</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">day</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="n">Date</span> <span class="n">date</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
+<span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
+
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">day</span> <span class="o">=</span> <span class="n">date</span><span class="p">.</span><span class="n">day</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>clang -c ch6_2.cpp -emit-llvm -o ch6_2.bc
+118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch6_2.bc -o
+ch6_2.cpu0.static.s
+118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>cat ch6_2.cpu0.static.s
+  .section .mdebug.abi32
+  .previous
+  .file <span class="s2">&quot;ch6_2.bc&quot;</span>
+  .text
+  .globl  main
+  .align  2
+  .type main,@function
+  .ent  main                    <span class="c"># @main</span>
+main:
+  .cfi_startproc
+  .frame  <span class="nv">$sp</span>,16,<span class="nv">$lr</span>
+  .mask   0x00000000,0
+  .set  noreorder
+  .set  nomacro
+<span class="c"># BB#0:</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+<span class="nv">$tmp1</span>:
+  .cfi_def_cfa_offset 16
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, %hi<span class="o">(</span>date<span class="o">)</span>
+  shl <span class="nv">$2</span>, <span class="nv">$2</span>, 16
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span>date<span class="o">)</span>
+  ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, %hi<span class="o">(</span>a<span class="o">)</span>
+  shl <span class="nv">$2</span>, <span class="nv">$2</span>, 16
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span>a<span class="o">)</span>
+  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
+  ret <span class="nv">$lr</span>
+  .set  macro
+  .set  reorder
+  .end  main
+...
+</pre></div>
+</div>
+<p>The LowerReturn() modified in 8/8/Cpu0 as below.
+It add the live out register $2 to function (main() as this example), and copy
+the OutVals[0] (0 as this example) to $2. Then call DAG.getNode(..., Flag)
+where Flag contains $2 and OutVals[0] information.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0ISelLowering.cpp</span>
+<span class="p">...</span>
+<span class="n">SDValue</span>
+<span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerReturn</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span>
+                <span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">isVarArg</span><span class="p">,</span>
+                <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="o">::</span><span class="n">OutputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Outs</span><span class="p">,</span>
+                <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">OutVals</span><span class="p">,</span>
+                <span class="n">DebugLoc</span> <span class="n">dl</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+
+  <span class="c1">// CCValAssign - represent the assignment of</span>
+  <span class="c1">// the return value to a location</span>
+  <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">CCValAssign</span><span class="p">,</span> <span class="mi">16</span><span class="o">&gt;</span> <span class="n">RVLocs</span><span class="p">;</span>
+
+  <span class="c1">// CCState - Info about the registers and stack slot.</span>
+  <span class="n">CCState</span> <span class="n">CCInfo</span><span class="p">(</span><span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">(),</span>
+     <span class="n">getTargetMachine</span><span class="p">(),</span> <span class="n">RVLocs</span><span class="p">,</span> <span class="o">*</span><span class="n">DAG</span><span class="p">.</span><span class="n">getContext</span><span class="p">());</span>
+
+  <span class="c1">// Analize return values.</span>
+  <span class="n">CCInfo</span><span class="p">.</span><span class="n">AnalyzeReturn</span><span class="p">(</span><span class="n">Outs</span><span class="p">,</span> <span class="n">RetCC_Cpu0</span><span class="p">);</span>
+
+  <span class="c1">// If this is the first return lowered for this function, add</span>
+  <span class="c1">// the regs to the liveout set for the function.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">().</span><span class="n">getRegInfo</span><span class="p">().</span><span class="n">liveout_empty</span><span class="p">())</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">RVLocs</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">RVLocs</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">isRegLoc</span><span class="p">())</span>
+        <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">().</span><span class="n">getRegInfo</span><span class="p">().</span><span class="n">addLiveOut</span><span class="p">(</span><span class="n">RVLocs</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">getLocReg</span><span class="p">());</span>
+  <span class="p">}</span>
+
+  <span class="n">SDValue</span> <span class="n">Flag</span><span class="p">;</span>
+
+  <span class="c1">// Copy the result values into the output registers.</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">RVLocs</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">CCValAssign</span> <span class="o">&amp;</span><span class="n">VA</span> <span class="o">=</span> <span class="n">RVLocs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">VA</span><span class="p">.</span><span class="n">isRegLoc</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Can only return in registers!&quot;</span><span class="p">);</span>
+
+    <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyToReg</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VA</span><span class="p">.</span><span class="n">getLocReg</span><span class="p">(),</span> <span class="n">OutVals</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Flag</span><span class="p">);</span>
+
+    <span class="c1">// guarantee that all emitted copies are</span>
+    <span class="c1">// stuck together, avoiding something bad</span>
+    <span class="n">Flag</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="c1">// Return on Cpu0 is always a &quot;jr $ra&quot;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Flag</span><span class="p">.</span><span class="n">getNode</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Ret</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span>
+               <span class="n">Chain</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">),</span> <span class="n">Flag</span><span class="p">);</span>
+  <span class="k">else</span> <span class="c1">// Return Void</span>
+    <span class="k">return</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Ret</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span>
+               <span class="n">Chain</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">));</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Run 8/8/Cpu0 to get the correct result (return register $2 is 0) as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch6_2.bc -o
+ch6_2.cpu0.static.s
+118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>cat ch6_2.cpu0.static.s
+  .section .mdebug.abi32
+  .previous
+  .file <span class="s2">&quot;ch6_2.bc&quot;</span>
+  .text
+  .globl  main
+  .align  2
+  .type main,@function
+  .ent  main                    <span class="c"># @main</span>
+main:
+  .cfi_startproc
+  .frame  <span class="nv">$sp</span>,16,<span class="nv">$lr</span>
+  .mask   0x00000000,0
+  .set  noreorder
+  .set  nomacro
+<span class="c"># BB#0:</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+<span class="nv">$tmp1</span>:
+  .cfi_def_cfa_offset 16
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, %hi<span class="o">(</span>date<span class="o">)</span>
+  shl <span class="nv">$3</span>, <span class="nv">$3</span>, 16
+  addiu <span class="nv">$3</span>, <span class="nv">$3</span>, %lo<span class="o">(</span>date<span class="o">)</span>
+  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
+  st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, %hi<span class="o">(</span>a<span class="o">)</span>
+  shl <span class="nv">$3</span>, <span class="nv">$3</span>, 16
+  addiu <span class="nv">$3</span>, <span class="nv">$3</span>, %lo<span class="o">(</span>a<span class="o">)</span>
+  ld  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
+  st  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
+  ret <span class="nv">$lr</span>
+  .set  macro
+  .set  reorder
+  .end  main
+<span class="nv">$tmp2</span>:
+  .size main, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-main
+  .cfi_endproc
+
+  .type date,@object            <span class="c"># @date</span>
+  .data
+  .globl  date
+  .align  2
+date:
+  .4byte  2012                    <span class="c"># 0x7dc</span>
+  .4byte  10                      <span class="c"># 0xa</span>
+  .4byte  12                      <span class="c"># 0xc</span>
+  .size date, 12
+
+  .type a,@object               <span class="c"># @a</span>
+  .globl  a
+  .align  2
+a:
+  .4byte  2012                    <span class="c"># 0x7dc</span>
+  .4byte  10                      <span class="c"># 0xa</span>
+  .4byte  12                      <span class="c"># 0xc</span>
+  .size a, 12
+</pre></div>
+</div>
+</div>
 <div class="section" id="verify-div-for-operator">
 <h2>Verify DIV for operator %<a class="headerlink" href="#verify-div-for-operator" title="Permalink to this headline">¶</a></h2>
-<p>Now, let&#8217;s run 8/7/Cpu0 with 4_6_2.cpp to get the result as below.
+<p>Now, let&#8217;s run 8/8/Cpu0 with ch4_6_2.cpp to get the result as below.
 It translate <strong>“(b+1)%c”</strong> into <strong>“div $zero, $3, $2”</strong> and <strong>“mfhi $2”</strong>.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch4_6_2.cpp</span>
 <span class="cp">#include &lt;stdlib.h&gt;</span>
