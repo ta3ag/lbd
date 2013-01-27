@@ -126,7 +126,7 @@ Before installing cmake, make sure you can install applications you download
 from the Internet.
 Open <em class="menuselection">System Preferences ‣ Security &amp; Privacy</em>. Click the
 <strong>lock</strong> to make changes, and under &#8220;Allow applications downloaded from:&#8221; select
-the radio button next to &#8220;Anywhere.&#8221; See <a class="reference internal" href="#install-f2"><em>Adjusting Mac OS X security settings to allow cmake installation.</em></a> below for an
+the radio button next to &#8220;Anywhere.&#8221; See <a class="pageref" href="#install-f2">Figure  1</a> below for an
 illustration. You may want to revert this setting after installing cmake.</p>
 <div class="figure align-center" id="install-f2">
 <img alt="_images/23.png" src="_images/23.png" />
@@ -150,8 +150,9 @@ of supporting cpu0 by terminal cmake command&#8221; <a class="footnote-reference
 Even with that, let&#8217;s build LLVM project with cmake graphic UI since this LLVM
 directory contains the release version for clang and clang++ execution file.
 First, create LLVM.xcodeproj as
-<a class="reference internal" href="#install-f3"><em>Start to create LLVM.xcodeproj by cmake</em></a>, then click <strong>configure</strong> button to enter <a class="reference internal" href="#install-f4"><em>Create LLVM.xcodeproj by cmake – Set option to generate Xcode project</em></a>,
-and then click <strong>Done</strong> button to get <a class="reference internal" href="#install-f5"><em>Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</em></a>.</p>
+<a class="pageref" href="#install-f3">Figure  2</a>, then click <strong>configure</strong> button to enter
+<a class="pageref" href="#install-f4">Figure  3</a>,
+and then click <strong>Done</strong> button to get <a class="pageref" href="#install-f5">Figure  4</a>.</p>
 <div class="figure align-center" id="install-f3">
 <img alt="_images/32.png" src="_images/32.png" />
 <p class="caption">Figure 2: Start to create LLVM.xcodeproj by cmake</p>
@@ -164,28 +165,28 @@ and then click <strong>Done</strong> button to get <a class="reference internal"
 <img alt="_images/52.png" src="_images/52.png" />
 <p class="caption">Figure 4: Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</p>
 </div>
-<p>Click OK from <a class="reference internal" href="#install-f5"><em>Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</em></a> and select Cmake 2.8-9.app for CMAKE_INSTALL_NAM
-E_TOOL by click the right side button <strong>“...”</strong> of that row to get
-<a class="reference internal" href="#install-f6"><em>Select Cmake 2.8-9.app</em></a>.</p>
+<p>Click OK from <a class="pageref" href="#install-f5">Figure  4</a> and select Cmake 2.8-9.app for
+CMAKE_INSTALL_NAME_TOOL by click the right side button <strong>“...”</strong> of that row
+to get
+<a class="pageref" href="#install-f6">Figure  5</a>.</p>
 <div class="figure align-center" id="install-f6">
 <img alt="_images/62.png" src="_images/62.png" />
 <p class="caption">Figure 5: Select Cmake 2.8-9.app</p>
 </div>
-<p>Click Configure button to get <a class="reference internal" href="#install-f7"><em>Click cmake Configure button first time</em></a>.</p>
+<p>Click Configure button to get <a class="pageref" href="#install-f7">Figure  6</a>.</p>
 <div class="figure align-center" id="install-f7">
 <img alt="_images/72.png" src="_images/72.png" />
 <p class="caption">Figure 6: Click cmake Configure button first time</p>
 </div>
 <p>Check CLANG_BUILD_EXAMPLES, LLVM_BUILD_EXAMPLES, and uncheck LLVM_ENABLE_PIC as
-<a class="reference internal" href="#install-f8"><em>Check CLANG_BUILD_EXAMPLES, LLVM_BUILD_EXAMPLES, and uncheck
-LLVM_ENABLE_PIC in cmake</em></a>.</p>
+<a class="pageref" href="#install-f8">Figure  7</a>.</p>
 <div class="figure align-center" id="install-f8">
 <img alt="_images/82.png" src="_images/82.png" />
 <p class="caption">Figure 7: Check CLANG_BUILD_EXAMPLES, LLVM_BUILD_EXAMPLES, and uncheck
 LLVM_ENABLE_PIC in cmake</p>
 </div>
 <p>Click Configure button again. If the output result message has no red color,
-then click Generate button to get <a class="reference internal" href="#install-f9"><em>Click cmake Generate button second time</em></a>.</p>
+then click Generate button to get <a class="pageref" href="#install-f9">Figure  8</a>.</p>
 <div class="figure align-center" id="install-f9">
 <img alt="_images/92.png" src="_images/92.png" />
 <p class="caption">Figure 8: Click cmake Generate button second time</p>
@@ -194,7 +195,7 @@ then click Generate button to get <a class="reference internal" href="#install-f
 <div class="section" id="build-llvm-by-xcode">
 <h3>Build llvm by Xcode<a class="headerlink" href="#build-llvm-by-xcode" title="Permalink to this headline">¶</a></h3>
 <p>Now, LLVM.xcodeproj is created. Open the cmake_debug_build/LLVM.xcodeproj by
-Xcode and click menu <strong>“Product – Build”</strong> as <a class="reference internal" href="#install-f10"><em>Click Build button to build LLVM.xcodeproj by Xcode</em></a>.</p>
+Xcode and click menu <strong>“Product – Build”</strong> as <a class="pageref" href="#install-f10">Figure  9</a>.</p>
 <div class="figure align-center" id="install-f10">
 <img alt="_images/101.png" src="_images/101.png" />
 <p class="caption">Figure 9: Click Build button to build LLVM.xcodeproj by Xcode</p>
@@ -394,7 +395,8 @@ Process 6058 stopped
 You can work even without these tools.
 Files compare tools Kdiff3 came from web site <a class="footnote-reference" href="#id22" id="id9">[8]</a>.
 FileMerge is a part of Xcode, you can type FileMerge in Finder – Applications
-as <a class="reference internal" href="#install-f11"><em>Type FileMerge in Finder – Applications</em></a> and drag it into the Dock as <a class="reference internal" href="#install-f12"><em>Drag FileMege into the Dock</em></a>.</p>
+as <a class="pageref" href="#install-f11">Figure  10</a> and drag it into the Dock as
+<a class="pageref" href="#install-f12">Figure  11</a>.</p>
 <div class="figure align-center" id="install-f11">
 <img alt="_images/111.png" src="_images/111.png" />
 <p class="caption">Figure 10: Type FileMerge in Finder – Applications</p>
@@ -405,7 +407,8 @@ as <a class="reference internal" href="#install-f11"><em>Type FileMerge in Finde
 </div>
 <p>Download tool Graphviz for display llvm IR nodes in debugging,
 <a class="footnote-reference" href="#id23" id="id10">[9]</a>.
-We choose mountainlion as <a class="reference internal" href="#install-f13"><em>Download graphviz for llvm IR node display</em></a> since our iMac is Mountain Lion.</p>
+We choose mountainlion as <a class="pageref" href="#install-f13">Figure  12</a> since our iMac is Mountain
+Lion.</p>
 <div class="figure align-center" id="install-f13">
 <a class="reference internal image-reference" href="_images/131.png"><img alt="_images/131.png" src="_images/131.png" style="width: 944.8px; height: 590.4px;" /></a>
 <p class="caption">Figure 12: Download graphviz for llvm IR node display</p>
@@ -430,8 +433,8 @@ like the obj file, *.o, that will be generated in chapter of Other
 instructions.
 You can download from App Store.
 To dump binary file, first, open the binary file, next, select menu
-<strong>“File – Hex Front Document”</strong> as <a class="reference internal" href="#install-f14"><em>Select Hex Dump menu</em></a>.
-Then select <strong>“Front document&#8217;s file”</strong> as <a class="reference internal" href="#install-f15"><em>Select Front document&#8217;s file in TextWrangler</em></a>.</p>
+<strong>“File – Hex Front Document”</strong> as <a class="pageref" href="#install-f14">Figure  13</a>.
+Then select <strong>“Front document&#8217;s file”</strong> as <a class="pageref" href="#install-f15">Figure  14</a>.</p>
 <div class="figure align-center" id="install-f14">
 <img alt="_images/141.png" src="_images/141.png" />
 <p class="caption">Figure 13: Select Hex Dump menu</p>

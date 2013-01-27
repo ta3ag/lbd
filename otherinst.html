@@ -536,12 +536,12 @@ Writing <span class="s1">&#39;/tmp/llvm_84ibpm/dag.main.dot&#39;</span>...  <spa
 118-165-12-177:InputFiles Jonathan<span class="nv">$ </span>Graphviz /tmp/llvm_84ibpm/dag.main.dot
 </pre></div>
 </div>
-<p>It will show the /tmp/llvm_84ibpm/dag.main.dot as <a class="reference internal" href="#otherinst-f1"><em>llc option -view-dag-combine1-dags graphic view</em></a>.</p>
+<p>It will show the /tmp/llvm_84ibpm/dag.main.dot as <a class="pageref" href="#otherinst-f1">Figure  1</a>.</p>
 <div class="figure align-center" id="otherinst-f1">
 <a class="reference internal image-reference" href="_images/17.png"><img alt="_images/17.png" src="_images/17.png" style="width: 687.0px; height: 851.0px;" /></a>
 <p class="caption">Figure 1: llc option -view-dag-combine1-dags graphic view</p>
 </div>
-<p>From <a class="reference internal" href="#otherinst-f1"><em>llc option -view-dag-combine1-dags graphic view</em></a>, we can see the -view-dag-combine1-dags option is for
+<p>From <a class="pageref" href="#otherinst-f1">Figure  1</a>, we can see the -view-dag-combine1-dags option is for
 Initial selection DAG.
 We list the other view options and their corresponding DAG translation stage as
 follows,</p>
@@ -788,7 +788,7 @@ the remainder.)</p>
 </div>
 <p>Run 4/5/Cpu0 with input file ch4_6_1.bc and <tt class="docutils literal"><span class="pre">llc</span></tt> option –view-isel-dags as
 follows, will get the error message as follows and the llvm DAG of
-<a class="reference internal" href="#otherinst-f2"><em>ch4_6.bc DAG</em></a>.</p>
+<a class="pageref" href="#otherinst-f2">Figure  2</a>.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-79-37:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -view-isel-dags -relocation-model<span class="o">=</span>
 pic -filetype<span class="o">=</span>asm ch4_6_1.bc -o ch4_6.cpu0.s
@@ -805,7 +805,8 @@ LLVM ERROR: Cannot <span class="k">select</span>: 0x7fa73a02ea10: <span class="n
 </div>
 <p>LLVM replace srem divide operation with multiply operation in DAG optimization
 because DIV operation cost more in time than MUL.
-For example code <strong>“int b = 11; b=(b+1)%12;”</strong>, it translate into <a class="reference internal" href="#otherinst-f2"><em>ch4_6.bc DAG</em></a>.
+For example code <strong>“int b = 11; b=(b+1)%12;”</strong>, it translate into
+<a class="pageref" href="#otherinst-f2">Figure  2</a>.
 We verify the result and explain by calculate the value in each node.
 The 0xC*0x2AAAAAAB=0x2,00000004, (mulhs 0xC, 0x2AAAAAAAB) meaning get the Signed
 mul high word (32bits).
@@ -817,7 +818,7 @@ The final result (sub 12, 12) is 0 which match the statement (11+1)%12.</p>
 <div class="section" id="arm-solution">
 <h3>Arm solution<a class="headerlink" href="#arm-solution" title="Permalink to this headline">¶</a></h3>
 <p>Let&#8217;s run 4/6_1/Cpu0 with ch4_6.cpp as well as <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-view-sched-dags</span></tt> option
-to get <a class="reference internal" href="#otherinst-f3"><em>Translate ch4_6.bc into cpu0 backend DAG</em></a>.
+to get <a class="pageref" href="#otherinst-f3">Figure  3</a>.
 Similarly, SMMUL get the high word of multiply result.</p>
 <div class="figure align-center" id="otherinst-f3">
 <a class="reference internal image-reference" href="_images/34.png"><img alt="_images/34.png" src="_images/34.png" style="width: 687.0px; height: 702.0px;" /></a>
@@ -1018,7 +1019,7 @@ After that, MFHI instruction move the HI register to cpu0 field &#8220;a&#8221; 
 $ra.
 MFHI instruction is FL format and only use cpu0 field &#8220;a&#8221; register, we set
 the $rb and imm16 to 0.
-<a class="reference internal" href="#otherinst-f4"><em>DAG for ch4_6.bc with Mips style MULT</em></a> and ch4_6.cpu0.s are the result of compile ch4_6.bc.</p>
+<a class="pageref" href="#otherinst-f4">Figure  4</a> and ch4_6.cpu0.s are the result of compile ch4_6.bc.</p>
 <div class="figure align-center" id="otherinst-f4">
 <a class="reference internal image-reference" href="_images/43.png"><img alt="_images/43.png" src="_images/43.png" style="width: 231.75px; height: 605.25px;" /></a>
 <p class="caption">Figure 4: DAG for ch4_6.bc with Mips style MULT</p>

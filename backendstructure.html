@@ -186,14 +186,15 @@ Cpu0TargetLowering and Cpu0SelectionDAGInfo.
 Class Cpu0Subtarget, Cpu0InstrInfo, Cpu0FrameLowering, Cpu0TargetLowering and
 Cpu0SelectionDAGInfo are inherited from parent class TargetSubtargetInfo,
 TargetInstrInfo, TargetFrameLowering, TargetLowering and TargetSelectionDAGInfo.</p>
-<p><a class="reference internal" href="#backendstructure-f1"><em>TargetMachine class diagram 1</em></a> shows Cpu0TargetMachine inherit tree and it&#8217;s
+<p><a class="pageref" href="#backendstructure-f1">Figure  1</a> shows Cpu0TargetMachine inherit tree and it&#8217;s
 Cpu0InstrInfo class inherit tree.
 Cpu0TargetMachine contains Cpu0InstrInfo and ... other class.
 Cpu0InstrInfo contains Cpu0RegisterInfo class, RI. Cpu0InstrInfo.td and
 Cpu0RegisterInfo.td will generate Cpu0GenInstrInfo.inc and
 Cpu0GenRegisterInfo.inc which contain some member functions implementation for
 class Cpu0InstrInfo and Cpu0RegisterInfo.</p>
-<p><a class="reference internal" href="#backendstructure-f2"><em>TargetMachine class diagram 2</em></a> as below shows Cpu0TargetMachine contains class
+<p><a class="pageref" href="#backendstructure-f2">Figure  2</a> as below shows Cpu0TargetMachine contains
+class
 TSInfo: Cpu0SelectionDAGInfo, FrameLowering: Cpu0FrameLowering, Subtarget:
 Cpu0Subtarget and TLInfo: Cpu0TargetLowering.</p>
 <div class="figure align-center" id="backendstructure-f2">
@@ -204,9 +205,9 @@ Cpu0Subtarget and TLInfo: Cpu0TargetLowering.</p>
 <img alt="_images/3.png" src="_images/3.png" />
 <p class="caption">Figure 3: TargetMachine members and operators</p>
 </div>
-<p><a class="reference internal" href="#backendstructure-f3"><em>TargetMachine members and operators</em></a> shows some members and operators (member function)
+<p><a class="pageref" href="#backendstructure-f3">Figure  3</a> shows some members and operators (member function)
 of the parent class TargetMachine&#8217;s.
-<a class="reference internal" href="#backendstructure-f4"><em>Other class members and operators</em></a> as below shows some members of class InstrInfo,
+<a class="pageref" href="#backendstructure-f4">Figure  4</a> as below shows some members of class InstrInfo,
 RegisterInfo and TargetLowering.
 Class DAGInfo is skipped here.</p>
 <div class="figure align-center" id="backendstructure-f4">
@@ -266,7 +267,7 @@ Command as follows,</p>
 </div>
 <div class="section" id="add-registerinfo">
 <h2>Add RegisterInfo<a class="headerlink" href="#add-registerinfo" title="Permalink to this headline">¶</a></h2>
-<p>As depicted in <a class="reference internal" href="#backendstructure-f1"><em>TargetMachine class diagram 1</em></a>, the Cpu0InstrInfo class should
+<p>As depicted in <a class="pageref" href="#backendstructure-f1">Figure  1</a>, the Cpu0InstrInfo class should
 contains Cpu0RegisterInfo.
 So 3/2/Cpu0 add Cpu0RegisterInfo class (Cpu0RegisterInfo.h,
 Cpu0RegisterInfo.cpp), and Cpu0RegisterInfo class in files Cpu0InstrInfo.h,
@@ -589,7 +590,7 @@ of the machine instructions are written into memory.</p>
 <h2>DAG (Directed Acyclic Graph)<a class="headerlink" href="#dag-directed-acyclic-graph" title="Permalink to this headline">¶</a></h2>
 <p>Many important techniques for local optimization begin by transforming a basic
 block into DAG. For example, the basic block code and it&#8217;s corresponding DAG as
-<a class="reference internal" href="#backendstructure-f6"><em>DAG example</em></a>.</p>
+<a class="pageref" href="#backendstructure-f6">Figure  6</a>.</p>
 <div class="figure align-center" id="backendstructure-f6">
 <img alt="_images/6.png" src="_images/6.png" />
 <p class="caption">Figure 6: DAG example</p>
@@ -610,14 +611,14 @@ For example, (+ b, c), (+ b, 1) is IR DAG representation.</p>
 <div class="section" id="instruction-selection">
 <h2>Instruction Selection<a class="headerlink" href="#instruction-selection" title="Permalink to this headline">¶</a></h2>
 <p>In back end, we need to translate IR code into machine code at Instruction
-Selection Process as <a class="reference internal" href="#backendstructure-f7"><em>IR and it&#8217;s corresponding machine instruction</em></a>.</p>
+Selection Process as <a class="pageref" href="#backendstructure-f7">Figure  7</a>.</p>
 <div class="figure align-center" id="backendstructure-f7">
 <img alt="_images/7.png" src="_images/7.png" />
 <p class="caption">Figure 7: IR and it&#8217;s corresponding machine instruction</p>
 </div>
 <p>For machine instruction selection, the better solution is represent IR and
 machine instruction by DAG.
-In <a class="reference internal" href="#backendstructure-f7"><em>IR and it&#8217;s corresponding machine instruction</em></a>, we skip the register leaf.
+In <a class="pageref" href="#backendstructure-f8">Figure  8</a>, we skip the register leaf.
 The rj + rk is IR DAG representation (for symbol notation, not llvm SSA form).
 ADD is machine instruction.</p>
 <div class="figure align-center" id="backendstructure-f8">
@@ -678,7 +679,7 @@ So, we  use the notation form in this book sometimes.</p>
 d = a – d
 %e = fmadd %a, %c, %b // in llvm SSA IR form</pre>
 </div>
-<p>We can apply <a class="reference internal" href="#backendstructure-f7"><em>IR and it&#8217;s corresponding machine instruction</em></a> Instruction tree pattern to get the
+<p>We can apply <em class="xref std std-ref">backendstructure_f7</em> Instruction tree pattern to get the
 following machine code,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">load</span>  <span class="n">rb</span><span class="p">,</span> <span class="n">M</span><span class="p">(</span><span class="n">sp</span><span class="o">+</span><span class="mi">8</span><span class="p">);</span> <span class="c1">// assume b allocate in sp+8, sp is stack point register</span>
 <span class="n">load</span>  <span class="n">rc</span><span class="p">,</span> <span class="n">M</span><span class="p">(</span><span class="n">sp</span><span class="o">+</span><span class="mi">16</span><span class="p">);</span>
@@ -813,7 +814,8 @@ register–offset pair. Depending on whether the machine function that contains
 the instruction has a fixed or a variable stack frame, either the stack pointer
 %a10 or the frame pointer %a14 is used as the base register.
 The offset is computed accordingly.
-Figure 3.9 demonstrates for both cases how a stack slot is addressed.</p>
+<a class="pageref" href="#backendstructure-f9">Figure  9</a> demonstrates for both cases how a stack slot
+is addressed.</p>
 <p>If the addressing mode of the affected instruction cannot handle the address
 because the offset is too large (the offset field has 10 bits for the BO
 addressing mode and 16 bits for the BOL mode), a sequence of instructions is

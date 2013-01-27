@@ -206,7 +206,7 @@ objdump from B0 to B3 as 0xb8ffd009.</p>
 <p>Cpu0MCTargetDesc.cpp do the target registration as mentioned in
 &#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id2" id="id1">[1]</a> of the last chapter.
 Drawing the register function and those class it registered in
-<a class="reference internal" href="#genobj-f1"><em>Register Cpu0MCAsmInfo</em></a> to <a class="reference internal" href="#genobj-f9"><em>Register Cpu0InstPrinter</em></a> for explanation.</p>
+<a class="pageref" href="#genobj-f1">Figure  1</a> to <a class="pageref" href="#genobj-f9">Figure  9</a> for explanation.</p>
 <div class="figure align-center" id="genobj-f1">
 <a class="reference internal image-reference" href="_images/14.png"><img alt="_images/14.png" src="_images/14.png" style="width: 731.0px; height: 634.0px;" /></a>
 <p class="caption">Figure 1: Register Cpu0MCAsmInfo</p>
@@ -247,32 +247,33 @@ Drawing the register function and those class it registered in
 <a class="reference internal image-reference" href="_images/10.png"><img alt="_images/10.png" src="_images/10.png" style="width: 783.0px; height: 596.0px;" /></a>
 <p class="caption">Figure 10: MCELFStreamer inherit tree</p>
 </div>
-<p>In <a class="reference internal" href="#genobj-f1"><em>Register Cpu0MCAsmInfo</em></a>, registering the object of class Cpu0AsmInfo for target
-TheCpu0Target and TheCpu0elTarget.
+<p>In <a class="pageref" href="#genobj-f1">Figure  1</a>, registering the object of class Cpu0AsmInfo for
+target TheCpu0Target and TheCpu0elTarget.
 TheCpu0Target is for big endian and TheCpu0elTarget is for little endian.
 Cpu0AsmInfo is derived from MCAsmInfo which is llvm built-in class.
 Most code is implemented in it&#8217;s parent, back end reuse those code by inherit.</p>
-<p>In <a class="reference internal" href="#genobj-f2"><em>Register MCCodeGenInfo</em></a>, instancing MCCodeGenInfo, and initialize it by pass
+<p>In <a class="pageref" href="#genobj-f2">Figure  2</a>, instancing MCCodeGenInfo, and initialize it by
+pass
 Roloc::PIC because we use command <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span></tt> to tell <tt class="docutils literal"><span class="pre">llc</span></tt>
 compile using position-independent code mode.
 Recall the addressing mode in system program book has two mode, one is PIC
 mode, the other is absolute addressing mode.
 MC stands for Machine Code.</p>
-<p>In <a class="reference internal" href="#genobj-f3"><em>Register MCInstrInfo</em></a>, instancing MCInstrInfo object X, and initialize it by
-InitCpu0MCInstrInfo(X).
+<p>In <a class="pageref" href="#genobj-f3">Figure  3</a>, instancing MCInstrInfo object X, and initialize it
+by InitCpu0MCInstrInfo(X).
 Since InitCpu0MCInstrInfo(X) is defined in Cpu0GenInstrInfo.inc, it will add
 the information fromCpu0InstrInfo.td we specified.
-<a class="reference internal" href="#genobj-f4"><em>Register MCRegisterInfo</em></a> is similar to <a class="reference internal" href="#genobj-f3"><em>Register MCInstrInfo</em></a>, but it initialize the
-register information specified in Cpu0RegisterInfo.td.
+<a class="pageref" href="#genobj-f4">Figure  4</a> is similar to <a class="pageref" href="#genobj-f3">Figure  3</a>, but it
+initialize the register information specified in Cpu0RegisterInfo.td.
 They share a lot of code with instruction/register td description.</p>
-<p><a class="reference internal" href="#genobj-f5"><em>Register Cpu0MCCodeEmitter</em></a>, instancing two objects Cpu0MCCodeEmitter, one is for big
-endian and the other is for little endian.
+<p><a class="pageref" href="#genobj-f5">Figure  5</a>, instancing two objects Cpu0MCCodeEmitter, one is for
+big endian and the other is for little endian.
 They take care the obj format generated.
 So, it&#8217;s not defined in 4/6_2/Cpu0 which support assembly code only.</p>
-<p><a class="reference internal" href="#genobj-f6"><em>Register MCELFStreamer</em></a>, MCELFStreamer take care the obj format also.
-<a class="reference internal" href="#genobj-f5"><em>Register Cpu0MCCodeEmitter</em></a> Cpu0MCCodeEmitter take care code emitter while
+<p><a class="pageref" href="#genobj-f6">Figure  6</a>, MCELFStreamer take care the obj format also.
+<a class="pageref" href="#genobj-f5">Figure  5</a> Cpu0MCCodeEmitter take care code emitter while
 MCELFStreamer take care the obj output streamer.
-<a class="reference internal" href="#genobj-f10"><em>MCELFStreamer inherit tree</em></a> is MCELFStreamer inherit tree.
+<a class="pageref" href="#genobj-f10">Figure  10</a> is MCELFStreamer inherit tree.
 You can find a lot of operations in that inherit tree.</p>
 <p>Reader maybe has the question for what are the actual arguments in
 createCpu0MCCodeEmitterEB(const MCInstrInfo &amp;MCII,  const MCSubtargetInfo &amp;STI,
@@ -283,17 +284,17 @@ createXXX()) where createXXX is function pointer).
 LLVM keep a function pointer to createXXX() when we call target registry, and
 will call these createXXX() function back at proper time with arguments
 assigned during the target registration process, RegisterXXX().</p>
-<p><a class="reference internal" href="#genobj-f7"><em>Register Cpu0AsmBackend</em></a>, Cpu0AsmBackend class is the bridge for asm to obj.
+<p><a class="pageref" href="#genobj-f7">Figure  7</a>, Cpu0AsmBackend class is the bridge for asm to obj.
 Two objects take care big endian and little endian also.
 It derived from MCAsmBackend.
 Most of code for object file generated is implemented by MCELFStreamer and it&#8217;s
 parent, MCAsmBackend.</p>
-<p><a class="reference internal" href="#genobj-f8"><em>Register Cpu0MCSubtargetInfo</em></a>, instancing MCSubtargetInfo object and initialize with
+<p><a class="pageref" href="#genobj-f8">Figure  8</a>, instancing MCSubtargetInfo object and initialize with
 Cpu0.td information.
-<a class="reference internal" href="#genobj-f9"><em>Register Cpu0InstPrinter</em></a>, instancing Cpu0InstPrinter to take care printing function
-for instructions.
-Like <a class="reference internal" href="#genobj-f1"><em>Register Cpu0MCAsmInfo</em></a> to <a class="reference internal" href="#genobj-f4"><em>Register MCRegisterInfo</em></a>, it has been defined in
-4/6_2/Cpu0 code for assembly file generated support.</p>
+<a class="pageref" href="#genobj-f9">Figure  9</a>, instancing Cpu0InstPrinter to take care printing
+function for instructions.
+Like <a class="pageref" href="#genobj-f1">Figure  1</a> to <a class="pageref" href="#genobj-f4">Figure  4</a>, it has been defined
+in 4/6_2/Cpu0 code for assembly file generated support.</p>
 <table class="docutils footnote" frame="void" id="id2" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
