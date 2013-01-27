@@ -679,7 +679,7 @@ So, we  use the notation form in this book sometimes.</p>
 d = a – d
 %e = fmadd %a, %c, %b // in llvm SSA IR form</pre>
 </div>
-<p>We can apply <em class="xref std std-ref">backendstructure_f7</em> Instruction tree pattern to get the
+<p>We can apply <a class="pageref" href="#backendstructure-f7">Figure  7</a> Instruction tree pattern to get the
 following machine code,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">load</span>  <span class="n">rb</span><span class="p">,</span> <span class="n">M</span><span class="p">(</span><span class="n">sp</span><span class="o">+</span><span class="mi">8</span><span class="p">);</span> <span class="c1">// assume b allocate in sp+8, sp is stack point register</span>
 <span class="n">load</span>  <span class="n">rc</span><span class="p">,</span> <span class="n">M</span><span class="p">(</span><span class="n">sp</span><span class="o">+</span><span class="mi">16</span><span class="p">);</span>
