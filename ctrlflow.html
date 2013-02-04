@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.5',
+        VERSION:     '3.2.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -252,8 +252,8 @@ entry:
 <span class="o">}</span>
 </pre></div>
 </div>
-<p>The <strong>“icmp ne”</strong> stand for integer compare NotEqual, <strong>“slt”</strong> stand for Set
-Less Than, <strong>“sle”</strong> stand for Set Less Equal.
+<p>The <strong>“icmp ne”</strong> stand for integer compare NotEqual, <strong>“slt”</strong> stands for Set
+Less Than, <strong>“sle”</strong> stands for Set Less Equal.
 Run version 6/2/Cpu0 with <tt class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-view-isel-dags</span></tt> or <tt class="docutils literal"><span class="pre">-debug</span></tt> option, you
 can see it has translated <strong>if</strong> statement into
 (br (brcond (%1, setcc(%2, Constant&lt;c&gt;, setne)), BasicBlock_02), BasicBlock_01).
@@ -263,8 +263,10 @@ For explanation, We list the IR DAG as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>%cond<span class="o">=</span>setcc<span class="o">(</span>%2, Constant&lt;c&gt;, setne<span class="o">)</span>
 brcond %cond, BasicBlock_02
 br BasicBlock_01
-    We want to translate them into cpu0 instructions DAG as follows,
-addiu %3, ZERO, Constant&lt;c&gt;
+</pre></div>
+</div>
+<p>We want to translate them into cpu0 instructions DAG as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>addiu %3, ZERO, Constant&lt;c&gt;
 cmp %2, %3
 jne BasicBlock_02
 jmp BasicBlock_01
@@ -331,13 +333,19 @@ The last pattern (brcond RC:$cond, bb:$dst) is meaning branch to $dst
 if $cond != 0, it is equal to (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst) in
 cpu0 translation.</p>
 <p>The CMP instruction will set the result to register SW, and then JNE check the
-condition based on SW status. Since SW is a reserved register, it will be
-correct even an instruction is inserted between CMP and JNE as follows,</p>
+condition based on SW status as <a class="pageref" href="#ctrlflow-f1">Figure  1</a>.
+Since SW belongs to a different register class, it
+is correct even an instruction is inserted between CMP and JNE as follows,</p>
+<div class="figure align-center" id="ctrlflow-f1">
+<img alt="_images/11.png" src="_images/11.png" style="width: 446px; height: 465px;" />
+<p class="caption">Figure 1: JNE (CMP $r2, $r3),</p>
+</div>
 <div class="highlight-c++"><pre>cmp %2, %3
 addiu $r1, $r2, 3   // $r1 register never be allocated to $SW
 jne BasicBlock_02</pre>
 </div>
-<p>The reserved registers setting by the following function code we defined before,</p>
+<p>The reserved registers setting by the following
+function code we defined before,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0RegisterInfo.cpp</span>
 <span class="p">...</span>
 <span class="c1">// pure virtual method</span>
@@ -345,7 +353,7 @@ jne BasicBlock_02</pre>
 <span class="n">getReservedRegs</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="k">static</span> <span class="k">const</span> <span class="n">uint16_t</span> <span class="n">ReservedCPURegs</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">GP</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">,</span>
-    <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">PC</span>
+    <span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">PC</span>
   <span class="p">};</span>
   <span class="n">BitVector</span> <span class="n">Reserved</span><span class="p">(</span><span class="n">getNumRegs</span><span class="p">());</span>
   <span class="k">typedef</span> <span class="n">TargetRegisterClass</span><span class="o">::</span><span class="n">iterator</span> <span class="n">RegIter</span><span class="p">;</span>
@@ -364,22 +372,52 @@ jne BasicBlock_02</pre>
 </div>
 <p>Although the following definition in Cpu0RegisterInfo.td has no real effect in
 Reserved Registers, you should comment the Reserved Registers in it for
-readability.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0RegisterInfo.td</span>
-<span class="p">...</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">// Register Classes</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+readability. Setting SW into another register class to prevent the SW register
+allocated to the register used by other instruction.
+The copyPhysReg() is called when DestReg and SrcReg belong to different Register
+Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
+&#8220;cmp $SW, $ZERO, $rc&#8221;.</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="c1">// Cpu0RegisterInfo.td</span>
+  <span class="p">...</span>
+  <span class="c1">//===----------------------------------------------------------------------===//</span>
+  <span class="c1">// Register Classes</span>
+  <span class="c1">//===----------------------------------------------------------------------===//</span>
 
-<span class="n">def</span> <span class="n">CPURegs</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span>
-  <span class="c1">// Return Values and Arguments</span>
-  <span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">A0</span><span class="p">,</span> <span class="n">A1</span><span class="p">,</span>
-  <span class="c1">// Not preserved across procedure calls</span>
-  <span class="n">T9</span><span class="p">,</span>
-  <span class="c1">// Callee save</span>
-  <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">S2</span><span class="p">,</span>
-  <span class="c1">// Reserved</span>
-  <span class="n">ZERO</span><span class="p">,</span> <span class="n">AT</span><span class="p">,</span> <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">CPURegs</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span>
+    <span class="c1">// Return Values and Arguments</span>
+    <span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">A0</span><span class="p">,</span> <span class="n">A1</span><span class="p">,</span>
+    <span class="c1">// Not preserved across procedure calls</span>
+    <span class="n">T9</span><span class="p">,</span>
+    <span class="c1">// Callee save</span>
+    <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">S2</span><span class="p">,</span>
+    <span class="c1">// Reserved</span>
+    <span class="n">ZERO</span><span class="p">,</span> <span class="n">AT</span><span class="p">,</span> <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+
+      <span class="c1">// Status Registers</span>
+      <span class="n">def</span> <span class="n">SR</span>   <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="n">SW</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+
+
+<span class="c1">// Cpu0InstrInfo.cpp</span>
+<span class="c1">//- Called when DestReg and SrcReg belong to different Register Class.</span>
+<span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
+<span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
+      <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
+      <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
+      <span class="kt">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="kt">unsigned</span> <span class="n">Opc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">ZeroReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">DestReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy to CPU Reg.</span>
+    <span class="p">...</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>  <span class="c1">// add $ra, $ZERO, $SW</span>
+      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">ZeroReg</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy from CPU Reg.</span>
+  <span class="p">...</span>
+    <span class="c1">// Only possibility in (DestReg==SW, SrcReg==CPU0Regs) is</span>
+    <span class="c1">//  cmp $SW, $ZERO, $rc</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>
+      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">CMP</span><span class="p">,</span> <span class="n">ZeroReg</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">;</span>
+  <span class="p">}</span>
 </pre></div>
 </div>
 <p>7/1/Cpu0 include support for control flow statement.
@@ -496,6 +534,29 @@ MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand&amp; MO,
   ...
 }
 
+// Cpu0InstrInfo.cpp
+//- Called when DestReg and SrcReg belong to different Register Class.
+void Cpu0InstrInfo::
+copyPhysReg(MachineBasicBlock &amp;MBB,
+            MachineBasicBlock::iterator I, DebugLoc DL,
+            unsigned DestReg, unsigned SrcReg,
+            bool KillSrc) const {
+  if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
+    ...
+  else if (SrcReg == Cpu0::SW)  // add $ra, $ZERO, $SW
+    Opc = Cpu0::ADD, ZeroReg = Cpu0::ZERO;
+  }
+  else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
+    ...
+    // Only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
+    //  cmp $SW, $ZERO, $rc
+    else if (DestReg == Cpu0::SW)
+      Opc = Cpu0::CMP, ZeroReg = Cpu0::ZERO;
+  }
+  ...
+}
+
+
 // Cpu0ISelLowering.cpp
 Cpu0TargetLowering::
 Cpu0TargetLowering(Cpu0TargetMachine &amp;TM)
@@ -516,16 +577,19 @@ Cpu0TargetLowering(Cpu0TargetMachine &amp;TM)
 }
 
 // Cpu0InstrFormats.td
-class BranchBase&lt;bits&lt;8&gt; op, dag outs, dag ins, string asmstr,
-                  list&lt;dag&gt; pattern, InstrItinClass itin&gt;:
-  Cpu0Inst&lt;outs, ins, asmstr, pattern, itin, FrmL&gt;
-{
-  bits&lt;24&gt; imm24;
+    //===----------------------------------------------------------------------===//
+    // Format J instruction class in Cpu0 : &lt;|opcode|address|&gt;
+    //===----------------------------------------------------------------------===//
 
-  let Opcode = op;
+    class FJ&lt;bits&lt;8&gt; op, dag outs, dag ins, string asmstr, list&lt;dag&gt; pattern,
+                     InstrItinClass itin&gt;: Cpu0Inst&lt;outs, ins, asmstr, pattern, itin, FrmJ&gt;
+    {
+      bits&lt;24&gt; addr;
 
-  let Inst{23-0}  = imm24;
-}
+      let Opcode = op;
+
+      let Inst{23-0} = addr;
+    }
 
 // Cpu0InstrInfo.td
 // Instruction operand types
@@ -536,24 +600,27 @@ def brtarget    : Operand&lt;OtherVT&gt; {
 }
 ...
 /// Conditional Branch
-class CBranch&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
-  BranchBase&lt;op, (outs), (ins RC:$cond, brtarget:$imm24),
-             !strconcat(instr_asm, "\t$imm24"),
-             [], IIBranch&gt; {
-  let isBranch = 1;
-  let isTerminator = 1;
-  let hasDelaySlot = 0;
-}
+    class CBranch&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
+                                       list&lt;Register&gt; UseRegs&gt;:
+      FJ&lt;op, (outs), (ins RC:$ra, brtarget:$addr),
+                             !strconcat(instr_asm, "\t$addr"),
+                             [(brcond RC:$ra, bb:$addr)], IIBranch&gt; {
+      let isBranch = 1;
+      let isTerminator = 1;
+      let hasDelaySlot = 0;
+      let neverHasSideEffects = 1;
+    }
 
-// Unconditional branch
-class UncondBranch&lt;bits&lt;8&gt; op, string instr_asm&gt;:
-  BranchBase&lt;op, (outs), (ins brtarget:$imm24),
-             !strconcat(instr_asm, "\t$imm24"), [(br bb:$imm24)], IIBranch&gt; {
-  let isBranch = 1;
-  let isTerminator = 1;
-  let isBarrier = 1;
-  let hasDelaySlot = 0;
-}
+    // Unconditional branch, such as JMP
+    class UncondBranch&lt;bits&lt;8&gt; op, string instr_asm&gt;:
+      FJ&lt;op, (outs), (ins brtarget:$addr),
+                             !strconcat(instr_asm, "\t$addr"), [(br bb:$addr)], IIBranch&gt; {
+      let isBranch = 1;
+      let isTerminator = 1;
+      let isBarrier = 1;
+      let hasDelaySlot = 0;
+      let DecoderMethod = "DecodeJumpRelativeTarget";
+    }
 ...
 /// Jump and Branch Instructions
 def JEQ     : CBranch&lt;0x20, "jeq", CPURegs&gt;;

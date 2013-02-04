@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.5',
+        VERSION:     '3.2.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Appendix B: LLVM changes" href="oldver.html" />
-    <link rel="prev" title="ELF Support" href="elf.html" /> 
+    <link rel="prev" title="Run backend" href="runbackend.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
@@ -41,7 +41,7 @@
       <div class="topnav">
       
         <p>
-        «&#160;&#160;<a href="elf.html">ELF Support</a>
+        «&#160;&#160;<a href="runbackend.html">Run backend</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
@@ -440,7 +440,7 @@ Then select <strong>“Front document&#8217;s file”</strong> as <a class="page
 <p class="caption">Figure 13: Select Hex Dump menu</p>
 </div>
 <div class="figure align-center" id="install-f15">
-<img alt="_images/15.png" src="_images/15.png" />
+<img alt="_images/151.png" src="_images/151.png" />
 <p class="caption">Figure 14: Select Front document&#8217;s file in TextWrangler</p>
 </div>
 <p>Install binutils by command <tt class="docutils literal"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">binutils</span></tt> as follows,</p>
@@ -452,10 +452,6 @@ Then select <strong>“Front document&#8217;s file”</strong> as <a class="page
 <span class="o">==</span>&gt; <span class="nv">make</span>
 <span class="o">==</span>&gt; make install
 /usr/local/Cellar/binutils/2.22: 90 files, 19M, built in 4.7 minutes
-118-165-77-214:~ Jonathan<span class="nv">$ </span>objdump --help
--bash: objdump: <span class="nb">command </span>not found
-118-165-77-214:~ Jonathan<span class="nv">$ </span>man objdump
-No manual entry <span class="k">for </span>objdump
 118-165-77-214:~ Jonathan<span class="nv">$ </span>ls /usr/local/Cellar/binutils/2.22
 COPYING     README      lib
 ChangeLog     bin       share
@@ -822,7 +818,7 @@ Linux distribution. Files compare tools Kdiff3 came from web site <a class="foot
       <div class="bottomnav">
       
         <p>
-        «&#160;&#160;<a href="elf.html">ELF Support</a>
+        «&#160;&#160;<a href="runbackend.html">Run backend</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;

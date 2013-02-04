@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.5',
+        VERSION:     '3.2.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -126,6 +126,12 @@ illustrated in <a class="pageref" href="#llvmstructure-f1">Figure  1</a> below.<
 </tr>
 <tr class="row-even"><td>MDR</td>
 <td>Memory Data Register (MDR)</td>
+</tr>
+<tr class="row-odd"><td>HI</td>
+<td>High part of MULT result</td>
+</tr>
+<tr class="row-even"><td>LO</td>
+<td>Low part of MULT result</td>
 </tr>
 </tbody>
 </table>
@@ -448,6 +454,48 @@ down for each type of instruction.</p>
 <td>Pop word</td>
 <td>POP Ra</td>
 <td>Ra &lt;= (byte)[SP]; SP += 4</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>MFHI</td>
+<td>40</td>
+<td>Move HI to GPR</td>
+<td>MFHI Ra</td>
+<td>Ra &lt;= HI</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>MFLO</td>
+<td>41</td>
+<td>Move LO to GPR</td>
+<td>MFLO Ra</td>
+<td>Ra &lt;= LO</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>MTHI</td>
+<td>42</td>
+<td>Move GPR to HI</td>
+<td>MTHI Ra</td>
+<td>HI &lt;= Ra</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>MFLO</td>
+<td>43</td>
+<td>Move GPR to LO</td>
+<td>MTLO Ra</td>
+<td>LO &lt;= Ra</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>MULT</td>
+<td>50</td>
+<td>Multiply for 64 bits result</td>
+<td>MULT Ra, Rb</td>
+<td>(HI,LO) &lt;= MULT(Ra,Rb)</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>MULTU</td>
+<td>51</td>
+<td>MULT for unsigned 64 bits</td>
+<td>MULTU Ra, Rb</td>
+<td>(HI,LO) &lt;= MULTU(Ra,Rb)</td>
 </tr>
 </tbody>
 </table>
@@ -1010,9 +1058,7 @@ def : Pat&lt;(i32 immSExt16:$in),
 <span class="n">def</span> <span class="n">FrmA</span>      <span class="o">:</span> <span class="n">Format</span><span class="o">&lt;</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="n">def</span> <span class="n">FrmL</span>      <span class="o">:</span> <span class="n">Format</span><span class="o">&lt;</span><span class="mi">2</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="n">def</span> <span class="n">FrmJ</span>      <span class="o">:</span> <span class="n">Format</span><span class="o">&lt;</span><span class="mi">3</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="n">def</span> <span class="n">FrmFR</span>     <span class="o">:</span> <span class="n">Format</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="n">def</span> <span class="n">FrmFI</span>     <span class="o">:</span> <span class="n">Format</span><span class="o">&lt;</span><span class="mi">5</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="n">def</span> <span class="n">FrmOther</span>  <span class="o">:</span> <span class="n">Format</span><span class="o">&lt;</span><span class="mi">6</span><span class="o">&gt;</span><span class="p">;</span> <span class="c1">// Instruction w/ a custom format</span>
+<span class="n">def</span> <span class="n">FrmOther</span>  <span class="o">:</span> <span class="n">Format</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span><span class="p">;</span> <span class="c1">// Instruction w/ a custom format</span>
 
 <span class="c1">// Generic Cpu0 Format</span>
 <span class="k">class</span> <span class="nc">Cpu0Inst</span><span class="o">&lt;</span><span class="n">dag</span> <span class="n">outs</span><span class="p">,</span> <span class="n">dag</span> <span class="n">ins</span><span class="p">,</span> <span class="n">string</span> <span class="n">asmstr</span><span class="p">,</span> <span class="n">list</span><span class="o">&lt;</span><span class="n">dag</span><span class="o">&gt;</span> <span class="n">pattern</span><span class="p">,</span>

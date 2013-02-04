@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.5',
+        VERSION:     '3.2.6',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -87,7 +87,7 @@ registers reserved for function call. For example, Mips pass the first 4
 arguments in register $a0, $a1, $a2, $a3, and the other arguments in stack
 if it over 4 arguments. <a class="pageref" href="#funccall-f1">Figure  1</a> is the Mips stack frame.</p>
 <div class="figure align-center" id="funccall-f1">
-<a class="reference internal image-reference" href="_images/12.png"><img alt="_images/12.png" src="_images/12.png" style="width: 688.0px; height: 531.0px;" /></a>
+<a class="reference internal image-reference" href="_images/13.png"><img alt="_images/13.png" src="_images/13.png" style="width: 688.0px; height: 531.0px;" /></a>
 <p class="caption">Figure 1: Mips stack frame</p>
 </div>
 <p>Run <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=mips</span></tt> for ch8_1.bc, you will get the following result.
@@ -595,6 +595,8 @@ ch8_1.cpu0.s
 Illegal instruction: 4
 </pre></div>
 </div>
+<p>Now, the LowerFormalArguments() has the correct number, but LowerCall() has not
+the correct number of values!</p>
 </div>
 <div class="section" id="store-outgoing-arguments-to-stack-frame">
 <h2>Store outgoing arguments to stack frame<a class="headerlink" href="#store-outgoing-arguments-to-stack-frame" title="Permalink to this headline">¶</a></h2>
@@ -1070,24 +1072,24 @@ It correct arguements offset im main() from (0+40)$sp, (8+40)$sp, ..., to
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o
 ch8_1.cpu0.s
 118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.cpu0.s
-...
+  ...
   !ADJCALLSTACKDOWN 24
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 6
-  st  <span class="nv">$2</span>, 60<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // correct offset
+  st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             // Correct offset
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
-  st  <span class="nv">$2</span>, 56<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 4
-  st  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
-  st  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
-  st  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
-  st  <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   ld  <span class="nv">$6</span>, %call24<span class="o">(</span>_Z5sum_iiiiiii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
   jalr  <span class="nv">$6</span>
   !ADJCALLSTACKUP 24
-...
+  ...
 </pre></div>
 </div>
 <p>The incoming arguments is the formal arguments defined in compiler and program
@@ -1095,7 +1097,7 @@ language books. The outgoing arguments is the actual arguments.
 Summary callee incoming arguments and caller outgoing arguments as
 <a class="pageref" href="#funccall-f3">Figure  3</a>.</p>
 <div class="figure align-center" id="funccall-f3">
-<a class="reference internal image-reference" href="_images/13.png"><img alt="_images/13.png" src="_images/13.png" style="width: 697.0px; height: 156.0px;" /></a>
+<a class="reference internal image-reference" href="_images/14.png"><img alt="_images/14.png" src="_images/14.png" style="width: 697.0px; height: 156.0px;" /></a>
 <p class="caption">Figure 3: Callee incoming arguments and caller outgoing arguments</p>
 </div>
 </div>

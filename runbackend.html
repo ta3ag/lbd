@@ -1,0 +1,95 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Run backend &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.2.6',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
+    <link rel="next" title="Appendix A: Getting Started: Installing LLVM and the Cpu0 example code" href="install.html" />
+    <link rel="prev" title="ELF Support" href="elf.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="index.html">
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
+        <h2 class="heading"><span>Run backend</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="elf.html">ELF Support</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="install.html">Appendix A: Getting Started: Installing LLVM and the Cpu0 example code</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="run-backend">
+<span id="sec-runbackend"></span><h1>Run backend<a class="headerlink" href="#run-backend" title="Permalink to this headline">¶</a></h1>
+<p>This chapter will add LLVM AsmParser support first.
+With AsmParser, we can hand code the assembly language in C/C++ file and
+translate it into obj (elf format).
+With AsmParser support we can write a C++ main
+function as well as the boot code by assembly hand code, and translate this
+main()+bootcode() into obj file.
+By combined with llvm-objdump support in last chapter,
+this main()+bootcode() elf can translated back to hex file format which include
+the disassembler code as comment.
+Further, we can design the Cpu0 with Verilog language tool and run the Cpu0
+backend on PC by feed the hex file and see the Cpu0 instructions execution
+result.</p>
+<div class="section" id="asmparser-support">
+<h2>AsmParser support<a class="headerlink" href="#asmparser-support" title="Permalink to this headline">¶</a></h2>
+<p>Directory AsmParser include the assembly to obj translation.
+Continue...</p>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="elf.html">ELF Support</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="install.html">Appendix A: Getting Started: Installing LLVM and the Cpu0 example code</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, LLVM.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
