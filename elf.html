@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.6',
+        VERSION:     '3.2.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -964,6 +964,11 @@ print $ra and $rb only.
 In the CMP decode function, we didn&#8217;t decode shamt field because the we
 don&#8217;t want it to be displayed and it&#8217;s not in the assembler print pattern of
 Cpu0InstrInfo.td.</p>
+<p>The RET (Cpu0ISD::Ret) and JR (ISD::BRIND) are both for &#8220;ret&#8221; instruction.
+The former is for instruction encode in assembly and obj while the latter is
+for decode in disassembler.
+The IR node Cpu0ISD::Ret is created in LowerReturn() which called at function
+exit point.</p>
 <p>Now, run 9/1/Cpu0 with command <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span> <span class="pre">ch7_1_1.cpu0.o</span></tt> will get
 the following result.</p>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_

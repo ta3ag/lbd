@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.6',
+        VERSION:     '3.2.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -485,7 +485,8 @@ let isCall=1, hasDelaySlot=0 in {
 def SWI  : JumpLink&lt;0x2A, "swi"&gt;;
 def JSUB : JumpLink&lt;0x2B, "jsub"&gt;;
 ...
-def JALR : JumpLinkReg&lt;0x2D, "jalr", CPURegs&gt;;
+def IRET    : JumpFR&lt;0x2D, "iret", CPURegs&gt;;
+def JALR    : JumpLinkReg&lt;0x2E, "jalr", CPURegs&gt;;
 ...
 def : Pat&lt;(Cpu0JmpLink (i32 tglobaladdr:$dst)),
           (JSUB tglobaladdr:$dst)&gt;;

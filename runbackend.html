@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.6',
+        VERSION:     '3.2.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -55,21 +55,2517 @@
   <div class="section" id="run-backend">
 <span id="sec-runbackend"></span><h1>Run backend<a class="headerlink" href="#run-backend" title="Permalink to this headline">¶</a></h1>
 <p>This chapter will add LLVM AsmParser support first.
-With AsmParser, we can hand code the assembly language in C/C++ file and
-translate it into obj (elf format).
-With AsmParser support we can write a C++ main
+With AsmParser support, we can hand code the assembly language in C/C++ file
+and translate it into obj (elf format).
+We can write a C++ main
 function as well as the boot code by assembly hand code, and translate this
 main()+bootcode() into obj file.
-By combined with llvm-objdump support in last chapter,
-this main()+bootcode() elf can translated back to hex file format which include
-the disassembler code as comment.
-Further, we can design the Cpu0 with Verilog language tool and run the Cpu0
+Combined with llvm-objdump support in last chapter,
+this main()+bootcode() elf can be translated back to hex file format which
+include the disassemble code as comment.
+Furthermore, we can design the Cpu0 with Verilog language tool and run the Cpu0
 backend on PC by feed the hex file and see the Cpu0 instructions execution
 result.</p>
 <div class="section" id="asmparser-support">
 <h2>AsmParser support<a class="headerlink" href="#asmparser-support" title="Permalink to this headline">¶</a></h2>
-<p>Directory AsmParser include the assembly to obj translation.
-Continue...</p>
+<p>Run 9/1/Cpu0 with ch10_1.cpp will get the following error message.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch10_1.cpp</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld $2, 8($sp)&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;st $0, 4($sp)&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $3,  $ZERO, 0&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;add $3, $1, $2&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;sub $3, $2, $3&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;mul $2, $1, $3&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;div $3, $2&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;divu $2, $3&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;and $2, $1, $3&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;or $3, $1, $2&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;xor $1, $2, $3&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;mult $4, $3&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;multu $3, $2&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;mfhi $3&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;mflo $2&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;mthi $2&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;mtlo $2&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;sra $2, $2, 2&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;rol $2, $1, 3&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;ror $3, $3, 4&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;shl $2, $2, 2&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;shr $2, $3, 5&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;cmp $sw, $2, $3&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jeq $sw, 20&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jne $sw, 16&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jlt $sw, -20&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jle $sw, -16&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jgt $sw, -4&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jge $sw, -12&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;swi 0x00000400&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jsub 0x000010000&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;ret $lr&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jalr $t9&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;li $3, 0x00700000&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;la $3, 0x00800000($6)&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;la $3, 0x00900000&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><pre>JonathantekiiMac:InputFiles Jonathan$ clang -c ch10_1.cpp -emit-llvm -o
+ch10_1.bc
+JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
+build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch10_1.bc
+-o ch10_1.cpu0.o
+LLVM ERROR: Inline asm not supported by this streamer because we don't have
+an asm parser for this target</pre>
+</div>
+<p>Since we didn&#8217;t implement cpu0 assembly, it has the error message as above.
+The cpu0 can translate LLVM IR into assembly and obj directly, but it cannot
+translate hand code assembly into obj.
+Directory AsmParser handle the assembly to obj translation.
+The 10/1/Cpu0 include AsmParser implementation as follows,</p>
+<div class="highlight-c++"><pre>// AsmParser/Cpu0AsmParser.cpp
+//===-- Cpu0AsmParser.cpp - Parse Cpu0 assembly to MCInst instructions ----===//
+//
+//                     The LLVM Compiler Infrastructure
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+
+#include "MCTargetDesc/Cpu0MCTargetDesc.h"
+#include "Cpu0RegisterInfo.h"
+#include "llvm/ADT/StringSwitch.h"
+#include "llvm/MC/MCContext.h"
+#include "llvm/MC/MCExpr.h"
+#include "llvm/MC/MCInst.h"
+#include "llvm/MC/MCStreamer.h"
+#include "llvm/MC/MCSubtargetInfo.h"
+#include "llvm/MC/MCSymbol.h"
+#include "llvm/MC/MCParser/MCAsmLexer.h"
+#include "llvm/MC/MCParser/MCParsedAsmOperand.h"
+#include "llvm/MC/MCTargetAsmParser.h"
+#include "llvm/Support/TargetRegistry.h"
+
+using namespace llvm;
+
+namespace {
+class Cpu0AssemblerOptions {
+public:
+  Cpu0AssemblerOptions():
+  aTReg(1), reorder(true), macro(true) {
+  }
+
+  bool isReorder() {return reorder;}
+  void setReorder() {reorder = true;}
+  void setNoreorder() {reorder = false;}
+
+  bool isMacro() {return macro;}
+  void setMacro() {macro = true;}
+  void setNomacro() {macro = false;}
+
+private:
+  unsigned aTReg;
+  bool reorder;
+  bool macro;
+};
+}
+
+namespace {
+class Cpu0AsmParser : public MCTargetAsmParser {
+  MCSubtargetInfo &amp;STI;
+  MCAsmParser &amp;Parser;
+  Cpu0AssemblerOptions Options;
+
+
+#define GET_ASSEMBLER_HEADER
+#include "Cpu0GenAsmMatcher.inc"
+
+  bool MatchAndEmitInstruction(SMLoc IDLoc, unsigned &amp;Opcode,
+                 SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;Operands,
+                 MCStreamer &amp;Out, unsigned &amp;ErrorInfo,
+                 bool MatchingInlineAsm);
+
+  bool ParseRegister(unsigned &amp;RegNo, SMLoc &amp;StartLoc, SMLoc &amp;EndLoc);
+
+  bool ParseInstruction(ParseInstructionInfo &amp;Info, StringRef Name,
+            SMLoc NameLoc,
+            SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;Operands);
+
+  bool parseMathOperation(StringRef Name, SMLoc NameLoc,
+            SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;Operands);
+
+  bool ParseDirective(AsmToken DirectiveID);
+
+  Cpu0AsmParser::OperandMatchResultTy
+  parseMemOperand(SmallVectorImpl&lt;MCParsedAsmOperand*&gt;&amp;);
+
+  bool ParseOperand(SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;,
+          StringRef Mnemonic);
+
+  int tryParseRegister(StringRef Mnemonic);
+
+  bool tryParseRegisterOperand(SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;Operands,
+                 StringRef Mnemonic);
+
+  bool needsExpansion(MCInst &amp;Inst);
+
+  void expandInstruction(MCInst &amp;Inst, SMLoc IDLoc,
+             SmallVectorImpl&lt;MCInst&gt; &amp;Instructions);
+  void expandLoadImm(MCInst &amp;Inst, SMLoc IDLoc,
+           SmallVectorImpl&lt;MCInst&gt; &amp;Instructions);
+  void expandLoadAddressImm(MCInst &amp;Inst, SMLoc IDLoc,
+              SmallVectorImpl&lt;MCInst&gt; &amp;Instructions);
+  void expandLoadAddressReg(MCInst &amp;Inst, SMLoc IDLoc,
+              SmallVectorImpl&lt;MCInst&gt; &amp;Instructions);
+  bool reportParseError(StringRef ErrorMsg);
+
+  bool parseMemOffset(const MCExpr *&amp;Res);
+  bool parseRelocOperand(const MCExpr *&amp;Res);
+
+  bool parseDirectiveSet();
+
+  bool parseSetAtDirective();
+  bool parseSetNoAtDirective();
+  bool parseSetMacroDirective();
+  bool parseSetNoMacroDirective();
+  bool parseSetReorderDirective();
+  bool parseSetNoReorderDirective();
+
+  MCSymbolRefExpr::VariantKind getVariantKind(StringRef Symbol);
+
+  int matchRegisterName(StringRef Symbol);
+
+  int matchRegisterByNumber(unsigned RegNum, StringRef Mnemonic);
+
+  unsigned getReg(int RC,int RegNo);
+
+public:
+  Cpu0AsmParser(MCSubtargetInfo &amp;sti, MCAsmParser &amp;parser)
+  : MCTargetAsmParser(), STI(sti), Parser(parser) {
+  // Initialize the set of available features.
+  setAvailableFeatures(ComputeAvailableFeatures(STI.getFeatureBits()));
+  }
+
+  MCAsmParser &amp;getParser() const { return Parser; }
+  MCAsmLexer &amp;getLexer() const { return Parser.getLexer(); }
+
+};
+}
+
+namespace {
+
+/// Cpu0Operand - Instances of this class represent a parsed Cpu0 machine
+/// instruction.
+class Cpu0Operand : public MCParsedAsmOperand {
+
+  enum KindTy {
+  k_CondCode,
+  k_CoprocNum,
+  k_Immediate,
+  k_Memory,
+  k_PostIndexRegister,
+  k_Register,
+  k_Token
+  } Kind;
+
+  Cpu0Operand(KindTy K) : MCParsedAsmOperand(), Kind(K) {}
+
+  union {
+  struct {
+    const char *Data;
+    unsigned Length;
+  } Tok;
+
+  struct {
+    unsigned RegNum;
+  } Reg;
+
+  struct {
+    const MCExpr *Val;
+  } Imm;
+
+  struct {
+    unsigned Base;
+    const MCExpr *Off;
+  } Mem;
+  };
+
+  SMLoc StartLoc, EndLoc;
+
+public:
+  void addRegOperands(MCInst &amp;Inst, unsigned N) const {
+  assert(N == 1 &amp;&amp; "Invalid number of operands!");
+  Inst.addOperand(MCOperand::CreateReg(getReg()));
+  }
+
+  void addExpr(MCInst &amp;Inst, const MCExpr *Expr) const{
+  // Add as immediate when possible.  Null MCExpr = 0.
+  if (Expr == 0)
+    Inst.addOperand(MCOperand::CreateImm(0));
+  else if (const MCConstantExpr *CE = dyn_cast&lt;MCConstantExpr&gt;(Expr))
+    Inst.addOperand(MCOperand::CreateImm(CE-&gt;getValue()));
+  else
+    Inst.addOperand(MCOperand::CreateExpr(Expr));
+  }
+
+  void addImmOperands(MCInst &amp;Inst, unsigned N) const {
+  assert(N == 1 &amp;&amp; "Invalid number of operands!");
+  const MCExpr *Expr = getImm();
+  addExpr(Inst,Expr);
+  }
+
+  void addMemOperands(MCInst &amp;Inst, unsigned N) const {
+  assert(N == 2 &amp;&amp; "Invalid number of operands!");
+
+  Inst.addOperand(MCOperand::CreateReg(getMemBase()));
+
+  const MCExpr *Expr = getMemOff();
+  addExpr(Inst,Expr);
+  }
+
+  bool isReg() const { return Kind == k_Register; }
+  bool isImm() const { return Kind == k_Immediate; }
+  bool isToken() const { return Kind == k_Token; }
+  bool isMem() const { return Kind == k_Memory; }
+
+  StringRef getToken() const {
+  assert(Kind == k_Token &amp;&amp; "Invalid access!");
+  return StringRef(Tok.Data, Tok.Length);
+  }
+
+  unsigned getReg() const {
+  assert((Kind == k_Register) &amp;&amp; "Invalid access!");
+  return Reg.RegNum;
+  }
+
+  const MCExpr *getImm() const {
+  assert((Kind == k_Immediate) &amp;&amp; "Invalid access!");
+  return Imm.Val;
+  }
+
+  unsigned getMemBase() const {
+  assert((Kind == k_Memory) &amp;&amp; "Invalid access!");
+  return Mem.Base;
+  }
+
+  const MCExpr *getMemOff() const {
+  assert((Kind == k_Memory) &amp;&amp; "Invalid access!");
+  return Mem.Off;
+  }
+
+  static Cpu0Operand *CreateToken(StringRef Str, SMLoc S) {
+  Cpu0Operand *Op = new Cpu0Operand(k_Token);
+  Op-&gt;Tok.Data = Str.data();
+  Op-&gt;Tok.Length = Str.size();
+  Op-&gt;StartLoc = S;
+  Op-&gt;EndLoc = S;
+  return Op;
+  }
+
+  static Cpu0Operand *CreateReg(unsigned RegNum, SMLoc S, SMLoc E) {
+  Cpu0Operand *Op = new Cpu0Operand(k_Register);
+  Op-&gt;Reg.RegNum = RegNum;
+  Op-&gt;StartLoc = S;
+  Op-&gt;EndLoc = E;
+  return Op;
+  }
+
+  static Cpu0Operand *CreateImm(const MCExpr *Val, SMLoc S, SMLoc E) {
+  Cpu0Operand *Op = new Cpu0Operand(k_Immediate);
+  Op-&gt;Imm.Val = Val;
+  Op-&gt;StartLoc = S;
+  Op-&gt;EndLoc = E;
+  return Op;
+  }
+
+  static Cpu0Operand *CreateMem(unsigned Base, const MCExpr *Off,
+                 SMLoc S, SMLoc E) {
+  Cpu0Operand *Op = new Cpu0Operand(k_Memory);
+  Op-&gt;Mem.Base = Base;
+  Op-&gt;Mem.Off = Off;
+  Op-&gt;StartLoc = S;
+  Op-&gt;EndLoc = E;
+  return Op;
+  }
+
+  /// getStartLoc - Get the location of the first token of this operand.
+  SMLoc getStartLoc() const { return StartLoc; }
+  /// getEndLoc - Get the location of the last token of this operand.
+  SMLoc getEndLoc() const { return EndLoc; }
+
+  virtual void print(raw_ostream &amp;OS) const {
+  llvm_unreachable("unimplemented!");
+  }
+};
+}
+
+bool Cpu0AsmParser::needsExpansion(MCInst &amp;Inst) {
+
+  switch(Inst.getOpcode()) {
+  case Cpu0::LoadImm32Reg:
+  case Cpu0::LoadAddr32Imm:
+  case Cpu0::LoadAddr32Reg:
+    return true;
+  default:
+    return false;
+  }
+}
+
+void Cpu0AsmParser::expandInstruction(MCInst &amp;Inst, SMLoc IDLoc,
+            SmallVectorImpl&lt;MCInst&gt; &amp;Instructions){
+  switch(Inst.getOpcode()) {
+  case Cpu0::LoadImm32Reg:
+    return expandLoadImm(Inst, IDLoc, Instructions);
+  case Cpu0::LoadAddr32Imm:
+    return expandLoadAddressImm(Inst,IDLoc,Instructions);
+  case Cpu0::LoadAddr32Reg:
+    return expandLoadAddressReg(Inst,IDLoc,Instructions);
+  }
+}
+
+void Cpu0AsmParser::expandLoadImm(MCInst &amp;Inst, SMLoc IDLoc,
+                  SmallVectorImpl&lt;MCInst&gt; &amp;Instructions){
+  MCInst tmpInst;
+  const MCOperand &amp;ImmOp = Inst.getOperand(1);
+  assert(ImmOp.isImm() &amp;&amp; "expected immediate operand kind");
+  const MCOperand &amp;RegOp = Inst.getOperand(0);
+  assert(RegOp.isReg() &amp;&amp; "expected register operand kind");
+
+  int ImmValue = ImmOp.getImm();
+  tmpInst.setLoc(IDLoc);
+  if ( -32768 &lt;= ImmValue &amp;&amp; ImmValue &lt;= 32767) {
+  // for -32768 &lt;= j &lt; 32767.
+  // li d,j =&gt; addiu d,$zero,j
+  tmpInst.setOpcode(Cpu0::ADDiu); //TODO:no ADDiu64 in td files?
+  tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+  tmpInst.addOperand(
+        MCOperand::CreateReg(Cpu0::ZERO));
+  tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
+  Instructions.push_back(tmpInst);
+  } else {
+  // for any other value of j that is representable as a 32-bit integer.
+  // li d,j =&gt; addiu d, $0, hi16(j)
+  //           shl d, d, 16
+  //           addiu at, $0, lo16(j)
+  //           or d, d, at
+  tmpInst.setOpcode(Cpu0::ADDiu);
+  tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+  tmpInst.addOperand(MCOperand::CreateImm((ImmValue &amp; 0xffff0000) &gt;&gt; 16));
+  Instructions.push_back(tmpInst);
+  tmpInst.clear();
+  tmpInst.setOpcode(Cpu0::SHL);
+  tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateImm(16));
+  Instructions.push_back(tmpInst);
+  tmpInst.clear();
+  tmpInst.setOpcode(Cpu0::ADDiu);
+  tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+  tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+  tmpInst.addOperand(MCOperand::CreateImm(ImmValue &amp; 0x0000ffff));
+  Instructions.push_back(tmpInst);
+  tmpInst.clear();
+  tmpInst.setOpcode(Cpu0::OR);
+  tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+  tmpInst.setLoc(IDLoc);
+  Instructions.push_back(tmpInst);
+  }
+}
+
+void Cpu0AsmParser::expandLoadAddressReg(MCInst &amp;Inst, SMLoc IDLoc,
+                     SmallVectorImpl&lt;MCInst&gt; &amp;Instructions){
+  MCInst tmpInst;
+  const MCOperand &amp;ImmOp = Inst.getOperand(2);
+  assert(ImmOp.isImm() &amp;&amp; "expected immediate operand kind");
+  const MCOperand &amp;SrcRegOp = Inst.getOperand(1);
+  assert(SrcRegOp.isReg() &amp;&amp; "expected register operand kind");
+  const MCOperand &amp;DstRegOp = Inst.getOperand(0);
+  assert(DstRegOp.isReg() &amp;&amp; "expected register operand kind");
+  int ImmValue = ImmOp.getImm();
+  if ( -32768 &lt;= ImmValue &amp;&amp; ImmValue &lt;= 32767) {
+  // for -32768 &lt;= j &lt; 32767.
+  //la d,j(s) =&gt; addiu d,s,j
+  tmpInst.setOpcode(Cpu0::ADDiu); //TODO:no ADDiu64 in td files?
+  tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
+  Instructions.push_back(tmpInst);
+  } else {
+  // for any other value of j that is representable as a 32-bit integer.
+  // li d,j(s) =&gt; addiu d, $0, hi16(j)
+  //           shl d, d, 16
+  //           addiu at, $0, lo16(j)
+  //           or d, d, at
+  //           add d,d,s
+  tmpInst.setOpcode(Cpu0::ADDiu);
+  tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+  tmpInst.addOperand(MCOperand::CreateImm((ImmValue &amp; 0xffff0000) &gt;&gt; 16));
+  Instructions.push_back(tmpInst);
+  tmpInst.clear();
+  tmpInst.setOpcode(Cpu0::SHL);
+  tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateImm(16));
+  Instructions.push_back(tmpInst);
+  tmpInst.clear();
+  tmpInst.setOpcode(Cpu0::ADDiu);
+  tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+  tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+  tmpInst.addOperand(MCOperand::CreateImm(ImmValue &amp; 0x0000ffff));
+  Instructions.push_back(tmpInst);
+  tmpInst.clear();
+  tmpInst.setOpcode(Cpu0::OR);
+  tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+  tmpInst.setLoc(IDLoc);
+  Instructions.push_back(tmpInst);
+  tmpInst.clear();
+  tmpInst.setOpcode(Cpu0::ADD);
+  tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
+  Instructions.push_back(tmpInst);
+  }
+}
+
+void Cpu0AsmParser::expandLoadAddressImm(MCInst &amp;Inst, SMLoc IDLoc,
+                     SmallVectorImpl&lt;MCInst&gt; &amp;Instructions){
+  MCInst tmpInst;
+  const MCOperand &amp;ImmOp = Inst.getOperand(1);
+  assert(ImmOp.isImm() &amp;&amp; "expected immediate operand kind");
+  const MCOperand &amp;RegOp = Inst.getOperand(0);
+  assert(RegOp.isReg() &amp;&amp; "expected register operand kind");
+  int ImmValue = ImmOp.getImm();
+  if ( -32768 &lt;= ImmValue &amp;&amp; ImmValue &lt;= 32767) {
+  // for -32768 &lt;= j &lt; 32767.
+  //la d,j =&gt; addiu d,$zero,j
+  tmpInst.setOpcode(Cpu0::ADDiu);
+  tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+  tmpInst.addOperand(
+        MCOperand::CreateReg(Cpu0::ZERO));
+  tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
+  Instructions.push_back(tmpInst);
+  } else {
+  // for any other value of j that is representable as a 32-bit integer.
+  // la d,j =&gt; addiu d, $0, hi16(j)
+  //           shl d, d, 16
+  //           addiu at, $0, lo16(j)
+  //           or d, d, at
+  tmpInst.setOpcode(Cpu0::ADDiu);
+  tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+  tmpInst.addOperand(MCOperand::CreateImm((ImmValue &amp; 0xffff0000) &gt;&gt; 16));
+  Instructions.push_back(tmpInst);
+  tmpInst.clear();
+  tmpInst.setOpcode(Cpu0::SHL);
+  tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateImm(16));
+  Instructions.push_back(tmpInst);
+  tmpInst.clear();
+  tmpInst.setOpcode(Cpu0::ADDiu);
+  tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+  tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+  tmpInst.addOperand(MCOperand::CreateImm(ImmValue &amp; 0x0000ffff));
+  Instructions.push_back(tmpInst);
+  tmpInst.clear();
+  tmpInst.setOpcode(Cpu0::OR);
+  tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+  tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+  tmpInst.setLoc(IDLoc);
+  Instructions.push_back(tmpInst);
+  }
+}
+
+bool Cpu0AsmParser::
+MatchAndEmitInstruction(SMLoc IDLoc, unsigned &amp;Opcode,
+            SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;Operands,
+            MCStreamer &amp;Out, unsigned &amp;ErrorInfo,
+            bool MatchingInlineAsm) {
+  MCInst Inst;
+  unsigned MatchResult = MatchInstructionImpl(Operands, Inst, ErrorInfo,
+                        MatchingInlineAsm);
+
+  switch (MatchResult) {
+  default: break;
+  case Match_Success: {
+  if (needsExpansion(Inst)) {
+    SmallVector&lt;MCInst, 4&gt; Instructions;
+    expandInstruction(Inst, IDLoc, Instructions);
+    for(unsigned i =0; i &lt; Instructions.size(); i++){
+    Out.EmitInstruction(Instructions[i]);
+    }
+  } else {
+    Inst.setLoc(IDLoc);
+    Out.EmitInstruction(Inst);
+    }
+  return false;
+  }
+  case Match_MissingFeature:
+  Error(IDLoc, "instruction requires a CPU feature not currently enabled");
+  return true;
+  case Match_InvalidOperand: {
+  SMLoc ErrorLoc = IDLoc;
+  if (ErrorInfo != ~0U) {
+    if (ErrorInfo &gt;= Operands.size())
+    return Error(IDLoc, "too few operands for instruction");
+
+    ErrorLoc = ((Cpu0Operand*)Operands[ErrorInfo])-&gt;getStartLoc();
+    if (ErrorLoc == SMLoc()) ErrorLoc = IDLoc;
+  }
+
+  return Error(ErrorLoc, "invalid operand for instruction");
+  }
+  case Match_MnemonicFail:
+  return Error(IDLoc, "invalid instruction");
+  }
+  return true;
+}
+
+int Cpu0AsmParser::matchRegisterName(StringRef Name) {
+
+   int CC;
+  CC = StringSwitch&lt;unsigned&gt;(Name)
+    .Case("zero",  Cpu0::ZERO)
+    .Case("at",  Cpu0::AT)
+    .Case("v0",  Cpu0::V0)
+    .Case("v1",  Cpu0::V1)
+    .Case("a0",  Cpu0::A0)
+    .Case("a1",  Cpu0::A1)
+    .Case("t9",  Cpu0::T9)
+    .Case("s0",  Cpu0::S0)
+    .Case("s1",  Cpu0::S1)
+    .Case("s2",  Cpu0::S2)
+    .Case("gp",  Cpu0::GP)
+    .Case("fp",  Cpu0::FP)
+    .Case("sw",  Cpu0::SW)
+    .Case("sp",  Cpu0::SP)
+    .Case("lr",  Cpu0::LR)
+    .Case("pc",  Cpu0::PC)
+    .Default(-1);
+
+  if (CC != -1)
+  return CC;
+
+  return -1;
+}
+
+unsigned Cpu0AsmParser::getReg(int RC,int RegNo) {
+  return *(getContext().getRegisterInfo().getRegClass(RC).begin() + RegNo);
+}
+
+int Cpu0AsmParser::matchRegisterByNumber(unsigned RegNum, StringRef Mnemonic) {
+  if (RegNum &gt; 15)
+  return -1;
+
+  return getReg(Cpu0::CPURegsRegClassID, RegNum);
+}
+
+int Cpu0AsmParser::tryParseRegister(StringRef Mnemonic) {
+  const AsmToken &amp;Tok = Parser.getTok();
+  int RegNum = -1;
+
+  if (Tok.is(AsmToken::Identifier)) {
+  std::string lowerCase = Tok.getString().lower();
+  RegNum = matchRegisterName(lowerCase);
+  } else if (Tok.is(AsmToken::Integer))
+  RegNum = matchRegisterByNumber(static_cast&lt;unsigned&gt;(Tok.getIntVal()),
+                   Mnemonic.lower());
+  else
+    return RegNum;  //error
+  return RegNum;
+}
+
+bool Cpu0AsmParser::
+  tryParseRegisterOperand(SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;Operands,
+              StringRef Mnemonic){
+
+  SMLoc S = Parser.getTok().getLoc();
+  int RegNo = -1;
+
+  RegNo = tryParseRegister(Mnemonic);
+  if (RegNo == -1)
+  return true;
+
+  Operands.push_back(Cpu0Operand::CreateReg(RegNo, S,
+    Parser.getTok().getLoc()));
+  Parser.Lex(); // Eat register token.
+  return false;
+}
+
+bool Cpu0AsmParser::ParseOperand(SmallVectorImpl&lt;MCParsedAsmOperand*&gt;&amp;Operands,
+                 StringRef Mnemonic) {
+  // Check if the current operand has a custom associated parser, if so, try to
+  // custom parse the operand, or fallback to the general approach.
+  OperandMatchResultTy ResTy = MatchOperandParserImpl(Operands, Mnemonic);
+  if (ResTy == MatchOperand_Success)
+  return false;
+  // If there wasn't a custom match, try the generic matcher below. Otherwise,
+  // there was a match, but an error occurred, in which case, just return that
+  // the operand parsing failed.
+  if (ResTy == MatchOperand_ParseFail)
+  return true;
+
+  switch (getLexer().getKind()) {
+  default:
+  Error(Parser.getTok().getLoc(), "unexpected token in operand");
+  return true;
+  case AsmToken::Dollar: {
+  // parse register
+  SMLoc S = Parser.getTok().getLoc();
+  Parser.Lex(); // Eat dollar token.
+  // parse register operand
+  if (!tryParseRegisterOperand(Operands, Mnemonic)) {
+    if (getLexer().is(AsmToken::LParen)) {
+    // check if it is indexed addressing operand
+    Operands.push_back(Cpu0Operand::CreateToken("(", S));
+    Parser.Lex(); // eat parenthesis
+    if (getLexer().isNot(AsmToken::Dollar))
+      return true;
+
+    Parser.Lex(); // eat dollar
+    if (tryParseRegisterOperand(Operands, Mnemonic))
+      return true;
+
+    if (!getLexer().is(AsmToken::RParen))
+      return true;
+
+    S = Parser.getTok().getLoc();
+    Operands.push_back(Cpu0Operand::CreateToken(")", S));
+    Parser.Lex();
+    }
+    return false;
+  }
+  // maybe it is a symbol reference
+  StringRef Identifier;
+  if (Parser.ParseIdentifier(Identifier))
+    return true;
+
+  SMLoc E = SMLoc::getFromPointer(Parser.getTok().getLoc().getPointer() - 1);
+
+  MCSymbol *Sym = getContext().GetOrCreateSymbol("$" + Identifier);
+
+  // Otherwise create a symbol ref.
+  const MCExpr *Res = MCSymbolRefExpr::Create(Sym, MCSymbolRefExpr::VK_None,
+                        getContext());
+
+  Operands.push_back(Cpu0Operand::CreateImm(Res, S, E));
+  return false;
+  }
+  case AsmToken::Identifier:
+  case AsmToken::LParen:
+  case AsmToken::Minus:
+  case AsmToken::Plus:
+  case AsmToken::Integer:
+  case AsmToken::String: {
+   // quoted label names
+  const MCExpr *IdVal;
+  SMLoc S = Parser.getTok().getLoc();
+  if (getParser().ParseExpression(IdVal))
+    return true;
+  SMLoc E = SMLoc::getFromPointer(Parser.getTok().getLoc().getPointer() - 1);
+  Operands.push_back(Cpu0Operand::CreateImm(IdVal, S, E));
+  return false;
+  }
+  case AsmToken::Percent: {
+  // it is a symbol reference or constant expression
+  const MCExpr *IdVal;
+  SMLoc S = Parser.getTok().getLoc(); // start location of the operand
+  if (parseRelocOperand(IdVal))
+    return true;
+
+  SMLoc E = SMLoc::getFromPointer(Parser.getTok().getLoc().getPointer() - 1);
+
+  Operands.push_back(Cpu0Operand::CreateImm(IdVal, S, E));
+  return false;
+  } // case AsmToken::Percent
+  } // switch(getLexer().getKind())
+  return true;
+}
+
+bool Cpu0AsmParser::parseRelocOperand(const MCExpr *&amp;Res) {
+
+  Parser.Lex(); // eat % token
+  const AsmToken &amp;Tok = Parser.getTok(); // get next token, operation
+  if (Tok.isNot(AsmToken::Identifier))
+  return true;
+
+  std::string Str = Tok.getIdentifier().str();
+
+  Parser.Lex(); // eat identifier
+  // now make expression from the rest of the operand
+  const MCExpr *IdVal;
+  SMLoc EndLoc;
+
+  if (getLexer().getKind() == AsmToken::LParen) {
+  while (1) {
+    Parser.Lex(); // eat '(' token
+    if (getLexer().getKind() == AsmToken::Percent) {
+    Parser.Lex(); // eat % token
+    const AsmToken &amp;nextTok = Parser.getTok();
+    if (nextTok.isNot(AsmToken::Identifier))
+      return true;
+    Str += "(%";
+    Str += nextTok.getIdentifier();
+    Parser.Lex(); // eat identifier
+    if (getLexer().getKind() != AsmToken::LParen)
+      return true;
+    } else
+    break;
+  }
+  if (getParser().ParseParenExpression(IdVal,EndLoc))
+    return true;
+
+  while (getLexer().getKind() == AsmToken::RParen)
+    Parser.Lex(); // eat ')' token
+
+  } else
+  return true; // parenthesis must follow reloc operand
+
+  // Check the type of the expression
+  if (const MCConstantExpr *MCE = dyn_cast&lt;MCConstantExpr&gt;(IdVal)) {
+  // it's a constant, evaluate lo or hi value
+  int Val = MCE-&gt;getValue();
+  if (Str == "lo") {
+    Val = Val &amp; 0xffff;
+  } else if (Str == "hi") {
+    Val = (Val &amp; 0xffff0000) &gt;&gt; 16;
+  }
+  Res = MCConstantExpr::Create(Val, getContext());
+  return false;
+  }
+
+  if (const MCSymbolRefExpr *MSRE = dyn_cast&lt;MCSymbolRefExpr&gt;(IdVal)) {
+  // it's a symbol, create symbolic expression from symbol
+  StringRef Symbol = MSRE-&gt;getSymbol().getName();
+  MCSymbolRefExpr::VariantKind VK = getVariantKind(Str);
+  Res = MCSymbolRefExpr::Create(Symbol,VK,getContext());
+  return false;
+  }
+  return true;
+}
+
+bool Cpu0AsmParser::ParseRegister(unsigned &amp;RegNo, SMLoc &amp;StartLoc,
+                  SMLoc &amp;EndLoc) {
+
+  StartLoc = Parser.getTok().getLoc();
+  RegNo = tryParseRegister("");
+  EndLoc = Parser.getTok().getLoc();
+  return (RegNo == (unsigned)-1);
+}
+
+bool Cpu0AsmParser::parseMemOffset(const MCExpr *&amp;Res) {
+
+  SMLoc S;
+
+  switch(getLexer().getKind()) {
+  default:
+  return true;
+  case AsmToken::Integer:
+  case AsmToken::Minus:
+  case AsmToken::Plus:
+  return (getParser().ParseExpression(Res));
+  case AsmToken::Percent:
+  return parseRelocOperand(Res);
+  case AsmToken::LParen:
+  return false;  // it's probably assuming 0
+  }
+  return true;
+}
+
+// eg, 12($sp) or 12(la)
+Cpu0AsmParser::OperandMatchResultTy Cpu0AsmParser::parseMemOperand(
+         SmallVectorImpl&lt;MCParsedAsmOperand*&gt;&amp;Operands) {
+
+  const MCExpr *IdVal = 0;
+  SMLoc S;
+  // first operand is the offset
+  S = Parser.getTok().getLoc();
+
+  if (parseMemOffset(IdVal))
+  return MatchOperand_ParseFail;
+
+  const AsmToken &amp;Tok = Parser.getTok(); // get next token
+  if (Tok.isNot(AsmToken::LParen)) {
+  Cpu0Operand *Mnemonic = static_cast&lt;Cpu0Operand*&gt;(Operands[0]);
+  if (Mnemonic-&gt;getToken() == "la") {
+    SMLoc E = SMLoc::getFromPointer(Parser.getTok().getLoc().getPointer()-1);
+    Operands.push_back(Cpu0Operand::CreateImm(IdVal, S, E));
+    return MatchOperand_Success;
+  }
+  Error(Parser.getTok().getLoc(), "'(' expected");
+  return MatchOperand_ParseFail;
+  }
+
+  Parser.Lex(); // Eat '(' token.
+
+  const AsmToken &amp;Tok1 = Parser.getTok(); // get next token
+  if (Tok1.is(AsmToken::Dollar)) {
+  Parser.Lex(); // Eat '$' token.
+  if (tryParseRegisterOperand(Operands,"")) {
+    Error(Parser.getTok().getLoc(), "unexpected token in operand");
+    return MatchOperand_ParseFail;
+  }
+
+  } else {
+  Error(Parser.getTok().getLoc(), "unexpected token in operand");
+  return MatchOperand_ParseFail;
+  }
+
+  const AsmToken &amp;Tok2 = Parser.getTok(); // get next token
+  if (Tok2.isNot(AsmToken::RParen)) {
+  Error(Parser.getTok().getLoc(), "')' expected");
+  return MatchOperand_ParseFail;
+  }
+
+  SMLoc E = SMLoc::getFromPointer(Parser.getTok().getLoc().getPointer() - 1);
+
+  Parser.Lex(); // Eat ')' token.
+
+  if (IdVal == 0)
+  IdVal = MCConstantExpr::Create(0, getContext());
+
+  // now replace register operand with the mem operand
+  Cpu0Operand* op = static_cast&lt;Cpu0Operand*&gt;(Operands.back());
+  int RegNo = op-&gt;getReg();
+  // remove register from operands
+  Operands.pop_back();
+  // and add memory operand
+  Operands.push_back(Cpu0Operand::CreateMem(RegNo, IdVal, S, E));
+  delete op;
+  return MatchOperand_Success;
+}
+
+MCSymbolRefExpr::VariantKind Cpu0AsmParser::getVariantKind(StringRef Symbol) {
+
+  MCSymbolRefExpr::VariantKind VK
+           = StringSwitch&lt;MCSymbolRefExpr::VariantKind&gt;(Symbol)
+  .Case("hi",          MCSymbolRefExpr::VK_Cpu0_ABS_HI)
+  .Case("lo",          MCSymbolRefExpr::VK_Cpu0_ABS_LO)
+  .Case("gp_rel",      MCSymbolRefExpr::VK_Cpu0_GPREL)
+  .Case("call24",      MCSymbolRefExpr::VK_Cpu0_GOT_CALL)
+  .Case("got",         MCSymbolRefExpr::VK_Cpu0_GOT)
+  .Case("tlsgd",       MCSymbolRefExpr::VK_Cpu0_TLSGD)
+  .Case("tlsldm",      MCSymbolRefExpr::VK_Cpu0_TLSLDM)
+  .Case("dtprel_hi",   MCSymbolRefExpr::VK_Cpu0_DTPREL_HI)
+  .Case("dtprel_lo",   MCSymbolRefExpr::VK_Cpu0_DTPREL_LO)
+  .Case("gottprel",    MCSymbolRefExpr::VK_Cpu0_GOTTPREL)
+  .Case("tprel_hi",    MCSymbolRefExpr::VK_Cpu0_TPREL_HI)
+  .Case("tprel_lo",    MCSymbolRefExpr::VK_Cpu0_TPREL_LO)
+  .Case("got_disp",    MCSymbolRefExpr::VK_Cpu0_GOT_DISP)
+  .Case("got_page",    MCSymbolRefExpr::VK_Cpu0_GOT_PAGE)
+  .Case("got_ofst",    MCSymbolRefExpr::VK_Cpu0_GOT_OFST)
+  .Case("hi(%neg(%gp_rel",    MCSymbolRefExpr::VK_Cpu0_GPOFF_HI)
+  .Case("lo(%neg(%gp_rel",    MCSymbolRefExpr::VK_Cpu0_GPOFF_LO)
+  .Default(MCSymbolRefExpr::VK_None);
+
+  return VK;
+}
+
+bool Cpu0AsmParser::
+parseMathOperation(StringRef Name, SMLoc NameLoc,
+           SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;Operands) {
+  // split the format
+  size_t Start = Name.find('.'), Next = Name.rfind('.');
+  StringRef Format1 = Name.slice(Start, Next);
+  // and add the first format to the operands
+  Operands.push_back(Cpu0Operand::CreateToken(Format1, NameLoc));
+  // now for the second format
+  StringRef Format2 = Name.slice(Next, StringRef::npos);
+  Operands.push_back(Cpu0Operand::CreateToken(Format2, NameLoc));
+
+  // set the format for the first register
+//  setFpFormat(Format1);
+
+  // Read the remaining operands.
+  if (getLexer().isNot(AsmToken::EndOfStatement)) {
+  // Read the first operand.
+  if (ParseOperand(Operands, Name)) {
+    SMLoc Loc = getLexer().getLoc();
+    Parser.EatToEndOfStatement();
+    return Error(Loc, "unexpected token in argument list");
+  }
+
+  if (getLexer().isNot(AsmToken::Comma)) {
+    SMLoc Loc = getLexer().getLoc();
+    Parser.EatToEndOfStatement();
+    return Error(Loc, "unexpected token in argument list");
+
+  }
+  Parser.Lex();  // Eat the comma.
+
+  // Parse and remember the operand.
+  if (ParseOperand(Operands, Name)) {
+    SMLoc Loc = getLexer().getLoc();
+    Parser.EatToEndOfStatement();
+    return Error(Loc, "unexpected token in argument list");
+  }
+  }
+
+  if (getLexer().isNot(AsmToken::EndOfStatement)) {
+  SMLoc Loc = getLexer().getLoc();
+  Parser.EatToEndOfStatement();
+  return Error(Loc, "unexpected token in argument list");
+  }
+
+  Parser.Lex(); // Consume the EndOfStatement
+  return false;
+}
+
+bool Cpu0AsmParser::
+ParseInstruction(ParseInstructionInfo &amp;Info, StringRef Name, SMLoc NameLoc,
+         SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;Operands) {
+
+  // Create the leading tokens for the mnemonic, split by '.' characters.
+  size_t Start = 0, Next = Name.find('.');
+  StringRef Mnemonic = Name.slice(Start, Next);
+
+  Operands.push_back(Cpu0Operand::CreateToken(Mnemonic, NameLoc));
+
+  // Read the remaining operands.
+  if (getLexer().isNot(AsmToken::EndOfStatement)) {
+  // Read the first operand.
+  if (ParseOperand(Operands, Name)) {
+    SMLoc Loc = getLexer().getLoc();
+    Parser.EatToEndOfStatement();
+    return Error(Loc, "unexpected token in argument list");
+  }
+
+  while (getLexer().is(AsmToken::Comma) ) {
+    Parser.Lex();  // Eat the comma.
+
+    // Parse and remember the operand.
+    if (ParseOperand(Operands, Name)) {
+    SMLoc Loc = getLexer().getLoc();
+    Parser.EatToEndOfStatement();
+    return Error(Loc, "unexpected token in argument list");
+    }
+  }
+  }
+
+  if (getLexer().isNot(AsmToken::EndOfStatement)) {
+  SMLoc Loc = getLexer().getLoc();
+  Parser.EatToEndOfStatement();
+  return Error(Loc, "unexpected token in argument list");
+  }
+
+  Parser.Lex(); // Consume the EndOfStatement
+  return false;
+}
+
+bool Cpu0AsmParser::reportParseError(StringRef ErrorMsg) {
+   SMLoc Loc = getLexer().getLoc();
+   Parser.EatToEndOfStatement();
+   return Error(Loc, ErrorMsg);
+}
+
+bool Cpu0AsmParser::parseSetReorderDirective() {
+  Parser.Lex();
+  // if this is not the end of the statement, report error
+  if (getLexer().isNot(AsmToken::EndOfStatement)) {
+  reportParseError("unexpected token in statement");
+  return false;
+  }
+  Options.setReorder();
+  Parser.Lex(); // Consume the EndOfStatement
+  return false;
+}
+
+bool Cpu0AsmParser::parseSetNoReorderDirective() {
+  Parser.Lex();
+  // if this is not the end of the statement, report error
+  if (getLexer().isNot(AsmToken::EndOfStatement)) {
+    reportParseError("unexpected token in statement");
+    return false;
+  }
+  Options.setNoreorder();
+  Parser.Lex(); // Consume the EndOfStatement
+  return false;
+}
+
+bool Cpu0AsmParser::parseSetMacroDirective() {
+  Parser.Lex();
+  // if this is not the end of the statement, report error
+  if (getLexer().isNot(AsmToken::EndOfStatement)) {
+  reportParseError("unexpected token in statement");
+  return false;
+  }
+  Options.setMacro();
+  Parser.Lex(); // Consume the EndOfStatement
+  return false;
+}
+
+bool Cpu0AsmParser::parseSetNoMacroDirective() {
+  Parser.Lex();
+  // if this is not the end of the statement, report error
+  if (getLexer().isNot(AsmToken::EndOfStatement)) {
+  reportParseError("`noreorder' must be set before `nomacro'");
+  return false;
+  }
+  if (Options.isReorder()) {
+  reportParseError("`noreorder' must be set before `nomacro'");
+  return false;
+  }
+  Options.setNomacro();
+  Parser.Lex(); // Consume the EndOfStatement
+  return false;
+}
+
+bool Cpu0AsmParser::parseDirectiveSet() {
+
+  // get next token
+  const AsmToken &amp;Tok = Parser.getTok();
+
+  if (Tok.getString() == "reorder") {
+  return parseSetReorderDirective();
+  } else if (Tok.getString() == "noreorder") {
+  return parseSetNoReorderDirective();
+  } else if (Tok.getString() == "macro") {
+  return parseSetMacroDirective();
+  } else if (Tok.getString() == "nomacro") {
+  return parseSetNoMacroDirective();
+  }
+  return true;
+}
+
+bool Cpu0AsmParser::ParseDirective(AsmToken DirectiveID) {
+
+  if (DirectiveID.getString() == ".ent") {
+  // ignore this directive for now
+  Parser.Lex();
+  return false;
+  }
+
+  if (DirectiveID.getString() == ".end") {
+  // ignore this directive for now
+  Parser.Lex();
+  return false;
+  }
+
+  if (DirectiveID.getString() == ".frame") {
+  // ignore this directive for now
+  Parser.EatToEndOfStatement();
+  return false;
+  }
+
+  if (DirectiveID.getString() == ".set") {
+  return parseDirectiveSet();
+  }
+
+  if (DirectiveID.getString() == ".fmask") {
+  // ignore this directive for now
+  Parser.EatToEndOfStatement();
+  return false;
+  }
+
+  if (DirectiveID.getString() == ".mask") {
+  // ignore this directive for now
+  Parser.EatToEndOfStatement();
+  return false;
+  }
+
+  if (DirectiveID.getString() == ".gpword") {
+  // ignore this directive for now
+  Parser.EatToEndOfStatement();
+  return false;
+  }
+
+  return true;
+}
+
+extern "C" void LLVMInitializeCpu0AsmParser() {
+  RegisterMCAsmParser&lt;Cpu0AsmParser&gt; X(TheCpu0Target);
+  RegisterMCAsmParser&lt;Cpu0AsmParser&gt; Y(TheCpu0elTarget);
+}
+
+#define GET_REGISTER_MATCHER
+#define GET_MATCHER_IMPLEMENTATION
+#include "Cpu0GenAsmMatcher.inc"
+
+// AsmParser/CMakeLists.txt
+include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
+add_llvm_library(LLVMCpu0AsmParser
+  Cpu0AsmParser.cpp
+  )
+
+add_dependencies(LLVMCpu0AsmParser Cpu0CommonTableGen)
+
+// AsmParser/LLVMBuild.txt
+;===- ./lib/Target/Mips/AsmParser/LLVMBuild.txt ----------------*- Conf -*--===;
+;
+;                     The LLVM Compiler Infrastructure
+;
+; This file is distributed under the University of Illinois Open Source
+; License. See LICENSE.TXT for details.
+;
+;===------------------------------------------------------------------------===;
+;
+; This is an LLVMBuild description file for the components in this subdirectory.
+;
+; For more information on the LLVMBuild system, please see:
+;
+;   http://llvm.org/docs/LLVMBuild.html
+;
+;===------------------------------------------------------------------------===;
+
+[component_0]
+type = Library
+name = Cpu0AsmParser
+parent = Mips
+required_libraries = MC MCParser Support MipsDesc MipsInfo
+add_to_library_groups = Cpu0</pre>
+</div>
+<p>The Cpu0AsmParser.cpp contains one thousand of code which do the assembly
+language parsing. You can understand it with a little patient only.
+To let directory AsmParser be built, modify CMakeLists.txt and LLVMBuild.txt as
+follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// CMakeLists.txt</span>
+<span class="p">...</span>
+<span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenAsmMatcher</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="k">asm</span><span class="o">-</span><span class="n">matcher</span><span class="p">)</span>
+<span class="p">...</span>
+<span class="n">add_subdirectory</span><span class="p">(</span><span class="n">AsmParser</span><span class="p">)</span>
+
+<span class="c1">// LLVMBuild.txt</span>
+<span class="p">...</span>
+<span class="n">subdirectories</span> <span class="o">=</span> <span class="n">AsmParser</span> <span class="p">...</span>
+<span class="p">...</span>
+<span class="n">has_asmparser</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>The other files change as follows,</p>
+<div class="highlight-c++"><pre>// MCTargetDesc/Cpu0MCCodeEmitter.cpp
+unsigned Cpu0MCCodeEmitter::
+getBranchTargetOpValue(const MCInst &amp;MI, unsigned OpNo,
+             SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups) const {
+  ...
+  // If the destination is an immediate, we have nothing to do.
+  if (MO.isImm()) return MO.getImm();
+  ...
+}
+
+/// getJumpAbsoluteTargetOpValue - Return binary encoding of the jump
+/// target operand. Such as SWI.
+unsigned Cpu0MCCodeEmitter::
+getJumpAbsoluteTargetOpValue(const MCInst &amp;MI, unsigned OpNo,
+           SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups) const {
+  ...
+  // If the destination is an immediate, we have nothing to do.
+  if (MO.isImm()) return MO.getImm();
+  ...
+}
+
+// Cpu0.td
+def Cpu0AsmParser : AsmParser {
+  let ShouldEmitMatchRegisterName = 0;
+}
+
+def Cpu0AsmParserVariant : AsmParserVariant {
+  int Variant = 0;
+
+  // Recognize hard coded registers.
+  string RegisterPrefix = "$";
+}
+
+def Cpu0 : Target {
+  let AssemblyParsers = [Cpu0AsmParser];
+  let AssemblyParserVariants = [Cpu0AsmParserVariant];
+}
+
+// Cpu0InstrFormats.td
+// Pseudo-instructions for alternate assembly syntax (never used by codegen).
+// These are aliases that require C++ handling to convert to the target
+// instruction, while InstAliases can be handled directly by tblgen.
+class Cpu0AsmPseudoInst&lt;dag outs, dag ins, string asmstr&gt;:
+  Cpu0Inst&lt;outs, ins, asmstr, [], IIPseudo, Pseudo&gt; {
+  let isPseudo = 1;
+  let Pattern = [];
+}
+
+// Cpu0InstrInfo.td
+def Cpu0MemAsmOperand : AsmOperandClass {
+  let Name = "Mem";
+  let ParserMethod = "parseMemOperand";
+}
+
+// Address operand
+def mem : Operand&lt;i32&gt; {
+  ...
+  let ParserMatchClass = Cpu0MemAsmOperand;
+}
+...
+class CmpInstr&lt;...
+   !strconcat(instr_asm, "\t$rc, $ra, $rb"), [], itin&gt; {
+  ...
+}
+...
+class CBranch&lt;...
+       !strconcat(instr_asm, "\t$ra, $addr"), ...&gt; {
+  ...
+}
+...
+//===----------------------------------------------------------------------===//
+// Pseudo Instruction definition
+//===----------------------------------------------------------------------===//
+
+class LoadImm32&lt; string instr_asm, Operand Od, RegisterClass RC&gt; :
+  Cpu0AsmPseudoInst&lt;(outs RC:$ra), (ins Od:$imm32),
+           !strconcat(instr_asm, "\t$ra, $imm32")&gt; ;
+def LoadImm32Reg : LoadImm32&lt;"li", shamt, CPURegs&gt;;
+
+class LoadAddress&lt;string instr_asm, Operand MemOpnd, RegisterClass RC&gt; :
+  Cpu0AsmPseudoInst&lt;(outs RC:$ra), (ins MemOpnd:$addr),
+           !strconcat(instr_asm, "\t$ra, $addr")&gt; ;
+def LoadAddr32Reg : LoadAddress&lt;"la", mem, CPURegs&gt;;
+
+class LoadAddressImm&lt;string instr_asm, Operand Od, RegisterClass RC&gt; :
+  Cpu0AsmPseudoInst&lt;(outs RC:$ra), (ins Od:$imm32),
+           !strconcat(instr_asm, "\t$ra, $imm32")&gt; ;
+def LoadAddr32Imm : LoadAddressImm&lt;"la", shamt, CPURegs&gt;;</pre>
+</div>
+<p>We define the <strong>ParserMethod = &#8220;parseMemOperand&#8221;</strong> and implement the
+parseMemOperand() in Cpu0AsmParser.cpp to handle the <strong>&#8220;mem&#8221;</strong> operand which
+used in ld and st. For example, ld $2, 4($sp), the <strong>mem</strong> operand is 4($sp).
+Accompany with <strong>&#8220;let ParserMatchClass = Cpu0MemAsmOperand;&#8221;</strong>,
+LLVM will call parseMemOperand() of Cpu0AsmParser.cpp when it meets the assembly
+<strong>mem</strong> operand 4($sp). With above <strong>&#8220;let&#8221;</strong> assignment, TableGen will generate
+the following structure and functions in Cpu0GenAsmMatcher.inc.</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="k">enum</span> <span class="n">OperandMatchResultTy</span> <span class="p">{</span>
+  <span class="n">MatchOperand_Success</span><span class="p">,</span>    <span class="c1">// operand matched successfully</span>
+  <span class="n">MatchOperand_NoMatch</span><span class="p">,</span>    <span class="c1">// operand did not match</span>
+  <span class="n">MatchOperand_ParseFail</span>   <span class="c1">// operand matched but had errors</span>
+  <span class="p">};</span>
+  <span class="n">OperandMatchResultTy</span> <span class="n">MatchOperandParserImpl</span><span class="p">(</span>
+  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">,</span>
+  <span class="n">StringRef</span> <span class="n">Mnemonic</span><span class="p">);</span>
+  <span class="n">OperandMatchResultTy</span> <span class="n">tryCustomParseOperand</span><span class="p">(</span>
+  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">,</span>
+  <span class="kt">unsigned</span> <span class="n">MCK</span><span class="p">);</span>
+
+<span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">OperandMatchResultTy</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span>
+<span class="n">tryCustomParseOperand</span><span class="p">(</span><span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">,</span>
+            <span class="kt">unsigned</span> <span class="n">MCK</span><span class="p">)</span> <span class="p">{</span>
+
+  <span class="k">switch</span><span class="p">(</span><span class="n">MCK</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="nl">MCK_Mem:</span>
+  <span class="k">return</span> <span class="n">parseMemOperand</span><span class="p">(</span><span class="n">Operands</span><span class="p">);</span>
+  <span class="k">default</span><span class="o">:</span>
+  <span class="k">return</span> <span class="n">MatchOperand_NoMatch</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">MatchOperand_NoMatch</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">OperandMatchResultTy</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span>
+<span class="n">MatchOperandParserImpl</span><span class="p">(</span><span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">,</span>
+             <span class="n">StringRef</span> <span class="n">Mnemonic</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="c1">/// MatchClassKind - The kinds of classes which participate in</span>
+<span class="c1">/// instruction matching.</span>
+<span class="k">enum</span> <span class="n">MatchClassKind</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">MCK_Mem</span><span class="p">,</span> <span class="c1">// user defined class &#39;Cpu0MemAsmOperand&#39;</span>
+  <span class="p">...</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>Above 3 Pseudo Instruction definitions in Cpu0InstrInfo.td such as
+LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">needsExpansion</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">)</span> <span class="p">{</span>
+
+  <span class="k">switch</span><span class="p">(</span><span class="n">Inst</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">LoadImm32Reg:</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">LoadAddr32Imm:</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">LoadAddr32Reg:</span>
+    <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="k">default</span><span class="o">:</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">expandInstruction</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span>
+            <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Instructions</span><span class="p">){</span>
+  <span class="k">switch</span><span class="p">(</span><span class="n">Inst</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">LoadImm32Reg:</span>
+    <span class="k">return</span> <span class="n">expandLoadImm</span><span class="p">(</span><span class="n">Inst</span><span class="p">,</span> <span class="n">IDLoc</span><span class="p">,</span> <span class="n">Instructions</span><span class="p">);</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">LoadAddr32Imm:</span>
+    <span class="k">return</span> <span class="n">expandLoadAddressImm</span><span class="p">(</span><span class="n">Inst</span><span class="p">,</span><span class="n">IDLoc</span><span class="p">,</span><span class="n">Instructions</span><span class="p">);</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">LoadAddr32Reg:</span>
+    <span class="k">return</span> <span class="n">expandLoadAddressReg</span><span class="p">(</span><span class="n">Inst</span><span class="p">,</span><span class="n">IDLoc</span><span class="p">,</span><span class="n">Instructions</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span>
+<span class="n">MatchAndEmitInstruction</span><span class="p">(</span><span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="o">&amp;</span><span class="n">Opcode</span><span class="p">,</span>
+            <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">,</span>
+            <span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">Out</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="o">&amp;</span><span class="n">ErrorInfo</span><span class="p">,</span>
+            <span class="kt">bool</span> <span class="n">MatchingInlineAsm</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">MCInst</span> <span class="n">Inst</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="n">MatchResult</span> <span class="o">=</span> <span class="n">MatchInstructionImpl</span><span class="p">(</span><span class="n">Operands</span><span class="p">,</span> <span class="n">Inst</span><span class="p">,</span> <span class="n">ErrorInfo</span><span class="p">,</span>
+                        <span class="n">MatchingInlineAsm</span><span class="p">);</span>
+
+  <span class="k">switch</span> <span class="p">(</span><span class="n">MatchResult</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">default</span><span class="o">:</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="nl">Match_Success:</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">needsExpansion</span><span class="p">(</span><span class="n">Inst</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;</span> <span class="n">Instructions</span><span class="p">;</span>
+    <span class="n">expandInstruction</span><span class="p">(</span><span class="n">Inst</span><span class="p">,</span> <span class="n">IDLoc</span><span class="p">,</span> <span class="n">Instructions</span><span class="p">);</span>
+  <span class="p">...</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Finally, we change registers name to lower case as below since the assembly
+output and <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></tt> using lower case. The CPURegs as below must
+follow the order of register number because AsmParser use this when do register
+number encode.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0Register.cpp</span>
+<span class="c1">// The register string, such as &quot;9&quot; or &quot;gp will show on &quot;llvm-objdump -d&quot;</span>
+<span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span> <span class="n">in</span> <span class="p">{</span>
+  <span class="c1">// General Purpose Registers</span>
+  <span class="n">def</span> <span class="n">ZERO</span> <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;zero&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">AT</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;at&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">V0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;2&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">V1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">3</span><span class="p">,</span> <span class="s">&quot;3&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">A0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&quot;4&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">A1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">5</span><span class="p">,</span> <span class="s">&quot;5&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">T9</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">6</span><span class="p">,</span> <span class="s">&quot;6&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">S0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">7</span><span class="p">,</span> <span class="s">&quot;7&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">S1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">8</span><span class="p">,</span> <span class="s">&quot;8&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">S2</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">9</span><span class="p">,</span> <span class="s">&quot;9&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">GP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">10</span><span class="p">,</span> <span class="s">&quot;gp&quot;</span><span class="o">&gt;</span><span class="p">,</span>  <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">FP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">11</span><span class="p">,</span> <span class="s">&quot;fp&quot;</span><span class="o">&gt;</span><span class="p">,</span>  <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">SW</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">12</span><span class="p">,</span> <span class="s">&quot;sw&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">SP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">13</span><span class="p">,</span> <span class="s">&quot;sp&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">LR</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">14</span><span class="p">,</span> <span class="s">&quot;lr&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">PC</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">15</span><span class="p">,</span> <span class="s">&quot;pc&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">15</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="c1">//  def MAR  : Register&lt; 16, &quot;mar&quot;&gt;,  DwarfRegNum&lt;[16]&gt;;</span>
+<span class="c1">//  def MDR  : Register&lt; 17, &quot;mdr&quot;&gt;,  DwarfRegNum&lt;[17]&gt;;</span>
+
+  <span class="c1">// Hi/Lo registers</span>
+  <span class="n">def</span> <span class="n">HI</span>   <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;hi&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">18</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">LO</span>   <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;lo&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">19</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Register Classes</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="n">def</span> <span class="n">CPURegs</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span>
+  <span class="c1">// Reserved</span>
+  <span class="n">ZERO</span><span class="p">,</span> <span class="n">AT</span><span class="p">,</span>
+  <span class="c1">// Return Values and Arguments</span>
+  <span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">A0</span><span class="p">,</span> <span class="n">A1</span><span class="p">,</span>
+  <span class="c1">// Not preserved across procedure calls</span>
+  <span class="n">T9</span><span class="p">,</span>
+  <span class="c1">// Callee save</span>
+  <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">S2</span><span class="p">,</span>
+  <span class="c1">// Reserved</span>
+  <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Run 10/1/Cpu0 with ch10_1.cpp to get the correct result as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
+build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch10_1.bc -o
+ch10_1.cpu0.o
+JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
+build/bin/Debug/llvm-objdump -d ch10_1.cpu0.o
+
+ch10_1.cpu0.o:  file format ELF32-unknown
+
+Disassembly of section .text:
+.text:
+     0: 00 2d 00 08                                   ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+     4: 01 0d 00 04                                   st  <span class="nv">$zero</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+     8: 09 30 00 00                                   addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
+     c: 13 31 20 00                                   add <span class="nv">$3</span>, <span class="nv">$at</span>, <span class="nv">$2</span>
+    10: 14 32 30 00                                   sub <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+    14: 15 21 30 00                                   mul <span class="nv">$2</span>, <span class="nv">$at</span>, <span class="nv">$3</span>
+    18: 16 32 00 00                                   div <span class="nv">$3</span>, <span class="nv">$2</span>
+    1c: 17 23 00 00                                   divu  <span class="nv">$2</span>, <span class="nv">$3</span>
+    20: 18 21 30 00                                   and <span class="nv">$2</span>, <span class="nv">$at</span>, <span class="nv">$3</span>
+    24: 19 31 20 00                                   or  <span class="nv">$3</span>, <span class="nv">$at</span>, <span class="nv">$2</span>
+    28: 1a 12 30 00                                   xor <span class="nv">$at</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+    2c: 50 43 00 00                                   mult  <span class="nv">$4</span>, <span class="nv">$3</span>
+    30: 51 32 00 00                                   multu <span class="nv">$3</span>, <span class="nv">$2</span>
+    34: 40 30 00 00                                   mfhi  <span class="nv">$3</span>
+    38: 41 20 00 00                                   mflo  <span class="nv">$2</span>
+    3c: 42 20 00 00                                   mthi  <span class="nv">$2</span>
+    40: 43 20 00 00                                   mtlo  <span class="nv">$2</span>
+    44: 1b 22 00 02                                   sra <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+    48: 1c 21 10 03                                   rol <span class="nv">$2</span>, <span class="nv">$at</span>, 3
+    4c: 1d 33 10 04                                   ror <span class="nv">$3</span>, <span class="nv">$3</span>, 4
+    50: 1e 22 00 02                                   shl <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+    54: 1f 23 00 05                                   shr <span class="nv">$2</span>, <span class="nv">$3</span>, 5
+    58: 10 23 00 00                                   cmp <span class="nv">$zero</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+    5c: 20 00 00 14                                   jeq <span class="nv">$zero</span>, 20
+    60: 21 00 00 10                                   jne <span class="nv">$zero</span>, 16
+    64: 22 ff ff ec                                   jlt <span class="nv">$zero</span>, -20
+    68: 24 ff ff f0                                   jle <span class="nv">$zero</span>, -16
+    6c: 23 ff ff <span class="nb">fc                                   </span>jgt <span class="nv">$zero</span>, -4
+    70: 25 ff ff f4                                   jge <span class="nv">$zero</span>, -12
+    74: 2a 00 04 00                                   swi 1024
+    78: 2b 01 00 00                                   jsub  65536
+    7c: 2c e0 00 00                                   ret <span class="nv">$lr</span>
+    80: 2d e6 00 00                                   jalr  <span class="nv">$6</span>
+    84: 09 30 00 70                                   addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 112
+    88: 1e 33 00 10                                   shl <span class="nv">$3</span>, <span class="nv">$3</span>, 16
+    8c: 09 10 00 00                                   addiu <span class="nv">$at</span>, <span class="nv">$zero</span>, 0
+    90: 19 33 10 00                                   or  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$at</span>
+    94: 09 30 00 80                                   addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 128
+    98: 1e 36 00 10                                   shl <span class="nv">$3</span>, <span class="nv">$6</span>, 16
+    9c: 09 10 00 00                                   addiu <span class="nv">$at</span>, <span class="nv">$zero</span>, 0
+    a0: 19 36 10 00                                   or  <span class="nv">$3</span>, <span class="nv">$6</span>, <span class="nv">$at</span>
+    a4: 13 33 60 00                                   add <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$6</span>
+    a8: 09 30 00 90                                   addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 144
+    ac: 1e 33 00 10                                   shl <span class="nv">$3</span>, <span class="nv">$3</span>, 16
+    b0: 09 10 00 00                                   addiu <span class="nv">$at</span>, <span class="nv">$zero</span>, 0
+    b4: 19 33 10 00                                   or  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$at</span>
+</pre></div>
+</div>
+<p>We replace cmp and jeg with explicit $sw in assembly and $zero in disassembly for
+AsmParser support. It&#8217;s OK with just a little bad in readability and in assembly
+programing than implicit representation.</p>
+</div>
+<div class="section" id="verilog-of-cpu0">
+<h2>Verilog of CPU0<a class="headerlink" href="#verilog-of-cpu0" title="Permalink to this headline">¶</a></h2>
+<p>Verilog language is an IEEE standard in IC design. There are a lot of book and
+documents for this language. Web site <a class="footnote-reference" href="#id3" id="id1">[1]</a> has a pdf <a class="footnote-reference" href="#id4" id="id2">[2]</a> in this.
+Example code LLVMBackendTutorialExampleCode/cpu0s_verilog/raw/cpu0s.v is the
+cpu0 design in Verilog. In Appendix A, we have downloaded and installed Icarus
+Verilog tool both on iMac and Linux. The cpu0s.v is a simple design with only
+270 lines of code. Alough it has not the pipeline features, we can assume the
+cpu0 backend code run on the pipeline machine since the pipeline version can
+use the same machine instructions. Verilog is C like syntex language
+and this book is a compiler book, we list the cpu0s.v and it&#8217;s build command
+directly as below, and expect
+readers can understand the Verilog code just with a little patient and no need
+further explanation.</p>
+<div class="highlight-c++"><pre>// cpu0s.v
+  // Operand width
+`define INT32 2'b11     // 32 bits
+`define INT24 2'b10     // 24 bits
+`define INT16 2'b01     // 16 bits
+`define BYTE  2'b00     // 8  bits
+
+// Reference web: http://ccckmit.wikidot.com/ocs:cpu0
+module cpu0(input clock, reset, output reg [2:0] tick,
+      output reg [31:0] ir, pc, mar, mdr, inout [31:0] dbus,
+      output reg m_en, m_rw, output reg [1:0] m_size);
+  reg signed [31:0] R [0:15], HI, LO; // High and Low part of 64 bit result
+  reg [7:0] op;
+  reg [3:0] a, b, c;
+  reg [4:0] c5;
+  reg signed [31:0] c12, c16, c24, Ra, Rb, Rc, pc0; // pc0 : instruction pc
+
+  // register name
+  `define PC   R[15]   // Program Counter
+  `define LR   R[14]   // Link Register
+  `define SP   R[13]   // Stack Pointer
+  `define SW   R[12]   // Status Word
+  // SW Flage
+  `define N    `SW[31] // Negative flag
+  `define Z    `SW[30] // Zero
+  `define C    `SW[29] // Carry
+  `define V    `SW[28] // Overflow
+  `define I    `SW[7]  // Hardware Interrupt Enable
+  `define T    `SW[6]  // Software Interrupt Enable
+  `define M    `SW[0]  // Mode bit
+  // Instruction Opcode
+  parameter [7:0] LD=8'h00,ST=8'h01,LDB=8'h02,STB=8'h03,LDR=8'h04,STR=8'h05,
+  LBR=8'h06,SBR=8'h07,LDI=8'h08,ADDiu=8'h09,CMP=8'h10,MOV=8'h12,ADD=8'h13,
+  SUB=8'h14,MUL=8'h15,SDIV=8'h16,AND=8'h18,OR=8'h19,XOR=8'h1A,
+  SRA=8'h1B,ROL=8'h1C,ROR=8'h1D,SHL=8'h1E,SHR=8'h1F,
+  JEQ=8'h20,JNE=8'h21,JLT=8'h22,JGT=8'h23,JLE=8'h24,JGE=8'h25,JMP=8'h26,
+  SWI=8'h2A,JSUB=8'h2B,RET=8'h2C,IRET=8'h2D,JALR=8'h2E,
+  PUSH=8'h30,POP=8'h31,PUSHB=8'h32,POPB=8'h33,
+  MFHI=8'h40,MFLO=8'h41,MTHI=8'h42,MTLO=8'h43,MULT=8'h50;
+
+  reg [2:0] state, next_state;
+  parameter Reset=3'h0, Fetch=3'h1, Decode=3'h2, Execute=3'h3, WriteBack=3'h4;
+
+  task memReadStart(input [31:0] addr, input [1:0] size); begin // Read Memory Word
+  mar = addr;     // read(m[addr])
+  m_rw = 1;     // Access Mode: read
+  m_en = 1;     // Enable read
+  m_size = size;
+  end endtask
+
+  task memReadEnd(output [31:0] data); begin // Read Memory Finish, get data
+  mdr = dbus; // get momory, dbus = m[addr]
+  data = mdr; // return to data
+  m_en = 0; // read complete
+  end endtask
+
+  // Write memory -- addr: address to write, data: date to write
+  task memWriteStart(input [31:0] addr, input [31:0] data, input [1:0] size); begin
+  mar = addr;    // write(m[addr], data)
+  mdr = data;
+  m_rw = 0;    // access mode: write
+  m_en = 1;     // Enable write
+  m_size  = size;
+  end endtask
+
+  task memWriteEnd; begin // Write Memory Finish
+  m_en = 0; // write complete
+  end endtask
+
+  task regSet(input [3:0] i, input [31:0] data); begin
+  if (i!=0) R[i] = data;
+  end endtask
+
+  task regHILOSet(input [31:0] data1, input [31:0] data2); begin
+  HI = data1;
+  LO = data2;
+  end endtask
+
+  always @(posedge clock or posedge reset) begin
+  if (reset) state &lt;= Reset;
+  else state &lt;= next_state;
+  end
+
+  always @(state or reset) begin
+  m_en = 0;
+  case (state)
+  Reset: begin
+    `PC = 0; tick = 0; R[0] = 0; `SW = 0; `LR = -1;
+    next_state = reset?Reset:Fetch;
+  end
+  Fetch: begin  // Tick 1 : instruction fetch, throw PC to address bus,
+                // memory.read(m[PC])
+    memReadStart(`PC, `INT32);
+    pc0  = `PC;
+    `PC = `PC+4;
+    next_state = Decode;
+  end
+  Decode: begin  // Tick 2 : instruction decode, ir = m[PC]
+    memReadEnd(ir); // IR = dbus = m[PC]
+    {op,a,b,c} = ir[31:12];
+    c24 = $signed(ir[23:0]);
+    c16 = $signed(ir[15:0]);
+    c12 = $signed(ir[11:0]);
+    c5  = ir[4:0];
+    Ra = R[a];
+    Rb = R[b];
+    Rc = R[c];
+    next_state = Execute;
+  end
+  Execute: begin // Tick 3 : instruction execution
+    case (op)
+    // load and store instructions
+    LD:  memReadStart(Rb+c16, `INT32);      // LD Ra,[Rb+Cx]; Ra&lt;=[Rb+Cx]
+    ST:  memWriteStart(Rb+c16, Ra, `INT32); // ST Ra,[Rb+Cx]; Ra=&gt;[Rb+Cx]
+    LDB: memReadStart(Rb+c16, `BYTE);     // LDB Ra,[Rb+Cx]; Ra&lt;=(byte)[Rb+Cx]
+    STB: memWriteStart(Rb+c16, Ra, `BYTE);// STB Ra,[Rb+Cx]; Ra=&gt;(byte)[Rb+Cx]
+    LDR: memReadStart(Rb+Rc, `INT32);       // LDR Ra, [Rb+Rc]; Ra&lt;=[Rb+ Rc]
+    STR: memWriteStart(Rb+Rc, Ra, `INT32);  // STR Ra, [Rb+Rc]; Ra=&gt;[Rb+ Rc]
+    LBR: memReadStart(Rb+Rc, `BYTE);      // LBR Ra,[Rb+Rc]; Ra&lt;=(byte)[Rb+Rc]
+    SBR: memWriteStart(Rb+Rc, Ra, `BYTE); // SBR Ra,[Rb+Rc]; Ra=&gt;(byte)[Rb+Rc]
+    LDI: R[a] = c16;                   // LDI Ra,Cx; Ra&lt;=Cx
+    // Mathematic
+    ADDiu: R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra&lt;=Rb+Cx
+    CMP: begin `N=(Ra-Rb&lt;0);`Z=(Ra-Rb==0); end // CMP Ra, Rb; SW=(Ra &gt;=&lt; Rb)
+    MOV: regSet(a, Rb);                  // MOV Ra,Rb; Ra&lt;=Rb
+    ADD: regSet(a, Rb+Rc);               // ADD Ra,Rb,Rc; Ra&lt;=Rb+Rc
+    SUB: regSet(a, Rb-Rc);               // SUB Ra,Rb,Rc; Ra&lt;=Rb-Rc
+    MUL: regSet(a, Rb*Rc);               // MUL Ra,Rb,Rc;     Ra&lt;=Rb*Rc
+    SDIV: regHILOSet(Ra%Rb, Ra/Rb);          // SDIV Ra,Rb; HI&lt;=Ra%Rb; LO&lt;=Ra/Rb
+                       // with exception overflow
+    AND: regSet(a, Rb&amp;Rc);               // AND Ra,Rb,Rc; Ra&lt;=(Rb and Rc)
+    OR:  regSet(a, Rb|Rc);               // OR Ra,Rb,Rc; Ra&lt;=(Rb or Rc)
+    XOR: regSet(a, Rb^Rc);               // XOR Ra,Rb,Rc; Ra&lt;=(Rb xor Rc)
+    SHL: regSet(a, Rb&lt;&lt;c5);     // Shift Left; SHL Ra,Rb,Cx; Ra&lt;=(Rb &lt;&lt; Cx)
+    SRA: regSet(a, (Rb&amp;'h80000000)|(Rb&gt;&gt;c5));
+                  // Shift Right with signed bit fill;
+                  // SHR Ra,Rb,Cx; Ra&lt;=(Rb&amp;0x80000000)|(Rb&gt;&gt;Cx)
+    SHR: regSet(a, Rb&gt;&gt;c5);     // Shift Right with 0 fill;
+                  // SHR Ra,Rb,Cx; Ra&lt;=(Rb &gt;&gt; Cx)
+    // Jump Instructions
+    JEQ: if (`Z) `PC=`PC+c24;            // JEQ Cx; if SW(=) PC  PC+Cx
+    JNE: if (!`Z) `PC=`PC+c24;           // JNE Cx; if SW(!=) PC PC+Cx
+    JLT: if (`N)`PC=`PC+c24;             // JLT Cx; if SW(&lt;) PC  PC+Cx
+    JGT: if (!`N&amp;&amp;!`Z) `PC=`PC+c24;      // JGT Cx; if SW(&gt;) PC  PC+Cx
+    JLE: if (`N || `Z) `PC=`PC+c24;      // JLE Cx; if SW(&lt;=) PC PC+Cx
+    JGE: if (!`N || `Z) `PC=`PC+c24;     // JGE Cx; if SW(&gt;=) PC PC+Cx
+    JMP: `PC = `PC+c24;                  // JMP Cx; PC &lt;= PC+Cx
+    SWI: begin
+    `LR=`PC;`PC= c24; `I = 1'b1;
+    end // Software Interrupt; SWI Cx; LR &lt;= PC; PC &lt;= Cx; INT&lt;=1
+    JSUB:begin `LR=`PC;`PC=`PC + c24; end // JSUB Cx; LR&lt;=PC; PC&lt;=PC+Cx
+    JALR:begin `LR=`PC;`PC=Ra; end // JALR Ra,Rb; Ra&lt;=PC; PC&lt;=Rb
+    RET: begin `PC=`LR; end               // RET; PC &lt;= LR
+    IRET:begin
+    `PC=`LR;`I = 1'b0;
+    end // Interrupt Return; IRET; PC &lt;= LR; INT&lt;=0
+    //
+    PUSH:begin
+    `SP = `SP-4; memWriteStart(`SP, Ra, `INT32);
+    end // PUSH Ra; SP-=4; [SP]&lt;=Ra;
+    POP: begin
+    memReadStart(`SP, `INT32); `SP = `SP + 4;
+    end // POP Ra; Ra=[SP]; SP+=4;
+    PUSHB:begin
+    `SP = `SP-1; memWriteStart(`SP, Ra, `BYTE);
+    end // Push byte; PUSHB Ra; SP--; [SP]&lt;=Ra;(byte)
+    POPB:begin
+    memReadStart(`SP, `BYTE); `SP = `SP+1;
+    end // Pop byte; POPB Ra; Ra&lt;=[SP]; SP++;(byte)
+    MULT: {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI&lt;=((Ra*Rb)&gt;&gt;32);
+              // LO&lt;=((Ra*Rb) and 0x00000000ffffffff);
+              // with exception overflow
+    MFLO: regSet(a, LO);            // MFLO Ra; Ra&lt;=LO
+    MFHI: regSet(a, HI);            // MFHI Ra; Ra&lt;=HI
+    MTLO: LO = Ra;             // MTLO Ra; LO&lt;=Ra
+    MTHI: HI = Ra;             // MTHI Ra; HI&lt;=Ra
+    endcase
+    next_state = WriteBack;
+  end
+  WriteBack: begin // Read/Write finish, close memory
+    case (op)
+    LD, LDB, LDR, LBR, POP, POPB  : memReadEnd(R[a]);
+                      //read memory complete
+    ST, STB, STR, SBR, PUSH, PUSHB: memWriteEnd();
+                      // write memory complete
+    endcase
+    case (op)
+    MULT, SDIV, MTHI, MTLO :
+    $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI,
+    LO, `SW);
+    default :
+    $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a,
+    R[a], R[a], `SW);
+    endcase
+    if (op==RET &amp;&amp; `PC &lt; 0) begin
+    $display("RET to PC &lt; 0, finished!");
+    $finish;
+    end
+    next_state = Fetch;
+  end
+  endcase
+  pc = `PC;
+  end
+
+endmodule
+
+module memory0(input clock, reset, en, rw, input [1:0] m_size,
+        input [31:0] abus, dbus_in, output [31:0] dbus_out);
+  reg [7:0] m [0:1024];
+  reg [31:0] data;
+
+  integer i;
+  initial begin
+  $readmemh("cpu0s.hex", m);
+  for (i=0; i &lt; 1024; i=i+4) begin
+     $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
+  end
+  end
+
+  always @(clock or abus or en or rw or dbus_in)
+  begin
+  if (abus &gt;=0 &amp;&amp; abus &lt;= 1023) begin
+    if (en == 1 &amp;&amp; rw == 0) begin // r_w==0:write
+    data = dbus_in;
+    case (m_size)
+    `BYTE:  {m[abus]} = dbus_in[7:0];
+    `INT16: {m[abus], m[abus+1] } = dbus_in[15:0];
+    `INT24: {m[abus], m[abus+1], m[abus+2]} = dbus_in[24:0];
+    `INT32: {m[abus], m[abus+1], m[abus+2], m[abus+3]} = dbus_in;
+    endcase
+    end else if (en == 1 &amp;&amp; rw == 1) begin// r_w==1:read
+    case (m_size)
+    `BYTE:  data = {8'h00  , 8'h00,   8'h00,   m[abus]      };
+    `INT16: data = {8'h00  , 8'h00,   m[abus], m[abus+1]    };
+    `INT24: data = {8'h00  , m[abus], m[abus+1], m[abus+2]  };
+    `INT32: data = {m[abus], m[abus+1], m[abus+2], m[abus+3]};
+    endcase
+    end else
+    data = 32'hZZZZZZZZ;
+  end else
+    data = 32'hZZZZZZZZ;
+  end
+  assign dbus_out = data;
+endmodule
+
+module main;
+  reg clock, reset;
+  wire [2:0] tick;
+  wire [31:0] pc, ir, mar, mdr, dbus;
+  wire m_en, m_rw;
+  wire [1:0] m_size;
+
+  cpu0 cpu(.clock(clock), .reset(reset), .pc(pc), .tick(tick), .ir(ir),
+  .mar(mar), .mdr(mdr), .dbus(dbus), .m_en(m_en), .m_rw(m_rw), .m_size(m_size));
+
+  memory0 mem(.clock(clock), .reset(reset), .en(m_en), .rw(m_rw), .m_size(m_size),
+  .abus(mar), .dbus_in(mdr), .dbus_out(dbus));
+
+  initial
+  begin
+  clock = 0;
+  reset = 1;
+  #20 reset = 0;
+  #10000 $finish;
+  end
+
+  always #10 clock=clock+1;
+endmodule</pre>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:raw Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
+/Users/Jonathan/test/2/lbd/LLVMBackendTutorialExampleCode/cpu0_verilog/raw
+JonathantekiiMac:raw Jonathan<span class="nv">$ </span>iverilog -o cpu0s cpu0s.v
+</pre></div>
+</div>
+<p>Now let&#8217;s compile ch10_2.cpp as below. Since code size grows up from low to high
+address and stack grows up from high to low address. We set $sp at 1020 since
+cpu0s.v use 1024 bytes of memory.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// InitRegs.h</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $1,  $ZERO, 0&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $2,  $ZERO, 0&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $3,  $ZERO, 0&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $4,  $ZERO, 0&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $5,  $ZERO, 0&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $6,  $ZERO, 0&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $7,  $ZERO, 0&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $8,  $ZERO, 0&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $9,  $ZERO, 0&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $10, $ZERO, 0&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $11, $ZERO, 0&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $12, $ZERO, 0&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $14, $ZERO, -1&quot;</span><span class="p">);</span>
+
+<span class="c1">// ch10_2.cpp</span>
+<span class="cp">#include &quot;InitRegs.h&quot;</span>
+
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $zero, 1020&quot;</span><span class="p">);</span> <span class="c1">// Set $sp at 1020</span>
+
+<span class="kt">int</span> <span class="n">test_operators</span><span class="p">();</span>
+<span class="kt">int</span> <span class="n">test_control</span><span class="p">();</span>
+
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_operators</span><span class="p">();</span>
+  <span class="n">a</span> <span class="o">+=</span> <span class="n">test_control</span><span class="p">();</span>
+
+  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">test_operators</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="n">k1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
+  <span class="n">d</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">;</span>
+  <span class="n">e</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">;</span>
+  <span class="n">f</span> <span class="o">=</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span><span class="p">;</span>
+  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="mi">12</span><span class="p">;</span>
+  <span class="n">g</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&amp;</span> <span class="n">b</span><span class="p">);</span>
+  <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">|</span> <span class="n">b</span><span class="p">);</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">^</span> <span class="n">b</span><span class="p">);</span>
+  <span class="n">j</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">);</span>
+  <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
+  <span class="n">k1</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
+
+  <span class="n">b</span> <span class="o">=</span> <span class="o">!</span><span class="n">a</span><span class="p">;</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">p</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">test_control</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">e</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">f</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">g</span> <span class="o">=</span> <span class="mi">6</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">h</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">a</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">b</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">c</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">d</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">d</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">e</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">e</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">f</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">f</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">g</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">g</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">h</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">h</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">h</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">i</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">a</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="n">c</span><span class="o">+</span><span class="n">d</span><span class="o">+</span><span class="n">e</span><span class="o">+</span><span class="n">f</span><span class="o">+</span><span class="n">g</span><span class="o">+</span><span class="n">h</span><span class="o">+</span><span class="n">i</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
+/Users/Jonathan/test/2/lbd/LLVMBackendTutorialExampleCode/InputFiles
+JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>clang -c ch10_2.cpp -emit-llvm -o
+ch10_2.bc
+JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
+build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>obj
+ch10_2.bc -o ch10_2.cpu0.o
+JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
+build/bin/Debug/llvm-objdump -d ch10_2.cpu0.o | tail -n +6| awk <span class="s1">&#39;{print &quot;/* &quot;</span>
+<span class="s1">$1 &quot; */\t&quot; $2 &quot; &quot; $3 &quot; &quot; $4 &quot; &quot; $5 &quot;\t/* &quot; $6&quot;\t&quot; $7&quot; &quot; $8&quot; &quot; $9&quot; &quot; $10 &quot;\t*/&quot;}&#39;</span>
+ &gt; ../cpu0_verilog/raw/cpu0s.hex
+</pre></div>
+</div>
+<p>Since our backend didn&#8217;t implement the linker and loader, we adjust the
+<strong>&#8220;jsub #offset&#8221;</strong> by hand as follow,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cm">/* 0: */</span>  <span class="mi">09</span> <span class="mi">10</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* addiu  $at, $zero, 0   */</span>
+<span class="cm">/* 4: */</span>  <span class="mi">09</span> <span class="mi">20</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* addiu  $2, $zero, 0  */</span>
+<span class="cm">/* 8: */</span>  <span class="mi">09</span> <span class="mi">30</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* addiu  $3, $zero, 0  */</span>
+<span class="cm">/* c: */</span>  <span class="mi">09</span> <span class="mi">40</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* addiu  $4, $zero, 0  */</span>
+<span class="cm">/* 10: */</span> <span class="mi">09</span> <span class="mi">50</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* addiu  $5, $zero, 0  */</span>
+<span class="cm">/* 14: */</span> <span class="mi">09</span> <span class="mi">60</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* addiu  $6, $zero, 0  */</span>
+<span class="cm">/* 18: */</span> <span class="mi">09</span> <span class="mi">70</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* addiu  $7, $zero, 0  */</span>
+<span class="cm">/* 1c: */</span> <span class="mi">09</span> <span class="mi">80</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* addiu  $8, $zero, 0  */</span>
+<span class="cm">/* 20: */</span> <span class="mi">09</span> <span class="mi">90</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* addiu  $9, $zero, 0  */</span>
+<span class="cm">/* 24: */</span> <span class="mi">09</span> <span class="n">a0</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* addiu  $gp, $zero, 0   */</span>
+<span class="cm">/* 28: */</span> <span class="mi">09</span> <span class="n">b0</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* addiu  $fp, $zero, 0   */</span>
+<span class="cm">/* 2c: */</span> <span class="mi">09</span> <span class="n">c0</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* addiu  $sw, $zero, 0   */</span>
+<span class="cm">/* 30: */</span> <span class="mi">09</span> <span class="n">e0</span> <span class="n">ff</span> <span class="n">ff</span> <span class="cm">/* addiu  $lr, $zero, -1  */</span>
+<span class="cm">/* 34: */</span> <span class="mi">09</span> <span class="n">d0</span> <span class="mo">03</span> <span class="n">fc</span> <span class="cm">/* addiu  $sp, $zero, 1020  */</span> <span class="c1">// Set $sp at 1020</span>
+<span class="cm">/* 38: */</span> <span class="mi">09</span> <span class="n">dd</span> <span class="n">ff</span> <span class="n">f0</span> <span class="cm">/* addiu  $sp, $sp, -16   */</span>
+<span class="cm">/* 3c: */</span> <span class="mo">01</span> <span class="n">ed</span> <span class="mo">00</span> <span class="mi">0</span><span class="n">c</span> <span class="cm">/* st $lr, 12($sp)    */</span>
+<span class="cm">/* 40: */</span> <span class="mi">09</span> <span class="mi">20</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* addiu  $2, $zero, 0  */</span>
+<span class="cm">/* 44: */</span> <span class="mo">01</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">08</span> <span class="cm">/* st $2, 8($sp)    */</span>
+<span class="cm">/* 48: */</span> <span class="mo">01</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mo">04</span> <span class="cm">/* st $2, 4($sp)    */</span>
+<span class="cm">/* 4c: */</span> <span class="mi">2</span><span class="n">b</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">20</span> <span class="cm">/* jsub 0x20    */</span> <span class="c1">// Change jsub offset</span>
+<span class="cm">/* 50: */</span> <span class="mo">01</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mo">04</span> <span class="cm">/* st $2, 4($sp)    */</span>
+<span class="cm">/* 54: */</span> <span class="mi">2</span><span class="n">b</span> <span class="mo">00</span> <span class="mo">01</span> <span class="mi">44</span> <span class="cm">/* jsub 0 x144    */</span> <span class="c1">// Change jsub offset</span>
+<span class="cm">/* 58: */</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mo">04</span> <span class="cm">/* ld $3, 4($sp)    */</span>
+<span class="cm">/* 5c: */</span> <span class="mi">13</span> <span class="mi">23</span> <span class="mi">20</span> <span class="mo">00</span> <span class="cm">/* add  $2, $3, $2  */</span>
+<span class="cm">/* 60: */</span> <span class="mo">01</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mo">04</span> <span class="cm">/* st $2, 4($sp)    */</span>
+<span class="cm">/* 64: */</span> <span class="mo">00</span> <span class="n">ed</span> <span class="mo">00</span> <span class="mi">0</span><span class="n">c</span> <span class="cm">/* ld $lr, 12($sp)    */</span>
+<span class="cm">/* 68: */</span> <span class="mi">09</span> <span class="n">dd</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* addiu  $sp, $sp, 16  */</span>
+<span class="cm">/* 6c: */</span> <span class="mi">2</span><span class="n">c</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* ret  $zero     */</span>
+<span class="cm">/* 70: */</span> <span class="mi">09</span> <span class="n">dd</span> <span class="n">ff</span> <span class="n">c0</span> <span class="cm">/* addiu  $sp, $sp, -64   */</span>
+<span class="cm">/* 74: */</span> <span class="mi">09</span> <span class="mi">20</span> <span class="mo">00</span> <span class="mi">0</span><span class="n">b</span> <span class="cm">/* addiu  $2, $zero, 11   */</span>
+<span class="cm">/* 78: */</span> <span class="mo">01</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">c</span> <span class="cm">/* st $2, 60($sp)   */</span>
+<span class="cm">/* 7c: */</span> <span class="mi">09</span> <span class="mi">20</span> <span class="mo">00</span> <span class="mo">02</span> <span class="cm">/* addiu  $2, $zero, 2  */</span>
+<span class="cm">/* 80: */</span> <span class="mo">01</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">38</span> <span class="cm">/* st $2, 56($sp)   */</span>
+<span class="cm">/* 84: */</span> <span class="mi">09</span> <span class="mi">20</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* addiu  $2, $zero, 0  */</span>
+<span class="cm">/* 88: */</span> <span class="mo">01</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">34</span> <span class="cm">/* st $2, 52($sp)   */</span>
+<span class="cm">/* 8c: */</span> <span class="mo">01</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">30</span> <span class="cm">/* st $2, 48($sp)   */</span>
+<span class="cm">/* 90: */</span> <span class="mo">01</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* st $2, 16($sp)   */</span>
+<span class="cm">/* 94: */</span> <span class="mi">09</span> <span class="mi">30</span> <span class="n">ff</span> <span class="n">fb</span> <span class="cm">/* addiu  $3, $zero, -5   */</span>
+<span class="cm">/* 98: */</span> <span class="mo">01</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">0</span><span class="n">c</span> <span class="cm">/* st $3, 12($sp)   */</span>
+<span class="cm">/* 9c: */</span> <span class="mo">01</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">08</span> <span class="cm">/* st $2, 8($sp)    */</span>
+<span class="cm">/* a0: */</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">38</span> <span class="cm">/* ld $3, 56($sp)   */</span>
+<span class="cm">/* a4: */</span> <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">c</span> <span class="cm">/* ld $4, 60($sp)   */</span>
+<span class="cm">/* a8: */</span> <span class="mi">13</span> <span class="mi">34</span> <span class="mi">30</span> <span class="mo">00</span> <span class="cm">/* add  $3, $4, $3  */</span>
+<span class="cm">/* ac: */</span> <span class="mo">01</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">34</span> <span class="cm">/* st $3, 52($sp)   */</span>
+<span class="cm">/* b0: */</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">38</span> <span class="cm">/* ld $3, 56($sp)   */</span>
+<span class="cm">/* b4: */</span> <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">c</span> <span class="cm">/* ld $4, 60($sp)   */</span>
+<span class="cm">/* b8: */</span> <span class="mi">14</span> <span class="mi">34</span> <span class="mi">30</span> <span class="mo">00</span> <span class="cm">/* sub  $3, $4, $3  */</span>
+<span class="cm">/* bc: */</span> <span class="mo">01</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">30</span> <span class="cm">/* st $3, 48($sp)   */</span>
+<span class="cm">/* c0: */</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">38</span> <span class="cm">/* ld $3, 56($sp)   */</span>
+<span class="cm">/* c4: */</span> <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">c</span> <span class="cm">/* ld $4, 60($sp)   */</span>
+<span class="cm">/* c8: */</span> <span class="mi">15</span> <span class="mi">34</span> <span class="mi">30</span> <span class="mo">00</span> <span class="cm">/* mul  $3, $4, $3  */</span>
+<span class="cm">/* cc: */</span> <span class="mo">01</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">2</span><span class="n">c</span> <span class="cm">/* st $3, 44($sp)   */</span>
+<span class="cm">/* d0: */</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">38</span> <span class="cm">/* ld $3, 56($sp)   */</span>
+<span class="cm">/* d4: */</span> <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">c</span> <span class="cm">/* ld $4, 60($sp)   */</span>
+<span class="cm">/* d8: */</span> <span class="mi">16</span> <span class="mi">43</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* div  $4, $3    */</span>
+<span class="cm">/* dc: */</span> <span class="mi">41</span> <span class="mi">30</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* mflo $3    */</span>
+<span class="cm">/* e0: */</span> <span class="mi">09</span> <span class="mi">40</span> <span class="mi">2</span><span class="n">a</span> <span class="n">aa</span> <span class="cm">/* addiu  $4, $zero, 10922  */</span>
+<span class="cm">/* e4: */</span> <span class="mi">1</span><span class="n">e</span> <span class="mi">44</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* shl  $4, $4, 16  */</span>
+<span class="cm">/* e8: */</span> <span class="mi">09</span> <span class="mi">50</span> <span class="n">aa</span> <span class="n">ab</span> <span class="cm">/* addiu  $5, $zero, -21845   */</span>
+<span class="cm">/* ec: */</span> <span class="mi">19</span> <span class="mi">44</span> <span class="mi">50</span> <span class="mo">00</span> <span class="cm">/* or $4, $4, $5  */</span>
+<span class="cm">/* f0: */</span> <span class="mo">01</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">28</span> <span class="cm">/* st $3, 40($sp)   */</span>
+<span class="cm">/* f4: */</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">c</span> <span class="cm">/* ld $3, 60($sp)   */</span>
+<span class="cm">/* f8: */</span> <span class="mi">09</span> <span class="mi">33</span> <span class="mo">00</span> <span class="mo">01</span> <span class="cm">/* addiu  $3, $3, 1   */</span>
+<span class="cm">/* fc: */</span> <span class="mi">50</span> <span class="mi">34</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* mult $3, $4    */</span>
+<span class="cm">/* 100: */</span>  <span class="mi">40</span> <span class="mi">40</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* mfhi $4    */</span>
+<span class="cm">/* 104: */</span>  <span class="mf">1f</span> <span class="mi">54</span> <span class="mo">00</span> <span class="mf">1f</span> <span class="cm">/* shr  $5, $4, 31  */</span>
+<span class="cm">/* 108: */</span>  <span class="mi">1</span><span class="n">b</span> <span class="mi">44</span> <span class="mo">00</span> <span class="mo">01</span> <span class="cm">/* sra  $4, $4, 1   */</span>
+<span class="cm">/* 10c: */</span>  <span class="mi">13</span> <span class="mi">44</span> <span class="mi">50</span> <span class="mo">00</span> <span class="cm">/* add  $4, $4, $5  */</span>
+<span class="cm">/* 110: */</span>  <span class="mi">09</span> <span class="mi">50</span> <span class="mo">00</span> <span class="mi">0</span><span class="n">c</span> <span class="cm">/* addiu  $5, $zero, 12   */</span>
+<span class="cm">/* 114: */</span>  <span class="mi">15</span> <span class="mi">44</span> <span class="mi">50</span> <span class="mo">00</span> <span class="cm">/* mul  $4, $4, $5  */</span>
+<span class="cm">/* 118: */</span>  <span class="mi">14</span> <span class="mi">33</span> <span class="mi">40</span> <span class="mo">00</span> <span class="cm">/* sub  $3, $3, $4  */</span>
+<span class="cm">/* 11c: */</span>  <span class="mo">01</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">38</span> <span class="cm">/* st $3, 56($sp)   */</span>
+<span class="cm">/* 120: */</span>  <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">c</span> <span class="cm">/* ld $4, 60($sp)   */</span>
+<span class="cm">/* 124: */</span>  <span class="mi">18</span> <span class="mi">34</span> <span class="mi">30</span> <span class="mo">00</span> <span class="cm">/* and  $3, $4, $3  */</span>
+<span class="cm">/* 128: */</span>  <span class="mo">01</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">24</span> <span class="cm">/* st $3, 36($sp)   */</span>
+<span class="cm">/* 12c: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">38</span> <span class="cm">/* ld $3, 56($sp)   */</span>
+<span class="cm">/* 130: */</span>  <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">c</span> <span class="cm">/* ld $4, 60($sp)   */</span>
+<span class="cm">/* 134: */</span>  <span class="mi">19</span> <span class="mi">34</span> <span class="mi">30</span> <span class="mo">00</span> <span class="cm">/* or $3, $4, $3  */</span>
+<span class="cm">/* 138: */</span>  <span class="mo">01</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">20</span> <span class="cm">/* st $3, 32($sp)   */</span>
+<span class="cm">/* 13c: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">38</span> <span class="cm">/* ld $3, 56($sp)   */</span>
+<span class="cm">/* 140: */</span>  <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">c</span> <span class="cm">/* ld $4, 60($sp)   */</span>
+<span class="cm">/* 144: */</span>  <span class="mi">1</span><span class="n">a</span> <span class="mi">34</span> <span class="mi">30</span> <span class="mo">00</span> <span class="cm">/* xor  $3, $4, $3  */</span>
+<span class="cm">/* 148: */</span>  <span class="mo">01</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">1</span><span class="n">c</span> <span class="cm">/* st $3, 28($sp)   */</span>
+<span class="cm">/* 14c: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">c</span> <span class="cm">/* ld $3, 60($sp)   */</span>
+<span class="cm">/* 150: */</span>  <span class="mi">1</span><span class="n">e</span> <span class="mi">33</span> <span class="mo">00</span> <span class="mo">02</span> <span class="cm">/* shl  $3, $3, 2   */</span>
+<span class="cm">/* 154: */</span>  <span class="mo">01</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">18</span> <span class="cm">/* st $3, 24($sp)   */</span>
+<span class="cm">/* 158: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">c</span> <span class="cm">/* ld $3, 60($sp)   */</span>
+<span class="cm">/* 15c: */</span>  <span class="mi">1</span><span class="n">b</span> <span class="mi">33</span> <span class="mo">00</span> <span class="mo">02</span> <span class="cm">/* sra  $3, $3, 2   */</span>
+<span class="cm">/* 160: */</span>  <span class="mo">01</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">14</span> <span class="cm">/* st $3, 20($sp)   */</span>
+<span class="cm">/* 164: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">0</span><span class="n">c</span> <span class="cm">/* ld $3, 12($sp)   */</span>
+<span class="cm">/* 168: */</span>  <span class="mf">1f</span> <span class="mi">33</span> <span class="mo">00</span> <span class="mo">02</span> <span class="cm">/* shr  $3, $3, 2   */</span>
+<span class="cm">/* 16c: */</span>  <span class="mo">01</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">08</span> <span class="cm">/* st $3, 8($sp)    */</span>
+<span class="cm">/* 170: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">3</span><span class="n">c</span> <span class="cm">/* ld $3, 60($sp)   */</span>
+<span class="cm">/* 174: */</span>  <span class="mi">1</span><span class="n">a</span> <span class="mi">23</span> <span class="mi">20</span> <span class="mo">00</span> <span class="cm">/* xor  $2, $3, $2  */</span>
+<span class="cm">/* 178: */</span>  <span class="mi">09</span> <span class="mi">30</span> <span class="mo">00</span> <span class="mo">01</span> <span class="cm">/* addiu  $3, $zero, 1  */</span>
+<span class="cm">/* 17c: */</span>  <span class="mi">1</span><span class="n">a</span> <span class="mi">22</span> <span class="mi">30</span> <span class="mo">00</span> <span class="cm">/* xor  $2, $2, $3  */</span>
+<span class="cm">/* 180: */</span>  <span class="mi">18</span> <span class="mi">22</span> <span class="mi">30</span> <span class="mo">00</span> <span class="cm">/* and  $2, $2, $3  */</span>
+<span class="cm">/* 184: */</span>  <span class="mo">01</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">38</span> <span class="cm">/* st $2, 56($sp)   */</span>
+<span class="cm">/* 188: */</span>  <span class="mi">09</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">38</span> <span class="cm">/* addiu  $2, $sp, 56   */</span>
+<span class="cm">/* 18c: */</span>  <span class="mo">01</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* st $2, 0($sp)    */</span>
+<span class="cm">/* 190: */</span>  <span class="mo">00</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">34</span> <span class="cm">/* ld $2, 52($sp)   */</span>
+<span class="cm">/* 194: */</span>  <span class="mi">09</span> <span class="n">dd</span> <span class="mo">00</span> <span class="mi">40</span> <span class="cm">/* addiu  $sp, $sp, 64  */</span>
+<span class="cm">/* 198: */</span>  <span class="mi">2</span><span class="n">c</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* ret  $zero     */</span>
+<span class="cm">/* 19c: */</span>  <span class="mi">09</span> <span class="n">dd</span> <span class="n">ff</span> <span class="n">d8</span> <span class="cm">/* addiu  $sp, $sp, -40   */</span>
+<span class="cm">/* 1a0: */</span>  <span class="mi">09</span> <span class="mi">30</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* addiu  $3, $zero, 0  */</span>
+<span class="cm">/* 1a4: */</span>  <span class="mo">01</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">24</span> <span class="cm">/* st $3, 36($sp)   */</span>
+<span class="cm">/* 1a8: */</span>  <span class="mi">09</span> <span class="mi">20</span> <span class="mo">00</span> <span class="mo">01</span> <span class="cm">/* addiu  $2, $zero, 1  */</span>
+<span class="cm">/* 1ac: */</span>  <span class="mo">01</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">20</span> <span class="cm">/* st $2, 32($sp)   */</span>
+<span class="cm">/* 1b0: */</span>  <span class="mi">09</span> <span class="mi">40</span> <span class="mo">00</span> <span class="mo">02</span> <span class="cm">/* addiu  $4, $zero, 2  */</span>
+<span class="cm">/* 1b4: */</span>  <span class="mo">01</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">1</span><span class="n">c</span> <span class="cm">/* st $4, 28($sp)   */</span>
+<span class="cm">/* 1b8: */</span>  <span class="mi">09</span> <span class="mi">40</span> <span class="mo">00</span> <span class="mo">03</span> <span class="cm">/* addiu  $4, $zero, 3  */</span>
+<span class="cm">/* 1bc: */</span>  <span class="mo">01</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">18</span> <span class="cm">/* st $4, 24($sp)   */</span>
+<span class="cm">/* 1c0: */</span>  <span class="mi">09</span> <span class="mi">40</span> <span class="mo">00</span> <span class="mo">04</span> <span class="cm">/* addiu  $4, $zero, 4  */</span>
+<span class="cm">/* 1c4: */</span>  <span class="mo">01</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">14</span> <span class="cm">/* st $4, 20($sp)   */</span>
+<span class="cm">/* 1c8: */</span>  <span class="mi">09</span> <span class="mi">40</span> <span class="mo">00</span> <span class="mo">05</span> <span class="cm">/* addiu  $4, $zero, 5  */</span>
+<span class="cm">/* 1cc: */</span>  <span class="mo">01</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* st $4, 16($sp)   */</span>
+<span class="cm">/* 1d0: */</span>  <span class="mi">09</span> <span class="mi">40</span> <span class="mo">00</span> <span class="mo">06</span> <span class="cm">/* addiu  $4, $zero, 6  */</span>
+<span class="cm">/* 1d4: */</span>  <span class="mo">01</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">0</span><span class="n">c</span> <span class="cm">/* st $4, 12($sp)   */</span>
+<span class="cm">/* 1d8: */</span>  <span class="mi">09</span> <span class="mi">40</span> <span class="mo">00</span> <span class="mo">07</span> <span class="cm">/* addiu  $4, $zero, 7  */</span>
+<span class="cm">/* 1dc: */</span>  <span class="mo">01</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">08</span> <span class="cm">/* st $4, 8($sp)    */</span>
+<span class="cm">/* 1e0: */</span>  <span class="mi">09</span> <span class="mi">40</span> <span class="mo">00</span> <span class="mi">08</span> <span class="cm">/* addiu  $4, $zero, 8  */</span>
+<span class="cm">/* 1e4: */</span>  <span class="mo">01</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mo">04</span> <span class="cm">/* st $4, 4($sp)    */</span>
+<span class="cm">/* 1e8: */</span>  <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">24</span> <span class="cm">/* ld $4, 36($sp)   */</span>
+<span class="cm">/* 1ec: */</span>  <span class="mi">10</span> <span class="mi">43</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* cmp  $zero, $4, $3   */</span>
+<span class="cm">/* 1f0: */</span>  <span class="mi">21</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* jne  $zero, 16   */</span>
+<span class="cm">/* 1f4: */</span>  <span class="mi">26</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* jmp  0     */</span>
+<span class="cm">/* 1f8: */</span>  <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">24</span> <span class="cm">/* ld $4, 36($sp)   */</span>
+<span class="cm">/* 1fc: */</span>  <span class="mi">09</span> <span class="mi">44</span> <span class="mo">00</span> <span class="mo">01</span> <span class="cm">/* addiu  $4, $4, 1   */</span>
+<span class="cm">/* 200: */</span>  <span class="mo">01</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">24</span> <span class="cm">/* st $4, 36($sp)   */</span>
+<span class="cm">/* 204: */</span>  <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">20</span> <span class="cm">/* ld $4, 32($sp)   */</span>
+<span class="cm">/* 208: */</span>  <span class="mi">10</span> <span class="mi">43</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* cmp  $zero, $4, $3   */</span>
+<span class="cm">/* 20c: */</span>  <span class="mi">20</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* jeq  $zero, 16   */</span>
+<span class="cm">/* 210: */</span>  <span class="mi">26</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* jmp  0     */</span>
+<span class="cm">/* 214: */</span>  <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">20</span> <span class="cm">/* ld $4, 32($sp)   */</span>
+<span class="cm">/* 218: */</span>  <span class="mi">09</span> <span class="mi">44</span> <span class="mo">00</span> <span class="mo">01</span> <span class="cm">/* addiu  $4, $4, 1   */</span>
+<span class="cm">/* 21c: */</span>  <span class="mo">01</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">20</span> <span class="cm">/* st $4, 32($sp)   */</span>
+<span class="cm">/* 220: */</span>  <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">1</span><span class="n">c</span> <span class="cm">/* ld $4, 28($sp)   */</span>
+<span class="cm">/* 224: */</span>  <span class="mi">10</span> <span class="mi">42</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* cmp  $zero, $4, $2   */</span>
+<span class="cm">/* 228: */</span>  <span class="mi">22</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* jlt  $zero, 16   */</span>
+<span class="cm">/* 22c: */</span>  <span class="mi">26</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* jmp  0     */</span>
+<span class="cm">/* 230: */</span>  <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">1</span><span class="n">c</span> <span class="cm">/* ld $4, 28($sp)   */</span>
+<span class="cm">/* 234: */</span>  <span class="mi">09</span> <span class="mi">44</span> <span class="mo">00</span> <span class="mo">01</span> <span class="cm">/* addiu  $4, $4, 1   */</span>
+<span class="cm">/* 238: */</span>  <span class="mo">01</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">1</span><span class="n">c</span> <span class="cm">/* st $4, 28($sp)   */</span>
+<span class="cm">/* 23c: */</span>  <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">18</span> <span class="cm">/* ld $4, 24($sp)   */</span>
+<span class="cm">/* 240: */</span>  <span class="mi">10</span> <span class="mi">43</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* cmp  $zero, $4, $3   */</span>
+<span class="cm">/* 244: */</span>  <span class="mi">22</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* jlt  $zero, 16   */</span>
+<span class="cm">/* 248: */</span>  <span class="mi">26</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* jmp  0     */</span>
+<span class="cm">/* 24c: */</span>  <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">18</span> <span class="cm">/* ld $4, 24($sp)   */</span>
+<span class="cm">/* 250: */</span>  <span class="mi">09</span> <span class="mi">44</span> <span class="mo">00</span> <span class="mo">01</span> <span class="cm">/* addiu  $4, $4, 1   */</span>
+<span class="cm">/* 254: */</span>  <span class="mo">01</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">18</span> <span class="cm">/* st $4, 24($sp)   */</span>
+<span class="cm">/* 258: */</span>  <span class="mi">09</span> <span class="mi">40</span> <span class="n">ff</span> <span class="n">ff</span> <span class="cm">/* addiu  $4, $zero, -1   */</span>
+<span class="cm">/* 25c: */</span>  <span class="mo">00</span> <span class="mi">5</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">14</span> <span class="cm">/* ld $5, 20($sp)   */</span>
+<span class="cm">/* 260: */</span>  <span class="mi">10</span> <span class="mi">54</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* cmp  $zero, $5, $4   */</span>
+<span class="cm">/* 264: */</span>  <span class="mi">23</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* jgt  $zero, 16   */</span>
+<span class="cm">/* 268: */</span>  <span class="mi">26</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* jmp  0     */</span>
+<span class="cm">/* 26c: */</span>  <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">14</span> <span class="cm">/* ld $4, 20($sp)   */</span>
+<span class="cm">/* 270: */</span>  <span class="mi">09</span> <span class="mi">44</span> <span class="mo">00</span> <span class="mo">01</span> <span class="cm">/* addiu  $4, $4, 1   */</span>
+<span class="cm">/* 274: */</span>  <span class="mo">01</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">14</span> <span class="cm">/* st $4, 20($sp)   */</span>
+<span class="cm">/* 278: */</span>  <span class="mo">00</span> <span class="mi">4</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* ld $4, 16($sp)   */</span>
+<span class="cm">/* 27c: */</span>  <span class="mi">10</span> <span class="mi">43</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* cmp  $zero, $4, $3   */</span>
+<span class="cm">/* 280: */</span>  <span class="mi">23</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* jgt  $zero, 16   */</span>
+<span class="cm">/* 284: */</span>  <span class="mi">26</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* jmp  0     */</span>
+<span class="cm">/* 288: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* ld $3, 16($sp)   */</span>
+<span class="cm">/* 28c: */</span>  <span class="mi">09</span> <span class="mi">33</span> <span class="mo">00</span> <span class="mo">01</span> <span class="cm">/* addiu  $3, $3, 1   */</span>
+<span class="cm">/* 290: */</span>  <span class="mo">01</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* st $3, 16($sp)   */</span>
+<span class="cm">/* 294: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">0</span><span class="n">c</span> <span class="cm">/* ld $3, 12($sp)   */</span>
+<span class="cm">/* 298: */</span>  <span class="mi">10</span> <span class="mi">32</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* cmp  $zero, $3, $2   */</span>
+<span class="cm">/* 29c: */</span>  <span class="mi">23</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* jgt  $zero, 16   */</span>
+<span class="cm">/* 2a0: */</span>  <span class="mi">26</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* jmp  0     */</span>
+<span class="cm">/* 2a4: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">0</span><span class="n">c</span> <span class="cm">/* ld $3, 12($sp)   */</span>
+<span class="cm">/* 2a8: */</span>  <span class="mi">09</span> <span class="mi">33</span> <span class="mo">00</span> <span class="mo">01</span> <span class="cm">/* addiu  $3, $3, 1   */</span>
+<span class="cm">/* 2ac: */</span>  <span class="mo">01</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">0</span><span class="n">c</span> <span class="cm">/* st $3, 12($sp)   */</span>
+<span class="cm">/* 2b0: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">08</span> <span class="cm">/* ld $3, 8($sp)    */</span>
+<span class="cm">/* 2b4: */</span>  <span class="mi">10</span> <span class="mi">32</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* cmp  $zero, $3, $2   */</span>
+<span class="cm">/* 2b8: */</span>  <span class="mi">22</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* jlt  $zero, 16   */</span>
+<span class="cm">/* 2bc: */</span>  <span class="mi">26</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* jmp  0     */</span>
+<span class="cm">/* 2c0: */</span>  <span class="mo">00</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">08</span> <span class="cm">/* ld $2, 8($sp)    */</span>
+<span class="cm">/* 2c4: */</span>  <span class="mi">09</span> <span class="mi">22</span> <span class="mo">00</span> <span class="mo">01</span> <span class="cm">/* addiu  $2, $2, 1   */</span>
+<span class="cm">/* 2c8: */</span>  <span class="mo">01</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">08</span> <span class="cm">/* st $2, 8($sp)    */</span>
+<span class="cm">/* 2cc: */</span>  <span class="mo">00</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">08</span> <span class="cm">/* ld $2, 8($sp)    */</span>
+<span class="cm">/* 2d0: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mo">04</span> <span class="cm">/* ld $3, 4($sp)    */</span>
+<span class="cm">/* 2d4: */</span>  <span class="mi">10</span> <span class="mi">32</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* cmp  $zero, $3, $2   */</span>
+<span class="cm">/* 2d8: */</span>  <span class="mi">25</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* jge  $zero, 16   */</span>
+<span class="cm">/* 2dc: */</span>  <span class="mi">26</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* jmp  0     */</span>
+<span class="cm">/* 2e0: */</span>  <span class="mo">00</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mo">04</span> <span class="cm">/* ld $2, 4($sp)    */</span>
+<span class="cm">/* 2e4: */</span>  <span class="mi">09</span> <span class="mi">22</span> <span class="mo">00</span> <span class="mo">01</span> <span class="cm">/* addiu  $2, $2, 1   */</span>
+<span class="cm">/* 2e8: */</span>  <span class="mo">01</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mo">04</span> <span class="cm">/* st $2, 4($sp)    */</span>
+<span class="cm">/* 2ec: */</span>  <span class="mo">00</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">20</span> <span class="cm">/* ld $2, 32($sp)   */</span>
+<span class="cm">/* 2f0: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">24</span> <span class="cm">/* ld $3, 36($sp)   */</span>
+<span class="cm">/* 2f4: */</span>  <span class="mi">10</span> <span class="mi">32</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* cmp  $zero, $3, $2   */</span>
+<span class="cm">/* 2f8: */</span>  <span class="mi">20</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* jeq  $zero, 16   */</span>
+<span class="cm">/* 2fc: */</span>  <span class="mi">26</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* jmp  0     */</span>
+<span class="cm">/* 300: */</span>  <span class="mo">00</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">24</span> <span class="cm">/* ld $2, 36($sp)   */</span>
+<span class="cm">/* 304: */</span>  <span class="mi">09</span> <span class="mi">22</span> <span class="mo">00</span> <span class="mo">01</span> <span class="cm">/* addiu  $2, $2, 1   */</span>
+<span class="cm">/* 308: */</span>  <span class="mo">01</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">24</span> <span class="cm">/* st $2, 36($sp)   */</span>
+<span class="cm">/* 30c: */</span>  <span class="mo">00</span> <span class="mi">2</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">1</span><span class="n">c</span> <span class="cm">/* ld $2, 28($sp)   */</span>
+<span class="cm">/* 310: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">20</span> <span class="cm">/* ld $3, 32($sp)   */</span>
+<span class="cm">/* 314: */</span>  <span class="mi">13</span> <span class="mi">23</span> <span class="mi">20</span> <span class="mo">00</span> <span class="cm">/* add  $2, $3, $2  */</span>
+<span class="cm">/* 318: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">18</span> <span class="cm">/* ld $3, 24($sp)   */</span>
+<span class="cm">/* 31c: */</span>  <span class="mi">13</span> <span class="mi">22</span> <span class="mi">30</span> <span class="mo">00</span> <span class="cm">/* add  $2, $2, $3  */</span>
+<span class="cm">/* 320: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">14</span> <span class="cm">/* ld $3, 20($sp)   */</span>
+<span class="cm">/* 324: */</span>  <span class="mi">13</span> <span class="mi">22</span> <span class="mi">30</span> <span class="mo">00</span> <span class="cm">/* add  $2, $2, $3  */</span>
+<span class="cm">/* 328: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">10</span> <span class="cm">/* ld $3, 16($sp)   */</span>
+<span class="cm">/* 32c: */</span>  <span class="mi">13</span> <span class="mi">22</span> <span class="mi">30</span> <span class="mo">00</span> <span class="cm">/* add  $2, $2, $3  */</span>
+<span class="cm">/* 330: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">0</span><span class="n">c</span> <span class="cm">/* ld $3, 12($sp)   */</span>
+<span class="cm">/* 334: */</span>  <span class="mi">13</span> <span class="mi">22</span> <span class="mi">30</span> <span class="mo">00</span> <span class="cm">/* add  $2, $2, $3  */</span>
+<span class="cm">/* 338: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mi">08</span> <span class="cm">/* ld $3, 8($sp)    */</span>
+<span class="cm">/* 33c: */</span>  <span class="mi">13</span> <span class="mi">22</span> <span class="mi">30</span> <span class="mo">00</span> <span class="cm">/* add  $2, $2, $3  */</span>
+<span class="cm">/* 340: */</span>  <span class="mo">00</span> <span class="mi">3</span><span class="n">d</span> <span class="mo">00</span> <span class="mo">04</span> <span class="cm">/* ld $3, 4($sp)    */</span>
+<span class="cm">/* 344: */</span>  <span class="mi">13</span> <span class="mi">22</span> <span class="mi">30</span> <span class="mo">00</span> <span class="cm">/* add  $2, $2, $3  */</span>
+<span class="cm">/* 348: */</span>  <span class="mi">09</span> <span class="n">dd</span> <span class="mo">00</span> <span class="mi">28</span> <span class="cm">/* addiu  $sp, $sp, 40  */</span>
+<span class="cm">/* 34c: */</span>  <span class="mi">2</span><span class="n">c</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="cm">/* ret  $zero     */</span>
+</pre></div>
+</div>
+<p>Now, run the cpu0 backend to get the result as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:raw Jonathan<span class="nv">$ </span>./cpu0s
+WARNING: cpu0s.v:212: <span class="nv">$readmemh</span><span class="o">(</span>cpu0s.hex<span class="o">)</span>: Not enough words in the file <span class="k">for</span>
+the requested range <span class="o">[</span>0:1024<span class="o">]</span>.
+00000000: 09100000
+00000004: 09200000
+00000008: 09300000
+0000000c: 09400000
+00000010: 09500000
+00000014: 09600000
+00000018: 09700000
+0000001c: 09800000
+00000020: 09900000
+00000024: 09a00000
+00000028: 09b00000
+0000002c: 09c00000
+00000030: 09e0ffff
+00000034: 09d003fc
+00000038: 09ddfff0
+0000003c: 01ed000c
+00000040: 09200000
+00000044: 012d0008
+00000048: 012d0004
+0000004c: 2b000020
+00000050: 012d0004
+00000054: 2b000144
+00000058: 003d0004
+0000005c: 13232000
+00000060: 012d0004
+00000064: 00ed000c
+00000068: 09dd0010
+0000006c: 2c000000
+00000070: 09ddffc0
+00000074: 0920000b
+00000078: 012d003c
+0000007c: 09200002
+00000080: 012d0038
+00000084: 09200000
+00000088: 012d0034
+0000008c: 012d0030
+00000090: 012d0010
+00000094: 0930fffb
+00000098: 013d000c
+0000009c: 012d0008
+000000a0: 003d0038
+000000a4: 004d003c
+000000a8: 13343000
+000000ac: 013d0034
+000000b0: 003d0038
+000000b4: 004d003c
+000000b8: 14343000
+000000bc: 013d0030
+000000c0: 003d0038
+000000c4: 004d003c
+000000c8: 15343000
+000000cc: 013d002c
+000000d0: 003d0038
+000000d4: 004d003c
+000000d8: 16430000
+000000dc: 41300000
+000000e0: 09402aaa
+000000e4: 1e440010
+000000e8: 0950aaab
+000000ec: 19445000
+000000f0: 013d0028
+000000f4: 003d003c
+000000f8: 09330001
+000000fc: 50340000
+00000100: 40400000
+00000104: 1f54001f
+00000108: 1b440001
+0000010c: 13445000
+00000110: 0950000c
+00000114: 15445000
+00000118: 14334000
+0000011c: 013d0038
+00000120: 004d003c
+00000124: 18343000
+00000128: 013d0024
+0000012c: 003d0038
+00000130: 004d003c
+00000134: 19343000
+00000138: 013d0020
+0000013c: 003d0038
+00000140: 004d003c
+00000144: 1a343000
+00000148: 013d001c
+0000014c: 003d003c
+00000150: 1e330002
+00000154: 013d0018
+00000158: 003d003c
+0000015c: 1b330002
+00000160: 013d0014
+00000164: 003d000c
+00000168: 1f330002
+0000016c: 013d0008
+00000170: 003d003c
+00000174: 1a232000
+00000178: 09300001
+0000017c: 1a223000
+00000180: 18223000
+00000184: 012d0038
+00000188: 092d0038
+0000018c: 012d0000
+00000190: 002d0034
+00000194: 09dd0040
+00000198: 2c000000
+0000019c: 09ddffd8
+000001a0: 09300000
+000001a4: 013d0024
+000001a8: 09200001
+000001ac: 012d0020
+000001b0: 09400002
+000001b4: 014d001c
+000001b8: 09400003
+000001bc: 014d0018
+000001c0: 09400004
+000001c4: 014d0014
+000001c8: 09400005
+000001cc: 014d0010
+000001d0: 09400006
+000001d4: 014d000c
+000001d8: 09400007
+000001dc: 014d0008
+000001e0: 09400008
+000001e4: 014d0004
+000001e8: 004d0024
+000001ec: 10430000
+000001f0: 21000010
+000001f4: 26000000
+000001f8: 004d0024
+000001fc: 09440001
+00000200: 014d0024
+00000204: 004d0020
+00000208: 10430000
+0000020c: 20000010
+00000210: 26000000
+00000214: 004d0020
+00000218: 09440001
+0000021c: 014d0020
+00000220: 004d001c
+00000224: 10420000
+00000228: 22000010
+0000022c: 26000000
+00000230: 004d001c
+00000234: 09440001
+00000238: 014d001c
+0000023c: 004d0018
+00000240: 10430000
+00000244: 22000010
+00000248: 26000000
+0000024c: 004d0018
+00000250: 09440001
+00000254: 014d0018
+00000258: 0940ffff
+0000025c: 005d0014
+00000260: 10540000
+00000264: 23000010
+00000268: 26000000
+0000026c: 004d0014
+00000270: 09440001
+00000274: 014d0014
+00000278: 004d0010
+0000027c: 10430000
+00000280: 23000010
+00000284: 26000000
+00000288: 003d0010
+0000028c: 09330001
+00000290: 013d0010
+00000294: 003d000c
+00000298: 10320000
+0000029c: 23000010
+000002a0: 26000000
+000002a4: 003d000c
+000002a8: 09330001
+000002ac: 013d000c
+000002b0: 003d0008
+000002b4: 10320000
+000002b8: 22000010
+000002bc: 26000000
+000002c0: 002d0008
+000002c4: 09220001
+000002c8: 012d0008
+000002cc: 002d0008
+000002d0: 003d0004
+000002d4: 10320000
+000002d8: 25000010
+000002dc: 26000000
+000002e0: 002d0004
+000002e4: 09220001
+000002e8: 012d0004
+000002ec: 002d0020
+000002f0: 003d0024
+000002f4: 10320000
+000002f8: 20000010
+000002fc: 26000000
+00000300: 002d0024
+00000304: 09220001
+00000308: 012d0024
+0000030c: 002d001c
+00000310: 003d0020
+00000314: 13232000
+00000318: 003d0018
+0000031c: 13223000
+00000320: 003d0014
+00000324: 13223000
+00000328: 003d0010
+0000032c: 13223000
+00000330: 003d000c
+00000334: 13223000
+00000338: 003d0008
+0000033c: 13223000
+00000340: 003d0004
+00000344: 13223000
+00000348: 09dd0028
+0000034c: 2c000000
+00000350: xxxxxxxx
+00000354: xxxxxxxx
+00000358: xxxxxxxx
+0000035c: xxxxxxxx
+00000360: xxxxxxxx
+00000364: xxxxxxxx
+00000368: xxxxxxxx
+0000036c: xxxxxxxx
+00000370: xxxxxxxx
+00000374: xxxxxxxx
+00000378: xxxxxxxx
+0000037c: xxxxxxxx
+00000380: xxxxxxxx
+00000384: xxxxxxxx
+00000388: xxxxxxxx
+0000038c: xxxxxxxx
+00000390: xxxxxxxx
+00000394: xxxxxxxx
+00000398: xxxxxxxx
+0000039c: xxxxxxxx
+000003a0: xxxxxxxx
+000003a4: xxxxxxxx
+000003a8: xxxxxxxx
+000003ac: xxxxxxxx
+000003b0: xxxxxxxx
+000003b4: xxxxxxxx
+000003b8: xxxxxxxx
+000003bc: xxxxxxxx
+000003c0: xxxxxxxx
+000003c4: xxxxxxxx
+000003c8: xxxxxxxx
+000003cc: xxxxxxxx
+000003d0: xxxxxxxx
+000003d4: xxxxxxxx
+000003d8: xxxxxxxx
+000003dc: xxxxxxxx
+000003e0: xxxxxxxx
+000003e4: xxxxxxxx
+000003e8: xxxxxxxx
+000003ec: xxxxxxxx
+000003f0: xxxxxxxx
+000003f4: xxxxxxxx
+000003f8: xxxxxxxx
+000003fc: xxxxxxxx
+  90ns 00000000 : 09100000 R<span class="o">[</span>01<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+ 170ns 00000004 : 09200000 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+ 250ns 00000008 : 09300000 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+ 330ns 0000000c : 09400000 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+ 410ns 00000010 : 09500000 R<span class="o">[</span>05<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+ 490ns 00000014 : 09600000 R<span class="o">[</span>06<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+ 570ns 00000018 : 09700000 R<span class="o">[</span>07<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+ 650ns 0000001c : 09800000 R<span class="o">[</span>08<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+ 730ns 00000020 : 09900000 R<span class="o">[</span>09<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+ 810ns 00000024 : 09a00000 R<span class="o">[</span>10<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+ 890ns 00000028 : 09b00000 R<span class="o">[</span>11<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+ 970ns 0000002c : 09c00000 R<span class="o">[</span>12<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+1050ns 00000030 : 09e0ffff R<span class="o">[</span>14<span class="o">]=</span><span class="nv">ffffffff</span><span class="o">=</span>-1         <span class="nv">SW</span><span class="o">=</span>00000000
+1130ns 00000034 : 09d003fc R<span class="o">[</span>13<span class="o">]=</span><span class="nv">000003fc</span><span class="o">=</span>1020       <span class="nv">SW</span><span class="o">=</span>00000000
+1210ns 00000038 : 09ddfff0 R<span class="o">[</span>13<span class="o">]=</span><span class="nv">000003ec</span><span class="o">=</span>1004       <span class="nv">SW</span><span class="o">=</span>00000000
+1290ns 0000003c : 01ed000c R<span class="o">[</span>14<span class="o">]=</span><span class="nv">ffffffff</span><span class="o">=</span>-1         <span class="nv">SW</span><span class="o">=</span>00000000
+1370ns 00000040 : 09200000 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+1450ns 00000044 : 012d0008 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+1530ns 00000048 : 012d0004 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+1610ns 0000004c : 2b000020 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+1690ns 00000070 : 09ddffc0 R<span class="o">[</span>13<span class="o">]=</span><span class="nv">000003ac</span><span class="o">=</span>940        <span class="nv">SW</span><span class="o">=</span>00000000
+1770ns 00000074 : 0920000b R<span class="o">[</span>02<span class="o">]=</span><span class="nv">0000000b</span><span class="o">=</span>11         <span class="nv">SW</span><span class="o">=</span>00000000
+1850ns 00000078 : 012d003c R<span class="o">[</span>02<span class="o">]=</span><span class="nv">0000000b</span><span class="o">=</span>11         <span class="nv">SW</span><span class="o">=</span>00000000
+1930ns 0000007c : 09200002 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>00000000
+2010ns 00000080 : 012d0038 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>00000000
+2090ns 00000084 : 09200000 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+2170ns 00000088 : 012d0034 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+2250ns 0000008c : 012d0030 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+2330ns 00000090 : 012d0010 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+2410ns 00000094 : 0930fffb R<span class="o">[</span>03<span class="o">]=</span><span class="nv">fffffffb</span><span class="o">=</span>-5         <span class="nv">SW</span><span class="o">=</span>00000000
+2490ns 00000098 : 013d000c R<span class="o">[</span>03<span class="o">]=</span><span class="nv">fffffffb</span><span class="o">=</span>-5         <span class="nv">SW</span><span class="o">=</span>00000000
+2570ns 0000009c : 012d0008 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+2650ns 000000a0 : 003d0038 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>00000000
+2730ns 000000a4 : 004d003c R<span class="o">[</span>04<span class="o">]=</span><span class="nv">0000000b</span><span class="o">=</span>11         <span class="nv">SW</span><span class="o">=</span>00000000
+2810ns 000000a8 : 13343000 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">0000000d</span><span class="o">=</span>13         <span class="nv">SW</span><span class="o">=</span>00000000
+2890ns 000000ac : 013d0034 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">0000000d</span><span class="o">=</span>13         <span class="nv">SW</span><span class="o">=</span>00000000
+2970ns 000000b0 : 003d0038 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>00000000
+3050ns 000000b4 : 004d003c R<span class="o">[</span>04<span class="o">]=</span><span class="nv">0000000b</span><span class="o">=</span>11         <span class="nv">SW</span><span class="o">=</span>00000000
+3130ns 000000b8 : 14343000 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000009</span><span class="o">=</span>9          <span class="nv">SW</span><span class="o">=</span>00000000
+3210ns 000000bc : 013d0030 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000009</span><span class="o">=</span>9          <span class="nv">SW</span><span class="o">=</span>00000000
+3290ns 000000c0 : 003d0038 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>00000000
+3370ns 000000c4 : 004d003c R<span class="o">[</span>04<span class="o">]=</span><span class="nv">0000000b</span><span class="o">=</span>11         <span class="nv">SW</span><span class="o">=</span>00000000
+3450ns 000000c8 : 15343000 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000016</span><span class="o">=</span>22         <span class="nv">SW</span><span class="o">=</span>00000000
+3530ns 000000cc : 013d002c R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000016</span><span class="o">=</span>22         <span class="nv">SW</span><span class="o">=</span>00000000
+3610ns 000000d0 : 003d0038 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>00000000
+3690ns 000000d4 : 004d003c R<span class="o">[</span>04<span class="o">]=</span><span class="nv">0000000b</span><span class="o">=</span>11         <span class="nv">SW</span><span class="o">=</span>00000000
+3770ns 000000d8 : 16430000 <span class="nv">HI</span><span class="o">=</span>00000001 <span class="nv">LO</span><span class="o">=</span>00000005 <span class="nv">SW</span><span class="o">=</span>00000000
+3850ns 000000dc : 41300000 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000005</span><span class="o">=</span>5          <span class="nv">SW</span><span class="o">=</span>00000000
+3930ns 000000e0 : 09402aaa R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00002aaa</span><span class="o">=</span>10922      <span class="nv">SW</span><span class="o">=</span>00000000
+4010ns 000000e4 : 1e440010 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">2aaa0000</span><span class="o">=</span>715784192  <span class="nv">SW</span><span class="o">=</span>00000000
+4090ns 000000e8 : 0950aaab R<span class="o">[</span>05<span class="o">]=</span><span class="nv">ffffaaab</span><span class="o">=</span>-21845     <span class="nv">SW</span><span class="o">=</span>00000000
+4170ns 000000ec : 19445000 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">ffffaaab</span><span class="o">=</span>-21845     <span class="nv">SW</span><span class="o">=</span>00000000
+4250ns 000000f0 : 013d0028 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000005</span><span class="o">=</span>5          <span class="nv">SW</span><span class="o">=</span>00000000
+4330ns 000000f4 : 003d003c R<span class="o">[</span>03<span class="o">]=</span><span class="nv">0000000b</span><span class="o">=</span>11         <span class="nv">SW</span><span class="o">=</span>00000000
+4410ns 000000f8 : 09330001 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">0000000c</span><span class="o">=</span>12         <span class="nv">SW</span><span class="o">=</span>00000000
+4490ns 000000fc : 50340000 <span class="nv">HI</span><span class="o">=</span>ffffffff <span class="nv">LO</span><span class="o">=</span>fffc0004 <span class="nv">SW</span><span class="o">=</span>00000000
+4570ns 00000100 : 40400000 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">ffffffff</span><span class="o">=</span>-1         <span class="nv">SW</span><span class="o">=</span>00000000
+4650ns 00000104 : 1f54001f R<span class="o">[</span>05<span class="o">]=</span><span class="nv">00000001</span><span class="o">=</span>1          <span class="nv">SW</span><span class="o">=</span>00000000
+4730ns 00000108 : 1b440001 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">ffffffff</span><span class="o">=</span>-1         <span class="nv">SW</span><span class="o">=</span>00000000
+4810ns 0000010c : 13445000 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+4890ns 00000110 : 0950000c R<span class="o">[</span>05<span class="o">]=</span><span class="nv">0000000c</span><span class="o">=</span>12         <span class="nv">SW</span><span class="o">=</span>00000000
+4970ns 00000114 : 15445000 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+5050ns 00000118 : 14334000 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">0000000c</span><span class="o">=</span>12         <span class="nv">SW</span><span class="o">=</span>00000000
+5130ns 0000011c : 013d0038 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">0000000c</span><span class="o">=</span>12         <span class="nv">SW</span><span class="o">=</span>00000000
+5210ns 00000120 : 004d003c R<span class="o">[</span>04<span class="o">]=</span><span class="nv">0000000b</span><span class="o">=</span>11         <span class="nv">SW</span><span class="o">=</span>00000000
+5290ns 00000124 : 18343000 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000008</span><span class="o">=</span>8          <span class="nv">SW</span><span class="o">=</span>00000000
+5370ns 00000128 : 013d0024 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000008</span><span class="o">=</span>8          <span class="nv">SW</span><span class="o">=</span>00000000
+5450ns 0000012c : 003d0038 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">0000000c</span><span class="o">=</span>12         <span class="nv">SW</span><span class="o">=</span>00000000
+5530ns 00000130 : 004d003c R<span class="o">[</span>04<span class="o">]=</span><span class="nv">0000000b</span><span class="o">=</span>11         <span class="nv">SW</span><span class="o">=</span>00000000
+5610ns 00000134 : 19343000 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">0000000f</span><span class="o">=</span>15         <span class="nv">SW</span><span class="o">=</span>00000000
+5690ns 00000138 : 013d0020 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">0000000f</span><span class="o">=</span>15         <span class="nv">SW</span><span class="o">=</span>00000000
+5770ns 0000013c : 003d0038 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">0000000c</span><span class="o">=</span>12         <span class="nv">SW</span><span class="o">=</span>00000000
+5850ns 00000140 : 004d003c R<span class="o">[</span>04<span class="o">]=</span><span class="nv">0000000b</span><span class="o">=</span>11         <span class="nv">SW</span><span class="o">=</span>00000000
+5930ns 00000144 : 1a343000 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000007</span><span class="o">=</span>7          <span class="nv">SW</span><span class="o">=</span>00000000
+6010ns 00000148 : 013d001c R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000007</span><span class="o">=</span>7          <span class="nv">SW</span><span class="o">=</span>00000000
+6090ns 0000014c : 003d003c R<span class="o">[</span>03<span class="o">]=</span><span class="nv">0000000b</span><span class="o">=</span>11         <span class="nv">SW</span><span class="o">=</span>00000000
+6170ns 00000150 : 1e330002 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">0000002c</span><span class="o">=</span>44         <span class="nv">SW</span><span class="o">=</span>00000000
+6250ns 00000154 : 013d0018 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">0000002c</span><span class="o">=</span>44         <span class="nv">SW</span><span class="o">=</span>00000000
+6330ns 00000158 : 003d003c R<span class="o">[</span>03<span class="o">]=</span><span class="nv">0000000b</span><span class="o">=</span>11         <span class="nv">SW</span><span class="o">=</span>00000000
+// <span class="nv">k</span> <span class="o">=</span> <span class="o">(</span>a &gt;&gt; 2<span class="o">)</span>; <span class="nv">a</span> <span class="o">==</span> 11; 11 &gt;&gt; <span class="nv">2</span> <span class="o">=</span> 2
+6410ns 0000015c : 1b330002 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>00000000
+6490ns 00000160 : 013d0014 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>00000000
+6570ns 00000164 : 003d000c R<span class="o">[</span>03<span class="o">]=</span><span class="nv">fffffffb</span><span class="o">=</span>-5         <span class="nv">SW</span><span class="o">=</span>00000000
+// <span class="nv">k1</span> <span class="o">=</span> <span class="o">(</span>a1 &gt;&gt; 2<span class="o">)</span>; <span class="nv">a1</span> <span class="o">=</span> -5 <span class="o">=</span> 0xfffffffb; a1 &gt;&gt; <span class="nv">2</span> <span class="o">=</span> 3ffffffe
+6650ns 00000168 : 1f330002 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">3ffffffe</span><span class="o">=</span>1073741822 <span class="nv">SW</span><span class="o">=</span>00000000
+6730ns 0000016c : 013d0008 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">3ffffffe</span><span class="o">=</span>1073741822 <span class="nv">SW</span><span class="o">=</span>00000000
+6810ns 00000170 : 003d003c R<span class="o">[</span>03<span class="o">]=</span><span class="nv">0000000b</span><span class="o">=</span>11         <span class="nv">SW</span><span class="o">=</span>00000000
+6890ns 00000174 : 1a232000 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">0000000b</span><span class="o">=</span>11         <span class="nv">SW</span><span class="o">=</span>00000000
+6970ns 00000178 : 09300001 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000001</span><span class="o">=</span>1          <span class="nv">SW</span><span class="o">=</span>00000000
+7050ns 0000017c : 1a223000 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">0000000a</span><span class="o">=</span>10         <span class="nv">SW</span><span class="o">=</span>00000000
+7130ns 00000180 : 18223000 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+7210ns 00000184 : 012d0038 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+7290ns 00000188 : 092d0038 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">000003e4</span><span class="o">=</span>996        <span class="nv">SW</span><span class="o">=</span>00000000
+7370ns 0000018c : 012d0000 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">000003e4</span><span class="o">=</span>996        <span class="nv">SW</span><span class="o">=</span>00000000
+7450ns 00000190 : 002d0034 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">0000000d</span><span class="o">=</span>13         <span class="nv">SW</span><span class="o">=</span>00000000
+7530ns 00000194 : 09dd0040 R<span class="o">[</span>13<span class="o">]=</span><span class="nv">000003ec</span><span class="o">=</span>1004       <span class="nv">SW</span><span class="o">=</span>00000000
+7610ns 00000198 : 2c000000 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+7690ns 00000050 : 012d0004 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">0000000d</span><span class="o">=</span>13         <span class="nv">SW</span><span class="o">=</span>00000000
+7770ns 00000054 : 2b000144 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+7850ns 0000019c : 09ddffd8 R<span class="o">[</span>13<span class="o">]=</span><span class="nv">000003c4</span><span class="o">=</span>964        <span class="nv">SW</span><span class="o">=</span>00000000
+7930ns 000001a0 : 09300000 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+8010ns 000001a4 : 013d0024 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+8090ns 000001a8 : 09200001 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000001</span><span class="o">=</span>1          <span class="nv">SW</span><span class="o">=</span>00000000
+8170ns 000001ac : 012d0020 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000001</span><span class="o">=</span>1          <span class="nv">SW</span><span class="o">=</span>00000000
+8250ns 000001b0 : 09400002 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>00000000
+8330ns 000001b4 : 014d001c R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>00000000
+8410ns 000001b8 : 09400003 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000003</span><span class="o">=</span>3          <span class="nv">SW</span><span class="o">=</span>00000000
+8490ns 000001bc : 014d0018 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000003</span><span class="o">=</span>3          <span class="nv">SW</span><span class="o">=</span>00000000
+8570ns 000001c0 : 09400004 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000004</span><span class="o">=</span>4          <span class="nv">SW</span><span class="o">=</span>00000000
+8650ns 000001c4 : 014d0014 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000004</span><span class="o">=</span>4          <span class="nv">SW</span><span class="o">=</span>00000000
+8730ns 000001c8 : 09400005 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000005</span><span class="o">=</span>5          <span class="nv">SW</span><span class="o">=</span>00000000
+8810ns 000001cc : 014d0010 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000005</span><span class="o">=</span>5          <span class="nv">SW</span><span class="o">=</span>00000000
+8890ns 000001d0 : 09400006 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000006</span><span class="o">=</span>6          <span class="nv">SW</span><span class="o">=</span>00000000
+8970ns 000001d4 : 014d000c R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000006</span><span class="o">=</span>6          <span class="nv">SW</span><span class="o">=</span>00000000
+9050ns 000001d8 : 09400007 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000007</span><span class="o">=</span>7          <span class="nv">SW</span><span class="o">=</span>00000000
+9130ns 000001dc : 014d0008 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000007</span><span class="o">=</span>7          <span class="nv">SW</span><span class="o">=</span>00000000
+9210ns 000001e0 : 09400008 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000008</span><span class="o">=</span>8          <span class="nv">SW</span><span class="o">=</span>00000000
+9290ns 000001e4 : 014d0004 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000008</span><span class="o">=</span>8          <span class="nv">SW</span><span class="o">=</span>00000000
+9370ns 000001e8 : 004d0024 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+9450ns 000001ec : 10430000 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>40000000
+9530ns 000001f0 : 21000010 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>40000000
+9610ns 000001f4 : 26000000 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>40000000
+9690ns 000001f8 : 004d0024 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>40000000
+9770ns 000001fc : 09440001 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000001</span><span class="o">=</span>1          <span class="nv">SW</span><span class="o">=</span>40000000
+9850ns 00000200 : 014d0024 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000001</span><span class="o">=</span>1          <span class="nv">SW</span><span class="o">=</span>40000000
+9930ns 00000204 : 004d0020 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000001</span><span class="o">=</span>1          <span class="nv">SW</span><span class="o">=</span>40000000
+10010ns 00000208 : 10430000 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000001</span><span class="o">=</span>1          <span class="nv">SW</span><span class="o">=</span>00000000
+</pre></div>
+</div>
+<p>As above result, cpu0s.v dump the memory first after read input cpu0s.hex.
+After that, it run instructions from address 0 and print each destination
+register value in fourth column.
+The first column is the nano seconds of timing. The second
+is instruction address. The third is instruction content.
+We have checked the <strong>&#8220;&gt;&gt;&#8221;</strong> is correct on both signed and unsigned int type
+as comment.</p>
+<table class="docutils footnote" frame="void" id="id3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://www.ece.umd.edu/courses/enee359a/">http://www.ece.umd.edu/courses/enee359a/</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf">http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf</a></td></tr>
+</tbody>
+</table>
 </div>
 </div>
 
