@@ -1811,7 +1811,7 @@ module main;
     clock = 0;
     reset = 1;
     #20 reset = 0;
-    #10000 $finish;
+    #30000 $finish;
   end
 
   always #10 clock=clock+1;
@@ -2547,6 +2547,78 @@ the requested range <span class="o">[</span>0:1024<span class="o">]</span>.
 9850ns 00000200 : 014d0024 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000001</span><span class="o">=</span>1          <span class="nv">SW</span><span class="o">=</span>40000000
 9930ns 00000204 : 004d0020 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000001</span><span class="o">=</span>1          <span class="nv">SW</span><span class="o">=</span>40000000
 10010ns 00000208 : 10430000 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000001</span><span class="o">=</span>1          <span class="nv">SW</span><span class="o">=</span>00000000
+10090ns 0000020c : 20000010 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+10170ns 00000210 : 26000000 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+10250ns 00000214 : 004d0020 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000001</span><span class="o">=</span>1          <span class="nv">SW</span><span class="o">=</span>00000000
+10330ns 00000218 : 09440001 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>00000000
+10410ns 0000021c : 014d0020 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>00000000
+10490ns 00000220 : 004d001c R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>00000000
+10570ns 00000224 : 10420000 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>00000000
+10650ns 00000228 : 22000010 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+10730ns 0000022c : 26000000 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+10810ns 00000230 : 004d001c R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>00000000
+10890ns 00000234 : 09440001 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000003</span><span class="o">=</span>3          <span class="nv">SW</span><span class="o">=</span>00000000
+10970ns 00000238 : 014d001c R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000003</span><span class="o">=</span>3          <span class="nv">SW</span><span class="o">=</span>00000000
+11050ns 0000023c : 004d0018 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000003</span><span class="o">=</span>3          <span class="nv">SW</span><span class="o">=</span>00000000
+11130ns 00000240 : 10430000 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000003</span><span class="o">=</span>3          <span class="nv">SW</span><span class="o">=</span>00000000
+11210ns 00000244 : 22000010 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+11290ns 00000248 : 26000000 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+11370ns 0000024c : 004d0018 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000003</span><span class="o">=</span>3          <span class="nv">SW</span><span class="o">=</span>00000000
+11450ns 00000250 : 09440001 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000004</span><span class="o">=</span>4          <span class="nv">SW</span><span class="o">=</span>00000000
+11530ns 00000254 : 014d0018 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000004</span><span class="o">=</span>4          <span class="nv">SW</span><span class="o">=</span>00000000
+11610ns 00000258 : 0940ffff R<span class="o">[</span>04<span class="o">]=</span><span class="nv">ffffffff</span><span class="o">=</span>-1         <span class="nv">SW</span><span class="o">=</span>00000000
+11690ns 0000025c : 005d0014 R<span class="o">[</span>05<span class="o">]=</span><span class="nv">00000004</span><span class="o">=</span>4          <span class="nv">SW</span><span class="o">=</span>00000000
+11770ns 00000260 : 10540000 R<span class="o">[</span>05<span class="o">]=</span><span class="nv">00000004</span><span class="o">=</span>4          <span class="nv">SW</span><span class="o">=</span>00000000
+11850ns 00000264 : 23000010 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+11930ns 00000278 : 004d0010 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000005</span><span class="o">=</span>5          <span class="nv">SW</span><span class="o">=</span>00000000
+12010ns 0000027c : 10430000 R<span class="o">[</span>04<span class="o">]=</span><span class="nv">00000005</span><span class="o">=</span>5          <span class="nv">SW</span><span class="o">=</span>00000000
+12090ns 00000280 : 23000010 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+12170ns 00000294 : 003d000c R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000006</span><span class="o">=</span>6          <span class="nv">SW</span><span class="o">=</span>00000000
+12250ns 00000298 : 10320000 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000006</span><span class="o">=</span>6          <span class="nv">SW</span><span class="o">=</span>00000000
+12330ns 0000029c : 23000010 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+12410ns 000002b0 : 003d0008 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000007</span><span class="o">=</span>7          <span class="nv">SW</span><span class="o">=</span>00000000
+12490ns 000002b4 : 10320000 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000007</span><span class="o">=</span>7          <span class="nv">SW</span><span class="o">=</span>00000000
+12570ns 000002b8 : 22000010 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+12650ns 000002bc : 26000000 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
+12730ns 000002c0 : 002d0008 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000007</span><span class="o">=</span>7          <span class="nv">SW</span><span class="o">=</span>00000000
+12810ns 000002c4 : 09220001 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000008</span><span class="o">=</span>8          <span class="nv">SW</span><span class="o">=</span>00000000
+12890ns 000002c8 : 012d0008 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000008</span><span class="o">=</span>8          <span class="nv">SW</span><span class="o">=</span>00000000
+12970ns 000002cc : 002d0008 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000008</span><span class="o">=</span>8          <span class="nv">SW</span><span class="o">=</span>00000000
+13050ns 000002d0 : 003d0004 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000008</span><span class="o">=</span>8          <span class="nv">SW</span><span class="o">=</span>00000000
+13130ns 000002d4 : 10320000 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000008</span><span class="o">=</span>8          <span class="nv">SW</span><span class="o">=</span>40000000
+13210ns 000002d8 : 25000010 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>40000000
+13290ns 000002ec : 002d0020 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>40000000
+13370ns 000002f0 : 003d0024 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000001</span><span class="o">=</span>1          <span class="nv">SW</span><span class="o">=</span>40000000
+13450ns 000002f4 : 10320000 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000001</span><span class="o">=</span>1          <span class="nv">SW</span><span class="o">=</span>80000000
+13530ns 000002f8 : 20000010 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>80000000
+13610ns 000002fc : 26000000 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>80000000
+13690ns 00000300 : 002d0024 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000001</span><span class="o">=</span>1          <span class="nv">SW</span><span class="o">=</span>80000000
+13770ns 00000304 : 09220001 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>80000000
+13850ns 00000308 : 012d0024 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>80000000
+13930ns 0000030c : 002d001c R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000003</span><span class="o">=</span>3          <span class="nv">SW</span><span class="o">=</span>80000000
+14010ns 00000310 : 003d0020 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000002</span><span class="o">=</span>2          <span class="nv">SW</span><span class="o">=</span>80000000
+14090ns 00000314 : 13232000 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000005</span><span class="o">=</span>5          <span class="nv">SW</span><span class="o">=</span>80000000
+14170ns 00000318 : 003d0018 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000004</span><span class="o">=</span>4          <span class="nv">SW</span><span class="o">=</span>80000000
+14250ns 0000031c : 13223000 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000009</span><span class="o">=</span>9          <span class="nv">SW</span><span class="o">=</span>80000000
+14330ns 00000320 : 003d0014 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000004</span><span class="o">=</span>4          <span class="nv">SW</span><span class="o">=</span>80000000
+14410ns 00000324 : 13223000 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">0000000d</span><span class="o">=</span>13         <span class="nv">SW</span><span class="o">=</span>80000000
+14490ns 00000328 : 003d0010 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000005</span><span class="o">=</span>5          <span class="nv">SW</span><span class="o">=</span>80000000
+14570ns 0000032c : 13223000 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000012</span><span class="o">=</span>18         <span class="nv">SW</span><span class="o">=</span>80000000
+14650ns 00000330 : 003d000c R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000006</span><span class="o">=</span>6          <span class="nv">SW</span><span class="o">=</span>80000000
+14730ns 00000334 : 13223000 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000018</span><span class="o">=</span>24         <span class="nv">SW</span><span class="o">=</span>80000000
+14810ns 00000338 : 003d0008 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000008</span><span class="o">=</span>8          <span class="nv">SW</span><span class="o">=</span>80000000
+14890ns 0000033c : 13223000 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000020</span><span class="o">=</span>32         <span class="nv">SW</span><span class="o">=</span>80000000
+14970ns 00000340 : 003d0004 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000008</span><span class="o">=</span>8          <span class="nv">SW</span><span class="o">=</span>80000000
+15050ns 00000344 : 13223000 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000028</span><span class="o">=</span>40         <span class="nv">SW</span><span class="o">=</span>80000000
+15130ns 00000348 : 09dd0028 R<span class="o">[</span>13<span class="o">]=</span><span class="nv">000003ec</span><span class="o">=</span>1004       <span class="nv">SW</span><span class="o">=</span>80000000
+15210ns 0000034c : 2c000000 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>80000000
+15290ns 00000058 : 003d0004 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">0000000d</span><span class="o">=</span>13         <span class="nv">SW</span><span class="o">=</span>80000000
+15370ns 0000005c : 13232000 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000035</span><span class="o">=</span>53         <span class="nv">SW</span><span class="o">=</span>80000000
+15450ns 00000060 : 012d0004 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000035</span><span class="o">=</span>53         <span class="nv">SW</span><span class="o">=</span>80000000
+15530ns 00000064 : 00ed000c R<span class="o">[</span>14<span class="o">]=</span><span class="nv">ffffffff</span><span class="o">=</span>-1         <span class="nv">SW</span><span class="o">=</span>80000000
+15610ns 00000068 : 09dd0010 R<span class="o">[</span>13<span class="o">]=</span><span class="nv">000003fc</span><span class="o">=</span>1020       <span class="nv">SW</span><span class="o">=</span>80000000
+15690ns 0000006c : 2c000000 R<span class="o">[</span>00<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>80000000
+RET to PC &lt; 0, finished!
 </pre></div>
 </div>
 <p>As above result, cpu0s.v dump the memory first after read input cpu0s.hex.
