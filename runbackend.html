@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.8',
+        VERSION:     '3.2.9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -2669,6 +2669,70 @@ is instruction address. The third is instruction content.
 We have checked the <strong>&#8220;&gt;&gt;&#8221;</strong> is correct on both signed and unsigned int type
 , and tracking the variable <strong>a</strong> value by print_integer(). You can verify it
 with the <strong>OUTPUT=xxx</strong> in Verilog output.</p>
+<p>Now, let&#8217;s run ch_10_3.cpp to verify the result as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch10_3.cpp</span>
+<span class="cp">#include &lt;stdarg.h&gt;</span>
+
+<span class="cp">#include &quot;InitRegs.h&quot;</span>
+
+<span class="cp">#define OUT_MEM 0x7000 </span><span class="c1">// 28672</span>
+
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $zero, 1020&quot;</span><span class="p">);</span>
+
+<span class="kt">void</span> <span class="n">print_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">);</span>
+<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...);</span>
+
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// For memory IO</span>
+<span class="kt">void</span> <span class="n">print_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">)</span><span class="n">OUT_MEM</span><span class="p">;</span>
+  <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">x</span><span class="p">;</span>
+ <span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="n">va_list</span> <span class="n">vl</span><span class="p">;</span>
+  <span class="n">va_start</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">amount</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">amount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+  <span class="p">{</span>
+  <span class="n">val</span> <span class="o">=</span> <span class="n">va_arg</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
+  <span class="n">sum</span> <span class="o">+=</span> <span class="n">val</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">va_end</span><span class="p">(</span><span class="n">vl</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">sum</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-75-175:InputFiles Jonathan<span class="nv">$ </span>clang -target <span class="sb">`</span>llvm-config --host-target<span class="sb">`</span>
+-c ch10_3.cpp -emit-llvm -o ch10_3.bc
+118-165-75-175:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build
+/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>obj ch10_3.bc
+-o ch10_3.cpu0.o
+118-165-75-175:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build
+/bin/Debug/llvm-objdump -d ch10_3.cpu0.o | tail -n +6| awk <span class="s1">&#39;{print &quot;/* &quot; $1 &quot;</span>
+<span class="s1">*/\t&quot; $2 &quot; &quot; $3 &quot; &quot; $4 &quot; &quot; $5 &quot;\t/* &quot; $6&quot;\t&quot; $7&quot; &quot; $8&quot; &quot; $9&quot; &quot; $10 &quot;\t*/&quot;}&#39;</span>
+&gt; ../cpu0_verilog/raw/cpu0s.hex
+
+118-165-75-175:raw Jonathan<span class="nv">$ </span>./cpu0s
+...
+12890ns 0000012c : 01320000 <span class="nv">OUTPUT</span><span class="o">=</span>15
+...
+</pre></div>
+</div>
 <p>We show Verilog PC output by display the I/O memory mapped address but we
 didn&#8217;t implement the output hardware interface or port. The output hardware
 interface/port is dependent on hardware output device, such as RS232, speaker,

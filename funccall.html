@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.8',
+        VERSION:     '3.2.9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -1759,14 +1759,15 @@ Run 8/6/Cpu0 with ch8_3.cpp to get the following error,</p>
 
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
 <span class="c1">//  printf(&quot;a = %d\n&quot;, a);</span>
 
   <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -c ch8_3.cpp -emit-llvm -o ch8_3.bc
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -target <span class="sb">`</span>llvm-config --host-target<span class="sb">`</span> -c
+ch8_3.cpp -emit-llvm -o ch8_3.bc
 118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_3.bc -o
 ch8_3.cpu0.s
@@ -1776,8 +1777,11 @@ LLVM ERROR: Cannot <span class="k">select</span>: 0x7f8b6902fd10: <span class="n
 In <span class="k">function</span>: _Z5sum_iiz
 </pre></div>
 </div>
-<p>Run 8/7/Cpu0 with ch8_3.cpp to get the following result,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
+<p>Run 8/7/Cpu0 with ch8_3.cpp as well as clang option,
+<strong>clang -target `llvm-config &#8211;host-target`</strong>, to get the following result,</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>clang -target <span class="sb">`</span>llvm-config --host-target<span class="sb">`</span> -c
+ch8_3.cpp -emit-llvm -o ch8_3.bc
+118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
 ch8_3.bc -o ch8_3.cpu0.s
 118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch8_3.cpu0.s
@@ -1790,95 +1794,58 @@ ch8_3.bc -o ch8_3.cpu0.s
   .type _Z5sum_iiz,@function
   .ent  _Z5sum_iiz              <span class="c"># @_Z5sum_iiz</span>
 _Z5sum_iiz:
-  .cfi_startproc
-  .frame  <span class="nv">$sp</span>,56,<span class="nv">$lr</span>
-  .mask   0x00004000,-4
+  .frame  <span class="nv">$sp</span>,24,<span class="nv">$lr</span>
+  .mask   0x00000000,0
   .set  noreorder
-  .cpload <span class="nv">$t9</span>
   .set  nomacro
 <span class="c"># BB#0:</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -56
-<span class="nv">$tmp2</span>:
-  .cfi_def_cfa_offset 56
-  st  <span class="nv">$lr</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
-<span class="nv">$tmp3</span>:
-  .cfi_offset 14, -4
-  .cprestore  0
-  ld  <span class="nv">$2</span>, %got<span class="o">(</span>__stack_chk_guard<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
-  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
-  st  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="o">=</span> 0
-  ld  <span class="nv">$2</span>, 56<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // amount
-  st  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // amount
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
+  ld  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>     // amount
+  st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>     // amount
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-  st  <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">i</span>  <span class="o">=</span> 0
-  st  <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">val</span> <span class="o">=</span> 0
-  st  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">sum</span> <span class="o">=</span> 0
-  addiu <span class="nv">$3</span>, <span class="nv">$sp</span>, 48 // <span class="nv">$3</span> <span class="o">=</span> 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>  // 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="o">=</span> 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> <span class="o">=</span> arg_ptr
-  st  <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">i</span> <span class="o">=</span> 0
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 40 // <span class="nv">$2</span> <span class="o">=</span> 40
+  st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>     // i
+  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>     // val
+  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>      // sum
+  addiu <span class="nv">$3</span>, <span class="nv">$sp</span>, 28
+  st  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>      // <span class="nv">arg_ptr</span> <span class="o">=</span> 2nd <span class="nv">argument</span> <span class="o">=</span> &amp;arg<span class="o">[</span>1<span class="o">]</span>,
+              // since &amp;arg<span class="o">[</span>0<span class="o">]</span> <span class="o">=</span> 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
 <span class="nv">$BB0_1</span>:                                 <span class="c"># =&gt;This Inner Loop Header: Depth=1</span>
-  ld  <span class="nv">$3</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">$3</span> <span class="o">=</span> amount
-  ld  <span class="nv">$4</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">$4</span> <span class="o">=</span> i
-  cmp <span class="nv">$4</span>, <span class="nv">$3</span>
-  jge <span class="nv">$BB0_7</span>    // i &gt;<span class="o">=</span> amount
+  ld  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  cmp <span class="nv">$3</span>, <span class="nv">$2</span>        // compare<span class="o">(</span>i, amount<span class="o">)</span>
+  jge <span class="nv">$BB0_4</span>
   jmp <span class="nv">$BB0_2</span>
 <span class="nv">$BB0_2</span>:                                 <span class="c">#   in Loop: Header=BB0_1 Depth=1</span>
-                // i &lt; amount
-  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>  // <span class="nv">$3</span> <span class="o">=</span> arg_ptr
-  cmp <span class="nv">$3</span>, <span class="nv">$2</span>
-  jgt <span class="nv">$BB0_4</span>    // arg_ptr &gt; 40
-  jmp <span class="nv">$BB0_3</span>
-<span class="nv">$BB0_3</span>:                                 <span class="c">#   in Loop: Header=BB0_1 Depth=1</span>
-                // arg_ptr &lt;<span class="o">=</span> 40
-  addiu <span class="nv">$4</span>, <span class="nv">$3</span>, 8
-  ld  <span class="nv">$5</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // *<span class="o">(</span>20<span class="o">(</span><span class="nv">$sp</span><span class="o">))</span> <span class="o">=</span> <span class="nv">arg_offset</span> <span class="o">=</span> 12
-  st  <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>  // arg_ptr +<span class="o">=</span> 8
-  add <span class="nv">$3</span>, <span class="nv">$5</span>, <span class="nv">$3</span>  // <span class="nv">$3</span> <span class="o">=</span> <span class="o">(</span>arg_ptr + arg_offset<span class="o">)</span>
-  jmp <span class="nv">$BB0_5</span>
-<span class="nv">$BB0_4</span>:                                 <span class="c">#   in Loop: Header=BB0_1 Depth=1</span>
-  ld  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$3</span>, 8
-  st  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_5</span>:                                 <span class="c">#   in Loop: Header=BB0_1 Depth=1</span>
-  ld  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>   // <span class="nv">$3</span> <span class="o">=</span> <span class="nv">val</span> <span class="o">=</span> *<span class="o">(</span>arg_ptr + arg_offset<span class="o">)</span>
-  st  <span class="nv">$3</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  ld  <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">$4</span> <span class="o">=</span> sum
-  add <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-  st  <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // sum +<span class="o">=</span> val
-<span class="c"># BB#6:                                 #   in Loop: Header=BB0_1 Depth=1</span>
-  ld  <span class="nv">$3</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">$3</span> <span class="o">=</span> i
-  addiu <span class="nv">$3</span>, <span class="nv">$3</span>, 1
-  st  <span class="nv">$3</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">i</span> <span class="o">=</span> i + 1
+              // i &lt; amount
+  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$2</span>, 4   // arg_ptr  + 4
+  st  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>     // *arg_ptr
+  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>      // sum
+  add <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>      // sum +<span class="o">=</span> *arg_ptr
+  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="c"># BB#3:                                 #   in Loop: Header=BB0_1 Depth=1</span>
+              // i &gt;<span class="o">=</span> amount
+  ld  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1   // i++
+  st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   jmp <span class="nv">$BB0_1</span>
-<span class="nv">$BB0_7</span>:
-  ld  <span class="nv">$2</span>, %got<span class="o">(</span>__stack_chk_guard<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
-  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  cmp <span class="nv">$2</span>, <span class="nv">$3</span>
-  jne <span class="nv">$BB0_9</span>
-  jmp <span class="nv">$BB0_8</span>
-<span class="nv">$BB0_8</span>:                                 <span class="c"># %SP_return</span>
-  ld  <span class="nv">$lr</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 56
+<span class="nv">$BB0_4</span>:
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 24
   ret <span class="nv">$lr</span>
-<span class="nv">$BB0_9</span>:                                 <span class="c"># %CallStackCheckFailBlk</span>
-  ld  <span class="nv">$6</span>, %call24<span class="o">(</span>__stack_chk_fail<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
-  jalr  <span class="nv">$6</span>
-  ld  <span class="nv">$gp</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   .set  macro
   .set  reorder
   .end  _Z5sum_iiz
-<span class="nv">$tmp4</span>:
-  .size _Z5sum_iiz, <span class="o">(</span><span class="nv">$tmp4</span><span class="o">)</span>-_Z5sum_iiz
-  .cfi_endproc
+<span class="nv">$tmp1</span>:
+  .size _Z5sum_iiz, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-_Z5sum_iiz
 
   .globl  main
   .align  2
   .type main,@function
   .ent  main                    <span class="c"># @main</span>
 main:
-  .cfi_startproc
   .frame  <span class="nv">$sp</span>,88,<span class="nv">$lr</span>
   .mask   0x00004000,-4
   .set  noreorder
@@ -1886,26 +1853,22 @@ main:
   .set  nomacro
 <span class="c"># BB#0:</span>
   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -88
-<span class="nv">$tmp7</span>:
-  .cfi_def_cfa_offset 88
   st  <span class="nv">$lr</span>, 84<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
-<span class="nv">$tmp8</span>:
-  .cfi_offset 14, -4
   .cprestore  32
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
   st  <span class="nv">$2</span>, 80<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
-  st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 4
-  st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
-  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
-  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 5
+  st  <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 4
+  st  <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 3
+  st  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 2
+  st  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 1
+  st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 6
-  st  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   ld  <span class="nv">$6</span>, %call24<span class="o">(</span>_Z5sum_iiz<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
   jalr  <span class="nv">$6</span>
@@ -1917,466 +1880,18 @@ main:
   .set  macro
   .set  reorder
   .end  main
-<span class="nv">$tmp9</span>:
-  .size main, <span class="o">(</span><span class="nv">$tmp9</span><span class="o">)</span>-main
-    .cfi_endproc
+<span class="nv">$tmp4</span>:
+  .size main, <span class="o">(</span><span class="nv">$tmp4</span><span class="o">)</span>-main
 </pre></div>
 </div>
-<p>We have problem in analysis of the output ch8_3.cpu0.s.
-We guess and try to analysis as follows.
-As above code, we get the first argument <strong>“amount”</strong> from <strong>“ld $2, 56($sp)”</strong>
-since the stack size of the callee function <strong>“_Z5sum_iiz()”</strong> is 56.
+<p>The analysis of output ch8_3.cpu0.s as above in comment.
+As above code, in # BB#0, we get the first argument <strong>“amount”</strong> from
+<strong>“ld $2, 24($sp)”</strong> since the stack size of the callee function
+<strong>“_Z5sum_iiz()”</strong> is 24. And set argument pointer, arg_ptr, to 28($sp),
+&amp;arg[1].
 Next, check i &lt; amount in block $BB0_1. If  i &lt; amount, than enter into $BB0_2.
-We assume arg_ptr &lt; 40 and the content of address 8($sp) is the arg_ptr.
-When it exits $BB0_2 and enter into $BB0_3, the register ($3 + $5) = (arg_ptr
-+ arg_offset=12) is point to the second argument and it do the sum += val in
-$BB0_5.
-It do i += 1 in $BB0_6 and jumb to $BB0_1 enter into second round.
-The second round do as above again, it will get the third argument and add to
-sum in $BB0_5 since the ptr_arg (16($sp)) is added 8 in the previous run.
-We assume the arg_prt &lt; 40 but actually according the analysis the arg_prt is
-48($sp) which &gt; 40, so the above analysis is not satisfied.
-The compare arg_prt with 40 is exist in llvm IR, and mips has the same
-translated output.
-So, we don&#8217;t know what&#8217;s wrong.
-We believe the arg &lt; 40 is satisfied because the native Intel CPU has the
-arg_ptr &lt; 40 in it&#8217;s assembly code and the Intel CPU native execution file can
-print correct result.
-You will see it soon in the bellow code.
-If the arg_ptr &lt; 40 is satisfied and <a href="#id8"><span class="problematic" id="id9">*</span></a>(20($sp)) = arg_offset = 12, then the
-assembly output is correct.
-The llvm IR and mips assembly output as follows,</p>
-<div class="highlight-bash"><pre>118-165-78-221:InputFiles Jonathan$ llvm-dis ch8_3.bc -o ch8_3.ll
-118-165-78-221:InputFiles Jonathan$ cat ch8_3.ll
-; ModuleID = 'ch8_3.bc'
-target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-
-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:
-32:64-S128"
-target triple = "x86_64-apple-macosx10.8.0"
-
-%struct.__va_list_tag = type { i32, i32, i8*, i8* }
-
-define i32 @_Z5sum_iiz(i32 %amount, ...) nounwind uwtable ssp {
-...
-; &lt;label&gt;:8                                       ; preds = %4
-...
-  %12 = icmp ule i32 %11, 40
-  br i1 %12, label %13, label %19
-
-118-165-67-185:InputFiles Jonathan$ cat ch8_3.mips.s
-  .section .mdebug.abi32
-  .previous
-  .file "ch8_3.bc"
-  .text
-  .globl  _Z5sum_iiz
-  .align  2
-  .type _Z5sum_iiz,@function
-  .ent  _Z5sum_iiz              # @_Z5sum_iiz
-_Z5sum_iiz:
-  .cfi_startproc
-  .frame  $sp,64,$ra
-  .mask   0x80000000,-4
-  .fmask  0x00000000,0
-  .set  noreorder
-  .set  nomacro
-      .set    noat
-# BB#0:
-      lui     $2, %hi(_gp_disp)
-      addiu   $2, $2, %lo(_gp_disp)
-      addiu   $sp, $sp, -64
-$tmp2:
-      .cfi_def_cfa_offset 64
-      sw      $ra, 60($sp)            # 4-byte Folded Spill
-$tmp3:
-  .cfi_offset 31, -4
-  .cprestore  16
-  sw  $7, 76($sp)
-  sw  $6, 72($sp)
-  sw  $5, 68($sp) // 68($sp) = arg[1]
-      lw      $3, %got(__stack_chk_guard)($gp)
-      lw      $1, 0($3)
-      sw      $1, 56($sp)
-  sw  $4, 52($sp) // 52($sp) = amount = arg[0]
-  sw  $zero, 48($sp)  // i
-  sw  $zero, 44($sp)  // val
-  sw  $zero, 40($sp)  // sum
-  addiu $2, $sp, 68
-  sw  $2, 16($sp) // 16($sp) = arg_ptr
-  sw  $zero, 48($sp)
-      b       $BB0_2
-  addiu $2, $zero, 40 // $2 = 40
-$BB0_1:                                 #   in Loop: Header=BB0_2 Depth=1
-  lw  $1, 0($4)   // $4 = *arg_ptr
-  sw  $1, 44($sp) // val
-  lw  $4, 40($sp) // sum
-  addu  $1, $4, $1  //
-  sw  $1, 40($sp) // sum += val
-  lw  $1, 48($sp)
-  addiu $1, $1, 1
-  sw  $1, 48($sp) // i += 1
-$BB0_2:                                 # =&gt;This Inner Loop Header: Depth=1
-  lw  $1, 52($sp)
-  lw  $4, 48($sp)
-  slt $1, $4, $1  // set if i &lt; amount
-  beq $1, $zero, $BB0_6 // i &gt;= amount
-  nop
-# BB#3:                                 #   in Loop: Header=BB0_2 Depth=1
-  lw  $4, 16($sp) // $4 = arg_ptr
-  sltu  $1, $2, $4  // set if 40 &lt; arg_ptr
-  bne $1, $zero, $BB0_5
-  nop
-# BB#4:                                 #   in Loop: Header=BB0_2 Depth=1
-                    // arg_ptr &lt;= 40
-  addiu $1, $4, 8
-  lw  $5, 28($sp) // 28($sp) = 0, assume even though we didn't find the
-                  // 28($sp) is 0
-  sw  $4, 16($sp) // arg_ptr += 8
-  b $BB0_1
-  addu  $4, $5, $4  // arg_ptr + 0
-$BB0_5:                                 #   in Loop: Header=BB0_1 Depth=1
-                   // 40 &lt; arg_ptr
-  lw  $4, 24($sp)
-  addiu $1, $4, 8
-  sw  $1, 24($sp)
-  b $BB0_1
-  nop
-$BB0_6:
-      lw      $1, 0($3)
-      lw      $3, 56($sp)
-      bne     $1, $3, $BB0_8
-      lw      $2, 40($sp)
-# BB#7:                                 # %SP_return
-  lw  $ra, 60($sp)            # 4-byte Folded Reload
-  jr  $ra
-  addiu $sp, $sp, 64
-$BB0_8:                                 # %CallStackCheckFailBlk
-  lw  $25, %call16(__stack_chk_fail)($gp)
-  jalr  $25
-  nop
-  .set  at
-  .set  macro
-  .set  reorder
-  .end  _Z5sum_iiz
-$tmp4:
-  .size _Z5sum_iiz, ($tmp4)-_Z5sum_iiz
-  .cfi_endproc
-
-  .globl  main
-  .align  2
-  .type main,@function
-  .set  nomips16                # @main
-  .ent  main
-main:
-  .cfi_startproc
-  .frame  $sp,48,$ra
-  .mask   0x80000000,-4
-  .fmask  0x00000000,0
-  .set  noreorder
-  .set  nomacro
-  .set  noat
-# BB#0:
-  lui $2, %hi(_gp_disp)
-  addiu $2, $2, %lo(_gp_disp)
-  addiu $sp, $sp, -48
-$tmp7:
-  .cfi_def_cfa_offset 48
-  sw  $ra, 44($sp)            # 4-byte Folded Spill
-$tmp8:
-  .cfi_offset 31, -4
-  addu  $gp, $2, $25
-  sw  $zero, 40($sp)
-  addiu $1, $zero, 5
-  sw  $1, 20($sp)
-  addiu $1, $zero, 4
-  sw  $1, 16($sp)
-  addiu $1, $zero, 6
-  sw  $1, 24($sp)
-  lw  $25, %call16(_Z5sum_iiz)($gp)
-  addiu $4, $zero, 6
-  addiu $5, $zero, 1
-  addiu $6, $zero, 2
-  jalr  $25
-  addiu $7, $zero, 3
-  sw  $2, 36($sp)
-  lw  $ra, 44($sp)            # 4-byte Folded Reload
-  jr  $ra
-  addiu $sp, $sp, 48
-  .set  at
-  .set  macro
-  .set  reorder
-  .end  main
-$tmp9:
-  .size main, ($tmp9)-main
-  .cfi_endproc</pre>
-</div>
-<p>We have verified the translation of ch8_3.cpp is correct by add printf in
-ch8_3.cpp to get ch8_3_3.cpp and run with <tt class="docutils literal"><span class="pre">lli</span></tt> llvm interpreter.
-We also translate it into native Intel CPU code and get the correct print
-result.
-Following are the ch8_3_3.cpp, and lli, Intel native code run result.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch8_3_3.cpp</span>
-<span class="c1">// clang -c ch8_3_3.cpp -emit-llvm -I/Applications/Xcode.app/Contents/</span>
-<span class="n">Developer</span><span class="o">/</span><span class="n">Platforms</span><span class="o">/</span><span class="n">MacOSX</span><span class="p">.</span><span class="n">platform</span><span class="o">/</span><span class="n">Developer</span><span class="o">/</span><span class="n">SDKs</span><span class="o">/</span><span class="n">MacOSX10</span><span class="mf">.8</span><span class="p">.</span><span class="n">sdk</span><span class="o">/</span><span class="n">usr</span><span class="o">/</span>
-<span class="n">include</span><span class="o">/</span> <span class="o">-</span><span class="n">o</span> <span class="n">ch8_3_3</span><span class="p">.</span><span class="n">bc</span>
-<span class="c1">// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc</span>
-<span class="n">ch8_3_3</span><span class="p">.</span><span class="n">bc</span> <span class="o">-</span><span class="n">o</span> <span class="n">ch8_3_3</span><span class="p">.</span><span class="n">s</span>
-<span class="c1">// clang++ ch8_3_3.s -o ch8_3_3.native</span>
-<span class="c1">// ./ch8_3_3.native</span>
-<span class="c1">// lldb -- ch8_3_3.native</span>
-<span class="c1">// b main</span>
-<span class="c1">// s</span>
-<span class="c1">// ...</span>
-<span class="c1">// print $rsp   ; print %rsp, choose $ instead of % in assembly code</span>
-
-<span class="c1">// mips-linux-gnu-g++ -g ch8_3_3.cpp -o ch8_3_3 -static</span>
-<span class="c1">// qemu-mips ch8_3_3</span>
-<span class="c1">// mips-linux-gnu-g++ -S ch8_3_3.cpp</span>
-<span class="c1">// cat ch8_3_3.s</span>
-
-<span class="cp">#include &lt;stdio.h&gt;</span>
-<span class="cp">#include &lt;stdarg.h&gt;</span>
-
-<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-
-  <span class="n">va_list</span> <span class="n">vl</span><span class="p">;</span>
-  <span class="n">va_start</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">amount</span><span class="p">);</span>
-  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">amount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-  <span class="p">{</span>
-  <span class="n">val</span> <span class="o">=</span> <span class="n">va_arg</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
-  <span class="n">sum</span> <span class="o">+=</span> <span class="n">val</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="n">va_end</span><span class="p">(</span><span class="n">vl</span><span class="p">);</span>
-
-  <span class="k">return</span> <span class="n">sum</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">);</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;a = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span>
-
-  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-221:InputFiles Jonathan<span class="nv">$ </span>lli ch8_3_3.bc
-<span class="nv">a</span> <span class="o">=</span> 21
-
-118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>clang -c ch8_3_3.cpp -emit-llvm -I
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/
-Developer/SDKs/MacOSX10.8.sdk/usr/include/ -o ch8_3_3.bc
-118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
-cmake_debug_build/bin/Debug/llc ch8_3_3.bc -o ch8_3_3.s
-118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>clang++ ch8_3_3.s -o ch8_3_3.native
-118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>./ch8_3_3.native
-<span class="nv">a</span> <span class="o">=</span> 21
-
-118-165-67-185:InputFiles Jonathan<span class="nv">$ </span>cat ch8_3_3.s
-...
-LBB0_3:                                 <span class="c">## =&gt;This Inner Loop Header: Depth=1</span>
-  movl  216<span class="o">(</span>%rsp<span class="o">)</span>, %eax
-  cmpl  220<span class="o">(</span>%rsp<span class="o">)</span>, %eax
-  jge LBB0_8    // i &gt;<span class="o">=</span> amount
-<span class="c">## BB#4:                                ##   in Loop: Header=BB0_3 Depth=1</span>
-  movl  176<span class="o">(</span>%rsp<span class="o">)</span>, %eax // i &lt; amount
-  cmpl  <span class="nv">$40</span>, %eax // arg_ptr &lt; 40
-  ja  LBB0_6
-</pre></div>
-</div>
-<p>We have run mips qemu on Linux by gcc.
-It get the correct print result, and the mips code has no analysis problem
-since it hasn&#8217;t the arg_ptr &lt; 40 in assembly output.
-The qemu mips gcc result as follows,</p>
-<div class="highlight-bash"><pre>[Gamma@localhost InputFiles]$ qemu-mips ch8_3_3
-a = 21
-[Gamma@localhost InputFiles]$ mips-linux-gnu-g++ -g ch8_3_3.cpp -o ch8_3_3
--static
-[Gamma@localhost InputFiles]$ qemu-mips ch8_3_3
-a = 21
-[Gamma@localhost InputFiles]$ mips-linux-gnu-g++ -S ch8_3_3.cpp
-[Gamma@localhost InputFiles]$ cat ch8_3_3.s
-  .file 1 "ch8_3_3.cpp"
-  .section .mdebug.abi32
-  .previous
-  .gnu_attribute 4, 1
-  .abicalls
-  .option pic0
-  .text
-  .align  2
-  .globl  _Z5sum_iiz
-$LFB0 = .
-  .set  nomips16
-  .ent  _Z5sum_iiz
-  .type _Z5sum_iiz, @function
-_Z5sum_iiz:
-  .frame  $fp,32,$31    # vars= 16, regs= 1/0, args= 0, gp= 8
-  .mask 0x40000000,-4
-  .fmask  0x00000000,0
-  .set  noreorder
-  .set  nomacro
-
-  addiu $sp,$sp,-32
-$LCFI0:
-  sw  $fp,28($sp)
-$LCFI1:
-  move  $fp,$sp
-$LCFI2:
-  sw  $5,36($fp)  // arg[1]
-  sw  $6,40($fp)
-  sw  $7,44($fp)
-  sw  $4,32($fp)  // amount = arg[0]
-  sw  $0,16($fp)  // i = 0
-  sw  $0,12($fp)  // val = 0
-  sw  $0,8($fp)   // sum = 0
-  addiu $2,$fp,36
-  sw  $2,20($fp)  // arg_ptr = &amp;arg[1]
-  sw  $0,16($fp)
-  j $L2
-  nop
-
-$L3:              // i &lt; amount
-  lw  $2,20($fp)  // arg_ptr
-  addiu $3,$2,4
-  sw  $3,20($fp)  // arg_ptr += 4
-  lw  $2,0($2)    // $2 = *arg_ptr
-  sw  $2,12($fp)  // val = *arg_ptr
-  lw  $3,8($fp)
-  lw  $2,12($fp)
-  addu  $2,$3,$2
-  sw  $2,8($fp)   // sum += val
-  lw  $2,16($fp)
-  addiu $2,$2,1
-  sw  $2,16($fp)  // i += 1
-$L2:
-  lw  $3,16($fp)
-  lw  $2,32($fp)
-  slt $2,$3,$2  // set if i &lt; amount
-  andi  $2,$2,0x00ff
-  bne $2,$0,$L3
-  nop
-
-  lw  $2,8($fp)  // i &gt;= amount
-  move  $sp,$fp
-  lw  $fp,28($sp)
-  addiu $sp,$sp,32
-  j $31
-  nop
-
-  .set  macro
-  .set  reorder
-  .end  _Z5sum_iiz
-$LFE0:
-  .size _Z5sum_iiz, .-_Z5sum_iiz
-  .rdata
-  .align  2
-$LC0:
-  .ascii  "a = %d\012\000"
-  .text
-  .align  2
-  .globl  main
-$LFB1 = .
-  .set  nomips16
-  .ent  main
-  .type main, @function
-main:
-  .frame  $fp,56,$31    # vars= 8, regs= 2/0, args= 32, gp= 8
-  .mask 0xc0000000,-4
-  .fmask  0x00000000,0
-  .set  noreorder
-  .set  nomacro
-
-  addiu $sp,$sp,-56
-$LCFI3:
-  sw  $31,52($sp)
-$LCFI4:
-  sw  $fp,48($sp)
-$LCFI5:
-  move  $fp,$sp
-$LCFI6:
-  li  $2,4      # 0x4
-  sw  $2,16($sp)
-  li  $2,5      # 0x5
-  sw  $2,20($sp)
-  li  $2,6      # 0x6
-  sw  $2,24($sp)
-  li  $4,6      # 0x6
-  li  $5,1      # 0x1
-  li  $6,2      # 0x2
-  li  $7,3      # 0x3
-  jal _Z5sum_iiz
-  nop
-
-  sw  $2,40($fp)
-  lui $2,%hi($LC0)
-  addiu $4,$2,%lo($LC0)
-  lw  $5,40($fp)
-  jal printf
-  nop
-
-  lw  $2,40($fp)
-  move  $sp,$fp
-  lw  $31,52($sp)
-  lw  $fp,48($sp)
-  addiu $sp,$sp,56
-  j $31
-  nop
-
-  .set  macro
-  .set  reorder
-  .end  main
-$LFE1:
-  .size main, .-main
-  .section  .eh_frame,"a",@progbits
-$Lframe1:
-  .4byte  $LECIE1-$LSCIE1
-$LSCIE1:
-  .4byte  0x0
-  .byte 0x1
-  .globl  __gxx_personality_v0
-  .ascii  "zP\000"
-  .uleb128 0x1
-  .sleb128 -4
-  .byte 0x1f
-  .uleb128 0x5
-  .byte 0x0
-  .4byte  __gxx_personality_v0
-  .byte 0xc
-  .uleb128 0x1d
-  .uleb128 0x0
-  .align  2
-$LECIE1:
-$LSFDE3:
-  .4byte  $LEFDE3-$LASFDE3
-$LASFDE3:
-  .4byte  $LASFDE3-$Lframe1
-  .4byte  $LFB1
-  .4byte  $LFE1-$LFB1
-  .uleb128 0x0
-  .byte 0x4
-  .4byte  $LCFI3-$LFB1
-  .byte 0xe
-  .uleb128 0x38
-  .byte 0x4
-  .4byte  $LCFI5-$LCFI3
-  .byte 0x11
-  .uleb128 0x1e
-  .sleb128 2
-  .byte 0x11
-  .uleb128 0x1f
-  .sleb128 1
-  .byte 0x4
-  .4byte  $LCFI6-$LCFI5
-  .byte 0xd
-  .uleb128 0x1e
-  .align  2
-$LEFDE3:
-  .ident  "GCC: (GNU) 4.4.6"
-[Gamma@localhost InputFiles]$</pre>
-</div>
+In $BB0_2, it do sum += <a href="#id8"><span class="problematic" id="id9">*</span></a>arg_ptr as well as arg_ptr+=4.
+In # BB#3, do i+=1.</p>
 <p>To support variable number of arguments, the following code needed to
 add in 8/7/Cpu0.
 The ch8_3_2.cpp is C++ template example code, it can be translated into cpu0
@@ -2425,6 +1940,28 @@ backend code too.</p>
   <span class="k">return</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getStore</span><span class="p">(</span><span class="n">Op</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">dl</span><span class="p">,</span> <span class="n">FI</span><span class="p">,</span> <span class="n">Op</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
             <span class="n">MachinePointerInfo</span><span class="p">(</span><span class="n">SV</span><span class="p">),</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
 <span class="p">}</span>
+<span class="p">...</span>
+<span class="n">SDValue</span>
+<span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerFormalArguments</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span>
+                     <span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span>
+                     <span class="kt">bool</span> <span class="n">isVarArg</span><span class="p">,</span>
+                    <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="o">::</span><span class="n">InputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Ins</span><span class="p">,</span>
+                     <span class="n">DebugLoc</span> <span class="n">dl</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span>
+                     <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span>
+                      <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">isVarArg</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">unsigned</span> <span class="n">RegSize</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">getSize</span><span class="p">();</span>
+  <span class="c1">// Offset of the first variable argument from stack pointer.</span>
+  <span class="kt">int</span> <span class="n">FirstVaArgOffset</span> <span class="o">=</span> <span class="n">RegSize</span><span class="p">;</span>
+
+  <span class="c1">// Record the frame index of the first variable argument</span>
+  <span class="c1">// which is a value necessary to VASTART.</span>
+  <span class="n">LastFI</span> <span class="o">=</span> <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">CreateFixedObject</span><span class="p">(</span><span class="n">RegSize</span><span class="p">,</span> <span class="n">FirstVaArgOffset</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+  <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">setVarArgsFrameIndex</span><span class="p">(</span><span class="n">LastFI</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch8_3_2.cpp</span>
@@ -2460,7 +1997,9 @@ backend code too.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Mips qemu reference <a class="footnote-reference" href="#id17" id="id10">[6]</a>.</p>
+<p>Mips qemu reference <a class="footnote-reference" href="#id17" id="id10">[6]</a>, you can download and run it with gcc to verify the
+result with printf() function. We will verify the code correction in chapter
+&#8220;Run backend&#8221; through the CPU0 Verilog language machine.</p>
 </div>
 <div class="section" id="correct-the-return-of-main">
 <h2>Correct the return of main()<a class="headerlink" href="#correct-the-return-of-main" title="Permalink to this headline">¶</a></h2>
