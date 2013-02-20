@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.7',
+        VERSION:     '3.2.8',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -529,8 +529,213 @@ Please visit the web site <a class="footnote-reference" href="#id14" id="id7">[7
 </div>
 <div class="section" id="llvm-objdump">
 <h2>llvm-objdump<a class="headerlink" href="#llvm-objdump" title="Permalink to this headline">¶</a></h2>
-<p>In llvm 3.2 release, the llvm-objdump is work on Mips backend.
-Run 8/9/Cpu0 and command <tt class="docutils literal"><span class="pre">llvm-objdump</span></tt> for dump file from elf to hex as
+<div class="section" id="llvm-objdump-t-r">
+<h3>llvm-objdump -t -r<a class="headerlink" href="#llvm-objdump-t-r" title="Permalink to this headline">¶</a></h3>
+<p>In linux, <tt class="docutils literal"><span class="pre">objdump</span> <span class="pre">-tr</span></tt> can display the information of relocation records
+like <tt class="docutils literal"><span class="pre">readelf</span> <span class="pre">-tr</span></tt>. LLVM tool llvm-objdump is the same tool as objdump.
+Let&#8217;s run the llvm-objdump command as follows to see the difference.</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-83-10:InputFiles Jonathan<span class="nv">$ </span>clang -c ch8_3_3.cpp -emit-llvm -I/
+Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/
+SDKs/MacOSX10.8.sdk/usr/include/ -o ch8_3_3.bc
+118-165-83-10:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch8_3_3.bc -o
+ch8_3_3.cpu0.o
+118-165-83-10:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llvm-objdump -t -r ch8_3_3.cpu0.o
+
+118-165-83-10:InputFiles Jonathan<span class="nv">$ </span>llvm-objdump -t -r ch8_3_3.cpu0.o
+
+ch8_3_3.cpu0.o: file format ELF32-unknown
+
+RELOCATION RECORDS FOR <span class="o">[</span>.text<span class="o">]</span>:
+0 Unknown Unknown
+8 Unknown Unknown
+28 Unknown Unknown
+188 Unknown Unknown
+224 Unknown Unknown
+236 Unknown Unknown
+244 Unknown Unknown
+324 Unknown Unknown
+344 Unknown Unknown
+348 Unknown Unknown
+356 Unknown Unknown
+
+RELOCATION RECORDS FOR <span class="o">[</span>.eh_frame<span class="o">]</span>:
+28 Unknown Unknown
+52 Unknown Unknown
+
+SYMBOL TABLE:
+00000000 l    df *ABS*  00000000 ch8_3_3.bc
+00000000 l       .rodata.str1.1 00000008 <span class="nv">$.</span>str
+00000000 l    d  .text  00000000 .text
+00000000 l    d  .data  00000000 .data
+00000000 l    d  .bss 00000000 .bss
+00000000 l    d  .rodata.str1.1 00000000 .rodata.str1.1
+00000000 l    d  .eh_frame  00000000 .eh_frame
+00000000 g     F .text  000000ec _Z5sum_iiz
+000000ec g     F .text  00000094 main
+00000000         *UND*  00000000 __stack_chk_fail
+00000000         *UND*  00000000 __stack_chk_guard
+00000000         *UND*  00000000 _gp_disp
+00000000         *UND*  00000000 <span class="nb">printf</span>
+
+118-165-83-10:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llvm-objdump -t -r ch8_3_3.cpu0.o
+
+ch8_3_3.cpu0.o: file format ELF32-CPU0
+
+RELOCATION RECORDS FOR <span class="o">[</span>.text<span class="o">]</span>:
+0 R_CPU0_HI16 _gp_disp
+8 R_CPU0_LO16 _gp_disp
+28 R_CPU0_GOT16 __stack_chk_guard
+188 R_CPU0_GOT16 __stack_chk_guard
+224 R_CPU0_CALL24 __stack_chk_fail
+236 R_CPU0_HI16 _gp_disp
+244 R_CPU0_LO16 _gp_disp
+324 R_CPU0_CALL24 _Z5sum_iiz
+344 R_CPU0_GOT16 <span class="nv">$.</span>str
+348 R_CPU0_LO16 <span class="nv">$.</span>str
+356 R_CPU0_CALL24 <span class="nb">printf</span>
+
+RELOCATION RECORDS FOR <span class="o">[</span>.eh_frame<span class="o">]</span>:
+28 R_CPU0_32 .text
+52 R_CPU0_32 .text
+
+SYMBOL TABLE:
+00000000 l    df *ABS*  00000000 ch8_3_3.bc
+00000000 l       .rodata.str1.1 00000008 <span class="nv">$.</span>str
+00000000 l    d  .text  00000000 .text
+00000000 l    d  .data  00000000 .data
+00000000 l    d  .bss 00000000 .bss
+00000000 l    d  .rodata.str1.1 00000000 .rodata.str1.1
+00000000 l    d  .eh_frame  00000000 .eh_frame
+00000000 g     F .text  000000ec _Z5sum_iiz
+000000ec g     F .text  00000094 main
+00000000         *UND*  00000000 __stack_chk_fail
+00000000         *UND*  00000000 __stack_chk_guard
+00000000         *UND*  00000000 _gp_disp
+00000000         *UND*  00000000 <span class="nb">printf</span>
+</pre></div>
+</div>
+<p>The latter llvm-objdump can display the file format and relocation records
+information since we add the relocation records information in ELF.h as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// include/support/ELF.h</span>
+<span class="p">...</span>
+<span class="c1">// Machine architectures</span>
+<span class="k">enum</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">EM_CPU0</span>          <span class="o">=</span> <span class="mi">201</span><span class="p">,</span> <span class="c1">// Document Write An LLVM Backend Tutorial For Cpu0</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="c1">// include/object/ELF.h</span>
+<span class="p">...</span>
+<span class="k">template</span><span class="o">&lt;</span><span class="n">support</span><span class="o">::</span><span class="n">endianness</span> <span class="n">target_endianness</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">is64Bits</span><span class="o">&gt;</span>
+<span class="n">error_code</span> <span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">target_endianness</span><span class="p">,</span> <span class="n">is64Bits</span><span class="o">&gt;</span>
+            <span class="o">::</span><span class="n">getRelocationTypeName</span><span class="p">(</span><span class="n">DataRefImpl</span> <span class="n">Rel</span><span class="p">,</span>
+                      <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Result</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">Header</span><span class="o">-&gt;</span><span class="n">e_machine</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0:</span>  <span class="c1">// llvm-objdump -t -r</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_NONE</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_16</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_32</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_REL32</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_24</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_HI16</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_LO16</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_GPREL16</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_LITERAL</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_GOT16</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_PC24</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_CALL24</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_GPREL32</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_SHIFT5</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_SHIFT6</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_64</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_GOT_DISP</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_GOT_PAGE</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_GOT_OFST</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_GOT_HI16</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_GOT_LO16</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_SUB</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_INSERT_A</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_INSERT_B</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_DELETE</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_HIGHER</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_HIGHEST</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_CALL_HI16</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_CALL_LO16</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_SCN_DISP</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_REL16</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_ADD_IMMEDIATE</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_PJUMP</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_RELGOT</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_JALR</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_TLS_DTPMOD32</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_TLS_DTPREL32</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_TLS_DTPMOD64</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_TLS_DTPREL64</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_TLS_GD</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_TLS_LDM</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_TLS_DTPREL_HI16</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_TLS_DTPREL_LO16</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_TLS_GOTTPREL</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_TLS_TPREL32</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_TLS_TPREL64</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_TLS_TPREL_HI16</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_TLS_TPREL_LO16</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_GLOB_DAT</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_COPY</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_JUMP_SLOT</span><span class="p">);</span>
+    <span class="n">LLVM_ELF_SWITCH_RELOC_TYPE_NAME</span><span class="p">(</span><span class="n">R_CPU0_NUM</span><span class="p">);</span>
+  <span class="k">default</span><span class="o">:</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="s">&quot;Unknown&quot;</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">break</span><span class="p">;</span>
+  <span class="p">...</span>
+  <span class="p">}</span>
+
+
+<span class="k">template</span><span class="o">&lt;</span><span class="n">support</span><span class="o">::</span><span class="n">endianness</span> <span class="n">target_endianness</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">is64Bits</span><span class="o">&gt;</span>
+<span class="n">error_code</span> <span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">target_endianness</span><span class="p">,</span> <span class="n">is64Bits</span><span class="o">&gt;</span>
+            <span class="o">::</span><span class="n">getRelocationValueString</span><span class="p">(</span><span class="n">DataRefImpl</span> <span class="n">Rel</span><span class="p">,</span>
+                      <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Result</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0:</span>  <span class="c1">// llvm-objdump -t -r</span>
+  <span class="n">res</span> <span class="o">=</span> <span class="n">symname</span><span class="p">;</span>
+  <span class="k">break</span><span class="p">;</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="k">template</span><span class="o">&lt;</span><span class="n">support</span><span class="o">::</span><span class="n">endianness</span> <span class="n">target_endianness</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">is64Bits</span><span class="o">&gt;</span>
+<span class="n">StringRef</span> <span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">target_endianness</span><span class="p">,</span> <span class="n">is64Bits</span><span class="o">&gt;</span>
+             <span class="o">::</span><span class="n">getFileFormatName</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">switch</span><span class="p">(</span><span class="n">Header</span><span class="o">-&gt;</span><span class="n">e_ident</span><span class="p">[</span><span class="n">ELF</span><span class="o">::</span><span class="n">EI_CLASS</span><span class="p">])</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">ELFCLASS32:</span>
+  <span class="k">switch</span><span class="p">(</span><span class="n">Header</span><span class="o">-&gt;</span><span class="n">e_machine</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0:</span>  <span class="c1">// llvm-objdump -t -r</span>
+    <span class="k">return</span> <span class="s">&quot;ELF32-CPU0&quot;</span><span class="p">;</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="k">template</span><span class="o">&lt;</span><span class="n">support</span><span class="o">::</span><span class="n">endianness</span> <span class="n">target_endianness</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">is64Bits</span><span class="o">&gt;</span>
+<span class="kt">unsigned</span> <span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">target_endianness</span><span class="p">,</span> <span class="n">is64Bits</span><span class="o">&gt;::</span><span class="n">getArch</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">switch</span><span class="p">(</span><span class="n">Header</span><span class="o">-&gt;</span><span class="n">e_machine</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0:</span>  <span class="c1">// llvm-objdump -t -r</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">target_endianness</span> <span class="o">==</span> <span class="n">support</span><span class="o">::</span><span class="n">little</span><span class="p">)</span> <span class="o">?</span>
+       <span class="n">Triple</span><span class="o">::</span><span class="n">cpu0el</span> <span class="o">:</span> <span class="n">Triple</span><span class="o">::</span><span class="n">cpu0</span><span class="p">;</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="llvm-objdump-d">
+<h3>llvm-objdump -d<a class="headerlink" href="#llvm-objdump-d" title="Permalink to this headline">¶</a></h3>
+<p>Run 8/9/Cpu0 and command <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></tt> for dump file from elf to hex as
 follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>clang -c ch7_1_1.cpp -emit-llvm -o
 ch7_1_1.bc
@@ -961,7 +1166,7 @@ LLVM table generate system will print operand 1 and 2
 ($ra and $rb) in the table generated function printInstruction().
 The operand 0 ($rc) didn&#8217;t be printed in printInstruction() since assembly
 print $ra and $rb only.
-In the CMP decode function, we didn&#8217;t decode shamt field because the we
+In the CMP decode function, we didn&#8217;t decode shamt field because we
 don&#8217;t want it to be displayed and it&#8217;s not in the assembler print pattern of
 Cpu0InstrInfo.td.</p>
 <p>The RET (Cpu0ISD::Ret) and JR (ISD::BRIND) are both for &#8220;ret&#8221; instruction.
@@ -977,7 +1182,7 @@ ch7_1_1.bc -o ch7_1_1.cpu0.o
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
 build/bin/Debug/llvm-objdump -d ch7_1_1.cpu0.o
 
-ch7_1_1.cpu0.o: file format ELF32-unknown
+ch7_1_1.cpu0.o: file format ELF32-CPU0
 
 Disassembly of section .text:
 .text:
@@ -1079,40 +1284,6 @@ Disassembly of section .text:
    17c: 2c 00 00 00                                   ret <span class="nv">$zero</span>
 </pre></div>
 </div>
-<p>Please notify the LLVM recognize the Cpu0 backend architecture and relocation
-records by the following code we added in directory
-LLVMBackendTutorialExampleCode/src_files_modify/src_files_modify/src.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// include/llvm/Object/ELF.h</span>
-<span class="k">template</span><span class="o">&lt;</span><span class="n">support</span><span class="o">::</span><span class="n">endianness</span> <span class="n">target_endianness</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">is64Bits</span><span class="o">&gt;</span>
-<span class="kt">unsigned</span> <span class="n">ELFObjectFile</span><span class="o">&lt;</span><span class="n">target_endianness</span><span class="p">,</span> <span class="n">is64Bits</span><span class="o">&gt;::</span><span class="n">getArch</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">switch</span><span class="p">(</span><span class="n">Header</span><span class="o">-&gt;</span><span class="n">e_machine</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="c1">// Support &quot;llvm-objdump -d chxxx.cpu0.o&quot; which translate obj into asm</span>
-  <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">EM_CPU0:</span>
-  <span class="k">return</span> <span class="p">(</span><span class="n">target_endianness</span> <span class="o">==</span> <span class="n">support</span><span class="o">::</span><span class="n">little</span><span class="p">)</span> <span class="o">?</span>
-       <span class="n">Triple</span><span class="o">::</span><span class="n">cpu0el</span> <span class="o">:</span> <span class="n">Triple</span><span class="o">::</span><span class="n">cpu0</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">ELF</span><span class="o">::</span><span class="nl">EM_PPC64:</span>
-  <span class="k">return</span> <span class="n">Triple</span><span class="o">::</span><span class="n">ppc64</span><span class="p">;</span>
-  <span class="k">default</span><span class="o">:</span>
-  <span class="k">return</span> <span class="n">Triple</span><span class="o">::</span><span class="n">UnknownArch</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-
-<span class="c1">// include/llvm/Support/ELF.h</span>
-<span class="c1">// ELF Relocation types for Cpu0</span>
-<span class="c1">// .</span>
-<span class="k">enum</span> <span class="p">{</span>
-  <span class="n">R_CPU0_NONE</span>              <span class="o">=</span>  <span class="mi">0</span><span class="p">,</span>
-  <span class="n">R_CPU0_16</span>                <span class="o">=</span>  <span class="mi">1</span><span class="p">,</span>
-  <span class="n">R_CPU0_32</span>                <span class="o">=</span>  <span class="mi">2</span><span class="p">,</span>
-  <span class="n">R_CPU0_REL32</span>             <span class="o">=</span>  <span class="mi">3</span><span class="p">,</span>
-  <span class="n">R_CPU0_24</span>                <span class="o">=</span>  <span class="mi">4</span><span class="p">,</span>
-  <span class="n">R_CPU0_HI16</span>              <span class="o">=</span>  <span class="mi">5</span><span class="p">,</span>
-  <span class="n">R_CPU0_LO16</span>              <span class="o">=</span>  <span class="mi">6</span><span class="p">,</span>
-  <span class="p">...</span>
-<span class="p">}</span>
-</pre></div>
-</div>
 <table class="docutils footnote" frame="void" id="id8" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -1155,6 +1326,7 @@ LLVMBackendTutorialExampleCode/src_files_modify/src_files_modify/src.</p>
 <tr><td class="label"><a class="fn-backref" href="#id7">[7]</a></td><td><a class="reference external" href="http://lld.llvm.org/">http://lld.llvm.org/</a></td></tr>
 </tbody>
 </table>
+</div>
 </div>
 </div>
 
