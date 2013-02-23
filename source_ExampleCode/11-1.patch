@@ -1,6 +1,6 @@
 diff -Naur 10/2/Cpu0/CMakeLists.txt 11/1/Cpu0/CMakeLists.txt
---- 10/2/Cpu0/CMakeLists.txt	2013-02-22 13:47:03.000000000 +0800
-+++ 11/1/Cpu0/CMakeLists.txt	2013-02-22 13:47:03.000000000 +0800
+--- 10/2/Cpu0/CMakeLists.txt	2013-02-23 13:34:56.000000000 +0800
++++ 11/1/Cpu0/CMakeLists.txt	2013-02-23 13:34:56.000000000 +0800
 @@ -25,6 +25,7 @@
  # Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen
  add_llvm_target(Cpu0CodeGen
@@ -10,8 +10,8 @@ diff -Naur 10/2/Cpu0/CMakeLists.txt 11/1/Cpu0/CMakeLists.txt
    Cpu0InstrInfo.cpp
    Cpu0ISelDAGToDAG.cpp
 diff -Naur 10/2/Cpu0/Cpu0.h 11/1/Cpu0/Cpu0.h
---- 10/2/Cpu0/Cpu0.h	2013-02-22 13:47:03.000000000 +0800
-+++ 11/1/Cpu0/Cpu0.h	2013-02-22 13:47:03.000000000 +0800
+--- 10/2/Cpu0/Cpu0.h	2013-02-23 13:34:56.000000000 +0800
++++ 11/1/Cpu0/Cpu0.h	2013-02-23 13:34:56.000000000 +0800
 @@ -24,6 +24,7 @@
  
    FunctionPass *createCpu0ISelDag(Cpu0TargetMachine &TM);
@@ -22,7 +22,7 @@ diff -Naur 10/2/Cpu0/Cpu0.h 11/1/Cpu0/Cpu0.h
  
 diff -Naur 10/2/Cpu0/Cpu0DelUselessJMP.cpp 11/1/Cpu0/Cpu0DelUselessJMP.cpp
 --- 10/2/Cpu0/Cpu0DelUselessJMP.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ 11/1/Cpu0/Cpu0DelUselessJMP.cpp	2013-02-22 15:44:41.000000000 +0800
++++ 11/1/Cpu0/Cpu0DelUselessJMP.cpp	2013-02-23 13:34:56.000000000 +0800
 @@ -0,0 +1,98 @@
 +//===-- Cpu0DelUselessJMP.cpp - Cpu0 DelJmp -------------------------------===//
 +//
@@ -123,8 +123,8 @@ diff -Naur 10/2/Cpu0/Cpu0DelUselessJMP.cpp 11/1/Cpu0/Cpu0DelUselessJMP.cpp
 +  return new DelJmp(tm);
 +}
 diff -Naur 10/2/Cpu0/Cpu0TargetMachine.cpp 11/1/Cpu0/Cpu0TargetMachine.cpp
---- 10/2/Cpu0/Cpu0TargetMachine.cpp	2013-02-22 13:47:03.000000000 +0800
-+++ 11/1/Cpu0/Cpu0TargetMachine.cpp	2013-02-22 13:47:03.000000000 +0800
+--- 10/2/Cpu0/Cpu0TargetMachine.cpp	2013-02-23 13:34:56.000000000 +0800
++++ 11/1/Cpu0/Cpu0TargetMachine.cpp	2013-02-23 13:34:56.000000000 +0800
 @@ -83,6 +83,7 @@
    }
    virtual bool addInstSelector();

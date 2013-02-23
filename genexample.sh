@@ -113,6 +113,9 @@ patch -fp0 < 11-1.patch
 mkdir 11
 mv 10/2 11/1
 cp -rf 11/1 ${GEN_DIR}/11/.
+patch -fp0 < 11-2.patch
+mv 11/1 11/2
+cp -rf 11/2 ${GEN_DIR}/11/.
 cp -rf ${GEN_DIR}/2 .
 rm -rf 3 4 6 7 8 9 10 11
 cp -rf InputFiles llvm3.1 ${GEN_DIR}/.
