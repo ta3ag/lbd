@@ -146,6 +146,12 @@ The following table details the Cpu0 instruction set:
 	  - Load immediate
 	  - LDI Ra, Cx
 	  - Ra <= Cx
+	* - L
+	  - ADDiu
+	  - 09
+	  - Add immediate
+	  - ADDiu Ra, Rb, Cx
+	  - Ra <= (Rb + Cx)
 	* - A
 	  - CMP
 	  - 10
@@ -314,6 +320,12 @@ The following table details the Cpu0 instruction set:
 	  - Return from interrupt handler
 	  - IRET
 	  - PC <= LR; INT 0
+   	* - J
+	  - JR
+	  - 2E
+	  - Jump to subroutine
+	  - JR Rb
+	  - LR <= PC; PC <= Rb
    	* - A
 	  - PUSH
 	  - 30
@@ -357,7 +369,7 @@ The following table details the Cpu0 instruction set:
 	  - MTHI Ra
 	  - HI <= Ra
    	* - L
-	  - MFLO
+	  - MTLO
 	  - 43
 	  - Move GPR to LO
 	  - MTLO Ra
