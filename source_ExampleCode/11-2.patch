@@ -1,6 +1,6 @@
 diff -Naur 11/1/Cpu0/AsmParser/Cpu0AsmParser.cpp 11/2/Cpu0/AsmParser/Cpu0AsmParser.cpp
---- 11/1/Cpu0/AsmParser/Cpu0AsmParser.cpp	2013-02-23 13:51:52.000000000 +0800
-+++ 11/2/Cpu0/AsmParser/Cpu0AsmParser.cpp	2013-02-22 20:49:34.000000000 +0800
+--- 11/1/Cpu0/AsmParser/Cpu0AsmParser.cpp	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/AsmParser/Cpu0AsmParser.cpp	2013-02-28 16:40:44.000000000 +0800
 @@ -308,8 +308,17 @@
  
    int ImmValue = ImmOp.getImm();
@@ -149,8 +149,8 @@ diff -Naur 11/1/Cpu0/AsmParser/Cpu0AsmParser.cpp 11/2/Cpu0/AsmParser/Cpu0AsmPars
        .Case("lr",  Cpu0::LR)
        .Case("pc",  Cpu0::PC)
 diff -Naur 11/1/Cpu0/Cpu0InstrInfo.cpp 11/2/Cpu0/Cpu0InstrInfo.cpp
---- 11/1/Cpu0/Cpu0InstrInfo.cpp	2013-02-23 13:51:52.000000000 +0800
-+++ 11/2/Cpu0/Cpu0InstrInfo.cpp	2013-02-22 20:49:34.000000000 +0800
+--- 11/1/Cpu0/Cpu0InstrInfo.cpp	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/Cpu0InstrInfo.cpp	2013-02-28 16:40:44.000000000 +0800
 @@ -43,18 +43,12 @@
        Opc = Cpu0::MFHI, SrcReg = 0;
      else if (SrcReg == Cpu0::LO)
@@ -171,8 +171,8 @@ diff -Naur 11/1/Cpu0/Cpu0InstrInfo.cpp 11/2/Cpu0/Cpu0InstrInfo.cpp
  
    assert(Opc && "Cannot copy registers");
 diff -Naur 11/1/Cpu0/Cpu0InstrInfo.td 11/2/Cpu0/Cpu0InstrInfo.td
---- 11/1/Cpu0/Cpu0InstrInfo.td	2013-02-23 13:51:52.000000000 +0800
-+++ 11/2/Cpu0/Cpu0InstrInfo.td	2013-02-23 08:18:53.000000000 +0800
+--- 11/1/Cpu0/Cpu0InstrInfo.td	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/Cpu0InstrInfo.td	2013-02-28 16:40:44.000000000 +0800
 @@ -136,6 +136,12 @@
      return (uint64_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
  }]>;
@@ -456,8 +456,8 @@ diff -Naur 11/1/Cpu0/Cpu0InstrInfo.td 11/2/Cpu0/Cpu0InstrInfo.td
 +defm : SetgePats<CPURegs, SLT, SLTu>;
 +defm : SetgeImmPats<CPURegs, SLTi, SLTiu>;
 diff -Naur 11/1/Cpu0/Cpu0MCInstLower.cpp 11/2/Cpu0/Cpu0MCInstLower.cpp
---- 11/1/Cpu0/Cpu0MCInstLower.cpp	2013-02-23 13:51:52.000000000 +0800
-+++ 11/2/Cpu0/Cpu0MCInstLower.cpp	2013-02-22 20:49:34.000000000 +0800
+--- 11/1/Cpu0/Cpu0MCInstLower.cpp	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/Cpu0MCInstLower.cpp	2013-03-01 22:53:58.000000000 +0800
 @@ -94,8 +94,7 @@
  }
  
@@ -468,35 +468,45 @@ diff -Naur 11/1/Cpu0/Cpu0MCInstLower.cpp 11/2/Cpu0/Cpu0MCInstLower.cpp
  //  "addiu $gp, $gp, %lo(_gp_disp)"
  //  "addu  $gp, $gp, $t9"
  void Cpu0MCInstLower::LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts) {
-@@ -113,8 +112,7 @@
+@@ -111,12 +110,11 @@
+   MCSym = MCSymbolRefExpr::Create(Sym, MCSymbolRefExpr::VK_Cpu0_ABS_LO, *Ctx);
+   MCOperand SymLo = MCOperand::CreateExpr(MCSym);
  
-   MCInsts.resize(4);
+-  MCInsts.resize(4);
++  MCInsts.resize(3);
  
 -  CreateMCInst(MCInsts[0], Cpu0::ADDiu, GPReg, ZEROReg, SymHi);
 -  CreateMCInst(MCInsts[1], Cpu0::SHL, GPReg, GPReg, MCOperand::CreateImm(16));
+-  CreateMCInst(MCInsts[2], Cpu0::ADDiu, GPReg, GPReg, SymLo);
+-  CreateMCInst(MCInsts[3], Cpu0::ADD, GPReg, GPReg, T9Reg);
 +  CreateMCInst(MCInsts[0], Cpu0::LUi, GPReg, ZEROReg, SymHi);
-   CreateMCInst(MCInsts[2], Cpu0::ADDiu, GPReg, GPReg, SymLo);
-   CreateMCInst(MCInsts[3], Cpu0::ADD, GPReg, GPReg, T9Reg);
++  CreateMCInst(MCInsts[1], Cpu0::ADDiu, GPReg, GPReg, SymLo);
++  CreateMCInst(MCInsts[2], Cpu0::ADD, GPReg, GPReg, T9Reg);
  }
-@@ -135,12 +133,10 @@
+ 
+ // Lower ".cprestore offset" to "st $gp, offset($sp)".
+@@ -135,13 +133,11 @@
      MCOperand ATReg = MCOperand::CreateReg(Cpu0::AT);
      BaseReg = ATReg;
  
 -    // addiu   at,zero,hi
 -    // shl     at,at,16
 -    // add     at,at,sp
-+    // lui   at,hi
-+    // add   at,at,sp
-     MCInsts.resize(3);
+-    MCInsts.resize(3);
 -    CreateMCInst(MCInsts[0], Cpu0::ADDiu, ATReg, ZEROReg, MCOperand::CreateImm(Hi));
 -    CreateMCInst(MCInsts[1], Cpu0::SHL, ATReg, ATReg, MCOperand::CreateImm(16));
+-    CreateMCInst(MCInsts[2], Cpu0::ADD, ATReg, ATReg, SPReg);
++    // lui   at,hi
++    // add   at,at,sp
++    MCInsts.resize(2);
 +    CreateMCInst(MCInsts[0], Cpu0::LUi, ATReg, ZEROReg, MCOperand::CreateImm(Hi));
-     CreateMCInst(MCInsts[2], Cpu0::ADD, ATReg, ATReg, SPReg);
++    CreateMCInst(MCInsts[1], Cpu0::ADD, ATReg, ATReg, SPReg);
    }
  
+   MCInst St;
 diff -Naur 11/1/Cpu0/Cpu0RegisterInfo.td 11/2/Cpu0/Cpu0RegisterInfo.td
---- 11/1/Cpu0/Cpu0RegisterInfo.td	2013-02-23 13:51:52.000000000 +0800
-+++ 11/2/Cpu0/Cpu0RegisterInfo.td	2013-02-22 20:49:34.000000000 +0800
+--- 11/1/Cpu0/Cpu0RegisterInfo.td	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/Cpu0RegisterInfo.td	2013-02-28 16:40:44.000000000 +0800
 @@ -41,7 +41,7 @@
    def S2   : Cpu0GPRReg< 9, "9">,    DwarfRegNum<[9]>;
    def GP   : Cpu0GPRReg< 10, "gp">,  DwarfRegNum<[10]>;
@@ -524,8 +534,8 @@ diff -Naur 11/1/Cpu0/Cpu0RegisterInfo.td 11/2/Cpu0/Cpu0RegisterInfo.td
 -def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
 -
 diff -Naur 11/1/Cpu0/Disassembler/Cpu0Disassembler.cpp 11/2/Cpu0/Disassembler/Cpu0Disassembler.cpp
---- 11/1/Cpu0/Disassembler/Cpu0Disassembler.cpp	2013-02-23 13:51:52.000000000 +0800
-+++ 11/2/Cpu0/Disassembler/Cpu0Disassembler.cpp	2013-02-22 20:49:34.000000000 +0800
+--- 11/1/Cpu0/Disassembler/Cpu0Disassembler.cpp	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/Disassembler/Cpu0Disassembler.cpp	2013-02-28 16:40:44.000000000 +0800
 @@ -65,7 +65,7 @@
    Cpu0::ZERO, Cpu0::AT, Cpu0::V0, Cpu0::V1,
    Cpu0::A0, Cpu0::A1, Cpu0::T9, Cpu0::S0, 
@@ -611,8 +621,8 @@ diff -Naur 11/1/Cpu0/Disassembler/Cpu0Disassembler.cpp 11/2/Cpu0/Disassembler/Cp
    return MCDisassembler::Success;
  }
 diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp 11/2/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
---- 11/1/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp	2013-02-23 13:51:52.000000000 +0800
-+++ 11/2/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp	2013-02-22 20:49:34.000000000 +0800
+--- 11/1/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp	2013-02-28 16:40:44.000000000 +0800
 @@ -37,6 +37,7 @@
    case FK_Data_4:
    case Cpu0::fixup_Cpu0_LO16:
@@ -630,8 +640,8 @@ diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp 11/2/Cpu0/MCTargetDesc/Cpu0
        { "fixup_Cpu0_CALL24",       0,     24,   0 },
        { "fixup_Cpu0_GPREL32",      0,     32,   0 },
 diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h 11/2/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
---- 11/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-02-23 13:51:52.000000000 +0800
-+++ 11/2/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-02-22 20:49:34.000000000 +0800
+--- 11/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-02-28 16:40:44.000000000 +0800
 @@ -135,7 +135,7 @@
      return 10;
    case Cpu0::FP:
@@ -642,8 +652,8 @@ diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h 11/2/Cpu0/MCTargetDesc/Cpu0Base
    case Cpu0::SP:
      return 13;
 diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0FixupKinds.h 11/2/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
---- 11/1/Cpu0/MCTargetDesc/Cpu0FixupKinds.h	2013-02-23 13:51:52.000000000 +0800
-+++ 11/2/Cpu0/MCTargetDesc/Cpu0FixupKinds.h	2013-02-22 20:49:34.000000000 +0800
+--- 11/1/Cpu0/MCTargetDesc/Cpu0FixupKinds.h	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/MCTargetDesc/Cpu0FixupKinds.h	2013-02-28 16:40:44.000000000 +0800
 @@ -53,8 +53,12 @@
      // Local symbol fixup resulting in - R_CPU0_GOT16.
      fixup_Cpu0_GOT_Local,
@@ -659,8 +669,8 @@ diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0FixupKinds.h 11/2/Cpu0/MCTargetDesc/Cpu0Fi
  
      // resulting in - R_CPU0_CALL24.
 diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp 11/2/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- 11/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-02-23 13:51:52.000000000 +0800
-+++ 11/2/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-02-22 20:49:34.000000000 +0800
+--- 11/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-02-28 16:40:44.000000000 +0800
 @@ -158,7 +158,7 @@
  
    const MCExpr *Expr = MO.getExpr();
