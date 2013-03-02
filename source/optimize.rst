@@ -1052,7 +1052,11 @@ Cpu0 code changes
   //  "addu  $gp, $gp, $t9"
   void Cpu0MCInstLower::LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts) {
     ...
+    MCInsts.resize(3);
+  
     CreateMCInst(MCInsts[0], Cpu0::LUi, GPReg, ZEROReg, SymHi);
+    CreateMCInst(MCInsts[1], Cpu0::ADDiu, GPReg, GPReg, SymLo);
+    CreateMCInst(MCInsts[2], Cpu0::ADD, GPReg, GPReg, T9Reg);
     ...
   }
   
@@ -1062,9 +1066,9 @@ Cpu0 code changes
       ...
       // lui   at,hi
       // add   at,at,sp
-      MCInsts.resize(3);
+      MCInsts.resize(2);
       CreateMCInst(MCInsts[0], Cpu0::LUi, ATReg, ZEROReg, MCOperand::CreateImm(Hi));
-      CreateMCInst(MCInsts[2], Cpu0::ADD, ATReg, ATReg, SPReg);
+      CreateMCInst(MCInsts[1], Cpu0::ADD, ATReg, ATReg, SPReg);
     }
   
   
@@ -1094,6 +1098,10 @@ Cpu0 Verilog language changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: c++
+
+  `define MEMSIZE 'h7000
+  `define MEMEMPTY 8'hFF
+  `define IOADDR  'h7000
 
   // Operand width
   `define INT32 2'b11     // 32 bits
@@ -1321,15 +1329,18 @@ Cpu0 Verilog language changes
   
     integer i;
     initial begin
+      for (i=0; i < `MEMSIZE; i=i+1) begin
+         m[i] = `MEMEMPTY;
+      end
       $readmemh("cpu0s.hex", m);
-      for (i=0; i < 1024; i=i+4) begin
+      for (i=0; i < `MEMSIZE && m[i] != `MEMEMPTY; i=i+4) begin
          $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
       end
     end
   
     always @(clock or abus or en or rw or dbus_in) 
     begin
-      if (abus >=0 && abus <= 1535) begin
+      if (abus >=0 && abus <= `MEMSIZE-4) begin
         if (en == 1 && rw == 0) begin // r_w==0:write
           data = dbus_in;
           case (m_size)
@@ -1751,45 +1762,6 @@ It match the expect value as comment in ch11_2.cpp.
   00000358: 014d0000
   0000035c: 09dd000c
   00000360: 2c000000
-  00000364: xxxxxxxx
-  00000368: xxxxxxxx
-  0000036c: xxxxxxxx
-  00000370: xxxxxxxx
-  00000374: xxxxxxxx
-  00000378: xxxxxxxx
-  0000037c: xxxxxxxx
-  00000380: xxxxxxxx
-  00000384: xxxxxxxx
-  00000388: xxxxxxxx
-  0000038c: xxxxxxxx
-  00000390: xxxxxxxx
-  00000394: xxxxxxxx
-  00000398: xxxxxxxx
-  0000039c: xxxxxxxx
-  000003a0: xxxxxxxx
-  000003a4: xxxxxxxx
-  000003a8: xxxxxxxx
-  000003ac: xxxxxxxx
-  000003b0: xxxxxxxx
-  000003b4: xxxxxxxx
-  000003b8: xxxxxxxx
-  000003bc: xxxxxxxx
-  000003c0: xxxxxxxx
-  000003c4: xxxxxxxx
-  000003c8: xxxxxxxx
-  000003cc: xxxxxxxx
-  000003d0: xxxxxxxx
-  000003d4: xxxxxxxx
-  000003d8: xxxxxxxx
-  000003dc: xxxxxxxx
-  000003e0: xxxxxxxx
-  000003e4: xxxxxxxx
-  000003e8: xxxxxxxx
-  000003ec: xxxxxxxx
-  000003f0: xxxxxxxx
-  000003f4: xxxxxxxx
-  000003f8: xxxxxxxx
-  000003fc: xxxxxxxx
     90ns 00000000 : 09100000 R[01]=00000000=0          SW=00000000
    170ns 00000004 : 09200000 R[02]=00000000=0          SW=00000000
    250ns 00000008 : 09300000 R[03]=00000000=0          SW=00000000

@@ -1518,7 +1518,7 @@ documents for this language. Web site [#]_ has a pdf [#]_ in this.
 Example code LLVMBackendTutorialExampleCode/cpu0s_verilog/raw/cpu0s.v is the 
 cpu0 design in Verilog. In Appendix A, we have downloaded and installed Icarus 
 Verilog tool both on iMac and Linux. The cpu0s.v is a simple design with only 
-270 lines of code. Alough it has not the pipeline features, we can assume the 
+280 lines of code. Alough it has not the pipeline features, we can assume the 
 cpu0 backend code run on the pipeline machine because the pipeline version  
 use the same machine instructions. Verilog is C like language in syntex and 
 this book is a compiler book, so we list the cpu0s.v as well as the building 
@@ -1539,6 +1539,10 @@ cx($rb) is 0x7000 (28672), CPU0 display the content as follows,
 .. code-block:: c++
 
   // cpu0s.v
+  `define MEMSIZE 'h7000
+  `define MEMEMPTY 8'hFF
+  `define IOADDR  'h7000
+  
   // Operand width
   `define INT32 2'b11     // 32 bits
   `define INT24 2'b10     // 24 bits
@@ -1729,11 +1733,11 @@ cx($rb) is 0x7000 (28672), CPU0 display the content as follows,
           $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
           LO, `SW);
         ST :
-          if (R[b]+c16 == 28672)
+          if (R[b]+c16 == `IOADDR)
             $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);
-       /* ST :
-          $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d SW=%8x", $stime, pc0, ir, 
-          R[b], c16, R[a], `SW);*/
+          else
+            $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d   SW=%8x", $stime, pc0, ir, 
+            R[b], c16, R[a], `SW);
         default : 
           $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a, 
           R[a], R[a], `SW);
@@ -1752,20 +1756,23 @@ cx($rb) is 0x7000 (28672), CPU0 display the content as follows,
   
   module memory0(input clock, reset, en, rw, input [1:0] m_size, 
                   input [31:0] abus, dbus_in, output [31:0] dbus_out);
-    reg [7:0] m [0:1024];
+    reg [7:0] m [0:`MEMSIZE-1];
     reg [31:0] data;
   
     integer i;
     initial begin
+      for (i=0; i < `MEMSIZE; i=i+1) begin
+         m[i] = `MEMEMPTY;
+      end
       $readmemh("cpu0s.hex", m);
-      for (i=0; i < 1024; i=i+4) begin
+      for (i=0; i < `MEMSIZE && m[i] != `MEMEMPTY; i=i+4) begin
          $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
       end
     end
   
     always @(clock or abus or en or rw or dbus_in) 
     begin
-      if (abus >=0 && abus <= 1023) begin
+      if (abus >=0 && abus <= `MEMSIZE-4) begin
         if (en == 1 && rw == 0) begin // r_w==0:write
           data = dbus_in;
           case (m_size)
@@ -1807,7 +1814,7 @@ cx($rb) is 0x7000 (28672), CPU0 display the content as follows,
       clock = 0;
       reset = 1;
       #20 reset = 0;
-      #30000 $finish;
+      #300000 $finish;
     end
   
     always #10 clock=clock+1;
@@ -1824,8 +1831,8 @@ Run program on CPU0 machine
 ---------------------------
 
 Now let's compile ch10_2.cpp as below. Since code size grows up from low to high 
-address and stack grows up from high to low address. We set $sp at 1020 because 
-cpu0s.v use 1024 bytes of memory.
+address and stack grows up from high to low address. We set $sp at 0x6ffc because 
+cpu0s.v use 0x7000 bytes of memory.
 
 .. code-block:: c++
 
@@ -1849,7 +1856,7 @@ cpu0s.v use 1024 bytes of memory.
   
   #define OUT_MEM 0x7000 // 28672
   
-  asm("addiu $sp, $zero, 1020");
+  asm("addiu $sp, $zero, 0x6ffc");
   
   void print_integer(int x);
   int test_operators();
@@ -2440,71 +2447,6 @@ Now, run the cpu0 backend to get the result as follows,
   000002f0: 01107000
   000002f4: 09dd0008
   000002f8: 2c000000
-  000002fc: xxxxxxxx
-  00000300: xxxxxxxx
-  00000304: xxxxxxxx
-  00000308: xxxxxxxx
-  0000030c: xxxxxxxx
-  00000310: xxxxxxxx
-  00000314: xxxxxxxx
-  00000318: xxxxxxxx
-  0000031c: xxxxxxxx
-  00000320: xxxxxxxx
-  00000324: xxxxxxxx
-  00000328: xxxxxxxx
-  0000032c: xxxxxxxx
-  00000330: xxxxxxxx
-  00000334: xxxxxxxx
-  00000338: xxxxxxxx
-  0000033c: xxxxxxxx
-  00000340: xxxxxxxx
-  00000344: xxxxxxxx
-  00000348: xxxxxxxx
-  0000034c: xxxxxxxx
-  00000350: xxxxxxxx
-  00000354: xxxxxxxx
-  00000358: xxxxxxxx
-  0000035c: xxxxxxxx
-  00000360: xxxxxxxx
-  00000364: xxxxxxxx
-  00000368: xxxxxxxx
-  0000036c: xxxxxxxx
-  00000370: xxxxxxxx
-  00000374: xxxxxxxx
-  00000378: xxxxxxxx
-  0000037c: xxxxxxxx
-  00000380: xxxxxxxx
-  00000384: xxxxxxxx
-  00000388: xxxxxxxx
-  0000038c: xxxxxxxx
-  00000390: xxxxxxxx
-  00000394: xxxxxxxx
-  00000398: xxxxxxxx
-  0000039c: xxxxxxxx
-  000003a0: xxxxxxxx
-  000003a4: xxxxxxxx
-  000003a8: xxxxxxxx
-  000003ac: xxxxxxxx
-  000003b0: xxxxxxxx
-  000003b4: xxxxxxxx
-  000003b8: xxxxxxxx
-  000003bc: xxxxxxxx
-  000003c0: xxxxxxxx
-  000003c4: xxxxxxxx
-  000003c8: xxxxxxxx
-  000003cc: xxxxxxxx
-  000003d0: xxxxxxxx
-  000003d4: xxxxxxxx
-  000003d8: xxxxxxxx
-  000003dc: xxxxxxxx
-  000003e0: xxxxxxxx
-  000003e4: xxxxxxxx
-  000003e8: xxxxxxxx
-  000003ec: xxxxxxxx
-  000003f0: xxxxxxxx
-  000003f4: xxxxxxxx
-  000003f8: xxxxxxxx
-  000003fc: xxxxxxxx
     90ns 00000000 : 09100000 R[01]=00000000=0          SW=00000000
    170ns 00000004 : 09200000 R[02]=00000000=0          SW=00000000
    250ns 00000008 : 09300000 R[03]=00000000=0          SW=00000000
@@ -2683,7 +2625,7 @@ Now, let's run ch_10_3.cpp to verify the result as follows,
   
   #define OUT_MEM 0x7000 // 28672
   
-  asm("addiu $sp, $zero, 1020");
+  asm("addiu $sp, $zero, 0x6ffc");
   
   void print_integer(int x);
   int sum_i(int amount, ...);

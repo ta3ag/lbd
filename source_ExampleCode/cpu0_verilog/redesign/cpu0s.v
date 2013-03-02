@@ -1,3 +1,7 @@
+`define MEMSIZE 'h7000
+`define MEMEMPTY 8'hFF
+`define IOADDR  'h7000
+
 // Operand width
 `define INT32 2'b11     // 32 bits
 `define INT24 2'b10     // 24 bits
@@ -195,7 +199,7 @@ module cpu0(input clock, reset, output reg [2:0] tick,
         $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
         LO, SW);
       ST :
-        if (R[b]+c16 == 28672)
+        if (R[b]+c16 == `IOADDR)
           $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);
         else
           $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d   SW=%8x", $stime, pc0, ir, 
@@ -219,20 +223,23 @@ endmodule
 
 module memory0(input clock, reset, en, rw, input [1:0] m_size, 
                 input [31:0] abus, dbus_in, output [31:0] dbus_out);
-  reg [7:0] m [0:1536];
+  reg [7:0] m [0:`MEMSIZE-1];
   reg [31:0] data;
 
   integer i;
   initial begin
+    for (i=0; i < `MEMSIZE; i=i+1) begin
+       m[i] = `MEMEMPTY;
+    end
     $readmemh("cpu0s.hex", m);
-    for (i=0; i < 1024; i=i+4) begin
+    for (i=0; i < `MEMSIZE && m[i] != `MEMEMPTY; i=i+4) begin
        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
     end
   end
 
   always @(clock or abus or en or rw or dbus_in) 
   begin
-    if (abus >=0 && abus <= 1535) begin
+    if (abus >=0 && abus <= `MEMSIZE-4) begin
       if (en == 1 && rw == 0) begin // r_w==0:write
         data = dbus_in;
         case (m_size)
@@ -274,7 +281,7 @@ module main;
     clock = 0;
     reset = 1;
     #20 reset = 0;
-    #30000 $finish;
+    #300000 $finish;
   end
 
   always #10 clock=clock+1;
