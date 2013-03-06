@@ -6,7 +6,7 @@
 
 #define OUT_MEM 0x7000 // 28672
 
-asm("addiu $sp, $zero, 1020");
+asm("addiu $sp, $zero, 0x6ffc");
 
 void print_integer(int x);
 int test_operators();

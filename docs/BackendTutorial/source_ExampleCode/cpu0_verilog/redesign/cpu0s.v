@@ -12,34 +12,37 @@
 module cpu0(input clock, reset, output reg [2:0] tick, 
             output reg [31:0] ir, pc, mar, mdr, inout [31:0] dbus, 
             output reg m_en, m_rw, output reg [1:0] m_size);
-  reg signed [31:0] R [0:15], HI, LO; // High and Low part of 64 bit result
+  reg signed [31:0] R [0:15], HI, LO, SW; 
+  // HI, LO: High and Low part of 64 bit result
+  // SW: Status Word
   reg [7:0] op;
   reg [3:0] a, b, c;
   reg [4:0] c5;
-  reg signed [31:0] c12, c16, c24, Ra, Rb, Rc, pc0; // pc0 : instruction pc
+  reg signed [31:0] c12, c16, uc16, c24, Ra, Rb, Rc, pc0; // pc0 : instruction pc
 
   // register name
   `define PC   R[15]   // Program Counter
   `define LR   R[14]   // Link Register
   `define SP   R[13]   // Stack Pointer
-  `define SW   R[12]   // Status Word
   // SW Flage
-  `define N    `SW[31] // Negative flag
-  `define Z    `SW[30] // Zero
-  `define C    `SW[29] // Carry
-  `define V    `SW[28] // Overflow
-  `define I    `SW[7]  // Hardware Interrupt Enable
-  `define T    `SW[6]  // Software Interrupt Enable
-  `define M    `SW[0]  // Mode bit
+  `define N    SW[31] // Negative flag
+  `define Z    SW[30] // Zero
+  `define C    SW[29] // Carry
+  `define V    SW[28] // Overflow
+  `define I    SW[7]  // Hardware Interrupt Enable
+  `define T    SW[6]  // Software Interrupt Enable
+  `define M    SW[0]  // Mode bit
   // Instruction Opcode 
-  parameter [7:0] LD=8'h00,ST=8'h01,LDB=8'h02,STB=8'h03,LDR=8'h04,STR=8'h05,
-  LBR=8'h06,SBR=8'h07,LDI=8'h08,ADDiu=8'h09,CMP=8'h10,MOV=8'h12,ADD=8'h13,
-  SUB=8'h14,MUL=8'h15,SDIV=8'h16,AND=8'h18,OR=8'h19,XOR=8'h1A,
+  parameter [7:0] LD=8'h01,ST=8'h02,LDB=8'h03,STB=8'h04,LDR=8'h05,STR=8'h06,
+  LBR=8'h07,SBR=8'h08,ADDiu=8'h09,SLTi=8'h0A,SLTiu=8'h0B,ANDi=8'h0C,ORi=8'h0D,
+  XORi=8'h0E,LUi=8'h0F,
+  ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,MUL=8'h15,DIV=8'h16,DIVu=8'h17,
+  AND=8'h18,OR=8'h19,XOR=8'h1A,
   SRA=8'h1B,ROL=8'h1C,ROR=8'h1D,SHL=8'h1E,SHR=8'h1F,
-  JEQ=8'h20,JNE=8'h21,JLT=8'h22,JGT=8'h23,JLE=8'h24,JGE=8'h25,JMP=8'h26,
-  SWI=8'h2A,JSUB=8'h2B,RET=8'h2C,IRET=8'h2D,JALR=8'h2E,
-  PUSH=8'h30,POP=8'h31,PUSHB=8'h32,POPB=8'h33,
-  MFHI=8'h40,MFLO=8'h41,MTHI=8'h42,MTLO=8'h43,MULT=8'h50;
+  SLT=8'h20,SLTu=8'h21,
+  MFHI=8'h22,MFLO=8'h23,MTHI=8'h24,MTLO=8'h25,MULT=8'h26,MULTu=8'h27,
+  JMP=8'h26,BEQ=8'h27,BNE=8'h28,
+  SWI=8'h2A,JSUB=8'h2B,RET=8'h2C,IRET=8'h2D,JALR=8'h2E;
   
   reg [2:0] state, next_state;
   parameter Reset=3'h0, Fetch=3'h1, Decode=3'h2, Execute=3'h3, WriteBack=3'h4;
@@ -88,7 +91,7 @@ module cpu0(input clock, reset, output reg [2:0] tick,
     m_en = 0;
     case (state)    
     Reset: begin 
-      `PC = 0; tick = 0; R[0] = 0; `SW = 0; `LR = -1; 
+      `PC = 0; tick = 0; R[0] = 0; SW = 0; `LR = -1; 
       next_state = reset?Reset:Fetch;
     end
     Fetch: begin  // Tick 1 : instruction fetch, throw PC to address bus, 
@@ -103,6 +106,7 @@ module cpu0(input clock, reset, output reg [2:0] tick,
       {op,a,b,c} = ir[31:12];
       c24 = $signed(ir[23:0]);
       c16 = $signed(ir[15:0]);
+      uc16 = ir[15:0];
       c12 = $signed(ir[11:0]);
       c5  = ir[4:0];
       Ra = R[a];
@@ -121,32 +125,55 @@ module cpu0(input clock, reset, output reg [2:0] tick,
       STR: memWriteStart(Rb+Rc, Ra, `INT32);  // STR Ra, [Rb+Rc]; Ra=>[Rb+ Rc]
       LBR: memReadStart(Rb+Rc, `BYTE);      // LBR Ra,[Rb+Rc]; Ra<=(byte)[Rb+Rc]
       SBR: memWriteStart(Rb+Rc, Ra, `BYTE); // SBR Ra,[Rb+Rc]; Ra=>(byte)[Rb+Rc]
-      LDI: R[a] = c16;                   // LDI Ra,Cx; Ra<=Cx
       // Mathematic 
-      ADDiu: R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra<=Rb+Cx
-      CMP: begin `N=(Ra-Rb<0);`Z=(Ra-Rb==0); end // CMP Ra, Rb; SW=(Ra >=< Rb)
-      MOV: regSet(a, Rb);                  // MOV Ra,Rb; Ra<=Rb 
-      ADD: regSet(a, Rb+Rc);               // ADD Ra,Rb,Rc; Ra<=Rb+Rc
-      SUB: regSet(a, Rb-Rc);               // SUB Ra,Rb,Rc; Ra<=Rb-Rc
-      MUL: regSet(a, Rb*Rc);               // MUL Ra,Rb,Rc;     Ra<=Rb*Rc
-      SDIV: regHILOSet(Ra%Rb, Ra/Rb);          // SDIV Ra,Rb; HI<=Ra%Rb; LO<=Ra/Rb
+      ADDiu:  R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra<=Rb+Cx
+//      CMP: begin `N=(Ra-Rb<0);`Z=(Ra-Rb==0); end // CMP Ra, Rb; SW=(Ra >=< Rb)
+      ADDu:  regSet(a, Rb+Rc);               // ADD Ra,Rb,Rc; Ra<=Rb+Rc
+      ADD:   begin regSet(a, Rb+Rc); if (a < Rb) `V = 1; else `V =0; end
+                                             // ADD Ra,Rb,Rc; Ra<=Rb+Rc
+      SUBu:  regSet(a, Rb-Rc);               // SUB Ra,Rb,Rc; Ra<=Rb-Rc
+      SUB:   begin regSet(a, Rb-Rc); if (Rb < 0 && Rc > 0 && a >= 0) 
+             `V = 1; else `V =0; end         // SUB Ra,Rb,Rc; Ra<=Rb-Rc
+      MUL:   regSet(a, Rb*Rc);               // MUL Ra,Rb,Rc;     Ra<=Rb*Rc
+      DIVu:  regHILOSet(Ra%Rb, Ra/Rb);       // DIV Ra,Rb; HI<=Ra%Rb; LO<=Ra/Rb
+      DIV:   begin regHILOSet(Ra%Rb, Ra/Rb); 
+             if ((Ra < 0 && Rb < 0) || (Ra == 0)) `V = 1; 
+             else `V =0; end  // DIVu Ra,Rb; HI<=Ra%Rb; LO<=Ra/Rb; With overflow
                                            // with exception overflow
-      AND: regSet(a, Rb&Rc);               // AND Ra,Rb,Rc; Ra<=(Rb and Rc)
-      OR:  regSet(a, Rb|Rc);               // OR Ra,Rb,Rc; Ra<=(Rb or Rc)
-      XOR: regSet(a, Rb^Rc);               // XOR Ra,Rb,Rc; Ra<=(Rb xor Rc)
-      SHL: regSet(a, Rb<<c5);     // Shift Left; SHL Ra,Rb,Cx; Ra<=(Rb << Cx)
-      SRA: regSet(a, (Rb&'h80000000)|(Rb>>c5)); 
-                                  // Shift Right with signed bit fill;
-                                  // SHR Ra,Rb,Cx; Ra<=(Rb&0x80000000)|(Rb>>Cx)
-      SHR: regSet(a, Rb>>c5);     // Shift Right with 0 fill; 
-                                  // SHR Ra,Rb,Cx; Ra<=(Rb >> Cx)
+      AND:   regSet(a, Rb&Rc);               // AND Ra,Rb,Rc; Ra<=(Rb and Rc)
+      ANDi:  regSet(a, Rb&uc16);             // AND Ra,Rb,c16; Ra<=(Rb and c16)
+      OR:    regSet(a, Rb|Rc);               // OR Ra,Rb,Rc; Ra<=(Rb or Rc)
+      ORi:   regSet(a, Rb|uc16);             // OR Ra,Rb,c16; Ra<=(Rb or c16)
+      XOR:   regSet(a, Rb^Rc);               // XOR Ra,Rb,Rc; Ra<=(Rb xor Rc)
+      XORi:  regSet(a, Rb^uc16);             // XOR Ra,Rb,c16; Ra<=(Rb xor c16)
+      LUi:   regSet(a, uc16<<16);
+      SHL:   regSet(a, Rb<<c5);     // Shift Left; SHL Ra,Rb,Cx; Ra<=(Rb << Cx)
+      SRA:   regSet(a, (Rb&'h80000000)|(Rb>>c5)); 
+                                    // Shift Right with signed bit fill;
+                                    // SHR Ra,Rb,Cx; Ra<=(Rb&0x80000000)|(Rb>>Cx)
+      SHR:   regSet(a, Rb>>c5);     // Shift Right with 0 fill; 
+                                    // SHR Ra,Rb,Cx; Ra<=(Rb >> Cx)
+      ROL:   regSet(a, (Rb<<c5)|(Rb>>(32-c5)));     // Rotate Left;
+      ROR:   regSet(a, (Rb>>c5)|(Rb<<(32-c5)));     // Rotate Right;
+      // set
+      SLT:   if (Rb < Rc) R[a]=1; else R[a]=0;
+      SLTu:  if (Rb < Rc) R[a]=1; else R[a]=0;
+      SLTi:  if (Rb < c16) R[a]=1; else R[a]=0;
+      SLTiu: if (Rb < c16) R[a]=1; else R[a]=0;
+      // Branch Instructions
+      BEQ:   if (Ra==Rb) `PC=`PC+c16; 
+      BNE:   if (Ra!=Rb) `PC=`PC+c16;
+      MFLO:  regSet(a, LO);            // MFLO Ra; Ra<=LO
+      MFHI:  regSet(a, HI);            // MFHI Ra; Ra<=HI
+      MTLO:  LO = Ra;             // MTLO Ra; LO<=Ra
+      MTHI:  HI = Ra;             // MTHI Ra; HI<=Ra
+      MULT:  {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
+                            // LO<=((Ra*Rb) and 0x00000000ffffffff);
+                            // with exception overflow
+      MULTu: {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
+                            // LO<=((Ra*Rb) and 0x00000000ffffffff);
+                            // without exception overflow
       // Jump Instructions
-      JEQ: if (`Z) `PC=`PC+c24;            // JEQ Cx; if SW(=) PC  PC+Cx
-      JNE: if (!`Z) `PC=`PC+c24;           // JNE Cx; if SW(!=) PC PC+Cx
-      JLT: if (`N)`PC=`PC+c24;             // JLT Cx; if SW(<) PC  PC+Cx
-      JGT: if (!`N&&!`Z) `PC=`PC+c24;      // JGT Cx; if SW(>) PC  PC+Cx
-      JLE: if (`N || `Z) `PC=`PC+c24;      // JLE Cx; if SW(<=) PC PC+Cx    
-      JGE: if (!`N || `Z) `PC=`PC+c24;     // JGE Cx; if SW(>=) PC PC+Cx
       JMP: `PC = `PC+c24;                  // JMP Cx; PC <= PC+Cx
       SWI: begin 
         `LR=`PC;`PC= c24; `I = 1'b1; 
@@ -157,50 +184,31 @@ module cpu0(input clock, reset, output reg [2:0] tick,
       IRET:begin 
         `PC=`LR;`I = 1'b0; 
       end // Interrupt Return; IRET; PC <= LR; INT<=0
-      // 
-      PUSH:begin 
-        `SP = `SP-4; memWriteStart(`SP, Ra, `INT32); 
-      end // PUSH Ra; SP-=4; [SP]<=Ra;
-      POP: begin 
-        memReadStart(`SP, `INT32); `SP = `SP + 4; 
-      end // POP Ra; Ra=[SP]; SP+=4;
-      PUSHB:begin 
-        `SP = `SP-1; memWriteStart(`SP, Ra, `BYTE); 
-      end // Push byte; PUSHB Ra; SP--; [SP]<=Ra;(byte)
-      POPB:begin 
-        memReadStart(`SP, `BYTE); `SP = `SP+1; 
-      end // Pop byte; POPB Ra; Ra<=[SP]; SP++;(byte)
-      MULT: {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
-                            // LO<=((Ra*Rb) and 0x00000000ffffffff);
-                            // with exception overflow
-      MFLO: regSet(a, LO);            // MFLO Ra; Ra<=LO
-      MFHI: regSet(a, HI);            // MFHI Ra; Ra<=HI
-      MTLO: LO = Ra;             // MTLO Ra; LO<=Ra
-      MTHI: HI = Ra;             // MTHI Ra; HI<=Ra
       endcase
       next_state = WriteBack;
     end
     WriteBack: begin // Read/Write finish, close memory
       case (op)
-        LD, LDB, LDR, LBR, POP, POPB  : memReadEnd(R[a]); 
+        LD, LDB, LDR, LBR  : memReadEnd(R[a]); 
                                           //read memory complete
-        ST, STB, STR, SBR, PUSH, PUSHB: memWriteEnd(); 
+        ST, STB, STR, SBR  : memWriteEnd(); 
                                           // write memory complete
       endcase
       case (op)
-      MULT, SDIV, MTHI, MTLO :
+      MULT, MULTu, DIV, DIVu, MTHI, MTLO :
         $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
-        LO, `SW);
+        LO, SW);
       ST :
         if (R[b]+c16 == `IOADDR)
           $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);
         else
           $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d   SW=%8x", $stime, pc0, ir, 
-          R[b], c16, R[a], `SW);
+          R[b], c16, R[a], SW);
       default : 
         $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a, 
-        R[a], R[a], `SW);
+        R[a], R[a], SW);
       endcase
+      SW = 0; // clear SW
       if (op==RET && `PC < 0) begin
         $display("RET to PC < 0, finished!");
         $finish;

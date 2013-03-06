@@ -1,0 +1,691 @@
+diff -Naur 11/1/Cpu0/AsmParser/Cpu0AsmParser.cpp 11/2/Cpu0/AsmParser/Cpu0AsmParser.cpp
+--- 11/1/Cpu0/AsmParser/Cpu0AsmParser.cpp	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/AsmParser/Cpu0AsmParser.cpp	2013-02-28 16:40:44.000000000 +0800
+@@ -308,8 +308,17 @@
+ 
+   int ImmValue = ImmOp.getImm();
+   tmpInst.setLoc(IDLoc);
+-  if ( -32768 <= ImmValue && ImmValue <= 32767) {
+-    // for -32768 <= j < 32767.
++  if ( 0 <= ImmValue && ImmValue <= 65535) {
++    // for 0 <= j <= 65535.
++    // li d,j => ori d,$zero,j
++    tmpInst.setOpcode(Cpu0::ORi);
++    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
++    tmpInst.addOperand(
++              MCOperand::CreateReg(Cpu0::ZERO));
++    tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
++    Instructions.push_back(tmpInst);
++  } else if ( ImmValue < 0 && ImmValue >= -32768) {
++    // for -32768 <= j < 0.
+     // li d,j => addiu d,$zero,j
+     tmpInst.setOpcode(Cpu0::ADDiu); //TODO:no ADDiu64 in td files?
+     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+@@ -319,32 +328,17 @@
+     Instructions.push_back(tmpInst);
+   } else {
+     // for any other value of j that is representable as a 32-bit integer.
+-    // li d,j => addiu d, $0, hi16(j)
+-    //           shl d, d, 16
+-    //           addiu at, $0, lo16(j)
+-    //           or d, d, at
+-    tmpInst.setOpcode(Cpu0::ADDiu);
++    // li d,j => lui d,hi16(j)
++    //           ori d,d,lo16(j)
++    tmpInst.setOpcode(Cpu0::LUi);
+     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+     tmpInst.addOperand(MCOperand::CreateImm((ImmValue & 0xffff0000) >> 16));
+     Instructions.push_back(tmpInst);
+     tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::SHL);
++    tmpInst.setOpcode(Cpu0::ORi);
+     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateImm(16));
+-    Instructions.push_back(tmpInst);
+-    tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::ADDiu);
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0x0000ffff));
+-    Instructions.push_back(tmpInst);
+-    tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::OR);
+-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
++    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0xffff));
+     tmpInst.setLoc(IDLoc);
+     Instructions.push_back(tmpInst);
+   }
+@@ -370,34 +364,18 @@
+     Instructions.push_back(tmpInst);
+   } else {
+     // for any other value of j that is representable as a 32-bit integer.
+-    // li d,j(s) => addiu d, $0, hi16(j)
+-    //           shl d, d, 16
+-    //           addiu at, $0, lo16(j)
+-    //           or d, d, at
+-    //           add d,d,s
+-    tmpInst.setOpcode(Cpu0::ADDiu);
++    // la d,j(s) => lui d,hi16(j)
++    //              ori d,d,lo16(j)
++    //              add d,d,s
++    tmpInst.setOpcode(Cpu0::LUi);
+     tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+     tmpInst.addOperand(MCOperand::CreateImm((ImmValue & 0xffff0000) >> 16));
+     Instructions.push_back(tmpInst);
+     tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::SHL);
++    tmpInst.setOpcode(Cpu0::ORi);
+     tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateImm(16));
+-    Instructions.push_back(tmpInst);
+-    tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::ADDiu);
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0x0000ffff));
+-    Instructions.push_back(tmpInst);
+-    tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::OR);
+     tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+-    tmpInst.setLoc(IDLoc);
++    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0xffff));
+     Instructions.push_back(tmpInst);
+     tmpInst.clear();
+     tmpInst.setOpcode(Cpu0::ADD);
+@@ -427,33 +405,17 @@
+     Instructions.push_back(tmpInst);
+   } else {
+     // for any other value of j that is representable as a 32-bit integer.
+-    // la d,j => addiu d, $0, hi16(j)
+-    //           shl d, d, 16
+-    //           addiu at, $0, lo16(j)
+-    //           or d, d, at
+-    tmpInst.setOpcode(Cpu0::ADDiu);
++    // la d,j => lui d,hi16(j)
++    //           ori d,d,lo16(j)
++    tmpInst.setOpcode(Cpu0::LUi);
+     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+     tmpInst.addOperand(MCOperand::CreateImm((ImmValue & 0xffff0000) >> 16));
+     Instructions.push_back(tmpInst);
+     tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::SHL);
++    tmpInst.setOpcode(Cpu0::ORi);
+     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateImm(16));
+-    Instructions.push_back(tmpInst);
+-    tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::ADDiu);
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0x0000ffff));
+-    Instructions.push_back(tmpInst);
+-    tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::OR);
+-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+-    tmpInst.setLoc(IDLoc);
++    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0xffff));
+     Instructions.push_back(tmpInst);
+   }
+ }
+@@ -519,7 +481,7 @@
+       .Case("s2",  Cpu0::S2)
+       .Case("gp",  Cpu0::GP)
+       .Case("fp",  Cpu0::FP)
+-      .Case("sw",  Cpu0::SW)
++      .Case("t0",  Cpu0::T0)
+       .Case("sp",  Cpu0::SP)
+       .Case("lr",  Cpu0::LR)
+       .Case("pc",  Cpu0::PC)
+diff -Naur 11/1/Cpu0/Cpu0InstrInfo.cpp 11/2/Cpu0/Cpu0InstrInfo.cpp
+--- 11/1/Cpu0/Cpu0InstrInfo.cpp	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/Cpu0InstrInfo.cpp	2013-02-28 16:40:44.000000000 +0800
+@@ -43,18 +43,12 @@
+       Opc = Cpu0::MFHI, SrcReg = 0;
+     else if (SrcReg == Cpu0::LO)
+       Opc = Cpu0::MFLO, SrcReg = 0;
+-    else if (SrcReg == Cpu0::SW)	// add $ra, $ZERO, $SW
+-      Opc = Cpu0::ADD, ZeroReg = Cpu0::ZERO;
+   }
+   else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
+     if (DestReg == Cpu0::HI)
+       Opc = Cpu0::MTHI, DestReg = 0;
+     else if (DestReg == Cpu0::LO)
+       Opc = Cpu0::MTLO, DestReg = 0;
+-    // Only possibility in (DestReg==SW, SrcReg==CPU0Regs) is 
+-    //  cmp $SW, $ZERO, $rc
+-    else if (DestReg == Cpu0::SW)
+-      Opc = Cpu0::CMP, ZeroReg = Cpu0::ZERO;
+   }
+ 
+   assert(Opc && "Cannot copy registers");
+diff -Naur 11/1/Cpu0/Cpu0InstrInfo.td 11/2/Cpu0/Cpu0InstrInfo.td
+--- 11/1/Cpu0/Cpu0InstrInfo.td	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/Cpu0InstrInfo.td	2013-02-28 16:40:44.000000000 +0800
+@@ -136,6 +136,12 @@
+     return (uint64_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
+ }]>;
+ 
++// Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
++def immLow16Zero : PatLeaf<(imm), [{
++  int64_t Val = N->getSExtValue();
++  return isInt<32>(Val) && !(Val & 0xffff);
++}]>;
++
+ // shamt field must fit in 5 bits.
+ def immZExt5 : ImmLeaf<i32, [{return Imm == (Imm & 0x1f);}]>;
+ 
+@@ -178,15 +184,12 @@
+   let isReMaterializable = 1;
+ }
+ 
+-class CmpInstr<bits<8> op, string instr_asm, 
+-               InstrItinClass itin, RegisterClass RC, RegisterClass RD, 
+-               bit isComm = 0>:
+-  FA<op, (outs RD:$rc), (ins RC:$ra, RC:$rb),
+-     !strconcat(instr_asm, "\t$rc, $ra, $rb"), [], itin> {
+-  let rc = 0;
++class ArithOverflowR<bits<8> op, string instr_asm,
++                    InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
++  FA<op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
++     !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], itin> {
+   let shamt = 0;
+   let isCommutable = isComm;
+-  let DecoderMethod = "DecodeCMPInstruction";
+ }
+ 
+ // Arithmetic and logical instructions with 2 register operands.
+@@ -272,18 +275,33 @@
+ }
+ 
+ // Conditional Branch
+-class CBranch<bits<8> op, string instr_asm, RegisterClass RC,
+-                   list<Register> UseRegs>:
+-  FJ<op, (outs), (ins RC:$ra, brtarget:$addr),
+-             !strconcat(instr_asm, "\t$ra, $addr"),
+-             [(brcond RC:$ra, bb:$addr)], IIBranch> {
++class CBranch<bits<8> op, string instr_asm, PatFrag cond_op, RegisterClass RC>:
++  FL<op, (outs), (ins RC:$ra, RC:$rb, brtarget:$imm16),
++             !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
++             [(brcond (i32 (cond_op RC:$ra, RC:$rb)), bb:$imm16)], IIBranch> {
+   let isBranch = 1;
+   let isTerminator = 1;
+-  let hasDelaySlot = 0;
+-  let neverHasSideEffects = 1;
+-  let DecoderMethod = "DecodeBranchTarget";
++  let hasDelaySlot = 1;
++  let Defs = [AT];
++}
++
++// SetCC
++class SetCC_R<bits<8> op, string instr_asm, PatFrag cond_op,
++              RegisterClass RC>:
++  FA<op, (outs CPURegs:$ra), (ins RC:$rb, RC:$rc),
++     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
++     [(set CPURegs:$ra, (cond_op RC:$rb, RC:$rc))],
++     IIAlu> {
++  let shamt = 0;
+ }
+ 
++class SetCC_I<bits<8> op, string instr_asm, PatFrag cond_op, Operand Od,
++              PatLeaf imm_type, RegisterClass RC>:
++  FL<op, (outs CPURegs:$ra), (ins RC:$rb, Od:$imm16),
++     !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
++     [(set CPURegs:$ra, (cond_op RC:$rb, imm_type:$imm16))],
++     IIAlu>;
++
+ // Unconditional branch, such as JMP
+ class UncondBranch<bits<8> op, string instr_asm>:
+   FJ<op, (outs), (ins brtarget:$addr),
+@@ -421,32 +439,41 @@
+ 
+ /// Load and Store Instructions
+ ///  aligned
+-defm LD     : LoadM32<0x00,  "ld",  load_a>;
+-defm ST     : StoreM32<0x01, "st",  store_a>;
++defm LD     : LoadM32<0x01,  "ld",  load_a>;
++defm ST     : StoreM32<0x02, "st",  store_a>;
+ 
+ /// Arithmetic Instructions (ALU Immediate)
+-//def LDI     : MoveImm<0x08, "ldi", add, simm16, immSExt16, CPURegs>;
+ // add defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
+ def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
++def SLTi    : SetCC_I<0x0a, "slti", setlt, simm16, immSExt16, CPURegs>;
++def SLTiu   : SetCC_I<0x0b, "sltiu", setult, simm16, immSExt16, CPURegs>;
++def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs>;
++def ORi     : ArithLogicI<0x0d, "ori", or, uimm16, immZExt16, CPURegs>;
++def XORi    : ArithLogicI<0x0e, "xori", xor, uimm16, immZExt16, CPURegs>;
++def LUi     : LoadUpper<0x0f, "lui", CPURegs, uimm16>;
+ 
+ /// Arithmetic Instructions (3-Operand, R-Type)
+-def CMP     : CmpInstr<0x10, "cmp", IIAlu, CPURegs, SR, 0>;
+-def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
+-def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
++def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
++def SUBu    : ArithLogicR<0x12, "subu", sub, IIAlu, CPURegs>;
++def ADD     : ArithOverflowR<0x13, "add", IIAlu, CPURegs, 1>;
++def SUB     : ArithOverflowR<0x14, "sub", IIAlu, CPURegs>;
+ def MUL     : ArithLogicR<0x15, "mul", mul, IIImul, CPURegs, 1>;
+-def SDIV    : Div32<Cpu0DivRem, 0x16, "div", IIIdiv>;
+-def UDIV    : Div32<Cpu0DivRemU, 0x17, "divu", IIIdiv>;
++def DIV     : Div32<Cpu0DivRem, 0x16, "div", IIIdiv>;
++def DIVu    : Div32<Cpu0DivRemU, 0x17, "divu", IIIdiv>;
+ def AND     : ArithLogicR<0x18, "and", and, IIAlu, CPURegs, 1>;
+ def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
+ def XOR     : ArithLogicR<0x1A, "xor", xor, IIAlu, CPURegs, 1>;
+ 
+-def MULT    : Mult32<0x50, "mult", IIImul>;
+-def MULTu   : Mult32<0x51, "multu", IIImul>;
++def SLT     : SetCC_R<0x20, "slt", setlt, CPURegs>;
++def SLTu    : SetCC_R<0x21, "sltu", setult, CPURegs>;
++
++def MFHI    : MoveFromLOHI<0x22, "mfhi", CPURegs, [HI]>;
++def MFLO    : MoveFromLOHI<0x23, "mflo", CPURegs, [LO]>;
++def MTHI    : MoveToLOHI<0x24, "mthi", CPURegs, [HI]>;
++def MTLO    : MoveToLOHI<0x25, "mtlo", CPURegs, [LO]>;
+ 
+-def MFHI : MoveFromLOHI<0x40, "mfhi", CPURegs, [HI]>;
+-def MFLO : MoveFromLOHI<0x41, "mflo", CPURegs, [LO]>;
+-def MTHI : MoveToLOHI<0x42, "mthi", CPURegs, [HI]>;
+-def MTLO : MoveToLOHI<0x43, "mtlo", CPURegs, [LO]>;
++def MULT    : Mult32<0x26, "mult", IIImul>;
++def MULTu   : Mult32<0x27, "multu", IIImul>;
+ 
+ /// Shift Instructions
+ // work, sra for ashr llvm IR instruction
+@@ -458,12 +485,8 @@
+ def SHR     : shift_rotate_imm32<0x1F, 0x00, "shr", srl>;
+ 
+ /// Jump and Branch Instructions
+-def JEQ     : CBranch<0x20, "jeq", SR, [SW]>;
+-def JNE     : CBranch<0x21, "jne", SR, [SW]>;
+-def JLT     : CBranch<0x22, "jlt", SR, [SW]>;
+-def JGT     : CBranch<0x23, "jgt", SR, [SW]>;
+-def JLE     : CBranch<0x24, "jle", SR, [SW]>;
+-def JGE     : CBranch<0x25, "jge", SR, [SW]>;
++def BEQ     : CBranch<0x27, "beq", seteq, CPURegs>;
++def BNE     : CBranch<0x28, "bne", setne, CPURegs>;
+ 
+ def JMP     : UncondBranch<0x26, "jmp">;
+ 
+@@ -499,19 +522,20 @@
+ // Small immediates
+ def : Pat<(i32 immSExt16:$in),
+           (ADDiu ZERO, imm:$in)>;
++def : Pat<(i32 immZExt16:$in),
++          (ORi ZERO, imm:$in)>;
++def : Pat<(i32 immLow16Zero:$in),
++          (LUi (HI16 imm:$in))>;
+ 
+ // Arbitrary immediates
+ def : Pat<(i32 imm:$imm),
+-          (OR (SHL (ADDiu ZERO, (HI16 imm:$imm)), 16), (ADDiu ZERO, (LO16 
+-              imm:$imm)))>;
++          (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
+ 
+ def : Pat<(Cpu0JmpLink (i32 tglobaladdr:$dst)),
+           (JSUB tglobaladdr:$dst)>;
+ 
+ // hi/lo relocs
+-def : Pat<(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>;
+-// Expect cpu0 add LUi support, like Mips
+-//def : Pat<(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
++def : Pat<(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
+ def : Pat<(Cpu0Lo tglobaladdr:$in), (ADDiu ZERO, tglobaladdr:$in)>;
+ 
+ def : Pat<(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
+@@ -522,47 +546,78 @@
+           (ADDiu CPURegs:$gp, tglobaladdr:$in)>;
+ 
+ def : Pat<(not CPURegs:$in),
+-          (XOR CPURegs:$in, (ADDiu ZERO, 1))>;
++          (XORi CPURegs:$in, 1)>;
++
+ 
+ // brcond patterns
+-multiclass BrcondPats<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
+-Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp, 
+-Instruction CMPOp, Register ZEROReg> {
+-def : Pat<(brcond (i32 (seteq RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setueq RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setne RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setune RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setlt RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setult RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setgt RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setugt RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setle RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JLEOp (CMPOp RC:$rhs, RC:$lhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setule RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JLEOp (CMPOp RC:$rhs, RC:$lhs), bb:$dst)>;
++multiclass BrcondPats<RegisterClass RC, Instruction BEQOp, Instruction BNEOp,
++                      Instruction SLTOp, Instruction SLTuOp, Instruction SLTiOp,
++                      Instruction SLTiuOp, Register ZEROReg> {
++def : Pat<(brcond (i32 (setne RC:$lhs, 0)), bb:$dst),
++              (BNEOp RC:$lhs, ZEROReg, bb:$dst)>;
++def : Pat<(brcond (i32 (seteq RC:$lhs, 0)), bb:$dst),
++              (BEQOp RC:$lhs, ZEROReg, bb:$dst)>;
++
+ def : Pat<(brcond (i32 (setge RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
++              (BEQ (SLTOp RC:$lhs, RC:$rhs), ZERO, bb:$dst)>;
+ def : Pat<(brcond (i32 (setuge RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
++              (BEQ (SLTuOp RC:$lhs, RC:$rhs), ZERO, bb:$dst)>;
++def : Pat<(brcond (i32 (setge RC:$lhs, immSExt16:$rhs)), bb:$dst),
++              (BEQ (SLTiOp RC:$lhs, immSExt16:$rhs), ZERO, bb:$dst)>;
++def : Pat<(brcond (i32 (setuge RC:$lhs, immSExt16:$rhs)), bb:$dst),
++              (BEQ (SLTiuOp RC:$lhs, immSExt16:$rhs), ZERO, bb:$dst)>;
++
++def : Pat<(brcond (i32 (setle RC:$lhs, RC:$rhs)), bb:$dst),
++              (BEQ (SLTOp RC:$rhs, RC:$lhs), ZERO, bb:$dst)>;
++def : Pat<(brcond (i32 (setule RC:$lhs, RC:$rhs)), bb:$dst),
++              (BEQ (SLTuOp RC:$rhs, RC:$lhs), ZERO, bb:$dst)>;
+ 
+ def : Pat<(brcond RC:$cond, bb:$dst),
+-          (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)>;
++              (BNEOp RC:$cond, ZEROReg, bb:$dst)>;
+ }
+ 
+-defm : BrcondPats<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
++defm : BrcondPats<CPURegs, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO>;
+ 
+ // setcc patterns
+-multiclass SeteqPats<RegisterClass RC, Instruction XOROp> {
++multiclass SeteqPats<RegisterClass RC, Instruction SLTiuOp, Instruction XOROp,
++                     Instruction SLTuOp, Register ZEROReg> {
+   def : Pat<(seteq RC:$lhs, RC:$rhs),
+-            (XOROp (XOROp RC:$lhs, RC:$rhs), (ADDiu ZERO, 1))>;
++                (SLTiuOp (XOROp RC:$lhs, RC:$rhs), 1)>;
++  def : Pat<(setne RC:$lhs, RC:$rhs),
++                (SLTuOp ZEROReg, (XOROp RC:$lhs, RC:$rhs))>;
++}
++
++multiclass SetlePats<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
++  def : Pat<(setle RC:$lhs, RC:$rhs),
++                (XORi (SLTOp RC:$rhs, RC:$lhs), 1)>;
++  def : Pat<(setule RC:$lhs, RC:$rhs),
++                (XORi (SLTuOp RC:$rhs, RC:$lhs), 1)>;
++}
++
++multiclass SetgtPats<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
++  def : Pat<(setgt RC:$lhs, RC:$rhs),
++                (SLTOp RC:$rhs, RC:$lhs)>;
++  def : Pat<(setugt RC:$lhs, RC:$rhs),
++                (SLTuOp RC:$rhs, RC:$lhs)>;
++}
++
++multiclass SetgePats<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
++  def : Pat<(setge RC:$lhs, RC:$rhs),
++                (XORi (SLTOp RC:$lhs, RC:$rhs), 1)>;
++  def : Pat<(setuge RC:$lhs, RC:$rhs),
++                (XORi (SLTuOp RC:$lhs, RC:$rhs), 1)>;
++}
++
++multiclass SetgeImmPats<RegisterClass RC, Instruction SLTiOp,
++                        Instruction SLTiuOp> {
++  def : Pat<(setge RC:$lhs, immSExt16:$rhs),
++                (XORi (SLTiOp RC:$lhs, immSExt16:$rhs), 1)>;
++  def : Pat<(setuge RC:$lhs, immSExt16:$rhs),
++                (XORi (SLTiuOp RC:$lhs, immSExt16:$rhs), 1)>;
+ }
+ 
+-defm : SeteqPats<CPURegs, XOR>;
++defm : SeteqPats<CPURegs, SLTiu, XOR, SLTu, ZERO>;
++defm : SetlePats<CPURegs, SLT, SLTu>;
++defm : SetgtPats<CPURegs, SLT, SLTu>;
++defm : SetgePats<CPURegs, SLT, SLTu>;
++defm : SetgeImmPats<CPURegs, SLTi, SLTiu>;
+diff -Naur 11/1/Cpu0/Cpu0MCInstLower.cpp 11/2/Cpu0/Cpu0MCInstLower.cpp
+--- 11/1/Cpu0/Cpu0MCInstLower.cpp	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/Cpu0MCInstLower.cpp	2013-03-01 22:53:58.000000000 +0800
+@@ -94,8 +94,7 @@
+ }
+ 
+ // Lower ".cpload $reg" to
+-//  "addiu $gp, $zero, %hi(_gp_disp)"
+-//  "shl   $gp, $gp, 16"
++//  "lui   $gp, %hi(_gp_disp)"
+ //  "addiu $gp, $gp, %lo(_gp_disp)"
+ //  "addu  $gp, $gp, $t9"
+ void Cpu0MCInstLower::LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts) {
+@@ -111,12 +110,11 @@
+   MCSym = MCSymbolRefExpr::Create(Sym, MCSymbolRefExpr::VK_Cpu0_ABS_LO, *Ctx);
+   MCOperand SymLo = MCOperand::CreateExpr(MCSym);
+ 
+-  MCInsts.resize(4);
++  MCInsts.resize(3);
+ 
+-  CreateMCInst(MCInsts[0], Cpu0::ADDiu, GPReg, ZEROReg, SymHi);
+-  CreateMCInst(MCInsts[1], Cpu0::SHL, GPReg, GPReg, MCOperand::CreateImm(16));
+-  CreateMCInst(MCInsts[2], Cpu0::ADDiu, GPReg, GPReg, SymLo);
+-  CreateMCInst(MCInsts[3], Cpu0::ADD, GPReg, GPReg, T9Reg);
++  CreateMCInst(MCInsts[0], Cpu0::LUi, GPReg, ZEROReg, SymHi);
++  CreateMCInst(MCInsts[1], Cpu0::ADDiu, GPReg, GPReg, SymLo);
++  CreateMCInst(MCInsts[2], Cpu0::ADD, GPReg, GPReg, T9Reg);
+ }
+ 
+ // Lower ".cprestore offset" to "st $gp, offset($sp)".
+@@ -135,13 +133,11 @@
+     MCOperand ATReg = MCOperand::CreateReg(Cpu0::AT);
+     BaseReg = ATReg;
+ 
+-    // addiu   at,zero,hi
+-    // shl     at,at,16
+-    // add     at,at,sp
+-    MCInsts.resize(3);
+-    CreateMCInst(MCInsts[0], Cpu0::ADDiu, ATReg, ZEROReg, MCOperand::CreateImm(Hi));
+-    CreateMCInst(MCInsts[1], Cpu0::SHL, ATReg, ATReg, MCOperand::CreateImm(16));
+-    CreateMCInst(MCInsts[2], Cpu0::ADD, ATReg, ATReg, SPReg);
++    // lui   at,hi
++    // add   at,at,sp
++    MCInsts.resize(2);
++    CreateMCInst(MCInsts[0], Cpu0::LUi, ATReg, ZEROReg, MCOperand::CreateImm(Hi));
++    CreateMCInst(MCInsts[1], Cpu0::ADD, ATReg, ATReg, SPReg);
+   }
+ 
+   MCInst St;
+diff -Naur 11/1/Cpu0/Cpu0RegisterInfo.td 11/2/Cpu0/Cpu0RegisterInfo.td
+--- 11/1/Cpu0/Cpu0RegisterInfo.td	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/Cpu0RegisterInfo.td	2013-02-28 16:40:44.000000000 +0800
+@@ -41,7 +41,7 @@
+   def S2   : Cpu0GPRReg< 9, "9">,    DwarfRegNum<[9]>;
+   def GP   : Cpu0GPRReg< 10, "gp">,  DwarfRegNum<[10]>;
+   def FP   : Cpu0GPRReg< 11, "fp">,  DwarfRegNum<[11]>;
+-  def SW   : Cpu0GPRReg< 12, "sw">,   DwarfRegNum<[12]>;
++  def T0   : Cpu0GPRReg< 12, "t0">,   DwarfRegNum<[12]>;
+   def SP   : Cpu0GPRReg< 13, "sp">,   DwarfRegNum<[13]>;
+   def LR   : Cpu0GPRReg< 14, "lr">,   DwarfRegNum<[14]>;
+   def PC   : Cpu0GPRReg< 15, "pc">,   DwarfRegNum<[15]>;
+@@ -67,11 +67,12 @@
+   // Callee save
+   S0, S1, S2, 
+   // Reserved
+-  GP, FP, SW, SP, LR, PC)>;
++  GP, FP, 
++  // Not preserved across procedure calls
++  T0, 
++  // Reserved
++  SP, LR, PC)>;
+ 
+ // Hi/Lo Registers
+ def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
+ 
+-// Status Registers
+-def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
+-
+diff -Naur 11/1/Cpu0/Disassembler/Cpu0Disassembler.cpp 11/2/Cpu0/Disassembler/Cpu0Disassembler.cpp
+--- 11/1/Cpu0/Disassembler/Cpu0Disassembler.cpp	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/Disassembler/Cpu0Disassembler.cpp	2013-02-28 16:40:44.000000000 +0800
+@@ -65,7 +65,7 @@
+   Cpu0::ZERO, Cpu0::AT, Cpu0::V0, Cpu0::V1,
+   Cpu0::A0, Cpu0::A1, Cpu0::T9, Cpu0::S0, 
+   Cpu0::S1, Cpu0::S2, Cpu0::GP, Cpu0::FP, 
+-  Cpu0::SW, Cpu0::SP, Cpu0::LR, Cpu0::PC
++  Cpu0::T0, Cpu0::SP, Cpu0::LR, Cpu0::PC
+ };
+ 
+ static DecodeStatus DecodeCPURegsRegisterClass(MCInst &Inst,
+@@ -210,71 +210,13 @@
+   return MCDisassembler::Success;
+ }
+ 
+-/* CMP instruction define $rc and then $ra, $rb; The printOperand() print 
+-operand 1 and operand 2 (operand 0 is $rc and operand 1 is $ra), so we Create 
+-register $rc first and create $ra next, as follows,
+-
+-// Cpu0InstrInfo.td
+-class CmpInstr<bits<8> op, string instr_asm, 
+-                    InstrItinClass itin, RegisterClass RC, RegisterClass RD, bit isComm = 0>:
+-  FA<op, (outs RD:$rc), (ins RC:$ra, RC:$rb),
+-     !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
+-
+-// Cpu0AsmWriter.inc
+-void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) {
+-...
+-  case 3:
+-    // CMP, JEQ, JGE, JGT, JLE, JLT, JNE
+-    printOperand(MI, 1, O); 
+-    break;
+-...
+-  case 1:
+-    // CMP
+-    printOperand(MI, 2, O); 
+-    return;
+-    break;
+-*/
+-static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
+-                                       unsigned Insn,
+-                                       uint64_t Address,
+-                                       const void *Decoder) {
+-  int Reg_a = (int)fieldFromInstruction(Insn, 20, 4);
+-  int Reg_b = (int)fieldFromInstruction(Insn, 16, 4);
+-  int Reg_c = (int)fieldFromInstruction(Insn, 12, 4);
+-
+-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_c]));
+-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_a]));
+-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_b]));
+-  return MCDisassembler::Success;
+-}
+-
+-/* CBranch instruction define $ra and then imm24; The printOperand() print 
+-operand 1 (operand 0 is $ra and operand 1 is imm24), so we Create register 
+-operand first and create imm24 next, as follows,
+-
+-// Cpu0InstrInfo.td
+-class CBranch<bits<8> op, string instr_asm, RegisterClass RC,
+-                   list<Register> UseRegs>:
+-  FJ<op, (outs), (ins RC:$ra, brtarget:$addr),
+-             !strconcat(instr_asm, "\t$addr"),
+-             [(brcond RC:$ra, bb:$addr)], IIBranch> {
+-
+-// Cpu0AsmWriter.inc
+-void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) {
+-...
+-  case 3:
+-    // CMP, JEQ, JGE, JGT, JLE, JLT, JNE
+-    printOperand(MI, 1, O); 
+-    break;
+-*/
+ static DecodeStatus DecodeBranchTarget(MCInst &Inst,
+                                        unsigned Insn,
+                                        uint64_t Address,
+                                        const void *Decoder) {
+-  int BranchOffset = fieldFromInstruction(Insn, 0, 24);
+-  if (BranchOffset > 0x8fffff)
+-  	BranchOffset = -1*(0x1000000 - BranchOffset);
+-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[0]));
++  int BranchOffset = fieldFromInstruction(Insn, 0, 16);
++  if (BranchOffset > 0x8fff)
++  	BranchOffset = -1*(0x10000 - BranchOffset);
+   Inst.addOperand(MCOperand::CreateImm(BranchOffset));
+   return MCDisassembler::Success;
+ }
+diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp 11/2/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
+--- 11/1/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp	2013-02-28 16:40:44.000000000 +0800
+@@ -37,6 +37,7 @@
+   case FK_Data_4:
+   case Cpu0::fixup_Cpu0_LO16:
+     break;
++  case Cpu0::fixup_Cpu0_PC16:
+   case Cpu0::fixup_Cpu0_PC24:
+     // So far we are only using this type for branches.
+     // For branches we start 1 instruction after the branch
+@@ -140,6 +141,7 @@
+       { "fixup_Cpu0_LITERAL",      0,     16,   0 },
+       { "fixup_Cpu0_GOT_Global",   0,     16,   0 },
+       { "fixup_Cpu0_GOT_Local",    0,     16,   0 },
++      { "fixup_Cpu0_PC16",         0,     16,  MCFixupKindInfo::FKF_IsPCRel },
+       { "fixup_Cpu0_PC24",         0,     24,  MCFixupKindInfo::FKF_IsPCRel },
+       { "fixup_Cpu0_CALL24",       0,     24,   0 },
+       { "fixup_Cpu0_GPREL32",      0,     32,   0 },
+diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h 11/2/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
+--- 11/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-02-28 16:40:44.000000000 +0800
+@@ -135,7 +135,7 @@
+     return 10;
+   case Cpu0::FP:
+     return 11;
+-  case Cpu0::SW:
++  case Cpu0::T0:
+     return 12;
+   case Cpu0::SP:
+     return 13;
+diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0FixupKinds.h 11/2/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
+--- 11/1/Cpu0/MCTargetDesc/Cpu0FixupKinds.h	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/MCTargetDesc/Cpu0FixupKinds.h	2013-02-28 16:40:44.000000000 +0800
+@@ -53,8 +53,12 @@
+     // Local symbol fixup resulting in - R_CPU0_GOT16.
+     fixup_Cpu0_GOT_Local,
+ 
++    // PC relative branch fixup resulting in - R_CPU0_PC16.
++    // cpu0 PC16, e.g. beq
++    fixup_Cpu0_PC16,
++    
+     // PC relative branch fixup resulting in - R_CPU0_PC24.
+-    // cpu0 PC24, e.g. jeq
++    // cpu0 PC24, e.g. jmp
+     fixup_Cpu0_PC24,
+ 
+     // resulting in - R_CPU0_CALL24.
+diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp 11/2/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+--- 11/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-02-28 16:40:44.000000000 +0800
++++ 11/2/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-02-28 16:40:44.000000000 +0800
+@@ -158,7 +158,7 @@
+ 
+   const MCExpr *Expr = MO.getExpr();
+   Fixups.push_back(MCFixup::Create(0, Expr,
+-                                   MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
++                                   MCFixupKind(Cpu0::fixup_Cpu0_PC16)));
+   return 0;
+ }
+ 
+@@ -180,7 +180,7 @@
+   if (Opcode == Cpu0::JSUB)
+     Fixups.push_back(MCFixup::Create(0, Expr,
+                                      MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
+-  else if (Opcode == Cpu0::JSUB)
++  else if (Opcode == Cpu0::SWI)
+     Fixups.push_back(MCFixup::Create(0, Expr,
+                                      MCFixupKind(Cpu0::fixup_Cpu0_24)));
+   else

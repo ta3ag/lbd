@@ -43,8 +43,10 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.2.10, Not Released Yet
-	Add section "Cpu0 backend Optimization: Remove useless JMP".
+Version 3.2.11, Not Released Yet
+
+Version 3.2.10, Released February 23, 2013
+	Add chapter "Backend Optimization".
 Version 3.2.9, Released February 20, 2013
 	Correct the "Variable number of arguments" such as sum_i(int amount, ...) 
 	errors. 
@@ -220,7 +222,8 @@ running result.
 
 :ref:`sec-optimize`:
 
-Introduce how to do backend optimization by a simple effective example.
+Introduce how to do backend optimization by a simple effective example, and 
+redesign Cpu0 instruction sets to be a efficient RISC CPU.
 
 :ref:`sec-appendix-installing`:
 
