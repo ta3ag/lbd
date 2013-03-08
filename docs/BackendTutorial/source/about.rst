@@ -43,8 +43,10 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.2.11, Not Released Yet
+Version 3.2.12, Not Released Yet
 
+Version 3.2.11, Released March 8, 2013
+	Fix bug in generate elf of chapter "Backend Optimization".
 Version 3.2.10, Released February 23, 2013
 	Add chapter "Backend Optimization".
 Version 3.2.9, Released February 20, 2013
