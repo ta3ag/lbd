@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.10',
+        VERSION:     '3.2.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -389,6 +389,21 @@ Process 6058 stopped
 </div>
 <p>About the lldb debug command, please reference <a class="footnote-reference" href="#id20" id="id7">[6]</a> or lldb portal <a class="footnote-reference" href="#id21" id="id8">[7]</a>.</p>
 </div>
+<div class="section" id="install-icarus-verilog-tool-on-imac">
+<h3>Install Icarus Verilog tool on iMac<a class="headerlink" href="#install-icarus-verilog-tool-on-imac" title="Permalink to this headline">¶</a></h3>
+<p>Install Icarus Verilog tool by command <tt class="docutils literal"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">icarus-verilog</span></tt> as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:~ Jonathan<span class="nv">$ </span>brew install icarus-verilog
+<span class="o">==</span>&gt; Downloading ftp://icarus.com/pub/eda/verilog/v0.9/verilog-0.9.5.tar.gz
+<span class="c">######################################################################## 100.0%</span>
+<span class="c">######################################################################## 100.0%</span>
+<span class="o">==</span>&gt; ./configure --prefix<span class="o">=</span>/usr/local/Cellar/icarus-verilog/0.9.5
+<span class="o">==</span>&gt; <span class="nv">make</span>
+<span class="o">==</span>&gt; make <span class="nv">installdirs</span>
+<span class="o">==</span>&gt; make install
+/usr/local/Cellar/icarus-verilog/0.9.5: 39 files, 12M, built in 55 seconds
+</pre></div>
+</div>
+</div>
 <div class="section" id="install-other-tools-on-imac">
 <h3>Install other tools on iMac<a class="headerlink" href="#install-other-tools-on-imac" title="Permalink to this headline">¶</a></h3>
 <p>These tools mentioned in this section is for coding and debug.
@@ -459,18 +474,6 @@ INSTALL_RECEIPT.json    include       x86_64-apple-darwin12.2.0
 118-165-77-214:binutils-2.23 Jonathan<span class="nv">$ </span>ls /usr/local/Cellar/binutils/2.22/bin
 gaddr2line  gc++filt  gnm   gobjdump  greadelf  gstrings
 gar   gelfedit  gobjcopy  granlib gsize   gstrip
-</pre></div>
-</div>
-<p>Install Icarus Verilog tool by command <tt class="docutils literal"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">icarus-verilog</span></tt> as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:~ Jonathan<span class="nv">$ </span>brew install icarus-verilog
-<span class="o">==</span>&gt; Downloading ftp://icarus.com/pub/eda/verilog/v0.9/verilog-0.9.5.tar.gz
-<span class="c">######################################################################## 100.0%</span>
-<span class="c">######################################################################## 100.0%</span>
-<span class="o">==</span>&gt; ./configure --prefix<span class="o">=</span>/usr/local/Cellar/icarus-verilog/0.9.5
-<span class="o">==</span>&gt; <span class="nv">make</span>
-<span class="o">==</span>&gt; make <span class="nv">installdirs</span>
-<span class="o">==</span>&gt; make install
-/usr/local/Cellar/icarus-verilog/0.9.5: 39 files, 12M, built in 55 seconds
 </pre></div>
 </div>
 </div>
@@ -745,13 +748,16 @@ Quit anyway? (y or n) y
 [Gamma@localhost InputFiles]$</pre>
 </div>
 </div>
+<div class="section" id="install-icarus-verilog-tool-on-linux">
+<h3>Install Icarus Verilog tool on Linux<a class="headerlink" href="#install-icarus-verilog-tool-on-linux" title="Permalink to this headline">¶</a></h3>
+<p>Download the snapshot version of Icarus Verilog tool from web site,
+<a class="reference external" href="ftp://icarus.com/pub/eda/verilog/snapshots">ftp://icarus.com/pub/eda/verilog/snapshots</a> or go to <a class="reference external" href="http://iverilog.icarus.com/">http://iverilog.icarus.com/</a>
+and click snapshot version link. Follow the INSTALL file guide to install it.</p>
+</div>
 <div class="section" id="install-other-tools-on-linux">
 <h3>Install other tools on Linux<a class="headerlink" href="#install-other-tools-on-linux" title="Permalink to this headline">¶</a></h3>
 <p>Download Graphviz from <a class="footnote-reference" href="#id26" id="id13">[12]</a> according your
 Linux distribution. Files compare tools Kdiff3 came from web site <a class="footnote-reference" href="#id22" id="id14">[8]</a>.</p>
-<p>Download the snapshot version of Icarus Verilog tool from web site,
-<a class="reference external" href="ftp://icarus.com/pub/eda/verilog/snapshots">ftp://icarus.com/pub/eda/verilog/snapshots</a> or go to <a class="reference external" href="http://iverilog.icarus.com/">http://iverilog.icarus.com/</a>
-and click snapshot version link. Follow the INSTALL file guide to install it.</p>
 <table class="docutils footnote" frame="void" id="id15" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">

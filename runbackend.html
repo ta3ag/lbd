@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.10',
+        VERSION:     '3.2.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -1539,7 +1539,7 @@ documents for this language. Web site <a class="footnote-reference" href="#id3" 
 Example code LLVMBackendTutorialExampleCode/cpu0s_verilog/raw/cpu0s.v is the
 cpu0 design in Verilog. In Appendix A, we have downloaded and installed Icarus
 Verilog tool both on iMac and Linux. The cpu0s.v is a simple design with only
-270 lines of code. Alough it has not the pipeline features, we can assume the
+280 lines of code. Alough it has not the pipeline features, we can assume the
 cpu0 backend code run on the pipeline machine because the pipeline version
 use the same machine instructions. Verilog is C like language in syntex and
 this book is a compiler book, so we list the cpu0s.v as well as the building
@@ -1554,6 +1554,10 @@ cx($rb) is 0x7000 (28672), CPU0 display the content as follows,</p>
     $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);</pre>
 </div>
 <div class="highlight-c++"><pre>// cpu0s.v
+`define MEMSIZE 'h7000
+`define MEMEMPTY 8'hFF
+`define IOADDR  'h7000
+
 // Operand width
 `define INT32 2'b11     // 32 bits
 `define INT24 2'b10     // 24 bits
@@ -1744,11 +1748,11 @@ module cpu0(input clock, reset, output reg [2:0] tick,
         $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI,
         LO, `SW);
       ST :
-        if (R[b]+c16 == 28672)
+        if (R[b]+c16 == `IOADDR)
           $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);
-     /* ST :
-        $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d SW=%8x", $stime, pc0, ir,
-        R[b], c16, R[a], `SW);*/
+        else
+          $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d   SW=%8x", $stime, pc0, ir,
+          R[b], c16, R[a], `SW);
       default :
         $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a,
         R[a], R[a], `SW);
@@ -1767,20 +1771,23 @@ endmodule
 
 module memory0(input clock, reset, en, rw, input [1:0] m_size,
                 input [31:0] abus, dbus_in, output [31:0] dbus_out);
-  reg [7:0] m [0:1024];
+  reg [7:0] m [0:`MEMSIZE-1];
   reg [31:0] data;
 
   integer i;
   initial begin
+    for (i=0; i &lt; `MEMSIZE; i=i+1) begin
+       m[i] = `MEMEMPTY;
+    end
     $readmemh("cpu0s.hex", m);
-    for (i=0; i &lt; 1024; i=i+4) begin
+    for (i=0; i &lt; `MEMSIZE &amp;&amp; m[i] != `MEMEMPTY; i=i+4) begin
        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
     end
   end
 
   always @(clock or abus or en or rw or dbus_in)
   begin
-    if (abus &gt;=0 &amp;&amp; abus &lt;= 1023) begin
+    if (abus &gt;=0 &amp;&amp; abus &lt;= `MEMSIZE-4) begin
       if (en == 1 &amp;&amp; rw == 0) begin // r_w==0:write
         data = dbus_in;
         case (m_size)
@@ -1822,7 +1829,7 @@ module main;
     clock = 0;
     reset = 1;
     #20 reset = 0;
-    #30000 $finish;
+    #300000 $finish;
   end
 
   always #10 clock=clock+1;
@@ -1837,8 +1844,8 @@ JonathantekiiMac:raw Jonathan<span class="nv">$ </span>iverilog -o cpu0s cpu0s.v
 <div class="section" id="run-program-on-cpu0-machine">
 <h2>Run program on CPU0 machine<a class="headerlink" href="#run-program-on-cpu0-machine" title="Permalink to this headline">¶</a></h2>
 <p>Now let&#8217;s compile ch10_2.cpp as below. Since code size grows up from low to high
-address and stack grows up from high to low address. We set $sp at 1020 because
-cpu0s.v use 1024 bytes of memory.</p>
+address and stack grows up from high to low address. We set $sp at 0x6ffc because
+cpu0s.v use 0x7000 bytes of memory.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// InitRegs.h</span>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $1,  $ZERO, 0&quot;</span><span class="p">);</span>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $2,  $ZERO, 0&quot;</span><span class="p">);</span>
@@ -1859,7 +1866,7 @@ cpu0s.v use 1024 bytes of memory.</p>
 
 <span class="cp">#define OUT_MEM 0x7000 </span><span class="c1">// 28672</span>
 
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $zero, 1020&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $zero, 0x6ffc&quot;</span><span class="p">);</span>
 
 <span class="kt">void</span> <span class="n">print_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">);</span>
 <span class="kt">int</span> <span class="n">test_operators</span><span class="p">();</span>
@@ -2438,71 +2445,6 @@ the requested range <span class="o">[</span>0:1024<span class="o">]</span>.
 000002f0: 01107000
 000002f4: 09dd0008
 000002f8: 2c000000
-000002fc: xxxxxxxx
-00000300: xxxxxxxx
-00000304: xxxxxxxx
-00000308: xxxxxxxx
-0000030c: xxxxxxxx
-00000310: xxxxxxxx
-00000314: xxxxxxxx
-00000318: xxxxxxxx
-0000031c: xxxxxxxx
-00000320: xxxxxxxx
-00000324: xxxxxxxx
-00000328: xxxxxxxx
-0000032c: xxxxxxxx
-00000330: xxxxxxxx
-00000334: xxxxxxxx
-00000338: xxxxxxxx
-0000033c: xxxxxxxx
-00000340: xxxxxxxx
-00000344: xxxxxxxx
-00000348: xxxxxxxx
-0000034c: xxxxxxxx
-00000350: xxxxxxxx
-00000354: xxxxxxxx
-00000358: xxxxxxxx
-0000035c: xxxxxxxx
-00000360: xxxxxxxx
-00000364: xxxxxxxx
-00000368: xxxxxxxx
-0000036c: xxxxxxxx
-00000370: xxxxxxxx
-00000374: xxxxxxxx
-00000378: xxxxxxxx
-0000037c: xxxxxxxx
-00000380: xxxxxxxx
-00000384: xxxxxxxx
-00000388: xxxxxxxx
-0000038c: xxxxxxxx
-00000390: xxxxxxxx
-00000394: xxxxxxxx
-00000398: xxxxxxxx
-0000039c: xxxxxxxx
-000003a0: xxxxxxxx
-000003a4: xxxxxxxx
-000003a8: xxxxxxxx
-000003ac: xxxxxxxx
-000003b0: xxxxxxxx
-000003b4: xxxxxxxx
-000003b8: xxxxxxxx
-000003bc: xxxxxxxx
-000003c0: xxxxxxxx
-000003c4: xxxxxxxx
-000003c8: xxxxxxxx
-000003cc: xxxxxxxx
-000003d0: xxxxxxxx
-000003d4: xxxxxxxx
-000003d8: xxxxxxxx
-000003dc: xxxxxxxx
-000003e0: xxxxxxxx
-000003e4: xxxxxxxx
-000003e8: xxxxxxxx
-000003ec: xxxxxxxx
-000003f0: xxxxxxxx
-000003f4: xxxxxxxx
-000003f8: xxxxxxxx
-000003fc: xxxxxxxx
   90ns 00000000 : 09100000 R<span class="o">[</span>01<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
  170ns 00000004 : 09200000 R<span class="o">[</span>02<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
  250ns 00000008 : 09300000 R<span class="o">[</span>03<span class="o">]=</span><span class="nv">00000000</span><span class="o">=</span>0          <span class="nv">SW</span><span class="o">=</span>00000000
@@ -2678,7 +2620,7 @@ with the <strong>OUTPUT=xxx</strong> in Verilog output.</p>
 
 <span class="cp">#define OUT_MEM 0x7000 </span><span class="c1">// 28672</span>
 
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $zero, 1020&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $zero, 0x6ffc&quot;</span><span class="p">);</span>
 
 <span class="kt">void</span> <span class="n">print_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">);</span>
 <span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...);</span>
