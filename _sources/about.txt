@@ -43,8 +43,11 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.2.12, Not Released Yet
+Version 3.2.13, Not Released Yet
 
+Version 3.2.12, Released March 9, 2013
+	Add section "Type of char and short int" of chapter 
+	"Global variables, structs and arrays, other type".
 Version 3.2.11, Released March 8, 2013
 	Fix bug in generate elf of chapter "Backend Optimization".
 Version 3.2.10, Released February 23, 2013
@@ -192,7 +195,7 @@ the Cpu0 backend can now generate big and little endian object files.
 
 :ref:`sec-globalvars`:
 
-Global variable, struct and array support are added in this chapter. 
+Global variable, struct and array support, char and short int, are added in this chapter. 
 About 300 lines of source code are added to do this. The Cpu0 supports PIC and static 
 addressing mode, both of which area explained as their functionality is implemented.
 

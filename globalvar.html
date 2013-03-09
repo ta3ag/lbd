@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Global variables, structs and arrays &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    <title>Global variables, structs and arrays, other type &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.11',
+        VERSION:     '3.2.12',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -36,7 +36,7 @@
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
-        <h2 class="heading"><span>Global variables, structs and arrays</span></h2>
+        <h2 class="heading"><span>Global variables, structs and arrays, other type</span></h2>
       </div>
       <div class="topnav">
       
@@ -52,13 +52,15 @@
       <div class="content">
         
         
-  <div class="section" id="global-variables-structs-and-arrays">
-<span id="sec-globalvars"></span><h1>Global variables, structs and arrays<a class="headerlink" href="#global-variables-structs-and-arrays" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="global-variables-structs-and-arrays-other-type">
+<span id="sec-globalvars"></span><h1>Global variables, structs and arrays, other type<a class="headerlink" href="#global-variables-structs-and-arrays-other-type" title="Permalink to this headline">¶</a></h1>
 <p>In the previous two chapters, we only access the local variables.
 This chapter will deal global variable access translation.
 After that, introducing the types of struct and array as well as
 their corresponding llvm IR statement, and how the cpu0
-translate these llvm IR statements in <a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#array-and-struct-support">section Array and struct support</a>.</p>
+translate these llvm IR statements in <a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#array-and-struct-support">section Array and struct support</a>.
+Finally, we deal the other types such as <strong>&#8220;short int&#8221;</strong> and <strong>char</strong> in the
+last section.</p>
 <p>The global variable DAG translation is different from the previous DAG
 translation we have now.
 It create DAG nodes at run time in our backend C++ code according the
@@ -932,6 +934,130 @@ addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, %hi<span class=
 shl <span class="nv">$2</span>, <span class="nv">$2</span>, 16
 addiu <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span>a<span class="o">)</span>
 ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="type-of-char-and-short-int">
+<h2>Type of char and short int<a class="headerlink" href="#type-of-char-and-short-int" title="Permalink to this headline">¶</a></h2>
+<p>To support signed/unsigned char and short int, we add the following code to
+6/3/Cpu0.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0InstrInfo.td</span>
+<span class="p">...</span>
+<span class="n">def</span> <span class="n">sextloadi16_a</span>   <span class="o">:</span> <span class="n">AlignedLoad</span><span class="o">&lt;</span><span class="n">sextloadi16</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">zextloadi16_a</span>   <span class="o">:</span> <span class="n">AlignedLoad</span><span class="o">&lt;</span><span class="n">zextloadi16</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">extloadi16_a</span>    <span class="o">:</span> <span class="n">AlignedLoad</span><span class="o">&lt;</span><span class="n">extloadi16</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">...</span>
+<span class="n">def</span> <span class="n">truncstorei16_a</span> <span class="o">:</span> <span class="n">AlignedStore</span><span class="o">&lt;</span><span class="n">truncstorei16</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">...</span>
+<span class="n">defm</span> <span class="n">LB</span>     <span class="o">:</span> <span class="n">LoadM32</span><span class="o">&lt;</span><span class="mh">0x03</span><span class="p">,</span> <span class="s">&quot;lb&quot;</span><span class="p">,</span>  <span class="n">sextloadi8</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">defm</span> <span class="n">LBu</span>    <span class="o">:</span> <span class="n">LoadM32</span><span class="o">&lt;</span><span class="mh">0x04</span><span class="p">,</span> <span class="s">&quot;lbu&quot;</span><span class="p">,</span> <span class="n">zextloadi8</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">defm</span> <span class="n">SB</span>     <span class="o">:</span> <span class="n">StoreM32</span><span class="o">&lt;</span><span class="mh">0x05</span><span class="p">,</span> <span class="s">&quot;sb&quot;</span><span class="p">,</span> <span class="n">truncstorei8</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">defm</span> <span class="n">LH</span>     <span class="o">:</span> <span class="n">LoadM32</span><span class="o">&lt;</span><span class="mh">0x06</span><span class="p">,</span> <span class="s">&quot;lh&quot;</span><span class="p">,</span>  <span class="n">sextloadi16_a</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">defm</span> <span class="n">LHu</span>    <span class="o">:</span> <span class="n">LoadM32</span><span class="o">&lt;</span><span class="mh">0x07</span><span class="p">,</span> <span class="s">&quot;lhu&quot;</span><span class="p">,</span> <span class="n">zextloadi16_a</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">defm</span> <span class="n">SH</span>     <span class="o">:</span> <span class="n">StoreM32</span><span class="o">&lt;</span><span class="mh">0x08</span><span class="p">,</span> <span class="s">&quot;sh&quot;</span><span class="p">,</span> <span class="n">truncstorei16_a</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Run 6/3/Cpu0 with ch6_3.cpp will get the following result.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch6_3.cpp</span>
+<span class="k">struct</span> <span class="n">Date</span>
+<span class="p">{</span>
+  <span class="kt">short</span> <span class="n">year</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">month</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">day</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">hour</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">minute</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">second</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">b</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="sc">&#39;a&#39;</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="p">,</span> <span class="sc">&#39;\0&#39;</span><span class="p">};</span>
+
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">a</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+  <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+  <span class="n">Date</span> <span class="n">date1</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="mi">11</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="mi">25</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="mi">9</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="mi">40</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="mi">15</span><span class="p">};</span>
+  <span class="kt">char</span> <span class="n">m</span> <span class="o">=</span> <span class="n">date1</span><span class="p">.</span><span class="n">month</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">s</span> <span class="o">=</span> <span class="n">date1</span><span class="p">.</span><span class="n">second</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-64-245:InputFiles Jonathan<span class="nv">$ </span>clang -c ch6_3.cpp -emit-llvm -o ch6_3.bc
+118-165-64-245:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch6_3.bc -o
+ch6_3.cpu0.s
+118-165-64-245:InputFiles Jonathan<span class="nv">$ </span>cat ch6_3.cpu0.s
+      .section .mdebug.abi32
+      .previous
+      .file   <span class="s2">&quot;ch6_3.bc&quot;</span>
+      .text
+      .globl  main
+      .align  2
+      .type   main,@function
+      .ent    main                    <span class="c"># @main</span>
+main:
+      .cfi_startproc
+      .frame  <span class="nv">$sp</span>,32,<span class="nv">$lr</span>
+      .mask   0x00000000,0
+      .set    noreorder
+      .cpload <span class="nv">$t9</span>
+      .set    nomacro
+<span class="c"># BB#0:</span>
+      addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -32
+<span class="nv">$tmp1</span>:
+      .cfi_def_cfa_offset 32
+      addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+      st      <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      ld      <span class="nv">$3</span>, %got<span class="o">(</span>b<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
+      lbu     <span class="nv">$4</span>, 1<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
+      sb      <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      lbu     <span class="nv">$3</span>, 1<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
+      sb      <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      ld      <span class="nv">$3</span>, %got<span class="o">(</span><span class="nv">$_ZZ4mainE5date1</span><span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
+      addiu   <span class="nv">$3</span>, <span class="nv">$3</span>, %lo<span class="o">(</span><span class="nv">$_ZZ4mainE5date1</span><span class="o">)</span>
+      lhu     <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
+      shl     <span class="nv">$4</span>, <span class="nv">$4</span>, 16
+      lhu     <span class="nv">$5</span>, 6<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
+      or      <span class="nv">$4</span>, <span class="nv">$4</span>, <span class="nv">$5</span>
+      st      <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             // store hour, minute and second on 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      lhu     <span class="nv">$4</span>, 2<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
+      lhu     <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
+      shl     <span class="nv">$3</span>, <span class="nv">$3</span>, 16
+      or      <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+      st      <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>              // store year, month and day on 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      lbu     <span class="nv">$3</span>, 10<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             // <span class="nv">m</span> <span class="o">=</span> date1.month;
+      sb      <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      lbu     <span class="nv">$3</span>, 14<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             // <span class="nv">s</span> <span class="o">=</span> date1.second;
+      sb      <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 32
+      ret     <span class="nv">$lr</span>
+      .set    macro
+      .set    reorder
+      .end    main
+<span class="nv">$tmp2</span>:
+      .size   main, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-main
+      .cfi_endproc
+
+      .type   b,@object               <span class="c"># @b</span>
+      .data
+      .globl  b
+b:
+      .asciz   <span class="s2">&quot;abc&quot;</span>
+      .size   b, 4
+
+      .type   <span class="nv">$_ZZ4mainE5date1</span>,@object <span class="c"># @_ZZ4mainE5date1</span>
+      .section        .rodata.cst8,<span class="s2">&quot;aM&quot;</span>,@progbits,8
+      .align  1
+<span class="nv">$_ZZ4mainE5date1</span>:
+      .2byte  2012                    <span class="c"># 0x7dc</span>
+      .byte   11                      <span class="c"># 0xb</span>
+      .byte   25                      <span class="c"># 0x19</span>
+      .byte   9                       <span class="c"># 0x9</span>
+      .byte   40                      <span class="c"># 0x28</span>
+      .byte   15                      <span class="c"># 0xf</span>
+      .space  1
+      .size   <span class="nv">$_ZZ4mainE5date1</span>, 8
 </pre></div>
 </div>
 <table class="docutils footnote" frame="void" id="id4" rules="none">

@@ -105,47 +105,41 @@ The following table details the Cpu0 instruction set:
 	  - ST Ra, [Rb+Cx]
 	  - [Rb+Cx] <= Ra
 	* - L
-	  - LDB
-	  - 02
+	  - LB
+	  - 03
 	  - Load byte
-	  - LDB Ra, [Rb+Cx]
+	  - LB Ra, [Rb+Cx]
 	  - Ra <= (byte)[Rb+Cx]
 	* - L
-	  - STB
-	  - 03
+	  - LBu
+	  - 04
+	  - Load byte unsigned
+	  - LBu Ra, [Rb+Cx]
+	  - Ra <= (byte)[Rb+Cx]
+	* - L
+	  - SB
+	  - 05
 	  - Store byte
-	  - STB Ra, [Rb+Cx]
+	  - SB Ra, [Rb+Cx]
 	  - [Rb+Cx] <= (byte)Ra
 	* - A
-	  - LDR
-	  - 04
-	  - Load word (w/ register index)
-	  - LDR Ra, [Rb+Rc]
-	  - Ra <= [Rb+Rc]
-	* - A
-	  - STR
-	  - 05
-	  - Store word (w/ register index)
-	  - STR Ra, [Rb+Rc]
-	  - [Rb+Rc] <= Ra
-	* - A
-	  - LBR
+	  - LH
 	  - 06
-	  - Load byte (w/ register index)
-	  - LBR Ra, [Rb+Rc]
-	  - Ra <= (byte)[Rb+Rc]
+	  - Load half word unsigned
+	  - LH Ra, [Rb+Cx]
+	  - Ra <= (2bytes)[Rb+Cx]
 	* - A
-	  - SBR
+	  - LHu
 	  - 07
-	  - Store byte (w/ register index)
-	  - SBR Ra, [Rb+Cx]
-	  - [Rb+Rc] <= (byte)Ra
-	* - L
-	  - LDI
+	  - Load half word
+	  - LHu Ra, [Rb+Cx]
+	  - Ra <= (2bytes)[Rb+Cx]
+	* - A
+	  - SH
 	  - 08
-	  - Load immediate
-	  - LDI Ra, Cx
-	  - Ra <= Cx
+	  - Store half word
+	  - SH Ra, [Rb+Cx]
+	  - [Rb+Rc] <= Ra
 	* - L
 	  - ADDiu
 	  - 09
