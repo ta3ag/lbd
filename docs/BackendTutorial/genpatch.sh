@@ -14,7 +14,8 @@ diff -Naur 4/6_2/Cpu0/ 4/6_4/Cpu0/ > 4-6_4.patch
 diff -Naur 4/6_4/Cpu0/ 5/Cpu0/ > 5.patch
 diff -Naur 5/Cpu0/ 6/1/Cpu0/ > 6-1.patch
 diff -Naur 6/1/Cpu0/ 6/2/Cpu0/ > 6-2.patch
-diff -Naur 6/2/Cpu0/ 7/1/Cpu0/ > 7-1.patch
+diff -Naur 6/2/Cpu0/ 6/3/Cpu0/ > 6-3.patch
+diff -Naur 6/3/Cpu0/ 7/1/Cpu0/ > 7-1.patch
 diff -Naur 7/1/Cpu0/ 8/2/Cpu0/ > 8-2.patch
 diff -Naur 8/2/Cpu0/ 8/3/Cpu0/ > 8-3.patch
 diff -Naur 8/3/Cpu0/ 8/4/Cpu0/ > 8-4.patch

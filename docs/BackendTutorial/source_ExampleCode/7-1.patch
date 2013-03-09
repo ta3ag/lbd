@@ -1,6 +1,6 @@
-diff -Naur 6/2/Cpu0/Cpu0ISelLowering.cpp 7/1/Cpu0/Cpu0ISelLowering.cpp
---- 6/2/Cpu0/Cpu0ISelLowering.cpp	2013-02-23 13:34:56.000000000 +0800
-+++ 7/1/Cpu0/Cpu0ISelLowering.cpp	2013-02-23 13:34:56.000000000 +0800
+diff -Naur 6/3/Cpu0/Cpu0ISelLowering.cpp 7/1/Cpu0/Cpu0ISelLowering.cpp
+--- 6/3/Cpu0/Cpu0ISelLowering.cpp	2013-03-09 12:15:28.000000000 +0800
++++ 7/1/Cpu0/Cpu0ISelLowering.cpp	2013-03-09 12:15:28.000000000 +0800
 @@ -64,14 +64,24 @@
    // Set up the register classes
    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
@@ -60,9 +60,9 @@ diff -Naur 6/2/Cpu0/Cpu0ISelLowering.cpp 7/1/Cpu0/Cpu0ISelLowering.cpp
  /// LowerFormalArguments - transform physical registers into virtual registers
  /// and generate load operations for arguments places on the stack.
  SDValue
-diff -Naur 6/2/Cpu0/Cpu0ISelLowering.h 7/1/Cpu0/Cpu0ISelLowering.h
---- 6/2/Cpu0/Cpu0ISelLowering.h	2013-02-23 13:34:56.000000000 +0800
-+++ 7/1/Cpu0/Cpu0ISelLowering.h	2013-02-23 13:34:56.000000000 +0800
+diff -Naur 6/3/Cpu0/Cpu0ISelLowering.h 7/1/Cpu0/Cpu0ISelLowering.h
+--- 6/3/Cpu0/Cpu0ISelLowering.h	2013-03-09 12:15:28.000000000 +0800
++++ 7/1/Cpu0/Cpu0ISelLowering.h	2013-03-09 12:15:28.000000000 +0800
 @@ -77,6 +77,7 @@
      const Cpu0Subtarget *Subtarget;
  
@@ -82,9 +82,9 @@ diff -Naur 6/2/Cpu0/Cpu0ISelLowering.h 7/1/Cpu0/Cpu0ISelLowering.h
  	//- must be exist without function all
      virtual SDValue
        LowerReturn(SDValue Chain,
-diff -Naur 6/2/Cpu0/Cpu0InstrInfo.cpp 7/1/Cpu0/Cpu0InstrInfo.cpp
---- 6/2/Cpu0/Cpu0InstrInfo.cpp	2013-02-23 13:34:56.000000000 +0800
-+++ 7/1/Cpu0/Cpu0InstrInfo.cpp	2013-02-23 13:34:56.000000000 +0800
+diff -Naur 6/3/Cpu0/Cpu0InstrInfo.cpp 7/1/Cpu0/Cpu0InstrInfo.cpp
+--- 6/3/Cpu0/Cpu0InstrInfo.cpp	2013-03-09 12:15:28.000000000 +0800
++++ 7/1/Cpu0/Cpu0InstrInfo.cpp	2013-03-09 12:15:28.000000000 +0800
 @@ -42,12 +42,18 @@
        Opc = Cpu0::MFHI, SrcReg = 0;
      else if (SrcReg == Cpu0::LO)
@@ -104,9 +104,9 @@ diff -Naur 6/2/Cpu0/Cpu0InstrInfo.cpp 7/1/Cpu0/Cpu0InstrInfo.cpp
    }
  
    assert(Opc && "Cannot copy registers");
-diff -Naur 6/2/Cpu0/Cpu0InstrInfo.td 7/1/Cpu0/Cpu0InstrInfo.td
---- 6/2/Cpu0/Cpu0InstrInfo.td	2013-02-23 13:34:56.000000000 +0800
-+++ 7/1/Cpu0/Cpu0InstrInfo.td	2013-02-23 13:34:56.000000000 +0800
+diff -Naur 6/3/Cpu0/Cpu0InstrInfo.td 7/1/Cpu0/Cpu0InstrInfo.td
+--- 6/3/Cpu0/Cpu0InstrInfo.td	2013-03-09 12:15:28.000000000 +0800
++++ 7/1/Cpu0/Cpu0InstrInfo.td	2013-03-09 12:15:28.000000000 +0800
 @@ -53,6 +53,12 @@
  //===----------------------------------------------------------------------===//
  // Cpu0 Operand, Complex Patterns and Transformations Definitions.
@@ -120,7 +120,7 @@ diff -Naur 6/2/Cpu0/Cpu0InstrInfo.td 7/1/Cpu0/Cpu0InstrInfo.td
  
  // Signed Operand
  def simm16      : Operand<i32> {
-@@ -146,6 +152,16 @@
+@@ -150,6 +156,16 @@
    let isReMaterializable = 1;
  }
  
@@ -137,7 +137,7 @@ diff -Naur 6/2/Cpu0/Cpu0InstrInfo.td 7/1/Cpu0/Cpu0InstrInfo.td
  // Arithmetic and logical instructions with 2 register operands.
  class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
                    Operand Od, PatLeaf imm_type, RegisterClass RC> :
-@@ -228,6 +244,29 @@
+@@ -232,6 +248,29 @@
    def #NAME# : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
  }
  
@@ -167,7 +167,7 @@ diff -Naur 6/2/Cpu0/Cpu0InstrInfo.td 7/1/Cpu0/Cpu0InstrInfo.td
  // Mul, Div
  class Mult<bits<8> op, string instr_asm, InstrItinClass itin,
             RegisterClass RC, list<Register> DefRegs>:
-@@ -298,6 +337,7 @@
+@@ -308,6 +347,7 @@
  def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
  
  /// Arithmetic Instructions (3-Operand, R-Type)
@@ -175,7 +175,7 @@ diff -Naur 6/2/Cpu0/Cpu0InstrInfo.td 7/1/Cpu0/Cpu0InstrInfo.td
  def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
  def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
  def MUL     : ArithLogicR<0x15, "mul", mul, IIImul, CPURegs, 1>;
-@@ -324,6 +364,17 @@
+@@ -334,6 +374,17 @@
  // work, srl for lshr llvm IR instruction
  def SHR     : shift_rotate_imm32<0x1F, 0x00, "shr", srl>;
  
@@ -193,9 +193,9 @@ diff -Naur 6/2/Cpu0/Cpu0InstrInfo.td 7/1/Cpu0/Cpu0InstrInfo.td
  let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
      isBarrier=1, hasCtrlDep=1 in
    def RET : FJ <0x2C, (outs), (ins CPURegs:$target),
-@@ -370,6 +421,41 @@
- def : Pat<(not CPURegs:$in),
-           (XOR CPURegs:$in, (ADDiu ZERO, 1))>;
+@@ -384,6 +435,41 @@
+ def : Pat<(i32 (extloadi8  addr:$src)), (LBu addr:$src)>;
+ def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
  
 +// brcond patterns
 +multiclass BrcondPats<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
@@ -235,9 +235,9 @@ diff -Naur 6/2/Cpu0/Cpu0InstrInfo.td 7/1/Cpu0/Cpu0InstrInfo.td
  // setcc patterns
  multiclass SeteqPats<RegisterClass RC, Instruction XOROp> {
    def : Pat<(seteq RC:$lhs, RC:$rhs),
-diff -Naur 6/2/Cpu0/Cpu0MCInstLower.cpp 7/1/Cpu0/Cpu0MCInstLower.cpp
---- 6/2/Cpu0/Cpu0MCInstLower.cpp	2013-02-23 13:34:56.000000000 +0800
-+++ 7/1/Cpu0/Cpu0MCInstLower.cpp	2013-02-23 13:34:56.000000000 +0800
+diff -Naur 6/3/Cpu0/Cpu0MCInstLower.cpp 7/1/Cpu0/Cpu0MCInstLower.cpp
+--- 6/3/Cpu0/Cpu0MCInstLower.cpp	2013-03-09 12:15:28.000000000 +0800
++++ 7/1/Cpu0/Cpu0MCInstLower.cpp	2013-03-09 12:15:28.000000000 +0800
 @@ -42,6 +42,8 @@
  
    switch(MO.getTargetFlags()) {
@@ -268,9 +268,9 @@ diff -Naur 6/2/Cpu0/Cpu0MCInstLower.cpp 7/1/Cpu0/Cpu0MCInstLower.cpp
      return LowerSymbolOperand(MO, MOTy, offset);
    case MachineOperand::MO_RegisterMask:
      break;
-diff -Naur 6/2/Cpu0/Cpu0RegisterInfo.cpp 7/1/Cpu0/Cpu0RegisterInfo.cpp
---- 6/2/Cpu0/Cpu0RegisterInfo.cpp	2013-02-23 13:34:56.000000000 +0800
-+++ 7/1/Cpu0/Cpu0RegisterInfo.cpp	2013-02-23 13:34:56.000000000 +0800
+diff -Naur 6/3/Cpu0/Cpu0RegisterInfo.cpp 7/1/Cpu0/Cpu0RegisterInfo.cpp
+--- 6/3/Cpu0/Cpu0RegisterInfo.cpp	2013-03-09 12:15:28.000000000 +0800
++++ 7/1/Cpu0/Cpu0RegisterInfo.cpp	2013-03-09 12:15:28.000000000 +0800
 @@ -70,7 +70,7 @@
  getReservedRegs(const MachineFunction &MF) const {
    static const uint16_t ReservedCPURegs[] = {
@@ -280,9 +280,9 @@ diff -Naur 6/2/Cpu0/Cpu0RegisterInfo.cpp 7/1/Cpu0/Cpu0RegisterInfo.cpp
    };
    BitVector Reserved(getNumRegs());
    typedef TargetRegisterClass::iterator RegIter;
-diff -Naur 6/2/Cpu0/Cpu0RegisterInfo.td 7/1/Cpu0/Cpu0RegisterInfo.td
---- 6/2/Cpu0/Cpu0RegisterInfo.td	2013-02-23 13:34:56.000000000 +0800
-+++ 7/1/Cpu0/Cpu0RegisterInfo.td	2013-02-23 13:34:56.000000000 +0800
+diff -Naur 6/3/Cpu0/Cpu0RegisterInfo.td 7/1/Cpu0/Cpu0RegisterInfo.td
+--- 6/3/Cpu0/Cpu0RegisterInfo.td	2013-03-09 12:15:28.000000000 +0800
++++ 7/1/Cpu0/Cpu0RegisterInfo.td	2013-03-09 12:15:28.000000000 +0800
 @@ -65,8 +65,11 @@
    // Callee save
    S0, S1, S2, 
@@ -296,9 +296,9 @@ diff -Naur 6/2/Cpu0/Cpu0RegisterInfo.td 7/1/Cpu0/Cpu0RegisterInfo.td
 +// Status Registers
 +def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
 +
-diff -Naur 6/2/Cpu0/InstPrinter/Cpu0InstPrinter.cpp 7/1/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
---- 6/2/Cpu0/InstPrinter/Cpu0InstPrinter.cpp	2013-02-23 13:34:56.000000000 +0800
-+++ 7/1/Cpu0/InstPrinter/Cpu0InstPrinter.cpp	2013-02-23 13:34:56.000000000 +0800
+diff -Naur 6/3/Cpu0/InstPrinter/Cpu0InstPrinter.cpp 7/1/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
+--- 6/3/Cpu0/InstPrinter/Cpu0InstPrinter.cpp	2013-03-09 12:15:28.000000000 +0800
++++ 7/1/Cpu0/InstPrinter/Cpu0InstPrinter.cpp	2013-03-09 12:15:28.000000000 +0800
 @@ -58,6 +58,7 @@
    case MCSymbolRefExpr::VK_None:           break;
  // Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static
@@ -307,9 +307,9 @@ diff -Naur 6/2/Cpu0/InstPrinter/Cpu0InstPrinter.cpp 7/1/Cpu0/InstPrinter/Cpu0Ins
    case MCSymbolRefExpr::VK_Cpu0_GOT16:     OS << "%got(";    break;
    case MCSymbolRefExpr::VK_Cpu0_GOT:       OS << "%got(";    break;
    case MCSymbolRefExpr::VK_Cpu0_ABS_HI:    OS << "%hi(";     break;
-diff -Naur 6/2/Cpu0/MCTargetDesc/Cpu0BaseInfo.h 7/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
---- 6/2/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-02-23 13:34:56.000000000 +0800
-+++ 7/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-02-23 13:34:56.000000000 +0800
+diff -Naur 6/3/Cpu0/MCTargetDesc/Cpu0BaseInfo.h 7/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
+--- 6/3/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-03-09 12:15:28.000000000 +0800
++++ 7/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-03-09 12:15:28.000000000 +0800
 @@ -143,6 +143,10 @@
      return 14;
    case Cpu0::PC:
@@ -321,9 +321,9 @@ diff -Naur 6/2/Cpu0/MCTargetDesc/Cpu0BaseInfo.h 7/1/Cpu0/MCTargetDesc/Cpu0BaseIn
    default: llvm_unreachable("Unknown register number!");
    }
  }
-diff -Naur 6/2/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp 7/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- 6/2/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-02-23 13:34:56.000000000 +0800
-+++ 7/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-02-23 13:34:56.000000000 +0800
+diff -Naur 6/3/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp 7/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+--- 6/3/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-03-09 12:15:28.000000000 +0800
++++ 7/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-03-09 12:15:28.000000000 +0800
 @@ -69,10 +69,18 @@
  
    void EncodeInstruction(const MCInst &MI, raw_ostream &OS,

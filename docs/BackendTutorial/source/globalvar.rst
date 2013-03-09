@@ -1,13 +1,15 @@
 .. _sec-globalvars:
 
-Global variables, structs and arrays
-====================================
+Global variables, structs and arrays, other type
+=================================================
 
 In the previous two chapters, we only access the local variables. 
 This chapter will deal global variable access translation. 
 After that, introducing the types of struct and array as well as  
 their corresponding llvm IR statement, and how the cpu0 
 translate these llvm IR statements in `section Array and struct support`_. 
+Finally, we deals the other type such as **"short int"** and **char** in the 
+last section.
 
 The global variable DAG translation is different from the previous DAG 
 translation we have now. 
@@ -963,6 +965,136 @@ follows.
   shl $2, $2, 16
   addiu $2, $2, %lo(a)
   ld  $2, 4($2)
+
+
+Type of char and short int
+--------------------------
+
+To support signed/unsigned char and short int, we add the following code to 
+6/3/Cpu0.
+
+.. code-block:: c++
+
+  // Cpu0InstrInfo.td
+  ...
+  def sextloadi16_a   : AlignedLoad<sextloadi16>;
+  def zextloadi16_a   : AlignedLoad<zextloadi16>;
+  def extloadi16_a    : AlignedLoad<extloadi16>;
+  ...
+  def truncstorei16_a : AlignedStore<truncstorei16>;
+  ...
+  defm LB     : LoadM32<0x03, "lb",  sextloadi8>;
+  defm LBu    : LoadM32<0x04, "lbu", zextloadi8>;
+  defm SB     : StoreM32<0x05, "sb", truncstorei8>;
+  defm LH     : LoadM32<0x06, "lh",  sextloadi16_a>;
+  defm LHu    : LoadM32<0x07, "lhu", zextloadi16_a>;
+  defm SH     : StoreM32<0x08, "sh", truncstorei16_a>;
+
+Run 6/3/Cpu0 with ch6_3.cpp will get the following result.
+
+.. code-block:: c++
+
+  // ch6_3.cpp
+  struct Date
+  {
+    short year;
+    char month;
+    char day;
+    char hour;
+    char minute;
+    char second;
+  };
+  
+  unsigned char b[4] = {'a', 'b', 'c', '\0'};
+  
+  int main()
+  {
+    unsigned char a = b[1];
+    char c = (char)b[1];
+    Date date1 = {2012, (char)11, (char)25, (char)9, (char)40, (char)15};
+    char m = date1.month;
+    char s = date1.second;
+  
+    return 0;
+  }
+
+.. code-block:: bash
+
+  118-165-64-245:InputFiles Jonathan$ clang -c ch6_3.cpp -emit-llvm -o ch6_3.bc
+  118-165-64-245:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch6_3.bc -o 
+  ch6_3.cpu0.s
+  118-165-64-245:InputFiles Jonathan$ cat ch6_3.cpu0.s
+  	.section .mdebug.abi32
+  	.previous
+  	.file	"ch6_3.bc"
+  	.text
+  	.globl	main
+  	.align	2
+  	.type	main,@function
+  	.ent	main                    # @main
+  main:
+  	.cfi_startproc
+  	.frame	$sp,32,$lr
+  	.mask 	0x00000000,0
+  	.set	noreorder
+  	.cpload	$t9
+  	.set	nomacro
+  # BB#0:
+  	addiu	$sp, $sp, -32
+  $tmp1:
+  	.cfi_def_cfa_offset 32
+  	addiu	$2, $zero, 0
+  	st	$2, 28($sp)
+  	ld	$3, %got(b)($gp)
+  	lbu	$4, 1($3)
+  	sb	$4, 24($sp)
+  	lbu	$3, 1($3)
+  	sb	$3, 20($sp)
+  	ld	$3, %got($_ZZ4mainE5date1)($gp)
+  	addiu	$3, $3, %lo($_ZZ4mainE5date1)
+  	lhu	$4, 4($3)
+  	shl	$4, $4, 16
+  	lhu	$5, 6($3)
+  	or	$4, $4, $5
+  	st	$4, 12($sp)		// store hour, minute and second on 12($sp)
+  	lhu	$4, 2($3)
+  	lhu	$3, 0($3)
+  	shl	$3, $3, 16
+  	or	$3, $3, $4
+  	st	$3, 8($sp)		// store year, month and day on 8($sp)	
+  	lbu	$3, 10($sp)		// m = date1.month;
+  	sb	$3, 4($sp)
+  	lbu	$3, 14($sp)		// s = date1.second;
+  	sb	$3, 0($sp)
+  	addiu	$sp, $sp, 32
+  	ret	$lr
+  	.set	macro
+  	.set	reorder
+  	.end	main
+  $tmp2:
+  	.size	main, ($tmp2)-main
+  	.cfi_endproc
+  
+  	.type	b,@object               # @b
+  	.data
+  	.globl	b
+  b:
+  	.asciz	 "abc"
+  	.size	b, 4
+  
+  	.type	$_ZZ4mainE5date1,@object # @_ZZ4mainE5date1
+  	.section	.rodata.cst8,"aM",@progbits,8
+  	.align	1
+  $_ZZ4mainE5date1:
+  	.2byte	2012                    # 0x7dc
+  	.byte	11                      # 0xb
+  	.byte	25                      # 0x19
+  	.byte	9                       # 0x9
+  	.byte	40                      # 0x28
+  	.byte	15                      # 0xf
+  	.space	1
+  	.size	$_ZZ4mainE5date1, 8
 
 
 

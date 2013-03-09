@@ -64,9 +64,12 @@ cp -rf 6/1 ${GEN_DIR}/6/.
 patch -fp0 < 6-2.patch
 mv 6/1 6/2
 cp -rf 6/2 ${GEN_DIR}/6/.
+patch -fp0 < 6-3.patch
+mv 6/2 6/3
+cp -rf 6/3 ${GEN_DIR}/6/.
 patch -fp0 < 7-1.patch
 mkdir 7
-mv 6/2 7/1
+mv 6/3 7/1
 cp -rf 7/1 ${GEN_DIR}/7/.
 patch -fp0 < 8-2.patch
 mkdir 8

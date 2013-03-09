@@ -33,8 +33,8 @@ module cpu0(input clock, reset, output reg [2:0] tick,
   `define T    SW[6]  // Software Interrupt Enable
   `define M    SW[0]  // Mode bit
   // Instruction Opcode 
-  parameter [7:0] LD=8'h01,ST=8'h02,LDB=8'h03,STB=8'h04,LDR=8'h05,STR=8'h06,
-  LBR=8'h07,SBR=8'h08,ADDiu=8'h09,SLTi=8'h0A,SLTiu=8'h0B,ANDi=8'h0C,ORi=8'h0D,
+  parameter [7:0] LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,LH=8'h06,
+  LHu=8'h07,SH=8'h08,ADDiu=8'h09,SLTi=8'h0A,SLTiu=8'h0B,ANDi=8'h0C,ORi=8'h0D,
   XORi=8'h0E,LUi=8'h0F,
   ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,MUL=8'h15,DIV=8'h16,DIVu=8'h17,
   AND=8'h18,OR=8'h19,XOR=8'h1A,
@@ -119,12 +119,12 @@ module cpu0(input clock, reset, output reg [2:0] tick,
       // load and store instructions
       LD:  memReadStart(Rb+c16, `INT32);      // LD Ra,[Rb+Cx]; Ra<=[Rb+Cx]
       ST:  memWriteStart(Rb+c16, Ra, `INT32); // ST Ra,[Rb+Cx]; Ra=>[Rb+Cx]
-      LDB: memReadStart(Rb+c16, `BYTE);     // LDB Ra,[Rb+Cx]; Ra<=(byte)[Rb+Cx]
-      STB: memWriteStart(Rb+c16, Ra, `BYTE);// STB Ra,[Rb+Cx]; Ra=>(byte)[Rb+Cx]
-      LDR: memReadStart(Rb+Rc, `INT32);       // LDR Ra, [Rb+Rc]; Ra<=[Rb+ Rc]
-      STR: memWriteStart(Rb+Rc, Ra, `INT32);  // STR Ra, [Rb+Rc]; Ra=>[Rb+ Rc]
-      LBR: memReadStart(Rb+Rc, `BYTE);      // LBR Ra,[Rb+Rc]; Ra<=(byte)[Rb+Rc]
-      SBR: memWriteStart(Rb+Rc, Ra, `BYTE); // SBR Ra,[Rb+Rc]; Ra=>(byte)[Rb+Rc]
+      LB:  memReadStart(Rb+c16, `BYTE);     // LB Ra,[Rb+Cx]; Ra<=(byte)[Rb+Cx]
+      LBu: memReadStart(Rb+c16, `BYTE);     // LBu Ra,[Rb+Cx]; Ra<=(byte)[Rb+Cx]
+      SB:  memWriteStart(Rb+c16, Ra, `BYTE);// SB Ra,[Rb+Cx]; Ra=>(byte)[Rb+Cx]
+      LH:  memReadStart(Rb+c16, `INT16);     // LH Ra,[Rb+Cx]; Ra<=(2bytes)[Rb+Cx]
+      LHu: memReadStart(Rb+c16, `INT16);     // LHu Ra,[Rb+Cx]; Ra<=(2bytes)[Rb+Cx]
+      SH:  memWriteStart(Rb+c16, Ra, `INT16);// SH Ra,[Rb+Cx]; Ra=>(2bytes)[Rb+Cx]
       // Mathematic 
       ADDiu:  R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra<=Rb+Cx
 //      CMP: begin `N=(Ra-Rb<0);`Z=(Ra-Rb==0); end // CMP Ra, Rb; SW=(Ra >=< Rb)
@@ -189,9 +189,9 @@ module cpu0(input clock, reset, output reg [2:0] tick,
     end
     WriteBack: begin // Read/Write finish, close memory
       case (op)
-        LD, LDB, LDR, LBR  : memReadEnd(R[a]); 
+        LD, LB, LBu, LH, LHu  : memReadEnd(R[a]); 
                                           //read memory complete
-        ST, STB, STR, SBR  : memWriteEnd(); 
+        ST, SB, SH  : memWriteEnd(); 
                                           // write memory complete
       endcase
       case (op)
