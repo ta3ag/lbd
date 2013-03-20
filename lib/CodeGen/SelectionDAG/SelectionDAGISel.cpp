@@ -144,7 +144,12 @@ EnableFastISelVerbose("fast-isel-verbose", cl::Hidden,
                    "instruction selector"));
 static cl::opt<bool>
 EnableFastISelAbort("fast-isel-abort", cl::Hidden,
-          cl::desc("Enable abort calls when \"fast\" instruction fails"));
+          cl::desc("Enable abort calls when \"fast\" instruction selection "
+                   "fails to lower an instruction"));
+static cl::opt<bool>
+EnableFastISelAbortArgs("fast-isel-abort-args", cl::Hidden,
+          cl::desc("Enable abort calls when \"fast\" instruction selection "
+                   "fails to lower a formal argument"));
 
 static cl::opt<bool>
 UseMBPI("use-mbpi",
@@ -357,6 +362,7 @@ bool SelectionDAGISel::runOnMachineFunction(MachineFunction &mf) {
   TargetSubtargetInfo &ST =
     const_cast<TargetSubtargetInfo&>(TM.getSubtarget<TargetSubtargetInfo>());
   ST.resetSubtargetFeatures(MF);
+  TM.resetTargetOptions(MF);
 
   DEBUG(dbgs() << "\n\n\n=== " << Fn.getName() << "\n");
 
@@ -779,8 +785,10 @@ void SelectionDAGISel::DoInstructionSelection() {
       if (ResNode == Node || Node->getOpcode() == ISD::DELETED_NODE)
         continue;
       // Replace node.
-      if (ResNode)
+      if (ResNode) {
+        CurDAG->AssignOrdering(ResNode, CurDAG->GetOrdering(Node));
         ReplaceUses(Node, ResNode);
+      }
 
       // If after the replacement this node is not used any more,
       // remove this dead node.
@@ -1026,13 +1034,11 @@ void SelectionDAGISel::SelectAllBasicBlocks(const Function &Fn) {
       FuncInfo->VisitedBBs.insert(LLVMBB);
     }
 
-    FuncInfo->MBB = FuncInfo->MBBMap[LLVMBB];
-    FuncInfo->InsertPt = FuncInfo->MBB->getFirstNonPHI();
-
     BasicBlock::const_iterator const Begin = LLVMBB->getFirstNonPHI();
     BasicBlock::const_iterator const End = LLVMBB->end();
     BasicBlock::const_iterator BI = End;
 
+    FuncInfo->MBB = FuncInfo->MBBMap[LLVMBB];
     FuncInfo->InsertPt = FuncInfo->MBB->getFirstNonPHI();
 
     // Setup an EH landing-pad block.
@@ -1048,9 +1054,12 @@ void SelectionDAGISel::SelectAllBasicBlocks(const Function &Fn) {
       if (LLVMBB == &Fn.getEntryBlock()) {
         // Lower any arguments needed in this block if this is the entry block.
         if (!FastIS->LowerArguments()) {
-          // Call target indepedent SDISel argument lowering code if the target
-          // specific routine is not successful.
-          LowerArguments(LLVMBB);
+          // Fast isel failed to lower these arguments
+          if (EnableFastISelAbortArgs)
+            llvm_unreachable("FastISel didn't lower all arguments");
+
+          // Use SelectionDAG argument lowering
+          LowerArguments(Fn);
           CurDAG->setRoot(SDB->getControlRoot());
           SDB->clear();
           CodeGenAndEmitDAG();
@@ -1168,7 +1177,7 @@ void SelectionDAGISel::SelectAllBasicBlocks(const Function &Fn) {
     } else {
       // Lower any arguments needed in this block if this is the entry block.
       if (LLVMBB == &Fn.getEntryBlock())
-        LowerArguments(LLVMBB);
+        LowerArguments(Fn);
     }
 
     if (Begin != BI)
@@ -1663,9 +1672,7 @@ SDNode *SelectionDAGISel::Select_INLINEASM(SDNode *N) {
   std::vector<SDValue> Ops(N->op_begin(), N->op_end());
   SelectInlineAsmMemoryOperands(Ops);
 
-  std::vector<EVT> VTs;
-  VTs.push_back(MVT::Other);
-  VTs.push_back(MVT::Glue);
+  EVT VTs[] = { MVT::Other, MVT::Glue };
   SDValue New = CurDAG->getNode(ISD::INLINEASM, N->getDebugLoc(),
                                 VTs, &Ops[0], Ops.size());
   New->setNodeId(-1);
@@ -2599,11 +2606,11 @@ SelectCodeCommon(SDNode *NodeToMatch, const unsigned char *MatcherTable,
       SDValue Imm = RecordedNodes[RecNo].first;
 
       if (Imm->getOpcode() == ISD::Constant) {
-        int64_t Val = cast<ConstantSDNode>(Imm)->getZExtValue();
-        Imm = CurDAG->getTargetConstant(Val, Imm.getValueType());
+        const ConstantInt *Val=cast<ConstantSDNode>(Imm)->getConstantIntValue();
+        Imm = CurDAG->getConstant(*Val, Imm.getValueType(), true);
       } else if (Imm->getOpcode() == ISD::ConstantFP) {
         const ConstantFP *Val=cast<ConstantFPSDNode>(Imm)->getConstantFPValue();
-        Imm = CurDAG->getTargetConstantFP(*Val, Imm.getValueType());
+        Imm = CurDAG->getConstantFP(*Val, Imm.getValueType(), true);
       }
 
       RecordedNodes.push_back(std::make_pair(Imm, RecordedNodes[RecNo].second));

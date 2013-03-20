@@ -696,6 +696,13 @@ bool FastISel::SelectCall(const User *I) {
     UpdateValueMap(Call, ResultReg);
     return true;
   }
+  case Intrinsic::expect: {
+    unsigned ResultReg = getRegForValue(Call->getArgOperand(0));
+    if (ResultReg == 0)
+      return false;
+    UpdateValueMap(Call, ResultReg);
+    return true;
+  }
   }
 
   // Usually, it does not make sense to initialize a value,
