@@ -422,15 +422,6 @@ void PPCInstrInfo::copyPhysReg(MachineBasicBlock &MBB,
     Opc = PPC::VOR;
   else if (PPC::CRBITRCRegClass.contains(DestReg, SrcReg))
     Opc = PPC::CROR;
-
-  // Asymmetric copies:
-
-  else if (PPC::GPRCRegClass.contains(DestReg) &&
-           PPC::G8RCRegClass.contains(SrcReg))
-    Opc = PPC::OR_64;
-  else if (PPC::G8RCRegClass.contains(DestReg) &&
-           PPC::GPRCRegClass.contains(SrcReg))
-    Opc = PPC::OR8_32;
   else
     llvm_unreachable("Impossible reg-to-reg copy");
 
@@ -535,6 +526,12 @@ PPCInstrInfo::StoreRegToStackSlot(MachineFunction &MF,
 
   } else if (PPC::VRRCRegClass.hasSubClassEq(RC)) {
     NewMIs.push_back(addFrameReference(BuildMI(MF, DL, get(PPC::STVX))
+                                       .addReg(SrcReg,
+                                               getKillRegState(isKill)),
+                                       FrameIdx));
+    NonRI = true;
+  } else if (PPC::VRSAVERCRegClass.hasSubClassEq(RC)) {
+    NewMIs.push_back(addFrameReference(BuildMI(MF, DL, get(PPC::SPILL_VRSAVE))
                                        .addReg(SrcReg,
                                                getKillRegState(isKill)),
                                        FrameIdx));
@@ -645,6 +642,12 @@ PPCInstrInfo::LoadRegFromStackSlot(MachineFunction &MF, DebugLoc DL,
 
   } else if (PPC::VRRCRegClass.hasSubClassEq(RC)) {
     NewMIs.push_back(addFrameReference(BuildMI(MF, DL, get(PPC::LVX), DestReg),
+                                       FrameIdx));
+    NonRI = true;
+  } else if (PPC::VRSAVERCRegClass.hasSubClassEq(RC)) {
+    NewMIs.push_back(addFrameReference(BuildMI(MF, DL,
+                                               get(PPC::RESTORE_VRSAVE),
+                                               DestReg),
                                        FrameIdx));
     NonRI = true;
   } else {

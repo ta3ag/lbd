@@ -71,6 +71,16 @@ static MDNode *getNonCompileUnitScope(MDNode *N) {
   return N;
 }
 
+static MDNode *createFilePathPair(LLVMContext &VMContext, StringRef Filename,
+                                  StringRef Directory) {
+  assert(!Filename.empty() && "Unable to create file without name");
+  Value *Pair[] = {
+    MDString::get(VMContext, Filename),
+    MDString::get(VMContext, Directory),
+  };
+  return MDNode::get(VMContext, Pair);
+}
+
 /// createCompileUnit - A CompileUnit provides an anchor for all debugging
 /// information generated during this instance of compilation.
 void DIBuilder::createCompileUnit(unsigned Lang, StringRef Filename,
@@ -93,9 +103,8 @@ void DIBuilder::createCompileUnit(unsigned Lang, StringRef Filename,
 
   Value *Elts[] = {
     GetTagConstant(VMContext, dwarf::DW_TAG_compile_unit),
-    Constant::getNullValue(Type::getInt32Ty(VMContext)),
+    createFilePathPair(VMContext, Filename, Directory),
     ConstantInt::get(Type::getInt32Ty(VMContext), Lang),
-    createFile(Filename, Directory),
     MDString::get(VMContext, Producer),
     ConstantInt::get(Type::getInt1Ty(VMContext), isOptimized),
     MDString::get(VMContext, Flags),
@@ -116,14 +125,9 @@ void DIBuilder::createCompileUnit(unsigned Lang, StringRef Filename,
 /// createFile - Create a file descriptor to hold debugging information
 /// for a file.
 DIFile DIBuilder::createFile(StringRef Filename, StringRef Directory) {
-  assert(!Filename.empty() && "Unable to create file without name");
-  Value *Pair[] = {
-    MDString::get(VMContext, Filename),
-    MDString::get(VMContext, Directory),
-  };
   Value *Elts[] = {
     GetTagConstant(VMContext, dwarf::DW_TAG_file_type),
-    MDNode::get(VMContext, Pair)
+    createFilePathPair(VMContext, Filename, Directory)
   };
   return DIFile(MDNode::get(VMContext, Elts));
 }
@@ -773,17 +777,18 @@ DISubrange DIBuilder::getOrCreateSubrange(int64_t Lo, int64_t Count) {
   return DISubrange(MDNode::get(VMContext, Elts));
 }
 
-/// createGlobalVariable - Create a new descriptor for the specified global.
+/// \brief Create a new descriptor for the specified global.
 DIGlobalVariable DIBuilder::
-createGlobalVariable(StringRef Name, DIFile F, unsigned LineNumber,
-                     DIType Ty, bool isLocalToUnit, Value *Val) {
+createGlobalVariable(StringRef Name, StringRef LinkageName, DIFile F,
+                     unsigned LineNumber, DIType Ty, bool isLocalToUnit,
+                     Value *Val) {
   Value *Elts[] = {
     GetTagConstant(VMContext, dwarf::DW_TAG_variable),
     Constant::getNullValue(Type::getInt32Ty(VMContext)),
     NULL, // TheCU,
     MDString::get(VMContext, Name),
     MDString::get(VMContext, Name),
-    MDString::get(VMContext, Name),
+    MDString::get(VMContext, LinkageName),
     F,
     ConstantInt::get(Type::getInt32Ty(VMContext), LineNumber),
     Ty,
@@ -795,6 +800,14 @@ createGlobalVariable(StringRef Name, DIFile F, unsigned LineNumber,
   MDNode *Node = MDNode::get(VMContext, Elts);
   AllGVs.push_back(Node);
   return DIGlobalVariable(Node);
+}
+
+/// \brief Create a new descriptor for the specified global.
+DIGlobalVariable DIBuilder::
+createGlobalVariable(StringRef Name, DIFile F, unsigned LineNumber,
+                     DIType Ty, bool isLocalToUnit, Value *Val) {
+  return createGlobalVariable(Name, Name, F, LineNumber, Ty, isLocalToUnit,
+                              Val);
 }
 
 /// createStaticVariable - Create a new descriptor for the specified static
@@ -895,12 +908,11 @@ DISubprogram DIBuilder::createFunction(DIDescriptor Context,
   Value *TElts[] = { GetTagConstant(VMContext, DW_TAG_base_type) };
   Value *Elts[] = {
     GetTagConstant(VMContext, dwarf::DW_TAG_subprogram),
-    Constant::getNullValue(Type::getInt32Ty(VMContext)),
+    File.getFileNode(),
     getNonCompileUnitScope(Context),
     MDString::get(VMContext, Name),
     MDString::get(VMContext, Name),
     MDString::get(VMContext, LinkageName),
-    File,
     ConstantInt::get(Type::getInt32Ty(VMContext), LineNo),
     Ty,
     ConstantInt::get(Type::getInt1Ty(VMContext), isLocalToUnit),
@@ -921,7 +933,9 @@ DISubprogram DIBuilder::createFunction(DIDescriptor Context,
   // Create a named metadata so that we do not lose this mdnode.
   if (isDefinition)
     AllSubprograms.push_back(Node);
-  return DISubprogram(Node);
+  DISubprogram S(Node);
+  assert(S.Verify() && "createFunction should return a valid DISubprogram");
+  return S;
 }
 
 /// createMethod - Create a new descriptor for the specified C++ method.
@@ -941,12 +955,11 @@ DISubprogram DIBuilder::createMethod(DIDescriptor Context,
   Value *TElts[] = { GetTagConstant(VMContext, DW_TAG_base_type) };
   Value *Elts[] = {
     GetTagConstant(VMContext, dwarf::DW_TAG_subprogram),
-    Constant::getNullValue(Type::getInt32Ty(VMContext)),
+    F.getFileNode(),
     getNonCompileUnitScope(Context),
     MDString::get(VMContext, Name),
     MDString::get(VMContext, Name),
     MDString::get(VMContext, LinkageName),
-    F,
     ConstantInt::get(Type::getInt32Ty(VMContext), LineNo),
     Ty,
     ConstantInt::get(Type::getInt1Ty(VMContext), isLocalToUnit),
@@ -966,7 +979,9 @@ DISubprogram DIBuilder::createMethod(DIDescriptor Context,
   MDNode *Node = MDNode::get(VMContext, Elts);
   if (isDefinition)
     AllSubprograms.push_back(Node);
-  return DISubprogram(Node);
+  DISubprogram S(Node);
+  assert(S.Verify() && "createMethod should return a valid DISubprogram");
+  return S;
 }
 
 /// createNameSpace - This creates new descriptor for a namespace
@@ -975,7 +990,7 @@ DINameSpace DIBuilder::createNameSpace(DIDescriptor Scope, StringRef Name,
                                        DIFile File, unsigned LineNo) {
   Value *Elts[] = {
     GetTagConstant(VMContext, dwarf::DW_TAG_namespace),
-    File,
+    File.getFileNode(),
     getNonCompileUnitScope(Scope),
     MDString::get(VMContext, Name),
     ConstantInt::get(Type::getInt32Ty(VMContext), LineNo)
@@ -1008,10 +1023,10 @@ DILexicalBlock DIBuilder::createLexicalBlock(DIDescriptor Scope, DIFile File,
   static unsigned int unique_id = 0;
   Value *Elts[] = {
     GetTagConstant(VMContext, dwarf::DW_TAG_lexical_block),
+    File,
     getNonCompileUnitScope(Scope),
     ConstantInt::get(Type::getInt32Ty(VMContext), Line),
     ConstantInt::get(Type::getInt32Ty(VMContext), Col),
-    File,
     ConstantInt::get(Type::getInt32Ty(VMContext), unique_id++)
   };
   DILexicalBlock R(MDNode::get(VMContext, Elts));

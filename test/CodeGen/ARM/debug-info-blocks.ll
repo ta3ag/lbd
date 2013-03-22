@@ -94,7 +94,7 @@ define hidden void @foobar_func_block_invoke_0(i8* %.block_descriptor, %0* %load
 
 !llvm.dbg.cu = !{!0}
 
-!0 = metadata !{i32 786449, i32 0, i32 16, metadata !40, metadata !"Apple clang version 2.1", i1 false, metadata !"", i32 2, metadata !147, null, metadata !148, null, metadata !""} ; [ DW_TAG_compile_unit ]
+!0 = metadata !{i32 786449, i32 16, metadata !40, metadata !"Apple clang version 2.1", i1 false, metadata !"", i32 2, metadata !147, null, metadata !148, null, metadata !""} ; [ DW_TAG_compile_unit ]
 !1 = metadata !{i32 786433, metadata !160, metadata !0, metadata !"", i32 248, i64 32, i64 32, i32 0, i32 0, i32 0, metadata !3, i32 0, i32 0} ; [ DW_TAG_enumeration_type ]
 !2 = metadata !{i32 786473, metadata !160} ; [ DW_TAG_file_type ]
 !3 = metadata !{metadata !4}
@@ -117,7 +117,7 @@ define hidden void @foobar_func_block_invoke_0(i8* %.block_descriptor, %0* %load
 !20 = metadata !{i32 786473, metadata !151} ; [ DW_TAG_file_type ]
 !21 = metadata !{metadata !22}
 !22 = metadata !{i32 786472, metadata !"Eleven", i64 0} ; [ DW_TAG_enumerator ]
-!23 = metadata !{i32 786478, i32 0, metadata !24, metadata !"foobar_func_block_invoke_0", metadata !"foobar_func_block_invoke_0", metadata !"", metadata !24, i32 609, metadata !25, i1 true, i1 true, i32 0, i32 0, i32 0, i32 256, i1 false, void (i8*, %0*, [4 x i32], [4 x i32])* @foobar_func_block_invoke_0, null, null, null, i32 609} ; [ DW_TAG_subprogram ]
+!23 = metadata !{i32 786478, metadata !24, metadata !"foobar_func_block_invoke_0", metadata !"foobar_func_block_invoke_0", metadata !"", metadata !24, i32 609, metadata !25, i1 true, i1 true, i32 0, i32 0, i32 0, i32 256, i1 false, void (i8*, %0*, [4 x i32], [4 x i32])* @foobar_func_block_invoke_0, null, null, null, i32 609} ; [ DW_TAG_subprogram ]
 !24 = metadata !{i32 786473, metadata !152} ; [ DW_TAG_file_type ]
 !25 = metadata !{i32 786453, metadata !152, metadata !24, metadata !"", i32 0, i64 0, i64 0, i32 0, i32 0, i32 0, metadata !26, i32 0, i32 0} ; [ DW_TAG_subroutine_type ]
 !26 = metadata !{null}

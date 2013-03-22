@@ -158,6 +158,14 @@ def retflag       : SDNode<"PPCISD::RET_FLAG", SDTNone,
 def PPCtc_return : SDNode<"PPCISD::TC_RETURN", SDT_PPCTC_ret,
                         [SDNPHasChain,  SDNPOptInGlue, SDNPVariadic]>;
 
+def PPCeh_sjlj_setjmp  : SDNode<"PPCISD::EH_SJLJ_SETJMP",
+                                SDTypeProfile<1, 1, [SDTCisInt<0>,
+                                                     SDTCisPtrTy<1>]>,
+                                [SDNPHasChain, SDNPSideEffect]>;
+def PPCeh_sjlj_longjmp : SDNode<"PPCISD::EH_SJLJ_LONGJMP",
+                                SDTypeProfile<0, 1, [SDTCisPtrTy<0>]>,
+                                [SDNPHasChain, SDNPSideEffect]>;
+
 def PPCvcmp       : SDNode<"PPCISD::VCMP" , SDT_PPCvcmp, []>;
 def PPCvcmp_o     : SDNode<"PPCISD::VCMPo", SDT_PPCvcmp, [SDNPOutGlue]>;
 
@@ -383,12 +391,18 @@ def memri : Operand<iPTR> {
 }
 def memrr : Operand<iPTR> {
   let PrintMethod = "printMemRegReg";
-  let MIOperandInfo = (ops ptr_rc_nor0:$offreg, ptr_rc:$ptrreg);
+  let MIOperandInfo = (ops ptr_rc_nor0:$ptrreg, ptr_rc:$offreg);
 }
 def memrix : Operand<iPTR> {   // memri where the imm is shifted 2 bits.
   let PrintMethod = "printMemRegImmShifted";
   let MIOperandInfo = (ops symbolLo:$imm, ptr_rc_nor0:$reg);
   let EncoderMethod = "getMemRIXEncoding";
+}
+
+// A single-register address. This is used with the SjLj
+// pseudo-instructions.
+def memr : Operand<iPTR> {
+  let MIOperandInfo = (ops ptr_rc:$ptrreg);
 }
 
 // PowerPC Predicate operand.  20 = (0<<5)|20 = always, CR0 is a dummy reg
@@ -404,9 +418,12 @@ def xaddr  : ComplexPattern<iPTR, 2, "SelectAddrIdx",    [], []>;
 def xoaddr : ComplexPattern<iPTR, 2, "SelectAddrIdxOnly",[], []>;
 def ixaddr : ComplexPattern<iPTR, 2, "SelectAddrImmShift", [], []>; // "std"
 
+// The address in a single register. This is used with the SjLj
+// pseudo-instructions.
+def addr   : ComplexPattern<iPTR, 1, "SelectAddr",[], []>;
+
 /// This is just the offset part of iaddr, used for preinc.
 def iaddroff : ComplexPattern<iPTR, 1, "SelectAddrImmOffs", [], []>;
-def xaddroff : ComplexPattern<iPTR, 1, "SelectAddrIdxOffs", [], []>;
 
 //===----------------------------------------------------------------------===//
 // PowerPC Instruction Predicate Definitions.
@@ -505,6 +522,14 @@ let isBranch = 1, isTerminator = 1, hasCtrlDep = 1, PPC970_Unit = 7 in {
   }
 }
 
+// The direct BCL used by the SjLj setjmp code.
+let isCall = 1, hasCtrlDep = 1, PPC970_Unit = 7 in {
+  let Defs = [LR], Uses = [RM] in {
+    def BCL  : BForm_2<16, 20, 31, 0, 1, (outs), (ins condbrtarget:$dst),
+                       "bcl 20, 31, $dst">;
+  }
+}
+
 // Darwin ABI Calls.
 let isCall = 1, PPC970_Unit = 7, Defs = [LR] in {
   // Convenient aliases for call instructions
@@ -583,6 +608,23 @@ def TAILBA   : IForm<18, 0, 0, (outs), (ins aaddr:$dst),
                   "ba $dst", BrB,
                   []>;
 
+let hasSideEffects = 1, isBarrier = 1, isCodeGenOnly = 1,
+    usesCustomInserter = 1 in {
+  def EH_SjLj_SetJmp32  : Pseudo<(outs GPRC:$dst), (ins memr:$buf),
+                            "#EH_SJLJ_SETJMP32",
+                            [(set GPRC:$dst, (PPCeh_sjlj_setjmp addr:$buf))]>,
+                          Requires<[In32BitMode]>;
+  let isTerminator = 1 in
+  def EH_SjLj_LongJmp32 : Pseudo<(outs), (ins memr:$buf),
+                            "#EH_SJLJ_LONGJMP32",
+                            [(PPCeh_sjlj_longjmp addr:$buf)]>,
+                          Requires<[In32BitMode]>;
+}
+
+let isBranch = 1, isTerminator = 1, isCodeGenOnly = 1 in {
+  def EH_SjLj_Setup : Pseudo<(outs), (ins directbrtarget:$dst),
+                        "#EH_SjLj_Setup\t$dst", []>;
+}
 
 // DCB* instructions.
 def DCBA   : DCB_Form<758, 0, (outs), (ins memrr:$dst),
@@ -775,37 +817,37 @@ def LFDU : DForm_1<51, (outs F8RC:$rD, ptr_rc_nor0:$ea_result), (ins memri:$addr
 def LBZUX : XForm_1<31, 119, (outs GPRC:$rD, ptr_rc_nor0:$ea_result),
                    (ins memrr:$addr),
                    "lbzux $rD, $addr", LdStLoadUpd,
-                   []>, RegConstraint<"$addr.offreg = $ea_result">,
+                   []>, RegConstraint<"$addr.ptrreg = $ea_result">,
                    NoEncode<"$ea_result">;
 
 def LHAUX : XForm_1<31, 375, (outs GPRC:$rD, ptr_rc_nor0:$ea_result),
                    (ins memrr:$addr),
                    "lhaux $rD, $addr", LdStLHAU,
-                   []>, RegConstraint<"$addr.offreg = $ea_result">,
+                   []>, RegConstraint<"$addr.ptrreg = $ea_result">,
                    NoEncode<"$ea_result">;
 
 def LHZUX : XForm_1<31, 311, (outs GPRC:$rD, ptr_rc_nor0:$ea_result),
                    (ins memrr:$addr),
                    "lhzux $rD, $addr", LdStLoadUpd,
-                   []>, RegConstraint<"$addr.offreg = $ea_result">,
+                   []>, RegConstraint<"$addr.ptrreg = $ea_result">,
                    NoEncode<"$ea_result">;
 
 def LWZUX : XForm_1<31, 55, (outs GPRC:$rD, ptr_rc_nor0:$ea_result),
                    (ins memrr:$addr),
                    "lwzux $rD, $addr", LdStLoadUpd,
-                   []>, RegConstraint<"$addr.offreg = $ea_result">,
+                   []>, RegConstraint<"$addr.ptrreg = $ea_result">,
                    NoEncode<"$ea_result">;
 
 def LFSUX : XForm_1<31, 567, (outs F4RC:$rD, ptr_rc_nor0:$ea_result),
                    (ins memrr:$addr),
                    "lfsux $rD, $addr", LdStLFDU,
-                   []>, RegConstraint<"$addr.offreg = $ea_result">,
+                   []>, RegConstraint<"$addr.ptrreg = $ea_result">,
                    NoEncode<"$ea_result">;
 
 def LFDUX : XForm_1<31, 631, (outs F8RC:$rD, ptr_rc_nor0:$ea_result),
                    (ins memrr:$addr),
                    "lfdux $rD, $addr", LdStLFDU,
-                   []>, RegConstraint<"$addr.offreg = $ea_result">,
+                   []>, RegConstraint<"$addr.ptrreg = $ea_result">,
                    NoEncode<"$ea_result">;
 }
 }
@@ -939,39 +981,39 @@ def STFDX : XForm_28<31, 727, (outs), (ins F8RC:$frS, memrr:$dst),
 let PPC970_Unit = 2, mayStore = 1 in {
 def STBUX : XForm_8<31, 247, (outs ptr_rc_nor0:$ea_res), (ins GPRC:$rS, memrr:$dst),
                     "stbux $rS, $dst", LdStStoreUpd, []>,
-                    RegConstraint<"$dst.offreg = $ea_res">, NoEncode<"$ea_res">,
+                    RegConstraint<"$dst.ptrreg = $ea_res">, NoEncode<"$ea_res">,
                     PPC970_DGroup_Cracked;
 def STHUX : XForm_8<31, 439, (outs ptr_rc_nor0:$ea_res), (ins GPRC:$rS, memrr:$dst),
                     "sthux $rS, $dst", LdStStoreUpd, []>,
-                    RegConstraint<"$dst.offreg = $ea_res">, NoEncode<"$ea_res">,
+                    RegConstraint<"$dst.ptrreg = $ea_res">, NoEncode<"$ea_res">,
                     PPC970_DGroup_Cracked;
 def STWUX : XForm_8<31, 183, (outs ptr_rc_nor0:$ea_res), (ins GPRC:$rS, memrr:$dst),
                     "stwux $rS, $dst", LdStStoreUpd, []>,
-                    RegConstraint<"$dst.offreg = $ea_res">, NoEncode<"$ea_res">,
+                    RegConstraint<"$dst.ptrreg = $ea_res">, NoEncode<"$ea_res">,
                     PPC970_DGroup_Cracked;
 def STFSUX: XForm_8<31, 695, (outs ptr_rc_nor0:$ea_res), (ins F4RC:$rS, memrr:$dst),
                     "stfsux $rS, $dst", LdStSTFDU, []>,
-                    RegConstraint<"$dst.offreg = $ea_res">, NoEncode<"$ea_res">,
+                    RegConstraint<"$dst.ptrreg = $ea_res">, NoEncode<"$ea_res">,
                     PPC970_DGroup_Cracked;
 def STFDUX: XForm_8<31, 759, (outs ptr_rc_nor0:$ea_res), (ins F8RC:$rS, memrr:$dst),
                     "stfdux $rS, $dst", LdStSTFDU, []>,
-                    RegConstraint<"$dst.offreg = $ea_res">, NoEncode<"$ea_res">,
+                    RegConstraint<"$dst.ptrreg = $ea_res">, NoEncode<"$ea_res">,
                     PPC970_DGroup_Cracked;
 }
 
 // Patterns to match the pre-inc stores.  We can't put the patterns on
 // the instruction definitions directly as ISel wants the address base
 // and offset to be separate operands, not a single complex operand.
-def : Pat<(pre_truncsti8 GPRC:$rS, ptr_rc:$ptrreg, xaddroff:$ptroff),
-          (STBUX GPRC:$rS, xaddroff:$ptroff, ptr_rc:$ptrreg)>;
-def : Pat<(pre_truncsti16 GPRC:$rS, ptr_rc:$ptrreg, xaddroff:$ptroff),
-          (STHUX GPRC:$rS, xaddroff:$ptroff, ptr_rc:$ptrreg)>;
-def : Pat<(pre_store GPRC:$rS, ptr_rc:$ptrreg, xaddroff:$ptroff),
-          (STWUX GPRC:$rS, xaddroff:$ptroff, ptr_rc:$ptrreg)>;
-def : Pat<(pre_store F4RC:$rS, ptr_rc:$ptrreg, xaddroff:$ptroff),
-          (STFSUX F4RC:$rS, xaddroff:$ptroff, ptr_rc:$ptrreg)>;
-def : Pat<(pre_store F8RC:$rS, ptr_rc:$ptrreg, xaddroff:$ptroff),
-          (STFDUX F8RC:$rS, xaddroff:$ptroff, ptr_rc:$ptrreg)>;
+def : Pat<(pre_truncsti8 GPRC:$rS, ptr_rc_nor0:$ptrreg, ptr_rc:$ptroff),
+          (STBUX GPRC:$rS, ptr_rc_nor0:$ptrreg, ptr_rc:$ptroff)>;
+def : Pat<(pre_truncsti16 GPRC:$rS, ptr_rc_nor0:$ptrreg, ptr_rc:$ptroff),
+          (STHUX GPRC:$rS, ptr_rc_nor0:$ptrreg, ptr_rc:$ptroff)>;
+def : Pat<(pre_store GPRC:$rS, ptr_rc_nor0:$ptrreg, ptr_rc:$ptroff),
+          (STWUX GPRC:$rS, ptr_rc_nor0:$ptrreg, ptr_rc:$ptroff)>;
+def : Pat<(pre_store F4RC:$rS, ptr_rc_nor0:$ptrreg, ptr_rc:$ptroff),
+          (STFSUX F4RC:$rS, ptr_rc_nor0:$ptrreg, ptr_rc:$ptroff)>;
+def : Pat<(pre_store F8RC:$rS, ptr_rc_nor0:$ptrreg, ptr_rc:$ptroff),
+          (STFDUX F8RC:$rS, ptr_rc_nor0:$ptrreg, ptr_rc:$ptroff)>;
 
 def SYNC : XForm_24_sync<31, 598, (outs), (ins),
                         "sync", LdStSync,
@@ -1236,6 +1278,29 @@ def MTVRSAVE : XFXForm_7_ext<31, 467, 256, (outs), (ins GPRC:$rS),
 def MFVRSAVE : XFXForm_1_ext<31, 339, 256, (outs GPRC:$rT), (ins),
                              "mfspr $rT, 256", IntGeneral>,
                PPC970_DGroup_First, PPC970_Unit_FXU;
+
+let isCodeGenOnly = 1 in {
+  def MTVRSAVEv : XFXForm_7_ext<31, 467, 256,
+                                (outs VRSAVERC:$reg), (ins GPRC:$rS),
+                                "mtspr 256, $rS", IntGeneral>,
+                  PPC970_DGroup_Single, PPC970_Unit_FXU;
+  def MFVRSAVEv : XFXForm_1_ext<31, 339, 256, (outs GPRC:$rT),
+                                (ins VRSAVERC:$reg),
+                                "mfspr $rT, 256", IntGeneral>,
+                  PPC970_DGroup_First, PPC970_Unit_FXU;
+}
+
+// SPILL_VRSAVE - Indicate that we're dumping the VRSAVE register,
+// so we'll need to scavenge a register for it.
+let mayStore = 1 in
+def SPILL_VRSAVE : Pseudo<(outs), (ins VRSAVERC:$vrsave, memri:$F),
+                     "#SPILL_VRSAVE", []>;
+
+// RESTORE_VRSAVE - Indicate that we're restoring the VRSAVE register (previously
+// spilled), so we'll need to scavenge a register for it.
+let mayLoad = 1 in
+def RESTORE_VRSAVE : Pseudo<(outs VRSAVERC:$vrsave), (ins memri:$F),
+                     "#RESTORE_VRSAVE", []>;
 
 def MTCRF : XFXForm_5<31, 144, (outs crbitm:$FXM), (ins GPRC:$rS),
                       "mtcrf $FXM, $rS", BrMCRX>,
