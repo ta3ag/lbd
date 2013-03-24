@@ -2,6 +2,7 @@ Build procedure:
 1. Go to this directory in terminal command.
 2. cd ExampleCode
 3. sh genexample.sh  // Generate the Example Code in LLVMBackendTutorialExampleCode
-4. cp -rf LLVMBackendTutorialExampleCode/2/Cpu0/* ../.  // Copy chapter 2 example code to parent dir (lib/Target/Cpu0)
+4. Copy the chapter example to directory Cpu0/, for example:
+   cp -rf LLVMBackendTutorialExampleCode/2/Cpu0/* ../.  // Copy chapter 2 example code to parent dir (lib/Target/Cpu0)
    cp -rf LLVMBackendTutorialExampleCode/11/2/Cpu0/* ../.  // Copy chapter 11 section 2 example code to parent dir (lib/Target/Cpu0)
-5. Go to you cmake_debug_build directory
+5. Go to you <llvm-build-dir> directory to build code.
