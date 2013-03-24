@@ -243,8 +243,8 @@ Now, let's repeat above steps to create llvm/test with cpu0 modified code
   118-165-78-111:test Jonathan$ pwd
   /Users/Jonathan/llvm/test
   118-165-78-111:test Jonathan$ cp -rf /Users/Jonathan/llvm/release/src .
-  118-165-78-111:test Jonathan$ cp -rf /Users/Jonathan/
-  LLVMBackendTutorialExampleCode/src_files_modify/src_files_modify/src .
+  118-165-78-111:test Jonathan$ cp -rf src/lib/Target/Cpu0/ExampleCode/
+  LLVMBackendTutorialExampleCode/src_files_modify/modify/src .
   118-165-78-111:test Jonathan$ grep -R "Cpu0" src/
   src//cmake/config-ix.cmake:  set(LLVM_NATIVE_ARCH Cpu0)
   src//CMakeLists.txt:  Cpu0
@@ -262,14 +262,35 @@ Now, let's repeat above steps to create llvm/test with cpu0 modified code
   118-165-78-111:test Jonathan$ 
 
 
-Now, copy cpu0 example code from LLVMBackendTutorialExampleCode/2/Cpu0 to 
-src/lib/Target/, 
-and please remove src/tools/clang since it will waste time to build clang for 
-our working Cpu0 changes, as follows,
+Next, please remove src/tools/clang since it will waste time to build clang for 
+our working Cpu0 changes, and generate LLVMBackendTutorialExampleCode and copy 
+cpu0 chapter 2 example code according the following commands, 
 
 .. code-block:: bash
 
   118-165-78-111:test Jonathan$ rm -rf src/tools/clang
+  118-165-80-55:test Jonathan$ pwd
+  /Users/Jonathan/llvm/test
+  118-165-80-55:test Jonathan$ cd src/lib/Target/Cpu0/ExampleCode/
+  118-165-80-55:ExampleCode Jonathan$ pwd
+  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/ExampleCode
+  118-165-80-55:ExampleCode Jonathan$ sh genexample.sh 
+  patching file 2/Cpu0/CMakeLists.txt
+  ...
+  patching file 11/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+  118-165-80-55:ExampleCode Jonathan$ ls
+  ...
+  2				5.patch				LLVMBackendTutorialExampleCode
+  ...
+  118-165-80-55:ExampleCode Jonathan$ cp -rf LLVMBackendTutorialExampleCode/2/Cpu0/* ../.
+  118-165-80-55:ExampleCode Jonathan$ cd ..
+  118-165-80-55:Cpu0 Jonathan$ ls
+  CMakeLists.txt		Cpu0InstrInfo.td	Cpu0TargetMachine.cpp	TargetInfo
+  Cpu0.h			Cpu0RegisterInfo.td	ExampleCode		readme
+  Cpu0.td			Cpu0Schedule.td		LLVMBuild.txt
+  Cpu0InstrFormats.td	Cpu0Subtarget.h		MCTargetDesc
+  118-165-80-55:Cpu0 Jonathan$ 
+
   118-165-78-111:test Jonathan$ cd src/lib/Target/
   118-165-78-111:Target Jonathan$ cp -rf /Users/Jonathan/
   LLVMBackendTutorialExampleCode/2/Cpu0 .
@@ -590,19 +611,21 @@ according the following list steps, the corresponding commands shown as follows,
 1) Enter /usr/local/llvm/test/ and 
 ``cp -rf /usr/local/llvm/release/src .``.
 
-2) Update my modified files to support cpu0 by command, ``cp -rf /home/Gamma/
-LLVMBackendTutorialExampleCode/src_files_modify/src_files_modify/src .``.
+2) Update my modified files to support cpu0 by command, ``cp -rf /usr/local/llvm/
+test/src/lib/Target/Cpu0/ExampleCode/LLVMBackendTutorialExampleCode/
+src_files_modify/modify/src .``.
 
 3) Check step 2 is effective by command 
 ``grep -R "Cpu0" . | more```. I add the Cpu0 backend support, so check with 
 grep.
 
-4) Enter src/lib/Target and copy example code 
-LLVMBackendTutorialExampleCode/2/Cpu0 to the directory by command 
-``cd lib/Target/`` and 
-``cp -rf /home/Gamma/LLVMBackendTutorialExample/2/Cpu0 .``.
+4) Enter src/lib/Target/Cpu0/ExampleCode, generate LLVMBackendTutorialExampleCode, 
+and copy example code LLVMBackendTutorialExampleCode/2/Cpu0 to the directory by 
+commands 
+``cd src/lib/Target/Cpu0/ExampleCode/`` and 
+``cp -rf LLVMBackendTutorialExample/2/Cpu0/* ../.``.
 
-5) Remove clang from test/src/tools/clang, and mkdir 
+5) Remove clang from /usr/local/llvm/test/src/tools/clang, and mkdir 
 test/cmake_debug_build. Without this you will waste extra time for 
 command ``make`` in cpu0 example code build.
 
@@ -611,72 +634,23 @@ command ``make`` in cpu0 example code build.
   [Gamma@localhost test]$ pwd
   /usr/local/llvm/test
   [Gamma@localhost test]$ cp -rf /usr/local/llvm/release/src .
-  [Gamma@localhost Target]$ cd ../..
-  [Gamma@localhost src]$ grep -R "Cpu0" .|more
-  ./CMakeLists.txt:  Cpu0
-  ./lib/Target/LLVMBuild.txt:subdirectories = ARM CellSPU CppBackend Hexagon MBlaz
+  [Gamma@localhost test]$ grep -R "Cpu0" .|more
+  ./src/CMakeLists.txt:  Cpu0
+  ./src/lib/Target/LLVMBuild.txt:subdirectories = ARM CellSPU CppBackend Hexagon MBlaz
   e MSP430 Mips Cpu0 PTX PowerPC Sparc X86 XCore
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_GPREL: return "GPREL";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_GOT_CALL: return "GOT_CALL";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_GOT16: return "GOT16";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_GOT: return "GOT";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_ABS_HI: return "ABS_HI";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_ABS_LO: return "ABS_LO";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_TLSGD: return "TLSGD";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_TLSLDM: return "TLSLDM";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_DTPREL_HI: return "DTPREL_HI";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_DTPREL_LO: return "DTPREL_LO";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_GOTTPREL: return "GOTTPREL";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_TPREL_HI: return "TPREL_HI";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_TPREL_LO: return "TPREL_LO";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_GPOFF_HI: return "GPOFF_HI";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_GPOFF_LO: return "GPOFF_LO";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_GOT_DISP: return "GOT_DISP";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_GOT_PAGE: return "GOT_PAGE";
-  ./lib/MC/MCExpr.cpp:  case VK_Cpu0_GOT_OFST: return "GOT_OFST";
-  ./lib/MC/MCELFStreamer.cpp:    case MCSymbolRefExpr::VK_Cpu0_TLSGD:
-  ./lib/MC/MCELFStreamer.cpp:    case MCSymbolRefExpr::VK_Cpu0_GOTTPREL:
-  ./lib/MC/MCELFStreamer.cpp:    case MCSymbolRefExpr::VK_Cpu0_TPREL_HI:
-  ./lib/MC/MCELFStreamer.cpp:    case MCSymbolRefExpr::VK_Cpu0_TPREL_LO:
-  ./lib/MC/MCDwarf.cpp:  // AT_language, a 4 byte value.  We use DW_LANG_Cpu0_Asse
-  mbler as the dwarf2
-  ./lib/MC/MCDwarf.cpp://  MCOS->EmitIntValue(dwarf::DW_LANG_Cpu0_Assembler, 2);
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT_CALL,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT16,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_ABS_HI,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_ABS_LO,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_TLSGD,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_TLSLDM,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_DTPREL_HI,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_DTPREL_LO,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_GOTTPREL,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_TPREL_HI,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_TPREL_LO,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_GPOFF_HI,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_GPOFF_LO,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT_DISP,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT_PAGE,
-  ./include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT_OFST 
-  ./include/llvm/Support/ELF.h:// Cpu0 Specific e_flags
-  ./include/llvm/Support/ELF.h:// ELF Relocation types for Cpu0
-  ./cmake/config-ix.cmake:  set(LLVM_NATIVE_ARCH Cpu0)
-  [Gamma@localhost src]$ cd lib/Target/
-  [Gamma@localhost Target]$ cp -rf /home/Gamma/LLVMBackendTutorialExampleCode/2/
-  Cpu0 .
-  [Gamma@localhost Target]$ ls
-  ARM             Mips                     TargetIntrinsicInfo.cpp
-  CellSPU         MSP430                   TargetJITInfo.cpp
-  CMakeLists.txt  PowerPC                  TargetLibraryInfo.cpp
-  CppBackend      PTX                      TargetLoweringObjectFile.cpp
-  Cpu0            README.txt               TargetMachineC.cpp
-  Hexagon         Sparc                    TargetMachine.cpp
-  LLVMBuild.txt   Target.cpp               TargetRegisterInfo.cpp
-  Makefile        TargetData.cpp           TargetSubtargetInfo.cpp
-  Mangler.cpp     TargetELFWriterInfo.cpp  X86
-  MBlaze          TargetInstrInfo.cpp      XCore
-  [Gamma@localhost Target]$ cd ../..
+  ...
+  [Gamma@localhost test]$ cd src/lib/Target/Cpu0/ExampleCode/
+  [Gamma@localhost ExampleCode]$ cp -rf LLVMBackendTutorialExampleCode/2/
+  Cpu0/* ../.
+  [Gamma@localhost ExampleCode]$ cd ..
+  [Gamma@localhost Cpu0]$ ls
+  CMakeLists.txt		Cpu0InstrInfo.td	Cpu0TargetMachine.cpp	TargetInfo
+  Cpu0.h			Cpu0RegisterInfo.td	ExampleCode		readme
+  Cpu0.td			Cpu0Schedule.td		LLVMBuild.txt
+  Cpu0InstrFormats.td	Cpu0Subtarget.h		MCTargetDesc
+  [Gamma@localhost Cpu0]$ pwd
+  /usr/local/llvm/test/src/lib/Target/Cpu0
+  [Gamma@localhost Cpu0]$ cd ../../..
   [Gamma@localhost src]$ rm -rf tools/clang
 
 Now, go into directory llvm/test/, create directory cmake_debug_build and 
@@ -756,7 +730,8 @@ Then do make as follows,
 .. code-block:: bash
 
   [Gamma@localhost InputFiles]$ pwd
-  /home/Gamma/LLVMBackendTutorialExampleCode/InputFiles
+  /usr/local/llvm/test/src/lib/Target/Cpu0/ExampleCode/
+  LLVMBackendTutorialExampleCode/InputFiles
   [Gamma@localhost InputFiles]$ clang -c ch3.cpp -emit-llvm -o ch3.bc
   [Gamma@localhost InputFiles]$ gdb -args /usr/local/llvm/test/
   cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj 

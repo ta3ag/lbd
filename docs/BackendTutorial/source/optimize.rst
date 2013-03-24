@@ -71,16 +71,7 @@ optimization algorithm on your backend in real project.
   //===----------------------------------------------------------------------===//
   
   #define DEBUG_TYPE "del-jmp"
-  
-  #include "Cpu0.h"
-  #include "Cpu0TargetMachine.h"
-  #include "llvm/CodeGen/MachineFunctionPass.h"
-  #include "llvm/Support/CommandLine.h"
-  #include "llvm/Target/TargetMachine.h"
-  #include "llvm/Target/TargetInstrInfo.h"
-  #include "llvm/ADT/SmallSet.h"
-  #include "llvm/ADT/Statistic.h"
-  
+  ...
   using namespace llvm;
   
   STATISTIC(NumDelJmp, "Number of useless jmp deleted");

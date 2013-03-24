@@ -1,10 +1,12 @@
 diff -Naur 8/7/Cpu0/Cpu0ISelLowering.cpp 8/8/Cpu0/Cpu0ISelLowering.cpp
---- 8/7/Cpu0/Cpu0ISelLowering.cpp	2013-03-23 18:21:25.000000000 +0800
-+++ 8/8/Cpu0/Cpu0ISelLowering.cpp	2013-03-23 18:21:25.000000000 +0800
-@@ -563,13 +563,46 @@
+--- 8/7/Cpu0/Cpu0ISelLowering.cpp	2013-03-24 21:41:23.000000000 +0800
++++ 8/8/Cpu0/Cpu0ISelLowering.cpp	2013-03-24 21:41:23.000000000 +0800
+@@ -565,13 +565,45 @@
                                  const SmallVectorImpl<SDValue> &OutVals,
                                  DebugLoc dl, SelectionDAG &DAG) const {
  
+-    return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
+-                       Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
 +  // CCValAssign - represent the assignment of
 +  // the return value to a location
 +  SmallVector<CCValAssign, 16> RVLocs;
@@ -33,13 +35,12 @@ diff -Naur 8/7/Cpu0/Cpu0ISelLowering.cpp 8/8/Cpu0/Cpu0ISelLowering.cpp
 +  
 +  RetOps[0] = Chain;  // Update chain.
 +
-+  // Return on Cpu0 is always a "ret $lr"
++  // Add the flag if we have it.
 +  if (Flag.getNode())
-+    return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
-+                       Chain, DAG.getRegister(Cpu0::LR, MVT::i32), Flag);
-+  else // Return Void
-     return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
-                        Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
++    RetOps.push_back(Flag);
++
++  // Return on Cpu0 is always a "ret $lr"
++  return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other, &RetOps[0], RetOps.size());
  }
  
  bool

@@ -1,6 +1,6 @@
 diff -Naur 6/2/Cpu0/Cpu0InstrInfo.td 6/3/Cpu0/Cpu0InstrInfo.td
---- 6/2/Cpu0/Cpu0InstrInfo.td	2013-03-23 18:21:25.000000000 +0800
-+++ 6/3/Cpu0/Cpu0InstrInfo.td	2013-03-23 18:21:25.000000000 +0800
+--- 6/2/Cpu0/Cpu0InstrInfo.td	2013-03-24 21:41:23.000000000 +0800
++++ 6/3/Cpu0/Cpu0InstrInfo.td	2013-03-24 21:41:23.000000000 +0800
 @@ -128,7 +128,11 @@
  }]>;
  

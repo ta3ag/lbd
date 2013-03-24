@@ -1134,12 +1134,12 @@ function and define eliminateCallFramePseudoInstr() as follows,
     : Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
   ...
   
-  // Cpu0RegisterInfo.cpp
+  // Cpu0FrameLowering.cpp
   ...
   // Cpu0
   // This function eliminate ADJCALLSTACKDOWN,
   // ADJCALLSTACKUP pseudo instructions
-  void Cpu0RegisterInfo::
+  void Cpu0FrameLowering::
   eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
                   MachineBasicBlock::iterator I) const {
     // Simply discard ADJCALLSTACKDOWN, ADJCALLSTACKUP instructions.
@@ -1428,15 +1428,7 @@ file Cpu0EmitGPRestore.cpp which run as a function pass.
   //===----------------------------------------------------------------------===//
   
   #define DEBUG_TYPE "emit-gp-restore"
-  
-  #include "Cpu0.h"
-  #include "Cpu0TargetMachine.h"
-  #include "Cpu0MachineFunction.h"
-  #include "llvm/CodeGen/MachineFunctionPass.h"
-  #include "llvm/CodeGen/MachineInstrBuilder.h"
-  #include "llvm/Target/TargetInstrInfo.h"
-  #include "llvm/ADT/Statistic.h"
-  
+  ...
   using namespace llvm;
   
   namespace {
@@ -2151,20 +2143,13 @@ where Flag contains $2 and OutVals[0] information.
   
     // CCState - Info about the registers and stack slot.
     CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
-       getTargetMachine(), RVLocs, *DAG.getContext());
+  		 getTargetMachine(), RVLocs, *DAG.getContext());
   
     // Analize return values.
     CCInfo.AnalyzeReturn(Outs, RetCC_Cpu0);
   
-    // If this is the first return lowered for this function, add
-    // the regs to the liveout set for the function.
-    if (DAG.getMachineFunction().getRegInfo().liveout_empty()) {
-      for (unsigned i = 0; i != RVLocs.size(); ++i)
-        if (RVLocs[i].isRegLoc())
-          DAG.getMachineFunction().getRegInfo().addLiveOut(RVLocs[i].getLocReg());
-    }
-  
     SDValue Flag;
+    SmallVector<SDValue, 4> RetOps(1, Chain);
   
     // Copy the result values into the output registers.
     for (unsigned i = 0; i != RVLocs.size(); ++i) {
@@ -2173,18 +2158,19 @@ where Flag contains $2 and OutVals[0] information.
   
       Chain = DAG.getCopyToReg(Chain, dl, VA.getLocReg(), OutVals[i], Flag);
   
-      // guarantee that all emitted copies are
-      // stuck together, avoiding something bad
+      // Guarantee that all emitted copies are stuck together with flags.
       Flag = Chain.getValue(1);
+      RetOps.push_back(DAG.getRegister(VA.getLocReg(), VA.getLocVT()));
     }
+    
+    RetOps[0] = Chain;  // Update chain.
   
-    // Return on Cpu0 is always a "jr $ra"
+    // Add the flag if we have it.
     if (Flag.getNode())
-      return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
-                 Chain, DAG.getRegister(Cpu0::LR, MVT::i32), Flag);
-    else // Return Void
-      return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
-                 Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
+      RetOps.push_back(Flag);
+  
+    // Return on Cpu0 is always a "ret $lr"
+    return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other, &RetOps[0], RetOps.size());
   }
   
 Run 8/8/Cpu0 to get the correct result (return register $2 is 0) as follows, 

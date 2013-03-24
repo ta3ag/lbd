@@ -1,6 +1,6 @@
 diff -Naur 8/3/Cpu0/Cpu0MachineFunction.h 8/4/Cpu0/Cpu0MachineFunction.h
---- 8/3/Cpu0/Cpu0MachineFunction.h	2013-03-23 18:21:25.000000000 +0800
-+++ 8/4/Cpu0/Cpu0MachineFunction.h	2013-03-23 18:21:25.000000000 +0800
+--- 8/3/Cpu0/Cpu0MachineFunction.h	2013-03-24 21:41:23.000000000 +0800
++++ 8/4/Cpu0/Cpu0MachineFunction.h	2013-03-24 21:41:23.000000000 +0800
 @@ -26,6 +26,11 @@
    virtual void anchor();
    MachineFunction& MF;

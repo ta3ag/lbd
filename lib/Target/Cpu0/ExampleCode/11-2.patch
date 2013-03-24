@@ -1,6 +1,6 @@
 diff -Naur 11/1/Cpu0/Cpu0InstrInfo.cpp 11/2/Cpu0/Cpu0InstrInfo.cpp
---- 11/1/Cpu0/Cpu0InstrInfo.cpp	2013-03-23 18:21:26.000000000 +0800
-+++ 11/2/Cpu0/Cpu0InstrInfo.cpp	2013-03-23 18:21:26.000000000 +0800
+--- 11/1/Cpu0/Cpu0InstrInfo.cpp	2013-03-24 21:41:23.000000000 +0800
++++ 11/2/Cpu0/Cpu0InstrInfo.cpp	2013-03-24 21:41:23.000000000 +0800
 @@ -43,18 +43,12 @@
        Opc = Cpu0::MFHI, SrcReg = 0;
      else if (SrcReg == Cpu0::LO)
@@ -21,8 +21,8 @@ diff -Naur 11/1/Cpu0/Cpu0InstrInfo.cpp 11/2/Cpu0/Cpu0InstrInfo.cpp
  
    assert(Opc && "Cannot copy registers");
 diff -Naur 11/1/Cpu0/Cpu0InstrInfo.td 11/2/Cpu0/Cpu0InstrInfo.td
---- 11/1/Cpu0/Cpu0InstrInfo.td	2013-03-23 18:21:26.000000000 +0800
-+++ 11/2/Cpu0/Cpu0InstrInfo.td	2013-03-23 18:21:26.000000000 +0800
+--- 11/1/Cpu0/Cpu0InstrInfo.td	2013-03-24 21:41:23.000000000 +0800
++++ 11/2/Cpu0/Cpu0InstrInfo.td	2013-03-24 21:41:23.000000000 +0800
 @@ -136,6 +136,12 @@
      return (uint64_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
  }]>;
@@ -315,8 +315,8 @@ diff -Naur 11/1/Cpu0/Cpu0InstrInfo.td 11/2/Cpu0/Cpu0InstrInfo.td
 +defm : SetgePats<CPURegs, SLT, SLTu>;
 +defm : SetgeImmPats<CPURegs, SLTi, SLTiu>;
 diff -Naur 11/1/Cpu0/Cpu0MCInstLower.cpp 11/2/Cpu0/Cpu0MCInstLower.cpp
---- 11/1/Cpu0/Cpu0MCInstLower.cpp	2013-03-23 18:21:26.000000000 +0800
-+++ 11/2/Cpu0/Cpu0MCInstLower.cpp	2013-03-23 18:21:26.000000000 +0800
+--- 11/1/Cpu0/Cpu0MCInstLower.cpp	2013-03-24 21:41:23.000000000 +0800
++++ 11/2/Cpu0/Cpu0MCInstLower.cpp	2013-03-24 21:41:23.000000000 +0800
 @@ -94,8 +94,7 @@
  }
  
@@ -364,8 +364,8 @@ diff -Naur 11/1/Cpu0/Cpu0MCInstLower.cpp 11/2/Cpu0/Cpu0MCInstLower.cpp
  
    MCInst St;
 diff -Naur 11/1/Cpu0/Cpu0RegisterInfo.td 11/2/Cpu0/Cpu0RegisterInfo.td
---- 11/1/Cpu0/Cpu0RegisterInfo.td	2013-03-23 18:21:26.000000000 +0800
-+++ 11/2/Cpu0/Cpu0RegisterInfo.td	2013-03-23 18:21:26.000000000 +0800
+--- 11/1/Cpu0/Cpu0RegisterInfo.td	2013-03-24 21:41:23.000000000 +0800
++++ 11/2/Cpu0/Cpu0RegisterInfo.td	2013-03-24 21:41:23.000000000 +0800
 @@ -41,7 +41,7 @@
    def S2   : Cpu0GPRReg< 9, "9">,    DwarfRegNum<[9]>;
    def GP   : Cpu0GPRReg< 10, "gp">,  DwarfRegNum<[10]>;
@@ -393,8 +393,8 @@ diff -Naur 11/1/Cpu0/Cpu0RegisterInfo.td 11/2/Cpu0/Cpu0RegisterInfo.td
 -def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
 -
 diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp 11/2/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
---- 11/1/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp	2013-03-23 18:21:26.000000000 +0800
-+++ 11/2/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp	2013-03-23 18:21:26.000000000 +0800
+--- 11/1/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp	2013-03-24 21:41:23.000000000 +0800
++++ 11/2/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp	2013-03-24 21:41:23.000000000 +0800
 @@ -37,6 +37,7 @@
    case FK_Data_4:
    case Cpu0::fixup_Cpu0_LO16:
@@ -412,8 +412,8 @@ diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp 11/2/Cpu0/MCTargetDesc/Cpu0
        { "fixup_Cpu0_CALL24",       0,     24,   0 },
        { "fixup_Cpu0_GPREL32",      0,     32,   0 },
 diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h 11/2/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
---- 11/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-03-23 18:21:26.000000000 +0800
-+++ 11/2/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-03-23 18:21:26.000000000 +0800
+--- 11/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-03-24 21:41:23.000000000 +0800
++++ 11/2/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-03-24 21:41:23.000000000 +0800
 @@ -135,7 +135,7 @@
      return 10;
    case Cpu0::FP:
@@ -424,8 +424,8 @@ diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h 11/2/Cpu0/MCTargetDesc/Cpu0Base
    case Cpu0::SP:
      return 13;
 diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0FixupKinds.h 11/2/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
---- 11/1/Cpu0/MCTargetDesc/Cpu0FixupKinds.h	2013-03-23 18:21:26.000000000 +0800
-+++ 11/2/Cpu0/MCTargetDesc/Cpu0FixupKinds.h	2013-03-23 18:21:26.000000000 +0800
+--- 11/1/Cpu0/MCTargetDesc/Cpu0FixupKinds.h	2013-03-24 21:41:23.000000000 +0800
++++ 11/2/Cpu0/MCTargetDesc/Cpu0FixupKinds.h	2013-03-24 21:41:23.000000000 +0800
 @@ -53,8 +53,12 @@
      // Local symbol fixup resulting in - R_CPU0_GOT16.
      fixup_Cpu0_GOT_Local,
@@ -441,8 +441,8 @@ diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0FixupKinds.h 11/2/Cpu0/MCTargetDesc/Cpu0Fi
  
      // resulting in - R_CPU0_CALL24.
 diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp 11/2/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- 11/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-03-23 18:21:26.000000000 +0800
-+++ 11/2/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-03-23 18:21:26.000000000 +0800
+--- 11/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-03-24 21:41:23.000000000 +0800
++++ 11/2/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-03-24 21:41:23.000000000 +0800
 @@ -158,7 +158,7 @@
  
    const MCExpr *Expr = MO.getExpr();
