@@ -1,6 +1,156 @@
+diff -Naur 11/1/Cpu0/AsmParser/Cpu0AsmParser.cpp 11/2/Cpu0/AsmParser/Cpu0AsmParser.cpp
+--- 11/1/Cpu0/AsmParser/Cpu0AsmParser.cpp	2013-03-30 16:49:15.000000000 +0800
++++ 11/2/Cpu0/AsmParser/Cpu0AsmParser.cpp	2013-03-30 16:49:15.000000000 +0800
+@@ -308,8 +308,17 @@
+ 
+   int ImmValue = ImmOp.getImm();
+   tmpInst.setLoc(IDLoc);
+-  if ( -32768 <= ImmValue && ImmValue <= 32767) {
+-    // for -32768 <= j < 32767.
++  if ( 0 <= ImmValue && ImmValue <= 65535) {
++    // for 0 <= j <= 65535.
++    // li d,j => ori d,$zero,j
++    tmpInst.setOpcode(Cpu0::ORi);
++    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
++    tmpInst.addOperand(
++              MCOperand::CreateReg(Cpu0::ZERO));
++    tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
++    Instructions.push_back(tmpInst);
++  } else if ( ImmValue < 0 && ImmValue >= -32768) {
++    // for -32768 <= j < 0.
+     // li d,j => addiu d,$zero,j
+     tmpInst.setOpcode(Cpu0::ADDiu); //TODO:no ADDiu64 in td files?
+     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+@@ -319,32 +328,17 @@
+     Instructions.push_back(tmpInst);
+   } else {
+     // for any other value of j that is representable as a 32-bit integer.
+-    // li d,j => addiu d, $0, hi16(j)
+-    //           shl d, d, 16
+-    //           addiu at, $0, lo16(j)
+-    //           or d, d, at
+-    tmpInst.setOpcode(Cpu0::ADDiu);
++    // li d,j => lui d,hi16(j)
++    //           ori d,d,lo16(j)
++    tmpInst.setOpcode(Cpu0::LUi);
+     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+     tmpInst.addOperand(MCOperand::CreateImm((ImmValue & 0xffff0000) >> 16));
+     Instructions.push_back(tmpInst);
+     tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::SHL);
++    tmpInst.setOpcode(Cpu0::ORi);
+     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateImm(16));
+-    Instructions.push_back(tmpInst);
+-    tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::ADDiu);
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0x0000ffff));
+-    Instructions.push_back(tmpInst);
+-    tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::OR);
+-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
++    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0xffff));
+     tmpInst.setLoc(IDLoc);
+     Instructions.push_back(tmpInst);
+   }
+@@ -370,34 +364,18 @@
+     Instructions.push_back(tmpInst);
+   } else {
+     // for any other value of j that is representable as a 32-bit integer.
+-    // li d,j(s) => addiu d, $0, hi16(j)
+-    //           shl d, d, 16
+-    //           addiu at, $0, lo16(j)
+-    //           or d, d, at
+-    //           add d,d,s
+-    tmpInst.setOpcode(Cpu0::ADDiu);
++    // la d,j(s) => lui d,hi16(j)
++    //              ori d,d,lo16(j)
++    //              add d,d,s
++    tmpInst.setOpcode(Cpu0::LUi);
+     tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+     tmpInst.addOperand(MCOperand::CreateImm((ImmValue & 0xffff0000) >> 16));
+     Instructions.push_back(tmpInst);
+     tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::SHL);
++    tmpInst.setOpcode(Cpu0::ORi);
+     tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateImm(16));
+-    Instructions.push_back(tmpInst);
+-    tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::ADDiu);
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0x0000ffff));
+-    Instructions.push_back(tmpInst);
+-    tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::OR);
+     tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+-    tmpInst.setLoc(IDLoc);
++    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0xffff));
+     Instructions.push_back(tmpInst);
+     tmpInst.clear();
+     tmpInst.setOpcode(Cpu0::ADD);
+@@ -427,33 +405,17 @@
+     Instructions.push_back(tmpInst);
+   } else {
+     // for any other value of j that is representable as a 32-bit integer.
+-    // la d,j => addiu d, $0, hi16(j)
+-    //           shl d, d, 16
+-    //           addiu at, $0, lo16(j)
+-    //           or d, d, at
+-    tmpInst.setOpcode(Cpu0::ADDiu);
++    // la d,j => lui d,hi16(j)
++    //           ori d,d,lo16(j)
++    tmpInst.setOpcode(Cpu0::LUi);
+     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+     tmpInst.addOperand(MCOperand::CreateImm((ImmValue & 0xffff0000) >> 16));
+     Instructions.push_back(tmpInst);
+     tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::SHL);
++    tmpInst.setOpcode(Cpu0::ORi);
+     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateImm(16));
+-    Instructions.push_back(tmpInst);
+-    tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::ADDiu);
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
+-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0x0000ffff));
+-    Instructions.push_back(tmpInst);
+-    tmpInst.clear();
+-    tmpInst.setOpcode(Cpu0::OR);
+-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+-    tmpInst.setLoc(IDLoc);
++    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0xffff));
+     Instructions.push_back(tmpInst);
+   }
+ }
+@@ -519,7 +481,7 @@
+       .Case("s2",  Cpu0::S2)
+       .Case("gp",  Cpu0::GP)
+       .Case("fp",  Cpu0::FP)
+-      .Case("sw",  Cpu0::SW)
++      .Case("t0",  Cpu0::T0)
+       .Case("sp",  Cpu0::SP)
+       .Case("lr",  Cpu0::LR)
+       .Case("pc",  Cpu0::PC)
 diff -Naur 11/1/Cpu0/Cpu0InstrInfo.cpp 11/2/Cpu0/Cpu0InstrInfo.cpp
---- 11/1/Cpu0/Cpu0InstrInfo.cpp	2013-03-24 21:41:23.000000000 +0800
-+++ 11/2/Cpu0/Cpu0InstrInfo.cpp	2013-03-24 21:41:23.000000000 +0800
+--- 11/1/Cpu0/Cpu0InstrInfo.cpp	2013-03-30 16:49:15.000000000 +0800
++++ 11/2/Cpu0/Cpu0InstrInfo.cpp	2013-03-30 16:49:15.000000000 +0800
 @@ -43,18 +43,12 @@
        Opc = Cpu0::MFHI, SrcReg = 0;
      else if (SrcReg == Cpu0::LO)
@@ -21,8 +171,8 @@ diff -Naur 11/1/Cpu0/Cpu0InstrInfo.cpp 11/2/Cpu0/Cpu0InstrInfo.cpp
  
    assert(Opc && "Cannot copy registers");
 diff -Naur 11/1/Cpu0/Cpu0InstrInfo.td 11/2/Cpu0/Cpu0InstrInfo.td
---- 11/1/Cpu0/Cpu0InstrInfo.td	2013-03-24 21:41:23.000000000 +0800
-+++ 11/2/Cpu0/Cpu0InstrInfo.td	2013-03-24 21:41:23.000000000 +0800
+--- 11/1/Cpu0/Cpu0InstrInfo.td	2013-03-30 16:49:15.000000000 +0800
++++ 11/2/Cpu0/Cpu0InstrInfo.td	2013-03-30 16:49:15.000000000 +0800
 @@ -136,6 +136,12 @@
      return (uint64_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
  }]>;
@@ -315,8 +465,8 @@ diff -Naur 11/1/Cpu0/Cpu0InstrInfo.td 11/2/Cpu0/Cpu0InstrInfo.td
 +defm : SetgePats<CPURegs, SLT, SLTu>;
 +defm : SetgeImmPats<CPURegs, SLTi, SLTiu>;
 diff -Naur 11/1/Cpu0/Cpu0MCInstLower.cpp 11/2/Cpu0/Cpu0MCInstLower.cpp
---- 11/1/Cpu0/Cpu0MCInstLower.cpp	2013-03-24 21:41:23.000000000 +0800
-+++ 11/2/Cpu0/Cpu0MCInstLower.cpp	2013-03-24 21:41:23.000000000 +0800
+--- 11/1/Cpu0/Cpu0MCInstLower.cpp	2013-03-30 16:49:15.000000000 +0800
++++ 11/2/Cpu0/Cpu0MCInstLower.cpp	2013-03-30 16:49:15.000000000 +0800
 @@ -94,8 +94,7 @@
  }
  
@@ -364,8 +514,8 @@ diff -Naur 11/1/Cpu0/Cpu0MCInstLower.cpp 11/2/Cpu0/Cpu0MCInstLower.cpp
  
    MCInst St;
 diff -Naur 11/1/Cpu0/Cpu0RegisterInfo.td 11/2/Cpu0/Cpu0RegisterInfo.td
---- 11/1/Cpu0/Cpu0RegisterInfo.td	2013-03-24 21:41:23.000000000 +0800
-+++ 11/2/Cpu0/Cpu0RegisterInfo.td	2013-03-24 21:41:23.000000000 +0800
+--- 11/1/Cpu0/Cpu0RegisterInfo.td	2013-03-30 16:49:15.000000000 +0800
++++ 11/2/Cpu0/Cpu0RegisterInfo.td	2013-03-30 16:49:15.000000000 +0800
 @@ -41,7 +41,7 @@
    def S2   : Cpu0GPRReg< 9, "9">,    DwarfRegNum<[9]>;
    def GP   : Cpu0GPRReg< 10, "gp">,  DwarfRegNum<[10]>;
@@ -392,9 +542,96 @@ diff -Naur 11/1/Cpu0/Cpu0RegisterInfo.td 11/2/Cpu0/Cpu0RegisterInfo.td
 -// Status Registers
 -def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
 -
+diff -Naur 11/1/Cpu0/Disassembler/Cpu0Disassembler.cpp 11/2/Cpu0/Disassembler/Cpu0Disassembler.cpp
+--- 11/1/Cpu0/Disassembler/Cpu0Disassembler.cpp	2013-03-30 16:49:15.000000000 +0800
++++ 11/2/Cpu0/Disassembler/Cpu0Disassembler.cpp	2013-03-30 16:52:55.000000000 +0800
+@@ -55,7 +55,7 @@
+   Cpu0::ZERO, Cpu0::AT, Cpu0::V0, Cpu0::V1,
+   Cpu0::A0, Cpu0::A1, Cpu0::T9, Cpu0::S0, 
+   Cpu0::S1, Cpu0::S2, Cpu0::GP, Cpu0::FP, 
+-  Cpu0::SW, Cpu0::SP, Cpu0::LR, Cpu0::PC
++  Cpu0::T0, Cpu0::SP, Cpu0::LR, Cpu0::PC
+ };
+ 
+ static DecodeStatus DecodeCPURegsRegisterClass(MCInst &Inst,
+@@ -200,71 +200,13 @@
+   return MCDisassembler::Success;
+ }
+ 
+-/* CMP instruction define $rc and then $ra, $rb; The printOperand() print 
+-operand 1 and operand 2 (operand 0 is $rc and operand 1 is $ra), so we Create 
+-register $rc first and create $ra next, as follows,
+-
+-// Cpu0InstrInfo.td
+-class CmpInstr<bits<8> op, string instr_asm, 
+-                    InstrItinClass itin, RegisterClass RC, RegisterClass RD, bit isComm = 0>:
+-  FA<op, (outs RD:$rc), (ins RC:$ra, RC:$rb),
+-     !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
+-
+-// Cpu0AsmWriter.inc
+-void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) {
+-...
+-  case 3:
+-    // CMP, JEQ, JGE, JGT, JLE, JLT, JNE
+-    printOperand(MI, 1, O); 
+-    break;
+-...
+-  case 1:
+-    // CMP
+-    printOperand(MI, 2, O); 
+-    return;
+-    break;
+-*/
+-static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
+-                                       unsigned Insn,
+-                                       uint64_t Address,
+-                                       const void *Decoder) {
+-  int Reg_a = (int)fieldFromInstruction(Insn, 20, 4);
+-  int Reg_b = (int)fieldFromInstruction(Insn, 16, 4);
+-  int Reg_c = (int)fieldFromInstruction(Insn, 12, 4);
+-
+-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_c]));
+-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_a]));
+-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_b]));
+-  return MCDisassembler::Success;
+-}
+-
+-/* CBranch instruction define $ra and then imm24; The printOperand() print 
+-operand 1 (operand 0 is $ra and operand 1 is imm24), so we Create register 
+-operand first and create imm24 next, as follows,
+-
+-// Cpu0InstrInfo.td
+-class CBranch<bits<8> op, string instr_asm, RegisterClass RC,
+-                   list<Register> UseRegs>:
+-  FJ<op, (outs), (ins RC:$ra, brtarget:$addr),
+-             !strconcat(instr_asm, "\t$addr"),
+-             [(brcond RC:$ra, bb:$addr)], IIBranch> {
+-
+-// Cpu0AsmWriter.inc
+-void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) {
+-...
+-  case 3:
+-    // CMP, JEQ, JGE, JGT, JLE, JLT, JNE
+-    printOperand(MI, 1, O); 
+-    break;
+-*/
+ static DecodeStatus DecodeBranchTarget(MCInst &Inst,
+                                        unsigned Insn,
+                                        uint64_t Address,
+                                        const void *Decoder) {
+-  int BranchOffset = fieldFromInstruction(Insn, 0, 24);
+-  if (BranchOffset > 0x8fffff)
+-  	BranchOffset = -1*(0x1000000 - BranchOffset);
+-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[0]));
++  int BranchOffset = fieldFromInstruction(Insn, 0, 16);
++  if (BranchOffset > 0x8fff)
++  	BranchOffset = -1*(0x10000 - BranchOffset);
+   Inst.addOperand(MCOperand::CreateImm(BranchOffset));
+   return MCDisassembler::Success;
+ }
 diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp 11/2/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
---- 11/1/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp	2013-03-24 21:41:23.000000000 +0800
-+++ 11/2/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp	2013-03-24 21:41:23.000000000 +0800
+--- 11/1/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp	2013-03-30 16:49:15.000000000 +0800
++++ 11/2/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp	2013-03-30 16:49:15.000000000 +0800
 @@ -37,6 +37,7 @@
    case FK_Data_4:
    case Cpu0::fixup_Cpu0_LO16:
@@ -412,8 +649,8 @@ diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp 11/2/Cpu0/MCTargetDesc/Cpu0
        { "fixup_Cpu0_CALL24",       0,     24,   0 },
        { "fixup_Cpu0_GPREL32",      0,     32,   0 },
 diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h 11/2/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
---- 11/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-03-24 21:41:23.000000000 +0800
-+++ 11/2/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-03-24 21:41:23.000000000 +0800
+--- 11/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-03-30 16:49:15.000000000 +0800
++++ 11/2/Cpu0/MCTargetDesc/Cpu0BaseInfo.h	2013-03-30 16:49:15.000000000 +0800
 @@ -135,7 +135,7 @@
      return 10;
    case Cpu0::FP:
@@ -424,8 +661,8 @@ diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0BaseInfo.h 11/2/Cpu0/MCTargetDesc/Cpu0Base
    case Cpu0::SP:
      return 13;
 diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0FixupKinds.h 11/2/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
---- 11/1/Cpu0/MCTargetDesc/Cpu0FixupKinds.h	2013-03-24 21:41:23.000000000 +0800
-+++ 11/2/Cpu0/MCTargetDesc/Cpu0FixupKinds.h	2013-03-24 21:41:23.000000000 +0800
+--- 11/1/Cpu0/MCTargetDesc/Cpu0FixupKinds.h	2013-03-30 16:49:15.000000000 +0800
++++ 11/2/Cpu0/MCTargetDesc/Cpu0FixupKinds.h	2013-03-30 16:49:15.000000000 +0800
 @@ -53,8 +53,12 @@
      // Local symbol fixup resulting in - R_CPU0_GOT16.
      fixup_Cpu0_GOT_Local,
@@ -441,8 +678,8 @@ diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0FixupKinds.h 11/2/Cpu0/MCTargetDesc/Cpu0Fi
  
      // resulting in - R_CPU0_CALL24.
 diff -Naur 11/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp 11/2/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- 11/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-03-24 21:41:23.000000000 +0800
-+++ 11/2/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-03-24 21:41:23.000000000 +0800
+--- 11/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-03-30 16:49:15.000000000 +0800
++++ 11/2/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-03-30 16:49:15.000000000 +0800
 @@ -158,7 +158,7 @@
  
    const MCExpr *Expr = MO.getExpr();

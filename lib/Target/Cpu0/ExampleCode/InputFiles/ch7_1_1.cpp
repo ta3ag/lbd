@@ -5,7 +5,7 @@
 int main()
 {
   unsigned int a = 0;
-/*  int b = 1;
+  int b = 1;
   int c = 2;
   int d = 3;
   int e = 4;
@@ -13,11 +13,11 @@ int main()
   int g = 6;
   int h = 7;
   int i = 8;
-*/  
+  
   if (a == 0) {
     a++;
   }
-/*  if (b != 0) {
+  if (b != 0) {
     b++;
   }
   if (c > 0) {
@@ -44,6 +44,6 @@ int main()
   if (a != b) {
     a++;
   }
-  */
+  
   return a;
 }

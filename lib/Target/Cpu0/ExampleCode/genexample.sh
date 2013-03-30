@@ -120,7 +120,7 @@ mv 11/1 11/2
 cp -rf 11/2 ${GEN_DIR}/11/.
 cp -rf ${GEN_DIR}/2 .
 rm -rf 3 4 6 7 8 9 10 11
-cp -rf InputFiles llvm3.1 ${GEN_DIR}/.
-cp -rf InputFiles src_files_modify ${GEN_DIR}/.
+cp -rf InputFiles llvm3.1 llvm3.2 ${GEN_DIR}/.
+cp -rf 3.1_src_files_modify 3.2_src_files_modify src_files_modify ${GEN_DIR}/.
 cp -rf cpu0_verilog ${GEN_DIR}/.
 rm -f `find . -name .DS_Store`

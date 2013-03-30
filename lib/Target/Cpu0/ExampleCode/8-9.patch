@@ -1,6 +1,6 @@
 diff -Naur 8/8/Cpu0/Cpu0ISelLowering.cpp 8/9/Cpu0/Cpu0ISelLowering.cpp
---- 8/8/Cpu0/Cpu0ISelLowering.cpp	2013-03-24 21:41:23.000000000 +0800
-+++ 8/9/Cpu0/Cpu0ISelLowering.cpp	2013-03-24 21:41:23.000000000 +0800
+--- 8/8/Cpu0/Cpu0ISelLowering.cpp	2013-03-30 15:16:07.000000000 +0800
++++ 8/9/Cpu0/Cpu0ISelLowering.cpp	2013-03-30 15:16:07.000000000 +0800
 @@ -169,6 +169,18 @@
  //  Lower helper functions
  //===----------------------------------------------------------------------===//
@@ -175,4 +175,4 @@ diff -Naur 8/8/Cpu0/Cpu0ISelLowering.cpp 8/9/Cpu0/Cpu0ISelLowering.cpp
 +
    RetOps[0] = Chain;  // Update chain.
  
-   // Add the flag if we have it.
+   // Return on Cpu0 is always a "ret $lr"

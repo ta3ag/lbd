@@ -1,6 +1,6 @@
 diff -Naur 9/1/Cpu0/AsmParser/CMakeLists.txt 10/1/Cpu0/AsmParser/CMakeLists.txt
 --- 9/1/Cpu0/AsmParser/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
-+++ 10/1/Cpu0/AsmParser/CMakeLists.txt	2013-03-24 21:41:23.000000000 +0800
++++ 10/1/Cpu0/AsmParser/CMakeLists.txt	2013-03-30 15:47:44.000000000 +0800
 @@ -0,0 +1,6 @@
 +include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
 +add_llvm_library(LLVMCpu0AsmParser
@@ -10,8 +10,8 @@ diff -Naur 9/1/Cpu0/AsmParser/CMakeLists.txt 10/1/Cpu0/AsmParser/CMakeLists.txt
 +add_dependencies(LLVMCpu0AsmParser Cpu0CommonTableGen)
 diff -Naur 9/1/Cpu0/AsmParser/Cpu0AsmParser.cpp 10/1/Cpu0/AsmParser/Cpu0AsmParser.cpp
 --- 9/1/Cpu0/AsmParser/Cpu0AsmParser.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ 10/1/Cpu0/AsmParser/Cpu0AsmParser.cpp	2013-03-24 21:41:23.000000000 +0800
-@@ -0,0 +1,1026 @@
++++ 10/1/Cpu0/AsmParser/Cpu0AsmParser.cpp	2013-03-30 16:12:16.000000000 +0800
+@@ -0,0 +1,1064 @@
 +//===-- Cpu0AsmParser.cpp - Parse Cpu0 assembly to MCInst instructions ----===//
 +//
 +//                     The LLVM Compiler Infrastructure
@@ -322,17 +322,8 @@ diff -Naur 9/1/Cpu0/AsmParser/Cpu0AsmParser.cpp 10/1/Cpu0/AsmParser/Cpu0AsmParse
 +
 +  int ImmValue = ImmOp.getImm();
 +  tmpInst.setLoc(IDLoc);
-+  if ( 0 <= ImmValue && ImmValue <= 65535) {
-+    // for 0 <= j <= 65535.
-+    // li d,j => ori d,$zero,j
-+    tmpInst.setOpcode(Cpu0::ORi);
-+    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-+    tmpInst.addOperand(
-+              MCOperand::CreateReg(Cpu0::ZERO));
-+    tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
-+    Instructions.push_back(tmpInst);
-+  } else if ( ImmValue < 0 && ImmValue >= -32768) {
-+    // for -32768 <= j < 0.
++  if ( -32768 <= ImmValue && ImmValue <= 32767) {
++    // for -32768 <= j < 32767.
 +    // li d,j => addiu d,$zero,j
 +    tmpInst.setOpcode(Cpu0::ADDiu); //TODO:no ADDiu64 in td files?
 +    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
@@ -342,17 +333,32 @@ diff -Naur 9/1/Cpu0/AsmParser/Cpu0AsmParser.cpp 10/1/Cpu0/AsmParser/Cpu0AsmParse
 +    Instructions.push_back(tmpInst);
 +  } else {
 +    // for any other value of j that is representable as a 32-bit integer.
-+    // li d,j => lui d,hi16(j)
-+    //           ori d,d,lo16(j)
-+    tmpInst.setOpcode(Cpu0::LUi);
++    // li d,j => addiu d, $0, hi16(j)
++    //           shl d, d, 16
++    //           addiu at, $0, lo16(j)
++    //           or d, d, at
++    tmpInst.setOpcode(Cpu0::ADDiu);
 +    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
++    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
 +    tmpInst.addOperand(MCOperand::CreateImm((ImmValue & 0xffff0000) >> 16));
 +    Instructions.push_back(tmpInst);
 +    tmpInst.clear();
-+    tmpInst.setOpcode(Cpu0::ORi);
++    tmpInst.setOpcode(Cpu0::SHL);
 +    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
 +    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-+    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0xffff));
++    tmpInst.addOperand(MCOperand::CreateImm(16));
++    Instructions.push_back(tmpInst);
++    tmpInst.clear();
++    tmpInst.setOpcode(Cpu0::ADDiu);
++    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
++    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
++    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0x0000ffff));
++    Instructions.push_back(tmpInst);
++    tmpInst.clear();
++    tmpInst.setOpcode(Cpu0::OR);
++    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
++    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
++    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
 +    tmpInst.setLoc(IDLoc);
 +    Instructions.push_back(tmpInst);
 +  }
@@ -378,18 +384,34 @@ diff -Naur 9/1/Cpu0/AsmParser/Cpu0AsmParser.cpp 10/1/Cpu0/AsmParser/Cpu0AsmParse
 +    Instructions.push_back(tmpInst);
 +  } else {
 +    // for any other value of j that is representable as a 32-bit integer.
-+    // la d,j(s) => lui d,hi16(j)
-+    //              ori d,d,lo16(j)
-+    //              add d,d,s
-+    tmpInst.setOpcode(Cpu0::LUi);
++    // li d,j(s) => addiu d, $0, hi16(j)
++    //           shl d, d, 16
++    //           addiu at, $0, lo16(j)
++    //           or d, d, at
++    //           add d,d,s
++    tmpInst.setOpcode(Cpu0::ADDiu);
 +    tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
++    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
 +    tmpInst.addOperand(MCOperand::CreateImm((ImmValue & 0xffff0000) >> 16));
 +    Instructions.push_back(tmpInst);
 +    tmpInst.clear();
-+    tmpInst.setOpcode(Cpu0::ORi);
++    tmpInst.setOpcode(Cpu0::SHL);
 +    tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
++    tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
++    tmpInst.addOperand(MCOperand::CreateImm(16));
++    Instructions.push_back(tmpInst);
++    tmpInst.clear();
++    tmpInst.setOpcode(Cpu0::ADDiu);
++    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
++    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
++    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0x0000ffff));
++    Instructions.push_back(tmpInst);
++    tmpInst.clear();
++    tmpInst.setOpcode(Cpu0::OR);
 +    tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-+    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0xffff));
++    tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
++    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
++    tmpInst.setLoc(IDLoc);
 +    Instructions.push_back(tmpInst);
 +    tmpInst.clear();
 +    tmpInst.setOpcode(Cpu0::ADD);
@@ -419,17 +441,33 @@ diff -Naur 9/1/Cpu0/AsmParser/Cpu0AsmParser.cpp 10/1/Cpu0/AsmParser/Cpu0AsmParse
 +    Instructions.push_back(tmpInst);
 +  } else {
 +    // for any other value of j that is representable as a 32-bit integer.
-+    // la d,j => lui d,hi16(j)
-+    //           ori d,d,lo16(j)
-+    tmpInst.setOpcode(Cpu0::LUi);
++    // la d,j => addiu d, $0, hi16(j)
++    //           shl d, d, 16
++    //           addiu at, $0, lo16(j)
++    //           or d, d, at
++    tmpInst.setOpcode(Cpu0::ADDiu);
 +    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
++    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
 +    tmpInst.addOperand(MCOperand::CreateImm((ImmValue & 0xffff0000) >> 16));
 +    Instructions.push_back(tmpInst);
 +    tmpInst.clear();
-+    tmpInst.setOpcode(Cpu0::ORi);
++    tmpInst.setOpcode(Cpu0::SHL);
 +    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
 +    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-+    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0xffff));
++    tmpInst.addOperand(MCOperand::CreateImm(16));
++    Instructions.push_back(tmpInst);
++    tmpInst.clear();
++    tmpInst.setOpcode(Cpu0::ADDiu);
++    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
++    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
++    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0x0000ffff));
++    Instructions.push_back(tmpInst);
++    tmpInst.clear();
++    tmpInst.setOpcode(Cpu0::OR);
++    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
++    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
++    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
++    tmpInst.setLoc(IDLoc);
 +    Instructions.push_back(tmpInst);
 +  }
 +}
@@ -495,7 +533,7 @@ diff -Naur 9/1/Cpu0/AsmParser/Cpu0AsmParser.cpp 10/1/Cpu0/AsmParser/Cpu0AsmParse
 +      .Case("s2",  Cpu0::S2)
 +      .Case("gp",  Cpu0::GP)
 +      .Case("fp",  Cpu0::FP)
-+      .Case("t0",  Cpu0::T0)
++      .Case("sw",  Cpu0::SW)
 +      .Case("sp",  Cpu0::SP)
 +      .Case("lr",  Cpu0::LR)
 +      .Case("pc",  Cpu0::PC)
@@ -1040,7 +1078,7 @@ diff -Naur 9/1/Cpu0/AsmParser/Cpu0AsmParser.cpp 10/1/Cpu0/AsmParser/Cpu0AsmParse
 +
 diff -Naur 9/1/Cpu0/AsmParser/LLVMBuild.txt 10/1/Cpu0/AsmParser/LLVMBuild.txt
 --- 9/1/Cpu0/AsmParser/LLVMBuild.txt	1970-01-01 08:00:00.000000000 +0800
-+++ 10/1/Cpu0/AsmParser/LLVMBuild.txt	2013-03-24 21:41:23.000000000 +0800
++++ 10/1/Cpu0/AsmParser/LLVMBuild.txt	2013-03-30 15:47:44.000000000 +0800
 @@ -0,0 +1,23 @@
 +;===- ./lib/Target/Mips/AsmParser/LLVMBuild.txt ----------------*- Conf -*--===;
 +;
@@ -1066,8 +1104,8 @@ diff -Naur 9/1/Cpu0/AsmParser/LLVMBuild.txt 10/1/Cpu0/AsmParser/LLVMBuild.txt
 +required_libraries = MC MCParser Support MipsDesc MipsInfo
 +add_to_library_groups = Cpu0
 diff -Naur 9/1/Cpu0/CMakeLists.txt 10/1/Cpu0/CMakeLists.txt
---- 9/1/Cpu0/CMakeLists.txt	2013-03-24 21:41:23.000000000 +0800
-+++ 10/1/Cpu0/CMakeLists.txt	2013-03-24 21:41:23.000000000 +0800
+--- 9/1/Cpu0/CMakeLists.txt	2013-03-30 15:47:44.000000000 +0800
++++ 10/1/Cpu0/CMakeLists.txt	2013-03-30 15:47:44.000000000 +0800
 @@ -17,6 +17,7 @@
  tablegen(LLVM Cpu0GenDAGISel.inc -gen-dag-isel)
  tablegen(LLVM Cpu0GenCallingConv.inc -gen-callingconv)
@@ -1082,8 +1120,8 @@ diff -Naur 9/1/Cpu0/CMakeLists.txt 10/1/Cpu0/CMakeLists.txt
  add_subdirectory(MCTargetDesc)
 +add_subdirectory(AsmParser)
 diff -Naur 9/1/Cpu0/Cpu0.td 10/1/Cpu0/Cpu0.td
---- 9/1/Cpu0/Cpu0.td	2013-03-24 21:41:23.000000000 +0800
-+++ 10/1/Cpu0/Cpu0.td	2013-03-24 21:41:23.000000000 +0800
+--- 9/1/Cpu0/Cpu0.td	2013-03-30 15:47:44.000000000 +0800
++++ 10/1/Cpu0/Cpu0.td	2013-03-30 15:47:44.000000000 +0800
 @@ -49,6 +49,17 @@
    bit isMCAsmWriter = 1;
  }
@@ -1111,8 +1149,8 @@ diff -Naur 9/1/Cpu0/Cpu0.td 10/1/Cpu0/Cpu0.td
 +  let AssemblyParserVariants = [Cpu0AsmParserVariant];
  }
 diff -Naur 9/1/Cpu0/Cpu0FrameLowering.cpp 10/1/Cpu0/Cpu0FrameLowering.cpp
---- 9/1/Cpu0/Cpu0FrameLowering.cpp	2013-03-24 21:41:23.000000000 +0800
-+++ 10/1/Cpu0/Cpu0FrameLowering.cpp	2013-03-24 21:41:23.000000000 +0800
+--- 9/1/Cpu0/Cpu0FrameLowering.cpp	2013-03-30 15:47:44.000000000 +0800
++++ 10/1/Cpu0/Cpu0FrameLowering.cpp	2013-03-30 15:47:44.000000000 +0800
 @@ -14,6 +14,7 @@
  #include "Cpu0FrameLowering.h"
  #include "Cpu0InstrInfo.h"
@@ -1122,8 +1160,8 @@ diff -Naur 9/1/Cpu0/Cpu0FrameLowering.cpp 10/1/Cpu0/Cpu0FrameLowering.cpp
  #include "llvm/CodeGen/MachineFrameInfo.h"
  #include "llvm/CodeGen/MachineFunction.h"
 diff -Naur 9/1/Cpu0/Cpu0InstrFormats.td 10/1/Cpu0/Cpu0InstrFormats.td
---- 9/1/Cpu0/Cpu0InstrFormats.td	2013-03-24 21:41:23.000000000 +0800
-+++ 10/1/Cpu0/Cpu0InstrFormats.td	2013-03-24 21:41:23.000000000 +0800
+--- 9/1/Cpu0/Cpu0InstrFormats.td	2013-03-30 15:47:44.000000000 +0800
++++ 10/1/Cpu0/Cpu0InstrFormats.td	2013-03-30 15:47:44.000000000 +0800
 @@ -76,6 +76,15 @@
    let isPseudo = 1;
  }
@@ -1141,8 +1179,8 @@ diff -Naur 9/1/Cpu0/Cpu0InstrFormats.td 10/1/Cpu0/Cpu0InstrFormats.td
  // Format A instruction class in Cpu0 : <|opcode|ra|rb|rc|cx|>
  //===----------------------------------------------------------------------===//
 diff -Naur 9/1/Cpu0/Cpu0InstrInfo.td 10/1/Cpu0/Cpu0InstrInfo.td
---- 9/1/Cpu0/Cpu0InstrInfo.td	2013-03-24 21:41:23.000000000 +0800
-+++ 10/1/Cpu0/Cpu0InstrInfo.td	2013-03-24 21:41:23.000000000 +0800
+--- 9/1/Cpu0/Cpu0InstrInfo.td	2013-03-30 15:47:44.000000000 +0800
++++ 10/1/Cpu0/Cpu0InstrInfo.td	2013-03-30 15:47:44.000000000 +0800
 @@ -92,11 +92,17 @@
    let PrintMethod = "printUnsignedImm";
  }
@@ -1209,8 +1247,8 @@ diff -Naur 9/1/Cpu0/Cpu0InstrInfo.td 10/1/Cpu0/Cpu0InstrInfo.td
  
  /// Load and Store Instructions
 diff -Naur 9/1/Cpu0/Cpu0RegisterInfo.td 10/1/Cpu0/Cpu0RegisterInfo.td
---- 9/1/Cpu0/Cpu0RegisterInfo.td	2013-03-24 21:41:23.000000000 +0800
-+++ 10/1/Cpu0/Cpu0RegisterInfo.td	2013-03-24 21:41:23.000000000 +0800
+--- 9/1/Cpu0/Cpu0RegisterInfo.td	2013-03-30 15:47:44.000000000 +0800
++++ 10/1/Cpu0/Cpu0RegisterInfo.td	2013-03-30 15:47:44.000000000 +0800
 @@ -26,11 +26,11 @@
  //===----------------------------------------------------------------------===//
  //  Registers
@@ -1275,8 +1313,8 @@ diff -Naur 9/1/Cpu0/Cpu0RegisterInfo.td 10/1/Cpu0/Cpu0RegisterInfo.td
  // Hi/Lo Registers
  def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
 diff -Naur 9/1/Cpu0/LLVMBuild.txt 10/1/Cpu0/LLVMBuild.txt
---- 9/1/Cpu0/LLVMBuild.txt	2013-03-24 21:41:23.000000000 +0800
-+++ 10/1/Cpu0/LLVMBuild.txt	2013-03-24 21:41:23.000000000 +0800
+--- 9/1/Cpu0/LLVMBuild.txt	2013-03-30 15:47:44.000000000 +0800
++++ 10/1/Cpu0/LLVMBuild.txt	2013-03-30 15:47:44.000000000 +0800
 @@ -18,7 +18,7 @@
  # Following comments extracted from http://llvm.org/docs/LLVMBuild.html
  
@@ -1296,8 +1334,8 @@ diff -Naur 9/1/Cpu0/LLVMBuild.txt 10/1/Cpu0/LLVMBuild.txt
  has_disassembler = 1
  #has_jit = 1
 diff -Naur 9/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp 10/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- 9/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-03-24 21:41:23.000000000 +0800
-+++ 10/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-03-24 21:41:23.000000000 +0800
+--- 9/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-03-30 15:47:44.000000000 +0800
++++ 10/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-03-30 15:47:44.000000000 +0800
 @@ -151,6 +151,9 @@
                         SmallVectorImpl<MCFixup> &Fixups) const {
  
