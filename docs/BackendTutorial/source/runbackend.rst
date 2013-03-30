@@ -688,7 +688,7 @@ The 10/1/Cpu0 include AsmParser implementation as follows,
       }
       // maybe it is a symbol reference
       StringRef Identifier;
-      if (Parser.ParseIdentifier(Identifier))
+      if (Parser.parseIdentifier(Identifier))
         return true;
   
       SMLoc E = SMLoc::getFromPointer(Parser.getTok().getLoc().getPointer() - 1);
@@ -711,7 +711,7 @@ The 10/1/Cpu0 include AsmParser implementation as follows,
        // quoted label names
       const MCExpr *IdVal;
       SMLoc S = Parser.getTok().getLoc();
-      if (getParser().ParseExpression(IdVal))
+      if (getParser().parseExpression(IdVal))
         return true;
       SMLoc E = SMLoc::getFromPointer(Parser.getTok().getLoc().getPointer() - 1);
       Operands.push_back(Cpu0Operand::CreateImm(IdVal, S, E));
@@ -763,7 +763,7 @@ The 10/1/Cpu0 include AsmParser implementation as follows,
         } else
           break;
       }
-      if (getParser().ParseParenExpression(IdVal,EndLoc))
+      if (getParser().parseParenExpression(IdVal,EndLoc))
         return true;
   
       while (getLexer().getKind() == AsmToken::RParen)
@@ -814,7 +814,7 @@ The 10/1/Cpu0 include AsmParser implementation as follows,
     case AsmToken::Integer:
     case AsmToken::Minus:
     case AsmToken::Plus:
-      return (getParser().ParseExpression(Res));
+      return (getParser().parseExpression(Res));
     case AsmToken::Percent:
       return parseRelocOperand(Res);
     case AsmToken::LParen:
@@ -932,13 +932,13 @@ The 10/1/Cpu0 include AsmParser implementation as follows,
       // Read the first operand.
       if (ParseOperand(Operands, Name)) {
         SMLoc Loc = getLexer().getLoc();
-        Parser.EatToEndOfStatement();
+        Parser.eatToEndOfStatement();
         return Error(Loc, "unexpected token in argument list");
       }
   
       if (getLexer().isNot(AsmToken::Comma)) {
         SMLoc Loc = getLexer().getLoc();
-        Parser.EatToEndOfStatement();
+        Parser.eatToEndOfStatement();
         return Error(Loc, "unexpected token in argument list");
   
       }
@@ -947,14 +947,14 @@ The 10/1/Cpu0 include AsmParser implementation as follows,
       // Parse and remember the operand.
       if (ParseOperand(Operands, Name)) {
         SMLoc Loc = getLexer().getLoc();
-        Parser.EatToEndOfStatement();
+        Parser.eatToEndOfStatement();
         return Error(Loc, "unexpected token in argument list");
       }
     }
   
     if (getLexer().isNot(AsmToken::EndOfStatement)) {
       SMLoc Loc = getLexer().getLoc();
-      Parser.EatToEndOfStatement();
+      Parser.eatToEndOfStatement();
       return Error(Loc, "unexpected token in argument list");
     }
   
@@ -977,7 +977,7 @@ The 10/1/Cpu0 include AsmParser implementation as follows,
       // Read the first operand.
       if (ParseOperand(Operands, Name)) {
         SMLoc Loc = getLexer().getLoc();
-        Parser.EatToEndOfStatement();
+        Parser.eatToEndOfStatement();
         return Error(Loc, "unexpected token in argument list");
       }
   
@@ -987,7 +987,7 @@ The 10/1/Cpu0 include AsmParser implementation as follows,
         // Parse and remember the operand.
         if (ParseOperand(Operands, Name)) {
           SMLoc Loc = getLexer().getLoc();
-          Parser.EatToEndOfStatement();
+          Parser.eatToEndOfStatement();
           return Error(Loc, "unexpected token in argument list");
         }
       }
@@ -995,7 +995,7 @@ The 10/1/Cpu0 include AsmParser implementation as follows,
   
     if (getLexer().isNot(AsmToken::EndOfStatement)) {
       SMLoc Loc = getLexer().getLoc();
-      Parser.EatToEndOfStatement();
+      Parser.eatToEndOfStatement();
       return Error(Loc, "unexpected token in argument list");
     }
   
@@ -1005,7 +1005,7 @@ The 10/1/Cpu0 include AsmParser implementation as follows,
   
   bool Cpu0AsmParser::reportParseError(StringRef ErrorMsg) {
      SMLoc Loc = getLexer().getLoc();
-     Parser.EatToEndOfStatement();
+     Parser.eatToEndOfStatement();
      return Error(Loc, ErrorMsg);
   }
   
@@ -1093,7 +1093,7 @@ The 10/1/Cpu0 include AsmParser implementation as follows,
   
     if (DirectiveID.getString() == ".frame") {
       // ignore this directive for now
-      Parser.EatToEndOfStatement();
+      Parser.eatToEndOfStatement();
       return false;
     }
   
@@ -1103,19 +1103,19 @@ The 10/1/Cpu0 include AsmParser implementation as follows,
   
     if (DirectiveID.getString() == ".fmask") {
       // ignore this directive for now
-      Parser.EatToEndOfStatement();
+      Parser.eatToEndOfStatement();
       return false;
     }
   
     if (DirectiveID.getString() == ".mask") {
       // ignore this directive for now
-      Parser.EatToEndOfStatement();
+      Parser.eatToEndOfStatement();
       return false;
     }
   
     if (DirectiveID.getString() == ".gpword") {
       // ignore this directive for now
-      Parser.EatToEndOfStatement();
+      Parser.eatToEndOfStatement();
       return false;
     }
   
@@ -1130,7 +1130,7 @@ The 10/1/Cpu0 include AsmParser implementation as follows,
   #define GET_REGISTER_MATCHER
   #define GET_MATCHER_IMPLEMENTATION
   #include "Cpu0GenAsmMatcher.inc"
-  
+
 
   // AsmParser/CMakeLists.txt
   include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )

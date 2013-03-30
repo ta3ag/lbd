@@ -1473,6 +1473,29 @@ List them as follows again,
       /*HasJIT=*/true> Y(TheCpu0elTarget, "cpu0el", "Cpu0el"); 
   }
 
+Let's build LLVMBackendTutorialExampleCode/2/Cpu0 code as follows,
+
+.. code-block:: bash
+
+  118-165-75-57:ExampleCode Jonathan$ pwd
+  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/ExampleCode
+  118-165-75-57:ExampleCode Jonathan$ sh removecpu0.sh 
+  118-165-75-57:ExampleCode Jonathan$ cp -rf LLVMBackendTutorialExampleCode/3/2/
+  Cpu0/* ../.
+
+  118-165-75-57:cmake_debug_build Jonathan$ pwd
+  /Users/Jonathan/llvm/test/cmake_debug_build
+  118-165-75-57:cmake_debug_build Jonathan$ rm -rf lib/Target/Cpu0/*
+  118-165-75-57:cmake_debug_build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++ 
+  -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -G "Xcode" ../src/
+  ...
+  -- Targeting Cpu0
+  ...
+  -- Targeting XCore
+  -- Configuring done
+  -- Generating done
+  -- Build files have been written to: /Users/Jonathan/llvm/test/cmake_debug_build
+
 Now try to do ``llc`` command to compile input file ch3.cpp as follows,
 
 .. code-block:: c++

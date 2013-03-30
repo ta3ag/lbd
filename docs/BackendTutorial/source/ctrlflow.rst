@@ -564,7 +564,7 @@ Finally we list the code added for full support of control flow statement,
       setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
       
       // Operations not directly supported by Cpu0.
-      setOperationAction(ISD::BR_CC,             MVT::Other, Expand);
+      setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
       ...
     }
     

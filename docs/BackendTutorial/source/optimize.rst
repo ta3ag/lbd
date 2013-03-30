@@ -1383,7 +1383,7 @@ Cpu0 Verilog language changes
 Run the redesigned Cpu0
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Run 11/2Cpu0 with ch11_2.cpp to get result as below. 
+Run 11/2/Cpu0 with ch11_2.cpp to get result as below. 
 It match the expect value as comment in ch11_2.cpp.
 
 .. code-block:: c++
