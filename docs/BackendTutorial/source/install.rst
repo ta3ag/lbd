@@ -413,6 +413,27 @@ debug as follows,
 About the lldb debug command, please reference [#]_ or lldb portal [#]_. 
 
 
+Setup llvm-lit on iMac
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The llvm-lit [#]_ is the llvm regression test tool. You don't need to set up it 
+if you don't want to do regression test even though this book do the regression 
+test.
+To set it up correctly in iMac, you need move it from directory bin/llvm-lit to 
+bin/Debug/llvm-lit, and modify llvm-lit as follows,
+
+.. code-block:: bash
+
+  118-165-69-59:bin Jonathan$ pwd
+  /Users/Jonathan/llvm/test/cmake_debug_build/bin
+  118-165-69-59:bin Jonathan$ ls
+  Debug		llvm-lit
+  118-165-69-59:bin Jonathan$ cp llvm-lit Debug/.
+  // edit llvm-lit as follows,
+      'build_config' : ":",
+      'build_mode' : "Debug",
+
+
 Install Icarus Verilog tool on iMac
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -800,6 +821,8 @@ Linux distribution. Files compare tools Kdiff3 came from web site [8]_.
 .. [#] http://lldb.llvm.org/lldb-gdb.html
 
 .. [#] http://lldb.llvm.org/
+
+.. [#] http://llvm.org/docs/TestingGuide.html
 
 .. [#] http://kdiff3.sourceforge.net
 
