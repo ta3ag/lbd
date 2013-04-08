@@ -62,14 +62,14 @@ and later in the Tool Interface Standard, it was quickly accepted among
 different vendors of Unixsystems.
 In 1999 it was chosen as the standard binary file format for Unix and
 Unix-like systems on x86 by the x86open project.
-Please reference <a class="footnote-reference" href="#id8" id="id1">[1]</a>.</p>
+Please reference <a class="footnote-reference" href="#id7" id="id1">[1]</a>.</p>
 <p>The binary encode of cpu0 instruction set in obj has been checked in the
 previous chapters.
 But we didn&#8217;t dig into the ELF file format like elf header and relocation
 record at that time.
 This chapter will use the binutils which has been installed in
 &#8220;sub-section Install other tools on iMac&#8221; of Appendix A: “Installing LLVM”
-<a class="footnote-reference" href="#id9" id="id2">[2]</a> to analysis cpu0 ELF file.
+<a class="footnote-reference" href="#id8" id="id2">[2]</a> to analysis cpu0 ELF file.
 You will learn the objdump, readelf, ..., tools and understand the ELF file
 format itself through using these tools to analyze the cpu0 generated obj in
 this chapter.
@@ -96,13 +96,13 @@ demonstrate how to use binutils and gcc to analysis ELF through the example
 code in his book.
 It&#8217;s a Chinese book of “System Software” in concept and practice.
 This book does the real analysis through binutils.
-The “System Software”<a class="footnote-reference" href="#id10" id="id3">[3]</a> written by Beck is a famous book in concept of
+The “System Software”[#]_ written by Beck is a famous book in concept of
 telling readers what is the compiler output, what is the linker output,
 what is the loader output, and how they work together.
 But it covers the concept only.
 You can reference it to understand how the <strong>“Relocation Record”</strong> works if you
 need to refresh or learning this knowledge for this chapter.</p>
-<p><a class="footnote-reference" href="#id11" id="id4">[4]</a>, <a class="footnote-reference" href="#id12" id="id5">[5]</a>, <a class="footnote-reference" href="#id13" id="id6">[6]</a> are the Chinese documents available from the cpu0 author on
+<p><a class="footnote-reference" href="#id9" id="id3">[3]</a>, <a class="footnote-reference" href="#id10" id="id4">[4]</a>, <a class="footnote-reference" href="#id11" id="id5">[5]</a> are the Chinese documents available from the cpu0 author on
 web site.</p>
 <div class="section" id="elf-format">
 <h2>ELF format<a class="headerlink" href="#elf-format" title="Permalink to this headline">¶</a></h2>
@@ -525,7 +525,7 @@ It&#8217;s under development and we cannot finish the installation by following 
 web site direction.
 Even with this, it&#8217;s really make sense to develop a new linker according it&#8217;s web
 site information.
-Please visit the web site <a class="footnote-reference" href="#id14" id="id7">[7]</a>.</p>
+Please visit the web site <a class="footnote-reference" href="#id12" id="id6">[6]</a>.</p>
 </div>
 <div class="section" id="llvm-objdump">
 <h2>llvm-objdump<a class="headerlink" href="#llvm-objdump" title="Permalink to this headline">¶</a></h2>
@@ -756,7 +756,6 @@ unknown
 ...
 tablegen(LLVM Cpu0GenDisassemblerTables.inc -gen-disassembler)
 ...
-tablegen(LLVM Cpu0GenEDInfo.inc -gen-enhanced-disassembly-info)
 
 // LLVMBuild.txt
 [common]
@@ -843,21 +842,7 @@ add_to_library_groups = Cpu0
 // This file is part of the Cpu0 Disassembler.
 //
 //===----------------------------------------------------------------------===//
-
-#include "Cpu0.h"
-#include "Cpu0Subtarget.h"
-#include "Cpu0RegisterInfo.h"
-#include "llvm/MC/EDInstInfo.h"
-#include "llvm/MC/MCDisassembler.h"
-#include "llvm/MC/MCFixedLenDisassembler.h"
-#include "llvm/Support/MemoryObject.h"
-#include "llvm/Support/TargetRegistry.h"
-#include "llvm/MC/MCSubtargetInfo.h"
-#include "llvm/MC/MCInst.h"
-#include "llvm/Support/MathExtras.h"
-
-#include "Cpu0GenEDInfo.inc"
-
+...
 using namespace llvm;
 
 typedef MCDisassembler::DecodeStatus DecodeStatus;
@@ -882,16 +867,9 @@ public:
                 raw_ostream &amp;vStream,
                 raw_ostream &amp;cStream) const;
 
-  /// getEDInfo - See MCDisassembler.
-  const EDInstInfo *getEDInfo() const;
-
 private:
   bool isBigEndian;
 };
-
-const EDInstInfo *Cpu0Disassembler::getEDInfo() const {
-  return instInfoCpu0;
-}
 
 // Decoder tables for Cpu0 register
 static const unsigned CPURegsTable[] = {
@@ -1284,46 +1262,46 @@ Disassembly of section .text:
    17c: 2c 00 00 00                                   ret <span class="nv">$zero</span>
 </pre></div>
 </div>
-<table class="docutils footnote" frame="void" id="id8" rules="none">
+<table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/Executable_and_Linkable_Format">http://en.wikipedia.org/wiki/Executable_and_Linkable_Format</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id9" rules="none">
+<table class="docutils footnote" frame="void" id="id8" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#install-other-tools-on-imac">http://jonathan2251.github.com/lbd/install.html#install-other-tools-on-imac</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id10" rules="none">
+<table class="docutils footnote" frame="void" id="id9" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td>Leland Beck, System Software: An Introduction to Systems Programming.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id11" rules="none">
+<table class="docutils footnote" frame="void" id="id10" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://ccckmit.wikidot.com/lk:aout">http://ccckmit.wikidot.com/lk:aout</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id12" rules="none">
+<table class="docutils footnote" frame="void" id="id11" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://ccckmit.wikidot.com/lk:objfile">http://ccckmit.wikidot.com/lk:objfile</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id13" rules="none">
+<table class="docutils footnote" frame="void" id="id12" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id6">[6]</a></td><td><a class="reference external" href="http://ccckmit.wikidot.com/lk:elf">http://ccckmit.wikidot.com/lk:elf</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id14" rules="none">
+<table class="docutils footnote" frame="void" id="id13" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id7">[7]</a></td><td><a class="reference external" href="http://lld.llvm.org/">http://lld.llvm.org/</a></td></tr>
+<tr><td class="label">[7]</td><td><a class="reference external" href="http://lld.llvm.org/">http://lld.llvm.org/</a></td></tr>
 </tbody>
 </table>
 </div>

@@ -65,7 +65,7 @@ debugging (using gdb) our LLVM installations on a Fedora 17 system.  We will
 not be using an IDE for Linux, but once again, if you have experience building/
 debugging LLVM using Eclipse or other major IDEs, please contact the authors.
 For information on using <tt class="docutils literal"><span class="pre">cmake</span></tt> to build LLVM, please refer to the &#8220;Building
-LLVM with CMake&#8221; <a class="footnote-reference" href="#id15" id="id1">[1]</a> documentation for further information.
+LLVM with CMake&#8221; <a class="footnote-reference" href="#id16" id="id1">[1]</a> documentation for further information.
 We are using cmake version 2.8.9.</p>
 <p>We will install two llvm directories in this chapter. One is the directory
 llvm/release/ which contains the clang, clang++ compiler we will use to translate
@@ -89,7 +89,7 @@ program and without clang and clang++.</p>
 <p class="last">Fix centering for figure captions.</p>
 </div>
 <p>Please download LLVM version 3.2 (llvm, clang, compiler-rf) from the
-&#8220;LLVM Download Page&#8221; <a class="footnote-reference" href="#id16" id="id2">[2]</a>. Then extract them using
+&#8220;LLVM Download Page&#8221; <a class="footnote-reference" href="#id17" id="id2">[2]</a>. Then extract them using
 <tt class="docutils literal"><span class="pre">tar</span> <span class="pre">-zxvf</span> <span class="pre">{llvm-3.2.src.tar,</span> <span class="pre">clang-3.2.src.tar,</span> <span class="pre">compiler-rt-3.2.src.tar}</span></tt>,
 and change the llvm source code root directory into src.
 After that, move the clang source code to src/tools/clang, and move the
@@ -121,7 +121,7 @@ CMakeLists.txt  LLVMBuild.txt Makefile  compiler-rt sample
 terminal command <tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/Users/Jonathan/Downloads/src</span> <span class="pre">/Users/Jonathan/</span>
 <span class="pre">llvm/release/.</span></tt>.</p>
 <p>Install Xcode from the Mac App Store. Then install cmake, which can be found
-here: <a class="footnote-reference" href="#id17" id="id3">[3]</a>.
+here: <a class="footnote-reference" href="#id18" id="id3">[3]</a>.
 Before installing cmake, make sure you can install applications you download
 from the Internet.
 Open <em class="menuselection">System Preferences ‣ Security &amp; Privacy</em>. Click the
@@ -146,7 +146,7 @@ installer.</p>
 Now, will generate the LLVM.xcodeproj in this chapter.</p>
 <p>Currently, we cannot do debug by lldb with cmake graphic UI operations depicted
 in this section, but we can do debug by lldb with &#8220;section Create LLVM.xcodeproj
-of supporting cpu0 by terminal cmake command&#8221; <a class="footnote-reference" href="#id18" id="id4">[4]</a>.
+of supporting cpu0 by terminal cmake command&#8221; <a class="footnote-reference" href="#id19" id="id4">[4]</a>.
 Even with that, let&#8217;s build LLVM project with cmake graphic UI since this LLVM
 directory contains the release version for clang and clang++ execution file.
 First, create LLVM.xcodeproj as
@@ -242,7 +242,7 @@ export VIRTUALENVWRAPPER_VIRTUALENV_ARGS='--no-site-packages' # optional
 <p>We have installed llvm with clang on directory llvm/release/.
 Now, we want to install llvm with our cpu0 backend code on directory
 llvm/test/ in this section.</p>
-<p>In &#8220;section Create LLVM.xcodeproj by cmake Graphic UI&#8221; <a class="footnote-reference" href="#id19" id="id5">[5]</a>, we create
+<p>In &#8220;section Create LLVM.xcodeproj by cmake Graphic UI&#8221; <a class="footnote-reference" href="#id20" id="id5">[5]</a>, we create
 LLVM.xcodeproj by cmake graphic UI.
 We can create LLVM.xcodeproj by <tt class="docutils literal"><span class="pre">cmake</span></tt> command on terminal also.
 Now, let&#8217;s repeat above steps to create llvm/test with cpu0 modified code
@@ -252,8 +252,8 @@ Now, let&#8217;s repeat above steps to create llvm/test with cpu0 modified code
 118-165-78-111:test Jonathan$ pwd
 /Users/Jonathan/llvm/test
 118-165-78-111:test Jonathan$ cp -rf /Users/Jonathan/llvm/release/src .
-118-165-78-111:test Jonathan$ cp -rf /Users/Jonathan/
-LLVMBackendTutorialExampleCode/src_files_modify/src_files_modify/src .
+118-165-78-111:test Jonathan$ cp -rf src/lib/Target/Cpu0/ExampleCode/
+LLVMBackendTutorialExampleCode/src_files_modify/modify/src .
 118-165-78-111:test Jonathan$ grep -R "Cpu0" src/
 src//cmake/config-ix.cmake:  set(LLVM_NATIVE_ARCH Cpu0)
 src//CMakeLists.txt:  Cpu0
@@ -270,11 +270,32 @@ src//lib/Target/LLVMBuild.txt:subdirectories = ARM CellSPU CppBackend Hexagon
 MBlaze MSP430 NVPTX Mips Cpu0 PowerPC Sparc X86 XCore
 118-165-78-111:test Jonathan$</pre>
 </div>
-<p>Now, copy cpu0 example code from LLVMBackendTutorialExampleCode/2/Cpu0 to
-src/lib/Target/,
-and please remove src/tools/clang since it will waste time to build clang for
-our working Cpu0 changes, as follows,</p>
+<p>Next, please remove src/tools/clang since it will waste time to build clang for
+our working Cpu0 changes, and generate LLVMBackendTutorialExampleCode and copy
+cpu0 chapter 2 example code according the following commands,</p>
 <div class="highlight-bash"><pre>118-165-78-111:test Jonathan$ rm -rf src/tools/clang
+118-165-80-55:test Jonathan$ pwd
+/Users/Jonathan/llvm/test
+118-165-80-55:test Jonathan$ cd src/lib/Target/Cpu0/ExampleCode/
+118-165-80-55:ExampleCode Jonathan$ pwd
+/Users/Jonathan/llvm/test/src/lib/Target/Cpu0/ExampleCode
+118-165-80-55:ExampleCode Jonathan$ sh genexample.sh
+patching file 2/Cpu0/CMakeLists.txt
+...
+patching file 11/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+118-165-80-55:ExampleCode Jonathan$ ls
+...
+2                             5.patch                         LLVMBackendTutorialExampleCode
+...
+118-165-80-55:ExampleCode Jonathan$ cp -rf LLVMBackendTutorialExampleCode/2/Cpu0/* ../.
+118-165-80-55:ExampleCode Jonathan$ cd ..
+118-165-80-55:Cpu0 Jonathan$ ls
+CMakeLists.txt                Cpu0InstrInfo.td        Cpu0TargetMachine.cpp   TargetInfo
+Cpu0.h                        Cpu0RegisterInfo.td     ExampleCode             readme
+Cpu0.td                       Cpu0Schedule.td         LLVMBuild.txt
+Cpu0InstrFormats.td   Cpu0Subtarget.h         MCTargetDesc
+118-165-80-55:Cpu0 Jonathan$
+
 118-165-78-111:test Jonathan$ cd src/lib/Target/
 118-165-78-111:Target Jonathan$ cp -rf /Users/Jonathan/
 LLVMBackendTutorialExampleCode/2/Cpu0 .
@@ -295,7 +316,7 @@ Makefile        TargetIntrinsicInfo.cpp   XCore
 <tt class="docutils literal"><span class="pre">cmake</span> <span class="pre">-DCMAKE_CXX_COMPILER=clang++</span> <span class="pre">-DCMAKE_C_COMPILER=clang</span> <span class="pre">-DCMAKE_BUILD_TYPE</span>
 <span class="pre">=Debug</span> <span class="pre">-G</span> <span class="pre">&quot;Xcode&quot;</span> <span class="pre">../src/</span></tt> as follows.
 Remind, currently, the <tt class="docutils literal"><span class="pre">cmake</span></tt> terminal command can work with lldb debug, but
-the &#8220;section Create LLVM.xcodeproj by cmake Graphic UI&#8221; <a class="footnote-reference" href="#id19" id="id6">[5]</a> cannot.</p>
+the &#8220;section Create LLVM.xcodeproj by cmake Graphic UI&#8221; <a class="footnote-reference" href="#id20" id="id6">[5]</a> cannot.</p>
 <div class="highlight-bash"><pre>118-165-78-111:Target Jonathan$ cd ../../../
 118-165-78-111:test Jonathan$ ls
 src
@@ -387,7 +408,25 @@ Process 6058 stopped
 (lldb) quit
 118-165-65-128:InputFiles Jonathan$</pre>
 </div>
-<p>About the lldb debug command, please reference <a class="footnote-reference" href="#id20" id="id7">[6]</a> or lldb portal <a class="footnote-reference" href="#id21" id="id8">[7]</a>.</p>
+<p>About the lldb debug command, please reference <a class="footnote-reference" href="#id21" id="id7">[6]</a> or lldb portal <a class="footnote-reference" href="#id22" id="id8">[7]</a>.</p>
+</div>
+<div class="section" id="setup-llvm-lit-on-imac">
+<h3>Setup llvm-lit on iMac<a class="headerlink" href="#setup-llvm-lit-on-imac" title="Permalink to this headline">¶</a></h3>
+<p>The llvm-lit <a class="footnote-reference" href="#id23" id="id9">[8]</a> is the llvm regression test tool. You don&#8217;t need to set up it
+if you don&#8217;t want to do regression test even though this book do the regression
+test.
+To set it up correctly in iMac, you need move it from directory bin/llvm-lit to
+bin/Debug/llvm-lit, and modify llvm-lit as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-69-59:bin Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
+/Users/Jonathan/llvm/test/cmake_debug_build/bin
+118-165-69-59:bin Jonathan<span class="nv">$ </span>ls
+Debug         llvm-lit
+118-165-69-59:bin Jonathan<span class="nv">$ </span>cp llvm-lit Debug/.
+// edit llvm-lit as follows,
+    <span class="s1">&#39;build_config&#39;</span> : <span class="s2">&quot;:&quot;</span>,
+    <span class="s1">&#39;build_mode&#39;</span> : <span class="s2">&quot;Debug&quot;</span>,
+</pre></div>
+</div>
 </div>
 <div class="section" id="install-icarus-verilog-tool-on-imac">
 <h3>Install Icarus Verilog tool on iMac<a class="headerlink" href="#install-icarus-verilog-tool-on-imac" title="Permalink to this headline">¶</a></h3>
@@ -408,7 +447,7 @@ Process 6058 stopped
 <h3>Install other tools on iMac<a class="headerlink" href="#install-other-tools-on-imac" title="Permalink to this headline">¶</a></h3>
 <p>These tools mentioned in this section is for coding and debug.
 You can work even without these tools.
-Files compare tools Kdiff3 came from web site <a class="footnote-reference" href="#id22" id="id9">[8]</a>.
+Files compare tools Kdiff3 came from web site <a class="footnote-reference" href="#id24" id="id10">[9]</a>.
 FileMerge is a part of Xcode, you can type FileMerge in Finder – Applications
 as <a class="pageref" href="#install-f11">Figure  10</a> and drag it into the Dock as
 <a class="pageref" href="#install-f12">Figure  11</a>.</p>
@@ -421,7 +460,7 @@ as <a class="pageref" href="#install-f11">Figure  10</a> and drag it into the Do
 <p class="caption">Figure 11: Drag FileMege into the Dock</p>
 </div>
 <p>Download tool Graphviz for display llvm IR nodes in debugging,
-<a class="footnote-reference" href="#id23" id="id10">[9]</a>.
+<a class="footnote-reference" href="#id25" id="id11">[10]</a>.
 We choose mountainlion as <a class="pageref" href="#install-f13">Figure  12</a> since our iMac is Mountain
 Lion.</p>
 <div class="figure align-center" id="install-f13">
@@ -440,9 +479,9 @@ cmake_release_build/bin/Debug
 </div>
 <p>The Graphviz information for llvm is in
 the section &#8220;SelectionDAG Instruction Selection Process&#8221; of
-<a class="footnote-reference" href="#id24" id="id11">[10]</a> and
+<a class="footnote-reference" href="#id26" id="id12">[11]</a> and
 the section &#8220;Viewing graphs while debugging code&#8221; of
-<a class="footnote-reference" href="#id25" id="id12">[11]</a>.
+<a class="footnote-reference" href="#id27" id="id13">[12]</a>.
 TextWrangler is for edit file with line number display and dump binary file
 like the obj file, *.o, that will be generated in chapter of Other
 instructions.
@@ -554,87 +593,40 @@ project
 according the following list steps, the corresponding commands shown as follows,</p>
 <p>1) Enter /usr/local/llvm/test/ and
 <tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/usr/local/llvm/release/src</span> <span class="pre">.</span></tt>.</p>
-<p>2) Update my modified files to support cpu0 by command, <tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/home/Gamma/</span>
-<span class="pre">LLVMBackendTutorialExampleCode/src_files_modify/src_files_modify/src</span> <span class="pre">.</span></tt>.</p>
+<p>2) Update my modified files to support cpu0 by command, <tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/usr/local/llvm/</span>
+<span class="pre">test/src/lib/Target/Cpu0/ExampleCode/LLVMBackendTutorialExampleCode/</span>
+<span class="pre">src_files_modify/modify/src</span> <span class="pre">.</span></tt>.</p>
 <p>3) Check step 2 is effective by command
 <tt class="docutils literal"><span class="pre">grep</span> <span class="pre">-R</span> <span class="pre">&quot;Cpu0&quot;</span> <span class="pre">.</span> <span class="pre">|</span> <span class="pre">more`</span></tt>. I add the Cpu0 backend support, so check with
 grep.</p>
-<p>4) Enter src/lib/Target and copy example code
-LLVMBackendTutorialExampleCode/2/Cpu0 to the directory by command
-<tt class="docutils literal"><span class="pre">cd</span> <span class="pre">lib/Target/</span></tt> and
-<tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/home/Gamma/LLVMBackendTutorialExample/2/Cpu0</span> <span class="pre">.</span></tt>.</p>
-<p>5) Remove clang from test/src/tools/clang, and mkdir
+<p>4) Enter src/lib/Target/Cpu0/ExampleCode, generate LLVMBackendTutorialExampleCode,
+and copy example code LLVMBackendTutorialExampleCode/2/Cpu0 to the directory by
+commands
+<tt class="docutils literal"><span class="pre">cd</span> <span class="pre">src/lib/Target/Cpu0/ExampleCode/</span></tt> and
+<tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">LLVMBackendTutorialExample/2/Cpu0/*</span> <span class="pre">../.</span></tt>.</p>
+<p>5) Remove clang from /usr/local/llvm/test/src/tools/clang, and mkdir
 test/cmake_debug_build. Without this you will waste extra time for
 command <tt class="docutils literal"><span class="pre">make</span></tt> in cpu0 example code build.</p>
 <div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
 /usr/local/llvm/test
 <span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>cp -rf /usr/local/llvm/release/src .
-<span class="o">[</span>Gamma@localhost Target<span class="o">]</span><span class="nv">$ </span><span class="nb">cd</span> ../..
-<span class="o">[</span>Gamma@localhost src<span class="o">]</span><span class="nv">$ </span>grep -R <span class="s2">&quot;Cpu0&quot;</span> .|more
-./CMakeLists.txt:  Cpu0
-./lib/Target/LLVMBuild.txt:subdirectories <span class="o">=</span> ARM CellSPU CppBackend Hexagon MBlaz
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>grep -R <span class="s2">&quot;Cpu0&quot;</span> .|more
+./src/CMakeLists.txt:  Cpu0
+./src/lib/Target/LLVMBuild.txt:subdirectories <span class="o">=</span> ARM CellSPU CppBackend Hexagon MBlaz
 e MSP430 Mips Cpu0 PTX PowerPC Sparc X86 XCore
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_GPREL: <span class="k">return</span> <span class="s2">&quot;GPREL&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_GOT_CALL: <span class="k">return</span> <span class="s2">&quot;GOT_CALL&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_GOT16: <span class="k">return</span> <span class="s2">&quot;GOT16&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_GOT: <span class="k">return</span> <span class="s2">&quot;GOT&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_ABS_HI: <span class="k">return</span> <span class="s2">&quot;ABS_HI&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_ABS_LO: <span class="k">return</span> <span class="s2">&quot;ABS_LO&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_TLSGD: <span class="k">return</span> <span class="s2">&quot;TLSGD&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_TLSLDM: <span class="k">return</span> <span class="s2">&quot;TLSLDM&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_DTPREL_HI: <span class="k">return</span> <span class="s2">&quot;DTPREL_HI&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_DTPREL_LO: <span class="k">return</span> <span class="s2">&quot;DTPREL_LO&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_GOTTPREL: <span class="k">return</span> <span class="s2">&quot;GOTTPREL&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_TPREL_HI: <span class="k">return</span> <span class="s2">&quot;TPREL_HI&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_TPREL_LO: <span class="k">return</span> <span class="s2">&quot;TPREL_LO&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_GPOFF_HI: <span class="k">return</span> <span class="s2">&quot;GPOFF_HI&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_GPOFF_LO: <span class="k">return</span> <span class="s2">&quot;GPOFF_LO&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_GOT_DISP: <span class="k">return</span> <span class="s2">&quot;GOT_DISP&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_GOT_PAGE: <span class="k">return</span> <span class="s2">&quot;GOT_PAGE&quot;</span>;
-./lib/MC/MCExpr.cpp:  <span class="k">case </span>VK_Cpu0_GOT_OFST: <span class="k">return</span> <span class="s2">&quot;GOT_OFST&quot;</span>;
-./lib/MC/MCELFStreamer.cpp:    <span class="k">case </span>MCSymbolRefExpr::VK_Cpu0_TLSGD:
-./lib/MC/MCELFStreamer.cpp:    <span class="k">case </span>MCSymbolRefExpr::VK_Cpu0_GOTTPREL:
-./lib/MC/MCELFStreamer.cpp:    <span class="k">case </span>MCSymbolRefExpr::VK_Cpu0_TPREL_HI:
-./lib/MC/MCELFStreamer.cpp:    <span class="k">case </span>MCSymbolRefExpr::VK_Cpu0_TPREL_LO:
-./lib/MC/MCDwarf.cpp:  // AT_language, a 4 byte value.  We use DW_LANG_Cpu0_Asse
-mbler as the dwarf2
-./lib/MC/MCDwarf.cpp://  MCOS-&gt;EmitIntValue<span class="o">(</span>dwarf::DW_LANG_Cpu0_Assembler, 2<span class="o">)</span>;
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT_CALL,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT16,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_ABS_HI,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_ABS_LO,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_TLSGD,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_TLSLDM,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_DTPREL_HI,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_DTPREL_LO,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_GOTTPREL,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_TPREL_HI,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_TPREL_LO,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_GPOFF_HI,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_GPOFF_LO,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT_DISP,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT_PAGE,
-./include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT_OFST
-./include/llvm/Support/ELF.h:// Cpu0 Specific e_flags
-./include/llvm/Support/ELF.h:// ELF Relocation types <span class="k">for </span>Cpu0
-./cmake/config-ix.cmake:  <span class="nb">set</span><span class="o">(</span>LLVM_NATIVE_ARCH Cpu0<span class="o">)</span>
-<span class="o">[</span>Gamma@localhost src<span class="o">]</span><span class="nv">$ </span><span class="nb">cd </span>lib/Target/
-<span class="o">[</span>Gamma@localhost Target<span class="o">]</span><span class="nv">$ </span>cp -rf /home/Gamma/LLVMBackendTutorialExampleCode/2/
-Cpu0 .
-<span class="o">[</span>Gamma@localhost Target<span class="o">]</span><span class="nv">$ </span>ls
-ARM             Mips                     TargetIntrinsicInfo.cpp
-CellSPU         MSP430                   TargetJITInfo.cpp
-CMakeLists.txt  PowerPC                  TargetLibraryInfo.cpp
-CppBackend      PTX                      TargetLoweringObjectFile.cpp
-Cpu0            README.txt               TargetMachineC.cpp
-Hexagon         Sparc                    TargetMachine.cpp
-LLVMBuild.txt   Target.cpp               TargetRegisterInfo.cpp
-Makefile        TargetData.cpp           TargetSubtargetInfo.cpp
-Mangler.cpp     TargetELFWriterInfo.cpp  X86
-MBlaze          TargetInstrInfo.cpp      XCore
-<span class="o">[</span>Gamma@localhost Target<span class="o">]</span><span class="nv">$ </span><span class="nb">cd</span> ../..
+...
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span><span class="nb">cd </span>src/lib/Target/Cpu0/ExampleCode/
+<span class="o">[</span>Gamma@localhost ExampleCode<span class="o">]</span><span class="nv">$ </span>cp -rf LLVMBackendTutorialExampleCode/2/
+Cpu0/* ../.
+<span class="o">[</span>Gamma@localhost ExampleCode<span class="o">]</span><span class="nv">$ </span><span class="nb">cd</span> ..
+<span class="o">[</span>Gamma@localhost Cpu0<span class="o">]</span><span class="nv">$ </span>ls
+CMakeLists.txt                Cpu0InstrInfo.td        Cpu0TargetMachine.cpp   TargetInfo
+Cpu0.h                        Cpu0RegisterInfo.td     ExampleCode             readme
+Cpu0.td                       Cpu0Schedule.td         LLVMBuild.txt
+Cpu0InstrFormats.td   Cpu0Subtarget.h         MCTargetDesc
+<span class="o">[</span>Gamma@localhost Cpu0<span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
+/usr/local/llvm/test/src/lib/Target/Cpu0
+<span class="o">[</span>Gamma@localhost Cpu0<span class="o">]</span><span class="nv">$ </span><span class="nb">cd</span> ../../..
 <span class="o">[</span>Gamma@localhost src<span class="o">]</span><span class="nv">$ </span>rm -rf tools/clang
 </pre></div>
 </div>
@@ -707,7 +699,8 @@ If your setting has anything about gdb errors, please follow the errors indicati
 Finally, try gdb as follows.</pre>
 </div>
 <div class="highlight-bash"><pre>[Gamma@localhost InputFiles]$ pwd
-/home/Gamma/LLVMBackendTutorialExampleCode/InputFiles
+/usr/local/llvm/test/src/lib/Target/Cpu0/ExampleCode/
+LLVMBackendTutorialExampleCode/InputFiles
 [Gamma@localhost InputFiles]$ clang -c ch3.cpp -emit-llvm -o ch3.bc
 [Gamma@localhost InputFiles]$ gdb -args /usr/local/llvm/test/
 cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj
@@ -756,78 +749,84 @@ and click snapshot version link. Follow the INSTALL file guide to install it.</p
 </div>
 <div class="section" id="install-other-tools-on-linux">
 <h3>Install other tools on Linux<a class="headerlink" href="#install-other-tools-on-linux" title="Permalink to this headline">¶</a></h3>
-<p>Download Graphviz from <a class="footnote-reference" href="#id26" id="id13">[12]</a> according your
-Linux distribution. Files compare tools Kdiff3 came from web site <a class="footnote-reference" href="#id22" id="id14">[8]</a>.</p>
-<table class="docutils footnote" frame="void" id="id15" rules="none">
+<p>Download Graphviz from <a class="footnote-reference" href="#id28" id="id14">[13]</a> according your
+Linux distribution. Files compare tools Kdiff3 came from web site <a class="footnote-reference" href="#id23" id="id15">[8]</a>.</p>
+<table class="docutils footnote" frame="void" id="id16" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://llvm.org/docs/CMake.html?highlight=cmake">http://llvm.org/docs/CMake.html?highlight=cmake</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id16" rules="none">
+<table class="docutils footnote" frame="void" id="id17" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://llvm.org/releases/download.html#3.2">http://llvm.org/releases/download.html#3.2</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id17" rules="none">
+<table class="docutils footnote" frame="void" id="id18" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.cmake.org/cmake/resources/software.html">http://www.cmake.org/cmake/resources/software.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id18" rules="none">
+<table class="docutils footnote" frame="void" id="id19" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command">http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id19" rules="none">
+<table class="docutils footnote" frame="void" id="id20" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui">http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id20" rules="none">
+<table class="docutils footnote" frame="void" id="id21" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id7">[6]</a></td><td><a class="reference external" href="http://lldb.llvm.org/lldb-gdb.html">http://lldb.llvm.org/lldb-gdb.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id21" rules="none">
+<table class="docutils footnote" frame="void" id="id22" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id8">[7]</a></td><td><a class="reference external" href="http://lldb.llvm.org/">http://lldb.llvm.org/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id22" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id9">[8]</a></td><td><a class="reference external" href="http://kdiff3.sourceforge.net">http://kdiff3.sourceforge.net</a></td></tr>
-</tbody>
-</table>
 <table class="docutils footnote" frame="void" id="id23" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id10">[9]</a></td><td><a class="reference external" href="http://www.graphviz.org/Download_macos.php">http://www.graphviz.org/Download_macos.php</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id9">[8]</a></td><td><a class="reference external" href="http://llvm.org/docs/TestingGuide.html">http://llvm.org/docs/TestingGuide.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id24" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id11">[10]</a></td><td><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html">http://llvm.org/docs/CodeGenerator.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id10">[9]</a></td><td><a class="reference external" href="http://kdiff3.sourceforge.net">http://kdiff3.sourceforge.net</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id25" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id12">[11]</a></td><td><a class="reference external" href="http://llvm.org/docs/ProgrammersManual.html">http://llvm.org/docs/ProgrammersManual.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id11">[10]</a></td><td><a class="reference external" href="http://www.graphviz.org/Download_macos.php">http://www.graphviz.org/Download_macos.php</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id26" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id13">[12]</a></td><td><a class="reference external" href="http://www.graphviz.org/Download..php">http://www.graphviz.org/Download..php</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id12">[11]</a></td><td><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html">http://llvm.org/docs/CodeGenerator.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id27" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id13">[12]</a></td><td><a class="reference external" href="http://llvm.org/docs/ProgrammersManual.html">http://llvm.org/docs/ProgrammersManual.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id28" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id14">[13]</a></td><td><a class="reference external" href="http://www.graphviz.org/Download..php">http://www.graphviz.org/Download..php</a></td></tr>
 </tbody>
 </table>
 </div>

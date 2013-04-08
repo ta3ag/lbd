@@ -1134,12 +1134,12 @@ function and define eliminateCallFramePseudoInstr() as follows,
     : Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
   ...
   
-  // Cpu0RegisterInfo.cpp
+  // Cpu0FrameLowering.cpp
   ...
   // Cpu0
   // This function eliminate ADJCALLSTACKDOWN,
   // ADJCALLSTACKUP pseudo instructions
-  void Cpu0RegisterInfo::
+  void Cpu0FrameLowering::
   eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
                   MachineBasicBlock::iterator I) const {
     // Simply discard ADJCALLSTACKDOWN, ADJCALLSTACKUP instructions.
@@ -1428,15 +1428,7 @@ file Cpu0EmitGPRestore.cpp which run as a function pass.
   //===----------------------------------------------------------------------===//
   
   #define DEBUG_TYPE "emit-gp-restore"
-  
-  #include "Cpu0.h"
-  #include "Cpu0TargetMachine.h"
-  #include "Cpu0MachineFunction.h"
-  #include "llvm/CodeGen/MachineFunctionPass.h"
-  #include "llvm/CodeGen/MachineInstrBuilder.h"
-  #include "llvm/Target/TargetInstrInfo.h"
-  #include "llvm/ADT/Statistic.h"
-  
+  ...
   using namespace llvm;
   
   namespace {
@@ -2151,20 +2143,13 @@ where Flag contains $2 and OutVals[0] information.
   
     // CCState - Info about the registers and stack slot.
     CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
-       getTargetMachine(), RVLocs, *DAG.getContext());
+  		 getTargetMachine(), RVLocs, *DAG.getContext());
   
     // Analize return values.
     CCInfo.AnalyzeReturn(Outs, RetCC_Cpu0);
   
-    // If this is the first return lowered for this function, add
-    // the regs to the liveout set for the function.
-    if (DAG.getMachineFunction().getRegInfo().liveout_empty()) {
-      for (unsigned i = 0; i != RVLocs.size(); ++i)
-        if (RVLocs[i].isRegLoc())
-          DAG.getMachineFunction().getRegInfo().addLiveOut(RVLocs[i].getLocReg());
-    }
-  
     SDValue Flag;
+    SmallVector<SDValue, 4> RetOps(1, Chain);
   
     // Copy the result values into the output registers.
     for (unsigned i = 0; i != RVLocs.size(); ++i) {
@@ -2173,18 +2158,24 @@ where Flag contains $2 and OutVals[0] information.
   
       Chain = DAG.getCopyToReg(Chain, dl, VA.getLocReg(), OutVals[i], Flag);
   
-      // guarantee that all emitted copies are
-      // stuck together, avoiding something bad
+      // Guarantee that all emitted copies are stuck together with flags.
       Flag = Chain.getValue(1);
+      RetOps.push_back(DAG.getRegister(VA.getLocReg(), VA.getLocVT()));
     }
+    
+    RetOps[0] = Chain;  // Update chain.
   
-    // Return on Cpu0 is always a "jr $ra"
-    if (Flag.getNode())
+    // Return on Cpu0 is always a "ret $lr"
+    if (Flag.getNode()) {
+      // Add the flag if we have it.
+      RetOps.push_back(Flag);
+      return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other, &RetOps[0], RetOps.size());
+    }
+    else {
+      // Return Void
       return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
-                 Chain, DAG.getRegister(Cpu0::LR, MVT::i32), Flag);
-    else // Return Void
-      return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
-                 Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
+                         Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
+    }
   }
   
 Run 8/8/Cpu0 to get the correct result (return register $2 is 0) as follows, 
@@ -2286,7 +2277,7 @@ It translate **“(b+1)%c”** into **“div $zero, $3, $2”** and **“mfhi $2
   ch4_6_2.bc -o ch4_6_2.cpu0.s
   118-165-70-242:InputFiles Jonathan$ cat ch4_6_2.cpu0.s 
     ...
-    div $zero, $3, $2
+    div $3, $2
     mfhi  $2
     ...
 
@@ -2294,7 +2285,7 @@ It translate **“(b+1)%c”** into **“div $zero, $3, $2”** and **“mfhi $2
 Structure type support
 -----------------------
 
-Run 8/8 with ch8_9_1 will get the error message as follows,
+Run 8/8 with ch8_9_1.cpp will get the error message as follows,
 
 .. code-block:: c++
 
@@ -2363,8 +2354,8 @@ Run 8/8 with ch8_9_1 will get the error message as follows,
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch8_9_1.bc -o ch8_9_1.cpu0.s
-  Assertion failed: (InVals.size() == Ins.size() && "LowerFormalArguments didn't 
-  emit the correct number of values!")...
+  LLVM ERROR: Cannot select: 0x7fbe7c032210: ch = Cpu0ISD::Ret 0x7fbe7c032110 [ID=36]
+  In function: _Z7getDatev
   ...
 
 
@@ -2536,6 +2527,7 @@ function call.
   
       Chain = DAG.getCopyToReg(Chain, dl, Cpu0::V0, Val, Flag);
       Flag = Chain.getValue(1);
+      RetOps.push_back(DAG.getRegister(Cpu0::V0, getPointerTy()));
     }
     ...
   }
@@ -2973,13 +2965,13 @@ List the code and their effect as follows,
     // the sret argument into $v0 for the return. Save the argument into
     // a virtual register so that we can access it from the return points.
     if (DAG.getMachineFunction().getFunction()->hasStructRetAttr()) {
-    unsigned Reg = Cpu0FI->getSRetReturnReg();
-    if (!Reg) {
-      Reg = MF.getRegInfo().createVirtualRegister(getRegClassFor(MVT::i32));
-      Cpu0FI->setSRetReturnReg(Reg);
-    }
-    SDValue Copy = DAG.getCopyToReg(DAG.getEntryNode(), dl, Reg, InVals[0]);
-    Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other, Copy, Chain);
+      unsigned Reg = Cpu0FI->getSRetReturnReg();
+      if (!Reg) {
+        Reg = MF.getRegInfo().createVirtualRegister(getRegClassFor(MVT::i32));
+        Cpu0FI->setSRetReturnReg(Reg);
+      }
+      SDValue Copy = DAG.getCopyToReg(DAG.getEntryNode(), dl, Reg, InVals[0]);
+      Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other, Copy, Chain);
     }
     ...
   }
@@ -3007,16 +2999,17 @@ List the code and their effect as follows,
     // a virtual register in the entry block, so now we copy the value out
     // and into $v0.
     if (DAG.getMachineFunction().getFunction()->hasStructRetAttr()) {
-    MachineFunction &MF      = DAG.getMachineFunction();
-    Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
-    unsigned Reg = Cpu0FI->getSRetReturnReg();
-  
-    if (!Reg)
-      llvm_unreachable("sret virtual register not created in the entry block");
-    SDValue Val = DAG.getCopyFromReg(Chain, dl, Reg, getPointerTy());
-  
-    Chain = DAG.getCopyToReg(Chain, dl, Cpu0::V0, Val, Flag);
-    Flag = Chain.getValue(1);
+      MachineFunction &MF      = DAG.getMachineFunction();
+      Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
+      unsigned Reg = Cpu0FI->getSRetReturnReg();
+    
+      if (!Reg)
+        llvm_unreachable("sret virtual register not created in the entry block");
+      SDValue Val = DAG.getCopyFromReg(Chain, dl, Reg, getPointerTy());
+    
+      Chain = DAG.getCopyToReg(Chain, dl, Cpu0::V0, Val, Flag);
+      Flag = Chain.getValue(1);
+      RetOps.push_back(DAG.getRegister(Cpu0::V0, getPointerTy()));
     }
     ...
   }
@@ -3055,7 +3048,7 @@ List the code and their effect as follows,
     .end  _Z8copyDate4Date
 
 The ch8_9_2.cpp include C++ class "Date" implementation. 
-It can been translated into cpu0 backend too since the front end (clang in this 
+It can be translated into cpu0 backend too since the front end (clang in this 
 example) translate them into C language form.
 You can also mark the "hasStructRetAttr() if" part from both of above functions, 
 the output cpu0 code will use $3 instead of $2 as return register as follows,

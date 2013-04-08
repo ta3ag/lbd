@@ -116,16 +116,7 @@ optimization algorithm on your backend in real project.</p>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#define DEBUG_TYPE &quot;del-jmp&quot;</span>
-
-<span class="cp">#include &quot;Cpu0.h&quot;</span>
-<span class="cp">#include &quot;Cpu0TargetMachine.h&quot;</span>
-<span class="cp">#include &quot;llvm/CodeGen/MachineFunctionPass.h&quot;</span>
-<span class="cp">#include &quot;llvm/Support/CommandLine.h&quot;</span>
-<span class="cp">#include &quot;llvm/Target/TargetMachine.h&quot;</span>
-<span class="cp">#include &quot;llvm/Target/TargetInstrInfo.h&quot;</span>
-<span class="cp">#include &quot;llvm/ADT/SmallSet.h&quot;</span>
-<span class="cp">#include &quot;llvm/ADT/Statistic.h&quot;</span>
-
+<span class="p">...</span>
 <span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
 
 <span class="n">STATISTIC</span><span class="p">(</span><span class="n">NumDelJmp</span><span class="p">,</span> <span class="s">&quot;Number of useless jmp deleted&quot;</span><span class="p">);</span>
@@ -1470,7 +1461,7 @@ endmodule</pre>
 </div>
 <div class="section" id="run-the-redesigned-cpu0">
 <h3>Run the redesigned Cpu0<a class="headerlink" href="#run-the-redesigned-cpu0" title="Permalink to this headline">¶</a></h3>
-<p>Run 11/2Cpu0 with ch11_2.cpp to get result as below.
+<p>Run 11/2/Cpu0 with ch11_2.cpp to get result as below.
 It match the expect value as comment in ch11_2.cpp.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch11_2.cpp</span>
 <span class="cp">#include &quot;InitRegs.h&quot;</span>

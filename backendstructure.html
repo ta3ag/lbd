@@ -272,7 +272,97 @@ contains Cpu0RegisterInfo.
 So 3/2/Cpu0 add Cpu0RegisterInfo class (Cpu0RegisterInfo.h,
 Cpu0RegisterInfo.cpp), and Cpu0RegisterInfo class in files Cpu0InstrInfo.h,
 Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0InstrInfo.h</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0RegisterInfo.h</span>
+<span class="p">...</span>
+<span class="cp">#define GET_INSTRINFO_HEADER</span>
+<span class="cp">#include &quot;Cpu0GenInstrInfo.inc&quot;</span>
+
+<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+
+<span class="k">class</span> <span class="nc">Cpu0InstrInfo</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Cpu0GenInstrInfo</span> <span class="p">{</span>
+  <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">Cpu0RegisterInfo</span> <span class="n">RI</span><span class="p">;</span>
+<span class="k">public</span><span class="o">:</span>
+  <span class="k">explicit</span> <span class="n">Cpu0InstrInfo</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
+
+  <span class="c1">/// getRegisterInfo - TargetInstrInfo is a superset of MRegister info.  As</span>
+  <span class="c1">/// such, whenever a client has an instance of instruction info, it should</span>
+  <span class="c1">/// always be able to get register info as well (through this method).</span>
+  <span class="c1">///</span>
+  <span class="k">virtual</span> <span class="k">const</span> <span class="n">Cpu0RegisterInfo</span> <span class="o">&amp;</span><span class="n">getRegisterInfo</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+
+<span class="k">public</span><span class="o">:</span>
+<span class="p">};</span>
+<span class="p">}</span>
+
+<span class="cp">#endif</span>
+
+
+<span class="c1">// Cpu0RegisterInfo.cpp</span>
+<span class="p">...</span>
+<span class="cp">#define GET_REGINFO_TARGET_DESC</span>
+<span class="cp">#include &quot;Cpu0GenRegisterInfo.inc&quot;</span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="n">Cpu0RegisterInfo</span><span class="o">::</span><span class="n">Cpu0RegisterInfo</span><span class="p">(</span><span class="k">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">ST</span><span class="p">,</span>
+                                   <span class="k">const</span> <span class="n">TargetInstrInfo</span> <span class="o">&amp;</span><span class="n">tii</span><span class="p">)</span>
+  <span class="o">:</span> <span class="n">Cpu0GenRegisterInfo</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">),</span> <span class="n">Subtarget</span><span class="p">(</span><span class="n">ST</span><span class="p">),</span> <span class="n">TII</span><span class="p">(</span><span class="n">tii</span><span class="p">)</span> <span class="p">{}</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Callee Saved Registers methods</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">/// Cpu0 Callee Saved Registers</span>
+<span class="c1">// In Cpu0CallConv.td,</span>
+<span class="c1">// def CSR_O32 : CalleeSavedRegs&lt;(add LR, FP,</span>
+<span class="c1">//                                   (sequence &quot;S%u&quot;, 2, 0))&gt;;</span>
+<span class="c1">// llc create CSR_O32_SaveList and CSR_O32_RegMask from above defined.</span>
+<span class="k">const</span> <span class="n">uint16_t</span><span class="o">*</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
+<span class="n">getCalleeSavedRegs</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">*</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span>
+<span class="p">{</span>
+  <span class="k">return</span> <span class="n">CSR_O32_SaveList</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">const</span> <span class="n">uint32_t</span><span class="o">*</span>
+<span class="n">Cpu0RegisterInfo</span><span class="o">::</span><span class="n">getCallPreservedMask</span><span class="p">(</span><span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span><span class="p">)</span> <span class="k">const</span>
+<span class="p">{</span>
+  <span class="k">return</span> <span class="n">CSR_O32_RegMask</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// pure virtual method</span>
+<span class="n">BitVector</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
+<span class="n">getReservedRegs</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">static</span> <span class="k">const</span> <span class="n">uint16_t</span> <span class="n">ReservedCPURegs</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">,</span>
+    <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">PC</span>
+  <span class="p">};</span>
+  <span class="n">BitVector</span> <span class="n">Reserved</span><span class="p">(</span><span class="n">getNumRegs</span><span class="p">());</span>
+  <span class="k">typedef</span> <span class="n">TargetRegisterClass</span><span class="o">::</span><span class="n">iterator</span> <span class="n">RegIter</span><span class="p">;</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">I</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">I</span> <span class="o">&lt;</span> <span class="n">array_lengthof</span><span class="p">(</span><span class="n">ReservedCPURegs</span><span class="p">);</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span>
+    <span class="n">Reserved</span><span class="p">.</span><span class="n">set</span><span class="p">(</span><span class="n">ReservedCPURegs</span><span class="p">[</span><span class="n">I</span><span class="p">]);</span>
+
+  <span class="k">return</span> <span class="n">Reserved</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// pure virtual method</span>
+<span class="c1">// FrameIndex represent objects inside a abstract stack.</span>
+<span class="c1">// We must replace FrameIndex with an stack/frame pointer</span>
+<span class="c1">// direct reference.</span>
+<span class="kt">void</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
+<span class="n">eliminateFrameIndex</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">II</span><span class="p">,</span> <span class="kt">int</span> <span class="n">SPAdj</span><span class="p">,</span>
+                    <span class="kt">unsigned</span> <span class="n">FIOperandNum</span><span class="p">,</span> <span class="n">RegScavenger</span> <span class="o">*</span><span class="n">RS</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="c1">// pure virtual method</span>
+<span class="kt">unsigned</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
+<span class="n">getFrameRegister</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">TargetFrameLowering</span> <span class="o">*</span><span class="n">TFI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getTarget</span><span class="p">().</span><span class="n">getFrameLowering</span><span class="p">();</span>
+  <span class="k">return</span> <span class="n">TFI</span><span class="o">-&gt;</span><span class="n">hasFP</span><span class="p">(</span><span class="n">MF</span><span class="p">)</span> <span class="o">?</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">)</span> <span class="o">:</span>
+                          <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// Cpu0InstrInfo.h</span>
 <span class="k">class</span> <span class="nc">Cpu0InstrInfo</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Cpu0GenInstrInfo</span> <span class="p">{</span>
   <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">;</span>
   <span class="k">const</span> <span class="n">Cpu0RegisterInfo</span> <span class="n">RI</span><span class="p">;</span>
@@ -313,8 +403,15 @@ Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,</p
 </pre></div>
 </div>
 <p>Now, let&#8217;s replace 3/1/Cpu0 with 3/2/Cpu0 of adding register class definition
-and rebuild.
-After that, let&#8217;s try to run the <tt class="docutils literal"><span class="pre">llc</span></tt> compile command to see what happen,</p>
+as command below and rebuild.</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-75-57:ExampleCode Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
+/Users/Jonathan/llvm/test/src/lib/Target/Cpu0/ExampleCode
+118-165-75-57:ExampleCode Jonathan<span class="nv">$ </span>sh removecpu0.sh
+118-165-75-57:ExampleCode Jonathan<span class="nv">$ </span>cp -rf LLVMBackendTutorialExampleCode/3/2/
+Cpu0/* ../.
+</pre></div>
+</div>
+<p>After that, let&#8217;s try to run the <tt class="docutils literal"><span class="pre">llc</span></tt> compile command to see what happen,</p>
 <div class="highlight-bash"><pre>118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o
 ch3.cpu0.s

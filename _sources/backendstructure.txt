@@ -248,6 +248,96 @@ Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,
 
 .. code-block:: c++
 
+  // Cpu0RegisterInfo.h
+  ...
+  #define GET_INSTRINFO_HEADER
+  #include "Cpu0GenInstrInfo.inc"
+  
+  namespace llvm {
+  
+  class Cpu0InstrInfo : public Cpu0GenInstrInfo {
+    Cpu0TargetMachine &TM;
+    const Cpu0RegisterInfo RI;
+  public:
+    explicit Cpu0InstrInfo(Cpu0TargetMachine &TM);
+  
+    /// getRegisterInfo - TargetInstrInfo is a superset of MRegister info.  As
+    /// such, whenever a client has an instance of instruction info, it should
+    /// always be able to get register info as well (through this method).
+    ///
+    virtual const Cpu0RegisterInfo &getRegisterInfo() const;
+  
+  public:
+  };
+  }
+  
+  #endif
+  
+  
+  // Cpu0RegisterInfo.cpp
+  ...
+  #define GET_REGINFO_TARGET_DESC
+  #include "Cpu0GenRegisterInfo.inc"
+  
+  using namespace llvm;
+  
+  Cpu0RegisterInfo::Cpu0RegisterInfo(const Cpu0Subtarget &ST,
+                                     const TargetInstrInfo &tii)
+    : Cpu0GenRegisterInfo(Cpu0::LR), Subtarget(ST), TII(tii) {}
+  
+  //===----------------------------------------------------------------------===//
+  // Callee Saved Registers methods
+  //===----------------------------------------------------------------------===//
+  /// Cpu0 Callee Saved Registers
+  // In Cpu0CallConv.td,
+  // def CSR_O32 : CalleeSavedRegs<(add LR, FP,
+  //                                   (sequence "S%u", 2, 0))>;
+  // llc create CSR_O32_SaveList and CSR_O32_RegMask from above defined.
+  const uint16_t* Cpu0RegisterInfo::
+  getCalleeSavedRegs(const MachineFunction *MF) const
+  {
+    return CSR_O32_SaveList;
+  }
+  
+  const uint32_t*
+  Cpu0RegisterInfo::getCallPreservedMask(CallingConv::ID) const
+  {
+    return CSR_O32_RegMask; 
+  }
+  
+  // pure virtual method
+  BitVector Cpu0RegisterInfo::
+  getReservedRegs(const MachineFunction &MF) const {
+    static const uint16_t ReservedCPURegs[] = {
+      Cpu0::ZERO, Cpu0::AT, Cpu0::FP,
+      Cpu0::SW, Cpu0::SP, Cpu0::LR, Cpu0::PC
+    };
+    BitVector Reserved(getNumRegs());
+    typedef TargetRegisterClass::iterator RegIter;
+  
+    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
+      Reserved.set(ReservedCPURegs[I]);
+  
+    return Reserved;
+  }
+  
+  // pure virtual method
+  // FrameIndex represent objects inside a abstract stack.
+  // We must replace FrameIndex with an stack/frame pointer
+  // direct reference.
+  void Cpu0RegisterInfo::
+  eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
+                      unsigned FIOperandNum, RegScavenger *RS) const {
+  }
+  
+  // pure virtual method
+  unsigned Cpu0RegisterInfo::
+  getFrameRegister(const MachineFunction &MF) const {
+    const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
+    return TFI->hasFP(MF) ? (Cpu0::FP) :
+                            (Cpu0::SP);
+  }
+
   // Cpu0InstrInfo.h
   class Cpu0InstrInfo : public Cpu0GenInstrInfo { 
     Cpu0TargetMachine &TM; 
@@ -288,7 +378,16 @@ Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,
     )
 
 Now, let's replace 3/1/Cpu0 with 3/2/Cpu0 of adding register class definition 
-and rebuild. 
+as command below and rebuild. 
+
+.. code-block:: bash
+
+  118-165-75-57:ExampleCode Jonathan$ pwd
+  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/ExampleCode
+  118-165-75-57:ExampleCode Jonathan$ sh removecpu0.sh 
+  118-165-75-57:ExampleCode Jonathan$ cp -rf LLVMBackendTutorialExampleCode/3/2/
+  Cpu0/* ../.
+  
 After that, let's try to run the ``llc`` compile command to see what happen,
 
 .. code-block:: bash

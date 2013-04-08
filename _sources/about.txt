@@ -44,7 +44,7 @@ Revision history
 ----------------
 
 Version 3.2.13, Not Released Yet
-
+    Add sub-section "Setup llvm-lit on iMac" of Appendix A.
 Version 3.2.12, Released March 9, 2013
 	Add section "Type of char and short int" of chapter 
 	"Global variables, structs and arrays, other type".

@@ -1113,12 +1113,12 @@ function and define eliminateCallFramePseudoInstr() as follows,</p>
   <span class="o">:</span> <span class="n">Cpu0GenInstrInfo</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADJCALLSTACKDOWN</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADJCALLSTACKUP</span><span class="p">),</span>
 <span class="p">...</span>
 
-<span class="c1">// Cpu0RegisterInfo.cpp</span>
+<span class="c1">// Cpu0FrameLowering.cpp</span>
 <span class="p">...</span>
 <span class="c1">// Cpu0</span>
 <span class="c1">// This function eliminate ADJCALLSTACKDOWN,</span>
 <span class="c1">// ADJCALLSTACKUP pseudo instructions</span>
-<span class="kt">void</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
+<span class="kt">void</span> <span class="n">Cpu0FrameLowering</span><span class="o">::</span>
 <span class="n">eliminateCallFramePseudoInstr</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span> <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
                 <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="c1">// Simply discard ADJCALLSTACKDOWN, ADJCALLSTACKUP instructions.</span>
@@ -1397,15 +1397,7 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &amp;CLI,
 //===----------------------------------------------------------------------===//
 
 #define DEBUG_TYPE "emit-gp-restore"
-
-#include "Cpu0.h"
-#include "Cpu0TargetMachine.h"
-#include "Cpu0MachineFunction.h"
-#include "llvm/CodeGen/MachineFunctionPass.h"
-#include "llvm/CodeGen/MachineInstrBuilder.h"
-#include "llvm/Target/TargetInstrInfo.h"
-#include "llvm/ADT/Statistic.h"
-
+...
 using namespace llvm;
 
 namespace {
@@ -2086,20 +2078,13 @@ where Flag contains $2 and OutVals[0] information.</p>
 
   <span class="c1">// CCState - Info about the registers and stack slot.</span>
   <span class="n">CCState</span> <span class="n">CCInfo</span><span class="p">(</span><span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">(),</span>
-     <span class="n">getTargetMachine</span><span class="p">(),</span> <span class="n">RVLocs</span><span class="p">,</span> <span class="o">*</span><span class="n">DAG</span><span class="p">.</span><span class="n">getContext</span><span class="p">());</span>
+               <span class="n">getTargetMachine</span><span class="p">(),</span> <span class="n">RVLocs</span><span class="p">,</span> <span class="o">*</span><span class="n">DAG</span><span class="p">.</span><span class="n">getContext</span><span class="p">());</span>
 
   <span class="c1">// Analize return values.</span>
   <span class="n">CCInfo</span><span class="p">.</span><span class="n">AnalyzeReturn</span><span class="p">(</span><span class="n">Outs</span><span class="p">,</span> <span class="n">RetCC_Cpu0</span><span class="p">);</span>
 
-  <span class="c1">// If this is the first return lowered for this function, add</span>
-  <span class="c1">// the regs to the liveout set for the function.</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">().</span><span class="n">getRegInfo</span><span class="p">().</span><span class="n">liveout_empty</span><span class="p">())</span> <span class="p">{</span>
-    <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">RVLocs</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
-      <span class="k">if</span> <span class="p">(</span><span class="n">RVLocs</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">isRegLoc</span><span class="p">())</span>
-        <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">().</span><span class="n">getRegInfo</span><span class="p">().</span><span class="n">addLiveOut</span><span class="p">(</span><span class="n">RVLocs</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">getLocReg</span><span class="p">());</span>
-  <span class="p">}</span>
-
   <span class="n">SDValue</span> <span class="n">Flag</span><span class="p">;</span>
+  <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;</span> <span class="n">RetOps</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">Chain</span><span class="p">);</span>
 
   <span class="c1">// Copy the result values into the output registers.</span>
   <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">RVLocs</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
@@ -2108,18 +2093,24 @@ where Flag contains $2 and OutVals[0] information.</p>
 
     <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyToReg</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VA</span><span class="p">.</span><span class="n">getLocReg</span><span class="p">(),</span> <span class="n">OutVals</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Flag</span><span class="p">);</span>
 
-    <span class="c1">// guarantee that all emitted copies are</span>
-    <span class="c1">// stuck together, avoiding something bad</span>
+    <span class="c1">// Guarantee that all emitted copies are stuck together with flags.</span>
     <span class="n">Flag</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="n">RetOps</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">VA</span><span class="p">.</span><span class="n">getLocReg</span><span class="p">(),</span> <span class="n">VA</span><span class="p">.</span><span class="n">getLocVT</span><span class="p">()));</span>
   <span class="p">}</span>
 
-  <span class="c1">// Return on Cpu0 is always a &quot;jr $ra&quot;</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">Flag</span><span class="p">.</span><span class="n">getNode</span><span class="p">())</span>
+  <span class="n">RetOps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">;</span>  <span class="c1">// Update chain.</span>
+
+  <span class="c1">// Return on Cpu0 is always a &quot;ret $lr&quot;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Flag</span><span class="p">.</span><span class="n">getNode</span><span class="p">())</span> <span class="p">{</span>
+    <span class="c1">// Add the flag if we have it.</span>
+    <span class="n">RetOps</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Flag</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Ret</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">RetOps</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">RetOps</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
+  <span class="p">}</span>
+  <span class="k">else</span> <span class="p">{</span>
+    <span class="c1">// Return Void</span>
     <span class="k">return</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Ret</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span>
-               <span class="n">Chain</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">),</span> <span class="n">Flag</span><span class="p">);</span>
-  <span class="k">else</span> <span class="c1">// Return Void</span>
-    <span class="k">return</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Ret</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span>
-               <span class="n">Chain</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">));</span>
+                       <span class="n">Chain</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">));</span>
+  <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -2215,7 +2206,7 @@ _debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<
 ch4_6_2.bc -o ch4_6_2.cpu0.s
 118-165-70-242:InputFiles Jonathan<span class="nv">$ </span>cat ch4_6_2.cpu0.s
   ...
-  div <span class="nv">$zero</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  div <span class="nv">$3</span>, <span class="nv">$2</span>
   mfhi  <span class="nv">$2</span>
   ...
 </pre></div>
@@ -2223,7 +2214,7 @@ ch4_6_2.bc -o ch4_6_2.cpu0.s
 </div>
 <div class="section" id="structure-type-support">
 <h2>Structure type support<a class="headerlink" href="#structure-type-support" title="Permalink to this headline">¶</a></h2>
-<p>Run 8/8 with ch8_9_1 will get the error message as follows,</p>
+<p>Run 8/8 with ch8_9_1.cpp will get the error message as follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch8_9_1.cpp</span>
 <span class="k">struct</span> <span class="n">Date</span>
 <span class="p">{</span>
@@ -2287,8 +2278,8 @@ ch8_9_1.bc
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
 ch8_9_1.bc -o ch8_9_1.cpu0.s
-Assertion failed: <span class="o">(</span>InVals.size<span class="o">()</span> <span class="o">==</span> Ins.size<span class="o">()</span> <span class="o">&amp;&amp;</span> <span class="s2">&quot;LowerFormalArguments didn&#39;t</span>
-<span class="s2">emit the correct number of values!&quot;</span><span class="o">)</span>...
+LLVM ERROR: Cannot <span class="k">select</span>: 0x7fbe7c032210: <span class="nv">ch</span> <span class="o">=</span> Cpu0ISD::Ret 0x7fbe7c032110 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>36<span class="o">]</span>
+In <span class="k">function</span>: _Z7getDatev
 ...
 </pre></div>
 </div>
@@ -2457,6 +2448,7 @@ function call.</p>
 
     <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyToReg</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">V0</span><span class="p">,</span> <span class="n">Val</span><span class="p">,</span> <span class="n">Flag</span><span class="p">);</span>
     <span class="n">Flag</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="n">RetOps</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">V0</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">()));</span>
   <span class="p">}</span>
   <span class="p">...</span>
 <span class="p">}</span>
@@ -2883,13 +2875,13 @@ List the code and their effect as follows,</p>
   <span class="c1">// the sret argument into $v0 for the return. Save the argument into</span>
   <span class="c1">// a virtual register so that we can access it from the return points.</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">().</span><span class="n">getFunction</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">hasStructRetAttr</span><span class="p">())</span> <span class="p">{</span>
-  <span class="kt">unsigned</span> <span class="n">Reg</span> <span class="o">=</span> <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getSRetReturnReg</span><span class="p">();</span>
-  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Reg</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">Reg</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getRegInfo</span><span class="p">().</span><span class="n">createVirtualRegister</span><span class="p">(</span><span class="n">getRegClassFor</span><span class="p">(</span><span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">));</span>
-    <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">setSRetReturnReg</span><span class="p">(</span><span class="n">Reg</span><span class="p">);</span>
-  <span class="p">}</span>
-  <span class="n">SDValue</span> <span class="n">Copy</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyToReg</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getEntryNode</span><span class="p">(),</span> <span class="n">dl</span><span class="p">,</span> <span class="n">Reg</span><span class="p">,</span> <span class="n">InVals</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
-  <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">TokenFactor</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span> <span class="n">Copy</span><span class="p">,</span> <span class="n">Chain</span><span class="p">);</span>
+    <span class="kt">unsigned</span> <span class="n">Reg</span> <span class="o">=</span> <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getSRetReturnReg</span><span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Reg</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">Reg</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getRegInfo</span><span class="p">().</span><span class="n">createVirtualRegister</span><span class="p">(</span><span class="n">getRegClassFor</span><span class="p">(</span><span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">));</span>
+      <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">setSRetReturnReg</span><span class="p">(</span><span class="n">Reg</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="n">SDValue</span> <span class="n">Copy</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyToReg</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getEntryNode</span><span class="p">(),</span> <span class="n">dl</span><span class="p">,</span> <span class="n">Reg</span><span class="p">,</span> <span class="n">InVals</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+    <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">TokenFactor</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span> <span class="n">Copy</span><span class="p">,</span> <span class="n">Chain</span><span class="p">);</span>
   <span class="p">}</span>
   <span class="p">...</span>
 <span class="p">}</span>
@@ -2914,16 +2906,17 @@ ld  <span class="nv">$6</span>, %call24<span class="o">(</span>_Z8copyDate4Date<
   <span class="c1">// a virtual register in the entry block, so now we copy the value out</span>
   <span class="c1">// and into $v0.</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">().</span><span class="n">getFunction</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">hasStructRetAttr</span><span class="p">())</span> <span class="p">{</span>
-  <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span>      <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">();</span>
-  <span class="n">Cpu0FunctionInfo</span> <span class="o">*</span><span class="n">Cpu0FI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getInfo</span><span class="o">&lt;</span><span class="n">Cpu0FunctionInfo</span><span class="o">&gt;</span><span class="p">();</span>
-  <span class="kt">unsigned</span> <span class="n">Reg</span> <span class="o">=</span> <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getSRetReturnReg</span><span class="p">();</span>
+    <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span>      <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">();</span>
+    <span class="n">Cpu0FunctionInfo</span> <span class="o">*</span><span class="n">Cpu0FI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getInfo</span><span class="o">&lt;</span><span class="n">Cpu0FunctionInfo</span><span class="o">&gt;</span><span class="p">();</span>
+    <span class="kt">unsigned</span> <span class="n">Reg</span> <span class="o">=</span> <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getSRetReturnReg</span><span class="p">();</span>
 
-  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Reg</span><span class="p">)</span>
-    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;sret virtual register not created in the entry block&quot;</span><span class="p">);</span>
-  <span class="n">SDValue</span> <span class="n">Val</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyFromReg</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">Reg</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">());</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Reg</span><span class="p">)</span>
+      <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;sret virtual register not created in the entry block&quot;</span><span class="p">);</span>
+    <span class="n">SDValue</span> <span class="n">Val</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyFromReg</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">Reg</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">());</span>
 
-  <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyToReg</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">V0</span><span class="p">,</span> <span class="n">Val</span><span class="p">,</span> <span class="n">Flag</span><span class="p">);</span>
-  <span class="n">Flag</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyToReg</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">V0</span><span class="p">,</span> <span class="n">Val</span><span class="p">,</span> <span class="n">Flag</span><span class="p">);</span>
+    <span class="n">Flag</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="n">RetOps</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">V0</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">()));</span>
   <span class="p">}</span>
   <span class="p">...</span>
 <span class="p">}</span>
@@ -2962,7 +2955,7 @@ _Z8copyDate4Date:
 </pre></div>
 </div>
 <p>The ch8_9_2.cpp include C++ class &#8220;Date&#8221; implementation.
-It can been translated into cpu0 backend too since the front end (clang in this
+It can be translated into cpu0 backend too since the front end (clang in this
 example) translate them into C language form.
 You can also mark the &#8220;hasStructRetAttr() if&#8221; part from both of above functions,
 the output cpu0 code will use $3 instead of $2 as return register as follows,</p>

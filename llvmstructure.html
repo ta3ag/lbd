@@ -1514,6 +1514,27 @@ List them as follows again,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
+<p>Let&#8217;s build LLVMBackendTutorialExampleCode/2/Cpu0 code as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-75-57:ExampleCode Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
+/Users/Jonathan/llvm/test/src/lib/Target/Cpu0/ExampleCode
+118-165-75-57:ExampleCode Jonathan<span class="nv">$ </span>sh removecpu0.sh
+118-165-75-57:ExampleCode Jonathan<span class="nv">$ </span>cp -rf LLVMBackendTutorialExampleCode/3/2/
+Cpu0/* ../.
+
+118-165-75-57:cmake_debug_build Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
+/Users/Jonathan/llvm/test/cmake_debug_build
+118-165-75-57:cmake_debug_build Jonathan<span class="nv">$ </span>rm -rf lib/Target/Cpu0/*
+118-165-75-57:cmake_debug_build Jonathan<span class="nv">$ </span>cmake -DCMAKE_CXX_COMPILER<span class="o">=</span>clang++
+-DCMAKE_C_COMPILER<span class="o">=</span>clang -DCMAKE_BUILD_TYPE<span class="o">=</span>Debug -G <span class="s2">&quot;Xcode&quot;</span> ../src/
+...
+-- Targeting Cpu0
+...
+-- Targeting XCore
+-- Configuring <span class="k">done</span>
+-- Generating <span class="k">done</span>
+-- Build files have been written to: /Users/Jonathan/llvm/test/cmake_debug_build
+</pre></div>
+</div>
 <p>Now try to do <tt class="docutils literal"><span class="pre">llc</span></tt> command to compile input file ch3.cpp as follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch3.cpp</span>
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>

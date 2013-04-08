@@ -130,21 +130,7 @@ The 10/1/Cpu0 include AsmParser implementation as follows,</p>
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-
-#include "MCTargetDesc/Cpu0MCTargetDesc.h"
-#include "Cpu0RegisterInfo.h"
-#include "llvm/ADT/StringSwitch.h"
-#include "llvm/MC/MCContext.h"
-#include "llvm/MC/MCExpr.h"
-#include "llvm/MC/MCInst.h"
-#include "llvm/MC/MCStreamer.h"
-#include "llvm/MC/MCSubtargetInfo.h"
-#include "llvm/MC/MCSymbol.h"
-#include "llvm/MC/MCParser/MCAsmLexer.h"
-#include "llvm/MC/MCParser/MCParsedAsmOperand.h"
-#include "llvm/MC/MCTargetAsmParser.h"
-#include "llvm/Support/TargetRegistry.h"
-
+...
 using namespace llvm;
 
 namespace {
@@ -743,7 +729,7 @@ bool Cpu0AsmParser::ParseOperand(SmallVectorImpl&lt;MCParsedAsmOperand*&gt;&amp;
     }
     // maybe it is a symbol reference
     StringRef Identifier;
-    if (Parser.ParseIdentifier(Identifier))
+    if (Parser.parseIdentifier(Identifier))
       return true;
 
     SMLoc E = SMLoc::getFromPointer(Parser.getTok().getLoc().getPointer() - 1);
@@ -766,7 +752,7 @@ bool Cpu0AsmParser::ParseOperand(SmallVectorImpl&lt;MCParsedAsmOperand*&gt;&amp;
      // quoted label names
     const MCExpr *IdVal;
     SMLoc S = Parser.getTok().getLoc();
-    if (getParser().ParseExpression(IdVal))
+    if (getParser().parseExpression(IdVal))
       return true;
     SMLoc E = SMLoc::getFromPointer(Parser.getTok().getLoc().getPointer() - 1);
     Operands.push_back(Cpu0Operand::CreateImm(IdVal, S, E));
@@ -818,7 +804,7 @@ bool Cpu0AsmParser::parseRelocOperand(const MCExpr *&amp;Res) {
       } else
         break;
     }
-    if (getParser().ParseParenExpression(IdVal,EndLoc))
+    if (getParser().parseParenExpression(IdVal,EndLoc))
       return true;
 
     while (getLexer().getKind() == AsmToken::RParen)
@@ -869,7 +855,7 @@ bool Cpu0AsmParser::parseMemOffset(const MCExpr *&amp;Res) {
   case AsmToken::Integer:
   case AsmToken::Minus:
   case AsmToken::Plus:
-    return (getParser().ParseExpression(Res));
+    return (getParser().parseExpression(Res));
   case AsmToken::Percent:
     return parseRelocOperand(Res);
   case AsmToken::LParen:
@@ -987,13 +973,13 @@ parseMathOperation(StringRef Name, SMLoc NameLoc,
     // Read the first operand.
     if (ParseOperand(Operands, Name)) {
       SMLoc Loc = getLexer().getLoc();
-      Parser.EatToEndOfStatement();
+      Parser.eatToEndOfStatement();
       return Error(Loc, "unexpected token in argument list");
     }
 
     if (getLexer().isNot(AsmToken::Comma)) {
       SMLoc Loc = getLexer().getLoc();
-      Parser.EatToEndOfStatement();
+      Parser.eatToEndOfStatement();
       return Error(Loc, "unexpected token in argument list");
 
     }
@@ -1002,14 +988,14 @@ parseMathOperation(StringRef Name, SMLoc NameLoc,
     // Parse and remember the operand.
     if (ParseOperand(Operands, Name)) {
       SMLoc Loc = getLexer().getLoc();
-      Parser.EatToEndOfStatement();
+      Parser.eatToEndOfStatement();
       return Error(Loc, "unexpected token in argument list");
     }
   }
 
   if (getLexer().isNot(AsmToken::EndOfStatement)) {
     SMLoc Loc = getLexer().getLoc();
-    Parser.EatToEndOfStatement();
+    Parser.eatToEndOfStatement();
     return Error(Loc, "unexpected token in argument list");
   }
 
@@ -1032,7 +1018,7 @@ ParseInstruction(ParseInstructionInfo &amp;Info, StringRef Name, SMLoc NameLoc,
     // Read the first operand.
     if (ParseOperand(Operands, Name)) {
       SMLoc Loc = getLexer().getLoc();
-      Parser.EatToEndOfStatement();
+      Parser.eatToEndOfStatement();
       return Error(Loc, "unexpected token in argument list");
     }
 
@@ -1042,7 +1028,7 @@ ParseInstruction(ParseInstructionInfo &amp;Info, StringRef Name, SMLoc NameLoc,
       // Parse and remember the operand.
       if (ParseOperand(Operands, Name)) {
         SMLoc Loc = getLexer().getLoc();
-        Parser.EatToEndOfStatement();
+        Parser.eatToEndOfStatement();
         return Error(Loc, "unexpected token in argument list");
       }
     }
@@ -1050,7 +1036,7 @@ ParseInstruction(ParseInstructionInfo &amp;Info, StringRef Name, SMLoc NameLoc,
 
   if (getLexer().isNot(AsmToken::EndOfStatement)) {
     SMLoc Loc = getLexer().getLoc();
-    Parser.EatToEndOfStatement();
+    Parser.eatToEndOfStatement();
     return Error(Loc, "unexpected token in argument list");
   }
 
@@ -1060,7 +1046,7 @@ ParseInstruction(ParseInstructionInfo &amp;Info, StringRef Name, SMLoc NameLoc,
 
 bool Cpu0AsmParser::reportParseError(StringRef ErrorMsg) {
    SMLoc Loc = getLexer().getLoc();
-   Parser.EatToEndOfStatement();
+   Parser.eatToEndOfStatement();
    return Error(Loc, ErrorMsg);
 }
 
@@ -1148,7 +1134,7 @@ bool Cpu0AsmParser::ParseDirective(AsmToken DirectiveID) {
 
   if (DirectiveID.getString() == ".frame") {
     // ignore this directive for now
-    Parser.EatToEndOfStatement();
+    Parser.eatToEndOfStatement();
     return false;
   }
 
@@ -1158,19 +1144,19 @@ bool Cpu0AsmParser::ParseDirective(AsmToken DirectiveID) {
 
   if (DirectiveID.getString() == ".fmask") {
     // ignore this directive for now
-    Parser.EatToEndOfStatement();
+    Parser.eatToEndOfStatement();
     return false;
   }
 
   if (DirectiveID.getString() == ".mask") {
     // ignore this directive for now
-    Parser.EatToEndOfStatement();
+    Parser.eatToEndOfStatement();
     return false;
   }
 
   if (DirectiveID.getString() == ".gpword") {
     // ignore this directive for now
-    Parser.EatToEndOfStatement();
+    Parser.eatToEndOfStatement();
     return false;
   }
 

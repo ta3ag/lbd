@@ -758,7 +758,6 @@ To support llvm-objdump, the following code added to /9/1/Cpu0.
   ...
   tablegen(LLVM Cpu0GenDisassemblerTables.inc -gen-disassembler)
   ...
-  tablegen(LLVM Cpu0GenEDInfo.inc -gen-enhanced-disassembly-info)
   
   // LLVMBuild.txt
   [common]
@@ -845,21 +844,7 @@ To support llvm-objdump, the following code added to /9/1/Cpu0.
   // This file is part of the Cpu0 Disassembler.
   //
   //===----------------------------------------------------------------------===//
-  
-  #include "Cpu0.h"
-  #include "Cpu0Subtarget.h"
-  #include "Cpu0RegisterInfo.h"
-  #include "llvm/MC/EDInstInfo.h"
-  #include "llvm/MC/MCDisassembler.h"
-  #include "llvm/MC/MCFixedLenDisassembler.h"
-  #include "llvm/Support/MemoryObject.h"
-  #include "llvm/Support/TargetRegistry.h"
-  #include "llvm/MC/MCSubtargetInfo.h"
-  #include "llvm/MC/MCInst.h"
-  #include "llvm/Support/MathExtras.h"
-  
-  #include "Cpu0GenEDInfo.inc"
-  
+  ...
   using namespace llvm;
   
   typedef MCDisassembler::DecodeStatus DecodeStatus;
@@ -883,18 +868,11 @@ To support llvm-objdump, the following code added to /9/1/Cpu0.
                   uint64_t address,
                   raw_ostream &vStream,
                   raw_ostream &cStream) const;
-  
-    /// getEDInfo - See MCDisassembler.
-    const EDInstInfo *getEDInfo() const;
-  
+
   private:
     bool isBigEndian;
   };
-  
-  const EDInstInfo *Cpu0Disassembler::getEDInfo() const {
-    return instInfoCpu0;
-  }
-  
+
   // Decoder tables for Cpu0 register
   static const unsigned CPURegsTable[] = {
     Cpu0::ZERO, Cpu0::AT, Cpu0::V0, Cpu0::V1,

@@ -225,12 +225,6 @@ IR instruction <strong>sdiv</strong> stand for signed div while <strong>udiv</st
 The <strong>&#8216;ashr&#8217;</strong> instruction (arithmetic shift right) returns the first operand
 shifted to the right a specified number of bits with sign extension.
 In brief, we call <strong>ashr</strong> is “shift with sign extension fill”.</p>
-<div class="code highlight-c++"><div class="highlight"><pre><span class="nl">Example:</span>
-  <span class="o">&lt;</span><span class="n">result</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ashr</span> <span class="n">i32</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span>   <span class="p">;</span> <span class="n">yields</span> <span class="p">{</span><span class="n">i32</span><span class="p">}</span><span class="o">:</span><span class="n">result</span> <span class="o">=</span> <span class="mi">2</span>
-  <span class="o">&lt;</span><span class="n">result</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ashr</span> <span class="n">i8</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span>   <span class="p">;</span> <span class="n">yields</span> <span class="p">{</span><span class="n">i8</span><span class="p">}</span><span class="o">:</span><span class="n">result</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-  <span class="o">&lt;</span><span class="n">result</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">ashr</span> <span class="n">i32</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">32</span>  <span class="p">;</span> <span class="n">undefined</span>
-</pre></div>
-</div>
 <p>The C operator <strong>&gt;&gt;</strong> for negative operand is dependent on implementation.
 Most compiler translate it into “shift with sign extension fill”, for example,
 Mips <strong>sra</strong> is the instruction.
@@ -247,10 +241,6 @@ likewise.</p>
 <p>In addition to <strong>ashr</strong>, the other instruction “shift with zero filled”
 <strong>lshr</strong> in llvm (Mips implement lshr with instruction <strong>srl</strong>) has the
 following meaning.</p>
-<div class="code highlight-c++"><div class="highlight"><pre><span class="nl">Example:</span>
-<span class="o">&lt;</span><span class="n">result</span><span class="o">&gt;</span> <span class="o">=</span> <span class="n">lshr</span> <span class="n">i8</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span>   <span class="p">;</span> <span class="n">yields</span> <span class="p">{</span><span class="n">i8</span><span class="p">}</span><span class="o">:</span><span class="n">result</span> <span class="o">=</span> <span class="mh">0x7FFFFFFF</span>
-</pre></div>
-</div>
 <p>In llvm, IR node <strong>sra</strong> is defined for ashr IR instruction, node <strong>srl</strong> is
 defined for lshr instruction (I don&#8217;t know why don&#8217;t use ashr and lshr as the
 IR node name directly).
