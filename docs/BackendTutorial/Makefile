@@ -165,7 +165,7 @@ gh-pages:
 	rm -rf build _sources _static _images &&\
 	git read-tree --prefix=$(TMP_PREFIX)/ -u HEAD master:$(BACKEND_TUTORIAL_SUBDIR) &&\
 	mv $(TMP_PREFIX)/* . &&\
-	sh ./genexample.sh &&\
+	sh ./rungenexample.sh &&\
 	make html latexpdf epub &&\
 	mv -fv build/html/* ./ &&\
 	mv -fv build/latex/TutorialLLVMBackendCpu0.pdf "./TutorialLLVMBackendCpu0.pdf" &&\
@@ -178,5 +178,5 @@ gh-pages:
 	git checkout master
 
 genexample:
-	sh ./genexample.sh
+	sh ./rungenexample.sh
  

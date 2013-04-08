@@ -1,0 +1,44 @@
+diff -Naur 8/4/Cpu0/Cpu0FrameLowering.cpp 8/5/Cpu0/Cpu0FrameLowering.cpp
+--- 8/4/Cpu0/Cpu0FrameLowering.cpp	2013-03-30 15:16:07.000000000 +0800
++++ 8/5/Cpu0/Cpu0FrameLowering.cpp	2013-03-30 15:16:07.000000000 +0800
+@@ -185,6 +185,15 @@
+ 
+ }
+ 
++// This function eliminate ADJCALLSTACKDOWN,
++// ADJCALLSTACKUP pseudo instructions
++void Cpu0FrameLowering::
++eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
++                              MachineBasicBlock::iterator I) const {
++  // Simply discard ADJCALLSTACKDOWN, ADJCALLSTACKUP instructions.
++  MBB.erase(I);
++}
++
+ // This method is called immediately before PrologEpilogInserter scans the 
+ //  physical registers used to determine what callee saved registers should be 
+ //  spilled. This method is optional. 
+diff -Naur 8/4/Cpu0/Cpu0FrameLowering.h 8/5/Cpu0/Cpu0FrameLowering.h
+--- 8/4/Cpu0/Cpu0FrameLowering.h	2013-03-30 15:16:07.000000000 +0800
++++ 8/5/Cpu0/Cpu0FrameLowering.h	2013-03-30 15:16:07.000000000 +0800
+@@ -35,6 +35,9 @@
+   void emitPrologue(MachineFunction &MF) const;
+   void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const;
+   bool hasFP(const MachineFunction &MF) const;
++  void eliminateCallFramePseudoInstr(MachineFunction &MF,
++                                     MachineBasicBlock &MBB,
++                                     MachineBasicBlock::iterator I) const;
+   void processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
+                                             RegScavenger *RS) const;
+ };
+diff -Naur 8/4/Cpu0/Cpu0InstrInfo.cpp 8/5/Cpu0/Cpu0InstrInfo.cpp
+--- 8/4/Cpu0/Cpu0InstrInfo.cpp	2013-03-30 15:16:07.000000000 +0800
++++ 8/5/Cpu0/Cpu0InstrInfo.cpp	2013-03-30 15:16:07.000000000 +0800
+@@ -21,7 +21,7 @@
+ using namespace llvm;
+ 
+ Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
+-  : 
++  : Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
+     TM(tm),
+     RI(*TM.getSubtargetImpl(), *this) {}
+ 

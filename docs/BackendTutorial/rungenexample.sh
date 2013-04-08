@@ -2,10 +2,11 @@
 rm -rf LLVMBackendTutorialExampleCode.tar.gz LLVMBackendTutorialExampleCode
 CURR_DIR=$(pwd)
 echo ${CURR_DIR}
-cd ../../lib/Target/Cpu0/ExampleCode 
+cd source_ExampleCode 
 sh ./genexample.sh 
 tar -zcvf LLVMBackendTutorialExampleCode.tar.gz LLVMBackendTutorialExampleCode 
 mv -f LLVMBackendTutorialExampleCode.tar.gz ${CURR_DIR}/. 
-rm -rf LLVMBackendTutorialExampleCode
+rm -rf ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode
+mv -f LLVMBackendTutorialExampleCode ../../../lib/Target/Cpu0/.
 cd ${CURR_DIR}
 
