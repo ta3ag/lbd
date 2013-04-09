@@ -1,10 +1,10 @@
 Build procedure:
-1. Go to this directory in terminal command.
-2. cd ExampleCode
-3. sh genexample.sh  // Generate the Example Code in LLVMBackendTutorialExampleCode
-4. Clean the old chapter example of directory <llvm-source-root-dir>/lib/Target/Cpu0/ExampleCode by command:
+1. Go to directory docs/BackendTutorial/ in terminal command.
+2. make genexample  // Generate the Example Code in lib/Target/Cpu0/LLVMBackendTutorialExampleCode
+3. Clean the old chapter example of directory <llvm-source-root-dir>/lib/Target/Cpu0/ExampleCode by command:
    sh removecpu0.sh
 4. Copy the chapter example to directory <llvm-source-root-dir>/lib/Target/Cpu0/, for example:
-   cp -rf LLVMBackendTutorialExampleCode/2/Cpu0/* ../.  // Copy chapter 2 example code to parent dir (lib/Target/Cpu0)
-   cp -rf LLVMBackendTutorialExampleCode/11/2/Cpu0/* ../.  // Copy chapter 11 section 2 example code to parent dir (lib/Target/Cpu0)
+   Current directory is <llvm-source-root-dir>/lib/Target/Cpu0.
+   cp -rf LLVMBackendTutorialExampleCode/2/Cpu0/* .  // Copy chapter 2 example code to parent dir (lib/Target/Cpu0)
+   cp -rf LLVMBackendTutorialExampleCode/11/2/Cpu0/* .  // Copy chapter 11 section 2 example code to parent dir (lib/Target/Cpu0)
 5. Go to you <llvm-build-dir> directory to build code.
