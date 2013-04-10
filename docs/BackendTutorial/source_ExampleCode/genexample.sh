@@ -1,125 +1,113 @@
 #!/usr/bin/env bash
 GEN_DIR=LLVMBackendTutorialExampleCode
-rm -rf 3 4 5 6 7 8 9 10 11
+rm -rf Chapter3_1 Chapter3_2 Chapter3_2 Chapter3_4 Chapter3_5 
+rm -rf Chapter4_1 Chapter4_2 Chapter4_4 Chapter4_4_2 Chapter4_5 Chapter4_6_1 Chapter4_6_2 Chapter4_6_4 
+rm -rf Chapter5_1 Chapter6_1 Chapter6_2 Chapter6_3 Chapter7_1 
+rm -rf Chapter8_2 Chapter8_3 Chapter8_4 Chapter8_5 Chapter8_6 Chapter8_7 Chapter8_8 Chapter8_8_2 Chapter8_9
+rm -rf Chapter9_1 Chapter10_1 Chapter10_2 Chapter11_1 Chapter11_2
 rm -rf ${GEN_DIR}
 mkdir ${GEN_DIR}
-mkdir ${GEN_DIR}/3
-mkdir ${GEN_DIR}/4
-mkdir ${GEN_DIR}/6
-mkdir ${GEN_DIR}/7
-mkdir ${GEN_DIR}/8
-mkdir ${GEN_DIR}/9
-mkdir ${GEN_DIR}/10
-mkdir ${GEN_DIR}/11
-cp -rf 2 ${GEN_DIR}/.
+cp -rf Chapter2 ${GEN_DIR}/.
 patch -fp0 < 3-1.patch
-mkdir 3
-mv 2 3/1
-cp -rf 3/1 ${GEN_DIR}/3/.
+mv Chapter2 Chapter3_1
+cp -rf Chapter3_1 ${GEN_DIR}/.
 patch -fp0 < 3-2.patch
-mv 3/1 3/2
-cp -rf 3/2 ${GEN_DIR}/3/.
+mv Chapter3_1 Chapter3_2
+cp -rf Chapter3_2 ${GEN_DIR}/.
 patch -fp0 < 3-3.patch
-mv 3/2 3/3
-cp -rf 3/3 ${GEN_DIR}/3/.
+mv Chapter3_2 Chapter3_3
+cp -rf Chapter3_3 ${GEN_DIR}/.
 patch -fp0 < 3-4.patch
-mv 3/3 3/4
-cp -rf 3/4 ${GEN_DIR}/3/.
+mv Chapter3_3 Chapter3_4
+cp -rf Chapter3_4 ${GEN_DIR}/.
 patch -fp0 < 3-5.patch
-mv 3/4 3/5
-cp -rf 3/5 ${GEN_DIR}/3/.
+mv Chapter3_4 Chapter3_5
+cp -rf Chapter3_5 ${GEN_DIR}/.
 patch -fp0 < 4-1.patch
-mkdir 4
-mv 3/5 4/1
-cp -rf 4/1 ${GEN_DIR}/4/.
+mv Chapter3_5 Chapter4_1
+cp -rf Chapter4_1 ${GEN_DIR}/.
 patch -fp0 < 4-2.patch
-mv 4/1 4/2
-cp -rf 4/2 ${GEN_DIR}/4/.
+mv Chapter4_1 Chapter4_2
+cp -rf Chapter4_2 ${GEN_DIR}/.
 patch -fp0 < 4-4.patch
-mv 4/2 4/4
-cp -rf 4/4 ${GEN_DIR}/4/.
+mv Chapter4_2 Chapter4_4
+cp -rf Chapter4_4 ${GEN_DIR}/.
 patch -fp0 < 4-4_2.patch
-mv 4/4 4/4_2
-cp -rf 4/4_2 ${GEN_DIR}/4/.
+mv Chapter4_4 Chapter4_4_2
+cp -rf Chapter4_4_2 ${GEN_DIR}/.
 patch -fp0 < 4-5.patch
-mv 4/4_2 4/5
-cp -rf 4/5 ${GEN_DIR}/4/.
+mv Chapter4_4_2 Chapter4_5
+cp -rf Chapter4_5 ${GEN_DIR}/.
 patch -fp0 < 4-6_1.patch
-mv 4/5 4/6_1
-cp -rf 4/6_1 ${GEN_DIR}/4/.
+mv Chapter4_5 Chapter4_6_1
+cp -rf Chapter4_6_1 ${GEN_DIR}/.
 patch -fp0 < 4-6_2.patch
-mv 4/6_1 4/6_2
-cp -rf 4/6_2 ${GEN_DIR}/4/.
+mv Chapter4_6_1 Chapter4_6_2
+cp -rf Chapter4_6_2 ${GEN_DIR}/.
 patch -fp0 < 4-6_4.patch
-mv 4/6_2 4/6_4
-cp -rf 4/6_4 ${GEN_DIR}/4/.
-patch -fp0 < 5.patch
-mv 4/6_4 5
-cp -rf 5 ${GEN_DIR}/.
+mv Chapter4_6_2 Chapter4_6_4
+cp -rf Chapter4_6_4 ${GEN_DIR}/.
+patch -fp0 < 5-1.patch
+mv Chapter4_6_4 Chapter5_1
+cp -rf Chapter5_1 ${GEN_DIR}/.
 patch -fp0 < 6-1.patch
-mkdir 6
-mv 5 6/1
-cp -rf 6/1 ${GEN_DIR}/6/.
+mv Chapter5_1 Chapter6_1
+cp -rf Chapter6_1 ${GEN_DIR}/.
 patch -fp0 < 6-2.patch
-mv 6/1 6/2
-cp -rf 6/2 ${GEN_DIR}/6/.
+mv Chapter6_1 Chapter6_2
+cp -rf Chapter6_2 ${GEN_DIR}/.
 patch -fp0 < 6-3.patch
-mv 6/2 6/3
-cp -rf 6/3 ${GEN_DIR}/6/.
+mv Chapter6_2 Chapter6_3
+cp -rf Chapter6_3 ${GEN_DIR}/.
 patch -fp0 < 7-1.patch
-mkdir 7
-mv 6/3 7/1
-cp -rf 7/1 ${GEN_DIR}/7/.
+mv Chapter6_3 Chapter7_1
+cp -rf Chapter7_1 ${GEN_DIR}/.
 patch -fp0 < 8-2.patch
-mkdir 8
-mv 7/1 8/2
-cp -rf 8/2 ${GEN_DIR}/8/.
+mv Chapter7_1 Chapter8_2
+cp -rf Chapter8_2 ${GEN_DIR}/.
 patch -fp0 < 8-3.patch
-mv 8/2 8/3
-cp -rf 8/3 ${GEN_DIR}/8/.
+mv Chapter8_2 Chapter8_3
+cp -rf Chapter8_3 ${GEN_DIR}/.
 patch -fp0 < 8-4.patch
-mv 8/3 8/4
-cp -rf 8/4 ${GEN_DIR}/8/.
+mv Chapter8_3 Chapter8_4
+cp -rf Chapter8_4 ${GEN_DIR}/.
 patch -fp0 < 8-5.patch
-mv 8/4 8/5
-cp -rf 8/5 ${GEN_DIR}/8/.
+mv Chapter8_4 Chapter8_5
+cp -rf Chapter8_5 ${GEN_DIR}/.
 patch -fp0 < 8-6.patch
-mv 8/5 8/6
-cp -rf 8/6 ${GEN_DIR}/8/.
+mv Chapter8_5 Chapter8_6
+cp -rf Chapter8_6 ${GEN_DIR}/.
 patch -fp0 < 8-7.patch
-mv 8/6 8/7
-cp -rf 8/7 ${GEN_DIR}/8/.
+mv Chapter8_6 Chapter8_7
+cp -rf Chapter8_7 ${GEN_DIR}/.
 patch -fp0 < 8-8.patch
-mv 8/7 8/8
-cp -rf 8/8 ${GEN_DIR}/8/.
+mv Chapter8_7 Chapter8_8
+cp -rf Chapter8_8 ${GEN_DIR}/.
 patch -fp0 < 8-8_2.patch
-mv 8/8 8/8_2
-cp -rf 8/8_2 ${GEN_DIR}/8/.
-rm -rf 8/8_2
-cp -rf ${GEN_DIR}/8/8 8/.
+mv Chapter8_8 Chapter8_8_2
+cp -rf Chapter8_8_2 ${GEN_DIR}/.
+rm -rf Chapter8_8_2
+cp -rf ${GEN_DIR}/Chapter8_8 .
 patch -fp0 < 8-9.patch
-mv 8/8 8/9
-cp -rf 8/9 ${GEN_DIR}/8/.
+mv Chapter8_8 Chapter8_9
+cp -rf Chapter8_9 ${GEN_DIR}/.
 patch -fp0 < 9-1.patch
-mkdir 9
-mv 8/9 9/1
-cp -rf 9/1 ${GEN_DIR}/9/.
+mv Chapter8_9 Chapter9_1
+cp -rf Chapter9_1 ${GEN_DIR}/.
 patch -fp0 < 10-1.patch
-mkdir 10
-mv 9/1 10/1
-cp -rf 10/1 ${GEN_DIR}/10/.
+mv Chapter9_1 Chapter10_1
+cp -rf Chapter10_1 ${GEN_DIR}/.
 patch -fp0 < 10-2.patch
-mv 10/1 10/2
-cp -rf 10/2 ${GEN_DIR}/10/.
+mv Chapter10_1 Chapter10_2
+cp -rf Chapter10_2 ${GEN_DIR}/.
 patch -fp0 < 11-1.patch
-mkdir 11
-mv 10/2 11/1
-cp -rf 11/1 ${GEN_DIR}/11/.
+mv Chapter10_2 Chapter11_1
+cp -rf Chapter11_1 ${GEN_DIR}/.
 patch -fp0 < 11-2.patch
-mv 11/1 11/2
-cp -rf 11/2 ${GEN_DIR}/11/.
-cp -rf ${GEN_DIR}/2 .
-rm -rf 3 4 6 7 8 9 10 11
+mv Chapter11_1 Chapter11_2
+cp -rf Chapter11_2 ${GEN_DIR}/.
+rm -rf Chapter11_2
+cp -rf ${GEN_DIR}/Chapter2 .
 cp -rf InputFiles llvm3.1 llvm3.2 ${GEN_DIR}/.
 cp -rf 3.1_src_files_modify 3.2_src_files_modify src_files_modify ${GEN_DIR}/.
 cp -rf cpu0_verilog ${GEN_DIR}/.

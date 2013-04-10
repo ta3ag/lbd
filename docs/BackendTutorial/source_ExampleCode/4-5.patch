@@ -1,6 +1,6 @@
-diff -Naur 4/4_2/Cpu0/Cpu0FrameLowering.cpp 4/5/Cpu0/Cpu0FrameLowering.cpp
---- 4/4_2/Cpu0/Cpu0FrameLowering.cpp	2013-03-30 15:16:07.000000000 +0800
-+++ 4/5/Cpu0/Cpu0FrameLowering.cpp	2013-03-30 15:16:07.000000000 +0800
+diff -Naur Chapter4_4_2/Cpu0FrameLowering.cpp Chapter4_5/Cpu0FrameLowering.cpp
+--- Chapter4_4_2/Cpu0FrameLowering.cpp	2013-04-08 15:34:23.000000000 +0800
++++ Chapter4_5/Cpu0FrameLowering.cpp	2013-04-08 15:34:23.000000000 +0800
 @@ -99,7 +99,7 @@
    MachineBasicBlock::iterator MBBI = MBB.begin();
    DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
@@ -51,9 +51,9 @@ diff -Naur 4/4_2/Cpu0/Cpu0FrameLowering.cpp 4/5/Cpu0/Cpu0FrameLowering.cpp
    else // Expand immediate that doesn't fit in 16-bit.
  	assert("No expandLargeImm(SP, StackSize, false, TII, MBB, MBBI, dl);");
  //    expandLargeImm(SP, StackSize, false, TII, MBB, MBBI, dl);
-diff -Naur 4/4_2/Cpu0/Cpu0InstrInfo.td 4/5/Cpu0/Cpu0InstrInfo.td
---- 4/4_2/Cpu0/Cpu0InstrInfo.td	2013-03-30 15:16:07.000000000 +0800
-+++ 4/5/Cpu0/Cpu0InstrInfo.td	2013-03-30 15:16:07.000000000 +0800
+diff -Naur Chapter4_4_2/Cpu0InstrInfo.td Chapter4_5/Cpu0InstrInfo.td
+--- Chapter4_4_2/Cpu0InstrInfo.td	2013-04-08 15:34:23.000000000 +0800
++++ Chapter4_5/Cpu0InstrInfo.td	2013-04-08 15:34:23.000000000 +0800
 @@ -45,6 +45,12 @@
    let EncoderMethod = "getMemEncoding";
  }
@@ -124,9 +124,9 @@ diff -Naur 4/4_2/Cpu0/Cpu0InstrInfo.td 4/5/Cpu0/Cpu0InstrInfo.td
  }
  
  defm : SeteqPats<CPURegs, XOR>;
-diff -Naur 4/4_2/Cpu0/InstPrinter/Cpu0InstPrinter.cpp 4/5/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
---- 4/4_2/Cpu0/InstPrinter/Cpu0InstPrinter.cpp	2013-03-30 15:16:07.000000000 +0800
-+++ 4/5/Cpu0/InstPrinter/Cpu0InstPrinter.cpp	2013-03-30 15:16:07.000000000 +0800
+diff -Naur Chapter4_4_2/InstPrinter/Cpu0InstPrinter.cpp Chapter4_5/InstPrinter/Cpu0InstPrinter.cpp
+--- Chapter4_4_2/InstPrinter/Cpu0InstPrinter.cpp	2013-04-08 15:34:23.000000000 +0800
++++ Chapter4_5/InstPrinter/Cpu0InstPrinter.cpp	2013-04-08 15:34:23.000000000 +0800
 @@ -110,3 +110,13 @@
    O << ")";
  }
@@ -141,9 +141,9 @@ diff -Naur 4/4_2/Cpu0/InstPrinter/Cpu0InstPrinter.cpp 4/5/Cpu0/InstPrinter/Cpu0I
 +  return;
 +}
 +
-diff -Naur 4/4_2/Cpu0/InstPrinter/Cpu0InstPrinter.h 4/5/Cpu0/InstPrinter/Cpu0InstPrinter.h
---- 4/4_2/Cpu0/InstPrinter/Cpu0InstPrinter.h	2013-03-30 15:16:07.000000000 +0800
-+++ 4/5/Cpu0/InstPrinter/Cpu0InstPrinter.h	2013-03-30 15:16:07.000000000 +0800
+diff -Naur Chapter4_4_2/InstPrinter/Cpu0InstPrinter.h Chapter4_5/InstPrinter/Cpu0InstPrinter.h
+--- Chapter4_4_2/InstPrinter/Cpu0InstPrinter.h	2013-04-08 15:34:23.000000000 +0800
++++ Chapter4_5/InstPrinter/Cpu0InstPrinter.h	2013-04-08 15:34:23.000000000 +0800
 @@ -39,6 +39,7 @@
    void printOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
    void printUnsignedImm(const MCInst *MI, int opNum, raw_ostream &O);

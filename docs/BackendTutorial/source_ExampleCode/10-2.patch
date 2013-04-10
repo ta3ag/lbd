@@ -1,6 +1,6 @@
-diff -Naur 10/1/Cpu0/Cpu0InstrInfo.td 10/2/Cpu0/Cpu0InstrInfo.td
---- 10/1/Cpu0/Cpu0InstrInfo.td	2013-03-30 15:16:07.000000000 +0800
-+++ 10/2/Cpu0/Cpu0InstrInfo.td	2013-03-30 15:16:07.000000000 +0800
+diff -Naur Chapter10_1/Cpu0InstrInfo.td Chapter10_2/Cpu0InstrInfo.td
+--- Chapter10_1/Cpu0InstrInfo.td	2013-04-08 15:34:23.000000000 +0800
++++ Chapter10_2/Cpu0InstrInfo.td	2013-04-08 15:34:23.000000000 +0800
 @@ -487,6 +487,7 @@
    def RET   : FJ <0x2C, (outs), (ins CPURegs:$target),
                  "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch>;
@@ -9,9 +9,9 @@ diff -Naur 10/1/Cpu0/Cpu0InstrInfo.td 10/2/Cpu0/Cpu0InstrInfo.td
  def JALR    : JumpLinkReg<0x2E, "jalr", CPURegs>;
  
  /// No operation
-diff -Naur 10/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp 10/2/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- 10/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-03-30 15:16:07.000000000 +0800
-+++ 10/2/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-03-30 15:16:07.000000000 +0800
+diff -Naur Chapter10_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter10_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+--- Chapter10_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-04-08 15:34:23.000000000 +0800
++++ Chapter10_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-04-08 15:34:23.000000000 +0800
 @@ -163,19 +163,29 @@
  }
  

@@ -1,6 +1,6 @@
-diff -Naur 8/8/Cpu0/Cpu0ISelLowering.cpp 8/9/Cpu0/Cpu0ISelLowering.cpp
---- 8/8/Cpu0/Cpu0ISelLowering.cpp	2013-03-30 15:16:07.000000000 +0800
-+++ 8/9/Cpu0/Cpu0ISelLowering.cpp	2013-03-30 15:16:07.000000000 +0800
+diff -Naur Chapter8_8/Cpu0ISelLowering.cpp Chapter8_9/Cpu0ISelLowering.cpp
+--- Chapter8_8/Cpu0ISelLowering.cpp	2013-04-08 15:34:23.000000000 +0800
++++ Chapter8_9/Cpu0ISelLowering.cpp	2013-04-08 15:34:23.000000000 +0800
 @@ -169,6 +169,18 @@
  //  Lower helper functions
  //===----------------------------------------------------------------------===//

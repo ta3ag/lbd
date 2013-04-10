@@ -1,6 +1,6 @@
-diff -Naur 3/4/Cpu0/Cpu0FrameLowering.cpp 3/5/Cpu0/Cpu0FrameLowering.cpp
---- 3/4/Cpu0/Cpu0FrameLowering.cpp	2013-03-30 15:16:07.000000000 +0800
-+++ 3/5/Cpu0/Cpu0FrameLowering.cpp	2013-03-30 15:16:07.000000000 +0800
+diff -Naur Chapter3_4/Cpu0FrameLowering.cpp Chapter3_5/Cpu0FrameLowering.cpp
+--- Chapter3_4/Cpu0FrameLowering.cpp	2013-04-08 15:34:23.000000000 +0800
++++ Chapter3_5/Cpu0FrameLowering.cpp	2013-04-08 15:34:23.000000000 +0800
 @@ -91,10 +91,140 @@
  }
  
@@ -142,9 +142,9 @@ diff -Naur 3/4/Cpu0/Cpu0FrameLowering.cpp 3/5/Cpu0/Cpu0FrameLowering.cpp
  }
  
  
-diff -Naur 3/4/Cpu0/Cpu0FrameLowering.h 3/5/Cpu0/Cpu0FrameLowering.h
---- 3/4/Cpu0/Cpu0FrameLowering.h	2013-03-30 15:16:07.000000000 +0800
-+++ 3/5/Cpu0/Cpu0FrameLowering.h	2013-03-30 15:16:07.000000000 +0800
+diff -Naur Chapter3_4/Cpu0FrameLowering.h Chapter3_5/Cpu0FrameLowering.h
+--- Chapter3_4/Cpu0FrameLowering.h	2013-04-08 15:34:23.000000000 +0800
++++ Chapter3_5/Cpu0FrameLowering.h	2013-04-08 15:34:23.000000000 +0800
 @@ -35,6 +35,8 @@
    void emitPrologue(MachineFunction &MF) const;
    void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const;
@@ -154,9 +154,9 @@ diff -Naur 3/4/Cpu0/Cpu0FrameLowering.h 3/5/Cpu0/Cpu0FrameLowering.h
  };
  
  } // End llvm namespace
-diff -Naur 3/4/Cpu0/Cpu0RegisterInfo.cpp 3/5/Cpu0/Cpu0RegisterInfo.cpp
---- 3/4/Cpu0/Cpu0RegisterInfo.cpp	2013-03-30 15:16:07.000000000 +0800
-+++ 3/5/Cpu0/Cpu0RegisterInfo.cpp	2013-03-30 15:16:07.000000000 +0800
+diff -Naur Chapter3_4/Cpu0RegisterInfo.cpp Chapter3_5/Cpu0RegisterInfo.cpp
+--- Chapter3_4/Cpu0RegisterInfo.cpp	2013-04-08 15:34:23.000000000 +0800
++++ Chapter3_5/Cpu0RegisterInfo.cpp	2013-04-08 15:34:23.000000000 +0800
 @@ -81,6 +81,7 @@
    return Reserved;
  }

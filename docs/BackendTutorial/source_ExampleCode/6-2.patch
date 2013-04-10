@@ -1,6 +1,6 @@
-diff -Naur 6/1/Cpu0/Cpu0ISelDAGToDAG.cpp 6/2/Cpu0/Cpu0ISelDAGToDAG.cpp
---- 6/1/Cpu0/Cpu0ISelDAGToDAG.cpp	2013-03-30 15:16:07.000000000 +0800
-+++ 6/2/Cpu0/Cpu0ISelDAGToDAG.cpp	2013-03-30 15:16:07.000000000 +0800
+diff -Naur Chapter6_1/Cpu0ISelDAGToDAG.cpp Chapter6_2/Cpu0ISelDAGToDAG.cpp
+--- Chapter6_1/Cpu0ISelDAGToDAG.cpp	2013-04-08 15:34:23.000000000 +0800
++++ Chapter6_2/Cpu0ISelDAGToDAG.cpp	2013-04-08 15:34:23.000000000 +0800
 @@ -152,6 +152,23 @@
          Addr.getOpcode() == ISD::TargetGlobalAddress))
        return false;
@@ -25,9 +25,9 @@ diff -Naur 6/1/Cpu0/Cpu0ISelDAGToDAG.cpp 6/2/Cpu0/Cpu0ISelDAGToDAG.cpp
  
    Base   = Addr;
    Offset = CurDAG->getTargetConstant(0, ValTy);
-diff -Naur 6/1/Cpu0/Cpu0ISelLowering.cpp 6/2/Cpu0/Cpu0ISelLowering.cpp
---- 6/1/Cpu0/Cpu0ISelLowering.cpp	2013-03-30 15:16:07.000000000 +0800
-+++ 6/2/Cpu0/Cpu0ISelLowering.cpp	2013-03-30 15:16:07.000000000 +0800
+diff -Naur Chapter6_1/Cpu0ISelLowering.cpp Chapter6_2/Cpu0ISelLowering.cpp
+--- Chapter6_1/Cpu0ISelLowering.cpp	2013-04-08 15:34:23.000000000 +0800
++++ Chapter6_2/Cpu0ISelLowering.cpp	2013-04-08 15:34:23.000000000 +0800
 @@ -230,3 +230,9 @@
      return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
                         Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
@@ -38,9 +38,9 @@ diff -Naur 6/1/Cpu0/Cpu0ISelLowering.cpp 6/2/Cpu0/Cpu0ISelLowering.cpp
 +  // The Mips target isn't yet aware of offsets.
 +  return false;
 +}
-diff -Naur 6/1/Cpu0/Cpu0ISelLowering.h 6/2/Cpu0/Cpu0ISelLowering.h
---- 6/1/Cpu0/Cpu0ISelLowering.h	2013-03-30 15:16:07.000000000 +0800
-+++ 6/2/Cpu0/Cpu0ISelLowering.h	2013-03-30 15:16:07.000000000 +0800
+diff -Naur Chapter6_1/Cpu0ISelLowering.h Chapter6_2/Cpu0ISelLowering.h
+--- Chapter6_1/Cpu0ISelLowering.h	2013-04-08 15:34:23.000000000 +0800
++++ Chapter6_2/Cpu0ISelLowering.h	2013-04-08 15:34:23.000000000 +0800
 @@ -94,6 +94,8 @@
                    const SmallVectorImpl<ISD::OutputArg> &Outs,
                    const SmallVectorImpl<SDValue> &OutVals,

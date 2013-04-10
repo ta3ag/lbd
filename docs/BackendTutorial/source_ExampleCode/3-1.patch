@@ -1,6 +1,6 @@
-diff -Naur 2/Cpu0/CMakeLists.txt 3/1/Cpu0/CMakeLists.txt
---- 2/Cpu0/CMakeLists.txt	2013-03-30 15:16:06.000000000 +0800
-+++ 3/1/Cpu0/CMakeLists.txt	2013-03-30 15:16:06.000000000 +0800
+diff -Naur Chapter2/CMakeLists.txt Chapter3_1/CMakeLists.txt
+--- Chapter2/CMakeLists.txt	2013-04-08 15:34:23.000000000 +0800
++++ Chapter3_1/CMakeLists.txt	2013-04-08 15:34:23.000000000 +0800
 @@ -9,6 +9,8 @@
  #  came from Cpu0InstrInfo.td.
  tablegen(LLVM Cpu0GenRegisterInfo.inc -gen-register-info)
@@ -23,20 +23,9 @@ diff -Naur 2/Cpu0/CMakeLists.txt 3/1/Cpu0/CMakeLists.txt
    )
  
  # Should match with "subdirectories =  MCTargetDesc TargetInfo" in LLVMBuild.txt
-diff -Naur 2/Cpu0/Cpu0.td 3/1/Cpu0/Cpu0.td
---- 2/Cpu0/Cpu0.td	2013-03-30 15:16:06.000000000 +0800
-+++ 3/1/Cpu0/Cpu0.td	2013-03-30 15:16:06.000000000 +0800
-@@ -22,6 +22,7 @@
- include "Cpu0RegisterInfo.td"
- include "Cpu0Schedule.td"
- include "Cpu0InstrInfo.td"
-+include "Cpu0CallingConv.td"
- 
- def Cpu0InstrInfo : InstrInfo;
- 
-diff -Naur 2/Cpu0/Cpu0CallingConv.td 3/1/Cpu0/Cpu0CallingConv.td
---- 2/Cpu0/Cpu0CallingConv.td	1970-01-01 08:00:00.000000000 +0800
-+++ 3/1/Cpu0/Cpu0CallingConv.td	2013-03-30 15:16:06.000000000 +0800
+diff -Naur Chapter2/Cpu0CallingConv.td Chapter3_1/Cpu0CallingConv.td
+--- Chapter2/Cpu0CallingConv.td	1970-01-01 08:00:00.000000000 +0800
++++ Chapter3_1/Cpu0CallingConv.td	2013-04-08 15:34:23.000000000 +0800
 @@ -0,0 +1,18 @@
 +//===-- Cpu0CallingConv.td - Calling Conventions for Cpu0 --*- tablegen -*-===//
 +//
@@ -56,9 +45,9 @@ diff -Naur 2/Cpu0/Cpu0CallingConv.td 3/1/Cpu0/Cpu0CallingConv.td
 +def CSR_O32 : CalleeSavedRegs<(add LR, FP,
 +                                   (sequence "S%u", 2, 0))>;
 +
-diff -Naur 2/Cpu0/Cpu0FrameLowering.cpp 3/1/Cpu0/Cpu0FrameLowering.cpp
---- 2/Cpu0/Cpu0FrameLowering.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ 3/1/Cpu0/Cpu0FrameLowering.cpp	2013-03-30 15:16:06.000000000 +0800
+diff -Naur Chapter2/Cpu0FrameLowering.cpp Chapter3_1/Cpu0FrameLowering.cpp
+--- Chapter2/Cpu0FrameLowering.cpp	1970-01-01 08:00:00.000000000 +0800
++++ Chapter3_1/Cpu0FrameLowering.cpp	2013-04-08 15:34:23.000000000 +0800
 @@ -0,0 +1,100 @@
 +//===-- Cpu0FrameLowering.cpp - Cpu0 Frame Information --------------------===//
 +//
@@ -160,9 +149,9 @@ diff -Naur 2/Cpu0/Cpu0FrameLowering.cpp 3/1/Cpu0/Cpu0FrameLowering.cpp
 +}
 +
 +
-diff -Naur 2/Cpu0/Cpu0FrameLowering.h 3/1/Cpu0/Cpu0FrameLowering.h
---- 2/Cpu0/Cpu0FrameLowering.h	1970-01-01 08:00:00.000000000 +0800
-+++ 3/1/Cpu0/Cpu0FrameLowering.h	2013-03-30 15:16:06.000000000 +0800
+diff -Naur Chapter2/Cpu0FrameLowering.h Chapter3_1/Cpu0FrameLowering.h
+--- Chapter2/Cpu0FrameLowering.h	1970-01-01 08:00:00.000000000 +0800
++++ Chapter3_1/Cpu0FrameLowering.h	2013-04-08 15:34:23.000000000 +0800
 @@ -0,0 +1,43 @@
 +//===-- Cpu0FrameLowering.h - Define frame lowering for Cpu0 ----*- C++ -*-===//
 +//
@@ -207,9 +196,74 @@ diff -Naur 2/Cpu0/Cpu0FrameLowering.h 3/1/Cpu0/Cpu0FrameLowering.h
 +
 +#endif
 +
-diff -Naur 2/Cpu0/Cpu0ISelLowering.cpp 3/1/Cpu0/Cpu0ISelLowering.cpp
---- 2/Cpu0/Cpu0ISelLowering.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ 3/1/Cpu0/Cpu0ISelLowering.cpp	2013-03-30 15:16:06.000000000 +0800
+diff -Naur Chapter2/Cpu0InstrInfo.cpp Chapter3_1/Cpu0InstrInfo.cpp
+--- Chapter2/Cpu0InstrInfo.cpp	1970-01-01 08:00:00.000000000 +0800
++++ Chapter3_1/Cpu0InstrInfo.cpp	2013-04-08 15:34:23.000000000 +0800
+@@ -0,0 +1,24 @@
++//===-- Cpu0InstrInfo.cpp - Cpu0 Instruction Information ------------------===//
++//
++//                     The LLVM Compiler Infrastructure
++//
++// This file is distributed under the University of Illinois Open Source
++// License. See LICENSE.TXT for details.
++//
++//===----------------------------------------------------------------------===//
++//
++// This file contains the Cpu0 implementation of the TargetInstrInfo class.
++//
++//===----------------------------------------------------------------------===//
++
++#include "Cpu0InstrInfo.h"
++#include "Cpu0TargetMachine.h"
++#define GET_INSTRINFO_CTOR
++#include "Cpu0GenInstrInfo.inc"
++
++using namespace llvm;
++
++Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
++  : 
++    TM(tm)
++    {}
+diff -Naur Chapter2/Cpu0InstrInfo.h Chapter3_1/Cpu0InstrInfo.h
+--- Chapter2/Cpu0InstrInfo.h	1970-01-01 08:00:00.000000000 +0800
++++ Chapter3_1/Cpu0InstrInfo.h	2013-04-08 15:34:23.000000000 +0800
+@@ -0,0 +1,33 @@
++//===-- Cpu0InstrInfo.h - Cpu0 Instruction Information ----------*- C++ -*-===//
++//
++//                     The LLVM Compiler Infrastructure
++//
++// This file is distributed under the University of Illinois Open Source
++// License. See LICENSE.TXT for details.
++//
++//===----------------------------------------------------------------------===//
++//
++// This file contains the Cpu0 implementation of the TargetInstrInfo class.
++//
++//===----------------------------------------------------------------------===//
++
++#ifndef CPU0INSTRUCTIONINFO_H
++#define CPU0INSTRUCTIONINFO_H
++
++#include "Cpu0.h"
++#include "llvm/Support/ErrorHandling.h"
++#include "llvm/Target/TargetInstrInfo.h"
++
++#define GET_INSTRINFO_HEADER
++#include "Cpu0GenInstrInfo.inc"
++
++namespace llvm {
++
++class Cpu0InstrInfo : public Cpu0GenInstrInfo {
++  Cpu0TargetMachine &TM;
++public:
++  explicit Cpu0InstrInfo(Cpu0TargetMachine &TM);
++};
++}
++
++#endif
+diff -Naur Chapter2/Cpu0ISelLowering.cpp Chapter3_1/Cpu0ISelLowering.cpp
+--- Chapter2/Cpu0ISelLowering.cpp	1970-01-01 08:00:00.000000000 +0800
++++ Chapter3_1/Cpu0ISelLowering.cpp	2013-04-08 15:34:23.000000000 +0800
 @@ -0,0 +1,72 @@
 +//===-- Cpu0ISelLowering.cpp - Cpu0 DAG Lowering Implementation -----------===//
 +//
@@ -283,9 +337,9 @@ diff -Naur 2/Cpu0/Cpu0ISelLowering.cpp 3/1/Cpu0/Cpu0ISelLowering.cpp
 +    return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
 +                       Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
 +}
-diff -Naur 2/Cpu0/Cpu0ISelLowering.h 3/1/Cpu0/Cpu0ISelLowering.h
---- 2/Cpu0/Cpu0ISelLowering.h	1970-01-01 08:00:00.000000000 +0800
-+++ 3/1/Cpu0/Cpu0ISelLowering.h	2013-03-30 15:16:06.000000000 +0800
+diff -Naur Chapter2/Cpu0ISelLowering.h Chapter3_1/Cpu0ISelLowering.h
+--- Chapter2/Cpu0ISelLowering.h	1970-01-01 08:00:00.000000000 +0800
++++ Chapter3_1/Cpu0ISelLowering.h	2013-04-08 15:34:23.000000000 +0800
 @@ -0,0 +1,62 @@
 +//===-- Cpu0ISelLowering.h - Cpu0 DAG Lowering Interface --------*- C++ -*-===//
 +//
@@ -349,74 +403,9 @@ diff -Naur 2/Cpu0/Cpu0ISelLowering.h 3/1/Cpu0/Cpu0ISelLowering.h
 +}
 +
 +#endif // Cpu0ISELLOWERING_H
-diff -Naur 2/Cpu0/Cpu0InstrInfo.cpp 3/1/Cpu0/Cpu0InstrInfo.cpp
---- 2/Cpu0/Cpu0InstrInfo.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ 3/1/Cpu0/Cpu0InstrInfo.cpp	2013-03-30 15:16:06.000000000 +0800
-@@ -0,0 +1,24 @@
-+//===-- Cpu0InstrInfo.cpp - Cpu0 Instruction Information ------------------===//
-+//
-+//                     The LLVM Compiler Infrastructure
-+//
-+// This file is distributed under the University of Illinois Open Source
-+// License. See LICENSE.TXT for details.
-+//
-+//===----------------------------------------------------------------------===//
-+//
-+// This file contains the Cpu0 implementation of the TargetInstrInfo class.
-+//
-+//===----------------------------------------------------------------------===//
-+
-+#include "Cpu0InstrInfo.h"
-+#include "Cpu0TargetMachine.h"
-+#define GET_INSTRINFO_CTOR
-+#include "Cpu0GenInstrInfo.inc"
-+
-+using namespace llvm;
-+
-+Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
-+  : 
-+    TM(tm)
-+    {}
-diff -Naur 2/Cpu0/Cpu0InstrInfo.h 3/1/Cpu0/Cpu0InstrInfo.h
---- 2/Cpu0/Cpu0InstrInfo.h	1970-01-01 08:00:00.000000000 +0800
-+++ 3/1/Cpu0/Cpu0InstrInfo.h	2013-03-30 15:16:06.000000000 +0800
-@@ -0,0 +1,33 @@
-+//===-- Cpu0InstrInfo.h - Cpu0 Instruction Information ----------*- C++ -*-===//
-+//
-+//                     The LLVM Compiler Infrastructure
-+//
-+// This file is distributed under the University of Illinois Open Source
-+// License. See LICENSE.TXT for details.
-+//
-+//===----------------------------------------------------------------------===//
-+//
-+// This file contains the Cpu0 implementation of the TargetInstrInfo class.
-+//
-+//===----------------------------------------------------------------------===//
-+
-+#ifndef CPU0INSTRUCTIONINFO_H
-+#define CPU0INSTRUCTIONINFO_H
-+
-+#include "Cpu0.h"
-+#include "llvm/Support/ErrorHandling.h"
-+#include "llvm/Target/TargetInstrInfo.h"
-+
-+#define GET_INSTRINFO_HEADER
-+#include "Cpu0GenInstrInfo.inc"
-+
-+namespace llvm {
-+
-+class Cpu0InstrInfo : public Cpu0GenInstrInfo {
-+  Cpu0TargetMachine &TM;
-+public:
-+  explicit Cpu0InstrInfo(Cpu0TargetMachine &TM);
-+};
-+}
-+
-+#endif
-diff -Naur 2/Cpu0/Cpu0MachineFunction.h 3/1/Cpu0/Cpu0MachineFunction.h
---- 2/Cpu0/Cpu0MachineFunction.h	1970-01-01 08:00:00.000000000 +0800
-+++ 3/1/Cpu0/Cpu0MachineFunction.h	2013-03-30 15:16:06.000000000 +0800
+diff -Naur Chapter2/Cpu0MachineFunction.h Chapter3_1/Cpu0MachineFunction.h
+--- Chapter2/Cpu0MachineFunction.h	1970-01-01 08:00:00.000000000 +0800
++++ Chapter3_1/Cpu0MachineFunction.h	2013-04-08 15:34:23.000000000 +0800
 @@ -0,0 +1,40 @@
 +//===-- Cpu0MachineFunctionInfo.h - Private data used for Cpu0 ----*- C++ -*-=//
 +//
@@ -458,9 +447,9 @@ diff -Naur 2/Cpu0/Cpu0MachineFunction.h 3/1/Cpu0/Cpu0MachineFunction.h
 +
 +#endif // CPU0_MACHINE_FUNCTION_INFO_H
 +
-diff -Naur 2/Cpu0/Cpu0SelectionDAGInfo.cpp 3/1/Cpu0/Cpu0SelectionDAGInfo.cpp
---- 2/Cpu0/Cpu0SelectionDAGInfo.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ 3/1/Cpu0/Cpu0SelectionDAGInfo.cpp	2013-03-30 15:16:06.000000000 +0800
+diff -Naur Chapter2/Cpu0SelectionDAGInfo.cpp Chapter3_1/Cpu0SelectionDAGInfo.cpp
+--- Chapter2/Cpu0SelectionDAGInfo.cpp	1970-01-01 08:00:00.000000000 +0800
++++ Chapter3_1/Cpu0SelectionDAGInfo.cpp	2013-04-08 15:34:23.000000000 +0800
 @@ -0,0 +1,23 @@
 +//===-- Cpu0SelectionDAGInfo.cpp - Cpu0 SelectionDAG Info -----------------===//
 +//
@@ -485,9 +474,9 @@ diff -Naur 2/Cpu0/Cpu0SelectionDAGInfo.cpp 3/1/Cpu0/Cpu0SelectionDAGInfo.cpp
 +
 +Cpu0SelectionDAGInfo::~Cpu0SelectionDAGInfo() {
 +}
-diff -Naur 2/Cpu0/Cpu0SelectionDAGInfo.h 3/1/Cpu0/Cpu0SelectionDAGInfo.h
---- 2/Cpu0/Cpu0SelectionDAGInfo.h	1970-01-01 08:00:00.000000000 +0800
-+++ 3/1/Cpu0/Cpu0SelectionDAGInfo.h	2013-03-30 15:16:06.000000000 +0800
+diff -Naur Chapter2/Cpu0SelectionDAGInfo.h Chapter3_1/Cpu0SelectionDAGInfo.h
+--- Chapter2/Cpu0SelectionDAGInfo.h	1970-01-01 08:00:00.000000000 +0800
++++ Chapter3_1/Cpu0SelectionDAGInfo.h	2013-04-08 15:34:23.000000000 +0800
 @@ -0,0 +1,31 @@
 +//===-- Cpu0SelectionDAGInfo.h - Cpu0 SelectionDAG Info ---------*- C++ -*-===//
 +//
@@ -520,9 +509,9 @@ diff -Naur 2/Cpu0/Cpu0SelectionDAGInfo.h 3/1/Cpu0/Cpu0SelectionDAGInfo.h
 +}
 +
 +#endif
-diff -Naur 2/Cpu0/Cpu0Subtarget.cpp 3/1/Cpu0/Cpu0Subtarget.cpp
---- 2/Cpu0/Cpu0Subtarget.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ 3/1/Cpu0/Cpu0Subtarget.cpp	2013-03-30 15:16:06.000000000 +0800
+diff -Naur Chapter2/Cpu0Subtarget.cpp Chapter3_1/Cpu0Subtarget.cpp
+--- Chapter2/Cpu0Subtarget.cpp	1970-01-01 08:00:00.000000000 +0800
++++ Chapter3_1/Cpu0Subtarget.cpp	2013-04-08 15:34:23.000000000 +0800
 @@ -0,0 +1,45 @@
 +//===-- Cpu0Subtarget.cpp - Cpu0 Subtarget Information --------------------===//
 +//
@@ -569,9 +558,9 @@ diff -Naur 2/Cpu0/Cpu0Subtarget.cpp 3/1/Cpu0/Cpu0Subtarget.cpp
 +    Cpu0ABI = O32;
 +}
 +
-diff -Naur 2/Cpu0/Cpu0Subtarget.h 3/1/Cpu0/Cpu0Subtarget.h
---- 2/Cpu0/Cpu0Subtarget.h	2013-03-30 15:16:06.000000000 +0800
-+++ 3/1/Cpu0/Cpu0Subtarget.h	2013-03-30 15:16:06.000000000 +0800
+diff -Naur Chapter2/Cpu0Subtarget.h Chapter3_1/Cpu0Subtarget.h
+--- Chapter2/Cpu0Subtarget.h	2013-04-08 15:34:23.000000000 +0800
++++ Chapter3_1/Cpu0Subtarget.h	2013-04-08 15:34:23.000000000 +0800
 @@ -18,11 +18,13 @@
  #include "llvm/MC/MCInstrItineraries.h"
  #include <string>
@@ -600,9 +589,9 @@ diff -Naur 2/Cpu0/Cpu0Subtarget.h 3/1/Cpu0/Cpu0Subtarget.h
    bool isLittle() const { return IsLittle; }
  };
  } // End llvm namespace
-diff -Naur 2/Cpu0/Cpu0TargetMachine.cpp 3/1/Cpu0/Cpu0TargetMachine.cpp
---- 2/Cpu0/Cpu0TargetMachine.cpp	2013-03-30 15:16:06.000000000 +0800
-+++ 3/1/Cpu0/Cpu0TargetMachine.cpp	2013-03-30 15:16:06.000000000 +0800
+diff -Naur Chapter2/Cpu0TargetMachine.cpp Chapter3_1/Cpu0TargetMachine.cpp
+--- Chapter2/Cpu0TargetMachine.cpp	2013-04-08 15:34:23.000000000 +0800
++++ Chapter3_1/Cpu0TargetMachine.cpp	2013-04-08 15:34:23.000000000 +0800
 @@ -11,9 +11,80 @@
  //
  //===----------------------------------------------------------------------===//
@@ -684,9 +673,9 @@ diff -Naur 2/Cpu0/Cpu0TargetMachine.cpp 3/1/Cpu0/Cpu0TargetMachine.cpp
 +  return new Cpu0PassConfig(this, PM);
  }
  
-diff -Naur 2/Cpu0/Cpu0TargetMachine.h 3/1/Cpu0/Cpu0TargetMachine.h
---- 2/Cpu0/Cpu0TargetMachine.h	1970-01-01 08:00:00.000000000 +0800
-+++ 3/1/Cpu0/Cpu0TargetMachine.h	2013-03-30 15:16:06.000000000 +0800
+diff -Naur Chapter2/Cpu0TargetMachine.h Chapter3_1/Cpu0TargetMachine.h
+--- Chapter2/Cpu0TargetMachine.h	1970-01-01 08:00:00.000000000 +0800
++++ Chapter3_1/Cpu0TargetMachine.h	2013-04-08 15:34:23.000000000 +0800
 @@ -0,0 +1,88 @@
 +//===-- Cpu0TargetMachine.h - Define TargetMachine for Cpu0 -----*- C++ -*-===//
 +//
@@ -776,3 +765,14 @@ diff -Naur 2/Cpu0/Cpu0TargetMachine.h 3/1/Cpu0/Cpu0TargetMachine.h
 +} // End llvm namespace
 +
 +#endif
+diff -Naur Chapter2/Cpu0.td Chapter3_1/Cpu0.td
+--- Chapter2/Cpu0.td	2013-04-08 15:34:23.000000000 +0800
++++ Chapter3_1/Cpu0.td	2013-04-08 15:34:23.000000000 +0800
+@@ -22,6 +22,7 @@
+ include "Cpu0RegisterInfo.td"
+ include "Cpu0Schedule.td"
+ include "Cpu0InstrInfo.td"
++include "Cpu0CallingConv.td"
+ 
+ def Cpu0InstrInfo : InstrInfo;
+ 
