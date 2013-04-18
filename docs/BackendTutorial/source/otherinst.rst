@@ -184,7 +184,7 @@ The **'ashr'** instruction (arithmetic shift right) returns the first operand
 shifted to the right a specified number of bits with sign extension. 
 In brief, we call **ashr** is “shift with sign extension fill”.
 
-.. code:: 
+.. note:: ashr
 
 	Example:
 	  <result> = ashr i32 4, 1   ; yields {i32}:result = 2
@@ -208,7 +208,7 @@ In addition to **ashr**, the other instruction “shift with zero filled”
 **lshr** in llvm (Mips implement lshr with instruction **srl**) has the 
 following meaning. 
 
-.. code:: 
+.. note:: lshr
 
 	Example:
 	<result> = lshr i8 -2, 1   ; yields {i8}:result = 0x7FFFFFFF 

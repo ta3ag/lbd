@@ -1933,7 +1933,7 @@ As above code, in # BB#0, we get the first argument **“amount”** from
 **“_Z5sum_iiz()”** is 24. And set argument pointer, arg_ptr, to 28($sp), 
 &arg[1]. 
 Next, check i < amount in block $BB0_1. If  i < amount, than enter into $BB0_2. 
-In $BB0_2, it do sum += *arg_ptr as well as arg_ptr+=4.
+In $BB0_2, it do sum += \*arg_ptr as well as arg_ptr+=4.
 In # BB#3, do i+=1.
 
 To support variable number of arguments, the following code needed to 
