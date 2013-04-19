@@ -4,3 +4,24 @@ follows,
 
 WARNING: Bullet list ends without a blank line; unexpected unindent.
 
+
+1. I put the Cpu0 example code on lbd/lib/Target/Cpu0/LLVMBackendTutorialExampleCode and the last chapter example code, chapter11_2 on lbd/lib/Target/Cpu0.
+
+2. Modify the runbackend.rst and optimize.rst by replaced "code-block" with "literalinclude" for those the whole file reference as below.
+
+3. For those code-fragment reference, I keep them as "code-block" as before since the the LLVM new version update will make the line number shift if I include them with partial line numbers. Explain as follows,
+
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0AsmPrinter.cpp
+    :lines: 1-2
+
+old version:
+#include "llvm/Target/TargetLoweringObjectFile.h"
+#include "llvm/Target/TargetOptions.h"
+
+new version:
+add a new line here:
+#include "llvm/Target/TargetLoweringObjectFile.h"
+#include "llvm/Target/TargetOptions.h"
+
+Then the display will miss line 3, "#include "llvm/Target/TargetOptions.h"".
+
