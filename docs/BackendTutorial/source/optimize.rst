@@ -160,7 +160,7 @@ Let's run 11/1/Cpu0 with ch11_1.cpp to explain it easier.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch11_1.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch11_1.cpp
-    :lines: 5-25
+    :lines: 5-
     :linenos:
 
 .. code-block:: bash
@@ -1082,7 +1082,7 @@ It match the expect value as comment in ch11_2.cpp.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch11_2.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch11_2.cpp
-    :lines: 8-133
+    :lines: 8-
     :linenos:
 
 .. code-block:: bash
