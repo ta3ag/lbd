@@ -66,32 +66,15 @@ The Cpu0TargetMachine contents as follows,
             CodeGenOpt::Level OL); 
     ... 
   }; 
+
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h
+    :linenos:
+
   
-  class Cpu0TargetMachine : public LLVMTargetMachine { 
-    Cpu0Subtarget       Subtarget; 
-    const DataLayout    DL; // Calculates type size & alignment 
-    Cpu0InstrInfo       InstrInfo;  //- Instructions 
-    Cpu0FrameLowering   FrameLowering;  //- Stack(Frame) and Stack direction 
-    Cpu0TargetLowering  TLInfo; //- Stack(Frame) and Stack direction 
-    Cpu0SelectionDAGInfo TSInfo;  //- Map .bc DAG to backend DAG 
-  public: 
-    virtual const Cpu0InstrInfo   *getInstrInfo()     const 
-    { return &InstrInfo; } 
-    virtual const TargetFrameLowering *getFrameLowering()     const 
-    { return &FrameLowering; } 
-    virtual const Cpu0Subtarget   *getSubtargetImpl() const 
-    { return &Subtarget; } 
-    virtual const DataLayout *getDataLayout()    const
-    { return &DL;}
-     virtual const Cpu0TargetLowering *getTargetLowering() const { 
-    return &TLInfo; 
-    } 
-  
-    virtual const Cpu0SelectionDAGInfo* getSelectionDAGInfo() const { 
-    return &TSInfo; 
-    } 
-  }; 
-  
+.. code-block:: c++
+
   //- TargetInstInfo.h 
   class TargetInstrInfo : public MCInstrInfo { 
     TargetInstrInfo(const TargetInstrInfo &) LLVM_DELETED_FUNCTION;
@@ -211,18 +194,12 @@ and .cpp), Cpu0FrameLowering (Cpu0FrameLowering.h and .cpp), Cpu0TargetLowering
 and .cpp). 
 CMakeLists.txt  modified with those new added \*.cpp as follows,
 
-.. code-block:: c++
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/CMakeLists.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_1/CMakeLists.txt
+    :start-after: add_public_tablegen_target
+    :end-before: Should match with
+    :linenos:
 
-  # CMakeLists.txt 
-  ...
-  add_llvm_target(Cpu0CodeGen 
-    Cpu0ISelLowering.cpp 
-    Cpu0InstrInfo.cpp 
-    Cpu0FrameLowering.cpp 
-    Cpu0Subtarget.cpp 
-    Cpu0TargetMachine.cpp 
-    Cpu0SelectionDAGInfo.cpp 
-    )
 
 Please take a look for 3/1 code. 
 After that, building 3/1 by make as chapter 2 (of course, you should remove old 
@@ -237,6 +214,7 @@ Command as follows,
 
   118-165-78-230:cmake_debug_build Jonathan$ rm -rf lib/Target/Cpu0/*
 
+
 Add RegisterInfo
 ----------------
 
@@ -246,128 +224,29 @@ So 3/2/Cpu0 add Cpu0RegisterInfo class (Cpu0RegisterInfo.h,
 Cpu0RegisterInfo.cpp), and Cpu0RegisterInfo class in files Cpu0InstrInfo.h, 
 Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.h
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.cpp
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.h
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.cpp
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0TargetMachine.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0TargetMachine.h
+    :start-after: return &DL;
+    :end-before: getTargetLowering
+    :linenos:
+
 .. code-block:: c++
-
-  // Cpu0RegisterInfo.h
-  ...
-  #define GET_INSTRINFO_HEADER
-  #include "Cpu0GenInstrInfo.inc"
-  
-  namespace llvm {
-  
-  class Cpu0InstrInfo : public Cpu0GenInstrInfo {
-    Cpu0TargetMachine &TM;
-    const Cpu0RegisterInfo RI;
-  public:
-    explicit Cpu0InstrInfo(Cpu0TargetMachine &TM);
-  
-    /// getRegisterInfo - TargetInstrInfo is a superset of MRegister info.  As
-    /// such, whenever a client has an instance of instruction info, it should
-    /// always be able to get register info as well (through this method).
-    ///
-    virtual const Cpu0RegisterInfo &getRegisterInfo() const;
-  
-  public:
-  };
-  }
-  
-  #endif
-  
-  
-  // Cpu0RegisterInfo.cpp
-  ...
-  #define GET_REGINFO_TARGET_DESC
-  #include "Cpu0GenRegisterInfo.inc"
-  
-  using namespace llvm;
-  
-  Cpu0RegisterInfo::Cpu0RegisterInfo(const Cpu0Subtarget &ST,
-                                     const TargetInstrInfo &tii)
-    : Cpu0GenRegisterInfo(Cpu0::LR), Subtarget(ST), TII(tii) {}
-  
-  //===----------------------------------------------------------------------===//
-  // Callee Saved Registers methods
-  //===----------------------------------------------------------------------===//
-  /// Cpu0 Callee Saved Registers
-  // In Cpu0CallConv.td,
-  // def CSR_O32 : CalleeSavedRegs<(add LR, FP,
-  //                                   (sequence "S%u", 2, 0))>;
-  // llc create CSR_O32_SaveList and CSR_O32_RegMask from above defined.
-  const uint16_t* Cpu0RegisterInfo::
-  getCalleeSavedRegs(const MachineFunction *MF) const
-  {
-    return CSR_O32_SaveList;
-  }
-  
-  const uint32_t*
-  Cpu0RegisterInfo::getCallPreservedMask(CallingConv::ID) const
-  {
-    return CSR_O32_RegMask; 
-  }
-  
-  // pure virtual method
-  BitVector Cpu0RegisterInfo::
-  getReservedRegs(const MachineFunction &MF) const {
-    static const uint16_t ReservedCPURegs[] = {
-      Cpu0::ZERO, Cpu0::AT, Cpu0::FP,
-      Cpu0::SW, Cpu0::SP, Cpu0::LR, Cpu0::PC
-    };
-    BitVector Reserved(getNumRegs());
-    typedef TargetRegisterClass::iterator RegIter;
-  
-    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
-      Reserved.set(ReservedCPURegs[I]);
-  
-    return Reserved;
-  }
-  
-  // pure virtual method
-  // FrameIndex represent objects inside a abstract stack.
-  // We must replace FrameIndex with an stack/frame pointer
-  // direct reference.
-  void Cpu0RegisterInfo::
-  eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
-                      unsigned FIOperandNum, RegScavenger *RS) const {
-  }
-  
-  // pure virtual method
-  unsigned Cpu0RegisterInfo::
-  getFrameRegister(const MachineFunction &MF) const {
-    const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
-    return TFI->hasFP(MF) ? (Cpu0::FP) :
-                            (Cpu0::SP);
-  }
-
-  // Cpu0InstrInfo.h
-  class Cpu0InstrInfo : public Cpu0GenInstrInfo { 
-    Cpu0TargetMachine &TM; 
-    const Cpu0RegisterInfo RI; 
-  public: 
-    explicit Cpu0InstrInfo(Cpu0TargetMachine &TM); 
-  
-    /// getRegisterInfo - TargetInstrInfo is a superset of MRegister info.  As 
-    /// such, whenever a client has an instance of instruction info, it should 
-    /// always be able to get register info as well (through this method). 
-    /// 
-    virtual const Cpu0RegisterInfo &getRegisterInfo() const; 
-  
-  public: 
-  };
-  
-  // Cpu0InstrInfo.cpp
-  Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm) 
-    : 
-    TM(tm), 
-    RI(*TM.getSubtargetImpl(), *this) {} 
-  
-  const Cpu0RegisterInfo &Cpu0InstrInfo::getRegisterInfo() const { 
-    return RI; 
-  } 
-  
-  //  Cpu0TargetMachine.h
-    virtual const Cpu0RegisterInfo *getRegisterInfo()  const {
-      return &InstrInfo.getRegisterInfo();
-    }
   
   # CMakeLists.txt 
   ...
@@ -410,34 +289,11 @@ Add AsmPrinter
 Cpu0.td to support AssemblyWriter. 
 Cpu0.td is added with the following fragment,
 
-.. code-block:: c++
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0.td
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0.td
+    :start-after: "Cpu032 ISA Support"
+    :linenos:
 
-  // Cpu0.td
-  //...
-  //===----------------------------------------------------------------------===//
-  // Cpu0 processors supported. 
-  //===----------------------------------------------------------------------===//
-  
-  class Proc<string Name, list<SubtargetFeature> Features> 
-   : Processor<Name, Cpu0GenericItineraries, Features>; 
-  
-  def : Proc<"cpu032", [FeatureCpu032]>; 
-  
-  def Cpu0AsmWriter : AsmWriter { 
-    string AsmWriterClassName  = "InstPrinter"; 
-    bit isMCAsmWriter = 1; 
-  } 
-  
-  // Will generate Cpu0GenAsmWrite.inc included by Cpu0InstPrinter.cpp, contents
-  //  as follows, 
-  // void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) 
-  //  {...}
-  // const char *Cpu0InstPrinter::getRegisterName(unsigned RegNo) {...} 
-  def Cpu0 : Target { 
-  // def Cpu0InstrInfo : InstrInfo as before. 
-    let InstructionSet = Cpu0InstrInfo; 
-    let AssemblyWriters = [Cpu0AsmWriter]; 
-  }
 
 As comments indicate, it will generate Cpu0GenAsmWrite.inc which is included 
 by Cpu0InstPrinter.cpp. 
