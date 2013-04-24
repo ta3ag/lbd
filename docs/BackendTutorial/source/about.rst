@@ -44,7 +44,9 @@ Revision history
 ----------------
 
 Version 3.2.13, Not Released Yet
-    Add sub-section "Setup llvm-lit on iMac" of Appendix A.
+	Add sub-section "Setup llvm-lit on iMac" of Appendix A.
+	Replace some code-block with literalinclude in \*.rst.
+	Add Fig 9 of chapter Backend structure.
 Version 3.2.12, Released March 9, 2013
 	Add section "Type of char and short int" of chapter 
 	"Global variables, structs and arrays, other type".

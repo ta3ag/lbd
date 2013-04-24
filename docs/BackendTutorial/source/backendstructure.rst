@@ -580,20 +580,55 @@ For example, (+ ri, rj), (- ri, 1) are lists for IR DAG; (ADD ri, rj),
 (SUBI ri, 1) are lists for machine instruction DAG.
 
 Now, let's recall the ADDiu instruction defined on Cpu0InstrInfo.td in the 
-previous chapter. 
-And It will expand to the following Pattern as mentioned in section Write td 
-(Target Description) of the previous chapter as follows,
+previous chapter. List them again as follows,
 
 .. code-block:: c++
 
-  def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
-  
-  Pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]
+  // Cpu0InstrFormats.td
+  class FL<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern,
+           InstrItinClass itin>: Cpu0Inst<outs, ins, asmstr, pattern, itin, FrmL>
+  {
+    bits<4>  ra;
+    bits<4>  rb;
+    bits<16> imm16;
 
-This pattern meaning the IR DAG node **add** can translate into machine 
-instruction DAG node ADDiu by pattern match mechanism. 
+    let Opcode = op;
+
+    let Inst{23-20} = ra;
+    let Inst{19-16} = rb;
+    let Inst{15-0}  = imm16;
+  }
+
+  // Cpu0InstrInfo.td
+  // Arithmetic and logical instructions with 2 register operands.
+  class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
+                    Operand Od, PatLeaf imm_type, RegisterClass RC> :
+    FL<op, (outs RC:$ra), (ins RC:$rb, Od:$imm16),
+       !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
+       [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu> {
+    let isReMaterializable = 1;
+  }
+
+  def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
+
+:num:`Figure #backendstructure-f9` show the pattern match which bind the IR node 
+**add** and instruction ADDiu which defined in Cpu0InstrInfo.td. For the example 
+IR node "add %a, 5", it will be translated to "addiu %r1, 5" since the IR 
+pattern[(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))] is set in ADDiu and the
+2nd operand is signed immediate which matched "%a, 5". In addition to pattern 
+match, the .td also set assembly string "addiu" and op code 0x09. 
+With this information, the LLVM TableGen will generate instruction both in 
+assembly and binary automatically (the binary instruction in obj file of ELF 
+format which will shown at later chapter). 
 Similarly, the machine instruction DAG node LD and ST can be got from IR DAG 
 node **load** and **store**.
+ 
+.. _backendstructure-f9: 
+.. figure:: ../Fig/backendstructure/9.png
+	:align: center
+
+	Pattern match for ADDiu instruction and IR node add
+
 
 Some cpu/fpu (floating point processor) has multiply-and-add floating point 
 instruction, fmadd. 
@@ -771,7 +806,7 @@ register–offset pair. Depending on whether the machine function that contains
 the instruction has a fixed or a variable stack frame, either the stack pointer 
 %a10 or the frame pointer %a14 is used as the base register. 
 The offset is computed accordingly. 
-:num:`Figure #backendstructure-f9` demonstrates for both cases how a stack slot 
+:num:`Figure #backendstructure-f10` demonstrates for both cases how a stack slot 
 is addressed. 
 
 If the addressing mode of the affected instruction cannot handle the address 
@@ -783,8 +818,8 @@ If none is available, an already occupied address register is scavenged.
 For this purpose, LLVM’s framework offers a class named RegScavenger that 
 takes care of all the details.
 
-.. _backendstructure-f9: 
-.. figure:: ../Fig/backendstructure/9.png
+.. _backendstructure-f10: 
+.. figure:: ../Fig/backendstructure/10.png
 	:align: center
 
 	Addressing of a variable a located on the stack. 
