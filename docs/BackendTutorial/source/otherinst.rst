@@ -774,7 +774,11 @@ Copy the reference as follows,
     <result> = **srem i32 4, %var**          ; yields {i32}:result = 4 % %var
 
 
+<<<<<<< HEAD
 Run Chapter4_5/ with input file ch4_6.bc and ``llc`` option –view-isel-dags as 
+=======
+Run Chapter4_5/ with input file ch4_6_1.bc and ``llc`` option –view-isel-dags as 
+>>>>>>> a2c9343429e9e567e1a2ce1a0ff9442fa9ad8b85
 follows, will get the error message as follows and the llvm DAG of 
 :num:`Figure #otherinst-f2`.
 
