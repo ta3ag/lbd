@@ -200,7 +200,7 @@ Load incoming arguments from stack frame
 
 From last section, to support function call, we need implementing the arguments 
 pass mechanism with stack frame. Before do that, let's run the old version of 
-code 7/1/Cpu0 with ch8_1.cpp and see what happen.
+code Chapter7_1/ with ch8_1.cpp and see what happen.
 
 .. code-block:: bash
 
@@ -220,7 +220,7 @@ code 7/1/Cpu0 with ch8_1.cpp and see what happen.
   '@_Z5sum_iiiiiii'
   Illegal instruction: 4
 
-Since 7/1/Cpu0 define the LowerFormalArguments() with empty, we get the error 
+Since Chapter7_1/ define the LowerFormalArguments() with empty, we get the error 
 message as above. 
 Before define LowerFormalArguments(), we have to choose how to pass arguments 
 in function call. We choose pass arguments all in stack frame. 
@@ -415,7 +415,7 @@ variable, which is the offset.
   }
 
 
-In addition to Calling Convention and LowerFormalArguments(), 8/2/Cpu0 add the 
+In addition to Calling Convention and LowerFormalArguments(), Chapter8_2/ add the 
 following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and 
 **jalr** (function call) definition and printing.
 
@@ -563,7 +563,7 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
   };
 
 
-After above changes, you can run 8/2/Cpu0 with ch8_1.cpp and see what happens 
+After above changes, you can run Chapter8_2/ with ch8_1.cpp and see what happens 
 in the following,
 
 .. code-block:: bash
@@ -902,7 +902,7 @@ store outgoing arguments to stack frame offset.
       .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
   }
 
-Now, let's run 8/3/Cpu0 with ch8_1.cpp to get result as follows (see comment 
+Now, let's run Chapter8_3/ with ch8_1.cpp to get result as follows (see comment 
 //),
 
 .. code-block:: bash
@@ -1019,8 +1019,8 @@ Fix the wrong offset in storing arguments to stack frame
 
 To fix the wrong offset in storing arguments, we modify the following code 
 in eliminateFrameIndex() as follows. 
-The code as below is modified in 8/4/Cpu0 to set the caller outgoing 
-arguments into spOffset($sp) (8/3/Cpu0 set them to pOffset+stackSize($sp).
+The code as below is modified in Chapter8_4/ to set the caller outgoing 
+arguments into spOffset($sp) (Chapter8_3/ set them to pOffset+stackSize($sp).
 
 .. code-block:: c++
 
@@ -1073,7 +1073,7 @@ arguments into spOffset($sp) (8/3/Cpu0 set them to pOffset+stackSize($sp).
   ...
 
 
-Run 8/4/Cpu0 with ch8_1.cpp will get the following result. 
+Run Chapter8_4/ with ch8_1.cpp will get the following result. 
 It correct arguements offset im main() from (0+40)$sp, (8+40)$sp, ..., to 
 (0)$sp, (8)$sp, ..., where the stack size is 40 in main().
 
@@ -1149,7 +1149,7 @@ function and define eliminateCallFramePseudoInstr() as follows,
 With above definition, eliminateCallFramePseudoInstr() will be called when 
 llvm meet pseudo instructions ADJCALLSTACKDOWN and ADJCALLSTACKUP. 
 We just discard these 2 pseudo instructions. 
-Run 8/5/Cpu0 with ch8_1.cpp will get the following result.
+Run Chapter8_5/ with ch8_1.cpp will get the following result.
 
 .. code-block:: bash
 
@@ -1269,7 +1269,7 @@ But, we can caculate the distance between the global variable address and
 shared library function if they will be loaded to the contiguous memory space 
 together.
 
-Let's run 8/6/Cpu0 with ch8_2.cpp to get the following result of we putting the 
+Let's run Chapter8_6/ with ch8_2.cpp to get the following result of we putting the 
 comment in it for explanation.
 
 .. code-block:: bash
@@ -1341,7 +1341,7 @@ caller saved register $gp in calling the shared library and the shared library
 how to use $gp to access global variable address. This solution is popular in 
 reality and deserve change cpu0 official design as a compiler book. 
 
-Now, as the following code added in 8/6/Cpu0, we can issue **“.cprestore”** in 
+Now, as the following code added in Chapter8_6/, we can issue **“.cprestore”** in 
 emitPrologue() and emit ld $gp, ($gp save slot on stack) after jalr by create 
 file Cpu0EmitGPRestore.cpp which run as a function pass.
 
@@ -1771,7 +1771,7 @@ Until now, we support fixed number of arguments in formal function definition
 (Incoming Arguments). 
 This section support variable number of arguments since C language support 
 this feature.
-Run 8/6/Cpu0 with ch8_3.cpp to get the following error,
+Run Chapter8_6/ with ch8_3.cpp to get the following error,
 
 .. code-block:: c++
 
@@ -1817,7 +1817,7 @@ Run 8/6/Cpu0 with ch8_3.cpp to get the following error,
     0x7f8b6902fb10: i32 = FrameIndex<5> [ORD=7] [ID=9]
   In function: _Z5sum_iiz
 
-Run 8/7/Cpu0 with ch8_3.cpp as well as clang option, 
+Run Chapter8_7/ with ch8_3.cpp as well as clang option, 
 **clang -target `llvm-config --host-target`**, to get the following result,
 
 .. code-block:: bash
@@ -1937,7 +1937,7 @@ In $BB0_2, it do sum += \*arg_ptr as well as arg_ptr+=4.
 In # BB#3, do i+=1.
 
 To support variable number of arguments, the following code needed to 
-add in 8/7/Cpu0. 
+add in Chapter8_7/. 
 The ch8_3_2.cpp is C++ template example code, it can be translated into cpu0 
 backend code too.
 
@@ -2053,7 +2053,7 @@ result with printf() function. We will verify the code correction in chapter
 Correct the return of main()
 ----------------------------
 
-Run 8/7/Cpu0 with ch6_2.cpp to get the incorrect main return (return register 
+Run Chapter8_7/ with ch6_2.cpp to get the incorrect main return (return register 
 $2 is not 0) as follows,
 
 .. code-block:: c++
@@ -2121,7 +2121,7 @@ $2 is not 0) as follows,
   ...
 
 
-The LowerReturn() modified in 8/8/Cpu0 as below. 
+The LowerReturn() modified in Chapter8_8/ as below. 
 It add the live out register $2 to function (main() as this example), and copy 
 the OutVals[0] (0 as this example) to $2. Then call DAG.getNode(..., Flag) 
 where Flag contains $2 and OutVals[0] information.  
@@ -2178,7 +2178,7 @@ where Flag contains $2 and OutVals[0] information.
     }
   }
   
-Run 8/8/Cpu0 to get the correct result (return register $2 is 0) as follows, 
+Run Chapter8_8/ to get the correct result (return register $2 is 0) as follows, 
 
 .. code-block:: bash
 
@@ -2248,7 +2248,7 @@ Run 8/8/Cpu0 to get the correct result (return register $2 is 0) as follows,
 Verify DIV for operator %
 --------------------------
 
-Now, let's run 8/8/Cpu0 with ch4_6_2.cpp to get the result as below. 
+Now, let's run Chapter8_8/ with ch4_6_2.cpp to get the result as below. 
 It translate **“(b+1)%c”** into **“div $zero, $3, $2”** and **“mfhi $2”**.
 
 .. code-block:: c++
@@ -2359,7 +2359,7 @@ Run 8/8 with ch8_9_1.cpp will get the error message as follows,
   ...
 
 
-8/9/Cpu0 with the following code added to support the structure type in 
+Chapter8_9/ with the following code added to support the structure type in 
 function call. 
 
 .. code-block:: c++
@@ -2546,7 +2546,7 @@ this chapter as follows,
 It meaning for the return value, we keep it in registers V0, V1, A0, A1 if the 
 return value didn't over 4 registers size; If it over 4 size, cpu0 will save 
 them with pointer.
-For explanation, let's run 8/9/Cpu0 with ch8_9_1.cpp and explain with this 
+For explanation, let's run Chapter8_9/ with ch8_9_1.cpp and explain with this 
 example.
 
 .. code-block:: bash
@@ -3094,7 +3094,7 @@ the output cpu0 code will use $3 instead of $2 as return register as follows,
 Summary of this chapter
 ------------------------
 
-Until now, we have 5,850 lines of source code around in 8/7/Cpu0. 
+Until now, we have 5,900 lines of source code around in the end of chapter8. 
 The cpu0 backend code now can take care the integer function call and control 
 statement just like the llvm front end tutorial example code. 
 Look back the chapter of “Back end structure”, there are 3,000 lines of source 

@@ -14,7 +14,7 @@ Translate into obj file
 ------------------------
 
 Currently, we only support translate llvm IR code into assembly code. 
-If you try to run 4/6_2/Cpu0 to translate obj code will get the error message as 
+If you try to run Chapter4_6_2/ to translate obj code will get the error message as 
 follows,
 
 .. code-block:: bash
@@ -24,7 +24,7 @@ follows,
   /usr/local/llvm/test/cmake_debug_build/bin/llc: target does not 
   support generation of this file type! 
 	
-The 5/Cpu0 support obj file generated. 
+The Chapter5/ support obj file generated. 
 It can get result for big endian and little endian with command 
 ``llc -march=cpu0`` and ``llc -march=cpu0el``. 
 Run it will get the obj files as follows,
@@ -291,7 +291,7 @@ They share a lot of code with instruction/register td description.
 :num:`Figure #genobj-f5`, instancing two objects Cpu0MCCodeEmitter, one is for 
 big endian and the other is for little endian. 
 They take care the obj format generated. 
-So, it's not defined in 4/6_2/Cpu0 which support assembly code only.
+So, it's not defined in Chapter4_6_2/ which support assembly code only.
 
 :num:`Figure #genobj-f6`, MCELFStreamer take care the obj format also. 
 :num:`Figure #genobj-f5` Cpu0MCCodeEmitter take care code emitter while 
@@ -320,7 +320,7 @@ Cpu0.td information.
 :num:`Figure #genobj-f9`, instancing Cpu0InstPrinter to take care printing 
 function for instructions. 
 Like :num:`Figure #genobj-f1` to :num:`Figure #genobj-f4`, it has been defined 
-in 4/6_2/Cpu0 code for assembly file generated support.
+in Chapter4_6_2/ code for assembly file generated support.
 
 
 

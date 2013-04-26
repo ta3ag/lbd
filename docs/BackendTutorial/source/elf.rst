@@ -84,7 +84,7 @@ is link time layout for code and data.
 ELF header and Section header table
 ------------------------------------
 
-Let's run 7/7/Cpu0 with ch6_1.cpp, and dump ELF header information by 
+Let's run Chapter7_7/ with ch6_1.cpp, and dump ELF header information by 
 ``readelf -h`` to see what information the ELF header contains.
 
 .. code-block:: bash
@@ -732,7 +732,7 @@ information since we add the relocation records information in ELF.h as follows,
 llvm-objdump -d
 ~~~~~~~~~~~~~~~~
 
-Run 8/9/Cpu0 and command ``llvm-objdump -d`` for dump file from elf to hex as 
+Run Chapter8_9/ and command ``llvm-objdump -d`` for dump file from elf to hex as 
 follows, 
 
 .. code-block:: bash
@@ -750,7 +750,7 @@ follows,
   Disassembly of section .text:error: no disassembler for target cpu0-unknown-
   unknown
 
-To support llvm-objdump, the following code added to /9/1/Cpu0.
+To support llvm-objdump, the following code added to Chapter9_1/.
 
 .. code-block:: c++
 
@@ -870,7 +870,7 @@ for decode in disassembler.
 The IR node Cpu0ISD::Ret is created in LowerReturn() which called at function 
 exit point.
 
-Now, run 9/1/Cpu0 with command ``llvm-objdump -d ch7_1_1.cpu0.o`` will get 
+Now, run Chapter9_1/ with command ``llvm-objdump -d ch7_1_1.cpu0.o`` will get 
 the following result.
 
 .. code-block:: bash

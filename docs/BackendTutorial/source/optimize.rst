@@ -26,7 +26,7 @@ This algorithm is simple and effective as a perfect tutorial in optimization.
 You can understand how to add a optimization pass and design your complicate 
 optimization algorithm on your backend in real project.
 
-11/1/Cpu0 support this optimization algorithm include the added codes as follows,
+Chapter11_1/ support this optimization algorithm include the added codes as follows,
 
 .. code-block:: c++
 
@@ -156,7 +156,7 @@ its Operand is the next basic block.
 By getMBB() in MachineOperand, you can get the MBB address. 
 For the member function of MachineOperand, please check 
 include/llvm/CodeGen/MachineOperand.h
-Let's run 11/1/Cpu0 with ch11_1.cpp to explain it easier.
+Let's run Chapter11_1/ with ch11_1.cpp to explain it easier.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch11_1.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch11_1.cpp
@@ -569,7 +569,7 @@ of $2 and fill the low 16 bits of $2 to 0x0000.
 Cpu0 code changes
 ~~~~~~~~~~~~~~~~~
 
-11/2/Cpu0 include the changes for new instruction sets as follows,
+Chapter11_2/ include the changes for new instruction sets as follows,
 
 .. code-block:: c++
 
@@ -1062,7 +1062,7 @@ Cpu0 code changes
 
 
 As modified from above, it remove the CMP instruction, SW register and 
-related code from 11/1/Cpu0, and change from JEQ 24bits offset to BEQ 16 bits 
+related code from Chapter11_1/, and change from JEQ 24bits offset to BEQ 16 bits 
 offset. And more, replace "ADDiu, SHL 16" with the efficient LUi instruction.
 
 
@@ -1077,7 +1077,7 @@ Cpu0 Verilog language changes
 Run the redesigned Cpu0
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Run 11/2/Cpu0 with ch11_2.cpp to get result as below. 
+Run Chapter11_2/ with ch11_2.cpp to get result as below. 
 It match the expect value as comment in ch11_2.cpp.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch11_2.cpp

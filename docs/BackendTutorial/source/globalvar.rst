@@ -21,7 +21,7 @@ Machine DAG translation directly according the input file IR DAG.
 Global variable
 ----------------
 
-6/1/Cpu0 support the global variable, let's compile ch6_1.cpp with this version 
+Chapter6_1/ support the global variable, let's compile ch6_1.cpp with this version 
 first, and explain the code changes after that.
 
 .. code-block:: c++
@@ -675,7 +675,7 @@ For ch6_2.cpp, the llvm IR as follows,
     ret i32 0
   }
     
-Run 6/1/Cpu0 with ch6_2.bc on static mode will get the incorrect asm file as 
+Run Chapter6_1/ with ch6_2.bc on static mode will get the incorrect asm file as 
 follows,
 
 .. code-block:: bash
@@ -951,7 +951,7 @@ After set Base and Offset, the load DAG will translate the global address
 date.day into machine instruction **“ld $r1, 8($r2)”** in Instruction Selection 
 stage.
 
-6/2/Cpu0 include these changes as above, you can run it with ch6_2.cpp to get 
+Chapter6_2/ include these changes as above, you can run it with ch6_2.cpp to get 
 the correct generated instruction **“ld $r1, 8($r2)”** for date.day access, as 
 follows.
 
@@ -971,7 +971,7 @@ Type of char and short int
 --------------------------
 
 To support signed/unsigned char and short int, we add the following code to 
-6/3/Cpu0.
+Chapter6_3/.
 
 .. code-block:: c++
 
@@ -990,7 +990,7 @@ To support signed/unsigned char and short int, we add the following code to
   defm LHu    : LoadM32<0x07, "lhu", zextloadi16_a>;
   defm SH     : StoreM32<0x08, "sh", truncstorei16_a>;
 
-Run 6/3/Cpu0 with ch6_3.cpp will get the following result.
+Run Chapter6_3/ with ch6_3.cpp will get the following result.
 
 .. code-block:: c++
 

@@ -15,7 +15,7 @@ and reasonable than **ldi** instruction.
 We highlight this change in `section CPU0 processor architecture`_. 
 Even with that, we show you how to replace our **addiu** with **ldi** according 
 the cpu0 original design. 
-4/4_2/Cpu0 is the code changes for use **ldi** instruction. 
+Chapter4_2/ is the code changes for use **ldi** instruction. 
 This changes replace **addiu** with **ldi** in Cpu0InstrInfo.td and modify 
 Cpu0FrameLowering.cpp as follows,
 

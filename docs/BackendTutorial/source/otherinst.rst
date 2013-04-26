@@ -20,7 +20,7 @@ Finally, `section Operator mod, %`_ take care the C operator %.
 Support arithmetic instructions
 --------------------------------
 
-Run the 3/5/Cpu0 ``llc`` with input file ch4_1_1.bc will get the error as 
+Run the Chapter3_5/Cpu0 ``llc`` with input file ch4_1_1.bc will get the error as 
 follows,
 
 .. code-block:: c++
@@ -77,7 +77,7 @@ The ADDiu instruction is defined for node **add** with operands of 1 register
 and 1 immediate. 
 This node **add** is for 2 registers. 
 So, appending the following code to Cpu0InstrInfo.td and Cpu0Schedule.td in 
-4/1/Cpu0,
+Chapter4_1/,
 
 .. code-block:: c++
 
@@ -174,7 +174,7 @@ site.
 So, these two function units can be executed at same time (instruction level 
 parallelism). Reference [#]_ for instruction itineraries.
 
-Now, let's build 4/1/Cpu0 and run with input file ch4_1_2.cpp. 
+Now, let's build Chapter4_1/ and run with input file ch4_1_2.cpp. 
 This version can process **+, -, \*, /, &, |, ^, <<,** and **>>** operators in C 
 language. 
 The corresponding llvm IR instructions are **add, sub, mul, sdiv, and, or, xor, 
@@ -252,7 +252,7 @@ Micorsoft implementation references as [#]_.
 The sub-section "‘ashr‘ Instruction" and sub-section "‘lshr‘ Instruction" of 
 [#]_.
 
-The 4/1 version just add 70 lines code in td files. 
+The version Chapter4_1 just add 70 lines code in td files. 
 With these 70 lines code, it process 9 operators more for C language and their 
 corresponding llvm IR instructions. 
 The arithmetic instructions are easy to implement by add the definition in td 
@@ -311,7 +311,7 @@ Let's assume %0 != 0 first, then the (icmp ne i32 %0, 0) = 1 (or true), and
 When %0 = 0, (icmp ne i32 %0, 0) = 0 (or false), and (xor 0, 1) = 1. 
 So, the translation is correct. 
     
-Now, let's run ch4_2.bc with 4/1/Cpu0 with ``llc -debug`` option to get result 
+Now, let's run ch4_2.bc with Chapter4_1/ with ``llc -debug`` option to get result 
 as follows,
 
 .. code-block:: bash
@@ -401,7 +401,7 @@ In “Optimized lowered selection DAG” stage, it also translate (zero_extern i
 translate into (and %lnot, 1) is correct. 
 It fails at (setcc %1, %2, seteq).
 
-Run it with 4/2/Cpu0 which added code as below, to get the following result.
+Run it with Chapter4_2/ which added code as below, to get the following result.
 
 .. code-block:: c++
 
@@ -440,7 +440,7 @@ Run it with 4/2/Cpu0 which added code as below, to get the following result.
   => 0x7fbc6902ac10: i32 = XOR 0x7fbc6902af10, 0x7fbc6902d510
 
 
-4/2/Cpu0 defined seteq DAG pattern. 
+Chapter4_2/ defined seteq DAG pattern. 
 It translate (setcc %1, %2, seteq) into (xor (xor %1, %2), (ldi $0, 1) in 
 “Instruction selection” stage by the rule defined in Cpu0InstrInfo.td as 
 above.
@@ -600,7 +600,7 @@ To use addiu only instead of ldi, change Cpu0InstrInfo.td as follows,
   defm : SeteqPats<CPURegs, XOR>;
 
 
-Run ch4_4.cpp with code 4/4/Cpu0 which support udiv, sra, and use addiu only 
+Run ch4_4.cpp with code Chapter4_4/ which support udiv, sra, and use addiu only 
 instead of ldi, will get the result as follows,
 
 .. code-block:: c++
@@ -677,7 +677,7 @@ Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
     return;
   }
 
-Run ch4_5.cpp with code 4/5/Cpu0 which support pointer to local variable, 
+Run ch4_5.cpp with code Chapter4_5/ which support pointer to local variable, 
 will get result as follows,
 
 .. code-block:: c++
@@ -817,7 +817,7 @@ Copy the reference as follows,
     <result> = **srem i32 4, %var**          ; yields {i32}:result = 4 % %var
 
 
-Run 4/5/Cpu0 with input file ch4_6_1.bc and ``llc`` option –view-isel-dags as 
+Run Chapter4_5/ with input file ch4_6_1.bc and ``llc`` option –view-isel-dags as 
 follows, will get the error message as follows and the llvm DAG of 
 :num:`Figure #otherinst-f2`.
 
@@ -858,7 +858,7 @@ The final result (sub 12, 12) is 0 which match the statement (11+1)%12.
 Arm solution
 ~~~~~~~~~~~~~
 
-Let's run 4/6_1/Cpu0 with ch4_6.cpp as well as ``llc -view-sched-dags`` option 
+Let's run Chapter4_6_1/ with ch4_6.cpp as well as ``llc -view-sched-dags`` option 
 to get :num:`Figure #otherinst-f3`. 
 Similarly, SMMUL get the high word of multiply result.
 
@@ -871,7 +871,7 @@ Similarly, SMMUL get the high word of multiply result.
 
     Translate ch4_6.bc into cpu0 backend DAG
 
-Follows is the result of run 4/6_1/Cpu0 with ch4_6.bc.
+Follows is the result of run Chapter4_6_1/ with ch4_6.bc.
 
 .. code-block:: bash
 
@@ -925,7 +925,7 @@ You can check it by unmark the **“unsigned int b = 11;”** in ch4_6.cpp.
 
 Use SMMUL instruction to get the high word of multiplication result is adopted 
 in ARM. 
-The 4/6_1/Cpu0 use the ARM solution. 
+The Chapter4_6_1/ use the ARM solution. 
 With this solution, the following code is needed.
 
 .. code-block:: c++
@@ -961,11 +961,11 @@ of operation).
 Meanwhile Mips is fast if you need both the HI and LO result. 
 If you need the LO part of result, you can use Cpu0 MUL instruction which only 
 get the LO part of result. 
-4/6_2/Cpu0 is implemented with Mips MULT style. 
+Chapter4_6_2/ is implemented with Mips MULT style. 
 We choose it as the implementation of this book. 
 For Mips style implementation, we add the following code in 
 Cpu0RegisterInfo.td, Cpu0InstrInfo.td and Cpu0ISelDAGToDAG.cpp. 
-And list the related DAG nodes mulhs and mulhu which are used in 4/6_2/Cpu0 
+And list the related DAG nodes mulhs and mulhu which are used in Chapter4_6_2/ 
 from TargetSelectionDAG.td.
 
 .. code-block:: c++
@@ -1159,8 +1159,8 @@ registers.
 With this solution, the **“c = a / b”** can be got by **“div a, b”** and 
 **“mflo c”**; the **“c = a % b”** can be got by **“div a, b”** and **“mfhi c”**.
 
-4/6_4/Cpu0 support operator **“%”** and **“/”**. 
-The code added in 4/6_4/Cpu0 as follows,
+Chapter4_6_4/ support operator **“%”** and **“/”**. 
+The code added in Chapter4_6_4/ as follows,
 
 .. code-block:: c++
 

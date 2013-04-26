@@ -20,7 +20,7 @@ result.
 AsmParser support
 ------------------
 
-Run 9/1/Cpu0 with ch10_1.cpp will get the following error message.
+Run Chapter9_1/ with ch10_1.cpp will get the following error message.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch10_1.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch10_1.cpp
@@ -41,7 +41,7 @@ Since we didn't implement cpu0 assembly, it has the error message as above.
 The cpu0 can translate LLVM IR into assembly and obj directly, but it cannot 
 translate hand code assembly into obj. 
 Directory AsmParser handle the assembly to obj translation.
-The 10/1/Cpu0 include AsmParser implementation as follows,
+The Chapter10_1/ include AsmParser implementation as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/Cpu0AsmParser.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/Cpu0AsmParser.cpp
@@ -347,7 +347,7 @@ number encode.
     // Reserved
     GP, FP, SW, SP, LR, PC)>;
 
-Run 10/1/Cpu0 with ch10_1.cpp to get the correct result as follows,
+Run Chapter10_1/ with ch10_1.cpp to get the correct result as follows,
 
 .. code-block:: bash
 
@@ -605,7 +605,7 @@ This is correct since C language support separate compile and the subroutine
 address is decided at link time for static address mode or at 
 load time for PIC address mode.
 Since our backend didn't implement the linker and loader, we change the  
-**"jsub #offset"** encode in 10/2/Cpu0 as follow,
+**"jsub #offset"** encode in Chapter10_2/ as follow,
 
 .. code-block:: c++
 
@@ -657,7 +657,7 @@ possibility.
       ...
     }
 
-Let's run the 10/2/Cpu0 with ``llvm-objdump -d`` again, wiil get the hex file 
+Let's run the Chapter10_2/ with ``llvm-objdump -d`` again, wiil get the hex file 
 as follows,
 
 .. code-block:: bash
