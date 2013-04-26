@@ -20,11 +20,11 @@ result.
 AsmParser support
 ------------------
 
-Run 9/1/Cpu0 with ch10_1.cpp will get the following error message.
+Run Chapter9_1/ with ch10_1.cpp will get the following error message.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch10_1.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch10_1.cpp
-    :lines: 4-39
+    :lines: 4-
     :linenos:
 
 .. code-block:: bash
@@ -41,7 +41,7 @@ Since we didn't implement cpu0 assembly, it has the error message as above.
 The cpu0 can translate LLVM IR into assembly and obj directly, but it cannot 
 translate hand code assembly into obj. 
 Directory AsmParser handle the assembly to obj translation.
-The 10/1/Cpu0 include AsmParser implementation as follows,
+The Chapter10_1/ include AsmParser implementation as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/Cpu0AsmParser.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/Cpu0AsmParser.cpp
@@ -347,7 +347,7 @@ number encode.
     // Reserved
     GP, FP, SW, SP, LR, PC)>;
 
-Run 10/1/Cpu0 with ch10_1.cpp to get the correct result as follows,
+Run Chapter10_1/ with ch10_1.cpp to get the correct result as follows,
 
 .. code-block:: bash
 
@@ -459,125 +459,14 @@ Now let's compile ch10_2.cpp as below. Since code size grows up from low to high
 address and stack grows up from high to low address. We set $sp at 0x6ffc because 
 cpu0s.v use 0x7000 bytes of memory.
 
-.. code-block:: c++
-
-  // InitRegs.h
-  asm("addiu $1,  $ZERO, 0");
-  asm("addiu $2,  $ZERO, 0");
-  asm("addiu $3,  $ZERO, 0");
-  asm("addiu $4,  $ZERO, 0");
-  asm("addiu $5,  $ZERO, 0");
-  asm("addiu $6,  $ZERO, 0");
-  asm("addiu $7,  $ZERO, 0");
-  asm("addiu $8,  $ZERO, 0");
-  asm("addiu $9,  $ZERO, 0");
-  asm("addiu $10, $ZERO, 0");
-  asm("addiu $11, $ZERO, 0");
-  asm("addiu $12, $ZERO, 0");
-  asm("addiu $14, $ZERO, -1");
-  
-  // ch10_2.cpp
-  #include "InitRegs.h"
-  
-  #define OUT_MEM 0x7000 // 28672
-  
-  asm("addiu $sp, $zero, 0x6ffc");
-  
-  void print_integer(int x);
-  int test_operators();
-  int test_control();
-  
-  int main()
-  {
-    int a = 0;
-    a = test_operators(); // a = 13
-    print_integer(a);
-    a += test_control();  // a = 31
-    print_integer(a);
-  
-    return a;
-  }
-  
-  // For memory IO
-  void print_integer(int x)
-  {
-    int *p = (int*)OUT_MEM;
-    *p = x;
-   return;
-  }
-  
-  void print1_integer(int x)
-  {
-    asm("ld $at, 8($sp)");
-    asm("st $at, 28672($0)");
-   return;
-  }
-  
-  #if 0
-  // For instruction IO
-  void print2_integer(int x)
-  {
-    asm("ld $at, 8($sp)");
-    asm("outw $tat");
-    return;
-  }
-  #endif
-  
-  int test_operators()
-  {
-    int a = 11;
-    int b = 2;
-    int c = 0;
-    int d = 0;
-    int e, f, g, h, i, j, k, l = 0;
-    unsigned int a1 = -5, k1 = 0;
-  
-    c = a + b;
-    d = a - b;
-    e = a * b;
-    f = a / b;
-    b = (a+1)%12;
-    g = (a & b);
-    h = (a | b);
-    i = (a ^ b);
-    j = (a << 2);
-    k = (a >> 2);
-    print_integer(k);
-    k1 = (a1 >> 2);
-    print_integer((int)k1);
-  
-    b = !a;
-    int* p = &b;
-    
-    return c; // 13
-  }
-  
-  int test_control()
-  {
-    int b = 1;
-    int c = 2;
-    int d = 3;
-    int e = 4;
-    int f = 5;
-    
-    if (b != 0) {
-      b++;
-    }
-    if (c > 0) {
-      c++;
-    }
-    if (d >= 0) {
-      d++;
-    }
-    if (e < 0) {
-      e++;
-    }
-    if (f <= 0) {
-      f++;
-    }
-    
-    return (b+c+d+e+f); // (2+3+4+4+5)=18
-  }
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/InitRegs.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/InitRegs.h
+    :lines: 5-
+    :linenos:
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch10_2.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch10_2.cpp
+    :lines: 5-
+    :linenos:
 
 .. code-block:: bash
 
@@ -605,7 +494,7 @@ This is correct since C language support separate compile and the subroutine
 address is decided at link time for static address mode or at 
 load time for PIC address mode.
 Since our backend didn't implement the linker and loader, we change the  
-**"jsub #offset"** encode in 10/2/Cpu0 as follow,
+**"jsub #offset"** encode in Chapter10_2/ as follow,
 
 .. code-block:: c++
 
@@ -657,7 +546,7 @@ possibility.
       ...
     }
 
-Let's run the 10/2/Cpu0 with ``llvm-objdump -d`` again, wiil get the hex file 
+Let's run the Chapter10_2/ with ``llvm-objdump -d`` again, wiil get the hex file 
 as follows,
 
 .. code-block:: bash
@@ -1241,53 +1130,10 @@ with the **OUTPUT=xxx** in Verilog output.
 
 Now, let's run ch_10_3.cpp to verify the result as follows,
 
-.. code-block:: c++
-
-  // ch10_3.cpp
-  #include <stdarg.h>
-  
-  #include "InitRegs.h"
-  
-  #define OUT_MEM 0x7000 // 28672
-  
-  asm("addiu $sp, $zero, 0x6ffc");
-  
-  void print_integer(int x);
-  int sum_i(int amount, ...);
-  
-  int main()
-  {
-    int a = sum_i(6, 0, 1, 2, 3, 4, 5);
-    print_integer(a);
-    
-    return a;
-  }
-  
-  // For memory IO
-  void print_integer(int x)
-  {
-    int *p = (int*)OUT_MEM;
-    *p = x;
-   return;
-  }
-  
-  int sum_i(int amount, ...)
-  {
-    int i = 0;
-    int val = 0;
-    int sum = 0;
-    
-    va_list vl;
-    va_start(vl, amount);
-    for (i = 0; i < amount; i++)
-    {
-      val = va_arg(vl, int);
-      sum += val;
-    }
-    va_end(vl);
-    
-    return sum; 
-  }
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch10_3.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch10_3.cpp
+    :lines: 6-
+    :linenos:
 
 .. code-block:: bash
 

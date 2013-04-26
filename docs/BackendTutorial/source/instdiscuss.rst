@@ -15,7 +15,7 @@ and reasonable than **ldi** instruction.
 We highlight this change in `section CPU0 processor architecture`_. 
 Even with that, we show you how to replace our **addiu** with **ldi** according 
 the cpu0 original design. 
-4/4_2/Cpu0 is the code changes for use **ldi** instruction. 
+Chapter4_2/ is the code changes for use **ldi** instruction. 
 This changes replace **addiu** with **ldi** in Cpu0InstrInfo.td and modify 
 Cpu0FrameLowering.cpp as follows,
 
@@ -87,7 +87,7 @@ This code is correct since all the immediate value is translated into
 **“ldi Zero, imm/address”**. 
 And **(add CPURegs:$gp, $imm16)** is translated into 
 **(ADD CPURegs:$gp, (LDI ZERO, $imm16))**. 
-Let's run 4/4_2/Cpu0 with ch4_4.cpp to get the correct result 
+Let's run Chapter4_4_2/ with ch4_4.cpp to get the correct result 
 below. 
 As you will see, **“addiu $sp, $sp, -24”** will be replaced with the pair 
 instructions of **“ldi $fp, -24”** and **“add $sp, $sp, $fp”**. 
@@ -196,7 +196,7 @@ Other instructions (include add), use register to register style operation.
 We change the implicit operand support in this section. 
 It's just a demonstration with this design, not fully support. 
 The purpose is telling reader how to implement this style of CPU/MCU backend. 
-Run 8/8_2/Cpu0 with ch_move.cpp will get the following result,
+Run Chapter8_8_2/ with ch_move.cpp will get the following result,
 
 .. code-block:: c++
 

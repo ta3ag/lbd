@@ -12,54 +12,10 @@ Control flow statement
 
 Run ch7_1_1.cpp with clang will get result as follows,
 
-.. code-block:: c++
-
-    // ch7_1_1.cpp
-    int main()
-    {
-        unsigned int a = 0;
-        int b = 1;
-        int c = 2;
-        int d = 3;
-        int e = 4;
-        int f = 5;
-        int g = 6;
-        int h = 7;
-        int i = 8;
-        
-        if (a == 0) {
-            a++;
-        }
-        if (b != 0) {
-            b++;
-        }
-        if (c > 0) {
-            c++;
-        }
-        if (d >= 0) {
-            d++;
-        }
-        if (e < 0) {
-            e++;
-        }
-        if (f <= 0) {
-            f++;
-        }
-        if (g <= 1) {
-            g++;
-        }
-        if (h >= 1) {
-            h++;
-        }
-        if (i < h) {
-            i++;
-        }
-        if (a != b) {
-            a++;
-        }
-        
-        return a;
-    }
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_1_1.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch7_1_1.cpp
+    :lines: 5-
+    :linenos:
 
 .. code-block:: bash
 
@@ -209,7 +165,7 @@ Run ch7_1_1.cpp with clang will get result as follows,
 
 The **“icmp ne”** stand for integer compare NotEqual, **“slt”** stands for Set 
 Less Than, **“sle”** stands for Set Less Equal. 
-Run version 6/2/Cpu0 with ``llc  -view-isel-dags`` or ``-debug`` option, you 
+Run version Chapter6_2/ with ``llc  -view-isel-dags`` or ``-debug`` option, you 
 can see it has translated **if** statement into 
 (br (brcond (%1, setcc(%2, Constant<c>, setne)), BasicBlock_02), BasicBlock_01).
 Ignore %1, we get the form (br (brcond (setcc(%2, Constant<c>, setne)), 
@@ -401,7 +357,7 @@ Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
     }
 
 
-7/1/Cpu0 include support for control flow statement. 
+Chapter7_1/ include support for control flow statement. 
 Run with it as well as the following ``llc`` option, you can get the obj file 
 and dump it's content by hexdump as follows,
 
@@ -661,10 +617,10 @@ Finally we list the code added for full support of control flow statement,
 
 The ch7_1_2.cpp is for **“nest if”** test. The ch7_1_3.cpp is the 
 **“for loop”** as well as **“while loop”**, **“continue”**, **“break”**, 
-**“goto”** test. 
+**“goto”** test. The ch7_1_6.cpp is for **“goto”** test.
 You can run with them if you like to test more.
 
-Finally, 7/1/Cpu0 support the local array definition by add the LowerCall() 
+Finally, Chapter7_1/ support the local array definition by add the LowerCall() 
 empty function in Cpu0ISelLowering.cpp as follows,
 
 .. code-block:: c++
@@ -680,15 +636,10 @@ empty function in Cpu0ISelLowering.cpp as follows,
 With this LowerCall(), it can translate ch7_1_4.cpp, ch7_1_4.bc to 
 ch7_1_4.cpu0.s as follows,
 
-.. code-block:: c++
-
-    // ch7_1_4.cpp
-    int main()
-    {
-        int a[3]={0, 1, 2};
-        
-        return 0;
-    }
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_1_4.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch7_1_4.cpp
+    :lines: 4-
+    :linenos:
 
 .. code-block:: bash
 
@@ -770,21 +721,10 @@ add since we have take care them before.
 But it can be test only when the control flow statement support is ready, as 
 follows,
 
-.. code-block:: c++
-
-  // ch7_1_5.cpp
-  int main()
-  {
-    unsigned int a = 0;
-    int b = 1;
-    int c = 2;
-    
-    if ((a == 0 && b == 2) || (c != 2)) {
-      a++;
-    }
-    
-    return 0;
-  }
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_1_5.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch7_1_5.cpp
+    :lines: 6-
+    :linenos:
 
 .. code-block:: bash
 

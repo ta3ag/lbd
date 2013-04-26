@@ -1,5 +1,5 @@
-// clang -c ch11_1.cpp -emit-llvm -o ch11_1.bc
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch11_1.bc -o ch11_1.cpu0.o
+// clang -c ch11_3.cpp -emit-llvm -o ch11_3.bc
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch11_3.bc -o ch11_3.cpu0.o
 
 asm("ld	$2, 8($sp)");
 asm("st	$0, 4($sp)");

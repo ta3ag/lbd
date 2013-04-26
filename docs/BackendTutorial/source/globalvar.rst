@@ -21,21 +21,13 @@ Machine DAG translation directly according the input file IR DAG.
 Global variable
 ----------------
 
-6/1/Cpu0 support the global variable, let's compile ch6_1.cpp with this version 
+Chapter6_1/ support the global variable, let's compile ch6_1.cpp with this version 
 first, and explain the code changes after that.
 
-.. code-block:: c++
-
-  // ch6_1.cpp
-  int gI = 100; 
-  int main() 
-  { 
-    int c = 0; 
-    
-    c = gI; 
-    
-    return c; 
-  } 
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch6_1.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch6_1.cpp
+    :lines: 13-
+    :linenos:
 
 .. code-block:: bash
 
@@ -627,26 +619,10 @@ LLVM use getelementptr to represent the array and struct type in C.
 Please reference section getelementptr of [#]_. 
 For ch6_2.cpp, the llvm IR as follows,
 
-.. code-block:: c++
-
-  // ch6_2.cpp
-  struct Date
-  {
-      int year;
-      int month;
-      int day;
-  };
-    
-  Date date = {2012, 10, 12};
-  int a[3] = {2012, 10, 12};
-    
-  int main()
-  {
-      int day = date.day;
-      int i = a[1];
-    
-      return 0;
-  }
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp
+    :lines: 11-
+    :linenos:
 
 .. code-block:: bash
 
@@ -675,7 +651,7 @@ For ch6_2.cpp, the llvm IR as follows,
     ret i32 0
   }
     
-Run 6/1/Cpu0 with ch6_2.bc on static mode will get the incorrect asm file as 
+Run Chapter6_1/ with ch6_2.bc on static mode will get the incorrect asm file as 
 follows,
 
 .. code-block:: bash
@@ -951,7 +927,7 @@ After set Base and Offset, the load DAG will translate the global address
 date.day into machine instruction **“ld $r1, 8($r2)”** in Instruction Selection 
 stage.
 
-6/2/Cpu0 include these changes as above, you can run it with ch6_2.cpp to get 
+Chapter6_2/ include these changes as above, you can run it with ch6_2.cpp to get 
 the correct generated instruction **“ld $r1, 8($r2)”** for date.day access, as 
 follows.
 
@@ -971,7 +947,7 @@ Type of char and short int
 --------------------------
 
 To support signed/unsigned char and short int, we add the following code to 
-6/3/Cpu0.
+Chapter6_3/.
 
 .. code-block:: c++
 
@@ -990,33 +966,12 @@ To support signed/unsigned char and short int, we add the following code to
   defm LHu    : LoadM32<0x07, "lhu", zextloadi16_a>;
   defm SH     : StoreM32<0x08, "sh", truncstorei16_a>;
 
-Run 6/3/Cpu0 with ch6_3.cpp will get the following result.
+Run Chapter6_3/ with ch6_3.cpp will get the following result.
 
-.. code-block:: c++
-
-  // ch6_3.cpp
-  struct Date
-  {
-    short year;
-    char month;
-    char day;
-    char hour;
-    char minute;
-    char second;
-  };
-  
-  unsigned char b[4] = {'a', 'b', 'c', '\0'};
-  
-  int main()
-  {
-    unsigned char a = b[1];
-    char c = (char)b[1];
-    Date date1 = {2012, (char)11, (char)25, (char)9, (char)40, (char)15};
-    char m = date1.month;
-    char s = date1.second;
-  
-    return 0;
-  }
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch6_3.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch6_3.cpp
+    :lines: 5-
+    :linenos:
 
 .. code-block:: bash
 

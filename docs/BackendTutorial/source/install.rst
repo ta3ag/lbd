@@ -243,8 +243,18 @@ Now, let's repeat above steps to create llvm/test with cpu0 modified code
   118-165-78-111:test Jonathan$ pwd
   /Users/Jonathan/llvm/test
   118-165-78-111:test Jonathan$ cp -rf /Users/Jonathan/llvm/release/src .
-  118-165-78-111:test Jonathan$ cp -rf src/lib/Target/Cpu0/ExampleCode/
-  LLVMBackendTutorialExampleCode/src_files_modify/modify/src .
+  118-165-78-111:test Jonathan$ cd src/lib/Target
+  118-165-78-111:Target Jonathan$ mkdir Cpu0
+  118-165-78-111:Target Jonathan$ ls
+  LLVMBackendTutorialExampleCode.tar.gz
+  118-165-78-111:Target Jonathan$ tar -zxvf LLVMBackendTutorialExampleCode.tar.gz
+  118-165-78-111:Target Jonathan$ ls
+  LLVMBackendTutorialExampleCode  LLVMBackendTutorialExampleCode.tar.gz
+  118-165-78-111:Target Jonathan$ cd ../../../..
+  118-165-78-111:test Jonathan$ pwd
+  /Users/Jonathan/llvm/test
+  118-165-78-111:test Jonathan$ cp -rf src/lib/Target/Cpu0/
+  LLVMBackendTutorialExampleCode/src_files_modify/modify/src/* src/.
   118-165-78-111:test Jonathan$ grep -R "Cpu0" src/
   src//cmake/config-ix.cmake:  set(LLVM_NATIVE_ARCH Cpu0)
   src//CMakeLists.txt:  Cpu0
@@ -271,41 +281,21 @@ cpu0 chapter 2 example code according the following commands,
   118-165-78-111:test Jonathan$ rm -rf src/tools/clang
   118-165-80-55:test Jonathan$ pwd
   /Users/Jonathan/llvm/test
-  118-165-80-55:test Jonathan$ cd src/lib/Target/Cpu0/ExampleCode/
-  118-165-80-55:ExampleCode Jonathan$ pwd
-  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/ExampleCode
-  118-165-80-55:ExampleCode Jonathan$ sh genexample.sh 
-  patching file 2/Cpu0/CMakeLists.txt
-  ...
-  patching file 11/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
-  118-165-80-55:ExampleCode Jonathan$ ls
-  ...
-  2				5.patch				LLVMBackendTutorialExampleCode
-  ...
-  118-165-80-55:ExampleCode Jonathan$ cp -rf LLVMBackendTutorialExampleCode/2/Cpu0/* ../.
-  118-165-80-55:ExampleCode Jonathan$ cd ..
+  118-165-80-55:test Jonathan$ cd lib/Target
+  118-165-80-55:Target Jonathan$ pwd
+  /Users/Jonathan/llvm/test/src/lib/Target
+  
+  118-165-80-55:test Jonathan$ cd src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/
+  118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ pwd
+  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode
+  118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ cp -rf Chapter2/* ../.
+  118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ cd ..
   118-165-80-55:Cpu0 Jonathan$ ls
   CMakeLists.txt		Cpu0InstrInfo.td	Cpu0TargetMachine.cpp	TargetInfo
   Cpu0.h			Cpu0RegisterInfo.td	ExampleCode		readme
   Cpu0.td			Cpu0Schedule.td		LLVMBuild.txt
   Cpu0InstrFormats.td	Cpu0Subtarget.h		MCTargetDesc
   118-165-80-55:Cpu0 Jonathan$ 
-
-  118-165-78-111:test Jonathan$ cd src/lib/Target/
-  118-165-78-111:Target Jonathan$ cp -rf /Users/Jonathan/
-  LLVMBackendTutorialExampleCode/2/Cpu0 .
-  118-165-78-111:Target Jonathan$ ls
-  ARM             Mangler.cpp               TargetJITInfo.cpp
-  CMakeLists.txt  Mips                      TargetLibraryInfo.cpp
-  CellSPU         NVPTX                     TargetLoweringObjectFile.cpp
-  CppBackend      PTX                       TargetMachine.cpp
-  Cpu0            PowerPC                   TargetMachineC.cpp
-  Hexagon         README.txt                TargetRegisterInfo.cpp
-  LLVMBuild.txt   Sparc                     TargetSubtargetInfo.cpp
-  MBlaze          Target.cpp                TargetTransformImpl.cpp
-  MSP430          TargetInstrInfo.cpp       X86
-  Makefile        TargetIntrinsicInfo.cpp   XCore
-  118-165-78-111:Target Jonathan$ 
 
 
 Now, it's ready for building llvm/test/src code by command 
@@ -633,18 +623,18 @@ according the following list steps, the corresponding commands shown as follows,
 ``cp -rf /usr/local/llvm/release/src .``.
 
 2) Update my modified files to support cpu0 by command, ``cp -rf /usr/local/llvm/
-test/src/lib/Target/Cpu0/ExampleCode/LLVMBackendTutorialExampleCode/
+test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/
 src_files_modify/modify/src .``.
 
 3) Check step 2 is effective by command 
 ``grep -R "Cpu0" . | more```. I add the Cpu0 backend support, so check with 
 grep.
 
-4) Enter src/lib/Target/Cpu0/ExampleCode, generate LLVMBackendTutorialExampleCode, 
+4) Enter src/lib/Target/Cpu0/, generate LLVMBackendTutorialExampleCode, 
 and copy example code LLVMBackendTutorialExampleCode/2/Cpu0 to the directory by 
 commands 
-``cd src/lib/Target/Cpu0/ExampleCode/`` and 
-``cp -rf LLVMBackendTutorialExample/2/Cpu0/* ../.``.
+``cd src/lib/Target/Cpu0/`` and 
+``cp -rf LLVMBackendTutorialExample/Chapter2/* ../.``.
 
 5) Remove clang from /usr/local/llvm/test/src/tools/clang, and mkdir 
 test/cmake_debug_build. Without this you will waste extra time for 
@@ -660,9 +650,11 @@ command ``make`` in cpu0 example code build.
   ./src/lib/Target/LLVMBuild.txt:subdirectories = ARM CellSPU CppBackend Hexagon MBlaz
   e MSP430 Mips Cpu0 PTX PowerPC Sparc X86 XCore
   ...
-  [Gamma@localhost test]$ cd src/lib/Target/Cpu0/ExampleCode/
-  [Gamma@localhost ExampleCode]$ cp -rf LLVMBackendTutorialExampleCode/2/
-  Cpu0/* ../.
+  [Gamma@localhost test]$ cd src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/
+  [Gamma@localhost LLVMBackendTutorialExampleCode]$ sh removecpu0.sh
+  [Gamma@localhost LLVMBackendTutorialExampleCode]$ ls ../
+  LLVMBackendTutorialExampleCode
+  [Gamma@localhost LLVMBackendTutorialExampleCode]$ cp -rf Chapter2/* ../.
   [Gamma@localhost ExampleCode]$ cd ..
   [Gamma@localhost Cpu0]$ ls
   CMakeLists.txt		Cpu0InstrInfo.td	Cpu0TargetMachine.cpp	TargetInfo

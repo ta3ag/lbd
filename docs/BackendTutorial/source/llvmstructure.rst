@@ -1016,15 +1016,15 @@ List them as follows again,
     :linenos:
 
 
-Let's build LLVMBackendTutorialExampleCode/2/Cpu0 code as follows,
+Let's build LLVMBackendTutorialExampleCode/Chapter2 code as follows,
 
 .. code-block:: bash
 
   118-165-75-57:ExampleCode Jonathan$ pwd
   /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/ExampleCode
   118-165-75-57:ExampleCode Jonathan$ sh removecpu0.sh 
-  118-165-75-57:ExampleCode Jonathan$ cp -rf LLVMBackendTutorialExampleCode/3/2/
-  Cpu0/* ../.
+  118-165-75-57:ExampleCode Jonathan$ cp -rf LLVMBackendTutorialExampleCode/Chapter2/
+  * ../.
 
   118-165-75-57:cmake_debug_build Jonathan$ pwd
   /Users/Jonathan/llvm/test/cmake_debug_build

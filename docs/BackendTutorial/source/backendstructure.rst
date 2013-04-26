@@ -187,7 +187,7 @@ will be extracted by Cpu0InstrInfo.h.
 
 Reference Write An LLVM Backend web site [#]_.
 
-Now, the code in 3/1/Cpu0 add class Cpu0TargetMachine(Cpu0TargetMachine.h and 
+Now, the code in Chapter3_1/ add class Cpu0TargetMachine(Cpu0TargetMachine.h and 
 cpp), Cpu0Subtarget (Cpu0Subtarget.h and .cpp), Cpu0InstrInfo (Cpu0InstrInfo.h 
 and .cpp), Cpu0FrameLowering (Cpu0FrameLowering.h and .cpp), Cpu0TargetLowering 
 (Cpu0ISelLowering.h and .cpp) and Cpu0SelectionDAGInfo ( Cpu0SelectionDAGInfo.h 
@@ -201,10 +201,10 @@ CMakeLists.txt  modified with those new added \*.cpp as follows,
     :linenos:
 
 
-Please take a look for 3/1 code. 
-After that, building 3/1 by make as chapter 2 (of course, you should remove old 
-lib/Target/Cpu0 and replace with 3/1/Cpu0). 
-You can remove lib/Target/Cpu0/\*.inc before do “make” to ensure your code 
+Please take a look for Chapter3_1 code. 
+After that, building Chapter3_1 by make as chapter 2 (of course, you should remove old 
+src/lib/Target/Cpu0 and replace with src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_1/). 
+You can remove cmake_debug_build/lib/Target/Cpu0/\*.inc before do “make” to ensure your code 
 rebuild completely. 
 By remove \*.inc, all files those have included .inc will be rebuild, then your 
 Target library will regenerate. 
@@ -220,7 +220,7 @@ Add RegisterInfo
 
 As depicted in :num:`Figure #backendstructure-f1`, the Cpu0InstrInfo class should 
 contains Cpu0RegisterInfo. 
-So 3/2/Cpu0 add Cpu0RegisterInfo class (Cpu0RegisterInfo.h, 
+So Chapter3_2/ add Cpu0RegisterInfo class (Cpu0RegisterInfo.h, 
 Cpu0RegisterInfo.cpp), and Cpu0RegisterInfo class in files Cpu0InstrInfo.h, 
 Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,
 
@@ -256,16 +256,16 @@ Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,
     ...
     )
 
-Now, let's replace 3/1/Cpu0 with 3/2/Cpu0 of adding register class definition 
+Now, let's replace Chapter3_1/ with Chapter3_2/ of adding register class definition 
 as command below and rebuild. 
 
 .. code-block:: bash
 
   118-165-75-57:ExampleCode Jonathan$ pwd
-  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/ExampleCode
-  118-165-75-57:ExampleCode Jonathan$ sh removecpu0.sh 
-  118-165-75-57:ExampleCode Jonathan$ cp -rf LLVMBackendTutorialExampleCode/3/2/
-  Cpu0/* ../.
+  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode
+  118-165-75-57:LLVMBackendTutorialExampleCode Jonathan$ sh removecpu0.sh 
+  118-165-75-57:LLVMBackendTutorialExampleCode Jonathan$ cp -rf Chapter3_2/
+  * ../.
   
 After that, let's try to run the ``llc`` compile command to see what happen,
 
@@ -285,7 +285,7 @@ Let's add it in next section.
 Add AsmPrinter
 --------------
 
-3/3/cpu0 contains the Cpu0AsmPrinter definition. First, we add definitions in 
+Chapter3_3/cpu0 contains the Cpu0AsmPrinter definition. First, we add definitions in 
 Cpu0.td to support AssemblyWriter. 
 Cpu0.td is added with the following fragment,
 
@@ -304,7 +304,7 @@ in Cpu0InstrInfo.td and Cpu0RegisterInfo.td.
 To let these two functions work in our code, the only thing need to do is add a 
 class Cpu0InstPrinter and include them.
 
-File 3/3/Cpu0/InstPrinter/Cpu0InstPrinter.cpp include Cpu0GenAsmWrite.inc and 
+File Chapter3_3/Cpu0/InstPrinter/Cpu0InstPrinter.cpp include Cpu0GenAsmWrite.inc and 
 call the auto-generated functions as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/InstPrinter/Cpu0InstPrinter.h
@@ -390,7 +390,7 @@ Cpu0AsmPrinter to LLVMBuild.txt as follows,
   required_libraries = AsmPrinter CodeGen Core MC Cpu0AsmPrinter Cpu0Desc  
                        Cpu0Info SelectionDAG Support Target
 
-Now, run 3/3/Cpu0 for AsmPrinter support, will get error message as follows,
+Now, run Chapter3_3/Cpu0 for AsmPrinter support, will get error message as follows,
 
 .. code-block:: bash
 
@@ -745,8 +745,8 @@ information which called by llvm at proper time.
     :linenos:
 
 
-Build 3/4, run it, we find the error message in 3/3 is gone. The new error 
-message for 3/4 as follows,
+Build Chapter3_4, run it, we find the error message in Chapter3_3 is gone. 
+The new error message for Chapter3_4 as follows,
 
 .. code-block:: bash
 
@@ -929,7 +929,7 @@ The Prologue and Epilogue functions as follows,
     :end-before: unsigned Cpu0RegisterInfo::
     :linenos:
 
-After add these Prologue and Epilogue functions, and build with 3/5/Cpu0. 
+After add these Prologue and Epilogue functions, and build with Chapter3_5/Cpu0. 
 Now we are ready to compile our example code ch3.bc into cpu0 assembly code. 
 Following is the command and output file ch3.cpu0.s,
 
