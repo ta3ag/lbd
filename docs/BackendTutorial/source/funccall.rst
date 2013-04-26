@@ -1110,7 +1110,7 @@ Summary callee incoming arguments and caller outgoing arguments as
 Pseudo hook instruction ADJCALLSTACKDOWN and ADJCALLSTACKUP
 ------------------------------------------------------------
 
-To fix the !ADJSTACKDOWN and !1ADJSTACKUP, we call Cpu0GenInstrInfo(Cpu0::
+To fix the !ADJSTACKDOWN and !ADJSTACKUP, we call Cpu0GenInstrInfo(Cpu0::
 ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP) in Cpu0InstrInfo() constructor 
 function and define eliminateCallFramePseudoInstr() as follows, 
 
@@ -2946,7 +2946,7 @@ the output cpu0 code will use $3 instead of $2 as return register as follows,
 Summary of this chapter
 ------------------------
 
-Until now, we have 5,900 lines of source code around in the end of chapter8. 
+Until now, we have 5,900 lines of source code around in the end of this chapter. 
 The cpu0 backend code now can take care the integer function call and control 
 statement just like the llvm front end tutorial example code. 
 Look back the chapter of “Back end structure”, there are 3,000 lines of source 
@@ -2956,13 +2956,13 @@ variable, control flow statement and function call.
 Now the cpu0 backend is not just a toy. 
 It can translate the C++ OOP language into cpu0 instructions without much 
 effort.
-Because the most complex things in language, such as C++ syntex, is handle by 
+Because the most complex things in language, such as C++ syntex, is handled by 
 front end. 
-LLVM is a real structure follow the compiler theory, any backend of LLVM can 
+LLVM is an real structure following the compiler theory, any backend of LLVM can 
 benefit from this structure.
-A couple of thousands code can translate OOP language into your backend.
-And your backend will grow up automatically via the front end support more and 
-more language.
+A couple of thousands lines of code make OOP language translated into your backend.
+And your backend will grow up automatically through the front end support languages 
+more and more.
 
 
 .. [#] http://jonathan2251.github.com/lbd/ctrlflow.html#risc-cpu-knowledge
