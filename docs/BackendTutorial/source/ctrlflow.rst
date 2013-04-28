@@ -190,10 +190,9 @@ We want to translate them into cpu0 instructions DAG as follows,
 For the first addiu instruction as above which move Constant<c> into register, 
 we have defined it before by the following code,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
-    // Cpu0InstrInfo.td
-    ...
     // Small immediates
     def : Pat<(i32 immSExt16:$in),
               (ADDiu ZERO, imm:$in)>;
@@ -206,6 +205,7 @@ we have defined it before by the following code,
 For the last IR br, we translate unconditional branch (br BasicBlock_01) into 
 jmp BasicBlock_01 by the following pattern definition,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
     def brtarget    : Operand<OtherVT> {
@@ -233,6 +233,7 @@ one-to-one IR to machine instruction translation we have experienced until now.
 To solve this chained IR to machine instructions translation, we define the 
 following pattern,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
     // brcond patterns
@@ -279,30 +280,12 @@ is correct even an instruction is inserted between CMP and JNE as follows,
 The reserved registers setting by the following 
 function code we defined before,
 
-.. code-block:: c++
-    
-    // Cpu0RegisterInfo.cpp
-    ...
-    // pure virtual method
-    BitVector Cpu0RegisterInfo::
-    getReservedRegs(const MachineFunction &MF) const {
-      static const uint16_t ReservedCPURegs[] = {
-        Cpu0::ZERO, Cpu0::AT, Cpu0::GP, Cpu0::FP,
-        Cpu0::SP, Cpu0::LR, Cpu0::PC
-      };
-      BitVector Reserved(getNumRegs());
-      typedef TargetRegisterClass::iterator RegIter;
-    
-      for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
-        Reserved.set(ReservedCPURegs[I]);
-    
-      // If GP is dedicated as a global base register, reserve it.
-      if (MF.getInfo<Cpu0FunctionInfo>()->globalBaseRegFixed()) {
-        Reserved.set(Cpu0::GP);
-      }
-    
-      return Reserved;
-    }
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0RegisterInfo.cpp
+    :start-after: return CSR_O32_RegMask;
+    :end-before: //- If eliminateFrameIndex() is empty
+    :linenos:
+
 
 Although the following definition in Cpu0RegisterInfo.td has no real effect in 
 Reserved Registers, you should comment the Reserved Registers in it for 
@@ -312,29 +295,30 @@ The copyPhysReg() is called when DestReg and SrcReg belong to different Register
 Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is 
 "cmp $SW, $ZERO, $rc".
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0RegisterInfo.td
 .. code-block:: c++
 
-    // Cpu0RegisterInfo.td
-    ...
-    //===----------------------------------------------------------------------===//
-    // Register Classes
-    //===----------------------------------------------------------------------===//
-    
-    def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
-      // Return Values and Arguments
-      V0, V1, A0, A1, 
-      // Not preserved across procedure calls
-      T9, 
-      // Callee save
-      S0, S1, S2, 
-      // Reserved
-      ZERO, AT, GP, FP, SP, LR, PC)>;
+  //===----------------------------------------------------------------------===//
+  // Register Classes
+  //===----------------------------------------------------------------------===//
+  
+  def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
+    // Return Values and Arguments
+    V0, V1, A0, A1, 
+    // Not preserved across procedure calls
+    T9, 
+    // Callee save
+    S0, S1, S2, 
+    // Reserved
+    ZERO, AT, GP, FP, SP, LR, PC)>;
+  ...
+  // Status Registers
+  def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
+  
 
-	// Status Registers
-	def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
-	
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.cpp
+.. code-block:: c++
 
-  // Cpu0InstrInfo.cpp
   //- Called when DestReg and SrcReg belong to different Register Class.
   void Cpu0InstrInfo::
   copyPhysReg(MachineBasicBlock &MBB,
@@ -361,7 +345,7 @@ Chapter7_1/ include support for control flow statement.
 Run with it as well as the following ``llc`` option, you can get the obj file 
 and dump it's content by hexdump as follows,
 
-.. code-block:: c++
+.. code-block:: bash
 
     118-165-79-206:InputFiles Jonathan$ cat ch7_1_1.cpu0.s 
     ...
@@ -429,26 +413,15 @@ one instruction (bne).
 
 Finally we list the code added for full support of control flow statement,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+    :start-after: EmitInstruction(Binary, Size, OS);
+    :end-before: /// getMachineOpValue - Return binary encoding of operand
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0MCInstLower.cpp
 .. code-block:: c++
 
-    // Cpu0MCCodeEmitter.cpp
-    /// getBranchTargetOpValue - Return binary encoding of the branch
-    /// target operand. If the machine operand requires relocation,
-    /// record the relocation and return zero.
-    unsigned Cpu0MCCodeEmitter::
-    getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
-                           SmallVectorImpl<MCFixup> &Fixups) const {
-    
-      const MCOperand &MO = MI.getOperand(OpNo);
-      assert(MO.isExpr() && "getBranchTargetOpValue expects only expressions");
-    
-      const MCExpr *Expr = MO.getExpr();
-      Fixups.push_back(MCFixup::Create(0, Expr,
-                                       MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
-      return 0;
-    }
-    
-    // Cpu0MCInstLower.cpp
     MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
                                                   MachineOperandType MOTy,
                                                   unsigned Offset) const {
@@ -482,7 +455,9 @@ Finally we list the code added for full support of control flow statement,
       ...
     }
 
-    // Cpu0InstrInfo.cpp  
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.cpp
+.. code-block:: c++
+
     //- Called when DestReg and SrcReg belong to different Register Class.
     void Cpu0InstrInfo::
     copyPhysReg(MachineBasicBlock &MBB,
@@ -504,8 +479,9 @@ Finally we list the code added for full support of control flow statement,
       ...
     }
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelLowering.cpp
+.. code-block:: c++
 
-    // Cpu0ISelLowering.cpp
     Cpu0TargetLowering::
     Cpu0TargetLowering(Cpu0TargetMachine &TM)
       : TargetLowering(TM, new Cpu0TargetObjectFile()),
@@ -524,7 +500,9 @@ Finally we list the code added for full support of control flow statement,
       ...
     }
     
-    // Cpu0InstrFormats.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrFormats.td
+.. code-block:: c++
+
 	//===----------------------------------------------------------------------===//
 	// Format J instruction class in Cpu0 : <|opcode|address|>
 	//===----------------------------------------------------------------------===//
@@ -538,7 +516,10 @@ Finally we list the code added for full support of control flow statement,
 	
 	  let Inst{23-0} = addr;
 	}
-    
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td
+.. code-block:: c++
+
     // Cpu0InstrInfo.td
     // Instruction operand types
     def brtarget    : Operand<OtherVT> {
@@ -623,6 +604,7 @@ You can run with them if you like to test more.
 Finally, Chapter7_1/ support the local array definition by add the LowerCall() 
 empty function in Cpu0ISelLowering.cpp as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   // Cpu0ISelLowering.cpp

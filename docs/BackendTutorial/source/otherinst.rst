@@ -70,10 +70,9 @@ This node **add** is for 2 registers.
 So, appending the following code to Cpu0InstrInfo.td and Cpu0Schedule.td in 
 Chapter4_1/,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
-  // Cpu0InstrInfo.td
-  ...
   def shamt       : Operand<i32>;
   ...
   // shamt field must fit in 5 bits.
@@ -386,10 +385,8 @@ It fails at (setcc %1, %2, seteq).
 
 Run it with Chapter4_2/ which added code as below, to get the following result.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_2/Cpu0InstrInfo.td
 .. code-block:: c++
-
-  //  Cpu0InstrInfo.td
-  ...
     
   def : Pat<(not CPURegs:$in),
         (XOR CPURegs:$in, (LDI ZERO, 1))>;
@@ -556,6 +553,7 @@ operators **“/”** in unsigned int and **“>>”** in signed int as
 To support these 2 operators, we only need to add these code in 
 Cpu0InstrInfo.td as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_4/Cpu0InstrInfo.td
 .. code-block:: c++
 
   //  Cpu0InstsInfo.td
@@ -568,10 +566,9 @@ Cpu0InstrInfo.td as follows,
 
 To use addiu only instead of ldi, change Cpu0InstrInfo.td as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_4/Cpu0InstrInfo.td
 .. code-block:: c++
 
-  //  Cpu0InstsInfo.td
-  ...
   //def LDI     : MoveImm<0x08, "ldi", add, simm16, immSExt16, CPURegs>;
   ...
   // setcc patterns
@@ -615,10 +612,9 @@ Local variable pointer
 To support pointer to local variable, add this code fragment in 
 Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_5/Cpu0InstrInfo.td
 .. code-block:: c++
 
-  // Cpu0InstrInfo.td
-  ...
   def mem_ea : Operand<i32> {
     let PrintMethod = "printMemOperandEA";
     let MIOperandInfo = (ops CPURegs, simm16);
@@ -637,8 +633,9 @@ Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
     let isCodeGenOnly = 1;
   }
     
-  // Cpu0InstPrinter.cpp
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_5/Cpu0InstPrinter.td
+.. code-block:: c++
+
   void Cpu0InstPrinter::
   printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &O) {
     // when using stack locations for not load/store instructions
@@ -774,12 +771,9 @@ Copy the reference as follows,
     <result> = **srem i32 4, %var**          ; yields {i32}:result = 4 % %var
 
 
-<<<<<<< HEAD
+
 Run Chapter4_5/ with input file ch4_6.bc and ``llc`` option –view-isel-dags as 
-=======
-Run Chapter4_5/ with input file ch4_6_1.bc and ``llc`` option –view-isel-dags as 
->>>>>>> a2c9343429e9e567e1a2ce1a0ff9442fa9ad8b85
-follows, will get the error message as follows and the llvm DAG of 
+below, will get the error message as follows and the llvm DAG of 
 :num:`Figure #otherinst-f2`.
 
 .. code-block:: bash
@@ -889,10 +883,9 @@ in ARM.
 The Chapter4_6_1/ use the ARM solution. 
 With this solution, the following code is needed.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
-  // Cpu0InstrInfo.td
-  ...
   // Transformation Function - get the lower 16 bits.
   def LO16 : SDNodeXForm<imm, [{
     return getImm(N, N->getZExtValue() & 0xFFFF);
@@ -929,10 +922,9 @@ Cpu0RegisterInfo.td, Cpu0InstrInfo.td and Cpu0ISelDAGToDAG.cpp.
 And list the related DAG nodes mulhs and mulhu which are used in Chapter4_6_2/ 
 from TargetSelectionDAG.td.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_2/Cpu0RegisterInfo.td
 .. code-block:: c++
 
-  // Cpu0RegisterInfo.td
-    ...
     // Hi/Lo registers
     def HI  : Register<"HI">, DwarfRegNum<[18]>;
     def LO  : Register<"LO">, DwarfRegNum<[19]>;
@@ -950,8 +942,9 @@ from TargetSelectionDAG.td.
     ...
   ]>;
 
-  // Cpu0InstrInfo.td
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_2/Cpu0InstrInfo.td
+.. code-block:: c++
+
   // Mul, Div
   class Mult<bits<8> op, string instr_asm, InstrItinClass itin,
              RegisterClass RC, list<Register> DefRegs>:
@@ -983,8 +976,9 @@ from TargetSelectionDAG.td.
   def MFHI : MoveFromLOHI<0x40, "mfhi", CPURegs, [HI]>;
   def MFLO : MoveFromLOHI<0x41, "mflo", CPURegs, [LO]>;
     
-  // Cpu0ISelDAGToDAG.cpp
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_2/Cpu0ISelDAGToDAG.cpp
+.. code-block:: c++
+
   /// Select multiply instructions.
   std::pair<SDNode*, SDNode*>
   Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
@@ -1025,8 +1019,9 @@ from TargetSelectionDAG.td.
     ...
   }
     
-  // TargetSelectionDAG.td
-  ...
+.. rubric:: include/llvm/Target/TargetSelectionDAG.td
+.. code-block:: c++
+
   def mulhs      : SDNode<"ISD::MULHS"     , SDTIntBinOp, [SDNPCommutative]>;
   def mulhu      : SDNode<"ISD::MULHU"     , SDTIntBinOp, [SDNPCommutative]>;
 
@@ -1123,55 +1118,21 @@ With this solution, the **“c = a / b”** can be got by **“div a, b”** and
 Chapter4_6_4/ support operator **“%”** and **“/”**. 
 The code added in Chapter4_6_4/ as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.cpp
+    :start-after: return RI;
+    :end-before: MachineInstr*
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.h
+    :start-after: virtual const Cpu0RegisterInfo &getRegisterInfo() const;
+    :end-before: public:
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.td
 .. code-block:: c++
 
-  // Cpu0InstrInfo.cpp
-  ...
-  void Cpu0InstrInfo::
-  copyPhysReg(MachineBasicBlock &MBB,
-        MachineBasicBlock::iterator I, DebugLoc DL,
-        unsigned DestReg, unsigned SrcReg,
-        bool KillSrc) const {
-    unsigned Opc = 0, ZeroReg = 0;
-  
-    if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
-    if (Cpu0::CPURegsRegClass.contains(SrcReg))
-      Opc = Cpu0::ADD, ZeroReg = Cpu0::ZERO;
-    else if (SrcReg == Cpu0::HI)
-      Opc = Cpu0::MFHI, SrcReg = 0;
-    else if (SrcReg == Cpu0::LO)
-      Opc = Cpu0::MFLO, SrcReg = 0;
-    }
-    else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
-    if (DestReg == Cpu0::HI)
-      Opc = Cpu0::MTHI, DestReg = 0;
-    else if (DestReg == Cpu0::LO)
-      Opc = Cpu0::MTLO, DestReg = 0;
-    }
-  
-    assert(Opc && "Cannot copy registers");
-  
-    MachineInstrBuilder MIB = BuildMI(MBB, I, DL, get(Opc));
-  
-    if (DestReg)
-    MIB.addReg(DestReg, RegState::Define);
-  
-    if (ZeroReg)
-    MIB.addReg(ZeroReg);
-  
-    if (SrcReg)
-    MIB.addReg(SrcReg, getKillRegState(KillSrc));
-  }
-  
-  // Cpu0InstrInfo.h
-  ...
-    virtual void copyPhysReg(MachineBasicBlock &MBB,
-                 MachineBasicBlock::iterator MI, DebugLoc DL,
-                 unsigned DestReg, unsigned SrcReg,
-                 bool KillSrc) const;
-  
-  // Cpu0InstrInfo.td
-  ...
   def SDT_Cpu0DivRem       : SDTypeProfile<0, 2,
                        [SDTCisInt<0>,
                         SDTCisSameAs<0, 1>]>;
@@ -1210,8 +1171,9 @@ The code added in Chapter4_6_4/ as follows,
   def MTHI : MoveToLOHI<0x42, "mthi", CPURegs, [HI]>;
   def MTLO : MoveToLOHI<0x43, "mtlo", CPURegs, [LO]>;
   
-  // Cpu0ISelLowering.cpp
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0ISelLowering.cpp
+.. code-block:: c++
+
   Cpu0TargetLowering::
   Cpu0TargetLowering(Cpu0TargetMachine &TM)
     : TargetLowering(TM, new TargetLoweringObjectFileELF()),
@@ -1279,8 +1241,9 @@ The code added in Chapter4_6_4/ as follows,
     return SDValue();
   }
   
-  // Cpu0ISelLowering.h
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0ISelLowering.h
+.. code-block:: c++
+
   namespace llvm {
     namespace Cpu0ISD {
     enum NodeType {
@@ -1307,9 +1270,9 @@ We will verify **“%”** with ch4_6_2.cpp at the end of chapter “Function Ca
 You can run with the end of Example Code of chapter “Function Call”, if you 
 like to verify it now.
 
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_1_2.cpp
 .. code-block:: c++
 
-  // ch4_1_2.cpp
   int main()
   {
     ...

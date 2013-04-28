@@ -28,13 +28,14 @@ Cpu0TargetMachine class contains it's own instruction class, frame/stack class,
 DAG (Directed-Acyclic-Graph) class, and register class. 
 The Cpu0TargetMachine contents as follows,
 
+.. rubric:: include/llvm/Target/Cpu0TargetMachine.h
 .. code-block:: c++
 
   //- TargetMachine.h 
   class TargetMachine { 
     TargetMachine(const TargetMachine &) LLVM_DELETED_FUNCTION;
     void operator=(const TargetMachine &) LLVM_DELETED_FUNCTION;
-  
+  ...
   public: 
     // Interfaces to the major aspects of target machine information: 
     // -- Instruction opcode and operand information 
@@ -56,8 +57,7 @@ The Cpu0TargetMachine contents as follows,
     } 
   
   } 
-  
-  //- TargetMachine.h 
+  ...
   class LLVMTargetMachine : public TargetMachine { 
   protected: // Can only create subclasses. 
     LLVMTargetMachine(const Target &T, StringRef TargetTriple, 
@@ -73,17 +73,16 @@ The Cpu0TargetMachine contents as follows,
     :linenos:
 
   
+.. rubric:: include/llvm/Target/TargetInstInfo.h
 .. code-block:: c++
 
-  //- TargetInstInfo.h 
   class TargetInstrInfo : public MCInstrInfo { 
     TargetInstrInfo(const TargetInstrInfo &) LLVM_DELETED_FUNCTION;
     void operator=(const TargetInstrInfo &) LLVM_DELETED_FUNCTION;
   public: 
     ... 
-  } 
-  
-  //- TargetInstInfo.h 
+  }
+  ...
   class TargetInstrInfoImpl : public TargetInstrInfo { 
   protected: 
     TargetInstrInfoImpl(int CallFrameSetupOpcode = -1, 
@@ -93,6 +92,9 @@ The Cpu0TargetMachine contents as follows,
     ... 
   } 
   
+.. rubric:: cmake_debug_build/lib/Target/Cpu0/Cpu0GenInstInfo.inc
+.. code-block:: c++
+
   //- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td 
   #ifdef GET_INSTRINFO_HEADER 
   #undef GET_INSTRINFO_HEADER 
@@ -173,6 +175,7 @@ Following is the code fragment from Cpu0GenInstrInfo.inc.
 Code between “#if def  GET_INSTRINFO_HEADER” and “#endif // GET_INSTRINFO_HEADER” 
 will be extracted by Cpu0InstrInfo.h.
 
+.. rubric:: cmake_debug_build/lib/Target/Cpu0/Cpu0GenInstInfo.inc
 .. code-block:: c++
 
   //- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td 
@@ -373,6 +376,7 @@ Except add the new .cpp files to CMakeLists.txt, please remember to add
 subdirectory InstPrinter, enable asmprinter, add libraries AsmPrinter and 
 Cpu0AsmPrinter to LLVMBuild.txt as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/LLVMBuild.txt
 .. code-block:: c++
 
   //  LLVMBuild.txt
@@ -582,24 +586,15 @@ For example, (+ ri, rj), (- ri, 1) are lists for IR DAG; (ADD ri, rj),
 Now, let's recall the ADDiu instruction defined on Cpu0InstrInfo.td in the 
 previous chapter. List them again as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrFormats.td
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrFormats.td
+    :start-after: let Inst{11-0}  = shamt;
+    :end-before: // Format J instruction class in Cpu0
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrInfo.td
 .. code-block:: c++
 
-  // Cpu0InstrFormats.td
-  class FL<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern,
-           InstrItinClass itin>: Cpu0Inst<outs, ins, asmstr, pattern, itin, FrmL>
-  {
-    bits<4>  ra;
-    bits<4>  rb;
-    bits<16> imm16;
-
-    let Opcode = op;
-
-    let Inst{23-20} = ra;
-    let Inst{19-16} = rb;
-    let Inst{15-0}  = imm16;
-  }
-
-  // Cpu0InstrInfo.td
   // Arithmetic and logical instructions with 2 register operands.
   class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
                     Operand Od, PatLeaf imm_type, RegisterClass RC> :
@@ -608,7 +603,7 @@ previous chapter. List them again as follows,
        [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu> {
     let isReMaterializable = 1;
   }
-
+  ...
   def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
 
 :num:`Figure #backendstructure-f9` show the pattern match which bind the IR node 

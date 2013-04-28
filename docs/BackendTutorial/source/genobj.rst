@@ -115,52 +115,10 @@ Backend Target Registration Structure
 
 Now, let's examine Cpu0MCTargetDesc.cpp.
 
-.. code-block:: c++
-
-  // Cpu0MCTargetDesc.cpp
-  ...
-  extern "C" void LLVMInitializeCpu0TargetMC() { 
-    // Register the MC asm info. 
-    RegisterMCAsmInfoFn X(TheCpu0Target, createCpu0MCAsmInfo); 
-    RegisterMCAsmInfoFn Y(TheCpu0elTarget, createCpu0MCAsmInfo); 
-  
-    // Register the MC codegen info. 
-    TargetRegistry::RegisterMCCodeGenInfo(TheCpu0Target, 
-                                            createCpu0MCCodeGenInfo); 
-    TargetRegistry::RegisterMCCodeGenInfo(TheCpu0elTarget, 
-                                            createCpu0MCCodeGenInfo); 
-    // Register the MC instruction info. 
-    TargetRegistry::RegisterMCInstrInfo(TheCpu0Target, createCpu0MCInstrInfo); 
-    TargetRegistry::RegisterMCInstrInfo(TheCpu0elTarget, createCpu0MCInstrInfo); 
-  
-    // Register the MC register info. 
-    TargetRegistry::RegisterMCRegInfo(TheCpu0Target, createCpu0MCRegisterInfo); 
-    TargetRegistry::RegisterMCRegInfo(TheCpu0elTarget, createCpu0MCRegisterInfo); 
-    // Register the MC Code Emitter 
-    TargetRegistry::RegisterMCCodeEmitter(TheCpu0Target, 
-                                            createCpu0MCCodeEmitterEB); 
-    TargetRegistry::RegisterMCCodeEmitter(TheCpu0elTarget, 
-                                            createCpu0MCCodeEmitterEL); 
-
-    // Register the object streamer. 
-    TargetRegistry::RegisterMCObjectStreamer(TheCpu0Target, createMCStreamer); 
-    TargetRegistry::RegisterMCObjectStreamer(TheCpu0elTarget, createMCStreamer); 
-    // Register the asm backend. 
-    TargetRegistry::RegisterMCAsmBackend(TheCpu0Target, 
-                                           createCpu0AsmBackendEB32); 
-    TargetRegistry::RegisterMCAsmBackend(TheCpu0elTarget, 
-                                           createCpu0AsmBackendEL32); 
-    // Register the MC subtarget info. 
-    TargetRegistry::RegisterMCSubtargetInfo(TheCpu0Target, 
-                                              createCpu0MCSubtargetInfo); 
-    TargetRegistry::RegisterMCSubtargetInfo(TheCpu0elTarget, 
-                                              createCpu0MCSubtargetInfo); 
-    // Register the MCInstPrinter. 
-    TargetRegistry::RegisterMCInstPrinter(TheCpu0Target, 
-                                            createCpu0MCInstPrinter); 
-    TargetRegistry::RegisterMCInstPrinter(TheCpu0elTarget, 
-                                            createCpu0MCInstPrinter); 
-  }
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
+    :start-after: return createELFStreamer(Ctx, MAB, _OS, _Emitter, RelaxAll, NoExecStack);
+    :linenos:
 
 Cpu0MCTargetDesc.cpp do the target registration as mentioned in 
 "section Target Registration" [#]_ of the last chapter. 

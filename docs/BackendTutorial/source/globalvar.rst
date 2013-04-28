@@ -175,15 +175,16 @@ to specify **IsLinuxOpt** to false.
 The **IsLinuxOpt** is defaulted to true if without specify it. 
 About the **cl** command variable, you can refer to [#]_ further.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0Subtarget.cpp
 .. code-block:: c++
 
-  //  Cpu0Subtarget.cpp
   static cl::opt<bool>
   IsLinuxOpt("cpu0-islinux-format", cl::Hidden, cl::init(true),
                    cl::desc("Always use linux format."));
     
 Next add the following code to Cpu0ISelLowering.cpp.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   //  Cpu0ISelLowering.cpp
@@ -279,6 +280,7 @@ LowerGlobalAddress() will translate global variable by create 2 DAG IR nodes
 ABS_HI and ABS_LO for high part and low part of address and one extra node ADD. 
 List it again as follows.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
     //  Cpu0ISelLowering.cpp
@@ -299,10 +301,9 @@ Since some DAG nodes are not with two arguments, we will define the list as
 The corresponding machine instructions of these three IR nodes are defined in 
 Cpu0InstrInfo.td as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
-  //  Cpu0InstrInfo.td
-  ...
   // Hi and Lo nodes are used to handle global addresses. Used on
   // Cpu0ISelLowering to lower stuff like GlobalAddress, ExternalSymbol
   // static model. (nothing to do with Cpu0 Registers Hi and Lo)
@@ -374,6 +375,7 @@ as follows,
 When IsLinuxOpt is false and static mode, LowerGlobalAddress() will run the 
 following code to create a DAG list (ADD GOT, GPRel).
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   // %gp_rel relocation
@@ -393,6 +395,7 @@ It's equal to offset+GOT where GOT is the base address for global variable and
 offset is 16 bits. 
 Now, according the following Cpu0InstrInfo.td definition,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   //  Cpu0InstrInfo.td
@@ -417,6 +420,7 @@ When PIC mode, LowerGlobalAddress() will create the DAG list (load
 DAG.getEntryNode(), (Wrapper GetGlobalReg(), GA)) by the following code and 
 the code in Cpu0ISeleDAGToDAG.cpp as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISeleDAGToDAG.cpp
 .. code-block:: c++
 
     ...
@@ -461,9 +465,9 @@ translated into Base=$gp as well as the 16 bits Offset for $gp.
 Apart from above code, add the following code to Cpu0AsmPrinter.cpp and it will 
 emit .cpload asm pseudo instruction,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0AsmPrinter.cpp
 .. code-block:: c++
 
-  // Cpu0AsmPrinter.cpp
   /// EmitFunctionBodyStart - Targets can override this to emit stuff before
   /// the first basic block in the function.
   void Cpu0AsmPrinter::EmitFunctionBodyStart() {
@@ -475,6 +479,8 @@ emit .cpload asm pseudo instruction,
   ...
   }
     
+.. code-block:: c++
+
   // ch6_1.cpu0.s
       .cpload $t9 
       .set    nomacro 
@@ -509,9 +515,9 @@ Above code is for global address DAG translation.
 Next, add the following code to Cpu0MCInstLower.cpp, Cpu0InstPrinter.cpp and 
 Cpu0ISelLowering.cpp for global variable printing operand function.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MCInstLower.cpp
 .. code-block:: c++
 
-  // Cpu0MCInstLower.cpp
   MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
                                                 MachineOperandType MOTy,
                                                 unsigned Offset) const {
@@ -554,8 +560,9 @@ Cpu0ISelLowering.cpp for global variable printing operand function.
     ...
    }
     
-  // Cpu0InstPrinter.cpp
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp
+.. code-block:: c++
+
   static void printExpr(const MCExpr *Expr, raw_ostream &OS) {
     ...
     switch (Kind) {
@@ -571,9 +578,11 @@ Cpu0ISelLowering.cpp for global variable printing operand function.
     ...
   }
 
-  Cpu0ISelLowering.cpp
-  ...
-  // The following function is for llc -debug DAG node name printing.
+The following function is for llc -debug DAG node name printing.
+  
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
+.. code-block:: c++
+
   const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
     switch (Opcode) {
     case Cpu0ISD::JmpLink:           return "Cpu0ISD::JmpLink";
@@ -837,9 +846,9 @@ meaning load $r2 address+offset to $r1.
 So, we just replace the isOffsetFoldingLegal(...) function by override 
 mechanism as below.
 
+.. rubric:: lib/CodeGen/SelectionDAG/TargetLowering.cpp
 .. code-block:: c++
 
-  // TargetLowering.cpp
   bool
   TargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
     // Assume that everything is safe in static mode.
@@ -857,7 +866,9 @@ mechanism as below.
     return false;
   }
     
-  // Cpu0TargetLowering.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_2/Cpu0ISelLowering.cpp
+.. code-block:: c++
+
   bool
   Cpu0TargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
     // The Cpu0 target isn't yet aware of offsets.
@@ -866,6 +877,7 @@ mechanism as below.
 
 Beyond that, we need to add the following code fragment to Cpu0ISelDAGToDAG.cpp,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_2/Cpu0ISelDAGToDAG.cpp
 .. code-block:: c++
 
   //  Cpu0ISelDAGToDAG.cpp
@@ -897,6 +909,7 @@ Recall we have translated DAG list for date.day
 (add (add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)), 
 Constant<8>) by the following code in Cpu0ISelLowering.cpp.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   // Cpu0ISelLowering.cpp
@@ -949,10 +962,9 @@ Type of char and short int
 To support signed/unsigned char and short int, we add the following code to 
 Chapter6_3/.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_3/Cpu0InstrInfo.td
 .. code-block:: c++
 
-  // Cpu0InstrInfo.td
-  ...
   def sextloadi16_a   : AlignedLoad<sextloadi16>;
   def zextloadi16_a   : AlignedLoad<zextloadi16>;
   def extloadi16_a    : AlignedLoad<extloadi16>;

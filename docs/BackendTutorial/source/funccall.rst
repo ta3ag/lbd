@@ -216,43 +216,10 @@ We don't reserve any dedicated register for arguments passing since cpu0 has
 only 16 registers while Mips has 32 registers. Cpu0CallingConv.td is defined 
 for cpu0 passing rule as follows,
 
-.. code-block:: c++
-
-  // Cpu0CallingConv.td
-  ...
-  def RetCC_Cpu0EABI : CallingConv<[ 
-    // i32 are returned in registers V0, V1, A0, A1
-    CCIfType<[i32], CCAssignToReg<[V0, V1, A0, A1]>>
-  ]>;
-    
-  //===----------------------------------------------------------------------===//
-  // Cpu0 EABI Calling Convention
-  //===----------------------------------------------------------------------===//
-    
-  def CC_Cpu0EABI : CallingConv<[
-    // Promote i8/i16 arguments to i32.
-    CCIfType<[i8, i16], CCPromoteToType<i32>>,
-    // Integer values get stored in stack slots that are 4 bytes in
-    // size and 4-byte aligned.
-    CCIfType<[i32], CCAssignToStack<4, 4>>
-  ]>;
-    
-    
-  //===----------------------------------------------------------------------===//
-  // Cpu0 Calling Convention Dispatch
-  //===----------------------------------------------------------------------===//
-    
-  def CC_Cpu0 : CallingConv<[
-    CCDelegateTo<CC_Cpu0EABI>
-  ]>;
-    
-    
-  def RetCC_Cpu0 : CallingConv<[
-    CCDelegateTo<RetCC_Cpu0EABI>
-  ]>;
-    
-  def CSR_O32 : CalleeSavedRegs<(add LR, FP,
-                                     (sequence "S%u", 2, 0))>;
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0CallingConv.td
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0CallingConv.td
+    :start-after: CCIf<!strconcat("State.getTarget().getSubtarget<Cpu0Subtarget>().", F), A>;
+    :linenos:
 
 
 As above, CC_Cpu0 is the cpu0 Calling Convention which delegate to CC_Cpu0EABI 
@@ -269,74 +236,11 @@ pass arguments in stack frame.
 Function LowerFormalArguments() charge function incoming arguments creation. 
 We define it as follows,
 
-.. code-block:: c++
-
-  // Cpu0ISelLowering.cpp
-  ...
-  /// LowerFormalArguments - transform physical registers into virtual registers
-  /// and generate load operations for arguments places on the stack.
-  SDValue
-  Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
-                                           CallingConv::ID CallConv,
-                                           bool isVarArg,
-                                        const SmallVectorImpl<ISD::InputArg> &Ins,
-                                           DebugLoc dl, SelectionDAG &DAG,
-                                           SmallVectorImpl<SDValue> &InVals)
-                                            const {
-    MachineFunction &MF = DAG.getMachineFunction();
-    MachineFrameInfo *MFI = MF.getFrameInfo();
-    Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
-    
-    Cpu0FI->setVarArgsFrameIndex(0);
-    
-    // Used with vargs to acumulate store chains.
-    std::vector<SDValue> OutChains;
-    
-    // Assign locations to all of the incoming arguments.
-    SmallVector<CCValAssign, 16> ArgLocs;
-    CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
-                   getTargetMachine(), ArgLocs, *DAG.getContext());
-                             
-    CCInfo.AnalyzeFormalArguments(Ins, CC_Cpu0);
-    
-    Function::const_arg_iterator FuncArg =
-      DAG.getMachineFunction().getFunction()->arg_begin();
-    int LastFI = 0;// Cpu0FI->LastInArgFI is 0 at the entry of this function.
-    
-    for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i, ++FuncArg) {
-      CCValAssign &VA = ArgLocs[i];
-      EVT ValVT = VA.getValVT();
-      ISD::ArgFlagsTy Flags = Ins[i].Flags;
-      bool IsRegLoc = VA.isRegLoc();
-    
-      if (Flags.isByVal()) {
-        assert(Flags.getByValSize() &&
-               "ByVal args of size 0 should have been ignored by front-end."); 
-        continue;
-      }
-      // sanity check
-      assert(VA.isMemLoc());
-    
-      // The stack pointer offset is relative to the caller stack frame.
-      LastFI = MFI->CreateFixedObject(ValVT.getSizeInBits()/8,
-                                      VA.getLocMemOffset(), true);
-    
-      // Create load nodes to retrieve arguments from the stack
-      SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
-      InVals.push_back(DAG.getLoad(ValVT, dl, Chain, FIN,
-                                   MachinePointerInfo::getFixedStack(LastFI),
-                                     false, false, false, 0));
-    }
-    Cpu0FI->setLastInArgFI(LastFI);
-    // All stores are grouped in one node to allow the matching between
-    // the size of Ins and InVals. This only happens when on varg functions
-    if (!OutChains.empty()) {
-      OutChains.push_back(Chain);
-      Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
-                          &OutChains[0], OutChains.size());
-    }
-    return Chain;
-  }
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0ISelLowering.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0ISelLowering.cpp
+    :start-after: return CLI.Chain;
+    :end-before: Return Value Calling Convention Implementation
+    :linenos:
 
 
 Refresh "section Global variable" [#]_, we handled global 
@@ -370,47 +274,20 @@ define the loadRegFromStackSlot() to issue the machine instruction
 GetMemOperand(..., FI, ...) return the Memory location of the frame index 
 variable, which is the offset.
 
-.. code-block:: c++
-    
-  // Cpu0InstrInfo.cpp
-  ...
-  static MachineMemOperand* GetMemOperand(MachineBasicBlock &MBB, int FI,
-                                          unsigned Flag) {
-    MachineFunction &MF = *MBB.getParent();
-    MachineFrameInfo &MFI = *MF.getFrameInfo();
-    unsigned Align = MFI.getObjectAlignment(FI);
-    
-    return MF.getMachineMemOperand(MachinePointerInfo::getFixedStack(FI), Flag,
-                                   MFI.getObjectSize(FI), Align);
-  }
-    
-  void Cpu0InstrInfo::
-  loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
-                       unsigned DestReg, int FI,
-                       const TargetRegisterClass *RC,
-                       const TargetRegisterInfo *TRI) const
-  {
-    DebugLoc DL;
-    if (I != MBB.end()) DL = I->getDebugLoc();
-    MachineMemOperand *MMO = GetMemOperand(MBB, FI, MachineMemOperand::MOLoad);
-    unsigned Opc = 0;
-    
-    if (RC == Cpu0::CPURegsRegisterClass)
-      Opc = Cpu0::LD;
-    assert(Opc && "Register class not handled!");
-    BuildMI(MBB, I, DL, get(Opc), DestReg).addFrameIndex(FI).addImm(0)
-      .addMemOperand(MMO);
-  }
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0InstrInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0InstrInfo.cpp
+    :start-after: MIB.addReg(SrcReg, getKillRegState(KillSrc));
+    :end-before: MachineInstr*
+    :linenos:
 
 
 In addition to Calling Convention and LowerFormalArguments(), Chapter8_2/ add the 
 following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and 
 **jalr** (function call) definition and printing.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0InstrFormats.td
 .. code-block:: c++
 
-  // Cpu0InstrFormats.td
-  ...
   // Cpu0 Pseudo Instructions Format
   class Cpu0Pseudo<dag outs, dag ins, string asmstr, list<dag> pattern>:
         Cpu0Inst<outs, ins, asmstr, pattern, IIPseudo, Pseudo> {
@@ -418,8 +295,9 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
     let isPseudo = 1;
   }
     
-  // Cpu0InstrInfo.td
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0InstrInfo.td
+.. code-block:: c++
+
   def SDT_Cpu0JmpLink      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
   ...
   // Call
@@ -465,8 +343,9 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
             (JSUB tglobaladdr:$dst)>;
   ...
     
-  // Cpu0InstPrinter.cpp
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0InstPrinter.cpp
+.. code-block:: c++
+
   static void printExpr(const MCExpr *Expr, raw_ostream &OS) {
     switch (Kind) {
     ...
@@ -476,8 +355,9 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
   ...
   }
     
-  // Cpu0MCCodeEmitter.cpp
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. code-block:: c++
+
   unsigned Cpu0MCCodeEmitter::
   getMachineOpValue(const MCInst &MI, const MCOperand &MO,
                     SmallVectorImpl<MCFixup> &Fixups) const {
@@ -492,7 +372,9 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
   ...
   }
     
-  // Cpu0MachineFucntion.h
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0MachineFucntion.h
+.. code-block:: c++
+
   class Cpu0FunctionInfo : public MachineFunctionInfo {
     ...
       /// VarArgsFrameIndex - FrameIndex for start of varargs area.
@@ -587,241 +469,11 @@ function last section.
 Now, we will finish **“store outgoing arguments”** in caller function. 
 LowerCall() is responsible to do this. The implementation as follows,
 
-.. code-block:: c++
-
-  // Cpu0ISelLowering.cpp
-  ...
-  SDValue
-  Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
-                  SmallVectorImpl<SDValue> &InVals) const {
-    SelectionDAG &DAG                     = CLI.DAG;
-    DebugLoc &dl                          = CLI.DL;
-    SmallVector<ISD::OutputArg, 32> &Outs = CLI.Outs;
-    SmallVector<SDValue, 32> &OutVals     = CLI.OutVals;
-    SmallVector<ISD::InputArg, 32> &Ins   = CLI.Ins;
-    SDValue InChain                       = CLI.Chain;
-    SDValue Callee                        = CLI.Callee;
-    bool &isTailCall                      = CLI.IsTailCall;
-    CallingConv::ID CallConv              = CLI.CallConv;
-    bool isVarArg                         = CLI.IsVarArg;
-  
-    MachineFunction &MF = DAG.getMachineFunction();
-    MachineFrameInfo *MFI = MF.getFrameInfo();
-    const TargetFrameLowering *TFL = MF.getTarget().getFrameLowering();
-    bool IsPIC = getTargetMachine().getRelocationModel() == Reloc::PIC_;
-    Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
-  
-    // Analyze operands of the call, assigning locations to each operand.
-    SmallVector<CCValAssign, 16> ArgLocs;
-    CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
-                   getTargetMachine(), ArgLocs, *DAG.getContext());
-  
-    CCInfo.AnalyzeCallOperands(Outs, CC_Cpu0);
-  
-    // Get a count of how many bytes are to be pushed on the stack.
-    unsigned NextStackOffset = CCInfo.getNextStackOffset();
-  
-    // If this is the first call, create a stack frame object that points to
-    // a location to which .cprestore saves $gp.
-    if (IsPIC && Cpu0FI->globalBaseRegFixed() && !Cpu0FI->getGPFI())
-      Cpu0FI->setGPFI(MFI->CreateFixedObject(4, 0, true));
-    // Get the frame index of the stack frame object that points to the location
-    // of dynamically allocated area on the stack.
-    int DynAllocFI = Cpu0FI->getDynAllocFI();
-    unsigned MaxCallFrameSize = Cpu0FI->getMaxCallFrameSize();
-  
-    if (MaxCallFrameSize < NextStackOffset) {
-      Cpu0FI->setMaxCallFrameSize(NextStackOffset);
-  
-      // Set the offsets relative to $sp of the $gp restore slot and dynamically
-      // allocated stack space. These offsets must be aligned to a boundary
-      // determined by the stack alignment of the ABI.
-      unsigned StackAlignment = TFL->getStackAlignment();
-      NextStackOffset = (NextStackOffset + StackAlignment - 1) /
-                         StackAlignment * StackAlignment;
-  
-      MFI->setObjectOffset(DynAllocFI, NextStackOffset);
-    }
-    // Chain is the output chain of the last Load/Store or CopyToReg node.
-    // ByValChain is the output chain of the last Memcpy node created for copying
-    // byval arguments to the stack.
-    SDValue Chain, CallSeqStart, ByValChain;
-    SDValue NextStackOffsetVal = DAG.getIntPtrConstant(NextStackOffset, true);
-    Chain = CallSeqStart = DAG.getCALLSEQ_START(InChain, NextStackOffsetVal);
-    ByValChain = InChain;
-  
-    // With EABI is it possible to have 16 args on registers.
-    SmallVector<std::pair<unsigned, SDValue>, 16> RegsToPass;
-    SmallVector<SDValue, 8> MemOpChains;
-  
-    int FirstFI = -MFI->getNumFixedObjects() - 1, LastFI = 0;
-  
-    // Walk the register/memloc assignments, inserting copies/loads.
-    for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
-      SDValue Arg = OutVals[i];
-      CCValAssign &VA = ArgLocs[i];
-      MVT ValVT = VA.getValVT(), LocVT = VA.getLocVT();
-      ISD::ArgFlagsTy Flags = Outs[i].Flags;
-  
-      // ByVal Arg.
-      if (Flags.isByVal()) {
-        assert("!!!Error!!!, Flags.isByVal()==true");
-        assert(Flags.getByValSize() &&
-               "ByVal args of size 0 should have been ignored by front-end.");
-        continue;
-      }
-  
-      // Register can't get to this point...
-      assert(VA.isMemLoc());
-  
-      // Create the frame index object for this incoming parameter
-      LastFI = MFI->CreateFixedObject(ValVT.getSizeInBits()/8,
-                                      VA.getLocMemOffset(), true);
-      SDValue PtrOff = DAG.getFrameIndex(LastFI, getPointerTy());
-  
-      // emit ISD::STORE whichs stores the
-      // parameter value to a stack Location
-      MemOpChains.push_back(DAG.getStore(Chain, dl, Arg, PtrOff,
-                                         MachinePointerInfo(), false, false, 0));
-    }
-  
-    // Extend range of indices of frame objects for outgoing arguments that were
-    // created during this function call. Skip this step if no such objects were
-    // created.
-    if (LastFI)
-      Cpu0FI->extendOutArgFIRange(FirstFI, LastFI);
-  
-    // If a memcpy has been created to copy a byval arg to a stack, replace the
-    // chain input of CallSeqStart with ByValChain.
-    if (InChain != ByValChain)
-      DAG.UpdateNodeOperands(CallSeqStart.getNode(), ByValChain,
-                             NextStackOffsetVal);
-  
-    // Transform all store nodes into one single node because all store
-    // nodes are independent of each other.
-    if (!MemOpChains.empty())
-      Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
-                            &MemOpChains[0], MemOpChains.size());
-  
-    // If the callee is a GlobalAddress/ExternalSymbol node (quite common, every
-    // direct call is) turn it into a TargetGlobalAddress/TargetExternalSymbol
-    // node so that legalize doesn't hack it.
-    unsigned char OpFlag;
-    bool IsPICCall = IsPIC; // true if calls are translated to jalr $25
-    bool GlobalOrExternal = false;
-    SDValue CalleeLo;
-  
-    if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee)) {
-      OpFlag = IsPICCall ? Cpu0II::MO_GOT_CALL : Cpu0II::MO_NO_FLAG;
-      Callee = DAG.getTargetGlobalAddress(G->getGlobal(), dl,
-                                            getPointerTy(), 0, OpFlag);
-      GlobalOrExternal = true;
-    }
-    else if (ExternalSymbolSDNode *S = dyn_cast<ExternalSymbolSDNode>(Callee)) {
-      if (!IsPIC) // static
-        OpFlag = Cpu0II::MO_NO_FLAG;
-      else // O32 & PIC
-        OpFlag = Cpu0II::MO_GOT_CALL;
-      Callee = DAG.getTargetExternalSymbol(S->getSymbol(), getPointerTy(),
-                                           OpFlag);
-      GlobalOrExternal = true;
-    }
-  
-    SDValue InFlag;
-  
-    // Create nodes that load address of callee and copy it to T9
-    if (IsPICCall) {
-      if (GlobalOrExternal) {
-        // Load callee address
-        Callee = DAG.getNode(Cpu0ISD::Wrapper, dl, getPointerTy(),
-                             GetGlobalReg(DAG, getPointerTy()), Callee);
-        SDValue LoadValue = DAG.getLoad(getPointerTy(), dl, DAG.getEntryNode(),
-                                        Callee, MachinePointerInfo::getGOT(),
-                                        false, false, false, 0);
-  
-      // Use GOT+LO if callee has internal linkage.
-        if (CalleeLo.getNode()) {
-          SDValue Lo = DAG.getNode(Cpu0ISD::Lo, dl, getPointerTy(), CalleeLo);
-          Callee = DAG.getNode(ISD::ADD, dl, getPointerTy(), LoadValue, Lo);
-        } else
-          Callee = LoadValue;
-      }
-    }
-  
-    // T9 should contain the address of the callee function if
-    // -reloction-model=pic or it is an indirect call.
-    if (IsPICCall || !GlobalOrExternal) {
-      // copy to T9
-      unsigned T9Reg = Cpu0::T9;
-      Chain = DAG.getCopyToReg(Chain, dl, T9Reg, Callee, SDValue(0, 0));
-      InFlag = Chain.getValue(1);
-      Callee = DAG.getRegister(T9Reg, getPointerTy());
-    }
-  
-    // Cpu0JmpLink = #chain, #target_address, #opt_in_flags...
-    //             = Chain, Callee, Reg#1, Reg#2, ...
-    //
-    // Returns a chain & a flag for retval copy to use.
-    SDVTList NodeTys = DAG.getVTList(MVT::Other, MVT::Glue);
-    SmallVector<SDValue, 8> Ops;
-    Ops.push_back(Chain);
-    Ops.push_back(Callee);
-  
-    // Add argument registers to the end of the list so that they are
-    // known live into the call.
-    for (unsigned i = 0, e = RegsToPass.size(); i != e; ++i)
-    Ops.push_back(DAG.getRegister(RegsToPass[i].first,
-                    RegsToPass[i].second.getValueType()));
-  
-    // Add a register mask operand representing the call-preserved registers.
-    const TargetRegisterInfo *TRI = getTargetMachine().getRegisterInfo();
-    const uint32_t *Mask = TRI->getCallPreservedMask(CallConv);
-    assert(Mask && "Missing call preserved mask for calling convention");
-    Ops.push_back(DAG.getRegisterMask(Mask));
-  
-    if (InFlag.getNode())
-    Ops.push_back(InFlag);
-  
-    Chain  = DAG.getNode(Cpu0ISD::JmpLink, dl, NodeTys, &Ops[0], Ops.size());
-    InFlag = Chain.getValue(1);
-  
-    // Create the CALLSEQ_END node.
-    Chain = DAG.getCALLSEQ_END(Chain,
-                 DAG.getIntPtrConstant(NextStackOffset, true),
-                 DAG.getIntPtrConstant(0, true), InFlag);
-    InFlag = Chain.getValue(1);
-  
-    // Handle result values, copying them out of physregs into vregs that we
-    // return.
-    return LowerCallResult(Chain, InFlag, CallConv, isVarArg,
-               Ins, dl, DAG, InVals);
-  }
-  
-  /// LowerCallResult - Lower the result values of a call into the
-  /// appropriate copies out of appropriate physical registers.
-  SDValue
-  Cpu0TargetLowering::LowerCallResult(SDValue Chain, SDValue InFlag,
-                    CallingConv::ID CallConv, bool isVarArg,
-                    const SmallVectorImpl<ISD::InputArg> &Ins,
-                    DebugLoc dl, SelectionDAG &DAG,
-                    SmallVectorImpl<SDValue> &InVals) const {
-    // Assign locations to each value returned by this call.
-    SmallVector<CCValAssign, 16> RVLocs;
-    CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
-                   getTargetMachine(), RVLocs, *DAG.getContext());
-  
-    CCInfo.AnalyzeCallResult(Ins, RetCC_Cpu0);
-  
-    // Copy all of the result registers out of their specified physreg.
-    for (unsigned i = 0; i != RVLocs.size(); ++i) {
-      Chain = DAG.getCopyFromReg(Chain, dl, RVLocs[i].getLocReg(),
-                                 RVLocs[i].getValVT(), InFlag).getValue(1);
-      InFlag = Chain.getValue(2);
-      InVals.push_back(Chain.getValue(0));
-    }
-  
-    return Chain;
-  }
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0ISelLowering.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0ISelLowering.cpp
+    :start-after: #include "Cpu0GenCallingConv.inc"
+    :end-before: LowerFormalArguments
+    :linenos:
 
 
 Just like load incoming arguments from stack frame, we call 
@@ -836,10 +488,9 @@ DAG.getCALLSEQ_START() and DAG.getCALLSEQ_END() are set before the
 CALLSEQ_END, and translate into pseudo machine instructions !ADJCALLSTACKDOWN, 
 !ADJCALLSTACKUP later according Cpu0InstrInfo.td definition as follows.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.td
 .. code-block:: c++
 
-  // Cpu0InstrInfo.td
-  ...
   def SDT_Cpu0CallSeqStart : SDCallSeqStart<[SDTCisVT<0, i32>]>;
   def SDT_Cpu0CallSeqEnd   : SDCallSeqEnd<[SDTCisVT<0, i32>, SDTCisVT<1, i32>]>;
   ...
@@ -867,10 +518,9 @@ CALLSEQ_END, and translate into pseudo machine instructions !ADJCALLSTACKDOWN,
 Like load incoming arguments, we need to implement storeRegToStackSlot() for 
 store outgoing arguments to stack frame offset.
     
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.cpp
 .. code-block:: c++
     
-  // Cpu0InstrInfo.cpp
-  ...
   //- st SrcReg, MMO(FI)
   void Cpu0InstrInfo::
   storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
@@ -1010,10 +660,9 @@ in eliminateFrameIndex() as follows.
 The code as below is modified in Chapter8_4/ to set the caller outgoing 
 arguments into spOffset($sp) (Chapter8_3/ set them to pOffset+stackSize($sp).
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0RegisterInfo.cpp
 .. code-block:: c++
 
-  // Cpu0RegisterInfo.cpp
-  ...
   void Cpu0RegisterInfo::
   eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
                       RegScavenger *RS) const {
@@ -1042,8 +691,9 @@ arguments into spOffset($sp) (Chapter8_3/ set them to pOffset+stackSize($sp).
     ...
   }
     
-  // Cpu0MachineFunction.h
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0MachineFunction.h
+.. code-block:: c++
+
   /// SRetReturnReg - Some subtargets require that sret lowering includes
   /// returning the value of the returned struct in a register. This field
   /// holds the virtual register into which the sret argument is passed.
@@ -1114,14 +764,16 @@ To fix the !ADJSTACKDOWN and !ADJSTACKUP, we call Cpu0GenInstrInfo(Cpu0::
 ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP) in Cpu0InstrInfo() constructor 
 function and define eliminateCallFramePseudoInstr() as follows, 
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_5/Cpu0InstrInfo.cpp
 .. code-block:: c++
 
-  // Cpu0InstrInfo.cpp
-  ...
   Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
     : Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
   ...
   
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_5/Cpu0FrameLowering.cpp
+.. code-block:: c++
+
   // Cpu0FrameLowering.cpp
   ...
   // Cpu0
@@ -1333,17 +985,17 @@ Now, as the following code added in Chapter8_6/, we can issue **“.cprestore”
 emitPrologue() and emit ld $gp, ($gp save slot on stack) after jalr by create 
 file Cpu0EmitGPRestore.cpp which run as a function pass.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/CMakeLists.txt
 .. code-block:: c++
 
-  // # CMakeLists.txt
-  ...
   add_llvm_target(Cpu0CodeGen
     ...
     Cpu0EmitGPRestore.cpp
   ...
   
-  // Cpu0TargetMachine.cpp
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0TargetMachine.cpp
+.. code-block:: c++
+
   bool Cpu0PassConfig::addPreRegAlloc() {
     // Do not restore $gp if target is Cpu064.
     // In N32/64, $gp is a callee-saved register.
@@ -1352,12 +1004,14 @@ file Cpu0EmitGPRestore.cpp which run as a function pass.
     return true;
   }
   
-  // Cpu0.h
-    ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0.h
+.. code-block:: c++
+
     FunctionPass *createCpu0EmitGPRestorePass(Cpu0TargetMachine &TM);
   
-  // Cpu0FrameLowering.cpp
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0FrameLowering.cpp
+.. code-block:: c++
+
   void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
     ...
     unsigned RegSize = 4;
@@ -1373,8 +1027,9 @@ file Cpu0EmitGPRestore.cpp which run as a function pass.
     }
   }
   
-  // Cpu0InstrInfo.td
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0InstrInfo.td
+.. code-block:: c++
+
   // When handling PIC code the assembler needs .cpload and .cprestore
   // directives. If the real instructions corresponding these directives
   // are used, we have the same behavior, but get also a bunch of warnings
@@ -1384,8 +1039,9 @@ file Cpu0EmitGPRestore.cpp which run as a function pass.
                  ".cprestore\t$loc", []>;
   
   
-  // Cpu0SelLowering.cpp
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0SelLowering.cpp
+.. code-block:: c++
+
   SDValue
   Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                                 SmallVectorImpl<SDValue> &InVals) const {
@@ -1400,97 +1056,13 @@ file Cpu0EmitGPRestore.cpp which run as a function pass.
     ...
   }
   
-  // Cpu0EmitGPRestore.cpp
-  //===-- Cpu0EmitGPRestore.cpp - Emit GP Restore Instruction ---------------===//
-  //
-  //                     The LLVM Compiler Infrastructure
-  //
-  // This file is distributed under the University of Illinois Open Source
-  // License. See LICENSE.TXT for details.
-  //
-  //===----------------------------------------------------------------------===//
-  //
-  // This pass emits instructions that restore $gp right
-  // after jalr instructions.
-  //
-  //===----------------------------------------------------------------------===//
-  
-  #define DEBUG_TYPE "emit-gp-restore"
-  ...
-  using namespace llvm;
-  
-  namespace {
-    struct Inserter : public MachineFunctionPass {
-  
-    TargetMachine &TM;
-    const TargetInstrInfo *TII;
-  
-    static char ID;
-    Inserter(TargetMachine &tm)
-      : MachineFunctionPass(ID), TM(tm), TII(tm.getInstrInfo()) { }
-  
-    virtual const char *getPassName() const {
-      return "Cpu0 Emit GP Restore";
-    }
-  
-    bool runOnMachineFunction(MachineFunction &F);
-    };
-    char Inserter::ID = 0;
-  } // end of anonymous namespace
-  
-  bool Inserter::runOnMachineFunction(MachineFunction &F) {
-    Cpu0FunctionInfo *Cpu0FI = F.getInfo<Cpu0FunctionInfo>();
-  
-    if ((TM.getRelocationModel() != Reloc::PIC_) ||
-      (!Cpu0FI->globalBaseRegFixed()))
-    return false;
-  
-    bool Changed = false;
-    int FI = Cpu0FI->getGPFI();
-  
-    for (MachineFunction::iterator MFI = F.begin(), MFE = F.end();
-        MFI != MFE; ++MFI) {
-      MachineBasicBlock& MBB = *MFI;
-      MachineBasicBlock::iterator I = MFI->begin();
-    
-       /// IsLandingPad - Indicate that this basic block is entered via an
-      /// exception handler.
-      // If MBB is a landing pad, insert instruction that restores $gp after
-      // EH_LABEL.
-      if (MBB.isLandingPad()) {
-        // Find EH_LABEL first.
-        for (; I->getOpcode() != TargetOpcode::EH_LABEL; ++I) ;
-  
-        // Insert ld.
-        ++I;
-        DebugLoc dl = I != MBB.end() ? I->getDebugLoc() : DebugLoc();
-        BuildMI(MBB, I, dl, TII->get(Cpu0::LD), Cpu0::GP).addFrameIndex(FI)
-                               .addImm(0);
-        Changed = true;
-      }
-  
-      while (I != MFI->end()) {
-        if (I->getOpcode() != Cpu0::JALR) {
-          ++I;
-          continue;
-        }
-  
-        DebugLoc dl = I->getDebugLoc();
-        // emit ld $gp, ($gp save slot on stack) after jalr
-        BuildMI(MBB, ++I, dl, TII->get(Cpu0::LD), Cpu0::GP).addFrameIndex(FI)
-                                 .addImm(0);
-        Changed = true;
-      }
-    }
-  
-    return Changed;
-  }
-  
-  /// createCpu0EmitGPRestorePass - Returns a pass that emits instructions that
-  /// restores $gp clobbered by jalr instructions.
-  FunctionPass *llvm::createCpu0EmitGPRestorePass(Cpu0TargetMachine &tm) {
-    return new Inserter(tm);
-  }
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0EmitGPRestore.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0EmitGPRestore.cpp
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0MachineFunctionInfo.h
+.. code-block:: c++
+
   
   //===-- Cpu0MachineFunctionInfo.h - Private data used for Cpu0 ----*- C++ -*-=//
   ...
@@ -1512,8 +1084,9 @@ file Cpu0EmitGPRestore.cpp which run as a function pass.
   
   #endif // CPU0_MACHINE_FUNCTION_INFO_H
   
-  //  Cpu0AsmPrinter.cpp
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0AsmPrinter.cpp
+.. code-block:: c++
+
   void Cpu0AsmPrinter::EmitInstrWithMacroNoAT(const MachineInstr *MI) {
     MCInst TmpInst;
   
@@ -1579,73 +1152,11 @@ file Cpu0EmitGPRestore.cpp which run as a function pass.
     }
   }
   
-  // Cpu0MCInstLower.cpp
-  ...
-  sstatic void CreateMCInst(MCInst& Inst, unsigned Opc, const MCOperand& Opnd0,
-               const MCOperand& Opnd1,
-               const MCOperand& Opnd2 = MCOperand()) {
-    Inst.setOpcode(Opc);
-    Inst.addOperand(Opnd0);
-    Inst.addOperand(Opnd1);
-    if (Opnd2.isValid())
-    Inst.addOperand(Opnd2);
-  }
-  
-  // Lower ".cpload $reg" to
-  //  "addiu $gp, $zero, %hi(_gp_disp)"
-  //  "shl   $gp, $gp, 16"
-  //  "addiu $gp, $gp, %lo(_gp_disp)"
-  //  "addu  $gp, $gp, $t9"
-  void Cpu0MCInstLower::LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts) {
-    MCOperand GPReg = MCOperand::CreateReg(Cpu0::GP);
-    MCOperand T9Reg = MCOperand::CreateReg(Cpu0::T9);
-    MCOperand ZEROReg = MCOperand::CreateReg(Cpu0::ZERO);
-    StringRef SymName("_gp_disp");
-    const MCSymbol *Sym = Ctx->GetOrCreateSymbol(SymName);
-    const MCSymbolRefExpr *MCSym;
-  
-    MCSym = MCSymbolRefExpr::Create(Sym, MCSymbolRefExpr::VK_Cpu0_ABS_HI, *Ctx);
-    MCOperand SymHi = MCOperand::CreateExpr(MCSym);
-    MCSym = MCSymbolRefExpr::Create(Sym, MCSymbolRefExpr::VK_Cpu0_ABS_LO, *Ctx);
-    MCOperand SymLo = MCOperand::CreateExpr(MCSym);
-  
-    MCInsts.resize(4);
-  
-    CreateMCInst(MCInsts[0], Cpu0::ADDiu, GPReg, ZEROReg, SymHi);
-    CreateMCInst(MCInsts[1], Cpu0::SHL, GPReg, GPReg, MCOperand::CreateImm(16));
-    CreateMCInst(MCInsts[2], Cpu0::ADDiu, GPReg, GPReg, SymLo);
-    CreateMCInst(MCInsts[3], Cpu0::ADD, GPReg, GPReg, T9Reg);
-  }
-  
-  // Lower ".cprestore offset" to "st $gp, offset($sp)".
-  void Cpu0MCInstLower::LowerCPRESTORE(int64_t Offset,
-                     SmallVector<MCInst, 4>& MCInsts) {
-    assert(isInt<32>(Offset) && (Offset >= 0) &&
-       "Imm operand of .cprestore must be a non-negative 32-bit value.");
-  
-    MCOperand SPReg = MCOperand::CreateReg(Cpu0::SP), BaseReg = SPReg;
-    MCOperand GPReg = MCOperand::CreateReg(Cpu0::GP);
-    MCOperand ZEROReg = MCOperand::CreateReg(Cpu0::ZERO);
-  
-    if (!isInt<16>(Offset)) {
-      unsigned Hi = ((Offset + 0x8000) >> 16) & 0xffff;
-      Offset &= 0xffff;
-      MCOperand ATReg = MCOperand::CreateReg(Cpu0::AT);
-      BaseReg = ATReg;
-    
-      // addiu   at,zero,hi
-      // shl     at,at,16
-      // add     at,at,sp
-      MCInsts.resize(3);
-      CreateMCInst(MCInsts[0], Cpu0::ADDiu, ATReg, ZEROReg, MCOperand::CreateImm(Hi));
-      CreateMCInst(MCInsts[1], Cpu0::SHL, ATReg, ATReg, MCOperand::CreateImm(16));
-      CreateMCInst(MCInsts[2], Cpu0::ADD, ATReg, ATReg, SPReg);
-    }
-  
-    MCInst St;
-    CreateMCInst(St, Cpu0::ST, GPReg, BaseReg, MCOperand::CreateImm(Offset));
-    MCInsts.push_back(St);
-  }
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0MCInstLower.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0MCInstLower.cpp
+    :start-after: return MCOperand::CreateExpr(AddExpr);
+    :end-before: MCOperand Cpu0MCInstLower::LowerOperand
+    :linenos:
 
 
 The above added code of Cpu0AsmPrinter.cpp will call the LowerCPLOAD() and 
@@ -1902,10 +1413,9 @@ add in Chapter8_7/.
 The ch8_3_2.cpp is C++ template example code, it can be translated into cpu0 
 backend code too.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_7/Cpu0TargetLowering.cpp
 .. code-block:: c++
 
-  // Cpu0TargetLowering.cpp
-  ...
   Cpu0TargetLowering::
   Cpu0TargetLowering(Cpu0TargetMachine &TM)
     : TargetLowering(TM, new Cpu0TargetObjectFile()),
@@ -2043,57 +1553,12 @@ It add the live out register $2 to function (main() as this example), and copy
 the OutVals[0] (0 as this example) to $2. Then call DAG.getNode(..., Flag) 
 where Flag contains $2 and OutVals[0] information.  
 
-.. code-block:: c++
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_8/Cpu0ISelLowering.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter8_8/Cpu0ISelLowering.cpp
+    :start-after: Return Value Calling Convention Implementation
+    :end-before: Cpu0TargetLowering::isOffsetFoldingLegal
+    :linenos:
 
-  // Cpu0ISelLowering.cpp
-  ...
-  SDValue
-  Cpu0TargetLowering::LowerReturn(SDValue Chain,
-                  CallingConv::ID CallConv, bool isVarArg,
-                  const SmallVectorImpl<ISD::OutputArg> &Outs,
-                  const SmallVectorImpl<SDValue> &OutVals,
-                  DebugLoc dl, SelectionDAG &DAG) const {
-  
-    // CCValAssign - represent the assignment of
-    // the return value to a location
-    SmallVector<CCValAssign, 16> RVLocs;
-  
-    // CCState - Info about the registers and stack slot.
-    CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
-  		 getTargetMachine(), RVLocs, *DAG.getContext());
-  
-    // Analize return values.
-    CCInfo.AnalyzeReturn(Outs, RetCC_Cpu0);
-  
-    SDValue Flag;
-    SmallVector<SDValue, 4> RetOps(1, Chain);
-  
-    // Copy the result values into the output registers.
-    for (unsigned i = 0; i != RVLocs.size(); ++i) {
-      CCValAssign &VA = RVLocs[i];
-      assert(VA.isRegLoc() && "Can only return in registers!");
-  
-      Chain = DAG.getCopyToReg(Chain, dl, VA.getLocReg(), OutVals[i], Flag);
-  
-      // Guarantee that all emitted copies are stuck together with flags.
-      Flag = Chain.getValue(1);
-      RetOps.push_back(DAG.getRegister(VA.getLocReg(), VA.getLocVT()));
-    }
-    
-    RetOps[0] = Chain;  // Update chain.
-  
-    // Return on Cpu0 is always a "ret $lr"
-    if (Flag.getNode()) {
-      // Add the flag if we have it.
-      RetOps.push_back(Flag);
-      return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other, &RetOps[0], RetOps.size());
-    }
-    else {
-      // Return Void
-      return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
-                         Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
-    }
-  }
   
 Run Chapter8_8/ to get the correct result (return register $2 is 0) as follows, 
 
@@ -2214,10 +1679,9 @@ Run 8/8 with ch8_9_1.cpp will get the error message as follows,
 Chapter8_9/ with the following code added to support the structure type in 
 function call. 
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_9/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
-  // Cpu0ISelLowering.cpp
-  ...
   // AddLiveIn - This helper function adds the specified physical register to the
   // MachineFunction as a live in value.  It also creates a corresponding
   // virtual register for it.
@@ -2387,6 +1851,7 @@ function call.
 In addition to above code, we have defined the calling convention at early of 
 this chapter as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_9/Cpu0CallingConv.td
 .. code-block:: c++
 
   def RetCC_Cpu0EABI : CallingConv<[
@@ -2802,6 +2267,7 @@ Since the return value is "struct type" and over 4 registers size, it save
 pointer (struct address) to return register.
 List the code and their effect as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_9/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   SDValue
@@ -2837,6 +2303,7 @@ List the code and their effect as follows,
     ld  $6, %call24(_Z8copyDate4Date)($gp)
 
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_9/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   SDValue

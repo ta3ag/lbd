@@ -91,7 +91,7 @@ class FA<bits<8> op, dag outs, dag ins, string asmstr,
 }
 
 //===----------------------------------------------------------------------===//
-// Format I instruction class in Cpu0 : <|opcode|ra|rb|cx|>
+// Format L instruction class in Cpu0 : <|opcode|ra|rb|cx|>
 //===----------------------------------------------------------------------===//
 
 class FL<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern,
