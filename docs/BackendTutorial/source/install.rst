@@ -245,7 +245,12 @@ Now, let's repeat above steps to create llvm/test with cpu0 modified code
   118-165-78-111:test Jonathan$ cp -rf /Users/Jonathan/llvm/release/src .
   118-165-78-111:test Jonathan$ cd src/lib/Target
   118-165-78-111:Target Jonathan$ mkdir Cpu0
-  118-165-78-111:Target Jonathan$ ls
+  118-165-78-111:Target Jonathan$ cd Cpu0
+  118-165-78-111:Cpu0 Jonathan$ pwd
+  /Users/Jonathan/test/3/lbd/lib/Target/Cpu0
+  // Download this book example code, LLVMBackendTutorialExampleCode.tar.gz, to 
+  // here.
+  118-165-78-111:Cpu0 Jonathan$ ls
   LLVMBackendTutorialExampleCode.tar.gz
   118-165-78-111:Target Jonathan$ tar -zxvf LLVMBackendTutorialExampleCode.tar.gz
   118-165-78-111:Target Jonathan$ ls
@@ -622,21 +627,23 @@ according the following list steps, the corresponding commands shown as follows,
 1) Enter /usr/local/llvm/test/ and 
 ``cp -rf /usr/local/llvm/release/src .``.
 
-2) Update my modified files to support cpu0 by command, ``cp -rf /usr/local/llvm/
+2) Make dir Cpu0 in src/lib/Target and download example code.
+
+3) Update my modified files to support cpu0 by command, ``cp -rf /usr/local/llvm/
 test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/
 src_files_modify/modify/src .``.
 
-3) Check step 2 is effective by command 
+4) Check step 2 is effective by command 
 ``grep -R "Cpu0" . | more```. I add the Cpu0 backend support, so check with 
 grep.
 
-4) Enter src/lib/Target/Cpu0/, generate LLVMBackendTutorialExampleCode, 
+5) Enter src/lib/Target/Cpu0/, generate LLVMBackendTutorialExampleCode, 
 and copy example code LLVMBackendTutorialExampleCode/2/Cpu0 to the directory by 
 commands 
 ``cd src/lib/Target/Cpu0/`` and 
 ``cp -rf LLVMBackendTutorialExample/Chapter2/* ../.``.
 
-5) Remove clang from /usr/local/llvm/test/src/tools/clang, and mkdir 
+6) Remove clang from /usr/local/llvm/test/src/tools/clang, and mkdir 
 test/cmake_debug_build. Without this you will waste extra time for 
 command ``make`` in cpu0 example code build.
 
@@ -645,6 +652,19 @@ command ``make`` in cpu0 example code build.
   [Gamma@localhost test]$ pwd
   /usr/local/llvm/test
   [Gamma@localhost test]$ cp -rf /usr/local/llvm/release/src .
+  [Gamma@localhost test]$ cd src/lib/Target
+  [Gamma@localhost Target]$ mkdir Cpu0
+  [Gamma@localhost Target]$ cd Cpu0
+  [Gamma@localhost Cpu0]$ pwd
+  /usr/local/llvm/test/src/lib/Target/Cpu0
+  // Download this book example code, LLVMBackendTutorialExampleCode.tar.gz, to 
+  // here.
+  [Gamma@localhost Cpu0]$ ls
+  LLVMBackendTutorialExampleCode.tar.gz
+  [Gamma@localhost Cpu0]$ tar -zxvf LLVMBackendTutorialExampleCode.tar.gz
+  [Gamma@localhost Cpu0]$ ls
+  LLVMBackendTutorialExampleCode  LLVMBackendTutorialExampleCode.tar.gz
+  [Gamma@localhost Cpu0]$ cd ../../../..
   [Gamma@localhost test]$ grep -R "Cpu0" .|more
   ./src/CMakeLists.txt:  Cpu0
   ./src/lib/Target/LLVMBuild.txt:subdirectories = ARM CellSPU CppBackend Hexagon MBlaz

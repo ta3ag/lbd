@@ -28,16 +28,18 @@ optimization algorithm on your backend in real project.
 
 Chapter11_1/ support this optimization algorithm include the added codes as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_1/CMakeLists.txt
 .. code-block:: c++
 
-  // CMakeLists.txt
   add_llvm_target(Cpu0CodeGen
     ...
     Cpu0DelUselessJMP.cpp
     ...
     )
   
-  // Cpu0.h
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0.h
+.. code-block:: c++
+
   ...
     FunctionPass *createCpu0DelJmpPass(Cpu0TargetMachine &TM);
   
@@ -55,97 +57,10 @@ Chapter11_1/ support this optimization algorithm include the added codes as foll
     addPass(createCpu0DelJmpPass(TM));
     return true;
   }
-  
-  // Cpu0DelUselessJMP.cpp
-  //===-- Cpu0DelUselessJMP.cpp - Cpu0 DelJmp -------------------------------===//
-  //
-  //                     The LLVM Compiler Infrastructure
-  //
-  // This file is distributed under the University of Illinois Open Source
-  // License. See LICENSE.TXT for details.
-  //
-  //===----------------------------------------------------------------------===//
-  //
-  // Simple pass to fills delay slots with useful instructions.
-  //
-  //===----------------------------------------------------------------------===//
-  
-  #define DEBUG_TYPE "del-jmp"
-  ...
-  using namespace llvm;
-  
-  STATISTIC(NumDelJmp, "Number of useless jmp deleted");
-  
-  static cl::opt<bool> EnableDelJmp(
-    "enable-cpu0-del-useless-jmp",
-    cl::init(true),
-    cl::desc("Delete useless jmp instructions: jmp 0."),
-    cl::Hidden);
-  
-  namespace {
-    struct DelJmp : public MachineFunctionPass {
-  
-      TargetMachine &TM;
-      const TargetInstrInfo *TII;
-  
-      static char ID;
-      DelJmp(TargetMachine &tm)
-        : MachineFunctionPass(ID), TM(tm), TII(tm.getInstrInfo()) { }
-  
-      virtual const char *getPassName() const {
-        return "Cpu0 Del Useless jmp";
-      }
-  
-      bool runOnMachineBasicBlock(MachineBasicBlock &MBB, MachineBasicBlock &MBBN);
-      bool runOnMachineFunction(MachineFunction &F) {
-        bool Changed = false;
-        if (EnableDelJmp) {
-          MachineFunction::iterator FJ = F.begin();
-          if (FJ != F.end())
-            FJ++;
-          if (FJ == F.end())
-            return Changed;
-          for (MachineFunction::iterator FI = F.begin(), FE = F.end();
-               FJ != FE; ++FI, ++FJ)
-            // In STL style, F.end() is the dummy BasicBlock() like '\0' in 
-            //  C string. 
-            // FJ is the next BasicBlock of FI; When FI range from F.begin() to 
-            //  the PreviousBasicBlock of F.end() call runOnMachineBasicBlock().
-            Changed |= runOnMachineBasicBlock(*FI, *FJ);
-        }
-        return Changed;
-      }
-  
-    };
-    char DelJmp::ID = 0;
-  } // end of anonymous namespace
-  
-  /// runOnMachineBasicBlock - Fill in delay slots for the given basic block.
-  /// We assume there is only one delay slot per delayed instruction.
-  bool DelJmp::
-  runOnMachineBasicBlock(MachineBasicBlock &MBB, MachineBasicBlock &MBBN) {
-    bool Changed = false;
-  
-    MachineBasicBlock::iterator I = MBB.end();
-    I--;	// set I to the last instruction
-    
-    if (I->getOpcode() == Cpu0::JMP && I->getOperand(0).getMBB() == &MBBN) {
-      // I is the instruction of "jmp #offset=0", as follows,
-      //     jmp	$BB0_3
-      // $BB0_3:
-      //     ld	$4, 28($sp)
-      ++NumDelJmp;
-      MBB.erase(I);	// delete the "JMP 0" instruction
-      Changed = true;	// Notify LLVM kernel Changed
-    }
-    return Changed;
-  
-  }
-  
-  /// createCpu0DelJmpPass - Returns a pass that DelJmp in Cpu0 MachineFunctions
-  FunctionPass *llvm::createCpu0DelJmpPass(Cpu0TargetMachine &tm) {
-    return new DelJmp(tm);
-  }
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0DelUselessJMP.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0DelUselessJMP.cpp
+    :linenos:
 
 
 As above code, except Cpu0DelUselessJMP.cpp, other files changed for register 
@@ -571,6 +486,7 @@ Cpu0 code changes
 
 Chapter11_2/ include the changes for new instruction sets as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/AsmParser/Cpu0AsmParser.cpp
 .. code-block:: c++
 
   // Cpu0AsmParser.cpp
@@ -702,7 +618,9 @@ Chapter11_2/ include the changes for new instruction sets as follows,
     ...
   }
   
-  // Cpu0Disassembler.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/Disassembler/Cpu0Disassembler.cpp
+.. code-block:: c++
+
   // Decoder tables for Cpu0 register
   static const unsigned CPURegsTable[] = {
   // Change SW to T0 which is a caller saved
@@ -710,19 +628,7 @@ Chapter11_2/ include the changes for new instruction sets as follows,
   };
   
   // DecodeCMPInstruction() function is removed since No CMP instruction.
-  /*static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
-                                         unsigned Insn,
-                                         uint64_t Address,
-                                         const void *Decoder) {
-    int Reg_a = (int)fieldFromInstruction(Insn, 20, 4);
-    int Reg_b = (int)fieldFromInstruction(Insn, 16, 4);
-    int Reg_c = (int)fieldFromInstruction(Insn, 12, 4);
-  
-    Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_c]));
-    Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_a]));
-    Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_b]));
-    return MCDisassembler::Success;
-  }*/
+  ...
   
   // Change DecodeBranchTarget() to following for 16 bit offset
   static DecodeStatus DecodeBranchTarget(MCInst &Inst,
@@ -736,9 +642,11 @@ Chapter11_2/ include the changes for new instruction sets as follows,
     return MCDisassembler::Success;
   }
   
-  // Cpu0AsmBackend.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp
+.. code-block:: c++
+
   static unsigned adjustFixupValue(unsigned Kind, uint64_t Value) {
-  ...
+    ...
     // Add/subtract and shift
     switch (Kind) {
     ...
@@ -762,7 +670,9 @@ Chapter11_2/ include the changes for new instruction sets as follows,
         { "fixup_Cpu0_PC16",         0,     16,  MCFixupKindInfo::FKF_IsPCRel },
   ...
   
-  // Cpu0BaseInfo.h
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0BaseInfo.cpp
+.. code-block:: c++
+
   inline static unsigned getCpu0RegisterNumbering(unsigned RegEnum)
   {
     switch (RegEnum) {
@@ -772,7 +682,9 @@ Chapter11_2/ include the changes for new instruction sets as follows,
     }
   }
   
-  // Cpu0FixupKinds.h
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0FixupKinds.cpp
+.. code-block:: c++
+
     enum Fixups {
       ...
       // PC relative branch fixup resulting in - R_CPU0_PC16.
@@ -781,7 +693,9 @@ Chapter11_2/ include the changes for new instruction sets as follows,
       ...
     };
   
-  // Cpu0 MC CodeEmitter.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. code-block:: c++
+
   unsigned Cpu0MCCodeEmitter::
   getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
                          SmallVectorImpl<MCFixup> &Fixups) const {
@@ -791,13 +705,15 @@ Chapter11_2/ include the changes for new instruction sets as follows,
     return 0;
   }
   
-  // Cpu0InstrInfo.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0InstrInfo.td
+.. code-block:: c++
+
   // Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
   def immLow16Zero : PatLeaf<(imm), [{
     int64_t Val = N->getSExtValue();
     return isInt<32>(Val) && !(Val & 0xffff);
   }]>;
-  
+  ...
   class ArithOverflowR<bits<8> op, string instr_asm,
                       InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
     FA<op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
@@ -815,7 +731,7 @@ Chapter11_2/ include the changes for new instruction sets as follows,
     let hasDelaySlot = 1;
     let Defs = [AT];
   }
-  
+  ...
   // SetCC
   class SetCC_R<bits<8> op, string instr_asm, PatFrag cond_op,
                 RegisterClass RC>:
@@ -832,6 +748,7 @@ Chapter11_2/ include the changes for new instruction sets as follows,
        !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
        [(set CPURegs:$ra, (cond_op RC:$rb, imm_type:$imm16))],
        IIAlu>;
+  ...
   /// Load and Store Instructions
   ///  aligned
   defm LD     : LoadM32<0x01,  "ld",  load_a>;
@@ -869,15 +786,7 @@ Chapter11_2/ include the changes for new instruction sets as follows,
   
   def MULT    : Mult32<0x26, "mult", IIImul>;
   def MULTu   : Mult32<0x27, "multu", IIImul>;
-  
-  /// Shift Instructions
-  // work, sra for ashr llvm IR instruction
-  def SRA     : shift_rotate_imm32<0x1B, 0x00, "sra", sra>;
-  def ROL     : shift_rotate_imm32<0x1C, 0x01, "rol", rotl>;
-  def ROR     : shift_rotate_imm32<0x1D, 0x01, "ror", rotr>;
-  def SHL     : shift_rotate_imm32<0x1E, 0x00, "shl", shl>;
-  // work, srl for lshr llvm IR instruction
-  def SHR     : shift_rotate_imm32<0x1F, 0x00, "shr", srl>;
+  ...
   
   /// Jump and Branch Instructions
   def BEQ     : CBranch<0x27, "beq", seteq, CPURegs>;
@@ -915,8 +824,7 @@ Chapter11_2/ include the changes for new instruction sets as follows,
   //===----------------------------------------------------------------------===//
   
   // Small immediates
-  def : Pat<(i32 immSExt16:$in),
-            (ADDiu ZERO, imm:$in)>;
+  ...
   def : Pat<(i32 immZExt16:$in),
             (ORi ZERO, imm:$in)>;
   def : Pat<(i32 immLow16Zero:$in),
@@ -925,21 +833,10 @@ Chapter11_2/ include the changes for new instruction sets as follows,
   // Arbitrary immediates
   def : Pat<(i32 imm:$imm),
             (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
-  
-  def : Pat<(Cpu0JmpLink (i32 tglobaladdr:$dst)),
-            (JSUB tglobaladdr:$dst)>;
-  
-  // hi/lo relocs
-  def : Pat<(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
-  def : Pat<(Cpu0Lo tglobaladdr:$in), (ADDiu ZERO, tglobaladdr:$in)>;
-  
-  def : Pat<(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
-            (ADDiu CPURegs:$hi, tglobaladdr:$lo)>;
+  ...
   
   // gp_rel relocs
-  def : Pat<(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
-            (ADDiu CPURegs:$gp, tglobaladdr:$in)>;
-  
+  ...
   def : Pat<(not CPURegs:$in),
             (XORi CPURegs:$in, 1)>;
   
@@ -1017,7 +914,9 @@ Chapter11_2/ include the changes for new instruction sets as follows,
   defm : SetgePats<CPURegs, SLT, SLTu>;
   defm : SetgeImmPats<CPURegs, SLTi, SLTiu>;
   
-  // Cpu0MCInstLower.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0MCInstLower.cpp
+.. code-block:: c++
+
   / Lower ".cpload $reg" to
   //  "lui   $gp, %hi(_gp_disp)"
   //  "addiu $gp, $gp, %lo(_gp_disp)"
@@ -1043,8 +942,9 @@ Chapter11_2/ include the changes for new instruction sets as follows,
       CreateMCInst(MCInsts[1], Cpu0::ADD, ATReg, ATReg, SPReg);
     }
   
-  
-  // Cpu0RegisterInfo.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0RegisterInfo.td
+.. code-block:: c++
+
   let Namespace = "Cpu0" in {
     ...
     def T0   : Cpu0GPRReg< 12, "t0">,   DwarfRegNum<[12]>;

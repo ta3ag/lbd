@@ -512,7 +512,7 @@ lld
 The lld is a project of LLVM linker. 
 It's under development and we cannot finish the installation by following the 
 web site direction. 
-Even with this, it's really make sense to develop a new linker according it's web 
+Even with this, it's really make sense to develop a new linker according lld web 
 site information.
 Please visit the web site [#]_.
 
@@ -614,10 +614,9 @@ Let's run the llvm-objdump command as follows to see the difference.
 The latter llvm-objdump can display the file format and relocation records 
 information since we add the relocation records information in ELF.h as follows, 
 
+.. rubric:: include/support/ELF.h
 .. code-block:: c++
 
-  // include/support/ELF.h
-  ...
   // Machine architectures
   enum {
     ...
@@ -752,21 +751,24 @@ follows,
 
 To support llvm-objdump, the following code added to Chapter9_1/.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/CMakeLists.txt
 .. code-block:: c++
 
-  // CMakeLists.txt
-  ...
   tablegen(LLVM Cpu0GenDisassemblerTables.inc -gen-disassembler)
   ...
   
-  // LLVMBuild.txt
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/LLVMBuild.txt
+.. code-block:: c++
+
   [common]
   subdirectories = Disassembler ...
   ...
   has_disassembler = 1
   ...
   
-  // Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstrInfo.td
+.. code-block:: c++
+
   class CmpInstr<bits<8> op, string instr_asm, 
            InstrItinClass itin, RegisterClass RC, RegisterClass RD, 
            bit isComm = 0>:
@@ -804,33 +806,13 @@ To support llvm-objdump, the following code added to Chapter9_1/.
   
   def JR      : JumpFR<0x2C, "ret", CPURegs>;
   
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/CMakeLists.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/CMakeLists.txt
+    :linenos:
   
-  // Disassembler/CMakeLists.txt
-  include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
-  
-  add_llvm_library(LLVMCpu0Disassembler
-    Cpu0Disassembler.cpp
-    )
-  
-  # workaround for hanging compilation on MSVC9 and 10
-  if( MSVC_VERSION EQUAL 1400 OR MSVC_VERSION EQUAL 1500 OR MSVC_VERSION EQUAL 1600 )
-  set_property(
-    SOURCE Cpu0Disassembler.cpp
-    PROPERTY COMPILE_FLAGS "/Od"
-    )
-  endif()
-  
-  add_dependencies(LLVMCpu0Disassembler Cpu0CommonTableGen)
-  
-  ;===- ./lib/Target/Cpu0/Disassembler/LLVMBuild.txt --------------*- Conf -*--===;
-  ...
-  [component_0]
-  type = Library
-  name = Cpu0Disassembler
-  parent = Cpu0
-  required_libraries = MC Support Cpu0Info
-  add_to_library_groups = Cpu0
-
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/LLVMBuild.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/LLVMBuild.txt
+    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/Cpu0Disassembler.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/Cpu0Disassembler.cpp

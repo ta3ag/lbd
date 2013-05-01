@@ -47,57 +47,30 @@ The Chapter10_1/ include AsmParser implementation as follows,
 .. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/Cpu0AsmParser.cpp
     :linenos:
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/CMakeLists.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/CMakeLists.txt
+    :linenos:
 
-.. code-block:: c++
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/LLVMBuild.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/LLVMBuild.txt
+    :linenos:
 
-  // AsmParser/CMakeLists.txt
-  include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
-  add_llvm_library(LLVMCpu0AsmParser
-    Cpu0AsmParser.cpp
-    )
-  
-  add_dependencies(LLVMCpu0AsmParser Cpu0CommonTableGen)
-  
-  // AsmParser/LLVMBuild.txt
-  ;===- ./lib/Target/Mips/AsmParser/LLVMBuild.txt ----------------*- Conf -*--===;
-  ;
-  ;                     The LLVM Compiler Infrastructure
-  ;
-  ; This file is distributed under the University of Illinois Open Source
-  ; License. See LICENSE.TXT for details.
-  ;
-  ;===------------------------------------------------------------------------===;
-  ;
-  ; This is an LLVMBuild description file for the components in this subdirectory.
-  ;
-  ; For more information on the LLVMBuild system, please see:
-  ;
-  ;   http://llvm.org/docs/LLVMBuild.html
-  ;
-  ;===------------------------------------------------------------------------===;
-  
-  [component_0]
-  type = Library
-  name = Cpu0AsmParser
-  parent = Mips
-  required_libraries = MC MCParser Support MipsDesc MipsInfo
-  add_to_library_groups = Cpu0
 
 The Cpu0AsmParser.cpp contains one thousand of code which do the assembly 
 language parsing. You can understand it with a little patient only.
 To let directory AsmParser be built, modify CMakeLists.txt and LLVMBuild.txt as 
 follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/CMakeLists.txt
 .. code-block:: c++
 
-  // CMakeLists.txt
-  ...
   tablegen(LLVM Cpu0GenAsmMatcher.inc -gen-asm-matcher)
   ...
   add_subdirectory(AsmParser)
   
-  // LLVMBuild.txt
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/LLVMBuild.txt
+.. code-block:: c++
+
   subdirectories = AsmParser ...
   ...
   has_asmparser = 1
@@ -105,9 +78,9 @@ follows,
   
 The other files change as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 .. code-block:: c++
 
-  // MCTargetDesc/Cpu0MCCodeEmitter.cpp
   unsigned Cpu0MCCodeEmitter::
   getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
                SmallVectorImpl<MCFixup> &Fixups) const {
@@ -128,7 +101,9 @@ The other files change as follows,
     ...
   }
   
-  // Cpu0.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0.td
+.. code-block:: c++
+
   def Cpu0AsmParser : AsmParser {
     let ShouldEmitMatchRegisterName = 0;
   }
@@ -141,11 +116,15 @@ The other files change as follows,
   }
   
   def Cpu0 : Target {
+    ...
     let AssemblyParsers = [Cpu0AsmParser];
+    ...
     let AssemblyParserVariants = [Cpu0AsmParserVariant];
   }
   
-  // Cpu0InstrFormats.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0InstrFormats.td
+.. code-block:: c++
+
   // Pseudo-instructions for alternate assembly syntax (never used by codegen).
   // These are aliases that require C++ handling to convert to the target
   // instruction, while InstAliases can be handled directly by tblgen.
@@ -155,6 +134,9 @@ The other files change as follows,
     let Pattern = [];
   }
   
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0InstrInfo.td
+.. code-block:: c++
+
   // Cpu0InstrInfo.td
   def Cpu0MemAsmOperand : AsmOperandClass {
     let Name = "Mem";
@@ -197,7 +179,7 @@ The other files change as follows,
   def LoadAddr32Imm : LoadAddressImm<"la", shamt, CPURegs>;
 
 
-We define the **ParserMethod = "parseMemOperand"** and implement the 
+Above define the **ParserMethod = "parseMemOperand"** and implement the 
 parseMemOperand() in Cpu0AsmParser.cpp to handle the **"mem"** operand which 
 used in ld and st. For example, ld $2, 4($sp), the **mem** operand is 4($sp). 
 Accompany with **"let ParserMatchClass = Cpu0MemAsmOperand;"**, 
@@ -205,6 +187,7 @@ LLVM will call parseMemOperand() of Cpu0AsmParser.cpp when it meets the assembly
 **mem** operand 4($sp). With above **"let"** assignment, TableGen will generate 
 the following structure and functions in Cpu0GenAsmMatcher.inc.
 
+.. rubric:: cmake_debug_build/lib/Target/Cpu0/Cpu0GenAsmMatcher.inc
 .. code-block:: c++
   
     enum OperandMatchResultTy {
@@ -250,6 +233,7 @@ the following structure and functions in Cpu0GenAsmMatcher.inc.
 Above 3 Pseudo Instruction definitions in Cpu0InstrInfo.td such as 
 LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/Cpu0AsmParser.cpp
 .. code-block:: c++
   
   bool Cpu0AsmParser::needsExpansion(MCInst &Inst) {
@@ -291,7 +275,8 @@ LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,
     if (needsExpansion(Inst)) {
       SmallVector<MCInst, 4> Instructions;
       expandInstruction(Inst, IDLoc, Instructions);
-    ...
+      ...
+    }
     ...
   }
 
@@ -301,51 +286,12 @@ output and ``llvm-objdump -d`` using lower case. The CPURegs as below must
 follow the order of register number because AsmParser use this when do register 
 number encode.
 
-.. code-block:: c++
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0RegisterInfo.td
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0RegisterInfo.td
+    :start-after: //  Registers
+    :end-before: // Hi/Lo Registers
+    :linenos:
 
-  // Cpu0Register.cpp
-  // The register string, such as "9" or "gp will show on "llvm-objdump -d"
-  let Namespace = "Cpu0" in {
-    // General Purpose Registers
-    def ZERO : Cpu0GPRReg< 0, "zero">, DwarfRegNum<[0]>;
-    def AT   : Cpu0GPRReg< 1, "at">,   DwarfRegNum<[1]>;
-    def V0   : Cpu0GPRReg< 2, "2">,    DwarfRegNum<[2]>;
-    def V1   : Cpu0GPRReg< 3, "3">,    DwarfRegNum<[3]>;
-    def A0   : Cpu0GPRReg< 4, "4">,    DwarfRegNum<[6]>;
-    def A1   : Cpu0GPRReg< 5, "5">,    DwarfRegNum<[7]>;
-    def T9   : Cpu0GPRReg< 6, "6">,    DwarfRegNum<[6]>;
-    def S0   : Cpu0GPRReg< 7, "7">,    DwarfRegNum<[7]>;
-    def S1   : Cpu0GPRReg< 8, "8">,    DwarfRegNum<[8]>;
-    def S2   : Cpu0GPRReg< 9, "9">,    DwarfRegNum<[9]>;
-    def GP   : Cpu0GPRReg< 10, "gp">,  DwarfRegNum<[10]>;
-    def FP   : Cpu0GPRReg< 11, "fp">,  DwarfRegNum<[11]>;
-    def SW   : Cpu0GPRReg< 12, "sw">,   DwarfRegNum<[12]>;
-    def SP   : Cpu0GPRReg< 13, "sp">,   DwarfRegNum<[13]>;
-    def LR   : Cpu0GPRReg< 14, "lr">,   DwarfRegNum<[14]>;
-    def PC   : Cpu0GPRReg< 15, "pc">,   DwarfRegNum<[15]>;
-  //  def MAR  : Register< 16, "mar">,  DwarfRegNum<[16]>;
-  //  def MDR  : Register< 17, "mdr">,  DwarfRegNum<[17]>;
-  
-    // Hi/Lo registers
-    def HI   : Register<"hi">, DwarfRegNum<[18]>;
-    def LO   : Register<"lo">, DwarfRegNum<[19]>;
-  }
-  
-  //===----------------------------------------------------------------------===//
-  // Register Classes
-  //===----------------------------------------------------------------------===//
-  
-  def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add 
-    // Reserved
-    ZERO, AT, 
-    // Return Values and Arguments
-    V0, V1, A0, A1, 
-    // Not preserved across procedure calls
-    T9, 
-    // Callee save
-    S0, S1, S2, 
-    // Reserved
-    GP, FP, SW, SP, LR, PC)>;
 
 Run Chapter10_1/ with ch10_1.cpp to get the correct result as follows,
 
@@ -463,6 +409,7 @@ cpu0s.v use 0x7000 bytes of memory.
 .. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/InitRegs.h
     :lines: 5-
     :linenos:
+
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch10_2.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch10_2.cpp
     :lines: 5-
@@ -496,9 +443,9 @@ load time for PIC address mode.
 Since our backend didn't implement the linker and loader, we change the  
 **"jsub #offset"** encode in Chapter10_2/ as follow,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 .. code-block:: c++
 
-  // Cpu0MCCodeEmitter.cpp
   unsigned Cpu0MCCodeEmitter::
   getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
              SmallVectorImpl<MCFixup> &Fixups) const {
@@ -528,9 +475,9 @@ data/function access. In other word,
 keep the global variable access as close as possible to reduce cache miss 
 possibility.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_2/MCTargetDesc/Cpu0AsmBackend.cpp
 .. code-block:: c++
 
-  // Cpu0AsmBackend.cpp
     const MCFixupKindInfo &getFixupKindInfo(MCFixupKind Kind) const {
       const static MCFixupKindInfo Infos[Cpu0::NumTargetFixupKinds] = {
         // This table *must* be in same the order of fixup_* kinds in
@@ -546,7 +493,7 @@ possibility.
       ...
     }
 
-Let's run the Chapter10_2/ with ``llvm-objdump -d`` again, wiil get the hex file 
+Let's run the Chapter10_2/ with ``llvm-objdump -d`` again, will get the hex file 
 as follows,
 
 .. code-block:: bash

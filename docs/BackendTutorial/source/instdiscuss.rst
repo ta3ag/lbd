@@ -19,10 +19,8 @@ Chapter4_2/ is the code changes for use **ldi** instruction.
 This changes replace **addiu** with **ldi** in Cpu0InstrInfo.td and modify 
 Cpu0FrameLowering.cpp as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_2/Cpu0InstrInfo.td
 .. code-block:: c++
-
-  // Cpu0InstrInfo.td
-  ...
     
   /// Arithmetic Instructions (ALU Immediate)
   def LDI     : MoveImm<0x08, "ldi", add, simm16, immSExt16, CPURegs>;
@@ -51,8 +49,9 @@ Cpu0FrameLowering.cpp as follows,
   def : Pat<(not CPURegs:$in),
              (XOR CPURegs:$in, (LDI ZERO, 1))>;
     
-  // Cpu0FrameLowering.cpp
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_2/Cpu0FrameLowering.cpp
+.. code-block:: c++
+
   void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
     ...
     // Adjust stack.
@@ -198,21 +197,10 @@ It's just a demonstration with this design, not fully support.
 The purpose is telling reader how to implement this style of CPU/MCU backend. 
 Run Chapter8_8_2/ with ch_move.cpp will get the following result,
 
-.. code-block:: c++
-
-  // ch_move.cpp
-  int main()
-  {
-    int a = 1;
-    int b = 2;
-    int c = 0;
-    int d = 4;
-    int e = 5;
-  
-    c = a + b + d + e;
-    
-    return 0;
-  }
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_move.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch_move.cpp
+    :lines: 5-
+    :linenos:
 
 .. code-block:: bash
 
@@ -228,12 +216,11 @@ Run Chapter8_8_2/ with ch_move.cpp will get the following result,
 
 
 To support this implicit operand, ACC. 
-The following code is added to 8/8_2.cpp.
+The following code is added to Chapter8_8_2.cpp.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_8_2/Cpu0RegisterInfo.td 
 .. code-block:: c++
 
-  // Cpu0RegisterInfo.td 
-  ...
   let Namespace = "Cpu0" in {
     // General Purpose Registers
     def ZERO : Cpu0GPRReg< 0, "ZERO">, DwarfRegNum<[0]>;
@@ -244,8 +231,9 @@ The following code is added to 8/8_2.cpp.
   def RACC : RegisterClass<"Cpu0", [i32], 32, (add ACC)>;
   
   
-  // Cpu0InstrInfo.td 
-  ...
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_8_2/Cpu0InstrInfo.td 
+.. code-block:: c++
+
   class MoveFromACC<bits<8> op, string instr_asm, RegisterClass RC,
              list<Register> UseRegs>:
     FL<op, (outs RC:$ra), (ins),
@@ -289,8 +277,9 @@ The following code is added to 8/8_2.cpp.
         (ADD (MTACC CPURegs:$lhs), CPURegs:$rhs)>;
   
   
-  // Cpu0InstrInfo.cpp
-  ... 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_8_2/Cpu0InstrInfo.cpp
+.. code-block:: c++
+
   //- Called when DestReg and SrcReg belong to different Register Class.
   void Cpu0InstrInfo::
   copyPhysReg(MachineBasicBlock &MBB,
