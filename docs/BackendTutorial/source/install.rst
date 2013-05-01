@@ -266,9 +266,8 @@ The details of installing Cpu0 backend example code as follows,
   118-165-78-111:test Jonathan$ git clone https://github.com/Jonathan2251/lbd.git src
   118-165-78-111:test Jonathan$ cp -rf src/lib/Target/Cpu0/
   LLVMBackendTutorialExampleCode/src_files_modify/modify/src/* src/.
-  118-165-78-111:test Jonathan$ grep -R "Cpu0" src
-  src/cmake/config-ix.cmake:  set(LLVM_NATIVE_ARCH Cpu0)
-  src/CMakeLists.txt:  Cpu0
+  118-165-78-111:test Jonathan$ grep -R "Cpu0" src/include
+  ...
   src/include/llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
   src/include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT_CALL,
   src/include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT16,
@@ -670,10 +669,10 @@ command ``make`` in cpu0 example code build.
   [Gamma@localhost test]$ git clone https://github.com/Jonathan2251/lbd.git src
   [Gamma@localhost test]$ cp -rf src/lib/Target/Cpu0/
   LLVMBackendTutorialExampleCode/src_files_modify/modify/src/* src/.
-  [Gamma@localhost test]$ grep -R "Cpu0" src|more
-  ./src/CMakeLists.txt:  Cpu0
-  ./src/lib/Target/LLVMBuild.txt:subdirectories = ARM CellSPU CppBackend Hexagon MBlaz
-  e MSP430 Mips Cpu0 PTX PowerPC Sparc X86 XCore
+  [Gamma@localhost test]$ grep -R "Cpu0" src/inlcude
+  src/include//llvm/ADT/Triple.h:    cpu0,    // For Tutorial Backend Cpu0
+  src/include//llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
+  src/include//llvm/MC/MCExpr.h:    VK_Cpu0_GOT_CALL,
   ...
   [Gamma@localhost test]$ cd src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/
   [Gamma@localhost LLVMBackendTutorialExampleCode]$ sh removecpu0.sh
