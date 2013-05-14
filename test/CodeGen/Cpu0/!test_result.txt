@@ -1,0 +1,14 @@
+test result:
+
+File                              Result v:pass x:fail        comment
+------------------------------------------------------------------------------------------
+2008-06-05-Carry.ll					x						64 bits add not support in Cpu0
+2008-07-03-SRet.ll					v
+2008-07-15InternalConstant.ll		v
+addc.ll								x						64 bits add not support in Cpu0
+addi.ll								v						
+address-mode.ll						v						
+alloca.ll							x						need to fix debug to support DAG node dynanmic_stackalloc
+analyzebranch.ll					x						
+and1.ll								v						
+asm-large-immediate.ll				v						
