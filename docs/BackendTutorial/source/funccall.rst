@@ -2410,6 +2410,300 @@ the output cpu0 code will use $3 instead of $2 as return register as follows,
     .end  _Z8copyDateP4Date
   
 
+Dynamic stack allocation support
+---------------------------------
+
+Even though C language very rare to use dynamic stack allocation, there are
+languages use it frequently. The following C example code use it.
+
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_10.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch8_10.cpp
+    :lines: 4-
+    :linenos:
+
+
+Run Chapter8_9 with ch8_10.cpp will get the following error.
+
+.. code-block:: bash
+
+  118-165-72-242:InputFiles Jonathan$ clang -I/Applications/Xcode.app/Contents/
+  Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ 
+  -c ch8_10.cpp -emit-llvm -o ch8_10.bc
+  118-165-72-242:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_10.bc -o 
+  ch8_10.cpu0.s
+  LLVM ERROR: Cannot select: 0x7ffd8b02ff10: i32,ch = dynamic_stackalloc 
+  0x7ffd8b02f910:1, 0x7ffd8b02fe10, 0x7ffd8b02c010 [ORD=12] [ID=48]
+    0x7ffd8b02fe10: i32 = and 0x7ffd8b02fc10, 0x7ffd8b02fd10 [ORD=12] [ID=47]
+      0x7ffd8b02fc10: i32 = add 0x7ffd8b02fa10, 0x7ffd8b02fb10 [ORD=12] [ID=46]
+        0x7ffd8b02fa10: i32 = shl 0x7ffd8b02f910, 0x7ffd8b02f510 [ID=45]
+          0x7ffd8b02f910: i32,ch = load 0x7ffd8b02ee10, 0x7ffd8b02e310, 
+          0x7ffd8b02b310<LD4[%1]> [ID=44]
+            0x7ffd8b02e310: i32 = FrameIndex<1> [ORD=3] [ID=10]
+            0x7ffd8b02b310: i32 = undef [ORD=1] [ID=2]
+          0x7ffd8b02f510: i32 = Constant<2> [ID=25]
+        0x7ffd8b02fb10: i32 = Constant<7> [ORD=12] [ID=16]
+      0x7ffd8b02fd10: i32 = Constant<-8> [ORD=12] [ID=17]
+    0x7ffd8b02c010: i32 = Constant<0> [ORD=12] [ID=8]
+  In function: _Z5sum_iiiiiii
+
+Chapter8_10 support dynamic stack allocation with the following code added.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_10/Cpu0FrameLowering.cpp
+.. code-block:: c++
+
+  void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
+    ...
+    unsigned FP = Cpu0::FP;
+    unsigned ZERO = Cpu0::ZERO;
+    unsigned ADDu = Cpu0::ADDu;
+    ...
+    // if framepointer enabled, set it to point to the stack pointer.
+    if (hasFP(MF)) {
+      // Insert instruction "move $fp, $sp" at this location.
+      BuildMI(MBB, MBBI, dl, TII.get(ADDu), FP).addReg(SP).addReg(ZERO);
+  
+      // emit ".cfi_def_cfa_register $fp"
+      MCSymbol *SetFPLabel = MMI.getContext().CreateTempSymbol();
+      BuildMI(MBB, MBBI, dl,
+              TII.get(TargetOpcode::PROLOG_LABEL)).addSym(SetFPLabel);
+      DstML = MachineLocation(FP);
+      SrcML = MachineLocation(MachineLocation::VirtualFP);
+      Moves.push_back(MachineMove(SetFPLabel, DstML, SrcML));
+    }
+    ...
+  }
+  
+  void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
+                                   MachineBasicBlock &MBB) const {
+    ...
+    unsigned FP = Cpu0::FP;
+    unsigned ZERO = Cpu0::ZERO;
+    unsigned ADDu = Cpu0::ADDu;
+    ...
+  
+    // if framepointer enabled, restore the stack pointer.
+    if (hasFP(MF)) {
+      // Find the first instruction that restores a callee-saved register.
+      MachineBasicBlock::iterator I = MBBI;
+  
+      for (unsigned i = 0; i < MFI->getCalleeSavedInfo().size(); ++i)
+        --I;
+  
+      // Insert instruction "move $sp, $fp" at this location.
+      BuildMI(MBB, I, dl, TII.get(ADDu), SP).addReg(FP).addReg(ZERO);
+    }
+    ...
+  }
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_10/Cpu0ISelLowering.cpp
+.. code-block:: c++
+
+  Cpu0TargetLowering::
+  Cpu0TargetLowering(Cpu0TargetMachine &TM)
+    : TargetLowering(TM, new Cpu0TargetObjectFile()),
+      Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
+    ...
+    setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i32,  Expand);
+    ...
+    setStackPointerRegisterToSaveRestore(Cpu0::SP);
+    ...
+  }
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_10/Cpu0RegisterInfo.cpp
+.. code-block:: c++
+
+  // pure virtual method
+  BitVector Cpu0RegisterInfo::
+  getReservedRegs(const MachineFunction &MF) const {
+    ...
+    // Reserve FP if this function should have a dedicated frame pointer register.
+    if (MF.getTarget().getFrameLowering()->hasFP(MF)) {
+      Reserved.set(Cpu0::FP);
+    }
+    ...
+  }
+
+Run Chapter8_10 with ch8_10.cpp will get the following result.
+
+.. code-block:: bash
+
+  118-165-72-242:InputFiles Jonathan$ clang -I/Applications/Xcode.app/Contents/
+  Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ 
+  -c ch8_10.cpp -emit-llvm -o ch8_10.bc
+  118-165-72-242:InputFiles Jonathan$ llvm-dis ch8_10.bc -o ch8_10.ll
+  118-165-72-242:InputFiles Jonathan$ cat ch8_10.ll
+  ; ModuleID = 'ch8_10.bc'
+  target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-
+  f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:
+  32:64-S128"
+  target triple = "x86_64-apple-macosx10.8.0"
+  
+  define i32 @_Z5sum_iiiiiii(i32 %x1, i32 %x2, i32 %x3, i32 %x4, i32 %x5, i32 %x6)
+   nounwind uwtable ssp {
+    ...
+    %10 = alloca i8, i64 %9	// int *b = (int*)alloca(sizeof(int) * x1);
+    %11 = bitcast i8* %10 to i32*
+    store i32* %11, i32** %b, align 8
+    %12 = load i32** %b, align 8
+    store i32 1111, i32* %12, align 4	// *b = 1111;
+    ...
+  }
+  ...
+
+  118-165-72-242:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_10.bc -o 
+  ch8_10.cpu0.s
+  118-165-72-242:InputFiles Jonathan$ cat ch8_10.cpu0.s 
+  ...
+  _Z10weight_sumiiiiii:
+  	.cfi_startproc
+  	.frame	$fp,80,$lr
+  	.mask 	0x00004080,-4
+  	.set	noreorder
+  	.cpload	$t9
+  	.set	nomacro
+  # BB#0:
+  	addiu	$sp, $sp, -80
+  $tmp6:
+  	.cfi_def_cfa_offset 80
+  	st	$lr, 76($sp)            # 4-byte Folded Spill
+  	st	$7, 72($sp)             # 4-byte Folded Spill
+  $tmp7:
+  	.cfi_offset 14, -4
+  $tmp8:
+  	.cfi_offset 7, -8
+  	addu	$fp, $sp, $zero
+  $tmp9:
+  	.cfi_def_cfa_register 11
+  	.cprestore	24
+  	ld	$7, %got(__stack_chk_guard)($gp)
+  	ld	$2, 0($7)
+  	st	$2, 68($fp)
+  	ld	$2, 80($fp)
+  	st	$2, 64($fp)
+  	ld	$2, 84($fp)
+  	st	$2, 60($fp)
+  	ld	$2, 88($fp)
+  	st	$2, 56($fp)
+  	ld	$2, 92($fp)
+  	st	$2, 52($fp)
+  	ld	$2, 96($fp)
+  	st	$2, 48($fp)
+  	ld	$2, 100($fp)
+  	st	$2, 44($fp)
+  	ld	$2, 64($fp)	// int *b = (int*)alloca(sizeof(int) * x1);
+  	shl	$2, $2, 2
+  	addiu	$2, $2, 7
+  	addiu	$3, $zero, -8
+  	and	$2, $2, $3
+  	subu	$2, $sp, $2
+  	add	$sp, $zero, $2	// set sp to the bottom of alloca area
+  	st	$2, 40($fp)
+  	addiu	$3, $zero, 1111
+  	st	$3, 0($2)
+  	ld	$2, 64($fp)
+  	ld	$3, 60($fp)
+  	ld	$4, 56($fp)
+  	ld	$5, 52($fp)
+  	ld	$6, 48($fp)
+  	ld	$t0, 44($fp)
+  	st	$t0, 20($sp)
+  	shl	$6, $6, 1
+  	st	$6, 16($sp)
+  	st	$5, 12($sp)
+  	st	$4, 8($sp)
+  	st	$3, 4($sp)
+  	addiu	$3, $zero, 6
+  	mul	$2, $2, $3
+  	st	$2, 0($sp)
+  	ld	$6, %call24(_Z3sumiiiiii)($gp)
+  	jalr	$6
+  	ld	$gp, 24($fp)
+  	st	$2, 36($fp)
+  	ld	$3, 0($7)
+  	ld	$4, 68($fp)
+  	bne	$3, $4, $BB1_2
+  # BB#1:                                 # %SP_return
+  	addu	$sp, $fp, $zero
+  	ld	$7, 72($sp)             # 4-byte Folded Reload
+  	ld	$lr, 76($sp)            # 4-byte Folded Reload
+  	addiu	$sp, $sp, 80
+  	ret	$2
+  $BB1_2:                                 # %CallStackCheckFailBlk
+  	ld	$6, %call24(__stack_chk_fail)($gp)
+  	jalr	$6
+  	ld	$gp, 24($fp)
+  	.set	macro
+  	.set	reorder
+  	.end	_Z10weight_sumiiiiii
+  $tmp10:
+  	.size	_Z10weight_sumiiiiii, ($tmp10)-_Z10weight_sumiiiiii
+  	.cfi_endproc
+  ...
+
+As you can see, the dynamic stack allocation need frame pointer register **fp**
+support. As :num:`Figure #funccall-f4`, the sp is adjusted to sp - 56 when it 
+entered the function as usual by instruction **addiu $sp, $sp, -56**. 
+Next, the fp is set to sp where is the position just above alloca() spaces area 
+when meet instruction **addu $fp, $sp, $zero**. 
+After that, the sp is changed to the just below of alloca() area.
+Remind, the alloca() area which the b point to, 
+**"*b = (int*)alloca(sizeof(int) * x1)"** is 
+allocated at run time since the spaces is variable size which depend on x1 
+variable and cannot be calculated at link time. 
+
+:num:`Figure #funccall-f5` depicted how the stack pointer changes back to the 
+caller stack bottom. As above, the **fp** is set to the just above of alloca(). 
+The first step is changing the sp to fp by instruction **addu $sp, $fp, $zero**.
+Next, sp is changed back to caller stack bottom by instruction 
+**addiu $sp, $sp, 56**.
+
+.. _funccall-f4:
+.. figure:: ../Fig/funccall/4.png
+    :height: 279 px
+    :width: 535 px
+    :scale: 100 %
+    :align: center
+
+    Frame pointer changes when enter function
+
+.. _funccall-f5:
+.. figure:: ../Fig/funccall/5.png
+    :height: 265 px
+    :width: 476 px
+    :scale: 100 %
+    :align: center
+
+    Stack pointer changes when exit function
+    
+.. _funccall-f6:
+.. figure:: ../Fig/funccall/6.png
+    :height: 394 px
+    :width: 539 px
+    :scale: 100 %
+    :align: center
+
+    fp and sp access areas
+
+Use fp to keep the old stack pointer value is not necessary. Actually, the sp 
+can back to the the old sp by add the alloca() spaces size. Most ABI like Mips
+and ARM access the above area of alloca() by fp and the below area of alloca()
+by sp, as :num:`Figure #funccall-f6` depicted. The reason for this definition 
+is the speed for local variable access. Since the RISC CPU use immediate offset
+for load and store as below, using fp and sp for access both areas of
+local variables have better performance compare to use the sp only.
+
+.. code-block:: bash
+
+  	ld	$2, 64($fp)
+  	st	$3, 4($sp)
+  	
+Cpu0 use fp and sp to access the above and below areas of alloca() too. 
+As ch8_10.cpu0.s, it access local variable (above of alloca()) by fp offset
+and outgoing arguments (below of alloca()) by sp offset.
+
+
 Summary of this chapter
 ------------------------
 

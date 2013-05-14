@@ -30,6 +30,10 @@ We would like to thank Sean Silva, silvas@purdue.edu, for his help, encouragemen
 assistance with the Sphinx document generator.  Without his help, this book would not 
 have been finished and published online. 
 
+
+Support
+--------
+
 We also get the kind help from LLVM development mail list, llvmdev@cs.uiuc.edu, 
 even we don't know them. So, our experience is you are not 
 alone and can get help from the development list members in working with the LLVM 
@@ -47,6 +51,7 @@ Version 3.2.13, Not Released Yet
 	Add sub-section "Setup llvm-lit on iMac" of Appendix A.
 	Replace some code-block with literalinclude in \*.rst.
 	Add Fig 9 of chapter Backend structure.
+	Add section Dynamic stack allocation support of chapter Function call.
 Version 3.2.12, Released March 9, 2013
 	Add section "Type of char and short int" of chapter 
 	"Global variables, structs and arrays, other type".

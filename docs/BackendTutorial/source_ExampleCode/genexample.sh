@@ -3,7 +3,7 @@ GEN_DIR=LLVMBackendTutorialExampleCode
 rm -rf Chapter3_1 Chapter3_2 Chapter3_2 Chapter3_4 Chapter3_5 
 rm -rf Chapter4_1 Chapter4_2 Chapter4_4 Chapter4_4_2 Chapter4_5 Chapter4_6_1 Chapter4_6_2 Chapter4_6_4 
 rm -rf Chapter5_1 Chapter6_1 Chapter6_2 Chapter6_3 Chapter7_1 
-rm -rf Chapter8_2 Chapter8_3 Chapter8_4 Chapter8_5 Chapter8_6 Chapter8_7 Chapter8_8 Chapter8_8_2 Chapter8_9
+rm -rf Chapter8_2 Chapter8_3 Chapter8_4 Chapter8_5 Chapter8_6 Chapter8_7 Chapter8_8 Chapter8_8_2 Chapter8_9 Chapter8_10
 rm -rf Chapter9_1 Chapter10_1 Chapter10_2 Chapter11_1 Chapter11_2
 rm -rf ${GEN_DIR}
 mkdir ${GEN_DIR}
@@ -91,8 +91,11 @@ cp -rf ${GEN_DIR}/Chapter8_8 .
 patch -fp0 < 8-9.patch
 mv Chapter8_8 Chapter8_9
 cp -rf Chapter8_9 ${GEN_DIR}/.
+patch -fp0 < 8-10.patch
+mv Chapter8_9 Chapter8_10
+cp -rf Chapter8_10 ${GEN_DIR}/.
 patch -fp0 < 9-1.patch
-mv Chapter8_9 Chapter9_1
+mv Chapter8_10 Chapter9_1
 cp -rf Chapter9_1 ${GEN_DIR}/.
 patch -fp0 < 10-1.patch
 mv Chapter9_1 Chapter10_1

@@ -1,0 +1,93 @@
+diff -Naur Chapter8_9/Cpu0FrameLowering.cpp Chapter8_10/Cpu0FrameLowering.cpp
+--- Chapter8_9/Cpu0FrameLowering.cpp	2013-05-14 20:28:19.000000000 +0800
++++ Chapter8_10/Cpu0FrameLowering.cpp	2013-05-14 20:37:19.000000000 +0800
+@@ -99,6 +99,9 @@
+   MachineBasicBlock::iterator MBBI = MBB.begin();
+   DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
+   unsigned SP = Cpu0::SP;
++  unsigned FP = Cpu0::FP;
++  unsigned ZERO = Cpu0::ZERO;
++  unsigned ADDu = Cpu0::ADDu;
+   unsigned ADDiu = Cpu0::ADDiu;
+   // First, compute final stack size.
+   unsigned StackAlign = getStackAlignment();
+@@ -162,6 +165,20 @@
+     }
+   }
+   
++  // if framepointer enabled, set it to point to the stack pointer.
++  if (hasFP(MF)) {
++    // Insert instruction "move $fp, $sp" at this location.
++    BuildMI(MBB, MBBI, dl, TII.get(ADDu), FP).addReg(SP).addReg(ZERO);
++
++    // emit ".cfi_def_cfa_register $fp"
++    MCSymbol *SetFPLabel = MMI.getContext().CreateTempSymbol();
++    BuildMI(MBB, MBBI, dl,
++            TII.get(TargetOpcode::PROLOG_LABEL)).addSym(SetFPLabel);
++    DstML = MachineLocation(FP);
++    SrcML = MachineLocation(MachineLocation::VirtualFP);
++    Moves.push_back(MachineMove(SetFPLabel, DstML, SrcML));
++  }
++
+   // Restore GP from the saved stack location
+   if (Cpu0FI->needGPSaveRestore()) {
+     unsigned Offset = MFI->getObjectOffset(Cpu0FI->getGPFI());
+@@ -178,8 +195,23 @@
+     *static_cast<const Cpu0InstrInfo*>(MF.getTarget().getInstrInfo());
+   DebugLoc dl = MBBI->getDebugLoc();
+   unsigned SP = Cpu0::SP;
++  unsigned FP = Cpu0::FP;
++  unsigned ZERO = Cpu0::ZERO;
++  unsigned ADDu = Cpu0::ADDu;
+   unsigned ADDiu = Cpu0::ADDiu;
+ 
++  // if framepointer enabled, restore the stack pointer.
++  if (hasFP(MF)) {
++    // Find the first instruction that restores a callee-saved register.
++    MachineBasicBlock::iterator I = MBBI;
++
++    for (unsigned i = 0; i < MFI->getCalleeSavedInfo().size(); ++i)
++      --I;
++
++    // Insert instruction "move $sp, $fp" at this location.
++    BuildMI(MBB, I, dl, TII.get(ADDu), SP).addReg(FP).addReg(ZERO);
++  }
++
+   // Get the number of bytes from FrameInfo
+   uint64_t StackSize = MFI->getStackSize();
+ 
+diff -Naur Chapter8_9/Cpu0ISelLowering.cpp Chapter8_10/Cpu0ISelLowering.cpp
+--- Chapter8_9/Cpu0ISelLowering.cpp	2013-05-14 20:28:19.000000000 +0800
++++ Chapter8_10/Cpu0ISelLowering.cpp	2013-05-14 20:34:07.000000000 +0800
+@@ -82,6 +82,7 @@
+ 
+   // Operations not directly supported by Cpu0.
+   setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
++  setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i32,  Expand);
+ 
+   // Support va_arg(): variable numbers (not fixed numbers) of arguments 
+   //  (parameters) for function all
+@@ -96,6 +97,8 @@
+ // It will emit .align 2 later
+   setMinFunctionAlignment(2);
+ 
++  setStackPointerRegisterToSaveRestore(Cpu0::SP);
++
+ // must, computeRegisterProperties - Once all of the register classes are 
+ //  added, this allows us to compute derived properties we expose.
+   computeRegisterProperties();
+diff -Naur Chapter8_9/Cpu0RegisterInfo.cpp Chapter8_10/Cpu0RegisterInfo.cpp
+--- Chapter8_9/Cpu0RegisterInfo.cpp	2013-05-14 20:28:19.000000000 +0800
++++ Chapter8_10/Cpu0RegisterInfo.cpp	2013-05-14 20:38:34.000000000 +0800
+@@ -78,6 +78,11 @@
+   for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
+     Reserved.set(ReservedCPURegs[I]);
+ 
++  // Reserve FP if this function should have a dedicated frame pointer register.
++  if (MF.getTarget().getFrameLowering()->hasFP(MF)) {
++    Reserved.set(Cpu0::FP);
++  }
++
+   // If GP is dedicated as a global base register, reserve it.
+   if (MF.getInfo<Cpu0FunctionInfo>()->globalBaseRegFixed()) {
+     Reserved.set(Cpu0::GP);
