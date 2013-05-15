@@ -2573,7 +2573,7 @@ Run Chapter8_10 with ch8_10.cpp will get the following result.
   	.cfi_offset 14, -4
   $tmp8:
   	.cfi_offset 7, -8
-  	addu	$fp, $sp, $zero
+  	add	$fp, $sp, $zero
   $tmp9:
   	.cfi_def_cfa_register 11
   	.cprestore	24
@@ -2625,7 +2625,7 @@ Run Chapter8_10 with ch8_10.cpp will get the following result.
   	ld	$4, 68($fp)
   	bne	$3, $4, $BB1_2
   # BB#1:                                 # %SP_return
-  	addu	$sp, $fp, $zero
+  	add	$sp, $fp, $zero
   	ld	$7, 72($sp)             # 4-byte Folded Reload
   	ld	$lr, 76($sp)            # 4-byte Folded Reload
   	addiu	$sp, $sp, 80
