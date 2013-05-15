@@ -78,6 +78,11 @@ getReservedRegs(const MachineFunction &MF) const {
   for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
     Reserved.set(ReservedCPURegs[I]);
 
+  // Reserve FP if this function should have a dedicated frame pointer register.
+  if (MF.getTarget().getFrameLowering()->hasFP(MF)) {
+    Reserved.set(Cpu0::FP);
+  }
+
   // If GP is dedicated as a global base register, reserve it.
   if (MF.getInfo<Cpu0FunctionInfo>()->globalBaseRegFixed()) {
     Reserved.set(Cpu0::GP);

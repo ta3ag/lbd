@@ -82,6 +82,7 @@ Cpu0TargetLowering(Cpu0TargetMachine &TM)
 
   // Operations not directly supported by Cpu0.
   setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
+  setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i32,  Expand);
 
   // Support va_arg(): variable numbers (not fixed numbers) of arguments 
   //  (parameters) for function all
@@ -95,6 +96,8 @@ Cpu0TargetLowering(Cpu0TargetMachine &TM)
 //- Set .align 2
 // It will emit .align 2 later
   setMinFunctionAlignment(2);
+
+  setStackPointerRegisterToSaveRestore(Cpu0::SP);
 
 // must, computeRegisterProperties - Once all of the register classes are 
 //  added, this allows us to compute derived properties we expose.
