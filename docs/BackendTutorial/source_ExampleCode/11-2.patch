@@ -1,6 +1,6 @@
 diff -Naur Chapter11_1/AsmParser/Cpu0AsmParser.cpp Chapter11_2/AsmParser/Cpu0AsmParser.cpp
---- Chapter11_1/AsmParser/Cpu0AsmParser.cpp	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter11_2/AsmParser/Cpu0AsmParser.cpp	2013-04-08 15:34:23.000000000 +0800
+--- Chapter11_1/AsmParser/Cpu0AsmParser.cpp	2013-05-15 11:45:28.760221841 +0800
++++ Chapter11_2/AsmParser/Cpu0AsmParser.cpp	2013-05-15 11:45:28.764221841 +0800
 @@ -308,8 +308,17 @@
  
    int ImmValue = ImmOp.getImm();
@@ -148,9 +148,48 @@ diff -Naur Chapter11_1/AsmParser/Cpu0AsmParser.cpp Chapter11_2/AsmParser/Cpu0Asm
        .Case("sp",  Cpu0::SP)
        .Case("lr",  Cpu0::LR)
        .Case("pc",  Cpu0::PC)
+diff -Naur Chapter11_1/Cpu0FrameLowering.cpp Chapter11_2/Cpu0FrameLowering.cpp
+--- Chapter11_1/Cpu0FrameLowering.cpp	2013-05-15 11:45:28.760221841 +0800
++++ Chapter11_2/Cpu0FrameLowering.cpp	2013-05-15 09:16:43.000000000 +0800
+@@ -102,7 +102,7 @@
+   unsigned SP = Cpu0::SP;
+   unsigned FP = Cpu0::FP;
+   unsigned ZERO = Cpu0::ZERO;
+-  unsigned ADD = Cpu0::ADD;
++  unsigned ADDu = Cpu0::ADDu;
+   unsigned ADDiu = Cpu0::ADDiu;
+   // First, compute final stack size.
+   unsigned StackAlign = getStackAlignment();
+@@ -169,7 +169,7 @@
+   // if framepointer enabled, set it to point to the stack pointer.
+   if (hasFP(MF)) {
+     // Insert instruction "move $fp, $sp" at this location.
+-    BuildMI(MBB, MBBI, dl, TII.get(ADD), FP).addReg(SP).addReg(ZERO);
++    BuildMI(MBB, MBBI, dl, TII.get(ADDu), FP).addReg(SP).addReg(ZERO);
+ 
+     // emit ".cfi_def_cfa_register $fp"
+     MCSymbol *SetFPLabel = MMI.getContext().CreateTempSymbol();
+@@ -198,7 +198,7 @@
+   unsigned SP = Cpu0::SP;
+   unsigned FP = Cpu0::FP;
+   unsigned ZERO = Cpu0::ZERO;
+-  unsigned ADD = Cpu0::ADD;
++  unsigned ADDu = Cpu0::ADDu;
+   unsigned ADDiu = Cpu0::ADDiu;
+ 
+   // if framepointer enabled, restore the stack pointer.
+@@ -210,7 +210,7 @@
+       --I;
+ 
+     // Insert instruction "move $sp, $fp" at this location.
+-    BuildMI(MBB, I, dl, TII.get(ADD), SP).addReg(FP).addReg(ZERO);
++    BuildMI(MBB, I, dl, TII.get(ADDu), SP).addReg(FP).addReg(ZERO);
+   }
+ 
+   // Get the number of bytes from FrameInfo
 diff -Naur Chapter11_1/Cpu0InstrInfo.cpp Chapter11_2/Cpu0InstrInfo.cpp
---- Chapter11_1/Cpu0InstrInfo.cpp	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter11_2/Cpu0InstrInfo.cpp	2013-04-08 15:34:23.000000000 +0800
+--- Chapter11_1/Cpu0InstrInfo.cpp	2013-05-15 11:45:28.760221841 +0800
++++ Chapter11_2/Cpu0InstrInfo.cpp	2013-05-15 11:45:28.764221841 +0800
 @@ -43,18 +43,12 @@
        Opc = Cpu0::MFHI, SrcReg = 0;
      else if (SrcReg == Cpu0::LO)
@@ -171,8 +210,8 @@ diff -Naur Chapter11_1/Cpu0InstrInfo.cpp Chapter11_2/Cpu0InstrInfo.cpp
  
    assert(Opc && "Cannot copy registers");
 diff -Naur Chapter11_1/Cpu0InstrInfo.td Chapter11_2/Cpu0InstrInfo.td
---- Chapter11_1/Cpu0InstrInfo.td	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter11_2/Cpu0InstrInfo.td	2013-04-08 15:34:23.000000000 +0800
+--- Chapter11_1/Cpu0InstrInfo.td	2013-05-15 11:45:28.760221841 +0800
++++ Chapter11_2/Cpu0InstrInfo.td	2013-05-15 11:45:28.764221841 +0800
 @@ -136,6 +136,12 @@
      return (uint64_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
  }]>;
@@ -465,8 +504,8 @@ diff -Naur Chapter11_1/Cpu0InstrInfo.td Chapter11_2/Cpu0InstrInfo.td
 +defm : SetgePats<CPURegs, SLT, SLTu>;
 +defm : SetgeImmPats<CPURegs, SLTi, SLTiu>;
 diff -Naur Chapter11_1/Cpu0MCInstLower.cpp Chapter11_2/Cpu0MCInstLower.cpp
---- Chapter11_1/Cpu0MCInstLower.cpp	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter11_2/Cpu0MCInstLower.cpp	2013-04-08 15:34:23.000000000 +0800
+--- Chapter11_1/Cpu0MCInstLower.cpp	2013-05-15 11:45:28.760221841 +0800
++++ Chapter11_2/Cpu0MCInstLower.cpp	2013-05-15 11:45:28.764221841 +0800
 @@ -94,8 +94,7 @@
  }
  
@@ -514,8 +553,8 @@ diff -Naur Chapter11_1/Cpu0MCInstLower.cpp Chapter11_2/Cpu0MCInstLower.cpp
  
    MCInst St;
 diff -Naur Chapter11_1/Cpu0RegisterInfo.td Chapter11_2/Cpu0RegisterInfo.td
---- Chapter11_1/Cpu0RegisterInfo.td	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter11_2/Cpu0RegisterInfo.td	2013-04-08 15:34:23.000000000 +0800
+--- Chapter11_1/Cpu0RegisterInfo.td	2013-05-15 11:45:28.760221841 +0800
++++ Chapter11_2/Cpu0RegisterInfo.td	2013-05-15 11:45:28.764221841 +0800
 @@ -41,7 +41,7 @@
    def S2   : Cpu0GPRReg< 9, "9">,    DwarfRegNum<[9]>;
    def GP   : Cpu0GPRReg< 10, "gp">,  DwarfRegNum<[10]>;
@@ -543,8 +582,8 @@ diff -Naur Chapter11_1/Cpu0RegisterInfo.td Chapter11_2/Cpu0RegisterInfo.td
 -def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
 -
 diff -Naur Chapter11_1/Disassembler/Cpu0Disassembler.cpp Chapter11_2/Disassembler/Cpu0Disassembler.cpp
---- Chapter11_1/Disassembler/Cpu0Disassembler.cpp	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter11_2/Disassembler/Cpu0Disassembler.cpp	2013-04-08 15:34:23.000000000 +0800
+--- Chapter11_1/Disassembler/Cpu0Disassembler.cpp	2013-05-15 11:45:28.760221841 +0800
++++ Chapter11_2/Disassembler/Cpu0Disassembler.cpp	2013-05-15 11:45:28.764221841 +0800
 @@ -55,7 +55,7 @@
    Cpu0::ZERO, Cpu0::AT, Cpu0::V0, Cpu0::V1,
    Cpu0::A0, Cpu0::A1, Cpu0::T9, Cpu0::S0, 
@@ -630,8 +669,8 @@ diff -Naur Chapter11_1/Disassembler/Cpu0Disassembler.cpp Chapter11_2/Disassemble
    return MCDisassembler::Success;
  }
 diff -Naur Chapter11_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp
---- Chapter11_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp	2013-04-08 15:34:23.000000000 +0800
+--- Chapter11_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-05-15 11:45:28.760221841 +0800
++++ Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp	2013-05-15 11:45:28.764221841 +0800
 @@ -37,6 +37,7 @@
    case FK_Data_4:
    case Cpu0::fixup_Cpu0_LO16:
@@ -649,8 +688,8 @@ diff -Naur Chapter11_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter11_2/MCTargetDesc/
        { "fixup_Cpu0_CALL24",       0,     24,   0 },
        { "fixup_Cpu0_GPREL32",      0,     32,   0 },
 diff -Naur Chapter11_1/MCTargetDesc/Cpu0BaseInfo.h Chapter11_2/MCTargetDesc/Cpu0BaseInfo.h
---- Chapter11_1/MCTargetDesc/Cpu0BaseInfo.h	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter11_2/MCTargetDesc/Cpu0BaseInfo.h	2013-04-08 15:34:23.000000000 +0800
+--- Chapter11_1/MCTargetDesc/Cpu0BaseInfo.h	2013-05-15 11:45:28.760221841 +0800
++++ Chapter11_2/MCTargetDesc/Cpu0BaseInfo.h	2013-05-15 11:45:28.764221841 +0800
 @@ -135,7 +135,7 @@
      return 10;
    case Cpu0::FP:
@@ -661,8 +700,8 @@ diff -Naur Chapter11_1/MCTargetDesc/Cpu0BaseInfo.h Chapter11_2/MCTargetDesc/Cpu0
    case Cpu0::SP:
      return 13;
 diff -Naur Chapter11_1/MCTargetDesc/Cpu0FixupKinds.h Chapter11_2/MCTargetDesc/Cpu0FixupKinds.h
---- Chapter11_1/MCTargetDesc/Cpu0FixupKinds.h	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter11_2/MCTargetDesc/Cpu0FixupKinds.h	2013-04-08 15:34:23.000000000 +0800
+--- Chapter11_1/MCTargetDesc/Cpu0FixupKinds.h	2013-05-15 11:45:28.760221841 +0800
++++ Chapter11_2/MCTargetDesc/Cpu0FixupKinds.h	2013-05-15 11:45:28.764221841 +0800
 @@ -53,8 +53,12 @@
      // Local symbol fixup resulting in - R_CPU0_GOT16.
      fixup_Cpu0_GOT_Local,
@@ -678,8 +717,8 @@ diff -Naur Chapter11_1/MCTargetDesc/Cpu0FixupKinds.h Chapter11_2/MCTargetDesc/Cp
  
      // resulting in - R_CPU0_CALL24.
 diff -Naur Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-04-08 15:34:23.000000000 +0800
+--- Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-05-15 11:45:28.760221841 +0800
++++ Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-05-15 11:45:28.764221841 +0800
 @@ -158,7 +158,7 @@
  
    const MCExpr *Expr = MO.getExpr();
