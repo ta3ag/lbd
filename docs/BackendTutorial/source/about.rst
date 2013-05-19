@@ -52,6 +52,7 @@ Version 3.2.13, Not Released Yet
 	Replace some code-block with literalinclude in \*.rst.
 	Add Fig 9 of chapter Backend structure.
 	Add section Dynamic stack allocation support of chapter Function call.
+	Fix bug of Cpu0DelUselessJMP.cpp.
 Version 3.2.12, Released March 9, 2013
 	Add section "Type of char and short int" of chapter 
 	"Global variables, structs and arrays, other type".

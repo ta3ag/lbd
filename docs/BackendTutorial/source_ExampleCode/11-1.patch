@@ -1,6 +1,6 @@
 diff -Naur Chapter10_2/CMakeLists.txt Chapter11_1/CMakeLists.txt
---- Chapter10_2/CMakeLists.txt	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter11_1/CMakeLists.txt	2013-04-08 15:34:23.000000000 +0800
+--- Chapter10_2/CMakeLists.txt	2013-05-19 21:47:35.000000000 +0800
++++ Chapter11_1/CMakeLists.txt	2013-05-19 21:47:35.000000000 +0800
 @@ -25,6 +25,7 @@
  # Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen
  add_llvm_target(Cpu0CodeGen
@@ -9,10 +9,21 @@ diff -Naur Chapter10_2/CMakeLists.txt Chapter11_1/CMakeLists.txt
    Cpu0EmitGPRestore.cpp
    Cpu0InstrInfo.cpp
    Cpu0ISelDAGToDAG.cpp
+diff -Naur Chapter10_2/Cpu0.h Chapter11_1/Cpu0.h
+--- Chapter10_2/Cpu0.h	2013-05-19 21:47:35.000000000 +0800
++++ Chapter11_1/Cpu0.h	2013-05-19 21:47:35.000000000 +0800
+@@ -24,6 +24,7 @@
+ 
+   FunctionPass *createCpu0ISelDag(Cpu0TargetMachine &TM);
+   FunctionPass *createCpu0EmitGPRestorePass(Cpu0TargetMachine &TM);
++  FunctionPass *createCpu0DelJmpPass(Cpu0TargetMachine &TM);
+ 
+ } // end namespace llvm;
+ 
 diff -Naur Chapter10_2/Cpu0DelUselessJMP.cpp Chapter11_1/Cpu0DelUselessJMP.cpp
 --- Chapter10_2/Cpu0DelUselessJMP.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter11_1/Cpu0DelUselessJMP.cpp	2013-04-08 15:34:23.000000000 +0800
-@@ -0,0 +1,98 @@
++++ Chapter11_1/Cpu0DelUselessJMP.cpp	2013-05-19 21:45:26.000000000 +0800
+@@ -0,0 +1,99 @@
 +//===-- Cpu0DelUselessJMP.cpp - Cpu0 DelJmp -------------------------------===//
 +//
 +//                     The LLVM Compiler Infrastructure
@@ -85,14 +96,15 @@ diff -Naur Chapter10_2/Cpu0DelUselessJMP.cpp Chapter11_1/Cpu0DelUselessJMP.cpp
 +  char DelJmp::ID = 0;
 +} // end of anonymous namespace
 +
-+/// runOnMachineBasicBlock - Fill in delay slots for the given basic block.
-+/// We assume there is only one delay slot per delayed instruction.
 +bool DelJmp::
 +runOnMachineBasicBlock(MachineBasicBlock &MBB, MachineBasicBlock &MBBN) {
 +  bool Changed = false;
 +
 +  MachineBasicBlock::iterator I = MBB.end();
-+  I--;	// set I to the last instruction
++  if (I != MBB.begin())
++    I--;	// set I to the last instruction
++  else
++    return Changed;
 +    
 +  if (I->getOpcode() == Cpu0::JMP && I->getOperand(0).getMBB() == &MBBN) {
 +    // I is the instruction of "jmp #offset=0", as follows,
@@ -111,20 +123,9 @@ diff -Naur Chapter10_2/Cpu0DelUselessJMP.cpp Chapter11_1/Cpu0DelUselessJMP.cpp
 +FunctionPass *llvm::createCpu0DelJmpPass(Cpu0TargetMachine &tm) {
 +  return new DelJmp(tm);
 +}
-diff -Naur Chapter10_2/Cpu0.h Chapter11_1/Cpu0.h
---- Chapter10_2/Cpu0.h	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter11_1/Cpu0.h	2013-04-08 15:34:23.000000000 +0800
-@@ -24,6 +24,7 @@
- 
-   FunctionPass *createCpu0ISelDag(Cpu0TargetMachine &TM);
-   FunctionPass *createCpu0EmitGPRestorePass(Cpu0TargetMachine &TM);
-+  FunctionPass *createCpu0DelJmpPass(Cpu0TargetMachine &TM);
- 
- } // end namespace llvm;
- 
 diff -Naur Chapter10_2/Cpu0TargetMachine.cpp Chapter11_1/Cpu0TargetMachine.cpp
---- Chapter10_2/Cpu0TargetMachine.cpp	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter11_1/Cpu0TargetMachine.cpp	2013-04-08 15:34:23.000000000 +0800
+--- Chapter10_2/Cpu0TargetMachine.cpp	2013-05-19 21:47:35.000000000 +0800
++++ Chapter11_1/Cpu0TargetMachine.cpp	2013-05-19 21:47:35.000000000 +0800
 @@ -83,6 +83,7 @@
    }
    virtual bool addInstSelector();
