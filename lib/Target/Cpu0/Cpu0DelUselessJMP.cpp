@@ -70,14 +70,15 @@ namespace {
   char DelJmp::ID = 0;
 } // end of anonymous namespace
 
-/// runOnMachineBasicBlock - Fill in delay slots for the given basic block.
-/// We assume there is only one delay slot per delayed instruction.
 bool DelJmp::
 runOnMachineBasicBlock(MachineBasicBlock &MBB, MachineBasicBlock &MBBN) {
   bool Changed = false;
 
   MachineBasicBlock::iterator I = MBB.end();
-  I--;	// set I to the last instruction
+  if (I != MBB.begin())
+    I--;	// set I to the last instruction
+  else
+    return Changed;
     
   if (I->getOpcode() == Cpu0::JMP && I->getOperand(0).getMBB() == &MBBN) {
     // I is the instruction of "jmp #offset=0", as follows,
