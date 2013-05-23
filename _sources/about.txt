@@ -49,6 +49,7 @@ Revision history
 ----------------
 
 Version 3.2.14, Not Released Yet
+
 Version 3.2.13, Released May 23, 2013
 	Add sub-section "Setup llvm-lit on iMac" of Appendix A.
 	Replace some code-block with literalinclude in \*.rst.
