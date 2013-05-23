@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.12',
+        VERSION:     '3.2.13',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -74,16 +74,17 @@ backend optimization in this section.
 This algorithm is simple and effective as a perfect tutorial in optimization.
 You can understand how to add a optimization pass and design your complicate
 optimization algorithm on your backend in real project.</p>
-<p>11/1/Cpu0 support this optimization algorithm include the added codes as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// CMakeLists.txt</span>
-<span class="n">add_llvm_target</span><span class="p">(</span><span class="n">Cpu0CodeGen</span>
+<p>Chapter11_1/ support this optimization algorithm include the added codes as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/CMakeLists.txt</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">add_llvm_target</span><span class="p">(</span><span class="n">Cpu0CodeGen</span>
   <span class="p">...</span>
   <span class="n">Cpu0DelUselessJMP</span><span class="p">.</span><span class="n">cpp</span>
   <span class="p">...</span>
   <span class="p">)</span>
-
-<span class="c1">// Cpu0.h</span>
-<span class="p">...</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
   <span class="n">FunctionPass</span> <span class="o">*</span><span class="n">createCpu0DelJmpPass</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
 
 <span class="c1">// Cpu-TargetMachine.cpp</span>
@@ -100,99 +101,9 @@ optimization algorithm on your backend in real project.</p>
   <span class="n">addPass</span><span class="p">(</span><span class="n">createCpu0DelJmpPass</span><span class="p">(</span><span class="n">TM</span><span class="p">));</span>
   <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
 <span class="p">}</span>
-
-<span class="c1">// Cpu0DelUselessJMP.cpp</span>
-<span class="c1">//===-- Cpu0DelUselessJMP.cpp - Cpu0 DelJmp -------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// Simple pass to fills delay slots with useful instructions.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-
-<span class="cp">#define DEBUG_TYPE &quot;del-jmp&quot;</span>
-<span class="p">...</span>
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
-
-<span class="n">STATISTIC</span><span class="p">(</span><span class="n">NumDelJmp</span><span class="p">,</span> <span class="s">&quot;Number of useless jmp deleted&quot;</span><span class="p">);</span>
-
-<span class="k">static</span> <span class="n">cl</span><span class="o">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span> <span class="n">EnableDelJmp</span><span class="p">(</span>
-  <span class="s">&quot;enable-cpu0-del-useless-jmp&quot;</span><span class="p">,</span>
-  <span class="n">cl</span><span class="o">::</span><span class="n">init</span><span class="p">(</span><span class="kc">true</span><span class="p">),</span>
-  <span class="n">cl</span><span class="o">::</span><span class="n">desc</span><span class="p">(</span><span class="s">&quot;Delete useless jmp instructions: jmp 0.&quot;</span><span class="p">),</span>
-  <span class="n">cl</span><span class="o">::</span><span class="n">Hidden</span><span class="p">);</span>
-
-<span class="k">namespace</span> <span class="p">{</span>
-  <span class="k">struct</span> <span class="n">DelJmp</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MachineFunctionPass</span> <span class="p">{</span>
-
-    <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">;</span>
-    <span class="k">const</span> <span class="n">TargetInstrInfo</span> <span class="o">*</span><span class="n">TII</span><span class="p">;</span>
-
-    <span class="k">static</span> <span class="kt">char</span> <span class="n">ID</span><span class="p">;</span>
-    <span class="n">DelJmp</span><span class="p">(</span><span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">tm</span><span class="p">)</span>
-      <span class="o">:</span> <span class="n">MachineFunctionPass</span><span class="p">(</span><span class="n">ID</span><span class="p">),</span> <span class="n">TM</span><span class="p">(</span><span class="n">tm</span><span class="p">),</span> <span class="n">TII</span><span class="p">(</span><span class="n">tm</span><span class="p">.</span><span class="n">getInstrInfo</span><span class="p">())</span> <span class="p">{</span> <span class="p">}</span>
-
-    <span class="k">virtual</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">getPassName</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="s">&quot;Cpu0 Del Useless jmp&quot;</span><span class="p">;</span>
-    <span class="p">}</span>
-
-    <span class="kt">bool</span> <span class="n">runOnMachineBasicBlock</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBBN</span><span class="p">);</span>
-    <span class="kt">bool</span> <span class="n">runOnMachineFunction</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">F</span><span class="p">)</span> <span class="p">{</span>
-      <span class="kt">bool</span> <span class="n">Changed</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
-      <span class="k">if</span> <span class="p">(</span><span class="n">EnableDelJmp</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">MachineFunction</span><span class="o">::</span><span class="n">iterator</span> <span class="n">FJ</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">FJ</span> <span class="o">!=</span> <span class="n">F</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
-          <span class="n">FJ</span><span class="o">++</span><span class="p">;</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">FJ</span> <span class="o">==</span> <span class="n">F</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
-          <span class="k">return</span> <span class="n">Changed</span><span class="p">;</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">MachineFunction</span><span class="o">::</span><span class="n">iterator</span> <span class="n">FI</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">FE</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
-             <span class="n">FJ</span> <span class="o">!=</span> <span class="n">FE</span><span class="p">;</span> <span class="o">++</span><span class="n">FI</span><span class="p">,</span> <span class="o">++</span><span class="n">FJ</span><span class="p">)</span>
-          <span class="c1">// In STL style, F.end() is the dummy BasicBlock() like &#39;\0&#39; in</span>
-          <span class="c1">//  C string.</span>
-          <span class="c1">// FJ is the next BasicBlock of FI; When FI range from F.begin() to</span>
-          <span class="c1">//  the PreviousBasicBlock of F.end() call runOnMachineBasicBlock().</span>
-          <span class="n">Changed</span> <span class="o">|=</span> <span class="n">runOnMachineBasicBlock</span><span class="p">(</span><span class="o">*</span><span class="n">FI</span><span class="p">,</span> <span class="o">*</span><span class="n">FJ</span><span class="p">);</span>
-      <span class="p">}</span>
-      <span class="k">return</span> <span class="n">Changed</span><span class="p">;</span>
-    <span class="p">}</span>
-
-  <span class="p">};</span>
-  <span class="kt">char</span> <span class="n">DelJmp</span><span class="o">::</span><span class="n">ID</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span> <span class="c1">// end of anonymous namespace</span>
-
-<span class="c1">/// runOnMachineBasicBlock - Fill in delay slots for the given basic block.</span>
-<span class="c1">/// We assume there is only one delay slot per delayed instruction.</span>
-<span class="kt">bool</span> <span class="n">DelJmp</span><span class="o">::</span>
-<span class="n">runOnMachineBasicBlock</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBBN</span><span class="p">)</span> <span class="p">{</span>
-  <span class="kt">bool</span> <span class="n">Changed</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
-
-  <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span> <span class="o">=</span> <span class="n">MBB</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
-  <span class="n">I</span><span class="o">--</span><span class="p">;</span>        <span class="c1">// set I to the last instruction</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">I</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">()</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JMP</span> <span class="o">&amp;&amp;</span> <span class="n">I</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">getMBB</span><span class="p">()</span> <span class="o">==</span> <span class="o">&amp;</span><span class="n">MBBN</span><span class="p">)</span> <span class="p">{</span>
-    <span class="c1">// I is the instruction of &quot;jmp #offset=0&quot;, as follows,</span>
-    <span class="c1">//     jmp        $BB0_3</span>
-    <span class="c1">// $BB0_3:</span>
-    <span class="c1">//     ld $4, 28($sp)</span>
-    <span class="o">++</span><span class="n">NumDelJmp</span><span class="p">;</span>
-    <span class="n">MBB</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">I</span><span class="p">);</span>     <span class="c1">// delete the &quot;JMP 0&quot; instruction</span>
-    <span class="n">Changed</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>   <span class="c1">// Notify LLVM kernel Changed</span>
-  <span class="p">}</span>
-  <span class="k">return</span> <span class="n">Changed</span><span class="p">;</span>
-
-<span class="p">}</span>
-
-<span class="c1">/// createCpu0DelJmpPass - Returns a pass that DelJmp in Cpu0 MachineFunctions</span>
-<span class="n">FunctionPass</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0DelJmpPass</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">tm</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="k">new</span> <span class="n">DelJmp</span><span class="p">(</span><span class="n">tm</span><span class="p">);</span>
-<span class="p">}</span>
 </pre></div>
 </div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0DelUselessJMP.cpp</p>
 <p>As above code, except Cpu0DelUselessJMP.cpp, other files changed for register
 class DelJmp as a functional pass. As comment of above code, MBB is the current
 block and MBBN is the next block. For the last instruction of every MBB, we
@@ -201,30 +112,8 @@ its Operand is the next basic block.
 By getMBB() in MachineOperand, you can get the MBB address.
 For the member function of MachineOperand, please check
 include/llvm/CodeGen/MachineOperand.h
-Let&#8217;s run 11/1/Cpu0 with ch11_2.cpp to explain it easier.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch11_2.cpp</span>
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">a</span><span class="o">++</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
-  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="o">--</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">c</span><span class="o">++</span><span class="p">;</span>
-  <span class="p">}</span>
-
-  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+Let&#8217;s run Chapter11_1/ with ch11_1.cpp to explain it easier.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch11_1.cpp</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>clang -c ch11_1.cpp -emit-llvm -o ch11_1.bc
 118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>clang -target <span class="sb">`</span>llvm-config --host-target<span class="sb">`</span>
 -c ch11_1.cpp -emit-llvm -o ch11_1.bc
@@ -675,232 +564,227 @@ of $2 and fill the low 16 bits of $2 to 0x0000.</p>
 </div>
 <div class="section" id="cpu0-code-changes">
 <h3>Cpu0 code changes<a class="headerlink" href="#cpu0-code-changes" title="Permalink to this headline">¶</a></h3>
-<p>11/2/Cpu0 include the changes for new instruction sets as follows,</p>
-<div class="highlight-c++"><pre>// Cpu0AsmParser.cpp
-void Cpu0AsmParser::expandLoadImm(MCInst &amp;Inst, SMLoc IDLoc,
-                                  SmallVectorImpl&lt;MCInst&gt; &amp;Instructions){
-  MCInst tmpInst;
-  const MCOperand &amp;ImmOp = Inst.getOperand(1);
-  assert(ImmOp.isImm() &amp;&amp; "expected immediate operand kind");
-  const MCOperand &amp;RegOp = Inst.getOperand(0);
-  assert(RegOp.isReg() &amp;&amp; "expected register operand kind");
+<p>Chapter11_2/ include the changes for new instruction sets as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/AsmParser/Cpu0AsmParser.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0AsmParser.cpp</span>
+<span class="kt">void</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">expandLoadImm</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span>
+                                  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Instructions</span><span class="p">){</span>
+  <span class="n">MCInst</span> <span class="n">tmpInst</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">ImmOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">ImmOp</span><span class="p">.</span><span class="n">isImm</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected immediate operand kind&quot;</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">RegOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">isReg</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected register operand kind&quot;</span><span class="p">);</span>
 
-  int ImmValue = ImmOp.getImm();
-  tmpInst.setLoc(IDLoc);
-  if ( 0 &lt;= ImmValue &amp;&amp; ImmValue &lt;= 65535) {
-    // for 0 &lt;= j &lt;= 65535.
-    // li d,j =&gt; ori d,$zero,j
-    tmpInst.setOpcode(Cpu0::ORi);
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(
-              MCOperand::CreateReg(Cpu0::ZERO));
-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
-    Instructions.push_back(tmpInst);
-  } else if ( ImmValue &lt; 0 &amp;&amp; ImmValue &gt;= -32768) {
-    // for -32768 &lt;= j &lt; 0.
-    // li d,j =&gt; addiu d,$zero,j
-    tmpInst.setOpcode(Cpu0::ADDiu); //TODO:no ADDiu64 in td files?
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(
-              MCOperand::CreateReg(Cpu0::ZERO));
-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
-    Instructions.push_back(tmpInst);
-  } else {
-    // for any other value of j that is representable as a 32-bit integer.
-    // li d,j =&gt; lui d,hi16(j)
-    //           ori d,d,lo16(j)
-    tmpInst.setOpcode(Cpu0::LUi);
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateImm((ImmValue &amp; 0xffff0000) &gt;&gt; 16));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::ORi);
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue &amp; 0xffff));
-    tmpInst.setLoc(IDLoc);
-    Instructions.push_back(tmpInst);
-  }
-}
+  <span class="kt">int</span> <span class="n">ImmValue</span> <span class="o">=</span> <span class="n">ImmOp</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+  <span class="n">tmpInst</span><span class="p">.</span><span class="n">setLoc</span><span class="p">(</span><span class="n">IDLoc</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">ImmValue</span> <span class="o">&amp;&amp;</span> <span class="n">ImmValue</span> <span class="o">&lt;=</span> <span class="mi">65535</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// for 0 &lt;= j &lt;= 65535.</span>
+    <span class="c1">// li d,j =&gt; ori d,$zero,j</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ORi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span>
+              <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span> <span class="n">ImmValue</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">ImmValue</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mi">32768</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// for -32768 &lt;= j &lt; 0.</span>
+    <span class="c1">// li d,j =&gt; addiu d,$zero,j</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">);</span> <span class="c1">//TODO:no ADDiu64 in td files?</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span>
+              <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="c1">// for any other value of j that is representable as a 32-bit integer.</span>
+    <span class="c1">// li d,j =&gt; lui d,hi16(j)</span>
+    <span class="c1">//           ori d,d,lo16(j)</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">((</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff0000</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ORi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setLoc</span><span class="p">(</span><span class="n">IDLoc</span><span class="p">);</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
 
-void Cpu0AsmParser::expandLoadAddressReg(MCInst &amp;Inst, SMLoc IDLoc,
-                                         SmallVectorImpl&lt;MCInst&gt; &amp;Instructions){
-  MCInst tmpInst;
-  const MCOperand &amp;ImmOp = Inst.getOperand(2);
-  assert(ImmOp.isImm() &amp;&amp; "expected immediate operand kind");
-  const MCOperand &amp;SrcRegOp = Inst.getOperand(1);
-  assert(SrcRegOp.isReg() &amp;&amp; "expected register operand kind");
-  const MCOperand &amp;DstRegOp = Inst.getOperand(0);
-  assert(DstRegOp.isReg() &amp;&amp; "expected register operand kind");
-  int ImmValue = ImmOp.getImm();
-  if ( -32768 &lt;= ImmValue &amp;&amp; ImmValue &lt;= 32767) {
-    // for -32768 &lt;= j &lt; 32767.
-    //la d,j(s) =&gt; addiu d,s,j
-    tmpInst.setOpcode(Cpu0::ADDiu); //TODO:no ADDiu64 in td files?
-    tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
-    Instructions.push_back(tmpInst);
-  } else {
-    // for any other value of j that is representable as a 32-bit integer.
-    // la d,j(s) =&gt; lui d,hi16(j)
-    //              ori d,d,lo16(j)
-    //              add d,d,s
-    tmpInst.setOpcode(Cpu0::LUi);
-    tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateImm((ImmValue &amp; 0xffff0000) &gt;&gt; 16));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::ORi);
-    tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue &amp; 0xffff));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::ADD);
-    tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
-    Instructions.push_back(tmpInst);
-  }
-}
+<span class="kt">void</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">expandLoadAddressReg</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span>
+                                         <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Instructions</span><span class="p">){</span>
+  <span class="n">MCInst</span> <span class="n">tmpInst</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">ImmOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">ImmOp</span><span class="p">.</span><span class="n">isImm</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected immediate operand kind&quot;</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">SrcRegOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">SrcRegOp</span><span class="p">.</span><span class="n">isReg</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected register operand kind&quot;</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">DstRegOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">isReg</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected register operand kind&quot;</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="n">ImmValue</span> <span class="o">=</span> <span class="n">ImmOp</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="o">-</span><span class="mi">32768</span> <span class="o">&lt;=</span> <span class="n">ImmValue</span> <span class="o">&amp;&amp;</span> <span class="n">ImmValue</span> <span class="o">&lt;=</span> <span class="mi">32767</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// for -32768 &lt;= j &lt; 32767.</span>
+    <span class="c1">//la d,j(s) =&gt; addiu d,s,j</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">);</span> <span class="c1">//TODO:no ADDiu64 in td files?</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">SrcRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="c1">// for any other value of j that is representable as a 32-bit integer.</span>
+    <span class="c1">// la d,j(s) =&gt; lui d,hi16(j)</span>
+    <span class="c1">//              ori d,d,lo16(j)</span>
+    <span class="c1">//              add d,d,s</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">((</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff0000</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ORi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">SrcRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
 
-void Cpu0AsmParser::expandLoadAddressImm(MCInst &amp;Inst, SMLoc IDLoc,
-                                         SmallVectorImpl&lt;MCInst&gt; &amp;Instructions){
-  MCInst tmpInst;
-  const MCOperand &amp;ImmOp = Inst.getOperand(1);
-  assert(ImmOp.isImm() &amp;&amp; "expected immediate operand kind");
-  const MCOperand &amp;RegOp = Inst.getOperand(0);
-  assert(RegOp.isReg() &amp;&amp; "expected register operand kind");
-  int ImmValue = ImmOp.getImm();
-  if ( -32768 &lt;= ImmValue &amp;&amp; ImmValue &lt;= 32767) {
-    // for -32768 &lt;= j &lt; 32767.
-    //la d,j =&gt; addiu d,$zero,j
-    tmpInst.setOpcode(Cpu0::ADDiu);
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(
-              MCOperand::CreateReg(Cpu0::ZERO));
-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
-    Instructions.push_back(tmpInst);
-  } else {
-    // for any other value of j that is representable as a 32-bit integer.
-    // la d,j =&gt; lui d,hi16(j)
-    //           ori d,d,lo16(j)
-    tmpInst.setOpcode(Cpu0::LUi);
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateImm((ImmValue &amp; 0xffff0000) &gt;&gt; 16));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::ORi);
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue &amp; 0xffff));
-    Instructions.push_back(tmpInst);
-  }
-}
+<span class="kt">void</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">expandLoadAddressImm</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span>
+                                         <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Instructions</span><span class="p">){</span>
+  <span class="n">MCInst</span> <span class="n">tmpInst</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">ImmOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">ImmOp</span><span class="p">.</span><span class="n">isImm</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected immediate operand kind&quot;</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">RegOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">isReg</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected register operand kind&quot;</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="n">ImmValue</span> <span class="o">=</span> <span class="n">ImmOp</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="o">-</span><span class="mi">32768</span> <span class="o">&lt;=</span> <span class="n">ImmValue</span> <span class="o">&amp;&amp;</span> <span class="n">ImmValue</span> <span class="o">&lt;=</span> <span class="mi">32767</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// for -32768 &lt;= j &lt; 32767.</span>
+    <span class="c1">//la d,j =&gt; addiu d,$zero,j</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span>
+              <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="c1">// for any other value of j that is representable as a 32-bit integer.</span>
+    <span class="c1">// la d,j =&gt; lui d,hi16(j)</span>
+    <span class="c1">//           ori d,d,lo16(j)</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">((</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff0000</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ORi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
 
-int Cpu0AsmParser::matchRegisterName(StringRef Name) {
-  ...
-      .Case("t0",  Cpu0::T0)
-  ...
-}
+<span class="kt">int</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">matchRegisterName</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">Name</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;t0&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">T0</span><span class="p">)</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/Disassembler/Cpu0Disassembler.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Decoder tables for Cpu0 register</span>
+<span class="k">static</span> <span class="k">const</span> <span class="kt">unsigned</span> <span class="n">CPURegsTable</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+<span class="c1">// Change SW to T0 which is a caller saved</span>
+  <span class="n">Cpu0</span><span class="o">::</span><span class="n">T0</span><span class="p">,</span> <span class="p">...</span>
+<span class="p">};</span>
 
-// Cpu0Disassembler.cpp
-// Decoder tables for Cpu0 register
-static const unsigned CPURegsTable[] = {
-// Change SW to T0 which is a caller saved
-  Cpu0::T0, ...
-};
+<span class="c1">// DecodeCMPInstruction() function is removed since No CMP instruction.</span>
+<span class="p">...</span>
 
-// DecodeCMPInstruction() function is removed since No CMP instruction.
-/*static DecodeStatus DecodeCMPInstruction(MCInst &amp;Inst,
-                                       unsigned Insn,
-                                       uint64_t Address,
-                                       const void *Decoder) {
-  int Reg_a = (int)fieldFromInstruction(Insn, 20, 4);
-  int Reg_b = (int)fieldFromInstruction(Insn, 16, 4);
-  int Reg_c = (int)fieldFromInstruction(Insn, 12, 4);
-
-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_c]));
-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_a]));
-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_b]));
-  return MCDisassembler::Success;
-}*/
-
-// Change DecodeBranchTarget() to following for 16 bit offset
-static DecodeStatus DecodeBranchTarget(MCInst &amp;Inst,
-                                       unsigned Insn,
-                                       uint64_t Address,
-                                       const void *Decoder) {
-  int BranchOffset = fieldFromInstruction(Insn, 0, 16);
-  if (BranchOffset &gt; 0x8fff)
-      BranchOffset = -1*(0x10000 - BranchOffset);
-  Inst.addOperand(MCOperand::CreateImm(BranchOffset));
-  return MCDisassembler::Success;
-}
-
-// Cpu0AsmBackend.cpp
-static unsigned adjustFixupValue(unsigned Kind, uint64_t Value) {
-...
-  // Add/subtract and shift
-  switch (Kind) {
-  ...
-  case Cpu0::fixup_Cpu0_PC16:
-  case Cpu0::fixup_Cpu0_PC24:
-    // So far we are only using this type for branches.
-    // For branches we start 1 instruction after the branch
-    // so the displacement will be one instruction size less.
-    Value -= 4;
-    break;
-  ...
-}
-...
-  const MCFixupKindInfo &amp;getFixupKindInfo(MCFixupKind Kind) const {
-    const static MCFixupKindInfo Infos[Cpu0::NumTargetFixupKinds] = {
-      // This table *must* be in same the order of fixup_* kinds in
-      // Cpu0FixupKinds.h.
-      //
-      // name                    offset  bits  flags
-      ...
-      { "fixup_Cpu0_PC16",         0,     16,  MCFixupKindInfo::FKF_IsPCRel },
-...
-
-// Cpu0BaseInfo.h
-inline static unsigned getCpu0RegisterNumbering(unsigned RegEnum)
-{
-  switch (RegEnum) {
-  ...
-  case Cpu0::T0:
-  ...
-  }
-}
-
-// Cpu0FixupKinds.h
-  enum Fixups {
-    ...
-    // PC relative branch fixup resulting in - R_CPU0_PC16.
-    // cpu0 PC16, e.g. beq
-    fixup_Cpu0_PC16,
-    ...
-  };
-
-// Cpu0 MC CodeEmitter.cpp
-unsigned Cpu0MCCodeEmitter::
-getBranchTargetOpValue(const MCInst &amp;MI, unsigned OpNo,
-                       SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups) const {
-  ...
-  Fixups.push_back(MCFixup::Create(0, Expr,
-                                   MCFixupKind(Cpu0::fixup_Cpu0_PC16)));
-  return 0;
-}
-
-// Cpu0InstrInfo.cpp
-// Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
+<span class="c1">// Change DecodeBranchTarget() to following for 16 bit offset</span>
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeBranchTarget</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                       <span class="kt">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
+                                       <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                       <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">BranchOffset</span> <span class="o">=</span> <span class="n">fieldFromInstruction</span><span class="p">(</span><span class="n">Insn</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">16</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">BranchOffset</span> <span class="o">&gt;</span> <span class="mh">0x8fff</span><span class="p">)</span>
+      <span class="n">BranchOffset</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="mh">0x10000</span> <span class="o">-</span> <span class="n">BranchOffset</span><span class="p">);</span>
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">BranchOffset</span><span class="p">));</span>
+  <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Success</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">unsigned</span> <span class="n">adjustFixupValue</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Kind</span><span class="p">,</span> <span class="n">uint64_t</span> <span class="n">Value</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// Add/subtract and shift</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">fixup_Cpu0_PC16:</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">fixup_Cpu0_PC24:</span>
+    <span class="c1">// So far we are only using this type for branches.</span>
+    <span class="c1">// For branches we start 1 instruction after the branch</span>
+    <span class="c1">// so the displacement will be one instruction size less.</span>
+    <span class="n">Value</span> <span class="o">-=</span> <span class="mi">4</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+<span class="p">...</span>
+  <span class="k">const</span> <span class="n">MCFixupKindInfo</span> <span class="o">&amp;</span><span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">MCFixupKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="k">const</span> <span class="k">static</span> <span class="n">MCFixupKindInfo</span> <span class="n">Infos</span><span class="p">[</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">NumTargetFixupKinds</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="c1">// This table *must* be in same the order of fixup_* kinds in</span>
+      <span class="c1">// Cpu0FixupKinds.h.</span>
+      <span class="c1">//</span>
+      <span class="c1">// name                    offset  bits  flags</span>
+      <span class="p">...</span>
+      <span class="p">{</span> <span class="s">&quot;fixup_Cpu0_PC16&quot;</span><span class="p">,</span>         <span class="mi">0</span><span class="p">,</span>     <span class="mi">16</span><span class="p">,</span>  <span class="n">MCFixupKindInfo</span><span class="o">::</span><span class="n">FKF_IsPCRel</span> <span class="p">},</span>
+<span class="p">...</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0BaseInfo.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kr">inline</span> <span class="k">static</span> <span class="kt">unsigned</span> <span class="n">getCpu0RegisterNumbering</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">RegEnum</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">RegEnum</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">T0:</span>
+  <span class="p">...</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0FixupKinds.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">enum</span> <span class="n">Fixups</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// PC relative branch fixup resulting in - R_CPU0_PC16.</span>
+  <span class="c1">// cpu0 PC16, e.g. beq</span>
+  <span class="n">fixup_Cpu0_PC16</span><span class="p">,</span>
+  <span class="p">...</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
+<span class="n">getBranchTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+                       <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">Fixups</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MCFixup</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span>
+                                   <span class="n">MCFixupKind</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_PC16</span><span class="p">)));</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><pre>// Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
 def immLow16Zero : PatLeaf&lt;(imm), [{
   int64_t Val = N-&gt;getSExtValue();
   return isInt&lt;32&gt;(Val) &amp;&amp; !(Val &amp; 0xffff);
 }]&gt;;
-
+...
 class ArithOverflowR&lt;bits&lt;8&gt; op, string instr_asm,
                     InstrItinClass itin, RegisterClass RC, bit isComm = 0&gt;:
   FA&lt;op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
@@ -918,7 +802,7 @@ class CBranch&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op, RegisterCl
   let hasDelaySlot = 1;
   let Defs = [AT];
 }
-
+...
 // SetCC
 class SetCC_R&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op,
               RegisterClass RC&gt;:
@@ -935,6 +819,7 @@ class SetCC_I&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op, Operand Od
      !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
      [(set CPURegs:$ra, (cond_op RC:$rb, imm_type:$imm16))],
      IIAlu&gt;;
+...
 /// Load and Store Instructions
 ///  aligned
 defm LD     : LoadM32&lt;0x01,  "ld",  load_a&gt;;
@@ -972,15 +857,7 @@ def MTLO    : MoveToLOHI&lt;0x25, "mtlo", CPURegs, [LO]&gt;;
 
 def MULT    : Mult32&lt;0x26, "mult", IIImul&gt;;
 def MULTu   : Mult32&lt;0x27, "multu", IIImul&gt;;
-
-/// Shift Instructions
-// work, sra for ashr llvm IR instruction
-def SRA     : shift_rotate_imm32&lt;0x1B, 0x00, "sra", sra&gt;;
-def ROL     : shift_rotate_imm32&lt;0x1C, 0x01, "rol", rotl&gt;;
-def ROR     : shift_rotate_imm32&lt;0x1D, 0x01, "ror", rotr&gt;;
-def SHL     : shift_rotate_imm32&lt;0x1E, 0x00, "shl", shl&gt;;
-// work, srl for lshr llvm IR instruction
-def SHR     : shift_rotate_imm32&lt;0x1F, 0x00, "shr", srl&gt;;
+...
 
 /// Jump and Branch Instructions
 def BEQ     : CBranch&lt;0x27, "beq", seteq, CPURegs&gt;;
@@ -1018,8 +895,7 @@ def LEA_ADDiu : EffectiveAddress&lt;"addiu\t$ra, $addr", CPURegs, mem_ea&gt; {
 //===----------------------------------------------------------------------===//
 
 // Small immediates
-def : Pat&lt;(i32 immSExt16:$in),
-          (ADDiu ZERO, imm:$in)&gt;;
+...
 def : Pat&lt;(i32 immZExt16:$in),
           (ORi ZERO, imm:$in)&gt;;
 def : Pat&lt;(i32 immLow16Zero:$in),
@@ -1028,21 +904,10 @@ def : Pat&lt;(i32 immLow16Zero:$in),
 // Arbitrary immediates
 def : Pat&lt;(i32 imm:$imm),
           (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))&gt;;
-
-def : Pat&lt;(Cpu0JmpLink (i32 tglobaladdr:$dst)),
-          (JSUB tglobaladdr:$dst)&gt;;
-
-// hi/lo relocs
-def : Pat&lt;(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)&gt;;
-def : Pat&lt;(Cpu0Lo tglobaladdr:$in), (ADDiu ZERO, tglobaladdr:$in)&gt;;
-
-def : Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
-          (ADDiu CPURegs:$hi, tglobaladdr:$lo)&gt;;
+...
 
 // gp_rel relocs
-def : Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
-          (ADDiu CPURegs:$gp, tglobaladdr:$in)&gt;;
-
+...
 def : Pat&lt;(not CPURegs:$in),
           (XORi CPURegs:$in, 1)&gt;;
 
@@ -1118,479 +983,65 @@ defm : SeteqPats&lt;CPURegs, SLTiu, XOR, SLTu, ZERO&gt;;
 defm : SetlePats&lt;CPURegs, SLT, SLTu&gt;;
 defm : SetgtPats&lt;CPURegs, SLT, SLTu&gt;;
 defm : SetgePats&lt;CPURegs, SLT, SLTu&gt;;
-defm : SetgeImmPats&lt;CPURegs, SLTi, SLTiu&gt;;
+defm : SetgeImmPats&lt;CPURegs, SLTi, SLTiu&gt;;</pre>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0MCInstLower.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="o">/</span> <span class="n">Lower</span> <span class="s">&quot;.cpload $reg&quot;</span> <span class="n">to</span>
+<span class="c1">//  &quot;lui   $gp, %hi(_gp_disp)&quot;</span>
+<span class="c1">//  &quot;addiu $gp, $gp, %lo(_gp_disp)&quot;</span>
+<span class="c1">//  &quot;addu  $gp, $gp, $t9&quot;</span>
+<span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerCPLOAD</span><span class="p">(</span><span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;&amp;</span> <span class="n">MCInsts</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">MCInsts</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
 
-// Cpu0MCInstLower.cpp
-/ Lower ".cpload $reg" to
-//  "lui   $gp, %hi(_gp_disp)"
-//  "addiu $gp, $gp, %lo(_gp_disp)"
-//  "addu  $gp, $gp, $t9"
-void Cpu0MCInstLower::LowerCPLOAD(SmallVector&lt;MCInst, 4&gt;&amp; MCInsts) {
-  ...
-  MCInsts.resize(3);
+  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">ZEROReg</span><span class="p">,</span> <span class="n">SymHi</span><span class="p">);</span>
+  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">SymLo</span><span class="p">);</span>
+  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">T9Reg</span><span class="p">);</span>
+  <span class="p">...</span>
+<span class="p">}</span>
 
-  CreateMCInst(MCInsts[0], Cpu0::LUi, GPReg, ZEROReg, SymHi);
-  CreateMCInst(MCInsts[1], Cpu0::ADDiu, GPReg, GPReg, SymLo);
-  CreateMCInst(MCInsts[2], Cpu0::ADD, GPReg, GPReg, T9Reg);
-  ...
-}
+<span class="c1">// Lower &quot;.cprestore offset&quot; to &quot;st $gp, offset($sp)&quot;.</span>
+<span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerCPRESTORE</span><span class="p">(</span><span class="n">int64_t</span> <span class="n">Offset</span><span class="p">,</span>
+                                     <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;&amp;</span> <span class="n">MCInsts</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="c1">// lui   at,hi</span>
+    <span class="c1">// add   at,at,sp</span>
+    <span class="n">MCInsts</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+    <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">ZEROReg</span><span class="p">,</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">Hi</span><span class="p">));</span>
+    <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">SPReg</span><span class="p">);</span>
+  <span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0RegisterInfo.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span> <span class="n">in</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">def</span> <span class="n">T0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">12</span><span class="p">,</span> <span class="s">&quot;t0&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="p">...</span>
+<span class="p">}</span>
 
-// Lower ".cprestore offset" to "st $gp, offset($sp)".
-void Cpu0MCInstLower::LowerCPRESTORE(int64_t Offset,
-                                     SmallVector&lt;MCInst, 4&gt;&amp; MCInsts) {
-    ...
-    // lui   at,hi
-    // add   at,at,sp
-    MCInsts.resize(2);
-    CreateMCInst(MCInsts[0], Cpu0::LUi, ATReg, ZEROReg, MCOperand::CreateImm(Hi));
-    CreateMCInst(MCInsts[1], Cpu0::ADD, ATReg, ATReg, SPReg);
-  }
+<span class="n">def</span> <span class="n">CPURegs</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span>
+  <span class="n">T0</span><span class="p">,</span>
+  <span class="c1">// Reserved</span>
+  <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
 
-
-// Cpu0RegisterInfo.cpp
-let Namespace = "Cpu0" in {
-  ...
-  def T0   : Cpu0GPRReg&lt; 12, "t0"&gt;,   DwarfRegNum&lt;[12]&gt;;
-  ...
-}
-
-def CPURegs : RegisterClass&lt;"Cpu0", [i32], 32, (add
-  T0,
-  // Reserved
-  SP, LR, PC)&gt;;
-
-// Remove SR RegisterClass since no SW in General register
-// Status Registers
-/* def SR   : RegisterClass&lt;"Cpu0", [i32], 32, (add SW)&gt;;*/</pre>
+<span class="c1">// Remove SR RegisterClass since no SW in General register</span>
+<span class="c1">// Status Registers</span>
+<span class="cm">/* def SR   : RegisterClass&lt;&quot;Cpu0&quot;, [i32], 32, (add SW)&gt;;*/</span>
+</pre></div>
 </div>
 <p>As modified from above, it remove the CMP instruction, SW register and
-related code from 11/1/Cpu0, and change from JEQ 24bits offset to BEQ 16 bits
+related code from Chapter11_1/, and change from JEQ 24bits offset to BEQ 16 bits
 offset. And more, replace &#8220;ADDiu, SHL 16&#8221; with the efficient LUi instruction.</p>
 </div>
 <div class="section" id="cpu0-verilog-language-changes">
 <h3>Cpu0 Verilog language changes<a class="headerlink" href="#cpu0-verilog-language-changes" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-c++"><pre>`define MEMSIZE 'h7000
-`define MEMEMPTY 8'hFF
-`define IOADDR  'h7000
-
-// Operand width
-`define INT32 2'b11     // 32 bits
-`define INT24 2'b10     // 24 bits
-`define INT16 2'b01     // 16 bits
-`define BYTE  2'b00     // 8  bits
-
-// Reference web: http://ccckmit.wikidot.com/ocs:cpu0
-module cpu0(input clock, reset, output reg [2:0] tick,
-            output reg [31:0] ir, pc, mar, mdr, inout [31:0] dbus,
-            output reg m_en, m_rw, output reg [1:0] m_size);
-  reg signed [31:0] R [0:15], HI, LO, SW;
-  // HI, LO: High and Low part of 64 bit result
-  // SW: Status Word
-  reg [7:0] op;
-  reg [3:0] a, b, c;
-  reg [4:0] c5;
-  reg signed [31:0] c12, c16, uc16, c24, Ra, Rb, Rc, pc0; // pc0 : instruction pc
-
-  // register name
-  `define PC   R[15]   // Program Counter
-  `define LR   R[14]   // Link Register
-  `define SP   R[13]   // Stack Pointer
-  // SW Flage
-  `define N    SW[31] // Negative flag
-  `define Z    SW[30] // Zero
-  `define C    SW[29] // Carry
-  `define V    SW[28] // Overflow
-  `define I    SW[7]  // Hardware Interrupt Enable
-  `define T    SW[6]  // Software Interrupt Enable
-  `define M    SW[0]  // Mode bit
-  // Instruction Opcode
-  parameter [7:0] LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,LH=8'h06,
-  LHu=8'h07,SH=8'h08,ADDiu=8'h09,SLTi=8'h0A,SLTiu=8'h0B,ANDi=8'h0C,ORi=8'h0D,
-  XORi=8'h0E,LUi=8'h0F,
-  ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,MUL=8'h15,DIV=8'h16,DIVu=8'h17,
-  AND=8'h18,OR=8'h19,XOR=8'h1A,
-  SRA=8'h1B,ROL=8'h1C,ROR=8'h1D,SHL=8'h1E,SHR=8'h1F,
-  SLT=8'h20,SLTu=8'h21,
-  MFHI=8'h22,MFLO=8'h23,MTHI=8'h24,MTLO=8'h25,MULT=8'h26,MULTu=8'h27,
-  JMP=8'h26,BEQ=8'h27,BNE=8'h28,
-  SWI=8'h2A,JSUB=8'h2B,RET=8'h2C,IRET=8'h2D,JALR=8'h2E;
-
-  reg [2:0] state, next_state;
-  parameter Reset=3'h0, Fetch=3'h1, Decode=3'h2, Execute=3'h3, WriteBack=3'h4;
-
-  task memReadStart(input [31:0] addr, input [1:0] size); begin // Read Memory Word
-    mar = addr;     // read(m[addr])
-    m_rw = 1;     // Access Mode: read
-    m_en = 1;     // Enable read
-    m_size = size;
-  end endtask
-
-  task memReadEnd(output [31:0] data); begin // Read Memory Finish, get data
-    mdr = dbus; // get momory, dbus = m[addr]
-    data = mdr; // return to data
-    m_en = 0; // read complete
-  end endtask
-
-  // Write memory -- addr: address to write, data: date to write
-  task memWriteStart(input [31:0] addr, input [31:0] data, input [1:0] size); begin
-    mar = addr;    // write(m[addr], data)
-    mdr = data;
-    m_rw = 0;    // access mode: write
-    m_en = 1;     // Enable write
-    m_size  = size;
-  end endtask
-
-  task memWriteEnd; begin // Write Memory Finish
-    m_en = 0; // write complete
-  end endtask
-
-  task regSet(input [3:0] i, input [31:0] data); begin
-    if (i!=0) R[i] = data;
-  end endtask
-
-  task regHILOSet(input [31:0] data1, input [31:0] data2); begin
-    HI = data1;
-    LO = data2;
-  end endtask
-
-  always @(posedge clock or posedge reset) begin
-    if (reset) state &lt;= Reset;
-    else state &lt;= next_state;
-  end
-
-  always @(state or reset) begin
-    m_en = 0;
-    case (state)
-    Reset: begin
-      `PC = 0; tick = 0; R[0] = 0; SW = 0; `LR = -1;
-      next_state = reset?Reset:Fetch;
-    end
-    Fetch: begin  // Tick 1 : instruction fetch, throw PC to address bus,
-                  // memory.read(m[PC])
-      memReadStart(`PC, `INT32);
-      pc0  = `PC;
-      `PC = `PC+4;
-      next_state = Decode;
-    end
-    Decode: begin  // Tick 2 : instruction decode, ir = m[PC]
-      memReadEnd(ir); // IR = dbus = m[PC]
-      {op,a,b,c} = ir[31:12];
-      c24 = $signed(ir[23:0]);
-      c16 = $signed(ir[15:0]);
-      uc16 = ir[15:0];
-      c12 = $signed(ir[11:0]);
-      c5  = ir[4:0];
-      Ra = R[a];
-      Rb = R[b];
-      Rc = R[c];
-      next_state = Execute;
-    end
-    Execute: begin // Tick 3 : instruction execution
-      case (op)
-      // load and store instructions
-      LD:  memReadStart(Rb+c16, `INT32);      // LD Ra,[Rb+Cx]; Ra&lt;=[Rb+Cx]
-      ST:  memWriteStart(Rb+c16, Ra, `INT32); // ST Ra,[Rb+Cx]; Ra=&gt;[Rb+Cx]
-      LB:  memReadStart(Rb+c16, `BYTE);     // LB Ra,[Rb+Cx]; Ra&lt;=(byte)[Rb+Cx]
-      LBu: memReadStart(Rb+c16, `BYTE);     // LBu Ra,[Rb+Cx]; Ra&lt;=(byte)[Rb+Cx]
-      SB:  memWriteStart(Rb+c16, Ra, `BYTE);// SB Ra,[Rb+Cx]; Ra=&gt;(byte)[Rb+Cx]
-      LH:  memReadStart(Rb+c16, `INT16);     // LH Ra,[Rb+Cx]; Ra&lt;=(2bytes)[Rb+Cx]
-      LHu: memReadStart(Rb+c16, `INT16);     // LHu Ra,[Rb+Cx]; Ra&lt;=(2bytes)[Rb+Cx]
-      SH:  memWriteStart(Rb+c16, Ra, `INT16);// SH Ra,[Rb+Cx]; Ra=&gt;(2bytes)[Rb+Cx]
-      // Mathematic
-      ADDiu:  R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra&lt;=Rb+Cx
-//      CMP: begin `N=(Ra-Rb&lt;0);`Z=(Ra-Rb==0); end // CMP Ra, Rb; SW=(Ra &gt;=&lt; Rb)
-      ADDu:  regSet(a, Rb+Rc);               // ADD Ra,Rb,Rc; Ra&lt;=Rb+Rc
-      ADD:   begin regSet(a, Rb+Rc); if (a &lt; Rb) `V = 1; else `V =0; end
-                                             // ADD Ra,Rb,Rc; Ra&lt;=Rb+Rc
-      SUBu:  regSet(a, Rb-Rc);               // SUB Ra,Rb,Rc; Ra&lt;=Rb-Rc
-      SUB:   begin regSet(a, Rb-Rc); if (Rb &lt; 0 &amp;&amp; Rc &gt; 0 &amp;&amp; a &gt;= 0)
-             `V = 1; else `V =0; end         // SUB Ra,Rb,Rc; Ra&lt;=Rb-Rc
-      MUL:   regSet(a, Rb*Rc);               // MUL Ra,Rb,Rc;     Ra&lt;=Rb*Rc
-      DIVu:  regHILOSet(Ra%Rb, Ra/Rb);       // DIV Ra,Rb; HI&lt;=Ra%Rb; LO&lt;=Ra/Rb
-      DIV:   begin regHILOSet(Ra%Rb, Ra/Rb);
-             if ((Ra &lt; 0 &amp;&amp; Rb &lt; 0) || (Ra == 0)) `V = 1;
-             else `V =0; end  // DIVu Ra,Rb; HI&lt;=Ra%Rb; LO&lt;=Ra/Rb; With overflow
-                                           // with exception overflow
-      AND:   regSet(a, Rb&amp;Rc);               // AND Ra,Rb,Rc; Ra&lt;=(Rb and Rc)
-      ANDi:  regSet(a, Rb&amp;uc16);             // AND Ra,Rb,c16; Ra&lt;=(Rb and c16)
-      OR:    regSet(a, Rb|Rc);               // OR Ra,Rb,Rc; Ra&lt;=(Rb or Rc)
-      ORi:   regSet(a, Rb|uc16);             // OR Ra,Rb,c16; Ra&lt;=(Rb or c16)
-      XOR:   regSet(a, Rb^Rc);               // XOR Ra,Rb,Rc; Ra&lt;=(Rb xor Rc)
-      XORi:  regSet(a, Rb^uc16);             // XOR Ra,Rb,c16; Ra&lt;=(Rb xor c16)
-      LUi:   regSet(a, uc16&lt;&lt;16);
-      SHL:   regSet(a, Rb&lt;&lt;c5);     // Shift Left; SHL Ra,Rb,Cx; Ra&lt;=(Rb &lt;&lt; Cx)
-      SRA:   regSet(a, (Rb&amp;'h80000000)|(Rb&gt;&gt;c5));
-                                    // Shift Right with signed bit fill;
-                                    // SHR Ra,Rb,Cx; Ra&lt;=(Rb&amp;0x80000000)|(Rb&gt;&gt;Cx)
-      SHR:   regSet(a, Rb&gt;&gt;c5);     // Shift Right with 0 fill;
-                                    // SHR Ra,Rb,Cx; Ra&lt;=(Rb &gt;&gt; Cx)
-      ROL:   regSet(a, (Rb&lt;&lt;c5)|(Rb&gt;&gt;(32-c5)));     // Rotate Left;
-      ROR:   regSet(a, (Rb&gt;&gt;c5)|(Rb&lt;&lt;(32-c5)));     // Rotate Right;
-      // set
-      SLT:   if (Rb &lt; Rc) R[a]=1; else R[a]=0;
-      SLTu:  if (Rb &lt; Rc) R[a]=1; else R[a]=0;
-      SLTi:  if (Rb &lt; c16) R[a]=1; else R[a]=0;
-      SLTiu: if (Rb &lt; c16) R[a]=1; else R[a]=0;
-      // Branch Instructions
-      BEQ:   if (Ra==Rb) `PC=`PC+c16;
-      BNE:   if (Ra!=Rb) `PC=`PC+c16;
-      MFLO:  regSet(a, LO);            // MFLO Ra; Ra&lt;=LO
-      MFHI:  regSet(a, HI);            // MFHI Ra; Ra&lt;=HI
-      MTLO:  LO = Ra;             // MTLO Ra; LO&lt;=Ra
-      MTHI:  HI = Ra;             // MTHI Ra; HI&lt;=Ra
-      MULT:  {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI&lt;=((Ra*Rb)&gt;&gt;32);
-                            // LO&lt;=((Ra*Rb) and 0x00000000ffffffff);
-                            // with exception overflow
-      MULTu: {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI&lt;=((Ra*Rb)&gt;&gt;32);
-                            // LO&lt;=((Ra*Rb) and 0x00000000ffffffff);
-                            // without exception overflow
-      // Jump Instructions
-      JMP: `PC = `PC+c24;                  // JMP Cx; PC &lt;= PC+Cx
-      SWI: begin
-        `LR=`PC;`PC= c24; `I = 1'b1;
-      end // Software Interrupt; SWI Cx; LR &lt;= PC; PC &lt;= Cx; INT&lt;=1
-      JSUB:begin `LR=`PC;`PC=`PC + c24; end // JSUB Cx; LR&lt;=PC; PC&lt;=PC+Cx
-      JALR:begin `LR=`PC;`PC=Ra; end // JALR Ra,Rb; Ra&lt;=PC; PC&lt;=Rb
-      RET: begin `PC=`LR; end               // RET; PC &lt;= LR
-      IRET:begin
-        `PC=`LR;`I = 1'b0;
-      end // Interrupt Return; IRET; PC &lt;= LR; INT&lt;=0
-      endcase
-      next_state = WriteBack;
-    end
-    WriteBack: begin // Read/Write finish, close memory
-      case (op)
-        LD, LB, LBu, LH, LHu  : memReadEnd(R[a]);
-                                          //read memory complete
-        ST, SB, SH  : memWriteEnd();
-                                          // write memory complete
-      endcase
-      case (op)
-      MULT, MULTu, DIV, DIVu, MTHI, MTLO :
-        $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI,
-        LO, SW);
-      ST :
-        if (R[b]+c16 == 28672)
-          $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);
-        else
-          $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d   SW=%8x", $stime, pc0, ir,
-          R[b], c16, R[a], SW);
-      default :
-        $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a,
-        R[a], R[a], SW);
-      endcase
-      SW = 0; // clear SW
-      if (op==RET &amp;&amp; `PC &lt; 0) begin
-        $display("RET to PC &lt; 0, finished!");
-        $finish;
-      end
-      next_state = Fetch;
-    end
-    endcase
-    pc = `PC;
-  end
-
-endmodule
-
-module memory0(input clock, reset, en, rw, input [1:0] m_size,
-                input [31:0] abus, dbus_in, output [31:0] dbus_out);
-  reg [7:0] m [0:1536];
-  reg [31:0] data;
-
-  integer i;
-  initial begin
-    for (i=0; i &lt; `MEMSIZE; i=i+1) begin
-       m[i] = `MEMEMPTY;
-    end
-    $readmemh("cpu0s.hex", m);
-    for (i=0; i &lt; `MEMSIZE &amp;&amp; m[i] != `MEMEMPTY; i=i+4) begin
-       $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
-    end
-  end
-
-  always @(clock or abus or en or rw or dbus_in)
-  begin
-    if (abus &gt;=0 &amp;&amp; abus &lt;= `MEMSIZE-4) begin
-      if (en == 1 &amp;&amp; rw == 0) begin // r_w==0:write
-        data = dbus_in;
-        case (m_size)
-        `BYTE:  {m[abus]} = dbus_in[7:0];
-        `INT16: {m[abus], m[abus+1] } = dbus_in[15:0];
-        `INT24: {m[abus], m[abus+1], m[abus+2]} = dbus_in[24:0];
-        `INT32: {m[abus], m[abus+1], m[abus+2], m[abus+3]} = dbus_in;
-        endcase
-      end else if (en == 1 &amp;&amp; rw == 1) begin// r_w==1:read
-        case (m_size)
-        `BYTE:  data = {8'h00  , 8'h00,   8'h00,   m[abus]      };
-        `INT16: data = {8'h00  , 8'h00,   m[abus], m[abus+1]    };
-        `INT24: data = {8'h00  , m[abus], m[abus+1], m[abus+2]  };
-        `INT32: data = {m[abus], m[abus+1], m[abus+2], m[abus+3]};
-        endcase
-      end else
-        data = 32'hZZZZZZZZ;
-    end else
-      data = 32'hZZZZZZZZ;
-  end
-  assign dbus_out = data;
-endmodule
-
-module main;
-  reg clock, reset;
-  wire [2:0] tick;
-  wire [31:0] pc, ir, mar, mdr, dbus;
-  wire m_en, m_rw;
-  wire [1:0] m_size;
-
-  cpu0 cpu(.clock(clock), .reset(reset), .pc(pc), .tick(tick), .ir(ir),
-  .mar(mar), .mdr(mdr), .dbus(dbus), .m_en(m_en), .m_rw(m_rw), .m_size(m_size));
-
-  memory0 mem(.clock(clock), .reset(reset), .en(m_en), .rw(m_rw), .m_size(m_size),
-  .abus(mar), .dbus_in(mdr), .dbus_out(dbus));
-
-  initial
-  begin
-    clock = 0;
-    reset = 1;
-    #20 reset = 0;
-    #30000 $finish;
-  end
-
-  always #10 clock=clock+1;
-endmodule</pre>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/cpu0_verilog/redesign/cpu0s.v</p>
 </div>
 <div class="section" id="run-the-redesigned-cpu0">
 <h3>Run the redesigned Cpu0<a class="headerlink" href="#run-the-redesigned-cpu0" title="Permalink to this headline">¶</a></h3>
-<p>Run 11/2/Cpu0 with ch11_2.cpp to get result as below.
+<p>Run Chapter11_2/ with ch11_2.cpp to get result as below.
 It match the expect value as comment in ch11_2.cpp.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch11_2.cpp</span>
-<span class="cp">#include &quot;InitRegs.h&quot;</span>
-
-<span class="cp">#define OUT_MEM 0x7000 </span><span class="c1">// 28672</span>
-
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $zero, 1532&quot;</span><span class="p">);</span>
-
-<span class="kt">void</span> <span class="n">print_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">);</span>
-<span class="kt">int</span> <span class="n">test_operators</span><span class="p">();</span>
-<span class="kt">void</span> <span class="n">test_operators_asm</span><span class="p">();</span>
-<span class="kt">int</span> <span class="n">test_control</span><span class="p">();</span>
-
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_operators</span><span class="p">();</span> <span class="c1">// a = 13</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
-  <span class="n">a</span> <span class="o">+=</span> <span class="n">test_control</span><span class="p">();</span>        <span class="c1">// a = 31</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
-  <span class="n">test_operators_asm</span><span class="p">();</span>
-
-  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="c1">// For memory mapped I/O</span>
-<span class="kt">void</span> <span class="n">print_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">)</span><span class="n">OUT_MEM</span><span class="p">;</span>
-  <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">x</span><span class="p">;</span>
- <span class="k">return</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="kt">int</span> <span class="n">test_operators</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="n">k1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">b1</span> <span class="o">=</span> <span class="mh">0xf0000001</span><span class="p">;</span>
-  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">c1</span> <span class="o">=</span> <span class="mh">0x000fffff</span><span class="p">;</span>
-
-  <span class="n">a1</span> <span class="o">=</span> <span class="n">b1</span> <span class="o">+</span> <span class="n">c1</span><span class="p">;</span>
-  <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
-<span class="c1">//  c = 0x7fff0000 + 0x10000000;</span>
-  <span class="n">d</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">e</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">f</span> <span class="o">=</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="mi">12</span><span class="p">;</span>
-  <span class="n">g</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&amp;</span> <span class="n">b</span><span class="p">);</span>
-  <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">|</span> <span class="n">b</span><span class="p">);</span>
-  <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">^</span> <span class="n">b</span><span class="p">);</span>
-  <span class="n">j</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">k</span><span class="p">);</span>
-  <span class="n">k1</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">k1</span><span class="p">);</span>
-
-  <span class="n">b</span> <span class="o">=</span> <span class="o">!</span><span class="n">a</span><span class="p">;</span>
-  <span class="kt">int</span><span class="o">*</span> <span class="n">p</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">;</span>
-
-  <span class="k">return</span> <span class="n">c</span><span class="p">;</span> <span class="c1">// 13</span>
-<span class="p">}</span>
-
-<span class="kt">void</span> <span class="n">test_operators_asm</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $sp, -12&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;st $2, 8($sp)&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;st $3, 4($sp)&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;st $4, 0($sp)&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $2, 0x7fff&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $3, 0x1000&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addu $4, $2, $3&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $2, 0x7fff&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $3, 0x1000&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;add $4, $2, $3&quot;</span><span class="p">);</span>      <span class="c1">// overflow</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $2, 0x8fff&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $3, 0x7000&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;sub $4, $2, $3&quot;</span><span class="p">);</span>      <span class="c1">// overflow</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $2, 0x0&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $3, $0, -1&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;sub $4, $2, $3&quot;</span><span class="p">);</span>      <span class="c1">// $4=1, no overflow</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $2, -1&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ori $2, $2, 0xffff&quot;</span><span class="p">);</span>  <span class="c1">// $2=0xffffffff=-1</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;andi $2, $2, 0xffff&quot;</span><span class="p">);</span> <span class="c1">// $2=0x0000ffff</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;shl $2, $2, 16&quot;</span><span class="p">);</span>      <span class="c1">// $2=0xffff0000</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;xori $2, $2, 0xffff&quot;</span><span class="p">);</span> <span class="c1">// $2=0xffffffff=-1</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $3, $0, -1&quot;</span><span class="p">);</span>    <span class="c1">// $3=0xffffffff=-1</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;divu $2, $3&quot;</span><span class="p">);</span>         <span class="c1">// HI=0, LO=1</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;div $2, $3&quot;</span><span class="p">);</span>          <span class="c1">// HI=0, LO=1, overflow</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;xori $2, $2, 1&quot;</span><span class="p">);</span>      <span class="c1">// $2 = 0xffffffffe</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;rol $4, $2, 4&quot;</span><span class="p">);</span>               <span class="c1">// $2 = 0xfffffffef</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ror $4, $2, 8&quot;</span><span class="p">);</span>               <span class="c1">// $2 = 0xfefffffff</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld $2, 8($sp)&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld $3, 4($sp)&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld $4, 0($sp)&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $sp, 12&quot;</span><span class="p">);</span>
-<span class="p">}</span>
-
-<span class="kt">int</span> <span class="n">test_control</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">e</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">f</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">b</span><span class="o">++</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">c</span><span class="o">++</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">d</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">d</span><span class="o">++</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">e</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">e</span><span class="o">++</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">f</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">f</span><span class="o">++</span><span class="p">;</span>
-  <span class="p">}</span>
-
-  <span class="k">return</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="n">c</span><span class="o">+</span><span class="n">d</span><span class="o">+</span><span class="n">e</span><span class="o">+</span><span class="n">f</span><span class="p">);</span> <span class="c1">// (2+3+4+4+5)=18</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch11_2.cpp</p>
 <div class="highlight-bash"><pre>118-165-77-203:InputFiles Jonathan$ clang -target `llvm-config --host-target`
 -c ch11_2.cpp -emit-llvm -o ch11_2.bc
 118-165-77-203:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
@@ -2069,7 +1520,9 @@ RET to PC &lt; 0, finished!</pre>
 </div>
 <p>Run with ch7_1_1.cpp, it reduce some branch from pair instructions &#8220;CMP, JXX&#8221;
 to 1 single instruction ether is BEQ or BNE, as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch7_1_1.bc -o ch7_1_1.cpu0.s
+<div class="highlight-bash"><div class="highlight"><pre>118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch7_1_1.bc -o
+ch7_1_1.cpu0.s
 118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1_1.cpu0.s
       .section .mdebug.abi32
       .previous
@@ -2195,6 +1648,8 @@ main:
       .size   main, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-main
 </pre></div>
 </div>
+<p>The ch11_3.cpp is written in assembly for AsmParser test. You can check if it
+will generate the obj.</p>
 </div>
 </div>
 </div>

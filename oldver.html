@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.12',
+        VERSION:     '3.2.13',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -256,7 +256,7 @@ old CPURegsRegisterClass is <strong>&#8220;pointer&#8221;</strong> type. The &#8
 </div>
 <p>2. The TargetData structure has been renamed to DataLayout and moved to VMCore
 to remove a dependency on Target <a class="footnote-reference" href="#id3" id="id1">[1]</a>.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// 3.1</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">// 3.1</span>
 <span class="cp">#include &quot;llvm/Target/TargetData.h&quot;</span>
 <span class="k">class</span> <span class="nc">Cpu0TargetMachine</span> <span class="o">:</span> <span class="k">public</span> <span class="n">LLVMTargetMachine</span> <span class="p">{</span>
   <span class="p">...</span>
@@ -264,7 +264,7 @@ to remove a dependency on Target <a class="footnote-reference" href="#id3" id="i
   <span class="p">...</span>
 <span class="p">}</span>
 
-<span class="c1">// 3.2</span>
+<span class="cp">// 3.2</span>
 <span class="cp">#include &quot;llvm/DataLayout.h&quot;</span>
 <span class="k">class</span> <span class="nc">Cpu0TargetMachine</span> <span class="o">:</span> <span class="k">public</span> <span class="n">LLVMTargetMachine</span> <span class="p">{</span>
   <span class="p">...</span>
@@ -276,10 +276,10 @@ to remove a dependency on Target <a class="footnote-reference" href="#id3" id="i
 <ol class="arabic simple" start="3">
 <li>DebugInfo.h is moved.</li>
 </ol>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// 3.1</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">// 3.1</span>
 <span class="cp">#include &quot;llvm/Analysis/DebugInfo.h</span>
 
-<span class="c1">// 3.2</span>
+<span class="cp">// 3.2</span>
 <span class="cp">#include &quot;llvm/DebugInfo.h</span>
 </pre></div>
 </div>
@@ -297,99 +297,7 @@ Run llvm3.1/Cpu0 with ch_all.cpp will get the assembly code as below.
 By compare it with the output of 3.2 result, you can verify the correction
 as below. The difference came from 3.2 correcting the label number in
 order.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//#include &lt;stdio.h&gt;</span>
-<span class="cp">#include &lt;stdarg.h&gt;</span>
-<span class="cp">#include &lt;stdlib.h&gt;</span>
-
-<span class="kt">int</span> <span class="n">test_operators</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="n">k1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">f1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-
-  <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">d</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">e</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">f</span> <span class="o">=</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">f1</span> <span class="o">=</span> <span class="n">a1</span> <span class="o">/</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">g</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&amp;</span> <span class="n">b</span><span class="p">);</span>
-  <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">|</span> <span class="n">b</span><span class="p">);</span>
-  <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">^</span> <span class="n">b</span><span class="p">);</span>
-  <span class="n">j</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="kt">int</span> <span class="n">j1</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="n">k1</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
-
-  <span class="n">b</span> <span class="o">=</span> <span class="o">!</span><span class="n">a</span><span class="p">;</span>
-  <span class="kt">int</span><span class="o">*</span> <span class="n">p</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">;</span>
-  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="n">a</span><span class="p">;</span>
-  <span class="n">c</span> <span class="o">=</span> <span class="n">rand</span><span class="p">();</span>
-  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="n">c</span><span class="p">;</span>
-
-  <span class="k">return</span> <span class="n">c</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="kt">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
-
-<span class="kt">int</span> <span class="n">test_globalvar</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-
-  <span class="n">c</span> <span class="o">=</span> <span class="n">gI</span><span class="p">;</span>
-
-  <span class="k">return</span> <span class="n">c</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="k">struct</span> <span class="n">Date</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">year</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">month</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">day</span><span class="p">;</span>
-<span class="p">};</span>
-
-<span class="n">Date</span> <span class="n">date</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
-<span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
-
-<span class="kt">int</span> <span class="n">test_struct</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">day</span> <span class="o">=</span> <span class="n">date</span><span class="p">.</span><span class="n">day</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
-
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">T</span><span class="o">&gt;</span>
-<span class="n">T</span> <span class="n">sum</span><span class="p">(</span><span class="n">T</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
-<span class="p">{</span>
-  <span class="n">T</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="n">T</span> <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="n">T</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-
-  <span class="n">va_list</span> <span class="n">vl</span><span class="p">;</span>
-  <span class="n">va_start</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">amount</span><span class="p">);</span>
-  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">amount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-  <span class="p">{</span>
-  <span class="n">val</span> <span class="o">=</span> <span class="n">va_arg</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">T</span><span class="p">);</span>
-  <span class="n">sum</span> <span class="o">+=</span> <span class="n">val</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="n">va_end</span><span class="p">(</span><span class="n">vl</span><span class="p">);</span>
-
-  <span class="k">return</span> <span class="n">sum</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="n">test_operators</span><span class="p">();</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sum</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">);</span>
-<span class="c1">//  printf(&quot;a = %d\n&quot;, a);</span>
-
-  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch_all.cpp</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-60:InputFiles Jonathan<span class="nv">$ </span>diff ch_all.3.1.cpu0.s ch_all.3.2.cpu0.s
 262c262
 &lt;   jge <span class="nv">$BB4_7</span>

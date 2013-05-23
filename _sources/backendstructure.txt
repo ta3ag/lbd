@@ -28,13 +28,14 @@ Cpu0TargetMachine class contains it's own instruction class, frame/stack class,
 DAG (Directed-Acyclic-Graph) class, and register class. 
 The Cpu0TargetMachine contents as follows,
 
+.. rubric:: include/llvm/Target/Cpu0TargetMachine.h
 .. code-block:: c++
 
   //- TargetMachine.h 
   class TargetMachine { 
     TargetMachine(const TargetMachine &) LLVM_DELETED_FUNCTION;
     void operator=(const TargetMachine &) LLVM_DELETED_FUNCTION;
-  
+  ...
   public: 
     // Interfaces to the major aspects of target machine information: 
     // -- Instruction opcode and operand information 
@@ -56,8 +57,7 @@ The Cpu0TargetMachine contents as follows,
     } 
   
   } 
-  
-  //- TargetMachine.h 
+  ...
   class LLVMTargetMachine : public TargetMachine { 
   protected: // Can only create subclasses. 
     LLVMTargetMachine(const Target &T, StringRef TargetTriple, 
@@ -66,41 +66,23 @@ The Cpu0TargetMachine contents as follows,
             CodeGenOpt::Level OL); 
     ... 
   }; 
+
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h
+    :linenos:
+
   
-  class Cpu0TargetMachine : public LLVMTargetMachine { 
-    Cpu0Subtarget       Subtarget; 
-    const DataLayout    DL; // Calculates type size & alignment 
-    Cpu0InstrInfo       InstrInfo;  //- Instructions 
-    Cpu0FrameLowering   FrameLowering;  //- Stack(Frame) and Stack direction 
-    Cpu0TargetLowering  TLInfo; //- Stack(Frame) and Stack direction 
-    Cpu0SelectionDAGInfo TSInfo;  //- Map .bc DAG to backend DAG 
-  public: 
-    virtual const Cpu0InstrInfo   *getInstrInfo()     const 
-    { return &InstrInfo; } 
-    virtual const TargetFrameLowering *getFrameLowering()     const 
-    { return &FrameLowering; } 
-    virtual const Cpu0Subtarget   *getSubtargetImpl() const 
-    { return &Subtarget; } 
-    virtual const DataLayout *getDataLayout()    const
-    { return &DL;}
-     virtual const Cpu0TargetLowering *getTargetLowering() const { 
-    return &TLInfo; 
-    } 
-  
-    virtual const Cpu0SelectionDAGInfo* getSelectionDAGInfo() const { 
-    return &TSInfo; 
-    } 
-  }; 
-  
-  //- TargetInstInfo.h 
+.. rubric:: include/llvm/Target/TargetInstInfo.h
+.. code-block:: c++
+
   class TargetInstrInfo : public MCInstrInfo { 
     TargetInstrInfo(const TargetInstrInfo &) LLVM_DELETED_FUNCTION;
     void operator=(const TargetInstrInfo &) LLVM_DELETED_FUNCTION;
   public: 
     ... 
-  } 
-  
-  //- TargetInstInfo.h 
+  }
+  ...
   class TargetInstrInfoImpl : public TargetInstrInfo { 
   protected: 
     TargetInstrInfoImpl(int CallFrameSetupOpcode = -1, 
@@ -110,6 +92,9 @@ The Cpu0TargetMachine contents as follows,
     ... 
   } 
   
+.. rubric:: cmake_debug_build/lib/Target/Cpu0/Cpu0GenInstInfo.inc
+.. code-block:: c++
+
   //- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td 
   #ifdef GET_INSTRINFO_HEADER 
   #undef GET_INSTRINFO_HEADER 
@@ -190,6 +175,7 @@ Following is the code fragment from Cpu0GenInstrInfo.inc.
 Code between “#if def  GET_INSTRINFO_HEADER” and “#endif // GET_INSTRINFO_HEADER” 
 will be extracted by Cpu0InstrInfo.h.
 
+.. rubric:: cmake_debug_build/lib/Target/Cpu0/Cpu0GenInstInfo.inc
 .. code-block:: c++
 
   //- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td 
@@ -204,30 +190,24 @@ will be extracted by Cpu0InstrInfo.h.
 
 Reference Write An LLVM Backend web site [#]_.
 
-Now, the code in 3/1/Cpu0 add class Cpu0TargetMachine(Cpu0TargetMachine.h and 
+Now, the code in Chapter3_1/ add class Cpu0TargetMachine(Cpu0TargetMachine.h and 
 cpp), Cpu0Subtarget (Cpu0Subtarget.h and .cpp), Cpu0InstrInfo (Cpu0InstrInfo.h 
 and .cpp), Cpu0FrameLowering (Cpu0FrameLowering.h and .cpp), Cpu0TargetLowering 
 (Cpu0ISelLowering.h and .cpp) and Cpu0SelectionDAGInfo ( Cpu0SelectionDAGInfo.h 
 and .cpp). 
 CMakeLists.txt  modified with those new added \*.cpp as follows,
 
-.. code-block:: c++
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/CMakeLists.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_1/CMakeLists.txt
+    :start-after: add_public_tablegen_target
+    :end-before: Should match with
+    :linenos:
 
-  # CMakeLists.txt 
-  ...
-  add_llvm_target(Cpu0CodeGen 
-    Cpu0ISelLowering.cpp 
-    Cpu0InstrInfo.cpp 
-    Cpu0FrameLowering.cpp 
-    Cpu0Subtarget.cpp 
-    Cpu0TargetMachine.cpp 
-    Cpu0SelectionDAGInfo.cpp 
-    )
 
-Please take a look for 3/1 code. 
-After that, building 3/1 by make as chapter 2 (of course, you should remove old 
-lib/Target/Cpu0 and replace with 3/1/Cpu0). 
-You can remove lib/Target/Cpu0/\*.inc before do “make” to ensure your code 
+Please take a look for Chapter3_1 code. 
+After that, building Chapter3_1 by make as chapter 2 (of course, you should remove old 
+src/lib/Target/Cpu0 and replace with src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_1/). 
+You can remove cmake_debug_build/lib/Target/Cpu0/\*.inc before do “make” to ensure your code 
 rebuild completely. 
 By remove \*.inc, all files those have included .inc will be rebuild, then your 
 Target library will regenerate. 
@@ -237,137 +217,39 @@ Command as follows,
 
   118-165-78-230:cmake_debug_build Jonathan$ rm -rf lib/Target/Cpu0/*
 
+
 Add RegisterInfo
 ----------------
 
 As depicted in :num:`Figure #backendstructure-f1`, the Cpu0InstrInfo class should 
 contains Cpu0RegisterInfo. 
-So 3/2/Cpu0 add Cpu0RegisterInfo class (Cpu0RegisterInfo.h, 
+So Chapter3_2/ add Cpu0RegisterInfo class (Cpu0RegisterInfo.h, 
 Cpu0RegisterInfo.cpp), and Cpu0RegisterInfo class in files Cpu0InstrInfo.h, 
 Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.h
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.cpp
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.h
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.cpp
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0TargetMachine.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0TargetMachine.h
+    :start-after: return &DL;
+    :end-before: getTargetLowering
+    :linenos:
+
 .. code-block:: c++
-
-  // Cpu0RegisterInfo.h
-  ...
-  #define GET_INSTRINFO_HEADER
-  #include "Cpu0GenInstrInfo.inc"
-  
-  namespace llvm {
-  
-  class Cpu0InstrInfo : public Cpu0GenInstrInfo {
-    Cpu0TargetMachine &TM;
-    const Cpu0RegisterInfo RI;
-  public:
-    explicit Cpu0InstrInfo(Cpu0TargetMachine &TM);
-  
-    /// getRegisterInfo - TargetInstrInfo is a superset of MRegister info.  As
-    /// such, whenever a client has an instance of instruction info, it should
-    /// always be able to get register info as well (through this method).
-    ///
-    virtual const Cpu0RegisterInfo &getRegisterInfo() const;
-  
-  public:
-  };
-  }
-  
-  #endif
-  
-  
-  // Cpu0RegisterInfo.cpp
-  ...
-  #define GET_REGINFO_TARGET_DESC
-  #include "Cpu0GenRegisterInfo.inc"
-  
-  using namespace llvm;
-  
-  Cpu0RegisterInfo::Cpu0RegisterInfo(const Cpu0Subtarget &ST,
-                                     const TargetInstrInfo &tii)
-    : Cpu0GenRegisterInfo(Cpu0::LR), Subtarget(ST), TII(tii) {}
-  
-  //===----------------------------------------------------------------------===//
-  // Callee Saved Registers methods
-  //===----------------------------------------------------------------------===//
-  /// Cpu0 Callee Saved Registers
-  // In Cpu0CallConv.td,
-  // def CSR_O32 : CalleeSavedRegs<(add LR, FP,
-  //                                   (sequence "S%u", 2, 0))>;
-  // llc create CSR_O32_SaveList and CSR_O32_RegMask from above defined.
-  const uint16_t* Cpu0RegisterInfo::
-  getCalleeSavedRegs(const MachineFunction *MF) const
-  {
-    return CSR_O32_SaveList;
-  }
-  
-  const uint32_t*
-  Cpu0RegisterInfo::getCallPreservedMask(CallingConv::ID) const
-  {
-    return CSR_O32_RegMask; 
-  }
-  
-  // pure virtual method
-  BitVector Cpu0RegisterInfo::
-  getReservedRegs(const MachineFunction &MF) const {
-    static const uint16_t ReservedCPURegs[] = {
-      Cpu0::ZERO, Cpu0::AT, Cpu0::FP,
-      Cpu0::SW, Cpu0::SP, Cpu0::LR, Cpu0::PC
-    };
-    BitVector Reserved(getNumRegs());
-    typedef TargetRegisterClass::iterator RegIter;
-  
-    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
-      Reserved.set(ReservedCPURegs[I]);
-  
-    return Reserved;
-  }
-  
-  // pure virtual method
-  // FrameIndex represent objects inside a abstract stack.
-  // We must replace FrameIndex with an stack/frame pointer
-  // direct reference.
-  void Cpu0RegisterInfo::
-  eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
-                      unsigned FIOperandNum, RegScavenger *RS) const {
-  }
-  
-  // pure virtual method
-  unsigned Cpu0RegisterInfo::
-  getFrameRegister(const MachineFunction &MF) const {
-    const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
-    return TFI->hasFP(MF) ? (Cpu0::FP) :
-                            (Cpu0::SP);
-  }
-
-  // Cpu0InstrInfo.h
-  class Cpu0InstrInfo : public Cpu0GenInstrInfo { 
-    Cpu0TargetMachine &TM; 
-    const Cpu0RegisterInfo RI; 
-  public: 
-    explicit Cpu0InstrInfo(Cpu0TargetMachine &TM); 
-  
-    /// getRegisterInfo - TargetInstrInfo is a superset of MRegister info.  As 
-    /// such, whenever a client has an instance of instruction info, it should 
-    /// always be able to get register info as well (through this method). 
-    /// 
-    virtual const Cpu0RegisterInfo &getRegisterInfo() const; 
-  
-  public: 
-  };
-  
-  // Cpu0InstrInfo.cpp
-  Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm) 
-    : 
-    TM(tm), 
-    RI(*TM.getSubtargetImpl(), *this) {} 
-  
-  const Cpu0RegisterInfo &Cpu0InstrInfo::getRegisterInfo() const { 
-    return RI; 
-  } 
-  
-  //  Cpu0TargetMachine.h
-    virtual const Cpu0RegisterInfo *getRegisterInfo()  const {
-      return &InstrInfo.getRegisterInfo();
-    }
   
   # CMakeLists.txt 
   ...
@@ -377,16 +259,16 @@ Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,
     ...
     )
 
-Now, let's replace 3/1/Cpu0 with 3/2/Cpu0 of adding register class definition 
+Now, let's replace Chapter3_1/ with Chapter3_2/ of adding register class definition 
 as command below and rebuild. 
 
 .. code-block:: bash
 
   118-165-75-57:ExampleCode Jonathan$ pwd
-  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/ExampleCode
-  118-165-75-57:ExampleCode Jonathan$ sh removecpu0.sh 
-  118-165-75-57:ExampleCode Jonathan$ cp -rf LLVMBackendTutorialExampleCode/3/2/
-  Cpu0/* ../.
+  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode
+  118-165-75-57:LLVMBackendTutorialExampleCode Jonathan$ sh removecpu0.sh 
+  118-165-75-57:LLVMBackendTutorialExampleCode Jonathan$ cp -rf Chapter3_2/
+  * ../.
   
 After that, let's try to run the ``llc`` compile command to see what happen,
 
@@ -406,38 +288,15 @@ Let's add it in next section.
 Add AsmPrinter
 --------------
 
-3/3/cpu0 contains the Cpu0AsmPrinter definition. First, we add definitions in 
+Chapter3_3/cpu0 contains the Cpu0AsmPrinter definition. First, we add definitions in 
 Cpu0.td to support AssemblyWriter. 
 Cpu0.td is added with the following fragment,
 
-.. code-block:: c++
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0.td
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0.td
+    :start-after: "Cpu032 ISA Support"
+    :linenos:
 
-  // Cpu0.td
-  //...
-  //===----------------------------------------------------------------------===//
-  // Cpu0 processors supported. 
-  //===----------------------------------------------------------------------===//
-  
-  class Proc<string Name, list<SubtargetFeature> Features> 
-   : Processor<Name, Cpu0GenericItineraries, Features>; 
-  
-  def : Proc<"cpu032", [FeatureCpu032]>; 
-  
-  def Cpu0AsmWriter : AsmWriter { 
-    string AsmWriterClassName  = "InstPrinter"; 
-    bit isMCAsmWriter = 1; 
-  } 
-  
-  // Will generate Cpu0GenAsmWrite.inc included by Cpu0InstPrinter.cpp, contents
-  //  as follows, 
-  // void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) 
-  //  {...}
-  // const char *Cpu0InstPrinter::getRegisterName(unsigned RegNo) {...} 
-  def Cpu0 : Target { 
-  // def Cpu0InstrInfo : InstrInfo as before. 
-    let InstructionSet = Cpu0InstrInfo; 
-    let AssemblyWriters = [Cpu0AsmWriter]; 
-  }
 
 As comments indicate, it will generate Cpu0GenAsmWrite.inc which is included 
 by Cpu0InstPrinter.cpp. 
@@ -448,82 +307,68 @@ in Cpu0InstrInfo.td and Cpu0RegisterInfo.td.
 To let these two functions work in our code, the only thing need to do is add a 
 class Cpu0InstPrinter and include them.
 
-File 3/3/Cpu0/InstPrinter/Cpu0InstPrinter.cpp include Cpu0GenAsmWrite.inc and 
+File Chapter3_3/Cpu0/InstPrinter/Cpu0InstPrinter.cpp include Cpu0GenAsmWrite.inc and 
 call the auto-generated functions as follows,
 
-.. code-block:: c++
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/InstPrinter/Cpu0InstPrinter.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_3/InstPrinter/Cpu0InstPrinter.h
+    :linenos:
 
-  //  Cpu0InstPrinter.cpp
-  #include "Cpu0GenAsmWriter.inc" 
-  
-  void Cpu0InstPrinter::printRegName(raw_ostream &OS, unsigned RegNo) const { 
-  //- getRegisterName(RegNo) defined in Cpu0GenAsmWriter.inc which came from
-  //-  Cpu0.td indicate. 
-    OS << '$' << StringRef(getRegisterName(RegNo)).lower(); 
-  } 
-  
-  void Cpu0InstPrinter::printInst(const MCInst *MI, raw_ostream &O, 
-                  StringRef Annot) { 
-  //- printInstruction(MI, O) defined in Cpu0GenAsmWriter.inc which came from
-  //-  Cpu0.td indicate. 
-    printInstruction(MI, O); 
-    printAnnotation(O, Annot); 
-  } 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/InstPrinter/Cpu0InstPrinter.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_3/InstPrinter/Cpu0InstPrinter.cpp
+    :linenos:
 
-Next, add Cpu0AsmPrinter (Cpu0AsmPrinter.h, Cpu0AsmPrinter.cpp), 
-Cpu0MCInstLower (Cpu0MCInstLower.h, Cpu0MCInstLower.cpp), Cpu0BaseInfo.h, 
+
+Next, Cpu0MCInstLower (Cpu0MCInstLower.h, Cpu0MCInstLower.cpp), as well as 
+Cpu0BaseInfo.h, 
 Cpu0FixupKinds.h and Cpu0MCAsmInfo (Cpu0MCAsmInfo.h, Cpu0MCAsmInfo.cpp) in 
-sub-directory MCTargetDesc.
+sub-directory MCTargetDesc as follows,
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0MCInstLower.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0MCInstLower.h
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0MCInstLower.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0MCInstLower.cpp
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0BaseInfo.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0BaseInfo.h
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0FixupKinds.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0FixupKinds.h
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0MCAsmInfo.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0MCAsmInfo.h
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0MCAsmInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0MCAsmInfo.cpp
+    :linenos:
+
 
 Finally, add code in Cpu0MCTargetDesc.cpp to register Cpu0InstPrinter as 
 follows,
 
-.. code-block:: c++
-
-  //  Cpu0MCTargetDesc.cpp
-  static MCAsmInfo *createCpu0MCAsmInfo(const Target &T, StringRef TT) {
-    MCAsmInfo *MAI = new Cpu0MCAsmInfo(T, TT);
-  
-    MachineLocation Dst(MachineLocation::VirtualFP);
-    MachineLocation Src(Cpu0::SP, 0);
-    MAI->addInitialFrameState(0, Dst, Src);
-  
-    return MAI;
-  }
-  
-  static MCInstPrinter *createCpu0MCInstPrinter(const Target &T,
-                          unsigned SyntaxVariant,
-                          const MCAsmInfo &MAI,
-                          const MCInstrInfo &MII,
-                          const MCRegisterInfo &MRI,
-                          const MCSubtargetInfo &STI) {
-    return new Cpu0InstPrinter(MAI, MII, MRI);
-  }
-  
-  extern "C" void LLVMInitializeCpu0TargetMC() {
-    // Register the MC asm info.
-    RegisterMCAsmInfoFn X(TheCpu0Target, createCpu0MCAsmInfo);
-    RegisterMCAsmInfoFn Y(TheCpu0elTarget, createCpu0MCAsmInfo);
-  
-    // Register the MCInstPrinter.
-    TargetRegistry::RegisterMCInstPrinter(TheCpu0Target,
-                      createCpu0MCInstPrinter);
-    TargetRegistry::RegisterMCInstPrinter(TheCpu0elTarget,
-                      createCpu0MCInstPrinter);
-  }
+.. rubric:: LLVMBackendTutorialExampleCode/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0MCTargetDesc.cpp
+    :start-after: using namespace llvm
+    :linenos:
 
 Now, it's time to work with AsmPrinter. According section 
 "section Target Registration" [#]_, we can register our AsmPrinter when we need it 
-as follows,
+as the following function of LLVMInitializeCpu0AsmPrinter(),
 
-.. code-block:: c++
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0AsmPrinter.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0AsmPrinter.h
+    :linenos:
 
-  // Cpu0AsmPrinter.cpp
-  // Force static initialization.
-  extern "C" void LLVMInitializeCpu0AsmPrinter() {
-    RegisterAsmPrinter<Cpu0AsmPrinter> X(TheCpu0Target);
-    RegisterAsmPrinter<Cpu0AsmPrinter> Y(TheCpu0elTarget);
-  }
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0AsmPrinter.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0AsmPrinter.cpp
+    :linenos:
+
 
 The dynamic register mechanism is a good idea, right.
 
@@ -531,6 +376,7 @@ Except add the new .cpp files to CMakeLists.txt, please remember to add
 subdirectory InstPrinter, enable asmprinter, add libraries AsmPrinter and 
 Cpu0AsmPrinter to LLVMBuild.txt as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/LLVMBuild.txt
 .. code-block:: c++
 
   //  LLVMBuild.txt
@@ -548,7 +394,7 @@ Cpu0AsmPrinter to LLVMBuild.txt as follows,
   required_libraries = AsmPrinter CodeGen Core MC Cpu0AsmPrinter Cpu0Desc  
                        Cpu0Info SelectionDAG Support Target
 
-Now, run 3/3/Cpu0 for AsmPrinter support, will get error message as follows,
+Now, run Chapter3_3/Cpu0 for AsmPrinter support, will get error message as follows,
 
 .. code-block:: bash
 
@@ -738,20 +584,46 @@ For example, (+ ri, rj), (- ri, 1) are lists for IR DAG; (ADD ri, rj),
 (SUBI ri, 1) are lists for machine instruction DAG.
 
 Now, let's recall the ADDiu instruction defined on Cpu0InstrInfo.td in the 
-previous chapter. 
-And It will expand to the following Pattern as mentioned in section Write td 
-(Target Description) of the previous chapter as follows,
+previous chapter. List them again as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrFormats.td
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrFormats.td
+    :start-after: let Inst{11-0}  = shamt;
+    :end-before: // Format J instruction class in Cpu0
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrInfo.td
 .. code-block:: c++
 
+  // Arithmetic and logical instructions with 2 register operands.
+  class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
+                    Operand Od, PatLeaf imm_type, RegisterClass RC> :
+    FL<op, (outs RC:$ra), (ins RC:$rb, Od:$imm16),
+       !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
+       [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu> {
+    let isReMaterializable = 1;
+  }
+  ...
   def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
-  
-  Pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]
 
-This pattern meaning the IR DAG node **add** can translate into machine 
-instruction DAG node ADDiu by pattern match mechanism. 
+:num:`Figure #backendstructure-f9` show the pattern match which bind the IR node 
+**add** and instruction ADDiu which defined in Cpu0InstrInfo.td. For the example 
+IR node "add %a, 5", it will be translated to "addiu %r1, 5" since the IR 
+pattern[(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))] is set in ADDiu and the
+2nd operand is signed immediate which matched "%a, 5". In addition to pattern 
+match, the .td also set assembly string "addiu" and op code 0x09. 
+With this information, the LLVM TableGen will generate instruction both in 
+assembly and binary automatically (the binary instruction in obj file of ELF 
+format which will shown at later chapter). 
 Similarly, the machine instruction DAG node LD and ST can be got from IR DAG 
 node **load** and **store**.
+ 
+.. _backendstructure-f9: 
+.. figure:: ../Fig/backendstructure/9.png
+	:align: center
+
+	Pattern match for ADDiu instruction and IR node add
+
 
 Some cpu/fpu (floating point processor) has multiply-and-add floating point 
 instruction, fmadd. 
@@ -835,65 +707,41 @@ Now, let's check what IR DAG node the file ch3.bc has. List ch3.ll as follows,
 
 As above, ch3.ll use the IR DAG node **store**, **ret**. Actually, it also use 
 **add** for sp (stack point) register adjust. 
-So, the definitions in Cpu0InstInfo.td as follows is enough. 
+So, the definitions in Cpu0InstrInfo.td as follows is enough. 
 IR DAG is defined in file  include/llvm/Target/TargetSelectionDAG.td.
 
-.. code-block:: c++
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrInfo.td
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrInfo.td
+    :start-after: // Cpu0I Instructions
+    :end-before: //  Arbitrary patterns that map to one or more instructions
+    :linenos:
 
-  /// Load and Store Instructions 
-  ///  aligned 
-  defm LD      : LoadM32<0x00,  "ld",  load_a>; 
-  defm ST      : StoreM32<0x01, "st",  store_a>; 
-  
-  /// Arithmetic Instructions (ALU Immediate)
-  //def LDI     : MoveImm<0x08, "ldi", add, simm16, immSExt16, CPURegs>;
-  // add defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
-  def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
-  
-  let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1, 
-    isBarrier=1, hasCtrlDep=1 in 
-    def RET : FJ <0x2C, (outs), (ins CPURegs:$target), 
-          "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch>;
 
 Add class Cpu0DAGToDAGISel (Cpu0ISelDAGToDAG.cpp) to CMakeLists.txt, and add 
 following fragment to Cpu0TargetMachine.cpp,
 
-.. code-block:: c++
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0TargetMachine.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0TargetMachine.cpp
+    :start-after: return new Cpu0PassConfig(this, PM);
+    :linenos:
 
-  //  Cpu0TargetMachine.cpp
-  ...
-  // Install an instruction selector pass using
-  // the ISelDag to gen Cpu0 code.
-  bool Cpu0PassConfig::addInstSelector() {
-    addPass(createCpu0ISelDag(getCpu0TargetMachine()));
-    return false;
-  }
-  
-  //  Cpu0ISelDAGToDAG.cpp
-  /// createCpu0ISelDag - This pass converts a legalized DAG into a 
-  /// CPU0-specific DAG, ready for instruction scheduling. 
-  FunctionPass *llvm::createCpu0ISelDag(Cpu0TargetMachine &TM) { 
-    return new Cpu0DAGToDAGISel(TM); 
-  }
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0ISelDAGToDAG.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0ISelDAGToDAG.cpp
+    :start-after: return ResNode;
+    :linenos:
+
 
 This version adding the following code in Cpu0InstInfo.cpp to enable debug 
 information which called by llvm at proper time.
 
-.. code-block:: c++
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0InstrInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0InstrInfo.cpp
+    :start-after: return RI;
+    :linenos:
 
-  // Cpu0InstInfo.cpp
-  ...
-  MachineInstr*
-  Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
-                      uint64_t Offset, const MDNode *MDPtr,
-                      DebugLoc DL) const {
-    MachineInstrBuilder MIB = BuildMI(MF, DL, get(Cpu0::DBG_VALUE))
-    .addFrameIndex(FrameIx).addImm(0).addImm(Offset).addMetadata(MDPtr);
-    return &*MIB;
-  }
 
-Build 3/4, run it, we find the error message in 3/3 is gone. The new error 
-message for 3/4 as follows,
+Build Chapter3_4, run it, we find the error message in Chapter3_3 is gone. 
+The new error message for Chapter3_4 as follows,
 
 .. code-block:: bash
 
@@ -953,7 +801,7 @@ register–offset pair. Depending on whether the machine function that contains
 the instruction has a fixed or a variable stack frame, either the stack pointer 
 %a10 or the frame pointer %a14 is used as the base register. 
 The offset is computed accordingly. 
-:num:`Figure #backendstructure-f9` demonstrates for both cases how a stack slot 
+:num:`Figure #backendstructure-f10` demonstrates for both cases how a stack slot 
 is addressed. 
 
 If the addressing mode of the affected instruction cannot handle the address 
@@ -965,8 +813,8 @@ If none is available, an already occupied address register is scavenged.
 For this purpose, LLVM’s framework offers a class named RegScavenger that 
 takes care of all the details.
 
-.. _backendstructure-f9: 
-.. figure:: ../Fig/backendstructure/9.png
+.. _backendstructure-f10: 
+.. figure:: ../Fig/backendstructure/10.png
 	:align: center
 
 	Addressing of a variable a located on the stack. 
@@ -1057,7 +905,26 @@ bottom) as follows,
     ...
     ret $lr
 
-After add these Prologue and Epilogue functions, and build with 3/5/Cpu0. 
+The Prologue and Epilogue functions as follows,
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0FrameLowering.h
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0FrameLowering.h
+    :start-after: bool hasFP(const MachineFunction &MF) const;
+    :end-before: };
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0FrameLowering.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0FrameLowering.cpp
+    :start-after: MFI->hasVarSizedObjects() || MFI->isFrameAddressTaken();
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0RegisterInfo.cpp
+    :start-after: return Reserved;
+    :end-before: unsigned Cpu0RegisterInfo::
+    :linenos:
+
+After add these Prologue and Epilogue functions, and build with Chapter3_5/Cpu0. 
 Now we are ready to compile our example code ch3.bc into cpu0 assembly code. 
 Following is the command and output file ch3.cpu0.s,
 

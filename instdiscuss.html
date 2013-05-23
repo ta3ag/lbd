@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.12',
+        VERSION:     '3.2.13',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -64,13 +64,11 @@ and reasonable than <strong>ldi</strong> instruction.
 We highlight this change in <a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#cpu0-processor-architecture">section CPU0 processor architecture</a>.
 Even with that, we show you how to replace our <strong>addiu</strong> with <strong>ldi</strong> according
 the cpu0 original design.
-4/4_2/Cpu0 is the code changes for use <strong>ldi</strong> instruction.
+Chapter4_2/ is the code changes for use <strong>ldi</strong> instruction.
 This changes replace <strong>addiu</strong> with <strong>ldi</strong> in Cpu0InstrInfo.td and modify
 Cpu0FrameLowering.cpp as follows,</p>
-<div class="highlight-c++"><pre>// Cpu0InstrInfo.td
-...
-
-/// Arithmetic Instructions (ALU Immediate)
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_2/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><pre>/// Arithmetic Instructions (ALU Immediate)
 def LDI     : MoveImm&lt;0x08, "ldi", add, simm16, immSExt16, CPURegs&gt;;
 // add defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
 //def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;
@@ -95,36 +93,36 @@ def : Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
           (ADD CPURegs:$gp, (LDI ZERO, tglobaladdr:$in))&gt;;
 
 def : Pat&lt;(not CPURegs:$in),
-           (XOR CPURegs:$in, (LDI ZERO, 1))&gt;;
+           (XOR CPURegs:$in, (LDI ZERO, 1))&gt;;</pre>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_2/Cpu0FrameLowering.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0FrameLowering</span><span class="o">::</span><span class="n">emitPrologue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// Adjust stack.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="o">-</span><span class="n">StackSize</span><span class="p">))</span> <span class="p">{</span>
+    <span class="c1">// ldi fp, (-stacksize)</span>
+    <span class="c1">// add sp, sp, fp</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MBBI</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">TII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LDI</span><span class="p">),</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">)</span>
+                                                        <span class="p">.</span><span class="n">addImm</span><span class="p">(</span><span class="o">-</span><span class="n">StackSize</span><span class="p">);</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MBBI</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">TII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">),</span> <span class="n">SP</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">SP</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
 
-// Cpu0FrameLowering.cpp
-...
-void Cpu0FrameLowering::emitPrologue(MachineFunction &amp;MF) const {
-  ...
-  // Adjust stack.
-  if (isInt&lt;16&gt;(-StackSize)) {
-    // ldi fp, (-stacksize)
-    // add sp, sp, fp
-    BuildMI(MBB, MBBI, dl, TII.get(Cpu0::LDI), Cpu0::FP).addReg(Cpu0::FP)
-                                                        .addImm(-StackSize);
-    BuildMI(MBB, MBBI, dl, TII.get(Cpu0::ADD), SP).addReg(SP).addReg(Cpu0::FP);
-  }
-  ...
-}
-
-void Cpu0FrameLowering::emitEpilogue(MachineFunction &amp;MF,
-                                 MachineBasicBlock &amp;MBB) const {
-  ...
-  // Adjust stack.
-  if (isInt&lt;16&gt;(-StackSize)) {
-    // ldi fp, (-stacksize)
-    // add sp, sp, fp
-    BuildMI(MBB, MBBI, dl, TII.get(Cpu0::LDI), Cpu0::FP).addReg(Cpu0::FP)
-                                                        .addImm(-StackSize);
-    BuildMI(MBB, MBBI, dl, TII.get(Cpu0::ADD), SP).addReg(SP).addReg(Cpu0::FP);
-  }
-  ...
-}</pre>
+<span class="kt">void</span> <span class="n">Cpu0FrameLowering</span><span class="o">::</span><span class="n">emitEpilogue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span>
+                                 <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// Adjust stack.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="o">-</span><span class="n">StackSize</span><span class="p">))</span> <span class="p">{</span>
+    <span class="c1">// ldi fp, (-stacksize)</span>
+    <span class="c1">// add sp, sp, fp</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MBBI</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">TII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LDI</span><span class="p">),</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">)</span>
+                                                        <span class="p">.</span><span class="n">addImm</span><span class="p">(</span><span class="o">-</span><span class="n">StackSize</span><span class="p">);</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MBBI</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">TII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">),</span> <span class="n">SP</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">SP</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
 </div>
 <p>As above code, we use <strong>add</strong> IR binary instruction (1 register operand and 1
 immediate operand, and the register operand is fixed with ZERO) in our solution
@@ -133,7 +131,7 @@ This code is correct since all the immediate value is translated into
 <strong>“ldi Zero, imm/address”</strong>.
 And <strong>(add CPURegs:$gp, $imm16)</strong> is translated into
 <strong>(ADD CPURegs:$gp, (LDI ZERO, $imm16))</strong>.
-Let&#8217;s run 4/4_2/Cpu0 with ch4_4.cpp to get the correct result
+Let&#8217;s run Chapter4_4_2/ with ch4_4.cpp to get the correct result
 below.
 As you will see, <strong>“addiu $sp, $sp, -24”</strong> will be replaced with the pair
 instructions of <strong>“ldi $fp, -24”</strong> and <strong>“add $sp, $sp, $fp”</strong>.
@@ -232,22 +230,8 @@ Other instructions (include add), use register to register style operation.
 We change the implicit operand support in this section.
 It&#8217;s just a demonstration with this design, not fully support.
 The purpose is telling reader how to implement this style of CPU/MCU backend.
-Run 8/8_2/Cpu0 with ch_move.cpp will get the following result,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch_move.cpp</span>
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">e</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
-
-  <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">d</span> <span class="o">+</span> <span class="n">e</span><span class="p">;</span>
-
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+Run Chapter8_8_2/ with ch_move.cpp will get the following result,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch_move.cpp</p>
 <div class="highlight-bash"><div class="highlight"><pre>ld  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">$3</span> is a
 ld  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">$4</span> is b
 mtacc <span class="nv">$4</span>        // Move b To Acc
@@ -260,22 +244,20 @@ st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</s
 </pre></div>
 </div>
 <p>To support this implicit operand, ACC.
-The following code is added to 8/8_2.cpp.</p>
-<div class="highlight-c++"><pre>// Cpu0RegisterInfo.td
-...
-let Namespace = "Cpu0" in {
-  // General Purpose Registers
-  def ZERO : Cpu0GPRReg&lt; 0, "ZERO"&gt;, DwarfRegNum&lt;[0]&gt;;
-  ...
-  def ACC : Register&lt;"acc"&gt;, DwarfRegNum&lt;[20]&gt;;
-}
-...
-def RACC : RegisterClass&lt;"Cpu0", [i32], 32, (add ACC)&gt;;
-
-
-// Cpu0InstrInfo.td
-...
-class MoveFromACC&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
+The following code is added to Chapter8_8_2.cpp.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_8_2/Cpu0RegisterInfo.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span> <span class="n">in</span> <span class="p">{</span>
+  <span class="c1">// General Purpose Registers</span>
+  <span class="n">def</span> <span class="n">ZERO</span> <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;ZERO&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="p">...</span>
+  <span class="n">def</span> <span class="n">ACC</span> <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;acc&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">20</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="n">def</span> <span class="n">RACC</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="n">ACC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_8_2/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><pre>class MoveFromACC&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
            list&lt;Register&gt; UseRegs&gt;:
   FL&lt;op, (outs RC:$ra), (ins),
    !strconcat(instr_asm, "\t$ra"), [], IIAlu&gt; {
@@ -315,31 +297,30 @@ def : Pat&lt;(add RACC:$lhs, CPURegs:$rhs),
       (ADD RACC:$lhs, CPURegs:$rhs)&gt;;
 
 def : Pat&lt;(add CPURegs:$lhs, CPURegs:$rhs),
-      (ADD (MTACC CPURegs:$lhs), CPURegs:$rhs)&gt;;
+      (ADD (MTACC CPURegs:$lhs), CPURegs:$rhs)&gt;;</pre>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_8_2/Cpu0InstrInfo.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- Called when DestReg and SrcReg belong to different Register Class.</span>
+<span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
+<span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
+      <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
+      <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
+      <span class="kt">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="kt">unsigned</span> <span class="n">Opc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">ZeroReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
-
-// Cpu0InstrInfo.cpp
-...
-//- Called when DestReg and SrcReg belong to different Register Class.
-void Cpu0InstrInfo::
-copyPhysReg(MachineBasicBlock &amp;MBB,
-      MachineBasicBlock::iterator I, DebugLoc DL,
-      unsigned DestReg, unsigned SrcReg,
-      bool KillSrc) const {
-  unsigned Opc = 0, ZeroReg = 0;
-
-  if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
-  ...
-  else if (SrcReg == Cpu0::ACC)
-    Opc = Cpu0::MFACC, SrcReg = 0;
-  }
-  else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
-  ...
-  else if (DestReg == Cpu0::ACC)
-    Opc = Cpu0::MTACC, DestReg = 0;
-  }
-  ...
-}</pre>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">DestReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy to CPU Reg.</span>
+  <span class="p">...</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ACC</span><span class="p">)</span>
+    <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFACC</span><span class="p">,</span> <span class="n">SrcReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy from CPU Reg.</span>
+  <span class="p">...</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ACC</span><span class="p">)</span>
+    <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTACC</span><span class="p">,</span> <span class="n">DestReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
 </div>
 <p>Explain the code as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>ld  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">$3</span> is a

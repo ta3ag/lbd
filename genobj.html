@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.12',
+        VERSION:     '3.2.13',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -63,7 +63,7 @@ this chapter.</p>
 <div class="section" id="translate-into-obj-file">
 <h2>Translate into obj file<a class="headerlink" href="#translate-into-obj-file" title="Permalink to this headline">¶</a></h2>
 <p>Currently, we only support translate llvm IR code into assembly code.
-If you try to run 4/6_2/Cpu0 to translate obj code will get the error message as
+If you try to run Chapter4_6_2/ to translate obj code will get the error message as
 follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>/usr/local/llvm/test/cmake_debug_build/bin/
 llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch4_1_2.bc -o ch4_1_2.cpu0.o
@@ -71,7 +71,7 @@ llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>
 support generation of this file <span class="nb">type</span>!
 </pre></div>
 </div>
-<p>The 5/Cpu0 support obj file generated.
+<p>The Chapter5/ support obj file generated.
 It can get result for big endian and little endian with command
 <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=cpu0</span></tt> and <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=cpu0el</span></tt>.
 Run it will get the obj files as follows,</p>
@@ -157,52 +157,7 @@ objdump from B0 to B3 as 0xb8ffd009.</p>
 <div class="section" id="backend-target-registration-structure">
 <h2>Backend Target Registration Structure<a class="headerlink" href="#backend-target-registration-structure" title="Permalink to this headline">¶</a></h2>
 <p>Now, let&#8217;s examine Cpu0MCTargetDesc.cpp.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0MCTargetDesc.cpp</span>
-<span class="p">...</span>
-<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0TargetMC</span><span class="p">()</span> <span class="p">{</span>
-  <span class="c1">// Register the MC asm info.</span>
-  <span class="n">RegisterMCAsmInfoFn</span> <span class="n">X</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCAsmInfo</span><span class="p">);</span>
-  <span class="n">RegisterMCAsmInfoFn</span> <span class="n">Y</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCAsmInfo</span><span class="p">);</span>
-
-  <span class="c1">// Register the MC codegen info.</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeGenInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
-                                          <span class="n">createCpu0MCCodeGenInfo</span><span class="p">);</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeGenInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
-                                          <span class="n">createCpu0MCCodeGenInfo</span><span class="p">);</span>
-  <span class="c1">// Register the MC instruction info.</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstrInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCInstrInfo</span><span class="p">);</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstrInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCInstrInfo</span><span class="p">);</span>
-
-  <span class="c1">// Register the MC register info.</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCRegInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCRegisterInfo</span><span class="p">);</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCRegInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCRegisterInfo</span><span class="p">);</span>
-  <span class="c1">// Register the MC Code Emitter</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
-                                          <span class="n">createCpu0MCCodeEmitterEB</span><span class="p">);</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
-                                          <span class="n">createCpu0MCCodeEmitterEL</span><span class="p">);</span>
-
-  <span class="c1">// Register the object streamer.</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCObjectStreamer</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createMCStreamer</span><span class="p">);</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCObjectStreamer</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createMCStreamer</span><span class="p">);</span>
-  <span class="c1">// Register the asm backend.</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
-                                         <span class="n">createCpu0AsmBackendEB32</span><span class="p">);</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
-                                         <span class="n">createCpu0AsmBackendEL32</span><span class="p">);</span>
-  <span class="c1">// Register the MC subtarget info.</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCSubtargetInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
-                                            <span class="n">createCpu0MCSubtargetInfo</span><span class="p">);</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCSubtargetInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
-                                            <span class="n">createCpu0MCSubtargetInfo</span><span class="p">);</span>
-  <span class="c1">// Register the MCInstPrinter.</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstPrinter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
-                                          <span class="n">createCpu0MCInstPrinter</span><span class="p">);</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstPrinter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
-                                          <span class="n">createCpu0MCInstPrinter</span><span class="p">);</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp</p>
 <p>Cpu0MCTargetDesc.cpp do the target registration as mentioned in
 &#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id2" id="id1">[1]</a> of the last chapter.
 Drawing the register function and those class it registered in
@@ -220,15 +175,15 @@ Drawing the register function and those class it registered in
 <p class="caption">Figure 3: Register MCInstrInfo</p>
 </div>
 <div class="figure align-center" id="genobj-f4">
-<a class="reference internal image-reference" href="_images/41.png"><img alt="_images/41.png" src="_images/41.png" style="width: 615.0px; height: 678.0px;" /></a>
+<a class="reference internal image-reference" href="_images/42.png"><img alt="_images/42.png" src="_images/42.png" style="width: 615.0px; height: 678.0px;" /></a>
 <p class="caption">Figure 4: Register MCRegisterInfo</p>
 </div>
 <div class="figure align-center" id="genobj-f5">
-<a class="reference internal image-reference" href="_images/51.png"><img alt="_images/51.png" src="_images/51.png" style="width: 750.0px; height: 635.0px;" /></a>
+<a class="reference internal image-reference" href="_images/52.png"><img alt="_images/52.png" src="_images/52.png" style="width: 750.0px; height: 635.0px;" /></a>
 <p class="caption">Figure 5: Register Cpu0MCCodeEmitter</p>
 </div>
 <div class="figure align-center" id="genobj-f6">
-<a class="reference internal image-reference" href="_images/61.png"><img alt="_images/61.png" src="_images/61.png" style="width: 776.0px; height: 617.0px;" /></a>
+<a class="reference internal image-reference" href="_images/62.png"><img alt="_images/62.png" src="_images/62.png" style="width: 776.0px; height: 617.0px;" /></a>
 <p class="caption">Figure 6: Register MCELFStreamer</p>
 </div>
 <div class="figure align-center" id="genobj-f7">
@@ -244,7 +199,7 @@ Drawing the register function and those class it registered in
 <p class="caption">Figure 9: Register Cpu0InstPrinter</p>
 </div>
 <div class="figure align-center" id="genobj-f10">
-<a class="reference internal image-reference" href="_images/10.png"><img alt="_images/10.png" src="_images/10.png" style="width: 783.0px; height: 596.0px;" /></a>
+<a class="reference internal image-reference" href="_images/101.png"><img alt="_images/101.png" src="_images/101.png" style="width: 783.0px; height: 596.0px;" /></a>
 <p class="caption">Figure 10: MCELFStreamer inherit tree</p>
 </div>
 <p>In <a class="pageref" href="#genobj-f1">Figure  1</a>, registering the object of class Cpu0AsmInfo for
@@ -269,7 +224,7 @@ They share a lot of code with instruction/register td description.</p>
 <p><a class="pageref" href="#genobj-f5">Figure  5</a>, instancing two objects Cpu0MCCodeEmitter, one is for
 big endian and the other is for little endian.
 They take care the obj format generated.
-So, it&#8217;s not defined in 4/6_2/Cpu0 which support assembly code only.</p>
+So, it&#8217;s not defined in Chapter4_6_2/ which support assembly code only.</p>
 <p><a class="pageref" href="#genobj-f6">Figure  6</a>, MCELFStreamer take care the obj format also.
 <a class="pageref" href="#genobj-f5">Figure  5</a> Cpu0MCCodeEmitter take care code emitter while
 MCELFStreamer take care the obj output streamer.
@@ -294,7 +249,7 @@ Cpu0.td information.
 <a class="pageref" href="#genobj-f9">Figure  9</a>, instancing Cpu0InstPrinter to take care printing
 function for instructions.
 Like <a class="pageref" href="#genobj-f1">Figure  1</a> to <a class="pageref" href="#genobj-f4">Figure  4</a>, it has been defined
-in 4/6_2/Cpu0 code for assembly file generated support.</p>
+in Chapter4_6_2/ code for assembly file generated support.</p>
 <table class="docutils footnote" frame="void" id="id2" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">

@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.12',
+        VERSION:     '3.2.13',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -75,11 +75,12 @@ Cpu0TargetMachine class.
 Cpu0TargetMachine class contains it&#8217;s own instruction class, frame/stack class,
 DAG (Directed-Acyclic-Graph) class, and register class.
 The Cpu0TargetMachine contents as follows,</p>
+<p class="rubric">include/llvm/Target/Cpu0TargetMachine.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- TargetMachine.h</span>
 <span class="k">class</span> <span class="nc">TargetMachine</span> <span class="p">{</span>
   <span class="n">TargetMachine</span><span class="p">(</span><span class="k">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="p">)</span> <span class="n">LLVM_DELETED_FUNCTION</span><span class="p">;</span>
   <span class="kt">void</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="p">)</span> <span class="n">LLVM_DELETED_FUNCTION</span><span class="p">;</span>
-
+<span class="p">...</span>
 <span class="k">public</span><span class="o">:</span>
   <span class="c1">// Interfaces to the major aspects of target machine information:</span>
   <span class="c1">// -- Instruction opcode and operand information</span>
@@ -101,8 +102,7 @@ The Cpu0TargetMachine contents as follows,</p>
   <span class="p">}</span>
 
 <span class="p">}</span>
-
-<span class="c1">//- TargetMachine.h</span>
+<span class="p">...</span>
 <span class="k">class</span> <span class="nc">LLVMTargetMachine</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TargetMachine</span> <span class="p">{</span>
 <span class="k">protected</span><span class="o">:</span> <span class="c1">// Can only create subclasses.</span>
   <span class="n">LLVMTargetMachine</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">TargetTriple</span><span class="p">,</span>
@@ -111,41 +111,17 @@ The Cpu0TargetMachine contents as follows,</p>
           <span class="n">CodeGenOpt</span><span class="o">::</span><span class="n">Level</span> <span class="n">OL</span><span class="p">);</span>
   <span class="p">...</span>
 <span class="p">};</span>
-
-<span class="k">class</span> <span class="nc">Cpu0TargetMachine</span> <span class="o">:</span> <span class="k">public</span> <span class="n">LLVMTargetMachine</span> <span class="p">{</span>
-  <span class="n">Cpu0Subtarget</span>       <span class="n">Subtarget</span><span class="p">;</span>
-  <span class="k">const</span> <span class="n">DataLayout</span>    <span class="n">DL</span><span class="p">;</span> <span class="c1">// Calculates type size &amp; alignment</span>
-  <span class="n">Cpu0InstrInfo</span>       <span class="n">InstrInfo</span><span class="p">;</span>  <span class="c1">//- Instructions</span>
-  <span class="n">Cpu0FrameLowering</span>   <span class="n">FrameLowering</span><span class="p">;</span>  <span class="c1">//- Stack(Frame) and Stack direction</span>
-  <span class="n">Cpu0TargetLowering</span>  <span class="n">TLInfo</span><span class="p">;</span> <span class="c1">//- Stack(Frame) and Stack direction</span>
-  <span class="n">Cpu0SelectionDAGInfo</span> <span class="n">TSInfo</span><span class="p">;</span>  <span class="c1">//- Map .bc DAG to backend DAG</span>
-<span class="k">public</span><span class="o">:</span>
-  <span class="k">virtual</span> <span class="k">const</span> <span class="n">Cpu0InstrInfo</span>   <span class="o">*</span><span class="n">getInstrInfo</span><span class="p">()</span>     <span class="k">const</span>
-  <span class="p">{</span> <span class="k">return</span> <span class="o">&amp;</span><span class="n">InstrInfo</span><span class="p">;</span> <span class="p">}</span>
-  <span class="k">virtual</span> <span class="k">const</span> <span class="n">TargetFrameLowering</span> <span class="o">*</span><span class="n">getFrameLowering</span><span class="p">()</span>     <span class="k">const</span>
-  <span class="p">{</span> <span class="k">return</span> <span class="o">&amp;</span><span class="n">FrameLowering</span><span class="p">;</span> <span class="p">}</span>
-  <span class="k">virtual</span> <span class="k">const</span> <span class="n">Cpu0Subtarget</span>   <span class="o">*</span><span class="n">getSubtargetImpl</span><span class="p">()</span> <span class="k">const</span>
-  <span class="p">{</span> <span class="k">return</span> <span class="o">&amp;</span><span class="n">Subtarget</span><span class="p">;</span> <span class="p">}</span>
-  <span class="k">virtual</span> <span class="k">const</span> <span class="n">DataLayout</span> <span class="o">*</span><span class="n">getDataLayout</span><span class="p">()</span>    <span class="k">const</span>
-  <span class="p">{</span> <span class="k">return</span> <span class="o">&amp;</span><span class="n">DL</span><span class="p">;}</span>
-   <span class="k">virtual</span> <span class="k">const</span> <span class="n">Cpu0TargetLowering</span> <span class="o">*</span><span class="n">getTargetLowering</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="o">&amp;</span><span class="n">TLInfo</span><span class="p">;</span>
-  <span class="p">}</span>
-
-  <span class="k">virtual</span> <span class="k">const</span> <span class="n">Cpu0SelectionDAGInfo</span><span class="o">*</span> <span class="n">getSelectionDAGInfo</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="o">&amp;</span><span class="n">TSInfo</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">};</span>
-
-<span class="c1">//- TargetInstInfo.h</span>
-<span class="k">class</span> <span class="nc">TargetInstrInfo</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCInstrInfo</span> <span class="p">{</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h</p>
+<p class="rubric">include/llvm/Target/TargetInstInfo.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">TargetInstrInfo</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCInstrInfo</span> <span class="p">{</span>
   <span class="n">TargetInstrInfo</span><span class="p">(</span><span class="k">const</span> <span class="n">TargetInstrInfo</span> <span class="o">&amp;</span><span class="p">)</span> <span class="n">LLVM_DELETED_FUNCTION</span><span class="p">;</span>
   <span class="kt">void</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">TargetInstrInfo</span> <span class="o">&amp;</span><span class="p">)</span> <span class="n">LLVM_DELETED_FUNCTION</span><span class="p">;</span>
 <span class="k">public</span><span class="o">:</span>
   <span class="p">...</span>
 <span class="p">}</span>
-
-<span class="c1">//- TargetInstInfo.h</span>
+<span class="p">...</span>
 <span class="k">class</span> <span class="nc">TargetInstrInfoImpl</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TargetInstrInfo</span> <span class="p">{</span>
 <span class="k">protected</span><span class="o">:</span>
   <span class="n">TargetInstrInfoImpl</span><span class="p">(</span><span class="kt">int</span> <span class="n">CallFrameSetupOpcode</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
@@ -154,8 +130,10 @@ The Cpu0TargetMachine contents as follows,</p>
 <span class="k">public</span><span class="o">:</span>
   <span class="p">...</span>
 <span class="p">}</span>
-
-<span class="c1">//- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td</span>
+</pre></div>
+</div>
+<p class="rubric">cmake_debug_build/lib/Target/Cpu0/Cpu0GenInstInfo.inc</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td</span>
 <span class="cp">#ifdef GET_INSTRINFO_HEADER</span>
 <span class="cp">#undef GET_INSTRINFO_HEADER</span>
 <span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
@@ -223,7 +201,8 @@ Cpu0InstrInfo.h extract those code it need from Cpu0GenInstrInfo.inc by define
 Following is the code fragment from Cpu0GenInstrInfo.inc.
 Code between “#if def  GET_INSTRINFO_HEADER” and “#endif // GET_INSTRINFO_HEADER”
 will be extracted by Cpu0InstrInfo.h.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td</span>
+<p class="rubric">cmake_debug_build/lib/Target/Cpu0/Cpu0GenInstInfo.inc</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td</span>
 <span class="cp">#ifdef GET_INSTRINFO_HEADER</span>
 <span class="cp">#undef GET_INSTRINFO_HEADER</span>
 <span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
@@ -235,28 +214,17 @@ will be extracted by Cpu0InstrInfo.h.</p>
 </pre></div>
 </div>
 <p>Reference Write An LLVM Backend web site <a class="footnote-reference" href="#id5" id="id1">[1]</a>.</p>
-<p>Now, the code in 3/1/Cpu0 add class Cpu0TargetMachine(Cpu0TargetMachine.h and
+<p>Now, the code in Chapter3_1/ add class Cpu0TargetMachine(Cpu0TargetMachine.h and
 cpp), Cpu0Subtarget (Cpu0Subtarget.h and .cpp), Cpu0InstrInfo (Cpu0InstrInfo.h
 and .cpp), Cpu0FrameLowering (Cpu0FrameLowering.h and .cpp), Cpu0TargetLowering
 (Cpu0ISelLowering.h and .cpp) and Cpu0SelectionDAGInfo ( Cpu0SelectionDAGInfo.h
 and .cpp).
 CMakeLists.txt  modified with those new added *.cpp as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp"># CMakeLists.txt</span>
-<span class="p">...</span>
-<span class="n">add_llvm_target</span><span class="p">(</span><span class="n">Cpu0CodeGen</span>
-  <span class="n">Cpu0ISelLowering</span><span class="p">.</span><span class="n">cpp</span>
-  <span class="n">Cpu0InstrInfo</span><span class="p">.</span><span class="n">cpp</span>
-  <span class="n">Cpu0FrameLowering</span><span class="p">.</span><span class="n">cpp</span>
-  <span class="n">Cpu0Subtarget</span><span class="p">.</span><span class="n">cpp</span>
-  <span class="n">Cpu0TargetMachine</span><span class="p">.</span><span class="n">cpp</span>
-  <span class="n">Cpu0SelectionDAGInfo</span><span class="p">.</span><span class="n">cpp</span>
-  <span class="p">)</span>
-</pre></div>
-</div>
-<p>Please take a look for 3/1 code.
-After that, building 3/1 by make as chapter 2 (of course, you should remove old
-lib/Target/Cpu0 and replace with 3/1/Cpu0).
-You can remove lib/Target/Cpu0/*.inc before do “make” to ensure your code
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/CMakeLists.txt</p>
+<p>Please take a look for Chapter3_1 code.
+After that, building Chapter3_1 by make as chapter 2 (of course, you should remove old
+src/lib/Target/Cpu0 and replace with src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_1/).
+You can remove cmake_debug_build/lib/Target/Cpu0/*.inc before do “make” to ensure your code
 rebuild completely.
 By remove *.inc, all files those have included .inc will be rebuild, then your
 Target library will regenerate.
@@ -269,131 +237,15 @@ Command as follows,</p>
 <h2>Add RegisterInfo<a class="headerlink" href="#add-registerinfo" title="Permalink to this headline">¶</a></h2>
 <p>As depicted in <a class="pageref" href="#backendstructure-f1">Figure  1</a>, the Cpu0InstrInfo class should
 contains Cpu0RegisterInfo.
-So 3/2/Cpu0 add Cpu0RegisterInfo class (Cpu0RegisterInfo.h,
+So Chapter3_2/ add Cpu0RegisterInfo class (Cpu0RegisterInfo.h,
 Cpu0RegisterInfo.cpp), and Cpu0RegisterInfo class in files Cpu0InstrInfo.h,
 Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0RegisterInfo.h</span>
-<span class="p">...</span>
-<span class="cp">#define GET_INSTRINFO_HEADER</span>
-<span class="cp">#include &quot;Cpu0GenInstrInfo.inc&quot;</span>
-
-<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
-
-<span class="k">class</span> <span class="nc">Cpu0InstrInfo</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Cpu0GenInstrInfo</span> <span class="p">{</span>
-  <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">;</span>
-  <span class="k">const</span> <span class="n">Cpu0RegisterInfo</span> <span class="n">RI</span><span class="p">;</span>
-<span class="k">public</span><span class="o">:</span>
-  <span class="k">explicit</span> <span class="n">Cpu0InstrInfo</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
-
-  <span class="c1">/// getRegisterInfo - TargetInstrInfo is a superset of MRegister info.  As</span>
-  <span class="c1">/// such, whenever a client has an instance of instruction info, it should</span>
-  <span class="c1">/// always be able to get register info as well (through this method).</span>
-  <span class="c1">///</span>
-  <span class="k">virtual</span> <span class="k">const</span> <span class="n">Cpu0RegisterInfo</span> <span class="o">&amp;</span><span class="n">getRegisterInfo</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
-
-<span class="k">public</span><span class="o">:</span>
-<span class="p">};</span>
-<span class="p">}</span>
-
-<span class="cp">#endif</span>
-
-
-<span class="c1">// Cpu0RegisterInfo.cpp</span>
-<span class="p">...</span>
-<span class="cp">#define GET_REGINFO_TARGET_DESC</span>
-<span class="cp">#include &quot;Cpu0GenRegisterInfo.inc&quot;</span>
-
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
-
-<span class="n">Cpu0RegisterInfo</span><span class="o">::</span><span class="n">Cpu0RegisterInfo</span><span class="p">(</span><span class="k">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">ST</span><span class="p">,</span>
-                                   <span class="k">const</span> <span class="n">TargetInstrInfo</span> <span class="o">&amp;</span><span class="n">tii</span><span class="p">)</span>
-  <span class="o">:</span> <span class="n">Cpu0GenRegisterInfo</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">),</span> <span class="n">Subtarget</span><span class="p">(</span><span class="n">ST</span><span class="p">),</span> <span class="n">TII</span><span class="p">(</span><span class="n">tii</span><span class="p">)</span> <span class="p">{}</span>
-
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">// Callee Saved Registers methods</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">/// Cpu0 Callee Saved Registers</span>
-<span class="c1">// In Cpu0CallConv.td,</span>
-<span class="c1">// def CSR_O32 : CalleeSavedRegs&lt;(add LR, FP,</span>
-<span class="c1">//                                   (sequence &quot;S%u&quot;, 2, 0))&gt;;</span>
-<span class="c1">// llc create CSR_O32_SaveList and CSR_O32_RegMask from above defined.</span>
-<span class="k">const</span> <span class="n">uint16_t</span><span class="o">*</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
-<span class="n">getCalleeSavedRegs</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">*</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span>
-<span class="p">{</span>
-  <span class="k">return</span> <span class="n">CSR_O32_SaveList</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="k">const</span> <span class="n">uint32_t</span><span class="o">*</span>
-<span class="n">Cpu0RegisterInfo</span><span class="o">::</span><span class="n">getCallPreservedMask</span><span class="p">(</span><span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span><span class="p">)</span> <span class="k">const</span>
-<span class="p">{</span>
-  <span class="k">return</span> <span class="n">CSR_O32_RegMask</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="c1">// pure virtual method</span>
-<span class="n">BitVector</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
-<span class="n">getReservedRegs</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">static</span> <span class="k">const</span> <span class="n">uint16_t</span> <span class="n">ReservedCPURegs</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">,</span>
-    <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">PC</span>
-  <span class="p">};</span>
-  <span class="n">BitVector</span> <span class="n">Reserved</span><span class="p">(</span><span class="n">getNumRegs</span><span class="p">());</span>
-  <span class="k">typedef</span> <span class="n">TargetRegisterClass</span><span class="o">::</span><span class="n">iterator</span> <span class="n">RegIter</span><span class="p">;</span>
-
-  <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">I</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">I</span> <span class="o">&lt;</span> <span class="n">array_lengthof</span><span class="p">(</span><span class="n">ReservedCPURegs</span><span class="p">);</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span>
-    <span class="n">Reserved</span><span class="p">.</span><span class="n">set</span><span class="p">(</span><span class="n">ReservedCPURegs</span><span class="p">[</span><span class="n">I</span><span class="p">]);</span>
-
-  <span class="k">return</span> <span class="n">Reserved</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="c1">// pure virtual method</span>
-<span class="c1">// FrameIndex represent objects inside a abstract stack.</span>
-<span class="c1">// We must replace FrameIndex with an stack/frame pointer</span>
-<span class="c1">// direct reference.</span>
-<span class="kt">void</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
-<span class="n">eliminateFrameIndex</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">II</span><span class="p">,</span> <span class="kt">int</span> <span class="n">SPAdj</span><span class="p">,</span>
-                    <span class="kt">unsigned</span> <span class="n">FIOperandNum</span><span class="p">,</span> <span class="n">RegScavenger</span> <span class="o">*</span><span class="n">RS</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-<span class="p">}</span>
-
-<span class="c1">// pure virtual method</span>
-<span class="kt">unsigned</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
-<span class="n">getFrameRegister</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">const</span> <span class="n">TargetFrameLowering</span> <span class="o">*</span><span class="n">TFI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getTarget</span><span class="p">().</span><span class="n">getFrameLowering</span><span class="p">();</span>
-  <span class="k">return</span> <span class="n">TFI</span><span class="o">-&gt;</span><span class="n">hasFP</span><span class="p">(</span><span class="n">MF</span><span class="p">)</span> <span class="o">?</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">)</span> <span class="o">:</span>
-                          <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">);</span>
-<span class="p">}</span>
-
-<span class="c1">// Cpu0InstrInfo.h</span>
-<span class="k">class</span> <span class="nc">Cpu0InstrInfo</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Cpu0GenInstrInfo</span> <span class="p">{</span>
-  <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">;</span>
-  <span class="k">const</span> <span class="n">Cpu0RegisterInfo</span> <span class="n">RI</span><span class="p">;</span>
-<span class="k">public</span><span class="o">:</span>
-  <span class="k">explicit</span> <span class="n">Cpu0InstrInfo</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
-
-  <span class="c1">/// getRegisterInfo - TargetInstrInfo is a superset of MRegister info.  As</span>
-  <span class="c1">/// such, whenever a client has an instance of instruction info, it should</span>
-  <span class="c1">/// always be able to get register info as well (through this method).</span>
-  <span class="c1">///</span>
-  <span class="k">virtual</span> <span class="k">const</span> <span class="n">Cpu0RegisterInfo</span> <span class="o">&amp;</span><span class="n">getRegisterInfo</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
-
-<span class="k">public</span><span class="o">:</span>
-<span class="p">};</span>
-
-<span class="c1">// Cpu0InstrInfo.cpp</span>
-<span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">Cpu0InstrInfo</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">tm</span><span class="p">)</span>
-  <span class="o">:</span>
-  <span class="n">TM</span><span class="p">(</span><span class="n">tm</span><span class="p">),</span>
-  <span class="n">RI</span><span class="p">(</span><span class="o">*</span><span class="n">TM</span><span class="p">.</span><span class="n">getSubtargetImpl</span><span class="p">(),</span> <span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="p">{}</span>
-
-<span class="k">const</span> <span class="n">Cpu0RegisterInfo</span> <span class="o">&amp;</span><span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">getRegisterInfo</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="n">RI</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="c1">//  Cpu0TargetMachine.h</span>
-  <span class="k">virtual</span> <span class="k">const</span> <span class="n">Cpu0RegisterInfo</span> <span class="o">*</span><span class="n">getRegisterInfo</span><span class="p">()</span>  <span class="k">const</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="o">&amp;</span><span class="n">InstrInfo</span><span class="p">.</span><span class="n">getRegisterInfo</span><span class="p">();</span>
-  <span class="p">}</span>
-
-<span class="cp"># CMakeLists.txt</span>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0TargetMachine.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp"># CMakeLists.txt</span>
 <span class="p">...</span>
 <span class="n">add_llvm_target</span><span class="p">(</span><span class="n">Cpu0CodeGen</span>
   <span class="p">...</span>
@@ -402,13 +254,13 @@ Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,</p
   <span class="p">)</span>
 </pre></div>
 </div>
-<p>Now, let&#8217;s replace 3/1/Cpu0 with 3/2/Cpu0 of adding register class definition
+<p>Now, let&#8217;s replace Chapter3_1/ with Chapter3_2/ of adding register class definition
 as command below and rebuild.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-75-57:ExampleCode Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
-/Users/Jonathan/llvm/test/src/lib/Target/Cpu0/ExampleCode
-118-165-75-57:ExampleCode Jonathan<span class="nv">$ </span>sh removecpu0.sh
-118-165-75-57:ExampleCode Jonathan<span class="nv">$ </span>cp -rf LLVMBackendTutorialExampleCode/3/2/
-Cpu0/* ../.
+/Users/Jonathan/llvm/test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode
+118-165-75-57:LLVMBackendTutorialExampleCode Jonathan<span class="nv">$ </span>sh removecpu0.sh
+118-165-75-57:LLVMBackendTutorialExampleCode Jonathan<span class="nv">$ </span>cp -rf Chapter3_2/
+* ../.
 </pre></div>
 </div>
 <p>After that, let&#8217;s try to run the <tt class="docutils literal"><span class="pre">llc</span></tt> compile command to see what happen,</p>
@@ -423,37 +275,10 @@ Let&#8217;s add it in next section.</p>
 </div>
 <div class="section" id="add-asmprinter">
 <h2>Add AsmPrinter<a class="headerlink" href="#add-asmprinter" title="Permalink to this headline">¶</a></h2>
-<p>3/3/cpu0 contains the Cpu0AsmPrinter definition. First, we add definitions in
+<p>Chapter3_3/cpu0 contains the Cpu0AsmPrinter definition. First, we add definitions in
 Cpu0.td to support AssemblyWriter.
 Cpu0.td is added with the following fragment,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0.td</span>
-<span class="c1">//...</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">// Cpu0 processors supported.</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-
-<span class="k">class</span> <span class="nc">Proc</span><span class="o">&lt;</span><span class="n">string</span> <span class="n">Name</span><span class="p">,</span> <span class="n">list</span><span class="o">&lt;</span><span class="n">SubtargetFeature</span><span class="o">&gt;</span> <span class="n">Features</span><span class="o">&gt;</span>
- <span class="o">:</span> <span class="n">Processor</span><span class="o">&lt;</span><span class="n">Name</span><span class="p">,</span> <span class="n">Cpu0GenericItineraries</span><span class="p">,</span> <span class="n">Features</span><span class="o">&gt;</span><span class="p">;</span>
-
-<span class="n">def</span> <span class="o">:</span> <span class="n">Proc</span><span class="o">&lt;</span><span class="s">&quot;cpu032&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">FeatureCpu032</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-
-<span class="n">def</span> <span class="n">Cpu0AsmWriter</span> <span class="o">:</span> <span class="n">AsmWriter</span> <span class="p">{</span>
-  <span class="n">string</span> <span class="n">AsmWriterClassName</span>  <span class="o">=</span> <span class="s">&quot;InstPrinter&quot;</span><span class="p">;</span>
-  <span class="n">bit</span> <span class="n">isMCAsmWriter</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="c1">// Will generate Cpu0GenAsmWrite.inc included by Cpu0InstPrinter.cpp, contents</span>
-<span class="c1">//  as follows,</span>
-<span class="c1">// void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &amp;O)</span>
-<span class="c1">//  {...}</span>
-<span class="c1">// const char *Cpu0InstPrinter::getRegisterName(unsigned RegNo) {...}</span>
-<span class="n">def</span> <span class="n">Cpu0</span> <span class="o">:</span> <span class="n">Target</span> <span class="p">{</span>
-<span class="c1">// def Cpu0InstrInfo : InstrInfo as before.</span>
-  <span class="n">let</span> <span class="n">InstructionSet</span> <span class="o">=</span> <span class="n">Cpu0InstrInfo</span><span class="p">;</span>
-  <span class="n">let</span> <span class="n">AssemblyWriters</span> <span class="o">=</span> <span class="p">[</span><span class="n">Cpu0AsmWriter</span><span class="p">];</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0.td</p>
 <p>As comments indicate, it will generate Cpu0GenAsmWrite.inc which is included
 by Cpu0InstPrinter.cpp.
 Cpu0GenAsmWrite.inc has the implementation of
@@ -462,80 +287,33 @@ Both of these functions can be auto-generated from the information we defined
 in Cpu0InstrInfo.td and Cpu0RegisterInfo.td.
 To let these two functions work in our code, the only thing need to do is add a
 class Cpu0InstPrinter and include them.</p>
-<p>File 3/3/Cpu0/InstPrinter/Cpu0InstPrinter.cpp include Cpu0GenAsmWrite.inc and
+<p>File Chapter3_3/Cpu0/InstPrinter/Cpu0InstPrinter.cpp include Cpu0GenAsmWrite.inc and
 call the auto-generated functions as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0InstPrinter.cpp</span>
-<span class="cp">#include &quot;Cpu0GenAsmWriter.inc&quot;</span>
-
-<span class="kt">void</span> <span class="n">Cpu0InstPrinter</span><span class="o">::</span><span class="n">printRegName</span><span class="p">(</span><span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">RegNo</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-<span class="c1">//- getRegisterName(RegNo) defined in Cpu0GenAsmWriter.inc which came from</span>
-<span class="c1">//-  Cpu0.td indicate.</span>
-  <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;$&#39;</span> <span class="o">&lt;&lt;</span> <span class="n">StringRef</span><span class="p">(</span><span class="n">getRegisterName</span><span class="p">(</span><span class="n">RegNo</span><span class="p">)).</span><span class="n">lower</span><span class="p">();</span>
-<span class="p">}</span>
-
-<span class="kt">void</span> <span class="n">Cpu0InstPrinter</span><span class="o">::</span><span class="n">printInst</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">,</span>
-                <span class="n">StringRef</span> <span class="n">Annot</span><span class="p">)</span> <span class="p">{</span>
-<span class="c1">//- printInstruction(MI, O) defined in Cpu0GenAsmWriter.inc which came from</span>
-<span class="c1">//-  Cpu0.td indicate.</span>
-  <span class="n">printInstruction</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">O</span><span class="p">);</span>
-  <span class="n">printAnnotation</span><span class="p">(</span><span class="n">O</span><span class="p">,</span> <span class="n">Annot</span><span class="p">);</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>Next, add Cpu0AsmPrinter (Cpu0AsmPrinter.h, Cpu0AsmPrinter.cpp),
-Cpu0MCInstLower (Cpu0MCInstLower.h, Cpu0MCInstLower.cpp), Cpu0BaseInfo.h,
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/InstPrinter/Cpu0InstPrinter.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/InstPrinter/Cpu0InstPrinter.cpp</p>
+<p>Next, Cpu0MCInstLower (Cpu0MCInstLower.h, Cpu0MCInstLower.cpp), as well as
+Cpu0BaseInfo.h,
 Cpu0FixupKinds.h and Cpu0MCAsmInfo (Cpu0MCAsmInfo.h, Cpu0MCAsmInfo.cpp) in
-sub-directory MCTargetDesc.</p>
+sub-directory MCTargetDesc as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0MCInstLower.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0MCInstLower.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0BaseInfo.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0FixupKinds.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0MCAsmInfo.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0MCAsmInfo.cpp</p>
 <p>Finally, add code in Cpu0MCTargetDesc.cpp to register Cpu0InstPrinter as
 follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0MCTargetDesc.cpp</span>
-<span class="k">static</span> <span class="n">MCAsmInfo</span> <span class="o">*</span><span class="n">createCpu0MCAsmInfo</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">TT</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">MCAsmInfo</span> <span class="o">*</span><span class="n">MAI</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Cpu0MCAsmInfo</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">TT</span><span class="p">);</span>
-
-  <span class="n">MachineLocation</span> <span class="n">Dst</span><span class="p">(</span><span class="n">MachineLocation</span><span class="o">::</span><span class="n">VirtualFP</span><span class="p">);</span>
-  <span class="n">MachineLocation</span> <span class="n">Src</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-  <span class="n">MAI</span><span class="o">-&gt;</span><span class="n">addInitialFrameState</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Dst</span><span class="p">,</span> <span class="n">Src</span><span class="p">);</span>
-
-  <span class="k">return</span> <span class="n">MAI</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="k">static</span> <span class="n">MCInstPrinter</span> <span class="o">*</span><span class="n">createCpu0MCInstPrinter</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span>
-                        <span class="kt">unsigned</span> <span class="n">SyntaxVariant</span><span class="p">,</span>
-                        <span class="k">const</span> <span class="n">MCAsmInfo</span> <span class="o">&amp;</span><span class="n">MAI</span><span class="p">,</span>
-                        <span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MII</span><span class="p">,</span>
-                        <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
-                        <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0InstPrinter</span><span class="p">(</span><span class="n">MAI</span><span class="p">,</span> <span class="n">MII</span><span class="p">,</span> <span class="n">MRI</span><span class="p">);</span>
-<span class="p">}</span>
-
-<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0TargetMC</span><span class="p">()</span> <span class="p">{</span>
-  <span class="c1">// Register the MC asm info.</span>
-  <span class="n">RegisterMCAsmInfoFn</span> <span class="n">X</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCAsmInfo</span><span class="p">);</span>
-  <span class="n">RegisterMCAsmInfoFn</span> <span class="n">Y</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCAsmInfo</span><span class="p">);</span>
-
-  <span class="c1">// Register the MCInstPrinter.</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstPrinter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
-                    <span class="n">createCpu0MCInstPrinter</span><span class="p">);</span>
-  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstPrinter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
-                    <span class="n">createCpu0MCInstPrinter</span><span class="p">);</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/MCTargetDesc/Cpu0MCTargetDesc.cpp</p>
 <p>Now, it&#8217;s time to work with AsmPrinter. According section
 &#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id6" id="id2">[2]</a>, we can register our AsmPrinter when we need it
-as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0AsmPrinter.cpp</span>
-<span class="c1">// Force static initialization.</span>
-<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0AsmPrinter</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">RegisterAsmPrinter</span><span class="o">&lt;</span><span class="n">Cpu0AsmPrinter</span><span class="o">&gt;</span> <span class="n">X</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">);</span>
-  <span class="n">RegisterAsmPrinter</span><span class="o">&lt;</span><span class="n">Cpu0AsmPrinter</span><span class="o">&gt;</span> <span class="n">Y</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">);</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+as the following function of LLVMInitializeCpu0AsmPrinter(),</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0AsmPrinter.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0AsmPrinter.cpp</p>
 <p>The dynamic register mechanism is a good idea, right.</p>
 <p>Except add the new .cpp files to CMakeLists.txt, please remember to add
 subdirectory InstPrinter, enable asmprinter, add libraries AsmPrinter and
 Cpu0AsmPrinter to LLVMBuild.txt as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/LLVMBuild.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  LLVMBuild.txt</span>
 <span class="p">[</span><span class="n">common</span><span class="p">]</span>
 <span class="n">subdirectories</span> <span class="o">=</span> <span class="n">InstPrinter</span> <span class="n">MCTargetDesc</span> <span class="n">TargetInfo</span>
@@ -552,7 +330,7 @@ Cpu0AsmPrinter to LLVMBuild.txt as follows,</p>
                      <span class="n">Cpu0Info</span> <span class="n">SelectionDAG</span> <span class="n">Support</span> <span class="n">Target</span>
 </pre></div>
 </div>
-<p>Now, run 3/3/Cpu0 for AsmPrinter support, will get error message as follows,</p>
+<p>Now, run Chapter3_3/Cpu0 for AsmPrinter support, will get error message as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch3.bc -o
 ch3.cpu0.s
@@ -726,17 +504,35 @@ ADD is machine instruction.</p>
 For example, (+ ri, rj), (- ri, 1) are lists for IR DAG; (ADD ri, rj),
 (SUBI ri, 1) are lists for machine instruction DAG.</p>
 <p>Now, let&#8217;s recall the ADDiu instruction defined on Cpu0InstrInfo.td in the
-previous chapter.
-And It will expand to the following Pattern as mentioned in section Write td
-(Target Description) of the previous chapter as follows,</p>
-<div class="highlight-c++"><pre>def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;
-
-Pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]</pre>
+previous chapter. List them again as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrFormats.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><pre>// Arithmetic and logical instructions with 2 register operands.
+class ArithLogicI&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
+                  Operand Od, PatLeaf imm_type, RegisterClass RC&gt; :
+  FL&lt;op, (outs RC:$ra), (ins RC:$rb, Od:$imm16),
+     !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
+     [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu&gt; {
+  let isReMaterializable = 1;
+}
+...
+def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;</pre>
 </div>
-<p>This pattern meaning the IR DAG node <strong>add</strong> can translate into machine
-instruction DAG node ADDiu by pattern match mechanism.
+<p><a class="pageref" href="#backendstructure-f9">Figure  9</a> show the pattern match which bind the IR node
+<strong>add</strong> and instruction ADDiu which defined in Cpu0InstrInfo.td. For the example
+IR node &#8220;add %a, 5&#8221;, it will be translated to &#8220;addiu %r1, 5&#8221; since the IR
+pattern[(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))] is set in ADDiu and the
+2nd operand is signed immediate which matched &#8220;%a, 5&#8221;. In addition to pattern
+match, the .td also set assembly string &#8220;addiu&#8221; and op code 0x09.
+With this information, the LLVM TableGen will generate instruction both in
+assembly and binary automatically (the binary instruction in obj file of ELF
+format which will shown at later chapter).
 Similarly, the machine instruction DAG node LD and ST can be got from IR DAG
 node <strong>load</strong> and <strong>store</strong>.</p>
+<div class="figure align-center" id="backendstructure-f9">
+<img alt="_images/9.png" src="_images/9.png" />
+<p class="caption">Figure 9: Pattern match for ADDiu instruction and IR node add</p>
+</div>
 <p>Some cpu/fpu (floating point processor) has multiply-and-add floating point
 instruction, fmadd.
 It can be represented by DAG list (fadd (fmul ra, rc), rb).
@@ -801,58 +597,18 @@ ret i32 0
 </div>
 <p>As above, ch3.ll use the IR DAG node <strong>store</strong>, <strong>ret</strong>. Actually, it also use
 <strong>add</strong> for sp (stack point) register adjust.
-So, the definitions in Cpu0InstInfo.td as follows is enough.
+So, the definitions in Cpu0InstrInfo.td as follows is enough.
 IR DAG is defined in file  include/llvm/Target/TargetSelectionDAG.td.</p>
-<div class="highlight-c++"><pre>/// Load and Store Instructions
-///  aligned
-defm LD      : LoadM32&lt;0x00,  "ld",  load_a&gt;;
-defm ST      : StoreM32&lt;0x01, "st",  store_a&gt;;
-
-/// Arithmetic Instructions (ALU Immediate)
-//def LDI     : MoveImm&lt;0x08, "ldi", add, simm16, immSExt16, CPURegs&gt;;
-// add defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
-def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;
-
-let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
-  isBarrier=1, hasCtrlDep=1 in
-  def RET : FJ &lt;0x2C, (outs), (ins CPURegs:$target),
-        "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch&gt;;</pre>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrInfo.td</p>
 <p>Add class Cpu0DAGToDAGISel (Cpu0ISelDAGToDAG.cpp) to CMakeLists.txt, and add
 following fragment to Cpu0TargetMachine.cpp,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0TargetMachine.cpp</span>
-<span class="p">...</span>
-<span class="c1">// Install an instruction selector pass using</span>
-<span class="c1">// the ISelDag to gen Cpu0 code.</span>
-<span class="kt">bool</span> <span class="n">Cpu0PassConfig</span><span class="o">::</span><span class="n">addInstSelector</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">addPass</span><span class="p">(</span><span class="n">createCpu0ISelDag</span><span class="p">(</span><span class="n">getCpu0TargetMachine</span><span class="p">()));</span>
-  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="c1">//  Cpu0ISelDAGToDAG.cpp</span>
-<span class="c1">/// createCpu0ISelDag - This pass converts a legalized DAG into a</span>
-<span class="c1">/// CPU0-specific DAG, ready for instruction scheduling.</span>
-<span class="n">FunctionPass</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0ISelDag</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0DAGToDAGISel</span><span class="p">(</span><span class="n">TM</span><span class="p">);</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0TargetMachine.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0ISelDAGToDAG.cpp</p>
 <p>This version adding the following code in Cpu0InstInfo.cpp to enable debug
 information which called by llvm at proper time.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0InstInfo.cpp</span>
-<span class="p">...</span>
-<span class="n">MachineInstr</span><span class="o">*</span>
-<span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">emitFrameIndexDebugValue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span> <span class="kt">int</span> <span class="n">FrameIx</span><span class="p">,</span>
-                    <span class="n">uint64_t</span> <span class="n">Offset</span><span class="p">,</span> <span class="k">const</span> <span class="n">MDNode</span> <span class="o">*</span><span class="n">MDPtr</span><span class="p">,</span>
-                    <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="n">MachineInstrBuilder</span> <span class="n">MIB</span> <span class="o">=</span> <span class="n">BuildMI</span><span class="p">(</span><span class="n">MF</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">DBG_VALUE</span><span class="p">))</span>
-  <span class="p">.</span><span class="n">addFrameIndex</span><span class="p">(</span><span class="n">FrameIx</span><span class="p">).</span><span class="n">addImm</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">addImm</span><span class="p">(</span><span class="n">Offset</span><span class="p">).</span><span class="n">addMetadata</span><span class="p">(</span><span class="n">MDPtr</span><span class="p">);</span>
-  <span class="k">return</span> <span class="o">&amp;*</span><span class="n">MIB</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>Build 3/4, run it, we find the error message in 3/3 is gone. The new error
-message for 3/4 as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0InstrInfo.cpp</p>
+<p>Build Chapter3_4, run it, we find the error message in Chapter3_3 is gone.
+The new error message for Chapter3_4 as follows,</p>
 <div class="highlight-bash"><pre>118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o
 ch3.cpu0.s
@@ -911,7 +667,7 @@ register–offset pair. Depending on whether the machine function that contains
 the instruction has a fixed or a variable stack frame, either the stack pointer
 %a10 or the frame pointer %a14 is used as the base register.
 The offset is computed accordingly.
-<a class="pageref" href="#backendstructure-f9">Figure  9</a> demonstrates for both cases how a stack slot
+<a class="pageref" href="#backendstructure-f10">Figure  10</a> demonstrates for both cases how a stack slot
 is addressed.</p>
 <p>If the addressing mode of the affected instruction cannot handle the address
 because the offset is too large (the offset field has 10 bits for the BO
@@ -921,9 +677,9 @@ Interim results are put into an unused address register.
 If none is available, an already occupied address register is scavenged.
 For this purpose, LLVM’s framework offers a class named RegScavenger that
 takes care of all the details.</p>
-<div class="figure align-center" id="backendstructure-f9">
-<img alt="_images/9.png" src="_images/9.png" />
-<p class="caption">Figure 9: Addressing of a variable a located on the stack.
+<div class="figure align-center" id="backendstructure-f10">
+<img alt="_images/10.png" src="_images/10.png" />
+<p class="caption">Figure 10: Addressing of a variable a located on the stack.
 If the stack frame has a variable size, slot must be addressed relative to
 the frame pointer</p>
 </div>
@@ -1003,7 +759,11 @@ bottom) as follows,</p>
   ret <span class="nv">$lr</span>
 </pre></div>
 </div>
-<p>After add these Prologue and Epilogue functions, and build with 3/5/Cpu0.
+<p>The Prologue and Epilogue functions as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0FrameLowering.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0FrameLowering.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0RegisterInfo.cpp</p>
+<p>After add these Prologue and Epilogue functions, and build with Chapter3_5/Cpu0.
 Now we are ready to compile our example code ch3.bc into cpu0 assembly code.
 Following is the command and output file ch3.cpu0.s,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch3.cpu0.s

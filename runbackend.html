@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.12',
+        VERSION:     '3.2.13',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -68,46 +68,8 @@ backend on PC by feed the hex file and see the Cpu0 instructions execution
 result.</p>
 <div class="section" id="asmparser-support">
 <h2>AsmParser support<a class="headerlink" href="#asmparser-support" title="Permalink to this headline">¶</a></h2>
-<p>Run 9/1/Cpu0 with ch10_1.cpp will get the following error message.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch10_1.cpp</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld $2, 8($sp)&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;st $0, 4($sp)&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $3,  $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;add $3, $1, $2&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;sub $3, $2, $3&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;mul $2, $1, $3&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;div $3, $2&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;divu $2, $3&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;and $2, $1, $3&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;or $3, $1, $2&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;xor $1, $2, $3&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;mult $4, $3&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;multu $3, $2&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;mfhi $3&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;mflo $2&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;mthi $2&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;mtlo $2&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;sra $2, $2, 2&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;rol $2, $1, 3&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;ror $3, $3, 4&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;shl $2, $2, 2&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;shr $2, $3, 5&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;cmp $sw, $2, $3&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jeq $sw, 20&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jne $sw, 16&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jlt $sw, -20&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jle $sw, -16&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jgt $sw, -4&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jge $sw, -12&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;swi 0x00000400&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jsub 0x000010000&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;ret $lr&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;jalr $t9&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;li $3, 0x00700000&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;la $3, 0x00800000($6)&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;la $3, 0x00900000&quot;</span><span class="p">);</span>
-</pre></div>
-</div>
+<p>Run Chapter9_1/ with ch10_1.cpp will get the following error message.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch10_1.cpp</p>
 <div class="highlight-bash"><pre>JonathantekiiMac:InputFiles Jonathan$ clang -c ch10_1.cpp -emit-llvm -o
 ch10_1.bc
 JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
@@ -120,1159 +82,82 @@ an asm parser for this target</pre>
 The cpu0 can translate LLVM IR into assembly and obj directly, but it cannot
 translate hand code assembly into obj.
 Directory AsmParser handle the assembly to obj translation.
-The 10/1/Cpu0 include AsmParser implementation as follows,</p>
-<div class="highlight-c++"><pre>// AsmParser/Cpu0AsmParser.cpp
-//===-- Cpu0AsmParser.cpp - Parse Cpu0 assembly to MCInst instructions ----===//
-//
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
-//
-//===----------------------------------------------------------------------===//
-...
-using namespace llvm;
-
-namespace {
-class Cpu0AssemblerOptions {
-public:
-  Cpu0AssemblerOptions():
-    aTReg(1), reorder(true), macro(true) {
-  }
-
-  bool isReorder() {return reorder;}
-  void setReorder() {reorder = true;}
-  void setNoreorder() {reorder = false;}
-
-  bool isMacro() {return macro;}
-  void setMacro() {macro = true;}
-  void setNomacro() {macro = false;}
-
-private:
-  unsigned aTReg;
-  bool reorder;
-  bool macro;
-};
-}
-
-namespace {
-class Cpu0AsmParser : public MCTargetAsmParser {
-  MCSubtargetInfo &amp;STI;
-  MCAsmParser &amp;Parser;
-  Cpu0AssemblerOptions Options;
-
-
-#define GET_ASSEMBLER_HEADER
-#include "Cpu0GenAsmMatcher.inc"
-
-  bool MatchAndEmitInstruction(SMLoc IDLoc, unsigned &amp;Opcode,
-                               SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;Operands,
-                               MCStreamer &amp;Out, unsigned &amp;ErrorInfo,
-                               bool MatchingInlineAsm);
-
-  bool ParseRegister(unsigned &amp;RegNo, SMLoc &amp;StartLoc, SMLoc &amp;EndLoc);
-
-  bool ParseInstruction(ParseInstructionInfo &amp;Info, StringRef Name,
-                        SMLoc NameLoc,
-                        SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;Operands);
-
-  bool parseMathOperation(StringRef Name, SMLoc NameLoc,
-                        SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;Operands);
-
-  bool ParseDirective(AsmToken DirectiveID);
-
-  Cpu0AsmParser::OperandMatchResultTy
-  parseMemOperand(SmallVectorImpl&lt;MCParsedAsmOperand*&gt;&amp;);
-
-  bool ParseOperand(SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;,
-                    StringRef Mnemonic);
-
-  int tryParseRegister(StringRef Mnemonic);
-
-  bool tryParseRegisterOperand(SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;Operands,
-                               StringRef Mnemonic);
-
-  bool needsExpansion(MCInst &amp;Inst);
-
-  void expandInstruction(MCInst &amp;Inst, SMLoc IDLoc,
-                         SmallVectorImpl&lt;MCInst&gt; &amp;Instructions);
-  void expandLoadImm(MCInst &amp;Inst, SMLoc IDLoc,
-                     SmallVectorImpl&lt;MCInst&gt; &amp;Instructions);
-  void expandLoadAddressImm(MCInst &amp;Inst, SMLoc IDLoc,
-                            SmallVectorImpl&lt;MCInst&gt; &amp;Instructions);
-  void expandLoadAddressReg(MCInst &amp;Inst, SMLoc IDLoc,
-                            SmallVectorImpl&lt;MCInst&gt; &amp;Instructions);
-  bool reportParseError(StringRef ErrorMsg);
-
-  bool parseMemOffset(const MCExpr *&amp;Res);
-  bool parseRelocOperand(const MCExpr *&amp;Res);
-
-  bool parseDirectiveSet();
-
-  bool parseSetAtDirective();
-  bool parseSetNoAtDirective();
-  bool parseSetMacroDirective();
-  bool parseSetNoMacroDirective();
-  bool parseSetReorderDirective();
-  bool parseSetNoReorderDirective();
-
-  MCSymbolRefExpr::VariantKind getVariantKind(StringRef Symbol);
-
-  int matchRegisterName(StringRef Symbol);
-
-  int matchRegisterByNumber(unsigned RegNum, StringRef Mnemonic);
-
-  unsigned getReg(int RC,int RegNo);
-
-public:
-  Cpu0AsmParser(MCSubtargetInfo &amp;sti, MCAsmParser &amp;parser)
-    : MCTargetAsmParser(), STI(sti), Parser(parser) {
-    // Initialize the set of available features.
-    setAvailableFeatures(ComputeAvailableFeatures(STI.getFeatureBits()));
-  }
-
-  MCAsmParser &amp;getParser() const { return Parser; }
-  MCAsmLexer &amp;getLexer() const { return Parser.getLexer(); }
-
-};
-}
-
-namespace {
-
-/// Cpu0Operand - Instances of this class represent a parsed Cpu0 machine
-/// instruction.
-class Cpu0Operand : public MCParsedAsmOperand {
-
-  enum KindTy {
-    k_CondCode,
-    k_CoprocNum,
-    k_Immediate,
-    k_Memory,
-    k_PostIndexRegister,
-    k_Register,
-    k_Token
-  } Kind;
-
-  Cpu0Operand(KindTy K) : MCParsedAsmOperand(), Kind(K) {}
-
-  union {
-    struct {
-      const char *Data;
-      unsigned Length;
-    } Tok;
-
-    struct {
-      unsigned RegNum;
-    } Reg;
-
-    struct {
-      const MCExpr *Val;
-    } Imm;
-
-    struct {
-      unsigned Base;
-      const MCExpr *Off;
-    } Mem;
-  };
-
-  SMLoc StartLoc, EndLoc;
-
-public:
-  void addRegOperands(MCInst &amp;Inst, unsigned N) const {
-    assert(N == 1 &amp;&amp; "Invalid number of operands!");
-    Inst.addOperand(MCOperand::CreateReg(getReg()));
-  }
-
-  void addExpr(MCInst &amp;Inst, const MCExpr *Expr) const{
-    // Add as immediate when possible.  Null MCExpr = 0.
-    if (Expr == 0)
-      Inst.addOperand(MCOperand::CreateImm(0));
-    else if (const MCConstantExpr *CE = dyn_cast&lt;MCConstantExpr&gt;(Expr))
-      Inst.addOperand(MCOperand::CreateImm(CE-&gt;getValue()));
-    else
-      Inst.addOperand(MCOperand::CreateExpr(Expr));
-  }
-
-  void addImmOperands(MCInst &amp;Inst, unsigned N) const {
-    assert(N == 1 &amp;&amp; "Invalid number of operands!");
-    const MCExpr *Expr = getImm();
-    addExpr(Inst,Expr);
-  }
-
-  void addMemOperands(MCInst &amp;Inst, unsigned N) const {
-    assert(N == 2 &amp;&amp; "Invalid number of operands!");
-
-    Inst.addOperand(MCOperand::CreateReg(getMemBase()));
-
-    const MCExpr *Expr = getMemOff();
-    addExpr(Inst,Expr);
-  }
-
-  bool isReg() const { return Kind == k_Register; }
-  bool isImm() const { return Kind == k_Immediate; }
-  bool isToken() const { return Kind == k_Token; }
-  bool isMem() const { return Kind == k_Memory; }
-
-  StringRef getToken() const {
-    assert(Kind == k_Token &amp;&amp; "Invalid access!");
-    return StringRef(Tok.Data, Tok.Length);
-  }
-
-  unsigned getReg() const {
-    assert((Kind == k_Register) &amp;&amp; "Invalid access!");
-    return Reg.RegNum;
-  }
-
-  const MCExpr *getImm() const {
-    assert((Kind == k_Immediate) &amp;&amp; "Invalid access!");
-    return Imm.Val;
-  }
-
-  unsigned getMemBase() const {
-    assert((Kind == k_Memory) &amp;&amp; "Invalid access!");
-    return Mem.Base;
-  }
-
-  const MCExpr *getMemOff() const {
-    assert((Kind == k_Memory) &amp;&amp; "Invalid access!");
-    return Mem.Off;
-  }
-
-  static Cpu0Operand *CreateToken(StringRef Str, SMLoc S) {
-    Cpu0Operand *Op = new Cpu0Operand(k_Token);
-    Op-&gt;Tok.Data = Str.data();
-    Op-&gt;Tok.Length = Str.size();
-    Op-&gt;StartLoc = S;
-    Op-&gt;EndLoc = S;
-    return Op;
-  }
-
-  static Cpu0Operand *CreateReg(unsigned RegNum, SMLoc S, SMLoc E) {
-    Cpu0Operand *Op = new Cpu0Operand(k_Register);
-    Op-&gt;Reg.RegNum = RegNum;
-    Op-&gt;StartLoc = S;
-    Op-&gt;EndLoc = E;
-    return Op;
-  }
-
-  static Cpu0Operand *CreateImm(const MCExpr *Val, SMLoc S, SMLoc E) {
-    Cpu0Operand *Op = new Cpu0Operand(k_Immediate);
-    Op-&gt;Imm.Val = Val;
-    Op-&gt;StartLoc = S;
-    Op-&gt;EndLoc = E;
-    return Op;
-  }
-
-  static Cpu0Operand *CreateMem(unsigned Base, const MCExpr *Off,
-                                 SMLoc S, SMLoc E) {
-    Cpu0Operand *Op = new Cpu0Operand(k_Memory);
-    Op-&gt;Mem.Base = Base;
-    Op-&gt;Mem.Off = Off;
-    Op-&gt;StartLoc = S;
-    Op-&gt;EndLoc = E;
-    return Op;
-  }
-
-  /// getStartLoc - Get the location of the first token of this operand.
-  SMLoc getStartLoc() const { return StartLoc; }
-  /// getEndLoc - Get the location of the last token of this operand.
-  SMLoc getEndLoc() const { return EndLoc; }
-
-  virtual void print(raw_ostream &amp;OS) const {
-    llvm_unreachable("unimplemented!");
-  }
-};
-}
-
-bool Cpu0AsmParser::needsExpansion(MCInst &amp;Inst) {
-
-  switch(Inst.getOpcode()) {
-    case Cpu0::LoadImm32Reg:
-    case Cpu0::LoadAddr32Imm:
-    case Cpu0::LoadAddr32Reg:
-      return true;
-    default:
-      return false;
-  }
-}
-
-void Cpu0AsmParser::expandInstruction(MCInst &amp;Inst, SMLoc IDLoc,
-                        SmallVectorImpl&lt;MCInst&gt; &amp;Instructions){
-  switch(Inst.getOpcode()) {
-    case Cpu0::LoadImm32Reg:
-      return expandLoadImm(Inst, IDLoc, Instructions);
-    case Cpu0::LoadAddr32Imm:
-      return expandLoadAddressImm(Inst,IDLoc,Instructions);
-    case Cpu0::LoadAddr32Reg:
-      return expandLoadAddressReg(Inst,IDLoc,Instructions);
-    }
-}
-
-void Cpu0AsmParser::expandLoadImm(MCInst &amp;Inst, SMLoc IDLoc,
-                                  SmallVectorImpl&lt;MCInst&gt; &amp;Instructions){
-  MCInst tmpInst;
-  const MCOperand &amp;ImmOp = Inst.getOperand(1);
-  assert(ImmOp.isImm() &amp;&amp; "expected immediate operand kind");
-  const MCOperand &amp;RegOp = Inst.getOperand(0);
-  assert(RegOp.isReg() &amp;&amp; "expected register operand kind");
-
-  int ImmValue = ImmOp.getImm();
-  tmpInst.setLoc(IDLoc);
-  if ( -32768 &lt;= ImmValue &amp;&amp; ImmValue &lt;= 32767) {
-    // for -32768 &lt;= j &lt; 32767.
-    // li d,j =&gt; addiu d,$zero,j
-    tmpInst.setOpcode(Cpu0::ADDiu); //TODO:no ADDiu64 in td files?
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(
-              MCOperand::CreateReg(Cpu0::ZERO));
-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
-    Instructions.push_back(tmpInst);
-  } else {
-    // for any other value of j that is representable as a 32-bit integer.
-    // li d,j =&gt; addiu d, $0, hi16(j)
-    //           shl d, d, 16
-    //           addiu at, $0, lo16(j)
-    //           or d, d, at
-    tmpInst.setOpcode(Cpu0::ADDiu);
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
-    tmpInst.addOperand(MCOperand::CreateImm((ImmValue &amp; 0xffff0000) &gt;&gt; 16));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::SHL);
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateImm(16));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::ADDiu);
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue &amp; 0x0000ffff));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::OR);
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
-    tmpInst.setLoc(IDLoc);
-    Instructions.push_back(tmpInst);
-  }
-}
-
-void Cpu0AsmParser::expandLoadAddressReg(MCInst &amp;Inst, SMLoc IDLoc,
-                                         SmallVectorImpl&lt;MCInst&gt; &amp;Instructions){
-  MCInst tmpInst;
-  const MCOperand &amp;ImmOp = Inst.getOperand(2);
-  assert(ImmOp.isImm() &amp;&amp; "expected immediate operand kind");
-  const MCOperand &amp;SrcRegOp = Inst.getOperand(1);
-  assert(SrcRegOp.isReg() &amp;&amp; "expected register operand kind");
-  const MCOperand &amp;DstRegOp = Inst.getOperand(0);
-  assert(DstRegOp.isReg() &amp;&amp; "expected register operand kind");
-  int ImmValue = ImmOp.getImm();
-  if ( -32768 &lt;= ImmValue &amp;&amp; ImmValue &lt;= 32767) {
-    // for -32768 &lt;= j &lt; 32767.
-    //la d,j(s) =&gt; addiu d,s,j
-    tmpInst.setOpcode(Cpu0::ADDiu); //TODO:no ADDiu64 in td files?
-    tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
-    Instructions.push_back(tmpInst);
-  } else {
-    // for any other value of j that is representable as a 32-bit integer.
-    // li d,j(s) =&gt; addiu d, $0, hi16(j)
-    //           shl d, d, 16
-    //           addiu at, $0, lo16(j)
-    //           or d, d, at
-    //           add d,d,s
-    tmpInst.setOpcode(Cpu0::ADDiu);
-    tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
-    tmpInst.addOperand(MCOperand::CreateImm((ImmValue &amp; 0xffff0000) &gt;&gt; 16));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::SHL);
-    tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateImm(16));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::ADDiu);
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue &amp; 0x0000ffff));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::OR);
-    tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
-    tmpInst.setLoc(IDLoc);
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::ADD);
-    tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
-    Instructions.push_back(tmpInst);
-  }
-}
-
-void Cpu0AsmParser::expandLoadAddressImm(MCInst &amp;Inst, SMLoc IDLoc,
-                                         SmallVectorImpl&lt;MCInst&gt; &amp;Instructions){
-  MCInst tmpInst;
-  const MCOperand &amp;ImmOp = Inst.getOperand(1);
-  assert(ImmOp.isImm() &amp;&amp; "expected immediate operand kind");
-  const MCOperand &amp;RegOp = Inst.getOperand(0);
-  assert(RegOp.isReg() &amp;&amp; "expected register operand kind");
-  int ImmValue = ImmOp.getImm();
-  if ( -32768 &lt;= ImmValue &amp;&amp; ImmValue &lt;= 32767) {
-    // for -32768 &lt;= j &lt; 32767.
-    //la d,j =&gt; addiu d,$zero,j
-    tmpInst.setOpcode(Cpu0::ADDiu);
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(
-              MCOperand::CreateReg(Cpu0::ZERO));
-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
-    Instructions.push_back(tmpInst);
-  } else {
-    // for any other value of j that is representable as a 32-bit integer.
-    // la d,j =&gt; addiu d, $0, hi16(j)
-    //           shl d, d, 16
-    //           addiu at, $0, lo16(j)
-    //           or d, d, at
-    tmpInst.setOpcode(Cpu0::ADDiu);
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
-    tmpInst.addOperand(MCOperand::CreateImm((ImmValue &amp; 0xffff0000) &gt;&gt; 16));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::SHL);
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateImm(16));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::ADDiu);
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue &amp; 0x0000ffff));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::OR);
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
-    tmpInst.setLoc(IDLoc);
-    Instructions.push_back(tmpInst);
-  }
-}
-
-bool Cpu0AsmParser::
-MatchAndEmitInstruction(SMLoc IDLoc, unsigned &amp;Opcode,
-                        SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;Operands,
-                        MCStreamer &amp;Out, unsigned &amp;ErrorInfo,
-                        bool MatchingInlineAsm) {
-  MCInst Inst;
-  unsigned MatchResult = MatchInstructionImpl(Operands, Inst, ErrorInfo,
-                                              MatchingInlineAsm);
-
-  switch (MatchResult) {
-  default: break;
-  case Match_Success: {
-    if (needsExpansion(Inst)) {
-      SmallVector&lt;MCInst, 4&gt; Instructions;
-      expandInstruction(Inst, IDLoc, Instructions);
-      for(unsigned i =0; i &lt; Instructions.size(); i++){
-        Out.EmitInstruction(Instructions[i]);
-      }
-    } else {
-        Inst.setLoc(IDLoc);
-        Out.EmitInstruction(Inst);
-      }
-    return false;
-  }
-  case Match_MissingFeature:
-    Error(IDLoc, "instruction requires a CPU feature not currently enabled");
-    return true;
-  case Match_InvalidOperand: {
-    SMLoc ErrorLoc = IDLoc;
-    if (ErrorInfo != ~0U) {
-      if (ErrorInfo &gt;= Operands.size())
-        return Error(IDLoc, "too few operands for instruction");
-
-      ErrorLoc = ((Cpu0Operand*)Operands[ErrorInfo])-&gt;getStartLoc();
-      if (ErrorLoc == SMLoc()) ErrorLoc = IDLoc;
-    }
-
-    return Error(ErrorLoc, "invalid operand for instruction");
-  }
-  case Match_MnemonicFail:
-    return Error(IDLoc, "invalid instruction");
-  }
-  return true;
-}
-
-int Cpu0AsmParser::matchRegisterName(StringRef Name) {
-
-   int CC;
-    CC = StringSwitch&lt;unsigned&gt;(Name)
-      .Case("zero",  Cpu0::ZERO)
-      .Case("at",  Cpu0::AT)
-      .Case("v0",  Cpu0::V0)
-      .Case("v1",  Cpu0::V1)
-      .Case("a0",  Cpu0::A0)
-      .Case("a1",  Cpu0::A1)
-      .Case("t9",  Cpu0::T9)
-      .Case("s0",  Cpu0::S0)
-      .Case("s1",  Cpu0::S1)
-      .Case("s2",  Cpu0::S2)
-      .Case("gp",  Cpu0::GP)
-      .Case("fp",  Cpu0::FP)
-      .Case("sw",  Cpu0::SW)
-      .Case("sp",  Cpu0::SP)
-      .Case("lr",  Cpu0::LR)
-      .Case("pc",  Cpu0::PC)
-      .Default(-1);
-
-  if (CC != -1)
-    return CC;
-
-  return -1;
-}
-
-unsigned Cpu0AsmParser::getReg(int RC,int RegNo) {
-  return *(getContext().getRegisterInfo().getRegClass(RC).begin() + RegNo);
-}
-
-int Cpu0AsmParser::matchRegisterByNumber(unsigned RegNum, StringRef Mnemonic) {
-  if (RegNum &gt; 15)
-    return -1;
-
-  return getReg(Cpu0::CPURegsRegClassID, RegNum);
-}
-
-int Cpu0AsmParser::tryParseRegister(StringRef Mnemonic) {
-  const AsmToken &amp;Tok = Parser.getTok();
-  int RegNum = -1;
-
-  if (Tok.is(AsmToken::Identifier)) {
-    std::string lowerCase = Tok.getString().lower();
-    RegNum = matchRegisterName(lowerCase);
-  } else if (Tok.is(AsmToken::Integer))
-    RegNum = matchRegisterByNumber(static_cast&lt;unsigned&gt;(Tok.getIntVal()),
-                                   Mnemonic.lower());
-    else
-      return RegNum;  //error
-  return RegNum;
-}
-
-bool Cpu0AsmParser::
-  tryParseRegisterOperand(SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;Operands,
-                          StringRef Mnemonic){
-
-  SMLoc S = Parser.getTok().getLoc();
-  int RegNo = -1;
-
-    RegNo = tryParseRegister(Mnemonic);
-  if (RegNo == -1)
-    return true;
-
-  Operands.push_back(Cpu0Operand::CreateReg(RegNo, S,
-      Parser.getTok().getLoc()));
-  Parser.Lex(); // Eat register token.
-  return false;
-}
-
-bool Cpu0AsmParser::ParseOperand(SmallVectorImpl&lt;MCParsedAsmOperand*&gt;&amp;Operands,
-                                 StringRef Mnemonic) {
-  // Check if the current operand has a custom associated parser, if so, try to
-  // custom parse the operand, or fallback to the general approach.
-  OperandMatchResultTy ResTy = MatchOperandParserImpl(Operands, Mnemonic);
-  if (ResTy == MatchOperand_Success)
-    return false;
-  // If there wasn't a custom match, try the generic matcher below. Otherwise,
-  // there was a match, but an error occurred, in which case, just return that
-  // the operand parsing failed.
-  if (ResTy == MatchOperand_ParseFail)
-    return true;
-
-  switch (getLexer().getKind()) {
-  default:
-    Error(Parser.getTok().getLoc(), "unexpected token in operand");
-    return true;
-  case AsmToken::Dollar: {
-    // parse register
-    SMLoc S = Parser.getTok().getLoc();
-    Parser.Lex(); // Eat dollar token.
-    // parse register operand
-    if (!tryParseRegisterOperand(Operands, Mnemonic)) {
-      if (getLexer().is(AsmToken::LParen)) {
-        // check if it is indexed addressing operand
-        Operands.push_back(Cpu0Operand::CreateToken("(", S));
-        Parser.Lex(); // eat parenthesis
-        if (getLexer().isNot(AsmToken::Dollar))
-          return true;
-
-        Parser.Lex(); // eat dollar
-        if (tryParseRegisterOperand(Operands, Mnemonic))
-          return true;
-
-        if (!getLexer().is(AsmToken::RParen))
-          return true;
-
-        S = Parser.getTok().getLoc();
-        Operands.push_back(Cpu0Operand::CreateToken(")", S));
-        Parser.Lex();
-      }
-      return false;
-    }
-    // maybe it is a symbol reference
-    StringRef Identifier;
-    if (Parser.parseIdentifier(Identifier))
-      return true;
-
-    SMLoc E = SMLoc::getFromPointer(Parser.getTok().getLoc().getPointer() - 1);
-
-    MCSymbol *Sym = getContext().GetOrCreateSymbol("$" + Identifier);
-
-    // Otherwise create a symbol ref.
-    const MCExpr *Res = MCSymbolRefExpr::Create(Sym, MCSymbolRefExpr::VK_None,
-                                                getContext());
-
-    Operands.push_back(Cpu0Operand::CreateImm(Res, S, E));
-    return false;
-  }
-  case AsmToken::Identifier:
-  case AsmToken::LParen:
-  case AsmToken::Minus:
-  case AsmToken::Plus:
-  case AsmToken::Integer:
-  case AsmToken::String: {
-     // quoted label names
-    const MCExpr *IdVal;
-    SMLoc S = Parser.getTok().getLoc();
-    if (getParser().parseExpression(IdVal))
-      return true;
-    SMLoc E = SMLoc::getFromPointer(Parser.getTok().getLoc().getPointer() - 1);
-    Operands.push_back(Cpu0Operand::CreateImm(IdVal, S, E));
-    return false;
-  }
-  case AsmToken::Percent: {
-    // it is a symbol reference or constant expression
-    const MCExpr *IdVal;
-    SMLoc S = Parser.getTok().getLoc(); // start location of the operand
-    if (parseRelocOperand(IdVal))
-      return true;
-
-    SMLoc E = SMLoc::getFromPointer(Parser.getTok().getLoc().getPointer() - 1);
-
-    Operands.push_back(Cpu0Operand::CreateImm(IdVal, S, E));
-    return false;
-  } // case AsmToken::Percent
-  } // switch(getLexer().getKind())
-  return true;
-}
-
-bool Cpu0AsmParser::parseRelocOperand(const MCExpr *&amp;Res) {
-
-  Parser.Lex(); // eat % token
-  const AsmToken &amp;Tok = Parser.getTok(); // get next token, operation
-  if (Tok.isNot(AsmToken::Identifier))
-    return true;
-
-  std::string Str = Tok.getIdentifier().str();
-
-  Parser.Lex(); // eat identifier
-  // now make expression from the rest of the operand
-  const MCExpr *IdVal;
-  SMLoc EndLoc;
-
-  if (getLexer().getKind() == AsmToken::LParen) {
-    while (1) {
-      Parser.Lex(); // eat '(' token
-      if (getLexer().getKind() == AsmToken::Percent) {
-        Parser.Lex(); // eat % token
-        const AsmToken &amp;nextTok = Parser.getTok();
-        if (nextTok.isNot(AsmToken::Identifier))
-          return true;
-        Str += "(%";
-        Str += nextTok.getIdentifier();
-        Parser.Lex(); // eat identifier
-        if (getLexer().getKind() != AsmToken::LParen)
-          return true;
-      } else
-        break;
-    }
-    if (getParser().parseParenExpression(IdVal,EndLoc))
-      return true;
-
-    while (getLexer().getKind() == AsmToken::RParen)
-      Parser.Lex(); // eat ')' token
-
-  } else
-    return true; // parenthesis must follow reloc operand
-
-  // Check the type of the expression
-  if (const MCConstantExpr *MCE = dyn_cast&lt;MCConstantExpr&gt;(IdVal)) {
-    // it's a constant, evaluate lo or hi value
-    int Val = MCE-&gt;getValue();
-    if (Str == "lo") {
-      Val = Val &amp; 0xffff;
-    } else if (Str == "hi") {
-      Val = (Val &amp; 0xffff0000) &gt;&gt; 16;
-    }
-    Res = MCConstantExpr::Create(Val, getContext());
-    return false;
-  }
-
-  if (const MCSymbolRefExpr *MSRE = dyn_cast&lt;MCSymbolRefExpr&gt;(IdVal)) {
-    // it's a symbol, create symbolic expression from symbol
-    StringRef Symbol = MSRE-&gt;getSymbol().getName();
-    MCSymbolRefExpr::VariantKind VK = getVariantKind(Str);
-    Res = MCSymbolRefExpr::Create(Symbol,VK,getContext());
-    return false;
-  }
-  return true;
-}
-
-bool Cpu0AsmParser::ParseRegister(unsigned &amp;RegNo, SMLoc &amp;StartLoc,
-                                  SMLoc &amp;EndLoc) {
-
-  StartLoc = Parser.getTok().getLoc();
-  RegNo = tryParseRegister("");
-  EndLoc = Parser.getTok().getLoc();
-  return (RegNo == (unsigned)-1);
-}
-
-bool Cpu0AsmParser::parseMemOffset(const MCExpr *&amp;Res) {
-
-  SMLoc S;
-
-  switch(getLexer().getKind()) {
-  default:
-    return true;
-  case AsmToken::Integer:
-  case AsmToken::Minus:
-  case AsmToken::Plus:
-    return (getParser().parseExpression(Res));
-  case AsmToken::Percent:
-    return parseRelocOperand(Res);
-  case AsmToken::LParen:
-    return false;  // it's probably assuming 0
-  }
-  return true;
-}
-
-// eg, 12($sp) or 12(la)
-Cpu0AsmParser::OperandMatchResultTy Cpu0AsmParser::parseMemOperand(
-               SmallVectorImpl&lt;MCParsedAsmOperand*&gt;&amp;Operands) {
-
-  const MCExpr *IdVal = 0;
-  SMLoc S;
-  // first operand is the offset
-  S = Parser.getTok().getLoc();
-
-  if (parseMemOffset(IdVal))
-    return MatchOperand_ParseFail;
-
-  const AsmToken &amp;Tok = Parser.getTok(); // get next token
-  if (Tok.isNot(AsmToken::LParen)) {
-    Cpu0Operand *Mnemonic = static_cast&lt;Cpu0Operand*&gt;(Operands[0]);
-    if (Mnemonic-&gt;getToken() == "la") {
-      SMLoc E = SMLoc::getFromPointer(Parser.getTok().getLoc().getPointer()-1);
-      Operands.push_back(Cpu0Operand::CreateImm(IdVal, S, E));
-      return MatchOperand_Success;
-    }
-    Error(Parser.getTok().getLoc(), "'(' expected");
-    return MatchOperand_ParseFail;
-  }
-
-  Parser.Lex(); // Eat '(' token.
-
-  const AsmToken &amp;Tok1 = Parser.getTok(); // get next token
-  if (Tok1.is(AsmToken::Dollar)) {
-    Parser.Lex(); // Eat '$' token.
-    if (tryParseRegisterOperand(Operands,"")) {
-      Error(Parser.getTok().getLoc(), "unexpected token in operand");
-      return MatchOperand_ParseFail;
-    }
-
-  } else {
-    Error(Parser.getTok().getLoc(), "unexpected token in operand");
-    return MatchOperand_ParseFail;
-  }
-
-  const AsmToken &amp;Tok2 = Parser.getTok(); // get next token
-  if (Tok2.isNot(AsmToken::RParen)) {
-    Error(Parser.getTok().getLoc(), "')' expected");
-    return MatchOperand_ParseFail;
-  }
-
-  SMLoc E = SMLoc::getFromPointer(Parser.getTok().getLoc().getPointer() - 1);
-
-  Parser.Lex(); // Eat ')' token.
-
-  if (IdVal == 0)
-    IdVal = MCConstantExpr::Create(0, getContext());
-
-  // now replace register operand with the mem operand
-  Cpu0Operand* op = static_cast&lt;Cpu0Operand*&gt;(Operands.back());
-  int RegNo = op-&gt;getReg();
-  // remove register from operands
-  Operands.pop_back();
-  // and add memory operand
-  Operands.push_back(Cpu0Operand::CreateMem(RegNo, IdVal, S, E));
-  delete op;
-  return MatchOperand_Success;
-}
-
-MCSymbolRefExpr::VariantKind Cpu0AsmParser::getVariantKind(StringRef Symbol) {
-
-  MCSymbolRefExpr::VariantKind VK
-                   = StringSwitch&lt;MCSymbolRefExpr::VariantKind&gt;(Symbol)
-    .Case("hi",          MCSymbolRefExpr::VK_Cpu0_ABS_HI)
-    .Case("lo",          MCSymbolRefExpr::VK_Cpu0_ABS_LO)
-    .Case("gp_rel",      MCSymbolRefExpr::VK_Cpu0_GPREL)
-    .Case("call24",      MCSymbolRefExpr::VK_Cpu0_GOT_CALL)
-    .Case("got",         MCSymbolRefExpr::VK_Cpu0_GOT)
-    .Case("tlsgd",       MCSymbolRefExpr::VK_Cpu0_TLSGD)
-    .Case("tlsldm",      MCSymbolRefExpr::VK_Cpu0_TLSLDM)
-    .Case("dtprel_hi",   MCSymbolRefExpr::VK_Cpu0_DTPREL_HI)
-    .Case("dtprel_lo",   MCSymbolRefExpr::VK_Cpu0_DTPREL_LO)
-    .Case("gottprel",    MCSymbolRefExpr::VK_Cpu0_GOTTPREL)
-    .Case("tprel_hi",    MCSymbolRefExpr::VK_Cpu0_TPREL_HI)
-    .Case("tprel_lo",    MCSymbolRefExpr::VK_Cpu0_TPREL_LO)
-    .Case("got_disp",    MCSymbolRefExpr::VK_Cpu0_GOT_DISP)
-    .Case("got_page",    MCSymbolRefExpr::VK_Cpu0_GOT_PAGE)
-    .Case("got_ofst",    MCSymbolRefExpr::VK_Cpu0_GOT_OFST)
-    .Case("hi(%neg(%gp_rel",    MCSymbolRefExpr::VK_Cpu0_GPOFF_HI)
-    .Case("lo(%neg(%gp_rel",    MCSymbolRefExpr::VK_Cpu0_GPOFF_LO)
-    .Default(MCSymbolRefExpr::VK_None);
-
-  return VK;
-}
-
-bool Cpu0AsmParser::
-parseMathOperation(StringRef Name, SMLoc NameLoc,
-                   SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;Operands) {
-  // split the format
-  size_t Start = Name.find('.'), Next = Name.rfind('.');
-  StringRef Format1 = Name.slice(Start, Next);
-  // and add the first format to the operands
-  Operands.push_back(Cpu0Operand::CreateToken(Format1, NameLoc));
-  // now for the second format
-  StringRef Format2 = Name.slice(Next, StringRef::npos);
-  Operands.push_back(Cpu0Operand::CreateToken(Format2, NameLoc));
-
-  // set the format for the first register
-//  setFpFormat(Format1);
-
-  // Read the remaining operands.
-  if (getLexer().isNot(AsmToken::EndOfStatement)) {
-    // Read the first operand.
-    if (ParseOperand(Operands, Name)) {
-      SMLoc Loc = getLexer().getLoc();
-      Parser.eatToEndOfStatement();
-      return Error(Loc, "unexpected token in argument list");
-    }
-
-    if (getLexer().isNot(AsmToken::Comma)) {
-      SMLoc Loc = getLexer().getLoc();
-      Parser.eatToEndOfStatement();
-      return Error(Loc, "unexpected token in argument list");
-
-    }
-    Parser.Lex();  // Eat the comma.
-
-    // Parse and remember the operand.
-    if (ParseOperand(Operands, Name)) {
-      SMLoc Loc = getLexer().getLoc();
-      Parser.eatToEndOfStatement();
-      return Error(Loc, "unexpected token in argument list");
-    }
-  }
-
-  if (getLexer().isNot(AsmToken::EndOfStatement)) {
-    SMLoc Loc = getLexer().getLoc();
-    Parser.eatToEndOfStatement();
-    return Error(Loc, "unexpected token in argument list");
-  }
-
-  Parser.Lex(); // Consume the EndOfStatement
-  return false;
-}
-
-bool Cpu0AsmParser::
-ParseInstruction(ParseInstructionInfo &amp;Info, StringRef Name, SMLoc NameLoc,
-                 SmallVectorImpl&lt;MCParsedAsmOperand*&gt; &amp;Operands) {
-
-  // Create the leading tokens for the mnemonic, split by '.' characters.
-  size_t Start = 0, Next = Name.find('.');
-  StringRef Mnemonic = Name.slice(Start, Next);
-
-  Operands.push_back(Cpu0Operand::CreateToken(Mnemonic, NameLoc));
-
-  // Read the remaining operands.
-  if (getLexer().isNot(AsmToken::EndOfStatement)) {
-    // Read the first operand.
-    if (ParseOperand(Operands, Name)) {
-      SMLoc Loc = getLexer().getLoc();
-      Parser.eatToEndOfStatement();
-      return Error(Loc, "unexpected token in argument list");
-    }
-
-    while (getLexer().is(AsmToken::Comma) ) {
-      Parser.Lex();  // Eat the comma.
-
-      // Parse and remember the operand.
-      if (ParseOperand(Operands, Name)) {
-        SMLoc Loc = getLexer().getLoc();
-        Parser.eatToEndOfStatement();
-        return Error(Loc, "unexpected token in argument list");
-      }
-    }
-  }
-
-  if (getLexer().isNot(AsmToken::EndOfStatement)) {
-    SMLoc Loc = getLexer().getLoc();
-    Parser.eatToEndOfStatement();
-    return Error(Loc, "unexpected token in argument list");
-  }
-
-  Parser.Lex(); // Consume the EndOfStatement
-  return false;
-}
-
-bool Cpu0AsmParser::reportParseError(StringRef ErrorMsg) {
-   SMLoc Loc = getLexer().getLoc();
-   Parser.eatToEndOfStatement();
-   return Error(Loc, ErrorMsg);
-}
-
-bool Cpu0AsmParser::parseSetReorderDirective() {
-  Parser.Lex();
-  // if this is not the end of the statement, report error
-  if (getLexer().isNot(AsmToken::EndOfStatement)) {
-    reportParseError("unexpected token in statement");
-    return false;
-  }
-  Options.setReorder();
-  Parser.Lex(); // Consume the EndOfStatement
-  return false;
-}
-
-bool Cpu0AsmParser::parseSetNoReorderDirective() {
-    Parser.Lex();
-    // if this is not the end of the statement, report error
-    if (getLexer().isNot(AsmToken::EndOfStatement)) {
-      reportParseError("unexpected token in statement");
-      return false;
-    }
-    Options.setNoreorder();
-    Parser.Lex(); // Consume the EndOfStatement
-    return false;
-}
-
-bool Cpu0AsmParser::parseSetMacroDirective() {
-  Parser.Lex();
-  // if this is not the end of the statement, report error
-  if (getLexer().isNot(AsmToken::EndOfStatement)) {
-    reportParseError("unexpected token in statement");
-    return false;
-  }
-  Options.setMacro();
-  Parser.Lex(); // Consume the EndOfStatement
-  return false;
-}
-
-bool Cpu0AsmParser::parseSetNoMacroDirective() {
-  Parser.Lex();
-  // if this is not the end of the statement, report error
-  if (getLexer().isNot(AsmToken::EndOfStatement)) {
-    reportParseError("`noreorder' must be set before `nomacro'");
-    return false;
-  }
-  if (Options.isReorder()) {
-    reportParseError("`noreorder' must be set before `nomacro'");
-    return false;
-  }
-  Options.setNomacro();
-  Parser.Lex(); // Consume the EndOfStatement
-  return false;
-}
-bool Cpu0AsmParser::parseDirectiveSet() {
-
-  // get next token
-  const AsmToken &amp;Tok = Parser.getTok();
-
-  if (Tok.getString() == "reorder") {
-    return parseSetReorderDirective();
-  } else if (Tok.getString() == "noreorder") {
-    return parseSetNoReorderDirective();
-  } else if (Tok.getString() == "macro") {
-    return parseSetMacroDirective();
-  } else if (Tok.getString() == "nomacro") {
-    return parseSetNoMacroDirective();
-  }
-  return true;
-}
-
-bool Cpu0AsmParser::ParseDirective(AsmToken DirectiveID) {
-
-  if (DirectiveID.getString() == ".ent") {
-    // ignore this directive for now
-    Parser.Lex();
-    return false;
-  }
-
-  if (DirectiveID.getString() == ".end") {
-    // ignore this directive for now
-    Parser.Lex();
-    return false;
-  }
-
-  if (DirectiveID.getString() == ".frame") {
-    // ignore this directive for now
-    Parser.eatToEndOfStatement();
-    return false;
-  }
-
-  if (DirectiveID.getString() == ".set") {
-    return parseDirectiveSet();
-  }
-
-  if (DirectiveID.getString() == ".fmask") {
-    // ignore this directive for now
-    Parser.eatToEndOfStatement();
-    return false;
-  }
-
-  if (DirectiveID.getString() == ".mask") {
-    // ignore this directive for now
-    Parser.eatToEndOfStatement();
-    return false;
-  }
-
-  if (DirectiveID.getString() == ".gpword") {
-    // ignore this directive for now
-    Parser.eatToEndOfStatement();
-    return false;
-  }
-
-  return true;
-}
-
-extern "C" void LLVMInitializeCpu0AsmParser() {
-  RegisterMCAsmParser&lt;Cpu0AsmParser&gt; X(TheCpu0Target);
-  RegisterMCAsmParser&lt;Cpu0AsmParser&gt; Y(TheCpu0elTarget);
-}
-
-#define GET_REGISTER_MATCHER
-#define GET_MATCHER_IMPLEMENTATION
-#include "Cpu0GenAsmMatcher.inc"
-
-
-// AsmParser/CMakeLists.txt
-include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
-add_llvm_library(LLVMCpu0AsmParser
-  Cpu0AsmParser.cpp
-  )
-
-add_dependencies(LLVMCpu0AsmParser Cpu0CommonTableGen)
-
-// AsmParser/LLVMBuild.txt
-;===- ./lib/Target/Mips/AsmParser/LLVMBuild.txt ----------------*- Conf -*--===;
-;
-;                     The LLVM Compiler Infrastructure
-;
-; This file is distributed under the University of Illinois Open Source
-; License. See LICENSE.TXT for details.
-;
-;===------------------------------------------------------------------------===;
-;
-; This is an LLVMBuild description file for the components in this subdirectory.
-;
-; For more information on the LLVMBuild system, please see:
-;
-;   http://llvm.org/docs/LLVMBuild.html
-;
-;===------------------------------------------------------------------------===;
-
-[component_0]
-type = Library
-name = Cpu0AsmParser
-parent = Mips
-required_libraries = MC MCParser Support MipsDesc MipsInfo
-add_to_library_groups = Cpu0</pre>
-</div>
+The Chapter10_1/ include AsmParser implementation as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/Cpu0AsmParser.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/CMakeLists.txt</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/LLVMBuild.txt</p>
 <p>The Cpu0AsmParser.cpp contains one thousand of code which do the assembly
 language parsing. You can understand it with a little patient only.
 To let directory AsmParser be built, modify CMakeLists.txt and LLVMBuild.txt as
 follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// CMakeLists.txt</span>
-<span class="p">...</span>
-<span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenAsmMatcher</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="k">asm</span><span class="o">-</span><span class="n">matcher</span><span class="p">)</span>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/CMakeLists.txt</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenAsmMatcher</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="k">asm</span><span class="o">-</span><span class="n">matcher</span><span class="p">)</span>
 <span class="p">...</span>
 <span class="n">add_subdirectory</span><span class="p">(</span><span class="n">AsmParser</span><span class="p">)</span>
-
-<span class="c1">// LLVMBuild.txt</span>
-<span class="p">...</span>
-<span class="n">subdirectories</span> <span class="o">=</span> <span class="n">AsmParser</span> <span class="p">...</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/LLVMBuild.txt</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">subdirectories</span> <span class="o">=</span> <span class="n">AsmParser</span> <span class="p">...</span>
 <span class="p">...</span>
 <span class="n">has_asmparser</span> <span class="o">=</span> <span class="mi">1</span>
 </pre></div>
 </div>
 <p>The other files change as follows,</p>
-<div class="highlight-c++"><pre>// MCTargetDesc/Cpu0MCCodeEmitter.cpp
-unsigned Cpu0MCCodeEmitter::
-getBranchTargetOpValue(const MCInst &amp;MI, unsigned OpNo,
-             SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups) const {
-  ...
-  // If the destination is an immediate, we have nothing to do.
-  if (MO.isImm()) return MO.getImm();
-  ...
-}
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
+<span class="n">getBranchTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+             <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// If the destination is an immediate, we have nothing to do.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isImm</span><span class="p">())</span> <span class="k">return</span> <span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+  <span class="p">...</span>
+<span class="p">}</span>
 
-/// getJumpAbsoluteTargetOpValue - Return binary encoding of the jump
-/// target operand. Such as SWI.
-unsigned Cpu0MCCodeEmitter::
-getJumpAbsoluteTargetOpValue(const MCInst &amp;MI, unsigned OpNo,
-           SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups) const {
-  ...
-  // If the destination is an immediate, we have nothing to do.
-  if (MO.isImm()) return MO.getImm();
-  ...
-}
+<span class="c1">/// getJumpAbsoluteTargetOpValue - Return binary encoding of the jump</span>
+<span class="c1">/// target operand. Such as SWI.</span>
+<span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
+<span class="n">getJumpAbsoluteTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+           <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// If the destination is an immediate, we have nothing to do.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isImm</span><span class="p">())</span> <span class="k">return</span> <span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">Cpu0AsmParser</span> <span class="o">:</span> <span class="n">AsmParser</span> <span class="p">{</span>
+  <span class="n">let</span> <span class="n">ShouldEmitMatchRegisterName</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
 
-// Cpu0.td
-def Cpu0AsmParser : AsmParser {
-  let ShouldEmitMatchRegisterName = 0;
-}
+<span class="n">def</span> <span class="n">Cpu0AsmParserVariant</span> <span class="o">:</span> <span class="n">AsmParserVariant</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">Variant</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
-def Cpu0AsmParserVariant : AsmParserVariant {
-  int Variant = 0;
+  <span class="c1">// Recognize hard coded registers.</span>
+  <span class="n">string</span> <span class="n">RegisterPrefix</span> <span class="o">=</span> <span class="s">&quot;$&quot;</span><span class="p">;</span>
+<span class="p">}</span>
 
-  // Recognize hard coded registers.
-  string RegisterPrefix = "$";
-}
-
-def Cpu0 : Target {
-  let AssemblyParsers = [Cpu0AsmParser];
-  let AssemblyParserVariants = [Cpu0AsmParserVariant];
-}
-
-// Cpu0InstrFormats.td
-// Pseudo-instructions for alternate assembly syntax (never used by codegen).
-// These are aliases that require C++ handling to convert to the target
-// instruction, while InstAliases can be handled directly by tblgen.
-class Cpu0AsmPseudoInst&lt;dag outs, dag ins, string asmstr&gt;:
-  Cpu0Inst&lt;outs, ins, asmstr, [], IIPseudo, Pseudo&gt; {
-  let isPseudo = 1;
-  let Pattern = [];
-}
-
-// Cpu0InstrInfo.td
+<span class="n">def</span> <span class="n">Cpu0</span> <span class="o">:</span> <span class="n">Target</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">let</span> <span class="n">AssemblyParsers</span> <span class="o">=</span> <span class="p">[</span><span class="n">Cpu0AsmParser</span><span class="p">];</span>
+  <span class="p">...</span>
+  <span class="n">let</span> <span class="n">AssemblyParserVariants</span> <span class="o">=</span> <span class="p">[</span><span class="n">Cpu0AsmParserVariant</span><span class="p">];</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0InstrFormats.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Pseudo-instructions for alternate assembly syntax (never used by codegen).</span>
+<span class="c1">// These are aliases that require C++ handling to convert to the target</span>
+<span class="c1">// instruction, while InstAliases can be handled directly by tblgen.</span>
+<span class="k">class</span> <span class="nc">Cpu0AsmPseudoInst</span><span class="o">&lt;</span><span class="n">dag</span> <span class="n">outs</span><span class="p">,</span> <span class="n">dag</span> <span class="n">ins</span><span class="p">,</span> <span class="n">string</span> <span class="n">asmstr</span><span class="o">&gt;:</span>
+  <span class="n">Cpu0Inst</span><span class="o">&lt;</span><span class="n">outs</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">asmstr</span><span class="p">,</span> <span class="p">[],</span> <span class="n">IIPseudo</span><span class="p">,</span> <span class="n">Pseudo</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="n">let</span> <span class="n">isPseudo</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="n">let</span> <span class="n">Pattern</span> <span class="o">=</span> <span class="p">[];</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><pre>// Cpu0InstrInfo.td
 def Cpu0MemAsmOperand : AsmOperandClass {
   let Name = "Mem";
   let ParserMethod = "parseMemOperand";
@@ -1313,13 +198,14 @@ class LoadAddressImm&lt;string instr_asm, Operand Od, RegisterClass RC&gt; :
            !strconcat(instr_asm, "\t$ra, $imm32")&gt; ;
 def LoadAddr32Imm : LoadAddressImm&lt;"la", shamt, CPURegs&gt;;</pre>
 </div>
-<p>We define the <strong>ParserMethod = &#8220;parseMemOperand&#8221;</strong> and implement the
+<p>Above define the <strong>ParserMethod = &#8220;parseMemOperand&#8221;</strong> and implement the
 parseMemOperand() in Cpu0AsmParser.cpp to handle the <strong>&#8220;mem&#8221;</strong> operand which
 used in ld and st. For example, ld $2, 4($sp), the <strong>mem</strong> operand is 4($sp).
 Accompany with <strong>&#8220;let ParserMatchClass = Cpu0MemAsmOperand;&#8221;</strong>,
 LLVM will call parseMemOperand() of Cpu0AsmParser.cpp when it meets the assembly
 <strong>mem</strong> operand 4($sp). With above <strong>&#8220;let&#8221;</strong> assignment, TableGen will generate
 the following structure and functions in Cpu0GenAsmMatcher.inc.</p>
+<p class="rubric">cmake_debug_build/lib/Target/Cpu0/Cpu0GenAsmMatcher.inc</p>
 <div class="highlight-c++"><div class="highlight"><pre>  <span class="k">enum</span> <span class="n">OperandMatchResultTy</span> <span class="p">{</span>
     <span class="n">MatchOperand_Success</span><span class="p">,</span>    <span class="c1">// operand matched successfully</span>
     <span class="n">MatchOperand_NoMatch</span><span class="p">,</span>    <span class="c1">// operand did not match</span>
@@ -1362,6 +248,7 @@ the following structure and functions in Cpu0GenAsmMatcher.inc.</p>
 </div>
 <p>Above 3 Pseudo Instruction definitions in Cpu0InstrInfo.td such as
 LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/Cpu0AsmParser.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">needsExpansion</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">)</span> <span class="p">{</span>
 
   <span class="k">switch</span><span class="p">(</span><span class="n">Inst</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
@@ -1401,7 +288,8 @@ LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,</p>
   <span class="k">if</span> <span class="p">(</span><span class="n">needsExpansion</span><span class="p">(</span><span class="n">Inst</span><span class="p">))</span> <span class="p">{</span>
     <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;</span> <span class="n">Instructions</span><span class="p">;</span>
     <span class="n">expandInstruction</span><span class="p">(</span><span class="n">Inst</span><span class="p">,</span> <span class="n">IDLoc</span><span class="p">,</span> <span class="n">Instructions</span><span class="p">);</span>
-  <span class="p">...</span>
+    <span class="p">...</span>
+  <span class="p">}</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
@@ -1410,52 +298,8 @@ LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,</p>
 output and <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></tt> using lower case. The CPURegs as below must
 follow the order of register number because AsmParser use this when do register
 number encode.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0Register.cpp</span>
-<span class="c1">// The register string, such as &quot;9&quot; or &quot;gp will show on &quot;llvm-objdump -d&quot;</span>
-<span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span> <span class="n">in</span> <span class="p">{</span>
-  <span class="c1">// General Purpose Registers</span>
-  <span class="n">def</span> <span class="n">ZERO</span> <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;zero&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">AT</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;at&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">V0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;2&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">V1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">3</span><span class="p">,</span> <span class="s">&quot;3&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">A0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&quot;4&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">A1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">5</span><span class="p">,</span> <span class="s">&quot;5&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">T9</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">6</span><span class="p">,</span> <span class="s">&quot;6&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">S0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">7</span><span class="p">,</span> <span class="s">&quot;7&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">S1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">8</span><span class="p">,</span> <span class="s">&quot;8&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">S2</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">9</span><span class="p">,</span> <span class="s">&quot;9&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">GP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">10</span><span class="p">,</span> <span class="s">&quot;gp&quot;</span><span class="o">&gt;</span><span class="p">,</span>  <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">FP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">11</span><span class="p">,</span> <span class="s">&quot;fp&quot;</span><span class="o">&gt;</span><span class="p">,</span>  <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">SW</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">12</span><span class="p">,</span> <span class="s">&quot;sw&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">SP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">13</span><span class="p">,</span> <span class="s">&quot;sp&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">LR</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">14</span><span class="p">,</span> <span class="s">&quot;lr&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">PC</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">15</span><span class="p">,</span> <span class="s">&quot;pc&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">15</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="c1">//  def MAR  : Register&lt; 16, &quot;mar&quot;&gt;,  DwarfRegNum&lt;[16]&gt;;</span>
-<span class="c1">//  def MDR  : Register&lt; 17, &quot;mdr&quot;&gt;,  DwarfRegNum&lt;[17]&gt;;</span>
-
-  <span class="c1">// Hi/Lo registers</span>
-  <span class="n">def</span> <span class="n">HI</span>   <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;hi&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">18</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">LO</span>   <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;lo&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">19</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">// Register Classes</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-
-<span class="n">def</span> <span class="n">CPURegs</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span>
-  <span class="c1">// Reserved</span>
-  <span class="n">ZERO</span><span class="p">,</span> <span class="n">AT</span><span class="p">,</span>
-  <span class="c1">// Return Values and Arguments</span>
-  <span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">A0</span><span class="p">,</span> <span class="n">A1</span><span class="p">,</span>
-  <span class="c1">// Not preserved across procedure calls</span>
-  <span class="n">T9</span><span class="p">,</span>
-  <span class="c1">// Callee save</span>
-  <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">S2</span><span class="p">,</span>
-  <span class="c1">// Reserved</span>
-  <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
-</pre></div>
-</div>
-<p>Run 10/1/Cpu0 with ch10_1.cpp to get the correct result as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0RegisterInfo.td</p>
+<p>Run Chapter10_1/ with ch10_1.cpp to get the correct result as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
 build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch10_1.bc -o
 ch10_1.cpu0.o
@@ -1539,288 +383,7 @@ cx($rb) is 0x7000 (28672), CPU0 display the content as follows,</p>
   if (R[b]+c16 == 28672)
     $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);</pre>
 </div>
-<div class="highlight-c++"><pre>// cpu0s.v
-`define MEMSIZE 'h7000
-`define MEMEMPTY 8'hFF
-`define IOADDR  'h7000
-
-// Operand width
-`define INT32 2'b11     // 32 bits
-`define INT24 2'b10     // 24 bits
-`define INT16 2'b01     // 16 bits
-`define BYTE  2'b00     // 8  bits
-
-// Reference web: http://ccckmit.wikidot.com/ocs:cpu0
-module cpu0(input clock, reset, output reg [2:0] tick,
-            output reg [31:0] ir, pc, mar, mdr, inout [31:0] dbus,
-            output reg m_en, m_rw, output reg [1:0] m_size);
-  reg signed [31:0] R [0:15], HI, LO; // High and Low part of 64 bit result
-  reg [7:0] op;
-  reg [3:0] a, b, c;
-  reg [4:0] c5;
-  reg signed [31:0] c12, c16, c24, Ra, Rb, Rc, pc0; // pc0 : instruction pc
-
-  // register name
-  `define PC   R[15]   // Program Counter
-  `define LR   R[14]   // Link Register
-  `define SP   R[13]   // Stack Pointer
-  `define SW   R[12]   // Status Word
-  // SW Flage
-  `define N    `SW[31] // Negative flag
-  `define Z    `SW[30] // Zero
-  `define C    `SW[29] // Carry
-  `define V    `SW[28] // Overflow
-  `define I    `SW[7]  // Hardware Interrupt Enable
-  `define T    `SW[6]  // Software Interrupt Enable
-  `define M    `SW[0]  // Mode bit
-  // Instruction Opcode
-  parameter [7:0] LD=8'h00,ST=8'h01,LB=8'h03,LBu=8'h04,SB=8'h05,LH=8'h06,
-  LHu=8'h07,SH=8'h08,ADDiu=8'h09,CMP=8'h10,MOV=8'h12,ADD=8'h13,
-  SUB=8'h14,MUL=8'h15,SDIV=8'h16,AND=8'h18,OR=8'h19,XOR=8'h1A,
-  SRA=8'h1B,ROL=8'h1C,ROR=8'h1D,SHL=8'h1E,SHR=8'h1F,
-  JEQ=8'h20,JNE=8'h21,JLT=8'h22,JGT=8'h23,JLE=8'h24,JGE=8'h25,JMP=8'h26,
-  SWI=8'h2A,JSUB=8'h2B,RET=8'h2C,IRET=8'h2D,JALR=8'h2E,
-  PUSH=8'h30,POP=8'h31,PUSHB=8'h32,POPB=8'h33,
-  MFHI=8'h40,MFLO=8'h41,MTHI=8'h42,MTLO=8'h43,MULT=8'h50;
-
-  reg [2:0] state, next_state;
-  parameter Reset=3'h0, Fetch=3'h1, Decode=3'h2, Execute=3'h3, WriteBack=3'h4;
-
-  task memReadStart(input [31:0] addr, input [1:0] size); begin // Read Memory Word
-    mar = addr;     // read(m[addr])
-    m_rw = 1;     // Access Mode: read
-    m_en = 1;     // Enable read
-    m_size = size;
-  end endtask
-
-  task memReadEnd(output [31:0] data); begin // Read Memory Finish, get data
-    mdr = dbus; // get momory, dbus = m[addr]
-    data = mdr; // return to data
-    m_en = 0; // read complete
-  end endtask
-
-  // Write memory -- addr: address to write, data: date to write
-  task memWriteStart(input [31:0] addr, input [31:0] data, input [1:0] size); begin
-    mar = addr;    // write(m[addr], data)
-    mdr = data;
-    m_rw = 0;    // access mode: write
-    m_en = 1;     // Enable write
-    m_size  = size;
-  end endtask
-
-  task memWriteEnd; begin // Write Memory Finish
-    m_en = 0; // write complete
-  end endtask
-
-  task regSet(input [3:0] i, input [31:0] data); begin
-    if (i!=0) R[i] = data;
-  end endtask
-
-  task regHILOSet(input [31:0] data1, input [31:0] data2); begin
-    HI = data1;
-    LO = data2;
-  end endtask
-
-  always @(posedge clock or posedge reset) begin
-    if (reset) state &lt;= Reset;
-    else state &lt;= next_state;
-  end
-
-  always @(state or reset) begin
-    m_en = 0;
-    case (state)
-    Reset: begin
-      `PC = 0; tick = 0; R[0] = 0; `SW = 0; `LR = -1;
-      next_state = reset?Reset:Fetch;
-    end
-    Fetch: begin  // Tick 1 : instruction fetch, throw PC to address bus,
-                  // memory.read(m[PC])
-      memReadStart(`PC, `INT32);
-      pc0  = `PC;
-      `PC = `PC+4;
-      next_state = Decode;
-    end
-    Decode: begin  // Tick 2 : instruction decode, ir = m[PC]
-      memReadEnd(ir); // IR = dbus = m[PC]
-      {op,a,b,c} = ir[31:12];
-      c24 = $signed(ir[23:0]);
-      c16 = $signed(ir[15:0]);
-      c12 = $signed(ir[11:0]);
-      c5  = ir[4:0];
-      Ra = R[a];
-      Rb = R[b];
-      Rc = R[c];
-      next_state = Execute;
-    end
-    Execute: begin // Tick 3 : instruction execution
-      case (op)
-      // load and store instructions
-      LD:  memReadStart(Rb+c16, `INT32);      // LD Ra,[Rb+Cx]; Ra&lt;=[Rb+Cx]
-      ST:  memWriteStart(Rb+c16, Ra, `INT32); // ST Ra,[Rb+Cx]; Ra=&gt;[Rb+Cx]
-      LB:  memReadStart(Rb+c16, `BYTE);     // LB Ra,[Rb+Cx]; Ra&lt;=(byte)[Rb+Cx]
-      LBu: memReadStart(Rb+c16, `BYTE);     // LBu Ra,[Rb+Cx]; Ra&lt;=(byte)[Rb+Cx]
-      SB:  memWriteStart(Rb+c16, Ra, `BYTE);// SB Ra,[Rb+Cx]; Ra=&gt;(byte)[Rb+Cx]
-      LH:  memReadStart(Rb+c16, `INT16);     // LH Ra,[Rb+Cx]; Ra&lt;=(2bytes)[Rb+Cx]
-      LHu: memReadStart(Rb+c16, `INT16);     // LHu Ra,[Rb+Cx]; Ra&lt;=(2bytes)[Rb+Cx]
-      SH:  memWriteStart(Rb+c16, Ra, `INT16);// SH Ra,[Rb+Cx]; Ra=&gt;(2bytes)[Rb+Cx]
-      LDI: R[a] = c16;                   // LDI Ra,Cx; Ra&lt;=Cx
-      // Mathematic
-      ADDiu: R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra&lt;=Rb+Cx
-      CMP: begin `N=(Ra-Rb&lt;0);`Z=(Ra-Rb==0); end // CMP Ra, Rb; SW=(Ra &gt;=&lt; Rb)
-      MOV: regSet(a, Rb);                  // MOV Ra,Rb; Ra&lt;=Rb
-      ADD: regSet(a, Rb+Rc);               // ADD Ra,Rb,Rc; Ra&lt;=Rb+Rc
-      SUB: regSet(a, Rb-Rc);               // SUB Ra,Rb,Rc; Ra&lt;=Rb-Rc
-      MUL: regSet(a, Rb*Rc);               // MUL Ra,Rb,Rc;     Ra&lt;=Rb*Rc
-      SDIV: regHILOSet(Ra%Rb, Ra/Rb);          // SDIV Ra,Rb; HI&lt;=Ra%Rb; LO&lt;=Ra/Rb
-                                           // with exception overflow
-      AND: regSet(a, Rb&amp;Rc);               // AND Ra,Rb,Rc; Ra&lt;=(Rb and Rc)
-      OR:  regSet(a, Rb|Rc);               // OR Ra,Rb,Rc; Ra&lt;=(Rb or Rc)
-      XOR: regSet(a, Rb^Rc);               // XOR Ra,Rb,Rc; Ra&lt;=(Rb xor Rc)
-      SHL: regSet(a, Rb&lt;&lt;c5);     // Shift Left; SHL Ra,Rb,Cx; Ra&lt;=(Rb &lt;&lt; Cx)
-      SRA: regSet(a, (Rb&amp;'h80000000)|(Rb&gt;&gt;c5));
-                                  // Shift Right with signed bit fill;
-                                  // SHR Ra,Rb,Cx; Ra&lt;=(Rb&amp;0x80000000)|(Rb&gt;&gt;Cx)
-      SHR: regSet(a, Rb&gt;&gt;c5);     // Shift Right with 0 fill;
-                                  // SHR Ra,Rb,Cx; Ra&lt;=(Rb &gt;&gt; Cx)
-      // Jump Instructions
-      JEQ: if (`Z) `PC=`PC+c24;            // JEQ Cx; if SW(=) PC  PC+Cx
-      JNE: if (!`Z) `PC=`PC+c24;           // JNE Cx; if SW(!=) PC PC+Cx
-      JLT: if (`N)`PC=`PC+c24;             // JLT Cx; if SW(&lt;) PC  PC+Cx
-      JGT: if (!`N&amp;&amp;!`Z) `PC=`PC+c24;      // JGT Cx; if SW(&gt;) PC  PC+Cx
-      JLE: if (`N || `Z) `PC=`PC+c24;      // JLE Cx; if SW(&lt;=) PC PC+Cx
-      JGE: if (!`N || `Z) `PC=`PC+c24;     // JGE Cx; if SW(&gt;=) PC PC+Cx
-      JMP: `PC = `PC+c24;                  // JMP Cx; PC &lt;= PC+Cx
-      SWI: begin
-        `LR=`PC;`PC= c24; `I = 1'b1;
-      end // Software Interrupt; SWI Cx; LR &lt;= PC; PC &lt;= Cx; INT&lt;=1
-      JSUB:begin `LR=`PC;`PC=`PC + c24; end // JSUB Cx; LR&lt;=PC; PC&lt;=PC+Cx
-      JALR:begin `LR=`PC;`PC=Ra; end // JALR Ra,Rb; Ra&lt;=PC; PC&lt;=Rb
-      RET: begin `PC=`LR; end               // RET; PC &lt;= LR
-      IRET:begin
-        `PC=`LR;`I = 1'b0;
-      end // Interrupt Return; IRET; PC &lt;= LR; INT&lt;=0
-      //
-      PUSH:begin
-        `SP = `SP-4; memWriteStart(`SP, Ra, `INT32);
-      end // PUSH Ra; SP-=4; [SP]&lt;=Ra;
-      POP: begin
-        memReadStart(`SP, `INT32); `SP = `SP + 4;
-      end // POP Ra; Ra=[SP]; SP+=4;
-      PUSHB:begin
-        `SP = `SP-1; memWriteStart(`SP, Ra, `BYTE);
-      end // Push byte; PUSHB Ra; SP--; [SP]&lt;=Ra;(byte)
-      POPB:begin
-        memReadStart(`SP, `BYTE); `SP = `SP+1;
-      end // Pop byte; POPB Ra; Ra&lt;=[SP]; SP++;(byte)
-      MULT: {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI&lt;=((Ra*Rb)&gt;&gt;32);
-                            // LO&lt;=((Ra*Rb) and 0x00000000ffffffff);
-                            // with exception overflow
-      MFLO: regSet(a, LO);            // MFLO Ra; Ra&lt;=LO
-      MFHI: regSet(a, HI);            // MFHI Ra; Ra&lt;=HI
-      MTLO: LO = Ra;             // MTLO Ra; LO&lt;=Ra
-      MTHI: HI = Ra;             // MTHI Ra; HI&lt;=Ra
-      endcase
-      next_state = WriteBack;
-    end
-    WriteBack: begin // Read/Write finish, close memory
-      case (op)
-        LD, LB, LBu, LH, LHu, POP, POPB  : memReadEnd(R[a]);
-                                          //read memory complete
-        ST, SB, SH, PUSH, PUSHB: memWriteEnd();
-                                          // write memory complete
-      endcase
-      case (op)
-      MULT, SDIV, MTHI, MTLO :
-        $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI,
-        LO, `SW);
-      ST :
-        if (R[b]+c16 == `IOADDR)
-          $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);
-        else
-          $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d   SW=%8x", $stime, pc0, ir,
-          R[b], c16, R[a], `SW);
-      default :
-        $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a,
-        R[a], R[a], `SW);
-      endcase
-      if (op==RET &amp;&amp; `PC &lt; 0) begin
-        $display("RET to PC &lt; 0, finished!");
-        $finish;
-      end
-      next_state = Fetch;
-    end
-    endcase
-    pc = `PC;
-  end
-
-endmodule
-
-module memory0(input clock, reset, en, rw, input [1:0] m_size,
-                input [31:0] abus, dbus_in, output [31:0] dbus_out);
-  reg [7:0] m [0:`MEMSIZE-1];
-  reg [31:0] data;
-
-  integer i;
-  initial begin
-    for (i=0; i &lt; `MEMSIZE; i=i+1) begin
-       m[i] = `MEMEMPTY;
-    end
-    $readmemh("cpu0s.hex", m);
-    for (i=0; i &lt; `MEMSIZE &amp;&amp; m[i] != `MEMEMPTY; i=i+4) begin
-       $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
-    end
-  end
-
-  always @(clock or abus or en or rw or dbus_in)
-  begin
-    if (abus &gt;=0 &amp;&amp; abus &lt;= `MEMSIZE-4) begin
-      if (en == 1 &amp;&amp; rw == 0) begin // r_w==0:write
-        data = dbus_in;
-        case (m_size)
-        `BYTE:  {m[abus]} = dbus_in[7:0];
-        `INT16: {m[abus], m[abus+1] } = dbus_in[15:0];
-        `INT24: {m[abus], m[abus+1], m[abus+2]} = dbus_in[24:0];
-        `INT32: {m[abus], m[abus+1], m[abus+2], m[abus+3]} = dbus_in;
-        endcase
-      end else if (en == 1 &amp;&amp; rw == 1) begin// r_w==1:read
-        case (m_size)
-        `BYTE:  data = {8'h00  , 8'h00,   8'h00,   m[abus]      };
-        `INT16: data = {8'h00  , 8'h00,   m[abus], m[abus+1]    };
-        `INT24: data = {8'h00  , m[abus], m[abus+1], m[abus+2]  };
-        `INT32: data = {m[abus], m[abus+1], m[abus+2], m[abus+3]};
-        endcase
-      end else
-        data = 32'hZZZZZZZZ;
-    end else
-      data = 32'hZZZZZZZZ;
-  end
-  assign dbus_out = data;
-endmodule
-
-module main;
-  reg clock, reset;
-  wire [2:0] tick;
-  wire [31:0] pc, ir, mar, mdr, dbus;
-  wire m_en, m_rw;
-  wire [1:0] m_size;
-
-  cpu0 cpu(.clock(clock), .reset(reset), .pc(pc), .tick(tick), .ir(ir),
-  .mar(mar), .mdr(mdr), .dbus(dbus), .m_en(m_en), .m_rw(m_rw), .m_size(m_size));
-
-  memory0 mem(.clock(clock), .reset(reset), .en(m_en), .rw(m_rw), .m_size(m_size),
-  .abus(mar), .dbus_in(mdr), .dbus_out(dbus));
-
-  initial
-  begin
-    clock = 0;
-    reset = 1;
-    #20 reset = 0;
-    #300000 $finish;
-  end
-
-  always #10 clock=clock+1;
-endmodule</pre>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/cpu0_verilog/raw/cpu0s.v</p>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:raw Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
 /Users/Jonathan/test/2/lbd/LLVMBackendTutorialExampleCode/cpu0_verilog/raw
 JonathantekiiMac:raw Jonathan<span class="nv">$ </span>iverilog -o cpu0s cpu0s.v
@@ -1832,125 +395,8 @@ JonathantekiiMac:raw Jonathan<span class="nv">$ </span>iverilog -o cpu0s cpu0s.v
 <p>Now let&#8217;s compile ch10_2.cpp as below. Since code size grows up from low to high
 address and stack grows up from high to low address. We set $sp at 0x6ffc because
 cpu0s.v use 0x7000 bytes of memory.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// InitRegs.h</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $1,  $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $2,  $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $3,  $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $4,  $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $5,  $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $6,  $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $7,  $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $8,  $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $9,  $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $10, $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $11, $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $12, $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $14, $ZERO, -1&quot;</span><span class="p">);</span>
-
-<span class="c1">// ch10_2.cpp</span>
-<span class="cp">#include &quot;InitRegs.h&quot;</span>
-
-<span class="cp">#define OUT_MEM 0x7000 </span><span class="c1">// 28672</span>
-
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $zero, 0x6ffc&quot;</span><span class="p">);</span>
-
-<span class="kt">void</span> <span class="n">print_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">);</span>
-<span class="kt">int</span> <span class="n">test_operators</span><span class="p">();</span>
-<span class="kt">int</span> <span class="n">test_control</span><span class="p">();</span>
-
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_operators</span><span class="p">();</span> <span class="c1">// a = 13</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
-  <span class="n">a</span> <span class="o">+=</span> <span class="n">test_control</span><span class="p">();</span>  <span class="c1">// a = 31</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
-
-  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="c1">// For memory IO</span>
-<span class="kt">void</span> <span class="n">print_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">)</span><span class="n">OUT_MEM</span><span class="p">;</span>
-  <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">x</span><span class="p">;</span>
- <span class="k">return</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="kt">void</span> <span class="n">print1_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span>
-<span class="p">{</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld $at, 8($sp)&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;st $at, 28672($0)&quot;</span><span class="p">);</span>
- <span class="k">return</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="cp">#if 0</span><span class="c"></span>
-<span class="c">// For instruction IO</span>
-<span class="c">void print2_integer(int x)</span>
-<span class="c">{</span>
-<span class="c">  asm(&quot;ld $at, 8($sp)&quot;);</span>
-<span class="c">  asm(&quot;outw $tat&quot;);</span>
-<span class="c">  return;</span>
-<span class="c">}</span>
-<span class="cp">#endif</span>
-
-<span class="kt">int</span> <span class="n">test_operators</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="n">k1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-
-  <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">d</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">e</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">f</span> <span class="o">=</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="mi">12</span><span class="p">;</span>
-  <span class="n">g</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&amp;</span> <span class="n">b</span><span class="p">);</span>
-  <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">|</span> <span class="n">b</span><span class="p">);</span>
-  <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">^</span> <span class="n">b</span><span class="p">);</span>
-  <span class="n">j</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">k</span><span class="p">);</span>
-  <span class="n">k1</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">k1</span><span class="p">);</span>
-
-  <span class="n">b</span> <span class="o">=</span> <span class="o">!</span><span class="n">a</span><span class="p">;</span>
-  <span class="kt">int</span><span class="o">*</span> <span class="n">p</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">;</span>
-
-  <span class="k">return</span> <span class="n">c</span><span class="p">;</span> <span class="c1">// 13</span>
-<span class="p">}</span>
-
-<span class="kt">int</span> <span class="n">test_control</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">e</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">f</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">b</span><span class="o">++</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">c</span><span class="o">++</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">d</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">d</span><span class="o">++</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">e</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">e</span><span class="o">++</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">f</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">f</span><span class="o">++</span><span class="p">;</span>
-  <span class="p">}</span>
-
-  <span class="k">return</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="n">c</span><span class="o">+</span><span class="n">d</span><span class="o">+</span><span class="n">e</span><span class="o">+</span><span class="n">f</span><span class="p">);</span> <span class="c1">// (2+3+4+4+5)=18</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/InitRegs.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch10_2.cpp</p>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
 /Users/Jonathan/test/2/lbd/LLVMBackendTutorialExampleCode/InputFiles
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>clang -c ch10_2.cpp -emit-llvm -o
@@ -1975,9 +421,9 @@ This is correct since C language support separate compile and the subroutine
 address is decided at link time for static address mode or at
 load time for PIC address mode.
 Since our backend didn&#8217;t implement the linker and loader, we change the
-<strong>&#8220;jsub #offset&#8221;</strong> encode in 10/2/Cpu0 as follow,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0MCCodeEmitter.cpp</span>
-<span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
+<strong>&#8220;jsub #offset&#8221;</strong> encode in Chapter10_2/ as follow,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
 <span class="n">getJumpTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
            <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
 
@@ -2006,24 +452,24 @@ Records. A good linker will reorder the sections for optimization in
 data/function access. In other word,
 keep the global variable access as close as possible to reduce cache miss
 possibility.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0AsmBackend.cpp</span>
-  <span class="k">const</span> <span class="n">MCFixupKindInfo</span> <span class="o">&amp;</span><span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">MCFixupKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-    <span class="k">const</span> <span class="k">static</span> <span class="n">MCFixupKindInfo</span> <span class="n">Infos</span><span class="p">[</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">NumTargetFixupKinds</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-      <span class="c1">// This table *must* be in same the order of fixup_* kinds in</span>
-      <span class="c1">// Cpu0FixupKinds.h.</span>
-      <span class="c1">//</span>
-      <span class="c1">// name                    offset  bits  flags</span>
-      <span class="p">...</span>
-      <span class="p">{</span> <span class="s">&quot;fixup_Cpu0_24&quot;</span><span class="p">,</span>           <span class="mi">0</span><span class="p">,</span>     <span class="mi">24</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">},</span>
-      <span class="p">...</span>
-      <span class="p">{</span> <span class="s">&quot;fixup_Cpu0_PC24&quot;</span><span class="p">,</span>         <span class="mi">0</span><span class="p">,</span>     <span class="mi">24</span><span class="p">,</span>  <span class="n">MCFixupKindInfo</span><span class="o">::</span><span class="n">FKF_IsPCRel</span> <span class="p">},</span>
-      <span class="p">...</span>
-    <span class="p">}</span>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_2/MCTargetDesc/Cpu0AsmBackend.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">const</span> <span class="n">MCFixupKindInfo</span> <span class="o">&amp;</span><span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">MCFixupKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="k">static</span> <span class="n">MCFixupKindInfo</span> <span class="n">Infos</span><span class="p">[</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">NumTargetFixupKinds</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1">// This table *must* be in same the order of fixup_* kinds in</span>
+    <span class="c1">// Cpu0FixupKinds.h.</span>
+    <span class="c1">//</span>
+    <span class="c1">// name                    offset  bits  flags</span>
+    <span class="p">...</span>
+    <span class="p">{</span> <span class="s">&quot;fixup_Cpu0_24&quot;</span><span class="p">,</span>           <span class="mi">0</span><span class="p">,</span>     <span class="mi">24</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">},</span>
+    <span class="p">...</span>
+    <span class="p">{</span> <span class="s">&quot;fixup_Cpu0_PC24&quot;</span><span class="p">,</span>         <span class="mi">0</span><span class="p">,</span>     <span class="mi">24</span><span class="p">,</span>  <span class="n">MCFixupKindInfo</span><span class="o">::</span><span class="n">FKF_IsPCRel</span> <span class="p">},</span>
     <span class="p">...</span>
   <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
 </pre></div>
 </div>
-<p>Let&#8217;s run the 10/2/Cpu0 with <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></tt> again, wiil get the hex file
+<p>Let&#8217;s run the Chapter10_2/ with <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></tt> again, will get the hex file
 as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
 /Users/Jonathan/test/2/lbd/LLVMBackendTutorialExampleCode/InputFiles
@@ -2599,53 +1045,7 @@ We have checked the <strong>&#8220;&gt;&gt;&#8221;</strong> is correct on both s
 , and tracking the variable <strong>a</strong> value by print_integer(). You can verify it
 with the <strong>OUTPUT=xxx</strong> in Verilog output.</p>
 <p>Now, let&#8217;s run ch_10_3.cpp to verify the result as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch10_3.cpp</span>
-<span class="cp">#include &lt;stdarg.h&gt;</span>
-
-<span class="cp">#include &quot;InitRegs.h&quot;</span>
-
-<span class="cp">#define OUT_MEM 0x7000 </span><span class="c1">// 28672</span>
-
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $zero, 0x6ffc&quot;</span><span class="p">);</span>
-
-<span class="kt">void</span> <span class="n">print_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">);</span>
-<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...);</span>
-
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
-
-  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="c1">// For memory IO</span>
-<span class="kt">void</span> <span class="n">print_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">)</span><span class="n">OUT_MEM</span><span class="p">;</span>
-  <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">x</span><span class="p">;</span>
- <span class="k">return</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-
-  <span class="n">va_list</span> <span class="n">vl</span><span class="p">;</span>
-  <span class="n">va_start</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">amount</span><span class="p">);</span>
-  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">amount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="n">val</span> <span class="o">=</span> <span class="n">va_arg</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
-    <span class="n">sum</span> <span class="o">+=</span> <span class="n">val</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="n">va_end</span><span class="p">(</span><span class="n">vl</span><span class="p">);</span>
-
-  <span class="k">return</span> <span class="n">sum</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch10_3.cpp</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-75-175:InputFiles Jonathan<span class="nv">$ </span>clang -target <span class="sb">`</span>llvm-config --host-target<span class="sb">`</span>
 -c ch10_3.cpp -emit-llvm -o ch10_3.bc
 118-165-75-175:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build

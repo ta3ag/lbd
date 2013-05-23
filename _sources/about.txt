@@ -28,7 +28,12 @@ Acknowledgments
 
 We would like to thank Sean Silva, silvas@purdue.edu, for his help, encouragement, and
 assistance with the Sphinx document generator.  Without his help, this book would not 
-have been finished and published online. 
+have been finished and published online. We also thank those corrections from readers 
+who make the book more accurate.
+
+
+Support
+--------
 
 We also get the kind help from LLVM development mail list, llvmdev@cs.uiuc.edu, 
 even we don't know them. So, our experience is you are not 
@@ -43,8 +48,14 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.2.13, Not Released Yet
-    Add sub-section "Setup llvm-lit on iMac" of Appendix A.
+Version 3.2.14, Not Released Yet
+Version 3.2.13, Released May 23, 2013
+	Add sub-section "Setup llvm-lit on iMac" of Appendix A.
+	Replace some code-block with literalinclude in \*.rst.
+	Add Fig 9 of chapter Backend structure.
+	Add section Dynamic stack allocation support of chapter Function call.
+	Fix bug of Cpu0DelUselessJMP.cpp.
+	Fix cpu0 instruction table errors.
 Version 3.2.12, Released March 9, 2013
 	Add section "Type of char and short int" of chapter 
 	"Global variables, structs and arrays, other type".

@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.12',
+        VERSION:     '3.2.13',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -60,54 +60,7 @@ translate these control flow statements of llvm IR into cpu0 instructions.</p>
 <div class="section" id="control-flow-statement">
 <h2>Control flow statement<a class="headerlink" href="#control-flow-statement" title="Permalink to this headline">¶</a></h2>
 <p>Run ch7_1_1.cpp with clang will get result as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch7_1_1.cpp</span>
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
-    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="n">e</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="n">f</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="n">g</span> <span class="o">=</span> <span class="mi">6</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="n">h</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>
-
-    <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">a</span><span class="o">++</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">b</span><span class="o">++</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">c</span><span class="o">++</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">d</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">d</span><span class="o">++</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">e</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">e</span><span class="o">++</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">f</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">f</span><span class="o">++</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">g</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">g</span><span class="o">++</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">h</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">h</span><span class="o">++</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">h</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">i</span><span class="o">++</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">a</span><span class="o">++</span><span class="p">;</span>
-    <span class="p">}</span>
-
-    <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch7_1_1.cpp</p>
 <div class="highlight-bash"><div class="highlight"><pre>; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch7_1_1.bc&#39;</span>
 target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-</span>
 <span class="s2">f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128&quot;</span>
@@ -254,7 +207,7 @@ entry:
 </div>
 <p>The <strong>“icmp ne”</strong> stand for integer compare NotEqual, <strong>“slt”</strong> stands for Set
 Less Than, <strong>“sle”</strong> stands for Set Less Equal.
-Run version 6/2/Cpu0 with <tt class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-view-isel-dags</span></tt> or <tt class="docutils literal"><span class="pre">-debug</span></tt> option, you
+Run version Chapter6_2/ with <tt class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-view-isel-dags</span></tt> or <tt class="docutils literal"><span class="pre">-debug</span></tt> option, you
 can see it has translated <strong>if</strong> statement into
 (br (brcond (%1, setcc(%2, Constant&lt;c&gt;, setne)), BasicBlock_02), BasicBlock_01).
 Ignore %1, we get the form (br (brcond (setcc(%2, Constant&lt;c&gt;, setne)),
@@ -274,9 +227,8 @@ jmp BasicBlock_01
 </div>
 <p>For the first addiu instruction as above which move Constant&lt;c&gt; into register,
 we have defined it before by the following code,</p>
-<div class="highlight-c++"><pre>// Cpu0InstrInfo.td
-...
-// Small immediates
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><pre>// Small immediates
 def : Pat&lt;(i32 immSExt16:$in),
           (ADDiu ZERO, imm:$in)&gt;;
 
@@ -287,6 +239,7 @@ def : Pat&lt;(i32 imm:$imm),
 </div>
 <p>For the last IR br, we translate unconditional branch (br BasicBlock_01) into
 jmp BasicBlock_01 by the following pattern definition,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>def brtarget    : Operand&lt;OtherVT&gt; {
   let EncoderMethod = "getBranchTargetOpValue";
   let OperandType = "OPERAND_PCREL";
@@ -311,6 +264,7 @@ The other two cpu0 instructions translation is more complicate than simple
 one-to-one IR to machine instruction translation we have experienced until now.
 To solve this chained IR to machine instructions translation, we define the
 following pattern,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// brcond patterns
 multiclass BrcondPats&lt;RegisterClass RC, Instruction JEQOp, Instruction JNEOp,
   Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp,
@@ -346,30 +300,7 @@ jne BasicBlock_02</pre>
 </div>
 <p>The reserved registers setting by the following
 function code we defined before,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0RegisterInfo.cpp</span>
-<span class="p">...</span>
-<span class="c1">// pure virtual method</span>
-<span class="n">BitVector</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
-<span class="n">getReservedRegs</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">static</span> <span class="k">const</span> <span class="n">uint16_t</span> <span class="n">ReservedCPURegs</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">GP</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">,</span>
-    <span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">PC</span>
-  <span class="p">};</span>
-  <span class="n">BitVector</span> <span class="n">Reserved</span><span class="p">(</span><span class="n">getNumRegs</span><span class="p">());</span>
-  <span class="k">typedef</span> <span class="n">TargetRegisterClass</span><span class="o">::</span><span class="n">iterator</span> <span class="n">RegIter</span><span class="p">;</span>
-
-  <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">I</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">I</span> <span class="o">&lt;</span> <span class="n">array_lengthof</span><span class="p">(</span><span class="n">ReservedCPURegs</span><span class="p">);</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span>
-    <span class="n">Reserved</span><span class="p">.</span><span class="n">set</span><span class="p">(</span><span class="n">ReservedCPURegs</span><span class="p">[</span><span class="n">I</span><span class="p">]);</span>
-
-  <span class="c1">// If GP is dedicated as a global base register, reserve it.</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">MF</span><span class="p">.</span><span class="n">getInfo</span><span class="o">&lt;</span><span class="n">Cpu0FunctionInfo</span><span class="o">&gt;</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">globalBaseRegFixed</span><span class="p">())</span> <span class="p">{</span>
-    <span class="n">Reserved</span><span class="p">.</span><span class="n">set</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">GP</span><span class="p">);</span>
-  <span class="p">}</span>
-
-  <span class="k">return</span> <span class="n">Reserved</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0RegisterInfo.cpp</p>
 <p>Although the following definition in Cpu0RegisterInfo.td has no real effect in
 Reserved Registers, you should comment the Reserved Registers in it for
 readability. Setting SW into another register class to prevent the SW register
@@ -377,28 +308,27 @@ allocated to the register used by other instruction.
 The copyPhysReg() is called when DestReg and SrcReg belong to different Register
 Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
 &#8220;cmp $SW, $ZERO, $rc&#8221;.</p>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="c1">// Cpu0RegisterInfo.td</span>
-  <span class="p">...</span>
-  <span class="c1">//===----------------------------------------------------------------------===//</span>
-  <span class="c1">// Register Classes</span>
-  <span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0RegisterInfo.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Register Classes</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
-  <span class="n">def</span> <span class="n">CPURegs</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span>
-    <span class="c1">// Return Values and Arguments</span>
-    <span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">A0</span><span class="p">,</span> <span class="n">A1</span><span class="p">,</span>
-    <span class="c1">// Not preserved across procedure calls</span>
-    <span class="n">T9</span><span class="p">,</span>
-    <span class="c1">// Callee save</span>
-    <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">S2</span><span class="p">,</span>
-    <span class="c1">// Reserved</span>
-    <span class="n">ZERO</span><span class="p">,</span> <span class="n">AT</span><span class="p">,</span> <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
-
-      <span class="c1">// Status Registers</span>
-      <span class="n">def</span> <span class="n">SR</span>   <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="n">SW</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
-
-
-<span class="c1">// Cpu0InstrInfo.cpp</span>
-<span class="c1">//- Called when DestReg and SrcReg belong to different Register Class.</span>
+<span class="n">def</span> <span class="n">CPURegs</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span>
+  <span class="c1">// Return Values and Arguments</span>
+  <span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">A0</span><span class="p">,</span> <span class="n">A1</span><span class="p">,</span>
+  <span class="c1">// Not preserved across procedure calls</span>
+  <span class="n">T9</span><span class="p">,</span>
+  <span class="c1">// Callee save</span>
+  <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">S2</span><span class="p">,</span>
+  <span class="c1">// Reserved</span>
+  <span class="n">ZERO</span><span class="p">,</span> <span class="n">AT</span><span class="p">,</span> <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">...</span>
+<span class="c1">// Status Registers</span>
+<span class="n">def</span> <span class="n">SR</span>   <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="n">SW</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- Called when DestReg and SrcReg belong to different Register Class.</span>
 <span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
 <span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
       <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
@@ -420,22 +350,23 @@ Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
   <span class="p">}</span>
 </pre></div>
 </div>
-<p>7/1/Cpu0 include support for control flow statement.
+<p>Chapter7_1/ include support for control flow statement.
 Run with it as well as the following <tt class="docutils literal"><span class="pre">llc</span></tt> option, you can get the obj file
 and dump it&#8217;s content by hexdump as follows,</p>
-<div class="highlight-c++"><pre>118-165-79-206:InputFiles Jonathan$ cat ch7_1_1.cpu0.s
+<div class="highlight-bash"><div class="highlight"><pre>118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1_1.cpu0.s
 ...
-    ld  $3, 32($sp)
-    cmp $3, $2
-    jne $BB0_2
-    jmp $BB0_1
-$BB0_1:                                 # %if.then
-    ld  $2, 32($sp)
-    addiu   $2, $2, 1
-    st  $2, 32($sp)
-$BB0_2:                                 # %if.end
-    ld  $2, 28($sp)
-...</pre>
+    ld  <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    cmp <span class="nv">$3</span>, <span class="nv">$2</span>
+    jne <span class="nv">$BB0_2</span>
+    jmp <span class="nv">$BB0_1</span>
+<span class="nv">$BB0_1</span>:                                 <span class="c"># %if.then</span>
+    ld  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+    addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+    st  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_2</span>:                                 <span class="c"># %if.end</span>
+    ld  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+...
+</pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj
@@ -483,115 +414,103 @@ instruction in average.
 Cpu0 take 2 instructions for conditional branch, (jne(cmp...)), while Mips use
 one instruction (bne).</p>
 <p>Finally we list the code added for full support of control flow statement,</p>
-<div class="highlight-c++"><pre>// Cpu0MCCodeEmitter.cpp
-/// getBranchTargetOpValue - Return binary encoding of the branch
-/// target operand. If the machine operand requires relocation,
-/// record the relocation and return zero.
-unsigned Cpu0MCCodeEmitter::
-getBranchTargetOpValue(const MCInst &amp;MI, unsigned OpNo,
-                       SmallVectorImpl&lt;MCFixup&gt; &amp;Fixups) const {
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0MCInstLower.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
+                                              <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
+                                              <span class="kt">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">switch</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getTargetFlags</span><span class="p">())</span> <span class="p">{</span>
+  <span class="k">default</span><span class="o">:</span>                   <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Invalid target flag!&quot;</span><span class="p">);</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="nl">MO_NO_FLAG:</span>   <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_None</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="p">...</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">MOTy</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_MachineBasicBlock:</span>
+    <span class="n">Symbol</span> <span class="o">=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getMBB</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getSymbol</span><span class="p">();</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="p">...</span>
+<span class="p">}</span>
 
-  const MCOperand &amp;MO = MI.getOperand(OpNo);
-  assert(MO.isExpr() &amp;&amp; "getBranchTargetOpValue expects only expressions");
+<span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span><span class="o">&amp;</span> <span class="n">MO</span><span class="p">,</span>
+                                        <span class="kt">unsigned</span> <span class="n">offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">MachineOperandType</span> <span class="n">MOTy</span> <span class="o">=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getType</span><span class="p">();</span>
 
-  const MCExpr *Expr = MO.getExpr();
-  Fixups.push_back(MCFixup::Create(0, Expr,
-                                   MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
-  return 0;
-}
+  <span class="k">switch</span> <span class="p">(</span><span class="n">MOTy</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">default</span><span class="o">:</span> <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;unknown operand type&quot;</span><span class="p">);</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_Register:</span>
+  <span class="p">...</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_MachineBasicBlock:</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_GlobalAddress:</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_BlockAddress:</span>
+  <span class="p">...</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- Called when DestReg and SrcReg belong to different Register Class.</span>
+<span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
+<span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
+            <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
+            <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
+            <span class="kt">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">DestReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy to CPU Reg.</span>
+    <span class="p">...</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>  <span class="c1">// add $ra, $ZERO, $SW</span>
+    <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">ZeroReg</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy from CPU Reg.</span>
+    <span class="p">...</span>
+    <span class="c1">// Only possibility in (DestReg==SW, SrcReg==CPU0Regs) is</span>
+    <span class="c1">//  cmp $SW, $ZERO, $rc</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>
+      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">CMP</span><span class="p">,</span> <span class="n">ZeroReg</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelLowering.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
+  <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">Cpu0TargetObjectFile</span><span class="p">()),</span>
+    <span class="n">Subtarget</span><span class="p">(</span><span class="o">&amp;</span><span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">())</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// Used by legalize types to correctly generate the setcc result.</span>
+  <span class="c1">// Without this, every float setcc comes with a AND/OR with the result,</span>
+  <span class="c1">// we don&#39;t want this, since the fpcmp result goes to a flag register,</span>
+  <span class="c1">// which is used implicitly by brcond and select operations.</span>
+  <span class="n">AddPromotedToType</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">SETCC</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i1</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">);</span>
+  <span class="p">...</span>
+  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">BRCOND</span><span class="p">,</span>             <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span> <span class="n">Custom</span><span class="p">);</span>
 
-// Cpu0MCInstLower.cpp
-MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &amp;MO,
-                                              MachineOperandType MOTy,
-                                              unsigned Offset) const {
-  ...
-  switch(MO.getTargetFlags()) {
-  default:                   llvm_unreachable("Invalid target flag!");
-  case Cpu0II::MO_NO_FLAG:   Kind = MCSymbolRefExpr::VK_None; break;
-  ...
-  }
-  ...
-  switch (MOTy) {
-  case MachineOperand::MO_MachineBasicBlock:
-    Symbol = MO.getMBB()-&gt;getSymbol();
-    break;
-  ...
-}
+  <span class="c1">// Operations not directly supported by Cpu0.</span>
+  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">BR_CC</span><span class="p">,</span>             <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">Expand</span><span class="p">);</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrFormats.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Format J instruction class in Cpu0 : &lt;|opcode|address|&gt;</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
-MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand&amp; MO,
-                                        unsigned offset) const {
-  MachineOperandType MOTy = MO.getType();
+<span class="k">class</span> <span class="nc">FJ</span><span class="o">&lt;</span><span class="n">bits</span><span class="o">&lt;</span><span class="mi">8</span><span class="o">&gt;</span> <span class="n">op</span><span class="p">,</span> <span class="n">dag</span> <span class="n">outs</span><span class="p">,</span> <span class="n">dag</span> <span class="n">ins</span><span class="p">,</span> <span class="n">string</span> <span class="n">asmstr</span><span class="p">,</span> <span class="n">list</span><span class="o">&lt;</span><span class="n">dag</span><span class="o">&gt;</span> <span class="n">pattern</span><span class="p">,</span>
+                 <span class="n">InstrItinClass</span> <span class="n">itin</span><span class="o">&gt;:</span> <span class="n">Cpu0Inst</span><span class="o">&lt;</span><span class="n">outs</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">asmstr</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">itin</span><span class="p">,</span> <span class="n">FrmJ</span><span class="o">&gt;</span>
+<span class="p">{</span>
+  <span class="n">bits</span><span class="o">&lt;</span><span class="mi">24</span><span class="o">&gt;</span> <span class="n">addr</span><span class="p">;</span>
 
-  switch (MOTy) {
-  default: llvm_unreachable("unknown operand type");
-  case MachineOperand::MO_Register:
-  ...
-  case MachineOperand::MO_MachineBasicBlock:
-  case MachineOperand::MO_GlobalAddress:
-  case MachineOperand::MO_BlockAddress:
-  ...
-  }
-  ...
-}
+  <span class="n">let</span> <span class="n">Opcode</span> <span class="o">=</span> <span class="n">op</span><span class="p">;</span>
 
-// Cpu0InstrInfo.cpp
-//- Called when DestReg and SrcReg belong to different Register Class.
-void Cpu0InstrInfo::
-copyPhysReg(MachineBasicBlock &amp;MBB,
-            MachineBasicBlock::iterator I, DebugLoc DL,
-            unsigned DestReg, unsigned SrcReg,
-            bool KillSrc) const {
-  if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
-    ...
-  else if (SrcReg == Cpu0::SW)  // add $ra, $ZERO, $SW
-    Opc = Cpu0::ADD, ZeroReg = Cpu0::ZERO;
-  }
-  else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
-    ...
-    // Only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
-    //  cmp $SW, $ZERO, $rc
-    else if (DestReg == Cpu0::SW)
-      Opc = Cpu0::CMP, ZeroReg = Cpu0::ZERO;
-  }
-  ...
-}
-
-
-// Cpu0ISelLowering.cpp
-Cpu0TargetLowering::
-Cpu0TargetLowering(Cpu0TargetMachine &amp;TM)
-  : TargetLowering(TM, new Cpu0TargetObjectFile()),
-    Subtarget(&amp;TM.getSubtarget&lt;Cpu0Subtarget&gt;()) {
-  ...
-  // Used by legalize types to correctly generate the setcc result.
-  // Without this, every float setcc comes with a AND/OR with the result,
-  // we don't want this, since the fpcmp result goes to a flag register,
-  // which is used implicitly by brcond and select operations.
-  AddPromotedToType(ISD::SETCC, MVT::i1, MVT::i32);
-  ...
-  setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
-
-  // Operations not directly supported by Cpu0.
-  setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
-  ...
-}
-
-// Cpu0InstrFormats.td
-    //===----------------------------------------------------------------------===//
-    // Format J instruction class in Cpu0 : &lt;|opcode|address|&gt;
-    //===----------------------------------------------------------------------===//
-
-    class FJ&lt;bits&lt;8&gt; op, dag outs, dag ins, string asmstr, list&lt;dag&gt; pattern,
-                     InstrItinClass itin&gt;: Cpu0Inst&lt;outs, ins, asmstr, pattern, itin, FrmJ&gt;
-    {
-      bits&lt;24&gt; addr;
-
-      let Opcode = op;
-
-      let Inst{23-0} = addr;
-    }
-
-// Cpu0InstrInfo.td
+  <span class="n">let</span> <span class="n">Inst</span><span class="p">{</span><span class="mi">23</span><span class="o">-</span><span class="mi">0</span><span class="p">}</span> <span class="o">=</span> <span class="n">addr</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><pre>// Cpu0InstrInfo.td
 // Instruction operand types
 def brtarget    : Operand&lt;OtherVT&gt; {
   let EncoderMethod = "getBranchTargetOpValue";
@@ -669,10 +588,11 @@ defm : BrcondPats&lt;CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO&gt;;</pre>
 </div>
 <p>The ch7_1_2.cpp is for <strong>“nest if”</strong> test. The ch7_1_3.cpp is the
 <strong>“for loop”</strong> as well as <strong>“while loop”</strong>, <strong>“continue”</strong>, <strong>“break”</strong>,
-<strong>“goto”</strong> test.
+<strong>“goto”</strong> test. The ch7_1_6.cpp is for <strong>“goto”</strong> test.
 You can run with them if you like to test more.</p>
-<p>Finally, 7/1/Cpu0 support the local array definition by add the LowerCall()
+<p>Finally, Chapter7_1/ support the local array definition by add the LowerCall()
 empty function in Cpu0ISelLowering.cpp as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0ISelLowering.cpp</span>
 <span class="n">SDValue</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerCall</span><span class="p">(</span><span class="n">TargetLowering</span><span class="o">::</span><span class="n">CallLoweringInfo</span> <span class="o">&amp;</span><span class="n">CLI</span><span class="p">,</span>
@@ -683,15 +603,7 @@ empty function in Cpu0ISelLowering.cpp as follows,</p>
 </div>
 <p>With this LowerCall(), it can translate ch7_1_4.cpp, ch7_1_4.bc to
 ch7_1_4.cpu0.s as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch7_1_4.cpp</span>
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
-    <span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">};</span>
-
-    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch7_1_4.cpp</p>
 <div class="highlight-bash"><div class="highlight"><pre>; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch7_1_4 .bc&#39;</span>
 target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-</span>
 <span class="s2">f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128&quot;</span>
@@ -770,21 +682,7 @@ main:
 add since we have take care them before.
 But it can be test only when the control flow statement support is ready, as
 follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch7_1_5.cpp</span>
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-
-  <span class="k">if</span> <span class="p">((</span><span class="n">a</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">b</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="n">c</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">))</span> <span class="p">{</span>
-    <span class="n">a</span><span class="o">++</span><span class="p">;</span>
-  <span class="p">}</span>
-
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch7_1_5.cpp</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -c ch7_1_5.cpp -emit-llvm -o ch7_1_5.bc
 118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch7_1_5.bc -o

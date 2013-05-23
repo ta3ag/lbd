@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.12',
+        VERSION:     '3.2.13',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -54,6 +54,15 @@
         
   <div class="section" id="appendix-a-getting-started-installing-llvm-and-the-cpu0-example-code">
 <span id="sec-appendix-installing"></span><h1>Appendix A: Getting Started: Installing LLVM and the Cpu0 example code<a class="headerlink" href="#appendix-a-getting-started-installing-llvm-and-the-cpu0-example-code" title="Permalink to this headline">¶</a></h1>
+<p>This book is on the process of merging into llvm trunk but not finished
+yet.
+The merged llvm trunk version on my git hub is LLVM 3.3 of merged date
+2013/03/28.
+So, you have to get book example code and the based llvm trunk by git command
+as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>git clone https://github.com/Jonathan2251/lbd.git
+</pre></div>
+</div>
 <p>In this chapter, we will run through how to set up LLVM using if you are using
 Mac OS X or Linux.  When discussing Mac OS X, we are using Apple&#8217;s Xcode IDE
 (version 4.5.1) running on Mac OS X Mountain Lion (version 10.8) to modify and
@@ -88,8 +97,8 @@ program and without clang and clang++.</p>
 <p class="first admonition-title">Todo</p>
 <p class="last">Fix centering for figure captions.</p>
 </div>
-<p>Please download LLVM version 3.2 (llvm, clang, compiler-rf) from the
-&#8220;LLVM Download Page&#8221; <a class="footnote-reference" href="#id17" id="id2">[2]</a>. Then extract them using
+<p>Please download LLVM latest release version 3.2 (llvm, clang, compiler-rf) from
+the &#8220;LLVM Download Page&#8221; <a class="footnote-reference" href="#id17" id="id2">[2]</a>. Then extract them using
 <tt class="docutils literal"><span class="pre">tar</span> <span class="pre">-zxvf</span> <span class="pre">{llvm-3.2.src.tar,</span> <span class="pre">clang-3.2.src.tar,</span> <span class="pre">compiler-rt-3.2.src.tar}</span></tt>,
 and change the llvm source code root directory into src.
 After that, move the clang source code to src/tools/clang, and move the
@@ -158,11 +167,11 @@ and then click <strong>Done</strong> button to get <a class="pageref" href="#ins
 <p class="caption">Figure 2: Start to create LLVM.xcodeproj by cmake</p>
 </div>
 <div class="figure align-center" id="install-f4">
-<img alt="_images/42.png" src="_images/42.png" />
+<img alt="_images/43.png" src="_images/43.png" />
 <p class="caption">Figure 3: Create LLVM.xcodeproj by cmake – Set option to generate Xcode project</p>
 </div>
 <div class="figure align-center" id="install-f5">
-<img alt="_images/52.png" src="_images/52.png" />
+<img alt="_images/53.png" src="_images/53.png" />
 <p class="caption">Figure 4: Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</p>
 </div>
 <p>Click OK from <a class="pageref" href="#install-f5">Figure  4</a> and select Cmake 2.8-9.app for
@@ -170,7 +179,7 @@ CMAKE_INSTALL_NAME_TOOL by click the right side button <strong>“...”</strong
 to get
 <a class="pageref" href="#install-f6">Figure  5</a>.</p>
 <div class="figure align-center" id="install-f6">
-<img alt="_images/62.png" src="_images/62.png" />
+<img alt="_images/63.png" src="_images/63.png" />
 <p class="caption">Figure 5: Select Cmake 2.8-9.app</p>
 </div>
 <p>Click Configure button to get <a class="pageref" href="#install-f7">Figure  6</a>.</p>
@@ -197,7 +206,7 @@ then click Generate button to get <a class="pageref" href="#install-f9">Figure  
 <p>Now, LLVM.xcodeproj is created. Open the cmake_debug_build/LLVM.xcodeproj by
 Xcode and click menu <strong>“Product – Build”</strong> as <a class="pageref" href="#install-f10">Figure  9</a>.</p>
 <div class="figure align-center" id="install-f10">
-<img alt="_images/101.png" src="_images/101.png" />
+<img alt="_images/102.png" src="_images/102.png" />
 <p class="caption">Figure 9: Click Build button to build LLVM.xcodeproj by Xcode</p>
 </div>
 <p>After few minutes of build, the clang, llc, llvm-as, ..., can be found in
@@ -245,72 +254,53 @@ llvm/test/ in this section.</p>
 <p>In &#8220;section Create LLVM.xcodeproj by cmake Graphic UI&#8221; <a class="footnote-reference" href="#id20" id="id5">[5]</a>, we create
 LLVM.xcodeproj by cmake graphic UI.
 We can create LLVM.xcodeproj by <tt class="docutils literal"><span class="pre">cmake</span></tt> command on terminal also.
-Now, let&#8217;s repeat above steps to create llvm/test with cpu0 modified code
-, and check the copy is effected by <tt class="docutils literal"><span class="pre">grep</span> <span class="pre">-R</span> <span class="pre">&quot;Cpu0&quot;</span> <span class="pre">src/</span></tt> as follows,</p>
-<div class="highlight-bash"><pre>118-165-78-111:test Jonathan$ pwd
-/Users/Jonathan/llvm/test
+This book is on the process of merging into llvm trunk but not finished
+yet.
+The merged llvm trunk version on my git hub is LLVM 3.3 of merged date
+2013/03/28.
+So, you have to get book example code and the based llvm trunk by git command
+as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>git clone https://github.com/Jonathan2251/lbd.git
+</pre></div>
+</div>
+<p>The details of installing Cpu0 backend example code as follows,</p>
+<div class="highlight-bash"><pre>118-165-78-111:llvm Jonathan$ mkdir test
+118-165-78-111:llvm Jonathan$ cd test
 118-165-78-111:test Jonathan$ pwd
 /Users/Jonathan/llvm/test
-118-165-78-111:test Jonathan$ cp -rf /Users/Jonathan/llvm/release/src .
-118-165-78-111:test Jonathan$ cp -rf src/lib/Target/Cpu0/ExampleCode/
-LLVMBackendTutorialExampleCode/src_files_modify/modify/src .
-118-165-78-111:test Jonathan$ grep -R "Cpu0" src/
-src//cmake/config-ix.cmake:  set(LLVM_NATIVE_ARCH Cpu0)
-src//CMakeLists.txt:  Cpu0
-src//include/llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
-src//include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT_CALL,
-src//include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT16,
-src//include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT,
-src//include/llvm/MC/MCExpr.h:    VK_Cpu0_ABS_HI,
-src//include/llvm/MC/MCExpr.h:    VK_Cpu0_ABS_LO,
+118-165-78-111:test Jonathan$ git clone https://github.com/Jonathan2251/lbd.git src
+118-165-78-111:test Jonathan$ cp -rf src/lib/Target/Cpu0/
+LLVMBackendTutorialExampleCode/src_files_modify/modify/src/* src/.
+118-165-78-111:test Jonathan$ grep -R "Cpu0" src/include
 ...
-src//lib/MC/MCExpr.cpp:  case VK_Cpu0_GOT_PAGE: return "GOT_PAGE";
-src//lib/MC/MCExpr.cpp:  case VK_Cpu0_GOT_OFST: return "GOT_OFST";
-src//lib/Target/LLVMBuild.txt:subdirectories = ARM CellSPU CppBackend Hexagon
+src/include/llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
+src/include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT_CALL,
+src/include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT16,
+src/include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT,
+src/include/llvm/MC/MCExpr.h:    VK_Cpu0_ABS_HI,
+src/include/llvm/MC/MCExpr.h:    VK_Cpu0_ABS_LO,
+...
+src/lib/MC/MCExpr.cpp:  case VK_Cpu0_GOT_PAGE: return "GOT_PAGE";
+src/lib/MC/MCExpr.cpp:  case VK_Cpu0_GOT_OFST: return "GOT_OFST";
+src/lib/Target/LLVMBuild.txt:subdirectories = ARM CellSPU CppBackend Hexagon
 MBlaze MSP430 NVPTX Mips Cpu0 PowerPC Sparc X86 XCore
 118-165-78-111:test Jonathan$</pre>
 </div>
-<p>Next, please remove src/tools/clang since it will waste time to build clang for
-our working Cpu0 changes, and generate LLVMBackendTutorialExampleCode and copy
-cpu0 chapter 2 example code according the following commands,</p>
-<div class="highlight-bash"><pre>118-165-78-111:test Jonathan$ rm -rf src/tools/clang
-118-165-80-55:test Jonathan$ pwd
-/Users/Jonathan/llvm/test
-118-165-80-55:test Jonathan$ cd src/lib/Target/Cpu0/ExampleCode/
-118-165-80-55:ExampleCode Jonathan$ pwd
-/Users/Jonathan/llvm/test/src/lib/Target/Cpu0/ExampleCode
-118-165-80-55:ExampleCode Jonathan$ sh genexample.sh
-patching file 2/Cpu0/CMakeLists.txt
-...
-patching file 11/1/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
-118-165-80-55:ExampleCode Jonathan$ ls
-...
-2                             5.patch                         LLVMBackendTutorialExampleCode
-...
-118-165-80-55:ExampleCode Jonathan$ cp -rf LLVMBackendTutorialExampleCode/2/Cpu0/* ../.
-118-165-80-55:ExampleCode Jonathan$ cd ..
+<p>Next, please copy Cpu0 chapter 2 example code according the following commands,</p>
+<div class="highlight-bash"><pre>118-165-80-55:test Jonathan$ cd src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/
+118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ pwd
+/Users/Jonathan/llvm/test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode
+118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ sh removecpu0.sh
+118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ ls ..
+LLVMBackendTutorialExampleCode
+118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ cp -rf Chapter2/* ../.
+118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ cd ..
 118-165-80-55:Cpu0 Jonathan$ ls
 CMakeLists.txt                Cpu0InstrInfo.td        Cpu0TargetMachine.cpp   TargetInfo
 Cpu0.h                        Cpu0RegisterInfo.td     ExampleCode             readme
 Cpu0.td                       Cpu0Schedule.td         LLVMBuild.txt
 Cpu0InstrFormats.td   Cpu0Subtarget.h         MCTargetDesc
-118-165-80-55:Cpu0 Jonathan$
-
-118-165-78-111:test Jonathan$ cd src/lib/Target/
-118-165-78-111:Target Jonathan$ cp -rf /Users/Jonathan/
-LLVMBackendTutorialExampleCode/2/Cpu0 .
-118-165-78-111:Target Jonathan$ ls
-ARM             Mangler.cpp               TargetJITInfo.cpp
-CMakeLists.txt  Mips                      TargetLibraryInfo.cpp
-CellSPU         NVPTX                     TargetLoweringObjectFile.cpp
-CppBackend      PTX                       TargetMachine.cpp
-Cpu0            PowerPC                   TargetMachineC.cpp
-Hexagon         README.txt                TargetRegisterInfo.cpp
-LLVMBuild.txt   Sparc                     TargetSubtargetInfo.cpp
-MBlaze          Target.cpp                TargetTransformImpl.cpp
-MSP430          TargetInstrInfo.cpp       X86
-Makefile        TargetIntrinsicInfo.cpp   XCore
-118-165-78-111:Target Jonathan$</pre>
+118-165-80-55:Cpu0 Jonathan$</pre>
 </div>
 <p>Now, it&#8217;s ready for building llvm/test/src code by command
 <tt class="docutils literal"><span class="pre">cmake</span> <span class="pre">-DCMAKE_CXX_COMPILER=clang++</span> <span class="pre">-DCMAKE_C_COMPILER=clang</span> <span class="pre">-DCMAKE_BUILD_TYPE</span>
@@ -325,8 +315,9 @@ src
 118-165-78-111:test Jonathan$ ls
 src
 118-165-78-111:test Jonathan$ mkdir cmake_debug_build
-118-165-78-111:test Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPI
-LER=clang -DCMAKE_BUILD_TYPE=Debug -G "Xcode" ../src/
+118-165-78-111:test Jonathan$ cd cmake_debug_build
+118-165-78-111:cmake_debug_build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++
+-DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -G "Xcode" ../src/
 CMake Error: The source directory "/Users/Jonathan/llvm/src" does not exist.
 Specify --help for usage, or press the help button on the CMake GUI.
 118-165-78-111:test Jonathan$ cd cmake_debug_build/
@@ -358,6 +349,8 @@ Specify --help for usage, or press the help button on the CMake GUI.
 -- Build files have been written to: /Users/Jonathan/llvm/test/cmake_debug_build
 118-165-78-111:cmake_debug_build Jonathan$</pre>
 </div>
+<p>Now, you can build this llvm build with Cpu0 example code by Xcode as the last
+section indicated.</p>
 <p>Since Xcode use clang compiler and lldb instead of gcc and gdb, we can run lldb
 debug as follows,</p>
 <div class="highlight-bash"><pre>118-165-65-128:InputFiles Jonathan$ pwd
@@ -588,46 +581,61 @@ chain/bin:/home/Gamma/.local/bin:/home/Gamma/bin:/usr/local/sphinx/bin:/usr/
 </div>
 <div class="section" id="install-cpu0-debug-build-on-linux">
 <h3>Install cpu0 debug build on Linux<a class="headerlink" href="#install-cpu0-debug-build-on-linux" title="Permalink to this headline">¶</a></h3>
-<p>Make another copy /usr/local/llvm/test/src for cpu0 debug working
-project
-according the following list steps, the corresponding commands shown as follows,</p>
+<p>This book is on the process of merging into llvm trunk but not finished
+yet.
+The merged llvm trunk version on my git hub is LLVM 3.3 of merged date
+2013/03/28.
+So, you have to get book example code and the based llvm trunk by git command
+as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>git clone https://github.com/Jonathan2251/lbd.git
+</pre></div>
+</div>
+<p>The details of installing Cpu0 backend example code according the following
+list steps, and the corresponding commands shown as below,</p>
 <p>1) Enter /usr/local/llvm/test/ and
-<tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/usr/local/llvm/release/src</span> <span class="pre">.</span></tt>.</p>
-<p>2) Update my modified files to support cpu0 by command, <tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/usr/local/llvm/</span>
-<span class="pre">test/src/lib/Target/Cpu0/ExampleCode/LLVMBackendTutorialExampleCode/</span>
+get Cpu0 example code as well as the llvm trunk of Cpu0 based.</p>
+<ol class="arabic simple" start="2">
+<li>Make dir Cpu0 in src/lib/Target and download example code.</li>
+</ol>
+<p>3) Update my modified files to support cpu0 by command, <tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/usr/local/llvm/</span>
+<span class="pre">test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/</span>
 <span class="pre">src_files_modify/modify/src</span> <span class="pre">.</span></tt>.</p>
-<p>3) Check step 2 is effective by command
+<p>4) Check step 2 is effective by command
 <tt class="docutils literal"><span class="pre">grep</span> <span class="pre">-R</span> <span class="pre">&quot;Cpu0&quot;</span> <span class="pre">.</span> <span class="pre">|</span> <span class="pre">more`</span></tt>. I add the Cpu0 backend support, so check with
 grep.</p>
-<p>4) Enter src/lib/Target/Cpu0/ExampleCode, generate LLVMBackendTutorialExampleCode,
+<p>5) Enter src/lib/Target/Cpu0/, generate LLVMBackendTutorialExampleCode,
 and copy example code LLVMBackendTutorialExampleCode/2/Cpu0 to the directory by
 commands
-<tt class="docutils literal"><span class="pre">cd</span> <span class="pre">src/lib/Target/Cpu0/ExampleCode/</span></tt> and
-<tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">LLVMBackendTutorialExample/2/Cpu0/*</span> <span class="pre">../.</span></tt>.</p>
-<p>5) Remove clang from /usr/local/llvm/test/src/tools/clang, and mkdir
+<tt class="docutils literal"><span class="pre">cd</span> <span class="pre">src/lib/Target/Cpu0/</span></tt> and
+<tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">LLVMBackendTutorialExample/Chapter2/*</span> <span class="pre">../.</span></tt>.</p>
+<p>6) Remove clang from /usr/local/llvm/test/src/tools/clang, and mkdir
 test/cmake_debug_build. Without this you will waste extra time for
 command <tt class="docutils literal"><span class="pre">make</span></tt> in cpu0 example code build.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-111:llvm Jonathan<span class="nv">$ </span>mkdir <span class="nb">test</span>
+118-165-78-111:llvm Jonathan<span class="nv">$ </span><span class="nb">cd test</span>
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
 /usr/local/llvm/test
-<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>cp -rf /usr/local/llvm/release/src .
-<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>grep -R <span class="s2">&quot;Cpu0&quot;</span> .|more
-./src/CMakeLists.txt:  Cpu0
-./src/lib/Target/LLVMBuild.txt:subdirectories <span class="o">=</span> ARM CellSPU CppBackend Hexagon MBlaz
-e MSP430 Mips Cpu0 PTX PowerPC Sparc X86 XCore
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>git clone https://github.com/Jonathan2251/lbd.git src
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>cp -rf src/lib/Target/Cpu0/
+LLVMBackendTutorialExampleCode/src_files_modify/modify/src/* src/.
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>grep -R <span class="s2">&quot;Cpu0&quot;</span> src/inlcude
+src/include//llvm/ADT/Triple.h:    cpu0,    // For Tutorial Backend Cpu0
+src/include//llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
+src/include//llvm/MC/MCExpr.h:    VK_Cpu0_GOT_CALL,
 ...
-<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span><span class="nb">cd </span>src/lib/Target/Cpu0/ExampleCode/
-<span class="o">[</span>Gamma@localhost ExampleCode<span class="o">]</span><span class="nv">$ </span>cp -rf LLVMBackendTutorialExampleCode/2/
-Cpu0/* ../.
-<span class="o">[</span>Gamma@localhost ExampleCode<span class="o">]</span><span class="nv">$ </span><span class="nb">cd</span> ..
-<span class="o">[</span>Gamma@localhost Cpu0<span class="o">]</span><span class="nv">$ </span>ls
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span><span class="nb">cd </span>src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/
+<span class="o">[</span>Gamma@localhost LLVMBackendTutorialExampleCode<span class="o">]</span><span class="nv">$ </span>sh removecpu0.sh
+<span class="o">[</span>Gamma@localhost LLVMBackendTutorialExampleCode<span class="o">]</span><span class="nv">$ </span>ls ../
+LLVMBackendTutorialExampleCode
+<span class="o">[</span>Gamma@localhost LLVMBackendTutorialExampleCode<span class="o">]</span><span class="nv">$ </span>cp -rf Chapter2/* ../.
+<span class="o">[</span>Gamma@localhost LLVMBackendTutorialExampleCode<span class="o">]</span><span class="nv">$ </span>ls ..
 CMakeLists.txt                Cpu0InstrInfo.td        Cpu0TargetMachine.cpp   TargetInfo
 Cpu0.h                        Cpu0RegisterInfo.td     ExampleCode             readme
 Cpu0.td                       Cpu0Schedule.td         LLVMBuild.txt
 Cpu0InstrFormats.td   Cpu0Subtarget.h         MCTargetDesc
-<span class="o">[</span>Gamma@localhost Cpu0<span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
-/usr/local/llvm/test/src/lib/Target/Cpu0
-<span class="o">[</span>Gamma@localhost Cpu0<span class="o">]</span><span class="nv">$ </span><span class="nb">cd</span> ../../..
-<span class="o">[</span>Gamma@localhost src<span class="o">]</span><span class="nv">$ </span>rm -rf tools/clang
+<span class="o">[</span>Gamma@localhost Cpu0<span class="o">]</span><span class="nv">$ </span><span class="nb">cd</span> ../../../..
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
+/usr/local/llvm/test
 </pre></div>
 </div>
 <p>Now, go into directory llvm/test/, create directory cmake_debug_build and
@@ -635,8 +643,7 @@ do cmake
 like build the llvm/release, but we do Debug build and use clang as our compiler
 instead,
 as follows,</p>
-<div class="highlight-bash"><pre>[Gamma@localhost src]$ cd ..
-[Gamma@localhost test]$ pwd
+<div class="highlight-bash"><pre>[Gamma@localhost test]$ pwd
 /usr/local/llvm/test
 [Gamma@localhost test]$ mkdir cmake_debug_build
 [Gamma@localhost test]$ cd cmake_debug_build/

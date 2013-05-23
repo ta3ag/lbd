@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.12',
+        VERSION:     '3.2.13',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -68,20 +68,9 @@ It create DAG nodes at run time in our backend C++ code according the
 Machine DAG translation directly according the input file IR DAG.</p>
 <div class="section" id="global-variable">
 <h2>Global variable<a class="headerlink" href="#global-variable" title="Permalink to this headline">¶</a></h2>
-<p>6/1/Cpu0 support the global variable, let&#8217;s compile ch6_1.cpp with this version
+<p>Chapter6_1/ support the global variable, let&#8217;s compile ch6_1.cpp with this version
 first, and explain the code changes after that.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch6_1.cpp</span>
-<span class="kt">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-
-  <span class="n">c</span> <span class="o">=</span> <span class="n">gI</span><span class="p">;</span>
-
-  <span class="k">return</span> <span class="n">c</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch6_1.cpp</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>llvm-dis ch6_1.bc -o ch6_1.ll
 118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>cat ch6_1.ll
 ; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch6_1.bc&#39;</span>
@@ -217,13 +206,14 @@ After that, user can run llc with argument <tt class="docutils literal"><span cl
 to specify <strong>IsLinuxOpt</strong> to false.
 The <strong>IsLinuxOpt</strong> is defaulted to true if without specify it.
 About the <strong>cl</strong> command variable, you can refer to <a class="footnote-reference" href="#id4" id="id1">[1]</a> further.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0Subtarget.cpp</span>
-<span class="k">static</span> <span class="n">cl</span><span class="o">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0Subtarget.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="n">cl</span><span class="o">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span>
 <span class="n">IsLinuxOpt</span><span class="p">(</span><span class="s">&quot;cpu0-islinux-format&quot;</span><span class="p">,</span> <span class="n">cl</span><span class="o">::</span><span class="n">Hidden</span><span class="p">,</span> <span class="n">cl</span><span class="o">::</span><span class="n">init</span><span class="p">(</span><span class="kc">true</span><span class="p">),</span>
                  <span class="n">cl</span><span class="o">::</span><span class="n">desc</span><span class="p">(</span><span class="s">&quot;Always use linux format.&quot;</span><span class="p">));</span>
 </pre></div>
 </div>
 <p>Next add the following code to Cpu0ISelLowering.cpp.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0ISelLowering.cpp</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span>
 <span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
@@ -317,6 +307,7 @@ return false.
 LowerGlobalAddress() will translate global variable by create 2 DAG IR nodes
 ABS_HI and ABS_LO for high part and low part of address and one extra node ADD.
 List it again as follows.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0ISelLowering.cpp</span>
 <span class="p">...</span>
     <span class="c1">// %hi/%lo relocation</span>
@@ -335,9 +326,8 @@ Since some DAG nodes are not with two arguments, we will define the list as
 (ADD (Hi (...), Lo (...)) or (ADD (Hi, Lo)) sometimes in this book.
 The corresponding machine instructions of these three IR nodes are defined in
 Cpu0InstrInfo.td as follows,</p>
-<div class="highlight-c++"><pre>//  Cpu0InstrInfo.td
-...
-// Hi and Lo nodes are used to handle global addresses. Used on
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><pre>// Hi and Lo nodes are used to handle global addresses. Used on
 // Cpu0ISelLowering to lower stuff like GlobalAddress, ExternalSymbol
 // static model. (nothing to do with Cpu0 Registers Hi and Lo)
 def Cpu0Hi    : SDNode&lt;"Cpu0ISD::Hi", SDTIntUnaryOp&gt;;
@@ -398,6 +388,7 @@ as follows,</p>
 </div>
 <p>When IsLinuxOpt is false and static mode, LowerGlobalAddress() will run the
 following code to create a DAG list (ADD GOT, GPRel).</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// %gp_rel relocation</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">TLOF</span><span class="p">.</span><span class="n">IsGlobalInSmallSection</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">getTargetMachine</span><span class="p">()))</span> <span class="p">{</span>
   <span class="n">SDValue</span> <span class="n">GA</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
@@ -414,6 +405,7 @@ binding in compile time).
 It&#8217;s equal to offset+GOT where GOT is the base address for global variable and
 offset is 16 bits.
 Now, according the following Cpu0InstrInfo.td definition,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>//  Cpu0InstrInfo.td
 def Cpu0GPRel : SDNode&lt;"Cpu0ISD::GPRel", SDTIntUnaryOp&gt;;
 ...
@@ -431,6 +423,7 @@ instructions as follows,</p>
 <p>When PIC mode, LowerGlobalAddress() will create the DAG list (load
 DAG.getEntryNode(), (Wrapper GetGlobalReg(), GA)) by the following code and
 the code in Cpu0ISeleDAGToDAG.cpp as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISeleDAGToDAG.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre>  <span class="p">...</span>
   <span class="kt">bool</span> <span class="n">HasGotOfst</span> <span class="o">=</span> <span class="p">(</span><span class="n">GV</span><span class="o">-&gt;</span><span class="n">hasInternalLinkage</span><span class="p">()</span> <span class="o">||</span>
                      <span class="p">(</span><span class="n">GV</span><span class="o">-&gt;</span><span class="n">hasLocalLinkage</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isa</span><span class="o">&lt;</span><span class="n">Function</span><span class="o">&gt;</span><span class="p">(</span><span class="n">GV</span><span class="p">)));</span>
@@ -469,19 +462,20 @@ the code in Cpu0ISeleDAGToDAG.cpp as follows,</p>
 translated into Base=$gp as well as the 16 bits Offset for $gp.</p>
 <p>Apart from above code, add the following code to Cpu0AsmPrinter.cpp and it will
 emit .cpload asm pseudo instruction,</p>
-<div class="highlight-c++"><pre>// Cpu0AsmPrinter.cpp
-/// EmitFunctionBodyStart - Targets can override this to emit stuff before
-/// the first basic block in the function.
-void Cpu0AsmPrinter::EmitFunctionBodyStart() {
-...
-    // Emit .cpload directive if needed.
-    if (EmitCPLoad)
-    //- .cpload $t9
-      OutStreamer.EmitRawText(StringRef("\t.cpload\t$t9"));
-...
-}
-
-// ch6_1.cpu0.s
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0AsmPrinter.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// EmitFunctionBodyStart - Targets can override this to emit stuff before</span>
+<span class="c1">/// the first basic block in the function.</span>
+<span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">EmitFunctionBodyStart</span><span class="p">()</span> <span class="p">{</span>
+<span class="p">...</span>
+    <span class="c1">// Emit .cpload directive if needed.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">EmitCPLoad</span><span class="p">)</span>
+    <span class="c1">//- .cpload $t9</span>
+      <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitRawText</span><span class="p">(</span><span class="n">StringRef</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">.cpload</span><span class="se">\t</span><span class="s">$t9&quot;</span><span class="p">));</span>
+<span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><pre>// ch6_1.cpu0.s
     .cpload $t9
     .set    nomacro
 # BB#0:
@@ -512,8 +506,8 @@ address is the relative address to main().</p>
 <p>Above code is for global address DAG translation.
 Next, add the following code to Cpu0MCInstLower.cpp, Cpu0InstPrinter.cpp and
 Cpu0ISelLowering.cpp for global variable printing operand function.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0MCInstLower.cpp</span>
-<span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MCInstLower.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
                                               <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
                                               <span class="kt">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VariantKind</span> <span class="n">Kind</span><span class="p">;</span>
@@ -554,10 +548,10 @@ Cpu0ISelLowering.cpp for global variable printing operand function.</p>
     <span class="k">return</span> <span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="n">MO</span><span class="p">,</span> <span class="n">MOTy</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
   <span class="p">...</span>
  <span class="p">}</span>
-
-<span class="c1">// Cpu0InstPrinter.cpp</span>
-<span class="p">...</span>
-<span class="k">static</span> <span class="kt">void</span> <span class="n">printExpr</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="p">{</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="n">printExpr</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">default</span><span class="o">:</span>                                 <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Invalid kind!&quot;</span><span class="p">);</span>
@@ -571,11 +565,11 @@ Cpu0ISelLowering.cpp for global variable printing operand function.</p>
   <span class="p">}</span>
   <span class="p">...</span>
 <span class="p">}</span>
-
-<span class="n">Cpu0ISelLowering</span><span class="p">.</span><span class="n">cpp</span>
-<span class="p">...</span>
-<span class="c1">// The following function is for llc -debug DAG node name printing.</span>
-<span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">getTargetNodeName</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Opcode</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+</pre></div>
+</div>
+<p>The following function is for llc -debug DAG node name printing.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">getTargetNodeName</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Opcode</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">Opcode</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">case</span> <span class="n">Cpu0ISD</span><span class="o">::</span><span class="nl">JmpLink:</span>           <span class="k">return</span> <span class="s">&quot;Cpu0ISD::JmpLink&quot;</span><span class="p">;</span>
   <span class="k">case</span> <span class="n">Cpu0ISD</span><span class="o">::</span><span class="nl">Hi:</span>                <span class="k">return</span> <span class="s">&quot;Cpu0ISD::Hi&quot;</span><span class="p">;</span>
@@ -615,26 +609,7 @@ The section &#8220;Instruction Selector&#8221; of <a class="footnote-reference" 
 <p>LLVM use getelementptr to represent the array and struct type in C.
 Please reference section getelementptr of <a class="footnote-reference" href="#id6" id="id3">[3]</a>.
 For ch6_2.cpp, the llvm IR as follows,</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch6_2.cpp</span>
-<span class="k">struct</span> <span class="n">Date</span>
-<span class="p">{</span>
-    <span class="kt">int</span> <span class="n">year</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="n">month</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="n">day</span><span class="p">;</span>
-<span class="p">};</span>
-
-<span class="n">Date</span> <span class="n">date</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
-<span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
-
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
-    <span class="kt">int</span> <span class="n">day</span> <span class="o">=</span> <span class="n">date</span><span class="p">.</span><span class="n">day</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
-
-    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp</p>
 <div class="highlight-bash"><div class="highlight"><pre>// ch6_2.ll
 ; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch6_2.bc&#39;</span>
 target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-</span>
@@ -661,7 +636,7 @@ entry:
 <span class="o">}</span>
 </pre></div>
 </div>
-<p>Run 6/1/Cpu0 with ch6_2.bc on static mode will get the incorrect asm file as
+<p>Run Chapter6_1/ with ch6_2.bc on static mode will get the incorrect asm file as
 follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
 debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm
@@ -840,8 +815,8 @@ In Cpu0 the <strong>ld</strong> instruction format is <strong>“ld $r1, offset(
 meaning load $r2 address+offset to $r1.
 So, we just replace the isOffsetFoldingLegal(...) function by override
 mechanism as below.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// TargetLowering.cpp</span>
-<span class="kt">bool</span>
+<p class="rubric">lib/CodeGen/SelectionDAG/TargetLowering.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">bool</span>
 <span class="n">TargetLowering</span><span class="o">::</span><span class="n">isOffsetFoldingLegal</span><span class="p">(</span><span class="k">const</span> <span class="n">GlobalAddressSDNode</span> <span class="o">*</span><span class="n">GA</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="c1">// Assume that everything is safe in static mode.</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">getTargetMachine</span><span class="p">().</span><span class="n">getRelocationModel</span><span class="p">()</span> <span class="o">==</span> <span class="n">Reloc</span><span class="o">::</span><span class="n">Static</span><span class="p">)</span>
@@ -857,9 +832,10 @@ mechanism as below.</p>
   <span class="c1">// Otherwise assume nothing is safe.</span>
   <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
 <span class="p">}</span>
-
-<span class="c1">// Cpu0TargetLowering.cpp</span>
-<span class="kt">bool</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_2/Cpu0ISelLowering.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">bool</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">isOffsetFoldingLegal</span><span class="p">(</span><span class="k">const</span> <span class="n">GlobalAddressSDNode</span> <span class="o">*</span><span class="n">GA</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="c1">// The Cpu0 target isn&#39;t yet aware of offsets.</span>
   <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
@@ -867,6 +843,7 @@ mechanism as below.</p>
 </pre></div>
 </div>
 <p>Beyond that, we need to add the following code fragment to Cpu0ISelDAGToDAG.cpp,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_2/Cpu0ISelDAGToDAG.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0ISelDAGToDAG.cpp</span>
 <span class="c1">/// ComplexPattern used on Cpu0InstrInfo</span>
 <span class="c1">/// Used on Cpu0 Load/Store instructions</span>
@@ -896,6 +873,7 @@ mechanism as below.</p>
 (add GlobalAddress&lt;[3 x i32]* &#64;a&gt; 0, Constant&lt;8&gt;) into
 (add (add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)),
 Constant&lt;8&gt;) by the following code in Cpu0ISelLowering.cpp.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0ISelLowering.cpp</span>
 <span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerGlobalAddress</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span>
                                     <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -924,7 +902,7 @@ Offset = Constant&lt;8&gt;.
 After set Base and Offset, the load DAG will translate the global address
 date.day into machine instruction <strong>“ld $r1, 8($r2)”</strong> in Instruction Selection
 stage.</p>
-<p>6/2/Cpu0 include these changes as above, you can run it with ch6_2.cpp to get
+<p>Chapter6_2/ include these changes as above, you can run it with ch6_2.cpp to get
 the correct generated instruction <strong>“ld $r1, 8($r2)”</strong> for date.day access, as
 follows.</p>
 <div class="highlight-bash"><div class="highlight"><pre>...
@@ -940,10 +918,9 @@ ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$2</sp
 <div class="section" id="type-of-char-and-short-int">
 <h2>Type of char and short int<a class="headerlink" href="#type-of-char-and-short-int" title="Permalink to this headline">¶</a></h2>
 <p>To support signed/unsigned char and short int, we add the following code to
-6/3/Cpu0.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0InstrInfo.td</span>
-<span class="p">...</span>
-<span class="n">def</span> <span class="n">sextloadi16_a</span>   <span class="o">:</span> <span class="n">AlignedLoad</span><span class="o">&lt;</span><span class="n">sextloadi16</span><span class="o">&gt;</span><span class="p">;</span>
+Chapter6_3/.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_3/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">sextloadi16_a</span>   <span class="o">:</span> <span class="n">AlignedLoad</span><span class="o">&lt;</span><span class="n">sextloadi16</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="n">def</span> <span class="n">zextloadi16_a</span>   <span class="o">:</span> <span class="n">AlignedLoad</span><span class="o">&lt;</span><span class="n">zextloadi16</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="n">def</span> <span class="n">extloadi16_a</span>    <span class="o">:</span> <span class="n">AlignedLoad</span><span class="o">&lt;</span><span class="n">extloadi16</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="p">...</span>
@@ -957,32 +934,8 @@ ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$2</sp
 <span class="n">defm</span> <span class="n">SH</span>     <span class="o">:</span> <span class="n">StoreM32</span><span class="o">&lt;</span><span class="mh">0x08</span><span class="p">,</span> <span class="s">&quot;sh&quot;</span><span class="p">,</span> <span class="n">truncstorei16_a</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>Run 6/3/Cpu0 with ch6_3.cpp will get the following result.</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// ch6_3.cpp</span>
-<span class="k">struct</span> <span class="n">Date</span>
-<span class="p">{</span>
-  <span class="kt">short</span> <span class="n">year</span><span class="p">;</span>
-  <span class="kt">char</span> <span class="n">month</span><span class="p">;</span>
-  <span class="kt">char</span> <span class="n">day</span><span class="p">;</span>
-  <span class="kt">char</span> <span class="n">hour</span><span class="p">;</span>
-  <span class="kt">char</span> <span class="n">minute</span><span class="p">;</span>
-  <span class="kt">char</span> <span class="n">second</span><span class="p">;</span>
-<span class="p">};</span>
-
-<span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">b</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="sc">&#39;a&#39;</span><span class="p">,</span> <span class="sc">&#39;b&#39;</span><span class="p">,</span> <span class="sc">&#39;c&#39;</span><span class="p">,</span> <span class="sc">&#39;\0&#39;</span><span class="p">};</span>
-
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">a</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
-  <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
-  <span class="n">Date</span> <span class="n">date1</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="mi">11</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="mi">25</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="mi">9</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="mi">40</span><span class="p">,</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="mi">15</span><span class="p">};</span>
-  <span class="kt">char</span> <span class="n">m</span> <span class="o">=</span> <span class="n">date1</span><span class="p">.</span><span class="n">month</span><span class="p">;</span>
-  <span class="kt">char</span> <span class="n">s</span> <span class="o">=</span> <span class="n">date1</span><span class="p">.</span><span class="n">second</span><span class="p">;</span>
-
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+<p>Run Chapter6_3/ with ch6_3.cpp will get the following result.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch6_3.cpp</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-64-245:InputFiles Jonathan<span class="nv">$ </span>clang -c ch6_3.cpp -emit-llvm -o ch6_3.bc
 118-165-64-245:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch6_3.bc -o
