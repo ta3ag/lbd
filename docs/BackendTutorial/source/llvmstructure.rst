@@ -200,6 +200,12 @@ The following table details the Cpu0 instruction set:
 	  - Bitwise exclusive or
 	  - XOR Ra, Rb, Rc
 	  - Ra <= Rb ^ Rc
+   	* - A
+	  - SRA
+	  - 1B
+	  - Shift right
+	  - SHR Ra, Rb, Cx
+	  - Ra <= (h80000000|Rb>>Cx)
   	* - A
 	  - ROL
 	  - 1C
@@ -224,30 +230,6 @@ The following table details the Cpu0 instruction set:
 	  - Shift right
 	  - SHR Ra, Rb, Cx
 	  - Ra <= Rb >> Cx
-	* - A
-	  - FADD
-	  - 41
-	  - Floating-point addition
-	  - FADD Ra, Rb, Rc
-	  - Ra <= Rb + Rc
-	* - A
-	  - FSUB
-	  - 42
-	  - Floating-point subtraction
-	  - FSUB Ra, Rb, Rc
-	  - Ra <= Rb - Rc
-	* - A
-	  - FMUL
-	  - 43
-	  - Floating-point multiplication
-	  - FMUL Ra, Rb, Rc
-	  - Ra <= Rb * Rc
-	* - A
-	  - FDIV
-	  - 44
-	  - Floating-point division
-	  - FDIV Ra, Rb, Rc
-	  - Ra <= Rb / Rc
    	* - J
 	  - JEQ
 	  - 20
