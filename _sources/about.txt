@@ -48,7 +48,7 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.2.14, Not release yet.
+Version 3.2.15, Not release yet.
 
 Version 3.2.14, Released May 24, 2013
 	Fix example code disappeared error.
