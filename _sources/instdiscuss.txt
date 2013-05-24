@@ -198,7 +198,7 @@ The purpose is telling reader how to implement this style of CPU/MCU backend.
 Run Chapter8_8_2/ with ch_move.cpp will get the following result,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_move.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch_move.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_move.cpp
     :lines: 5-
     :linenos:
 

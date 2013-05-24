@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.13',
+        VERSION:     '3.2.14',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -158,6 +158,99 @@ objdump from B0 to B3 as 0xb8ffd009.</p>
 <h2>Backend Target Registration Structure<a class="headerlink" href="#backend-target-registration-structure" title="Permalink to this headline">¶</a></h2>
 <p>Now, let&#8217;s examine Cpu0MCTargetDesc.cpp.</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">}</span>
+
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0TargetMC</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// Register the MC asm info.</span>
+  <span class="n">RegisterMCAsmInfoFn</span> <span class="n">X</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCAsmInfo</span><span class="p">);</span>
+  <span class="n">RegisterMCAsmInfoFn</span> <span class="n">Y</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCAsmInfo</span><span class="p">);</span>
+
+  <span class="c1">// Register the MC codegen info.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeGenInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                        <span class="n">createCpu0MCCodeGenInfo</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeGenInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                        <span class="n">createCpu0MCCodeGenInfo</span><span class="p">);</span>
+  <span class="c1">// Register the MC instruction info.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstrInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCInstrInfo</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstrInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCInstrInfo</span><span class="p">);</span>
+
+  <span class="c1">// Register the MC register info.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCRegInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCRegisterInfo</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCRegInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCRegisterInfo</span><span class="p">);</span>
+
+  <span class="c1">// Register the MC Code Emitter</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                        <span class="n">createCpu0MCCodeEmitterEB</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                        <span class="n">createCpu0MCCodeEmitterEL</span><span class="p">);</span>
+
+  <span class="c1">// Register the object streamer.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCObjectStreamer</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createMCStreamer</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCObjectStreamer</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createMCStreamer</span><span class="p">);</span>
+
+  <span class="c1">// Register the asm backend.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                       <span class="n">createCpu0AsmBackendEB32</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                       <span class="n">createCpu0AsmBackendEL32</span><span class="p">);</span>
+  <span class="c1">// Register the MC subtarget info.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCSubtargetInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                          <span class="n">createCpu0MCSubtargetInfo</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCSubtargetInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                          <span class="n">createCpu0MCSubtargetInfo</span><span class="p">);</span>
+  <span class="c1">// Register the MCInstPrinter.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstPrinter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                        <span class="n">createCpu0MCInstPrinter</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstPrinter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                        <span class="n">createCpu0MCInstPrinter</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <p>Cpu0MCTargetDesc.cpp do the target registration as mentioned in
 &#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id2" id="id1">[1]</a> of the last chapter.
 Drawing the register function and those class it registered in

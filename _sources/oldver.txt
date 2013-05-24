@@ -279,7 +279,7 @@ as below. The difference came from 3.2 correcting the label number in
 order. 
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_all.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch_all.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_all.cpp
     :lines: 14-
     :linenos:
     

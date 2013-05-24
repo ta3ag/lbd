@@ -13,7 +13,7 @@ Control flow statement
 Run ch7_1_1.cpp with clang will get result as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_1_1.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch7_1_1.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch7_1_1.cpp
     :lines: 5-
     :linenos:
 
@@ -281,7 +281,7 @@ The reserved registers setting by the following
 function code we defined before,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0RegisterInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0RegisterInfo.cpp
     :start-after: return CSR_O32_RegMask;
     :end-before: //- If eliminateFrameIndex() is empty
     :linenos:
@@ -414,7 +414,7 @@ one instruction (bne).
 Finally we list the code added for full support of control flow statement,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
     :start-after: EmitInstruction(Binary, Size, OS);
     :end-before: /// getMachineOpValue - Return binary encoding of operand
     :linenos:
@@ -619,7 +619,7 @@ With this LowerCall(), it can translate ch7_1_4.cpp, ch7_1_4.bc to
 ch7_1_4.cpu0.s as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_1_4.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch7_1_4.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch7_1_4.cpp
     :lines: 4-
     :linenos:
 
@@ -704,7 +704,7 @@ But it can be test only when the control flow statement support is ready, as
 follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_1_5.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch7_1_5.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch7_1_5.cpp
     :lines: 6-
     :linenos:
 

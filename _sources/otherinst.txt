@@ -24,7 +24,7 @@ Run the Chapter3_5/Cpu0 ``llc`` with input file ch4_1_1.bc will get the error as
 follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_1_1.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch4_1_1.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_1_1.cpp
     :lines: 7-
     :linenos:
 
@@ -256,7 +256,7 @@ Files ch4_2.cpp and ch4_2.bc are the C source code for **“not”** boolean ope
 and it's corresponding llvm IR. List them as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_2.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch4_2.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_2.cpp
     :lines: 4-
     :linenos:
 
@@ -584,7 +584,7 @@ Run ch4_4.cpp with code Chapter4_4/ which support udiv, sra, and use addiu only
 instead of ldi, will get the result as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp
     :lines: 4-
     :linenos:
 
@@ -650,7 +650,7 @@ Run ch4_5.cpp with code Chapter4_5/ which support pointer to local variable,
 will get result as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
     :lines: 4-
     :linenos:
 
@@ -705,7 +705,7 @@ Example input code ch4_6.cpp which contains the C operator **“%”** and it's
 corresponding llvm IR, as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_6.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch4_6.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_6.cpp
     :lines: 4-
     :linenos:
 
@@ -1119,13 +1119,13 @@ Chapter4_6_4/ support operator **“%”** and **“/”**.
 The code added in Chapter4_6_4/ as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.cpp
     :start-after: return RI;
     :end-before: MachineInstr*
     :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.h
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.h
     :start-after: virtual const Cpu0RegisterInfo &getRegisterInfo() const;
     :end-before: public:
     :linenos:
@@ -1292,12 +1292,12 @@ like to verify it now.
     ...
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_6_1.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch4_6_1.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_6_1.cpp
     :lines: 4-
     :linenos:
   
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_6_2.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch4_6_2.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_6_2.cpp
     :lines: 4-
     :linenos:
 

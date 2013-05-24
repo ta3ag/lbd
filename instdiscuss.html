@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.13',
+        VERSION:     '3.2.14',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -232,6 +232,31 @@ It&#8217;s just a demonstration with this design, not fully support.
 The purpose is telling reader how to implement this style of CPU/MCU backend.
 Run Chapter8_8_2/ with ch_move.cpp will get the following result,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch_move.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">e</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+
+  <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">d</span> <span class="o">+</span> <span class="n">e</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <div class="highlight-bash"><div class="highlight"><pre>ld  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">$3</span> is a
 ld  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">$4</span> is b
 mtacc <span class="nv">$4</span>        // Move b To Acc

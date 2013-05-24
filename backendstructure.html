@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.13',
+        VERSION:     '3.2.14',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -398,6 +398,25 @@ and .cpp), Cpu0FrameLowering (Cpu0FrameLowering.h and .cpp), Cpu0TargetLowering
 and .cpp).
 CMakeLists.txt  modified with those new added *.cpp as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/CMakeLists.txt</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp"># Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen</span>
+<span class="n">add_llvm_target</span><span class="p">(</span><span class="n">Cpu0CodeGen</span>
+  <span class="n">Cpu0ISelLowering</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0InstrInfo</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0FrameLowering</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0Subtarget</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0TargetMachine</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0SelectionDAGInfo</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
 <p>Please take a look for Chapter3_1 code.
 After that, building Chapter3_1 by make as chapter 2 (of course, you should remove old
 src/lib/Target/Cpu0 and replace with src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_1/).
@@ -536,9 +555,359 @@ Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,</p
 </pre></div>
 </td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0RegisterInfo.cpp - CPU0 Register Information -== --------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains the CPU0 implementation of the TargetRegisterInfo class.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#define DEBUG_TYPE &quot;cpu0-reg-info&quot;</span>
+
+<span class="cp">#include &quot;Cpu0RegisterInfo.h&quot;</span>
+<span class="cp">#include &quot;Cpu0.h&quot;</span>
+<span class="cp">#include &quot;Cpu0Subtarget.h&quot;</span>
+<span class="cp">#include &quot;Cpu0MachineFunction.h&quot;</span>
+<span class="cp">#include &quot;llvm/IR/Constants.h&quot;</span>
+<span class="cp">#include &quot;llvm/DebugInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/IR/Type.h&quot;</span>
+<span class="cp">#include &quot;llvm/IR/Function.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/ValueTypes.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineInstrBuilder.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineFunction.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineFrameInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetFrameLowering.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetMachine.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetOptions.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetInstrInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/CommandLine.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/Debug.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/ErrorHandling.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/raw_ostream.h&quot;</span>
+<span class="cp">#include &quot;llvm/ADT/BitVector.h&quot;</span>
+<span class="cp">#include &quot;llvm/ADT/STLExtras.h&quot;</span>
+
+<span class="cp">#define GET_REGINFO_TARGET_DESC</span>
+<span class="cp">#include &quot;Cpu0GenRegisterInfo.inc&quot;</span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="n">Cpu0RegisterInfo</span><span class="o">::</span><span class="n">Cpu0RegisterInfo</span><span class="p">(</span><span class="k">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">ST</span><span class="p">,</span>
+                                   <span class="k">const</span> <span class="n">TargetInstrInfo</span> <span class="o">&amp;</span><span class="n">tii</span><span class="p">)</span>
+  <span class="o">:</span> <span class="n">Cpu0GenRegisterInfo</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">),</span> <span class="n">Subtarget</span><span class="p">(</span><span class="n">ST</span><span class="p">),</span> <span class="n">TII</span><span class="p">(</span><span class="n">tii</span><span class="p">)</span> <span class="p">{}</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Callee Saved Registers methods</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">/// Cpu0 Callee Saved Registers</span>
+<span class="c1">// In Cpu0CallConv.td,</span>
+<span class="c1">// def CSR_O32 : CalleeSavedRegs&lt;(add LR, FP,</span>
+<span class="c1">//                                   (sequence &quot;S%u&quot;, 2, 0))&gt;;</span>
+<span class="c1">// llc create CSR_O32_SaveList and CSR_O32_RegMask from above defined.</span>
+<span class="k">const</span> <span class="n">uint16_t</span><span class="o">*</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
+<span class="n">getCalleeSavedRegs</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">*</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span>
+<span class="p">{</span>
+  <span class="k">return</span> <span class="n">CSR_O32_SaveList</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">const</span> <span class="n">uint32_t</span><span class="o">*</span>
+<span class="n">Cpu0RegisterInfo</span><span class="o">::</span><span class="n">getCallPreservedMask</span><span class="p">(</span><span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span><span class="p">)</span> <span class="k">const</span>
+<span class="p">{</span>
+  <span class="k">return</span> <span class="n">CSR_O32_RegMask</span><span class="p">;</span> 
+<span class="p">}</span>
+
+<span class="c1">// pure virtual method</span>
+<span class="n">BitVector</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
+<span class="n">getReservedRegs</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">static</span> <span class="k">const</span> <span class="n">uint16_t</span> <span class="n">ReservedCPURegs</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">,</span>
+    <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">PC</span>
+  <span class="p">};</span>
+  <span class="n">BitVector</span> <span class="n">Reserved</span><span class="p">(</span><span class="n">getNumRegs</span><span class="p">());</span>
+  <span class="k">typedef</span> <span class="n">TargetRegisterClass</span><span class="o">::</span><span class="n">iterator</span> <span class="n">RegIter</span><span class="p">;</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">I</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">I</span> <span class="o">&lt;</span> <span class="n">array_lengthof</span><span class="p">(</span><span class="n">ReservedCPURegs</span><span class="p">);</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span>
+    <span class="n">Reserved</span><span class="p">.</span><span class="n">set</span><span class="p">(</span><span class="n">ReservedCPURegs</span><span class="p">[</span><span class="n">I</span><span class="p">]);</span>
+
+  <span class="k">return</span> <span class="n">Reserved</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// pure virtual method</span>
+<span class="c1">// FrameIndex represent objects inside a abstract stack.</span>
+<span class="c1">// We must replace FrameIndex with an stack/frame pointer</span>
+<span class="c1">// direct reference.</span>
+<span class="kt">void</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
+<span class="n">eliminateFrameIndex</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">II</span><span class="p">,</span> <span class="kt">int</span> <span class="n">SPAdj</span><span class="p">,</span>
+                    <span class="kt">unsigned</span> <span class="n">FIOperandNum</span><span class="p">,</span> <span class="n">RegScavenger</span> <span class="o">*</span><span class="n">RS</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="c1">// pure virtual method</span>
+<span class="kt">unsigned</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
+<span class="n">getFrameRegister</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">TargetFrameLowering</span> <span class="o">*</span><span class="n">TFI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getTarget</span><span class="p">().</span><span class="n">getFrameLowering</span><span class="p">();</span>
+  <span class="k">return</span> <span class="n">TFI</span><span class="o">-&gt;</span><span class="n">hasFP</span><span class="p">(</span><span class="n">MF</span><span class="p">)</span> <span class="o">?</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">)</span> <span class="o">:</span>
+                          <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.h</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0InstrInfo.h - Cpu0 Instruction Information ----------*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains the Cpu0 implementation of the TargetInstrInfo class.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#ifndef CPU0INSTRUCTIONINFO_H</span>
+<span class="cp">#define CPU0INSTRUCTIONINFO_H</span>
+
+<span class="cp">#include &quot;Cpu0.h&quot;</span>
+<span class="cp">#include &quot;Cpu0RegisterInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/ErrorHandling.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetInstrInfo.h&quot;</span>
+
+<span class="cp">#define GET_INSTRINFO_HEADER</span>
+<span class="cp">#include &quot;Cpu0GenInstrInfo.inc&quot;</span>
+
+<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+
+<span class="k">class</span> <span class="nc">Cpu0InstrInfo</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Cpu0GenInstrInfo</span> <span class="p">{</span>
+  <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">Cpu0RegisterInfo</span> <span class="n">RI</span><span class="p">;</span>
+<span class="k">public</span><span class="o">:</span>
+  <span class="k">explicit</span> <span class="n">Cpu0InstrInfo</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
+
+  <span class="c1">/// getRegisterInfo - TargetInstrInfo is a superset of MRegister info.  As</span>
+  <span class="c1">/// such, whenever a client has an instance of instruction info, it should</span>
+  <span class="c1">/// always be able to get register info as well (through this method).</span>
+  <span class="c1">///</span>
+  <span class="k">virtual</span> <span class="k">const</span> <span class="n">Cpu0RegisterInfo</span> <span class="o">&amp;</span><span class="n">getRegisterInfo</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+
+<span class="k">public</span><span class="o">:</span>
+<span class="p">};</span>
+<span class="p">}</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0InstrInfo.cpp - Cpu0 Instruction Information ------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains the Cpu0 implementation of the TargetInstrInfo class.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#include &quot;Cpu0InstrInfo.h&quot;</span>
+<span class="cp">#include &quot;Cpu0TargetMachine.h&quot;</span>
+<span class="cp">#define GET_INSTRINFO_CTOR</span>
+<span class="cp">#include &quot;Cpu0GenInstrInfo.inc&quot;</span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">Cpu0InstrInfo</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">tm</span><span class="p">)</span>
+  <span class="o">:</span> 
+    <span class="n">TM</span><span class="p">(</span><span class="n">tm</span><span class="p">),</span>
+    <span class="n">RI</span><span class="p">(</span><span class="o">*</span><span class="n">TM</span><span class="p">.</span><span class="n">getSubtargetImpl</span><span class="p">(),</span> <span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="p">{}</span>
+
+<span class="k">const</span> <span class="n">Cpu0RegisterInfo</span> <span class="o">&amp;</span><span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">getRegisterInfo</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">RI</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0TargetMachine.h</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre>    <span class="k">virtual</span> <span class="k">const</span> <span class="n">Cpu0RegisterInfo</span> <span class="o">*</span><span class="n">getRegisterInfo</span><span class="p">()</span>  <span class="k">const</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="o">&amp;</span><span class="n">InstrInfo</span><span class="p">.</span><span class="n">getRegisterInfo</span><span class="p">();</span>
+    <span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp"># CMakeLists.txt</span>
 <span class="p">...</span>
 <span class="n">add_llvm_target</span><span class="p">(</span><span class="n">Cpu0CodeGen</span>
@@ -573,6 +942,53 @@ Let&#8217;s add it in next section.</p>
 Cpu0.td to support AssemblyWriter.
 Cpu0.td is added with the following fragment,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0.td</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Cpu0 processors supported.</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="k">class</span> <span class="nc">Proc</span><span class="o">&lt;</span><span class="n">string</span> <span class="n">Name</span><span class="p">,</span> <span class="n">list</span><span class="o">&lt;</span><span class="n">SubtargetFeature</span><span class="o">&gt;</span> <span class="n">Features</span><span class="o">&gt;</span>
+ <span class="o">:</span> <span class="n">Processor</span><span class="o">&lt;</span><span class="n">Name</span><span class="p">,</span> <span class="n">Cpu0GenericItineraries</span><span class="p">,</span> <span class="n">Features</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="n">def</span> <span class="o">:</span> <span class="n">Proc</span><span class="o">&lt;</span><span class="s">&quot;cpu032&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">FeatureCpu032</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="n">def</span> <span class="n">Cpu0AsmWriter</span> <span class="o">:</span> <span class="n">AsmWriter</span> <span class="p">{</span>
+  <span class="n">string</span> <span class="n">AsmWriterClassName</span>  <span class="o">=</span> <span class="s">&quot;InstPrinter&quot;</span><span class="p">;</span>
+  <span class="n">bit</span> <span class="n">isMCAsmWriter</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// Will generate Cpu0GenAsmWrite.inc included by Cpu0InstPrinter.cpp, contents </span>
+<span class="c1">//  as follows,</span>
+<span class="c1">// void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &amp;O) {...}</span>
+<span class="c1">// const char *Cpu0InstPrinter::getRegisterName(unsigned RegNo) {...}</span>
+<span class="n">def</span> <span class="n">Cpu0</span> <span class="o">:</span> <span class="n">Target</span> <span class="p">{</span>
+<span class="c1">// def Cpu0InstrInfo : InstrInfo as before.</span>
+  <span class="n">let</span> <span class="n">InstructionSet</span> <span class="o">=</span> <span class="n">Cpu0InstrInfo</span><span class="p">;</span>
+  <span class="n">let</span> <span class="n">AssemblyWriters</span> <span class="o">=</span> <span class="p">[</span><span class="n">Cpu0AsmWriter</span><span class="p">];</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <p>As comments indicate, it will generate Cpu0GenAsmWrite.inc which is included
 by Cpu0InstPrinter.cpp.
 Cpu0GenAsmWrite.inc has the implementation of
@@ -584,25 +1000,1900 @@ class Cpu0InstPrinter and include them.</p>
 <p>File Chapter3_3/Cpu0/InstPrinter/Cpu0InstPrinter.cpp include Cpu0GenAsmWrite.inc and
 call the auto-generated functions as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/InstPrinter/Cpu0InstPrinter.h</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//=== Cpu0InstPrinter.h - Convert Cpu0 MCInst to assembly syntax -*- C++ -*-==//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This class prints a Cpu0 MCInst to a .s file.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#ifndef CPU0INSTPRINTER_H</span>
+<span class="cp">#define CPU0INSTPRINTER_H</span>
+<span class="cp">#include &quot;llvm/MC/MCInstPrinter.h&quot;</span>
+
+<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+<span class="c1">// These enumeration declarations were orignally in Cpu0InstrInfo.h but</span>
+<span class="c1">// had to be moved here to avoid circular dependencies between</span>
+<span class="c1">// LLVMCpu0CodeGen and LLVMCpu0AsmPrinter.</span>
+
+<span class="k">class</span> <span class="nc">TargetMachine</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">Cpu0InstPrinter</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCInstPrinter</span> <span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+  <span class="n">Cpu0InstPrinter</span><span class="p">(</span><span class="k">const</span> <span class="n">MCAsmInfo</span> <span class="o">&amp;</span><span class="n">MAI</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MII</span><span class="p">,</span>
+                  <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">)</span>
+    <span class="o">:</span> <span class="n">MCInstPrinter</span><span class="p">(</span><span class="n">MAI</span><span class="p">,</span> <span class="n">MII</span><span class="p">,</span> <span class="n">MRI</span><span class="p">)</span> <span class="p">{}</span>
+
+  <span class="c1">// Autogenerated by tblgen.</span>
+  <span class="kt">void</span> <span class="n">printInstruction</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">);</span>
+  <span class="k">static</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">getRegisterName</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">RegNo</span><span class="p">);</span>
+
+  <span class="k">virtual</span> <span class="kt">void</span> <span class="n">printRegName</span><span class="p">(</span><span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">RegNo</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+  <span class="k">virtual</span> <span class="kt">void</span> <span class="n">printInst</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">Annot</span><span class="p">);</span>
+
+<span class="k">private</span><span class="o">:</span>
+  <span class="kt">void</span> <span class="n">printOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">);</span>
+  <span class="kt">void</span> <span class="n">printUnsignedImm</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="kt">int</span> <span class="n">opNum</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">);</span>
+  <span class="kt">void</span> <span class="n">printMemOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="kt">int</span> <span class="n">opNum</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">);</span>
+<span class="p">};</span>
+<span class="p">}</span> <span class="c1">// end namespace llvm</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/InstPrinter/Cpu0InstPrinter.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0InstPrinter.cpp - Convert Cpu0 MCInst to assembly syntax ------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This class prints an Cpu0 MCInst to a .s file.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#define DEBUG_TYPE &quot;asm-printer&quot;</span>
+<span class="cp">#include &quot;Cpu0InstPrinter.h&quot;</span>
+<span class="cp">#include &quot;llvm/ADT/StringExtras.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCExpr.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCInst.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCInstrInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCSymbol.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/ErrorHandling.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/raw_ostream.h&quot;</span>
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="cp">#include &quot;Cpu0GenAsmWriter.inc&quot;</span>
+
+<span class="kt">void</span> <span class="n">Cpu0InstPrinter</span><span class="o">::</span><span class="n">printRegName</span><span class="p">(</span><span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">RegNo</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+<span class="c1">//- getRegisterName(RegNo) defined in Cpu0GenAsmWriter.inc which came from </span>
+<span class="c1">//   Cpu0.td indicate.</span>
+  <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;$&#39;</span> <span class="o">&lt;&lt;</span> <span class="n">StringRef</span><span class="p">(</span><span class="n">getRegisterName</span><span class="p">(</span><span class="n">RegNo</span><span class="p">)).</span><span class="n">lower</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0InstPrinter</span><span class="o">::</span><span class="n">printInst</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">,</span>
+                                <span class="n">StringRef</span> <span class="n">Annot</span><span class="p">)</span> <span class="p">{</span>
+<span class="c1">//- printInstruction(MI, O) defined in Cpu0GenAsmWriter.inc which came from </span>
+<span class="c1">//   Cpu0.td indicate.</span>
+  <span class="n">printInstruction</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">O</span><span class="p">);</span>
+  <span class="n">printAnnotation</span><span class="p">(</span><span class="n">O</span><span class="p">,</span> <span class="n">Annot</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="kt">void</span> <span class="n">printExpr</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">Offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">MCSymbolRefExpr</span> <span class="o">*</span><span class="n">SRE</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="k">const</span> <span class="n">MCBinaryExpr</span> <span class="o">*</span><span class="n">BE</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">MCBinaryExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">SRE</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">MCSymbolRefExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">BE</span><span class="o">-&gt;</span><span class="n">getLHS</span><span class="p">());</span>
+    <span class="k">const</span> <span class="n">MCConstantExpr</span> <span class="o">*</span><span class="n">CE</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">MCConstantExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">BE</span><span class="o">-&gt;</span><span class="n">getRHS</span><span class="p">());</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">SRE</span> <span class="o">&amp;&amp;</span> <span class="n">CE</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Binary expression must be sym+const.&quot;</span><span class="p">);</span>
+    <span class="n">Offset</span> <span class="o">=</span> <span class="n">CE</span><span class="o">-&gt;</span><span class="n">getValue</span><span class="p">();</span>
+  <span class="p">}</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">SRE</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">MCSymbolRefExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">)))</span>
+    <span class="n">assert</span><span class="p">(</span><span class="kc">false</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Unexpected MCExpr type.&quot;</span><span class="p">);</span>
+
+  <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VariantKind</span> <span class="n">Kind</span> <span class="o">=</span> <span class="n">SRE</span><span class="o">-&gt;</span><span class="n">getKind</span><span class="p">();</span>
+
+  <span class="k">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">default</span><span class="o">:</span>                                 <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Invalid kind!&quot;</span><span class="p">);</span>
+  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="nl">VK_None:</span>           <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="n">SRE</span><span class="o">-&gt;</span><span class="n">getSymbol</span><span class="p">();</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">Offset</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">Offset</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+      <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;+&#39;</span><span class="p">;</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="n">Offset</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">((</span><span class="n">Kind</span> <span class="o">==</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GPOFF_HI</span><span class="p">)</span> <span class="o">||</span>
+      <span class="p">(</span><span class="n">Kind</span> <span class="o">==</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GPOFF_LO</span><span class="p">))</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;)))&quot;</span><span class="p">;</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Kind</span> <span class="o">!=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_None</span><span class="p">)</span>
+    <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;)&#39;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0InstPrinter</span><span class="o">::</span><span class="n">printOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+                                   <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">Op</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="n">OpNo</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Op</span><span class="p">.</span><span class="n">isReg</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">printRegName</span><span class="p">(</span><span class="n">O</span><span class="p">,</span> <span class="n">Op</span><span class="p">.</span><span class="n">getReg</span><span class="p">());</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">Op</span><span class="p">.</span><span class="n">isImm</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="n">Op</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">assert</span><span class="p">(</span><span class="n">Op</span><span class="p">.</span><span class="n">isExpr</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;unknown operand kind in printOperand&quot;</span><span class="p">);</span>
+  <span class="n">printExpr</span><span class="p">(</span><span class="n">Op</span><span class="p">.</span><span class="n">getExpr</span><span class="p">(),</span> <span class="n">O</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0InstPrinter</span><span class="o">::</span><span class="n">printUnsignedImm</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="kt">int</span> <span class="n">opNum</span><span class="p">,</span>
+                                       <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">MO</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="n">opNum</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isImm</span><span class="p">())</span>
+    <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">short</span> <span class="kt">int</span><span class="p">)</span><span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+  <span class="k">else</span>
+    <span class="n">printOperand</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">opNum</span><span class="p">,</span> <span class="n">O</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0InstPrinter</span><span class="o">::</span>
+<span class="n">printMemOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="kt">int</span> <span class="n">opNum</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// Load/Store memory operands -- imm($reg)</span>
+  <span class="c1">// If PIC target the target is loaded as the</span>
+  <span class="c1">// pattern ld $t9,%call24($gp)</span>
+  <span class="n">printOperand</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">opNum</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">O</span><span class="p">);</span>
+  <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;(&quot;</span><span class="p">;</span>
+  <span class="n">printOperand</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">opNum</span><span class="p">,</span> <span class="n">O</span><span class="p">);</span>
+  <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;)&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <p>Next, Cpu0MCInstLower (Cpu0MCInstLower.h, Cpu0MCInstLower.cpp), as well as
 Cpu0BaseInfo.h,
 Cpu0FixupKinds.h and Cpu0MCAsmInfo (Cpu0MCAsmInfo.h, Cpu0MCAsmInfo.cpp) in
 sub-directory MCTargetDesc as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0MCInstLower.h</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0MCInstLower.h - Lower MachineInstr to MCInst -------*- C++ -*--===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#ifndef CPU0MCINSTLOWER_H</span>
+<span class="cp">#define CPU0MCINSTLOWER_H</span>
+<span class="cp">#include &quot;llvm/ADT/SmallVector.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineOperand.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/Compiler.h&quot;</span>
+
+<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+  <span class="k">class</span> <span class="nc">MCContext</span><span class="p">;</span>
+  <span class="k">class</span> <span class="nc">MCInst</span><span class="p">;</span>
+  <span class="k">class</span> <span class="nc">MCOperand</span><span class="p">;</span>
+  <span class="k">class</span> <span class="nc">MachineInstr</span><span class="p">;</span>
+  <span class="k">class</span> <span class="nc">MachineFunction</span><span class="p">;</span>
+  <span class="k">class</span> <span class="nc">Mangler</span><span class="p">;</span>
+  <span class="k">class</span> <span class="nc">Cpu0AsmPrinter</span><span class="p">;</span>
+
+<span class="c1">/// Cpu0MCInstLower - This class is used to lower an MachineInstr into an</span>
+<span class="c1">//                    MCInst.</span>
+<span class="k">class</span> <span class="nc">LLVM_LIBRARY_VISIBILITY</span> <span class="n">Cpu0MCInstLower</span> <span class="p">{</span>
+  <span class="k">typedef</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="n">MachineOperandType</span> <span class="n">MachineOperandType</span><span class="p">;</span>
+  <span class="n">MCContext</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">;</span>
+  <span class="n">Mangler</span> <span class="o">*</span><span class="n">Mang</span><span class="p">;</span>
+  <span class="n">Cpu0AsmPrinter</span> <span class="o">&amp;</span><span class="n">AsmPrinter</span><span class="p">;</span>
+<span class="k">public</span><span class="o">:</span>
+  <span class="n">Cpu0MCInstLower</span><span class="p">(</span><span class="n">Cpu0AsmPrinter</span> <span class="o">&amp;</span><span class="n">asmprinter</span><span class="p">);</span>
+  <span class="kt">void</span> <span class="n">Initialize</span><span class="p">(</span><span class="n">Mangler</span> <span class="o">*</span><span class="n">mang</span><span class="p">,</span> <span class="n">MCContext</span><span class="o">*</span> <span class="n">C</span><span class="p">);</span>
+  <span class="kt">void</span> <span class="n">Lower</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">OutMI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+<span class="k">private</span><span class="o">:</span>
+  <span class="n">MCOperand</span> <span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
+                               <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+  <span class="n">MCOperand</span> <span class="n">LowerOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span><span class="o">&amp;</span> <span class="n">MO</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+<span class="p">};</span>
+<span class="p">}</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0MCInstLower.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0MCInstLower.cpp - Convert Cpu0 MachineInstr to MCInst ---------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains code to lower Cpu0 MachineInstrs to their corresponding</span>
+<span class="cp">// MCInst records.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#include &quot;Cpu0MCInstLower.h&quot;</span>
+<span class="cp">#include &quot;Cpu0AsmPrinter.h&quot;</span>
+<span class="cp">#include &quot;Cpu0InstrInfo.h&quot;</span>
+<span class="cp">#include &quot;MCTargetDesc/Cpu0BaseInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineFunction.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineInstr.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineOperand.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCContext.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCExpr.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCInst.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/Mangler.h&quot;</span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">Cpu0MCInstLower</span><span class="p">(</span><span class="n">Cpu0AsmPrinter</span> <span class="o">&amp;</span><span class="n">asmprinter</span><span class="p">)</span>
+  <span class="o">:</span> <span class="n">AsmPrinter</span><span class="p">(</span><span class="n">asmprinter</span><span class="p">)</span> <span class="p">{}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">Initialize</span><span class="p">(</span><span class="n">Mangler</span> <span class="o">*</span><span class="n">M</span><span class="p">,</span> <span class="n">MCContext</span><span class="o">*</span> <span class="n">C</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">Mang</span> <span class="o">=</span> <span class="n">M</span><span class="p">;</span>
+  <span class="n">Ctx</span> <span class="o">=</span> <span class="n">C</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
+                                              <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
+                                              <span class="kt">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VariantKind</span> <span class="n">Kind</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">MCSymbol</span> <span class="o">*</span><span class="n">Symbol</span><span class="p">;</span>
+
+  <span class="k">switch</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getTargetFlags</span><span class="p">())</span> <span class="p">{</span>
+  <span class="k">default</span><span class="o">:</span>                   <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Invalid target flag!&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">switch</span> <span class="p">(</span><span class="n">MOTy</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_GlobalAddress:</span>
+    <span class="n">Symbol</span> <span class="o">=</span> <span class="n">Mang</span><span class="o">-&gt;</span><span class="n">getSymbol</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getGlobal</span><span class="p">());</span>
+    <span class="k">break</span><span class="p">;</span>
+
+  <span class="k">default</span><span class="o">:</span>
+    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;&lt;unknown operand type&gt;&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">const</span> <span class="n">MCSymbolRefExpr</span> <span class="o">*</span><span class="n">MCSym</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="n">Symbol</span><span class="p">,</span> <span class="n">Kind</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Offset</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateExpr</span><span class="p">(</span><span class="n">MCSym</span><span class="p">);</span>
+
+  <span class="c1">// Assume offset is never negative.</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">Offset</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span>
+
+  <span class="k">const</span> <span class="n">MCConstantExpr</span> <span class="o">*</span><span class="n">OffsetExpr</span> <span class="o">=</span>  <span class="n">MCConstantExpr</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="n">Offset</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCBinaryExpr</span> <span class="o">*</span><span class="n">AddExpr</span> <span class="o">=</span> <span class="n">MCBinaryExpr</span><span class="o">::</span><span class="n">CreateAdd</span><span class="p">(</span><span class="n">MCSym</span><span class="p">,</span> <span class="n">OffsetExpr</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateExpr</span><span class="p">(</span><span class="n">AddExpr</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span><span class="o">&amp;</span> <span class="n">MO</span><span class="p">,</span>
+                                        <span class="kt">unsigned</span> <span class="n">offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">MachineOperandType</span> <span class="n">MOTy</span> <span class="o">=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getType</span><span class="p">();</span>
+
+  <span class="k">switch</span> <span class="p">(</span><span class="n">MOTy</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">default</span><span class="o">:</span> <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;unknown operand type&quot;</span><span class="p">);</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_Register:</span>
+    <span class="c1">// Ignore all implicit register operands.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isImplicit</span><span class="p">())</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getReg</span><span class="p">());</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_Immediate:</span>
+    <span class="k">return</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">()</span> <span class="o">+</span> <span class="n">offset</span><span class="p">);</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_RegisterMask:</span>
+    <span class="k">break</span><span class="p">;</span>
+ <span class="p">}</span>
+
+  <span class="k">return</span> <span class="n">MCOperand</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">Lower</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">OutMI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">OutMI</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">());</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getNumOperands</span><span class="p">();</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">e</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
+    <span class="n">MCOperand</span> <span class="n">MCOp</span> <span class="o">=</span> <span class="n">LowerOperand</span><span class="p">(</span><span class="n">MO</span><span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">MCOp</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+      <span class="n">OutMI</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOp</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0BaseInfo.h</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0BaseInfo.h - Top level definitions for CPU0 MC ------*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains small standalone helper functions and enum definitions for</span>
+<span class="cp">// the Cpu0 target useful for the compiler back-end and the MC libraries.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">#ifndef CPU0BASEINFO_H</span>
+<span class="cp">#define CPU0BASEINFO_H</span>
+
+<span class="cp">#include &quot;Cpu0FixupKinds.h&quot;</span>
+<span class="cp">#include &quot;Cpu0MCTargetDesc.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCExpr.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/DataTypes.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/ErrorHandling.h&quot;</span>
+
+<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+
+<span class="c1">/// Cpu0II - This namespace holds all of the target specific flags that</span>
+<span class="c1">/// instruction info tracks.</span>
+<span class="c1">///</span>
+<span class="k">namespace</span> <span class="n">Cpu0II</span> <span class="p">{</span>
+  <span class="c1">/// Target Operand Flag enum.</span>
+  <span class="k">enum</span> <span class="p">{</span>
+    <span class="c1">//===------------------------------------------------------------------===//</span>
+    <span class="c1">// Instruction encodings.  These are the standard/most common forms for</span>
+    <span class="c1">// Cpu0 instructions.</span>
+    <span class="c1">//</span>
+
+    <span class="c1">// Pseudo - This represents an instruction that is a pseudo instruction</span>
+    <span class="c1">// or one that has not been implemented yet.  It is illegal to code generate</span>
+    <span class="c1">// it, but tolerated for intermediate implementation stages.</span>
+    <span class="n">Pseudo</span>   <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+
+    <span class="c1">/// FrmR - This form is for instructions of the format R.</span>
+    <span class="n">FrmR</span>  <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="c1">/// FrmI - This form is for instructions of the format I.</span>
+    <span class="n">FrmI</span>  <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="c1">/// FrmJ - This form is for instructions of the format J.</span>
+    <span class="n">FrmJ</span>  <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="c1">/// FrmOther - This form is for instructions that have no specific format.</span>
+    <span class="n">FrmOther</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+
+    <span class="n">FormMask</span> <span class="o">=</span> <span class="mi">15</span>
+  <span class="p">};</span>
+<span class="p">}</span>
+
+<span class="c1">/// getCpu0RegisterNumbering - Given the enum value for some register,</span>
+<span class="c1">/// return the number that it corresponds to.</span>
+<span class="kr">inline</span> <span class="k">static</span> <span class="kt">unsigned</span> <span class="n">getCpu0RegisterNumbering</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">RegEnum</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">RegEnum</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">ZERO:</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">AT:</span>
+    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">V0:</span>
+    <span class="k">return</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">V1:</span>
+    <span class="k">return</span> <span class="mi">3</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">A0:</span>
+    <span class="k">return</span> <span class="mi">4</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">A1:</span>
+    <span class="k">return</span> <span class="mi">5</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">T9:</span>
+    <span class="k">return</span> <span class="mi">6</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">S0:</span>
+    <span class="k">return</span> <span class="mi">7</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">S1:</span>
+    <span class="k">return</span> <span class="mi">8</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">S2:</span>
+    <span class="k">return</span> <span class="mi">9</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">GP:</span>
+    <span class="k">return</span> <span class="mi">10</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">FP:</span>
+    <span class="k">return</span> <span class="mi">11</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">SW:</span>
+    <span class="k">return</span> <span class="mi">12</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">SP:</span>
+    <span class="k">return</span> <span class="mi">13</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">LR:</span>
+    <span class="k">return</span> <span class="mi">14</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">PC:</span>
+    <span class="k">return</span> <span class="mi">15</span><span class="p">;</span>
+  <span class="k">default</span><span class="o">:</span> <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Unknown register number!&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="p">}</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0FixupKinds.h</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0FixupKinds.h - Cpu0 Specific Fixup Entries ----------*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#ifndef LLVM_CPU0_CPU0FIXUPKINDS_H</span>
+<span class="cp">#define LLVM_CPU0_CPU0FIXUPKINDS_H</span>
+
+<span class="cp">#include &quot;llvm/MC/MCFixup.h&quot;</span>
+
+<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+<span class="k">namespace</span> <span class="n">Cpu0</span> <span class="p">{</span>
+  <span class="c1">// Although most of the current fixup types reflect a unique relocation</span>
+  <span class="c1">// one can have multiple fixup types for a given relocation and thus need</span>
+  <span class="c1">// to be uniquely named.</span>
+  <span class="c1">//</span>
+  <span class="c1">// This table *must* be in the save order of</span>
+  <span class="c1">// MCFixupKindInfo Infos[Cpu0::NumTargetFixupKinds]</span>
+  <span class="c1">// in Cpu0AsmBackend.cpp.</span>
+  <span class="c1">//</span>
+  <span class="k">enum</span> <span class="n">Fixups</span> <span class="p">{</span>
+    <span class="c1">// Branch fixups resulting in R_CPU0_16.</span>
+    <span class="n">fixup_Cpu0_16</span> <span class="o">=</span> <span class="n">FirstTargetFixupKind</span><span class="p">,</span>
+
+    <span class="c1">// Marker</span>
+    <span class="n">LastTargetFixupKind</span><span class="p">,</span>
+    <span class="n">NumTargetFixupKinds</span> <span class="o">=</span> <span class="n">LastTargetFixupKind</span> <span class="o">-</span> <span class="n">FirstTargetFixupKind</span>
+  <span class="p">};</span>
+<span class="p">}</span> <span class="c1">// namespace Cpu0</span>
+<span class="p">}</span> <span class="c1">// namespace llvm</span>
+
+
+<span class="cp">#endif </span><span class="c1">// LLVM_CPU0_CPU0FIXUPKINDS_H</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0MCAsmInfo.h</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0MCAsmInfo.h - Cpu0 Asm Info ------------------------*- C++ -*--===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains the declaration of the Cpu0MCAsmInfo class.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#ifndef CPU0TARGETASMINFO_H</span>
+<span class="cp">#define CPU0TARGETASMINFO_H</span>
+
+<span class="cp">#include &quot;llvm/MC/MCAsmInfo.h&quot;</span>
+
+<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+  <span class="k">class</span> <span class="nc">StringRef</span><span class="p">;</span>
+  <span class="k">class</span> <span class="nc">Target</span><span class="p">;</span>
+
+  <span class="k">class</span> <span class="nc">Cpu0MCAsmInfo</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCAsmInfo</span> <span class="p">{</span>
+    <span class="k">virtual</span> <span class="kt">void</span> <span class="n">anchor</span><span class="p">();</span>
+  <span class="k">public</span><span class="o">:</span>
+    <span class="k">explicit</span> <span class="n">Cpu0MCAsmInfo</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">TT</span><span class="p">);</span>
+  <span class="p">};</span>
+
+<span class="p">}</span> <span class="c1">// namespace llvm</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/MCTargetDesc/Cpu0MCAsmInfo.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0MCAsmInfo.cpp - Cpu0 Asm Properties ---------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains the declarations of the Cpu0MCAsmInfo properties.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#include &quot;Cpu0MCAsmInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/ADT/Triple.h&quot;</span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="n">Cpu0MCAsmInfo</span><span class="o">::</span><span class="n">anchor</span><span class="p">()</span> <span class="p">{</span> <span class="p">}</span>
+
+<span class="n">Cpu0MCAsmInfo</span><span class="o">::</span><span class="n">Cpu0MCAsmInfo</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">TT</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">Triple</span> <span class="n">TheTriple</span><span class="p">(</span><span class="n">TT</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">((</span><span class="n">TheTriple</span><span class="p">.</span><span class="n">getArch</span><span class="p">()</span> <span class="o">==</span> <span class="n">Triple</span><span class="o">::</span><span class="n">cpu0</span><span class="p">))</span>
+    <span class="n">IsLittleEndian</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+
+  <span class="n">AlignmentIsInBytes</span>          <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="n">Data16bitsDirective</span>         <span class="o">=</span> <span class="s">&quot;</span><span class="se">\t</span><span class="s">.2byte</span><span class="se">\t</span><span class="s">&quot;</span><span class="p">;</span>
+  <span class="n">Data32bitsDirective</span>         <span class="o">=</span> <span class="s">&quot;</span><span class="se">\t</span><span class="s">.4byte</span><span class="se">\t</span><span class="s">&quot;</span><span class="p">;</span>
+  <span class="n">Data64bitsDirective</span>         <span class="o">=</span> <span class="s">&quot;</span><span class="se">\t</span><span class="s">.8byte</span><span class="se">\t</span><span class="s">&quot;</span><span class="p">;</span>
+  <span class="n">PrivateGlobalPrefix</span>         <span class="o">=</span> <span class="s">&quot;$&quot;</span><span class="p">;</span>
+  <span class="n">CommentString</span>               <span class="o">=</span> <span class="s">&quot;#&quot;</span><span class="p">;</span>
+  <span class="n">ZeroDirective</span>               <span class="o">=</span> <span class="s">&quot;</span><span class="se">\t</span><span class="s">.space</span><span class="se">\t</span><span class="s">&quot;</span><span class="p">;</span>
+  <span class="n">GPRel32Directive</span>            <span class="o">=</span> <span class="s">&quot;</span><span class="se">\t</span><span class="s">.gpword</span><span class="se">\t</span><span class="s">&quot;</span><span class="p">;</span>
+  <span class="n">GPRel64Directive</span>            <span class="o">=</span> <span class="s">&quot;</span><span class="se">\t</span><span class="s">.gpdword</span><span class="se">\t</span><span class="s">&quot;</span><span class="p">;</span>
+  <span class="n">WeakRefDirective</span>            <span class="o">=</span> <span class="s">&quot;</span><span class="se">\t</span><span class="s">.weak</span><span class="se">\t</span><span class="s">&quot;</span><span class="p">;</span>
+
+  <span class="n">SupportsDebugInformation</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="n">ExceptionsType</span> <span class="o">=</span> <span class="n">ExceptionHandling</span><span class="o">::</span><span class="n">DwarfCFI</span><span class="p">;</span>
+  <span class="n">HasLEB128</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="n">DwarfRegNumForCFI</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <p>Finally, add code in Cpu0MCTargetDesc.cpp to register Cpu0InstPrinter as
 follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/MCTargetDesc/Cpu0MCTargetDesc.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110</pre></div></td><td class="code"><div class="highlight"><pre><span class="k">static</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">ParseCpu0Triple</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">Cpu0ArchFeature</span><span class="p">;</span>
+  <span class="n">size_t</span> <span class="n">DashPosition</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">StringRef</span> <span class="n">TheTriple</span><span class="p">;</span>
+
+  <span class="c1">// Let&#39;s see if there is a dash, like cpu0-unknown-linux.</span>
+  <span class="n">DashPosition</span> <span class="o">=</span> <span class="n">TT</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="sc">&#39;-&#39;</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">DashPosition</span> <span class="o">==</span> <span class="n">StringRef</span><span class="o">::</span><span class="n">npos</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// No dash, we check the string size.</span>
+    <span class="n">TheTriple</span> <span class="o">=</span> <span class="n">TT</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="c1">// We are only interested in substring before dash.</span>
+    <span class="n">TheTriple</span> <span class="o">=</span> <span class="n">TT</span><span class="p">.</span><span class="n">substr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">DashPosition</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">TheTriple</span> <span class="o">==</span> <span class="s">&quot;cpu0&quot;</span> <span class="o">||</span> <span class="n">TheTriple</span> <span class="o">==</span> <span class="s">&quot;cpu0el&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">CPU</span><span class="p">.</span><span class="n">empty</span><span class="p">()</span> <span class="o">||</span> <span class="n">CPU</span> <span class="o">==</span> <span class="s">&quot;cpu032&quot;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">Cpu0ArchFeature</span> <span class="o">=</span> <span class="s">&quot;+cpu032&quot;</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">Cpu0ArchFeature</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="n">MCInstrInfo</span> <span class="o">*</span><span class="n">createCpu0MCInstrInfo</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">MCInstrInfo</span> <span class="o">*</span><span class="n">X</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MCInstrInfo</span><span class="p">();</span>
+  <span class="n">InitCpu0MCInstrInfo</span><span class="p">(</span><span class="n">X</span><span class="p">);</span> <span class="c1">// defined in Cpu0GenInstrInfo.inc</span>
+  <span class="k">return</span> <span class="n">X</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="n">MCRegisterInfo</span> <span class="o">*</span><span class="n">createCpu0MCRegisterInfo</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">TT</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">MCRegisterInfo</span> <span class="o">*</span><span class="n">X</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MCRegisterInfo</span><span class="p">();</span>
+  <span class="n">InitCpu0MCRegisterInfo</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">);</span> <span class="c1">// defined in Cpu0GenRegisterInfo.inc</span>
+  <span class="k">return</span> <span class="n">X</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="n">MCSubtargetInfo</span> <span class="o">*</span><span class="n">createCpu0MCSubtargetInfo</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">,</span>
+                                                  <span class="n">StringRef</span> <span class="n">FS</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">ArchFS</span> <span class="o">=</span> <span class="n">ParseCpu0Triple</span><span class="p">(</span><span class="n">TT</span><span class="p">,</span><span class="n">CPU</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">FS</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">ArchFS</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span>
+      <span class="n">ArchFS</span> <span class="o">=</span> <span class="n">ArchFS</span> <span class="o">+</span> <span class="s">&quot;,&quot;</span> <span class="o">+</span> <span class="n">FS</span><span class="p">.</span><span class="n">str</span><span class="p">();</span>
+    <span class="k">else</span>
+      <span class="n">ArchFS</span> <span class="o">=</span> <span class="n">FS</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">MCSubtargetInfo</span> <span class="o">*</span><span class="n">X</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MCSubtargetInfo</span><span class="p">();</span>
+  <span class="n">InitCpu0MCSubtargetInfo</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">TT</span><span class="p">,</span> <span class="n">CPU</span><span class="p">,</span> <span class="n">ArchFS</span><span class="p">);</span> <span class="c1">// defined in Cpu0GenSubtargetInfo.inc</span>
+  <span class="k">return</span> <span class="n">X</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="n">MCAsmInfo</span> <span class="o">*</span><span class="n">createCpu0MCAsmInfo</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">TT</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">MCAsmInfo</span> <span class="o">*</span><span class="n">MAI</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Cpu0MCAsmInfo</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">TT</span><span class="p">);</span>
+
+  <span class="n">MachineLocation</span> <span class="n">Dst</span><span class="p">(</span><span class="n">MachineLocation</span><span class="o">::</span><span class="n">VirtualFP</span><span class="p">);</span>
+  <span class="n">MachineLocation</span> <span class="n">Src</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="n">MAI</span><span class="o">-&gt;</span><span class="n">addInitialFrameState</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Dst</span><span class="p">,</span> <span class="n">Src</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">MAI</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="n">MCCodeGenInfo</span> <span class="o">*</span><span class="n">createCpu0MCCodeGenInfo</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">TT</span><span class="p">,</span> <span class="n">Reloc</span><span class="o">::</span><span class="n">Model</span> <span class="n">RM</span><span class="p">,</span>
+                                              <span class="n">CodeModel</span><span class="o">::</span><span class="n">Model</span> <span class="n">CM</span><span class="p">,</span>
+                                              <span class="n">CodeGenOpt</span><span class="o">::</span><span class="n">Level</span> <span class="n">OL</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">MCCodeGenInfo</span> <span class="o">*</span><span class="n">X</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MCCodeGenInfo</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">CM</span> <span class="o">==</span> <span class="n">CodeModel</span><span class="o">::</span><span class="n">JITDefault</span><span class="p">)</span>
+    <span class="n">RM</span> <span class="o">=</span> <span class="n">Reloc</span><span class="o">::</span><span class="n">Static</span><span class="p">;</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">RM</span> <span class="o">==</span> <span class="n">Reloc</span><span class="o">::</span><span class="n">Default</span><span class="p">)</span>
+    <span class="n">RM</span> <span class="o">=</span> <span class="n">Reloc</span><span class="o">::</span><span class="n">PIC_</span><span class="p">;</span>
+  <span class="n">X</span><span class="o">-&gt;</span><span class="n">InitMCCodeGenInfo</span><span class="p">(</span><span class="n">RM</span><span class="p">,</span> <span class="n">CM</span><span class="p">,</span> <span class="n">OL</span><span class="p">);</span> <span class="c1">// defined in lib/MC/MCCodeGenInfo.cpp</span>
+  <span class="k">return</span> <span class="n">X</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="n">MCInstPrinter</span> <span class="o">*</span><span class="n">createCpu0MCInstPrinter</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span>
+                                              <span class="kt">unsigned</span> <span class="n">SyntaxVariant</span><span class="p">,</span>
+                                              <span class="k">const</span> <span class="n">MCAsmInfo</span> <span class="o">&amp;</span><span class="n">MAI</span><span class="p">,</span>
+                                              <span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MII</span><span class="p">,</span>
+                                              <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
+                                              <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0InstPrinter</span><span class="p">(</span><span class="n">MAI</span><span class="p">,</span> <span class="n">MII</span><span class="p">,</span> <span class="n">MRI</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0TargetMC</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// Register the MC asm info.</span>
+  <span class="n">RegisterMCAsmInfoFn</span> <span class="n">X</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCAsmInfo</span><span class="p">);</span>
+  <span class="n">RegisterMCAsmInfoFn</span> <span class="n">Y</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCAsmInfo</span><span class="p">);</span>
+
+  <span class="c1">// Register the MC codegen info.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeGenInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                        <span class="n">createCpu0MCCodeGenInfo</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeGenInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                        <span class="n">createCpu0MCCodeGenInfo</span><span class="p">);</span>
+  <span class="c1">// Register the MC instruction info.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstrInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCInstrInfo</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstrInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCInstrInfo</span><span class="p">);</span>
+
+  <span class="c1">// Register the MC register info.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCRegInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCRegisterInfo</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCRegInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCRegisterInfo</span><span class="p">);</span>
+
+  <span class="c1">// Register the MC subtarget info.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCSubtargetInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                          <span class="n">createCpu0MCSubtargetInfo</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCSubtargetInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                          <span class="n">createCpu0MCSubtargetInfo</span><span class="p">);</span>
+  <span class="c1">// Register the MCInstPrinter.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstPrinter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                        <span class="n">createCpu0MCInstPrinter</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstPrinter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                        <span class="n">createCpu0MCInstPrinter</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <p>Now, it&#8217;s time to work with AsmPrinter. According section
 &#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id6" id="id2">[2]</a>, we can register our AsmPrinter when we need it
 as the following function of LLVMInitializeCpu0AsmPrinter(),</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0AsmPrinter.h</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0AsmPrinter.h - Cpu0 LLVM Assembly Printer ----------*- C++ -*--===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// Cpu0 Assembly printer class.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#ifndef CPU0ASMPRINTER_H</span>
+<span class="cp">#define CPU0ASMPRINTER_H</span>
+
+<span class="cp">#include &quot;Cpu0MachineFunction.h&quot;</span>
+<span class="cp">#include &quot;Cpu0MCInstLower.h&quot;</span>
+<span class="cp">#include &quot;Cpu0Subtarget.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/AsmPrinter.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/Compiler.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetMachine.h&quot;</span>
+
+<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+<span class="k">class</span> <span class="nc">MCStreamer</span><span class="p">;</span>
+<span class="k">class</span> <span class="nc">MachineInstr</span><span class="p">;</span>
+<span class="k">class</span> <span class="nc">MachineBasicBlock</span><span class="p">;</span>
+<span class="k">class</span> <span class="nc">Module</span><span class="p">;</span>
+<span class="k">class</span> <span class="nc">raw_ostream</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">LLVM_LIBRARY_VISIBILITY</span> <span class="n">Cpu0AsmPrinter</span> <span class="o">:</span> <span class="k">public</span> <span class="n">AsmPrinter</span> <span class="p">{</span>
+
+  <span class="kt">void</span> <span class="n">EmitInstrWithMacroNoAT</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">);</span>
+
+<span class="k">public</span><span class="o">:</span>
+
+  <span class="k">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">*</span><span class="n">Subtarget</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">Cpu0FunctionInfo</span> <span class="o">*</span><span class="n">Cpu0FI</span><span class="p">;</span>
+  <span class="n">Cpu0MCInstLower</span> <span class="n">MCInstLowering</span><span class="p">;</span>
+
+  <span class="k">explicit</span> <span class="n">Cpu0AsmPrinter</span><span class="p">(</span><span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>  <span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">Streamer</span><span class="p">)</span>
+    <span class="o">:</span> <span class="n">AsmPrinter</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="n">Streamer</span><span class="p">),</span> <span class="n">MCInstLowering</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">Subtarget</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="k">virtual</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">getPassName</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="s">&quot;Cpu0 Assembly Printer&quot;</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">runOnMachineFunction</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">);</span>
+
+<span class="c1">//- EmitInstruction() must exists or will have run time error.</span>
+  <span class="kt">void</span> <span class="n">EmitInstruction</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">);</span>
+  <span class="kt">void</span> <span class="n">printSavedRegsBitmask</span><span class="p">(</span><span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">);</span>
+  <span class="kt">void</span> <span class="n">printHex32</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">Value</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">);</span>
+  <span class="kt">void</span> <span class="n">emitFrameDirective</span><span class="p">();</span>
+  <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">getCurrentABIString</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+  <span class="k">virtual</span> <span class="kt">void</span> <span class="n">EmitFunctionEntryLabel</span><span class="p">();</span>
+  <span class="k">virtual</span> <span class="kt">void</span> <span class="n">EmitFunctionBodyStart</span><span class="p">();</span>
+  <span class="k">virtual</span> <span class="kt">void</span> <span class="n">EmitFunctionBodyEnd</span><span class="p">();</span>
+  <span class="kt">void</span> <span class="n">EmitStartOfAsmFile</span><span class="p">(</span><span class="n">Module</span> <span class="o">&amp;</span><span class="n">M</span><span class="p">);</span>
+  <span class="k">virtual</span> <span class="n">MachineLocation</span> <span class="n">getDebugValueLocation</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="n">PrintDebugValueComment</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">);</span>
+<span class="p">};</span>
+<span class="p">}</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0AsmPrinter.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0AsmPrinter.cpp - Cpu0 LLVM Assembly Printer -------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains a printer that converts from our internal representation</span>
+<span class="cp">// of machine-dependent LLVM code to GAS-format CPU0 assembly language.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#define DEBUG_TYPE &quot;cpu0-asm-printer&quot;</span>
+<span class="cp">#include &quot;Cpu0AsmPrinter.h&quot;</span>
+<span class="cp">#include &quot;Cpu0.h&quot;</span>
+<span class="cp">#include &quot;Cpu0InstrInfo.h&quot;</span>
+<span class="cp">#include &quot;InstPrinter/Cpu0InstPrinter.h&quot;</span>
+<span class="cp">#include &quot;MCTargetDesc/Cpu0BaseInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/ADT/SmallString.h&quot;</span>
+<span class="cp">#include &quot;llvm/ADT/StringExtras.h&quot;</span>
+<span class="cp">#include &quot;llvm/ADT/Twine.h&quot;</span>
+<span class="cp">#include &quot;llvm/IR/BasicBlock.h&quot;</span>
+<span class="cp">#include &quot;llvm/IR/Instructions.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineFunctionPass.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineConstantPool.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineFrameInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineInstr.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineMemOperand.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCStreamer.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCAsmInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCInst.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCSymbol.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/TargetRegistry.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/raw_ostream.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/Mangler.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetLoweringObjectFile.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetOptions.h&quot;</span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">runOnMachineFunction</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">Cpu0FI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getInfo</span><span class="o">&lt;</span><span class="n">Cpu0FunctionInfo</span><span class="o">&gt;</span><span class="p">();</span>
+  <span class="n">AsmPrinter</span><span class="o">::</span><span class="n">runOnMachineFunction</span><span class="p">(</span><span class="n">MF</span><span class="p">);</span>
+  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//- EmitInstruction() must exists or will have run time error.</span>
+<span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">EmitInstruction</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">isDebugValue</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">SmallString</span><span class="o">&lt;</span><span class="mi">128</span><span class="o">&gt;</span> <span class="n">Str</span><span class="p">;</span>
+    <span class="n">raw_svector_ostream</span> <span class="n">OS</span><span class="p">(</span><span class="n">Str</span><span class="p">);</span>
+
+    <span class="n">PrintDebugValueComment</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">OS</span><span class="p">);</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">MCInst</span> <span class="n">TmpInst0</span><span class="p">;</span>
+  <span class="n">MCInstLowering</span><span class="p">.</span><span class="n">Lower</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">TmpInst0</span><span class="p">);</span>
+  <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitInstruction</span><span class="p">(</span><span class="n">TmpInst0</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//  Cpu0 Asm Directives</span>
+<span class="c1">//</span>
+<span class="c1">//  -- Frame directive &quot;frame Stackpointer, Stacksize, RARegister&quot;</span>
+<span class="c1">//  Describe the stack frame.</span>
+<span class="c1">//</span>
+<span class="c1">//  -- Mask directives &quot;(f)mask  bitmask, offset&quot;</span>
+<span class="c1">//  Tells the assembler which registers are saved and where.</span>
+<span class="c1">//  bitmask - contain a little endian bitset indicating which registers are</span>
+<span class="c1">//            saved on function prologue (e.g. with a 0x80000000 mask, the</span>
+<span class="c1">//            assembler knows the register 31 (RA) is saved at prologue.</span>
+<span class="c1">//  offset  - the position before stack pointer subtraction indicating where</span>
+<span class="c1">//            the first saved register on prologue is located. (e.g. with a</span>
+<span class="c1">//</span>
+<span class="c1">//  Consider the following function prologue:</span>
+<span class="c1">//</span>
+<span class="c1">//    .frame  $fp,48,$ra</span>
+<span class="c1">//    .mask   0xc0000000,-8</span>
+<span class="c1">//       addiu $sp, $sp, -48</span>
+<span class="c1">//       st $ra, 40($sp)</span>
+<span class="c1">//       st $fp, 36($sp)</span>
+<span class="c1">//</span>
+<span class="c1">//    With a 0xc0000000 mask, the assembler knows the register 31 (RA) and</span>
+<span class="c1">//    30 (FP) are saved at prologue. As the save order on prologue is from</span>
+<span class="c1">//    left to right, RA is saved first. A -8 offset means that after the</span>
+<span class="c1">//    stack pointer subtration, the first register in the mask (RA) will be</span>
+<span class="c1">//    saved at address 48-8=40.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Mask directives</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//	.frame	$sp,8,$lr</span>
+<span class="c1">//-&gt;	.mask 	0x00000000,0</span>
+<span class="c1">//	.set	noreorder</span>
+<span class="c1">//	.set	nomacro</span>
+
+<span class="c1">// Create a bitmask with all callee saved registers for CPU or Floating Point</span>
+<span class="c1">// registers. For CPU registers consider RA, GP and FP for saving if necessary.</span>
+<span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">printSavedRegsBitmask</span><span class="p">(</span><span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// CPU and FPU Saved Registers Bitmasks</span>
+  <span class="kt">unsigned</span> <span class="n">CPUBitmask</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">CPUTopSavedRegOff</span><span class="p">;</span>
+
+  <span class="c1">// Set the CPU and FPU Bitmasks</span>
+  <span class="k">const</span> <span class="n">MachineFrameInfo</span> <span class="o">*</span><span class="n">MFI</span> <span class="o">=</span> <span class="n">MF</span><span class="o">-&gt;</span><span class="n">getFrameInfo</span><span class="p">();</span>
+  <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">CalleeSavedInfo</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">CSI</span> <span class="o">=</span> <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">getCalleeSavedInfo</span><span class="p">();</span>
+  <span class="c1">// size of stack area to which FP callee-saved regs are saved.</span>
+  <span class="kt">unsigned</span> <span class="n">CPURegSize</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">getSize</span><span class="p">();</span>
+  <span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">CSI</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+
+  <span class="c1">// Set CPU Bitmask.</span>
+  <span class="k">for</span> <span class="p">(;</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">e</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">unsigned</span> <span class="n">Reg</span> <span class="o">=</span> <span class="n">CSI</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">getReg</span><span class="p">();</span>
+    <span class="kt">unsigned</span> <span class="n">RegNum</span> <span class="o">=</span> <span class="n">getCpu0RegisterNumbering</span><span class="p">(</span><span class="n">Reg</span><span class="p">);</span>
+    <span class="n">CPUBitmask</span> <span class="o">|=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">RegNum</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="n">CPUTopSavedRegOff</span> <span class="o">=</span> <span class="n">CPUBitmask</span> <span class="o">?</span> <span class="o">-</span><span class="n">CPURegSize</span> <span class="o">:</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="c1">// Print CPUBitmask</span>
+  <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;</span><span class="se">\t</span><span class="s">.mask </span><span class="se">\t</span><span class="s">&quot;</span><span class="p">;</span> <span class="n">printHex32</span><span class="p">(</span><span class="n">CPUBitmask</span><span class="p">,</span> <span class="n">O</span><span class="p">);</span>
+  <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;,&#39;</span> <span class="o">&lt;&lt;</span> <span class="n">CPUTopSavedRegOff</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// Print a 32 bit hex number with all numbers.</span>
+<span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">printHex32</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Value</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;0x&quot;</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">--</span><span class="p">)</span>
+    <span class="n">O</span><span class="p">.</span><span class="n">write_hex</span><span class="p">((</span><span class="n">Value</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mh">0xF</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="mi">4</span><span class="p">)))</span> <span class="o">&gt;&gt;</span> <span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="mi">4</span><span class="p">));</span>
+<span class="p">}</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Frame and Set directives</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//-&gt;	.frame	$sp,8,$lr</span>
+<span class="c1">//	.mask 	0x00000000,0</span>
+<span class="c1">//	.set	noreorder</span>
+<span class="c1">//	.set	nomacro</span>
+<span class="c1">/// Frame Directive</span>
+<span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">emitFrameDirective</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">TargetRegisterInfo</span> <span class="o">&amp;</span><span class="n">RI</span> <span class="o">=</span> <span class="o">*</span><span class="n">TM</span><span class="p">.</span><span class="n">getRegisterInfo</span><span class="p">();</span>
+
+  <span class="kt">unsigned</span> <span class="n">stackReg</span>  <span class="o">=</span> <span class="n">RI</span><span class="p">.</span><span class="n">getFrameRegister</span><span class="p">(</span><span class="o">*</span><span class="n">MF</span><span class="p">);</span>
+  <span class="kt">unsigned</span> <span class="n">returnReg</span> <span class="o">=</span> <span class="n">RI</span><span class="p">.</span><span class="n">getRARegister</span><span class="p">();</span>
+  <span class="kt">unsigned</span> <span class="n">stackSize</span> <span class="o">=</span> <span class="n">MF</span><span class="o">-&gt;</span><span class="n">getFrameInfo</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getStackSize</span><span class="p">();</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">OutStreamer</span><span class="p">.</span><span class="n">hasRawTextSupport</span><span class="p">())</span>
+    <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitRawText</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">.frame</span><span class="se">\t</span><span class="s">$&quot;</span> <span class="o">+</span>
+           <span class="n">StringRef</span><span class="p">(</span><span class="n">Cpu0InstPrinter</span><span class="o">::</span><span class="n">getRegisterName</span><span class="p">(</span><span class="n">stackReg</span><span class="p">)).</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span>
+           <span class="s">&quot;,&quot;</span> <span class="o">+</span> <span class="n">Twine</span><span class="p">(</span><span class="n">stackSize</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;,$&quot;</span> <span class="o">+</span>
+           <span class="n">StringRef</span><span class="p">(</span><span class="n">Cpu0InstPrinter</span><span class="o">::</span><span class="n">getRegisterName</span><span class="p">(</span><span class="n">returnReg</span><span class="p">)).</span><span class="n">lower</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="c1">/// Emit Set directives.</span>
+<span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">getCurrentABIString</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">Subtarget</span><span class="o">-&gt;</span><span class="n">getTargetABI</span><span class="p">())</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="n">Cpu0Subtarget</span><span class="o">::</span><span class="nl">O32:</span>  <span class="k">return</span> <span class="s">&quot;abi32&quot;</span><span class="p">;</span>
+  <span class="k">default</span><span class="o">:</span> <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Unknown Cpu0 ABI&quot;</span><span class="p">);;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//		.type	main,@function</span>
+<span class="c1">//-&gt;		.ent	main                    # @main</span>
+<span class="c1">//	main:</span>
+<span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">EmitFunctionEntryLabel</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">OutStreamer</span><span class="p">.</span><span class="n">hasRawTextSupport</span><span class="p">())</span>
+    <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitRawText</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">.ent</span><span class="se">\t</span><span class="s">&quot;</span> <span class="o">+</span> <span class="n">Twine</span><span class="p">(</span><span class="n">CurrentFnSym</span><span class="o">-&gt;</span><span class="n">getName</span><span class="p">()));</span>
+  <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitLabel</span><span class="p">(</span><span class="n">CurrentFnSym</span><span class="p">);</span>
+<span class="p">}</span>
+
+
+<span class="c1">//	.frame	$sp,8,$pc</span>
+<span class="c1">//	.mask 	0x00000000,0</span>
+<span class="c1">//-&gt;	.set	noreorder</span>
+<span class="c1">//-&gt;	.set	nomacro</span>
+<span class="c1">/// EmitFunctionBodyStart - Targets can override this to emit stuff before</span>
+<span class="c1">/// the first basic block in the function.</span>
+<span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">EmitFunctionBodyStart</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">MCInstLowering</span><span class="p">.</span><span class="n">Initialize</span><span class="p">(</span><span class="n">Mang</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">MF</span><span class="o">-&gt;</span><span class="n">getContext</span><span class="p">());</span>
+
+  <span class="n">emitFrameDirective</span><span class="p">();</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">OutStreamer</span><span class="p">.</span><span class="n">hasRawTextSupport</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">SmallString</span><span class="o">&lt;</span><span class="mi">128</span><span class="o">&gt;</span> <span class="n">Str</span><span class="p">;</span>
+    <span class="n">raw_svector_ostream</span> <span class="n">OS</span><span class="p">(</span><span class="n">Str</span><span class="p">);</span>
+    <span class="n">printSavedRegsBitmask</span><span class="p">(</span><span class="n">OS</span><span class="p">);</span>
+    <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitRawText</span><span class="p">(</span><span class="n">OS</span><span class="p">.</span><span class="n">str</span><span class="p">());</span>
+
+    <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitRawText</span><span class="p">(</span><span class="n">StringRef</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">.set</span><span class="se">\t</span><span class="s">noreorder&quot;</span><span class="p">));</span>
+
+    <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitRawText</span><span class="p">(</span><span class="n">StringRef</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">.set</span><span class="se">\t</span><span class="s">nomacro&quot;</span><span class="p">));</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//-&gt;	.set	macro</span>
+<span class="c1">//-&gt;	.set	reorder</span>
+<span class="c1">//-&gt;	.end	main</span>
+<span class="c1">/// EmitFunctionBodyEnd - Targets can override this to emit stuff after</span>
+<span class="c1">/// the last basic block in the function.</span>
+<span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">EmitFunctionBodyEnd</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// There are instruction for this macros, but they must</span>
+  <span class="c1">// always be at the function end, and we can&#39;t emit and</span>
+  <span class="c1">// break with BB logic.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">OutStreamer</span><span class="p">.</span><span class="n">hasRawTextSupport</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitRawText</span><span class="p">(</span><span class="n">StringRef</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">.set</span><span class="se">\t</span><span class="s">macro&quot;</span><span class="p">));</span>
+    <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitRawText</span><span class="p">(</span><span class="n">StringRef</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">.set</span><span class="se">\t</span><span class="s">reorder&quot;</span><span class="p">));</span>
+    <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitRawText</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">.end</span><span class="se">\t</span><span class="s">&quot;</span> <span class="o">+</span> <span class="n">Twine</span><span class="p">(</span><span class="n">CurrentFnSym</span><span class="o">-&gt;</span><span class="n">getName</span><span class="p">()));</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//	.section .mdebug.abi32</span>
+<span class="c1">//	.previous</span>
+<span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">EmitStartOfAsmFile</span><span class="p">(</span><span class="n">Module</span> <span class="o">&amp;</span><span class="n">M</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// FIXME: Use SwitchSection.</span>
+
+  <span class="c1">// Tell the assembler which ABI we are using</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">OutStreamer</span><span class="p">.</span><span class="n">hasRawTextSupport</span><span class="p">())</span>
+    <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitRawText</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">.section .mdebug.&quot;</span> <span class="o">+</span>
+                            <span class="n">Twine</span><span class="p">(</span><span class="n">getCurrentABIString</span><span class="p">()));</span>
+
+  <span class="c1">// return to previous section</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">OutStreamer</span><span class="p">.</span><span class="n">hasRawTextSupport</span><span class="p">())</span>
+    <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitRawText</span><span class="p">(</span><span class="n">StringRef</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">.previous&quot;</span><span class="p">));</span>
+<span class="p">}</span>
+
+<span class="n">MachineLocation</span>
+<span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">getDebugValueLocation</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="c1">// Handles frame addresses emitted in Cpu0InstrInfo::emitFrameIndexDebugValue.</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getNumOperands</span><span class="p">()</span> <span class="o">==</span> <span class="mi">4</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Invalid no. of machine operands!&quot;</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">isReg</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">).</span><span class="n">isImm</span><span class="p">()</span> <span class="o">&amp;&amp;</span>
+         <span class="s">&quot;Unexpected MachineOperand types&quot;</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">MachineLocation</span><span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">getReg</span><span class="p">(),</span>
+                         <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">).</span><span class="n">getImm</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">PrintDebugValueComment</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span>
+                                           <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// TODO: implement</span>
+  <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;PrintDebugValueComment()&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// Force static initialization.</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0AsmPrinter</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">RegisterAsmPrinter</span><span class="o">&lt;</span><span class="n">Cpu0AsmPrinter</span><span class="o">&gt;</span> <span class="n">X</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">);</span>
+  <span class="n">RegisterAsmPrinter</span><span class="o">&lt;</span><span class="n">Cpu0AsmPrinter</span><span class="o">&gt;</span> <span class="n">Y</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <p>The dynamic register mechanism is a good idea, right.</p>
 <p>Except add the new .cpp files to CMakeLists.txt, please remember to add
 subdirectory InstPrinter, enable asmprinter, add libraries AsmPrinter and
@@ -800,6 +3091,49 @@ For example, (+ ri, rj), (- ri, 1) are lists for IR DAG; (ADD ri, rj),
 <p>Now, let&#8217;s recall the ADDiu instruction defined on Cpu0InstrInfo.td in the
 previous chapter. List them again as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrFormats.td</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">}</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Format L instruction class in Cpu0 : &lt;|opcode|ra|rb|cx|&gt;</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="k">class</span> <span class="nc">FL</span><span class="o">&lt;</span><span class="n">bits</span><span class="o">&lt;</span><span class="mi">8</span><span class="o">&gt;</span> <span class="n">op</span><span class="p">,</span> <span class="n">dag</span> <span class="n">outs</span><span class="p">,</span> <span class="n">dag</span> <span class="n">ins</span><span class="p">,</span> <span class="n">string</span> <span class="n">asmstr</span><span class="p">,</span> <span class="n">list</span><span class="o">&lt;</span><span class="n">dag</span><span class="o">&gt;</span> <span class="n">pattern</span><span class="p">,</span>
+         <span class="n">InstrItinClass</span> <span class="n">itin</span><span class="o">&gt;:</span> <span class="n">Cpu0Inst</span><span class="o">&lt;</span><span class="n">outs</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">asmstr</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">itin</span><span class="p">,</span> <span class="n">FrmL</span><span class="o">&gt;</span>
+<span class="p">{</span>
+  <span class="n">bits</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span>  <span class="n">ra</span><span class="p">;</span>
+  <span class="n">bits</span><span class="o">&lt;</span><span class="mi">4</span><span class="o">&gt;</span>  <span class="n">rb</span><span class="p">;</span>
+  <span class="n">bits</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span> <span class="n">imm16</span><span class="p">;</span>
+
+  <span class="n">let</span> <span class="n">Opcode</span> <span class="o">=</span> <span class="n">op</span><span class="p">;</span>
+
+  <span class="n">let</span> <span class="n">Inst</span><span class="p">{</span><span class="mi">23</span><span class="o">-</span><span class="mi">20</span><span class="p">}</span> <span class="o">=</span> <span class="n">ra</span><span class="p">;</span>
+  <span class="n">let</span> <span class="n">Inst</span><span class="p">{</span><span class="mi">19</span><span class="o">-</span><span class="mi">16</span><span class="p">}</span> <span class="o">=</span> <span class="n">rb</span><span class="p">;</span>
+  <span class="n">let</span> <span class="n">Inst</span><span class="p">{</span><span class="mi">15</span><span class="o">-</span><span class="mi">0</span><span class="p">}</span>  <span class="o">=</span> <span class="n">imm16</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// Arithmetic and logical instructions with 2 register operands.
 class ArithLogicI&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
@@ -894,13 +3228,86 @@ ret i32 0
 So, the definitions in Cpu0InstrInfo.td as follows is enough.
 IR DAG is defined in file  include/llvm/Target/TargetSelectionDAG.td.</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><pre>//===----------------------------------------------------------------------===//
+
+/// Load and Store Instructions
+///  aligned
+defm LD     : LoadM32&lt;0x00,  "ld",  load_a&gt;;
+defm ST     : StoreM32&lt;0x01, "st",  store_a&gt;;
+
+/// Arithmetic Instructions (ALU Immediate)
+//def LDI     : MoveImm&lt;0x08, "ldi", add, simm16, immSExt16, CPURegs&gt;;
+// add defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
+def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;
+
+let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
+    isBarrier=1, hasCtrlDep=1 in
+  def RET : FJ &lt;0x2C, (outs), (ins CPURegs:$target),
+                "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch&gt;;
+
+//===----------------------------------------------------------------------===//
+</pre>
+</div>
 <p>Add class Cpu0DAGToDAGISel (Cpu0ISelDAGToDAG.cpp) to CMakeLists.txt, and add
 following fragment to Cpu0TargetMachine.cpp,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0TargetMachine.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">}</span>
+
+<span class="c1">// Install an instruction selector pass using</span>
+<span class="c1">// the ISelDag to gen Cpu0 code.</span>
+<span class="kt">bool</span> <span class="n">Cpu0PassConfig</span><span class="o">::</span><span class="n">addInstSelector</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">addPass</span><span class="p">(</span><span class="n">createCpu0ISelDag</span><span class="p">(</span><span class="n">getCpu0TargetMachine</span><span class="p">()));</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0ISelDAGToDAG.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">}</span>
+
+<span class="c1">/// createCpu0ISelDag - This pass converts a legalized DAG into a</span>
+<span class="c1">/// CPU0-specific DAG, ready for instruction scheduling.</span>
+<span class="n">FunctionPass</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0ISelDag</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0DAGToDAGISel</span><span class="p">(</span><span class="n">TM</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <p>This version adding the following code in Cpu0InstInfo.cpp to enable debug
 information which called by llvm at proper time.</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0InstrInfo.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">}</span>
+
+<span class="n">MachineInstr</span><span class="o">*</span>
+<span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">emitFrameIndexDebugValue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span> <span class="kt">int</span> <span class="n">FrameIx</span><span class="p">,</span>
+                                        <span class="n">uint64_t</span> <span class="n">Offset</span><span class="p">,</span> <span class="k">const</span> <span class="n">MDNode</span> <span class="o">*</span><span class="n">MDPtr</span><span class="p">,</span>
+                                        <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">MachineInstrBuilder</span> <span class="n">MIB</span> <span class="o">=</span> <span class="n">BuildMI</span><span class="p">(</span><span class="n">MF</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">DBG_VALUE</span><span class="p">))</span>
+    <span class="p">.</span><span class="n">addFrameIndex</span><span class="p">(</span><span class="n">FrameIx</span><span class="p">).</span><span class="n">addImm</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">addImm</span><span class="p">(</span><span class="n">Offset</span><span class="p">).</span><span class="n">addMetadata</span><span class="p">(</span><span class="n">MDPtr</span><span class="p">);</span>
+  <span class="k">return</span> <span class="o">&amp;*</span><span class="n">MIB</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <p>Build Chapter3_4, run it, we find the error message in Chapter3_3 is gone.
 The new error message for Chapter3_4 as follows,</p>
 <div class="highlight-bash"><pre>118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
@@ -1055,8 +3462,443 @@ bottom) as follows,</p>
 </div>
 <p>The Prologue and Epilogue functions as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0FrameLowering.h</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre>  <span class="kt">void</span> <span class="n">processFunctionBeforeCalleeSavedScan</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span>
+                                            <span class="n">RegScavenger</span> <span class="o">*</span><span class="n">RS</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0FrameLowering.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0FrameLowering</span><span class="o">::</span><span class="n">emitPrologue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span>   <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">front</span><span class="p">();</span>
+  <span class="n">MachineFrameInfo</span> <span class="o">*</span><span class="n">MFI</span>    <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getFrameInfo</span><span class="p">();</span>
+  <span class="n">Cpu0FunctionInfo</span> <span class="o">*</span><span class="n">Cpu0FI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getInfo</span><span class="o">&lt;</span><span class="n">Cpu0FunctionInfo</span><span class="o">&gt;</span><span class="p">();</span>
+  <span class="k">const</span> <span class="n">Cpu0InstrInfo</span> <span class="o">&amp;</span><span class="n">TII</span> <span class="o">=</span>
+    <span class="o">*</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span> <span class="n">Cpu0InstrInfo</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">MF</span><span class="p">.</span><span class="n">getTarget</span><span class="p">().</span><span class="n">getInstrInfo</span><span class="p">());</span>
+  <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MBBI</span> <span class="o">=</span> <span class="n">MBB</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
+  <span class="n">DebugLoc</span> <span class="n">dl</span> <span class="o">=</span> <span class="n">MBBI</span> <span class="o">!=</span> <span class="n">MBB</span><span class="p">.</span><span class="n">end</span><span class="p">()</span> <span class="o">?</span> <span class="n">MBBI</span><span class="o">-&gt;</span><span class="n">getDebugLoc</span><span class="p">()</span> <span class="o">:</span> <span class="n">DebugLoc</span><span class="p">();</span>
+  <span class="kt">unsigned</span> <span class="n">SP</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="n">ADDiu</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">;</span>
+  <span class="c1">// First, compute final stack size.</span>
+  <span class="kt">unsigned</span> <span class="n">StackAlign</span> <span class="o">=</span> <span class="n">getStackAlignment</span><span class="p">();</span>
+  <span class="kt">unsigned</span> <span class="n">LocalVarAreaOffset</span> <span class="o">=</span> <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getMaxCallFrameSize</span><span class="p">();</span>
+  <span class="n">uint64_t</span> <span class="n">StackSize</span> <span class="o">=</span>  <span class="n">RoundUpToAlignment</span><span class="p">(</span><span class="n">LocalVarAreaOffset</span><span class="p">,</span> <span class="n">StackAlign</span><span class="p">)</span> <span class="o">+</span>
+     <span class="n">RoundUpToAlignment</span><span class="p">(</span><span class="n">MFI</span><span class="o">-&gt;</span><span class="n">getStackSize</span><span class="p">(),</span> <span class="n">StackAlign</span><span class="p">);</span>
+
+   <span class="c1">// Update stack size</span>
+  <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">setStackSize</span><span class="p">(</span><span class="n">StackSize</span><span class="p">);</span>
+
+  <span class="c1">// No need to allocate space on the stack.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">StackSize</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">MFI</span><span class="o">-&gt;</span><span class="n">adjustsStack</span><span class="p">())</span> <span class="k">return</span><span class="p">;</span>
+
+  <span class="n">MachineModuleInfo</span> <span class="o">&amp;</span><span class="n">MMI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getMMI</span><span class="p">();</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">MachineMove</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Moves</span> <span class="o">=</span> <span class="n">MMI</span><span class="p">.</span><span class="n">getFrameMoves</span><span class="p">();</span>
+  <span class="n">MachineLocation</span> <span class="n">DstML</span><span class="p">,</span> <span class="n">SrcML</span><span class="p">;</span>
+
+  <span class="c1">// Adjust stack.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="o">-</span><span class="n">StackSize</span><span class="p">))</span> <span class="c1">// addiu sp, sp, (-stacksize)</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MBBI</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">TII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">ADDiu</span><span class="p">),</span> <span class="n">SP</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">SP</span><span class="p">).</span><span class="n">addImm</span><span class="p">(</span><span class="o">-</span><span class="n">StackSize</span><span class="p">);</span>
+  <span class="k">else</span> <span class="p">{</span> <span class="c1">// Expand immediate that doesn&#39;t fit in 16-bit.</span>
+	<span class="n">assert</span><span class="p">(</span><span class="s">&quot;No expandLargeImm(SP, -StackSize, false, TII, MBB, MBBI, dl);&quot;</span><span class="p">);</span>
+<span class="c1">//    expandLargeImm(SP, -StackSize, false, TII, MBB, MBBI, dl);</span>
+  <span class="p">}</span>
+
+  <span class="c1">// emit &quot;.cfi_def_cfa_offset StackSize&quot;</span>
+  <span class="n">MCSymbol</span> <span class="o">*</span><span class="n">AdjustSPLabel</span> <span class="o">=</span> <span class="n">MMI</span><span class="p">.</span><span class="n">getContext</span><span class="p">().</span><span class="n">CreateTempSymbol</span><span class="p">();</span>
+  <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MBBI</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span>
+          <span class="n">TII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">TargetOpcode</span><span class="o">::</span><span class="n">PROLOG_LABEL</span><span class="p">)).</span><span class="n">addSym</span><span class="p">(</span><span class="n">AdjustSPLabel</span><span class="p">);</span>
+  <span class="n">DstML</span> <span class="o">=</span> <span class="n">MachineLocation</span><span class="p">(</span><span class="n">MachineLocation</span><span class="o">::</span><span class="n">VirtualFP</span><span class="p">);</span>
+  <span class="n">SrcML</span> <span class="o">=</span> <span class="n">MachineLocation</span><span class="p">(</span><span class="n">MachineLocation</span><span class="o">::</span><span class="n">VirtualFP</span><span class="p">,</span> <span class="o">-</span><span class="n">StackSize</span><span class="p">);</span>
+  <span class="n">Moves</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MachineMove</span><span class="p">(</span><span class="n">AdjustSPLabel</span><span class="p">,</span> <span class="n">DstML</span><span class="p">,</span> <span class="n">SrcML</span><span class="p">));</span>
+
+  <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">CalleeSavedInfo</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">CSI</span> <span class="o">=</span> <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">getCalleeSavedInfo</span><span class="p">();</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">CSI</span><span class="p">.</span><span class="n">size</span><span class="p">())</span> <span class="p">{</span>
+    <span class="c1">// Find the instruction past the last instruction that saves a callee-saved</span>
+    <span class="c1">// register to the stack.</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">CSI</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+      <span class="o">++</span><span class="n">MBBI</span><span class="p">;</span>
+
+    <span class="c1">// Iterate over list of callee-saved registers and emit .cfi_offset</span>
+    <span class="c1">// directives.</span>
+    <span class="n">MCSymbol</span> <span class="o">*</span><span class="n">CSLabel</span> <span class="o">=</span> <span class="n">MMI</span><span class="p">.</span><span class="n">getContext</span><span class="p">().</span><span class="n">CreateTempSymbol</span><span class="p">();</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MBBI</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span>
+            <span class="n">TII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">TargetOpcode</span><span class="o">::</span><span class="n">PROLOG_LABEL</span><span class="p">)).</span><span class="n">addSym</span><span class="p">(</span><span class="n">CSLabel</span><span class="p">);</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">CalleeSavedInfo</span><span class="o">&gt;::</span><span class="n">const_iterator</span> <span class="n">I</span> <span class="o">=</span> <span class="n">CSI</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span>
+           <span class="n">E</span> <span class="o">=</span> <span class="n">CSI</span><span class="p">.</span><span class="n">end</span><span class="p">();</span> <span class="n">I</span> <span class="o">!=</span> <span class="n">E</span><span class="p">;</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">int64_t</span> <span class="n">Offset</span> <span class="o">=</span> <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">getObjectOffset</span><span class="p">(</span><span class="n">I</span><span class="o">-&gt;</span><span class="n">getFrameIdx</span><span class="p">());</span>
+      <span class="kt">unsigned</span> <span class="n">Reg</span> <span class="o">=</span> <span class="n">I</span><span class="o">-&gt;</span><span class="n">getReg</span><span class="p">();</span>
+      <span class="p">{</span>
+        <span class="c1">// Reg is either in CPURegs or FGR32.</span>
+        <span class="n">DstML</span> <span class="o">=</span> <span class="n">MachineLocation</span><span class="p">(</span><span class="n">MachineLocation</span><span class="o">::</span><span class="n">VirtualFP</span><span class="p">,</span> <span class="n">Offset</span><span class="p">);</span>
+        <span class="n">SrcML</span> <span class="o">=</span> <span class="n">MachineLocation</span><span class="p">(</span><span class="n">Reg</span><span class="p">);</span>
+        <span class="n">Moves</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MachineMove</span><span class="p">(</span><span class="n">CSLabel</span><span class="p">,</span> <span class="n">DstML</span><span class="p">,</span> <span class="n">SrcML</span><span class="p">));</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0FrameLowering</span><span class="o">::</span><span class="n">emitEpilogue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span>
+                                 <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MBBI</span> <span class="o">=</span> <span class="n">MBB</span><span class="p">.</span><span class="n">getLastNonDebugInstr</span><span class="p">();</span>
+  <span class="n">MachineFrameInfo</span> <span class="o">*</span><span class="n">MFI</span>            <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getFrameInfo</span><span class="p">();</span>
+  <span class="k">const</span> <span class="n">Cpu0InstrInfo</span> <span class="o">&amp;</span><span class="n">TII</span> <span class="o">=</span>
+    <span class="o">*</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span> <span class="n">Cpu0InstrInfo</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">MF</span><span class="p">.</span><span class="n">getTarget</span><span class="p">().</span><span class="n">getInstrInfo</span><span class="p">());</span>
+  <span class="n">DebugLoc</span> <span class="n">dl</span> <span class="o">=</span> <span class="n">MBBI</span><span class="o">-&gt;</span><span class="n">getDebugLoc</span><span class="p">();</span>
+  <span class="kt">unsigned</span> <span class="n">SP</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="n">ADDiu</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">;</span>
+
+  <span class="c1">// Get the number of bytes from FrameInfo</span>
+  <span class="n">uint64_t</span> <span class="n">StackSize</span> <span class="o">=</span> <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">getStackSize</span><span class="p">();</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">StackSize</span><span class="p">)</span>
+    <span class="k">return</span><span class="p">;</span>
+
+  <span class="c1">// Adjust stack.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">StackSize</span><span class="p">))</span> <span class="c1">// addiu sp, sp, (stacksize)</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MBBI</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">TII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">ADDiu</span><span class="p">),</span> <span class="n">SP</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">SP</span><span class="p">).</span><span class="n">addImm</span><span class="p">(</span><span class="n">StackSize</span><span class="p">);</span>
+  <span class="k">else</span> <span class="c1">// Expand immediate that doesn&#39;t fit in 16-bit.</span>
+	<span class="n">assert</span><span class="p">(</span><span class="s">&quot;No expandLargeImm(SP, StackSize, false, TII, MBB, MBBI, dl);&quot;</span><span class="p">);</span>
+<span class="c1">//    expandLargeImm(SP, StackSize, false, TII, MBB, MBBI, dl);</span>
+
+<span class="p">}</span>
+
+<span class="c1">// This method is called immediately before PrologEpilogInserter scans the </span>
+<span class="c1">//  physical registers used to determine what callee saved registers should be </span>
+<span class="c1">//  spilled. This method is optional. </span>
+<span class="c1">// Without this will have following errors,</span>
+<span class="c1">//  Target didn&#39;t implement TargetInstrInfo::storeRegToStackSlot!</span>
+<span class="c1">//  UNREACHABLE executed at /usr/local/llvm/3.1.test/cpu0/1/src/include/llvm/</span>
+<span class="c1">//  Target/TargetInstrInfo.h:390!</span>
+<span class="c1">//  Stack dump:</span>
+<span class="c1">//  0.	Program arguments: /usr/local/llvm/3.1.test/cpu0/1/cmake_debug_build/</span>
+<span class="c1">//  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch0.bc -o </span>
+<span class="c1">//  ch0.cpu0.s</span>
+<span class="c1">//  1.	Running pass &#39;Function Pass Manager&#39; on module &#39;ch0.bc&#39;.</span>
+<span class="c1">//  2.	Running pass &#39;Prologue/Epilogue Insertion &amp; Frame Finalization&#39; on </span>
+<span class="c1">//      function &#39;@main&#39;</span>
+<span class="c1">//  Aborted (core dumped)</span>
+
+<span class="c1">// Must exist</span>
+<span class="c1">//	ldi	$sp, $sp, 8</span>
+<span class="c1">//-&gt;	ret	$lr</span>
+<span class="c1">//	.set	macro</span>
+<span class="c1">//	.set	reorder</span>
+<span class="c1">//	.end	main</span>
+<span class="kt">void</span> <span class="n">Cpu0FrameLowering</span><span class="o">::</span>
+<span class="n">processFunctionBeforeCalleeSavedScan</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span>
+                                     <span class="n">RegScavenger</span> <span class="o">*</span><span class="n">RS</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">MachineRegisterInfo</span><span class="o">&amp;</span> <span class="n">MRI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getRegInfo</span><span class="p">();</span>
+
+  <span class="c1">// FIXME: remove this code if register allocator can correctly mark</span>
+  <span class="c1">//        $fp and $ra used or unused.</span>
+
+  <span class="c1">// The register allocator might determine $ra is used after seeing</span>
+  <span class="c1">// instruction &quot;jr $ra&quot;, but we do not want PrologEpilogInserter to insert</span>
+  <span class="c1">// instructions to save/restore $ra unless there is a function call.</span>
+  <span class="c1">// To correct this, $ra is explicitly marked unused if there is no</span>
+  <span class="c1">// function call.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">MF</span><span class="p">.</span><span class="n">getFrameInfo</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">hasCalls</span><span class="p">())</span>
+    <span class="n">MRI</span><span class="p">.</span><span class="n">setPhysRegUsed</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">);</span>
+  <span class="k">else</span> <span class="p">{</span>
+    <span class="n">MRI</span><span class="p">.</span><span class="n">setPhysRegUnused</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0RegisterInfo.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">}</span>
+
+<span class="c1">//- If eliminateFrameIndex() is empty, it will hang on run. </span>
+<span class="c1">// pure virtual method</span>
+<span class="c1">// FrameIndex represent objects inside a abstract stack.</span>
+<span class="c1">// We must replace FrameIndex with an stack/frame pointer</span>
+<span class="c1">// direct reference.</span>
+<span class="kt">void</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
+<span class="n">eliminateFrameIndex</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">II</span><span class="p">,</span> <span class="kt">int</span> <span class="n">SPAdj</span><span class="p">,</span>
+                    <span class="kt">unsigned</span> <span class="n">FIOperandNum</span><span class="p">,</span> <span class="n">RegScavenger</span> <span class="o">*</span><span class="n">RS</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">MachineInstr</span> <span class="o">&amp;</span><span class="n">MI</span> <span class="o">=</span> <span class="o">*</span><span class="n">II</span><span class="p">;</span>
+  <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span> <span class="o">=</span> <span class="o">*</span><span class="n">MI</span><span class="p">.</span><span class="n">getParent</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">();</span>
+  <span class="n">MachineFrameInfo</span> <span class="o">*</span><span class="n">MFI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getFrameInfo</span><span class="p">();</span>
+
+  <span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">i</span><span class="p">).</span><span class="n">isFI</span><span class="p">())</span> <span class="p">{</span>
+    <span class="o">++</span><span class="n">i</span><span class="p">;</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">MI</span><span class="p">.</span><span class="n">getNumOperands</span><span class="p">()</span> <span class="o">&amp;&amp;</span>
+           <span class="s">&quot;Instr doesn&#39;t have FrameIndex operand!&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="n">DEBUG</span><span class="p">(</span><span class="n">errs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">Function : &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">MF</span><span class="p">.</span><span class="n">getFunction</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getName</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+        <span class="n">errs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;&lt;---------&gt;</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">MI</span><span class="p">);</span>
+
+  <span class="kt">int</span> <span class="n">FrameIndex</span> <span class="o">=</span> <span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">i</span><span class="p">).</span><span class="n">getIndex</span><span class="p">();</span>
+  <span class="n">uint64_t</span> <span class="n">stackSize</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getFrameInfo</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getStackSize</span><span class="p">();</span>
+  <span class="n">int64_t</span> <span class="n">spOffset</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getFrameInfo</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getObjectOffset</span><span class="p">(</span><span class="n">FrameIndex</span><span class="p">);</span>
+
+  <span class="n">DEBUG</span><span class="p">(</span><span class="n">errs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;FrameIndex : &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">FrameIndex</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+               <span class="o">&lt;&lt;</span> <span class="s">&quot;spOffset   : &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">spOffset</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+               <span class="o">&lt;&lt;</span> <span class="s">&quot;stackSize  : &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">stackSize</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+  <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">CalleeSavedInfo</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">CSI</span> <span class="o">=</span> <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">getCalleeSavedInfo</span><span class="p">();</span>
+  <span class="kt">int</span> <span class="n">MinCSFI</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">MaxCSFI</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">CSI</span><span class="p">.</span><span class="n">size</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">MinCSFI</span> <span class="o">=</span> <span class="n">CSI</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">getFrameIdx</span><span class="p">();</span>
+    <span class="n">MaxCSFI</span> <span class="o">=</span> <span class="n">CSI</span><span class="p">[</span><span class="n">CSI</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">].</span><span class="n">getFrameIdx</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="c1">// The following stack frame objects are always referenced relative to $sp:</span>
+  <span class="c1">//  1. Outgoing arguments.</span>
+  <span class="c1">//  2. Pointer to dynamically allocated stack space.</span>
+  <span class="c1">//  3. Locations for callee-saved registers.</span>
+  <span class="c1">// Everything else is referenced relative to whatever register</span>
+  <span class="c1">// getFrameRegister() returns.</span>
+  <span class="kt">unsigned</span> <span class="n">FrameReg</span><span class="p">;</span>
+
+    <span class="n">FrameReg</span> <span class="o">=</span> <span class="n">getFrameRegister</span><span class="p">(</span><span class="n">MF</span><span class="p">);</span>
+
+  <span class="c1">// Calculate final offset.</span>
+  <span class="c1">// - There is no need to change the offset if the frame object is one of the</span>
+  <span class="c1">//   following: an outgoing argument, pointer to a dynamically allocated</span>
+  <span class="c1">//   stack space or a $gp restore location,</span>
+  <span class="c1">// - If the frame object is any of the following, its offset must be adjusted</span>
+  <span class="c1">//   by adding the size of the stack:</span>
+  <span class="c1">//   incoming argument, callee-saved register location or local variable.</span>
+  <span class="n">int64_t</span> <span class="n">Offset</span><span class="p">;</span>
+  <span class="n">Offset</span> <span class="o">=</span> <span class="n">spOffset</span> <span class="o">+</span> <span class="p">(</span><span class="n">int64_t</span><span class="p">)</span><span class="n">stackSize</span><span class="p">;</span>
+
+  <span class="n">Offset</span>    <span class="o">+=</span> <span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">).</span><span class="n">getImm</span><span class="p">();</span>
+
+  <span class="n">DEBUG</span><span class="p">(</span><span class="n">errs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Offset     : &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">Offset</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;&lt;---------&gt;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+  <span class="c1">// If MI is not a debug value, make sure Offset fits in the 16-bit immediate</span>
+  <span class="c1">// field.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">MI</span><span class="p">.</span><span class="n">isDebugValue</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Offset</span><span class="p">))</span> <span class="p">{</span>
+	<span class="n">assert</span><span class="p">(</span><span class="s">&quot;(!MI.isDebugValue() &amp;&amp; !isInt&lt;16&gt;(Offset))&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">i</span><span class="p">).</span><span class="n">ChangeToRegister</span><span class="p">(</span><span class="n">FrameReg</span><span class="p">,</span> <span class="kc">false</span><span class="p">);</span>
+  <span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">).</span><span class="n">ChangeToImmediate</span><span class="p">(</span><span class="n">Offset</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// pure virtual method</span>
+</pre></div>
+</td></tr></table></div>
 <p>After add these Prologue and Epilogue functions, and build with Chapter3_5/Cpu0.
 Now we are ready to compile our example code ch3.bc into cpu0 assembly code.
 Following is the command and output file ch3.cpu0.s,</p>

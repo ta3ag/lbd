@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.13',
+        VERSION:     '3.2.14',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -803,8 +803,673 @@ let isCall=1, hasDelaySlot=0 in {
 def JR      : JumpFR&lt;0x2C, "ret", CPURegs&gt;;</pre>
 </div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/CMakeLists.txt</p>
+<div class="highlight-c++"><pre>include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
+
+add_llvm_library(LLVMCpu0Disassembler
+  Cpu0Disassembler.cpp
+  )
+
+# workaround for hanging compilation on MSVC9 and 10
+if( MSVC_VERSION EQUAL 1400 OR MSVC_VERSION EQUAL 1500 OR MSVC_VERSION EQUAL 1600 )
+set_property(
+  SOURCE Cpu0Disassembler.cpp
+  PROPERTY COMPILE_FLAGS "/Od"
+  )
+endif()
+
+add_dependencies(LLVMCpu0Disassembler Cpu0CommonTableGen)
+</pre>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/LLVMBuild.txt</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">;</span><span class="o">===-</span> <span class="p">.</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">Target</span><span class="o">/</span><span class="n">Cpu0</span><span class="o">/</span><span class="n">Disassembler</span><span class="o">/</span><span class="n">LLVMBuild</span><span class="p">.</span><span class="n">txt</span> <span class="o">--------------*-</span> <span class="n">Conf</span> <span class="o">-*--===</span><span class="p">;</span>
+<span class="p">;</span>
+<span class="p">;</span>                     <span class="n">The</span> <span class="n">LLVM</span> <span class="n">Compiler</span> <span class="n">Infrastructure</span>
+<span class="p">;</span>
+<span class="p">;</span> <span class="n">This</span> <span class="n">file</span> <span class="n">is</span> <span class="n">distributed</span> <span class="n">under</span> <span class="n">the</span> <span class="n">University</span> <span class="n">of</span> <span class="n">Illinois</span> <span class="n">Open</span> <span class="n">Source</span>
+<span class="p">;</span> <span class="n">License</span><span class="p">.</span> <span class="n">See</span> <span class="n">LICENSE</span><span class="p">.</span><span class="n">TXT</span> <span class="k">for</span> <span class="n">details</span><span class="p">.</span>
+<span class="p">;</span>
+<span class="p">;</span><span class="o">===------------------------------------------------------------------------===</span><span class="p">;</span>
+<span class="p">;</span>
+<span class="p">;</span> <span class="n">This</span> <span class="n">is</span> <span class="n">an</span> <span class="n">LLVMBuild</span> <span class="n">description</span> <span class="n">file</span> <span class="k">for</span> <span class="n">the</span> <span class="n">components</span> <span class="n">in</span> <span class="k">this</span> <span class="n">subdirectory</span><span class="p">.</span>
+<span class="p">;</span>
+<span class="p">;</span> <span class="n">For</span> <span class="n">more</span> <span class="n">information</span> <span class="n">on</span> <span class="n">the</span> <span class="n">LLVMBuild</span> <span class="n">system</span><span class="p">,</span> <span class="n">please</span> <span class="nl">see:</span>
+<span class="p">;</span>
+<span class="p">;</span>   <span class="nl">http:</span><span class="c1">//llvm.org/docs/LLVMBuild.html</span>
+<span class="p">;</span>
+<span class="p">;</span><span class="o">===------------------------------------------------------------------------===</span><span class="p">;</span>
+
+<span class="p">[</span><span class="n">component_0</span><span class="p">]</span>
+<span class="n">type</span> <span class="o">=</span> <span class="n">Library</span>
+<span class="n">name</span> <span class="o">=</span> <span class="n">Cpu0Disassembler</span>
+<span class="n">parent</span> <span class="o">=</span> <span class="n">Cpu0</span>
+<span class="n">required_libraries</span> <span class="o">=</span> <span class="n">MC</span> <span class="n">Support</span> <span class="n">Cpu0Info</span>
+<span class="n">add_to_library_groups</span> <span class="o">=</span> <span class="n">Cpu0</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/Cpu0Disassembler.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===- Cpu0Disassembler.cpp - Disassembler for Cpu0 -------------*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file is part of the Cpu0 Disassembler.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#include &quot;Cpu0.h&quot;</span>
+<span class="cp">#include &quot;Cpu0Subtarget.h&quot;</span>
+<span class="cp">#include &quot;Cpu0RegisterInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCDisassembler.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCFixedLenDisassembler.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/MemoryObject.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/TargetRegistry.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCSubtargetInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCInst.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/MathExtras.h&quot;</span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="k">typedef</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">DecodeStatus</span> <span class="n">DecodeStatus</span><span class="p">;</span>
+
+<span class="c1">/// Cpu0Disassembler - a disasembler class for Cpu032.</span>
+<span class="k">class</span> <span class="nc">Cpu0Disassembler</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCDisassembler</span> <span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+  <span class="c1">/// Constructor     - Initializes the disassembler.</span>
+  <span class="c1">///</span>
+  <span class="n">Cpu0Disassembler</span><span class="p">(</span><span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">bigEndian</span><span class="p">)</span> <span class="o">:</span>
+    <span class="n">MCDisassembler</span><span class="p">(</span><span class="n">STI</span><span class="p">),</span> <span class="n">isBigEndian</span><span class="p">(</span><span class="n">bigEndian</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">}</span>
+
+  <span class="o">~</span><span class="n">Cpu0Disassembler</span><span class="p">()</span> <span class="p">{</span>
+  <span class="p">}</span>
+
+  <span class="c1">/// getInstruction - See MCDisassembler.</span>
+  <span class="n">DecodeStatus</span> <span class="n">getInstruction</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">instr</span><span class="p">,</span>
+                              <span class="n">uint64_t</span> <span class="o">&amp;</span><span class="n">size</span><span class="p">,</span>
+                              <span class="k">const</span> <span class="n">MemoryObject</span> <span class="o">&amp;</span><span class="n">region</span><span class="p">,</span>
+                              <span class="n">uint64_t</span> <span class="n">address</span><span class="p">,</span>
+                              <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">vStream</span><span class="p">,</span>
+                              <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">cStream</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+
+<span class="k">private</span><span class="o">:</span>
+  <span class="kt">bool</span> <span class="n">isBigEndian</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="c1">// Decoder tables for Cpu0 register</span>
+<span class="k">static</span> <span class="k">const</span> <span class="kt">unsigned</span> <span class="n">CPURegsTable</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">V0</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">V1</span><span class="p">,</span>
+  <span class="n">Cpu0</span><span class="o">::</span><span class="n">A0</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">A1</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">T9</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">S0</span><span class="p">,</span> 
+  <span class="n">Cpu0</span><span class="o">::</span><span class="n">S1</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">S2</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">GP</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">,</span> 
+  <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">PC</span>
+<span class="p">};</span>
+
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeCPURegsRegisterClass</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                               <span class="kt">unsigned</span> <span class="n">RegNo</span><span class="p">,</span>
+                                               <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                               <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">);</span>
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeCMPInstruction</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                       <span class="kt">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
+                                       <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                       <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">);</span>
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeBranchTarget</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                       <span class="kt">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
+                                       <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                       <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">);</span>
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeJumpRelativeTarget</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                       <span class="kt">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
+                                       <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                       <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">);</span>
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeJumpAbsoluteTarget</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                     <span class="kt">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
+                                     <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                     <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">);</span>
+
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeMem</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                              <span class="kt">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
+                              <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                              <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">);</span>
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeSimm16</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                 <span class="kt">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
+                                 <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                 <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+<span class="k">extern</span> <span class="n">Target</span> <span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">TheCpu064Target</span><span class="p">,</span>
+              <span class="n">TheCpu064elTarget</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="n">MCDisassembler</span> <span class="o">*</span><span class="n">createCpu0Disassembler</span><span class="p">(</span>
+                       <span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span>
+                       <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0Disassembler</span><span class="p">(</span><span class="n">STI</span><span class="p">,</span><span class="kc">true</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="n">MCDisassembler</span> <span class="o">*</span><span class="n">createCpu0elDisassembler</span><span class="p">(</span>
+                       <span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span>
+                       <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0Disassembler</span><span class="p">(</span><span class="n">STI</span><span class="p">,</span><span class="kc">false</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0Disassembler</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// Register the disassembler.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCDisassembler</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                         <span class="n">createCpu0Disassembler</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCDisassembler</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                         <span class="n">createCpu0elDisassembler</span><span class="p">);</span>
+<span class="p">}</span>
+
+
+<span class="cp">#include &quot;Cpu0GenDisassemblerTables.inc&quot;</span>
+
+  <span class="c1">/// readInstruction - read four bytes from the MemoryObject</span>
+  <span class="c1">/// and return 32 bit word sorted according to the given endianess</span>
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">readInstruction32</span><span class="p">(</span><span class="k">const</span> <span class="n">MemoryObject</span> <span class="o">&amp;</span><span class="n">region</span><span class="p">,</span>
+                                      <span class="n">uint64_t</span> <span class="n">address</span><span class="p">,</span>
+                                      <span class="n">uint64_t</span> <span class="o">&amp;</span><span class="n">size</span><span class="p">,</span>
+                                      <span class="n">uint32_t</span> <span class="o">&amp;</span><span class="n">insn</span><span class="p">,</span>
+                                      <span class="kt">bool</span> <span class="n">isBigEndian</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">uint8_t</span> <span class="n">Bytes</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
+
+  <span class="c1">// We want to read exactly 4 Bytes of data.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">region</span><span class="p">.</span><span class="n">readBytes</span><span class="p">(</span><span class="n">address</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="p">(</span><span class="n">uint8_t</span><span class="o">*</span><span class="p">)</span><span class="n">Bytes</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Fail</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">isBigEndian</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// Encoded as a big-endian 32-bit word in the stream.</span>
+    <span class="n">insn</span> <span class="o">=</span> <span class="p">(</span><span class="n">Bytes</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&lt;&lt;</span>  <span class="mi">0</span><span class="p">)</span> <span class="o">|</span>
+           <span class="p">(</span><span class="n">Bytes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;&lt;</span>  <span class="mi">8</span><span class="p">)</span> <span class="o">|</span>
+           <span class="p">(</span><span class="n">Bytes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span><span class="p">)</span> <span class="o">|</span>
+           <span class="p">(</span><span class="n">Bytes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">24</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">else</span> <span class="p">{</span>
+    <span class="c1">// Encoded as a small-endian 32-bit word in the stream.</span>
+    <span class="n">insn</span> <span class="o">=</span> <span class="p">(</span><span class="n">Bytes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;&lt;</span>  <span class="mi">0</span><span class="p">)</span> <span class="o">|</span>
+           <span class="p">(</span><span class="n">Bytes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;&lt;</span>  <span class="mi">8</span><span class="p">)</span> <span class="o">|</span>
+           <span class="p">(</span><span class="n">Bytes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">16</span><span class="p">)</span> <span class="o">|</span>
+           <span class="p">(</span><span class="n">Bytes</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">24</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Success</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">DecodeStatus</span>
+<span class="n">Cpu0Disassembler</span><span class="o">::</span><span class="n">getInstruction</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">instr</span><span class="p">,</span>
+                                 <span class="n">uint64_t</span> <span class="o">&amp;</span><span class="n">Size</span><span class="p">,</span>
+                                 <span class="k">const</span> <span class="n">MemoryObject</span> <span class="o">&amp;</span><span class="n">Region</span><span class="p">,</span>
+                                 <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                 <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">vStream</span><span class="p">,</span>
+                                 <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">cStream</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">uint32_t</span> <span class="n">Insn</span><span class="p">;</span>
+
+  <span class="n">DecodeStatus</span> <span class="n">Result</span> <span class="o">=</span> <span class="n">readInstruction32</span><span class="p">(</span><span class="n">Region</span><span class="p">,</span> <span class="n">Address</span><span class="p">,</span> <span class="n">Size</span><span class="p">,</span>
+                                          <span class="n">Insn</span><span class="p">,</span> <span class="n">isBigEndian</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Result</span> <span class="o">==</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Fail</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Fail</span><span class="p">;</span>
+
+  <span class="c1">// Calling the auto-generated decoder function.</span>
+  <span class="n">Result</span> <span class="o">=</span> <span class="n">decodeInstruction</span><span class="p">(</span><span class="n">DecoderTableCpu032</span><span class="p">,</span> <span class="n">instr</span><span class="p">,</span> <span class="n">Insn</span><span class="p">,</span> <span class="n">Address</span><span class="p">,</span>
+                             <span class="k">this</span><span class="p">,</span> <span class="n">STI</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Result</span> <span class="o">!=</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Fail</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">Size</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">Result</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Fail</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeCPURegsRegisterClass</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                               <span class="kt">unsigned</span> <span class="n">RegNo</span><span class="p">,</span>
+                                               <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                               <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">RegNo</span> <span class="o">&gt;</span> <span class="mi">16</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Fail</span><span class="p">;</span>
+
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">CPURegsTable</span><span class="p">[</span><span class="n">RegNo</span><span class="p">]));</span>
+  <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Success</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeMem</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                              <span class="kt">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
+                              <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                              <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">Offset</span> <span class="o">=</span> <span class="n">SignExtend32</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Insn</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="n">Reg</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">fieldFromInstruction</span><span class="p">(</span><span class="n">Insn</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="n">Base</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">fieldFromInstruction</span><span class="p">(</span><span class="n">Insn</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
+
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">CPURegsTable</span><span class="p">[</span><span class="n">Reg</span><span class="p">]));</span>
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">CPURegsTable</span><span class="p">[</span><span class="n">Base</span><span class="p">]));</span>
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">Offset</span><span class="p">));</span>
+
+  <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Success</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cm">/* CMP instruction define $rc and then $ra, $rb; The printOperand() print </span>
+<span class="cm">operand 1 and operand 2 (operand 0 is $rc and operand 1 is $ra), so we Create </span>
+<span class="cm">register $rc first and create $ra next, as follows,</span>
+
+<span class="cm">// Cpu0InstrInfo.td</span>
+<span class="cm">class CmpInstr&lt;bits&lt;8&gt; op, string instr_asm, </span>
+<span class="cm">                    InstrItinClass itin, RegisterClass RC, RegisterClass RD, bit isComm = 0&gt;:</span>
+<span class="cm">  FA&lt;op, (outs RD:$rc), (ins RC:$ra, RC:$rb),</span>
+<span class="cm">     !strconcat(instr_asm, &quot;\t$ra, $rb&quot;), [], itin&gt; {</span>
+
+<span class="cm">// Cpu0AsmWriter.inc</span>
+<span class="cm">void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &amp;O) {</span>
+<span class="cm">...</span>
+<span class="cm">  case 3:</span>
+<span class="cm">    // CMP, JEQ, JGE, JGT, JLE, JLT, JNE</span>
+<span class="cm">    printOperand(MI, 1, O); </span>
+<span class="cm">    break;</span>
+<span class="cm">...</span>
+<span class="cm">  case 1:</span>
+<span class="cm">    // CMP</span>
+<span class="cm">    printOperand(MI, 2, O); </span>
+<span class="cm">    return;</span>
+<span class="cm">    break;</span>
+<span class="cm">*/</span>
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeCMPInstruction</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                       <span class="kt">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
+                                       <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                       <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">Reg_a</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">fieldFromInstruction</span><span class="p">(</span><span class="n">Insn</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="n">Reg_b</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">fieldFromInstruction</span><span class="p">(</span><span class="n">Insn</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="n">Reg_c</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">fieldFromInstruction</span><span class="p">(</span><span class="n">Insn</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
+
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">CPURegsTable</span><span class="p">[</span><span class="n">Reg_c</span><span class="p">]));</span>
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">CPURegsTable</span><span class="p">[</span><span class="n">Reg_a</span><span class="p">]));</span>
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">CPURegsTable</span><span class="p">[</span><span class="n">Reg_b</span><span class="p">]));</span>
+  <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Success</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cm">/* CBranch instruction define $ra and then imm24; The printOperand() print </span>
+<span class="cm">operand 1 (operand 0 is $ra and operand 1 is imm24), so we Create register </span>
+<span class="cm">operand first and create imm24 next, as follows,</span>
+
+<span class="cm">// Cpu0InstrInfo.td</span>
+<span class="cm">class CBranch&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,</span>
+<span class="cm">                   list&lt;Register&gt; UseRegs&gt;:</span>
+<span class="cm">  FJ&lt;op, (outs), (ins RC:$ra, brtarget:$addr),</span>
+<span class="cm">             !strconcat(instr_asm, &quot;\t$addr&quot;),</span>
+<span class="cm">             [(brcond RC:$ra, bb:$addr)], IIBranch&gt; {</span>
+
+<span class="cm">// Cpu0AsmWriter.inc</span>
+<span class="cm">void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &amp;O) {</span>
+<span class="cm">...</span>
+<span class="cm">  case 3:</span>
+<span class="cm">    // CMP, JEQ, JGE, JGT, JLE, JLT, JNE</span>
+<span class="cm">    printOperand(MI, 1, O); </span>
+<span class="cm">    break;</span>
+<span class="cm">*/</span>
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeBranchTarget</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                       <span class="kt">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
+                                       <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                       <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">BranchOffset</span> <span class="o">=</span> <span class="n">fieldFromInstruction</span><span class="p">(</span><span class="n">Insn</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">24</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">BranchOffset</span> <span class="o">&gt;</span> <span class="mh">0x8fffff</span><span class="p">)</span>
+  	<span class="n">BranchOffset</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="mh">0x1000000</span> <span class="o">-</span> <span class="n">BranchOffset</span><span class="p">);</span>
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">CPURegsTable</span><span class="p">[</span><span class="mi">0</span><span class="p">]));</span>
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">BranchOffset</span><span class="p">));</span>
+  <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Success</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeJumpRelativeTarget</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                     <span class="kt">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
+                                     <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                     <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">)</span> <span class="p">{</span>
+
+  <span class="kt">int</span> <span class="n">JumpOffset</span> <span class="o">=</span> <span class="n">fieldFromInstruction</span><span class="p">(</span><span class="n">Insn</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">24</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">JumpOffset</span> <span class="o">&gt;</span> <span class="mh">0x8fffff</span><span class="p">)</span>
+  	<span class="n">JumpOffset</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="mh">0x1000000</span> <span class="o">-</span> <span class="n">JumpOffset</span><span class="p">);</span>
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">JumpOffset</span><span class="p">));</span>
+  <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Success</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeJumpAbsoluteTarget</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                     <span class="kt">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
+                                     <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                     <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">)</span> <span class="p">{</span>
+
+  <span class="kt">unsigned</span> <span class="n">JumpOffset</span> <span class="o">=</span> <span class="n">fieldFromInstruction</span><span class="p">(</span><span class="n">Insn</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">24</span><span class="p">);</span>
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">JumpOffset</span><span class="p">));</span>
+  <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Success</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeSimm16</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                 <span class="kt">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
+                                 <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                 <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">SignExtend32</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Insn</span><span class="p">)));</span>
+  <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Success</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <p>As above code, it add directory Disassembler for handling the obj to assembly
 code reverse translation. So, add Disassembler/Cpu0Disassembler.cpp and modify
 the CMakeList.txt and LLVMBuild.txt to build with directory Disassembler and

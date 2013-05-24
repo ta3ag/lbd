@@ -59,7 +59,7 @@ Chapter11_1/ support this optimization algorithm include the added codes as foll
   }
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0DelUselessJMP.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0DelUselessJMP.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0DelUselessJMP.cpp
     :linenos:
 
 
@@ -74,7 +74,7 @@ include/llvm/CodeGen/MachineOperand.h
 Let's run Chapter11_1/ with ch11_1.cpp to explain it easier.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch11_1.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch11_1.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch11_1.cpp
     :lines: 5-
     :linenos:
 
@@ -970,7 +970,7 @@ Cpu0 Verilog language changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/redesign/cpu0s.v
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/cpu0_verilog/redesign/cpu0s.v
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/redesign/cpu0s.v
     :linenos:
 
 
@@ -981,7 +981,7 @@ Run Chapter11_2/ with ch11_2.cpp to get result as below.
 It match the expect value as comment in ch11_2.cpp.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch11_2.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch11_2.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch11_2.cpp
     :lines: 8-
     :linenos:
 

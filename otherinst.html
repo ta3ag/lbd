@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.13',
+        VERSION:     '3.2.14',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -72,6 +72,27 @@ Finally, <a class="reference external" href="http://jonathan2251.github.com/lbd/
 <p>Run the Chapter3_5/Cpu0 <tt class="docutils literal"><span class="pre">llc</span></tt> with input file ch4_1_1.bc will get the error as
 follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch4_1_1.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10</pre></div></td><td class="code"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_1_1.cpp -emit-llvm -o
 ch4_1_1.bc
 118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>llvm-dis ch4_1_1.bc -o ch4_1_1.ll
@@ -289,6 +310,25 @@ file only.</p>
 <p>Files ch4_2.cpp and ch4_2.bc are the C source code for <strong>“not”</strong> boolean operator
 and it&#8217;s corresponding llvm IR. List them as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch4_2.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  
+  <span class="n">b</span> <span class="o">=</span> <span class="o">!</span><span class="n">a</span><span class="p">;</span>
+  
+  <span class="k">return</span> <span class="n">b</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <div class="highlight-bash"><div class="highlight"><pre>; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch4_2.bc&#39;</span>
 target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-</span>
 <span class="s2">f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128&quot;</span>
@@ -571,6 +611,31 @@ defm : SeteqPats&lt;CPURegs, XOR&gt;;</pre>
 <p>Run ch4_4.cpp with code Chapter4_4/ which support udiv, sra, and use addiu only
 instead of ldi, will get the result as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="n">f1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  
+  <span class="n">f1</span> <span class="o">=</span> <span class="n">a1</span> <span class="o">/</span> <span class="n">b</span><span class="p">;</span>
+  <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">k</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-13-40:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_4.cpp -emit-llvm -o ch4_4.bc
 118-165-13-40:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
@@ -626,6 +691,23 @@ def LEA_ADDiu : EffectiveAddress&lt;"addiu\t$ra, $addr", CPURegs, mem_ea&gt; {
 <p>Run ch4_5.cpp with code Chapter4_5/ which support pointer to local variable,
 will get result as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8</pre></div></td><td class="code"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+  
+  <span class="kt">int</span><span class="o">*</span> <span class="n">p</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_5.cpp -emit-llvm -o ch4_5.bc
 118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
 debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
@@ -673,6 +755,25 @@ main:
 <p>Example input code ch4_6.cpp which contains the C operator <strong>“%”</strong> and it&#8217;s
 corresponding llvm IR, as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch4_6.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
+<span class="c1">//  unsigned int b = 11;</span>
+  
+  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="mi">12</span><span class="p">;</span>
+  
+  <span class="k">return</span> <span class="n">b</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <div class="highlight-bash"><div class="highlight"><pre>; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch4_6.bc&#39;</span>
  target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-</span>
 <span class="s2"> f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128&quot;</span>
@@ -1037,7 +1138,91 @@ With this solution, the <strong>“c = a / b”</strong> can be got by <strong>�
 <p>Chapter4_6_4/ support operator <strong>“%”</strong> and <strong>“/”</strong>.
 The code added in Chapter4_6_4/ as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
+<span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
+            <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
+            <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
+            <span class="kt">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="kt">unsigned</span> <span class="n">Opc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">ZeroReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">DestReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy to CPU Reg.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">))</span>
+      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">ZeroReg</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">;</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">HI</span><span class="p">)</span>
+      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFHI</span><span class="p">,</span> <span class="n">SrcReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LO</span><span class="p">)</span>
+      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFLO</span><span class="p">,</span> <span class="n">SrcReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy from CPU Reg.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">HI</span><span class="p">)</span>
+      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTHI</span><span class="p">,</span> <span class="n">DestReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LO</span><span class="p">)</span>
+      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTLO</span><span class="p">,</span> <span class="n">DestReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">assert</span><span class="p">(</span><span class="n">Opc</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Cannot copy registers&quot;</span><span class="p">);</span>
+
+  <span class="n">MachineInstrBuilder</span> <span class="n">MIB</span> <span class="o">=</span> <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">get</span><span class="p">(</span><span class="n">Opc</span><span class="p">));</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span><span class="p">)</span>
+    <span class="n">MIB</span><span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">DestReg</span><span class="p">,</span> <span class="n">RegState</span><span class="o">::</span><span class="n">Define</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">ZeroReg</span><span class="p">)</span>
+    <span class="n">MIB</span><span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">ZeroReg</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span><span class="p">)</span>
+    <span class="n">MIB</span><span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">,</span> <span class="n">getKillRegState</span><span class="p">(</span><span class="n">KillSrc</span><span class="p">));</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.h</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre>  <span class="k">virtual</span> <span class="kt">void</span> <span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
+                           <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
+                           <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
+                           <span class="kt">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>def SDT_Cpu0DivRem       : SDTypeProfile&lt;0, 2,
                      [SDTCisInt&lt;0&gt;,
@@ -1192,7 +1377,51 @@ ch4_1_2.bc -o ch4_1_2.cpu0.s
 </pre></div>
 </div>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch4_6_1.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span>
+
+  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="n">a</span><span class="p">;</span>
+  
+  <span class="k">return</span> <span class="n">b</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch4_6_2.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">#include &lt;stdlib.h&gt;</span>
+
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
+<span class="c1">//  unsigned int b = 11;</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="n">rand</span><span class="p">();</span>
+  
+  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="n">c</span><span class="p">;</span>
+  
+  <span class="k">return</span> <span class="n">b</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
 </div>
 <div class="section" id="summary">
 <h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
