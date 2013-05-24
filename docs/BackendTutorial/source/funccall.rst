@@ -52,7 +52,7 @@ Run ``llc -march=mips`` for ch8_1.bc, you will get the following result.
 See comment **"//"**.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_1.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch8_1.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_1.cpp
     :lines: 5-
     :linenos:
 
@@ -217,7 +217,7 @@ only 16 registers while Mips has 32 registers. Cpu0CallingConv.td is defined
 for cpu0 passing rule as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0CallingConv.td
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0CallingConv.td
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0CallingConv.td
     :start-after: CCIf<!strconcat("State.getTarget().getSubtarget<Cpu0Subtarget>().", F), A>;
     :linenos:
 
@@ -237,7 +237,7 @@ Function LowerFormalArguments() charge function incoming arguments creation.
 We define it as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0ISelLowering.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0ISelLowering.cpp
     :start-after: return CLI.Chain;
     :end-before: Return Value Calling Convention Implementation
     :linenos:
@@ -275,7 +275,7 @@ GetMemOperand(..., FI, ...) return the Memory location of the frame index
 variable, which is the offset.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0InstrInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0InstrInfo.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0InstrInfo.cpp
     :start-after: MIB.addReg(SrcReg, getKillRegState(KillSrc));
     :end-before: MachineInstr*
     :linenos:
@@ -470,7 +470,7 @@ Now, we will finish **“store outgoing arguments”** in caller function.
 LowerCall() is responsible to do this. The implementation as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0ISelLowering.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0ISelLowering.cpp
     :start-after: #include "Cpu0GenCallingConv.inc"
     :end-before: LowerFormalArguments
     :linenos:
@@ -1057,7 +1057,7 @@ file Cpu0EmitGPRestore.cpp which run as a function pass.
   }
   
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0EmitGPRestore.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0EmitGPRestore.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0EmitGPRestore.cpp
     :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0MachineFunctionInfo.h
@@ -1153,7 +1153,7 @@ file Cpu0EmitGPRestore.cpp which run as a function pass.
   }
   
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0MCInstLower.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0MCInstLower.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0MCInstLower.cpp
     :start-after: return MCOperand::CreateExpr(AddExpr);
     :end-before: MCOperand Cpu0MCInstLower::LowerOperand
     :linenos:
@@ -1273,7 +1273,7 @@ this feature.
 Run Chapter8_6/ with ch8_3.cpp to get the following error,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_3.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch8_3.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_3.cpp
     :lines: 5-
     :linenos:
 
@@ -1483,7 +1483,7 @@ backend code too.
 
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_3_2.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch8_3_2.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_3_2.cpp
     :lines: 5-
     :linenos:
 
@@ -1499,7 +1499,7 @@ Run Chapter8_7/ with ch6_2.cpp to get the incorrect main return (return register
 $2 is not 0) as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp
     :lines: 11-
     :linenos:
 
@@ -1554,7 +1554,7 @@ the OutVals[0] (0 as this example) to $2. Then call DAG.getNode(..., Flag)
 where Flag contains $2 and OutVals[0] information.  
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_8/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter8_8/Cpu0ISelLowering.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_8/Cpu0ISelLowering.cpp
     :start-after: Return Value Calling Convention Implementation
     :end-before: Cpu0TargetLowering::isOffsetFoldingLegal
     :linenos:
@@ -1634,7 +1634,7 @@ Now, let's run Chapter8_8/ with ch4_6_2.cpp to get the result as below.
 It translate **“(b+1)%c”** into **“div $zero, $3, $2”** and **“mfhi $2”**.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_6_2.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch4_6_2.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_6_2.cpp
     :lines: 4-
     :linenos:
 
@@ -1659,7 +1659,7 @@ Structure type support
 Run 8/8 with ch8_9_1.cpp will get the error message as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_9_1.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch8_9_1.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_9_1.cpp
     :lines: 4-
     :linenos:
 
@@ -2417,7 +2417,7 @@ Even though C language very rare to use dynamic stack allocation, there are
 languages use it frequently. The following C example code use it.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_10.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch8_10.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_10.cpp
     :lines: 4-
     :linenos:
 

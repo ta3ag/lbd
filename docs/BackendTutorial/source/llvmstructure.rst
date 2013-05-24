@@ -620,7 +620,7 @@ files are used by the backend.  These files have a similar syntax to C++. For Cp
 target description file is called Cpu0.td, which is shown below:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/Cpu0.td
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter2/Cpu0.td
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/Cpu0.td
     :linenos:
 
 Cpu0.td includes a few other .td files.  Cpu0RegisterInfo.td (shown below) describes the 
@@ -633,7 +633,7 @@ of general purpose registers for Cpu0, and some registers that are reserved so t
 are not modified by instructions during execution.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/Cpu0RegisterInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter2/Cpu0RegisterInfo.td
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/Cpu0RegisterInfo.td
     :linenos:
 
 
@@ -688,14 +688,14 @@ The Cpu0RegisterInfo.td also defines that ``CPURegs`` is an instance of the clas
 The cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrInfo.td
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrInfo.td
     :linenos:
 
 
 The Cpu0InstrFormats.td is included by Cpu0InstInfo.td as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrFormats.td
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrFormats.td
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrFormats.td
     :linenos:
 
 
@@ -856,11 +856,11 @@ Target/Cpu0 directory has two files CMakeLists.txt and LLVMBuild.txt,
 contents as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/CMakeLists.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter2/CMakeLists.txt
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/CMakeLists.txt
     :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/LLVMBuild.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter2/LLVMBuild.txt
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/LLVMBuild.txt
     :linenos:
 
 
@@ -897,7 +897,7 @@ For example, the file TargetInfo/Cpu0TargetInfo.cpp register TheCpu0Target for
 big endian and TheCpu0elTarget for little endian, as follows.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
     :linenos:
 
 
@@ -905,11 +905,11 @@ Files Cpu0TargetMachine.cpp and MCTargetDesc/Cpu0MCTargetDesc.cpp just define
 the empty initialize function since we register nothing in them for this moment.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h
     :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :linenos:
 
 
@@ -994,7 +994,7 @@ the following code from file TargetInfo/Cpu0TargetInfo.cpp what in
 List them as follows again,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
     :linenos:
 
 
@@ -1024,7 +1024,7 @@ Let's build LLVMBackendTutorialExampleCode/Chapter2 code as follows,
 Now try to do ``llc`` command to compile input file ch3.cpp as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch3.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch3.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch3.cpp
     :lines: 8-
     :linenos:
 

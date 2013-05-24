@@ -807,15 +807,15 @@ To support llvm-objdump, the following code added to Chapter9_1/.
   def JR      : JumpFR<0x2C, "ret", CPURegs>;
   
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/CMakeLists.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/CMakeLists.txt
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/CMakeLists.txt
     :linenos:
   
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/LLVMBuild.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/LLVMBuild.txt
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/LLVMBuild.txt
     :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/Cpu0Disassembler.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/Cpu0Disassembler.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/Cpu0Disassembler.cpp
     :linenos:
   
 

@@ -48,9 +48,10 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.2.14, Not Released Yet
-	Fix example code disappeared error.
+Version 3.2.14, Not release yet.
 
+Version 3.2.14, Released May 24, 2013
+	Fix example code disappeared error.
 Version 3.2.13, Released May 23, 2013
 	Add sub-section "Setup llvm-lit on iMac" of Appendix A.
 	Replace some code-block with literalinclude in \*.rst.

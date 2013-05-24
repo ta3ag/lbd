@@ -23,7 +23,7 @@ AsmParser support
 Run Chapter9_1/ with ch10_1.cpp will get the following error message.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch10_1.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch10_1.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch10_1.cpp
     :lines: 4-
     :linenos:
 
@@ -44,15 +44,15 @@ Directory AsmParser handle the assembly to obj translation.
 The Chapter10_1/ include AsmParser implementation as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/Cpu0AsmParser.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/Cpu0AsmParser.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/Cpu0AsmParser.cpp
     :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/CMakeLists.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/CMakeLists.txt
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/CMakeLists.txt
     :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/LLVMBuild.txt
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/LLVMBuild.txt
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/LLVMBuild.txt
     :linenos:
 
 
@@ -287,7 +287,7 @@ follow the order of register number because AsmParser use this when do register
 number encode.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0RegisterInfo.td
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0RegisterInfo.td
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0RegisterInfo.td
     :start-after: //  Registers
     :end-before: // Hi/Lo Registers
     :linenos:
@@ -387,7 +387,7 @@ cx($rb) is 0x7000 (28672), CPU0 display the content as follows,
 
 
 .. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/raw/cpu0s.v
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/cpu0_verilog/raw/cpu0s.v
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/raw/cpu0s.v
     :linenos:
 
 
@@ -406,12 +406,12 @@ address and stack grows up from high to low address. We set $sp at 0x6ffc becaus
 cpu0s.v use 0x7000 bytes of memory.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/InitRegs.h
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/InitRegs.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/InitRegs.h
     :lines: 5-
     :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch10_2.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch10_2.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch10_2.cpp
     :lines: 5-
     :linenos:
 
@@ -1078,7 +1078,7 @@ with the **OUTPUT=xxx** in Verilog output.
 Now, let's run ch_10_3.cpp to verify the result as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch10_3.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch10_3.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch10_3.cpp
     :lines: 6-
     :linenos:
 

@@ -25,7 +25,7 @@ Chapter6_1/ support the global variable, let's compile ch6_1.cpp with this versi
 first, and explain the code changes after that.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch6_1.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch6_1.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch6_1.cpp
     :lines: 13-
     :linenos:
 
@@ -629,7 +629,7 @@ Please reference section getelementptr of [#]_.
 For ch6_2.cpp, the llvm IR as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp
     :lines: 11-
     :linenos:
 
@@ -981,7 +981,7 @@ Chapter6_3/.
 Run Chapter6_3/ with ch6_3.cpp will get the following result.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch6_3.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles/ch6_3.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch6_3.cpp
     :lines: 5-
     :linenos:
 
