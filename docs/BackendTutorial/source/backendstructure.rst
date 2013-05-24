@@ -69,7 +69,7 @@ The Cpu0TargetMachine contents as follows,
 
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h
     :linenos:
 
   
@@ -228,7 +228,7 @@ Cpu0RegisterInfo.cpp), and Cpu0RegisterInfo class in files Cpu0InstrInfo.h,
 Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.h
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.h
     :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.cpp
