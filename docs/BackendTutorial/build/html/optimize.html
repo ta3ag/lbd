@@ -1,0 +1,2457 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Backend Optimization &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.2.13',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
+    <link rel="next" title="Appendix A: Getting Started: Installing LLVM and the Cpu0 example code" href="install.html" />
+    <link rel="prev" title="Run backend" href="runbackend.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="index.html">
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
+        <h2 class="heading"><span>Backend Optimization</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="runbackend.html">Run backend</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="install.html">Appendix A: Getting Started: Installing LLVM and the Cpu0 example code</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="backend-optimization">
+<span id="sec-optimize"></span><h1>Backend Optimization<a class="headerlink" href="#backend-optimization" title="Permalink to this headline">¶</a></h1>
+<p>This chapter introduce how to do backend optimization in LLVM first.
+Next we do optimization via redesign instruction sets with hardware level to
+do optimization by create a efficient RISC CPU which aim to C/C++ high level
+language.</p>
+<div class="section" id="cpu0-backend-optimization-remove-useless-jmp">
+<h2>Cpu0 backend Optimization: Remove useless JMP<a class="headerlink" href="#cpu0-backend-optimization-remove-useless-jmp" title="Permalink to this headline">¶</a></h2>
+<p>LLVM use functional pass in code generation and optimization.
+Following the 3 tiers of compiler architecture, LLVM did much optimization in
+middle tier of which is LLVM IR, SSA form.
+In spite of this middle tier optimization, there are opportunities in
+optimization which depend on backend features.
+Mips fill delay slot is an example of backend optimization used in pipeline
+RISC machine.
+You can modify from Mips this part if your backend is a pipeline RISC with
+delay slot.
+We apply the &#8220;delete useless jmp&#8221; unconditional branch instruction in Cpu0
+backend optimization in this section.
+This algorithm is simple and effective as a perfect tutorial in optimization.
+You can understand how to add a optimization pass and design your complicate
+optimization algorithm on your backend in real project.</p>
+<p>Chapter11_1/ support this optimization algorithm include the added codes as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/CMakeLists.txt</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">add_llvm_target</span><span class="p">(</span><span class="n">Cpu0CodeGen</span>
+  <span class="p">...</span>
+  <span class="n">Cpu0DelUselessJMP</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="p">...</span>
+  <span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
+  <span class="n">FunctionPass</span> <span class="o">*</span><span class="n">createCpu0DelJmpPass</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
+
+<span class="c1">// Cpu-TargetMachine.cpp</span>
+<span class="k">class</span> <span class="nc">Cpu0PassConfig</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TargetPassConfig</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">addPreEmitPass</span><span class="p">();</span>
+<span class="p">};</span>
+<span class="p">...</span>
+<span class="c1">// Implemented by targets that want to run passes immediately before</span>
+<span class="c1">// machine code is emitted. return true if -print-machineinstrs should</span>
+<span class="c1">// print out the code after the passes.</span>
+<span class="kt">bool</span> <span class="n">Cpu0PassConfig</span><span class="o">::</span><span class="n">addPreEmitPass</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span> <span class="o">=</span> <span class="n">getCpu0TargetMachine</span><span class="p">();</span>
+  <span class="n">addPass</span><span class="p">(</span><span class="n">createCpu0DelJmpPass</span><span class="p">(</span><span class="n">TM</span><span class="p">));</span>
+  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0DelUselessJMP.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0DelUselessJMP.cpp - Cpu0 DelJmp -------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// Simple pass to fills delay slots with useful instructions.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#define DEBUG_TYPE &quot;del-jmp&quot;</span>
+
+<span class="cp">#include &quot;Cpu0.h&quot;</span>
+<span class="cp">#include &quot;Cpu0TargetMachine.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineFunctionPass.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/CommandLine.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetMachine.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetInstrInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/ADT/SmallSet.h&quot;</span>
+<span class="cp">#include &quot;llvm/ADT/Statistic.h&quot;</span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="n">STATISTIC</span><span class="p">(</span><span class="n">NumDelJmp</span><span class="p">,</span> <span class="s">&quot;Number of useless jmp deleted&quot;</span><span class="p">);</span>
+
+<span class="k">static</span> <span class="n">cl</span><span class="o">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span> <span class="n">EnableDelJmp</span><span class="p">(</span>
+  <span class="s">&quot;enable-cpu0-del-useless-jmp&quot;</span><span class="p">,</span>
+  <span class="n">cl</span><span class="o">::</span><span class="n">init</span><span class="p">(</span><span class="kc">true</span><span class="p">),</span>
+  <span class="n">cl</span><span class="o">::</span><span class="n">desc</span><span class="p">(</span><span class="s">&quot;Delete useless jmp instructions: jmp 0.&quot;</span><span class="p">),</span>
+  <span class="n">cl</span><span class="o">::</span><span class="n">Hidden</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="p">{</span>
+  <span class="k">struct</span> <span class="n">DelJmp</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MachineFunctionPass</span> <span class="p">{</span>
+
+    <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">;</span>
+    <span class="k">const</span> <span class="n">TargetInstrInfo</span> <span class="o">*</span><span class="n">TII</span><span class="p">;</span>
+
+    <span class="k">static</span> <span class="kt">char</span> <span class="n">ID</span><span class="p">;</span>
+    <span class="n">DelJmp</span><span class="p">(</span><span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">tm</span><span class="p">)</span>
+      <span class="o">:</span> <span class="n">MachineFunctionPass</span><span class="p">(</span><span class="n">ID</span><span class="p">),</span> <span class="n">TM</span><span class="p">(</span><span class="n">tm</span><span class="p">),</span> <span class="n">TII</span><span class="p">(</span><span class="n">tm</span><span class="p">.</span><span class="n">getInstrInfo</span><span class="p">())</span> <span class="p">{</span> <span class="p">}</span>
+
+    <span class="k">virtual</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">getPassName</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="s">&quot;Cpu0 Del Useless jmp&quot;</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="kt">bool</span> <span class="n">runOnMachineBasicBlock</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBBN</span><span class="p">);</span>
+    <span class="kt">bool</span> <span class="n">runOnMachineFunction</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">F</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kt">bool</span> <span class="n">Changed</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">EnableDelJmp</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">MachineFunction</span><span class="o">::</span><span class="n">iterator</span> <span class="n">FJ</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">FJ</span> <span class="o">!=</span> <span class="n">F</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+          <span class="n">FJ</span><span class="o">++</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">FJ</span> <span class="o">==</span> <span class="n">F</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+          <span class="k">return</span> <span class="n">Changed</span><span class="p">;</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">MachineFunction</span><span class="o">::</span><span class="n">iterator</span> <span class="n">FI</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">FE</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
+             <span class="n">FJ</span> <span class="o">!=</span> <span class="n">FE</span><span class="p">;</span> <span class="o">++</span><span class="n">FI</span><span class="p">,</span> <span class="o">++</span><span class="n">FJ</span><span class="p">)</span>
+          <span class="c1">// In STL style, F.end() is the dummy BasicBlock() like &#39;\0&#39; in </span>
+          <span class="c1">//  C string. </span>
+          <span class="c1">// FJ is the next BasicBlock of FI; When FI range from F.begin() to </span>
+          <span class="c1">//  the PreviousBasicBlock of F.end() call runOnMachineBasicBlock().</span>
+          <span class="n">Changed</span> <span class="o">|=</span> <span class="n">runOnMachineBasicBlock</span><span class="p">(</span><span class="o">*</span><span class="n">FI</span><span class="p">,</span> <span class="o">*</span><span class="n">FJ</span><span class="p">);</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="n">Changed</span><span class="p">;</span>
+    <span class="p">}</span>
+
+  <span class="p">};</span>
+  <span class="kt">char</span> <span class="n">DelJmp</span><span class="o">::</span><span class="n">ID</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span> <span class="c1">// end of anonymous namespace</span>
+
+<span class="kt">bool</span> <span class="n">DelJmp</span><span class="o">::</span>
+<span class="n">runOnMachineBasicBlock</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBBN</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">bool</span> <span class="n">Changed</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+
+  <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span> <span class="o">=</span> <span class="n">MBB</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">I</span> <span class="o">!=</span> <span class="n">MBB</span><span class="p">.</span><span class="n">begin</span><span class="p">())</span>
+    <span class="n">I</span><span class="o">--</span><span class="p">;</span>	<span class="c1">// set I to the last instruction</span>
+  <span class="k">else</span>
+    <span class="k">return</span> <span class="n">Changed</span><span class="p">;</span>
+    
+  <span class="k">if</span> <span class="p">(</span><span class="n">I</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">()</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JMP</span> <span class="o">&amp;&amp;</span> <span class="n">I</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">getMBB</span><span class="p">()</span> <span class="o">==</span> <span class="o">&amp;</span><span class="n">MBBN</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// I is the instruction of &quot;jmp #offset=0&quot;, as follows,</span>
+    <span class="c1">//     jmp	$BB0_3</span>
+    <span class="c1">// $BB0_3:</span>
+    <span class="c1">//     ld	$4, 28($sp)</span>
+    <span class="o">++</span><span class="n">NumDelJmp</span><span class="p">;</span>
+    <span class="n">MBB</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">I</span><span class="p">);</span>	<span class="c1">// delete the &quot;JMP 0&quot; instruction</span>
+    <span class="n">Changed</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>	<span class="c1">// Notify LLVM kernel Changed</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">Changed</span><span class="p">;</span>
+
+<span class="p">}</span>
+
+<span class="c1">/// createCpu0DelJmpPass - Returns a pass that DelJmp in Cpu0 MachineFunctions</span>
+<span class="n">FunctionPass</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0DelJmpPass</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">tm</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="n">DelJmp</span><span class="p">(</span><span class="n">tm</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>As above code, except Cpu0DelUselessJMP.cpp, other files changed for register
+class DelJmp as a functional pass. As comment of above code, MBB is the current
+block and MBBN is the next block. For the last instruction of every MBB, we
+check if it is the JMP instruction as well as
+its Operand is the next basic block.
+By getMBB() in MachineOperand, you can get the MBB address.
+For the member function of MachineOperand, please check
+include/llvm/CodeGen/MachineOperand.h
+Let&#8217;s run Chapter11_1/ with ch11_1.cpp to explain it easier.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch11_1.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20</pre></div></td><td class="code"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+  
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">a</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="o">--</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">c</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  
+  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>clang -c ch11_1.cpp -emit-llvm -o ch11_1.bc
+118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>clang -target <span class="sb">`</span>llvm-config --host-target<span class="sb">`</span>
+-c ch11_1.cpp -emit-llvm -o ch11_1.bc
+118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm -stats
+ch11_1.bc -o ch11_1.cpu0.s
+<span class="o">===</span>-------------------------------------------------------------------------<span class="o">===</span>
+                          ... Statistics Collected ...
+<span class="o">===</span>-------------------------------------------------------------------------<span class="o">===</span>
+ ...
+ 2 del-jmp        - Number of useless jmp deleted
+ ...
+
+118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>cat ch11_1.cpu0.s
+      .section .mdebug.abi32
+      .previous
+      .file   <span class="s2">&quot;ch11_1.bc&quot;</span>
+      .text
+      .globl  main
+      .align  2
+      .type   main,@function
+      .ent    main                    <span class="c"># @main</span>
+main:
+      .frame  <span class="nv">$sp</span>,16,<span class="nv">$lr</span>
+      .mask   0x00000000,0
+      .set    noreorder
+      .set    nomacro
+<span class="c"># BB#0:</span>
+      addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+      addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
+      st      <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      st      <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+      st      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 2
+      st      <span class="nv">$4</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      ld      <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      cmp     <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+      jne     <span class="nv">$sw</span>, <span class="nv">$BB0_2</span>
+<span class="c"># BB#1:</span>
+      ld      <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+      st      <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_2</span>:
+      ld      <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      cmp     <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+      jne     <span class="nv">$sw</span>, <span class="nv">$BB0_4</span>
+      jmp     <span class="nv">$BB0_3</span>
+<span class="nv">$BB0_4</span>:
+      addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, -1
+      ld      <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      cmp     <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+      jgt     <span class="nv">$sw</span>, <span class="nv">$BB0_6</span>
+      jmp     <span class="nv">$BB0_5</span>
+<span class="nv">$BB0_3</span>:
+      ld      <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      ld      <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      add     <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+      st      <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      jmp     <span class="nv">$BB0_6</span>
+<span class="nv">$BB0_5</span>:
+      ld      <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$4</span>, <span class="nv">$3</span>, -1
+      st      <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      st      <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_6</span>:
+      ld      <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      cmp     <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+      jlt     <span class="nv">$sw</span>, <span class="nv">$BB0_8</span>
+<span class="c"># BB#7:</span>
+      ld      <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+      st      <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_8</span>:
+      ld      <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
+      ret     <span class="nv">$lr</span>
+      .set    macro
+      .set    reorder
+      .end    main
+<span class="nv">$tmp1</span>:
+      .size   main, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-main
+</pre></div>
+</div>
+<p>The terminal display &#8220;Number of useless jmp deleted&#8221; by <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-stats</span></tt> option
+because we set the &#8220;STATISTIC(NumDelJmp, &#8220;Number of useless jmp deleted&#8221;)&#8221; in
+code. It delete 2 jmp instructions from block &#8220;# BB#0&#8221; and &#8220;$BB0_6&#8221;.
+You can check it by <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-enable-cpu0-del-useless-jmp=false</span></tt> option to see
+the difference from no optimization version.
+If you run with ch7_1_1.cpp, will find 10 jmp instructions are deleted in 100
+lines of assembly code, which meaning 10% enhance in speed and code size.</p>
+</div>
+<div class="section" id="cpu0-optimization-redesign-instruction-sets">
+<h2>Cpu0 Optimization: Redesign instruction sets<a class="headerlink" href="#cpu0-optimization-redesign-instruction-sets" title="Permalink to this headline">¶</a></h2>
+<p>If you compare the cpu0 and Mips instruction sets, you will find the following,</p>
+<p>1. Mips has <strong>addu</strong> and <strong>add</strong> two different instructions for No Trigger
+Exception and Trigger Exception.</p>
+<p>2. Mips use SLT, BEQ and set the status in explicit/general register while Cpu0
+use CMP, JEQ and set status in implicit/specific register.</p>
+<p>According RISC spirits, this section will replace CMP, JEQ with Mips style
+instructions and support both Trigger and No Trigger Exception operators.
+Mips style BEQ instructions will reduce the number of branch instructions too.
+Which means optimization in speed and code size.</p>
+<div class="section" id="cpu0-new-instruction-sets-table">
+<h3>Cpu0 new instruction sets table<a class="headerlink" href="#cpu0-new-instruction-sets-table" title="Permalink to this headline">¶</a></h3>
+<p>Redesign Cpu0 instruction set and remap OP code as follows (OP code
+0x00 is reserved for NOP operation in pipeline architecture),</p>
+<table border="1" class="docutils">
+<caption>Cpu0 Instruction Set</caption>
+<colgroup>
+<col width="8%" />
+<col width="11%" />
+<col width="8%" />
+<col width="29%" />
+<col width="18%" />
+<col width="26%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Format</th>
+<th class="head">Mnemonic</th>
+<th class="head">Opcode</th>
+<th class="head">Meaning</th>
+<th class="head">Syntax</th>
+<th class="head">Operation</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>L</td>
+<td>LD</td>
+<td>01</td>
+<td>Load word</td>
+<td>LD Ra, [Rb+Cx]</td>
+<td>Ra &lt;= [Rb+Cx]</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>ST</td>
+<td>02</td>
+<td>Store word</td>
+<td>ST Ra, [Rb+Cx]</td>
+<td>[Rb+Cx] &lt;= Ra</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>LB</td>
+<td>03</td>
+<td>Load byte</td>
+<td>LB Ra, [Rb+Cx]</td>
+<td>Ra &lt;= (byte)[Rb+Cx]</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>LBu</td>
+<td>04</td>
+<td>Load byte unsigned</td>
+<td>LBu Ra, [Rb+Cx]</td>
+<td>Ra &lt;= (byte)[Rb+Cx]</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>SB</td>
+<td>05</td>
+<td>Store byte</td>
+<td>SB Ra, [Rb+Cx]</td>
+<td>[Rb+Cx] &lt;= (byte)Ra</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>LH</td>
+<td>06</td>
+<td>Load half word unsigned</td>
+<td>LH Ra, [Rb+Cx]</td>
+<td>Ra &lt;= (2bytes)[Rb+Cx]</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>LHu</td>
+<td>07</td>
+<td>Load half word</td>
+<td>LHu Ra, [Rb+Cx]</td>
+<td>Ra &lt;= (2bytes)[Rb+Cx]</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>SH</td>
+<td>08</td>
+<td>Store half word</td>
+<td>SH Ra, [Rb+Cx]</td>
+<td>[Rb+Rc] &lt;= Ra</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>ADDiu</td>
+<td>09</td>
+<td>Add immediate</td>
+<td>ADDiu Ra, Rb, Cx</td>
+<td>Ra &lt;= (Rb + Cx)</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>SLTi</td>
+<td>0A</td>
+<td>Set less Then</td>
+<td>SLTi Ra, Rb, Cx</td>
+<td>Ra &lt;= (Rb &lt; Cx)</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>SLTiu</td>
+<td>0B</td>
+<td>SLTi unsigned</td>
+<td>SLTiu Ra, Rb, Cx</td>
+<td>Ra &lt;= (Rb &lt; Cx)</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>ANDi</td>
+<td>0C</td>
+<td>AND imm</td>
+<td>ANDi Ra, Rb, Cx</td>
+<td>Ra &lt;= (Rb &amp; Cx)</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>ORi</td>
+<td>0D</td>
+<td>OR</td>
+<td>ORi Ra, Rb, Cx</td>
+<td>Ra &lt;= (Rb | Cx)</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>XORi</td>
+<td>0E</td>
+<td>XOR</td>
+<td>XORi Ra, Rb, Cx</td>
+<td>Ra &lt;= (Rb ^ Cx)</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>LUi</td>
+<td>0F</td>
+<td>Load upper</td>
+<td>LUi Ra, Cx</td>
+<td>Ra &lt;= (Cx||0x0000)</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>ADDu</td>
+<td>11</td>
+<td>Add unsigned</td>
+<td>ADD Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb + Rc</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>SUBu</td>
+<td>12</td>
+<td>Sub unsigned</td>
+<td>SUB Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb - Rc</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>ADD</td>
+<td>13</td>
+<td>Add</td>
+<td>ADD Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb + Rc</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>SUB</td>
+<td>14</td>
+<td>Subtract</td>
+<td>SUB Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb - Rc</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>MUL</td>
+<td>15</td>
+<td>Multiply</td>
+<td>MUL Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb * Rc</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>DIV</td>
+<td>16</td>
+<td>Divide</td>
+<td>DIV Ra, Rb</td>
+<td>HI&lt;=Ra%Rb, LO&lt;=Ra/Rb</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>DIVu</td>
+<td>16</td>
+<td>Div unsigned</td>
+<td>DIVu Ra, Rb</td>
+<td>HI&lt;=Ra%Rb, LO&lt;=Ra/Rb</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>AND</td>
+<td>18</td>
+<td>Bitwise and</td>
+<td>AND Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb &amp; Rc</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>OR</td>
+<td>19</td>
+<td>Bitwise or</td>
+<td>OR Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb | Rc</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>XOR</td>
+<td>1A</td>
+<td>Bitwise exclusive or</td>
+<td>XOR Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb ^ Rc</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>ROL</td>
+<td>1C</td>
+<td>Rotate left</td>
+<td>ROL Ra, Rb, Cx</td>
+<td>Ra &lt;= Rb rol Cx</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>ROR</td>
+<td>1D</td>
+<td>Rotate right</td>
+<td>ROR Ra, Rb, Cx</td>
+<td>Ra &lt;= Rb ror Cx</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>SHL</td>
+<td>1E</td>
+<td>Shift left</td>
+<td>SHL Ra, Rb, Cx</td>
+<td>Ra &lt;= Rb &lt;&lt; Cx</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>SHR</td>
+<td>1F</td>
+<td>Shift right</td>
+<td>SHR Ra, Rb, Cx</td>
+<td>Ra &lt;= Rb &gt;&gt; Cx</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>SLT</td>
+<td>20</td>
+<td>Set less Then</td>
+<td>SLT Ra, Rb, Rc</td>
+<td>Ra &lt;= (Rb &lt; Rc)</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>SLT</td>
+<td>21</td>
+<td>SLT unsigned</td>
+<td>SLTu Ra, Rb, Rc</td>
+<td>Ra &lt;= (Rb &lt; Rc)</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>MFHI</td>
+<td>22</td>
+<td>Move HI to GPR</td>
+<td>MFHI Ra</td>
+<td>Ra &lt;= HI</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>MFLO</td>
+<td>23</td>
+<td>Move LO to GPR</td>
+<td>MFLO Ra</td>
+<td>Ra &lt;= LO</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>MTHI</td>
+<td>24</td>
+<td>Move GPR to HI</td>
+<td>MTHI Ra</td>
+<td>HI &lt;= Ra</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>MTLO</td>
+<td>25</td>
+<td>Move GPR to LO</td>
+<td>MTLO Ra</td>
+<td>LO &lt;= Ra</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>MULT</td>
+<td>26</td>
+<td>Multiply for 64 bits result</td>
+<td>MULT Ra, Rb</td>
+<td>(HI,LO) &lt;= MULT(Ra,Rb)</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>MULTU</td>
+<td>27</td>
+<td>MULT for unsigned 64 bits</td>
+<td>MULTU Ra, Rb</td>
+<td>(HI,LO) &lt;= MULTU(Ra,Rb)</td>
+</tr>
+<tr class="row-odd"><td>J</td>
+<td>JMP</td>
+<td>26</td>
+<td>Jump (unconditional)</td>
+<td>JMP Cx</td>
+<td>PC &lt;= PC + Cx</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>BEQ</td>
+<td>27</td>
+<td>Jump if equal</td>
+<td>BEQ Ra, Rb, Cx</td>
+<td>if (Ra==Rb), PC &lt;= PC + Cx</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>BNE</td>
+<td>28</td>
+<td>Jump if not equal</td>
+<td>BNE Ra, Rb, Cx</td>
+<td>if (Ra!=Rb), PC &lt;= PC + Cx</td>
+</tr>
+<tr class="row-even"><td>J</td>
+<td>SWI</td>
+<td>2A</td>
+<td>Software interrupt</td>
+<td>SWI Cx</td>
+<td>LR &lt;= PC; PC &lt;= Cx</td>
+</tr>
+<tr class="row-odd"><td>J</td>
+<td>JSUB</td>
+<td>2B</td>
+<td>Jump to subroutine</td>
+<td>JSUB Cx</td>
+<td>LR &lt;= PC; PC &lt;= PC + Cx</td>
+</tr>
+<tr class="row-even"><td>J</td>
+<td>RET</td>
+<td>2C</td>
+<td>Return from subroutine</td>
+<td>RET Cx</td>
+<td>PC &lt;= LR</td>
+</tr>
+<tr class="row-odd"><td>J</td>
+<td>IRET</td>
+<td>2D</td>
+<td>Return from interrupt handler</td>
+<td>IRET</td>
+<td>PC &lt;= LR; INT 0</td>
+</tr>
+<tr class="row-even"><td>J</td>
+<td>JR</td>
+<td>2E</td>
+<td>Jump to subroutine</td>
+<td>JR Rb</td>
+<td>LR &lt;= PC; PC &lt;= Rb</td>
+</tr>
+</tbody>
+</table>
+<p>As above, the OPu, such as ADDu is for unsigned integer or No Trigger
+Exception. The LUi for example, &#8220;LUi $2, 0x7000&#8221;, load 0x700 to high 16 bits
+of $2 and fill the low 16 bits of $2 to 0x0000.</p>
+</div>
+<div class="section" id="cpu0-code-changes">
+<h3>Cpu0 code changes<a class="headerlink" href="#cpu0-code-changes" title="Permalink to this headline">¶</a></h3>
+<p>Chapter11_2/ include the changes for new instruction sets as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/AsmParser/Cpu0AsmParser.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0AsmParser.cpp</span>
+<span class="kt">void</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">expandLoadImm</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span>
+                                  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Instructions</span><span class="p">){</span>
+  <span class="n">MCInst</span> <span class="n">tmpInst</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">ImmOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">ImmOp</span><span class="p">.</span><span class="n">isImm</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected immediate operand kind&quot;</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">RegOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">isReg</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected register operand kind&quot;</span><span class="p">);</span>
+
+  <span class="kt">int</span> <span class="n">ImmValue</span> <span class="o">=</span> <span class="n">ImmOp</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+  <span class="n">tmpInst</span><span class="p">.</span><span class="n">setLoc</span><span class="p">(</span><span class="n">IDLoc</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">ImmValue</span> <span class="o">&amp;&amp;</span> <span class="n">ImmValue</span> <span class="o">&lt;=</span> <span class="mi">65535</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// for 0 &lt;= j &lt;= 65535.</span>
+    <span class="c1">// li d,j =&gt; ori d,$zero,j</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ORi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span>
+              <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span> <span class="n">ImmValue</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">ImmValue</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mi">32768</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// for -32768 &lt;= j &lt; 0.</span>
+    <span class="c1">// li d,j =&gt; addiu d,$zero,j</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">);</span> <span class="c1">//TODO:no ADDiu64 in td files?</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span>
+              <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="c1">// for any other value of j that is representable as a 32-bit integer.</span>
+    <span class="c1">// li d,j =&gt; lui d,hi16(j)</span>
+    <span class="c1">//           ori d,d,lo16(j)</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">((</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff0000</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ORi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setLoc</span><span class="p">(</span><span class="n">IDLoc</span><span class="p">);</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">expandLoadAddressReg</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span>
+                                         <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Instructions</span><span class="p">){</span>
+  <span class="n">MCInst</span> <span class="n">tmpInst</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">ImmOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">ImmOp</span><span class="p">.</span><span class="n">isImm</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected immediate operand kind&quot;</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">SrcRegOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">SrcRegOp</span><span class="p">.</span><span class="n">isReg</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected register operand kind&quot;</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">DstRegOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">isReg</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected register operand kind&quot;</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="n">ImmValue</span> <span class="o">=</span> <span class="n">ImmOp</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="o">-</span><span class="mi">32768</span> <span class="o">&lt;=</span> <span class="n">ImmValue</span> <span class="o">&amp;&amp;</span> <span class="n">ImmValue</span> <span class="o">&lt;=</span> <span class="mi">32767</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// for -32768 &lt;= j &lt; 32767.</span>
+    <span class="c1">//la d,j(s) =&gt; addiu d,s,j</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">);</span> <span class="c1">//TODO:no ADDiu64 in td files?</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">SrcRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="c1">// for any other value of j that is representable as a 32-bit integer.</span>
+    <span class="c1">// la d,j(s) =&gt; lui d,hi16(j)</span>
+    <span class="c1">//              ori d,d,lo16(j)</span>
+    <span class="c1">//              add d,d,s</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">((</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff0000</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ORi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">SrcRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">expandLoadAddressImm</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span>
+                                         <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Instructions</span><span class="p">){</span>
+  <span class="n">MCInst</span> <span class="n">tmpInst</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">ImmOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">ImmOp</span><span class="p">.</span><span class="n">isImm</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected immediate operand kind&quot;</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">RegOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">isReg</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected register operand kind&quot;</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="n">ImmValue</span> <span class="o">=</span> <span class="n">ImmOp</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="o">-</span><span class="mi">32768</span> <span class="o">&lt;=</span> <span class="n">ImmValue</span> <span class="o">&amp;&amp;</span> <span class="n">ImmValue</span> <span class="o">&lt;=</span> <span class="mi">32767</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// for -32768 &lt;= j &lt; 32767.</span>
+    <span class="c1">//la d,j =&gt; addiu d,$zero,j</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span>
+              <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="c1">// for any other value of j that is representable as a 32-bit integer.</span>
+    <span class="c1">// la d,j =&gt; lui d,hi16(j)</span>
+    <span class="c1">//           ori d,d,lo16(j)</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">((</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff0000</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ORi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">matchRegisterName</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">Name</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;t0&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">T0</span><span class="p">)</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/Disassembler/Cpu0Disassembler.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Decoder tables for Cpu0 register</span>
+<span class="k">static</span> <span class="k">const</span> <span class="kt">unsigned</span> <span class="n">CPURegsTable</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+<span class="c1">// Change SW to T0 which is a caller saved</span>
+  <span class="n">Cpu0</span><span class="o">::</span><span class="n">T0</span><span class="p">,</span> <span class="p">...</span>
+<span class="p">};</span>
+
+<span class="c1">// DecodeCMPInstruction() function is removed since No CMP instruction.</span>
+<span class="p">...</span>
+
+<span class="c1">// Change DecodeBranchTarget() to following for 16 bit offset</span>
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeBranchTarget</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                       <span class="kt">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
+                                       <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                       <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">BranchOffset</span> <span class="o">=</span> <span class="n">fieldFromInstruction</span><span class="p">(</span><span class="n">Insn</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">16</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">BranchOffset</span> <span class="o">&gt;</span> <span class="mh">0x8fff</span><span class="p">)</span>
+      <span class="n">BranchOffset</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="mh">0x10000</span> <span class="o">-</span> <span class="n">BranchOffset</span><span class="p">);</span>
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">BranchOffset</span><span class="p">));</span>
+  <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Success</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">unsigned</span> <span class="n">adjustFixupValue</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Kind</span><span class="p">,</span> <span class="n">uint64_t</span> <span class="n">Value</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// Add/subtract and shift</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">fixup_Cpu0_PC16:</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">fixup_Cpu0_PC24:</span>
+    <span class="c1">// So far we are only using this type for branches.</span>
+    <span class="c1">// For branches we start 1 instruction after the branch</span>
+    <span class="c1">// so the displacement will be one instruction size less.</span>
+    <span class="n">Value</span> <span class="o">-=</span> <span class="mi">4</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+<span class="p">...</span>
+  <span class="k">const</span> <span class="n">MCFixupKindInfo</span> <span class="o">&amp;</span><span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">MCFixupKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="k">const</span> <span class="k">static</span> <span class="n">MCFixupKindInfo</span> <span class="n">Infos</span><span class="p">[</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">NumTargetFixupKinds</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="c1">// This table *must* be in same the order of fixup_* kinds in</span>
+      <span class="c1">// Cpu0FixupKinds.h.</span>
+      <span class="c1">//</span>
+      <span class="c1">// name                    offset  bits  flags</span>
+      <span class="p">...</span>
+      <span class="p">{</span> <span class="s">&quot;fixup_Cpu0_PC16&quot;</span><span class="p">,</span>         <span class="mi">0</span><span class="p">,</span>     <span class="mi">16</span><span class="p">,</span>  <span class="n">MCFixupKindInfo</span><span class="o">::</span><span class="n">FKF_IsPCRel</span> <span class="p">},</span>
+<span class="p">...</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0BaseInfo.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kr">inline</span> <span class="k">static</span> <span class="kt">unsigned</span> <span class="n">getCpu0RegisterNumbering</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">RegEnum</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">RegEnum</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">T0:</span>
+  <span class="p">...</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0FixupKinds.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">enum</span> <span class="n">Fixups</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// PC relative branch fixup resulting in - R_CPU0_PC16.</span>
+  <span class="c1">// cpu0 PC16, e.g. beq</span>
+  <span class="n">fixup_Cpu0_PC16</span><span class="p">,</span>
+  <span class="p">...</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
+<span class="n">getBranchTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+                       <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">Fixups</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MCFixup</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span>
+                                   <span class="n">MCFixupKind</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_PC16</span><span class="p">)));</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><pre>// Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
+def immLow16Zero : PatLeaf&lt;(imm), [{
+  int64_t Val = N-&gt;getSExtValue();
+  return isInt&lt;32&gt;(Val) &amp;&amp; !(Val &amp; 0xffff);
+}]&gt;;
+...
+class ArithOverflowR&lt;bits&lt;8&gt; op, string instr_asm,
+                    InstrItinClass itin, RegisterClass RC, bit isComm = 0&gt;:
+  FA&lt;op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
+     !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], itin&gt; {
+  let shamt = 0;
+  let isCommutable = isComm;
+}
+// Conditional Branch
+class CBranch&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op, RegisterClass RC&gt;:
+  FL&lt;op, (outs), (ins RC:$ra, RC:$rb, brtarget:$imm16),
+             !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
+             [(brcond (i32 (cond_op RC:$ra, RC:$rb)), bb:$imm16)], IIBranch&gt; {
+  let isBranch = 1;
+  let isTerminator = 1;
+  let hasDelaySlot = 1;
+  let Defs = [AT];
+}
+...
+// SetCC
+class SetCC_R&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op,
+              RegisterClass RC&gt;:
+  FA&lt;op, (outs CPURegs:$ra), (ins RC:$rb, RC:$rc),
+     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
+     [(set CPURegs:$ra, (cond_op RC:$rb, RC:$rc))],
+     IIAlu&gt; {
+  let shamt = 0;
+}
+
+class SetCC_I&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op, Operand Od,
+              PatLeaf imm_type, RegisterClass RC&gt;:
+  FL&lt;op, (outs CPURegs:$ra), (ins RC:$rb, Od:$imm16),
+     !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
+     [(set CPURegs:$ra, (cond_op RC:$rb, imm_type:$imm16))],
+     IIAlu&gt;;
+...
+/// Load and Store Instructions
+///  aligned
+defm LD     : LoadM32&lt;0x01,  "ld",  load_a&gt;;
+defm ST     : StoreM32&lt;0x02, "st",  store_a&gt;;
+
+/// Arithmetic Instructions (ALU Immediate)
+// add defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
+def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;
+def SLTi    : SetCC_I&lt;0x0a, "slti", setlt, simm16, immSExt16, CPURegs&gt;;
+def SLTiu   : SetCC_I&lt;0x0b, "sltiu", setult, simm16, immSExt16, CPURegs&gt;;
+def ANDi    : ArithLogicI&lt;0x0c, "andi", and, uimm16, immZExt16, CPURegs&gt;;
+def ORi     : ArithLogicI&lt;0x0d, "ori", or, uimm16, immZExt16, CPURegs&gt;;
+def XORi    : ArithLogicI&lt;0x0e, "xori", xor, uimm16, immZExt16, CPURegs&gt;;
+def LUi     : LoadUpper&lt;0x0f, "lui", CPURegs, uimm16&gt;;
+
+/// Arithmetic Instructions (3-Operand, R-Type)
+def ADDu    : ArithLogicR&lt;0x11, "addu", add, IIAlu, CPURegs, 1&gt;;
+def SUBu    : ArithLogicR&lt;0x12, "subu", sub, IIAlu, CPURegs&gt;;
+def ADD     : ArithOverflowR&lt;0x13, "add", IIAlu, CPURegs, 1&gt;;
+def SUB     : ArithOverflowR&lt;0x14, "sub", IIAlu, CPURegs&gt;;
+def MUL     : ArithLogicR&lt;0x15, "mul", mul, IIImul, CPURegs, 1&gt;;
+def DIV     : Div32&lt;Cpu0DivRem, 0x16, "div", IIIdiv&gt;;
+def DIVu    : Div32&lt;Cpu0DivRemU, 0x17, "divu", IIIdiv&gt;;
+def AND     : ArithLogicR&lt;0x18, "and", and, IIAlu, CPURegs, 1&gt;;
+def OR      : ArithLogicR&lt;0x19, "or", or, IIAlu, CPURegs, 1&gt;;
+def XOR     : ArithLogicR&lt;0x1A, "xor", xor, IIAlu, CPURegs, 1&gt;;
+
+def SLT     : SetCC_R&lt;0x20, "slt", setlt, CPURegs&gt;;
+def SLTu    : SetCC_R&lt;0x21, "sltu", setult, CPURegs&gt;;
+
+def MFHI    : MoveFromLOHI&lt;0x22, "mfhi", CPURegs, [HI]&gt;;
+def MFLO    : MoveFromLOHI&lt;0x23, "mflo", CPURegs, [LO]&gt;;
+def MTHI    : MoveToLOHI&lt;0x24, "mthi", CPURegs, [HI]&gt;;
+def MTLO    : MoveToLOHI&lt;0x25, "mtlo", CPURegs, [LO]&gt;;
+
+def MULT    : Mult32&lt;0x26, "mult", IIImul&gt;;
+def MULTu   : Mult32&lt;0x27, "multu", IIImul&gt;;
+...
+
+/// Jump and Branch Instructions
+def BEQ     : CBranch&lt;0x27, "beq", seteq, CPURegs&gt;;
+def BNE     : CBranch&lt;0x28, "bne", setne, CPURegs&gt;;
+
+def JMP     : UncondBranch&lt;0x26, "jmp"&gt;;
+
+/// Jump and Branch Instructions
+def SWI     : JumpLink&lt;0x2A, "swi"&gt;;
+def JSUB    : JumpLink&lt;0x2B, "jsub"&gt;;
+def JR      : JumpFR&lt;0x2C, "ret", CPURegs&gt;;
+
+let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
+    isBarrier=1, hasCtrlDep=1, addr=0 in
+  def RET   : FJ &lt;0x2C, (outs), (ins CPURegs:$target),
+                "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch&gt;;
+
+def IRET    : JumpFR&lt;0x2D, "iret", CPURegs&gt;;
+def JALR    : JumpLinkReg&lt;0x2E, "jalr", CPURegs&gt;;
+
+/// No operation
+let addr=0 in
+  def NOP   : FJ&lt;0, (outs), (ins), "nop", [], IIAlu&gt;;
+
+// FrameIndexes are legalized when they are operands from load/store
+// instructions. The same not happens for stack address copies, so an
+// add op with mem ComplexPattern is used and the stack address copy
+// can be matched. It's similar to Sparc LEA_ADDRi
+def LEA_ADDiu : EffectiveAddress&lt;"addiu\t$ra, $addr", CPURegs, mem_ea&gt; {
+  let isCodeGenOnly = 1;
+}
+
+//===----------------------------------------------------------------------===//
+//  Arbitrary patterns that map to one or more instructions
+//===----------------------------------------------------------------------===//
+
+// Small immediates
+...
+def : Pat&lt;(i32 immZExt16:$in),
+          (ORi ZERO, imm:$in)&gt;;
+def : Pat&lt;(i32 immLow16Zero:$in),
+          (LUi (HI16 imm:$in))&gt;;
+
+// Arbitrary immediates
+def : Pat&lt;(i32 imm:$imm),
+          (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))&gt;;
+...
+
+// gp_rel relocs
+...
+def : Pat&lt;(not CPURegs:$in),
+          (XORi CPURegs:$in, 1)&gt;;
+
+
+// brcond patterns
+multiclass BrcondPats&lt;RegisterClass RC, Instruction BEQOp, Instruction BNEOp,
+                      Instruction SLTOp, Instruction SLTuOp, Instruction SLTiOp,
+                      Instruction SLTiuOp, Register ZEROReg&gt; {
+def : Pat&lt;(brcond (i32 (setne RC:$lhs, 0)), bb:$dst),
+              (BNEOp RC:$lhs, ZEROReg, bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (seteq RC:$lhs, 0)), bb:$dst),
+              (BEQOp RC:$lhs, ZEROReg, bb:$dst)&gt;;
+
+def : Pat&lt;(brcond (i32 (setge RC:$lhs, RC:$rhs)), bb:$dst),
+              (BEQ (SLTOp RC:$lhs, RC:$rhs), ZERO, bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setuge RC:$lhs, RC:$rhs)), bb:$dst),
+              (BEQ (SLTuOp RC:$lhs, RC:$rhs), ZERO, bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setge RC:$lhs, immSExt16:$rhs)), bb:$dst),
+              (BEQ (SLTiOp RC:$lhs, immSExt16:$rhs), ZERO, bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setuge RC:$lhs, immSExt16:$rhs)), bb:$dst),
+              (BEQ (SLTiuOp RC:$lhs, immSExt16:$rhs), ZERO, bb:$dst)&gt;;
+
+def : Pat&lt;(brcond (i32 (setle RC:$lhs, RC:$rhs)), bb:$dst),
+              (BEQ (SLTOp RC:$rhs, RC:$lhs), ZERO, bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setule RC:$lhs, RC:$rhs)), bb:$dst),
+              (BEQ (SLTuOp RC:$rhs, RC:$lhs), ZERO, bb:$dst)&gt;;
+
+def : Pat&lt;(brcond RC:$cond, bb:$dst),
+              (BNEOp RC:$cond, ZEROReg, bb:$dst)&gt;;
+}
+
+defm : BrcondPats&lt;CPURegs, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO&gt;;
+
+// setcc patterns
+multiclass SeteqPats&lt;RegisterClass RC, Instruction SLTiuOp, Instruction XOROp,
+                     Instruction SLTuOp, Register ZEROReg&gt; {
+  def : Pat&lt;(seteq RC:$lhs, RC:$rhs),
+                (SLTiuOp (XOROp RC:$lhs, RC:$rhs), 1)&gt;;
+  def : Pat&lt;(setne RC:$lhs, RC:$rhs),
+                (SLTuOp ZEROReg, (XOROp RC:$lhs, RC:$rhs))&gt;;
+}
+
+multiclass SetlePats&lt;RegisterClass RC, Instruction SLTOp, Instruction SLTuOp&gt; {
+  def : Pat&lt;(setle RC:$lhs, RC:$rhs),
+                (XORi (SLTOp RC:$rhs, RC:$lhs), 1)&gt;;
+  def : Pat&lt;(setule RC:$lhs, RC:$rhs),
+                (XORi (SLTuOp RC:$rhs, RC:$lhs), 1)&gt;;
+}
+
+multiclass SetgtPats&lt;RegisterClass RC, Instruction SLTOp, Instruction SLTuOp&gt; {
+  def : Pat&lt;(setgt RC:$lhs, RC:$rhs),
+                (SLTOp RC:$rhs, RC:$lhs)&gt;;
+  def : Pat&lt;(setugt RC:$lhs, RC:$rhs),
+                (SLTuOp RC:$rhs, RC:$lhs)&gt;;
+}
+
+multiclass SetgePats&lt;RegisterClass RC, Instruction SLTOp, Instruction SLTuOp&gt; {
+  def : Pat&lt;(setge RC:$lhs, RC:$rhs),
+                (XORi (SLTOp RC:$lhs, RC:$rhs), 1)&gt;;
+  def : Pat&lt;(setuge RC:$lhs, RC:$rhs),
+                (XORi (SLTuOp RC:$lhs, RC:$rhs), 1)&gt;;
+}
+
+multiclass SetgeImmPats&lt;RegisterClass RC, Instruction SLTiOp,
+                        Instruction SLTiuOp&gt; {
+  def : Pat&lt;(setge RC:$lhs, immSExt16:$rhs),
+                (XORi (SLTiOp RC:$lhs, immSExt16:$rhs), 1)&gt;;
+  def : Pat&lt;(setuge RC:$lhs, immSExt16:$rhs),
+                (XORi (SLTiuOp RC:$lhs, immSExt16:$rhs), 1)&gt;;
+}
+
+defm : SeteqPats&lt;CPURegs, SLTiu, XOR, SLTu, ZERO&gt;;
+defm : SetlePats&lt;CPURegs, SLT, SLTu&gt;;
+defm : SetgtPats&lt;CPURegs, SLT, SLTu&gt;;
+defm : SetgePats&lt;CPURegs, SLT, SLTu&gt;;
+defm : SetgeImmPats&lt;CPURegs, SLTi, SLTiu&gt;;</pre>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0MCInstLower.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="o">/</span> <span class="n">Lower</span> <span class="s">&quot;.cpload $reg&quot;</span> <span class="n">to</span>
+<span class="c1">//  &quot;lui   $gp, %hi(_gp_disp)&quot;</span>
+<span class="c1">//  &quot;addiu $gp, $gp, %lo(_gp_disp)&quot;</span>
+<span class="c1">//  &quot;addu  $gp, $gp, $t9&quot;</span>
+<span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerCPLOAD</span><span class="p">(</span><span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;&amp;</span> <span class="n">MCInsts</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">MCInsts</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
+
+  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">ZEROReg</span><span class="p">,</span> <span class="n">SymHi</span><span class="p">);</span>
+  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">SymLo</span><span class="p">);</span>
+  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">T9Reg</span><span class="p">);</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="c1">// Lower &quot;.cprestore offset&quot; to &quot;st $gp, offset($sp)&quot;.</span>
+<span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerCPRESTORE</span><span class="p">(</span><span class="n">int64_t</span> <span class="n">Offset</span><span class="p">,</span>
+                                     <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;&amp;</span> <span class="n">MCInsts</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="c1">// lui   at,hi</span>
+    <span class="c1">// add   at,at,sp</span>
+    <span class="n">MCInsts</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+    <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">ZEROReg</span><span class="p">,</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">Hi</span><span class="p">));</span>
+    <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">SPReg</span><span class="p">);</span>
+  <span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0RegisterInfo.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span> <span class="n">in</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">def</span> <span class="n">T0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">12</span><span class="p">,</span> <span class="s">&quot;t0&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="n">def</span> <span class="n">CPURegs</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span>
+  <span class="n">T0</span><span class="p">,</span>
+  <span class="c1">// Reserved</span>
+  <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="c1">// Remove SR RegisterClass since no SW in General register</span>
+<span class="c1">// Status Registers</span>
+<span class="cm">/* def SR   : RegisterClass&lt;&quot;Cpu0&quot;, [i32], 32, (add SW)&gt;;*/</span>
+</pre></div>
+</div>
+<p>As modified from above, it remove the CMP instruction, SW register and
+related code from Chapter11_1/, and change from JEQ 24bits offset to BEQ 16 bits
+offset. And more, replace &#8220;ADDiu, SHL 16&#8221; with the efficient LUi instruction.</p>
+</div>
+<div class="section" id="cpu0-verilog-language-changes">
+<h3>Cpu0 Verilog language changes<a class="headerlink" href="#cpu0-verilog-language-changes" title="Permalink to this headline">¶</a></h3>
+<p class="rubric">LLVMBackendTutorialExampleCode/cpu0_verilog/redesign/cpu0s.v</p>
+<div class="highlight-c++"><pre>`define MEMSIZE 'h7000
+`define MEMEMPTY 8'hFF
+`define IOADDR  'h7000
+
+// Operand width
+`define INT32 2'b11     // 32 bits
+`define INT24 2'b10     // 24 bits
+`define INT16 2'b01     // 16 bits
+`define BYTE  2'b00     // 8  bits
+
+// Reference web: http://ccckmit.wikidot.com/ocs:cpu0
+module cpu0(input clock, reset, output reg [2:0] tick, 
+            output reg [31:0] ir, pc, mar, mdr, inout [31:0] dbus, 
+            output reg m_en, m_rw, output reg [1:0] m_size);
+  reg signed [31:0] R [0:15], HI, LO, SW; 
+  // HI, LO: High and Low part of 64 bit result
+  // SW: Status Word
+  reg [7:0] op;
+  reg [3:0] a, b, c;
+  reg [4:0] c5;
+  reg signed [31:0] c12, c16, uc16, c24, Ra, Rb, Rc, pc0; // pc0 : instruction pc
+
+  // register name
+  `define PC   R[15]   // Program Counter
+  `define LR   R[14]   // Link Register
+  `define SP   R[13]   // Stack Pointer
+  // SW Flage
+  `define N    SW[31] // Negative flag
+  `define Z    SW[30] // Zero
+  `define C    SW[29] // Carry
+  `define V    SW[28] // Overflow
+  `define I    SW[7]  // Hardware Interrupt Enable
+  `define T    SW[6]  // Software Interrupt Enable
+  `define M    SW[0]  // Mode bit
+  // Instruction Opcode 
+  parameter [7:0] LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,LH=8'h06,
+  LHu=8'h07,SH=8'h08,ADDiu=8'h09,SLTi=8'h0A,SLTiu=8'h0B,ANDi=8'h0C,ORi=8'h0D,
+  XORi=8'h0E,LUi=8'h0F,
+  ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,MUL=8'h15,DIV=8'h16,DIVu=8'h17,
+  AND=8'h18,OR=8'h19,XOR=8'h1A,
+  SRA=8'h1B,ROL=8'h1C,ROR=8'h1D,SHL=8'h1E,SHR=8'h1F,
+  SLT=8'h20,SLTu=8'h21,
+  MFHI=8'h22,MFLO=8'h23,MTHI=8'h24,MTLO=8'h25,MULT=8'h26,MULTu=8'h27,
+  JMP=8'h26,BEQ=8'h27,BNE=8'h28,
+  SWI=8'h2A,JSUB=8'h2B,RET=8'h2C,IRET=8'h2D,JALR=8'h2E;
+  
+  reg [2:0] state, next_state;
+  parameter Reset=3'h0, Fetch=3'h1, Decode=3'h2, Execute=3'h3, WriteBack=3'h4;
+
+  task memReadStart(input [31:0] addr, input [1:0] size); begin // Read Memory Word
+    mar = addr;     // read(m[addr])
+    m_rw = 1;     // Access Mode: read 
+    m_en = 1;     // Enable read
+    m_size = size;
+  end endtask
+
+  task memReadEnd(output [31:0] data); begin // Read Memory Finish, get data
+    mdr = dbus; // get momory, dbus = m[addr]
+    data = mdr; // return to data
+    m_en = 0; // read complete
+  end endtask
+
+  // Write memory -- addr: address to write, data: date to write
+  task memWriteStart(input [31:0] addr, input [31:0] data, input [1:0] size); begin 
+    mar = addr;    // write(m[addr], data)
+    mdr = data;
+    m_rw = 0;    // access mode: write
+    m_en = 1;     // Enable write
+    m_size  = size;
+  end endtask
+
+  task memWriteEnd; begin // Write Memory Finish
+    m_en = 0; // write complete
+  end endtask
+
+  task regSet(input [3:0] i, input [31:0] data); begin
+    if (i!=0) R[i] = data;
+  end endtask
+
+  task regHILOSet(input [31:0] data1, input [31:0] data2); begin
+    HI = data1;
+    LO = data2;
+  end endtask
+
+  always @(posedge clock or posedge reset) begin
+    if (reset) state &lt;= Reset; 
+    else state &lt;= next_state;
+  end
+  
+  always @(state or reset) begin
+    m_en = 0;
+    case (state)    
+    Reset: begin 
+      `PC = 0; tick = 0; R[0] = 0; SW = 0; `LR = -1; 
+      next_state = reset?Reset:Fetch;
+    end
+    Fetch: begin  // Tick 1 : instruction fetch, throw PC to address bus, 
+                  // memory.read(m[PC])
+      memReadStart(`PC, `INT32);
+      pc0  = `PC;
+      `PC = `PC+4;
+      next_state = Decode;
+    end
+    Decode: begin  // Tick 2 : instruction decode, ir = m[PC]
+      memReadEnd(ir); // IR = dbus = m[PC]
+      {op,a,b,c} = ir[31:12];
+      c24 = $signed(ir[23:0]);
+      c16 = $signed(ir[15:0]);
+      uc16 = ir[15:0];
+      c12 = $signed(ir[11:0]);
+      c5  = ir[4:0];
+      Ra = R[a];
+      Rb = R[b];
+      Rc = R[c];
+      next_state = Execute;
+    end
+    Execute: begin // Tick 3 : instruction execution
+      case (op)
+      // load and store instructions
+      LD:  memReadStart(Rb+c16, `INT32);      // LD Ra,[Rb+Cx]; Ra&lt;=[Rb+Cx]
+      ST:  memWriteStart(Rb+c16, Ra, `INT32); // ST Ra,[Rb+Cx]; Ra=&gt;[Rb+Cx]
+      LB:  memReadStart(Rb+c16, `BYTE);     // LB Ra,[Rb+Cx]; Ra&lt;=(byte)[Rb+Cx]
+      LBu: memReadStart(Rb+c16, `BYTE);     // LBu Ra,[Rb+Cx]; Ra&lt;=(byte)[Rb+Cx]
+      SB:  memWriteStart(Rb+c16, Ra, `BYTE);// SB Ra,[Rb+Cx]; Ra=&gt;(byte)[Rb+Cx]
+      LH:  memReadStart(Rb+c16, `INT16);     // LH Ra,[Rb+Cx]; Ra&lt;=(2bytes)[Rb+Cx]
+      LHu: memReadStart(Rb+c16, `INT16);     // LHu Ra,[Rb+Cx]; Ra&lt;=(2bytes)[Rb+Cx]
+      SH:  memWriteStart(Rb+c16, Ra, `INT16);// SH Ra,[Rb+Cx]; Ra=&gt;(2bytes)[Rb+Cx]
+      // Mathematic 
+      ADDiu:  R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra&lt;=Rb+Cx
+//      CMP: begin `N=(Ra-Rb&lt;0);`Z=(Ra-Rb==0); end // CMP Ra, Rb; SW=(Ra &gt;=&lt; Rb)
+      ADDu:  regSet(a, Rb+Rc);               // ADD Ra,Rb,Rc; Ra&lt;=Rb+Rc
+      ADD:   begin regSet(a, Rb+Rc); if (a &lt; Rb) `V = 1; else `V =0; end
+                                             // ADD Ra,Rb,Rc; Ra&lt;=Rb+Rc
+      SUBu:  regSet(a, Rb-Rc);               // SUB Ra,Rb,Rc; Ra&lt;=Rb-Rc
+      SUB:   begin regSet(a, Rb-Rc); if (Rb &lt; 0 &amp;&amp; Rc &gt; 0 &amp;&amp; a &gt;= 0) 
+             `V = 1; else `V =0; end         // SUB Ra,Rb,Rc; Ra&lt;=Rb-Rc
+      MUL:   regSet(a, Rb*Rc);               // MUL Ra,Rb,Rc;     Ra&lt;=Rb*Rc
+      DIVu:  regHILOSet(Ra%Rb, Ra/Rb);       // DIV Ra,Rb; HI&lt;=Ra%Rb; LO&lt;=Ra/Rb
+      DIV:   begin regHILOSet(Ra%Rb, Ra/Rb); 
+             if ((Ra &lt; 0 &amp;&amp; Rb &lt; 0) || (Ra == 0)) `V = 1; 
+             else `V =0; end  // DIVu Ra,Rb; HI&lt;=Ra%Rb; LO&lt;=Ra/Rb; With overflow
+                                           // with exception overflow
+      AND:   regSet(a, Rb&amp;Rc);               // AND Ra,Rb,Rc; Ra&lt;=(Rb and Rc)
+      ANDi:  regSet(a, Rb&amp;uc16);             // AND Ra,Rb,c16; Ra&lt;=(Rb and c16)
+      OR:    regSet(a, Rb|Rc);               // OR Ra,Rb,Rc; Ra&lt;=(Rb or Rc)
+      ORi:   regSet(a, Rb|uc16);             // OR Ra,Rb,c16; Ra&lt;=(Rb or c16)
+      XOR:   regSet(a, Rb^Rc);               // XOR Ra,Rb,Rc; Ra&lt;=(Rb xor Rc)
+      XORi:  regSet(a, Rb^uc16);             // XOR Ra,Rb,c16; Ra&lt;=(Rb xor c16)
+      LUi:   regSet(a, uc16&lt;&lt;16);
+      SHL:   regSet(a, Rb&lt;&lt;c5);     // Shift Left; SHL Ra,Rb,Cx; Ra&lt;=(Rb &lt;&lt; Cx)
+      SRA:   regSet(a, (Rb&amp;'h80000000)|(Rb&gt;&gt;c5)); 
+                                    // Shift Right with signed bit fill;
+                                    // SHR Ra,Rb,Cx; Ra&lt;=(Rb&amp;0x80000000)|(Rb&gt;&gt;Cx)
+      SHR:   regSet(a, Rb&gt;&gt;c5);     // Shift Right with 0 fill; 
+                                    // SHR Ra,Rb,Cx; Ra&lt;=(Rb &gt;&gt; Cx)
+      ROL:   regSet(a, (Rb&lt;&lt;c5)|(Rb&gt;&gt;(32-c5)));     // Rotate Left;
+      ROR:   regSet(a, (Rb&gt;&gt;c5)|(Rb&lt;&lt;(32-c5)));     // Rotate Right;
+      // set
+      SLT:   if (Rb &lt; Rc) R[a]=1; else R[a]=0;
+      SLTu:  if (Rb &lt; Rc) R[a]=1; else R[a]=0;
+      SLTi:  if (Rb &lt; c16) R[a]=1; else R[a]=0;
+      SLTiu: if (Rb &lt; c16) R[a]=1; else R[a]=0;
+      // Branch Instructions
+      BEQ:   if (Ra==Rb) `PC=`PC+c16; 
+      BNE:   if (Ra!=Rb) `PC=`PC+c16;
+      MFLO:  regSet(a, LO);            // MFLO Ra; Ra&lt;=LO
+      MFHI:  regSet(a, HI);            // MFHI Ra; Ra&lt;=HI
+      MTLO:  LO = Ra;             // MTLO Ra; LO&lt;=Ra
+      MTHI:  HI = Ra;             // MTHI Ra; HI&lt;=Ra
+      MULT:  {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI&lt;=((Ra*Rb)&gt;&gt;32); 
+                            // LO&lt;=((Ra*Rb) and 0x00000000ffffffff);
+                            // with exception overflow
+      MULTu: {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI&lt;=((Ra*Rb)&gt;&gt;32); 
+                            // LO&lt;=((Ra*Rb) and 0x00000000ffffffff);
+                            // without exception overflow
+      // Jump Instructions
+      JMP: `PC = `PC+c24;                  // JMP Cx; PC &lt;= PC+Cx
+      SWI: begin 
+        `LR=`PC;`PC= c24; `I = 1'b1; 
+      end // Software Interrupt; SWI Cx; LR &lt;= PC; PC &lt;= Cx; INT&lt;=1
+      JSUB:begin `LR=`PC;`PC=`PC + c24; end // JSUB Cx; LR&lt;=PC; PC&lt;=PC+Cx
+      JALR:begin `LR=`PC;`PC=Ra; end // JALR Ra,Rb; Ra&lt;=PC; PC&lt;=Rb
+      RET: begin `PC=`LR; end               // RET; PC &lt;= LR
+      IRET:begin 
+        `PC=`LR;`I = 1'b0; 
+      end // Interrupt Return; IRET; PC &lt;= LR; INT&lt;=0
+      endcase
+      next_state = WriteBack;
+    end
+    WriteBack: begin // Read/Write finish, close memory
+      case (op)
+        LD, LB, LBu, LH, LHu  : memReadEnd(R[a]); 
+                                          //read memory complete
+        ST, SB, SH  : memWriteEnd(); 
+                                          // write memory complete
+      endcase
+      case (op)
+      MULT, MULTu, DIV, DIVu, MTHI, MTLO :
+        $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
+        LO, SW);
+      ST :
+        if (R[b]+c16 == `IOADDR)
+          $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);
+        else
+          $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d   SW=%8x", $stime, pc0, ir, 
+          R[b], c16, R[a], SW);
+      default : 
+        $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a, 
+        R[a], R[a], SW);
+      endcase
+      SW = 0; // clear SW
+      if (op==RET &amp;&amp; `PC &lt; 0) begin
+        $display("RET to PC &lt; 0, finished!");
+        $finish;
+      end
+      next_state = Fetch;
+    end                
+    endcase
+    pc = `PC;
+  end
+
+endmodule
+
+module memory0(input clock, reset, en, rw, input [1:0] m_size, 
+                input [31:0] abus, dbus_in, output [31:0] dbus_out);
+  reg [7:0] m [0:`MEMSIZE-1];
+  reg [31:0] data;
+
+  integer i;
+  initial begin
+    for (i=0; i &lt; `MEMSIZE; i=i+1) begin
+       m[i] = `MEMEMPTY;
+    end
+    $readmemh("cpu0s.hex", m);
+    for (i=0; i &lt; `MEMSIZE &amp;&amp; m[i] != `MEMEMPTY; i=i+4) begin
+       $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
+    end
+  end
+
+  always @(clock or abus or en or rw or dbus_in) 
+  begin
+    if (abus &gt;=0 &amp;&amp; abus &lt;= `MEMSIZE-4) begin
+      if (en == 1 &amp;&amp; rw == 0) begin // r_w==0:write
+        data = dbus_in;
+        case (m_size)
+        `BYTE:  {m[abus]} = dbus_in[7:0];
+        `INT16: {m[abus], m[abus+1] } = dbus_in[15:0];
+        `INT24: {m[abus], m[abus+1], m[abus+2]} = dbus_in[24:0];
+        `INT32: {m[abus], m[abus+1], m[abus+2], m[abus+3]} = dbus_in;
+        endcase
+      end else if (en == 1 &amp;&amp; rw == 1) begin// r_w==1:read
+        case (m_size)
+        `BYTE:  data = {8'h00  , 8'h00,   8'h00,   m[abus]      };
+        `INT16: data = {8'h00  , 8'h00,   m[abus], m[abus+1]    };
+        `INT24: data = {8'h00  , m[abus], m[abus+1], m[abus+2]  };
+        `INT32: data = {m[abus], m[abus+1], m[abus+2], m[abus+3]};
+        endcase
+      end else
+        data = 32'hZZZZZZZZ;
+    end else
+      data = 32'hZZZZZZZZ;
+  end
+  assign dbus_out = data;
+endmodule
+
+module main;
+  reg clock, reset;
+  wire [2:0] tick;
+  wire [31:0] pc, ir, mar, mdr, dbus;
+  wire m_en, m_rw;
+  wire [1:0] m_size;
+
+  cpu0 cpu(.clock(clock), .reset(reset), .pc(pc), .tick(tick), .ir(ir),
+  .mar(mar), .mdr(mdr), .dbus(dbus), .m_en(m_en), .m_rw(m_rw), .m_size(m_size));
+
+  memory0 mem(.clock(clock), .reset(reset), .en(m_en), .rw(m_rw), .m_size(m_size), 
+  .abus(mar), .dbus_in(mdr), .dbus_out(dbus));
+
+  initial
+  begin
+    clock = 0;
+    reset = 1;
+    #20 reset = 0;
+    #300000 $finish;
+  end
+
+  always #10 clock=clock+1;
+endmodule
+</pre>
+</div>
+</div>
+<div class="section" id="run-the-redesigned-cpu0">
+<h3>Run the redesigned Cpu0<a class="headerlink" href="#run-the-redesigned-cpu0" title="Permalink to this headline">¶</a></h3>
+<p>Run Chapter11_2/ with ch11_2.cpp to get result as below.
+It match the expect value as comment in ch11_2.cpp.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch11_2.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">#include &quot;InitRegs.h&quot;</span>
+
+<span class="cp">#define OUT_MEM 0x7000 </span><span class="c1">// 28672</span>
+
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $zero, 0x6ffc&quot;</span><span class="p">);</span>
+
+<span class="kt">void</span> <span class="n">print_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">);</span>
+<span class="kt">int</span> <span class="n">test_operators</span><span class="p">();</span>
+<span class="kt">void</span> <span class="n">test_operators_asm</span><span class="p">();</span>
+<span class="kt">int</span> <span class="n">test_control</span><span class="p">();</span>
+
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_operators</span><span class="p">();</span> <span class="c1">// a = 13</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+  <span class="n">a</span> <span class="o">+=</span> <span class="n">test_control</span><span class="p">();</span>	<span class="c1">// a = 31</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+  <span class="n">test_operators_asm</span><span class="p">();</span>
+
+  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// For memory mapped I/O</span>
+<span class="kt">void</span> <span class="n">print_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">)</span><span class="n">OUT_MEM</span><span class="p">;</span>
+  <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">x</span><span class="p">;</span>
+ <span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">test_operators</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="n">k1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">b1</span> <span class="o">=</span> <span class="mh">0xf0000001</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">c1</span> <span class="o">=</span> <span class="mh">0x000fffff</span><span class="p">;</span>
+
+  <span class="n">a1</span> <span class="o">=</span> <span class="n">b1</span> <span class="o">+</span> <span class="n">c1</span><span class="p">;</span>
+  <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
+<span class="c1">//  c = 0x7fff0000 + 0x10000000;</span>
+  <span class="n">d</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">;</span>
+  <span class="n">e</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">;</span>
+  <span class="n">f</span> <span class="o">=</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span><span class="p">;</span>
+  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="mi">12</span><span class="p">;</span>
+  <span class="n">g</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&amp;</span> <span class="n">b</span><span class="p">);</span>
+  <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">|</span> <span class="n">b</span><span class="p">);</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">^</span> <span class="n">b</span><span class="p">);</span>
+  <span class="n">j</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">);</span>
+  <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">k</span><span class="p">);</span>
+  <span class="n">k1</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
+  <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">k1</span><span class="p">);</span>
+
+  <span class="n">b</span> <span class="o">=</span> <span class="o">!</span><span class="n">a</span><span class="p">;</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">p</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">;</span>
+  
+  <span class="k">return</span> <span class="n">c</span><span class="p">;</span> <span class="c1">// 13</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">test_operators_asm</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $sp, -12&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;st $2, 8($sp)&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;st $3, 4($sp)&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;st $4, 0($sp)&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $2, 0x7fff&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $3, 0x1000&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addu $4, $2, $3&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $2, 0x7fff&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $3, 0x1000&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;add $4, $2, $3&quot;</span><span class="p">);</span>	<span class="c1">// overflow</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $2, 0x8fff&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $3, 0x7000&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;sub $4, $2, $3&quot;</span><span class="p">);</span>	<span class="c1">// overflow</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $2, 0x0&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $3, $0, -1&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;sub $4, $2, $3&quot;</span><span class="p">);</span>	<span class="c1">// $4=1, no overflow</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $2, -1&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ori $2, $2, 0xffff&quot;</span><span class="p">);</span>	<span class="c1">// $2=0xffffffff=-1</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;andi $2, $2, 0xffff&quot;</span><span class="p">);</span>	<span class="c1">// $2=0x0000ffff</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;shl $2, $2, 16&quot;</span><span class="p">);</span>	<span class="c1">// $2=0xffff0000</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;xori $2, $2, 0xffff&quot;</span><span class="p">);</span>	<span class="c1">// $2=0xffffffff=-1</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $3, $0, -1&quot;</span><span class="p">);</span>	<span class="c1">// $3=0xffffffff=-1</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;divu $2, $3&quot;</span><span class="p">);</span>		<span class="c1">// HI=0, LO=1</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;div $2, $3&quot;</span><span class="p">);</span>		<span class="c1">// HI=0, LO=1, overflow</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;xori $2, $2, 1&quot;</span><span class="p">);</span>	<span class="c1">// $2 = 0xffffffffe</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;rol $4, $2, 4&quot;</span><span class="p">);</span>		<span class="c1">// $2 = 0xfffffffef</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ror $4, $2, 8&quot;</span><span class="p">);</span>		<span class="c1">// $2 = 0xfefffffff</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld $2, 8($sp)&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld $3, 4($sp)&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld $4, 0($sp)&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $sp, 12&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">test_control</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">e</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">f</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+  
+  <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">b</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">c</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">d</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">d</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">e</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">e</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">f</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">f</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  
+  <span class="k">return</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="n">c</span><span class="o">+</span><span class="n">d</span><span class="o">+</span><span class="n">e</span><span class="o">+</span><span class="n">f</span><span class="p">);</span> <span class="c1">// (2+3+4+4+5)=18</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<div class="highlight-bash"><pre>118-165-77-203:InputFiles Jonathan$ clang -target `llvm-config --host-target`
+-c ch11_2.cpp -emit-llvm -o ch11_2.bc
+118-165-77-203:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=obj -stats
+ch11_2.bc -o ch11_2.cpu0.o
+===-------------------------------------------------------------------------===
+                          ... Statistics Collected ...
+===-------------------------------------------------------------------------===
+  ...
+   5 del-jmp     - Number of useless jmp deleted
+  ...
+
+118-165-77-203:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llvm-objdump -d ch11_2.cpu0.o | tail -n +6| awk '{print "/* " $1
+" */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t
+
+118-165-77-203:redesign Jonathan$ ./cpu0s
+WARNING: cpu0s.v:227: $readmemh(cpu0s.hex): Not enough words in the file for
+the requested range [0:1536].
+00000000: 09100000
+00000004: 09200000
+00000008: 09300000
+0000000c: 09400000
+00000010: 09500000
+00000014: 09600000
+00000018: 09700000
+0000001c: 09800000
+00000020: 09900000
+00000024: 09a00000
+00000028: 09b00000
+0000002c: 09c00000
+00000030: 09e0ffff
+00000034: 09d005fc
+00000038: 09ddffe0
+0000003c: 02ed001c
+00000040: 09200000
+00000044: 022d0018
+00000048: 022d0014
+0000004c: 2b000038
+00000050: 022d0014
+00000054: 022d0000
+00000058: 2b000190
+0000005c: 2b0001b0
+00000060: 013d0014
+00000064: 11232000
+00000068: 022d0014
+0000006c: 022d0000
+00000070: 2b000178
+00000074: 2b00026c
+00000078: 012d0014
+0000007c: 01ed001c
+00000080: 09dd0020
+00000084: 2c000000
+00000088: 09ddffa0
+0000008c: 02ed005c
+00000090: 027d0058
+00000094: 0920000b
+00000098: 022d0054
+0000009c: 09200002
+000000a0: 022d0050
+000000a4: 09700000
+000000a8: 027d004c
+000000ac: 027d0048
+000000b0: 027d0028
+000000b4: 0920fffb
+000000b8: 022d0024
+000000bc: 027d0020
+000000c0: 0f20f000
+000000c4: 0d220001
+000000c8: 022d001c
+000000cc: 0f20000f
+000000d0: 0d22ffff
+000000d4: 022d0018
+000000d8: 013d001c
+000000dc: 11232000
+000000e0: 022d0024
+000000e4: 012d0050
+000000e8: 013d0054
+000000ec: 11232000
+000000f0: 022d004c
+000000f4: 012d0050
+000000f8: 013d0054
+000000fc: 12232000
+00000100: 022d0048
+00000104: 012d0050
+00000108: 013d0054
+0000010c: 15232000
+00000110: 022d0044
+00000114: 012d0050
+00000118: 013d0054
+0000011c: 16320000
+00000120: 23200000
+00000124: 022d0040
+00000128: 0f202aaa
+0000012c: 0d32aaab
+00000130: 012d0054
+00000134: 09220001
+00000138: 26230000
+0000013c: 22300000
+00000140: 1f43001f
+00000144: 1b330001
+00000148: 11334000
+0000014c: 0940000c
+00000150: 15334000
+00000154: 12223000
+00000158: 022d0050
+0000015c: 013d0054
+00000160: 18232000
+00000164: 022d003c
+00000168: 012d0050
+0000016c: 013d0054
+00000170: 19232000
+00000174: 022d0038
+00000178: 012d0050
+0000017c: 013d0054
+00000180: 1a232000
+00000184: 022d0034
+00000188: 012d0054
+0000018c: 1e220002
+00000190: 022d0030
+00000194: 012d0054
+00000198: 1b220002
+0000019c: 022d002c
+000001a0: 022d0000
+000001a4: 2b000044
+000001a8: 012d0024
+000001ac: 1f220002
+000001b0: 022d0020
+000001b4: 022d0000
+000001b8: 2b000030
+000001bc: 012d0054
+000001c0: 1a227000
+000001c4: 0b220001
+000001c8: 0c220001
+000001cc: 022d0050
+000001d0: 092d0050
+000001d4: 022d0014
+000001d8: 012d004c
+000001dc: 017d0058
+000001e0: 01ed005c
+000001e4: 09dd0060
+000001e8: 2c000000
+000001ec: 09ddfff8
+000001f0: 012d0008
+000001f4: 022d0004
+000001f8: 09207000
+000001fc: 022d0000
+00000200: 013d0004
+00000204: 02320000
+00000208: 09dd0008
+0000020c: 2c000000
+00000210: 09ddffe8
+00000214: 09200001
+00000218: 022d0014
+0000021c: 09200002
+00000220: 022d0010
+00000224: 09200003
+00000228: 022d000c
+0000022c: 09200004
+00000230: 022d0008
+00000234: 09200005
+00000238: 022d0004
+0000023c: 012d0014
+00000240: 2720000c
+00000244: 012d0014
+00000248: 09220001
+0000024c: 022d0014
+00000250: 012d0010
+00000254: 0a220001
+00000258: 2820000c
+0000025c: 012d0010
+00000260: 09220001
+00000264: 022d0010
+00000268: 012d000c
+0000026c: 0a220000
+00000270: 2820000c
+00000274: 012d000c
+00000278: 09220001
+0000027c: 022d000c
+00000280: 012d0008
+00000284: 0930ffff
+00000288: 20232000
+0000028c: 2820000c
+00000290: 012d0008
+00000294: 09220001
+00000298: 022d0008
+0000029c: 012d0004
+000002a0: 09300000
+000002a4: 20232000
+000002a8: 2820000c
+000002ac: 012d0004
+000002b0: 09220001
+000002b4: 022d0004
+000002b8: 012d0010
+000002bc: 013d0014
+000002c0: 11232000
+000002c4: 013d000c
+000002c8: 11223000
+000002cc: 013d0008
+000002d0: 11223000
+000002d4: 013d0004
+000002d8: 11223000
+000002dc: 09dd0018
+000002e0: 2c000000
+000002e4: 09ddfff4
+000002e8: 022d0008
+000002ec: 023d0004
+000002f0: 024d0000
+000002f4: 0f207fff
+000002f8: 0f301000
+000002fc: 11423000
+00000300: 0f207fff
+00000304: 0f301000
+00000308: 13423000
+0000030c: 0f208fff
+00000310: 0f307000
+00000314: 14423000
+00000318: 0f200000
+0000031c: 0930ffff
+00000320: 14423000
+00000324: 0f20ffff
+00000328: 0d22ffff
+0000032c: 0c22ffff
+00000330: 1e220010
+00000334: 0e22ffff
+00000338: 0930ffff
+0000033c: 17230000
+00000340: 16230000
+00000344: 0e220001
+00000348: 1c421004
+0000034c: 1d421008
+00000350: 012d0008
+00000354: 013d0004
+00000358: 014d0000
+0000035c: 09dd000c
+00000360: 2c000000
+  90ns 00000000 : 09100000 R[01]=00000000=0          SW=00000000
+ 170ns 00000004 : 09200000 R[02]=00000000=0          SW=00000000
+ 250ns 00000008 : 09300000 R[03]=00000000=0          SW=00000000
+ 330ns 0000000c : 09400000 R[04]=00000000=0          SW=00000000
+ 410ns 00000010 : 09500000 R[05]=00000000=0          SW=00000000
+ 490ns 00000014 : 09600000 R[06]=00000000=0          SW=00000000
+ 570ns 00000018 : 09700000 R[07]=00000000=0          SW=00000000
+ 650ns 0000001c : 09800000 R[08]=00000000=0          SW=00000000
+ 730ns 00000020 : 09900000 R[09]=00000000=0          SW=00000000
+ 810ns 00000024 : 09a00000 R[10]=00000000=0          SW=00000000
+ 890ns 00000028 : 09b00000 R[11]=00000000=0          SW=00000000
+ 970ns 0000002c : 09c00000 R[12]=00000000=0          SW=00000000
+1050ns 00000030 : 09e0ffff R[14]=ffffffff=-1         SW=00000000
+1130ns 00000034 : 09d005fc R[13]=000005fc=1532       SW=00000000
+1210ns 00000038 : 09ddffe0 R[13]=000005dc=1500       SW=00000000
+1290ns 0000003c : 02ed001c m[1500+28  ]=-1           SW=00000000
+1370ns 00000040 : 09200000 R[02]=00000000=0          SW=00000000
+1450ns 00000044 : 022d0018 m[1500+24  ]=0            SW=00000000
+1530ns 00000048 : 022d0014 m[1500+20  ]=0            SW=00000000
+1610ns 0000004c : 2b000038 R[00]=00000000=0          SW=00000000
+1690ns 00000088 : 09ddffa0 R[13]=0000057c=1404       SW=00000000
+1770ns 0000008c : 02ed005c m[1404+92  ]=80           SW=00000000
+1850ns 00000090 : 027d0058 m[1404+88  ]=0            SW=00000000
+1930ns 00000094 : 0920000b R[02]=0000000b=11         SW=00000000
+2010ns 00000098 : 022d0054 m[1404+84  ]=11           SW=00000000
+2090ns 0000009c : 09200002 R[02]=00000002=2          SW=00000000
+2170ns 000000a0 : 022d0050 m[1404+80  ]=2            SW=00000000
+2250ns 000000a4 : 09700000 R[07]=00000000=0          SW=00000000
+2330ns 000000a8 : 027d004c m[1404+76  ]=0            SW=00000000
+2410ns 000000ac : 027d0048 m[1404+72  ]=0            SW=00000000
+2490ns 000000b0 : 027d0028 m[1404+40  ]=0            SW=00000000
+2570ns 000000b4 : 0920fffb R[02]=fffffffb=-5         SW=00000000
+2650ns 000000b8 : 022d0024 m[1404+36  ]=-5           SW=00000000
+2730ns 000000bc : 027d0020 m[1404+32  ]=0            SW=00000000
+2810ns 000000c0 : 0f20f000 R[02]=f0000000=-268435456 SW=00000000
+2890ns 000000c4 : 0d220001 R[02]=f0000001=-268435455 SW=00000000
+2970ns 000000c8 : 022d001c m[1404+28  ]=-268435455   SW=00000000
+3050ns 000000cc : 0f20000f R[02]=000f0000=983040     SW=00000000
+3130ns 000000d0 : 0d22ffff R[02]=000fffff=1048575    SW=00000000
+3210ns 000000d4 : 022d0018 m[1404+24  ]=1048575      SW=00000000
+3290ns 000000d8 : 013d001c R[03]=f0000001=-268435455 SW=00000000
+3370ns 000000dc : 11232000 R[02]=f0100000=-267386880 SW=00000000
+3450ns 000000e0 : 022d0024 m[1404+36  ]=-267386880   SW=00000000
+3530ns 000000e4 : 012d0050 R[02]=00000002=2          SW=00000000
+3610ns 000000e8 : 013d0054 R[03]=0000000b=11         SW=00000000
+3690ns 000000ec : 11232000 R[02]=0000000d=13         SW=00000000
+3770ns 000000f0 : 022d004c m[1404+76  ]=13           SW=00000000
+3850ns 000000f4 : 012d0050 R[02]=00000002=2          SW=00000000
+3930ns 000000f8 : 013d0054 R[03]=0000000b=11         SW=00000000
+4010ns 000000fc : 12232000 R[02]=00000009=9          SW=00000000
+4090ns 00000100 : 022d0048 m[1404+72  ]=9            SW=00000000
+4170ns 00000104 : 012d0050 R[02]=00000002=2          SW=00000000
+4250ns 00000108 : 013d0054 R[03]=0000000b=11         SW=00000000
+4330ns 0000010c : 15232000 R[02]=00000016=22         SW=00000000
+4410ns 00000110 : 022d0044 m[1404+68  ]=22           SW=00000000
+4490ns 00000114 : 012d0050 R[02]=00000002=2          SW=00000000
+4570ns 00000118 : 013d0054 R[03]=0000000b=11         SW=00000000
+4650ns 0000011c : 16320000 HI=00000001 LO=00000005 SW=00000000
+4730ns 00000120 : 23200000 R[02]=00000005=5          SW=00000000
+4810ns 00000124 : 022d0040 m[1404+64  ]=5            SW=00000000
+4890ns 00000128 : 0f202aaa R[02]=2aaa0000=715784192  SW=00000000
+4970ns 0000012c : 0d32aaab R[03]=2aaaaaab=715827883  SW=00000000
+5050ns 00000130 : 012d0054 R[02]=0000000b=11         SW=00000000
+5130ns 00000134 : 09220001 R[02]=0000000c=12         SW=00000000
+5210ns 00000138 : 26230000 HI=00000002 LO=00000004 SW=00000000
+5290ns 0000013c : 22300000 R[03]=00000002=2          SW=00000000
+5370ns 00000140 : 1f43001f R[04]=00000000=0          SW=00000000
+5450ns 00000144 : 1b330001 R[03]=00000001=1          SW=00000000
+5530ns 00000148 : 11334000 R[03]=00000001=1          SW=00000000
+5610ns 0000014c : 0940000c R[04]=0000000c=12         SW=00000000
+5690ns 00000150 : 15334000 R[03]=0000000c=12         SW=00000000
+5770ns 00000154 : 12223000 R[02]=00000000=0          SW=00000000
+5850ns 00000158 : 022d0050 m[1404+80  ]=0            SW=00000000
+5930ns 0000015c : 013d0054 R[03]=0000000b=11         SW=00000000
+6010ns 00000160 : 18232000 R[02]=00000000=0          SW=00000000
+6090ns 00000164 : 022d003c m[1404+60  ]=0            SW=00000000
+6170ns 00000168 : 012d0050 R[02]=00000000=0          SW=00000000
+6250ns 0000016c : 013d0054 R[03]=0000000b=11         SW=00000000
+6330ns 00000170 : 19232000 R[02]=0000000b=11         SW=00000000
+6410ns 00000174 : 022d0038 m[1404+56  ]=11           SW=00000000
+6490ns 00000178 : 012d0050 R[02]=00000000=0          SW=00000000
+6570ns 0000017c : 013d0054 R[03]=0000000b=11         SW=00000000
+6650ns 00000180 : 1a232000 R[02]=0000000b=11         SW=00000000
+6730ns 00000184 : 022d0034 m[1404+52  ]=11           SW=00000000
+6810ns 00000188 : 012d0054 R[02]=0000000b=11         SW=00000000
+6890ns 0000018c : 1e220002 R[02]=0000002c=44         SW=00000000
+6970ns 00000190 : 022d0030 m[1404+48  ]=44           SW=00000000
+7050ns 00000194 : 012d0054 R[02]=0000000b=11         SW=00000000
+7130ns 00000198 : 1b220002 R[02]=00000002=2          SW=00000000
+7210ns 0000019c : 022d002c m[1404+44  ]=2            SW=00000000
+7290ns 000001a0 : 022d0000 m[1404+0   ]=2            SW=00000000
+7370ns 000001a4 : 2b000044 R[00]=00000000=0          SW=00000000
+7450ns 000001ec : 09ddfff8 R[13]=00000574=1396       SW=00000000
+7530ns 000001f0 : 012d0008 R[02]=00000002=2          SW=00000000
+7610ns 000001f4 : 022d0004 m[1396+4   ]=2            SW=00000000
+7690ns 000001f8 : 09207000 R[02]=00007000=28672      SW=00000000
+7770ns 000001fc : 022d0000 m[1396+0   ]=28672        SW=00000000
+7850ns 00000200 : 013d0004 R[03]=00000002=2          SW=00000000
+7930ns 00000204 : 02320000 OUTPUT=2
+8010ns 00000208 : 09dd0008 R[13]=0000057c=1404       SW=00000000
+8090ns 0000020c : 2c000000 R[00]=00000000=0          SW=00000000
+8170ns 000001a8 : 012d0024 R[02]=f0100000=-267386880 SW=00000000
+8250ns 000001ac : 1f220002 R[02]=3c040000=1006895104 SW=00000000
+8330ns 000001b0 : 022d0020 m[1404+32  ]=1006895104   SW=00000000
+8410ns 000001b4 : 022d0000 m[1404+0   ]=1006895104   SW=00000000
+8490ns 000001b8 : 2b000030 R[00]=00000000=0          SW=00000000
+8570ns 000001ec : 09ddfff8 R[13]=00000574=1396       SW=00000000
+8650ns 000001f0 : 012d0008 R[02]=3c040000=1006895104 SW=00000000
+8730ns 000001f4 : 022d0004 m[1396+4   ]=1006895104   SW=00000000
+8810ns 000001f8 : 09207000 R[02]=00007000=28672      SW=00000000
+8890ns 000001fc : 022d0000 m[1396+0   ]=28672        SW=00000000
+8970ns 00000200 : 013d0004 R[03]=3c040000=1006895104 SW=00000000
+9050ns 00000204 : 02320000 OUTPUT=1006895104
+9130ns 00000208 : 09dd0008 R[13]=0000057c=1404       SW=00000000
+9210ns 0000020c : 2c000000 R[00]=00000000=0          SW=00000000
+9290ns 000001bc : 012d0054 R[02]=0000000b=11         SW=00000000
+9370ns 000001c0 : 1a227000 R[02]=0000000b=11         SW=00000000
+9450ns 000001c4 : 0b220001 R[02]=00000000=0          SW=00000000
+9530ns 000001c8 : 0c220001 R[02]=00000000=0          SW=00000000
+9610ns 000001cc : 022d0050 m[1404+80  ]=0            SW=00000000
+9690ns 000001d0 : 092d0050 R[02]=000005cc=1484       SW=00000000
+9770ns 000001d4 : 022d0014 m[1404+20  ]=1484         SW=00000000
+9850ns 000001d8 : 012d004c R[02]=0000000d=13         SW=00000000
+9930ns 000001dc : 017d0058 R[07]=00000000=0          SW=00000000
+10010ns 000001e0 : 01ed005c R[14]=00000050=80         SW=00000000
+10090ns 000001e4 : 09dd0060 R[13]=000005dc=1500       SW=00000000
+10170ns 000001e8 : 2c000000 R[00]=00000000=0          SW=00000000
+10250ns 00000050 : 022d0014 m[1500+20  ]=13           SW=00000000
+10330ns 00000054 : 022d0000 m[1500+0   ]=13           SW=00000000
+10410ns 00000058 : 2b000190 R[00]=00000000=0          SW=00000000
+10490ns 000001ec : 09ddfff8 R[13]=000005d4=1492       SW=00000000
+10570ns 000001f0 : 012d0008 R[02]=0000000d=13         SW=00000000
+10650ns 000001f4 : 022d0004 m[1492+4   ]=13           SW=00000000
+10730ns 000001f8 : 09207000 R[02]=00007000=28672      SW=00000000
+10810ns 000001fc : 022d0000 m[1492+0   ]=28672        SW=00000000
+10890ns 00000200 : 013d0004 R[03]=0000000d=13         SW=00000000
+10970ns 00000204 : 02320000 OUTPUT=13
+11050ns 00000208 : 09dd0008 R[13]=000005dc=1500       SW=00000000
+11130ns 0000020c : 2c000000 R[00]=00000000=0          SW=00000000
+11210ns 0000005c : 2b0001b0 R[00]=00000000=0          SW=00000000
+11290ns 00000210 : 09ddffe8 R[13]=000005c4=1476       SW=00000000
+11370ns 00000214 : 09200001 R[02]=00000001=1          SW=00000000
+11450ns 00000218 : 022d0014 m[1476+20  ]=1            SW=00000000
+11530ns 0000021c : 09200002 R[02]=00000002=2          SW=00000000
+11610ns 00000220 : 022d0010 m[1476+16  ]=2            SW=00000000
+11690ns 00000224 : 09200003 R[02]=00000003=3          SW=00000000
+11770ns 00000228 : 022d000c m[1476+12  ]=3            SW=00000000
+11850ns 0000022c : 09200004 R[02]=00000004=4          SW=00000000
+11930ns 00000230 : 022d0008 m[1476+8   ]=4            SW=00000000
+12010ns 00000234 : 09200005 R[02]=00000005=5          SW=00000000
+12090ns 00000238 : 022d0004 m[1476+4   ]=5            SW=00000000
+12170ns 0000023c : 012d0014 R[02]=00000001=1          SW=00000000
+12250ns 00000240 : 2720000c HI=00000002 LO=00000004 SW=00000000
+12330ns 00000244 : 012d0014 R[02]=00000001=1          SW=00000000
+12410ns 00000248 : 09220001 R[02]=00000002=2          SW=00000000
+12490ns 0000024c : 022d0014 m[1476+20  ]=2            SW=00000000
+12570ns 00000250 : 012d0010 R[02]=00000002=2          SW=00000000
+12650ns 00000254 : 0a220001 R[02]=00000000=0          SW=00000000
+12730ns 00000258 : 2820000c R[02]=00000000=0          SW=00000000
+12810ns 0000025c : 012d0010 R[02]=00000002=2          SW=00000000
+12890ns 00000260 : 09220001 R[02]=00000003=3          SW=00000000
+12970ns 00000264 : 022d0010 m[1476+16  ]=3            SW=00000000
+13050ns 00000268 : 012d000c R[02]=00000003=3          SW=00000000
+13130ns 0000026c : 0a220000 R[02]=00000000=0          SW=00000000
+13210ns 00000270 : 2820000c R[02]=00000000=0          SW=00000000
+13290ns 00000274 : 012d000c R[02]=00000003=3          SW=00000000
+13370ns 00000278 : 09220001 R[02]=00000004=4          SW=00000000
+13450ns 0000027c : 022d000c m[1476+12  ]=4            SW=00000000
+13530ns 00000280 : 012d0008 R[02]=00000004=4          SW=00000000
+13610ns 00000284 : 0930ffff R[03]=ffffffff=-1         SW=00000000
+13690ns 00000288 : 20232000 R[02]=00000001=1          SW=00000000
+13770ns 0000028c : 2820000c R[02]=00000001=1          SW=00000000
+13850ns 0000029c : 012d0004 R[02]=00000005=5          SW=00000000
+13930ns 000002a0 : 09300000 R[03]=00000000=0          SW=00000000
+14010ns 000002a4 : 20232000 R[02]=00000001=1          SW=00000000
+14090ns 000002a8 : 2820000c R[02]=00000001=1          SW=00000000
+14170ns 000002b8 : 012d0010 R[02]=00000003=3          SW=00000000
+14250ns 000002bc : 013d0014 R[03]=00000002=2          SW=00000000
+14330ns 000002c0 : 11232000 R[02]=00000005=5          SW=00000000
+14410ns 000002c4 : 013d000c R[03]=00000004=4          SW=00000000
+14490ns 000002c8 : 11223000 R[02]=00000009=9          SW=00000000
+14570ns 000002cc : 013d0008 R[03]=00000004=4          SW=00000000
+14650ns 000002d0 : 11223000 R[02]=0000000d=13         SW=00000000
+14730ns 000002d4 : 013d0004 R[03]=00000005=5          SW=00000000
+14810ns 000002d8 : 11223000 R[02]=00000012=18         SW=00000000
+14890ns 000002dc : 09dd0018 R[13]=000005dc=1500       SW=00000000
+14970ns 000002e0 : 2c000000 R[00]=00000000=0          SW=00000000
+15050ns 00000060 : 013d0014 R[03]=0000000d=13         SW=00000000
+15130ns 00000064 : 11232000 R[02]=0000001f=31         SW=00000000
+15210ns 00000068 : 022d0014 m[1500+20  ]=31           SW=00000000
+15290ns 0000006c : 022d0000 m[1500+0   ]=31           SW=00000000
+15370ns 00000070 : 2b000178 R[00]=00000000=0          SW=00000000
+15450ns 000001ec : 09ddfff8 R[13]=000005d4=1492       SW=00000000
+15530ns 000001f0 : 012d0008 R[02]=0000001f=31         SW=00000000
+15610ns 000001f4 : 022d0004 m[1492+4   ]=31           SW=00000000
+15690ns 000001f8 : 09207000 R[02]=00007000=28672      SW=00000000
+15770ns 000001fc : 022d0000 m[1492+0   ]=28672        SW=00000000
+15850ns 00000200 : 013d0004 R[03]=0000001f=31         SW=00000000
+15930ns 00000204 : 02320000 OUTPUT=31
+16010ns 00000208 : 09dd0008 R[13]=000005dc=1500       SW=00000000
+16090ns 0000020c : 2c000000 R[00]=00000000=0          SW=00000000
+16170ns 00000074 : 2b00026c R[00]=00000000=0          SW=00000000
+16250ns 000002e4 : 09ddfff4 R[13]=000005d0=1488       SW=00000000
+16330ns 000002e8 : 022d0008 m[1488+8   ]=28672        SW=00000000
+16410ns 000002ec : 023d0004 m[1488+4   ]=31           SW=00000000
+16490ns 000002f0 : 024d0000 m[1488+0   ]=12           SW=00000000
+16570ns 000002f4 : 0f207fff R[02]=7fff0000=2147418112 SW=00000000
+16650ns 000002f8 : 0f301000 R[03]=10000000=268435456  SW=00000000
+16730ns 000002fc : 11423000 R[04]=8fff0000=-1879113728 SW=00000000
+16810ns 00000300 : 0f207fff R[02]=7fff0000=2147418112 SW=00000000
+16890ns 00000304 : 0f301000 R[03]=10000000=268435456  SW=00000000
+16970ns 00000308 : 13423000 R[04]=8fff0000=-1879113728 SW=10000000
+17050ns 0000030c : 0f208fff R[02]=8fff0000=-1879113728 SW=00000000
+17130ns 00000310 : 0f307000 R[03]=70000000=1879048192 SW=00000000
+17210ns 00000314 : 14423000 R[04]=1fff0000=536805376  SW=10000000
+17290ns 00000318 : 0f200000 R[02]=00000000=0          SW=00000000
+17370ns 0000031c : 0930ffff R[03]=ffffffff=-1         SW=00000000
+17450ns 00000320 : 14423000 R[04]=00000001=1          SW=00000000
+17530ns 00000324 : 0f20ffff R[02]=ffff0000=-65536     SW=00000000
+17610ns 00000328 : 0d22ffff R[02]=ffffffff=-1         SW=00000000
+17690ns 0000032c : 0c22ffff R[02]=0000ffff=65535      SW=00000000
+17770ns 00000330 : 1e220010 R[02]=ffff0000=-65536     SW=00000000
+17850ns 00000334 : 0e22ffff R[02]=ffffffff=-1         SW=00000000
+17930ns 00000338 : 0930ffff R[03]=ffffffff=-1         SW=00000000
+18010ns 0000033c : 17230000 HI=00000000 LO=00000001 SW=00000000
+18090ns 00000340 : 16230000 HI=00000000 LO=00000001 SW=10000000
+18170ns 00000344 : 0e220001 R[02]=fffffffe=-2         SW=00000000
+18250ns 00000348 : 1c421004 R[04]=ffffffef=-17        SW=00000000
+18330ns 0000034c : 1d421008 R[04]=feffffff=-16777217  SW=00000000
+18410ns 00000350 : 012d0008 R[02]=00007000=28672      SW=00000000
+18490ns 00000354 : 013d0004 R[03]=0000001f=31         SW=00000000
+18570ns 00000358 : 014d0000 R[04]=0000000c=12         SW=00000000
+18650ns 0000035c : 09dd000c R[13]=000005dc=1500       SW=00000000
+18730ns 00000360 : 2c000000 R[00]=00000000=0          SW=00000000
+18810ns 00000078 : 012d0014 R[02]=0000001f=31         SW=00000000
+18890ns 0000007c : 01ed001c R[14]=ffffffff=-1         SW=00000000
+18970ns 00000080 : 09dd0020 R[13]=000005fc=1532       SW=00000000
+19050ns 00000084 : 2c000000 R[00]=00000000=0          SW=00000000
+RET to PC &lt; 0, finished!</pre>
+</div>
+<p>Run with ch7_1_1.cpp, it reduce some branch from pair instructions &#8220;CMP, JXX&#8221;
+to 1 single instruction ether is BEQ or BNE, as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch7_1_1.bc -o
+ch7_1_1.cpu0.s
+118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1_1.cpu0.s
+      .section .mdebug.abi32
+      .previous
+      .file   <span class="s2">&quot;ch7_1_1.bc&quot;</span>
+      .text
+      .globl  main
+      .align  2
+      .type   main,@function
+      .ent    main                    <span class="c"># @main</span>
+main:
+      .frame  <span class="nv">$sp</span>,40,<span class="nv">$lr</span>
+      .mask   0x00000000,0
+      .set    noreorder
+      .set    nomacro
+<span class="c"># BB#0:</span>
+      addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -40
+      addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
+      st      <span class="nv">$3</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      st      <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+      st      <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 2
+      st      <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 3
+      st      <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 4
+      st      <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 5
+      st      <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 6
+      st      <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 7
+      st      <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 8
+      st      <span class="nv">$4</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      ld      <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      bne     <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_2</span>
+<span class="c"># BB#1:</span>
+      ld      <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+      st      <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_2</span>:
+      ld      <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      beq     <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_4</span>
+<span class="c"># BB#3:</span>
+      ld      <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+      st      <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_4</span>:
+      ld      <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      slti    <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+      bne     <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_6</span>
+<span class="c"># BB#5:</span>
+      ld      <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+      st      <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_6</span>:
+      ld      <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      slti    <span class="nv">$4</span>, <span class="nv">$4</span>, 0
+      bne     <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_8</span>
+<span class="c"># BB#7:</span>
+      ld      <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+      st      <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_8</span>:
+      ld      <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$5</span>, <span class="nv">$zero</span>, -1
+      slt     <span class="nv">$4</span>, <span class="nv">$5</span>, <span class="nv">$4</span>
+      bne     <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_10</span>
+<span class="c"># BB#9:</span>
+      ld      <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+      st      <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_10</span>:
+      ld      <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      slt     <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+      bne     <span class="nv">$3</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_12</span>
+<span class="c"># BB#11:</span>
+      ld      <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$3</span>, <span class="nv">$3</span>, 1
+      st      <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_12</span>:
+      ld      <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      slt     <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+      bne     <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_14</span>
+<span class="c"># BB#13:</span>
+      ld      <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+      st      <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_14</span>:
+      ld      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      slti    <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+      bne     <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_16</span>
+<span class="c"># BB#15:</span>
+      ld      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+      st      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_16</span>:
+      ld      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      ld      <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      slt     <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+      beq     <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_18</span>
+<span class="c"># BB#17:</span>
+      ld      <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+      st      <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_18</span>:
+      ld      <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      ld      <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      beq     <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="nv">$BB0_20</span>
+<span class="c"># BB#19:</span>
+      ld      <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+      st      <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_20</span>:
+      ld      <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 40
+      ret     <span class="nv">$lr</span>
+      .set    macro
+      .set    reorder
+      .end    main
+<span class="nv">$tmp1</span>:
+      .size   main, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-main
+</pre></div>
+</div>
+<p>The ch11_3.cpp is written in assembly for AsmParser test. You can check if it
+will generate the obj.</p>
+</div>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="runbackend.html">Run backend</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="install.html">Appendix A: Getting Started: Installing LLVM and the Cpu0 example code</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, LLVM.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

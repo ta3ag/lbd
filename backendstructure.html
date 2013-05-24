@@ -114,6 +114,183 @@ The Cpu0TargetMachine contents as follows,</p>
 </pre></div>
 </div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0TargetMachine.h - Define TargetMachine for Cpu0 -----*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file declares the Cpu0 specific subclass of TargetMachine.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#ifndef CPU0TARGETMACHINE_H</span>
+<span class="cp">#define CPU0TARGETMACHINE_H</span>
+
+<span class="cp">#include &quot;Cpu0FrameLowering.h&quot;</span>
+<span class="cp">#include &quot;Cpu0InstrInfo.h&quot;</span>
+<span class="cp">#include &quot;Cpu0ISelLowering.h&quot;</span>
+<span class="cp">#include &quot;Cpu0SelectionDAGInfo.h&quot;</span>
+<span class="cp">#include &quot;Cpu0Subtarget.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetMachine.h&quot;</span>
+<span class="cp">#include &quot;llvm/IR/DataLayout.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetFrameLowering.h&quot;</span>
+
+<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+  <span class="k">class</span> <span class="nc">formatted_raw_ostream</span><span class="p">;</span>
+
+  <span class="k">class</span> <span class="nc">Cpu0TargetMachine</span> <span class="o">:</span> <span class="k">public</span> <span class="n">LLVMTargetMachine</span> <span class="p">{</span>
+    <span class="n">Cpu0Subtarget</span>       <span class="n">Subtarget</span><span class="p">;</span>
+    <span class="k">const</span> <span class="n">DataLayout</span>    <span class="n">DL</span><span class="p">;</span> <span class="c1">// Calculates type size &amp; alignment</span>
+    <span class="n">Cpu0InstrInfo</span>       <span class="n">InstrInfo</span><span class="p">;</span>	<span class="c1">//- Instructions</span>
+    <span class="n">Cpu0FrameLowering</span>   <span class="n">FrameLowering</span><span class="p">;</span>	<span class="c1">//- Stack(Frame) and Stack direction</span>
+    <span class="n">Cpu0TargetLowering</span>  <span class="n">TLInfo</span><span class="p">;</span>	<span class="c1">//- Stack(Frame) and Stack direction</span>
+    <span class="n">Cpu0SelectionDAGInfo</span> <span class="n">TSInfo</span><span class="p">;</span>	<span class="c1">//- Map .bc DAG to backend DAG</span>
+
+  <span class="k">public</span><span class="o">:</span>
+    <span class="n">Cpu0TargetMachine</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">TT</span><span class="p">,</span>
+                      <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">FS</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetOptions</span> <span class="o">&amp;</span><span class="n">Options</span><span class="p">,</span>
+                      <span class="n">Reloc</span><span class="o">::</span><span class="n">Model</span> <span class="n">RM</span><span class="p">,</span> <span class="n">CodeModel</span><span class="o">::</span><span class="n">Model</span> <span class="n">CM</span><span class="p">,</span>
+                      <span class="n">CodeGenOpt</span><span class="o">::</span><span class="n">Level</span> <span class="n">OL</span><span class="p">,</span>
+                      <span class="kt">bool</span> <span class="n">isLittle</span><span class="p">);</span>
+
+    <span class="k">virtual</span> <span class="k">const</span> <span class="n">Cpu0InstrInfo</span>   <span class="o">*</span><span class="n">getInstrInfo</span><span class="p">()</span>     <span class="k">const</span>
+    <span class="p">{</span> <span class="k">return</span> <span class="o">&amp;</span><span class="n">InstrInfo</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">virtual</span> <span class="k">const</span> <span class="n">TargetFrameLowering</span> <span class="o">*</span><span class="n">getFrameLowering</span><span class="p">()</span>     <span class="k">const</span>
+    <span class="p">{</span> <span class="k">return</span> <span class="o">&amp;</span><span class="n">FrameLowering</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">virtual</span> <span class="k">const</span> <span class="n">Cpu0Subtarget</span>   <span class="o">*</span><span class="n">getSubtargetImpl</span><span class="p">()</span> <span class="k">const</span>
+    <span class="p">{</span> <span class="k">return</span> <span class="o">&amp;</span><span class="n">Subtarget</span><span class="p">;</span> <span class="p">}</span>
+    <span class="k">virtual</span> <span class="k">const</span> <span class="n">DataLayout</span> <span class="o">*</span><span class="n">getDataLayout</span><span class="p">()</span>    <span class="k">const</span>
+    <span class="p">{</span> <span class="k">return</span> <span class="o">&amp;</span><span class="n">DL</span><span class="p">;}</span>
+
+    <span class="k">virtual</span> <span class="k">const</span> <span class="n">Cpu0TargetLowering</span> <span class="o">*</span><span class="n">getTargetLowering</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="o">&amp;</span><span class="n">TLInfo</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">virtual</span> <span class="k">const</span> <span class="n">Cpu0SelectionDAGInfo</span><span class="o">*</span> <span class="n">getSelectionDAGInfo</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="o">&amp;</span><span class="n">TSInfo</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Pass Pipeline Configuration</span>
+    <span class="k">virtual</span> <span class="n">TargetPassConfig</span> <span class="o">*</span><span class="n">createPassConfig</span><span class="p">(</span><span class="n">PassManagerBase</span> <span class="o">&amp;</span><span class="n">PM</span><span class="p">);</span>
+  <span class="p">};</span>
+
+<span class="c1">/// Cpu0ebTargetMachine - Cpu032 big endian target machine.</span>
+<span class="c1">///</span>
+<span class="k">class</span> <span class="nc">Cpu0ebTargetMachine</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Cpu0TargetMachine</span> <span class="p">{</span>
+  <span class="k">virtual</span> <span class="kt">void</span> <span class="n">anchor</span><span class="p">();</span>
+<span class="k">public</span><span class="o">:</span>
+  <span class="n">Cpu0ebTargetMachine</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">TT</span><span class="p">,</span>
+                      <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">FS</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetOptions</span> <span class="o">&amp;</span><span class="n">Options</span><span class="p">,</span>
+                      <span class="n">Reloc</span><span class="o">::</span><span class="n">Model</span> <span class="n">RM</span><span class="p">,</span> <span class="n">CodeModel</span><span class="o">::</span><span class="n">Model</span> <span class="n">CM</span><span class="p">,</span>
+                      <span class="n">CodeGenOpt</span><span class="o">::</span><span class="n">Level</span> <span class="n">OL</span><span class="p">);</span>
+<span class="p">};</span>
+
+<span class="c1">/// Cpu0elTargetMachine - Cpu032 little endian target machine.</span>
+<span class="c1">///</span>
+<span class="k">class</span> <span class="nc">Cpu0elTargetMachine</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Cpu0TargetMachine</span> <span class="p">{</span>
+  <span class="k">virtual</span> <span class="kt">void</span> <span class="n">anchor</span><span class="p">();</span>
+<span class="k">public</span><span class="o">:</span>
+  <span class="n">Cpu0elTargetMachine</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">TT</span><span class="p">,</span>
+                      <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">FS</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetOptions</span> <span class="o">&amp;</span><span class="n">Options</span><span class="p">,</span>
+                      <span class="n">Reloc</span><span class="o">::</span><span class="n">Model</span> <span class="n">RM</span><span class="p">,</span> <span class="n">CodeModel</span><span class="o">::</span><span class="n">Model</span> <span class="n">CM</span><span class="p">,</span>
+                      <span class="n">CodeGenOpt</span><span class="o">::</span><span class="n">Level</span> <span class="n">OL</span><span class="p">);</span>
+<span class="p">};</span>
+<span class="p">}</span> <span class="c1">// End llvm namespace</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">include/llvm/Target/TargetInstInfo.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">TargetInstrInfo</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCInstrInfo</span> <span class="p">{</span>
   <span class="n">TargetInstrInfo</span><span class="p">(</span><span class="k">const</span> <span class="n">TargetInstrInfo</span> <span class="o">&amp;</span><span class="p">)</span> <span class="n">LLVM_DELETED_FUNCTION</span><span class="p">;</span>
@@ -241,6 +418,123 @@ So Chapter3_2/ add Cpu0RegisterInfo class (Cpu0RegisterInfo.h,
 Cpu0RegisterInfo.cpp), and Cpu0RegisterInfo class in files Cpu0InstrInfo.h,
 Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.h</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0RegisterInfo.h - Cpu0 Register Information Impl -----*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains the Cpu0 implementation of the TargetRegisterInfo class.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#ifndef CPU0REGISTERINFO_H</span>
+<span class="cp">#define CPU0REGISTERINFO_H</span>
+
+<span class="cp">#include &quot;Cpu0.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetRegisterInfo.h&quot;</span>
+
+<span class="cp">#define GET_REGINFO_HEADER</span>
+<span class="cp">#include &quot;Cpu0GenRegisterInfo.inc&quot;</span>
+
+<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+<span class="k">class</span> <span class="nc">Cpu0Subtarget</span><span class="p">;</span>
+<span class="k">class</span> <span class="nc">TargetInstrInfo</span><span class="p">;</span>
+<span class="k">class</span> <span class="nc">Type</span><span class="p">;</span>
+
+<span class="k">struct</span> <span class="n">Cpu0RegisterInfo</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Cpu0GenRegisterInfo</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">Subtarget</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">TargetInstrInfo</span> <span class="o">&amp;</span><span class="n">TII</span><span class="p">;</span>
+
+  <span class="n">Cpu0RegisterInfo</span><span class="p">(</span><span class="k">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">Subtarget</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetInstrInfo</span> <span class="o">&amp;</span><span class="n">tii</span><span class="p">);</span>
+
+  <span class="c1">/// getRegisterNumbering - Given the enum value for some register, e.g.</span>
+  <span class="c1">/// Cpu0::RA, return the number that it corresponds to (e.g. 31).</span>
+  <span class="k">static</span> <span class="kt">unsigned</span> <span class="n">getRegisterNumbering</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">RegEnum</span><span class="p">);</span>
+
+  <span class="c1">/// Code Generation virtual methods...</span>
+  <span class="k">const</span> <span class="n">uint16_t</span> <span class="o">*</span><span class="n">getCalleeSavedRegs</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span><span class="o">*</span> <span class="n">MF</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">uint32_t</span> <span class="o">*</span><span class="n">getCallPreservedMask</span><span class="p">(</span><span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+
+<span class="c1">// pure virtual method</span>
+  <span class="n">BitVector</span> <span class="n">getReservedRegs</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+
+<span class="c1">// pure virtual method</span>
+  <span class="c1">/// Stack Frame Processing Methods</span>
+  <span class="kt">void</span> <span class="n">eliminateFrameIndex</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">II</span><span class="p">,</span>
+                           <span class="kt">int</span> <span class="n">SPAdj</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">FIOperandNum</span><span class="p">,</span>
+                           <span class="n">RegScavenger</span> <span class="o">*</span><span class="n">RS</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+
+<span class="c1">// pure virtual method</span>
+  <span class="c1">/// Debug information queries.</span>
+  <span class="kt">unsigned</span> <span class="n">getFrameRegister</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="p">}</span> <span class="c1">// end namespace llvm</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+</td></tr></table></div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0RegisterInfo.cpp</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.h</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.cpp</p>

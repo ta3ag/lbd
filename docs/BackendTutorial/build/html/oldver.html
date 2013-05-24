@@ -1,0 +1,666 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Appendix B: LLVM changes &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.2.13',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
+    <link rel="next" title="Appendix C: instructions discuss" href="instdiscuss.html" />
+    <link rel="prev" title="Appendix A: Getting Started: Installing LLVM and the Cpu0 example code" href="install.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="index.html">
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
+        <h2 class="heading"><span>Appendix B: LLVM changes</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="install.html">Appendix A: Getting Started: Installing LLVM and the Cpu0 example code</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="instdiscuss.html">Appendix C: instructions discuss</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="appendix-b-llvm-changes">
+<span id="sec-appendix-old-llvm-ver"></span><h1>Appendix B: LLVM changes<a class="headerlink" href="#appendix-b-llvm-changes" title="Permalink to this headline">¶</a></h1>
+<p>This chapter show you the old version of LLVM API and structure
+those affect Cpu0 back end.
+Mips changes also mentioned in this chapter.
+If you work on the latest LLVM version only, please skip this chapter.
+LLVM version 3.2 released in 20 December, 2012.
+Version 3.1 released in 22 May, 2012.
+This book started from September, 2012.
+This chapter discuss the old version start from 3.1.</p>
+<div class="section" id="difference-between-3-2-and-3-1">
+<h2>Difference between 3.2 and 3.1<a class="headerlink" href="#difference-between-3-2-and-3-1" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="api-difference">
+<h3>API difference<a class="headerlink" href="#api-difference" title="Permalink to this headline">¶</a></h3>
+<p>Difference in API as follows,</p>
+<p>1. In llvm 3.1, the parameters of call back function for Target Registration
+is different from 3.2.
+LLVM 3.2 add parameter &#8220;MCRegisterInfo&#8221; in the callback function for
+RegisterMCCodeEmitter() and &#8220;StringRef&#8221; in the callback function for
+RegisterMCAsmBackend.
+In other word, you can get more information of registers and CPU
+(type of StringRef) for your backend after this registration.
+Of course, these information came from TabGen which source is the Target
+Description .td you write.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0TargetMC</span><span class="p">()</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// Register the MC Code Emitter</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                    <span class="n">createCpu0MCCodeEmitterEB</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                    <span class="n">createCpu0MCCodeEmitterEL</span><span class="p">);</span>
+  <span class="p">...</span>
+
+  <span class="c1">// Register the asm backend.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                     <span class="n">createCpu0AsmBackendEB32</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                     <span class="n">createCpu0AsmBackendEL32</span><span class="p">);</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Version 3.1 as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">createCpu0MCCodeEmitterEB</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">,</span>
+                     <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">,</span>
+                     <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">);</span>
+<span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">createCpu0MCCodeEmitterEL</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">,</span>
+                     <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">,</span>
+                     <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">);</span>
+
+<span class="n">MCAsmBackend</span> <span class="o">*</span><span class="n">createCpu0AsmBackendEB32</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">TT</span><span class="p">);</span>
+<span class="n">MCAsmBackend</span> <span class="o">*</span><span class="n">createCpu0AsmBackendEL32</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">TT</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Version 3.2 as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">createCpu0MCCodeEmitterEB</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">,</span>
+                     <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
+                     <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">,</span>
+                     <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">);</span>
+<span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">createCpu0MCCodeEmitterEL</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MCII</span><span class="p">,</span>
+                     <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
+                     <span class="k">const</span> <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">,</span>
+                     <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">);</span>
+
+<span class="n">MCAsmBackend</span> <span class="o">*</span><span class="n">createCpu0AsmBackendEB32</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">TT</span><span class="p">,</span>
+                     <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">);</span>
+<span class="n">MCAsmBackend</span> <span class="o">*</span><span class="n">createCpu0AsmBackendEL32</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">TT</span><span class="p">,</span>
+                     <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">);</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li>Change LowerCall() parameters as follows,</li>
+</ol>
+<p>Version 3.1 as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">SDValue</span>
+    <span class="n">LowerCall</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span> <span class="n">SDValue</span> <span class="n">Callee</span><span class="p">,</span>
+        <span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">isVarArg</span><span class="p">,</span>
+        <span class="kt">bool</span> <span class="n">doesNotRet</span><span class="p">,</span> <span class="kt">bool</span> <span class="o">&amp;</span><span class="n">isTailCall</span><span class="p">,</span>
+        <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="o">::</span><span class="n">OutputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Outs</span><span class="p">,</span>
+        <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">OutVals</span><span class="p">,</span>
+        <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="o">::</span><span class="n">InputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Ins</span><span class="p">,</span>
+        <span class="n">DebugLoc</span> <span class="n">dl</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span>
+        <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Version 3.2 as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">LowerCall</span><span class="p">(</span><span class="n">TargetLowering</span><span class="o">::</span><span class="n">CallLoweringInfo</span> <span class="o">&amp;</span><span class="n">CLI</span><span class="p">,</span>
+        <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The TargetLowering::CallLoweringInfo is type of structure/class which contains
+the old version 3.1 parameters.
+You can get the 3.1 same information by,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">SDValue</span>
+<span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerCall</span><span class="p">(</span><span class="n">TargetLowering</span><span class="o">::</span><span class="n">CallLoweringInfo</span> <span class="o">&amp;</span><span class="n">CLI</span><span class="p">,</span>
+                <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span>                     <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">DAG</span><span class="p">;</span>
+  <span class="n">DebugLoc</span> <span class="o">&amp;</span><span class="n">dl</span>                          <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">DL</span><span class="p">;</span>
+  <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">ISD</span><span class="o">::</span><span class="n">OutputArg</span><span class="p">,</span> <span class="mi">32</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Outs</span> <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">Outs</span><span class="p">;</span>
+  <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="p">,</span> <span class="mi">32</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">OutVals</span>     <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">OutVals</span><span class="p">;</span>
+  <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">ISD</span><span class="o">::</span><span class="n">InputArg</span><span class="p">,</span> <span class="mi">32</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Ins</span>   <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">Ins</span><span class="p">;</span>
+  <span class="n">SDValue</span> <span class="n">InChain</span>                       <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">Chain</span><span class="p">;</span>
+  <span class="n">SDValue</span> <span class="n">Callee</span>                        <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">Callee</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="o">&amp;</span><span class="n">isTailCall</span>                      <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">IsTailCall</span><span class="p">;</span>
+  <span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span> <span class="n">CallConv</span>              <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">CallConv</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="n">isVarArg</span>                         <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">IsVarArg</span><span class="p">;</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>As chapter &#8220;function call&#8221;, the role of LowerCall() is handling the outgoing
+arguments passing in function call.</p>
+<p>3. The TargetData structure of LLVMTargetMachine has been renamed to DataLayout
+and the corresponding function name change as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// 3.1</span>
+<span class="k">class</span> <span class="nc">Cpu0TargetMachine</span> <span class="o">:</span> <span class="k">public</span> <span class="n">LLVMTargetMachine</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">virtual</span> <span class="k">const</span> <span class="n">TargetData</span>      <span class="o">*</span><span class="n">getTargetData</span><span class="p">()</span>    <span class="k">const</span>
+  <span class="p">{</span> <span class="k">return</span> <span class="o">&amp;</span><span class="n">DataLayout</span><span class="p">;}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// 3.2</span>
+<span class="k">class</span> <span class="nc">Cpu0TargetMachine</span> <span class="o">:</span> <span class="k">public</span> <span class="n">LLVMTargetMachine</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">virtual</span> <span class="k">const</span> <span class="n">DataLayout</span> <span class="o">*</span><span class="n">getDataLayout</span><span class="p">()</span>    <span class="k">const</span>
+  <span class="p">{</span> <span class="k">return</span> <span class="o">&amp;</span><span class="n">DL</span><span class="p">;}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li>The &#8220;add a pass&#8221; API change as follows,</li>
+</ol>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// 3.1</span>
+<span class="n">TargetPassConfig</span> <span class="o">*</span><span class="n">Cpu0TargetMachine</span><span class="o">::</span><span class="n">createPassConfig</span><span class="p">(</span><span class="n">PassManagerBase</span> <span class="o">&amp;</span><span class="n">PM</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0PassConfig</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="n">PM</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// Install an instruction selector pass using</span>
+<span class="c1">// the ISelDag to gen Cpu0 code.</span>
+<span class="kt">bool</span> <span class="n">Cpu0PassConfig</span><span class="o">::</span><span class="n">addInstSelector</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">PM</span><span class="o">-&gt;</span><span class="n">add</span><span class="p">(</span><span class="n">createCpu0ISelDag</span><span class="p">(</span><span class="n">getCpu0TargetMachine</span><span class="p">()));</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// 3.2</span>
+<span class="c1">// Install an instruction selector pass using</span>
+<span class="c1">// the ISelDag to gen Cpu0 code.</span>
+<span class="kt">bool</span> <span class="n">Cpu0PassConfig</span><span class="o">::</span><span class="n">addInstSelector</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">addPass</span><span class="p">(</span><span class="n">createCpu0ISelDag</span><span class="p">(</span><span class="n">getCpu0TargetMachine</span><span class="p">()));</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>5. Above changes is mandatory.
+There are some changes are adviced to follow. Like the below.
+We comment the &#8220;Change Reason&#8221; in the following code. You can get the
+&#8220;Change Reason&#8221; by internet searching.</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="n">MCObjectWriter</span> <span class="o">*</span><span class="n">createObjectWriter</span><span class="p">(</span><span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="c1">// Change Reason:</span>
+  <span class="c1">// Reduce the exposure of Triple::OSType in the ELF object writer. This will</span>
+  <span class="c1">//  avoid including ADT/Triple.h in many places when the target specific bits</span>
+  <span class="c1">//  are moved.</span>
+  <span class="k">return</span> <span class="n">createCpu0ELFObjectWriter</span><span class="p">(</span><span class="n">OS</span><span class="p">,</span>
+    <span class="n">MCELFObjectTargetWriter</span><span class="o">::</span><span class="n">getOSABI</span><span class="p">(</span><span class="n">OSType</span><span class="p">),</span> <span class="n">IsLittle</span><span class="p">);</span>
+<span class="c1">// Even though, the old function still work on LLVM version 3.2</span>
+<span class="c1">//    return createCpu0ELFObjectWriter(OS, OSType, IsLittle);</span>
+  <span class="p">}</span>
+
+<span class="k">class</span> <span class="nc">Cpu0MCCodeEmitter</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCCodeEmitter</span> <span class="p">{</span>
+  <span class="c1">// #define LLVM_DELETED_FUNCTION</span>
+  <span class="c1">//  LLVM_DELETED_FUNCTION - Expands to = delete if the compiler supports it.</span>
+  <span class="c1">//  Use to mark functions as uncallable. Member functions with this should be</span>
+  <span class="c1">//  declared private so that some behavior is kept in C++03 mode.</span>
+  <span class="c1">//  class DontCopy { private: DontCopy(const DontCopy&amp;) LLVM_DELETED_FUNCTION;</span>
+  <span class="c1">//  DontCopy &amp;operator =(const DontCopy&amp;) LLVM_DELETED_FUNCTION; public: ... };</span>
+  <span class="c1">//  Definition at line 79 of file Compiler.h.</span>
+
+  <span class="n">Cpu0MCCodeEmitter</span><span class="p">(</span><span class="k">const</span> <span class="n">Cpu0MCCodeEmitter</span> <span class="o">&amp;</span><span class="p">)</span> <span class="n">LLVM_DELETED_FUNCTION</span><span class="p">;</span>
+  <span class="kt">void</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">Cpu0MCCodeEmitter</span> <span class="o">&amp;</span><span class="p">)</span> <span class="n">LLVM_DELETED_FUNCTION</span><span class="p">;</span>
+<span class="c1">// Even though, the old function still work on LLVM version 3.2</span>
+<span class="c1">//  Cpu0MCCodeEmitter(const Cpu0MCCodeEmitter &amp;); // DO NOT IMPLEMENT</span>
+<span class="c1">//  void operator=(const Cpu0MCCodeEmitter &amp;); // DO NOT IMPLEMENT</span>
+<span class="p">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="structure-difference">
+<h3>Structure difference<a class="headerlink" href="#structure-difference" title="Permalink to this headline">¶</a></h3>
+<p>1. Change the name from CPURegsRegisterClass (3.1) to CPURegsRegClass (3.2).
+The source of register class information came from your backend &lt;register&gt;.td.
+The new name CPURegsRegClass is <strong>&#8220;call by reference&#8221;</strong> type in C++ while the
+old CPURegsRegisterClass is <strong>&#8220;pointer&#8221;</strong> type. The &#8220;reference&#8221; type use
+<strong>&#8221;.&#8221;</strong> while pointer type use <strong>&#8220;-&gt;&#8221;</strong> as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// 3.2</span>
+<span class="kt">unsigned</span> <span class="n">CPURegSize</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">getSize</span><span class="p">();</span>
+<span class="c1">// 3.1</span>
+<span class="kt">unsigned</span> <span class="n">CPURegSize</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegisterClass</span><span class="o">-&gt;</span><span class="n">getSize</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>2. The TargetData structure has been renamed to DataLayout and moved to VMCore
+to remove a dependency on Target <a class="footnote-reference" href="#id3" id="id1">[1]</a>.</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">// 3.1</span>
+<span class="cp">#include &quot;llvm/Target/TargetData.h&quot;</span>
+<span class="k">class</span> <span class="nc">Cpu0TargetMachine</span> <span class="o">:</span> <span class="k">public</span> <span class="n">LLVMTargetMachine</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">const</span> <span class="n">TargetData</span>    <span class="n">DataLayout</span><span class="p">;</span> <span class="c1">// Calculates type size &amp; alignment</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="cp">// 3.2</span>
+<span class="cp">#include &quot;llvm/DataLayout.h&quot;</span>
+<span class="k">class</span> <span class="nc">Cpu0TargetMachine</span> <span class="o">:</span> <span class="k">public</span> <span class="n">LLVMTargetMachine</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">const</span> <span class="n">DataLayout</span>    <span class="n">DL</span><span class="p">;</span> <span class="c1">// Calculates type size &amp; alignment</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li>DebugInfo.h is moved.</li>
+</ol>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">// 3.1</span>
+<span class="cp">#include &quot;llvm/Analysis/DebugInfo.h</span>
+
+<span class="cp">// 3.2</span>
+<span class="cp">#include &quot;llvm/DebugInfo.h</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="verify-the-cpu0-for-difference">
+<h3>Verify the Cpu0 for difference<a class="headerlink" href="#verify-the-cpu0-for-difference" title="Permalink to this headline">¶</a></h3>
+<p>3.1_src_files_modify include the LLVM 3.1 those files
+modified for Cpu0 backend support.
+Please copy
+3.1_src_files_modify/src_files_modify/src to your LLVM 3.1 source directory.
+The llvm3.1/Cpu0 is the code for LLVM version 3.1.
+File ch_all.cpp include the all C/C++ operators, global variable, struct,
+array, control statement and function call test.
+Run llvm3.1/Cpu0 with ch_all.cpp will get the assembly code as below.
+By compare it with the output of 3.2 result, you can verify the correction
+as below. The difference came from 3.2 correcting the label number in
+order.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch_all.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">#if 1</span>
+<span class="cp">//#include &lt;stdio.h&gt;</span>
+<span class="cp">#include &lt;stdarg.h&gt;</span>
+<span class="cp">#include &lt;stdlib.h&gt;</span>
+<span class="cp">#endif</span>
+<span class="cp">#if 1</span>
+<span class="kt">int</span> <span class="n">test_operators</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="n">k1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">f1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
+  <span class="n">d</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">;</span>
+  <span class="n">e</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">;</span>
+  <span class="n">f</span> <span class="o">=</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span><span class="p">;</span>
+  <span class="n">f1</span> <span class="o">=</span> <span class="n">a1</span> <span class="o">/</span> <span class="n">b</span><span class="p">;</span>
+  <span class="n">g</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&amp;</span> <span class="n">b</span><span class="p">);</span>
+  <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">|</span> <span class="n">b</span><span class="p">);</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">^</span> <span class="n">b</span><span class="p">);</span>
+  <span class="n">j</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="n">j1</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">);</span>
+  <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
+  <span class="n">k1</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
+
+  <span class="n">b</span> <span class="o">=</span> <span class="o">!</span><span class="n">a</span><span class="p">;</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">p</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">;</span>
+  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="n">a</span><span class="p">;</span>
+  <span class="n">c</span> <span class="o">=</span> <span class="n">rand</span><span class="p">();</span>
+<span class="c1">//  c = 12;</span>
+  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="n">c</span><span class="p">;</span>
+  
+  <span class="k">return</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
+<span class="cp">#if 1</span>
+<span class="kt">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="n">test_globalvar</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="n">c</span> <span class="o">=</span> <span class="n">gI</span><span class="p">;</span>
+  
+  <span class="k">return</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
+<span class="cp">#if 1</span>
+<span class="k">struct</span> <span class="n">Date</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">year</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">month</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">day</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="n">Date</span> <span class="n">date</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
+<span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
+
+<span class="kt">int</span> <span class="n">test_struct</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">day</span> <span class="o">=</span> <span class="n">date</span><span class="p">.</span><span class="n">day</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
+<span class="cp">#if 1</span>
+<span class="kt">int</span> <span class="n">test_control</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+  
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">a</span><span class="o">++</span><span class="p">;</span>
+  <span class="k">goto</span> <span class="n">L1</span><span class="p">;</span>
+  <span class="n">a</span><span class="o">++</span><span class="p">;</span>
+<span class="nl">L1:</span>
+  <span class="n">a</span><span class="o">--</span><span class="p">;</span>
+    
+  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
+<span class="cp">#if 1</span>
+<span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">T</span><span class="o">&gt;</span>
+<span class="n">T</span> <span class="n">sum</span><span class="p">(</span><span class="n">T</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
+<span class="p">{</span>
+  <span class="n">T</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">T</span> <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">T</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	
+  <span class="n">va_list</span> <span class="n">vl</span><span class="p">;</span>
+  <span class="n">va_start</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">amount</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">amount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">va_arg</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">T</span><span class="p">);</span>
+    <span class="n">sum</span> <span class="o">+=</span> <span class="n">val</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">va_end</span><span class="p">(</span><span class="n">vl</span><span class="p">);</span>
+  
+  <span class="k">return</span> <span class="n">sum</span><span class="p">;</span> 
+<span class="p">}</span>
+<span class="cp">#endif</span>
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="n">test_operators</span><span class="p">();</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="n">test_globalvar</span><span class="p">();</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="n">test_struct</span><span class="p">();</span>
+  <span class="n">result</span> <span class="o">=</span> <span class="n">test_control</span><span class="p">();</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sum</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">);</span>
+<span class="c1">//  printf(&quot;a = %d\n&quot;, a);</span>
+	
+  <span class="k">return</span> <span class="n">result</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-60:InputFiles Jonathan<span class="nv">$ </span>diff ch_all.3.1.cpu0.s ch_all.3.2.cpu0.s
+262c262
+&lt;   jge <span class="nv">$BB4_7</span>
+---
+&gt;   jge <span class="nv">$BB4_6</span>
+285d284
+&lt; <span class="c"># BB#6:                                 #   in Loop: Header=BB4_1 Depth=1</span>
+290c289
+&lt; <span class="nv">$BB4_7</span>:
+---
+&gt; <span class="nv">$BB4_6</span>:
+295,297c294,296
+&lt;   jne <span class="nv">$BB4_9</span>
+&lt;   jmp <span class="nv">$BB4_8</span>
+&lt; <span class="nv">$BB4_8</span>:                                 <span class="c"># %SP_return</span>
+---
+&gt;   jne <span class="nv">$BB4_8</span>
+&gt;   jmp <span class="nv">$BB4_7</span>
+&gt; <span class="nv">$BB4_7</span>:                                 <span class="c"># %SP_return</span>
+301c300
+&lt; <span class="nv">$BB4_9</span>:                                 <span class="c"># %CallStackCheckFailBlk</span>
+---
+&gt; <span class="nv">$BB4_8</span>:                                 <span class="c"># %CallStackCheckFailBlk</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>// ch_all.3.2.cpu0.s
+...
+<span class="nv">$BB4_5</span>:                                 <span class="c">#   in Loop: Header=BB4_1 Depth=1</span>
+  ld  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
+  st  <span class="nv">$3</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  add <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+  st  <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$3</span>, 1
+  st  <span class="nv">$3</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  jmp <span class="nv">$BB4_1</span>
+<span class="nv">$BB4_6</span>:
+  ld  <span class="nv">$2</span>, %got<span class="o">(</span>__stack_chk_guard<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  cmp <span class="nv">$2</span>, <span class="nv">$3</span>
+  jne <span class="nv">$BB4_8</span>
+  jmp <span class="nv">$BB4_7</span>
+<span class="nv">$BB4_7</span>:                                 <span class="c"># %SP_return</span>
+...
+
+
+// ch_all.3.1.cpu0.s
+...
+<span class="nv">$BB4_5</span>:                                 <span class="c">#   in Loop: Header=BB4_1 Depth=1</span>
+  ld  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
+  st  <span class="nv">$3</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  add <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+  st  <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="c"># BB#6:                                 #   in Loop: Header=BB4_1 Depth=1</span>
+  ld  <span class="nv">$3</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$3</span>, 1
+  st  <span class="nv">$3</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  jmp <span class="nv">$BB4_1</span>
+<span class="nv">$BB4_7</span>:
+  ld  <span class="nv">$2</span>, %got<span class="o">(</span>__stack_chk_guard<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  cmp <span class="nv">$2</span>, <span class="nv">$3</span>
+  jne <span class="nv">$BB4_9</span>
+  jmp <span class="nv">$BB4_8</span>
+<span class="nv">$BB4_8</span>:                                 <span class="c"># %SP_return</span>
+...
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="difference-in-mips-backend">
+<h2>Difference in Mips backend<a class="headerlink" href="#difference-in-mips-backend" title="Permalink to this headline">¶</a></h2>
+<p>In 3.1, Mips use <strong>&#8221;.cpload&#8221;</strong> and <strong>&#8221;.cprestore&#8221;</strong> pseudo assembly code.
+It removes these pseudo assembly code in 3.2.
+This change is good for spim (mips assembly code simulator) which run for
+Mips assembly code. According the theory of &#8220;System Software&#8221;, some pseudo
+assembly code (especially for those not in standard) cannot be translated by
+assembler. It will break down in assembly code simulator.
+Run ch_mips_llvm3.2_globalvar_changes.cpp with llvm 3.1 and 3.2 for mips, you
+will find the <strong>&#8221;.cprestore&#8221;</strong> is removed directly since 3.2 use other register
+instead of $gp in the callee function (as example, it use $1 in f() and remove
+<strong>.gprestore</strong> in sum_i()).
+<strong>&#8221;.cpload&#8221;</strong> is replaced with instructions as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>// llvm 3.1 mips
+  .cpload <span class="nv">$25</span>
+
+// llvm 3.2 mips
+  lui <span class="nv">$2</span>, %hi<span class="o">(</span>_gp_disp<span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span>_gp_disp<span class="o">)</span>
+  ...
+  addu  <span class="nv">$gp</span>, <span class="nv">$2</span>, <span class="nv">$25</span>
+</pre></div>
+</div>
+<p>Reference <a class="footnote-reference" href="#id4" id="id2">[2]</a> for <strong>&#8221;.cpload&#8221;</strong>, <strong>&#8221;.cprestore&#8221;</strong> and <strong>&#8220;_gp_disp&#8221;</strong>.</p>
+<table class="docutils footnote" frame="void" id="id3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://llvm.org/releases/3.2/docs/ReleaseNotes.html">http://llvm.org/releases/3.2/docs/ReleaseNotes.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode">http://jonathan2251.github.com/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode</a></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="install.html">Appendix A: Getting Started: Installing LLVM and the Cpu0 example code</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="instdiscuss.html">Appendix C: instructions discuss</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, LLVM.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

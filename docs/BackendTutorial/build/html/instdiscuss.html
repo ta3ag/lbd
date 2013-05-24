@@ -1,0 +1,410 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Appendix C: instructions discuss &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.2.13',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
+    <link rel="next" title="Todo List" href="todo.html" />
+    <link rel="prev" title="Appendix B: LLVM changes" href="oldver.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="index.html">
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
+        <h2 class="heading"><span>Appendix C: instructions discuss</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="oldver.html">Appendix B: LLVM changes</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="todo.html">Todo List</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="appendix-c-instructions-discuss">
+<span id="sec-appendix-inst-discuss"></span><h1>Appendix C: instructions discuss<a class="headerlink" href="#appendix-c-instructions-discuss" title="Permalink to this headline">¶</a></h1>
+<p>This chapter discuss other backend instructions.</p>
+<div class="section" id="use-cpu0-official-ldi-instead-of-addiu">
+<h2>Use cpu0 official LDI instead of ADDiu<a class="headerlink" href="#use-cpu0-official-ldi-instead-of-addiu" title="Permalink to this headline">¶</a></h2>
+<p>According cpu0 web site instruction definition.
+There is no addiu instruction definition.
+We add <strong>addiu</strong> instruction because we find this instruction is more powerful
+and reasonable than <strong>ldi</strong> instruction.
+We highlight this change in <a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#cpu0-processor-architecture">section CPU0 processor architecture</a>.
+Even with that, we show you how to replace our <strong>addiu</strong> with <strong>ldi</strong> according
+the cpu0 original design.
+Chapter4_2/ is the code changes for use <strong>ldi</strong> instruction.
+This changes replace <strong>addiu</strong> with <strong>ldi</strong> in Cpu0InstrInfo.td and modify
+Cpu0FrameLowering.cpp as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_2/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><pre>/// Arithmetic Instructions (ALU Immediate)
+def LDI     : MoveImm&lt;0x08, "ldi", add, simm16, immSExt16, CPURegs&gt;;
+// add defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
+//def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;
+...
+
+// Small immediates
+
+def : Pat&lt;(i32 immSExt16:$in),
+          (LDI ZERO, imm:$in)&gt;;
+
+// hi/lo relocs
+def : Pat&lt;(Cpu0Hi tglobaladdr:$in), (SHL (LDI ZERO, tglobaladdr:$in), 16)&gt;;
+// Expect cpu0 add LUi support, like Mips
+//def : Pat&lt;(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)&gt;;
+def : Pat&lt;(Cpu0Lo tglobaladdr:$in), (LDI ZERO, tglobaladdr:$in)&gt;;
+
+def : Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
+          (ADD CPURegs:$hi, (LDI ZERO, tglobaladdr:$lo))&gt;;
+
+// gp_rel relocs
+def : Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
+          (ADD CPURegs:$gp, (LDI ZERO, tglobaladdr:$in))&gt;;
+
+def : Pat&lt;(not CPURegs:$in),
+           (XOR CPURegs:$in, (LDI ZERO, 1))&gt;;</pre>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_2/Cpu0FrameLowering.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0FrameLowering</span><span class="o">::</span><span class="n">emitPrologue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// Adjust stack.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="o">-</span><span class="n">StackSize</span><span class="p">))</span> <span class="p">{</span>
+    <span class="c1">// ldi fp, (-stacksize)</span>
+    <span class="c1">// add sp, sp, fp</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MBBI</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">TII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LDI</span><span class="p">),</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">)</span>
+                                                        <span class="p">.</span><span class="n">addImm</span><span class="p">(</span><span class="o">-</span><span class="n">StackSize</span><span class="p">);</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MBBI</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">TII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">),</span> <span class="n">SP</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">SP</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0FrameLowering</span><span class="o">::</span><span class="n">emitEpilogue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span>
+                                 <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// Adjust stack.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="o">-</span><span class="n">StackSize</span><span class="p">))</span> <span class="p">{</span>
+    <span class="c1">// ldi fp, (-stacksize)</span>
+    <span class="c1">// add sp, sp, fp</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MBBI</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">TII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LDI</span><span class="p">),</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">)</span>
+                                                        <span class="p">.</span><span class="n">addImm</span><span class="p">(</span><span class="o">-</span><span class="n">StackSize</span><span class="p">);</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MBBI</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">TII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">),</span> <span class="n">SP</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">SP</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>As above code, we use <strong>add</strong> IR binary instruction (1 register operand and 1
+immediate operand, and the register operand is fixed with ZERO) in our solution
+since we didn&#8217;t find the <strong>move</strong> IR unary instruction.
+This code is correct since all the immediate value is translated into
+<strong>“ldi Zero, imm/address”</strong>.
+And <strong>(add CPURegs:$gp, $imm16)</strong> is translated into
+<strong>(ADD CPURegs:$gp, (LDI ZERO, $imm16))</strong>.
+Let&#8217;s run Chapter4_4_2/ with ch4_4.cpp to get the correct result
+below.
+As you will see, <strong>“addiu $sp, $sp, -24”</strong> will be replaced with the pair
+instructions of <strong>“ldi $fp, -24”</strong> and <strong>“add $sp, $sp, $fp”</strong>.
+Since the $sp pointer adjustment is so frequently occurs (it occurs in every
+function entry and exit point),
+we reserve the $fp to the pair of stack adjustment instructions <strong>“ldi”</strong> and
+<strong>“add”</strong>.
+If we didn&#8217;t reserve the dedicate registers $fp and $sp, it need to save
+and restore them in the stack adjustment.
+It meaning more instructions running cost in this.
+Anyway, the pair of <strong>“ldi”</strong> and <strong>“add”</strong> to adjust stack pointer is double
+in cost compete to <strong>“addiu”</strong>, that&#8217;s the benefit we mentioned in
+<a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#cpu0-processor-architecture">section CPU0 processor architecture</a>.</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
+debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
+ch4_4.bc -o ch4_4.cpu0.s
+118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>cat ch4_4.cpu0.s
+  .section .mdebug.abi32
+  .previous
+  .file <span class="s2">&quot;ch4_4.bc&quot;</span>
+  .text
+  .globl  main
+  .align  2
+  .type main,@function
+  .ent  main                    <span class="c"># @main</span>
+main:
+  .cfi_startproc
+  .frame  <span class="nv">$sp</span>,24,<span class="nv">$lr</span>
+  .mask   0x00000000,0
+  .set  noreorder
+  .set  nomacro
+<span class="c"># BB#0:</span>
+  ldi <span class="nv">$fp</span>, -24
+  add <span class="nv">$sp</span>, <span class="nv">$sp</span>, <span class="nv">$fp</span>
+<span class="nv">$tmp1</span>:
+  .cfi_def_cfa_offset 24
+  ldi <span class="nv">$2</span>, 0
+  st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ldi <span class="nv">$3</span>, 1
+  st  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ldi <span class="nv">$3</span>, 2
+  st  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ldi <span class="nv">$3</span>, -5
+  st  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  udiv  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  sra <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ldi <span class="nv">$fp</span>, 24
+  add <span class="nv">$sp</span>, <span class="nv">$sp</span>, <span class="nv">$fp</span>
+  ret <span class="nv">$lr</span>
+  .set  macro
+  .set  reorder
+  .end  main
+<span class="nv">$tmp2</span>:
+  .size main, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-main
+  .cfi_endproc
+</pre></div>
+</div>
+</div>
+<div class="section" id="implicit-operand">
+<h2>Implicit operand<a class="headerlink" href="#implicit-operand" title="Permalink to this headline">¶</a></h2>
+<p>LLVM IR is a 3 address form (4 tuple &lt;opcode, %1, %2, %3) which match the
+current RISC cpu0 (like Mips).
+So, it seems no &#8220;move&#8221; IR DAG.
+Because &#8220;move a, b&#8221; can be replaced by &#8220;lw a, b_offset($sp)&#8221; for local
+variable, or can be replaced by &#8220;addu $a, $0,$ b&#8221;.
+The cpu0 is same as Mips.
+Base on this reason, the move instruction is useless even though it supplied by
+the cpu0 author.</p>
+<p>For the old CPU or Micro Processor (MCU), like PIC, 8051 and old intel processor.
+These CPU/MCU need memory saving and not aim to high level of program (such as
+C) only (they aim to assembly code program too).
+These CPU/MCU need implicit operand, maybe use ACC (accumulate register).</p>
+<p>It will translate,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">d</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>into,</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">mtacc</span>   <span class="n">Addr</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span> <span class="c1">// Move b To Acc</span>
+<span class="n">add</span>     <span class="n">Addr</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span> <span class="c1">// Add a To Acc</span>
+<span class="n">add</span>     <span class="n">Addr</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>  <span class="c1">// Add d To Acc</span>
+<span class="n">mfacc</span>   <span class="n">Addr</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>  <span class="c1">// Move Acc To c</span>
+</pre></div>
+</div>
+<p>Above code also can be coded by programmer who use assembly language directly
+in MCU or BIOS programm since maybe the code size is just 4KB or less.</p>
+<p>Since cpu0 is a 32 bits (code size can be 4GB), it use Store and Load
+instructions for memory address access only.
+Other instructions (include add), use register to register style operation.
+We change the implicit operand support in this section.
+It&#8217;s just a demonstration with this design, not fully support.
+The purpose is telling reader how to implement this style of CPU/MCU backend.
+Run Chapter8_8_2/ with ch_move.cpp will get the following result,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch_move.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></div></td><td class="code"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">e</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+
+  <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">d</span> <span class="o">+</span> <span class="n">e</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<div class="highlight-bash"><div class="highlight"><pre>ld  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">$3</span> is a
+ld  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">$4</span> is b
+mtacc <span class="nv">$4</span>        // Move b To Acc
+add <span class="nv">$3</span>          // Add a To Acc
+ld  <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>  // <span class="nv">$4</span> is d
+add <span class="nv">$4</span>          // Add d To Acc
+mfacc <span class="nv">$3</span>        // Move Acc to <span class="nv">$3</span>
+addiu <span class="nv">$3</span>, <span class="nv">$3</span>, 5 // Add e<span class="o">(=</span>5<span class="o">)</span> to <span class="nv">$3</span>
+st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+</pre></div>
+</div>
+<p>To support this implicit operand, ACC.
+The following code is added to Chapter8_8_2.cpp.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_8_2/Cpu0RegisterInfo.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span> <span class="n">in</span> <span class="p">{</span>
+  <span class="c1">// General Purpose Registers</span>
+  <span class="n">def</span> <span class="n">ZERO</span> <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;ZERO&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="p">...</span>
+  <span class="n">def</span> <span class="n">ACC</span> <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;acc&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">20</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="n">def</span> <span class="n">RACC</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="n">ACC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_8_2/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><pre>class MoveFromACC&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
+           list&lt;Register&gt; UseRegs&gt;:
+  FL&lt;op, (outs RC:$ra), (ins),
+   !strconcat(instr_asm, "\t$ra"), [], IIAlu&gt; {
+  let rb = 0;
+  let imm16 = 0;
+  let Uses = UseRegs;
+  let neverHasSideEffects = 1;
+}
+
+class MoveToACC&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
+         list&lt;Register&gt; DefRegs&gt;:
+  FL&lt;op, (outs), (ins RC:$ra),
+   !strconcat(instr_asm, "\t$ra"), [], IIAlu&gt; {
+  let rb = 0;
+  let imm16 = 0;
+  let Defs = DefRegs;
+  let neverHasSideEffects = 1;
+}
+
+class ArithLogicUniR2&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC1,
+         RegisterClass RC2, list&lt;Register&gt; DefRegs&gt;:
+  FL&lt;op, (outs), (ins RC1:$accum, RC2:$ra),
+   !strconcat(instr_asm, "\t$ra"), [], IIAlu&gt; {
+  let rb = 0;
+  let imm16 = 0;
+  let Defs = DefRegs;
+  let neverHasSideEffects = 1;
+}
+...
+//def ADD     : ArithLogicR&lt;0x13, "add", add, IIAlu, CPURegs, 1&gt;;
+...
+def MFACC : MoveFromACC&lt;0x44, "mfacc", CPURegs, [ACC]&gt;;
+def MTACC : MoveToACC&lt;0x45, "mtacc", CPURegs, [ACC]&gt;;
+def ADD   : ArithLogicUniR2&lt;0x46, "add", RACC, CPURegs, [ACC]&gt;;
+...
+def : Pat&lt;(add RACC:$lhs, CPURegs:$rhs),
+      (ADD RACC:$lhs, CPURegs:$rhs)&gt;;
+
+def : Pat&lt;(add CPURegs:$lhs, CPURegs:$rhs),
+      (ADD (MTACC CPURegs:$lhs), CPURegs:$rhs)&gt;;</pre>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_8_2/Cpu0InstrInfo.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- Called when DestReg and SrcReg belong to different Register Class.</span>
+<span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
+<span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
+      <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
+      <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
+      <span class="kt">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="kt">unsigned</span> <span class="n">Opc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">ZeroReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">DestReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy to CPU Reg.</span>
+  <span class="p">...</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ACC</span><span class="p">)</span>
+    <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFACC</span><span class="p">,</span> <span class="n">SrcReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy from CPU Reg.</span>
+  <span class="p">...</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ACC</span><span class="p">)</span>
+    <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTACC</span><span class="p">,</span> <span class="n">DestReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Explain the code as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>ld  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">$3</span> is a
+ld  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span> // <span class="nv">$4</span> is b
+
+mtacc <span class="nv">$4</span>      // Move b To Acc
+// After meet first a+b IR, it call this pattern,
+//  def : Pat&lt;<span class="o">(</span>add CPURegs:<span class="nv">$lhs</span>, CPURegs:<span class="nv">$rhs</span><span class="o">)</span>,
+//        <span class="o">(</span>ADD <span class="o">(</span>MTACC CPURegs:<span class="nv">$lhs</span><span class="o">)</span>, CPURegs:<span class="nv">$rhs</span><span class="o">)</span>&gt;;
+// After this pattern translation, the DestReg class change from CPU0Regs to
+//  RACC according the following code of copyPhysReg<span class="o">()</span>. copyPhysReg<span class="o">()</span> is called
+//  when DestReg and SrcReg belong to different Register Class.
+//
+//  <span class="k">if</span> <span class="o">(</span>DestReg<span class="o">)</span>
+//    MIB.addReg<span class="o">(</span>DestReg, RegState::Define<span class="o">)</span>;
+//
+//  <span class="k">if</span> <span class="o">(</span>ZeroReg<span class="o">)</span>
+//    MIB.addReg<span class="o">(</span>ZeroReg<span class="o">)</span>;
+//
+//  <span class="k">if</span> <span class="o">(</span>SrcReg<span class="o">)</span>
+//    MIB.addReg<span class="o">(</span>SrcReg, getKillRegState<span class="o">(</span>KillSrc<span class="o">))</span>;
+
+add <span class="nv">$3</span>      // Add a To Acc
+// Apply this pattern since the DestReg class is RACC
+//  def : Pat&lt;<span class="o">(</span>add RACC:<span class="nv">$lhs</span>, CPURegs:<span class="nv">$rhs</span><span class="o">)</span>,
+//        <span class="o">(</span>ADD RACC:<span class="nv">$lhs</span>, CPURegs:<span class="nv">$rhs</span><span class="o">)</span>&gt;;
+
+ld  <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>  // <span class="nv">$4</span> is d
+add <span class="nv">$4</span>      // Add d To Acc
+// Apply the pattern as above since the DestReg class is RACC
+
+mfacc <span class="nv">$3</span>    // Move Acc to <span class="nv">$3</span>
+// Compiler/backend can use ADDiu since e is 5. But it add MFACC before ADDiu
+//  since the DestReg class is RACC. Translate to CPU0Regs class by MFACC and
+//  apply ADDiu since ADDiu use CPU0Regs as operands.
+addiu <span class="nv">$3</span>, <span class="nv">$3</span>, 5 // Add e<span class="o">(=</span>5<span class="o">)</span> to <span class="nv">$3</span>
+st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="oldver.html">Appendix B: LLVM changes</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="todo.html">Todo List</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, LLVM.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

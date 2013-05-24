@@ -1,0 +1,374 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Generating object files &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.2.13',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
+    <link rel="next" title="Global variables, structs and arrays, other type" href="globalvar.html" />
+    <link rel="prev" title="Adding arithmetic and local pointer support" href="otherinst.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="index.html">
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
+        <h2 class="heading"><span>Generating object files</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="otherinst.html">Adding arithmetic and local pointer support</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="globalvar.html">Global variables, structs and arrays, other type</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="generating-object-files">
+<span id="sec-genobjfiles"></span><h1>Generating object files<a class="headerlink" href="#generating-object-files" title="Permalink to this headline">¶</a></h1>
+<p>The previous chapters only introduce the assembly code generated.
+This chapter will introduce you the obj support first, and display the obj by
+objdump utility. With LLVM support, the cpu0 backend can generate both big
+endian and little endian obj files with only a few code added.
+The Target Registration mechanism and their structure will be introduced in
+this chapter.</p>
+<div class="section" id="translate-into-obj-file">
+<h2>Translate into obj file<a class="headerlink" href="#translate-into-obj-file" title="Permalink to this headline">¶</a></h2>
+<p>Currently, we only support translate llvm IR code into assembly code.
+If you try to run Chapter4_6_2/ to translate obj code will get the error message as
+follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>/usr/local/llvm/test/cmake_debug_build/bin/
+llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch4_1_2.bc -o ch4_1_2.cpu0.o
+/usr/local/llvm/test/cmake_debug_build/bin/llc: target does not
+support generation of this file <span class="nb">type</span>!
+</pre></div>
+</div>
+<p>The Chapter5/ support obj file generated.
+It can get result for big endian and little endian with command
+<tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=cpu0</span></tt> and <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=cpu0el</span></tt>.
+Run it will get the obj files as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>cat ch4_1_2.cpu0.s
+...
+  .set  nomacro
+<span class="c"># BB#0:</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -72
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+  st  <span class="nv">$2</span>, 68<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 5
+  st  <span class="nv">$3</span>, 64<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+...
+
+<span class="o">[</span>Gamma@localhost 3<span class="o">]</span><span class="nv">$ </span>/usr/local/llvm/test/cmake_debug_build/bin/
+llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch4_2.bc -o ch4_2.cpu0.o
+<span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>objdump -s ch4_2.cpu0.o
+
+ch4_2.cpu0.o:     file format elf32-big
+
+Contents of section .text:
+ 0000 09d0ffb8 09200000 012d0044 09300005  ..... ...-.D.0..
+ 0010 013d0040 09300002 013d003c 012d0038  .<span class="o">=</span>.@.0...<span class="o">=</span>.&lt;.-.8
+ 0020 012d0034 012d0014 0930fffb 013d0010  .-.4.-...0...<span class="o">=</span>..
+ 0030 012d000c 012d0008 002d003c 003d0040  .-...-...-.&lt;.<span class="o">=</span>.@
+ 0040 13232000 012d0038 002d003c 003d0040  .# ..-.8.-.&lt;.<span class="o">=</span>.@
+ 0050 14232000 012d0034 002d003c 003d0040  .# ..-.4.-.&lt;.<span class="o">=</span>.@
+ 0060 15232000 012d0030 002d003c 003d0040  .# ..-.0.-.&lt;.<span class="o">=</span>.@
+ 0070 16232000 012d002c 002d003c 003d0040  .# ..-.,.-.&lt;.<span class="o">=</span>.@
+ 0080 18232000 012d0028 002d003c 003d0040  .# ..-.<span class="o">(</span>.-.&lt;.<span class="o">=</span>.@
+ 0090 19232000 012d0024 002d003c 003d0040  .# ..-.<span class="nv">$.</span>-.&lt;.<span class="o">=</span>.@
+ 00a0 1a232000 012d0020 002d0040 1e220002  .# ..-. .-.@.<span class="s2">&quot;..</span>
+<span class="s2"> 00b0 012d001c 002d0010 1e220002 012d0004  .-...-...&quot;</span>...-..
+ 00c0 002d0010 1f220002 012d000c 09d00048  .-...<span class="s2">&quot;...-.....H</span>
+<span class="s2"> 00d0 2c00000e                                                     ,...</span>
+<span class="s2">Contents of section .eh_frame:</span>
+<span class="s2"> 0000 00000010 00000000 017a5200 017c0e01  .........zR..|..</span>
+<span class="s2"> 0010 000c0d00 00000010 00000018 00000000  ................</span>
+<span class="s2"> 0020 000000d4 00440e48                                    .....D.H</span>
+<span class="s2">[Gamma@localhost InputFiles]$ /usr/local/llvm/test/</span>
+<span class="s2">cmake_debug_build/bin/llc -march=cpu0el -relocation-model=pic -filetype=obj</span>
+<span class="s2">ch4_2.bc -o ch4_2.cpu0el.o</span>
+<span class="s2">[Gamma@localhost InputFiles]$ objdump -s ch4_2.cpu0el.o</span>
+
+<span class="s2">ch4_2.cpu0el.o:     file format elf32-little</span>
+
+<span class="s2">Contents of section .text:</span>
+<span class="s2"> 0000 b8ffd009 00002009 44002d01 05003009  ...... .D.-...0.</span>
+<span class="s2"> 0010 40003d01 02003009 3c003d01 38002d01  @.=...0.&lt;.=.8.-.</span>
+<span class="s2"> 0020 34002d01 14002d01 fbff3009 10003d01  4.-...-...0...=.</span>
+<span class="s2"> 0030 0c002d01 08002d01 3c002d00 40003d00  ..-...-.&lt;.-.@.=.</span>
+<span class="s2"> 0040 00202313 38002d01 3c002d00 40003d00  . #.8.-.&lt;.-.@.=.</span>
+<span class="s2"> 0050 00202314 34002d01 3c002d00 40003d00  . #.4.-.&lt;.-.@.=.</span>
+<span class="s2"> 0060 00202315 30002d01 3c002d00 40003d00  . #.0.-.&lt;.-.@.=.</span>
+<span class="s2"> 0070 00202316 2c002d01 3c002d00 40003d00  . #.,.-.&lt;.-.@.=.</span>
+<span class="s2"> 0080 00202318 28002d01 3c002d00 40003d00  . #.(.-.&lt;.-.@.=.</span>
+<span class="s2"> 0090 00202319 24002d01 3c002d00 40003d00  . #.$.-.&lt;.-.@.=.</span>
+<span class="s2"> 00a0 0020231a 20002d01 40002d00 0200221e  . #. .-.@.-...&quot;</span>.
+ 00b0 1c002d01 10002d00 0200221e 04002d01  ..-...-...<span class="s2">&quot;...-.</span>
+<span class="s2"> 00c0 10002d00 0200221f 0c002d01 4800d009  ..-...&quot;</span>...-.H...
+ 00d0 0e00002c                                                     ...,
+Contents of section .eh_frame:
+ 0000 10000000 00000000 017a5200 017c0e01  .........zR..|..
+ 0010 000c0d00 10000000 18000000 00000000  ................
+ 0020 d4000000 00440e48                                    .....D.H
+</pre></div>
+</div>
+<p>The first instruction is <strong>“addiu  $sp, -72”</strong> and it&#8217;s corresponding obj is
+0x09d0ffb8.
+The addiu opcode is 0x09, 8 bits, $sp register number is 13(0xd), 4bits, second
+register is useless, so assign it to 0x0, and the immediate is 16 bits
+-72(=0xffb8), so it&#8217;s correct.
+The third instruction <strong>“st  $2, 68($sp)”</strong> and it&#8217;s corresponding obj
+is 0x012d0044. The <strong>st</strong> opcode is <strong>0x0a</strong>, $2 is 0x2, $sp is 0xd and
+immediate is 68(0x0044).
+Thanks to cpu0 instruction format which opcode, register operand and
+offset(imediate value) size are multiple of 4 bits.
+The obj format is easy to check by eye.
+The big endian (B0, B1, B2, B3) = (09, d0, ff, b8), objdump from B0 to B3 as
+0x09d0ffb8 and the little endian is (B3, B2, B1, B0) = (09, d0, ff, b8),
+objdump from B0 to B3 as 0xb8ffd009.</p>
+</div>
+<div class="section" id="backend-target-registration-structure">
+<h2>Backend Target Registration Structure<a class="headerlink" href="#backend-target-registration-structure" title="Permalink to this headline">¶</a></h2>
+<p>Now, let&#8217;s examine Cpu0MCTargetDesc.cpp.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">}</span>
+
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0TargetMC</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// Register the MC asm info.</span>
+  <span class="n">RegisterMCAsmInfoFn</span> <span class="n">X</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCAsmInfo</span><span class="p">);</span>
+  <span class="n">RegisterMCAsmInfoFn</span> <span class="n">Y</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCAsmInfo</span><span class="p">);</span>
+
+  <span class="c1">// Register the MC codegen info.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeGenInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                        <span class="n">createCpu0MCCodeGenInfo</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeGenInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                        <span class="n">createCpu0MCCodeGenInfo</span><span class="p">);</span>
+  <span class="c1">// Register the MC instruction info.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstrInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCInstrInfo</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstrInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCInstrInfo</span><span class="p">);</span>
+
+  <span class="c1">// Register the MC register info.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCRegInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createCpu0MCRegisterInfo</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCRegInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createCpu0MCRegisterInfo</span><span class="p">);</span>
+
+  <span class="c1">// Register the MC Code Emitter</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                        <span class="n">createCpu0MCCodeEmitterEB</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCCodeEmitter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                        <span class="n">createCpu0MCCodeEmitterEL</span><span class="p">);</span>
+
+  <span class="c1">// Register the object streamer.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCObjectStreamer</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createMCStreamer</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCObjectStreamer</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createMCStreamer</span><span class="p">);</span>
+
+  <span class="c1">// Register the asm backend.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                       <span class="n">createCpu0AsmBackendEB32</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                       <span class="n">createCpu0AsmBackendEL32</span><span class="p">);</span>
+  <span class="c1">// Register the MC subtarget info.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCSubtargetInfo</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                          <span class="n">createCpu0MCSubtargetInfo</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCSubtargetInfo</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                          <span class="n">createCpu0MCSubtargetInfo</span><span class="p">);</span>
+  <span class="c1">// Register the MCInstPrinter.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstPrinter</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>
+                                        <span class="n">createCpu0MCInstPrinter</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCInstPrinter</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span>
+                                        <span class="n">createCpu0MCInstPrinter</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div>
+<p>Cpu0MCTargetDesc.cpp do the target registration as mentioned in
+&#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id2" id="id1">[1]</a> of the last chapter.
+Drawing the register function and those class it registered in
+<a class="pageref" href="#genobj-f1">Figure  1</a> to <a class="pageref" href="#genobj-f9">Figure  9</a> for explanation.</p>
+<div class="figure align-center" id="genobj-f1">
+<a class="reference internal image-reference" href="_images/15.png"><img alt="_images/15.png" src="_images/15.png" style="width: 731.0px; height: 634.0px;" /></a>
+<p class="caption">Figure 1: Register Cpu0MCAsmInfo</p>
+</div>
+<div class="figure align-center" id="genobj-f2">
+<a class="reference internal image-reference" href="_images/22.png"><img alt="_images/22.png" src="_images/22.png" style="width: 685.0px; height: 450.0px;" /></a>
+<p class="caption">Figure 2: Register MCCodeGenInfo</p>
+</div>
+<div class="figure align-center" id="genobj-f3">
+<a class="reference internal image-reference" href="_images/31.png"><img alt="_images/31.png" src="_images/31.png" style="width: 606.0px; height: 313.0px;" /></a>
+<p class="caption">Figure 3: Register MCInstrInfo</p>
+</div>
+<div class="figure align-center" id="genobj-f4">
+<a class="reference internal image-reference" href="_images/42.png"><img alt="_images/42.png" src="_images/42.png" style="width: 615.0px; height: 678.0px;" /></a>
+<p class="caption">Figure 4: Register MCRegisterInfo</p>
+</div>
+<div class="figure align-center" id="genobj-f5">
+<a class="reference internal image-reference" href="_images/52.png"><img alt="_images/52.png" src="_images/52.png" style="width: 750.0px; height: 635.0px;" /></a>
+<p class="caption">Figure 5: Register Cpu0MCCodeEmitter</p>
+</div>
+<div class="figure align-center" id="genobj-f6">
+<a class="reference internal image-reference" href="_images/62.png"><img alt="_images/62.png" src="_images/62.png" style="width: 776.0px; height: 617.0px;" /></a>
+<p class="caption">Figure 6: Register MCELFStreamer</p>
+</div>
+<div class="figure align-center" id="genobj-f7">
+<a class="reference internal image-reference" href="_images/71.png"><img alt="_images/71.png" src="_images/71.png" style="width: 810.0px; height: 570.0px;" /></a>
+<p class="caption">Figure 7: Register Cpu0AsmBackend</p>
+</div>
+<div class="figure align-center" id="genobj-f8">
+<a class="reference internal image-reference" href="_images/81.png"><img alt="_images/81.png" src="_images/81.png" style="width: 621.0px; height: 483.0px;" /></a>
+<p class="caption">Figure 8: Register Cpu0MCSubtargetInfo</p>
+</div>
+<div class="figure align-center" id="genobj-f9">
+<a class="reference internal image-reference" href="_images/91.png"><img alt="_images/91.png" src="_images/91.png" style="width: 794.0px; height: 569.0px;" /></a>
+<p class="caption">Figure 9: Register Cpu0InstPrinter</p>
+</div>
+<div class="figure align-center" id="genobj-f10">
+<a class="reference internal image-reference" href="_images/101.png"><img alt="_images/101.png" src="_images/101.png" style="width: 783.0px; height: 596.0px;" /></a>
+<p class="caption">Figure 10: MCELFStreamer inherit tree</p>
+</div>
+<p>In <a class="pageref" href="#genobj-f1">Figure  1</a>, registering the object of class Cpu0AsmInfo for
+target TheCpu0Target and TheCpu0elTarget.
+TheCpu0Target is for big endian and TheCpu0elTarget is for little endian.
+Cpu0AsmInfo is derived from MCAsmInfo which is llvm built-in class.
+Most code is implemented in it&#8217;s parent, back end reuse those code by inherit.</p>
+<p>In <a class="pageref" href="#genobj-f2">Figure  2</a>, instancing MCCodeGenInfo, and initialize it by
+pass
+Roloc::PIC because we use command <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span></tt> to tell <tt class="docutils literal"><span class="pre">llc</span></tt>
+compile using position-independent code mode.
+Recall the addressing mode in system program book has two mode, one is PIC
+mode, the other is absolute addressing mode.
+MC stands for Machine Code.</p>
+<p>In <a class="pageref" href="#genobj-f3">Figure  3</a>, instancing MCInstrInfo object X, and initialize it
+by InitCpu0MCInstrInfo(X).
+Since InitCpu0MCInstrInfo(X) is defined in Cpu0GenInstrInfo.inc, it will add
+the information from Cpu0InstrInfo.td we specified.
+<a class="pageref" href="#genobj-f4">Figure  4</a> is similar to <a class="pageref" href="#genobj-f3">Figure  3</a>, but it
+initialize the register information specified in Cpu0RegisterInfo.td.
+They share a lot of code with instruction/register td description.</p>
+<p><a class="pageref" href="#genobj-f5">Figure  5</a>, instancing two objects Cpu0MCCodeEmitter, one is for
+big endian and the other is for little endian.
+They take care the obj format generated.
+So, it&#8217;s not defined in Chapter4_6_2/ which support assembly code only.</p>
+<p><a class="pageref" href="#genobj-f6">Figure  6</a>, MCELFStreamer take care the obj format also.
+<a class="pageref" href="#genobj-f5">Figure  5</a> Cpu0MCCodeEmitter take care code emitter while
+MCELFStreamer take care the obj output streamer.
+<a class="pageref" href="#genobj-f10">Figure  10</a> is MCELFStreamer inherit tree.
+You can find a lot of operations in that inherit tree.</p>
+<p>Reader maybe has the question for what are the actual arguments in
+createCpu0MCCodeEmitterEB(const MCInstrInfo &amp;MCII,  const MCSubtargetInfo &amp;STI,
+MCContext &amp;Ctx) and at when they are assigned.
+Yes, we didn&#8217;t assign it, we register the createXXX() function by function
+pointer only (according C, TargetRegistry::RegisterXXX(TheCpu0Target,
+createXXX()) where createXXX is function pointer).
+LLVM keep a function pointer to createXXX() when we call target registry, and
+will call these createXXX() function back at proper time with arguments
+assigned during the target registration process, RegisterXXX().</p>
+<p><a class="pageref" href="#genobj-f7">Figure  7</a>, Cpu0AsmBackend class is the bridge for asm to obj.
+Two objects take care big endian and little endian also.
+It derived from MCAsmBackend.
+Most of code for object file generated is implemented by MCELFStreamer and it&#8217;s
+parent, MCAsmBackend.</p>
+<p><a class="pageref" href="#genobj-f8">Figure  8</a>, instancing MCSubtargetInfo object and initialize with
+Cpu0.td information.
+<a class="pageref" href="#genobj-f9">Figure  9</a>, instancing Cpu0InstPrinter to take care printing
+function for instructions.
+Like <a class="pageref" href="#genobj-f1">Figure  1</a> to <a class="pageref" href="#genobj-f4">Figure  4</a>, it has been defined
+in Chapter4_6_2/ code for assembly file generated support.</p>
+<table class="docutils footnote" frame="void" id="id2" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration</a></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="otherinst.html">Adding arithmetic and local pointer support</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="globalvar.html">Global variables, structs and arrays, other type</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, LLVM.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

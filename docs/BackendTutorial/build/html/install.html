@@ -1,0 +1,862 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Appendix A: Getting Started: Installing LLVM and the Cpu0 example code &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.2.13',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
+    <link rel="next" title="Appendix B: LLVM changes" href="oldver.html" />
+    <link rel="prev" title="Backend Optimization" href="optimize.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="index.html">
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
+        <h2 class="heading"><span>Appendix A: Getting Started: Installing LLVM and the Cpu0 example code</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="optimize.html">Backend Optimization</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="oldver.html">Appendix B: LLVM changes</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="appendix-a-getting-started-installing-llvm-and-the-cpu0-example-code">
+<span id="sec-appendix-installing"></span><h1>Appendix A: Getting Started: Installing LLVM and the Cpu0 example code<a class="headerlink" href="#appendix-a-getting-started-installing-llvm-and-the-cpu0-example-code" title="Permalink to this headline">¶</a></h1>
+<p>This book is on the process of merging into llvm trunk but not finished
+yet.
+The merged llvm trunk version on my git hub is LLVM 3.3 of merged date
+2013/03/28.
+So, you have to get book example code and the based llvm trunk by git command
+as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>git clone https://github.com/Jonathan2251/lbd.git
+</pre></div>
+</div>
+<p>In this chapter, we will run through how to set up LLVM using if you are using
+Mac OS X or Linux.  When discussing Mac OS X, we are using Apple&#8217;s Xcode IDE
+(version 4.5.1) running on Mac OS X Mountain Lion (version 10.8) to modify and
+build LLVM from source, and we will be debugging using lldb.
+We cannot debug our LLVM builds within Xcode at the
+moment, but if you have experience with this, please contact us and help us
+build documentation that covers this.  For Linux machines, we are building and
+debugging (using gdb) our LLVM installations on a Fedora 17 system.  We will
+not be using an IDE for Linux, but once again, if you have experience building/
+debugging LLVM using Eclipse or other major IDEs, please contact the authors.
+For information on using <tt class="docutils literal"><span class="pre">cmake</span></tt> to build LLVM, please refer to the &#8220;Building
+LLVM with CMake&#8221; <a class="footnote-reference" href="#id16" id="id1">[1]</a> documentation for further information.
+We are using cmake version 2.8.9.</p>
+<p>We will install two llvm directories in this chapter. One is the directory
+llvm/release/ which contains the clang, clang++ compiler we will use to translate
+the C/C++ input file into llvm IR.
+The other is the directory llvm/test/ which contains our cpu0 backend
+program and without clang and clang++.</p>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">Find information on debugging LLVM within Xcode for Macs.</p>
+</div>
+<div class="admonition-todo admonition" id="index-1">
+<p class="first admonition-title">Todo</p>
+<p class="last">Find information on building/debugging LLVM within Eclipse for Linux.</p>
+</div>
+<div class="section" id="setting-up-your-mac">
+<h2>Setting Up Your Mac<a class="headerlink" href="#setting-up-your-mac" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="installing-llvm-xcode-and-cmake">
+<h3>Installing LLVM, Xcode and cmake<a class="headerlink" href="#installing-llvm-xcode-and-cmake" title="Permalink to this headline">¶</a></h3>
+<div class="admonition-todo admonition" id="index-2">
+<p class="first admonition-title">Todo</p>
+<p class="last">Fix centering for figure captions.</p>
+</div>
+<p>Please download LLVM latest release version 3.2 (llvm, clang, compiler-rf) from
+the &#8220;LLVM Download Page&#8221; <a class="footnote-reference" href="#id17" id="id2">[2]</a>. Then extract them using
+<tt class="docutils literal"><span class="pre">tar</span> <span class="pre">-zxvf</span> <span class="pre">{llvm-3.2.src.tar,</span> <span class="pre">clang-3.2.src.tar,</span> <span class="pre">compiler-rt-3.2.src.tar}</span></tt>,
+and change the llvm source code root directory into src.
+After that, move the clang source code to src/tools/clang, and move the
+compiler-rt source to src/project/compiler-rt as shown as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-111:Downloads Jonathan<span class="nv">$ </span>tar -zxvf clang-3.2.src.tar.gz
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>tar -zxvf compiler-rt-3.2.src.tar.gz
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>tar -zxvf llvm-3.2.src.tar.gz
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>mv llvm-3.2.src src
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>mv clang-3.2.src src/tools/clang
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>mv compiler-rt-3.2.src src/projects/compiler-rt
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
+/Users/Jonathan/Downloads
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>ls
+clang-3.2.src.tar.gz        llvm-3.2.src.tar.gz
+compiler-rt-3.2.src.tar.gz  src
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>ls src/tools/
+CMakeLists.txt  clang       llvm-as         llvm-dis        llvm-mcmarkup
+llvm-readobj    llvm-stub   LLVMBuild.txt   gold            llvm-bcanalyzer
+llvm-dwarfdump  llvm-nm     llvm-rtdyld     lto             Makefile
+llc             llvm-config llvm-extract    llvm-objdump    llvm-shlib
+macho-dump      bugpoint    lli             llvm-cov        llvm-link
+llvm-prof       llvm-size   opt             bugpoint-passes llvm-ar
+llvm-diff       llvm-mc     llvm-ranlib     llvm-stress
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>ls src/projects/
+CMakeLists.txt  LLVMBuild.txt Makefile  compiler-rt sample
+</pre></div>
+</div>
+<p>Next, copy the LLVM source to /Users/Jonathan/llvm/release/src by executing the
+terminal command <tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/Users/Jonathan/Downloads/src</span> <span class="pre">/Users/Jonathan/</span>
+<span class="pre">llvm/release/.</span></tt>.</p>
+<p>Install Xcode from the Mac App Store. Then install cmake, which can be found
+here: <a class="footnote-reference" href="#id18" id="id3">[3]</a>.
+Before installing cmake, make sure you can install applications you download
+from the Internet.
+Open <em class="menuselection">System Preferences ‣ Security &amp; Privacy</em>. Click the
+<strong>lock</strong> to make changes, and under &#8220;Allow applications downloaded from:&#8221; select
+the radio button next to &#8220;Anywhere.&#8221; See <a class="pageref" href="#install-f2">Figure  1</a> below for an
+illustration. You may want to revert this setting after installing cmake.</p>
+<div class="figure align-center" id="install-f2">
+<img alt="_images/23.png" src="_images/23.png" />
+<p class="caption">Figure 1: Adjusting Mac OS X security settings to allow cmake installation.</p>
+</div>
+<p>Alternatively, you can mount the cmake .dmg image file you downloaded, right
+-click (or
+control-click) the cmake .pkg package file and click &#8220;Open.&#8221; Mac OS X will ask
+you if you
+are sure you want to install this package, and you can click &#8220;Open&#8221; to start the
+installer.</p>
+</div>
+<div class="section" id="create-llvm-xcodeproj-by-cmake-graphic-ui">
+<h3>Create LLVM.xcodeproj by cmake Graphic UI<a class="headerlink" href="#create-llvm-xcodeproj-by-cmake-graphic-ui" title="Permalink to this headline">¶</a></h3>
+<p>We install llvm source code with clang on directory
+/Users/Jonathan/llvm/release/ in last section.
+Now, will generate the LLVM.xcodeproj in this chapter.</p>
+<p>Currently, we cannot do debug by lldb with cmake graphic UI operations depicted
+in this section, but we can do debug by lldb with &#8220;section Create LLVM.xcodeproj
+of supporting cpu0 by terminal cmake command&#8221; <a class="footnote-reference" href="#id19" id="id4">[4]</a>.
+Even with that, let&#8217;s build LLVM project with cmake graphic UI since this LLVM
+directory contains the release version for clang and clang++ execution file.
+First, create LLVM.xcodeproj as
+<a class="pageref" href="#install-f3">Figure  2</a>, then click <strong>configure</strong> button to enter
+<a class="pageref" href="#install-f4">Figure  3</a>,
+and then click <strong>Done</strong> button to get <a class="pageref" href="#install-f5">Figure  4</a>.</p>
+<div class="figure align-center" id="install-f3">
+<img alt="_images/32.png" src="_images/32.png" />
+<p class="caption">Figure 2: Start to create LLVM.xcodeproj by cmake</p>
+</div>
+<div class="figure align-center" id="install-f4">
+<img alt="_images/43.png" src="_images/43.png" />
+<p class="caption">Figure 3: Create LLVM.xcodeproj by cmake – Set option to generate Xcode project</p>
+</div>
+<div class="figure align-center" id="install-f5">
+<img alt="_images/53.png" src="_images/53.png" />
+<p class="caption">Figure 4: Create LLVM.xcodeproj by cmake – Before Adjust CMAKE_INSTALL_NAME_TOOL</p>
+</div>
+<p>Click OK from <a class="pageref" href="#install-f5">Figure  4</a> and select Cmake 2.8-9.app for
+CMAKE_INSTALL_NAME_TOOL by click the right side button <strong>“...”</strong> of that row
+to get
+<a class="pageref" href="#install-f6">Figure  5</a>.</p>
+<div class="figure align-center" id="install-f6">
+<img alt="_images/63.png" src="_images/63.png" />
+<p class="caption">Figure 5: Select Cmake 2.8-9.app</p>
+</div>
+<p>Click Configure button to get <a class="pageref" href="#install-f7">Figure  6</a>.</p>
+<div class="figure align-center" id="install-f7">
+<img alt="_images/72.png" src="_images/72.png" />
+<p class="caption">Figure 6: Click cmake Configure button first time</p>
+</div>
+<p>Check CLANG_BUILD_EXAMPLES, LLVM_BUILD_EXAMPLES, and uncheck LLVM_ENABLE_PIC as
+<a class="pageref" href="#install-f8">Figure  7</a>.</p>
+<div class="figure align-center" id="install-f8">
+<img alt="_images/82.png" src="_images/82.png" />
+<p class="caption">Figure 7: Check CLANG_BUILD_EXAMPLES, LLVM_BUILD_EXAMPLES, and uncheck
+LLVM_ENABLE_PIC in cmake</p>
+</div>
+<p>Click Configure button again. If the output result message has no red color,
+then click Generate button to get <a class="pageref" href="#install-f9">Figure  8</a>.</p>
+<div class="figure align-center" id="install-f9">
+<img alt="_images/92.png" src="_images/92.png" />
+<p class="caption">Figure 8: Click cmake Generate button second time</p>
+</div>
+</div>
+<div class="section" id="build-llvm-by-xcode">
+<h3>Build llvm by Xcode<a class="headerlink" href="#build-llvm-by-xcode" title="Permalink to this headline">¶</a></h3>
+<p>Now, LLVM.xcodeproj is created. Open the cmake_debug_build/LLVM.xcodeproj by
+Xcode and click menu <strong>“Product – Build”</strong> as <a class="pageref" href="#install-f10">Figure  9</a>.</p>
+<div class="figure align-center" id="install-f10">
+<img alt="_images/102.png" src="_images/102.png" />
+<p class="caption">Figure 9: Click Build button to build LLVM.xcodeproj by Xcode</p>
+</div>
+<p>After few minutes of build, the clang, llc, llvm-as, ..., can be found in
+cmake_release_build/bin/Debug/ as follows.</p>
+<div class="highlight-bash"><pre>118-165-78-111:cmake_release_build Jonathan$ cd bin/Debug/
+118-165-78-111:Debug Jonathan$ pwd
+/Users/Jonathan/llvm/release/cmake_release_build/bin/Debug
+118-165-78-111:Debug Jonathan$ ls
+BrainF            Kaleidoscope-Ch7  clang-tblgen    llvm-dis        llvm-rtdyld
+ExceptionDemo     ModuleMaker       count           llvm-dwarfdump  llvm-size
+Fibonacci         ParallelJIT       diagtool        llvm-extract    llvm-stress
+FileCheck         arcmt-test        llc             llvm-link       llvm-tblgen
+FileUpdate        bugpoint          lli             llvm-mc         macho-dump
+HowToUseJIT       c-arcmt-test      llvm-ar         llvm-mcmarkup   not
+Kaleidoscope-Ch2  c-index-test      llvm-as         llvm-nm         obj2yaml
+Kaleidoscope-Ch3  clang             llvm-bcanalyzer llvm-objdump    opt
+Kaleidoscope-Ch4  clang++           llvm-config     llvm-prof       yaml-bench
+Kaleidoscope-Ch5  clang-check       llvm-cov        llvm-ranlib     yaml2obj
+Kaleidoscope-Ch6  clang-interpreter llvm-diff       llvm-readobj
+118-165-78-111:Debug Jonathan$</pre>
+</div>
+<p>To access those execution files, edit .profile (if you .profile not exists,
+please create file .profile), save .profile to /Users/Jonathan/, and enable
+$PATH by command <tt class="docutils literal"><span class="pre">source</span> <span class="pre">.profile</span></tt> as follows.
+Please add path /Applications//Xcode.app/Contents/Developer/usr/bin to .profile
+if you didn&#8217;t add it after Xcode download.</p>
+<div class="highlight-bash"><pre>118-165-65-128:~ Jonathan$ pwd
+/Users/Jonathan
+118-165-65-128:~ Jonathan$ cat .profile
+export PATH=$PATH:/Applications/Xcode.app/Contents/Developer/usr/bin:/Applicatio
+ns/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/:/Ap
+plications/Graphviz.app/Contents/MacOS/:/Users/Jonathan/llvm/release/cmake_relea
+se_build/bin/Debug
+export WORKON_HOME=$HOME/.virtualenvs
+source /usr/local/bin/virtualenvwrapper.sh # where Homebrew places it
+export VIRTUALENVWRAPPER_VIRTUALENV_ARGS='--no-site-packages' # optional
+118-165-65-128:~ Jonathan$</pre>
+</div>
+</div>
+<div class="section" id="create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command">
+<h3>Create LLVM.xcodeproj of supporting cpu0 by terminal cmake command<a class="headerlink" href="#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command" title="Permalink to this headline">¶</a></h3>
+<p>We have installed llvm with clang on directory llvm/release/.
+Now, we want to install llvm with our cpu0 backend code on directory
+llvm/test/ in this section.</p>
+<p>In &#8220;section Create LLVM.xcodeproj by cmake Graphic UI&#8221; <a class="footnote-reference" href="#id20" id="id5">[5]</a>, we create
+LLVM.xcodeproj by cmake graphic UI.
+We can create LLVM.xcodeproj by <tt class="docutils literal"><span class="pre">cmake</span></tt> command on terminal also.
+This book is on the process of merging into llvm trunk but not finished
+yet.
+The merged llvm trunk version on my git hub is LLVM 3.3 of merged date
+2013/03/28.
+So, you have to get book example code and the based llvm trunk by git command
+as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>git clone https://github.com/Jonathan2251/lbd.git
+</pre></div>
+</div>
+<p>The details of installing Cpu0 backend example code as follows,</p>
+<div class="highlight-bash"><pre>118-165-78-111:llvm Jonathan$ mkdir test
+118-165-78-111:llvm Jonathan$ cd test
+118-165-78-111:test Jonathan$ pwd
+/Users/Jonathan/llvm/test
+118-165-78-111:test Jonathan$ git clone https://github.com/Jonathan2251/lbd.git src
+118-165-78-111:test Jonathan$ cp -rf src/lib/Target/Cpu0/
+LLVMBackendTutorialExampleCode/src_files_modify/modify/src/* src/.
+118-165-78-111:test Jonathan$ grep -R "Cpu0" src/include
+...
+src/include/llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
+src/include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT_CALL,
+src/include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT16,
+src/include/llvm/MC/MCExpr.h:    VK_Cpu0_GOT,
+src/include/llvm/MC/MCExpr.h:    VK_Cpu0_ABS_HI,
+src/include/llvm/MC/MCExpr.h:    VK_Cpu0_ABS_LO,
+...
+src/lib/MC/MCExpr.cpp:  case VK_Cpu0_GOT_PAGE: return "GOT_PAGE";
+src/lib/MC/MCExpr.cpp:  case VK_Cpu0_GOT_OFST: return "GOT_OFST";
+src/lib/Target/LLVMBuild.txt:subdirectories = ARM CellSPU CppBackend Hexagon
+MBlaze MSP430 NVPTX Mips Cpu0 PowerPC Sparc X86 XCore
+118-165-78-111:test Jonathan$</pre>
+</div>
+<p>Next, please copy Cpu0 chapter 2 example code according the following commands,</p>
+<div class="highlight-bash"><pre>118-165-80-55:test Jonathan$ cd src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/
+118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ pwd
+/Users/Jonathan/llvm/test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode
+118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ sh removecpu0.sh
+118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ ls ..
+LLVMBackendTutorialExampleCode
+118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ cp -rf Chapter2/* ../.
+118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ cd ..
+118-165-80-55:Cpu0 Jonathan$ ls
+CMakeLists.txt                Cpu0InstrInfo.td        Cpu0TargetMachine.cpp   TargetInfo
+Cpu0.h                        Cpu0RegisterInfo.td     ExampleCode             readme
+Cpu0.td                       Cpu0Schedule.td         LLVMBuild.txt
+Cpu0InstrFormats.td   Cpu0Subtarget.h         MCTargetDesc
+118-165-80-55:Cpu0 Jonathan$</pre>
+</div>
+<p>Now, it&#8217;s ready for building llvm/test/src code by command
+<tt class="docutils literal"><span class="pre">cmake</span> <span class="pre">-DCMAKE_CXX_COMPILER=clang++</span> <span class="pre">-DCMAKE_C_COMPILER=clang</span> <span class="pre">-DCMAKE_BUILD_TYPE</span>
+<span class="pre">=Debug</span> <span class="pre">-G</span> <span class="pre">&quot;Xcode&quot;</span> <span class="pre">../src/</span></tt> as follows.
+Remind, currently, the <tt class="docutils literal"><span class="pre">cmake</span></tt> terminal command can work with lldb debug, but
+the &#8220;section Create LLVM.xcodeproj by cmake Graphic UI&#8221; <a class="footnote-reference" href="#id20" id="id6">[5]</a> cannot.</p>
+<div class="highlight-bash"><pre>118-165-78-111:Target Jonathan$ cd ../../../
+118-165-78-111:test Jonathan$ ls
+src
+118-165-78-111:test Jonathan$ pwd
+/Users/Jonathan/llvm/test
+118-165-78-111:test Jonathan$ ls
+src
+118-165-78-111:test Jonathan$ mkdir cmake_debug_build
+118-165-78-111:test Jonathan$ cd cmake_debug_build
+118-165-78-111:cmake_debug_build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++
+-DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -G "Xcode" ../src/
+CMake Error: The source directory "/Users/Jonathan/llvm/src" does not exist.
+Specify --help for usage, or press the help button on the CMake GUI.
+118-165-78-111:test Jonathan$ cd cmake_debug_build/
+118-165-78-111:cmake_debug_build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++
+-DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug -G "Xcode" ../src/
+-- The C compiler identification is Clang 4.1.0
+-- The CXX compiler identification is Clang 4.1.0
+-- Check for working C compiler using: Xcode
+...
+-- Targeting ARM
+-- Targeting CellSPU
+-- Targeting CppBackend
+-- Targeting Hexagon
+-- Targeting Mips
+-- Targeting Cpu0
+-- Targeting MBlaze
+-- Targeting MSP430
+-- Targeting NVPTX
+-- Targeting PowerPC
+-- Targeting Sparc
+-- Targeting X86
+-- Targeting XCore
+-- Performing Test SUPPORTS_GLINE_TABLES_ONLY_FLAG
+-- Performing Test SUPPORTS_GLINE_TABLES_ONLY_FLAG - Success
+-- Performing Test SUPPORTS_NO_C99_EXTENSIONS_FLAG
+-- Performing Test SUPPORTS_NO_C99_EXTENSIONS_FLAG - Success
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /Users/Jonathan/llvm/test/cmake_debug_build
+118-165-78-111:cmake_debug_build Jonathan$</pre>
+</div>
+<p>Now, you can build this llvm build with Cpu0 example code by Xcode as the last
+section indicated.</p>
+<p>Since Xcode use clang compiler and lldb instead of gcc and gdb, we can run lldb
+debug as follows,</p>
+<div class="highlight-bash"><pre>118-165-65-128:InputFiles Jonathan$ pwd
+/Users/Jonathan/LLVMBackendTutorialExampleCode/InputFiles
+118-165-65-128:InputFiles Jonathan$ clang -c ch3.cpp -emit-llvm -o ch3.bc
+118-165-65-128:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
+cmake_debug_build/bin/Debug/llc -march=mips -relocation-model=pic -filetype=asm
+ch3.bc -o ch3.mips.s
+118-165-65-128:InputFiles Jonathan$ lldb -- /Users/Jonathan/llvm/test/
+cmake_debug_build/bin/Debug/llc -march=mips -relocation-model=pic -filetype=
+asm ch3.bc -o ch3.mips.s
+Current executable set to '/Users/Jonathan/llvm/test/cmake_debug_build/bin/
+Debug/llc' (x86_64).
+(lldb) b MipsTargetInfo.cpp:19
+breakpoint set --file 'MipsTargetInfo.cpp' --line 19
+Breakpoint created: 1: file ='MipsTargetInfo.cpp', line = 19, locations = 1
+(lldb) run
+Process 6058 launched: '/Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/
+llc' (x86_64)
+Process 6058 stopped
+* thread #1: tid = 0x1c03, 0x000000010077f231 llc`LLVMInitializeMipsTargetInfo
++ 33 at MipsTargetInfo.cpp:20, stop reason = breakpoint 1.1
+  frame #0: 0x000000010077f231 llc`LLVMInitializeMipsTargetInfo + 33 at
+  MipsTargetInfo.cpp:20
+   17
+   18   extern "C" void LLVMInitializeMipsTargetInfo() {
+   19     RegisterTarget&lt;Triple::mips,
+-&gt; 20           /*HasJIT=*/true&gt; X(TheMipsTarget, "mips", "Mips");
+   21
+   22     RegisterTarget&lt;Triple::mipsel,
+   23           /*HasJIT=*/true&gt; Y(TheMipselTarget, "mipsel", "Mipsel");
+(lldb) n
+Process 6058 stopped
+* thread #1: tid = 0x1c03, 0x000000010077f24f llc`LLVMInitializeMipsTargetInfo
++ 63 at MipsTargetInfo.cpp:23, stop reason = step over
+  frame #0: 0x000000010077f24f llc`LLVMInitializeMipsTargetInfo + 63 at
+  MipsTargetInfo.cpp:23
+   20           /*HasJIT=*/true&gt; X(TheMipsTarget, "mips", "Mips");
+   21
+   22     RegisterTarget&lt;Triple::mipsel,
+-&gt; 23           /*HasJIT=*/true&gt; Y(TheMipselTarget, "mipsel", "Mipsel");
+   24
+   25     RegisterTarget&lt;Triple::mips64,
+   26           /*HasJIT=*/false&gt; A(TheMips64Target, "mips64", "Mips64
+   [experimental]");
+(lldb) print X
+(llvm::RegisterTarget&lt;llvm::Triple::ArchType, true&gt;) $0 = {}
+(lldb) quit
+118-165-65-128:InputFiles Jonathan$</pre>
+</div>
+<p>About the lldb debug command, please reference <a class="footnote-reference" href="#id21" id="id7">[6]</a> or lldb portal <a class="footnote-reference" href="#id22" id="id8">[7]</a>.</p>
+</div>
+<div class="section" id="setup-llvm-lit-on-imac">
+<h3>Setup llvm-lit on iMac<a class="headerlink" href="#setup-llvm-lit-on-imac" title="Permalink to this headline">¶</a></h3>
+<p>The llvm-lit <a class="footnote-reference" href="#id23" id="id9">[8]</a> is the llvm regression test tool. You don&#8217;t need to set up it
+if you don&#8217;t want to do regression test even though this book do the regression
+test.
+To set it up correctly in iMac, you need move it from directory bin/llvm-lit to
+bin/Debug/llvm-lit, and modify llvm-lit as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-69-59:bin Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
+/Users/Jonathan/llvm/test/cmake_debug_build/bin
+118-165-69-59:bin Jonathan<span class="nv">$ </span>ls
+Debug         llvm-lit
+118-165-69-59:bin Jonathan<span class="nv">$ </span>cp llvm-lit Debug/.
+// edit llvm-lit as follows,
+    <span class="s1">&#39;build_config&#39;</span> : <span class="s2">&quot;:&quot;</span>,
+    <span class="s1">&#39;build_mode&#39;</span> : <span class="s2">&quot;Debug&quot;</span>,
+</pre></div>
+</div>
+</div>
+<div class="section" id="install-icarus-verilog-tool-on-imac">
+<h3>Install Icarus Verilog tool on iMac<a class="headerlink" href="#install-icarus-verilog-tool-on-imac" title="Permalink to this headline">¶</a></h3>
+<p>Install Icarus Verilog tool by command <tt class="docutils literal"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">icarus-verilog</span></tt> as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:~ Jonathan<span class="nv">$ </span>brew install icarus-verilog
+<span class="o">==</span>&gt; Downloading ftp://icarus.com/pub/eda/verilog/v0.9/verilog-0.9.5.tar.gz
+<span class="c">######################################################################## 100.0%</span>
+<span class="c">######################################################################## 100.0%</span>
+<span class="o">==</span>&gt; ./configure --prefix<span class="o">=</span>/usr/local/Cellar/icarus-verilog/0.9.5
+<span class="o">==</span>&gt; <span class="nv">make</span>
+<span class="o">==</span>&gt; make <span class="nv">installdirs</span>
+<span class="o">==</span>&gt; make install
+/usr/local/Cellar/icarus-verilog/0.9.5: 39 files, 12M, built in 55 seconds
+</pre></div>
+</div>
+</div>
+<div class="section" id="install-other-tools-on-imac">
+<h3>Install other tools on iMac<a class="headerlink" href="#install-other-tools-on-imac" title="Permalink to this headline">¶</a></h3>
+<p>These tools mentioned in this section is for coding and debug.
+You can work even without these tools.
+Files compare tools Kdiff3 came from web site <a class="footnote-reference" href="#id24" id="id10">[9]</a>.
+FileMerge is a part of Xcode, you can type FileMerge in Finder – Applications
+as <a class="pageref" href="#install-f11">Figure  10</a> and drag it into the Dock as
+<a class="pageref" href="#install-f12">Figure  11</a>.</p>
+<div class="figure align-center" id="install-f11">
+<img alt="_images/111.png" src="_images/111.png" />
+<p class="caption">Figure 10: Type FileMerge in Finder – Applications</p>
+</div>
+<div class="figure align-center" id="install-f12">
+<img alt="_images/121.png" src="_images/121.png" />
+<p class="caption">Figure 11: Drag FileMege into the Dock</p>
+</div>
+<p>Download tool Graphviz for display llvm IR nodes in debugging,
+<a class="footnote-reference" href="#id25" id="id11">[10]</a>.
+We choose mountainlion as <a class="pageref" href="#install-f13">Figure  12</a> since our iMac is Mountain
+Lion.</p>
+<div class="figure align-center" id="install-f13">
+<a class="reference internal image-reference" href="_images/131.png"><img alt="_images/131.png" src="_images/131.png" style="width: 944.8px; height: 590.4px;" /></a>
+<p class="caption">Figure 12: Download graphviz for llvm IR node display</p>
+</div>
+<p>After install Graphviz, please set the path to .profile.
+For example, we install the Graphviz in directory
+/Applications/Graphviz.app/Contents/MacOS/, so add this path to
+/User/Jonathan/.profile as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-12-177:InputFiles Jonathan<span class="nv">$ </span>cat /Users/Jonathan/.profile
+<span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/Applications/Xcode.app/Contents/Developer/usr/bin:
+/Applications/Graphviz.app/Contents/MacOS/:/Users/Jonathan/llvm/release/
+cmake_release_build/bin/Debug
+</pre></div>
+</div>
+<p>The Graphviz information for llvm is in
+the section &#8220;SelectionDAG Instruction Selection Process&#8221; of
+<a class="footnote-reference" href="#id26" id="id12">[11]</a> and
+the section &#8220;Viewing graphs while debugging code&#8221; of
+<a class="footnote-reference" href="#id27" id="id13">[12]</a>.
+TextWrangler is for edit file with line number display and dump binary file
+like the obj file, *.o, that will be generated in chapter of Other
+instructions.
+You can download from App Store.
+To dump binary file, first, open the binary file, next, select menu
+<strong>“File – Hex Front Document”</strong> as <a class="pageref" href="#install-f14">Figure  13</a>.
+Then select <strong>“Front document&#8217;s file”</strong> as <a class="pageref" href="#install-f15">Figure  14</a>.</p>
+<div class="figure align-center" id="install-f14">
+<img alt="_images/141.png" src="_images/141.png" />
+<p class="caption">Figure 13: Select Hex Dump menu</p>
+</div>
+<div class="figure align-center" id="install-f15">
+<img alt="_images/151.png" src="_images/151.png" />
+<p class="caption">Figure 14: Select Front document&#8217;s file in TextWrangler</p>
+</div>
+<p>Install binutils by command <tt class="docutils literal"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">binutils</span></tt> as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-77-214:~ Jonathan<span class="nv">$ </span>brew install <span class="nv">binutils</span>
+<span class="o">==</span>&gt; Downloading http://ftpmirror.gnu.org/binutils/binutils-2.22.tar.gz
+<span class="c">######################################################################## 100.0%</span>
+<span class="o">==</span>&gt; ./configure --program-prefix<span class="o">=</span>g --prefix<span class="o">=</span>/usr/local/Cellar/binutils/2.22
+--infodir<span class="o">=</span>/usr/loca
+<span class="o">==</span>&gt; <span class="nv">make</span>
+<span class="o">==</span>&gt; make install
+/usr/local/Cellar/binutils/2.22: 90 files, 19M, built in 4.7 minutes
+118-165-77-214:~ Jonathan<span class="nv">$ </span>ls /usr/local/Cellar/binutils/2.22
+COPYING     README      lib
+ChangeLog     bin       share
+INSTALL_RECEIPT.json    include       x86_64-apple-darwin12.2.0
+118-165-77-214:binutils-2.23 Jonathan<span class="nv">$ </span>ls /usr/local/Cellar/binutils/2.22/bin
+gaddr2line  gc++filt  gnm   gobjdump  greadelf  gstrings
+gar   gelfedit  gobjcopy  granlib gsize   gstrip
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="setting-up-your-linux-machine">
+<h2>Setting Up Your Linux Machine<a class="headerlink" href="#setting-up-your-linux-machine" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="install-llvm-3-2-release-build-on-linux">
+<h3>Install LLVM 3.2 release build on Linux<a class="headerlink" href="#install-llvm-3-2-release-build-on-linux" title="Permalink to this headline">¶</a></h3>
+<p>First, install the llvm release build by,</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Untar llvm source, rename llvm source with src.</li>
+<li>Untar clang and move it src/tools/clang.</li>
+<li>Untar compiler-rt and move it to src/project/compiler-rt.</li>
+</ol>
+</div></blockquote>
+<p>Next, build with cmake command, <tt class="docutils literal"><span class="pre">cmake</span> <span class="pre">-DCMAKE_BUILD_TYPE=Release</span> <span class="pre">-DCLANG_BUILD</span>
+<span class="pre">_EXAMPLES=ON</span> <span class="pre">-DLLVM_BUILD_EXAMPLES=ON</span> <span class="pre">-G</span> <span class="pre">&quot;Unix</span> <span class="pre">Makefiles&quot;</span> <span class="pre">../src/</span></tt>, as follows.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost cmake_release_build<span class="o">]</span><span class="nv">$ </span>cmake -DCMAKE_BUILD_TYPE<span class="o">=</span>Release
+-DCLANG_BUILD_EXAMPLES<span class="o">=</span>ON -DLLVM_BUILD_EXAMPLES<span class="o">=</span>ON -G <span class="s2">&quot;Unix Makefiles&quot;</span> ../src/
+-- The C compiler identification is GNU 4.7.0
+...
+-- Constructing LLVMBuild project information
+-- Targeting ARM
+-- Targeting CellSPU
+-- Targeting CppBackend
+-- Targeting Hexagon
+-- Targeting Mips
+-- Targeting MBlaze
+-- Targeting MSP430
+-- Targeting PowerPC
+-- Targeting PTX
+-- Targeting Sparc
+-- Targeting X86
+-- Targeting XCore
+-- Clang version: 3.2
+-- Found Subversion: /usr/bin/svn <span class="o">(</span>found version <span class="s2">&quot;1.7.6&quot;</span><span class="o">)</span>
+-- Configuring <span class="k">done</span>
+-- Generating <span class="k">done</span>
+-- Build files have been written to: /usr/local/llvm/release/cmake_release_build
+</pre></div>
+</div>
+<p>After cmake, run command <tt class="docutils literal"><span class="pre">make</span></tt>, then you can get clang, llc, llvm-as, ...,
+in cmake_release_build/bin/ after a few tens minutes of build. Next, edit
+/home/Gamma/.bash_profile with adding /usr/local/llvm/release/cmake_release_build/
+bin to PATH
+to enable the clang, llc, ..., command search path, as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
+/home/Gamma
+<span class="o">[</span>Gamma@localhost ~<span class="o">]</span><span class="nv">$ </span>cat .bash_profile
+<span class="c"># .bash_profile</span>
+
+<span class="c"># Get the aliases and functions</span>
+<span class="k">if</span> <span class="o">[</span> -f ~/.bashrc <span class="o">]</span>; <span class="k">then</span>
+  . ~/.bashrc
+<span class="k">fi</span>
+
+<span class="c"># User specific environment and startup programs</span>
+
+<span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/usr/local/sphinx/bin:/usr/local/llvm/release/cmake_release_build/bin:
+/opt/mips_linux_toolchain_clang/mips_linux_toolchain/bin:<span class="nv">$HOME</span>/.local/bin:
+<span class="nv">$HOME</span>/bin
+
+<span class="nb">export </span>PATH
+<span class="o">[</span>Gamma@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">source</span> .bash_profile
+<span class="o">[</span>Gamma@localhost ~<span class="o">]</span><span class="nv">$ $PATH</span>
+bash: /usr/lib64/qt-3.3/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:
+/usr/sbin:/usr/local/sphinx/bin:/opt/mips_linux_toolchain_clang/mips_linux_tool
+chain/bin:/home/Gamma/.local/bin:/home/Gamma/bin:/usr/local/sphinx/bin:/usr/
+<span class="nb">local</span>/llvm/release/cmake_release_build/bin
+</pre></div>
+</div>
+</div>
+<div class="section" id="install-cpu0-debug-build-on-linux">
+<h3>Install cpu0 debug build on Linux<a class="headerlink" href="#install-cpu0-debug-build-on-linux" title="Permalink to this headline">¶</a></h3>
+<p>This book is on the process of merging into llvm trunk but not finished
+yet.
+The merged llvm trunk version on my git hub is LLVM 3.3 of merged date
+2013/03/28.
+So, you have to get book example code and the based llvm trunk by git command
+as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>git clone https://github.com/Jonathan2251/lbd.git
+</pre></div>
+</div>
+<p>The details of installing Cpu0 backend example code according the following
+list steps, and the corresponding commands shown as below,</p>
+<p>1) Enter /usr/local/llvm/test/ and
+get Cpu0 example code as well as the llvm trunk of Cpu0 based.</p>
+<ol class="arabic simple" start="2">
+<li>Make dir Cpu0 in src/lib/Target and download example code.</li>
+</ol>
+<p>3) Update my modified files to support cpu0 by command, <tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/usr/local/llvm/</span>
+<span class="pre">test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/</span>
+<span class="pre">src_files_modify/modify/src</span> <span class="pre">.</span></tt>.</p>
+<p>4) Check step 2 is effective by command
+<tt class="docutils literal"><span class="pre">grep</span> <span class="pre">-R</span> <span class="pre">&quot;Cpu0&quot;</span> <span class="pre">.</span> <span class="pre">|</span> <span class="pre">more`</span></tt>. I add the Cpu0 backend support, so check with
+grep.</p>
+<p>5) Enter src/lib/Target/Cpu0/, generate LLVMBackendTutorialExampleCode,
+and copy example code LLVMBackendTutorialExampleCode/2/Cpu0 to the directory by
+commands
+<tt class="docutils literal"><span class="pre">cd</span> <span class="pre">src/lib/Target/Cpu0/</span></tt> and
+<tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">LLVMBackendTutorialExample/Chapter2/*</span> <span class="pre">../.</span></tt>.</p>
+<p>6) Remove clang from /usr/local/llvm/test/src/tools/clang, and mkdir
+test/cmake_debug_build. Without this you will waste extra time for
+command <tt class="docutils literal"><span class="pre">make</span></tt> in cpu0 example code build.</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-111:llvm Jonathan<span class="nv">$ </span>mkdir <span class="nb">test</span>
+118-165-78-111:llvm Jonathan<span class="nv">$ </span><span class="nb">cd test</span>
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
+/usr/local/llvm/test
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>git clone https://github.com/Jonathan2251/lbd.git src
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>cp -rf src/lib/Target/Cpu0/
+LLVMBackendTutorialExampleCode/src_files_modify/modify/src/* src/.
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>grep -R <span class="s2">&quot;Cpu0&quot;</span> src/inlcude
+src/include//llvm/ADT/Triple.h:    cpu0,    // For Tutorial Backend Cpu0
+src/include//llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
+src/include//llvm/MC/MCExpr.h:    VK_Cpu0_GOT_CALL,
+...
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span><span class="nb">cd </span>src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/
+<span class="o">[</span>Gamma@localhost LLVMBackendTutorialExampleCode<span class="o">]</span><span class="nv">$ </span>sh removecpu0.sh
+<span class="o">[</span>Gamma@localhost LLVMBackendTutorialExampleCode<span class="o">]</span><span class="nv">$ </span>ls ../
+LLVMBackendTutorialExampleCode
+<span class="o">[</span>Gamma@localhost LLVMBackendTutorialExampleCode<span class="o">]</span><span class="nv">$ </span>cp -rf Chapter2/* ../.
+<span class="o">[</span>Gamma@localhost LLVMBackendTutorialExampleCode<span class="o">]</span><span class="nv">$ </span>ls ..
+CMakeLists.txt                Cpu0InstrInfo.td        Cpu0TargetMachine.cpp   TargetInfo
+Cpu0.h                        Cpu0RegisterInfo.td     ExampleCode             readme
+Cpu0.td                       Cpu0Schedule.td         LLVMBuild.txt
+Cpu0InstrFormats.td   Cpu0Subtarget.h         MCTargetDesc
+<span class="o">[</span>Gamma@localhost Cpu0<span class="o">]</span><span class="nv">$ </span><span class="nb">cd</span> ../../../..
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
+/usr/local/llvm/test
+</pre></div>
+</div>
+<p>Now, go into directory llvm/test/, create directory cmake_debug_build and
+do cmake
+like build the llvm/release, but we do Debug build and use clang as our compiler
+instead,
+as follows,</p>
+<div class="highlight-bash"><pre>[Gamma@localhost test]$ pwd
+/usr/local/llvm/test
+[Gamma@localhost test]$ mkdir cmake_debug_build
+[Gamma@localhost test]$ cd cmake_debug_build/
+[Gamma@localhost cmake_debug_build]$ cmake
+-DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang
+-DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ../src/
+-- The C compiler identification is Clang 3.2.0
+-- The CXX compiler identification is Clang 3.2.0
+-- Check for working C compiler: /usr/local/llvm/release/cmake_release_build/bin/
+clang
+-- Check for working C compiler: /usr/local/llvm/release/cmake_release_build/bin/
+clang
+ -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working CXX compiler: /usr/local/llvm/release/cmake_release_build/
+bin/clang++
+-- Check for working CXX compiler: /usr/local/llvm/release/cmake_release_build/
+bin/clang++
+ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info – done ...
+-- Targeting Mips
+-- Targeting Cpu0
+-- Targeting MBlaze
+-- Targeting MSP430
+-- Targeting PowerPC
+-- Targeting PTX
+-- Targeting Sparc
+-- Targeting X86
+-- Targeting XCore
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /usr/local/llvm/test/cmake_debug
+_build
+[Gamma@localhost cmake_debug_build]$</pre>
+</div>
+<p>Then do make as follows,</p>
+<div class="highlight-bash"><pre>[Gamma@localhost cmake_debug_build]$ make
+Scanning dependencies of target LLVMSupport
+[ 0%] Building CXX object lib/Support/CMakeFiles/LLVMSupport.dir/APFloat.cpp.o
+[ 0%] Building CXX object lib/Support/CMakeFiles/LLVMSupport.dir/APInt.cpp.o
+[ 0%] Building CXX object lib/Support/CMakeFiles/LLVMSupport.dir/APSInt.cpp.o
+[ 0%] Building CXX object lib/Support/CMakeFiles/LLVMSupport.dir/Allocator.cpp.o
+[ 1%] Building CXX object lib/Support/CMakeFiles/LLVMSupport.dir/BlockFrequency.
+cpp.o ...
+Linking CXX static library ../../lib/libgtest.a
+[100%] Built target gtest
+Scanning dependencies of target gtest_main
+[100%] Building CXX object utils/unittest/CMakeFiles/gtest_main.dir/UnitTestMain
+/
+TestMain.cpp.o Linking CXX static library ../../lib/libgtest_main.a
+[100%] Built target gtest_main
+[Gamma@localhost cmake_debug_build]$
+
+Now, we are ready for the cpu0 backend development. We can run gdb debug as
+follows.
+If your setting has anything about gdb errors, please follow the errors indication
+(maybe need to download gdb again).
+Finally, try gdb as follows.</pre>
+</div>
+<div class="highlight-bash"><pre>[Gamma@localhost InputFiles]$ pwd
+/usr/local/llvm/test/src/lib/Target/Cpu0/ExampleCode/
+LLVMBackendTutorialExampleCode/InputFiles
+[Gamma@localhost InputFiles]$ clang -c ch3.cpp -emit-llvm -o ch3.bc
+[Gamma@localhost InputFiles]$ gdb -args /usr/local/llvm/test/
+cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj
+ch3.bc -o ch3.cpu0.o
+GNU gdb (GDB) Fedora (7.4.50.20120120-50.fc17)
+Copyright (C) 2012 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-redhat-linux-gnu".
+For bug reporting instructions, please see:
+&lt;http://www.gnu.org/software/gdb/bugs/&gt;...
+Reading symbols from /usr/local/llvm/test/cmake_debug_build/bin/llc.
+..done.
+(gdb) break MipsTargetInfo.cpp:19
+Breakpoint 1 at 0xd54441: file /usr/local/llvm/test/src/lib/Target/
+Mips/TargetInfo/MipsTargetInfo.cpp, line 19.
+(gdb) run
+Starting program: /usr/local/llvm/test/cmake_debug_build/bin/llc
+-march=cpu0 -relocation-model=pic -filetype=obj ch3.bc -o ch3.cpu0.o
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib64/libthread_db.so.1".
+
+Breakpoint 1, LLVMInitializeMipsTargetInfo ()
+  at /usr/local/llvm/test/src/lib/Target/Mips/TargetInfo/MipsTargetInfo.cpp:20
+20          /*HasJIT=*/true&gt; X(TheMipsTarget, "mips", "Mips");
+(gdb) next
+23          /*HasJIT=*/true&gt; Y(TheMipselTarget, "mipsel", "Mipsel");
+(gdb) print X
+$1 = {&lt;No data fields&gt;}
+(gdb) quit
+A debugging session is active.
+
+  Inferior 1 [process 10165] will be killed.
+
+Quit anyway? (y or n) y
+[Gamma@localhost InputFiles]$</pre>
+</div>
+</div>
+<div class="section" id="install-icarus-verilog-tool-on-linux">
+<h3>Install Icarus Verilog tool on Linux<a class="headerlink" href="#install-icarus-verilog-tool-on-linux" title="Permalink to this headline">¶</a></h3>
+<p>Download the snapshot version of Icarus Verilog tool from web site,
+<a class="reference external" href="ftp://icarus.com/pub/eda/verilog/snapshots">ftp://icarus.com/pub/eda/verilog/snapshots</a> or go to <a class="reference external" href="http://iverilog.icarus.com/">http://iverilog.icarus.com/</a>
+and click snapshot version link. Follow the INSTALL file guide to install it.</p>
+</div>
+<div class="section" id="install-other-tools-on-linux">
+<h3>Install other tools on Linux<a class="headerlink" href="#install-other-tools-on-linux" title="Permalink to this headline">¶</a></h3>
+<p>Download Graphviz from <a class="footnote-reference" href="#id28" id="id14">[13]</a> according your
+Linux distribution. Files compare tools Kdiff3 came from web site <a class="footnote-reference" href="#id23" id="id15">[8]</a>.</p>
+<table class="docutils footnote" frame="void" id="id16" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://llvm.org/docs/CMake.html?highlight=cmake">http://llvm.org/docs/CMake.html?highlight=cmake</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id17" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://llvm.org/releases/download.html#3.2">http://llvm.org/releases/download.html#3.2</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id18" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.cmake.org/cmake/resources/software.html">http://www.cmake.org/cmake/resources/software.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id19" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command">http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id20" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui">http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id21" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id7">[6]</a></td><td><a class="reference external" href="http://lldb.llvm.org/lldb-gdb.html">http://lldb.llvm.org/lldb-gdb.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id22" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id8">[7]</a></td><td><a class="reference external" href="http://lldb.llvm.org/">http://lldb.llvm.org/</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id23" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id9">[8]</a></td><td><a class="reference external" href="http://llvm.org/docs/TestingGuide.html">http://llvm.org/docs/TestingGuide.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id24" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id10">[9]</a></td><td><a class="reference external" href="http://kdiff3.sourceforge.net">http://kdiff3.sourceforge.net</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id25" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id11">[10]</a></td><td><a class="reference external" href="http://www.graphviz.org/Download_macos.php">http://www.graphviz.org/Download_macos.php</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id26" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id12">[11]</a></td><td><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html">http://llvm.org/docs/CodeGenerator.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id27" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id13">[12]</a></td><td><a class="reference external" href="http://llvm.org/docs/ProgrammersManual.html">http://llvm.org/docs/ProgrammersManual.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id28" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id14">[13]</a></td><td><a class="reference external" href="http://www.graphviz.org/Download..php">http://www.graphviz.org/Download..php</a></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="optimize.html">Backend Optimization</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="oldver.html">Appendix B: LLVM changes</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, LLVM.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

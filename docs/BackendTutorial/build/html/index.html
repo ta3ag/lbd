@@ -1,0 +1,256 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Table of Contents &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    
+    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/print.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '3.2.13',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/theme_extras.js"></script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="#" />
+    <link rel="next" title="About" href="about.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="#">
+          <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
+        <h2 class="heading"><span>Table of Contents</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        <a class="uplink" href="#">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="about.html">About</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This is a work in progress. If you would like to contribution, please push updates and patches to the main github project available at <a class="reference external" href="http://github.com/Jonathan2251/lbd">http://github.com/Jonathan2251/lbd</a> for review.</p>
+</div>
+<div class="section" id="table-of-contents">
+<h1>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="about.html">About</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="about.html#authors">Authors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="about.html#contributors">Contributors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="about.html#acknowledgments">Acknowledgments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="about.html#support">Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="about.html#revision-history">Revision history</a></li>
+<li class="toctree-l2"><a class="reference internal" href="about.html#licensing">Licensing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="about.html#preface">Preface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="about.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="about.html#outline-of-chapters">Outline of Chapters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="llvmstructure.html">Cpu0 Instruction Set and LLVM Target Description</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="llvmstructure.html#cpu0-processor-architecture-details">Cpu0 Processor Architecture Details</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="llvmstructure.html#brief-introduction">Brief introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="llvmstructure.html#the-cpu0-instruction-set">The Cpu0 Instruction Set</a></li>
+<li class="toctree-l3"><a class="reference internal" href="llvmstructure.html#the-status-register">The Status Register</a></li>
+<li class="toctree-l3"><a class="reference internal" href="llvmstructure.html#cpu0-s-stages-of-instruction-execution">Cpu0&#8217;s Stages of Instruction Execution</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="llvmstructure.html#llvm-structure">LLVM Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="llvmstructure.html#td-llvm-s-target-description-files">.td: LLVM&#8217;s Target Description Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="llvmstructure.html#creating-the-initial-cpu0-td-files">Creating the Initial Cpu0 .td Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="llvmstructure.html#write-cmake-file">Write cmake file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="llvmstructure.html#target-registration">Target Registration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="llvmstructure.html#build-libraries-and-td">Build libraries and td</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="backendstructure.html">Backend structure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="backendstructure.html#targetmachine-structure">TargetMachine structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backendstructure.html#add-registerinfo">Add RegisterInfo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backendstructure.html#add-asmprinter">Add AsmPrinter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backendstructure.html#llvm-code-generation-sequence">LLVM Code Generation Sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backendstructure.html#dag-directed-acyclic-graph">DAG (Directed Acyclic Graph)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backendstructure.html#instruction-selection">Instruction Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backendstructure.html#add-cpu0dagtodagisel-class">Add Cpu0DAGToDAGISel class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backendstructure.html#add-prologue-epilogue-functions">Add Prologue/Epilogue functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backendstructure.html#summary-of-this-chapter">Summary of this Chapter</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="otherinst.html">Adding arithmetic and local pointer support</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="otherinst.html#support-arithmetic-instructions">Support arithmetic instructions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="otherinst.html#operator-not">Operator “not” !</a></li>
+<li class="toctree-l2"><a class="reference internal" href="otherinst.html#display-llvm-ir-nodes-with-graphviz">Display llvm IR nodes with Graphviz</a></li>
+<li class="toctree-l2"><a class="reference internal" href="otherinst.html#adjust-cpu0-instructions">Adjust cpu0 instructions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="otherinst.html#local-variable-pointer">Local variable pointer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="otherinst.html#operator-mod">Operator mod, %</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="otherinst.html#the-dag-of">The DAG of %</a></li>
+<li class="toctree-l3"><a class="reference internal" href="otherinst.html#arm-solution">Arm solution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="otherinst.html#mips-solution">Mips solution</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="otherinst.html#full-support">Full support %</a></li>
+<li class="toctree-l2"><a class="reference internal" href="otherinst.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="genobj.html">Generating object files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="genobj.html#translate-into-obj-file">Translate into obj file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="genobj.html#backend-target-registration-structure">Backend Target Registration Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="globalvar.html">Global variables, structs and arrays, other type</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="globalvar.html#global-variable">Global variable</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="globalvar.html#static-mode">Static mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="globalvar.html#pic-mode">PIC mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="globalvar.html#global-variable-print-support">Global variable print support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="globalvar.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="globalvar.html#array-and-struct-support">Array and struct support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="globalvar.html#type-of-char-and-short-int">Type of char and short int</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ctrlflow.html">Control flow statements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ctrlflow.html#control-flow-statement">Control flow statement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ctrlflow.html#risc-cpu-knowledge">RISC CPU knowledge</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="funccall.html">Function call</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="funccall.html#mips-stack-frame">Mips stack frame</a></li>
+<li class="toctree-l2"><a class="reference internal" href="funccall.html#load-incoming-arguments-from-stack-frame">Load incoming arguments from stack frame</a></li>
+<li class="toctree-l2"><a class="reference internal" href="funccall.html#store-outgoing-arguments-to-stack-frame">Store outgoing arguments to stack frame</a></li>
+<li class="toctree-l2"><a class="reference internal" href="funccall.html#fix-the-wrong-offset-in-storing-arguments-to-stack-frame">Fix the wrong offset in storing arguments to stack frame</a></li>
+<li class="toctree-l2"><a class="reference internal" href="funccall.html#pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup">Pseudo hook instruction ADJCALLSTACKDOWN and ADJCALLSTACKUP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="funccall.html#handle-gp-register-in-pic-addressing-mode">Handle $gp register in PIC addressing mode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="funccall.html#variable-number-of-arguments">Variable number of arguments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="funccall.html#correct-the-return-of-main">Correct the return of main()</a></li>
+<li class="toctree-l2"><a class="reference internal" href="funccall.html#verify-div-for-operator">Verify DIV for operator %</a></li>
+<li class="toctree-l2"><a class="reference internal" href="funccall.html#structure-type-support">Structure type support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="funccall.html#dynamic-stack-allocation-support">Dynamic stack allocation support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="funccall.html#summary-of-this-chapter">Summary of this chapter</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="elf.html">ELF Support</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="elf.html#elf-format">ELF format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elf.html#elf-header-and-section-header-table">ELF header and Section header table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elf.html#relocation-record">Relocation Record</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elf.html#cpu0-elf-related-files">Cpu0 ELF related files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elf.html#lld">lld</a></li>
+<li class="toctree-l2"><a class="reference internal" href="elf.html#llvm-objdump">llvm-objdump</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="elf.html#llvm-objdump-t-r">llvm-objdump -t -r</a></li>
+<li class="toctree-l3"><a class="reference internal" href="elf.html#llvm-objdump-d">llvm-objdump -d</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="runbackend.html">Run backend</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="runbackend.html#asmparser-support">AsmParser support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="runbackend.html#verilog-of-cpu0">Verilog of CPU0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="runbackend.html#run-program-on-cpu0-machine">Run program on CPU0 machine</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimize.html">Backend Optimization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="optimize.html#cpu0-backend-optimization-remove-useless-jmp">Cpu0 backend Optimization: Remove useless JMP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimize.html#cpu0-optimization-redesign-instruction-sets">Cpu0 Optimization: Redesign instruction sets</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="optimize.html#cpu0-new-instruction-sets-table">Cpu0 new instruction sets table</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimize.html#cpu0-code-changes">Cpu0 code changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimize.html#cpu0-verilog-language-changes">Cpu0 Verilog language changes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimize.html#run-the-redesigned-cpu0">Run the redesigned Cpu0</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Appendix A: Getting Started: Installing LLVM and the Cpu0 example code</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html#setting-up-your-mac">Setting Up Your Mac</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="install.html#installing-llvm-xcode-and-cmake">Installing LLVM, Xcode and cmake</a></li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#create-llvm-xcodeproj-by-cmake-graphic-ui">Create LLVM.xcodeproj by cmake Graphic UI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#build-llvm-by-xcode">Build llvm by Xcode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command">Create LLVM.xcodeproj of supporting cpu0 by terminal cmake command</a></li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#setup-llvm-lit-on-imac">Setup llvm-lit on iMac</a></li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#install-icarus-verilog-tool-on-imac">Install Icarus Verilog tool on iMac</a></li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#install-other-tools-on-imac">Install other tools on iMac</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#setting-up-your-linux-machine">Setting Up Your Linux Machine</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="install.html#install-llvm-3-2-release-build-on-linux">Install LLVM 3.2 release build on Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#install-cpu0-debug-build-on-linux">Install cpu0 debug build on Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#install-icarus-verilog-tool-on-linux">Install Icarus Verilog tool on Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="install.html#install-other-tools-on-linux">Install other tools on Linux</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="oldver.html">Appendix B: LLVM changes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="oldver.html#difference-between-3-2-and-3-1">Difference between 3.2 and 3.1</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="oldver.html#api-difference">API difference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="oldver.html#structure-difference">Structure difference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="oldver.html#verify-the-cpu0-for-difference">Verify the Cpu0 for difference</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="oldver.html#difference-in-mips-backend">Difference in Mips backend</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="instdiscuss.html">Appendix C: instructions discuss</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="instdiscuss.html#use-cpu0-official-ldi-instead-of-addiu">Use cpu0 official LDI instead of ADDiu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="instdiscuss.html#implicit-operand">Implicit operand</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="todo.html">Todo List</a></li>
+</ul>
+</div>
+<div class="section" id="book-example-code">
+<h2>Book example code<a class="headerlink" href="#book-example-code" title="Permalink to this headline">¶</a></h2>
+<p>The example code is available in:</p>
+<p><a class="reference external" href="http://jonathan2251.github.com/lbd/LLVMBackendTutorialExampleCode.tar.gz">http://jonathan2251.github.com/lbd/LLVMBackendTutorialExampleCode.tar.gz</a></p>
+</div>
+<div class="section" id="alternate-formats">
+<h2>Alternate formats<a class="headerlink" href="#alternate-formats" title="Permalink to this headline">¶</a></h2>
+<p>The book is also available in the following formats:</p>
+<ul>
+<li>
+<a href="http://jonathan2251.github.com/lbd/TutorialLLVMBackendCpu0.pdf">PDF</a>
+</li>
+<li>
+<a href="http://jonathan2251.github.com/lbd/TutorialLLVMBackendCpu0.epub">ePub</a>
+</li>
+</ul></div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        <a class="uplink" href="#">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="about.html">About</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+    <div class="footer">
+        &copy; Copyright 2012, LLVM.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
