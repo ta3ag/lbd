@@ -43,7 +43,6 @@ add_llvm_target(R600CodeGen
   R600MachineScheduler.cpp
   R600Packetizer.cpp
   R600RegisterInfo.cpp
-  R600TextureIntrinsicsReplacer.cpp
   SIAnnotateControlFlow.cpp
   SIInsertWaits.cpp
   SIInstrInfo.cpp

@@ -51,13 +51,13 @@ static MCSubtargetInfo *createXCoreMCSubtargetInfo(StringRef TT, StringRef CPU,
   return X;
 }
 
-static MCAsmInfo *createXCoreMCAsmInfo(const MCRegisterInfo &MRI,
-                                       StringRef TT) {
-  MCAsmInfo *MAI = new XCoreMCAsmInfo(TT);
+static MCAsmInfo *createXCoreMCAsmInfo(const Target &T, StringRef TT) {
+  MCAsmInfo *MAI = new XCoreMCAsmInfo(T, TT);
 
   // Initial state of the frame pointer is SP.
-  MCCFIInstruction Inst = MCCFIInstruction::createDefCfa(0, XCore::SP, 0);
-  MAI->addInitialFrameState(Inst);
+  MachineLocation Dst(MachineLocation::VirtualFP);
+  MachineLocation Src(XCore::SP, 0);
+  MAI->addInitialFrameState(0, Dst, Src);
 
   return MAI;
 }

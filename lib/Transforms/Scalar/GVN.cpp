@@ -45,7 +45,6 @@
 #include "llvm/Target/TargetLibraryInfo.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include "llvm/Transforms/Utils/SSAUpdater.h"
-#include <vector>
 using namespace llvm;
 using namespace PatternMatch;
 
@@ -693,7 +692,6 @@ namespace {
     void cleanupGlobalSets();
     void verifyRemoved(const Instruction *I) const;
     bool splitCriticalEdges();
-    BasicBlock *splitCriticalEdges(BasicBlock *Pred, BasicBlock *Succ);
     unsigned replaceAllDominatedUsesWith(Value *From, Value *To,
                                          const BasicBlockEdge &Root);
     bool propagateEquality(Value *LHS, Value *RHS, const BasicBlockEdge &Root);
@@ -1515,7 +1513,7 @@ bool GVN::PerformLoadPRE(LoadInst *LI, AvailValInBlkVect &ValuesPerBlock,
   for (unsigned i = 0, e = UnavailableBlocks.size(); i != e; ++i)
     FullyAvailableBlocks[UnavailableBlocks[i]] = false;
 
-  SmallVector<BasicBlock *, 4> CriticalEdgePred;
+  SmallVector<std::pair<TerminatorInst*, unsigned>, 4> NeedToSplit;
   for (pred_iterator PI = pred_begin(LoadBB), E = pred_end(LoadBB);
        PI != E; ++PI) {
     BasicBlock *Pred = *PI;
@@ -1538,14 +1536,20 @@ bool GVN::PerformLoadPRE(LoadInst *LI, AvailValInBlkVect &ValuesPerBlock,
         return false;
       }
 
-      CriticalEdgePred.push_back(Pred);
+      unsigned SuccNum = GetSuccessorNumber(Pred, LoadBB);
+      NeedToSplit.push_back(std::make_pair(Pred->getTerminator(), SuccNum));
     }
+  }
+
+  if (!NeedToSplit.empty()) {
+    toSplit.append(NeedToSplit.begin(), NeedToSplit.end());
+    return false;
   }
 
   // Decide whether PRE is profitable for this load.
   unsigned NumUnavailablePreds = PredLoads.size();
   assert(NumUnavailablePreds != 0 &&
-         "Fully available value should already be eliminated!");
+         "Fully available value should be eliminated above!");
 
   // If this load is unavailable in multiple predecessors, reject it.
   // FIXME: If we could restructure the CFG, we could make a common pred with
@@ -1553,17 +1557,6 @@ bool GVN::PerformLoadPRE(LoadInst *LI, AvailValInBlkVect &ValuesPerBlock,
   // that one block.
   if (NumUnavailablePreds != 1)
       return false;
-
-  // Split critical edges, and update the unavailable predecessors accordingly.
-  for (SmallVector<BasicBlock *, 4>::iterator I = CriticalEdgePred.begin(), 
-         E = CriticalEdgePred.end(); I != E; I++) {
-    BasicBlock *OrigPred = *I;
-    BasicBlock *NewPred = splitCriticalEdges(OrigPred, LoadBB);
-    PredLoads.erase(OrigPred);
-    PredLoads[NewPred] = 0;
-    DEBUG(dbgs() << "Split critical edge " << OrigPred->getName() << "->"
-                 << LoadBB->getName() << '\n');
-  }
 
   // Check if the load can safely be moved to all the unavailable predecessors.
   bool CanDoPRE = true;
@@ -1601,9 +1594,7 @@ bool GVN::PerformLoadPRE(LoadInst *LI, AvailValInBlkVect &ValuesPerBlock,
       if (MD) MD->removeInstruction(I);
       I->eraseFromParent();
     }
-    // HINT:Don't revert the edge-splitting as following transformation may 
-    // also need to split these critial edges.
-    return !CriticalEdgePred.empty();
+    return false;
   }
 
   // Okay, we can eliminate this load by inserting a reload in the predecessor
@@ -2306,6 +2297,8 @@ bool GVN::runOnFunction(Function& F) {
   while (ShouldContinue) {
     DEBUG(dbgs() << "GVN iteration: " << Iteration << "\n");
     ShouldContinue = iterateOnFunction(F);
+    if (splitCriticalEdges())
+      ShouldContinue = true;
     Changed |= ShouldContinue;
     ++Iteration;
   }
@@ -2317,7 +2310,6 @@ bool GVN::runOnFunction(Function& F) {
       Changed |= PREChanged;
     }
   }
-
   // FIXME: Should perform GVN again after PRE does something.  PRE can move
   // computations into blocks where they become fully redundant.  Note that
   // we can't do this until PRE's critical edge splitting updates memdep.
@@ -2551,15 +2543,6 @@ bool GVN::performPRE(Function &F) {
   return Changed;
 }
 
-/// Split the critical edge connecting the given two blocks, and return
-/// the block inserted to the critical edge.
-BasicBlock *GVN::splitCriticalEdges(BasicBlock *Pred, BasicBlock *Succ) {
-  BasicBlock *BB = SplitCriticalEdge(Pred, Succ, this);
-  if (MD)
-    MD->invalidateCachedPredecessors();
-  return BB;
-}
-
 /// splitCriticalEdges - Split critical edges found during the previous
 /// iteration that may enable further optimization.
 bool GVN::splitCriticalEdges() {
@@ -2586,18 +2569,9 @@ bool GVN::iterateOnFunction(Function &F) {
        RE = RPOT.end(); RI != RE; ++RI)
     Changed |= processBlock(*RI);
 #else
-  // Save the blocks this function have before transformation begins. GVN may
-  // split critical edge, and hence may invalidate the RPO/DT iterator.
-  //
-  std::vector<BasicBlock *> BBVect;
-  BBVect.reserve(256);
   for (df_iterator<DomTreeNode*> DI = df_begin(DT->getRootNode()),
        DE = df_end(DT->getRootNode()); DI != DE; ++DI)
-    BBVect.push_back(DI->getBlock());
-
-  for (std::vector<BasicBlock *>::iterator I = BBVect.begin(), E = BBVect.end();
-       I != E; I++)
-    Changed |= processBlock(*I);
+    Changed |= processBlock(DI->getBlock());
 #endif
 
   return Changed;

@@ -114,8 +114,8 @@ DIE::~DIE() {
 
 /// Climb up the parent chain to get the compile unit DIE to which this DIE
 /// belongs.
-DIE *DIE::getCompileUnit() {
-  DIE *p = this;
+DIE *DIE::getCompileUnit() const {
+  DIE *p = getParent();
   while (p) {
     if (p->getTag() == dwarf::DW_TAG_compile_unit)
       return p;

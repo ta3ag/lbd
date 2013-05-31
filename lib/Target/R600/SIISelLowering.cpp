@@ -13,17 +13,17 @@
 //===----------------------------------------------------------------------===//
 
 #include "SIISelLowering.h"
-#include "AMDGPU.h"
 #include "AMDIL.h"
+#include "AMDGPU.h"
 #include "AMDILIntrinsicInfo.h"
 #include "SIInstrInfo.h"
 #include "SIMachineFunctionInfo.h"
 #include "SIRegisterInfo.h"
+#include "llvm/IR/Function.h"
 #include "llvm/CodeGen/CallingConvLower.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 #include "llvm/CodeGen/SelectionDAG.h"
-#include "llvm/IR/Function.h"
 
 using namespace llvm;
 
@@ -87,7 +87,7 @@ SDValue SITargetLowering::LowerFormalArguments(
                                       CallingConv::ID CallConv,
                                       bool isVarArg,
                                       const SmallVectorImpl<ISD::InputArg> &Ins,
-                                      SDLoc DL, SelectionDAG &DAG,
+                                      DebugLoc DL, SelectionDAG &DAG,
                                       SmallVectorImpl<SDValue> &InVals) const {
 
   const TargetRegisterInfo *TRI = getTargetMachine().getRegisterInfo();
@@ -103,8 +103,8 @@ SDValue SITargetLowering::LowerFormalArguments(
 
   for (unsigned i = 0, e = Ins.size(), PSInputNum = 0; i != e; ++i) {
     const ISD::InputArg &Arg = Ins[i];
-
-    // First check if it's a PS input addr
+   
+    // First check if it's a PS input addr 
     if (Info->ShaderType == ShaderType::PIXEL && !Arg.Flags.isInReg()) {
 
       assert((PSInputNum <= 15) && "Too many PS inputs!");
@@ -156,9 +156,8 @@ SDValue SITargetLowering::LowerFormalArguments(
 
   for (unsigned i = 0, e = Ins.size(), ArgIdx = 0; i != e; ++i) {
 
-    const ISD::InputArg &Arg = Ins[i];
     if (Skipped & (1 << i)) {
-      InVals.push_back(DAG.getUNDEF(Arg.VT));
+      InVals.push_back(SDValue());
       continue;
     }
 
@@ -182,6 +181,7 @@ SDValue SITargetLowering::LowerFormalArguments(
     Reg = MF.addLiveIn(Reg, RC);
     SDValue Val = DAG.getCopyFromReg(Chain, DL, Reg, VT);
 
+    const ISD::InputArg &Arg = Ins[i];
     if (Arg.VT.isVector()) {
 
       // Build a vector from the registers
@@ -200,7 +200,7 @@ SDValue SITargetLowering::LowerFormalArguments(
       NumElements = Arg.VT.getVectorNumElements() - NumElements;
       for (unsigned j = 0; j != NumElements; ++j)
         Regs.push_back(DAG.getUNDEF(VT));
-
+ 
       InVals.push_back(DAG.getNode(ISD::BUILD_VECTOR, DL, Arg.VT,
                                    Regs.data(), Regs.size()));
       continue;
@@ -222,7 +222,7 @@ MachineBasicBlock * SITargetLowering::EmitInstrWithCustomInserter(
   return BB;
 }
 
-EVT SITargetLowering::getSetCCResultType(LLVMContext &, EVT VT) const {
+EVT SITargetLowering::getSetCCResultType(EVT VT) const {
   return MVT::i1;
 }
 
@@ -265,7 +265,7 @@ static SDNode *findUser(SDValue Value, unsigned Opcode) {
 SDValue SITargetLowering::LowerBRCOND(SDValue BRCOND,
                                       SelectionDAG &DAG) const {
 
-  SDLoc DL(BRCOND);
+  DebugLoc DL = BRCOND.getDebugLoc();
 
   SDNode *Intr = BRCOND.getOperand(1).getNode();
   SDValue Target = BRCOND.getOperand(2);
@@ -338,22 +338,22 @@ SDValue SITargetLowering::LowerBRCOND(SDValue BRCOND,
   return Chain;
 }
 
-const uint64_t RSRC_DATA_FORMAT = 0xf00000000000LL;
+#define RSRC_DATA_FORMAT 0xf00000000000
 
 SDValue SITargetLowering::LowerSTORE(SDValue Op, SelectionDAG &DAG) const {
   StoreSDNode *StoreNode = cast<StoreSDNode>(Op);
   SDValue Chain = Op.getOperand(0);
   SDValue Value = Op.getOperand(1);
   SDValue VirtualAddress = Op.getOperand(2);
-  SDLoc DL(Op);
+  DebugLoc DL = Op.getDebugLoc();
 
   if (StoreNode->getAddressSpace() != AMDGPUAS::GLOBAL_ADDRESS) {
     return SDValue();
   }
 
-  SDValue Zero = DAG.getConstant(0, MVT::i64);
-  SDValue Format = DAG.getConstant(RSRC_DATA_FORMAT, MVT::i64);
-  SDValue SrcSrc = DAG.getNode(ISD::BUILD_PAIR, DL, MVT::i128, Zero, Format);
+  SDValue SrcSrc = DAG.getNode(ISD::BUILD_PAIR, DL, MVT::i128,
+                               DAG.getConstant(0, MVT::i64),
+			       DAG.getConstant(RSRC_DATA_FORMAT, MVT::i64));
 
   SDValue Ops[2];
   Ops[0] = DAG.getNode(AMDGPUISD::BUFFER_STORE, DL, MVT::Other, Chain,
@@ -371,7 +371,7 @@ SDValue SITargetLowering::LowerSELECT_CC(SDValue Op, SelectionDAG &DAG) const {
   SDValue False = Op.getOperand(3);
   SDValue CC = Op.getOperand(4);
   EVT VT = Op.getValueType();
-  SDLoc DL(Op);
+  DebugLoc DL = Op.getDebugLoc();
 
   // Possible Min/Max pattern
   SDValue MinMax = LowerMinMax(Op, DAG);
@@ -390,7 +390,7 @@ SDValue SITargetLowering::LowerSELECT_CC(SDValue Op, SelectionDAG &DAG) const {
 SDValue SITargetLowering::PerformDAGCombine(SDNode *N,
                                             DAGCombinerInfo &DCI) const {
   SelectionDAG &DAG = DCI.DAG;
-  SDLoc DL(N);
+  DebugLoc DL = N->getDebugLoc();
   EVT VT = N->getValueType(0);
 
   switch (N->getOpcode()) {
@@ -433,13 +433,13 @@ SDValue SITargetLowering::PerformDAGCombine(SDNode *N,
   return SDValue();
 }
 
-/// \brief Test if RegClass is one of the VSrc classes
+/// \brief Test if RegClass is one of the VSrc classes 
 static bool isVSrc(unsigned RegClass) {
   return AMDGPU::VSrc_32RegClassID == RegClass ||
          AMDGPU::VSrc_64RegClassID == RegClass;
 }
 
-/// \brief Test if RegClass is one of the SSrc classes
+/// \brief Test if RegClass is one of the SSrc classes 
 static bool isSSrc(unsigned RegClass) {
   return AMDGPU::SSrc_32RegClassID == RegClass ||
          AMDGPU::SSrc_64RegClassID == RegClass;
@@ -513,10 +513,10 @@ bool SITargetLowering::foldImm(SDValue &Operand, int32_t &Immediate,
 }
 
 /// \brief Does "Op" fit into register class "RegClass" ?
-bool SITargetLowering::fitsRegClass(SelectionDAG &DAG, const SDValue &Op,
+bool SITargetLowering::fitsRegClass(SelectionDAG &DAG, SDValue &Op,
                                     unsigned RegClass) const {
 
-  MachineRegisterInfo &MRI = DAG.getMachineFunction().getRegInfo();
+  MachineRegisterInfo &MRI = DAG.getMachineFunction().getRegInfo(); 
   SDNode *Node = Op.getNode();
 
   const TargetRegisterClass *OpClass;
@@ -564,7 +564,7 @@ void SITargetLowering::ensureSRegLimit(SelectionDAG &DAG, SDValue &Operand,
   // This is a conservative aproach, it is possible that we can't determine
   // the correct register class and copy too often, but better save than sorry.
   SDValue RC = DAG.getTargetConstant(RegClass, MVT::i32);
-  SDNode *Node = DAG.getMachineNode(TargetOpcode::COPY_TO_REGCLASS, SDLoc(),
+  SDNode *Node = DAG.getMachineNode(TargetOpcode::COPY_TO_REGCLASS, DebugLoc(),
                                     Operand.getValueType(), Operand, RC);
   Operand = SDValue(Node, 0);
 }
@@ -701,11 +701,12 @@ SDNode *SITargetLowering::foldOperands(MachineSDNode *Node,
     Ops.push_back(Node->getOperand(i));
 
   // Create a complete new instruction
-  return DAG.getMachineNode(Desc->Opcode, SDLoc(Node), Node->getVTList(), Ops);
+  return DAG.getMachineNode(Desc->Opcode, Node->getDebugLoc(),
+                            Node->getVTList(), Ops);
 }
 
 /// \brief Helper function for adjustWritemask
-static unsigned SubIdx2Lane(unsigned Idx) {
+unsigned SubIdx2Lane(unsigned Idx) {
   switch (Idx) {
   default: return 0;
   case AMDGPU::sub0: return 0;
@@ -755,7 +756,7 @@ void SITargetLowering::adjustWritemask(MachineSDNode *&Node,
   if (Writemask == (1U << Lane)) {
     SDValue RC = DAG.getTargetConstant(AMDGPU::VReg_32RegClassID, MVT::i32);
     SDNode *Copy = DAG.getMachineNode(TargetOpcode::COPY_TO_REGCLASS,
-                                      SDLoc(), Users[Lane]->getValueType(0),
+                                      DebugLoc(), Users[Lane]->getValueType(0),
                                       SDValue(Node, 0), RC);
     DAG.ReplaceAllUsesWith(Users[Lane], Copy);
     return;

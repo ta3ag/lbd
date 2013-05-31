@@ -353,32 +353,12 @@ Type *TypeMapTy::getImpl(Type *Ty) {
 //===----------------------------------------------------------------------===//
 
 namespace {
-  class ModuleLinker;
-
-  /// ValueMaterializerTy - Creates prototypes for functions that are lazily
-  /// linked on the fly. This speeds up linking for modules with many
-  /// lazily linked functions of which few get used.
-  class ValueMaterializerTy : public ValueMaterializer {
-    TypeMapTy &TypeMap;
-    Module *DstM;
-    std::vector<Function*> &LazilyLinkFunctions;
-  public:
-    ValueMaterializerTy(TypeMapTy &TypeMap, Module *DstM,
-                        std::vector<Function*> &LazilyLinkFunctions) :
-      ValueMaterializer(), TypeMap(TypeMap), DstM(DstM),
-      LazilyLinkFunctions(LazilyLinkFunctions) {
-    }
-
-    virtual Value *materializeValueFor(Value *V);
-  };
-
   /// ModuleLinker - This is an implementation class for the LinkModules
   /// function, which is the entrypoint for this file.
   class ModuleLinker {
     Module *DstM, *SrcM;
     
     TypeMapTy TypeMap; 
-    ValueMaterializerTy ValMaterializer;
 
     /// ValueMap - Mapping of values from what they used to be in Src, to what
     /// they are now in DstM.  ValueToValueMapTy is a ValueMap, which involves
@@ -406,9 +386,7 @@ namespace {
     std::string ErrorMsg;
     
     ModuleLinker(Module *dstM, TypeSet &Set, Module *srcM, unsigned mode)
-      : DstM(dstM), SrcM(srcM), TypeMap(Set),
-        ValMaterializer(TypeMap, DstM, LazilyLinkFunctions),
-        Mode(mode) { }
+      : DstM(dstM), SrcM(srcM), TypeMap(Set), Mode(mode) { }
     
     bool run();
     
@@ -508,20 +486,6 @@ static bool isLessConstraining(GlobalValue::VisibilityTypes a,
     return true;
   return false;
 }
-
-Value *ValueMaterializerTy::materializeValueFor(Value *V) {
-  Function *SF = dyn_cast<Function>(V);
-  if (!SF)
-    return NULL;
-
-  Function *DF = Function::Create(TypeMap.get(SF->getFunctionType()),
-                                  SF->getLinkage(), SF->getName(), DstM);
-  copyGVAttributes(DF, SF);
-
-  LazilyLinkFunctions.push_back(SF);
-  return DF;
-}
-
 
 /// getLinkageResult - This analyzes the two global values and determines what
 /// the result will look like in the destination module.  In particular, it
@@ -838,14 +802,6 @@ bool ModuleLinker::linkFunctionProto(Function *SF) {
     }
   }
   
-  // If the function is to be lazily linked, don't create it just yet.
-  // The ValueMaterializerTy will deal with creating it if it's used.
-  if (!DGV && (SF->hasLocalLinkage() || SF->hasLinkOnceLinkage() ||
-               SF->hasAvailableExternallyLinkage())) {
-    DoNotLinkFromSource.insert(SF);
-    return false;
-  }
-
   // If there is no linkage to be performed or we are linking from the source,
   // bring SF over.
   Function *NewDF = Function::Create(TypeMap.get(SF->getFunctionType()),
@@ -858,6 +814,13 @@ bool ModuleLinker::linkFunctionProto(Function *SF) {
     // Any uses of DF need to change to NewDF, with cast.
     DGV->replaceAllUsesWith(ConstantExpr::getBitCast(NewDF, DGV->getType()));
     DGV->eraseFromParent();
+  } else {
+    // Internal, LO_ODR, or LO linkage - stick in set to ignore and lazily link.
+    if (SF->hasLocalLinkage() || SF->hasLinkOnceLinkage() ||
+        SF->hasAvailableExternallyLinkage()) {
+      DoNotLinkFromSource.insert(SF);
+      LazilyLinkFunctions.push_back(SF);
+    }
   }
   
   ValueMap[SF] = NewDF;
@@ -924,7 +887,7 @@ void ModuleLinker::linkAppendingVarInit(const AppendingVarInfo &AVI) {
   SmallVector<Constant*, 16> Elements;
   getArrayElements(AVI.DstInit, Elements);
   
-  Constant *SrcInit = MapValue(AVI.SrcInit, ValueMap, RF_None, &TypeMap, &ValMaterializer);
+  Constant *SrcInit = MapValue(AVI.SrcInit, ValueMap, RF_None, &TypeMap);
   getArrayElements(SrcInit, Elements);
   
   ArrayType *NewType = cast<ArrayType>(AVI.NewGV->getType()->getElementType());
@@ -945,7 +908,7 @@ void ModuleLinker::linkGlobalInits() {
     GlobalVariable *DGV = cast<GlobalVariable>(ValueMap[I]);
     // Figure out what the initializer looks like in the dest module.
     DGV->setInitializer(MapValue(I->getInitializer(), ValueMap,
-                                 RF_None, &TypeMap, &ValMaterializer));
+                                 RF_None, &TypeMap));
   }
 }
 
@@ -975,14 +938,12 @@ void ModuleLinker::linkFunctionBody(Function *Dst, Function *Src) {
     // functions and patch them up to point to the local versions.
     for (Function::iterator BB = Dst->begin(), BE = Dst->end(); BB != BE; ++BB)
       for (BasicBlock::iterator I = BB->begin(), E = BB->end(); I != E; ++I)
-        RemapInstruction(I, ValueMap, RF_IgnoreMissingEntries,
-                         &TypeMap, &ValMaterializer);
+        RemapInstruction(I, ValueMap, RF_IgnoreMissingEntries, &TypeMap);
     
   } else {
     // Clone the body of the function into the dest function.
     SmallVector<ReturnInst*, 8> Returns; // Ignore returns.
-    CloneFunctionInto(Dst, Src, ValueMap, false, Returns, "", NULL,
-                      &TypeMap, &ValMaterializer);
+    CloneFunctionInto(Dst, Src, ValueMap, false, Returns, "", NULL, &TypeMap);
   }
   
   // There is no need to map the arguments anymore.
@@ -1000,8 +961,7 @@ void ModuleLinker::linkAliasBodies() {
       continue;
     if (Constant *Aliasee = I->getAliasee()) {
       GlobalAlias *DA = cast<GlobalAlias>(ValueMap[I]);
-      DA->setAliasee(MapValue(Aliasee, ValueMap, RF_None,
-                              &TypeMap, &ValMaterializer));
+      DA->setAliasee(MapValue(Aliasee, ValueMap, RF_None, &TypeMap));
     }
   }
 }
@@ -1018,7 +978,7 @@ void ModuleLinker::linkNamedMDNodes() {
     // Add Src elements into Dest node.
     for (unsigned i = 0, e = I->getNumOperands(); i != e; ++i)
       DestNMD->addOperand(MapValue(I->getOperand(i), ValueMap,
-                                   RF_None, &TypeMap, &ValMaterializer));
+                                   RF_None, &TypeMap));
   }
 }
 
@@ -1278,35 +1238,48 @@ bool ModuleLinker::run() {
     LinkedInAnyFunctions = false;
     
     for(std::vector<Function*>::iterator I = LazilyLinkFunctions.begin(),
-        E = LazilyLinkFunctions.end(); I != E; ++I) {      
-      Function *SF = *I;
-      if (!SF)
+        E = LazilyLinkFunctions.end(); I != E; ++I) {
+      if (!*I)
         continue;
-
-      Function *DF = cast<Function>(ValueMap[SF]);
-
-      // Materialize if necessary.
-      if (SF->isDeclaration()) {
-        if (!SF->isMaterializable())
-          continue;
-        if (SF->Materialize(&ErrorMsg))
-          return true;
-      }
       
-      // Erase from vector *before* the function body is linked - linkFunctionBody could
-      // invalidate I.
-      LazilyLinkFunctions.erase(I);
+      Function *SF = *I;
+      Function *DF = cast<Function>(ValueMap[SF]);
+      
+      if (!DF->use_empty()) {
+        
+        // Materialize if necessary.
+        if (SF->isDeclaration()) {
+          if (!SF->isMaterializable())
+            continue;
+          if (SF->Materialize(&ErrorMsg))
+            return true;
+        }
+        
+        // Link in function body.
+        linkFunctionBody(DF, SF);
+        SF->Dematerialize();
 
-      // Link in function body.
-      linkFunctionBody(DF, SF);
-      SF->Dematerialize();
-
-      // Set flag to indicate we may have more functions to lazily link in
-      // since we linked in a function.
-      LinkedInAnyFunctions = true;
-      break;
+        // "Remove" from vector by setting the element to 0.
+        *I = 0;
+        
+        // Set flag to indicate we may have more functions to lazily link in
+        // since we linked in a function.
+        LinkedInAnyFunctions = true;
+      }
     }
   } while (LinkedInAnyFunctions);
+  
+  // Remove any prototypes of functions that were not actually linked in.
+  for(std::vector<Function*>::iterator I = LazilyLinkFunctions.begin(),
+      E = LazilyLinkFunctions.end(); I != E; ++I) {
+    if (!*I)
+      continue;
+    
+    Function *SF = *I;
+    Function *DF = cast<Function>(ValueMap[SF]);
+    if (DF->use_empty())
+      DF->eraseFromParent();
+  }
   
   // Now that all of the types from the source are used, resolve any structs
   // copied over to the dest that didn't exist there.

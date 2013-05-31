@@ -27,5 +27,6 @@ if.end:                                           ; preds = %if.then, %entry
 
 ; CHECK: fn1:
 ; CHECK: shrq $32, [[REG:%.*]]
+; CHECK: testq [[REG]], [[REG]]
 ; CHECK: je
 }

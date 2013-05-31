@@ -19,7 +19,6 @@
 #include <algorithm>
 using namespace llvm;
 using namespace dwarf;
-using namespace object;
 
 typedef DWARFDebugLine::LineTable DWARFLineTable;
 
@@ -555,26 +554,17 @@ DWARFContextInMemory::DWARFContextInMemory(object::ObjectFile *Obj) :
         .Case("debug_addr", &AddrSection)
         // Any more debug info sections go here.
         .Default(0);
-    if (Section) {
-      *Section = data;
-      if (name == "debug_ranges") {
-        // FIXME: Use the other dwo range section when we emit it.
-        RangeDWOSection = data;
-      }
-    }
-
-    section_iterator RelocatedSection = i->getRelocatedSection();
-    if (RelocatedSection == Obj->end_sections())
+    if (!Section)
       continue;
-
-    StringRef RelSecName;
-    RelocatedSection->getName(RelSecName);
-    RelSecName = RelSecName.substr(
-        RelSecName.find_first_not_of("._")); // Skip . and _ prefixes.
+    *Section = data;
+    if (name == "debug_ranges") {
+      // FIXME: Use the other dwo range section when we emit it.
+      RangeDWOSection = data;
+    }
 
     // TODO: Add support for relocations in other sections as needed.
     // Record relocations for the debug_info and debug_line sections.
-    RelocAddrMap *Map = StringSwitch<RelocAddrMap*>(RelSecName)
+    RelocAddrMap *Map = StringSwitch<RelocAddrMap*>(name)
         .Case("debug_info", &InfoRelocMap)
         .Case("debug_info.dwo", &InfoDWORelocMap)
         .Case("debug_line", &LineRelocMap)
@@ -584,7 +574,7 @@ DWARFContextInMemory::DWARFContextInMemory(object::ObjectFile *Obj) :
 
     if (i->begin_relocations() != i->end_relocations()) {
       uint64_t SectionSize;
-      RelocatedSection->getSize(SectionSize);
+      i->getSize(SectionSize);
       for (object::relocation_iterator reloc_i = i->begin_relocations(),
              reloc_e = i->end_relocations();
            reloc_i != reloc_e; reloc_i.increment(ec)) {

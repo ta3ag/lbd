@@ -57,14 +57,13 @@ static MCRegisterInfo *createAArch64MCRegisterInfo(StringRef Triple) {
   return X;
 }
 
-static MCAsmInfo *createAArch64MCAsmInfo(const MCRegisterInfo &MRI,
-                                         StringRef TT) {
+static MCAsmInfo *createAArch64MCAsmInfo(const Target &T, StringRef TT) {
   Triple TheTriple(TT);
 
   MCAsmInfo *MAI = new AArch64ELFMCAsmInfo();
-  unsigned Reg = MRI.getDwarfRegNum(AArch64::XSP, true);
-  MCCFIInstruction Inst = MCCFIInstruction::createDefCfa(0, Reg, 0);
-  MAI->addInitialFrameState(Inst);
+  MachineLocation Dst(MachineLocation::VirtualFP);
+  MachineLocation Src(AArch64::XSP, 0);
+  MAI->addInitialFrameState(0, Dst, Src);
 
   return MAI;
 }
@@ -136,17 +135,17 @@ public:
     return MCInstrAnalysis::isConditionalBranch(Inst);
   }
 
-  bool evaluateBranch(const MCInst &Inst, uint64_t Addr,
-                      uint64_t Size, uint64_t &Target) const {
+  uint64_t evaluateBranch(const MCInst &Inst, uint64_t Addr,
+                          uint64_t Size) const {
     unsigned LblOperand = Inst.getOpcode() == AArch64::Bcc ? 1 : 0;
     // FIXME: We only handle PCRel branches for now.
     if (Info->get(Inst.getOpcode()).OpInfo[LblOperand].OperandType
         != MCOI::OPERAND_PCREL)
-      return false;
+      return -1ULL;
 
     int64_t Imm = Inst.getOperand(LblOperand).getImm();
-    Target = Addr + Imm;
-    return true;
+
+    return Addr + Imm;
   }
 };
 

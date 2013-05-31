@@ -17,7 +17,6 @@
 #include "Mips.h"
 #include "MipsAnalyzeImmediate.h"
 #include "MipsRegisterInfo.h"
-#include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Target/TargetInstrInfo.h"
 
@@ -82,7 +81,7 @@ public:
   ///
   virtual const MipsRegisterInfo &getRegisterInfo() const = 0;
 
-  virtual unsigned getOppositeBranchOpc(unsigned Opc) const = 0;
+  virtual unsigned GetOppositeBranchOpc(unsigned Opc) const = 0;
 
   /// Return the number of bytes of code the specified instruction may be.
   unsigned GetInstSizeInBytes(const MachineInstr *MI) const;
@@ -117,11 +116,6 @@ public:
                                 const TargetRegisterInfo *TRI,
                                 int64_t Offset) const = 0;
 
-  /// Create an instruction which has the same operands and memory operands
-  /// as MI but has a new opcode.
-  MachineInstrBuilder genInstrWithNewOpc(unsigned NewOpc,
-                                         MachineBasicBlock::iterator I) const;
-
 protected:
   bool isZeroImm(const MachineOperand &op) const;
 
@@ -129,7 +123,7 @@ protected:
                                    unsigned Flag) const;
 
 private:
-  virtual unsigned getAnalyzableBrOpc(unsigned Opc) const = 0;
+  virtual unsigned GetAnalyzableBrOpc(unsigned Opc) const = 0;
 
   void AnalyzeCondBr(const MachineInstr *Inst, unsigned Opc,
                      MachineBasicBlock *&BB,

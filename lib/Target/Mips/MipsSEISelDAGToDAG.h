@@ -32,11 +32,11 @@ private:
 
   bool replaceUsesWithZeroReg(MachineRegisterInfo *MRI, const MachineInstr&);
 
-  std::pair<SDNode*, SDNode*> selectMULT(SDNode *N, unsigned Opc, SDLoc dl,
+  std::pair<SDNode*, SDNode*> selectMULT(SDNode *N, unsigned Opc, DebugLoc dl,
                                          EVT Ty, bool HasLo, bool HasHi);
 
   SDNode *selectAddESubE(unsigned MOp, SDValue InFlag, SDValue CmpLHS,
-                         SDLoc DL, SDNode *Node) const;
+                         DebugLoc DL, SDNode *Node) const;
 
   virtual bool selectAddrRegImm(SDValue Addr, SDValue &Base,
                                 SDValue &Offset) const;

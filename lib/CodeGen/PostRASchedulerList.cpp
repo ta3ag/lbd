@@ -424,9 +424,9 @@ void SchedulePostRATDList::StartBlockForKills(MachineBasicBlock *BB) {
     for (MachineBasicBlock::livein_iterator I = (*SI)->livein_begin(),
          E = (*SI)->livein_end(); I != E; ++I) {
       unsigned Reg = *I;
-      // Repeat, for reg and all subregs.
-      for (MCSubRegIterator SubRegs(Reg, TRI, /*IncludeSelf=*/true);
-           SubRegs.isValid(); ++SubRegs)
+      LiveRegs.set(Reg);
+      // Repeat, for all subregs.
+      for (MCSubRegIterator SubRegs(Reg, TRI); SubRegs.isValid(); ++SubRegs)
         LiveRegs.set(*SubRegs);
     }
   }
@@ -496,9 +496,10 @@ void SchedulePostRATDList::FixupKills(MachineBasicBlock *MBB) {
       // Ignore two-addr defs.
       if (MI->isRegTiedToUseOperand(i)) continue;
 
-      // Repeat for reg and all subregs.
-      for (MCSubRegIterator SubRegs(Reg, TRI, /*IncludeSelf=*/true);
-           SubRegs.isValid(); ++SubRegs)
+      LiveRegs.reset(Reg);
+
+      // Repeat for all subregs.
+      for (MCSubRegIterator SubRegs(Reg, TRI); SubRegs.isValid(); ++SubRegs)
         LiveRegs.reset(*SubRegs);
     }
 
@@ -547,8 +548,9 @@ void SchedulePostRATDList::FixupKills(MachineBasicBlock *MBB) {
       unsigned Reg = MO.getReg();
       if ((Reg == 0) || MRI.isReserved(Reg)) continue;
 
-      for (MCSubRegIterator SubRegs(Reg, TRI, /*IncludeSelf=*/true);
-           SubRegs.isValid(); ++SubRegs)
+      LiveRegs.set(Reg);
+
+      for (MCSubRegIterator SubRegs(Reg, TRI); SubRegs.isValid(); ++SubRegs)
         LiveRegs.set(*SubRegs);
     }
   }

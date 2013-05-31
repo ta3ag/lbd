@@ -70,16 +70,6 @@ Non-comprehensive list of changes in this release
   examples of the new syntax. The old syntax using register classes still
   works, but it will be removed in a future LLVM release.
 
-* MCJIT now supports exception handling. Support for it in the old jit will be
-  removed in the 3.4 release.
-
-* Command line options can now be grouped into categories which are shown in
-  the output of ``-help``. See :ref:`grouping options into categories`.
-
-* The appearance of command line options in ``-help`` that are inherited by
-  linking with libraries that use the LLVM Command line support library can now
-  be modified at runtime. See :ref:`cl::getRegisteredOptions`.
-
 * ... next change ...
 
 .. NOTE
@@ -154,47 +144,6 @@ LLVM and clang now support IBM's z/Architecture.  At present this support
 is restricted to GNU/Linux (GNU triplet s390x-linux-gnu) and requires
 z10 or greater.
 
-<<<<<<< HEAD
-
-Sub-project Status Update
-============================================
-
-In addition to the core LLVM 3.3 distribution of production-quality compiler
-infrastructure, the LLVM project includes sub-projects that use the LLVM core
-and share the same distribution license.  This section provides updates on
-these sub-projects.
-
-
-LLDB: Low Level Debugger
-------------------------
-
-`LLDB <http://lldb.llvm.org/>`_ is a ground-up implementation of a command-line
-debugger, as well as a debugger API that can be used from scripts and other
-applications. LLDB uses the following components of the LLVM core distribution
-to support the latest language features and target support:
-
-- the Clang parser for high-quality parsing of C, C++ and Objective C
-- the LLVM disassembler
-- the LLVM JIT compiler (MCJIT) for expression evaluation
-
-The `3.3 release <http://llvm.org/apt/>`_ has the following notable changes.
-
-Linux Features:
-
-- Support for watchpoints
-- vim integration for lldb commands and program status using a `vim plug-in <http://llvm.org/svn/llvm-project/lldb/trunk/utils/vim-lldb/README>`_
-- Improved register support including vector registers
-- Builds with cmake/ninja/auto-tools/clang 3.3/gcc 4.6
-
-Linux Improvements:
-
-- Debugging multi-threaded programs
-- Debugging i386 programs
-- Process list, attach and fork
-- Expression evaluation
-
-=======
->>>>>>> release_33
 
 External Open Source Projects Using LLVM 3.3
 ============================================
@@ -231,35 +180,6 @@ optimizations and also for parts of code generation. It generates new
 LLVM-based code generators "on the fly" for the designed TTA processors and
 loads them in to the compiler backend as runtime libraries to avoid
 per-target recompilation of larger parts of the compiler chain.
-
-Just-in-time Adaptive Decoder Engine (Jade)
--------------------------------------------
-
-`Jade <https://github.com/orcc/jade>`_ (Just-in-time Adaptive Decoder Engine)
-is a generic video decoder engine using LLVM for just-in-time compilation of
-video decoder configurations. Those configurations are designed by MPEG
-Reconfigurable Video Coding (RVC) committee. MPEG RVC standard is built on a
-stream-based dataflow representation of decoders. It is composed of a standard
-library of coding tools written in RVC-CAL language and a dataflow
-configuration --- block diagram --- of a decoder.
-
-Jade project is hosted as part of the Open RVC-CAL Compiler
-(`Orcc <http://orcc.sf.net>`_) and requires it to translate the RVC-CAL standard
-library of video coding tools into an LLVM assembly code.
-
-LDC - the LLVM-based D compiler
--------------------------------
-
-`D <http://dlang.org>`_ is a language with C-like syntax and static typing. It
-pragmatically combines efficiency, control, and modeling power, with safety and
-programmer productivity. D supports powerful concepts like Compile-Time Function
-Execution (CTFE) and Template Meta-Programming, provides an innovative approach
-to concurrency and offers many classical paradigms.
-
-`LDC <http://wiki.dlang.org/LDC>`_ uses the frontend from the reference compiler
-combined with LLVM as backend to produce efficient native code. LDC targets
-x86/x86_64 systems like Linux, OS X and Windows and also Linux/PPC64. Ports to
-other architectures like ARM are underway.
 
 
 Additional Information

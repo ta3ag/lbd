@@ -8,7 +8,7 @@
 define zeroext i1 @t(i32 %c) nounwind ssp {
 entry:
 ; CHECK: t:
-; CHECK: xorl %eax, %eax
+; CHECK: xorb %al, %al
 ; CHECK: test
 ; CHECK: je
   %tobool = icmp eq i32 %c, 0

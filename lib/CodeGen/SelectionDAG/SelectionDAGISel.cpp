@@ -624,7 +624,6 @@ void SelectionDAGISel::CodeGenAndEmitDAG() {
 
     DEBUG(dbgs() << "Optimized type-legalized selection DAG: BB#" << BlockNumber
           << " '" << BlockName << "'\n"; CurDAG->dump());
-
   }
 
   {
@@ -791,6 +790,9 @@ void SelectionDAGISel::DoInstructionSelection() {
         continue;
       // Replace node.
       if (ResNode) {
+        // Propagate ordering
+        CurDAG->AssignOrdering(ResNode, CurDAG->GetOrdering(Node));
+
         ReplaceUses(Node, ResNode);
       }
 
@@ -1604,7 +1606,7 @@ SDNode *SelectionDAGISel::Select_INLINEASM(SDNode *N) {
   SelectInlineAsmMemoryOperands(Ops);
 
   EVT VTs[] = { MVT::Other, MVT::Glue };
-  SDValue New = CurDAG->getNode(ISD::INLINEASM, SDLoc(N),
+  SDValue New = CurDAG->getNode(ISD::INLINEASM, N->getDebugLoc(),
                                 VTs, &Ops[0], Ops.size());
   New->setNodeId(-1);
   return New.getNode();
@@ -1879,7 +1881,7 @@ HandleMergeInputChains(SmallVectorImpl<SDNode*> &ChainNodesMatched,
   SDValue Res;
   if (InputChains.size() == 1)
     return InputChains[0];
-  return CurDAG->getNode(ISD::TokenFactor, SDLoc(ChainNodesMatched[0]),
+  return CurDAG->getNode(ISD::TokenFactor, ChainNodesMatched[0]->getDebugLoc(),
                          MVT::Other, &InputChains[0], InputChains.size());
 }
 
@@ -2628,7 +2630,7 @@ SelectCodeCommon(SDNode *NodeToMatch, const unsigned char *MatcherTable,
       if (InputChain.getNode() == 0)
         InputChain = CurDAG->getEntryNode();
 
-      InputChain = CurDAG->getCopyToReg(InputChain, SDLoc(NodeToMatch),
+      InputChain = CurDAG->getCopyToReg(InputChain, NodeToMatch->getDebugLoc(),
                                         DestPhysReg, RecordedNodes[RecNo].first,
                                         InputGlue);
 
@@ -2715,7 +2717,7 @@ SelectCodeCommon(SDNode *NodeToMatch, const unsigned char *MatcherTable,
       if (Opcode != OPC_MorphNodeTo) {
         // If this is a normal EmitNode command, just create the new node and
         // add the results to the RecordedNodes list.
-        Res = CurDAG->getMachineNode(TargetOpc, SDLoc(NodeToMatch),
+        Res = CurDAG->getMachineNode(TargetOpc, NodeToMatch->getDebugLoc(),
                                      VTList, Ops);
 
         // Add all the non-glue/non-chain results to the RecordedNodes list.

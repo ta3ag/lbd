@@ -35,7 +35,7 @@ foreach Index = 0-127 in {
                                                 Chan>;
   }
   // 128-bit Temporary Registers
-  def T#Index#_XYZW : R600Reg_128 <"T"#Index#"",
+  def T#Index#_XYZW : R600Reg_128 <"T"#Index#".XYZW",
                                    [!cast<Register>("T"#Index#"_X"),
                                     !cast<Register>("T"#Index#"_Y"),
                                     !cast<Register>("T"#Index#"_Z"),

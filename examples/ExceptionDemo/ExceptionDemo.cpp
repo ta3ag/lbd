@@ -1950,6 +1950,7 @@ int main(int argc, char *argv[]) {
 
   // If not set, exception handling will not be turned on
   llvm::TargetOptions Opts;
+  Opts.JITExceptionHandling = true;
 
   llvm::InitializeNativeTarget();
   llvm::InitializeNativeTargetAsmPrinter();
@@ -1959,14 +1960,14 @@ int main(int argc, char *argv[]) {
   // Make the module, which holds all the code.
   llvm::Module *module = new llvm::Module("my cool jit", context);
 
-  llvm::RTDyldMemoryManager *MemMgr = new llvm::SectionMemoryManager();
+  llvm::JITMemoryManager *MemMgr = new llvm::SectionMemoryManager();
 
   // Build engine with JIT
   llvm::EngineBuilder factory(module);
   factory.setEngineKind(llvm::EngineKind::JIT);
   factory.setAllocateGVsWithCode(false);
   factory.setTargetOptions(Opts);
-  factory.setMCJITMemoryManager(MemMgr);
+  factory.setJITMemoryManager(MemMgr);
   factory.setUseMCJIT(true);
   llvm::ExecutionEngine *executionEngine = factory.create();
 

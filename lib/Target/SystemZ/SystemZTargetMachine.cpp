@@ -33,7 +33,6 @@ SystemZTargetMachine::SystemZTargetMachine(const Target &T, StringRef TT,
        "-f32:32-f64:64-f128:64-a0:8:16-n32:64"),
     InstrInfo(*this), TLInfo(*this), TSInfo(*this),
     FrameLowering(*this, Subtarget) {
-  initAsmInfo();
 }
 
 namespace {
@@ -47,19 +46,13 @@ public:
     return getTM<SystemZTargetMachine>();
   }
 
-  virtual bool addInstSelector() LLVM_OVERRIDE;
-  virtual bool addPreEmitPass() LLVM_OVERRIDE;
+  virtual bool addInstSelector();
 };
 } // end anonymous namespace
 
 bool SystemZPassConfig::addInstSelector() {
   addPass(createSystemZISelDag(getSystemZTargetMachine(), getOptLevel()));
   return false;
-}
-
-bool SystemZPassConfig::addPreEmitPass() {
-  addPass(createSystemZLongBranchPass(getSystemZTargetMachine()));
-  return true;
 }
 
 TargetPassConfig *SystemZTargetMachine::createPassConfig(PassManagerBase &PM) {

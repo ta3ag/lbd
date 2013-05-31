@@ -17,7 +17,6 @@
 #define LLVM_MC_MCASMINFO_H
 
 #include "llvm/MC/MCDirectives.h"
-#include "llvm/MC/MCDwarf.h"
 #include "llvm/MC/MachineLocation.h"
 #include <cassert>
 #include <vector>
@@ -333,7 +332,7 @@ namespace llvm {
 
     //===--- Prologue State ----------------------------------------------===//
 
-    std::vector<MCCFIInstruction> InitialFrameState;
+    std::vector<MachineMove> InitialFrameState;
 
   public:
     explicit MCAsmInfo();
@@ -568,11 +567,11 @@ namespace llvm {
       return DwarfRegNumForCFI;
     }
 
-    void addInitialFrameState(const MCCFIInstruction &Inst) {
-      InitialFrameState.push_back(Inst);
+    void addInitialFrameState(MCSymbol *label, const MachineLocation &D,
+                              const MachineLocation &S) {
+      InitialFrameState.push_back(MachineMove(label, D, S));
     }
-
-    const std::vector<MCCFIInstruction> &getInitialFrameState() const {
+    const std::vector<MachineMove> &getInitialFrameState() const {
       return InitialFrameState;
     }
   };

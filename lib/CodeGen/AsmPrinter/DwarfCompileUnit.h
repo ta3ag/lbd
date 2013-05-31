@@ -56,11 +56,11 @@ class CompileUnit {
   /// IndexTyDie - An anonymous type for index type.  Owned by CUDie.
   DIE *IndexTyDie;
 
-  /// MDNodeToDieMap - Tracks the mapping of unit level debug information
+  /// MDNodeToDieMap - Tracks the mapping of unit level debug informaton
   /// variables to debug information entries.
   DenseMap<const MDNode *, DIE *> MDNodeToDieMap;
 
-  /// MDNodeToDIEEntryMap - Tracks the mapping of unit level debug information
+  /// MDNodeToDIEEntryMap - Tracks the mapping of unit level debug informaton
   /// descriptors to debug information entries using a DIEEntry proxy.
   DenseMap<const MDNode *, DIEEntry *> MDNodeToDIEEntryMap;
 
@@ -95,8 +95,8 @@ class CompileUnit {
   int64_t getDefaultLowerBound() const;
 
 public:
-  CompileUnit(unsigned UID, unsigned L, DIE *D, const MDNode *N, AsmPrinter *A,
-	      DwarfDebug *DW, DwarfUnits *DWU);
+  CompileUnit(unsigned UID, unsigned L, DIE *D, AsmPrinter *A, DwarfDebug *DW,
+              DwarfUnits *);
   ~CompileUnit();
 
   // Accessors.

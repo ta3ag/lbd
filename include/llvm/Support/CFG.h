@@ -240,10 +240,6 @@ inline succ_const_iterator succ_end(const BasicBlock *BB) {
   return succ_const_iterator(BB->getTerminator(), true);
 }
 
-template <typename T, typename U> struct isPodLike<SuccIterator<T, U> > {
-  static const bool value = isPodLike<T>::value;
-};
-
 
 
 //===--------------------------------------------------------------------===//

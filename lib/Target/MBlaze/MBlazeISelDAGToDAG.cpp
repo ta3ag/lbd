@@ -188,7 +188,7 @@ SDNode *MBlazeDAGToDAGISel::getGlobalBaseReg() {
 /// expanded, promoted and normal instructions
 SDNode* MBlazeDAGToDAGISel::Select(SDNode *Node) {
   unsigned Opcode = Node->getOpcode();
-  SDLoc dl(Node);
+  DebugLoc dl = Node->getDebugLoc();
 
   // If we have a custom node, we already have selected!
   if (Node->isMachineOpcode())

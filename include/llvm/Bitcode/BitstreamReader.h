@@ -244,7 +244,7 @@ public:
 
   uint32_t getWord(size_t pos) {
     uint8_t buf[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    BitStream->getBitcodeBytes().readBytes(pos, sizeof(buf), buf);
+    BitStream->getBitcodeBytes().readBytes(pos, sizeof(buf), buf, NULL);
     return *reinterpret_cast<support::ulittle32_t *>(buf);
   }
 
@@ -366,7 +366,8 @@ public:
     // Read the next word from the stream.
     uint8_t Array[sizeof(word_t)] = {0};
 
-    BitStream->getBitcodeBytes().readBytes(NextChar, sizeof(Array), Array);
+    BitStream->getBitcodeBytes().readBytes(NextChar, sizeof(Array),
+                                           Array, NULL);
 
     // Handle big-endian byte-swapping if necessary.
     support::detail::packed_endian_specific_integral

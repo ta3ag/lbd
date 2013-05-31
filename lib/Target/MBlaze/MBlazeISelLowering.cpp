@@ -192,7 +192,7 @@ MBlazeTargetLowering::MBlazeTargetLowering(MBlazeTargetMachine &TM)
   computeRegisterProperties();
 }
 
-EVT MBlazeTargetLowering::getSetCCResultType(LLVMContext &, EVT) const {
+EVT MBlazeTargetLowering::getSetCCResultType(EVT VT) const {
   return MVT::i32;
 }
 
@@ -575,7 +575,7 @@ SDValue MBlazeTargetLowering::LowerSELECT_CC(SDValue Op,
   SDValue RHS = Op.getOperand(1);
   SDValue TrueVal = Op.getOperand(2);
   SDValue FalseVal = Op.getOperand(3);
-  SDLoc dl(Op);
+  DebugLoc dl = Op.getDebugLoc();
   unsigned Opc;
 
   SDValue CompareFlag;
@@ -594,7 +594,7 @@ SDValue MBlazeTargetLowering::LowerSELECT_CC(SDValue Op,
 SDValue MBlazeTargetLowering::
 LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const {
   // FIXME there isn't actually debug info here
-  SDLoc dl(Op);
+  DebugLoc dl = Op.getDebugLoc();
   const GlobalValue *GV = cast<GlobalAddressSDNode>(Op)->getGlobal();
   SDValue GA = DAG.getTargetGlobalAddress(GV, dl, MVT::i32);
 
@@ -611,7 +611,7 @@ LowerJumpTable(SDValue Op, SelectionDAG &DAG) const {
   SDValue ResNode;
   SDValue HiPart;
   // FIXME there isn't actually debug info here
-  SDLoc dl(Op);
+  DebugLoc dl = Op.getDebugLoc();
 
   EVT PtrVT = Op.getValueType();
   JumpTableSDNode *JT  = cast<JumpTableSDNode>(Op);
@@ -625,7 +625,7 @@ LowerConstantPool(SDValue Op, SelectionDAG &DAG) const {
   SDValue ResNode;
   ConstantPoolSDNode *N = cast<ConstantPoolSDNode>(Op);
   const Constant *C = N->getConstVal();
-  SDLoc dl(Op);
+  DebugLoc dl = Op.getDebugLoc();
 
   SDValue CP = DAG.getTargetConstantPool(C, MVT::i32, N->getAlignment(),
                                          N->getOffset(), 0);
@@ -637,7 +637,7 @@ SDValue MBlazeTargetLowering::LowerVASTART(SDValue Op,
   MachineFunction &MF = DAG.getMachineFunction();
   MBlazeFunctionInfo *FuncInfo = MF.getInfo<MBlazeFunctionInfo>();
 
-  SDLoc dl(Op);
+  DebugLoc dl = Op.getDebugLoc();
   SDValue FI = DAG.getFrameIndex(FuncInfo->getVarArgsFrameIndex(),
                                  getPointerTy());
 
@@ -686,7 +686,7 @@ SDValue MBlazeTargetLowering::
 LowerCall(TargetLowering::CallLoweringInfo &CLI,
           SmallVectorImpl<SDValue> &InVals) const {
   SelectionDAG &DAG                     = CLI.DAG;
-  SDLoc dl                              = CLI.DL;
+  DebugLoc &dl                          = CLI.DL;
   SmallVector<ISD::OutputArg, 32> &Outs = CLI.Outs;
   SmallVector<SDValue, 32> &OutVals     = CLI.OutVals;
   SmallVector<ISD::InputArg, 32> &Ins   = CLI.Ins;
@@ -719,8 +719,7 @@ LowerCall(TargetLowering::CallLoweringInfo &CLI,
   // Variable argument function calls require a minimum of 24-bytes of stack
   if (isVarArg && NumBytes < 24) NumBytes = 24;
 
-  Chain = DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(NumBytes, true),
-                               dl);
+  Chain = DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(NumBytes, true));
 
   SmallVector<std::pair<unsigned, SDValue>, 8> RegsToPass;
   SmallVector<SDValue, 8> MemOpChains;
@@ -830,7 +829,7 @@ LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   // Create the CALLSEQ_END node.
   Chain = DAG.getCALLSEQ_END(Chain, DAG.getIntPtrConstant(NumBytes, true),
-                             DAG.getIntPtrConstant(0, true), InFlag, dl);
+                             DAG.getIntPtrConstant(0, true), InFlag);
   if (!Ins.empty())
     InFlag = Chain.getValue(1);
 
@@ -845,7 +844,7 @@ LowerCall(TargetLowering::CallLoweringInfo &CLI,
 SDValue MBlazeTargetLowering::
 LowerCallResult(SDValue Chain, SDValue InFlag, CallingConv::ID CallConv,
                 bool isVarArg, const SmallVectorImpl<ISD::InputArg> &Ins,
-                SDLoc dl, SelectionDAG &DAG,
+                DebugLoc dl, SelectionDAG &DAG,
                 SmallVectorImpl<SDValue> &InVals) const {
   // Assign locations to each value returned by this call.
   SmallVector<CCValAssign, 16> RVLocs;
@@ -875,7 +874,7 @@ LowerCallResult(SDValue Chain, SDValue InFlag, CallingConv::ID CallConv,
 SDValue MBlazeTargetLowering::
 LowerFormalArguments(SDValue Chain, CallingConv::ID CallConv, bool isVarArg,
                      const SmallVectorImpl<ISD::InputArg> &Ins,
-                     SDLoc dl, SelectionDAG &DAG,
+                     DebugLoc dl, SelectionDAG &DAG,
                      SmallVectorImpl<SDValue> &InVals) const {
   MachineFunction &MF = DAG.getMachineFunction();
   MachineFrameInfo *MFI = MF.getFrameInfo();
@@ -1018,7 +1017,7 @@ SDValue MBlazeTargetLowering::
 LowerReturn(SDValue Chain, CallingConv::ID CallConv, bool isVarArg,
             const SmallVectorImpl<ISD::OutputArg> &Outs,
             const SmallVectorImpl<SDValue> &OutVals,
-            SDLoc dl, SelectionDAG &DAG) const {
+            DebugLoc dl, SelectionDAG &DAG) const {
   // CCValAssign - represent the assignment of
   // the return value to a location
   SmallVector<CCValAssign, 16> RVLocs;

@@ -162,7 +162,7 @@ static unsigned int getCodeAddrSpace(MemSDNode *N,
 }
 
 SDNode *NVPTXDAGToDAGISel::SelectLoad(SDNode *N) {
-  SDLoc dl(N);
+  DebugLoc dl = N->getDebugLoc();
   LoadSDNode *LD = cast<LoadSDNode>(N);
   EVT LoadedVT = LD->getMemoryVT();
   SDNode *NVPTXLD = NULL;
@@ -205,8 +205,7 @@ SDNode *NVPTXDAGToDAGISel::SelectLoad(SDNode *N) {
   //          type is integer
   // Float  : ISD::NON_EXTLOAD or ISD::EXTLOAD and the type is float
   MVT ScalarVT = SimpleVT.getScalarType();
-  // Read at least 8 bits (predicates are stored as 8-bit values)
-  unsigned fromTypeWidth = std::max(8U, ScalarVT.getSizeInBits());
+  unsigned fromTypeWidth = ScalarVT.getSizeInBits();
   unsigned int fromType;
   if ((LD->getExtensionType() == ISD::SEXTLOAD))
     fromType = NVPTX::PTXLdStInstCode::Signed;
@@ -402,7 +401,7 @@ SDNode *NVPTXDAGToDAGISel::SelectLoadVector(SDNode *N) {
   SDValue Op1 = N->getOperand(1);
   SDValue Addr, Offset, Base;
   unsigned Opcode;
-  SDLoc DL(N);
+  DebugLoc DL = N->getDebugLoc();
   SDNode *LD;
   MemSDNode *MemSD = cast<MemSDNode>(N);
   EVT LoadedVT = MemSD->getMemoryVT();
@@ -431,8 +430,7 @@ SDNode *NVPTXDAGToDAGISel::SelectLoadVector(SDNode *N) {
   //          type is integer
   // Float  : ISD::NON_EXTLOAD or ISD::EXTLOAD and the type is float
   MVT ScalarVT = SimpleVT.getScalarType();
-  // Read at least 8 bits (predicates are stored as 8-bit values)
-  unsigned FromTypeWidth = std::max(8U, ScalarVT.getSizeInBits());
+  unsigned FromTypeWidth = ScalarVT.getSizeInBits();
   unsigned int FromType;
   // The last operand holds the original LoadSDNode::getExtensionType() value
   unsigned ExtensionType = cast<ConstantSDNode>(
@@ -784,7 +782,7 @@ SDNode *NVPTXDAGToDAGISel::SelectLDGLDUVector(SDNode *N) {
   SDValue Chain = N->getOperand(0);
   SDValue Op1 = N->getOperand(1);
   unsigned Opcode;
-  SDLoc DL(N);
+  DebugLoc DL = N->getDebugLoc();
   SDNode *LD;
 
   EVT RetVT = N->getValueType(0);
@@ -981,7 +979,7 @@ SDNode *NVPTXDAGToDAGISel::SelectLDGLDUVector(SDNode *N) {
 }
 
 SDNode *NVPTXDAGToDAGISel::SelectStore(SDNode *N) {
-  SDLoc dl(N);
+  DebugLoc dl = N->getDebugLoc();
   StoreSDNode *ST = cast<StoreSDNode>(N);
   EVT StoreVT = ST->getMemoryVT();
   SDNode *NVPTXST = NULL;
@@ -1216,7 +1214,7 @@ SDNode *NVPTXDAGToDAGISel::SelectStoreVector(SDNode *N) {
   SDValue Op1 = N->getOperand(1);
   SDValue Addr, Offset, Base;
   unsigned Opcode;
-  SDLoc DL(N);
+  DebugLoc DL = N->getDebugLoc();
   SDNode *ST;
   EVT EltVT = Op1.getValueType();
   MemSDNode *MemSD = cast<MemSDNode>(N);

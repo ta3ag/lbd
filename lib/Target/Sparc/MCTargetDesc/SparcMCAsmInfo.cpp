@@ -18,7 +18,7 @@ using namespace llvm;
 
 void SparcELFMCAsmInfo::anchor() { }
 
-SparcELFMCAsmInfo::SparcELFMCAsmInfo(StringRef TT) {
+SparcELFMCAsmInfo::SparcELFMCAsmInfo(const Target &T, StringRef TT) {
   IsLittleEndian = false;
   Triple TheTriple(TT);
   if (TheTriple.getArch() == Triple::sparcv9) {

@@ -25,7 +25,6 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include "llvm/Config/config.h" // Get build system configuration settings
-#include "llvm/Support/Compiler.h"
 #include <windows.h>
 #include <wincrypt.h>
 #include <shlobj.h>
@@ -76,7 +75,7 @@ public:
   }
 
   // True if Handle is valid.
-  LLVM_EXPLICIT operator bool() const {
+  operator bool() const {
     return HandleTraits::IsValid(Handle) ? true : false;
   }
 

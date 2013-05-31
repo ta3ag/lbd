@@ -54,14 +54,13 @@ static MCSubtargetInfo *createHexagonMCSubtargetInfo(StringRef TT,
   return X;
 }
 
-static MCAsmInfo *createHexagonMCAsmInfo(const MCRegisterInfo &MRI,
-                                         StringRef TT) {
-  MCAsmInfo *MAI = new HexagonMCAsmInfo(TT);
+static MCAsmInfo *createHexagonMCAsmInfo(const Target &T, StringRef TT) {
+  MCAsmInfo *MAI = new HexagonMCAsmInfo(T, TT);
 
   // VirtualFP = (R30 + #0).
-  MCCFIInstruction Inst = MCCFIInstruction::createDefCfa(
-      0, Hexagon::R30, 0);
-  MAI->addInitialFrameState(Inst);
+  MachineLocation Dst(MachineLocation::VirtualFP);
+  MachineLocation Src(Hexagon::R30, 0);
+  MAI->addInitialFrameState(0, Dst, Src);
 
   return MAI;
 }

@@ -489,7 +489,8 @@ void SDNode::print_details(raw_ostream &OS, const SelectionDAG *G) const {
       OS << " [TF=" << TF << ']';
   }
 
-  if (unsigned Order = getIROrder())
+  if (G)
+    if (unsigned Order = G->GetOrdering(this))
       OS << " [ORD=" << Order << ']';
 
   if (getNodeId() != -1)

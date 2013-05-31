@@ -33,10 +33,6 @@ error_code ObjectFile::getSymbolAlignment(DataRefImpl DRI,
   return object_error::success;
 }
 
-section_iterator ObjectFile::getRelocatedSection(DataRefImpl Sec) const {
-  return section_iterator(SectionRef(Sec, this));
-}
-
 ObjectFile *ObjectFile::createObjectFile(MemoryBuffer *Object) {
   if (!Object || Object->getBufferSize() < 64)
     return 0;

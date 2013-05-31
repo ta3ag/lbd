@@ -14,7 +14,6 @@
 
 #define DEBUG_TYPE "regalloc"
 #include "Spiller.h"
-#include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/ADT/TinyPtrVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
@@ -338,12 +337,10 @@ static raw_ostream &operator<<(raw_ostream &OS,
 /// propagateSiblingValue - Propagate the value in SVI to dependents if it is
 /// known.  Otherwise remember the dependency for later.
 ///
-/// @param SVIIter SibValues entry to propagate.
+/// @param SVI SibValues entry to propagate.
 /// @param VNI Dependent value, or NULL to propagate to all saved dependents.
-void InlineSpiller::propagateSiblingValue(SibValueMap::iterator SVIIter,
+void InlineSpiller::propagateSiblingValue(SibValueMap::iterator SVI,
                                           VNInfo *VNI) {
-  SibValueMap::value_type *SVI = &*SVIIter;
-
   // When VNI is non-NULL, add it to SVI's deps, and only propagate to that.
   TinyPtrVector<VNInfo*> FirstDeps;
   if (VNI) {
@@ -355,12 +352,14 @@ void InlineSpiller::propagateSiblingValue(SibValueMap::iterator SVIIter,
   if (!SVI->second.hasDef())
     return;
 
-  // Work list of values to propagate.
-  SmallSetVector<SibValueMap::value_type *, 8> WorkList;
-  WorkList.insert(SVI);
+  // Work list of values to propagate.  It would be nice to use a SetVector
+  // here, but then we would be forced to use a SmallSet.
+  SmallVector<SibValueMap::iterator, 8> WorkList(1, SVI);
+  SmallPtrSet<VNInfo*, 8> WorkSet;
 
   do {
     SVI = WorkList.pop_back_val();
+    WorkSet.erase(SVI->first);
     TinyPtrVector<VNInfo*> *Deps = VNI ? &FirstDeps : &SVI->second.Deps;
     VNI = 0;
 
@@ -451,7 +450,8 @@ void InlineSpiller::propagateSiblingValue(SibValueMap::iterator SVIIter,
         continue;
 
       // Something changed in DepSVI. Propagate to dependents.
-      WorkList.insert(&*DepSVI);
+      if (WorkSet.insert(DepSVI->first))
+        WorkList.push_back(DepSVI);
 
       DEBUG(dbgs() << "  update " << DepSVI->first->id << '@'
             << DepSVI->first->def << " to:\t" << DepSV);

@@ -130,7 +130,7 @@ ReduceMiscompilingPasses::doTest(std::vector<std::string> &Prefix,
   //
   OwningPtr<Module> PrefixOutput(ParseInputFile(BitcodeResult,
                                                 BD.getContext()));
-  if (!PrefixOutput) {
+  if (PrefixOutput == 0) {
     errs() << BD.getToolName() << ": Error reading bitcode file '"
            << BitcodeResult << "'!\n";
     exit(1);

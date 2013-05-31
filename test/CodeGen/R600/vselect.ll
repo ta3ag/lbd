@@ -3,13 +3,8 @@
 ; CHECK: @test_select_v4i32
 ; CHECK: CNDE_INT T{{[0-9]+\.[XYZW], PV\.[xyzw], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
 ; CHECK: CNDE_INT * T{{[0-9]+\.[XYZW], PV\.[xyzw], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-<<<<<<< HEAD
-; CHECK: CNDE_INT T{{[0-9]+\.[XYZW], PV\.[xyzw], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-; CHECK: CNDE_INT * T{{[0-9]+\.[XYZW], PV\.[xyzw], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-=======
 ; CHECK: CNDE_INT * T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
 ; CHECK: CNDE_INT * T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
->>>>>>> release_33
 
 define void @test_select_v4i32(<4 x i32> addrspace(1)* %out, <4 x i32> addrspace(1)* %in0, <4 x i32> addrspace(1)* %in1) {
 entry:

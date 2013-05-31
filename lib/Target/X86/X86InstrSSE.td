@@ -2342,62 +2342,65 @@ let Constraints = "$src1 = $dst" in {
 // sse12_ord_cmp - Unordered/Ordered scalar fp compare and set EFLAGS
 multiclass sse12_ord_cmp<bits<8> opc, RegisterClass RC, SDNode OpNode,
                             ValueType vt, X86MemOperand x86memop,
-                            PatFrag ld_frag, string OpcodeStr> {
-  def rr: SI<opc, MRMSrcReg, (outs), (ins RC:$src1, RC:$src2),
+                            PatFrag ld_frag, string OpcodeStr, Domain d> {
+  def rr: PI<opc, MRMSrcReg, (outs), (ins RC:$src1, RC:$src2),
                      !strconcat(OpcodeStr, "\t{$src2, $src1|$src1, $src2}"),
                      [(set EFLAGS, (OpNode (vt RC:$src1), RC:$src2))],
-                     IIC_SSE_COMIS_RR>,
+                     IIC_SSE_COMIS_RR, d>,
           Sched<[WriteFAdd]>;
-  def rm: SI<opc, MRMSrcMem, (outs), (ins RC:$src1, x86memop:$src2),
+  def rm: PI<opc, MRMSrcMem, (outs), (ins RC:$src1, x86memop:$src2),
                      !strconcat(OpcodeStr, "\t{$src2, $src1|$src1, $src2}"),
                      [(set EFLAGS, (OpNode (vt RC:$src1),
                                            (ld_frag addr:$src2)))],
-                                           IIC_SSE_COMIS_RM>,
+                                           IIC_SSE_COMIS_RM, d>,
           Sched<[WriteFAddLd, ReadAfterLd]>;
 }
 
 let Defs = [EFLAGS] in {
   defm VUCOMISS : sse12_ord_cmp<0x2E, FR32, X86cmp, f32, f32mem, loadf32,
-                                  "ucomiss">, TB, VEX, VEX_LIG;
+                                  "ucomiss", SSEPackedSingle>, TB, VEX, VEX_LIG;
   defm VUCOMISD : sse12_ord_cmp<0x2E, FR64, X86cmp, f64, f64mem, loadf64,
-                                  "ucomisd">, TB, OpSize, VEX, VEX_LIG;
+                                  "ucomisd", SSEPackedDouble>, TB, OpSize, VEX,
+                                  VEX_LIG;
   let Pattern = []<dag> in {
     defm VCOMISS  : sse12_ord_cmp<0x2F, VR128, undef, v4f32, f128mem, load,
-                                    "comiss">, TB, VEX, VEX_LIG;
+                                    "comiss", SSEPackedSingle>, TB, VEX,
+                                    VEX_LIG;
     defm VCOMISD  : sse12_ord_cmp<0x2F, VR128, undef, v2f64, f128mem, load,
-                                    "comisd">, TB, OpSize, VEX, VEX_LIG;
+                                    "comisd", SSEPackedDouble>, TB, OpSize, VEX,
+                                    VEX_LIG;
   }
 
   defm Int_VUCOMISS  : sse12_ord_cmp<0x2E, VR128, X86ucomi, v4f32, f128mem,
-                            load, "ucomiss">, TB, VEX;
+                            load, "ucomiss", SSEPackedSingle>, TB, VEX;
   defm Int_VUCOMISD  : sse12_ord_cmp<0x2E, VR128, X86ucomi, v2f64, f128mem,
-                            load, "ucomisd">, TB, OpSize, VEX;
+                            load, "ucomisd", SSEPackedDouble>, TB, OpSize, VEX;
 
   defm Int_VCOMISS  : sse12_ord_cmp<0x2F, VR128, X86comi, v4f32, f128mem,
-                            load, "comiss">, TB, VEX;
+                            load, "comiss", SSEPackedSingle>, TB, VEX;
   defm Int_VCOMISD  : sse12_ord_cmp<0x2F, VR128, X86comi, v2f64, f128mem,
-                            load, "comisd">, TB, OpSize, VEX;
+                            load, "comisd", SSEPackedDouble>, TB, OpSize, VEX;
   defm UCOMISS  : sse12_ord_cmp<0x2E, FR32, X86cmp, f32, f32mem, loadf32,
-                                  "ucomiss">, TB;
+                                  "ucomiss", SSEPackedSingle>, TB;
   defm UCOMISD  : sse12_ord_cmp<0x2E, FR64, X86cmp, f64, f64mem, loadf64,
-                                  "ucomisd">, TB, OpSize;
+                                  "ucomisd", SSEPackedDouble>, TB, OpSize;
 
   let Pattern = []<dag> in {
     defm COMISS  : sse12_ord_cmp<0x2F, VR128, undef, v4f32, f128mem, load,
-                                    "comiss">, TB;
+                                    "comiss", SSEPackedSingle>, TB;
     defm COMISD  : sse12_ord_cmp<0x2F, VR128, undef, v2f64, f128mem, load,
-                                    "comisd">, TB, OpSize;
+                                    "comisd", SSEPackedDouble>, TB, OpSize;
   }
 
   defm Int_UCOMISS  : sse12_ord_cmp<0x2E, VR128, X86ucomi, v4f32, f128mem,
-                              load, "ucomiss">, TB;
+                              load, "ucomiss", SSEPackedSingle>, TB;
   defm Int_UCOMISD  : sse12_ord_cmp<0x2E, VR128, X86ucomi, v2f64, f128mem,
-                              load, "ucomisd">, TB, OpSize;
+                              load, "ucomisd", SSEPackedDouble>, TB, OpSize;
 
   defm Int_COMISS  : sse12_ord_cmp<0x2F, VR128, X86comi, v4f32, f128mem, load,
-                                  "comiss">, TB;
+                                  "comiss", SSEPackedSingle>, TB;
   defm Int_COMISD  : sse12_ord_cmp<0x2F, VR128, X86comi, v2f64, f128mem, load,
-                                  "comisd">, TB, OpSize;
+                                  "comisd", SSEPackedDouble>, TB, OpSize;
 } // Defs = [EFLAGS]
 
 // sse12_cmp_packed - sse 1 & 2 compare packed instructions
@@ -3046,20 +3049,12 @@ let isCodeGenOnly = 1 in {
 /// And, we have a special variant form for a full-vector intrinsic form.
 
 let Sched = WriteFSqrt in {
-def SSE_SQRTPS : OpndItins<
-  IIC_SSE_SQRTPS_RR, IIC_SSE_SQRTPS_RM
+def SSE_SQRTP : OpndItins<
+  IIC_SSE_SQRTP_RR, IIC_SSE_SQRTP_RM
 >;
 
-def SSE_SQRTSS : OpndItins<
-  IIC_SSE_SQRTSS_RR, IIC_SSE_SQRTSS_RM
->;
-
-def SSE_SQRTPD : OpndItins<
-  IIC_SSE_SQRTPD_RR, IIC_SSE_SQRTPD_RM
->;
-
-def SSE_SQRTSD : OpndItins<
-  IIC_SSE_SQRTSD_RR, IIC_SSE_SQRTSD_RM
+def SSE_SQRTS : OpndItins<
+  IIC_SSE_SQRTS_RR, IIC_SSE_SQRTS_RM
 >;
 }
 
@@ -3324,18 +3319,18 @@ let Predicates = [HasAVX] in {
 
 // Square root.
 defm SQRT  : sse1_fp_unop_s<0x51, "sqrt",  fsqrt, int_x86_sse_sqrt_ss,
-                            SSE_SQRTSS>,
-             sse1_fp_unop_p<0x51, "sqrt", fsqrt, SSE_SQRTPS>,
+                            SSE_SQRTS>,
+             sse1_fp_unop_p<0x51, "sqrt", fsqrt, SSE_SQRTP>,
              sse2_fp_unop_s<0x51, "sqrt",  fsqrt, int_x86_sse2_sqrt_sd,
-                            SSE_SQRTSD>,
-             sse2_fp_unop_p<0x51, "sqrt", fsqrt, SSE_SQRTPD>;
+                            SSE_SQRTS>,
+             sse2_fp_unop_p<0x51, "sqrt", fsqrt, SSE_SQRTP>;
 
 // Reciprocal approximations. Note that these typically require refinement
 // in order to obtain suitable precision.
-defm RSQRT : sse1_fp_unop_rw<0x52, "rsqrt", X86frsqrt, SSE_SQRTSS>,
-             sse1_fp_unop_p<0x52, "rsqrt", X86frsqrt, SSE_SQRTPS>,
+defm RSQRT : sse1_fp_unop_rw<0x52, "rsqrt", X86frsqrt, SSE_SQRTS>,
+             sse1_fp_unop_p<0x52, "rsqrt", X86frsqrt, SSE_SQRTP>,
              sse1_fp_unop_p_int<0x52, "rsqrt", int_x86_sse_rsqrt_ps,
-                                int_x86_avx_rsqrt_ps_256, SSE_SQRTPS>;
+                                int_x86_avx_rsqrt_ps_256, SSE_SQRTP>;
 defm RCP   : sse1_fp_unop_rw<0x53, "rcp", X86frcp, SSE_RCPS>,
              sse1_fp_unop_p<0x53, "rcp", X86frcp, SSE_RCPP>,
              sse1_fp_unop_p_int<0x53, "rcp", int_x86_sse_rcp_ps,

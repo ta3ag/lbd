@@ -37,7 +37,6 @@ private:
   bool DumpCode;
   bool R600ALUInst;
   bool HasVertexCache;
-  short TexVTXClauseSize;
 
   InstrItineraryData InstrItins;
 
@@ -51,7 +50,6 @@ public:
   bool isOverride(AMDGPUDeviceInfo::Caps) const;
   bool is64bit() const;
   bool hasVertexCache() const;
-  short getTexVTXClauseSize() const;
 
   // Helper functions to simplify if statements
   bool isTargetELF() const;

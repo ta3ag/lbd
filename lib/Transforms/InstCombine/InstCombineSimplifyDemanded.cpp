@@ -754,7 +754,7 @@ Value *InstCombiner::SimplifyDemandedUseBits(Value *V, APInt DemandedMask,
       ComputeMaskedBits(I->getOperand(0), LHSKnownZero, LHSKnownOne, Depth+1);
       // If it's known zero, our sign bit is also zero.
       if (LHSKnownZero.isNegative())
-        KnownZero.setBit(KnownZero.getBitWidth() - 1);
+        KnownZero |= LHSKnownZero;
     }
     break;
   case Instruction::URem: {

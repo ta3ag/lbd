@@ -3,7 +3,7 @@
 
 @var = global i32 0
 
-; CHECK-ELF: RELOCATION RECORDS FOR [.rela.text]
+; CHECK-ELF: RELOCATION RECORDS FOR [.text]
 
 define i32 @get_globalvar() {
 ; CHECK: get_globalvar:

@@ -48,7 +48,6 @@ PPCTargetMachine::PPCTargetMachine(const Target &T, StringRef TT,
   // The binutils for the BG/P are too old for CFI.
   if (Subtarget.isBGP())
     setMCUseCFI(false);
-  initAsmInfo();
 }
 
 void PPC32TargetMachine::anchor() { }
@@ -91,7 +90,7 @@ public:
     return *getPPCTargetMachine().getSubtargetImpl();
   }
 
-  virtual bool addPreISel();
+  virtual bool addPreRegAlloc();
   virtual bool addILPOpts();
   virtual bool addInstSelector();
   virtual bool addPreSched2();
@@ -103,9 +102,9 @@ TargetPassConfig *PPCTargetMachine::createPassConfig(PassManagerBase &PM) {
   return new PPCPassConfig(this, PM);
 }
 
-bool PPCPassConfig::addPreISel() {
+bool PPCPassConfig::addPreRegAlloc() {
   if (!DisableCTRLoops && getOptLevel() != CodeGenOpt::None)
-    addPass(createPPCCTRLoops(getPPCTargetMachine()));
+    addPass(createPPCCTRLoops());
 
   return false;
 }
@@ -122,12 +121,6 @@ bool PPCPassConfig::addILPOpts() {
 bool PPCPassConfig::addInstSelector() {
   // Install an instruction selector.
   addPass(createPPCISelDag(getPPCTargetMachine()));
-
-#ifndef NDEBUG
-  if (!DisableCTRLoops && getOptLevel() != CodeGenOpt::None)
-    addPass(createPPCCTRLoopsVerify());
-#endif
-
   return false;
 }
 

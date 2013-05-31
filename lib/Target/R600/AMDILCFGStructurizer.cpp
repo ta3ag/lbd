@@ -57,7 +57,7 @@ STATISTIC(numClonedInstr,           "CFGStructurizer cloned instructions");
 // Miscellaneous utility for CFGStructurizer.
 //
 //===----------------------------------------------------------------------===//
-namespace {
+namespace llvmCFGStruct {
 #define SHOWNEWINSTR(i) \
   if (DEBUGME) errs() << "New instr: " << *i << "\n"
 
@@ -98,7 +98,7 @@ void ReverseVector(SmallVector<NodeT *, DEFAULT_VEC_SLOTS> &Src) {
   }
 }
 
-} // end anonymous namespace
+} //end namespace llvmCFGStruct
 
 //===----------------------------------------------------------------------===//
 //
@@ -106,7 +106,7 @@ void ReverseVector(SmallVector<NodeT *, DEFAULT_VEC_SLOTS> &Src) {
 //
 //===----------------------------------------------------------------------===//
 
-namespace {
+namespace llvmCFGStruct {
 template<class PassT>
 struct CFGStructTraits {
 };
@@ -142,7 +142,7 @@ public:
   LandInformation() : landBlk(NULL) {}
 };
 
-} // end anonymous namespace
+} //end of namespace llvmCFGStruct
 
 //===----------------------------------------------------------------------===//
 //
@@ -150,7 +150,7 @@ public:
 //
 //===----------------------------------------------------------------------===//
 
-namespace {
+namespace llvmCFGStruct {
 // bixia TODO: port it to BasicBlock, not just MachineBasicBlock.
 template<class PassT>
 class  CFGStructurizer {
@@ -2446,7 +2446,7 @@ CFGStructurizer<PassT>::findNearestCommonPostDom
   return commonDom;
 } //findNearestCommonPostDom
 
-} // end anonymous namespace
+} //end namespace llvm
 
 //todo: move-end
 
@@ -2458,7 +2458,9 @@ CFGStructurizer<PassT>::findNearestCommonPostDom
 //===----------------------------------------------------------------------===//
 
 
-namespace {
+using namespace llvmCFGStruct;
+
+namespace llvm {
 class AMDGPUCFGStructurizer : public MachineFunctionPass {
 public:
   typedef MachineInstr              InstructionType;
@@ -2478,9 +2480,12 @@ protected:
 public:
   AMDGPUCFGStructurizer(char &pid, TargetMachine &tm);
   const TargetInstrInfo *getTargetInstrInfo() const;
+
+private:
+
 };
 
-} // end anonymous namespace
+} //end of namespace llvm
 AMDGPUCFGStructurizer::AMDGPUCFGStructurizer(char &pid, TargetMachine &tm)
 : MachineFunctionPass(pid), TM(tm), TII(tm.getInstrInfo()),
   TRI(static_cast<const AMDGPURegisterInfo *>(tm.getRegisterInfo())) {
@@ -2496,7 +2501,9 @@ const TargetInstrInfo *AMDGPUCFGStructurizer::getTargetInstrInfo() const {
 //===----------------------------------------------------------------------===//
 
 
-namespace {
+using namespace llvmCFGStruct;
+
+namespace llvm {
 class AMDGPUCFGPrepare : public AMDGPUCFGStructurizer {
 public:
   static char ID;
@@ -2508,10 +2515,13 @@ public:
   virtual void getAnalysisUsage(AnalysisUsage &AU) const;
 
   bool runOnMachineFunction(MachineFunction &F);
+
+private:
+
 };
 
 char AMDGPUCFGPrepare::ID = 0;
-} // end anonymous namespace
+} //end of namespace llvm
 
 AMDGPUCFGPrepare::AMDGPUCFGPrepare(TargetMachine &tm)
   : AMDGPUCFGStructurizer(ID, tm )  {
@@ -2535,7 +2545,9 @@ void AMDGPUCFGPrepare::getAnalysisUsage(AnalysisUsage &AU) const {
 //===----------------------------------------------------------------------===//
 
 
-namespace {
+using namespace llvmCFGStruct;
+
+namespace llvm {
 class AMDGPUCFGPerform : public AMDGPUCFGStructurizer {
 public:
   static char ID;
@@ -2545,10 +2557,13 @@ public:
   virtual const char *getPassName() const;
   virtual void getAnalysisUsage(AnalysisUsage &AU) const;
   bool runOnMachineFunction(MachineFunction &F);
+
+private:
+
 };
 
 char AMDGPUCFGPerform::ID = 0;
-} // end anonymous namespace
+} //end of namespace llvm
 
   AMDGPUCFGPerform::AMDGPUCFGPerform(TargetMachine &tm)
 : AMDGPUCFGStructurizer(ID, tm) {
@@ -2572,7 +2587,7 @@ void AMDGPUCFGPerform::getAnalysisUsage(AnalysisUsage &AU) const {
 //
 //===----------------------------------------------------------------------===//
 
-namespace {
+namespace llvmCFGStruct {
 // this class is tailor to the AMDGPU backend
 template<>
 struct CFGStructTraits<AMDGPUCFGStructurizer> {
@@ -3009,22 +3024,28 @@ struct CFGStructTraits<AMDGPUCFGStructurizer> {
     return &pass.getAnalysis<MachineLoopInfo>();
   }
 }; // template class CFGStructTraits
-} // end anonymous namespace
+} //end of namespace llvm
 
 // createAMDGPUCFGPreparationPass- Returns a pass
-FunctionPass *llvm::createAMDGPUCFGPreparationPass(TargetMachine &tm) {
-  return new AMDGPUCFGPrepare(tm);
+FunctionPass *llvm::createAMDGPUCFGPreparationPass(TargetMachine &tm
+                                                 ) {
+  return new AMDGPUCFGPrepare(tm );
 }
 
 bool AMDGPUCFGPrepare::runOnMachineFunction(MachineFunction &func) {
-  return CFGStructurizer<AMDGPUCFGStructurizer>().prepare(func, *this, TRI);
+  return llvmCFGStruct::CFGStructurizer<AMDGPUCFGStructurizer>().prepare(func,
+                                                                        *this,
+                                                                        TRI);
 }
 
 // createAMDGPUCFGStructurizerPass- Returns a pass
-FunctionPass *llvm::createAMDGPUCFGStructurizerPass(TargetMachine &tm) {
-  return new AMDGPUCFGPerform(tm);
+FunctionPass *llvm::createAMDGPUCFGStructurizerPass(TargetMachine &tm
+                                                  ) {
+  return new AMDGPUCFGPerform(tm );
 }
 
 bool AMDGPUCFGPerform::runOnMachineFunction(MachineFunction &func) {
-  return CFGStructurizer<AMDGPUCFGStructurizer>().run(func, *this, TRI);
+  return llvmCFGStruct::CFGStructurizer<AMDGPUCFGStructurizer>().run(func,
+                                                                    *this,
+                                                                    TRI);
 }

@@ -283,7 +283,7 @@ static void emitIncrement(MachineBasicBlock &MBB,
     }
     MachineInstr *MI = BuildMI(MBB, MBBI, DL, TII->get(Opcode), Reg)
       .addReg(Reg).addImm(ThisVal);
-    // The CC implicit def is dead.
+    // The PSW implicit def is dead.
     MI->getOperand(3).setIsDead();
     NumBytes -= ThisVal;
   }
@@ -297,7 +297,7 @@ void SystemZFrameLowering::emitPrologue(MachineFunction &MF) const {
   SystemZMachineFunctionInfo *ZFI = MF.getInfo<SystemZMachineFunctionInfo>();
   MachineBasicBlock::iterator MBBI = MBB.begin();
   MachineModuleInfo &MMI = MF.getMMI();
-  const MCRegisterInfo &MRI = MMI.getContext().getRegisterInfo();
+  std::vector<MachineMove> &Moves = MMI.getFrameMoves();
   const std::vector<CalleeSavedInfo> &CSI = MFFrame->getCalleeSavedInfo();
   bool HasFP = hasFP(MF);
   DebugLoc DL = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
@@ -321,8 +321,9 @@ void SystemZFrameLowering::emitPrologue(MachineFunction &MF) const {
       unsigned Reg = I->getReg();
       if (SystemZ::GR64BitRegClass.contains(Reg)) {
         int64_t Offset = SPOffsetFromCFA + RegSpillOffsets[Reg];
-        MMI.addFrameInst(MCCFIInstruction::createOffset(
-            GPRSaveLabel, MRI.getDwarfRegNum(Reg, true), Offset));
+        MachineLocation StackSlot(MachineLocation::VirtualFP, Offset);
+        MachineLocation RegValue(Reg);
+        Moves.push_back(MachineMove(GPRSaveLabel, StackSlot, RegValue));
       }
     }
   }
@@ -337,8 +338,9 @@ void SystemZFrameLowering::emitPrologue(MachineFunction &MF) const {
     MCSymbol *AdjustSPLabel = MMI.getContext().CreateTempSymbol();
     BuildMI(MBB, MBBI, DL, ZII->get(TargetOpcode::PROLOG_LABEL))
       .addSym(AdjustSPLabel);
-    MMI.addFrameInst(MCCFIInstruction::createDefCfaOffset(
-        AdjustSPLabel, SPOffsetFromCFA + Delta));
+    MachineLocation FPDest(MachineLocation::VirtualFP);
+    MachineLocation FPSrc(MachineLocation::VirtualFP, SPOffsetFromCFA + Delta);
+    Moves.push_back(MachineMove(AdjustSPLabel, FPDest, FPSrc));
     SPOffsetFromCFA += Delta;
   }
 
@@ -351,9 +353,9 @@ void SystemZFrameLowering::emitPrologue(MachineFunction &MF) const {
     MCSymbol *SetFPLabel = MMI.getContext().CreateTempSymbol();
     BuildMI(MBB, MBBI, DL, ZII->get(TargetOpcode::PROLOG_LABEL))
       .addSym(SetFPLabel);
-    unsigned HardFP = MRI.getDwarfRegNum(SystemZ::R11D, true);
-    MMI.addFrameInst(
-        MCCFIInstruction::createDefCfaRegister(SetFPLabel, HardFP));
+    MachineLocation HardFP(SystemZ::R11D);
+    MachineLocation VirtualFP(MachineLocation::VirtualFP);
+    Moves.push_back(MachineMove(SetFPLabel, HardFP, VirtualFP));
 
     // Mark the FramePtr as live at the beginning of every block except
     // the entry block.  (We'll have marked R11 as live on entry when
@@ -379,10 +381,12 @@ void SystemZFrameLowering::emitPrologue(MachineFunction &MF) const {
       // Add CFI for the this save.
       if (!FPRSaveLabel)
         FPRSaveLabel = MMI.getContext().CreateTempSymbol();
-      unsigned Reg = MRI.getDwarfRegNum(I->getReg(), true);
+      unsigned Reg = I->getReg();
       int64_t Offset = getFrameIndexOffset(MF, I->getFrameIdx());
-      MMI.addFrameInst(MCCFIInstruction::createOffset(
-          FPRSaveLabel, Reg, SPOffsetFromCFA + Offset));
+      MachineLocation Slot(MachineLocation::VirtualFP,
+                           SPOffsetFromCFA + Offset);
+      MachineLocation RegValue(Reg);
+      Moves.push_back(MachineMove(FPRSaveLabel, Slot, RegValue));
     }
   }
   // Complete the CFI for the FPR saves, modelling them as taking effect

@@ -54,7 +54,7 @@ void AArch64FrameLowering::emitPrologue(MachineFunction &MF) const {
   DebugLoc DL = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
 
   MachineModuleInfo &MMI = MF.getMMI();
-  const MCRegisterInfo &MRI = MMI.getContext().getRegisterInfo();
+  std::vector<MachineMove> &Moves = MMI.getFrameMoves();
   bool NeedsFrameMoves = MMI.hasDebugInfo()
     || MF.getFunction()->needsUnwindTableEntry();
 
@@ -97,9 +97,8 @@ void AArch64FrameLowering::emitPrologue(MachineFunction &MF) const {
       .addSym(SPLabel);
 
     MachineLocation Dst(MachineLocation::VirtualFP);
-    unsigned Reg = MRI.getDwarfRegNum(AArch64::XSP, true);
-    MMI.addFrameInst(
-        MCCFIInstruction::createDefCfa(SPLabel, Reg, -NumInitialBytes));
+    MachineLocation Src(AArch64::XSP, NumInitialBytes);
+    Moves.push_back(MachineMove(SPLabel, Dst, Src));
   }
 
   // Otherwise we need to set the frame pointer and/or add a second stack
@@ -132,9 +131,9 @@ void AArch64FrameLowering::emitPrologue(MachineFunction &MF) const {
         MCSymbol *FPLabel = MMI.getContext().CreateTempSymbol();
         BuildMI(MBB, MBBI, DL, TII.get(TargetOpcode::PROLOG_LABEL))
           .addSym(FPLabel);
-        unsigned Reg = MRI.getDwarfRegNum(AArch64::X29, true);
-        unsigned Offset = MFI->getObjectOffset(X29FrameIdx);
-        MMI.addFrameInst(MCCFIInstruction::createDefCfa(FPLabel, Reg, Offset));
+        MachineLocation Dst(MachineLocation::VirtualFP);
+        MachineLocation Src(AArch64::X29, -MFI->getObjectOffset(X29FrameIdx));
+        Moves.push_back(MachineMove(FPLabel, Dst, Src));
       }
 
       FPNeedsSetting = false;
@@ -165,9 +164,8 @@ void AArch64FrameLowering::emitPrologue(MachineFunction &MF) const {
       .addSym(CSLabel);
 
     MachineLocation Dst(MachineLocation::VirtualFP);
-    unsigned Reg = MRI.getDwarfRegNum(AArch64::XSP, true);
-    unsigned Offset = NumResidualBytes + NumInitialBytes;
-    MMI.addFrameInst(MCCFIInstruction::createDefCfa(CSLabel, Reg, -Offset));
+    MachineLocation Src(AArch64::XSP, NumResidualBytes + NumInitialBytes);
+    Moves.push_back(MachineMove(CSLabel, Dst, Src));
   }
 
   // And any callee-saved registers (it's fine to leave them to the end here,
@@ -182,9 +180,10 @@ void AArch64FrameLowering::emitPrologue(MachineFunction &MF) const {
 
     for (std::vector<CalleeSavedInfo>::const_iterator I = CSI.begin(),
            E = CSI.end(); I != E; ++I) {
-      unsigned Offset = MFI->getObjectOffset(I->getFrameIdx());
-      unsigned Reg = MRI.getDwarfRegNum(I->getReg(), true);
-      MMI.addFrameInst(MCCFIInstruction::createOffset(CSLabel, Reg, Offset));
+      MachineLocation Dst(MachineLocation::VirtualFP,
+                          MFI->getObjectOffset(I->getFrameIdx()));
+      MachineLocation Src(I->getReg());
+      Moves.push_back(MachineMove(CSLabel, Dst, Src));
     }
   }
 }

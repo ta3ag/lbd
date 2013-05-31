@@ -34,15 +34,15 @@ define i64 @f1(i64 %length, i64 %index) {
 ; CHECK-E: la [[TMP:%r[1-5]]], 160(%r3,[[ADDR]])
 ; CHECK-E: mviy 4096([[TMP]]), 4
   %a = alloca i8, i64 %length
-  store volatile i8 0, i8 *%a
+  store i8 0, i8 *%a
   %b = getelementptr i8 *%a, i64 4095
-  store volatile i8 1, i8 *%b
+  store i8 1, i8 *%b
   %c = getelementptr i8 *%a, i64 %index
-  store volatile i8 2, i8 *%c
+  store i8 2, i8 *%c
   %d = getelementptr i8 *%c, i64 4095
-  store volatile i8 3, i8 *%d
+  store i8 3, i8 *%d
   %e = getelementptr i8 *%d, i64 1
-  store volatile i8 4, i8 *%e
+  store i8 4, i8 *%e
   %count = call i64 @bar(i8 *%a)
   %res = add i64 %count, 1
   ret i64 %res

@@ -80,8 +80,8 @@ class ZExtInst;
 /// implementation that is parameterized by a TargetLowering object.
 ///
 class SelectionDAGBuilder {
-  /// CurInst - The current instruction being visited
-  const Instruction *CurInst;
+  /// CurDebugLoc - current file + line number.  Changes as we build the DAG.
+  DebugLoc CurDebugLoc;
 
   DenseMap<const Value*, SDValue> NodeMap;
   
@@ -327,8 +327,7 @@ public:
 
   SelectionDAGBuilder(SelectionDAG &dag, FunctionLoweringInfo &funcinfo,
                       CodeGenOpt::Level ol)
-    : CurInst(NULL), SDNodeOrder(0), TM(dag.getTarget()),
-      TLI(dag.getTargetLoweringInfo()),
+    : SDNodeOrder(0), TM(dag.getTarget()), TLI(dag.getTargetLoweringInfo()),
       DAG(dag), FuncInfo(funcinfo), OptLevel(ol),
       HasTailCall(false) {
   }
@@ -365,17 +364,16 @@ public:
   ///
   SDValue getControlRoot();
 
-  SDLoc getCurSDLoc() const {
-    return SDLoc(CurInst, SDNodeOrder);
-  }
-
-  DebugLoc getCurDebugLoc() const {
-    return CurInst ? CurInst->getDebugLoc() : DebugLoc();
-  }
+  DebugLoc getCurDebugLoc() const { return CurDebugLoc; }
 
   unsigned getSDNodeOrder() const { return SDNodeOrder; }
 
   void CopyValueToVirtualRegister(const Value *V, unsigned Reg);
+
+  /// AssignOrderingToNode - Assign an ordering to the node. The order is gotten
+  /// from how the code appeared in the source. The ordering is used by the
+  /// scheduler to effectively turn off scheduling.
+  void AssignOrderingToNode(const SDNode *Node);
 
   void visit(const Instruction &I);
 

@@ -59,7 +59,6 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include "llvm/Transforms/Utils/Local.h"
-#include "llvm/Transforms/Utils/LoopUtils.h"
 using namespace llvm;
 
 STATISTIC(NumInserted, "Number of pre-header or exit blocks inserted");
@@ -101,15 +100,15 @@ namespace {
   private:
     bool ProcessLoop(Loop *L, LPPassManager &LPM);
     BasicBlock *RewriteLoopExitBlock(Loop *L, BasicBlock *Exit);
+    BasicBlock *InsertPreheaderForLoop(Loop *L);
     Loop *SeparateNestedLoop(Loop *L, LPPassManager &LPM,
                              BasicBlock *Preheader);
     BasicBlock *InsertUniqueBackedgeBlock(Loop *L, BasicBlock *Preheader);
+    void PlaceSplitBlockCarefully(BasicBlock *NewBB,
+                                  SmallVectorImpl<BasicBlock*> &SplitPreds,
+                                  Loop *L);
   };
 }
-
-static void PlaceSplitBlockCarefully(BasicBlock *NewBB,
-                                     SmallVectorImpl<BasicBlock*> &SplitPreds,
-                                     Loop *L);
 
 char LoopSimplify::ID = 0;
 INITIALIZE_PASS_BEGIN(LoopSimplify, "loop-simplify",
@@ -209,7 +208,7 @@ ReprocessLoop:
   // Does the loop already have a preheader?  If so, don't insert one.
   BasicBlock *Preheader = L->getLoopPreheader();
   if (!Preheader) {
-    Preheader = InsertPreheaderForLoop(L, this);
+    Preheader = InsertPreheaderForLoop(L);
     if (Preheader) {
       ++NumInserted;
       Changed = true;
@@ -368,7 +367,7 @@ ReprocessLoop:
 /// preheader, this method is called to insert one.  This method has two phases:
 /// preheader insertion and analysis updating.
 ///
-BasicBlock *llvm::InsertPreheaderForLoop(Loop *L, Pass *PP) {
+BasicBlock *LoopSimplify::InsertPreheaderForLoop(Loop *L) {
   BasicBlock *Header = L->getHeader();
 
   // Compute the set of predecessors of the loop that are not in the loop.
@@ -391,11 +390,11 @@ BasicBlock *llvm::InsertPreheaderForLoop(Loop *L, Pass *PP) {
   BasicBlock *PreheaderBB;
   if (!Header->isLandingPad()) {
     PreheaderBB = SplitBlockPredecessors(Header, OutsideBlocks, ".preheader",
-                                         PP);
+                                         this);
   } else {
     SmallVector<BasicBlock*, 2> NewBBs;
     SplitLandingPadPredecessors(Header, OutsideBlocks, ".preheader",
-                                ".split-lp", PP, NewBBs);
+                                ".split-lp", this, NewBBs);
     PreheaderBB = NewBBs[0];
   }
 
@@ -492,9 +491,9 @@ static PHINode *FindPHIToPartitionLoops(Loop *L, DominatorTree *DT,
 // PlaceSplitBlockCarefully - If the block isn't already, move the new block to
 // right after some 'outside block' block.  This prevents the preheader from
 // being placed inside the loop body, e.g. when the loop hasn't been rotated.
-void PlaceSplitBlockCarefully(BasicBlock *NewBB,
-                              SmallVectorImpl<BasicBlock*> &SplitPreds,
-                              Loop *L) {
+void LoopSimplify::PlaceSplitBlockCarefully(BasicBlock *NewBB,
+                                       SmallVectorImpl<BasicBlock*> &SplitPreds,
+                                            Loop *L) {
   // Check to see if NewBB is already well placed.
   Function::iterator BBI = NewBB; --BBI;
   for (unsigned i = 0, e = SplitPreds.size(); i != e; ++i) {

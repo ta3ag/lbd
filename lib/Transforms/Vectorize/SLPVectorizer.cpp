@@ -20,7 +20,6 @@
 
 #include "VecUtils.h"
 #include "llvm/Transforms/Vectorize.h"
-#include "llvm/ADT/MapVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Analysis/ScalarEvolution.h"
 #include "llvm/Analysis/TargetTransformInfo.h"
@@ -48,7 +47,7 @@ namespace {
 
 /// The SLPVectorizer Pass.
 struct SLPVectorizer : public FunctionPass {
-  typedef MapVector<Value*, BoUpSLP::StoreList> StoreListMap;
+  typedef std::map<Value*, BoUpSLP::StoreList> StoreListMap;
 
   /// Pass identification, replacement for typeid
   static char ID;
@@ -77,8 +76,6 @@ struct SLPVectorizer : public FunctionPass {
     // triple.
     if (!DL)
       return false;
-
-    DEBUG(dbgs()<<"SLP: Analyzing blocks in " << F.getName() << ".\n");
 
     for (Function::iterator it = F.begin(), e = F.end(); it != e; ++it) {
       BasicBlock *BB = it;

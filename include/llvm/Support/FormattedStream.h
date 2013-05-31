@@ -16,13 +16,11 @@
 #define LLVM_SUPPORT_FORMATTEDSTREAM_H
 
 #include "llvm/Support/raw_ostream.h"
-#include <utility>
 
 namespace llvm {
 
 /// formatted_raw_ostream - A raw_ostream that wraps another one and keeps track
-/// of line and column position, allowing padding out to specific column
-/// boundaries and querying the number of lines written to the stream.
+/// of column position, allowing padding out to specific column boundaries.
 ///
 class formatted_raw_ostream : public raw_ostream {
 public:
@@ -46,11 +44,11 @@ private:
   ///
   bool DeleteStream;
 
-  /// Position - The current output column and line of the data that's
+  /// ColumnScanned - The current output column of the data that's
   /// been flushed and the portion of the buffer that's been
-  /// scanned.  The line and column scheme is zero-based.
+  /// scanned.  The column scheme is zero-based.
   ///
-  std::pair<unsigned, unsigned> Position;
+  unsigned ColumnScanned;
 
   /// Scanned - This points to one past the last character in the
   /// buffer we've scanned.
@@ -68,10 +66,10 @@ private:
     return TheStream->tell();
   }
 
-  /// ComputePosition - Examine the given output buffer and figure out the new
-  /// position after output.
+  /// ComputeColumn - Examine the given output buffer and figure out which
+  /// column we end up in after output.
   ///
-  void ComputePosition(const char *Ptr, size_t size);
+  void ComputeColumn(const char *Ptr, size_t size);
 
 public:
   /// formatted_raw_ostream - Open the specified file for
@@ -85,11 +83,11 @@ public:
   /// underneath it.
   ///
   formatted_raw_ostream(raw_ostream &Stream, bool Delete = false) 
-    : raw_ostream(), TheStream(0), DeleteStream(false), Position(0, 0) {
+    : raw_ostream(), TheStream(0), DeleteStream(false), ColumnScanned(0) {
     setStream(Stream, Delete);
   }
   explicit formatted_raw_ostream()
-    : raw_ostream(), TheStream(0), DeleteStream(false), Position(0, 0) {
+    : raw_ostream(), TheStream(0), DeleteStream(false), ColumnScanned(0) {
     Scanned = 0;
   }
 
@@ -123,12 +121,6 @@ public:
   ///
   /// \param NewCol - The column to move to.
   formatted_raw_ostream &PadToColumn(unsigned NewCol);
-
-  /// getColumn - Return the column number
-  unsigned getColumn() { return Position.first; }
-
-  /// getLine - Return the line number
-  unsigned getLine() { return Position.second; }
 
 private:
   void releaseStream() {

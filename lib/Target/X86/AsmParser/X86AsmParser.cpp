@@ -219,9 +219,7 @@ private:
     const MCExpr *getSym() { return Sym; }
     StringRef getSymName() { return SymName; }
     int64_t getImm() { return Imm + IC.execute(); }
-    bool isValidEndState() {
-      return State == IES_RBRAC || State == IES_INTEGER;
-    }
+    bool isValidEndState() { return State == IES_RBRAC; }
     bool getStopOnLBrac() { return StopOnLBrac; }
     bool getAddImmPrefix() { return AddImmPrefix; }
     bool hadError() { return State == IES_ERROR; }
@@ -1196,7 +1194,6 @@ RewriteIntelBracExpression(SmallVectorImpl<AsmRewrite> *AsmRewrites,
         }
       }
       assert (Found && "Unable to rewrite ImmDisp.");
-      (void)Found;
     } else {
       // We have a symbolic and an immediate displacement, but no displacement
       // before the bracketed expression.  Put the immediate displacement
@@ -2309,25 +2306,25 @@ MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
   unsigned Match1, Match2, Match3, Match4;
 
   Match1 = MatchInstructionImpl(Operands, Inst, ErrorInfoIgnore,
-                                MatchingInlineAsm, isParsingIntelSyntax());
+                                isParsingIntelSyntax());
   // If this returned as a missing feature failure, remember that.
   if (Match1 == Match_MissingFeature)
     ErrorInfoMissingFeature = ErrorInfoIgnore;
   Tmp[Base.size()] = Suffixes[1];
   Match2 = MatchInstructionImpl(Operands, Inst, ErrorInfoIgnore,
-                                MatchingInlineAsm, isParsingIntelSyntax());
+                                isParsingIntelSyntax());
   // If this returned as a missing feature failure, remember that.
   if (Match2 == Match_MissingFeature)
     ErrorInfoMissingFeature = ErrorInfoIgnore;
   Tmp[Base.size()] = Suffixes[2];
   Match3 = MatchInstructionImpl(Operands, Inst, ErrorInfoIgnore,
-                                MatchingInlineAsm, isParsingIntelSyntax());
+                                isParsingIntelSyntax());
   // If this returned as a missing feature failure, remember that.
   if (Match3 == Match_MissingFeature)
     ErrorInfoMissingFeature = ErrorInfoIgnore;
   Tmp[Base.size()] = Suffixes[3];
   Match4 = MatchInstructionImpl(Operands, Inst, ErrorInfoIgnore,
-                                MatchingInlineAsm, isParsingIntelSyntax());
+                                isParsingIntelSyntax());
   // If this returned as a missing feature failure, remember that.
   if (Match4 == Match_MissingFeature)
     ErrorInfoMissingFeature = ErrorInfoIgnore;

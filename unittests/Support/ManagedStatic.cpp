@@ -19,8 +19,7 @@ using namespace llvm;
 
 namespace {
 
-#if LLVM_ENABLE_THREADS != 0 && defined(HAVE_PTHREAD_H) && \
-  !__has_feature(memory_sanitizer)
+#if defined(HAVE_PTHREAD_H) && !__has_feature(memory_sanitizer)
 namespace test1 {
   llvm::ManagedStatic<int> ms;
   void *helper(void*) {

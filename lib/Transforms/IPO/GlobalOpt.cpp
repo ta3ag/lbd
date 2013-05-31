@@ -3323,6 +3323,8 @@ bool GlobalOpt::runOnModule(Module &M) {
   // Try to find the llvm.globalctors list.
   GlobalVariable *GlobalCtors = FindGlobalCtors(M);
 
+  Function *CXAAtExitFn = FindCXAAtExit(M, TLI);
+
   bool LocalChange = true;
   while (LocalChange) {
     LocalChange = false;
@@ -3340,9 +3342,7 @@ bool GlobalOpt::runOnModule(Module &M) {
     // Resolve aliases, when possible.
     LocalChange |= OptimizeGlobalAliases(M);
 
-    // Try to remove trivial global destructors if they are not removed
-    // already.
-    Function *CXAAtExitFn = FindCXAAtExit(M, TLI);
+    // Try to remove trivial global destructors.
     if (CXAAtExitFn)
       LocalChange |= OptimizeEmptyGlobalCXXDtors(CXAAtExitFn);
 

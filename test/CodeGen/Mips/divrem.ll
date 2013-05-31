@@ -1,56 +1,34 @@
-; RUN: llc -march=mips < %s | FileCheck %s -check-prefix=TRAP
-; RUN: llc -march=mips -mno-check-zero-division < %s |\
-; RUN: FileCheck %s -check-prefix=NOCHECK
+; RUN: llc -march=mips < %s | FileCheck %s
 
-; TRAP: sdiv1:
-; TRAP: div $zero, ${{[0-9]+}}, $[[R0:[0-9]+]]
-; TRAP: teq $[[R0]], $zero, 7
-; TRAP: mflo
-
-; NOCHECK: sdiv1:
-; NOCHECK-NOT: teq
-; NOCHECK: .end sdiv1
-
+; CHECK: div $zero,
 define i32 @sdiv1(i32 %a0, i32 %a1) nounwind readnone {
 entry:
   %div = sdiv i32 %a0, %a1
   ret i32 %div
 }
 
-; TRAP: srem1:
-; TRAP: div $zero, ${{[0-9]+}}, $[[R0:[0-9]+]]
-; TRAP: teq $[[R0]], $zero, 7
-; TRAP: mfhi
-
+; CHECK: div $zero,
 define i32 @srem1(i32 %a0, i32 %a1) nounwind readnone {
 entry:
   %rem = srem i32 %a0, %a1
   ret i32 %rem
 }
 
-; TRAP: udiv1:
-; TRAP: divu $zero, ${{[0-9]+}}, $[[R0:[0-9]+]]
-; TRAP: teq $[[R0]], $zero, 7
-; TRAP: mflo
-
+; CHECK: divu $zero,
 define i32 @udiv1(i32 %a0, i32 %a1) nounwind readnone {
 entry:
   %div = udiv i32 %a0, %a1
   ret i32 %div
 }
 
-; TRAP: urem1:
-; TRAP: divu $zero, ${{[0-9]+}}, $[[R0:[0-9]+]]
-; TRAP: teq $[[R0]], $zero, 7
-; TRAP: mfhi
-
+; CHECK: divu $zero,
 define i32 @urem1(i32 %a0, i32 %a1) nounwind readnone {
 entry:
   %rem = urem i32 %a0, %a1
   ret i32 %rem
 }
 
-; TRAP: div $zero,
+; CHECK: div $zero,
 define i32 @sdivrem1(i32 %a0, i32 %a1, i32* nocapture %r) nounwind {
 entry:
   %rem = srem i32 %a0, %a1
@@ -59,7 +37,7 @@ entry:
   ret i32 %div
 }
 
-; TRAP: divu $zero,
+; CHECK: divu $zero,
 define i32 @udivrem1(i32 %a0, i32 %a1, i32* nocapture %r) nounwind {
 entry:
   %rem = urem i32 %a0, %a1

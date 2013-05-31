@@ -42,33 +42,6 @@ namespace SystemZII {
     // @GOT (aka @GOTENT)
     MO_GOT = (1 << 0)
   };
-  // Classifies a branch.
-  enum BranchType {
-    // An instruction that branches on the current value of CC.
-    BranchNormal,
-
-    // An instruction that peforms a 32-bit signed comparison and branches
-    // on the result.
-    BranchC,
-
-    // An instruction that peforms a 64-bit signed comparison and branches
-    // on the result.
-    BranchCG
-  };
-  // Information about a branch instruction.
-  struct Branch {
-    // The type of the branch.
-    BranchType Type;
-
-    // CCMASK_<N> is set if the branch should be taken when CC == N.
-    unsigned CCMask;
-
-    // The target of the branch.
-    const MachineOperand *Target;
-
-    Branch(BranchType type, unsigned ccMask, const MachineOperand *target)
-      : Type(type), CCMask(ccMask), Target(target) {}
-  };
 }
 
 class SystemZInstrInfo : public SystemZGenInstrInfo {
@@ -120,15 +93,13 @@ public:
   // Return the SystemZRegisterInfo, which this class owns.
   const SystemZRegisterInfo &getRegisterInfo() const { return RI; }
 
-  // Return the size in bytes of MI.
-  uint64_t getInstSizeInBytes(const MachineInstr *MI) const;
-
   // Return true if MI is a conditional or unconditional branch.
   // When returning true, set Cond to the mask of condition-code
   // values on which the instruction will branch, and set Target
   // to the operand that contains the branch target.  This target
   // can be a register or a basic block.
-  SystemZII::Branch getBranchInfo(const MachineInstr *MI) const;
+  bool isBranch(const MachineInstr *MI, unsigned &Cond,
+                const MachineOperand *&Target) const;
 
   // Get the load and store opcodes for a given register class.
   void getLoadStoreOpcodes(const TargetRegisterClass *RC,
@@ -140,12 +111,6 @@ public:
   // instruction (which might be Opcode itself) or 0 if no such instruction
   // exists.
   unsigned getOpcodeForOffset(unsigned Opcode, int64_t Offset) const;
-
-  // If Opcode is a COMPARE opcode for which an associated COMPARE AND
-  // BRANCH exists, return the opcode for the latter, otherwise return 0.
-  // MI, if nonnull, is the compare instruction.
-  unsigned getCompareAndBranch(unsigned Opcode,
-                               const MachineInstr *MI = 0) const;
 
   // Emit code before MBBI in MI to move immediate value Value into
   // physical register Reg.

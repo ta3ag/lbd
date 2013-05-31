@@ -214,7 +214,7 @@ void MipsSEDAGToDAGISel::processFunctionAfterISel(MachineFunction &MF) {
 }
 
 SDNode *MipsSEDAGToDAGISel::selectAddESubE(unsigned MOp, SDValue InFlag,
-                                           SDValue CmpLHS, SDLoc DL,
+                                           SDValue CmpLHS, DebugLoc DL,
                                            SDNode *Node) const {
   unsigned Opc = InFlag.getOpcode(); (void)Opc;
 
@@ -316,7 +316,7 @@ bool MipsSEDAGToDAGISel::selectIntAddr(SDValue Addr, SDValue &Base,
 
 std::pair<bool, SDNode*> MipsSEDAGToDAGISel::selectNode(SDNode *Node) {
   unsigned Opcode = Node->getOpcode();
-  SDLoc DL(Node);
+  DebugLoc DL = Node->getDebugLoc();
 
   ///
   // Instruction Selection not handled by the auto-generated
@@ -374,7 +374,7 @@ std::pair<bool, SDNode*> MipsSEDAGToDAGISel::selectNode(SDNode *Node) {
       AnalyzeImm.Analyze(Imm, Size, false);
 
     MipsAnalyzeImmediate::InstSeq::const_iterator Inst = Seq.begin();
-    SDLoc DL(CN);
+    DebugLoc DL = CN->getDebugLoc();
     SDNode *RegOpnd;
     SDValue ImmOpnd = CurDAG->getTargetConstant(SignExtend64<16>(Inst->ImmOpnd),
                                                 MVT::i64);
@@ -416,7 +416,7 @@ std::pair<bool, SDNode*> MipsSEDAGToDAGISel::selectNode(SDNode *Node) {
     }
 
     SDNode *Rdhwr =
-      CurDAG->getMachineNode(RdhwrOpc, SDLoc(Node),
+      CurDAG->getMachineNode(RdhwrOpc, Node->getDebugLoc(),
                              Node->getValueType(0),
                              CurDAG->getRegister(SrcReg, PtrVT));
     SDValue Chain = CurDAG->getCopyToReg(CurDAG->getEntryNode(), DL, DestReg,

@@ -37,11 +37,11 @@ namespace PBQP {
 
   public:
 
-    typedef NodeList::iterator NodeItr;
-    typedef NodeList::const_iterator ConstNodeItr;
+    typedef NodeEntry* NodeItr;
+    typedef const NodeEntry* ConstNodeItr;
 
-    typedef EdgeList::iterator EdgeItr;
-    typedef EdgeList::const_iterator ConstEdgeItr;
+    typedef EdgeEntry* EdgeItr;
+    typedef const EdgeEntry* ConstEdgeItr;
 
   private:
 

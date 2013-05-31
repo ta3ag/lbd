@@ -16,14 +16,13 @@ BUILT_SOURCES = SystemZGenRegisterInfo.inc \
 		SystemZGenAsmWriter.inc \
 		SystemZGenAsmMatcher.inc \
 		SystemZGenCodeEmitter.inc \
-		SystemZGenDisassemblerTables.inc \
 		SystemZGenInstrInfo.inc \
 		SystemZGenDAGISel.inc \
 		SystemZGenSubtargetInfo.inc \
 		SystemZGenCallingConv.inc \
 		SystemZGenMCCodeEmitter.inc
 
-DIRS = InstPrinter AsmParser Disassembler TargetInfo MCTargetDesc
+DIRS = InstPrinter AsmParser TargetInfo MCTargetDesc
 
 include $(LEVEL)/Makefile.common
 

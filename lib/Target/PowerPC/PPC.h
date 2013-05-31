@@ -30,10 +30,7 @@ namespace llvm {
   class AsmPrinter;
   class MCInst;
 
-  FunctionPass *createPPCCTRLoops(PPCTargetMachine &TM);
-#ifndef NDEBUG
-  FunctionPass *createPPCCTRLoopsVerify();
-#endif
+  FunctionPass *createPPCCTRLoops();
   FunctionPass *createPPCEarlyReturnPass();
   FunctionPass *createPPCBranchSelectionPass();
   FunctionPass *createPPCISelDag(PPCTargetMachine &TM);

@@ -173,8 +173,7 @@ struct OperandsSignature {
   ///
   bool initialize(TreePatternNode *InstPatNode, const CodeGenTarget &Target,
                   MVT::SimpleValueType VT,
-                  ImmPredicateSet &ImmediatePredicates,
-                  const CodeGenRegisterClass *OrigDstRC) {
+                  ImmPredicateSet &ImmediatePredicates) {
     if (InstPatNode->isLeaf())
       return false;
     
@@ -259,9 +258,7 @@ struct OperandsSignature {
         RC = &Target.getRegisterClass(OpLeafRec);
       else if (OpLeafRec->isSubClassOf("Register"))
         RC = Target.getRegBank().getRegClassForRegister(OpLeafRec);
-      else if (OpLeafRec->isSubClassOf("ValueType")) {
-        RC = OrigDstRC;
-      } else
+      else
         return false;
 
       // For now, this needs to be a register class of some sort.
@@ -506,8 +503,7 @@ void FastISelMap::collectPatterns(CodeGenDAGPatterns &CGP) {
 
     // Check all the operands.
     OperandsSignature Operands;
-    if (!Operands.initialize(InstPatNode, Target, VT, ImmediatePredicates,
-                             DstRC))
+    if (!Operands.initialize(InstPatNode, Target, VT, ImmediatePredicates))
       continue;
 
     std::vector<std::string>* PhysRegInputs = new std::vector<std::string>();

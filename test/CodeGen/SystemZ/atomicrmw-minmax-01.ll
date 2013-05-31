@@ -19,12 +19,13 @@ define i8 @f1(i8 *%src, i8 %b) {
 ; CHECK: l [[OLD:%r[0-9]+]], 0(%r2)
 ; CHECK: [[LOOP:\.[^:]*]]:
 ; CHECK: rll [[ROT:%r[0-9]+]], [[OLD]], 0([[SHIFT]])
-; CHECK: crjle [[ROT]], %r3, [[KEEP:\..*]]
+; CHECK: cr [[ROT]], %r3
+; CHECK: j{{g?}}le [[KEEP:\..*]]
 ; CHECK: risbg [[ROT]], %r3, 32, 39, 0
 ; CHECK: [[KEEP]]:
 ; CHECK: rll [[NEW:%r[0-9]+]], [[ROT]], 0({{%r[1-9]+}})
 ; CHECK: cs [[OLD]], [[NEW]], 0(%r2)
-; CHECK: jlh [[LOOP]]
+; CHECK: j{{g?}}lh [[LOOP]]
 ; CHECK: rll %r2, [[OLD]], 8([[SHIFT]])
 ; CHECK: br %r14
 ;
@@ -39,7 +40,7 @@ define i8 @f1(i8 *%src, i8 %b) {
 ; CHECK-SHIFT2: f1:
 ; CHECK-SHIFT2: sll %r3, 24
 ; CHECK-SHIFT2: rll
-; CHECK-SHIFT2: crjle {{%r[0-9]+}}, %r3
+; CHECK-SHIFT2: cr {{%r[0-9]+}}, %r3
 ; CHECK-SHIFT2: rll
 ; CHECK-SHIFT2: rll
 ; CHECK-SHIFT2: br %r14
@@ -55,12 +56,13 @@ define i8 @f2(i8 *%src, i8 %b) {
 ; CHECK: l [[OLD:%r[0-9]+]], 0(%r2)
 ; CHECK: [[LOOP:\.[^:]*]]:
 ; CHECK: rll [[ROT:%r[0-9]+]], [[OLD]], 0([[SHIFT]])
-; CHECK: crjhe [[ROT]], %r3, [[KEEP:\..*]]
+; CHECK: cr [[ROT]], %r3
+; CHECK: j{{g?}}he [[KEEP:\..*]]
 ; CHECK: risbg [[ROT]], %r3, 32, 39, 0
 ; CHECK: [[KEEP]]:
 ; CHECK: rll [[NEW:%r[0-9]+]], [[ROT]], 0({{%r[1-9]+}})
 ; CHECK: cs [[OLD]], [[NEW]], 0(%r2)
-; CHECK: jlh [[LOOP]]
+; CHECK: j{{g?}}lh [[LOOP]]
 ; CHECK: rll %r2, [[OLD]], 8([[SHIFT]])
 ; CHECK: br %r14
 ;
@@ -75,7 +77,7 @@ define i8 @f2(i8 *%src, i8 %b) {
 ; CHECK-SHIFT2: f2:
 ; CHECK-SHIFT2: sll %r3, 24
 ; CHECK-SHIFT2: rll
-; CHECK-SHIFT2: crjhe {{%r[0-9]+}}, %r3
+; CHECK-SHIFT2: cr {{%r[0-9]+}}, %r3
 ; CHECK-SHIFT2: rll
 ; CHECK-SHIFT2: rll
 ; CHECK-SHIFT2: br %r14
@@ -92,12 +94,12 @@ define i8 @f3(i8 *%src, i8 %b) {
 ; CHECK: [[LOOP:\.[^:]*]]:
 ; CHECK: rll [[ROT:%r[0-9]+]], [[OLD]], 0([[SHIFT]])
 ; CHECK: clr [[ROT]], %r3
-; CHECK: jle [[KEEP:\..*]]
+; CHECK: j{{g?}}le [[KEEP:\..*]]
 ; CHECK: risbg [[ROT]], %r3, 32, 39, 0
 ; CHECK: [[KEEP]]:
 ; CHECK: rll [[NEW:%r[0-9]+]], [[ROT]], 0({{%r[1-9]+}})
 ; CHECK: cs [[OLD]], [[NEW]], 0(%r2)
-; CHECK: jlh [[LOOP]]
+; CHECK: j{{g?}}lh [[LOOP]]
 ; CHECK: rll %r2, [[OLD]], 8([[SHIFT]])
 ; CHECK: br %r14
 ;
@@ -129,12 +131,12 @@ define i8 @f4(i8 *%src, i8 %b) {
 ; CHECK: [[LOOP:\.[^:]*]]:
 ; CHECK: rll [[ROT:%r[0-9]+]], [[OLD]], 0([[SHIFT]])
 ; CHECK: clr [[ROT]], %r3
-; CHECK: jhe [[KEEP:\..*]]
+; CHECK: j{{g?}}he [[KEEP:\..*]]
 ; CHECK: risbg [[ROT]], %r3, 32, 39, 0
 ; CHECK: [[KEEP]]:
 ; CHECK: rll [[NEW:%r[0-9]+]], [[ROT]], 0({{%r[1-9]+}})
 ; CHECK: cs [[OLD]], [[NEW]], 0(%r2)
-; CHECK: jlh [[LOOP]]
+; CHECK: j{{g?}}lh [[LOOP]]
 ; CHECK: rll %r2, [[OLD]], 8([[SHIFT]])
 ; CHECK: br %r14
 ;
@@ -162,7 +164,7 @@ define i8 @f4(i8 *%src, i8 %b) {
 define i8 @f5(i8 *%src) {
 ; CHECK: f5:
 ; CHECK: llilh [[SRC2:%r[0-9]+]], 33024
-; CHECK: crjle [[ROT:%r[0-9]+]], [[SRC2]]
+; CHECK: cr [[ROT:%r[0-9]+]], [[SRC2]]
 ; CHECK: risbg [[ROT]], [[SRC2]], 32, 39, 0
 ; CHECK: br %r14
 ;
@@ -179,7 +181,7 @@ define i8 @f5(i8 *%src) {
 define i8 @f6(i8 *%src) {
 ; CHECK: f6:
 ; CHECK: llilh [[SRC2:%r[0-9]+]], 32256
-; CHECK: crjhe [[ROT:%r[0-9]+]], [[SRC2]]
+; CHECK: cr [[ROT:%r[0-9]+]], [[SRC2]]
 ; CHECK: risbg [[ROT]], [[SRC2]], 32, 39, 0
 ; CHECK: br %r14
 ;

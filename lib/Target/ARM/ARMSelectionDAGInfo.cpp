@@ -26,7 +26,7 @@ ARMSelectionDAGInfo::~ARMSelectionDAGInfo() {
 }
 
 SDValue
-ARMSelectionDAGInfo::EmitTargetCodeForMemcpy(SelectionDAG &DAG, SDLoc dl,
+ARMSelectionDAGInfo::EmitTargetCodeForMemcpy(SelectionDAG &DAG, DebugLoc dl,
                                              SDValue Chain,
                                              SDValue Dst, SDValue Src,
                                              SDValue Size, unsigned Align,
@@ -140,7 +140,7 @@ ARMSelectionDAGInfo::EmitTargetCodeForMemcpy(SelectionDAG &DAG, SDLoc dl,
 // GNU library uses (ptr, value, size)
 // See RTABI section 4.3.4
 SDValue ARMSelectionDAGInfo::
-EmitTargetCodeForMemset(SelectionDAG &DAG, SDLoc dl,
+EmitTargetCodeForMemset(SelectionDAG &DAG, DebugLoc dl,
                         SDValue Chain, SDValue Dst,
                         SDValue Src, SDValue Size,
                         unsigned Align, bool isVolatile,

@@ -23,7 +23,7 @@ class StringRef;
 class NVPTXMCAsmInfo : public MCAsmInfo {
   virtual void anchor();
 public:
-  explicit NVPTXMCAsmInfo(const StringRef &TT);
+  explicit NVPTXMCAsmInfo(const Target &T, const StringRef &TT);
 };
 } // namespace llvm
 

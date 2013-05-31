@@ -18,7 +18,7 @@ using namespace llvm;
 
 void MipsMCAsmInfo::anchor() { }
 
-MipsMCAsmInfo::MipsMCAsmInfo(StringRef TT) {
+MipsMCAsmInfo::MipsMCAsmInfo(const Target &T, StringRef TT) {
   Triple TheTriple(TT);
   if ((TheTriple.getArch() == Triple::mips) ||
       (TheTriple.getArch() == Triple::mips64))

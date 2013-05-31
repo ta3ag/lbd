@@ -204,16 +204,7 @@ unsigned BitstreamCursor::readRecord(unsigned AbbrevID,
 
   const BitCodeAbbrev *Abbv = getAbbrev(AbbrevID);
 
-  // Read the record code first.
-  assert(Abbv->getNumOperandInfos() != 0 && "no record code in abbreviation?");
-  const BitCodeAbbrevOp &CodeOp = Abbv->getOperandInfo(0);
-  if (CodeOp.isLiteral())
-    readAbbreviatedLiteral(CodeOp, Vals);
-  else
-    readAbbreviatedField(CodeOp, Vals);
-  unsigned Code = (unsigned)Vals.pop_back_val();
-
-  for (unsigned i = 1, e = Abbv->getNumOperandInfos(); i != e; ++i) {
+  for (unsigned i = 0, e = Abbv->getNumOperandInfos(); i != e; ++i) {
     const BitCodeAbbrevOp &Op = Abbv->getOperandInfo(i);
     if (Op.isLiteral()) {
       readAbbreviatedLiteral(Op, Vals);
@@ -273,6 +264,8 @@ unsigned BitstreamCursor::readRecord(unsigned AbbrevID,
     JumpToBit(NewEnd);
   }
 
+  unsigned Code = (unsigned)Vals[0];
+  Vals.erase(Vals.begin());
   return Code;
 }
 

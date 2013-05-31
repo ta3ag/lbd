@@ -51,10 +51,7 @@ public:
   template<class SubClass>
   void Deallocate(SubClass* E) { return Base.Deallocate(Allocator, E); }
 
-  void PrintStats() {
-    Allocator.PrintStats();
-    Base.PrintStats();
-  }
+  void PrintStats() { Base.PrintStats(); }
 };
 
 }

@@ -28,6 +28,3 @@ lea (%rsp, %rbp, $4), %rax
 // rdar://10423777
 // 64: error: index register is 32-bit, but base register is 64-bit
 movq (%rsi,%ecx),%xmm0
-
-// 32: error: invalid operand for instruction
-outb al, 4

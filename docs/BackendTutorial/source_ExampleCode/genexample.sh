@@ -112,7 +112,7 @@ cp -rf Chapter11_2 ${GEN_DIR}/.
 rm -rf Chapter11_2
 cp -rf ${GEN_DIR}/Chapter2 .
 cp -rf InputFiles llvm3.1 llvm3.2 ${GEN_DIR}/.
-cp -rf 3.1_src_files_modify 3.2_src_files_modify src_files_modify ${GEN_DIR}/.
+cp -rf 3.1_src_files_modify 3.2_src_files_modify 3.3_src_files_modify src_files_modify ${GEN_DIR}/.
 cp -rf cpu0_verilog ${GEN_DIR}/.
 cp -rf removecpu0.sh readme ${GEN_DIR}/.
 rm -f `find . -name .DS_Store`

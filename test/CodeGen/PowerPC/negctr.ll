@@ -14,12 +14,9 @@ for.body:                                         ; preds = %for.body, %entry
   %exitcond = icmp eq i32 %lftr.wideiv, 0
   br i1 %exitcond, label %for.end, label %for.body
 
+; FIXME: We currently can't form the 32-bit unsigned trip count necessary here!
 ; CHECK: @main
-; CHECK: li [[REG:[0-9]+]], 0
-; CHECK: oris [[REG2:[0-9]+]], [[REG]], 65535
-; CHECK: ori [[REG3:[0-9]+]], [[REG2]], 65535
-; CHECK: mtctr [[REG3]]
-; CHECK: bdnz
+; CHECK-NOT: bdnz
 
 for.end:                                          ; preds = %for.body, %entry
   ret void

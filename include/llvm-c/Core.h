@@ -166,7 +166,6 @@ typedef enum {
        and the path forward agreed upon.
     LLVMAddressSafety = 1ULL << 32,
     LLVMStackProtectStrongAttribute = 1ULL<<33
-    LLVMCold = 1ULL << 34
     */
 } LLVMAttribute;
 
@@ -412,7 +411,6 @@ void LLVMShutdown();
 
 /*===-- Error handling ----------------------------------------------------===*/
 
-char *LLVMCreateMessage(const char *Message);
 void LLVMDisposeMessage(char *Message);
 
 

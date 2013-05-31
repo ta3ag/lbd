@@ -14,11 +14,12 @@
 #include "llvm/Support/Compiler.h"
 
 namespace llvm {
+class Target;
 class StringRef;
 
 class SystemZMCAsmInfo : public MCAsmInfo {
 public:
-  explicit SystemZMCAsmInfo(StringRef TT);
+  explicit SystemZMCAsmInfo(const Target &T, StringRef TT);
 
   // Override MCAsmInfo;
   virtual const MCSection *getNonexecutableStackSection(MCContext &Ctx) const

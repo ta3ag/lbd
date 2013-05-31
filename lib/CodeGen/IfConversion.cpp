@@ -970,8 +970,8 @@ static void InitPredRedefs(MachineBasicBlock *BB, SmallSet<unsigned,4> &Redefs,
   for (MachineBasicBlock::livein_iterator I = BB->livein_begin(),
          E = BB->livein_end(); I != E; ++I) {
     unsigned Reg = *I;
-    for (MCSubRegIterator SubRegs(Reg, TRI, /*IncludeSelf=*/true);
-         SubRegs.isValid(); ++SubRegs)
+    Redefs.insert(Reg);
+    for (MCSubRegIterator SubRegs(Reg, TRI); SubRegs.isValid(); ++SubRegs)
       Redefs.insert(*SubRegs);
   }
 }
@@ -990,8 +990,8 @@ static void UpdatePredRedefs(MachineInstr *MI, SmallSet<unsigned,4> &Redefs,
     if (MO.isDef())
       Defs.push_back(Reg);
     else if (MO.isKill()) {
-      for (MCSubRegIterator SubRegs(Reg, TRI, /*IncludeSelf=*/true);
-           SubRegs.isValid(); ++SubRegs)
+      Redefs.erase(Reg);
+      for (MCSubRegIterator SubRegs(Reg, TRI); SubRegs.isValid(); ++SubRegs)
         Redefs.erase(*SubRegs);
     }
   }
@@ -1362,8 +1362,8 @@ bool IfConverter::IfConvertDiamond(BBInfo &BBI, IfcvtKind Kind,
         } else if (!RedefsByFalse.count(Reg)) {
           // These are defined before ctrl flow reach the 'false' instructions.
           // They cannot be modified by the 'true' instructions.
-          for (MCSubRegIterator SubRegs(Reg, TRI, /*IncludeSelf=*/true);
-               SubRegs.isValid(); ++SubRegs)
+          ExtUses.insert(Reg);
+          for (MCSubRegIterator SubRegs(Reg, TRI); SubRegs.isValid(); ++SubRegs)
             ExtUses.insert(*SubRegs);
         }
       }
@@ -1371,8 +1371,8 @@ bool IfConverter::IfConvertDiamond(BBInfo &BBI, IfcvtKind Kind,
       for (unsigned i = 0, e = Defs.size(); i != e; ++i) {
         unsigned Reg = Defs[i];
         if (!ExtUses.count(Reg)) {
-          for (MCSubRegIterator SubRegs(Reg, TRI, /*IncludeSelf=*/true);
-               SubRegs.isValid(); ++SubRegs)
+          RedefsByFalse.insert(Reg);
+          for (MCSubRegIterator SubRegs(Reg, TRI); SubRegs.isValid(); ++SubRegs)
             RedefsByFalse.insert(*SubRegs);
         }
       }

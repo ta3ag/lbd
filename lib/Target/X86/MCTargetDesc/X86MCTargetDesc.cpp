@@ -263,7 +263,7 @@ static MCRegisterInfo *createX86MCRegisterInfo(StringRef TT) {
   return X;
 }
 
-static MCAsmInfo *createX86MCAsmInfo(const MCRegisterInfo &MRI, StringRef TT) {
+static MCAsmInfo *createX86MCAsmInfo(const Target &T, StringRef TT) {
   Triple TheTriple(TT);
   bool is64Bit = TheTriple.getArch() == Triple::x86_64;
 
@@ -290,16 +290,14 @@ static MCAsmInfo *createX86MCAsmInfo(const MCRegisterInfo &MRI, StringRef TT) {
   int stackGrowth = is64Bit ? -8 : -4;
 
   // Initial state of the frame pointer is esp+stackGrowth.
-  unsigned StackPtr = is64Bit ? X86::RSP : X86::ESP;
-  MCCFIInstruction Inst = MCCFIInstruction::createDefCfa(
-      0, MRI.getDwarfRegNum(StackPtr, true), -stackGrowth);
-  MAI->addInitialFrameState(Inst);
+  MachineLocation Dst(MachineLocation::VirtualFP);
+  MachineLocation Src(is64Bit ? X86::RSP : X86::ESP, stackGrowth);
+  MAI->addInitialFrameState(0, Dst, Src);
 
   // Add return address to move list
-  unsigned InstPtr = is64Bit ? X86::RIP : X86::EIP;
-  MCCFIInstruction Inst2 = MCCFIInstruction::createOffset(
-      0, MRI.getDwarfRegNum(InstPtr, true), stackGrowth);
-  MAI->addInitialFrameState(Inst2);
+  MachineLocation CSDst(is64Bit ? X86::RSP : X86::ESP, stackGrowth);
+  MachineLocation CSSrc(is64Bit ? X86::RIP : X86::EIP);
+  MAI->addInitialFrameState(0, CSDst, CSSrc);
 
   return MAI;
 }
@@ -384,17 +382,6 @@ static MCInstPrinter *createX86MCInstPrinter(const Target &T,
   return 0;
 }
 
-static MCRelocationInfo *createX86MCRelocationInfo(StringRef TT,
-                                                   MCContext &Ctx) {
-  Triple TheTriple(TT);
-  if (TheTriple.isEnvironmentMachO() && TheTriple.getArch() == Triple::x86_64)
-    return createX86_64MachORelocationInfo(Ctx);
-  else if (TheTriple.isOSBinFormatELF())
-    return createX86_64ELFRelocationInfo(Ctx);
-  // Default to the stock relocation info.
-  return llvm::createMCRelocationInfo(TT, Ctx);
-}
-
 static MCInstrAnalysis *createX86MCInstrAnalysis(const MCInstrInfo *Info) {
   return new MCInstrAnalysis(Info);
 }
@@ -452,10 +439,4 @@ extern "C" void LLVMInitializeX86TargetMC() {
                                         createX86MCInstPrinter);
   TargetRegistry::RegisterMCInstPrinter(TheX86_64Target,
                                         createX86MCInstPrinter);
-
-  // Register the MC relocation info.
-  TargetRegistry::RegisterMCRelocationInfo(TheX86_32Target,
-                                           createX86MCRelocationInfo);
-  TargetRegistry::RegisterMCRelocationInfo(TheX86_64Target,
-                                           createX86MCRelocationInfo);
 }

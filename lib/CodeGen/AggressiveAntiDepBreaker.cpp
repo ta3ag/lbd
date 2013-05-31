@@ -247,8 +247,8 @@ void AggressiveAntiDepBreaker::GetPassthruRegs(MachineInstr *MI,
     if ((MO.isDef() && MI->isRegTiedToUseOperand(i)) ||
         IsImplicitDefUse(MI, MO)) {
       const unsigned Reg = MO.getReg();
-      for (MCSubRegIterator SubRegs(Reg, TRI, /*IncludeSelf=*/true);
-           SubRegs.isValid(); ++SubRegs)
+      PassthruRegs.insert(Reg);
+      for (MCSubRegIterator SubRegs(Reg, TRI); SubRegs.isValid(); ++SubRegs)
         PassthruRegs.insert(*SubRegs);
     }
   }

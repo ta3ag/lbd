@@ -47,11 +47,11 @@ Mips16RegisterInfo::Mips16RegisterInfo(const MipsSubtarget &ST,
 
 bool Mips16RegisterInfo::requiresRegisterScavenging
   (const MachineFunction &MF) const {
-  return false;
+  return true;
 }
 bool Mips16RegisterInfo::requiresFrameIndexScavenging
   (const MachineFunction &MF) const {
-  return false;
+  return true;
 }
 
 bool Mips16RegisterInfo::useFPForScavengingIndex

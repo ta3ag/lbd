@@ -216,9 +216,9 @@ public:
       if (Bits == 0)
         return -1;
       if (NumBaseBits == 32)
-        return countTrailingZeros(Bits);
+        return CountTrailingZeros_32(Bits);
       if (NumBaseBits == 64)
-        return countTrailingZeros(Bits);
+        return CountTrailingZeros_64(Bits);
       llvm_unreachable("Unsupported!");
     }
     return getPointer()->find_first();
@@ -234,9 +234,9 @@ public:
       if (Bits == 0 || Prev + 1 >= getSmallSize())
         return -1;
       if (NumBaseBits == 32)
-        return countTrailingZeros(Bits);
+        return CountTrailingZeros_32(Bits);
       if (NumBaseBits == 64)
-        return countTrailingZeros(Bits);
+        return CountTrailingZeros_64(Bits);
       llvm_unreachable("Unsupported!");
     }
     return getPointer()->find_next(Prev);

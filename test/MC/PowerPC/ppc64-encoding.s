@@ -41,8 +41,7 @@
 
 # System call instruction
 
-# CHECK: sc 1                            # encoding: [0x44,0x00,0x00,0x22]
-         sc 1
+# FIXME: sc 1
 
 # Fixed-point facility
 

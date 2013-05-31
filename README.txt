@@ -1,20 +1,3 @@
-~~ LLVM Backend Tutorial ~~
-
-This is a fork of LLVM trunk for the purposes of developing the LLVM
-Backend Tutorial in situ. Since the tutorial develops real code, it needs
-to be in-tree so that the code (and tests, etc.) can be integrated and not
-just live in the documentation.
-
-The source of the tutorial is in `docs/BackendTutorial/`. If you just want
-to read the tutorial an up-to-date built version can be found at
-<http://jonathan2251.github.com/lbd/>.
-
-
-
-Original LLVM README.txt is below:
-
-
-
 Low Level Virtual Machine (LLVM)
 ================================
 

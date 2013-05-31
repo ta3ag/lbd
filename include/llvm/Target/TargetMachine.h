@@ -292,7 +292,6 @@ protected: // Can only create subclasses.
                     Reloc::Model RM, CodeModel::Model CM,
                     CodeGenOpt::Level OL);
 
-  void initAsmInfo();
 public:
   /// \brief Register analysis passes for this target with a pass manager.
   ///

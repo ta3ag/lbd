@@ -59,8 +59,6 @@ def FeatureSlowFPBrcc : SubtargetFeature<"slow-fp-brcc", "SlowFPBrcc", "true",
                                          "FP compare + branch is slow">;
 def FeatureVFPOnlySP : SubtargetFeature<"fp-only-sp", "FPOnlySP", "true",
                           "Floating point unit supports single precision only">;
-def FeaturePerfMon : SubtargetFeature<"perfmon", "HasPerfMon", "true",
-                           "Enable support for Performance Monitor extensions">;
 def FeatureTrustZone : SubtargetFeature<"trustzone", "HasTrustZone", "true",
                           "Enable support for TrustZone security extensions">;
 
@@ -136,7 +134,7 @@ def HasV6T2Ops  : SubtargetFeature<"v6t2", "HasV6T2Ops", "true",
                                    [HasV6Ops, FeatureThumb2]>;
 def HasV7Ops    : SubtargetFeature<"v7", "HasV7Ops", "true",
                                    "Support ARM v7 instructions",
-                                   [HasV6T2Ops, FeaturePerfMon]>;
+                                   [HasV6T2Ops]>;
 
 //===----------------------------------------------------------------------===//
 // ARM Processors supported.

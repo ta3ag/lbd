@@ -38,17 +38,7 @@ public:
                                      MachineBasicBlock &MBB,
                                      MachineBasicBlock::iterator I) const;
 
-  bool hasReservedCallFrame(const MachineFunction &MF) const;
-  bool hasFP(const MachineFunction &MF) const;
-  void processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
-                                            RegScavenger *RS = NULL) const;
-
-private:
-  //Remap input registers to output registers for leaf procedure.
-  void remapRegsForLeafProc(MachineFunction &MF) const;
-
-  //Returns true if MF is a leaf procedure.
-  bool isLeafProc(MachineFunction &MF) const;
+  bool hasFP(const MachineFunction &MF) const { return false; }
 };
 
 } // End llvm namespace

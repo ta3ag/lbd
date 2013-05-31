@@ -16,9 +16,7 @@
 #include "llvm/MC/MCInstPrinter.h"
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
-#include "llvm/MC/MCRelocationInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
-#include "llvm/MC/MCSymbolizer.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MemoryObject.h"
 #include "llvm/Support/TargetRegistry.h"
@@ -42,20 +40,19 @@ LLVMDisasmContextRef LLVMCreateDisasmCPU(const char *Triple, const char *CPU,
   // Get the target.
   std::string Error;
   const Target *TheTarget = TargetRegistry::lookupTarget(Triple, Error);
-  if (!TheTarget)
-    return 0;
-
-  const MCRegisterInfo *MRI = TheTarget->createMCRegInfo(Triple);
-  if (!MRI)
-    return 0;
+  assert(TheTarget && "Unable to create target!");
 
   // Get the assembler info needed to setup the MCContext.
-  const MCAsmInfo *MAI = TheTarget->createMCAsmInfo(*MRI, Triple);
+  const MCAsmInfo *MAI = TheTarget->createMCAsmInfo(Triple);
   if (!MAI)
     return 0;
 
   const MCInstrInfo *MII = TheTarget->createMCInstrInfo();
   if (!MII)
+    return 0;
+
+  const MCRegisterInfo *MRI = TheTarget->createMCRegInfo(Triple);
+  if (!MRI)
     return 0;
 
   // Package up features to be passed to target/subtarget
@@ -75,18 +72,8 @@ LLVMDisasmContextRef LLVMCreateDisasmCPU(const char *Triple, const char *CPU,
   MCDisassembler *DisAsm = TheTarget->createMCDisassembler(*STI);
   if (!DisAsm)
     return 0;
+  DisAsm->setupForSymbolicDisassembly(GetOpInfo, SymbolLookUp, DisInfo, Ctx);
 
-  OwningPtr<MCRelocationInfo> RelInfo(
-    TheTarget->createMCRelocationInfo(Triple, *Ctx));
-  if (!RelInfo)
-    return 0;
-
-  OwningPtr<MCSymbolizer> Symbolizer(
-    TheTarget->createMCSymbolizer(Triple, GetOpInfo, SymbolLookUp, DisInfo,
-                                  Ctx, RelInfo.take()));
-  DisAsm->setSymbolizer(Symbolizer);
-  DisAsm->setupForSymbolicDisassembly(GetOpInfo, SymbolLookUp, DisInfo,
-                                      Ctx, RelInfo);
   // Set up the instruction printer.
   int AsmPrinterVariant = MAI->getAssemblerDialect();
   MCInstPrinter *IP = TheTarget->createMCInstPrinter(AsmPrinterVariant,

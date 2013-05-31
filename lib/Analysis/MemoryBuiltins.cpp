@@ -77,9 +77,6 @@ static Function *getCalledFunction(const Value *V, bool LookThroughBitCast) {
   if (!CS.getInstruction())
     return 0;
 
-  if (CS.hasFnAttr(Attribute::NoBuiltin))
-    return 0;
-
   Function *Callee = CS.getCalledFunction();
   if (!Callee || !Callee->isDeclaration())
     return 0;

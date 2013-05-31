@@ -8,7 +8,7 @@ define void @f1(float *%src, float %target) {
 ; CHECK: .cfi_startproc
 ; CHECK: .L[[LABEL:.*]]:
 ; CHECK: ceb %f0, 0(%r2)
-; CHECK-NEXT: je .L[[LABEL]]
+; CHECK-NEXT: j{{g?}}e .L[[LABEL]]
   br label %loop
 loop:
   %val = load volatile float *%src
@@ -23,7 +23,7 @@ define void @f2(float *%src, float %target) {
 ; CHECK: .cfi_startproc
 ; CHECK: .L[[LABEL:.*]]:
 ; CHECK: ceb %f0, 0(%r2)
-; CHECK-NEXT: jlh .L[[LABEL]]
+; CHECK-NEXT: j{{g?}}lh .L[[LABEL]]
   br label %loop
 loop:
   %val = load volatile float *%src
@@ -38,7 +38,7 @@ define void @f3(float *%src, float %target) {
 ; CHECK: .cfi_startproc
 ; CHECK: .L[[LABEL:.*]]:
 ; CHECK: ceb %f0, 0(%r2)
-; CHECK-NEXT: jle .L[[LABEL]]
+; CHECK-NEXT: j{{g?}}le .L[[LABEL]]
   br label %loop
 loop:
   %val = load volatile float *%src
@@ -53,7 +53,7 @@ define void @f4(float *%src, float %target) {
 ; CHECK: .cfi_startproc
 ; CHECK: .L[[LABEL:.*]]:
 ; CHECK: ceb %f0, 0(%r2)
-; CHECK-NEXT: jl .L[[LABEL]]
+; CHECK-NEXT: j{{g?}}l .L[[LABEL]]
   br label %loop
 loop:
   %val = load volatile float *%src
@@ -68,7 +68,7 @@ define void @f5(float *%src, float %target) {
 ; CHECK: .cfi_startproc
 ; CHECK: .L[[LABEL:.*]]:
 ; CHECK: ceb %f0, 0(%r2)
-; CHECK-NEXT: jh .L[[LABEL]]
+; CHECK-NEXT: j{{g?}}h .L[[LABEL]]
   br label %loop
 loop:
   %val = load volatile float *%src
@@ -83,7 +83,7 @@ define void @f6(float *%src, float %target) {
 ; CHECK: .cfi_startproc
 ; CHECK: .L[[LABEL:.*]]:
 ; CHECK: ceb %f0, 0(%r2)
-; CHECK-NEXT: jhe .L[[LABEL]]
+; CHECK-NEXT: j{{g?}}he .L[[LABEL]]
   br label %loop
 loop:
   %val = load volatile float *%src
@@ -98,7 +98,7 @@ define void @f7(float *%src, float %target) {
 ; CHECK: .cfi_startproc
 ; CHECK: .L[[LABEL:.*]]:
 ; CHECK: ceb %f0, 0(%r2)
-; CHECK-NEXT: jnlh .L[[LABEL]]
+; CHECK-NEXT: j{{g?}}nlh .L[[LABEL]]
   br label %loop
 loop:
   %val = load volatile float *%src
@@ -113,7 +113,7 @@ define void @f8(float *%src, float %target) {
 ; CHECK: .cfi_startproc
 ; CHECK: .L[[LABEL:.*]]:
 ; CHECK: ceb %f0, 0(%r2)
-; CHECK-NEXT: jne .L[[LABEL]]
+; CHECK-NEXT: j{{g?}}ne .L[[LABEL]]
   br label %loop
 loop:
   %val = load volatile float *%src
@@ -128,7 +128,7 @@ define void @f9(float *%src, float %target) {
 ; CHECK: .cfi_startproc
 ; CHECK: .L[[LABEL:.*]]:
 ; CHECK: ceb %f0, 0(%r2)
-; CHECK-NEXT: jnh .L[[LABEL]]
+; CHECK-NEXT: j{{g?}}nh .L[[LABEL]]
   br label %loop
 loop:
   %val = load volatile float *%src
@@ -143,7 +143,7 @@ define void @f10(float *%src, float %target) {
 ; CHECK: .cfi_startproc
 ; CHECK: .L[[LABEL:.*]]:
 ; CHECK: ceb %f0, 0(%r2)
-; CHECK-NEXT: jnhe .L[[LABEL]]
+; CHECK-NEXT: j{{g?}}nhe .L[[LABEL]]
   br label %loop
 loop:
   %val = load volatile float *%src
@@ -158,7 +158,7 @@ define void @f11(float *%src, float %target) {
 ; CHECK: .cfi_startproc
 ; CHECK: .L[[LABEL:.*]]:
 ; CHECK: ceb %f0, 0(%r2)
-; CHECK-NEXT: jnle .L[[LABEL]]
+; CHECK-NEXT: j{{g?}}nle .L[[LABEL]]
   br label %loop
 loop:
   %val = load volatile float *%src
@@ -173,7 +173,7 @@ define void @f12(float *%src, float %target) {
 ; CHECK: .cfi_startproc
 ; CHECK: .L[[LABEL:.*]]:
 ; CHECK: ceb %f0, 0(%r2)
-; CHECK-NEXT: jnl .L[[LABEL]]
+; CHECK-NEXT: j{{g?}}nl .L[[LABEL]]
   br label %loop
 loop:
   %val = load volatile float *%src
@@ -190,7 +190,7 @@ define void @f13(float *%src, float %target) {
 ; CHECK: .cfi_startproc
 ; CHECK: .L[[LABEL:.*]]:
 ; CHECK: ceb %f0, 0(%r2)
-; CHECK-NEXT: jno .L[[LABEL]]
+; CHECK-NEXT: j{{g?}}no .L[[LABEL]]
   br label %loop
 loop:
   %val = load volatile float *%src
@@ -207,7 +207,7 @@ define void @f14(float *%src, float %target) {
 ; CHECK: .cfi_startproc
 ; CHECK: .L[[LABEL:.*]]:
 ; CHECK: ceb %f0, 0(%r2)
-; CHECK-NEXT: jo .L[[LABEL]]
+; CHECK-NEXT: j{{g?}}o .L[[LABEL]]
   br label %loop
 loop:
   %val = load volatile float *%src

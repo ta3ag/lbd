@@ -85,7 +85,6 @@ ARMTargetMachine::ARMTargetMachine(const Target &T, StringRef TT,
     TLInfo(*this),
     TSInfo(*this),
     FrameLowering(Subtarget) {
-  initAsmInfo();
   if (!Subtarget.hasARMOps())
     report_fatal_error("CPU: '" + Subtarget.getCPUString() + "' does not "
                        "support ARM mode execution!");
@@ -118,7 +117,6 @@ ThumbTargetMachine::ThumbTargetMachine(const Target &T, StringRef TT,
     FrameLowering(Subtarget.hasThumb2()
               ? new ARMFrameLowering(Subtarget)
               : (ARMFrameLowering*)new Thumb1FrameLowering(Subtarget)) {
-  initAsmInfo();
 }
 
 namespace {

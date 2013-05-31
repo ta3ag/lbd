@@ -129,15 +129,20 @@ void PPCInstPrinter::printU6ImmOperand(const MCInst *MI, unsigned OpNo,
 
 void PPCInstPrinter::printS16ImmOperand(const MCInst *MI, unsigned OpNo,
                                         raw_ostream &O) {
-  if (MI->getOperand(OpNo).isImm())
-    O << (short)MI->getOperand(OpNo).getImm();
-  else
-    printOperand(MI, OpNo, O);
+  O << (short)MI->getOperand(OpNo).getImm();
 }
 
 void PPCInstPrinter::printU16ImmOperand(const MCInst *MI, unsigned OpNo,
                                         raw_ostream &O) {
   O << (unsigned short)MI->getOperand(OpNo).getImm();
+}
+
+void PPCInstPrinter::printS16X4ImmOperand(const MCInst *MI, unsigned OpNo,
+                                          raw_ostream &O) {
+  if (MI->getOperand(OpNo).isImm())
+    O << (short)(MI->getOperand(OpNo).getImm()*4);
+  else
+    printOperand(MI, OpNo, O);
 }
 
 void PPCInstPrinter::printBranchOperand(const MCInst *MI, unsigned OpNo,
@@ -177,7 +182,7 @@ void PPCInstPrinter::printcrbitm(const MCInst *MI, unsigned OpNo,
 
 void PPCInstPrinter::printMemRegImm(const MCInst *MI, unsigned OpNo,
                                     raw_ostream &O) {
-  printS16ImmOperand(MI, OpNo, O);
+  printSymbolLo(MI, OpNo, O);
   O << '(';
   if (MI->getOperand(OpNo+1).getReg() == PPC::R0)
     O << "0";
@@ -185,6 +190,22 @@ void PPCInstPrinter::printMemRegImm(const MCInst *MI, unsigned OpNo,
     printOperand(MI, OpNo+1, O);
   O << ')';
 }
+
+void PPCInstPrinter::printMemRegImmShifted(const MCInst *MI, unsigned OpNo,
+                                           raw_ostream &O) {
+  if (MI->getOperand(OpNo).isImm())
+    printS16X4ImmOperand(MI, OpNo, O);
+  else
+    printSymbolLo(MI, OpNo, O);
+  O << '(';
+  
+  if (MI->getOperand(OpNo+1).getReg() == PPC::R0)
+    O << "0";
+  else
+    printOperand(MI, OpNo+1, O);
+  O << ')';
+}
+
 
 void PPCInstPrinter::printMemRegReg(const MCInst *MI, unsigned OpNo,
                                     raw_ostream &O) {
@@ -235,4 +256,39 @@ void PPCInstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
   assert(Op.isExpr() && "unknown operand kind in printOperand");
   O << *Op.getExpr();
 }
+  
+void PPCInstPrinter::printSymbolLo(const MCInst *MI, unsigned OpNo,
+                                   raw_ostream &O) {
+  if (MI->getOperand(OpNo).isImm())
+    return printS16ImmOperand(MI, OpNo, O);
+  
+  // FIXME: This is a terrible hack because we can't encode lo16() as an operand
+  // flag of a subtraction.  See the FIXME in GetSymbolRef in PPCMCInstLower.
+  if (MI->getOperand(OpNo).isExpr() &&
+      isa<MCBinaryExpr>(MI->getOperand(OpNo).getExpr())) {
+    O << "lo16(";
+    printOperand(MI, OpNo, O);
+    O << ')';
+  } else {
+    printOperand(MI, OpNo, O);
+  }
+}
+
+void PPCInstPrinter::printSymbolHi(const MCInst *MI, unsigned OpNo,
+                                   raw_ostream &O) {
+  if (MI->getOperand(OpNo).isImm())
+    return printS16ImmOperand(MI, OpNo, O);
+
+  // FIXME: This is a terrible hack because we can't encode lo16() as an operand
+  // flag of a subtraction.  See the FIXME in GetSymbolRef in PPCMCInstLower.
+  if (MI->getOperand(OpNo).isExpr() &&
+      isa<MCBinaryExpr>(MI->getOperand(OpNo).getExpr())) {
+    O << "ha16(";
+    printOperand(MI, OpNo, O);
+    O << ')';
+  } else {
+    printOperand(MI, OpNo, O);
+  }
+}
+
 

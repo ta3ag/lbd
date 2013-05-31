@@ -19,12 +19,13 @@
 #include "RuntimeDyldMachO.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/Path.h"
-#include "llvm/Object/ELF.h"
 
 using namespace llvm;
 using namespace llvm::object;
 
 // Empty out-of-line virtual destructor as the key function.
+RTDyldMemoryManager::~RTDyldMemoryManager() {}
+void RTDyldMemoryManager::registerEHFrames(StringRef SectionData) {}
 RuntimeDyldImpl::~RuntimeDyldImpl() {}
 
 namespace llvm {
@@ -147,7 +148,6 @@ ObjectImage *RuntimeDyldImpl::loadObject(ObjectBuffer *InputBuffer) {
     bool isFirstRelocation = true;
     unsigned SectionID = 0;
     StubMap Stubs;
-    section_iterator RelocatedSection = si->getRelocatedSection();
 
     for (relocation_iterator i = si->begin_relocations(),
          e = si->end_relocations(); i != e; i.increment(err)) {
@@ -155,8 +155,7 @@ ObjectImage *RuntimeDyldImpl::loadObject(ObjectBuffer *InputBuffer) {
 
       // If it's the first relocation in this section, find its SectionID
       if (isFirstRelocation) {
-        SectionID =
-            findOrEmitSection(*obj, *RelocatedSection, true, LocalSections);
+        SectionID = findOrEmitSection(*obj, *si, true, LocalSections);
         DEBUG(dbgs() << "\tSectionID: " << SectionID << "\n");
         isFirstRelocation = false;
       }
@@ -217,25 +216,11 @@ unsigned RuntimeDyldImpl::emitSection(ObjectImage &Obj,
   unsigned StubBufSize = 0,
            StubSize = getMaxStubSize();
   error_code err;
-  const ObjectFile *ObjFile = Obj.getObjectFile();
-  // FIXME: this is an inefficient way to handle this. We should computed the
-  // necessary section allocation size in loadObject by walking all the sections
-  // once.
   if (StubSize > 0) {
-    for (section_iterator SI = ObjFile->begin_sections(),
-           SE = ObjFile->end_sections();
-         SI != SE; SI.increment(err), Check(err)) {
-      section_iterator RelSecI = SI->getRelocatedSection();
-      if (!(RelSecI == Section))
-        continue;
-
-      for (relocation_iterator I = SI->begin_relocations(),
-             E = SI->end_relocations(); I != E; I.increment(err), Check(err)) {
-        StubBufSize += StubSize;
-      }
-    }
+    for (relocation_iterator i = Section.begin_relocations(),
+         e = Section.end_relocations(); i != e; i.increment(err), Check(err))
+      StubBufSize += StubSize;
   }
-
   StringRef data;
   uint64_t Alignment64;
   Check(Section.getContents(data));

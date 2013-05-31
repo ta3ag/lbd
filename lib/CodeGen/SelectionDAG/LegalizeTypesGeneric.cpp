@@ -41,7 +41,7 @@ void DAGTypeLegalizer::ExpandRes_BITCAST(SDNode *N, SDValue &Lo, SDValue &Hi) {
   EVT NOutVT = TLI.getTypeToTransformTo(*DAG.getContext(), OutVT);
   SDValue InOp = N->getOperand(0);
   EVT InVT = InOp.getValueType();
-  SDLoc dl(N);
+  DebugLoc dl = N->getDebugLoc();
 
   // Handle some special cases efficiently.
   switch (getTypeAction(InVT)) {
@@ -203,7 +203,7 @@ void DAGTypeLegalizer::ExpandRes_EXTRACT_VECTOR_ELT(SDNode *N, SDValue &Lo,
   SDValue OldVec = N->getOperand(0);
   unsigned OldElts = OldVec.getValueType().getVectorNumElements();
   EVT OldEltVT = OldVec.getValueType().getVectorElementType();
-  SDLoc dl(N);
+  DebugLoc dl = N->getDebugLoc();
 
   // Convert to a vector of the expanded element type, for example
   // <3 x i64> -> <6 x i32>.
@@ -245,7 +245,7 @@ void DAGTypeLegalizer::ExpandRes_EXTRACT_VECTOR_ELT(SDNode *N, SDValue &Lo,
 void DAGTypeLegalizer::ExpandRes_NormalLoad(SDNode *N, SDValue &Lo,
                                             SDValue &Hi) {
   assert(ISD::isNormalLoad(N) && "This routine only for normal loads!");
-  SDLoc dl(N);
+  DebugLoc dl = N->getDebugLoc();
 
   LoadSDNode *LD = cast<LoadSDNode>(N);
   EVT NVT = TLI.getTypeToTransformTo(*DAG.getContext(), LD->getValueType(0));
@@ -289,7 +289,7 @@ void DAGTypeLegalizer::ExpandRes_VAARG(SDNode *N, SDValue &Lo, SDValue &Hi) {
   EVT NVT = TLI.getTypeToTransformTo(*DAG.getContext(), OVT);
   SDValue Chain = N->getOperand(0);
   SDValue Ptr = N->getOperand(1);
-  SDLoc dl(N);
+  DebugLoc dl = N->getDebugLoc();
   const unsigned Align = N->getConstantOperandVal(3);
 
   Lo = DAG.getVAArg(NVT, dl, Chain, Ptr, N->getOperand(2), Align);
@@ -310,7 +310,7 @@ void DAGTypeLegalizer::ExpandRes_VAARG(SDNode *N, SDValue &Lo, SDValue &Hi) {
 //===--------------------------------------------------------------------===//
 
 SDValue DAGTypeLegalizer::ExpandOp_BITCAST(SDNode *N) {
-  SDLoc dl(N);
+  DebugLoc dl = N->getDebugLoc();
   if (N->getValueType(0).isVector()) {
     // An illegal expanding type is being converted to a legal vector type.
     // Make a two element vector out of the expanded parts and convert that
@@ -344,7 +344,7 @@ SDValue DAGTypeLegalizer::ExpandOp_BUILD_VECTOR(SDNode *N) {
   unsigned NumElts = VecVT.getVectorNumElements();
   EVT OldVT = N->getOperand(0).getValueType();
   EVT NewVT = TLI.getTypeToTransformTo(*DAG.getContext(), OldVT);
-  SDLoc dl(N);
+  DebugLoc dl = N->getDebugLoc();
 
   assert(OldVT == VecVT.getVectorElementType() &&
          "BUILD_VECTOR operand type doesn't match vector element type!");
@@ -382,7 +382,7 @@ SDValue DAGTypeLegalizer::ExpandOp_INSERT_VECTOR_ELT(SDNode *N) {
   // The vector type is legal but the element type needs expansion.
   EVT VecVT = N->getValueType(0);
   unsigned NumElts = VecVT.getVectorNumElements();
-  SDLoc dl(N);
+  DebugLoc dl = N->getDebugLoc();
 
   SDValue Val = N->getOperand(1);
   EVT OldEVT = Val.getValueType();
@@ -414,7 +414,7 @@ SDValue DAGTypeLegalizer::ExpandOp_INSERT_VECTOR_ELT(SDNode *N) {
 }
 
 SDValue DAGTypeLegalizer::ExpandOp_SCALAR_TO_VECTOR(SDNode *N) {
-  SDLoc dl(N);
+  DebugLoc dl = N->getDebugLoc();
   EVT VT = N->getValueType(0);
   assert(VT.getVectorElementType() == N->getOperand(0).getValueType() &&
          "SCALAR_TO_VECTOR operand type doesn't match vector element type!");
@@ -430,7 +430,7 @@ SDValue DAGTypeLegalizer::ExpandOp_SCALAR_TO_VECTOR(SDNode *N) {
 SDValue DAGTypeLegalizer::ExpandOp_NormalStore(SDNode *N, unsigned OpNo) {
   assert(ISD::isNormalStore(N) && "This routine only for normal stores!");
   assert(OpNo == 1 && "Can only expand the stored value so far");
-  SDLoc dl(N);
+  DebugLoc dl = N->getDebugLoc();
 
   StoreSDNode *St = cast<StoreSDNode>(N);
   EVT NVT = TLI.getTypeToTransformTo(*DAG.getContext(),
@@ -483,7 +483,7 @@ void DAGTypeLegalizer::SplitRes_MERGE_VALUES(SDNode *N, unsigned ResNo,
 void DAGTypeLegalizer::SplitRes_SELECT(SDNode *N, SDValue &Lo,
                                        SDValue &Hi) {
   SDValue LL, LH, RL, RH, CL, CH;
-  SDLoc dl(N);
+  DebugLoc dl = N->getDebugLoc();
   GetSplitOp(N->getOperand(1), LL, LH);
   GetSplitOp(N->getOperand(2), RL, RH);
 
@@ -507,7 +507,7 @@ void DAGTypeLegalizer::SplitRes_SELECT(SDNode *N, SDValue &Lo,
 void DAGTypeLegalizer::SplitRes_SELECT_CC(SDNode *N, SDValue &Lo,
                                           SDValue &Hi) {
   SDValue LL, LH, RL, RH;
-  SDLoc dl(N);
+  DebugLoc dl = N->getDebugLoc();
   GetSplitOp(N->getOperand(2), LL, LH);
   GetSplitOp(N->getOperand(3), RL, RH);
 

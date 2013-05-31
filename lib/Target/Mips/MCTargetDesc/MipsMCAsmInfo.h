@@ -18,11 +18,12 @@
 
 namespace llvm {
   class StringRef;
+  class Target;
 
   class MipsMCAsmInfo : public MCAsmInfo {
     virtual void anchor();
   public:
-    explicit MipsMCAsmInfo(StringRef TT);
+    explicit MipsMCAsmInfo(const Target &T, StringRef TT);
   };
 
 } // namespace llvm

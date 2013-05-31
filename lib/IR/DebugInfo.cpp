@@ -65,7 +65,7 @@ bool DIDescriptor::Verify() const {
           DIObjCProperty(DbgNode).Verify() ||
           DITemplateTypeParameter(DbgNode).Verify() ||
           DITemplateValueParameter(DbgNode).Verify() ||
-          DIImportedEntity(DbgNode).Verify());
+          DIImportedModule(DbgNode).Verify());
 }
 
 static Value *getField(const MDNode *DbgNode, unsigned Elt) {
@@ -338,11 +338,9 @@ bool DIDescriptor::isObjCProperty() const {
   return DbgNode && getTag() == dwarf::DW_TAG_APPLE_property;
 }
 
-/// \brief Return true if the specified tag is DW_TAG_imported_module or
-/// DW_TAG_imported_declaration.
-bool DIDescriptor::isImportedEntity() const {
-  return DbgNode && (getTag() == dwarf::DW_TAG_imported_module ||
-                     getTag() == dwarf::DW_TAG_imported_declaration);
+/// \brief Return true if the specified tag is DW_TAG_imported_module.
+bool DIDescriptor::isImportedModule() const {
+  return DbgNode && getTag() == dwarf::DW_TAG_imported_module;
 }
 
 //===----------------------------------------------------------------------===//
@@ -351,8 +349,9 @@ bool DIDescriptor::isImportedEntity() const {
 
 DIType::DIType(const MDNode *N) : DIScope(N) {
   if (!N) return;
-  if (!isType())
+  if (!isBasicType() && !isDerivedType() && !isCompositeType()) {
     DbgNode = 0;
+  }
 }
 
 unsigned DIArray::getNumElements() const {
@@ -589,9 +588,8 @@ bool DITemplateValueParameter::Verify() const {
 }
 
 /// \brief Verify that the imported module descriptor is well formed.
-bool DIImportedEntity::Verify() const {
-  return isImportedEntity() &&
-         (DbgNode->getNumOperands() == 4 || DbgNode->getNumOperands() == 5);
+bool DIImportedModule::Verify() const {
+  return isImportedModule() && DbgNode->getNumOperands() == 4;
 }
 
 /// getOriginalTypeSize - If this type is derived from a base type then
@@ -695,17 +693,6 @@ DIArray DISubprogram::getVariables() const {
   return DIArray();
 }
 
-Value *DITemplateValueParameter::getValue() const {
-  return getField(DbgNode, 4);
-}
-
-void DIScope::setFilename(StringRef Name, LLVMContext &Context) {
-  if (!DbgNode)
-    return;
-  MDString *MDName(MDString::get(Context, Name));
-  const_cast<MDNode*>(getNodeField(DbgNode, 1))->replaceOperandWith(0, MDName);
-}
-
 StringRef DIScope::getFilename() const {
   if (!DbgNode)
     return StringRef();
@@ -755,7 +742,7 @@ DIArray DICompileUnit::getGlobalVariables() const {
   return DIArray();
 }
 
-DIArray DICompileUnit::getImportedEntities() const {
+DIArray DICompileUnit::getImportedModules() const {
   if (!DbgNode || DbgNode->getNumOperands() < 13)
     return DIArray();
 

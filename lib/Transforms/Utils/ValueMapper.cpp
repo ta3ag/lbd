@@ -22,22 +22,14 @@ using namespace llvm;
 
 // Out of line method to get vtable etc for class.
 void ValueMapTypeRemapper::anchor() {}
-void ValueMaterializer::anchor() {}
 
 Value *llvm::MapValue(const Value *V, ValueToValueMapTy &VM, RemapFlags Flags,
-                      ValueMapTypeRemapper *TypeMapper,
-                      ValueMaterializer *Materializer) {
+                      ValueMapTypeRemapper *TypeMapper) {
   ValueToValueMapTy::iterator I = VM.find(V);
   
   // If the value already exists in the map, use it.
   if (I != VM.end() && I->second) return I->second;
   
-  // If we have a materializer and it can materialize a value, use that.
-  if (Materializer) {
-    if (Value *NewV = Materializer->materializeValueFor(const_cast<Value*>(V)))
-      return VM[V] = NewV;
-  }
-
   // Global values do not need to be seeded into the VM if they
   // are using the identity mapping.
   if (isa<GlobalValue>(V) || isa<MDString>(V))
@@ -72,7 +64,7 @@ Value *llvm::MapValue(const Value *V, ValueToValueMapTy &VM, RemapFlags Flags,
     for (unsigned i = 0, e = MD->getNumOperands(); i != e; ++i) {
       Value *OP = MD->getOperand(i);
       if (OP == 0) continue;
-      Value *Mapped_OP = MapValue(OP, VM, Flags, TypeMapper, Materializer);
+      Value *Mapped_OP = MapValue(OP, VM, Flags, TypeMapper);
       // Use identity map if Mapped_Op is null and we can ignore missing
       // entries.
       if (Mapped_OP == OP ||
@@ -87,7 +79,7 @@ Value *llvm::MapValue(const Value *V, ValueToValueMapTy &VM, RemapFlags Flags,
         if (Op == 0)
           Elts.push_back(0);
         else {
-          Value *Mapped_Op = MapValue(Op, VM, Flags, TypeMapper, Materializer);
+          Value *Mapped_Op = MapValue(Op, VM, Flags, TypeMapper);
           // Use identity map if Mapped_Op is null and we can ignore missing
           // entries.
           if (Mapped_Op == 0 && (Flags & RF_IgnoreMissingEntries))
@@ -117,9 +109,9 @@ Value *llvm::MapValue(const Value *V, ValueToValueMapTy &VM, RemapFlags Flags,
   
   if (BlockAddress *BA = dyn_cast<BlockAddress>(C)) {
     Function *F = 
-      cast<Function>(MapValue(BA->getFunction(), VM, Flags, TypeMapper, Materializer));
+      cast<Function>(MapValue(BA->getFunction(), VM, Flags, TypeMapper));
     BasicBlock *BB = cast_or_null<BasicBlock>(MapValue(BA->getBasicBlock(), VM,
-                                                       Flags, TypeMapper, Materializer));
+                                                       Flags, TypeMapper));
     return VM[V] = BlockAddress::get(F, BB ? BB : BA->getBasicBlock());
   }
   
@@ -129,7 +121,7 @@ Value *llvm::MapValue(const Value *V, ValueToValueMapTy &VM, RemapFlags Flags,
   Value *Mapped = 0;
   for (; OpNo != NumOperands; ++OpNo) {
     Value *Op = C->getOperand(OpNo);
-    Mapped = MapValue(Op, VM, Flags, TypeMapper, Materializer);
+    Mapped = MapValue(Op, VM, Flags, TypeMapper);
     if (Mapped != C) break;
   }
   
@@ -157,7 +149,7 @@ Value *llvm::MapValue(const Value *V, ValueToValueMapTy &VM, RemapFlags Flags,
     // Map the rest of the operands that aren't processed yet.
     for (++OpNo; OpNo != NumOperands; ++OpNo)
       Ops.push_back(MapValue(cast<Constant>(C->getOperand(OpNo)), VM,
-                             Flags, TypeMapper, Materializer));
+                             Flags, TypeMapper));
   }
   
   if (ConstantExpr *CE = dyn_cast<ConstantExpr>(C))
@@ -181,11 +173,10 @@ Value *llvm::MapValue(const Value *V, ValueToValueMapTy &VM, RemapFlags Flags,
 /// current values into those specified by VMap.
 ///
 void llvm::RemapInstruction(Instruction *I, ValueToValueMapTy &VMap,
-                            RemapFlags Flags, ValueMapTypeRemapper *TypeMapper,
-                            ValueMaterializer *Materializer){
+                            RemapFlags Flags, ValueMapTypeRemapper *TypeMapper){
   // Remap operands.
   for (User::op_iterator op = I->op_begin(), E = I->op_end(); op != E; ++op) {
-    Value *V = MapValue(*op, VMap, Flags, TypeMapper, Materializer);
+    Value *V = MapValue(*op, VMap, Flags, TypeMapper);
     // If we aren't ignoring missing entries, assert that something happened.
     if (V != 0)
       *op = V;
@@ -213,7 +204,7 @@ void llvm::RemapInstruction(Instruction *I, ValueToValueMapTy &VMap,
   for (SmallVectorImpl<std::pair<unsigned, MDNode *> >::iterator
        MI = MDs.begin(), ME = MDs.end(); MI != ME; ++MI) {
     MDNode *Old = MI->second;
-    MDNode *New = MapValue(Old, VMap, Flags, TypeMapper, Materializer);
+    MDNode *New = MapValue(Old, VMap, Flags, TypeMapper);
     if (New != Old)
       I->setMetadata(MI->first, New);
   }

@@ -130,14 +130,14 @@ public:
   SDValue LowerFormalArguments(SDValue Chain,
                                CallingConv::ID CallConv, bool isVarArg,
                                const SmallVectorImpl<ISD::InputArg> &Ins,
-                               SDLoc dl, SelectionDAG &DAG,
+                               DebugLoc dl, SelectionDAG &DAG,
                                SmallVectorImpl<SDValue> &InVals) const;
 
   SDValue LowerReturn(SDValue Chain,
                       CallingConv::ID CallConv, bool isVarArg,
                       const SmallVectorImpl<ISD::OutputArg> &Outs,
                       const SmallVectorImpl<SDValue> &OutVals,
-                      SDLoc dl, SelectionDAG &DAG) const;
+                      DebugLoc dl, SelectionDAG &DAG) const;
 
   SDValue LowerCall(CallLoweringInfo &CLI,
                     SmallVectorImpl<SDValue> &InVals) const;
@@ -145,11 +145,11 @@ public:
   SDValue LowerCallResult(SDValue Chain, SDValue InFlag,
                           CallingConv::ID CallConv, bool IsVarArg,
                           const SmallVectorImpl<ISD::InputArg> &Ins,
-                          SDLoc dl, SelectionDAG &DAG,
+                          DebugLoc dl, SelectionDAG &DAG,
                           SmallVectorImpl<SDValue> &InVals) const;
 
   void SaveVarArgRegisters(CCState &CCInfo, SelectionDAG &DAG,
-                           SDLoc DL, SDValue &Chain) const;
+                           DebugLoc DL, SDValue &Chain) const;
 
 
   /// IsEligibleForTailCallOptimization - Check whether the call is eligible
@@ -171,7 +171,7 @@ public:
   SDValue addTokenForArgument(SDValue Chain, SelectionDAG &DAG,
                               MachineFrameInfo *MFI, int ClobberedFI) const;
 
-  EVT getSetCCResultType(LLVMContext &Context, EVT VT) const;
+  EVT getSetCCResultType(EVT VT) const;
 
   bool DoesCalleeRestoreStack(CallingConv::ID CallCC, bool TailCallOpt) const;
 
@@ -181,7 +181,7 @@ public:
 
   bool isLegalICmpImmediate(int64_t Val) const;
   SDValue getSelectableIntSetCC(SDValue LHS, SDValue RHS, ISD::CondCode CC,
-                         SDValue &A64cc, SelectionDAG &DAG, SDLoc &dl) const;
+                         SDValue &A64cc, SelectionDAG &DAG, DebugLoc &dl) const;
 
   virtual MachineBasicBlock *
   EmitInstrWithCustomInserter(MachineInstr *MI, MachineBasicBlock *MBB) const;
@@ -216,7 +216,7 @@ public:
   SDValue LowerGlobalAddressELFLarge(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerGlobalAddressELF(SDValue Op, SelectionDAG &DAG) const;
 
-  SDValue LowerTLSDescCall(SDValue SymAddr, SDValue DescAddr, SDLoc DL,
+  SDValue LowerTLSDescCall(SDValue SymAddr, SDValue DescAddr, DebugLoc DL,
                            SelectionDAG &DAG) const;
   SDValue LowerGlobalTLSAddress(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerINT_TO_FP(SDValue Op, SelectionDAG &DAG, bool IsSigned) const;
