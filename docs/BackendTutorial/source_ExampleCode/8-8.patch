@@ -1,0 +1,55 @@
+diff -Naur Chapter8_7/Cpu0ISelLowering.cpp Chapter8_8/Cpu0ISelLowering.cpp
+--- Chapter8_7/Cpu0ISelLowering.cpp	2013-04-08 15:34:23.000000000 +0800
++++ Chapter8_8/Cpu0ISelLowering.cpp	2013-04-08 15:34:23.000000000 +0800
+@@ -565,13 +565,50 @@
+                                 const SmallVectorImpl<SDValue> &OutVals,
+                                 DebugLoc dl, SelectionDAG &DAG) const {
+ 
++  // CCValAssign - represent the assignment of
++  // the return value to a location
++  SmallVector<CCValAssign, 16> RVLocs;
++
++  // CCState - Info about the registers and stack slot.
++  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
++		 getTargetMachine(), RVLocs, *DAG.getContext());
++
++  // Analize return values.
++  CCInfo.AnalyzeReturn(Outs, RetCC_Cpu0);
++
++  SDValue Flag;
++  SmallVector<SDValue, 4> RetOps(1, Chain);
++
++  // Copy the result values into the output registers.
++  for (unsigned i = 0; i != RVLocs.size(); ++i) {
++    CCValAssign &VA = RVLocs[i];
++    assert(VA.isRegLoc() && "Can only return in registers!");
++
++    Chain = DAG.getCopyToReg(Chain, dl, VA.getLocReg(), OutVals[i], Flag);
++
++    // Guarantee that all emitted copies are stuck together with flags.
++    Flag = Chain.getValue(1);
++    RetOps.push_back(DAG.getRegister(VA.getLocReg(), VA.getLocVT()));
++  }
++  
++  RetOps[0] = Chain;  // Update chain.
++
++  // Return on Cpu0 is always a "ret $lr"
++  if (Flag.getNode()) {
++    // Add the flag if we have it.
++    RetOps.push_back(Flag);
++    return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other, &RetOps[0], RetOps.size());
++  }
++  else {
++    // Return Void
+     return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
+                        Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
++  }
+ }
+ 
+ bool
+ Cpu0TargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
+-  // The Mips target isn't yet aware of offsets.
++  // The Cpu0 target isn't yet aware of offsets.
+   return false;
+ }
+ 
