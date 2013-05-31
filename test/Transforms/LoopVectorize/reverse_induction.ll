@@ -77,6 +77,7 @@ loopend:
 }
 
 
+<<<<<<< HEAD
 @a = common global [1024 x i32] zeroinitializer, align 16
 
 ; We incorrectly transformed this loop into an empty one because we left the
@@ -146,3 +147,5 @@ while.body:
 while.end:
   ret void
 }
+=======
+>>>>>>> release_33

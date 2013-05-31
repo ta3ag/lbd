@@ -1838,7 +1838,11 @@ Here is the table:
 :raw-html:`<td class="no"></td> <!-- Mips -->`
 :raw-html:`<td class="na"></td> <!-- NVPTX -->`
 :raw-html:`<td class="no"></td> <!-- PowerPC -->`
+<<<<<<< HEAD
 :raw-html:`<td class="yes"></td> <!-- SystemZ -->`
+=======
+:raw-html:`<td class="no"></td> <!-- SystemZ -->`
+>>>>>>> release_33
 :raw-html:`<td class="no"></td> <!-- Sparc -->`
 :raw-html:`<td class="yes"></td> <!-- X86 -->`
 :raw-html:`<td class="yes"></td> <!-- XCore -->`

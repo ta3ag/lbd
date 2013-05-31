@@ -96,6 +96,7 @@ protected:
       LLVMDisposeModule(Module);
   }
   
+<<<<<<< HEAD
   void buildSimpleFunction() {
     Module = LLVMModuleCreateWithName("simple_module");
     
@@ -115,6 +116,11 @@ protected:
     
     LLVMDisposeBuilder(builder);
   }
+=======
+  LLVMModuleRef module = LLVMModuleCreateWithName("simple_module");
+
+  LLVMSetTarget(module, HostTriple.c_str());
+>>>>>>> release_33
   
   void buildMCJITOptions() {
     LLVMInitializeMCJITCompilerOptions(&Options, sizeof(Options));

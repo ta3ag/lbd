@@ -154,6 +154,7 @@ LLVM and clang now support IBM's z/Architecture.  At present this support
 is restricted to GNU/Linux (GNU triplet s390x-linux-gnu) and requires
 z10 or greater.
 
+<<<<<<< HEAD
 
 Sub-project Status Update
 ============================================
@@ -192,6 +193,8 @@ Linux Improvements:
 - Process list, attach and fork
 - Expression evaluation
 
+=======
+>>>>>>> release_33
 
 External Open Source Projects Using LLVM 3.3
 ============================================

@@ -295,12 +295,15 @@ class BFEPattern <Instruction BFE> : Pat <
   (BFE $x, $y, $z)
 >;
 
+<<<<<<< HEAD
 // rotr pattern
 class ROTRPattern <Instruction BIT_ALIGN> : Pat <
   (rotr i32:$src0, i32:$src1),
   (BIT_ALIGN $src0, $src0, $src1)
 >;
 
+=======
+>>>>>>> release_33
 include "R600Instructions.td"
 
 include "SIInstrInfo.td"

@@ -5331,7 +5331,11 @@ static SDValue AddRequiredExtensionForVMULL(SDValue N, SelectionDAG &DAG,
   // Must extend size to at least 64 bits to be used as an operand for VMULL.
   EVT NewVT = getExtensionTo64Bits(OrigTy);
 
+<<<<<<< HEAD
   return DAG.getNode(ExtOpcode, SDLoc(N), NewVT, N);
+=======
+  return DAG.getNode(ExtOpcode, N->getDebugLoc(), NewVT, N);
+>>>>>>> release_33
 }
 
 /// SkipLoadExtensionForVMULL - return a load of the original vector size that
@@ -5344,7 +5348,11 @@ static SDValue SkipLoadExtensionForVMULL(LoadSDNode *LD, SelectionDAG& DAG) {
 
   // The load already has the right type.
   if (ExtendedTy == LD->getMemoryVT())
+<<<<<<< HEAD
     return DAG.getLoad(LD->getMemoryVT(), SDLoc(LD), LD->getChain(),
+=======
+    return DAG.getLoad(LD->getMemoryVT(), LD->getDebugLoc(), LD->getChain(),
+>>>>>>> release_33
                 LD->getBasePtr(), LD->getPointerInfo(), LD->isVolatile(),
                 LD->isNonTemporal(), LD->isInvariant(),
                 LD->getAlignment());
@@ -5352,7 +5360,11 @@ static SDValue SkipLoadExtensionForVMULL(LoadSDNode *LD, SelectionDAG& DAG) {
   // We need to create a zextload/sextload. We cannot just create a load
   // followed by a zext/zext node because LowerMUL is also run during normal
   // operation legalization where we can't create illegal types.
+<<<<<<< HEAD
   return DAG.getExtLoad(LD->getExtensionType(), SDLoc(LD), ExtendedTy,
+=======
+  return DAG.getExtLoad(LD->getExtensionType(), LD->getDebugLoc(), ExtendedTy,
+>>>>>>> release_33
                         LD->getChain(), LD->getBasePtr(), LD->getPointerInfo(),
                         LD->getMemoryVT(), LD->isVolatile(),
                         LD->isNonTemporal(), LD->getAlignment());
