@@ -49,7 +49,7 @@ public:
                               bool isVarArg,
                               const SmallVectorImpl<ISD::OutputArg> &Outs,
                               const SmallVectorImpl<SDValue> &OutVals,
-                              DebugLoc DL, SelectionDAG &DAG) const;
+                              SDLoc DL, SelectionDAG &DAG) const;
   virtual SDValue LowerCall(CallLoweringInfo &CLI,
                             SmallVectorImpl<SDValue> &InVals) const {
     CLI.Callee.dump();
@@ -115,7 +115,7 @@ enum {
   RET_FLAG,
   BRANCH_COND,
   // End AMDIL ISD Opcodes
-  BITALIGN,
+  BUFFER_STORE,
   DWORDADDR,
   FRACT,
   FMAX,
@@ -125,6 +125,8 @@ enum {
   SMIN,
   UMIN,
   URECIP,
+  DOT4,
+  TEXTURE_FETCH,
   EXPORT,
   CONST_ADDRESS,
   REGISTER_LOAD,

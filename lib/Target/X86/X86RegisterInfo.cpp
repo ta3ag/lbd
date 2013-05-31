@@ -306,19 +306,19 @@ BitVector X86RegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   const TargetFrameLowering *TFI = MF.getTarget().getFrameLowering();
 
   // Set the stack-pointer register and its aliases as reserved.
-  Reserved.set(X86::RSP);
-  for (MCSubRegIterator I(X86::RSP, this); I.isValid(); ++I)
+  for (MCSubRegIterator I(X86::RSP, this, /*IncludeSelf=*/true); I.isValid();
+       ++I)
     Reserved.set(*I);
 
   // Set the instruction pointer register and its aliases as reserved.
-  Reserved.set(X86::RIP);
-  for (MCSubRegIterator I(X86::RIP, this); I.isValid(); ++I)
+  for (MCSubRegIterator I(X86::RIP, this, /*IncludeSelf=*/true); I.isValid();
+       ++I)
     Reserved.set(*I);
 
   // Set the frame-pointer register and its aliases as reserved if needed.
   if (TFI->hasFP(MF)) {
-    Reserved.set(X86::RBP);
-    for (MCSubRegIterator I(X86::RBP, this); I.isValid(); ++I)
+    for (MCSubRegIterator I(X86::RBP, this, /*IncludeSelf=*/true); I.isValid();
+         ++I)
       Reserved.set(*I);
   }
 
@@ -331,8 +331,8 @@ BitVector X86RegisterInfo::getReservedRegs(const MachineFunction &MF) const {
         "Stack realignment in presence of dynamic allocas is not supported with"
         "this calling convention.");
 
-    Reserved.set(getBaseRegister());
-    for (MCSubRegIterator I(getBaseRegister(), this); I.isValid(); ++I)
+    for (MCSubRegIterator I(getBaseRegister(), this, /*IncludeSelf=*/true);
+         I.isValid(); ++I)
       Reserved.set(*I);
   }
 
@@ -373,8 +373,11 @@ BitVector X86RegisterInfo::getReservedRegs(const MachineFunction &MF) const {
         Reserved.set(*AI);
 
       // XMM8, XMM9, ...
-      assert(X86::XMM15 == X86::XMM8+7);
-      for (MCRegAliasIterator AI(X86::XMM8 + n, this, true); AI.isValid(); ++AI)
+      static const uint16_t XMMReg[] = {
+        X86::XMM8,  X86::XMM9, X86::XMM10, X86::XMM11,
+        X86::XMM12, X86::XMM13, X86::XMM14, X86::XMM15
+      };
+      for (MCRegAliasIterator AI(XMMReg[n], this, true); AI.isValid(); ++AI)
         Reserved.set(*AI);
     }
   }

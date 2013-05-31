@@ -42,6 +42,10 @@ namespace llvm {
     const unsigned EnumValue;
     unsigned LaneMask;
 
+    // Are all super-registers containing this SubRegIndex covered by their
+    // sub-registers?
+    bool AllSuperRegsCovered;
+
     CodeGenSubRegIndex(Record *R, unsigned Enum);
     CodeGenSubRegIndex(StringRef N, StringRef Nspace, unsigned Enum);
 
@@ -200,9 +204,6 @@ namespace llvm {
 
     // Canonically ordered set.
     typedef std::set<const CodeGenRegister*, Less> Set;
-
-    // Compute the set of registers overlapping this.
-    void computeOverlaps(Set &Overlaps, const CodeGenRegBank&) const;
 
   private:
     bool SubRegsComplete;
@@ -649,6 +650,11 @@ namespace llvm {
     // This is used to compute the mask of call-preserved registers from a list
     // of callee-saves.
     BitVector computeCoveredRegisters(ArrayRef<Record*> Regs);
+
+    // Bit mask of lanes that cover their registers. A sub-register index whose
+    // LaneMask is contained in CoveringLanes will be completely covered by
+    // another sub-register with the same or larger lane mask.
+    unsigned CoveringLanes;
   };
 }
 

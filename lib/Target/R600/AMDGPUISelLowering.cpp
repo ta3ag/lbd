@@ -15,8 +15,8 @@
 
 #include "AMDGPUISelLowering.h"
 #include "AMDGPURegisterInfo.h"
-#include "AMDILIntrinsicInfo.h"
 #include "AMDGPUSubtarget.h"
+#include "AMDILIntrinsicInfo.h"
 #include "llvm/CodeGen/CallingConvLower.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
@@ -46,6 +46,9 @@ AMDGPUTargetLowering::AMDGPUTargetLowering(TargetMachine &TM) :
   setOperationAction(ISD::FFLOOR, MVT::f32, Legal);
   setOperationAction(ISD::FRINT,  MVT::f32, Legal);
 
+  // The hardware supports ROTR, but not ROTL
+  setOperationAction(ISD::ROTL, MVT::i32, Expand);
+
   // Lower floating point store/load to integer store/load to reduce the number
   // of patterns in tablegen.
   setOperationAction(ISD::STORE, MVT::f32, Promote);
@@ -59,6 +62,8 @@ AMDGPUTargetLowering::AMDGPUTargetLowering(TargetMachine &TM) :
 
   setOperationAction(ISD::LOAD, MVT::v4f32, Promote);
   AddPromotedToType(ISD::LOAD, MVT::v4f32, MVT::v4i32);
+
+  setOperationAction(ISD::MUL, MVT::i64, Expand);
 
   setOperationAction(ISD::UDIV, MVT::i32, Expand);
   setOperationAction(ISD::UDIVREM, MVT::i32, Custom);
@@ -81,7 +86,7 @@ SDValue AMDGPUTargetLowering::LowerReturn(
                                      bool isVarArg,
                                      const SmallVectorImpl<ISD::OutputArg> &Outs,
                                      const SmallVectorImpl<SDValue> &OutVals,
-                                     DebugLoc DL, SelectionDAG &DAG) const {
+                                     SDLoc DL, SelectionDAG &DAG) const {
   return DAG.getNode(AMDGPUISD::RET_FLAG, DL, MVT::Other, Chain);
 }
 
@@ -112,7 +117,7 @@ SDValue AMDGPUTargetLowering::LowerOperation(SDValue Op, SelectionDAG &DAG)
 SDValue AMDGPUTargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op,
     SelectionDAG &DAG) const {
   unsigned IntrinsicID = cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue();
-  DebugLoc DL = Op.getDebugLoc();
+  SDLoc DL(Op);
   EVT VT = Op.getValueType();
 
   switch (IntrinsicID) {
@@ -152,7 +157,7 @@ SDValue AMDGPUTargetLowering::LowerINTRINSIC_WO_CHAIN(SDValue Op,
 SDValue AMDGPUTargetLowering::LowerIntrinsicIABS(SDValue Op,
     SelectionDAG &DAG) const {
 
-  DebugLoc DL = Op.getDebugLoc();
+  SDLoc DL(Op);
   EVT VT = Op.getValueType();
   SDValue Neg = DAG.getNode(ISD::SUB, DL, VT, DAG.getConstant(0, VT),
                                               Op.getOperand(1));
@@ -164,7 +169,7 @@ SDValue AMDGPUTargetLowering::LowerIntrinsicIABS(SDValue Op,
 /// LRP(a, b, c) = muladd(a,  b, (1 - a) * c)
 SDValue AMDGPUTargetLowering::LowerIntrinsicLRP(SDValue Op,
     SelectionDAG &DAG) const {
-  DebugLoc DL = Op.getDebugLoc();
+  SDLoc DL(Op);
   EVT VT = Op.getValueType();
   SDValue OneSubA = DAG.getNode(ISD::FSUB, DL, VT,
                                 DAG.getConstantFP(1.0f, MVT::f32),
@@ -179,7 +184,7 @@ SDValue AMDGPUTargetLowering::LowerIntrinsicLRP(SDValue Op,
 /// \brief Generate Min/Max node
 SDValue AMDGPUTargetLowering::LowerMinMax(SDValue Op,
     SelectionDAG &DAG) const {
-  DebugLoc DL = Op.getDebugLoc();
+  SDLoc DL(Op);
   EVT VT = Op.getValueType();
 
   SDValue LHS = Op.getOperand(0);
@@ -240,7 +245,7 @@ SDValue AMDGPUTargetLowering::LowerMinMax(SDValue Op,
 
 SDValue AMDGPUTargetLowering::LowerUDIVREM(SDValue Op,
     SelectionDAG &DAG) const {
-  DebugLoc DL = Op.getDebugLoc();
+  SDLoc DL(Op);
   EVT VT = Op.getValueType();
 
   SDValue Num = Op.getOperand(0);
