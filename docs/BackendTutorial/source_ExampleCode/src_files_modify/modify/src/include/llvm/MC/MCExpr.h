@@ -217,6 +217,7 @@ public:
     VK_Mips_GOT_LO16,
     VK_Mips_CALL_HI16,
     VK_Mips_CALL_LO16,
+
     VK_Cpu0_GPREL,
     VK_Cpu0_GOT_CALL,
     VK_Cpu0_GOT16,
@@ -234,7 +235,15 @@ public:
     VK_Cpu0_GPOFF_LO,
     VK_Cpu0_GOT_DISP,
     VK_Cpu0_GOT_PAGE,
-    VK_Cpu0_GOT_OFST 
+    VK_Cpu0_GOT_OFST,
+    VK_Cpu0_HIGHER,
+    VK_Cpu0_HIGHEST,
+    VK_Cpu0_GOT_HI16,
+    VK_Cpu0_GOT_LO16,
+    VK_Cpu0_CALL_HI16,
+    VK_Cpu0_CALL_LO16,
+
+    VK_COFF_IMGREL32 // symbol@imgrel (image-relative)
   };
 
 private:
