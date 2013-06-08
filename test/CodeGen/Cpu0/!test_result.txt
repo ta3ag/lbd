@@ -12,3 +12,7 @@ alloca.ll							v
 analyzebranch.ll					x						
 and1.ll								v						
 asm-large-immediate.ll				v						
+blockaddr.ll				x			Not C/C++ language			
+br-jmp.ll				v
+cmov.ll					x			No need to support. IR select is clang optimized version for conditional instruction used in small basic block
+
