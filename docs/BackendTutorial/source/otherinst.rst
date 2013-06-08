@@ -178,7 +178,9 @@ In brief, we call **ashr** is “shift with sign extension fill”.
 
 	Example:
 	  <result> = ashr i32 4, 1   ; yields {i32}:result = 2
+	  
 	  <result> = ashr i8 -2, 1   ; yields {i8}:result = -1
+	  
 	  <result> = ashr i32 1, 32  ; undefined
 
 The C operator **>>** for negative operand is dependent on implementation. 
@@ -205,37 +207,69 @@ following meaning.
 	
 In llvm, IR node **sra** is defined for ashr IR instruction, node **srl** is 
 defined for lshr instruction (I don't know why don't use ashr and lshr as the 
-IR node name directly). 
-We assume Cpu0 shr instruction is “shift with zero filled”, and define it with 
-IR DAG node srl. 
-But at that way, Cpu0 will fail to compile x >> 1 in case of x is signed 
-integer because clang and most compilers translate it into ashr, which meaning 
-“shift with sign extension fill”. 
-Similarly, Cpu0 div instruction, has the same problem. We assume Cpu0 div 
-instruction is for sdiv which can take care both positive and negative integer, 
-but it will fail for divide operation “/ “on unsigned integer operand in C.
+IR node name directly). Summary as Table: C operator >> implementation.
 
-If we consider the x >> 1 definition is x = x/2. 
-In case of x is unsigned int, range x is 0 ~ 4G-1 (0 ~ 0xFFFFFFFF) in 32 bits 
-register, implement shift >> 1 by “shift with zero filled” is correct and 
-satisfy the definition x = x/2, but “shift with sign extension fill” is not 
-correct for range 2G ~ 4G-1. 
-In case of x is signed int, range x is -2G ~ 2G-1, implement x >> 1 by “shift 
-with sign extension fill” is correct for the definition, 
-but “shift with zero filled” is not correct for range x is -2G ~ -1. 
-So, if x = x/2 is definition for x >> 1, in order to satisfy the definition in 
-both unsigned and signed integer of x, we need those two instructions, 
-“shift with zero filled” and “shift with sign extension fill”.
+
+Table: C operator >> implementation
+
+=======================================	======================	=====================================
+Description                            	Shift with zero filled	Shift with signed extension filled
+=======================================	======================	=====================================
+symbol in .bc                       	lshr					ashr
+symbol in IR node                   	srl						sra
+Mips instruction                    	srl						sra
+Cpu0 instruction                    	shr						sra
+signed example before x >> 1           	0xfffffffe i.e. -2		0xfffffffe i.e. -2
+signed example after x >> 1            	0x7fffffff i.e 2G-1		0xffffffff i.e. -1
+unsigned example before x >> 1      	0xfffffffe i.e. 4G-2	0xfffffffe i.e. 4G-2
+unsigned example after x >> 1       	0x7fffffff i.e 2G-1		0xffffffff i.e. 4G-1
+signed example before x << 1        	0x40000000 i.e. 1G		no need
+signed example after x << 1         	0x80000000 i.e -2G		no need
+unsigned example before x << 1      	0x40000000 i.e. 1G		no need
+unsigned example after x << 1       	0x80000000 i.e 2G		no need
+=======================================	======================	=====================================
+
+**lshr:**	Logical SHift Right
+
+**ashr:**	Arithmetic SHift right
+
+**srl:**	Shift Right Logically
+
+**sra:**	Shift Right Arithmetically
+
+**shr:**	SHift Right
+
+
+If we consider the x >> 1 definition is x = x/2 for compiler implementation.
+As you can see from Table: C operator >> implementation, **lshr** is failed on 
+some signed value (such as -2). In the same way, **ashr** is failed on some 
+unsigned value (such as 4G-2). So, in order to satisfy this definition in 
+both unsigned and signed integer of x, we need these two instructions, 
+**lshr** and **ashr**.
+
+Table: C operator << implementation
+
+=======================================	======================
+Description								Shift with zero filled
+=======================================	======================
+symbol in .bc                       	shl
+symbol in IR node                   	shl
+Mips instruction                    	sll
+Cpu0 instruction                    	shl
+signed example before x << 1        	0x40000000 i.e. 1G
+signed example after x << 1         	0x80000000 i.e -2G
+unsigned example before x << 1      	0x40000000 i.e. 1G
+unsigned example after x << 1       	0x80000000 i.e 2G
+=======================================	======================
 
 Again, consider the x << 1 definition is x = x*2. 
-We apply the x << 1 with “shift 1 bit to left and fill the least bit with 0”. 
-In case of x is unsigned int, x << 1 satisfy the definition in range 0 ~ 2G-1, 
-and x is overflow when x > 2G-1 (no need to care what the register value is 
-because overflow). In case of x is signed int, x << 1 is correct for -1G ~ 
-1G-1; and x is overflow for -2G ~ -1G-1 or 1G ~ 2G-1. 
-So, implementation by “shift 1bit to left and fill the least bit with 0” 
-satisfy the definition x = x*2 for x << 1, no matter operand x is signed or 
-unsigned int.
+From Table: C operator << implementation, we see **lshr** satisfy the unsigned 
+x=1G but failed on signed x=1G. It's fine since the 2G is out of 32 bits signed 
+integer range (-2G ~ 2G-1). 
+For the overflow case, no way to keep the correct result in register. So, any 
+value in register is OK. You can check the **lshr** satisfy x = x*2 for x << 1 
+when the x result is not out of range, no matter operand x is signed or unsigned 
+integer.
 
 Micorsoft implementation references as [#]_.
 
