@@ -223,10 +223,6 @@ signed example before x >> 1           	0xfffffffe i.e. -2		0xfffffffe i.e. -2
 signed example after x >> 1            	0x7fffffff i.e 2G-1		0xffffffff i.e. -1
 unsigned example before x >> 1      	0xfffffffe i.e. 4G-2	0xfffffffe i.e. 4G-2
 unsigned example after x >> 1       	0x7fffffff i.e 2G-1		0xffffffff i.e. 4G-1
-signed example before x << 1        	0x40000000 i.e. 1G		no need
-signed example after x << 1         	0x80000000 i.e -2G		no need
-unsigned example before x << 1      	0x40000000 i.e. 1G		no need
-unsigned example after x << 1       	0x80000000 i.e 2G		no need
 =======================================	======================	=====================================
 
 **lshr:**	Logical SHift Right
@@ -244,7 +240,7 @@ If we consider the x >> 1 definition is x = x/2 for compiler implementation.
 As you can see from Table: C operator >> implementation, **lshr** is failed on 
 some signed value (such as -2). In the same way, **ashr** is failed on some 
 unsigned value (such as 4G-2). So, in order to satisfy this definition in 
-both unsigned and signed integer of x, we need these two instructions, 
+both signed and unsigned integer of x, we need these two instructions, 
 **lshr** and **ashr**.
 
 Table: C operator << implementation
