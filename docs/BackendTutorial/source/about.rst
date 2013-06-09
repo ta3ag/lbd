@@ -56,6 +56,7 @@ Version 3.2.15, Not release yet.
 	Porting to llvm 3.3.
 	Rewrite section Support arithmetic instructions of chapter Adding arithmetic
 	and local pointer support with the table adding.
+	Add two sentences in Preface. 
 Version 3.2.14, Released May 24, 2013
 	Fix example code disappeared error.
 Version 3.2.13, Released May 23, 2013
@@ -143,6 +144,11 @@ More information about Cpu0, including its instruction set, is available
 this book can be found `here <http://jonathan2251.github.com/lbd/LLVMBackendTutorialExampleCode.tar.gz>`_.
 As you progress from one chapter to the next, you will incrementally build the 
 backend's functionality.
+
+Since Cpu0 is a simple RISC CPU for educational purpose, it make the Cpu0 llvm 
+backend code simple too and easy to learning. In addition, Cpu0 supply the 
+Verilog source code that you can run on your PC or FPGA platform when you go to 
+chapter Run backend.
 
 This tutorial was written using the LLVM 3.1 Mips backend as a reference. Since 
 Cpu0 is an educational architecture, it is missing some key pieces of 

@@ -941,12 +941,15 @@ Mips use MULT instruction and save the high & low part to register HI and LO.
 After that, use mfhi/mflo to move register HI/LO to your general purpose 
 register. 
 ARM SMMUL is fast if you only need the HI part of result (it ignore the LO part 
-of operation). 
-Meanwhile Mips is fast if you need both the HI and LO result. 
+of operation). ARM also provide SMULL (signed multiply long) to get the whole 
+64 bits result.
 If you need the LO part of result, you can use Cpu0 MUL instruction which only 
 get the LO part of result. 
 Chapter4_6_2/ is implemented with Mips MULT style. 
-We choose it as the implementation of this book. 
+We choose it as the implementation of this book to add instructions as less as 
+possible. This approach is better for Cpu0 to keep it as a tutorial architecture 
+for school teaching purpose material, and apply Cpu0 as an engineer learning 
+materials in compiler, system program and verilog CPU hardware design.
 For Mips style implementation, we add the following code in 
 Cpu0RegisterInfo.td, Cpu0InstrInfo.td and Cpu0ISelDAGToDAG.cpp. 
 And list the related DAG nodes mulhs and mulhu which are used in Chapter4_6_2/ 
@@ -1130,8 +1133,8 @@ The sensitive readers may find the llvm using **“multiplication”** instead
 of **“div”** to get the **“%”** result just because our example use constant as 
 divider, **“(b+1)%12”** in our example. 
 If programmer use variable as the divider like **“(b+1)%a”**, then what will 
-happens in our code. 
-The answer is our code will have error to take care this. 
+happen in our code. 
+The answer is our code will has error to take care this. 
 In `section Support arithmetic instructions`_, we use **“div a, b”** 
 to hold the quotient part in register. 
 The multiplication operator **“*”** need 64 bits of register to hold the result 
