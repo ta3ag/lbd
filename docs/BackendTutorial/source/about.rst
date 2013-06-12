@@ -52,7 +52,9 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.2.15, Not release yet.
+Version 3.2.16, Not release yet
+
+Version 3.2.15, Released June 12, 2013
 	Porting to llvm 3.3.
 	Rewrite section Support arithmetic instructions of chapter Adding arithmetic
 	and local pointer support with the table adding.
