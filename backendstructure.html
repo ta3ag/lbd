@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.14',
+        VERSION:     '3.2.15',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -201,18 +201,18 @@ The Cpu0TargetMachine contents as follows,</p>
 85
 86
 87
-88</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0TargetMachine.h - Define TargetMachine for Cpu0 -----*- C++ -*-===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This file declares the Cpu0 specific subclass of TargetMachine.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+88</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetMachine.h - Define TargetMachine for Cpu0 -----*- C++ -*-===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file declares the Cpu0 specific subclass of TargetMachine.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0TARGETMACHINE_H</span>
 <span class="cp">#define CPU0TARGETMACHINE_H</span>
@@ -310,7 +310,7 @@ The Cpu0TargetMachine contents as follows,</p>
 </pre></div>
 </div>
 <p class="rubric">cmake_debug_build/lib/Target/Cpu0/Cpu0GenInstInfo.inc</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td</span>
 <span class="cp">#ifdef GET_INSTRINFO_HEADER</span>
 <span class="cp">#undef GET_INSTRINFO_HEADER</span>
 <span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
@@ -379,7 +379,7 @@ Following is the code fragment from Cpu0GenInstrInfo.inc.
 Code between “#if def  GET_INSTRINFO_HEADER” and “#endif // GET_INSTRINFO_HEADER”
 will be extracted by Cpu0InstrInfo.h.</p>
 <p class="rubric">cmake_debug_build/lib/Target/Cpu0/Cpu0GenInstInfo.inc</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td</span>
 <span class="cp">#ifdef GET_INSTRINFO_HEADER</span>
 <span class="cp">#undef GET_INSTRINFO_HEADER</span>
 <span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
@@ -494,18 +494,18 @@ Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,</p
 55
 56
 57
-58</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0RegisterInfo.h - Cpu0 Register Information Impl -----*- C++ -*-===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This file contains the Cpu0 implementation of the TargetRegisterInfo class.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+58</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0RegisterInfo.h - Cpu0 Register Information Impl -----*- C++ -*-===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file contains the Cpu0 implementation of the TargetRegisterInfo class.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0REGISTERINFO_H</span>
 <span class="cp">#define CPU0REGISTERINFO_H</span>
@@ -653,18 +653,18 @@ Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,</p
 96
 97
 98
-99</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0RegisterInfo.cpp - CPU0 Register Information -== --------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This file contains the CPU0 implementation of the TargetRegisterInfo class.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+99</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0RegisterInfo.cpp - CPU0 Register Information -== --------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file contains the CPU0 implementation of the TargetRegisterInfo class.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#define DEBUG_TYPE &quot;cpu0-reg-info&quot;</span>
 
@@ -797,18 +797,18 @@ Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,</p
 40
 41
 42
-43</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0InstrInfo.h - Cpu0 Instruction Information ----------*- C++ -*-===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This file contains the Cpu0 implementation of the TargetInstrInfo class.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+43</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0InstrInfo.h - Cpu0 Instruction Information ----------*- C++ -*-===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file contains the Cpu0 implementation of the TargetInstrInfo class.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0INSTRUCTIONINFO_H</span>
 <span class="cp">#define CPU0INSTRUCTIONINFO_H</span>
@@ -870,18 +870,18 @@ Cpu0InstrInfo.cpp, Cpu0TargetMachine.h, and modify CMakeLists.txt as follows,</p
 25
 26
 27
-28</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0InstrInfo.cpp - Cpu0 Instruction Information ------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This file contains the Cpu0 implementation of the TargetInstrInfo class.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+28</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0InstrInfo.cpp - Cpu0 Instruction Information ------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file contains the Cpu0 implementation of the TargetInstrInfo class.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0InstrInfo.h&quot;</span>
 <span class="cp">#include &quot;Cpu0TargetMachine.h&quot;</span>
@@ -1044,18 +1044,18 @@ call the auto-generated functions as follows,</p>
 42
 43
 44
-45</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//=== Cpu0InstPrinter.h - Convert Cpu0 MCInst to assembly syntax -*- C++ -*-==//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This class prints a Cpu0 MCInst to a .s file.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+45</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//=== Cpu0InstPrinter.h - Convert Cpu0 MCInst to assembly syntax -*- C++ -*-==//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This class prints a Cpu0 MCInst to a .s file.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0INSTPRINTER_H</span>
 <span class="cp">#define CPU0INSTPRINTER_H</span>
@@ -1202,18 +1202,18 @@ call the auto-generated functions as follows,</p>
 108
 109
 110
-111</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0InstPrinter.cpp - Convert Cpu0 MCInst to assembly syntax ------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This class prints an Cpu0 MCInst to a .s file.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+111</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0InstPrinter.cpp - Convert Cpu0 MCInst to assembly syntax ------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This class prints an Cpu0 MCInst to a .s file.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#define DEBUG_TYPE &quot;asm-printer&quot;</span>
 <span class="cp">#include &quot;Cpu0InstPrinter.h&quot;</span>
@@ -1362,14 +1362,14 @@ sub-directory MCTargetDesc as follows,</p>
 40
 41
 42
-43</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0MCInstLower.h - Lower MachineInstr to MCInst -------*- C++ -*--===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+43</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCInstLower.h - Lower MachineInstr to MCInst -------*- C++ -*--===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0MCINSTLOWER_H</span>
 <span class="cp">#define CPU0MCINSTLOWER_H</span>
@@ -1505,19 +1505,19 @@ sub-directory MCTargetDesc as follows,</p>
 95
 96
 97
-98</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0MCInstLower.cpp - Convert Cpu0 MachineInstr to MCInst ---------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This file contains code to lower Cpu0 MachineInstrs to their corresponding</span>
-<span class="cp">// MCInst records.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+98</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCInstLower.cpp - Convert Cpu0 MachineInstr to MCInst ---------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file contains code to lower Cpu0 MachineInstrs to their corresponding</span>
+<span class="c1">// MCInst records.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0MCInstLower.h&quot;</span>
 <span class="cp">#include &quot;Cpu0AsmPrinter.h&quot;</span>
@@ -1702,19 +1702,19 @@ sub-directory MCTargetDesc as follows,</p>
 94
 95
 96
-97</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0BaseInfo.h - Top level definitions for CPU0 MC ------*- C++ -*-===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This file contains small standalone helper functions and enum definitions for</span>
-<span class="cp">// the Cpu0 target useful for the compiler back-end and the MC libraries.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+97</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0BaseInfo.h - Top level definitions for CPU0 MC ------*- C++ -*-===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file contains small standalone helper functions and enum definitions for</span>
+<span class="c1">// the Cpu0 target useful for the compiler back-end and the MC libraries.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="cp">#ifndef CPU0BASEINFO_H</span>
 <span class="cp">#define CPU0BASEINFO_H</span>
 
@@ -1838,14 +1838,14 @@ sub-directory MCTargetDesc as follows,</p>
 34
 35
 36
-37</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0FixupKinds.h - Cpu0 Specific Fixup Entries ----------*- C++ -*-===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+37</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0FixupKinds.h - Cpu0 Specific Fixup Entries ----------*- C++ -*-===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef LLVM_CPU0_CPU0FIXUPKINDS_H</span>
 <span class="cp">#define LLVM_CPU0_CPU0FIXUPKINDS_H</span>
@@ -1908,18 +1908,18 @@ sub-directory MCTargetDesc as follows,</p>
 28
 29
 30
-31</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0MCAsmInfo.h - Cpu0 Asm Info ------------------------*- C++ -*--===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This file contains the declaration of the Cpu0MCAsmInfo class.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+31</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCAsmInfo.h - Cpu0 Asm Info ------------------------*- C++ -*--===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file contains the declaration of the Cpu0MCAsmInfo class.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0TARGETASMINFO_H</span>
 <span class="cp">#define CPU0TARGETASMINFO_H</span>
@@ -1982,18 +1982,18 @@ sub-directory MCTargetDesc as follows,</p>
 38
 39
 40
-41</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0MCAsmInfo.cpp - Cpu0 Asm Properties ---------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This file contains the declarations of the Cpu0MCAsmInfo properties.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+41</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCAsmInfo.cpp - Cpu0 Asm Properties ---------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file contains the declarations of the Cpu0MCAsmInfo properties.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0MCAsmInfo.h&quot;</span>
 <span class="cp">#include &quot;llvm/ADT/Triple.h&quot;</span>
@@ -2319,18 +2319,18 @@ as the following function of LLVMInitializeCpu0AsmPrinter(),</p>
 64
 65
 66
-67</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0AsmPrinter.h - Cpu0 LLVM Assembly Printer ----------*- C++ -*--===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// Cpu0 Assembly printer class.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+67</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0AsmPrinter.h - Cpu0 LLVM Assembly Printer ----------*- C++ -*--===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// Cpu0 Assembly printer class.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0ASMPRINTER_H</span>
 <span class="cp">#define CPU0ASMPRINTER_H</span>
@@ -2640,19 +2640,19 @@ as the following function of LLVMInitializeCpu0AsmPrinter(),</p>
 249
 250
 251
-252</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">//===-- Cpu0AsmPrinter.cpp - Cpu0 LLVM Assembly Printer -------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This file contains a printer that converts from our internal representation</span>
-<span class="cp">// of machine-dependent LLVM code to GAS-format CPU0 assembly language.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+252</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0AsmPrinter.cpp - Cpu0 LLVM Assembly Printer -------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file contains a printer that converts from our internal representation</span>
+<span class="c1">// of machine-dependent LLVM code to GAS-format CPU0 assembly language.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#define DEBUG_TYPE &quot;cpu0-asm-printer&quot;</span>
 <span class="cp">#include &quot;Cpu0AsmPrinter.h&quot;</span>
@@ -2960,8 +2960,8 @@ and “LLVM Language Reference Manual” from <a class="footnote-reference" href
 before go ahead, but we think read section
 4.2 of tricore_llvm.pdf is enough.
 We suggest you read the web site documents as above only when you are still not
-quite understand, even though you have read this section and next 2 sections
-article for DAG and Instruction Selection.</p>
+quite understand, even though you have read the articles of this section and
+next 2 sections for DAG and Instruction Selection.</p>
 <ol class="arabic simple">
 <li>Instruction Selection</li>
 </ol>
@@ -3045,6 +3045,117 @@ of the machine instructions are written into memory.</p>
 </dl>
 </li>
 </ol>
+<p>The llvm code generation sequence also can be obtained by
+<tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug-pass=Structure</span></tt> as the following. The first 4 code generation
+sequences from <a class="pageref" href="#backendstructure-f5">Figure  5</a> are in the
+<strong>&#8216;DAG-&gt;DAG Pattern Instruction Selection&#8217;</strong> of the <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug-pass=Structure</span></tt>
+displayed. The order of Peephole Optimizations and Prologue/Epilogue Insertion
+is inconsistent in them (please check the * in the following).
+No need to bother since the the LLVM is under development and changed all the
+time.</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-79-200:InputFiles Jonathan<span class="nv">$ </span>llc --help-hidden
+OVERVIEW: llvm system compiler
+
+USAGE: llc <span class="o">[</span>options<span class="o">]</span> &lt;input bitcode&gt;
+
+OPTIONS:
+...
+  -debug-pass                             - Print PassManager debugging <span class="nv">information</span>
+    <span class="o">=</span>None                                 -   disable debug <span class="nv">output</span>
+    <span class="o">=</span>Arguments                            -   print pass arguments to pass to <span class="s1">&#39;opt&#39;</span>
+    <span class="o">=</span>Structure                            -   print pass structure before run<span class="o">()</span>
+    <span class="o">=</span>Executions                           -   print pass name before it is <span class="nv">executed</span>
+    <span class="o">=</span>Details                              -   print pass details when it is executed
+
+118-165-79-200:InputFiles Jonathan<span class="nv">$ </span>llc -march<span class="o">=</span>mips -debug-pass<span class="o">=</span>Structure ch3.bc
+...
+Target Library Information
+Target Transform Info
+Data Layout
+Target Pass Configuration
+No Alias Analysis <span class="o">(</span>always returns <span class="s1">&#39;may&#39;</span> <span class="nb">alias</span><span class="o">)</span>
+Type-Based Alias Analysis
+Basic Alias Analysis <span class="o">(</span>stateless AA impl<span class="o">)</span>
+Create Garbage Collector Module Metadata
+Machine Module Information
+Machine Branch Probability Analysis
+  ModulePass Manager
+    FunctionPass Manager
+      Preliminary module verification
+      Dominator Tree Construction
+      Module Verifier
+      Natural Loop Information
+      Loop Pass Manager
+        Canonicalize natural loops
+      Scalar Evolution Analysis
+      Loop Pass Manager
+        Canonicalize natural loops
+        Induction Variable Users
+        Loop Strength Reduction
+      Lower Garbage Collection Instructions
+      Remove unreachable blocks from the CFG
+      Exception handling preparation
+      Optimize <span class="k">for </span>code generation
+      Insert stack protectors
+      Preliminary module verification
+      Dominator Tree Construction
+      Module Verifier
+      Machine Function Analysis
+      Natural Loop Information
+      Branch Probability Analysis
+    * MIPS DAG-&gt;DAG Pattern Instruction Selection
+      Expand ISel Pseudo-instructions
+      Tail Duplication
+      Optimize machine instruction PHIs
+      MachineDominator Tree Construction
+      Slot index numbering
+      Merge disjoint stack slots
+      Local Stack Slot Allocation
+      Remove dead machine instructions
+      MachineDominator Tree Construction
+      Machine Natural Loop Construction
+      Machine Loop Invariant Code Motion
+      Machine Common Subexpression Elimination
+      Machine code sinking
+    * Peephole Optimizations
+      Process Implicit Definitions
+      Remove unreachable machine basic blocks
+      Live Variable Analysis
+      Eliminate PHI nodes <span class="k">for </span>register allocation
+      Two-Address instruction pass
+      Slot index numbering
+      Live Interval Analysis
+      Debug Variable Analysis
+      Simple Register Coalescing
+      Live Stack Slot Analysis
+      Calculate spill weights
+      Virtual Register Map
+      Live Register Matrix
+      Bundle Machine CFG Edges
+      Spill Code Placement Analysis
+      Greedy Register Allocator
+      Virtual Register Rewriter
+      Stack Slot Coloring
+      Machine Loop Invariant Code Motion
+    * Prologue/Epilogue Insertion &amp; Frame Finalization
+      Control Flow Optimizer
+      Tail Duplication
+      Machine Copy Propagation Pass
+      Post-RA pseudo instruction expansion pass
+      MachineDominator Tree Construction
+      Machine Natural Loop Construction
+      Post RA top-down list latency scheduler
+      Analyze Machine Code For Garbage Collection
+      Machine Block Frequency Analysis
+      Branch Probability Basic Block Placement
+      Mips Delay Slot Filler
+      Mips Long Branch
+      MachineDominator Tree Construction
+      Machine Natural Loop Construction
+    * Mips Assembly Printer
+      Delete Garbage Collector Information
+</pre></div>
+</div>
 </div>
 <div class="section" id="dag-directed-acyclic-graph">
 <h2>DAG (Directed Acyclic Graph)<a class="headerlink" href="#dag-directed-acyclic-graph" title="Permalink to this headline">¶</a></h2>
@@ -3146,9 +3257,9 @@ class ArithLogicI&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
 ...
 def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;</pre>
 </div>
-<p><a class="pageref" href="#backendstructure-f9">Figure  9</a> show the pattern match which bind the IR node
-<strong>add</strong> and instruction ADDiu which defined in Cpu0InstrInfo.td. For the example
-IR node &#8220;add %a, 5&#8221;, it will be translated to &#8220;addiu %r1, 5&#8221; since the IR
+<p><a class="pageref" href="#backendstructure-f9">Figure  9</a> show how the pattern match work in the IR node
+<strong>add</strong> and instruction ADDiu defined in Cpu0InstrInfo.td. For the example
+IR node &#8220;add %a, 5&#8221;, will be translated to &#8220;addiu %r1, 5&#8221; since the IR
 pattern[(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))] is set in ADDiu and the
 2nd operand is signed immediate which matched &#8220;%a, 5&#8221;. In addition to pattern
 match, the .td also set assembly string &#8220;addiu&#8221; and op code 0x09.
@@ -3232,12 +3343,11 @@ IR DAG is defined in file  include/llvm/Target/TargetSelectionDAG.td.</p>
 
 /// Load and Store Instructions
 ///  aligned
-defm LD     : LoadM32&lt;0x00,  "ld",  load_a&gt;;
-defm ST     : StoreM32&lt;0x01, "st",  store_a&gt;;
+defm LD     : LoadM32&lt;0x01,  "ld",  load_a&gt;;
+defm ST     : StoreM32&lt;0x02, "st",  store_a&gt;;
 
 /// Arithmetic Instructions (ALU Immediate)
-//def LDI     : MoveImm&lt;0x08, "ldi", add, simm16, immSExt16, CPURegs&gt;;
-// add defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
+// IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
 def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;
 
 let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,

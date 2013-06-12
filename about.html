@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.14',
+        VERSION:     '3.2.15',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -53,7 +53,7 @@
         
         
   <div class="section" id="about">
-<h1>About<a class="headerlink" href="#about" title="Permalink to this headline">¶</a></h1>
+<span id="sec-about"></span><h1>About<a class="headerlink" href="#about" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="authors">
 <h2>Authors<a class="headerlink" href="#authors" title="Permalink to this headline">¶</a></h2>
 <div class="figure align-right">
@@ -71,6 +71,7 @@
 <div class="section" id="contributors">
 <h2>Contributors<a class="headerlink" href="#contributors" title="Permalink to this headline">¶</a></h2>
 <p>Chen Wei-Ren, <a class="reference external" href="mailto:chenwj&#37;&#52;&#48;iis&#46;sinica&#46;edu&#46;tw">chenwj<span>&#64;</span>iis<span>&#46;</span>sinica<span>&#46;</span>edu<span>&#46;</span>tw</a>, assisted with text and code formatting.</p>
+<p>Chen Zhong-Cheng, who is the author of original cpu0 verilog code.</p>
 </div>
 <div class="section" id="acknowledgments">
 <h2>Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permalink to this headline">¶</a></h2>
@@ -90,8 +91,15 @@ project. They are:</p>
 </div>
 <div class="section" id="revision-history">
 <h2>Revision history<a class="headerlink" href="#revision-history" title="Permalink to this headline">¶</a></h2>
-<p>Version 3.2.15, Not release yet.</p>
+<p>Version 3.2.16, Not release yet</p>
 <dl class="docutils">
+<dt>Version 3.2.15, Released June 12, 2013</dt>
+<dd>Porting to llvm 3.3.
+Rewrite section Support arithmetic instructions of chapter Adding arithmetic
+and local pointer support with the table adding.
+Add two sentences in Preface.
+Add <cite>llc -debug-pass</cite> in section LLVM Code Generation Sequence.
+Remove section Adjust cpu0 instructions.</dd>
 <dt>Version 3.2.14, Released May 24, 2013</dt>
 <dd>Fix example code disappeared error.</dd>
 <dt>Version 3.2.13, Released May 23, 2013</dt>
@@ -181,6 +189,10 @@ More information about Cpu0, including its instruction set, is available
 this book can be found <a class="reference external" href="http://jonathan2251.github.com/lbd/LLVMBackendTutorialExampleCode.tar.gz">here</a>.
 As you progress from one chapter to the next, you will incrementally build the
 backend&#8217;s functionality.</p>
+<p>Since Cpu0 is a simple RISC CPU for educational purpose, it make the Cpu0 llvm
+backend code simple too and easy to learning. In addition, Cpu0 supply the
+Verilog source code that you can run on your PC or FPGA platform when you go to
+chapter Run backend.</p>
 <p>This tutorial was written using the LLVM 3.1 Mips backend as a reference. Since
 Cpu0 is an educational architecture, it is missing some key pieces of
 documentation needed when developing a compiler, such as an Application Binary
