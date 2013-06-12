@@ -94,13 +94,13 @@ The following table details the Cpu0 instruction set:
 	  - Operation
 	* - L
 	  - LD
-	  - 00
+	  - 01
 	  - Load word
 	  - LD Ra, [Rb+Cx]
 	  - Ra <= [Rb+Cx]
 	* - L
 	  - ST
-	  - 01
+	  - 02
 	  - Store word
 	  - ST Ra, [Rb+Cx]
 	  - [Rb+Cx] <= Ra
@@ -946,8 +946,6 @@ command,
   src/include/llvm/ADT/Triple.h:#undef cpu0
   src/include/llvm/ADT/Triple.h:    cpu0,    // Gamma add
   src/include/llvm/ADT/Triple.h:    cpu0el,
-  src/include/llvm/ADT/Triple.h:    cpu064,
-  src/include/llvm/ADT/Triple.h:    cpu064el,
   src/include/llvm/Support/ELF.h:  EF_CPU0_ARCH_32R2 = 0x70000000, // cpu032r2
   src/include/llvm/Support/ELF.h:  EF_CPU0_ARCH_64R2 = 0x80000000, // cpu064r2
   src/lib/Support/Triple.cpp:  case cpu0:    return "cpu0";

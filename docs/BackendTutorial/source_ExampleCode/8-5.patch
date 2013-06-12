@@ -1,6 +1,6 @@
 diff -Naur Chapter8_4/Cpu0FrameLowering.cpp Chapter8_5/Cpu0FrameLowering.cpp
---- Chapter8_4/Cpu0FrameLowering.cpp	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter8_5/Cpu0FrameLowering.cpp	2013-04-08 15:34:23.000000000 +0800
+--- Chapter8_4/Cpu0FrameLowering.cpp	2013-06-12 13:27:21.000000000 +0800
++++ Chapter8_5/Cpu0FrameLowering.cpp	2013-06-12 13:27:21.000000000 +0800
 @@ -185,6 +185,15 @@
  
  }
@@ -18,8 +18,8 @@ diff -Naur Chapter8_4/Cpu0FrameLowering.cpp Chapter8_5/Cpu0FrameLowering.cpp
  //  physical registers used to determine what callee saved registers should be 
  //  spilled. This method is optional. 
 diff -Naur Chapter8_4/Cpu0FrameLowering.h Chapter8_5/Cpu0FrameLowering.h
---- Chapter8_4/Cpu0FrameLowering.h	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter8_5/Cpu0FrameLowering.h	2013-04-08 15:34:23.000000000 +0800
+--- Chapter8_4/Cpu0FrameLowering.h	2013-06-12 13:27:21.000000000 +0800
++++ Chapter8_5/Cpu0FrameLowering.h	2013-06-12 13:27:21.000000000 +0800
 @@ -35,6 +35,9 @@
    void emitPrologue(MachineFunction &MF) const;
    void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const;
@@ -31,8 +31,8 @@ diff -Naur Chapter8_4/Cpu0FrameLowering.h Chapter8_5/Cpu0FrameLowering.h
                                              RegScavenger *RS) const;
  };
 diff -Naur Chapter8_4/Cpu0InstrInfo.cpp Chapter8_5/Cpu0InstrInfo.cpp
---- Chapter8_4/Cpu0InstrInfo.cpp	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter8_5/Cpu0InstrInfo.cpp	2013-04-08 15:34:23.000000000 +0800
+--- Chapter8_4/Cpu0InstrInfo.cpp	2013-06-12 13:27:21.000000000 +0800
++++ Chapter8_5/Cpu0InstrInfo.cpp	2013-06-12 13:27:21.000000000 +0800
 @@ -21,7 +21,7 @@
  using namespace llvm;
  

@@ -3,7 +3,7 @@
 Adding arithmetic and local pointer support
 ===========================================
 
-This chapter add more cpu0 arithmetic instructions support first.
+This chapter adds more cpu0 arithmetic instructions support first.
 The logic operation **“not”** support and translation in 
 `section Operator “not” !`_. The `section Display llvm IR nodes with Graphviz`_ 
 will show you the DAG optimization steps and their corresponding ``llc`` 
@@ -129,20 +129,22 @@ Chapter4_1/,
   def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
   def MUL     : ArithLogicR<0x15, "mul", mul, IIImul, CPURegs, 1>;
   def DIV     : ArithLogicR<0x16, "div", sdiv, IIIdiv, CPURegs, 1>;
+  def UDIV    : ArithLogicR<0x17, "udiv", udiv, IIIdiv, CPURegs, 1>;
   def AND     : ArithLogicR<0x18, "and", and, IIAlu, CPURegs, 1>;
   def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
   def XOR     : ArithLogicR<0x1A, "xor", xor, IIAlu, CPURegs, 1>;
   
   /// Shift Instructions
+  // sra is IR node for ashr llvm IR instruction of .bc
+  def SRA     : shift_rotate_imm32<0x1B, 0x00, "sra", sra>;
   def ROL     : shift_rotate_imm32<0x1C, 0x01, "rol", rotl>;
   def ROR     : shift_rotate_imm32<0x1D, 0x01, "ror", rotr>;
   def SHL     : shift_rotate_imm32<0x1E, 0x00, "shl", shl>;
-  // work, it's for ashr llvm IR instruction
-  //def SHR     : shift_rotate_imm32<0x1F, 0x00, "sra", sra>;
-  // work, it's for lshr llvm IR instruction
+  // srl is IR node for lshr llvm IR instruction of .bc
   def SHR     : shift_rotate_imm32<0x1F, 0x00, "shr", srl>;
-  
-  
+
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0Schedule.td
   // Cpu0Schedule.td
   ...
   def IMULDIV : FuncUnit;
@@ -277,6 +279,30 @@ With these 70 lines code, it process 9 operators more for C language and their
 corresponding llvm IR instructions. 
 The arithmetic instructions are easy to implement by add the definition in td 
 file only.
+
+
+Run ch4_1_3.cpp with code Chapter4_1/ which support udiv and sra will get the 
+result as follows,
+
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_1_3.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_1_3.cpp
+    :lines: 4-
+    :linenos:
+
+.. code-block:: bash
+
+  118-165-13-40:InputFiles Jonathan$ clang -c ch4_1_3.cpp -emit-llvm -o ch4_1_3.bc
+  118-165-13-40:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
+  cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
+  ch4_1_3.bc -o ch4_1_3.cpu0.s
+  118-165-13-40:InputFiles Jonathan$ cat ch4_1_3.cpu0.s
+      ...
+      udiv    $2, $3, $2
+      st  $2, 0($sp)
+      ld  $2, 16($sp)
+      sra $2, $2, 2
+      ...
+
 
 
 Operator “not” !
@@ -419,16 +445,16 @@ Run it with Chapter4_2/ which added code as below, to get the following result.
 .. code-block:: c++
     
   def : Pat<(not CPURegs:$in),
-        (XOR CPURegs:$in, (LDI ZERO, 1))>;
-
+            (XOR CPURegs:$in, (ADDiu ZERO, 1))>;
+  
   // setcc patterns
-  multiclass SeteqPats<RegisterClass RC, Instruction XOROp,
-                       Register ZEROReg> {
+  multiclass SeteqPats<RegisterClass RC, Instruction XOROp> {
     def : Pat<(seteq RC:$lhs, RC:$rhs),
-              (XOROp (XOROp RC:$lhs, RC:$rhs), (LDI ZERO, 1))>;
+              (XOROp (XOROp RC:$lhs, RC:$rhs), (ADDiu ZERO, 1))>;
   }
-    
-  defm : SeteqPats<CPURegs, XOR, ZERO>;
+  
+  defm : SeteqPats<CPURegs, XOR>;
+
 
 .. code-block:: bash
 
@@ -442,7 +468,7 @@ Run it with Chapter4_2/ which added code as below, to get the following result.
     Initial Opcode index to 365
     Created node: 0x7fbc6902af10: i32 = XOR 0x7fbc6902ab10, 0x7fbc6902a210
   
-    Created node: 0x7fbc6902d510: i32 = LDI 0x7fbc6902d310, 0x7fbc6902d410
+    Created node: 0x7fbc6902d510: i32 = ADDiu 0x7fbc6902d310, 0x7fbc6902d410
   
     Morphed node: 0x7fbc6902ac10: i32 = XOR 0x7fbc6902af10, 0x7fbc6902d510
   
@@ -451,11 +477,11 @@ Run it with Chapter4_2/ which added code as below, to get the following result.
 
 
 Chapter4_2/ defined seteq DAG pattern. 
-It translate (setcc %1, %2, seteq) into (xor (xor %1, %2), (ldi $0, 1) in 
+It translate (setcc %1, %2, seteq) into (xor (xor %1, %2), (addiu $0, 1) in 
 “Instruction selection” stage by the rule defined in Cpu0InstrInfo.td as 
 above.
 
-After xor, the (and %4, 1) is translated into (and $2, (ldi $3, 1)) which is 
+After xor, the (and %4, 1) is translated into (and $2, (addiu $3, 1)) which is 
 defined before already. 
 List the asm file ch4_2.cpu0.s code fragment as below, you can check it with 
 the final result. 
@@ -475,7 +501,7 @@ the final result.
       st  $2, 4($sp)
       ld  $3, 8($sp)
       xor $2, $3, $2
-      ldi $3, 1
+      addiu $3, $3, 1
       xor $2, $2, $3
       addiu   $3, $zero, 1
       and $2, $2, $3
@@ -574,75 +600,13 @@ because it is the DAG before instruction selection.
 The backend programmer need to know what is the DAG for writing the pattern 
 match instruction in target description file .td.
 
-Adjust cpu0 instructions 
--------------------------
-
-We decide add instructions udiv and sra to avoid compiler errors for C language 
-operators **“/”** in unsigned int and **“>>”** in signed int as 
-`section Support arithmetic instructions`_ mentioned. 
-To support these 2 operators, we only need to add these code in 
-Cpu0InstrInfo.td as follows,
-
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_4/Cpu0InstrInfo.td
-.. code-block:: c++
-
-  //  Cpu0InstsInfo.td
-  ...
-  def UDIV    : ArithLogicR<0x17, "udiv", udiv, IIIdiv, CPURegs, 1>;
-  ...
-  /// Shift Instructions
-  // work, sra for ashr llvm IR instruction
-  def SRA     : shift_rotate_imm32<0x1B, 0x00, "sra", sra>;
-
-To use addiu only instead of ldi, change Cpu0InstrInfo.td as follows,
-
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_4/Cpu0InstrInfo.td
-.. code-block:: c++
-
-  //def LDI     : MoveImm<0x08, "ldi", add, simm16, immSExt16, CPURegs>;
-  ...
-  // setcc patterns
-  multiclass SeteqPats<RegisterClass RC, Instruction XOROp> {
-    def : Pat<(seteq RC:$lhs, RC:$rhs),
-        (XOROp (XOROp RC:$lhs, RC:$rhs), (ADDiu ZERO, 1))>;
-  }
-  
-  defm : SeteqPats<CPURegs, XOR>;
-
-
-Run ch4_4.cpp with code Chapter4_4/ which support udiv, sra, and use addiu only 
-instead of ldi, will get the result as follows,
-
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp
-    :lines: 4-
-    :linenos:
-
-.. code-block:: bash
-
-  118-165-13-40:InputFiles Jonathan$ clang -c ch4_4.cpp -emit-llvm -o ch4_4.bc
-  118-165-13-40:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
-  cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  ch4_4.bc -o ch4_4.cpu0.s
-  118-165-13-40:InputFiles Jonathan$ cat ch4_4.cpu0.s
-      ...
-      addiu   $sp, $sp, -24
-      addiu   $2, $zero, 0
-      ...
-      udiv    $2, $3, $2
-      st  $2, 0($sp)
-      ld  $2, 16($sp)
-      sra $2, $2, 2
-      ...
-
-
 Local variable pointer
 -----------------------
 
 To support pointer to local variable, add this code fragment in 
 Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_5/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_4/Cpu0InstrInfo.td
 .. code-block:: c++
 
   def mem_ea : Operand<i32> {
@@ -663,7 +627,7 @@ Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
     let isCodeGenOnly = 1;
   }
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_5/Cpu0InstPrinter.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_4/Cpu0InstPrinter.td
 .. code-block:: c++
 
   void Cpu0InstPrinter::
@@ -676,21 +640,21 @@ Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
     return;
   }
 
-Run ch4_5.cpp with code Chapter4_5/ which support pointer to local variable, 
+Run ch4_4.cpp with code Chapter4_4/ which support pointer to local variable, 
 will get result as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp
     :lines: 4-
     :linenos:
 
 .. code-block:: bash
 
-  118-165-66-82:InputFiles Jonathan$ clang -c ch4_5.cpp -emit-llvm -o ch4_5.bc
+  118-165-66-82:InputFiles Jonathan$ clang -c ch4_4.cpp -emit-llvm -o ch4_4.bc
   118-165-66-82:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_
   debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  ch4_5.bc -o ch4_5.cpu0.s
-  118-165-66-82:InputFiles Jonathan$ cat ch4_5.cpu0.s 
+  ch4_4.bc -o ch4_4.cpu0.s
+  118-165-66-82:InputFiles Jonathan$ cat ch4_4.cpu0.s 
     .section .mdebug.abi32
     .previous
     .file "ch4_5.bc"
@@ -731,17 +695,17 @@ Operator mod, %
 The DAG of %
 ~~~~~~~~~~~~~
 
-Example input code ch4_6.cpp which contains the C operator **“%”** and it's 
+Example input code ch4_5.cpp which contains the C operator **“%”** and it's 
 corresponding llvm IR, as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_6.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_6.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
     :lines: 4-
     :linenos:
 
 .. code-block:: bash
 
-  ; ModuleID = 'ch4_6.bc'
+  ; ModuleID = 'ch4_5.bc'
    target datalayout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-
    f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128"
   target triple = "i386-apple-macosx10.8.0"
@@ -802,7 +766,7 @@ Copy the reference as follows,
 
 
 
-Run Chapter4_5/ with input file ch4_6.bc and ``llc`` option –view-isel-dags as 
+Run Chapter4_5/ with input file ch4_5.bc and ``llc`` option –view-isel-dags as 
 below, will get the error message as follows and the llvm DAG of 
 :num:`Figure #otherinst-f2`.
 
@@ -810,7 +774,7 @@ below, will get the error message as follows and the llvm DAG of
 
   118-165-79-37:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/bin/Debug/llc -march=cpu0 -view-isel-dags -relocation-model=
-  pic -filetype=asm ch4_6.bc -o ch4_6.cpu0.s
+  pic -filetype=asm ch4_5.bc -o ch4_5.cpu0.s
   ...
   LLVM ERROR: Cannot select: 0x7fa73a02ea10: i32 = mulhs 0x7fa73a02c610, 
   0x7fa73a02e910 [ID=12]
@@ -825,7 +789,7 @@ below, will get the error message as follows and the llvm DAG of
     :scale: 100 %
     :align: center
 
-    ch4_6.bc DAG
+    ch4_5.bc DAG
 
 LLVM replace srem divide operation with multiply operation in DAG optimization 
 because DIV operation cost more in time than MUL. 
@@ -843,7 +807,7 @@ The final result (sub 12, 12) is 0 which match the statement (11+1)%12.
 Arm solution
 ~~~~~~~~~~~~~
 
-Let's run Chapter4_6_1/ with ch4_6.cpp as well as ``llc -view-sched-dags`` option 
+Let's run Chapter4_5_1/ with ch4_5.cpp as well as ``llc -view-sched-dags`` option 
 to get :num:`Figure #otherinst-f3`. 
 Similarly, SMMUL get the high word of multiply result.
 
@@ -854,19 +818,19 @@ Similarly, SMMUL get the high word of multiply result.
     :scale: 100 %
     :align: center
 
-    Translate ch4_6.bc into cpu0 backend DAG
+    Translate ch4_5.bc into cpu0 backend DAG
 
-Follows is the result of run Chapter4_6_1/ with ch4_6.bc.
+Follows is the result of run Chapter4_5_1/ with ch4_5.bc.
 
 .. code-block:: bash
 
   118-165-66-82:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_
   debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  ch4_6.bc -o ch4_6.cpu0.s
-  118-165-71-252:InputFiles Jonathan$ cat ch4_6.cpu0.s 
+  ch4_5.bc -o ch4_5.cpu0.s
+  118-165-71-252:InputFiles Jonathan$ cat ch4_5.cpu0.s 
       .section .mdebug.abi32
       .previous
-      .file   "ch4_6.bc"
+      .file   "ch4_5.bc"
       .text
       .globl  main
       .align  2
@@ -906,14 +870,14 @@ Follows is the result of run Chapter4_6_1/ with ch4_6.bc.
 
 The other instruction UMMUL and llvm IR mulhu are unsigned int type for 
 operator %. 
-You can check it by unmark the **“unsigned int b = 11;”** in ch4_6.cpp.
+You can check it by unmark the **“unsigned int b = 11;”** in ch4_5.cpp.
 
 Use SMMUL instruction to get the high word of multiplication result is adopted 
 in ARM. 
-The Chapter4_6_1/ use the ARM solution. 
+The Chapter4_5_1/ use the ARM solution. 
 With this solution, the following code is needed.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_1/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_5_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   // Transformation Function - get the lower 16 bits.
@@ -945,17 +909,17 @@ of operation). ARM also provide SMULL (signed multiply long) to get the whole
 64 bits result.
 If you need the LO part of result, you can use Cpu0 MUL instruction which only 
 get the LO part of result. 
-Chapter4_6_2/ is implemented with Mips MULT style. 
+Chapter4_5_2/ is implemented with Mips MULT style. 
 We choose it as the implementation of this book to add instructions as less as 
 possible. This approach is better for Cpu0 to keep it as a tutorial architecture 
 for school teaching purpose material, and apply Cpu0 as an engineer learning 
 materials in compiler, system program and verilog CPU hardware design.
 For Mips style implementation, we add the following code in 
 Cpu0RegisterInfo.td, Cpu0InstrInfo.td and Cpu0ISelDAGToDAG.cpp. 
-And list the related DAG nodes mulhs and mulhu which are used in Chapter4_6_2/ 
+And list the related DAG nodes mulhs and mulhu which are used in Chapter4_5_2/ 
 from TargetSelectionDAG.td.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_2/Cpu0RegisterInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_5_2/Cpu0RegisterInfo.td
 .. code-block:: c++
 
     // Hi/Lo registers
@@ -975,7 +939,7 @@ from TargetSelectionDAG.td.
     ...
   ]>;
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_2/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_5_2/Cpu0InstrInfo.td
 .. code-block:: c++
 
   // Mul, Div
@@ -1009,7 +973,7 @@ from TargetSelectionDAG.td.
   def MFHI : MoveFromLOHI<0x40, "mfhi", CPURegs, [HI]>;
   def MFLO : MoveFromLOHI<0x41, "mflo", CPURegs, [LO]>;
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_2/Cpu0ISelDAGToDAG.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_5_2/Cpu0ISelDAGToDAG.cpp
 .. code-block:: c++
 
   /// Select multiply instructions.
@@ -1068,7 +1032,7 @@ After that, MFHI instruction move the HI register to cpu0 field "a" register,
 $ra. 
 MFHI instruction is FL format and only use cpu0 field "a" register, we set 
 the $rb and imm16 to 0. 
-:num:`Figure #otherinst-f4` and ch4_6.cpu0.s are the result of compile ch4_6.bc.
+:num:`Figure #otherinst-f4` and ch4_5.cpu0.s are the result of compile ch4_5.bc.
 
 .. _otherinst-f4:
 .. figure:: ../Fig/otherinst/4.png
@@ -1077,14 +1041,14 @@ the $rb and imm16 to 0.
     :scale: 75 %
     :align: center
 
-    DAG for ch4_6.bc with Mips style MULT
+    DAG for ch4_5.bc with Mips style MULT
 
 .. code-block:: bash
 
-  118-165-66-82:InputFiles Jonathan$ cat ch4_6.cpu0.s 
+  118-165-66-82:InputFiles Jonathan$ cat ch4_5.cpu0.s 
     .section .mdebug.abi32
     .previous
-    .file "ch4_6.bc"
+    .file "ch4_5.bc"
     .text
     .globl  main
     .align  2
@@ -1148,22 +1112,22 @@ registers.
 With this solution, the **“c = a / b”** can be got by **“div a, b”** and 
 **“mflo c”**; the **“c = a % b”** can be got by **“div a, b”** and **“mfhi c”**.
 
-Chapter4_6_4/ support operator **“%”** and **“/”**. 
-The code added in Chapter4_6_4/ as follows,
+Chapter4_6/ support operator **“%”** and **“/”**. 
+The code added in Chapter4_6/ as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6/Cpu0InstrInfo.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter4_6/Cpu0InstrInfo.cpp
     :start-after: return RI;
     :end-before: MachineInstr*
     :linenos:
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.h
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6/Cpu0InstrInfo.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter4_6/Cpu0InstrInfo.h
     :start-after: virtual const Cpu0RegisterInfo &getRegisterInfo() const;
     :end-before: public:
     :linenos:
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6/Cpu0InstrInfo.td
 .. code-block:: c++
 
   def SDT_Cpu0DivRem       : SDTypeProfile<0, 2,
@@ -1204,7 +1168,7 @@ The code added in Chapter4_6_4/ as follows,
   def MTHI : MoveToLOHI<0x42, "mthi", CPURegs, [HI]>;
   def MTLO : MoveToLOHI<0x43, "mtlo", CPURegs, [LO]>;
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0ISelLowering.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   Cpu0TargetLowering::
@@ -1274,7 +1238,7 @@ The code added in Chapter4_6_4/ as follows,
     return SDValue();
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6_4/Cpu0ISelLowering.h
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6/Cpu0ISelLowering.h
 .. code-block:: c++
 
   namespace llvm {
@@ -1291,7 +1255,7 @@ The code added in Chapter4_6_4/ as follows,
   ...
 
 
-Run with ch4_1_2.cpp can get the result for operator **“/”** as below. 
+Run with ch4_6_2.cpp can get the result for operator **“/”** as below. 
 But run with ch4_6_1.cpp as below, cannot get the **“div”** for operator 
 **“%”**. 
 It still use **"multiplication"** instead of **"div"** because llvm do 
@@ -1303,7 +1267,7 @@ We will verify **“%”** with ch4_6_2.cpp at the end of chapter “Function Ca
 You can run with the end of Example Code of chapter “Function Call”, if you 
 like to verify it now.
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_1_2.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_6_2.cpp
 .. code-block:: c++
 
   int main()
@@ -1315,11 +1279,11 @@ like to verify it now.
 
 .. code-block:: bash
 
-  118-165-77-79:InputFiles Jonathan$ clang -c ch4_1_2.cpp -emit-llvm -o ch4_1_2.bc
+  118-165-77-79:InputFiles Jonathan$ clang -c ch4_6_2.cpp -emit-llvm -o ch4_6_2.bc
   118-165-77-79:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_
   debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  ch4_1_2.bc -o ch4_1_2.cpu0.s
-  118-165-77-79:InputFiles Jonathan$ cat ch4_1_2.cpu0.s 
+  ch4_6_2.bc -o ch4_6_2.cpu0.s
+  118-165-77-79:InputFiles Jonathan$ cat ch4_6_2.cpu0.s 
     div $zero, $3, $2
     mflo  $2
     ...

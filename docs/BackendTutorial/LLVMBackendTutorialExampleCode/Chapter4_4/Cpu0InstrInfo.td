@@ -45,6 +45,12 @@ def mem : Operand<i32> {
   let EncoderMethod = "getMemEncoding";
 }
 
+def mem_ea : Operand<i32> {
+  let PrintMethod = "printMemOperandEA";
+  let MIOperandInfo = (ops CPURegs, simm16);
+  let EncoderMethod = "getMemEncoding";
+}
+
 // Node immediate fits as 16-bit sign extended on target immediate.
 // e.g. addi, andi
 def immSExt16  : PatLeaf<(imm), [{ return isInt<16>(N->getSExtValue()); }]>;
@@ -173,6 +179,10 @@ multiclass StoreM32<bits<8> op, string instr_asm, PatFrag OpNode,
   def #NAME# : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
 }
 
+class EffectiveAddress<string instr_asm, RegisterClass RC, Operand Mem> :
+  FMem<0x09, (outs RC:$ra), (ins Mem:$addr),
+     instr_asm, [(set RC:$ra, addr:$addr)], IIAlu>;
+
 //===----------------------------------------------------------------------===//
 // Instruction definition
 //===----------------------------------------------------------------------===//
@@ -183,12 +193,11 @@ multiclass StoreM32<bits<8> op, string instr_asm, PatFrag OpNode,
 
 /// Load and Store Instructions
 ///  aligned
-defm LD     : LoadM32<0x00,  "ld",  load_a>;
-defm ST     : StoreM32<0x01, "st",  store_a>;
+defm LD     : LoadM32<0x01,  "ld",  load_a>;
+defm ST     : StoreM32<0x02, "st",  store_a>;
 
 /// Arithmetic Instructions (ALU Immediate)
-//def LDI     : MoveImm<0x08, "ldi", add, simm16, immSExt16, CPURegs>;
-// add defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
+// IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
 def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
 
 /// Arithmetic Instructions (3-Operand, R-Type)
@@ -202,18 +211,26 @@ def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
 def XOR     : ArithLogicR<0x1A, "xor", xor, IIAlu, CPURegs, 1>;
 
 /// Shift Instructions
-// work, sra for ashr llvm IR instruction
+// sra is IR node for ashr llvm IR instruction of .bc
 def SRA     : shift_rotate_imm32<0x1B, 0x00, "sra", sra>;
 def ROL     : shift_rotate_imm32<0x1C, 0x01, "rol", rotl>;
 def ROR     : shift_rotate_imm32<0x1D, 0x01, "ror", rotr>;
 def SHL     : shift_rotate_imm32<0x1E, 0x00, "shl", shl>;
-// work, srl for lshr llvm IR instruction
+// srl is IR node for lshr llvm IR instruction of .bc
 def SHR     : shift_rotate_imm32<0x1F, 0x00, "shr", srl>;
 
 let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
     isBarrier=1, hasCtrlDep=1 in
   def RET : FJ <0x2C, (outs), (ins CPURegs:$target),
                 "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch>;
+
+// FrameIndexes are legalized when they are operands from load/store
+// instructions. The same not happens for stack address copies, so an
+// add op with mem ComplexPattern is used and the stack address copy
+// can be matched. It's similar to Sparc LEA_ADDRi
+def LEA_ADDiu : EffectiveAddress<"addiu\t$ra, $addr", CPURegs, mem_ea> {
+  let isCodeGenOnly = 1;
+}
 
 //===----------------------------------------------------------------------===//
 //  Arbitrary patterns that map to one or more instructions
@@ -234,4 +251,3 @@ multiclass SeteqPats<RegisterClass RC, Instruction XOROp> {
 }
 
 defm : SeteqPats<CPURegs, XOR>;
-

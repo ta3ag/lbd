@@ -142,12 +142,11 @@ multiclass StoreM32<bits<8> op, string instr_asm, PatFrag OpNode,
 
 /// Load and Store Instructions
 ///  aligned
-defm LD     : LoadM32<0x00,  "ld",  load_a>;
-defm ST     : StoreM32<0x01, "st",  store_a>;
+defm LD     : LoadM32<0x01,  "ld",  load_a>;
+defm ST     : StoreM32<0x02, "st",  store_a>;
 
 /// Arithmetic Instructions (ALU Immediate)
-//def LDI     : MoveImm<0x08, "ldi", add, simm16, immSExt16, CPURegs>;
-// add defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
+// IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
 def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
 
 let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,

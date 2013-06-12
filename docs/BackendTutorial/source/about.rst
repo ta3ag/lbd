@@ -57,6 +57,8 @@ Version 3.2.15, Not release yet.
 	Rewrite section Support arithmetic instructions of chapter Adding arithmetic
 	and local pointer support with the table adding.
 	Add two sentences in Preface. 
+	Add `llc -debug-pass` in section LLVM Code Generation Sequence.
+	Remove section Adjust cpu0 instructions.
 Version 3.2.14, Released May 24, 2013
 	Fix example code disappeared error.
 Version 3.2.13, Released May 23, 2013

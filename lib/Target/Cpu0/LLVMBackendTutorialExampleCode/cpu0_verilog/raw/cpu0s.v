@@ -32,7 +32,7 @@ module cpu0(input clock, reset, output reg [2:0] tick,
   `define T    `SW[6]  // Software Interrupt Enable
   `define M    `SW[0]  // Mode bit
   // Instruction Opcode 
-  parameter [7:0] LD=8'h00,ST=8'h01,LB=8'h03,LBu=8'h04,SB=8'h05,LH=8'h06,
+  parameter [7:0] LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,LH=8'h06,
   LHu=8'h07,SH=8'h08,ADDiu=8'h09,CMP=8'h10,MOV=8'h12,ADD=8'h13,
   SUB=8'h14,MUL=8'h15,SDIV=8'h16,AND=8'h18,OR=8'h19,XOR=8'h1A,
   SRA=8'h1B,ROL=8'h1C,ROR=8'h1D,SHL=8'h1E,SHR=8'h1F,

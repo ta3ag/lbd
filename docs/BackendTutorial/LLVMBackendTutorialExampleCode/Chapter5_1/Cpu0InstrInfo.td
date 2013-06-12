@@ -266,12 +266,11 @@ class EffectiveAddress<string instr_asm, RegisterClass RC, Operand Mem> :
 
 /// Load and Store Instructions
 ///  aligned
-defm LD     : LoadM32<0x00,  "ld",  load_a>;
-defm ST     : StoreM32<0x01, "st",  store_a>;
+defm LD     : LoadM32<0x01,  "ld",  load_a>;
+defm ST     : StoreM32<0x02, "st",  store_a>;
 
 /// Arithmetic Instructions (ALU Immediate)
-//def LDI     : MoveImm<0x08, "ldi", add, simm16, immSExt16, CPURegs>;
-// add defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
+// IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
 def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
 
 /// Arithmetic Instructions (3-Operand, R-Type)
@@ -294,12 +293,12 @@ def MTHI : MoveToLOHI<0x42, "mthi", CPURegs, [HI]>;
 def MTLO : MoveToLOHI<0x43, "mtlo", CPURegs, [LO]>;
 
 /// Shift Instructions
-// work, sra for ashr llvm IR instruction
+// sra is IR node for ashr llvm IR instruction of .bc
 def SRA     : shift_rotate_imm32<0x1B, 0x00, "sra", sra>;
 def ROL     : shift_rotate_imm32<0x1C, 0x01, "rol", rotl>;
 def ROR     : shift_rotate_imm32<0x1D, 0x01, "ror", rotr>;
 def SHL     : shift_rotate_imm32<0x1E, 0x00, "shl", shl>;
-// work, srl for lshr llvm IR instruction
+// srl is IR node for lshr llvm IR instruction of .bc
 def SHR     : shift_rotate_imm32<0x1F, 0x00, "shr", srl>;
 
 let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
@@ -344,4 +343,3 @@ multiclass SeteqPats<RegisterClass RC, Instruction XOROp> {
 }
 
 defm : SeteqPats<CPURegs, XOR>;
-

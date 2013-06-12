@@ -447,8 +447,8 @@ and “LLVM Language Reference Manual” from [#]_
 before go ahead, but we think read section 
 4.2 of tricore_llvm.pdf is enough. 
 We suggest you read the web site documents as above only when you are still not 
-quite understand, even though you have read this section and next 2 sections 
-article for DAG and Instruction Selection.
+quite understand, even though you have read the articles of this section and 
+next 2 sections for DAG and Instruction Selection.
 
 1. Instruction Selection
 
@@ -523,6 +523,120 @@ article for DAG and Instruction Selection.
 	Finally, the completed machine code is emitted. For static compilation, 
 	the end result is an assembly code file; for JIT compilation, the opcodes 
 	of the machine instructions are written into memory. 
+
+The llvm code generation sequence also can be obtained by 
+``llc -debug-pass=Structure`` as the following. The first 4 code generation 
+sequences from :num:`Figure #backendstructure-f5` are in the 
+**'DAG->DAG Pattern Instruction Selection'** of the ``llc -debug-pass=Structure`` 
+displayed. The order of Peephole Optimizations and Prologue/Epilogue Insertion
+is inconsistent in them (please check the * in the following). 
+No need to bother since the the LLVM is under development and changed all the 
+time. 
+
+.. code-block:: bash
+
+  118-165-79-200:InputFiles Jonathan$ llc --help-hidden
+  OVERVIEW: llvm system compiler
+  
+  USAGE: llc [options] <input bitcode>
+  
+  OPTIONS:
+  ...
+    -debug-pass                             - Print PassManager debugging information
+      =None                                 -   disable debug output
+      =Arguments                            -   print pass arguments to pass to 'opt'
+      =Structure                            -   print pass structure before run()
+      =Executions                           -   print pass name before it is executed
+      =Details                              -   print pass details when it is executed
+  
+  118-165-79-200:InputFiles Jonathan$ llc -march=mips -debug-pass=Structure ch3.bc
+  ...
+  Target Library Information
+  Target Transform Info
+  Data Layout
+  Target Pass Configuration
+  No Alias Analysis (always returns 'may' alias)
+  Type-Based Alias Analysis
+  Basic Alias Analysis (stateless AA impl)
+  Create Garbage Collector Module Metadata
+  Machine Module Information
+  Machine Branch Probability Analysis
+    ModulePass Manager
+      FunctionPass Manager
+        Preliminary module verification
+        Dominator Tree Construction
+        Module Verifier
+        Natural Loop Information
+        Loop Pass Manager
+          Canonicalize natural loops
+        Scalar Evolution Analysis
+        Loop Pass Manager
+          Canonicalize natural loops
+          Induction Variable Users
+          Loop Strength Reduction
+        Lower Garbage Collection Instructions
+        Remove unreachable blocks from the CFG
+        Exception handling preparation
+        Optimize for code generation
+        Insert stack protectors
+        Preliminary module verification
+        Dominator Tree Construction
+        Module Verifier
+        Machine Function Analysis
+        Natural Loop Information
+        Branch Probability Analysis
+      * MIPS DAG->DAG Pattern Instruction Selection
+        Expand ISel Pseudo-instructions
+        Tail Duplication
+        Optimize machine instruction PHIs
+        MachineDominator Tree Construction
+        Slot index numbering
+        Merge disjoint stack slots
+        Local Stack Slot Allocation
+        Remove dead machine instructions
+        MachineDominator Tree Construction
+        Machine Natural Loop Construction
+        Machine Loop Invariant Code Motion
+        Machine Common Subexpression Elimination
+        Machine code sinking
+      * Peephole Optimizations
+        Process Implicit Definitions
+        Remove unreachable machine basic blocks
+        Live Variable Analysis
+        Eliminate PHI nodes for register allocation
+        Two-Address instruction pass
+        Slot index numbering
+        Live Interval Analysis
+        Debug Variable Analysis
+        Simple Register Coalescing
+        Live Stack Slot Analysis
+        Calculate spill weights
+        Virtual Register Map
+        Live Register Matrix
+        Bundle Machine CFG Edges
+        Spill Code Placement Analysis
+        Greedy Register Allocator
+        Virtual Register Rewriter
+        Stack Slot Coloring
+        Machine Loop Invariant Code Motion
+      * Prologue/Epilogue Insertion & Frame Finalization
+        Control Flow Optimizer
+        Tail Duplication
+        Machine Copy Propagation Pass
+        Post-RA pseudo instruction expansion pass
+        MachineDominator Tree Construction
+        Machine Natural Loop Construction
+        Post RA top-down list latency scheduler
+        Analyze Machine Code For Garbage Collection
+        Machine Block Frequency Analysis
+        Branch Probability Basic Block Placement
+        Mips Delay Slot Filler
+        Mips Long Branch
+        MachineDominator Tree Construction
+        Machine Natural Loop Construction
+      * Mips Assembly Printer
+        Delete Garbage Collector Information
+
 
 DAG (Directed Acyclic Graph)
 ----------------------------
@@ -606,9 +720,9 @@ previous chapter. List them again as follows,
   ...
   def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
 
-:num:`Figure #backendstructure-f9` show the pattern match which bind the IR node 
-**add** and instruction ADDiu which defined in Cpu0InstrInfo.td. For the example 
-IR node "add %a, 5", it will be translated to "addiu %r1, 5" since the IR 
+:num:`Figure #backendstructure-f9` show how the pattern match work in the IR node 
+**add** and instruction ADDiu defined in Cpu0InstrInfo.td. For the example 
+IR node "add %a, 5", will be translated to "addiu %r1, 5" since the IR 
 pattern[(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))] is set in ADDiu and the
 2nd operand is signed immediate which matched "%a, 5". In addition to pattern 
 match, the .td also set assembly string "addiu" and op code 0x09. 

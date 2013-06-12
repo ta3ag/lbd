@@ -1,6 +1,6 @@
 diff -Naur Chapter8_5/CMakeLists.txt Chapter8_6/CMakeLists.txt
---- Chapter8_5/CMakeLists.txt	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter8_6/CMakeLists.txt	2013-04-08 15:34:23.000000000 +0800
+--- Chapter8_5/CMakeLists.txt	2013-06-12 13:27:21.000000000 +0800
++++ Chapter8_6/CMakeLists.txt	2013-06-12 13:27:21.000000000 +0800
 @@ -24,6 +24,7 @@
  # Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen
  add_llvm_target(Cpu0CodeGen
@@ -9,9 +9,20 @@ diff -Naur Chapter8_5/CMakeLists.txt Chapter8_6/CMakeLists.txt
    Cpu0InstrInfo.cpp
    Cpu0ISelDAGToDAG.cpp
    Cpu0ISelLowering.cpp
+diff -Naur Chapter8_5/Cpu0.h Chapter8_6/Cpu0.h
+--- Chapter8_5/Cpu0.h	2013-06-12 13:27:21.000000000 +0800
++++ Chapter8_6/Cpu0.h	2013-06-12 13:27:21.000000000 +0800
+@@ -23,6 +23,7 @@
+   class FunctionPass;
+ 
+   FunctionPass *createCpu0ISelDag(Cpu0TargetMachine &TM);
++  FunctionPass *createCpu0EmitGPRestorePass(Cpu0TargetMachine &TM);
+ 
+ } // end namespace llvm;
+ 
 diff -Naur Chapter8_5/Cpu0AsmPrinter.cpp Chapter8_6/Cpu0AsmPrinter.cpp
---- Chapter8_5/Cpu0AsmPrinter.cpp	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter8_6/Cpu0AsmPrinter.cpp	2013-04-08 15:34:23.000000000 +0800
+--- Chapter8_5/Cpu0AsmPrinter.cpp	2013-06-12 13:27:21.000000000 +0800
++++ Chapter8_6/Cpu0AsmPrinter.cpp	2013-06-12 13:27:21.000000000 +0800
 @@ -40,6 +40,19 @@
  
  using namespace llvm;
@@ -88,7 +99,7 @@ diff -Naur Chapter8_5/Cpu0AsmPrinter.cpp Chapter8_6/Cpu0AsmPrinter.cpp
  
 diff -Naur Chapter8_5/Cpu0EmitGPRestore.cpp Chapter8_6/Cpu0EmitGPRestore.cpp
 --- Chapter8_5/Cpu0EmitGPRestore.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter8_6/Cpu0EmitGPRestore.cpp	2013-04-08 15:34:23.000000000 +0800
++++ Chapter8_6/Cpu0EmitGPRestore.cpp	2013-06-12 13:27:21.000000000 +0800
 @@ -0,0 +1,99 @@
 +//===-- Cpu0EmitGPRestore.cpp - Emit GP Restore Instruction ---------------===//
 +//
@@ -190,8 +201,8 @@ diff -Naur Chapter8_5/Cpu0EmitGPRestore.cpp Chapter8_6/Cpu0EmitGPRestore.cpp
 +}
 +
 diff -Naur Chapter8_5/Cpu0FrameLowering.cpp Chapter8_6/Cpu0FrameLowering.cpp
---- Chapter8_5/Cpu0FrameLowering.cpp	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter8_6/Cpu0FrameLowering.cpp	2013-04-08 15:34:23.000000000 +0800
+--- Chapter8_5/Cpu0FrameLowering.cpp	2013-06-12 13:27:21.000000000 +0800
++++ Chapter8_6/Cpu0FrameLowering.cpp	2013-06-12 13:27:21.000000000 +0800
 @@ -102,7 +102,10 @@
    unsigned ADDiu = Cpu0::ADDiu;
    // First, compute final stack size.
@@ -218,20 +229,22 @@ diff -Naur Chapter8_5/Cpu0FrameLowering.cpp Chapter8_6/Cpu0FrameLowering.cpp
  }
  
  void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
-diff -Naur Chapter8_5/Cpu0.h Chapter8_6/Cpu0.h
---- Chapter8_5/Cpu0.h	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter8_6/Cpu0.h	2013-04-08 15:34:23.000000000 +0800
-@@ -23,6 +23,7 @@
-   class FunctionPass;
+diff -Naur Chapter8_5/Cpu0ISelLowering.cpp Chapter8_6/Cpu0ISelLowering.cpp
+--- Chapter8_5/Cpu0ISelLowering.cpp	2013-06-12 13:27:21.000000000 +0800
++++ Chapter8_6/Cpu0ISelLowering.cpp	2013-06-12 13:27:21.000000000 +0800
+@@ -268,6 +268,9 @@
+     NextStackOffset = (NextStackOffset + StackAlignment - 1) /
+                       StackAlignment * StackAlignment;
  
-   FunctionPass *createCpu0ISelDag(Cpu0TargetMachine &TM);
-+  FunctionPass *createCpu0EmitGPRestorePass(Cpu0TargetMachine &TM);
- 
- } // end namespace llvm;
- 
++    if (Cpu0FI->needGPSaveRestore())
++      MFI->setObjectOffset(Cpu0FI->getGPFI(), NextStackOffset);
++
+     MFI->setObjectOffset(DynAllocFI, NextStackOffset);
+   }
+   // Chain is the output chain of the last Load/Store or CopyToReg node.
 diff -Naur Chapter8_5/Cpu0InstrInfo.td Chapter8_6/Cpu0InstrInfo.td
---- Chapter8_5/Cpu0InstrInfo.td	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter8_6/Cpu0InstrInfo.td	2013-04-08 15:34:23.000000000 +0800
+--- Chapter8_5/Cpu0InstrInfo.td	2013-06-12 13:27:21.000000000 +0800
++++ Chapter8_6/Cpu0InstrInfo.td	2013-06-12 13:27:21.000000000 +0800
 @@ -374,6 +374,14 @@
                                    [(callseq_end timm:$amt1, timm:$amt2)]>;
  }
@@ -247,51 +260,9 @@ diff -Naur Chapter8_5/Cpu0InstrInfo.td Chapter8_6/Cpu0InstrInfo.td
  //===----------------------------------------------------------------------===//
  // Instruction definition
  //===----------------------------------------------------------------------===//
-diff -Naur Chapter8_5/Cpu0ISelLowering.cpp Chapter8_6/Cpu0ISelLowering.cpp
---- Chapter8_5/Cpu0ISelLowering.cpp	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter8_6/Cpu0ISelLowering.cpp	2013-04-08 15:34:23.000000000 +0800
-@@ -268,6 +268,9 @@
-     NextStackOffset = (NextStackOffset + StackAlignment - 1) /
-                       StackAlignment * StackAlignment;
- 
-+    if (Cpu0FI->needGPSaveRestore())
-+      MFI->setObjectOffset(Cpu0FI->getGPFI(), NextStackOffset);
-+
-     MFI->setObjectOffset(DynAllocFI, NextStackOffset);
-   }
-   // Chain is the output chain of the last Load/Store or CopyToReg node.
-diff -Naur Chapter8_5/Cpu0MachineFunction.h Chapter8_6/Cpu0MachineFunction.h
---- Chapter8_5/Cpu0MachineFunction.h	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter8_6/Cpu0MachineFunction.h	2013-04-08 15:34:23.000000000 +0800
-@@ -48,13 +48,14 @@
-   int GPFI; // Index of the frame object for restoring $gp
-   mutable int DynAllocFI; // Frame index of dynamically allocated stack area.
-   unsigned MaxCallFrameSize;
-+  bool EmitNOAT;
- 
- public:
-   Cpu0FunctionInfo(MachineFunction& MF)
-   : MF(MF), SRetReturnReg(0), GlobalBaseReg(0),
-     VarArgsFrameIndex(0), InArgFIRange(std::make_pair(-1, 0)),
-     OutArgFIRange(std::make_pair(-1, 0)), GPFI(0), DynAllocFI(0),
--    MaxCallFrameSize(0)
-+    MaxCallFrameSize(0), EmitNOAT(false)
-     {}
-   
-   bool isInArgFI(int FI) const {
-@@ -100,6 +101,9 @@
- 
-   unsigned getMaxCallFrameSize() const { return MaxCallFrameSize; }
-   void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
-+  bool getEmitNOAT() const { return EmitNOAT; }
-+  void setEmitNOAT() { EmitNOAT = true; }
-+
- };
- 
- } // end of namespace llvm
 diff -Naur Chapter8_5/Cpu0MCInstLower.cpp Chapter8_6/Cpu0MCInstLower.cpp
---- Chapter8_5/Cpu0MCInstLower.cpp	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter8_6/Cpu0MCInstLower.cpp	2013-04-08 15:34:23.000000000 +0800
+--- Chapter8_5/Cpu0MCInstLower.cpp	2013-06-12 13:27:21.000000000 +0800
++++ Chapter8_6/Cpu0MCInstLower.cpp	2013-06-12 13:27:21.000000000 +0800
 @@ -83,6 +83,72 @@
    return MCOperand::CreateExpr(AddExpr);
  }
@@ -366,8 +337,8 @@ diff -Naur Chapter8_5/Cpu0MCInstLower.cpp Chapter8_6/Cpu0MCInstLower.cpp
                                          unsigned offset) const {
    MachineOperandType MOTy = MO.getType();
 diff -Naur Chapter8_5/Cpu0MCInstLower.h Chapter8_6/Cpu0MCInstLower.h
---- Chapter8_5/Cpu0MCInstLower.h	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter8_6/Cpu0MCInstLower.h	2013-04-08 15:34:23.000000000 +0800
+--- Chapter8_5/Cpu0MCInstLower.h	2013-06-12 13:27:21.000000000 +0800
++++ Chapter8_6/Cpu0MCInstLower.h	2013-06-12 13:27:21.000000000 +0800
 @@ -33,6 +33,8 @@
    Cpu0MCInstLower(Cpu0AsmPrinter &asmprinter);
    void Initialize(Mangler *mang, MCContext* C);
@@ -377,9 +348,38 @@ diff -Naur Chapter8_5/Cpu0MCInstLower.h Chapter8_6/Cpu0MCInstLower.h
  private:
    MCOperand LowerSymbolOperand(const MachineOperand &MO,
                                 MachineOperandType MOTy, unsigned Offset) const;
+diff -Naur Chapter8_5/Cpu0MachineFunction.h Chapter8_6/Cpu0MachineFunction.h
+--- Chapter8_5/Cpu0MachineFunction.h	2013-06-12 13:27:21.000000000 +0800
++++ Chapter8_6/Cpu0MachineFunction.h	2013-06-12 13:27:21.000000000 +0800
+@@ -48,13 +48,14 @@
+   int GPFI; // Index of the frame object for restoring $gp
+   mutable int DynAllocFI; // Frame index of dynamically allocated stack area.
+   unsigned MaxCallFrameSize;
++  bool EmitNOAT;
+ 
+ public:
+   Cpu0FunctionInfo(MachineFunction& MF)
+   : MF(MF), SRetReturnReg(0), GlobalBaseReg(0),
+     VarArgsFrameIndex(0), InArgFIRange(std::make_pair(-1, 0)),
+     OutArgFIRange(std::make_pair(-1, 0)), GPFI(0), DynAllocFI(0),
+-    MaxCallFrameSize(0)
++    MaxCallFrameSize(0), EmitNOAT(false)
+     {}
+   
+   bool isInArgFI(int FI) const {
+@@ -100,6 +101,9 @@
+ 
+   unsigned getMaxCallFrameSize() const { return MaxCallFrameSize; }
+   void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
++  bool getEmitNOAT() const { return EmitNOAT; }
++  void setEmitNOAT() { EmitNOAT = true; }
++
+ };
+ 
+ } // end of namespace llvm
 diff -Naur Chapter8_5/Cpu0TargetMachine.cpp Chapter8_6/Cpu0TargetMachine.cpp
---- Chapter8_5/Cpu0TargetMachine.cpp	2013-04-08 15:34:23.000000000 +0800
-+++ Chapter8_6/Cpu0TargetMachine.cpp	2013-04-08 15:34:23.000000000 +0800
+--- Chapter8_5/Cpu0TargetMachine.cpp	2013-06-12 13:27:21.000000000 +0800
++++ Chapter8_6/Cpu0TargetMachine.cpp	2013-06-12 13:27:21.000000000 +0800
 @@ -82,6 +82,7 @@
      return *getCpu0TargetMachine().getSubtargetImpl();
    }
