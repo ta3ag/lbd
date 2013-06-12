@@ -61,6 +61,7 @@ Version 3.2.15, Released June 12, 2013
 	Add two sentences in Preface. 
 	Add `llc -debug-pass` in section LLVM Code Generation Sequence.
 	Remove section Adjust cpu0 instructions.
+	Remove section Use cpu0 official LDI instead of ADDiu of Appendix-C.
 Version 3.2.14, Released May 24, 2013
 	Fix example code disappeared error.
 Version 3.2.13, Released May 23, 2013
