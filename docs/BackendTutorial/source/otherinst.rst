@@ -340,7 +340,7 @@ and it's corresponding llvm IR. List them as follows,
     ret i32 %1
   }
 
-As above comment, b = !a, is translated into (xor (icmp ne i32 %0, 0), true). 
+As above, b = !a, is translated into (xor (icmp ne i32 %0, 0), true). 
 The %0 is the virtual register of variable **a** and the result of 
 (icmp ne i32 %0, 0) is 1 bit size. 
 To prove the translation is correct. 
@@ -423,23 +423,43 @@ as follows,
   In function: main
 
 
-The (setcc %1, %2, setne) and (xor %3, -1) in “Initial selection DAG” stage 
-corresponding (icmp %1, %2, ne) and (xor %3, 1) in ch4_2.bc. 
+Summary as Table: C operator ! corresponding IR of .bc and IR of DAG.
+
+
+Table: C operator ! corresponding IR of .bc and IR of DAG
+
+=============================	=================================	=============================
+IR of .bc                       Optimized lowered selection DAG		Type-legalized selection DAG
+=============================	=================================	=============================
+%tobool = icmp ne i32 %0, 0     	
+%lnot = xor i1 %tobool, true	%lnot = (setcc %tobool, 0, seteq)	%lnot = (setcc %tobool, 0, seteq)
+%conv = zext i1 %lnot to i32	%conv = (zero_extend %lnot)			%conv = (and %lnot, 1)
+=============================	=================================	=============================
+
+From above DAG translation result of ``llc -debug``, we see the IRs are same in both 
+stages of “Initial selection DAG” and “Optimized lowered selection DAG”.
+
+The (setcc %0, 0, setne) and (xor %tobool, -1) in “Initial selection DAG” stage 
+corresponding (icmp %0, 0, ne) and (xor %tobool, 1) in ch4_2.bc. 
 The argument in xor is 1 bit size (1 and -1 are same, they are all represented 
 by 1). 
-The (zero_extend %4) of “Initial selection DAG” corresponding (zext i1 %lnot 
-to i32) of ch4_2.bc. 
-As above it translate 2 DAG nodes (setcc %1, %2, setne) and (xor %3, -1) into 
-1 DAG node (setcc %1, %2, seteq) in “Optimized lowered selection DAG” stage. 
-This translation is right since for 1 bit size, (xor %3, 1) and (not %3) has 
-same result, and (not (setcc %1, %2, setne)) is equal to (setcc %1, %2, seteq). 
-In “Optimized lowered selection DAG” stage, it also translate (zero_extern i1 
+The (zero_extend %lnot) of “Initial selection DAG” corresponding 
+(zext i1 %lnot to i32) of ch4_2.bc. 
+As above it translate 2 DAG nodes (setcc %0, 0, setne) and (xor %tobool, -1) 
+into 1 DAG node (setcc %tobool, 0, seteq) in “Optimized lowered selection DAG” 
+stage. 
+This translation is right since for 1 bit size, (xor %tobool, 1) and 
+(not %tobool) has same result; and (not (setcc %tobool, 0, setne)) is equal to 
+(setcc %tobool, 0, seteq). 
+In “Type-legalized selection DAG” stage, it translate (zero_extern i1 
 %lnot to 32) into (and %lnot, 1). 
 (zero_extern i1 %lnot to 32) just expand the %lnot to i32 32 bits result, so 
 translate into (and %lnot, 1) is correct. 
-It fails at (setcc %1, %2, seteq).
 
-Run it with Chapter4_2/ which added code as below, to get the following result.
+Finally, according the DAG translation message, it fails at 
+(setcc %tobool, 0, seteq).
+Run it with Chapter4_2/ which added code to handle pattern 
+(setcc %tobool, 0, seteq) as below, to get the following result.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_2/Cpu0InstrInfo.td
 .. code-block:: c++
@@ -476,12 +496,36 @@ Run it with Chapter4_2/ which added code as below, to get the following result.
   => 0x7fbc6902ac10: i32 = XOR 0x7fbc6902af10, 0x7fbc6902d510
 
 
-Chapter4_2/ defined seteq DAG pattern. 
-It translate (setcc %1, %2, seteq) into (xor (xor %1, %2), (addiu $0, 1)) in 
-“Instruction selection” stage by the rule defined in Cpu0InstrInfo.td as 
-above.
+Summary as Table: C operator ! corresponding IR of DAG and .
 
-After xor, the (and %4, 1) is translated into (and $2, (addiu $3, 1)) which is 
+
+Table: C operator ! corresponding IR of Type-legalized selection DAG and Cpu0 instructions
+
+=================================	==========================
+Type-legalized selection DAG		Cpu0 instruction
+=================================	==========================
+%lnot = (setcc %tobool, 0, seteq)	%1 = (xor %tobool, 0)
+-                                 	%true = (addiu $r0, 1)
+-                                 	%lnot = (xor %1, %true)
+%conv = (and %lnot, 1)
+=================================	==========================
+
+Chapter4_2/ defined seteq DAG pattern. 
+It translate **%lnot = (setcc %tobool, 0, seteq)** into **%1 = (xor %tobool, 0)**, 
+**%true = (addiu $r0, 1)** and **%lnot = (xor %1, %true)** in 
+“Instruction selection” stage by the rules defined in Cpu0InstrInfo.td as above. 
+This translation is right accroding the following truth:
+
+1. %lnot = 1 when %tobool = 0 and $lnot = 0 when 
+%tobool!=0. 
+
+2. %true = (addiu $r0, 1) always is 1 since $r0 is zero. %tobool is 0 or 1. 
+When %tobool = 0, %1 = 1 and %lnot = (xor %1, %true) = 0; when %tobool = 1, 
+%1 = 0 and %lnot = (xor 0, %true) = 1.
+
+3. When %tobool = !0, %1 != 1 and %lnot = (xor %1, %true) != 0.
+
+After xor, the (and %lnot, 1) is translated into (and $lnot, 1) which is 
 defined before. 
 List the asm file ch4_2.cpu0.s as below, you can check it with 
 the final result. 
@@ -490,24 +534,23 @@ the final result.
 
   118-165-16-22:InputFiles Jonathan$ cat ch4_2.cpu0.s
   ...
-  # BB#0:                                 # %entry
-      addiu   $sp, $sp, -16
-  tmp1:
-      .cfi_def_cfa_offset 16
-      addiu   $2, $zero, 0
-      st  $2, 12($sp)
-      addiu   $3, $zero, 5
-      st  $3, 8($sp)
-      st  $2, 4($sp)
-      ld  $3, 8($sp)
-      xor $2, $3, $2
-      addiu $3, $3, 1
-      xor $2, $2, $3
-      addiu   $3, $zero, 1
-      and $2, $2, $3
-      st  $2, 4($sp)
-      addiu   $sp, $sp, 16
-      ret $lr
+  # BB#0:
+  	addiu	$sp, $sp, -16
+  $tmp1:
+  	.cfi_def_cfa_offset 16
+  	addiu	$2, $zero, 0
+  	st	$2, 12($sp)
+  	addiu	$3, $zero, 5
+  	st	$3, 8($sp)
+  	st	$2, 4($sp)
+  	ld	$3, 8($sp)
+  	xor	$2, $3, $2
+  	addiu	$3, $zero, 1
+  	xor	$2, $2, $3
+  	and	$2, $2, $3
+  	st	$2, 4($sp)
+  	addiu	$sp, $sp, 16
+  	ret	$lr
   ...
 
 
