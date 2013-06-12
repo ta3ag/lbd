@@ -340,7 +340,7 @@ and it's corresponding llvm IR. List them as follows,
     ret i32 %1
   }
 
-As above comment, b = !a, translate to (xor (icmp ne i32 %0, 0), true). 
+As above comment, b = !a, is translated into (xor (icmp ne i32 %0, 0), true). 
 The %0 is the virtual register of variable **a** and the result of 
 (icmp ne i32 %0, 0) is 1 bit size. 
 To prove the translation is correct. 
@@ -477,13 +477,13 @@ Run it with Chapter4_2/ which added code as below, to get the following result.
 
 
 Chapter4_2/ defined seteq DAG pattern. 
-It translate (setcc %1, %2, seteq) into (xor (xor %1, %2), (addiu $0, 1) in 
+It translate (setcc %1, %2, seteq) into (xor (xor %1, %2), (addiu $0, 1)) in 
 “Instruction selection” stage by the rule defined in Cpu0InstrInfo.td as 
 above.
 
 After xor, the (and %4, 1) is translated into (and $2, (addiu $3, 1)) which is 
-defined before already. 
-List the asm file ch4_2.cpu0.s code fragment as below, you can check it with 
+defined before. 
+List the asm file ch4_2.cpu0.s as below, you can check it with 
 the final result. 
 
 .. code-block:: bash
@@ -521,7 +521,7 @@ The `section Install other tools on iMac`_ mentioned the web for ``llc``
 graphic display information. 
 The ``llc`` graphic display with tool Graphviz is introduced in this section. 
 The graphic display is more readable by eye than display text in terminal. 
-It's not necessary, but it help a lot especially when you are tired in tracking 
+It's not necessary, but helps a lot especially when you are tired in tracking 
 the DAG translation process. 
 List the ``llc`` graphic support options from the sub-section "SelectionDAG 
 Instruction Selection Process" of web [#]_ as follows,
@@ -766,9 +766,9 @@ Copy the reference as follows,
 
 
 
-Run Chapter4_5/ with input file ch4_5.bc and ``llc`` option –view-isel-dags as 
-below, will get the error message as follows and the llvm DAG of 
-:num:`Figure #otherinst-f2`.
+Run Chapter4_5/ with input file ch4_5.bc via ``llc`` option –view-isel-dags as 
+below, will get the following error message and the llvm DAG of 
+:num:`Figure #otherinst-f2` below.
 
 .. code-block:: bash
 
@@ -795,7 +795,7 @@ LLVM replace srem divide operation with multiply operation in DAG optimization
 because DIV operation cost more in time than MUL. 
 For example code **“int b = 11; b=(b+1)%12;”**, it translate into 
 :num:`Figure #otherinst-f2`. 
-We verify the result and explain by calculate the value in each node. 
+We verify the result and explain it by calculate the value in each node. 
 The 0xC*0x2AAAAAAB=0x2,00000004, (mulhs 0xC, 0x2AAAAAAAB) meaning get the Signed 
 mul high word (32bits). 
 Multiply with 2 operands of 1 word size generate the 2 word size of result 
@@ -1259,10 +1259,11 @@ Run with ch4_6_2.cpp can get the result for operator **“/”** as below.
 But run with ch4_6_1.cpp as below, cannot get the **“div”** for operator 
 **“%”**. 
 It still use **"multiplication"** instead of **"div"** because llvm do 
-**“Constant Propagation Optimization”** in this. 
+**“Constant Propagation Optimization”** on this. 
 The ch4_6_2.cpp can get the **“div”** for **“%”** result since it make the 
 llvm **“Constant Propagation Optimization”** useless in this. 
-Unfortunately, we cannot run it now since it need the function call support. 
+Unfortunately, we cannot run it now since ch4_6_2.cpp need the function call 
+support implementation. 
 We will verify **“%”** with ch4_6_2.cpp at the end of chapter “Function Call”. 
 You can run with the end of Example Code of chapter “Function Call”, if you 
 like to verify it now.
@@ -1301,6 +1302,7 @@ like to verify it now.
 
 Summary
 --------
+
 We support most of C operators in this chapter. 
 Until now, we have around 3400 lines of source code with comments. 
 With these 345 lines of source code added, it support the number of operators 
