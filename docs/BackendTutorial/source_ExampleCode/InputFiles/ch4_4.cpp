@@ -3,13 +3,9 @@
 
 int main()
 {
-  int a = 1;
-  int b = 2;
-  int k = 0;
-  unsigned int a1 = -5, f1 = 0;
+  int b = 3;
   
-  f1 = a1 / b;
-  k = (a >> 2);
+  int* p = &b;
 
-  return k;
+  return *p;
 }

@@ -525,7 +525,7 @@ When %tobool = 0, %1 = 1 and %lnot = (xor %1, %true) = 0; when %tobool = 1,
 
 3. When %tobool = !0, %1 != 1 and %lnot = (xor %1, %true) != 0.
 
-After xor, the (and %lnot, 1) is translated into (and $lnot, 1) which is 
+After xor, the IR (and %lnot, 1) is translated into Cpu0 (and $lnot, 1) which is 
 defined before. 
 List the asm file ch4_2.cpu0.s as below, you can check it with 
 the final result. 
