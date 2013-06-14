@@ -507,7 +507,7 @@ Type-legalized selection DAG		Cpu0 instruction
 %lnot = (setcc %tobool, 0, seteq)	%1 = (xor %tobool, 0)
 -                                 	%true = (addiu $r0, 1)
 -                                 	%lnot = (xor %1, %true)
-%conv = (and %lnot, 1)
+%conv = (and %lnot, 1)			%conv = (and %lnot, 1)
 =================================	==========================
 
 Chapter4_2/ defined seteq DAG pattern. 
@@ -1306,10 +1306,7 @@ It still use **"multiplication"** instead of **"div"** because llvm do
 The ch4_6_2.cpp can get the **“div”** for **“%”** result since it make the 
 llvm **“Constant Propagation Optimization”** useless in this. 
 Unfortunately, we cannot run it now since ch4_6_2.cpp need the function call 
-support implementation. 
-We will verify **“%”** with ch4_6_2.cpp at the end of chapter “Function Call”. 
-You can run with the end of Example Code of chapter “Function Call”, if you 
-like to verify it now.
+support implementation since it call the function rand(). 
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_6_2.cpp
 .. code-block:: c++
@@ -1341,6 +1338,361 @@ like to verify it now.
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_6_2.cpp
     :lines: 4-
     :linenos:
+
+To explain how Chapter4_6 work with **“div”**, let's run Chapter8_8 with 
+ch4_6_2.cpp as follows,
+
+.. code-block:: bash
+
+	cschen@cschen-BM6835-BM6635-BP6335:~/test/1/lbd/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles$ clang -c ch4_6_2.cpp -emit-llvm -o ch4_6_2.bc
+	cschen@cschen-BM6835-BM6635-BP6335:~/test/1/lbd/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles$ /usr/local/llvm/lbd/cmake_debug_build/bin/llc -march=cpu0 -debug -relocation-model=pic -filetype=asm ch4_6_2.bc -o -
+	Args: /usr/local/llvm/lbd/cmake_debug_build/bin/llc -march=cpu0 -debug -relocation-model=pic -filetype=asm ch4_6_2.bc -o - 
+
+	=== main
+	Initial selection DAG: BB#0 'main:entry'
+	SelectionDAG has 34 nodes:
+	  0x21f57c8: ch = EntryToken [ORD=1]
+
+	  0x221a770: i32 = undef [ORD=1]
+
+	  0x221aa70: i32 = FrameIndex<1> [ORD=2]
+
+	  0x221ac70: i32 = GlobalAddress<i32 ()* @rand> 0
+
+	  0x221ad70: i32 = TargetConstant<0> [ORD=3]
+
+	  0x221b370: i32 = Register %T9 [ORD=3]
+
+		  0x21f57c8: <multiple use>
+		  0x221a570: i32 = Constant<0> [ORD=1]
+
+		  0x221a670: i32 = FrameIndex<0> [ORD=1]
+
+		  0x221a770: <multiple use>
+		0x221a870: ch = store 0x21f57c8, 0x221a570, 0x221a670, 0x221a770<ST4[%retval]> [ORD=1]
+
+		0x221a970: i32 = Constant<11> [ORD=2]
+
+		0x221aa70: <multiple use>
+		0x221a770: <multiple use>
+	      0x221ab70: ch = store 0x221a870, 0x221a970, 0x221aa70, 0x221a770<ST4[%b]> [ORD=2]
+
+	      0x221ad70: <multiple use>
+	    0x221ae70: ch,glue = callseq_start 0x221ab70, 0x221ad70 [ORD=3]
+
+	    0x221b370: <multiple use>
+	      0x21f57c8: <multiple use>
+		0x221b070: i32 = Register %GP [ORD=3]
+
+		0x221af70: i32 = TargetGlobalAddress<i32 ()* @rand> 0 [TF=3] [ORD=3]
+
+	      0x221b170: i32 = Cpu0ISD::Wrapper 0x221b070, 0x221af70 [ORD=3]
+
+	      0x221a770: <multiple use>
+	    0x221b270: i32,ch = load 0x21f57c8, 0x221b170, 0x221a770<LD4[GOT]> [ORD=3]
+
+	  0x221d3f0: ch,glue = CopyToReg 0x221ae70, 0x221b370, 0x221b270 [ORD=3]
+
+	    0x221d3f0: <multiple use>
+	    0x221b370: <multiple use>
+	    0x221d4f0: Untyped = RegisterMask [ORD=3]
+
+	    0x221d3f0: <multiple use>
+	  0x221d5f0: ch,glue = Cpu0ISD::JmpLink 0x221d3f0, 0x221b370, 0x221d4f0, 0x221d3f0:1 [ORD=3]
+
+	    0x221d5f0: <multiple use>
+	    0x221ad70: <multiple use>
+	    0x221ad70: <multiple use>
+	    0x221d5f0: <multiple use>
+	  0x221d6f0: ch,glue = callseq_end 0x221d5f0, 0x221ad70, 0x221ad70, 0x221d5f0:1 [ORD=3]
+
+	  0x221d7f0: i32 = Register %V0 [ORD=3]
+
+	    0x221d6f0: <multiple use>
+	    0x221d7f0: <multiple use>
+	    0x221d6f0: <multiple use>
+	  0x221d8f0: i32,ch,glue = CopyFromReg 0x221d6f0, 0x221d7f0, 0x221d6f0:1 [ORD=3]
+
+	  0x221d9f0: i32 = FrameIndex<2> [ORD=5]
+
+	    0x221d8f0: <multiple use>
+	    0x221d8f0: <multiple use>
+	    0x221d9f0: <multiple use>
+	    0x221a770: <multiple use>
+	  0x221daf0: ch = store 0x221d8f0:1, 0x221d8f0, 0x221d9f0, 0x221a770<ST4[%c]> [ORD=5]
+
+	    0x221daf0: <multiple use>
+	    0x221aa70: <multiple use>
+	    0x221a770: <multiple use>
+	  0x221dbf0: i32,ch = load 0x221daf0, 0x221aa70, 0x221a770<LD4[%b]> [ORD=6]
+
+	    0x221daf0: <multiple use>
+	    0x221d9f0: <multiple use>
+	    0x221a770: <multiple use>
+	  0x221def0: i32,ch = load 0x221daf0, 0x221d9f0, 0x221a770<LD4[%c]> [ORD=8]
+
+	      0x221dbf0: <multiple use>
+	      0x221def0: <multiple use>
+	    0x221e0f0: ch = TokenFactor 0x221dbf0:1, 0x221def0:1 [ORD=10]
+
+		0x221dbf0: <multiple use>
+		0x221dcf0: i32 = Constant<1> [ORD=7]
+
+	      0x221ddf0: i32 = add 0x221dbf0, 0x221dcf0 [ORD=7]
+
+	      0x221def0: <multiple use>
+	    0x221dff0: i32 = srem 0x221ddf0, 0x221def0 [ORD=9]
+
+	    0x221aa70: <multiple use>
+	    0x221a770: <multiple use>
+	  0x221e1f0: ch = store 0x221e0f0, 0x221dff0, 0x221aa70, 0x221a770<ST4[%b]> [ORD=10]
+
+	    0x221e1f0: <multiple use>
+	    0x221d7f0: <multiple use>
+	      0x221e1f0: <multiple use>
+	      0x221aa70: <multiple use>
+	      0x221a770: <multiple use>
+	    0x221e560: i32,ch = load 0x221e1f0, 0x221aa70, 0x221a770<LD4[%b]> [ORD=11]
+
+	  0x221e660: ch,glue = CopyToReg 0x221e1f0, 0x221d7f0, 0x221e560
+
+	    0x221e660: <multiple use>
+	    0x221d7f0: <multiple use>
+	    0x221e660: <multiple use>
+	  0x221e760: ch = Cpu0ISD::Ret 0x221e660, 0x221d7f0, 0x221e660:1
+
+
+
+	Replacing.1 0x221e560: i32,ch = load 0x221e1f0, 0x221aa70, 0x221a770<LD4[%b]> [ORD=11]
+
+	With: 0x221dff0: i32 = srem 0x221ddf0, 0x221def0 [ORD=9]
+	 and 1 other values
+
+	Replacing.1 0x221def0: i32,ch = load 0x221daf0, 0x221d9f0, 0x221a770<LD4[%c]> [ORD=8]
+
+	With: 0x221d8f0: i32,ch,glue = CopyFromReg 0x221d6f0, 0x221d7f0, 0x221d6f0:1 [ORD=3]
+	 and 1 other values
+
+	Replacing.3 0x221e0f0: ch = TokenFactor 0x221dbf0:1, 0x221daf0 [ORD=10]
+
+	With: 0x221dbf0: i32,ch = load 0x221daf0, 0x221aa70, 0x221a770<LD4[%b]> [ORD=6]
+
+	Optimized lowered selection DAG: BB#0 'main:entry'
+	SelectionDAG has 30 nodes:
+	  0x21f57c8: ch = EntryToken [ORD=1]
+
+	  0x221a770: i32 = undef [ORD=1]
+
+	  0x221aa70: i32 = FrameIndex<1> [ORD=2]
+
+	  0x221ad70: i32 = TargetConstant<0> [ORD=3]
+
+	  0x221b370: i32 = Register %T9 [ORD=3]
+
+		  0x21f57c8: <multiple use>
+		  0x221a570: i32 = Constant<0> [ORD=1]
+
+		  0x221a670: i32 = FrameIndex<0> [ORD=1]
+
+		  0x221a770: <multiple use>
+		0x221a870: ch = store 0x21f57c8, 0x221a570, 0x221a670, 0x221a770<ST4[%retval]> [ORD=1]
+
+		0x221a970: i32 = Constant<11> [ORD=2]
+
+		0x221aa70: <multiple use>
+		0x221a770: <multiple use>
+	      0x221ab70: ch = store 0x221a870, 0x221a970, 0x221aa70, 0x221a770<ST4[%b]> [ORD=2]
+
+	      0x221ad70: <multiple use>
+	    0x221ae70: ch,glue = callseq_start 0x221ab70, 0x221ad70 [ORD=3]
+
+	    0x221b370: <multiple use>
+	      0x21f57c8: <multiple use>
+		0x221b070: i32 = Register %GP [ORD=3]
+
+		0x221af70: i32 = TargetGlobalAddress<i32 ()* @rand> 0 [TF=3] [ORD=3]
+
+	      0x221b170: i32 = Cpu0ISD::Wrapper 0x221b070, 0x221af70 [ORD=3]
+
+	      0x221a770: <multiple use>
+	    0x221b270: i32,ch = load 0x21f57c8, 0x221b170, 0x221a770<LD4[GOT]> [ORD=3]
+
+	  0x221d3f0: ch,glue = CopyToReg 0x221ae70, 0x221b370, 0x221b270 [ORD=3]
+
+	    0x221d3f0: <multiple use>
+	    0x221b370: <multiple use>
+	    0x221d4f0: Untyped = RegisterMask [ORD=3]
+
+	    0x221d3f0: <multiple use>
+	  0x221d5f0: ch,glue = Cpu0ISD::JmpLink 0x221d3f0, 0x221b370, 0x221d4f0, 0x221d3f0:1 [ORD=3]
+
+	    0x221d5f0: <multiple use>
+	    0x221ad70: <multiple use>
+	    0x221ad70: <multiple use>
+	    0x221d5f0: <multiple use>
+	  0x221d6f0: ch,glue = callseq_end 0x221d5f0, 0x221ad70, 0x221ad70, 0x221d5f0:1 [ORD=3]
+
+	  0x221d7f0: i32 = Register %V0 [ORD=3]
+
+	    0x221d6f0: <multiple use>
+	    0x221d7f0: <multiple use>
+	    0x221d6f0: <multiple use>
+	  0x221d8f0: i32,ch,glue = CopyFromReg 0x221d6f0, 0x221d7f0, 0x221d6f0:1 [ORD=3]
+
+	      0x221d8f0: <multiple use>
+	      0x221d8f0: <multiple use>
+	      0x221d9f0: i32 = FrameIndex<2> [ORD=5]
+
+	      0x221a770: <multiple use>
+	    0x221daf0: ch = store 0x221d8f0:1, 0x221d8f0, 0x221d9f0, 0x221a770<ST4[%c]> [ORD=5]
+
+	    0x221aa70: <multiple use>
+	    0x221a770: <multiple use>
+	  0x221dbf0: i32,ch = load 0x221daf0, 0x221aa70, 0x221a770<LD4[%b]> [ORD=6]
+
+	      0x221dbf0: <multiple use>
+	      0x221dcf0: i32 = Constant<1> [ORD=7]
+
+	    0x221ddf0: i32 = add 0x221dbf0, 0x221dcf0 [ORD=7]
+
+	    0x221d8f0: <multiple use>
+	  0x221dff0: i32 = srem 0x221ddf0, 0x221d8f0 [ORD=9]
+
+	      0x221dbf0: <multiple use>
+	      0x221dff0: <multiple use>
+	      0x221aa70: <multiple use>
+	      0x221a770: <multiple use>
+	    0x221e1f0: ch = store 0x221dbf0:1, 0x221dff0, 0x221aa70, 0x221a770<ST4[%b]> [ORD=10]
+
+	    0x221d7f0: <multiple use>
+	    0x221dff0: <multiple use>
+	  0x221e660: ch,glue = CopyToReg 0x221e1f0, 0x221d7f0, 0x221dff0
+
+	    0x221e660: <multiple use>
+	    0x221d7f0: <multiple use>
+	    0x221e660: <multiple use>
+	  0x221e760: ch = Cpu0ISD::Ret 0x221e660, 0x221d7f0, 0x221e660:1
+
+	...
+
+	Type-legalized selection DAG: BB#0 'main:entry'
+	SelectionDAG has 30 nodes:
+	  ...
+
+	    0x221ddf0: i32 = add 0x221dbf0, 0x221dcf0 [ORD=7] [ID=-3]
+
+	    0x221d8f0: <multiple use>
+	  0x221dff0: i32 = srem 0x221ddf0, 0x221d8f0 [ORD=9] [ID=-3]
+	  ...
+
+	Legalized selection DAG: BB#0 'main:entry'
+	SelectionDAG has 30 nodes:
+	  0x21f57c8: ch = EntryToken [ORD=1] [ID=0]
+
+	  0x221a770: i32 = undef [ORD=1] [ID=3]
+
+	  0x221aa70: i32 = FrameIndex<1> [ORD=2] [ID=5]
+
+	  0x221ad70: i32 = TargetConstant<0> [ORD=3] [ID=6]
+
+	  0x221b370: i32 = Register %T9 [ORD=3] [ID=9]
+
+	  0x221d7f0: i32 = Register %V0 [ORD=3] [ID=11]
+	  ...
+
+	    0x221ddf0: i32 = add 0x221dbf0, 0x221dcf0 [ORD=7] [ID=25]
+
+	    0x221d8f0: <multiple use>
+	  0x221ac70: i32,i32 = sdivrem 0x221ddf0, 0x221d8f0
+	  ...
+
+	Optimized legalized selection DAG: BB#0 'main:entry'
+	SelectionDAG has 32 nodes:
+	  ...
+	    0x21f57c8: <multiple use>
+	    0x221def0: i32 = Register %HI
+
+		0x221dbf0: <multiple use>
+		0x221dcf0: i32 = Constant<1> [ORD=7] [ID=13]
+
+	      0x221ddf0: i32 = add 0x221dbf0, 0x221dcf0 [ORD=7] [ID=25]
+
+	      0x221d8f0: <multiple use>
+	    0x221e0f0: glue = Cpu0ISD::DivRem 0x221ddf0, 0x221d8f0
+
+    0x221e560: i32,ch,glue = CopyFromReg 0x21f57c8, 0x221def0, 0x221e0f0
+	  ...
+
+	===== Instruction selection begins: BB#0 'entry'
+	...
+	Selecting: 0x221e0f0: glue = Cpu0ISD::DivRem 0x221ddf0, 0x221d8f0 [ID=27]
+
+	ISEL: Starting pattern match on root node: 0x221e0f0: glue = Cpu0ISD::DivRem 0x221ddf0, 0x221d8f0 [ID=27]
+
+	  Initial Opcode index to 1308
+	  Morphed node: 0x221e0f0: i32,glue = SDIV 0x221ddf0, 0x221d8f0
+
+	ISEL: Match complete!
+
+
+According above DAG translation message from ``llc -debug``, it do the 
+following things:
+
+1. Reduce DAG nodes in stage "Optimized lowered selection DAG" (Replacing ... 
+displayed before "Optimized lowered selection DAG: BB#0 'main:entry'"). Since 
+SSA form has some redundant nodes for store and load, them can be removed.
+
+2. Change DAG srem to sdivrem in stage "Legalized selection DAG".
+
+3. Change DAG sdivrem to Cpu0ISD::DivRem and in stage "Optimized legalized 
+selection DAG".
+
+4. Add DAG "0x221def0: i32 = Register %HI" and "CopyFromReg 0x21f57c8, 
+0x221def0, 0x221e0f0" in stage "Optimized legalized selection DAG".
+
+Above item 2, is triggered by code 
+"setOperationAction(ISD::SREM, MVT::i32, Expand);" in Cpu0ISelLowering.cpp. 
+About **Expand** please ref. [#]_ and [#]_. Item 3 is triggered by code 
+"setTargetDAGCombine(ISD::SDIVREM);" and handled by function 
+PerformDAGCombine() and PerformDivRemCombine() in Cpu0ISelLowering.cpp.
+Item 4 is did by PerformDivRemCombine() since the **%** corresponding srem 
+which make the "N->hasAnyUseOfValue(1)" is true in PerformDivRemCombine(). 
+So, it create "CopyFromReg 0x21f57c8, 0x221def0, 0x221e0f0". 
+When use **"/"** in C, it will make "N->hasAnyUseOfValue(0)" to ture.
+For sdivrem, **sdiv** make "N->hasAnyUseOfValue(0)" true while **srem** make 
+"N->hasAnyUseOfValue(1)" ture.
+
+Above items will change the DAG when ``llc`` running. After that, the pattern 
+match defined in Chapter4_6/Cpu0InstrInfo.td will translate **Cpu0ISD::DivRem** 
+to **div** and **"CopyFromReg 0x21f57c8, Register %H, 0x221e0f0"** to **mfhi**.
+
+Summary as Table: Stages for C operator % and Table: Functions handle the DAG 
+translation and pattern match for C operator %.
+
+Table: Stages for C operator %
+
+==================================	=====================	=========================
+Stage           			IR/DAG/instruction 	IR/DAG/instruction
+==================================	=====================	=========================
+.bc     	      			srem              	
+Legalized selection DAG    		sdivrem           	
+Optimized legalized selection DAG	Cpu0ISD::DivRem   	CopyFromReg xx, Hi, xx
+pattern match             		div			mfhi
+==================================	=====================	=========================
+
+
+Table: Functions handle the DAG translation and pattern match for C operator %
+
+====================================	============================
+Translation     			Do by
+====================================	============================
+srem => sdivrem       			setOperationAction(ISD::SREM, MVT::i32, Expand);
+sdivrem => Cpu0ISD::DivRem		setTargetDAGCombine(ISD::SDIVREM); PerformDAGCombine(); PerformDivRemCombine();
+sdivrem => CopyFromReg xx, Hi, xx	PerformDivRemCombine();
+Cpu0ISD::DivRem => div			SDIV (Cpu0InstrInfo.td)
+CopyFromReg xx, Hi, xx => mfhi          MFLO (Cpu0InstrInfo.td)
+====================================	============================
+
 
 
 Summary
@@ -1381,4 +1733,9 @@ from three to over ten.
 .. [#] http://llvm.org/docs/LangRef.html.
 
 .. [#] http://llvm.org/docs/CodeGenerator.html
+
+.. [#] http://llvm.org/docs/WritingAnLLVMBackend.html#expand
+
+.. [#] http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase
+
 

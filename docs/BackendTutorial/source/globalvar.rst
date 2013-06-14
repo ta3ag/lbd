@@ -152,13 +152,13 @@ As above, it translate code with ``llc -relocation-model=static
 The -cpu0-islinux-format default is true which will allocate global variables 
 in data section. 
 With setting false, it will allocate global variables in sdata section. 
-Section data and sdata are areas for global variable with initial value, 
-int gI = 100 in this example. 
+Section data and sdata are areas for global variable with initial value (as 
+int gI = 100 in this example) while 
 Section bss and sbss are areas for global variables without initial value 
 (for example, int gI;). 
 Allocate variables in sdata or sbss sections is addressable by 16 bits + $gp. 
 The static mode with -cpu0-islinux-format=false is still static mode 
-(variable is binding in compile/link time) even it's use $gp relative address. 
+(variable is binding in compile/link time) even it use $gp relative address. 
 The $gp content is assigned at compile/link time, changed only at program be 
 loaded, and is fixed during running the program; while the -relocation-model=pic 
 the $gp can be changed during program running. 
