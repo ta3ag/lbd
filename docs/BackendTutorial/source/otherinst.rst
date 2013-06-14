@@ -25,8 +25,8 @@ follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_1_1.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_1_1.cpp
-    :lines: 7-
-    :linenos:
+  :lines: 7-
+  :linenos:
 
 .. code-block:: bash
 
@@ -41,22 +41,22 @@ follows,
   target triple = "x86_64-apple-macosx10.8.0"
   
   define i32 @main() nounwind uwtable ssp {
-    %1 = alloca i32, align 4
-    %a = alloca i32, align 4
-    %b = alloca i32, align 4
-    %c = alloca i32, align 4
-    store i32 0, i32* %1
-    store i32 5, i32* %a, align 4
-    store i32 2, i32* %b, align 4
-    store i32 0, i32* %c, align 4
-    %2 = load i32* %a, align 4
-    %3 = load i32* %b, align 4
-    %4 = add nsw i32 %2, %3
-    store i32 %4, i32* %c, align 4
-    %5 = load i32* %c, align 4
-    ret i32 %5
+  %1 = alloca i32, align 4
+  %a = alloca i32, align 4
+  %b = alloca i32, align 4
+  %c = alloca i32, align 4
+  store i32 0, i32* %1
+  store i32 5, i32* %a, align 4
+  store i32 2, i32* %b, align 4
+  store i32 0, i32* %c, align 4
+  %2 = load i32* %a, align 4
+  %3 = load i32* %b, align 4
+  %4 = add nsw i32 %2, %3
+  store i32 %4, i32* %c, align 4
+  %5 = load i32* %c, align 4
+  ret i32 %5
   }
-    
+  
   118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_1_1.bc -o 
   ch4_1_1.cpu0.s
@@ -73,75 +73,75 @@ Chapter4_1/,
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
-  def shamt       : Operand<i32>;
+  def shamt     : Operand<i32>;
   ...
   // shamt field must fit in 5 bits.
   def immZExt5 : ImmLeaf<i32, [{return Imm == (Imm & 0x1f);}]>;
   ...
   // Arithmetic and logical instructions with 3 register operands.
   class ArithLogicR<bits<8> op, string instr_asm, SDNode OpNode,
-            InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
-    FA<op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
-     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
-     [(set RC:$ra, (OpNode RC:$rb, RC:$rc))], itin> {
-    let shamt = 0;
-    let isCommutable = isComm;  // e.g. add rb rc =  add rc rb
-    let isReMaterializable = 1;
+      InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
+  FA<op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
+   !strconcat(instr_asm, "\t$ra, $rb, $rc"),
+   [(set RC:$ra, (OpNode RC:$rb, RC:$rc))], itin> {
+  let shamt = 0;
+  let isCommutable = isComm;  // e.g. add rb rc =  add rc rb
+  let isReMaterializable = 1;
   }
   
   class CmpInstr<bits<8> op, string instr_asm,
-            InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
-    FA<op, (outs RC:$SW), (ins RC:$ra, RC:$rb),
-     !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
-    let rc = 0;
-    let shamt = 0;
-    let isCommutable = isComm;
+      InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
+  FA<op, (outs RC:$SW), (ins RC:$ra, RC:$rb),
+   !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
+  let rc = 0;
+  let shamt = 0;
+  let isCommutable = isComm;
   }
   ...
   // Shifts
   class shift_rotate_imm<bits<8> op, bits<4> isRotate, string instr_asm,
-               SDNode OpNode, PatFrag PF, Operand ImmOpnd,
-               RegisterClass RC>:
-    FA<op, (outs RC:$ra), (ins RC:$rb, ImmOpnd:$shamt),
-     !strconcat(instr_asm, "\t$ra, $rb, $shamt"),
-     [(set RC:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu> {
-    let rc = isRotate;
-    let shamt = shamt;
+         SDNode OpNode, PatFrag PF, Operand ImmOpnd,
+         RegisterClass RC>:
+  FA<op, (outs RC:$ra), (ins RC:$rb, ImmOpnd:$shamt),
+   !strconcat(instr_asm, "\t$ra, $rb, $shamt"),
+   [(set RC:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu> {
+  let rc = isRotate;
+  let shamt = shamt;
   }
   
   // 32-bit shift instructions.
   class shift_rotate_imm32<bits<8> func, bits<4> isRotate, string instr_asm,
-               SDNode OpNode>:
-    shift_rotate_imm<func, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs>;
+         SDNode OpNode>:
+  shift_rotate_imm<func, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs>;
   
   // Load Upper Imediate
   class LoadUpper<bits<8> op, string instr_asm, RegisterClass RC, Operand Imm>:
-    FL<op, (outs RC:$ra), (ins Imm:$imm16),
-     !strconcat(instr_asm, "\t$ra, $imm16"), [], IIAlu> {
-    let rb = 0;
-    let neverHasSideEffects = 1;
-    let isReMaterializable = 1;
+  FL<op, (outs RC:$ra), (ins Imm:$imm16),
+   !strconcat(instr_asm, "\t$ra, $imm16"), [], IIAlu> {
+  let rb = 0;
+  let neverHasSideEffects = 1;
+  let isReMaterializable = 1;
   }
   ...
   /// Arithmetic Instructions (3-Operand, R-Type)
-  def CMP   : CmpInstr<0x10, "cmp", IIAlu, CPURegs, 1>;
-  def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
-  def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
-  def MUL     : ArithLogicR<0x15, "mul", mul, IIImul, CPURegs, 1>;
-  def DIV     : ArithLogicR<0x16, "div", sdiv, IIIdiv, CPURegs, 1>;
+  def CMP : CmpInstr<0x10, "cmp", IIAlu, CPURegs, 1>;
+  def ADD   : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
+  def SUB   : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
+  def MUL   : ArithLogicR<0x15, "mul", mul, IIImul, CPURegs, 1>;
+  def DIV   : ArithLogicR<0x16, "div", sdiv, IIIdiv, CPURegs, 1>;
   def UDIV    : ArithLogicR<0x17, "udiv", udiv, IIIdiv, CPURegs, 1>;
-  def AND     : ArithLogicR<0x18, "and", and, IIAlu, CPURegs, 1>;
-  def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
-  def XOR     : ArithLogicR<0x1A, "xor", xor, IIAlu, CPURegs, 1>;
+  def AND   : ArithLogicR<0x18, "and", and, IIAlu, CPURegs, 1>;
+  def OR    : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
+  def XOR   : ArithLogicR<0x1A, "xor", xor, IIAlu, CPURegs, 1>;
   
   /// Shift Instructions
   // sra is IR node for ashr llvm IR instruction of .bc
-  def SRA     : shift_rotate_imm32<0x1B, 0x00, "sra", sra>;
-  def ROL     : shift_rotate_imm32<0x1C, 0x01, "rol", rotl>;
-  def ROR     : shift_rotate_imm32<0x1D, 0x01, "ror", rotr>;
-  def SHL     : shift_rotate_imm32<0x1E, 0x00, "shl", shl>;
+  def SRA   : shift_rotate_imm32<0x1B, 0x00, "sra", sra>;
+  def ROL   : shift_rotate_imm32<0x1C, 0x01, "rol", rotl>;
+  def ROR   : shift_rotate_imm32<0x1D, 0x01, "ror", rotr>;
+  def SHL   : shift_rotate_imm32<0x1E, 0x00, "shl", shl>;
   // srl is IR node for lshr llvm IR instruction of .bc
-  def SHR     : shift_rotate_imm32<0x1F, 0x00, "shr", srl>;
+  def SHR   : shift_rotate_imm32<0x1F, 0x00, "shr", srl>;
 
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0Schedule.td
@@ -149,14 +149,14 @@ Chapter4_1/,
   ...
   def IMULDIV : FuncUnit;
   ...
-  def IIImul             : InstrItinClass;
-  def IIIdiv             : InstrItinClass;
+  def IIImul       : InstrItinClass;
+  def IIIdiv       : InstrItinClass;
   ...
   // http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html 
   def Cpu0GenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
   ...
-    InstrItinData<IIImul             , [InstrStage<17, [IMULDIV]>]>,
-    InstrItinData<IIIdiv             , [InstrStage<38, [IMULDIV]>]>
+  InstrItinData<IIImul       , [InstrStage<17, [IMULDIV]>]>,
+  InstrItinData<IIIdiv       , [InstrStage<38, [IMULDIV]>]>
   ]>;
 
 In RISC CPU like Mips, the multiply/divide function unit and add/sub/logic unit 
@@ -178,12 +178,12 @@ In brief, we call **ashr** is “shift with sign extension fill”.
 
 .. note:: **ashr**
 
-	Example:
-	  <result> = ashr i32 4, 1   ; yields {i32}:result = 2
-	  
-	  <result> = ashr i8 -2, 1   ; yields {i8}:result = -1
-	  
-	  <result> = ashr i32 1, 32  ; undefined
+  Example:
+    <result> = ashr i32 4, 1   ; yields {i32}:result = 2
+    
+    <result> = ashr i8 -2, 1   ; yields {i8}:result = -1
+    
+    <result> = ashr i32 1, 32  ; undefined
 
 The C operator **>>** for negative operand is dependent on implementation. 
 Most compiler translate it into “shift with sign extension fill”, for example, 
@@ -192,11 +192,11 @@ Following is the Micosoft web site explanation,
 
 .. note:: **>>**, Microsoft Specific
 
-	The result of a right shift of a signed negative quantity is implementation 
-	dependent. 
-	Although Microsoft C++ propagates the most-significant bit to fill vacated 
-	bit positions, there is no guarantee that other implementations will do 
-	likewise.
+  The result of a right shift of a signed negative quantity is implementation 
+  dependent. 
+  Although Microsoft C++ propagates the most-significant bit to fill vacated 
+  bit positions, there is no guarantee that other implementations will do 
+  likewise.
 
 In addition to **ashr**, the other instruction “shift with zero filled” 
 **lshr** in llvm (Mips implement lshr with instruction **srl**) has the 
@@ -204,9 +204,9 @@ following meaning.
 
 .. note:: **lshr**
 
-	Example:
-	<result> = lshr i8 -2, 1   ; yields {i8}:result = 0x7FFFFFFF 
-	
+  Example:
+  <result> = lshr i8 -2, 1   ; yields {i8}:result = 0x7FFFFFFF 
+  
 In llvm, IR node **sra** is defined for ashr IR instruction, node **srl** is 
 defined for lshr instruction (I don't know why don't use ashr and lshr as the 
 IR node name directly). Summary as Table: C operator >> implementation.
@@ -214,28 +214,28 @@ IR node name directly). Summary as Table: C operator >> implementation.
 
 Table: C operator >> implementation
 
-=======================================	======================	=====================================
-Description                            	Shift with zero filled	Shift with signed extension filled
-=======================================	======================	=====================================
-symbol in .bc                       	lshr					ashr
-symbol in IR node                   	srl						sra
-Mips instruction                    	srl						sra
-Cpu0 instruction                    	shr						sra
-signed example before x >> 1           	0xfffffffe i.e. -2		0xfffffffe i.e. -2
-signed example after x >> 1            	0x7fffffff i.e 2G-1		0xffffffff i.e. -1
-unsigned example before x >> 1      	0xfffffffe i.e. 4G-2	0xfffffffe i.e. 4G-2
-unsigned example after x >> 1       	0x7fffffff i.e 2G-1		0xffffffff i.e. 4G-1
-=======================================	======================	=====================================
+======================================= ======================  =====================================
+Description                             Shift with zero filled  Shift with signed extension filled
+======================================= ======================  =====================================
+symbol in .bc                           lshr                    ashr
+symbol in IR node                       srl                     sra
+Mips instruction                        srl                     sra
+Cpu0 instruction                        shr                     sra
+signed example before x >> 1            0xfffffffe i.e. -2      0xfffffffe i.e. -2
+signed example after x >> 1             0x7fffffff i.e 2G-1     0xffffffff i.e. -1
+unsigned example before x >> 1          0xfffffffe i.e. 4G-2    0xfffffffe i.e. 4G-2
+unsigned example after x >> 1           0x7fffffff i.e 2G-1     0xffffffff i.e. 4G-1
+======================================= ======================  =====================================
 
-**lshr:**	Logical SHift Right
+**lshr:** Logical SHift Right
 
-**ashr:**	Arithmetic SHift right
+**ashr:** Arithmetic SHift right
 
-**srl:**	Shift Right Logically
+**srl:**  Shift Right Logically
 
-**sra:**	Shift Right Arithmetically
+**sra:**  Shift Right Arithmetically
 
-**shr:**	SHift Right
+**shr:**  SHift Right
 
 
 If we consider the x >> 1 definition is x = x/2 for compiler implementation.
@@ -247,18 +247,18 @@ both signed and unsigned integer of x, we need these two instructions,
 
 Table: C operator << implementation
 
-=======================================	======================
-Description								Shift with zero filled
-=======================================	======================
-symbol in .bc                       	shl
-symbol in IR node                   	shl
-Mips instruction                    	sll
-Cpu0 instruction                    	shl
-signed example before x << 1        	0x40000000 i.e. 1G
-signed example after x << 1         	0x80000000 i.e -2G
-unsigned example before x << 1      	0x40000000 i.e. 1G
-unsigned example after x << 1       	0x80000000 i.e 2G
-=======================================	======================
+======================================= ======================
+Description                             Shift with zero filled
+======================================= ======================
+symbol in .bc                           shl
+symbol in IR node                       shl
+Mips instruction                        sll
+Cpu0 instruction                        shl
+signed example before x << 1            0x40000000 i.e. 1G
+signed example after x << 1             0x80000000 i.e -2G
+unsigned example before x << 1          0x40000000 i.e. 1G
+unsigned example after x << 1           0x80000000 i.e 2G
+======================================= ======================
 
 Again, consider the x << 1 definition is x = x*2. 
 From Table: C operator << implementation, we see **lshr** satisfy the unsigned 
@@ -286,8 +286,8 @@ result as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_1_3.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_1_3.cpp
-    :lines: 4-
-    :linenos:
+  :lines: 4-
+  :linenos:
 
 .. code-block:: bash
 
@@ -296,12 +296,12 @@ result as follows,
   cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch4_1_3.bc -o ch4_1_3.cpu0.s
   118-165-13-40:InputFiles Jonathan$ cat ch4_1_3.cpu0.s
-      ...
-      udiv    $2, $3, $2
-      st  $2, 0($sp)
-      ld  $2, 16($sp)
-      sra $2, $2, 2
-      ...
+    ...
+    udiv    $2, $3, $2
+    st  $2, 0($sp)
+    ld  $2, 16($sp)
+    sra $2, $2, 2
+    ...
 
 
 
@@ -313,8 +313,8 @@ and it's corresponding llvm IR. List them as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_2.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_2.cpp
-    :lines: 4-
-    :linenos:
+  :lines: 4-
+  :linenos:
 
 .. code-block:: bash
 
@@ -322,22 +322,22 @@ and it's corresponding llvm IR. List them as follows,
   target datalayout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-
   f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128"
   target triple = "i386-apple-macosx10.8.0"
-    
+  
   define i32 @main() nounwind ssp {
   entry:
-    %retval = alloca i32, align 4
-    %a = alloca i32, align 4
-    %b = alloca i32, align 4
-    store i32 0, i32* %retval
-    store i32 5, i32* %a, align 4
-    store i32 0, i32* %b, align 4
-    %0 = load i32* %a, align 4        // a = %0
-    %tobool = icmp ne i32 %0, 0   // ne: stand for not egual
-    %lnot = xor i1 %tobool, true
-    %conv = zext i1 %lnot to i32  
-    store i32 %conv, i32* %b, align 4
-    %1 = load i32* %b, align 4
-    ret i32 %1
+  %retval = alloca i32, align 4
+  %a = alloca i32, align 4
+  %b = alloca i32, align 4
+  store i32 0, i32* %retval
+  store i32 5, i32* %a, align 4
+  store i32 0, i32* %b, align 4
+  %0 = load i32* %a, align 4      // a = %0
+  %tobool = icmp ne i32 %0, 0   // ne: stand for not egual
+  %lnot = xor i1 %tobool, true
+  %conv = zext i1 %lnot to i32  
+  store i32 %conv, i32* %b, align 4
+  %1 = load i32* %b, align 4
+  ret i32 %1
   }
 
 As above, b = !a, is translated into (xor (icmp ne i32 %0, 0), true). 
@@ -348,7 +348,7 @@ Let's assume %0 != 0 first, then the (icmp ne i32 %0, 0) = 1 (or true), and
 (xor 1, 1) = 0. 
 When %0 = 0, (icmp ne i32 %0, 0) = 0 (or false), and (xor 0, 1) = 1. 
 So, the translation is correct. 
-    
+  
 Now, let's run ch4_2.bc with Chapter4_1/ with ``llc -debug`` option to get result 
 as follows,
 
@@ -358,25 +358,25 @@ as follows,
   cmake_debug_build/bin/Debug/llc -march=cpu0 -debug -relocation-model=pic 
   -filetype=asm ch4_3.bc -o ch4_3.cpu0.s
   ...
-    
+  
   === main
   Initial selection DAG: BB#0 'main:entry'
   SelectionDAG has 20 nodes:
   ...
-    0x7ffb7982ab10: <multiple use>
-          0x7ffb7982ab10: <multiple use>
-          0x7ffb7982a210: <multiple use>
-          0x7ffb7982ac10: ch = setne [ORD=5]
+  0x7ffb7982ab10: <multiple use>
+      0x7ffb7982ab10: <multiple use>
+      0x7ffb7982a210: <multiple use>
+      0x7ffb7982ac10: ch = setne [ORD=5]
 
-        0x7ffb7982ad10: i1 = setcc 0x7ffb7982ab10, 0x7ffb7982a210, 0x7ffb7982ac10 
-        [ORD=5]
+    0x7ffb7982ad10: i1 = setcc 0x7ffb7982ab10, 0x7ffb7982a210, 0x7ffb7982ac10 
+    [ORD=5]
 
-        0x7ffb7982ae10: i1 = Constant<-1> [ORD=6]
+    0x7ffb7982ae10: i1 = Constant<-1> [ORD=6]
 
-      0x7ffb7982af10: i1 = xor 0x7ffb7982ad10, 0x7ffb7982ae10 [ORD=6]
+    0x7ffb7982af10: i1 = xor 0x7ffb7982ad10, 0x7ffb7982ae10 [ORD=6]
 
-    0x7ffb7982b010: i32 = zero_extend 0x7ffb7982af10 [ORD=7]
-  ...   
+  0x7ffb7982b010: i32 = zero_extend 0x7ffb7982af10 [ORD=7]
+  ... 
   Replacing.3 0x7ffb7982af10: i1 = xor 0x7ffb7982ad10, 0x7ffb7982ae10 [ORD=6]
 
   With: 0x7ffb7982d210: i1 = setcc 0x7ffb7982ab10, 0x7ffb7982a210, 0x7ffb7982cf10
@@ -384,42 +384,42 @@ as follows,
   Optimized lowered selection DAG: BB#0 'main:'
   SelectionDAG has 17 nodes:
   ...
-     0x7ffb7982ab10: <multiple use>
-          0x7ffb7982ab10: <multiple use>
-          0x7ffb7982a210: <multiple use>
-          0x7ffb7982cf10: ch = seteq
+   0x7ffb7982ab10: <multiple use>
+      0x7ffb7982ab10: <multiple use>
+      0x7ffb7982a210: <multiple use>
+      0x7ffb7982cf10: ch = seteq
 
-        0x7ffb7982d210: i1 = setcc 0x7ffb7982ab10, 0x7ffb7982a210, 0x7ffb7982cf10
+    0x7ffb7982d210: i1 = setcc 0x7ffb7982ab10, 0x7ffb7982a210, 0x7ffb7982cf10
 
-      0x7ffb7982b010: i32 = zero_extend 0x7ffb7982d210 [ORD=7]
+    0x7ffb7982b010: i32 = zero_extend 0x7ffb7982d210 [ORD=7]
   ...
   Type-legalized selection DAG: BB#0 'main:entry'
   SelectionDAG has 18 nodes:
   ...
+    0x7ffb7982ab10: <multiple use>
       0x7ffb7982ab10: <multiple use>
-          0x7ffb7982ab10: <multiple use>
-          0x7ffb7982a210: <multiple use>
-          0x7ffb7982cf10: ch = seteq [ID=-3]
+      0x7ffb7982a210: <multiple use>
+      0x7ffb7982cf10: ch = seteq [ID=-3]
 
-        0x7ffb7982ac10: i32 = setcc 0x7ffb7982ab10, 0x7ffb7982a210, 0x7ffb7982cf10
-         [ID=-3]
+    0x7ffb7982ac10: i32 = setcc 0x7ffb7982ab10, 0x7ffb7982a210, 0x7ffb7982cf10
+     [ID=-3]
 
-        0x7ffb7982ad10: i32 = Constant<1> [ID=-3]
+    0x7ffb7982ad10: i32 = Constant<1> [ID=-3]
 
-      0x7ffb7982ae10: i32 = and 0x7ffb7982ac10, 0x7ffb7982ad10 [ID=-3]
+    0x7ffb7982ae10: i32 = and 0x7ffb7982ac10, 0x7ffb7982ad10 [ID=-3]
   ...
   ISEL: Starting pattern match on root node: 0x7ffb7982ac10: i32 = setcc 
   0x7ffb7982ab10, 0x7ffb7982a210, 0x7ffb7982cf10 [ID=14]
   
-    Initial Opcode index to 0
-    Match failed at index 0
+  Initial Opcode index to 0
+  Match failed at index 0
   LLVM ERROR: Cannot select: 0x7ffb7982ac10: i32 = setcc 0x7ffb7982ab10, 
   0x7ffb7982a210, 0x7ffb7982cf10 [ID=14]
-    0x7ffb7982ab10: i32,ch = load 0x7ffb7982aa10, 0x7ffb7982a710, 
-    0x7ffb7982a410<LD4[%a]> [ORD=4] [ID=13]
-    0x7ffb7982a710: i32 = FrameIndex<1> [ORD=2] [ID=5]
-    0x7ffb7982a410: i32 = undef [ORD=1] [ID=3]
-    0x7ffb7982a210: i32 = Constant<0> [ORD=1] [ID=1]
+  0x7ffb7982ab10: i32,ch = load 0x7ffb7982aa10, 0x7ffb7982a710, 
+  0x7ffb7982a410<LD4[%a]> [ORD=4] [ID=13]
+  0x7ffb7982a710: i32 = FrameIndex<1> [ORD=2] [ID=5]
+  0x7ffb7982a410: i32 = undef [ORD=1] [ID=3]
+  0x7ffb7982a210: i32 = Constant<0> [ORD=1] [ID=1]
   In function: main
 
 
@@ -428,13 +428,13 @@ Summary as Table: C operator ! corresponding IR of .bc and IR of DAG.
 
 Table: C operator ! corresponding IR of .bc and IR of DAG
 
-=============================	=================================	=============================
-IR of .bc                       Optimized lowered selection DAG		Type-legalized selection DAG
-=============================	=================================	=============================
-%tobool = icmp ne i32 %0, 0     	
-%lnot = xor i1 %tobool, true	%lnot = (setcc %tobool, 0, seteq)	%lnot = (setcc %tobool, 0, seteq)
-%conv = zext i1 %lnot to i32	%conv = (zero_extend %lnot)			%conv = (and %lnot, 1)
-=============================	=================================	=============================
+============================= ================================= =============================
+IR of .bc                     Optimized lowered selection DAG   Type-legalized selection DAG
+============================= ================================= =============================
+%tobool = icmp ne i32 %0, 0     
+%lnot = xor i1 %tobool, true  %lnot = (setcc %tobool, 0, seteq) %lnot = (setcc %tobool, 0, seteq)
+%conv = zext i1 %lnot to i32  %conv = (zero_extend %lnot)       %conv = (and %lnot, 1)
+============================= ================================= =============================
 
 From above DAG translation result of ``llc -debug``, we see the IRs are same in both 
 stages of “Initial selection DAG” and “Optimized lowered selection DAG”.
@@ -463,14 +463,14 @@ Run it with Chapter4_2/ which added code to handle pattern
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_2/Cpu0InstrInfo.td
 .. code-block:: c++
-    
+  
   def : Pat<(not CPURegs:$in),
-            (XOR CPURegs:$in, (ADDiu ZERO, 1))>;
+      (XOR CPURegs:$in, (ADDiu ZERO, 1))>;
   
   // setcc patterns
   multiclass SeteqPats<RegisterClass RC, Instruction XOROp> {
-    def : Pat<(seteq RC:$lhs, RC:$rhs),
-              (XOROp (XOROp RC:$lhs, RC:$rhs), (ADDiu ZERO, 1))>;
+  def : Pat<(seteq RC:$lhs, RC:$rhs),
+        (XOROp (XOROp RC:$lhs, RC:$rhs), (ADDiu ZERO, 1))>;
   }
   
   defm : SeteqPats<CPURegs, XOR>;
@@ -485,12 +485,12 @@ Run it with Chapter4_2/ which added code to handle pattern
   ISEL: Starting pattern match on root node: 0x7fbc6902ac10: i32 = setcc 
   0x7fbc6902ab10, 0x7fbc6902a210, 0x7fbc6902cf10 [ID=14]
   
-    Initial Opcode index to 365
-    Created node: 0x7fbc6902af10: i32 = XOR 0x7fbc6902ab10, 0x7fbc6902a210
+  Initial Opcode index to 365
+  Created node: 0x7fbc6902af10: i32 = XOR 0x7fbc6902ab10, 0x7fbc6902a210
   
-    Created node: 0x7fbc6902d510: i32 = ADDiu 0x7fbc6902d310, 0x7fbc6902d410
+  Created node: 0x7fbc6902d510: i32 = ADDiu 0x7fbc6902d310, 0x7fbc6902d410
   
-    Morphed node: 0x7fbc6902ac10: i32 = XOR 0x7fbc6902af10, 0x7fbc6902d510
+  Morphed node: 0x7fbc6902ac10: i32 = XOR 0x7fbc6902af10, 0x7fbc6902d510
   
   ISEL: Match complete!
   => 0x7fbc6902ac10: i32 = XOR 0x7fbc6902af10, 0x7fbc6902d510
@@ -501,14 +501,14 @@ Summary as Table: C operator ! corresponding IR of DAG and .
 
 Table: C operator ! corresponding IR of Type-legalized selection DAG and Cpu0 instructions
 
-=================================	==========================
-Type-legalized selection DAG		Cpu0 instruction
-=================================	==========================
-%lnot = (setcc %tobool, 0, seteq)	%1 = (xor %tobool, 0)
--                                 	%true = (addiu $r0, 1)
--                                 	%lnot = (xor %1, %true)
-%conv = (and %lnot, 1)			%conv = (and %lnot, 1)
-=================================	==========================
+================================= ==========================
+Type-legalized selection DAG      Cpu0 instruction
+================================= ==========================
+%lnot = (setcc %tobool, 0, seteq) %1 = (xor %tobool, 0)
+                                  %true = (addiu $r0, 1)
+                                  %lnot = (xor %1, %true)
+%conv = (and %lnot, 1)            %conv = (and %lnot, 1)
+================================= ==========================
 
 Chapter4_2/ defined seteq DAG pattern. 
 It translate **%lnot = (setcc %tobool, 0, seteq)** into **%1 = (xor %tobool, 0)**, 
@@ -535,22 +535,22 @@ the final result.
   118-165-16-22:InputFiles Jonathan$ cat ch4_2.cpu0.s
   ...
   # BB#0:
-  	addiu	$sp, $sp, -16
+  addiu $sp, $sp, -16
   $tmp1:
-  	.cfi_def_cfa_offset 16
-  	addiu	$2, $zero, 0
-  	st	$2, 12($sp)
-  	addiu	$3, $zero, 5
-  	st	$3, 8($sp)
-  	st	$2, 4($sp)
-  	ld	$3, 8($sp)
-  	xor	$2, $3, $2
-  	addiu	$3, $zero, 1
-  	xor	$2, $2, $3
-  	and	$2, $2, $3
-  	st	$2, 4($sp)
-  	addiu	$sp, $sp, 16
-  	ret	$lr
+  .cfi_def_cfa_offset 16
+  addiu $2, $zero, 0
+  st  $2, 12($sp)
+  addiu $3, $zero, 5
+  st  $3, 8($sp)
+  st  $2, 4($sp)
+  ld  $3, 8($sp)
+  xor $2, $3, $2
+  addiu $3, $zero, 1
+  xor $2, $2, $3
+  and $2, $2, $3
+  st  $2, 4($sp)
+  addiu $sp, $sp, 16
+  ret $lr
   ...
 
 
@@ -573,16 +573,16 @@ Instruction Selection Process" of web [#]_ as follows,
 
   -view-dag-combine1-dags displays the DAG after being built, before the 
   first optimization pass. 
-    
+  
   -view-legalize-dags displays the DAG before Legalization. 
-    
+  
   -view-dag-combine2-dags displays the DAG before the second optimization 
   pass. 
-    
+  
   -view-isel-dags displays the DAG before the Select phase. 
-    
+  
   -view-sched-dags displays the DAG before Scheduling. 
-    
+  
 By tracking ``llc -debug``, you can see the DAG translation steps as follows,
 
 .. code-block:: bash
@@ -614,13 +614,13 @@ It will show the /tmp/llvm_84ibpm/dag.main.dot as :num:`Figure #otherinst-f1`.
 
 .. _otherinst-f1:
 .. figure:: ../Fig/otherinst/1.png
-    :height: 851 px
-    :width: 687 px
-    :scale: 100 %
-    :align: center
+  :height: 851 px
+  :width: 687 px
+  :scale: 100 %
+  :align: center
 
-    llc option -view-dag-combine1-dags graphic view
-    
+  llc option -view-dag-combine1-dags graphic view
+  
 From :num:`Figure #otherinst-f1`, we can see the -view-dag-combine1-dags option is for 
 Initial selection DAG. 
 We list the other view options and their corresponding DAG translation stage as 
@@ -653,34 +653,34 @@ Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
 .. code-block:: c++
 
   def mem_ea : Operand<i32> {
-    let PrintMethod = "printMemOperandEA";
-    let MIOperandInfo = (ops CPURegs, simm16);
-    let EncoderMethod = "getMemEncoding";
+  let PrintMethod = "printMemOperandEA";
+  let MIOperandInfo = (ops CPURegs, simm16);
+  let EncoderMethod = "getMemEncoding";
   }
   ...
   class EffectiveAddress<string instr_asm, RegisterClass RC, Operand Mem> :
-    FMem<0x09, (outs RC:$ra), (ins Mem:$addr),
-       instr_asm, [(set RC:$ra, addr:$addr)], IIAlu>;
+  FMem<0x09, (outs RC:$ra), (ins Mem:$addr),
+     instr_asm, [(set RC:$ra, addr:$addr)], IIAlu>;
   ...
   // FrameIndexes are legalized when they are operands from load/store
   // instructions. The same not happens for stack address copies, so an
   // add op with mem ComplexPattern is used and the stack address copy
   // can be matched. It's similar to Sparc LEA_ADDRi
   def LEA_ADDiu : EffectiveAddress<"addiu\t$ra, $addr", CPURegs, mem_ea> {
-    let isCodeGenOnly = 1;
+  let isCodeGenOnly = 1;
   }
-    
+  
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_4/Cpu0InstPrinter.td
 .. code-block:: c++
 
   void Cpu0InstPrinter::
   printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &O) {
-    // when using stack locations for not load/store instructions
-    // print the same way as all normal 3 operand instructions.
-    printOperand(MI, opNum, O);
-    O << ", ";
-    printOperand(MI, opNum+1, O);
-    return;
+  // when using stack locations for not load/store instructions
+  // print the same way as all normal 3 operand instructions.
+  printOperand(MI, opNum, O);
+  O << ", ";
+  printOperand(MI, opNum+1, O);
+  return;
   }
 
 Run ch4_4.cpp with code Chapter4_4/ which support pointer to local variable, 
@@ -688,8 +688,8 @@ will get result as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp
-    :lines: 4-
-    :linenos:
+  :lines: 4-
+  :linenos:
 
 .. code-block:: bash
 
@@ -698,38 +698,38 @@ will get result as follows,
   debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch4_4.bc -o ch4_4.cpu0.s
   118-165-66-82:InputFiles Jonathan$ cat ch4_4.cpu0.s 
-    .section .mdebug.abi32
-    .previous
-    .file "ch4_5.bc"
-    .text
-    .globl  main
-    .align  2
-    .type main,@function
-    .ent  main                    # @main
+  .section .mdebug.abi32
+  .previous
+  .file "ch4_5.bc"
+  .text
+  .globl  main
+  .align  2
+  .type main,@function
+  .ent  main            # @main
   main:
-    .cfi_startproc
-    .frame  $sp,16,$lr
-    .mask   0x00000000,0
-    .set  noreorder
-    .set  nomacro
+  .cfi_startproc
+  .frame  $sp,16,$lr
+  .mask 0x00000000,0
+  .set  noreorder
+  .set  nomacro
   # BB#0:
-    addiu $sp, $sp, -16
+  addiu $sp, $sp, -16
   $tmp1:
-    .cfi_def_cfa_offset 16
-    addiu $2, $zero, 0
-    st  $2, 12($sp)
-    addiu $2, $zero, 3
-    st  $2, 8($sp)
-    addiu $2, $sp, 8
-    st  $2, 0($sp)
-    addiu $sp, $sp, 16
-    ret $lr
-    .set  macro
-    .set  reorder
-    .end  main
+  .cfi_def_cfa_offset 16
+  addiu $2, $zero, 0
+  st  $2, 12($sp)
+  addiu $2, $zero, 3
+  st  $2, 8($sp)
+  addiu $2, $sp, 8
+  st  $2, 0($sp)
+  addiu $sp, $sp, 16
+  ret $lr
+  .set  macro
+  .set  reorder
+  .end  main
   $tmp2:
-    .size main, ($tmp2)-main
-    .cfi_endproc
+  .size main, ($tmp2)-main
+  .cfi_endproc
 
 
 Operator mod, %
@@ -743,8 +743,8 @@ corresponding llvm IR, as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
-    :lines: 4-
-    :linenos:
+  :lines: 4-
+  :linenos:
 
 .. code-block:: bash
 
@@ -752,19 +752,19 @@ corresponding llvm IR, as follows,
    target datalayout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-
    f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128"
   target triple = "i386-apple-macosx10.8.0"
-    
+  
   define i32 @main() nounwind ssp {
   entry:
-    %retval = alloca i32, align 4
-    %b = alloca i32, align 4
-    store i32 0, i32* %retval
-    store i32 11, i32* %b, align 4
-    %0 = load i32* %b, align 4
-    %add = add nsw i32 %0, 1
-    %rem = srem i32 %add, 12
-    store i32 %rem, i32* %b, align 4
-    %1 = load i32* %b, align 4
-    ret i32 %1
+  %retval = alloca i32, align 4
+  %b = alloca i32, align 4
+  store i32 0, i32* %retval
+  store i32 11, i32* %b, align 4
+  %0 = load i32* %b, align 4
+  %add = add nsw i32 %0, 1
+  %rem = srem i32 %add, 12
+  store i32 %rem, i32* %b, align 4
+  %1 = load i32* %b, align 4
+  ret i32 %1
   }
 
 
@@ -775,13 +775,13 @@ Copy the reference as follows,
 .. note:: **'srem'** Instruction 
 
   Syntax:
-    **<result> = srem <ty> <op1>, <op2>   ; yields {ty}:result**
-      
+  **<result> = srem <ty> <op1>, <op2>   ; yields {ty}:result**
+    
   Overview:
   The **'srem'** instruction returns the remainder from the signed division of its 
   two operands. This instruction can also take vector versions of the values in 
   which case the elements must be integers.
-    
+  
   Arguments:
   The two arguments to the **'srem'** instruction must be integer or vector of 
   integer values. Both arguments must have identical types.
@@ -793,19 +793,19 @@ Copy the reference as follows,
   a value. For more information about the difference, see The Math Forum. For a 
   table of how this is implemented in various languages, please see Wikipedia: 
   modulo operation.
-    
+  
   Note that signed integer remainder and unsigned integer remainder are distinct 
   operations; for unsigned integer remainder, use **'urem'**.
-    
+  
   Taking the remainder of a division by zero leads to undefined behavior. 
   Overflow also leads to undefined behavior; this is a rare case, but can occur, 
   for example, by taking the remainder of a 32-bit division of -2147483648 by -1. 
   (The remainder doesn't actually overflow, but this rule lets srem be 
   implemented using instructions that return both the result of the division and 
   the remainder.)
-    
+  
   Example:
-    <result> = **srem i32 4, %var**          ; yields {i32}:result = 4 % %var
+  <result> = **srem i32 4, %var**      ; yields {i32}:result = 4 % %var
 
 
 
@@ -821,18 +821,18 @@ below, will get the following error message and the llvm DAG of
   ...
   LLVM ERROR: Cannot select: 0x7fa73a02ea10: i32 = mulhs 0x7fa73a02c610, 
   0x7fa73a02e910 [ID=12]
-    0x7fa73a02c610: i32 = Constant<12> [ORD=5] [ID=7]
-    0x7fa73a02e910: i32 = Constant<715827883> [ID=9]
+  0x7fa73a02c610: i32 = Constant<12> [ORD=5] [ID=7]
+  0x7fa73a02e910: i32 = Constant<715827883> [ID=9]
 
 
 .. _otherinst-f2:
 .. figure:: ../Fig/otherinst/2.png
-    :height: 629 px
-    :width: 580 px
-    :scale: 100 %
-    :align: center
+  :height: 629 px
+  :width: 580 px
+  :scale: 100 %
+  :align: center
 
-    ch4_5.bc DAG
+  ch4_5.bc DAG
 
 LLVM replace srem divide operation with multiply operation in DAG optimization 
 because DIV operation cost more in time than MUL. 
@@ -856,12 +856,12 @@ Similarly, SMMUL get the high word of multiply result.
 
 .. _otherinst-f3:
 .. figure:: ../Fig/otherinst/3.png
-    :height: 702 px
-    :width: 687 px
-    :scale: 100 %
-    :align: center
+  :height: 702 px
+  :width: 687 px
+  :scale: 100 %
+  :align: center
 
-    Translate ch4_5.bc into cpu0 backend DAG
+  Translate ch4_5.bc into cpu0 backend DAG
 
 Follows is the result of run Chapter4_5_1/ with ch4_5.bc.
 
@@ -871,44 +871,44 @@ Follows is the result of run Chapter4_5_1/ with ch4_5.bc.
   debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch4_5.bc -o ch4_5.cpu0.s
   118-165-71-252:InputFiles Jonathan$ cat ch4_5.cpu0.s 
-      .section .mdebug.abi32
-      .previous
-      .file   "ch4_5.bc"
-      .text
-      .globl  main
-      .align  2
-      .type   main,@function
-      .ent    main                    # @main
+    .section .mdebug.abi32
+    .previous
+    .file   "ch4_5.bc"
+    .text
+    .globl  main
+    .align  2
+    .type   main,@function
+    .ent    main            # @main
   main:
-      .frame  $sp,8,$lr
-      .mask   0x00000000,0
-      .set    noreorder
-      .set    nomacro
-  # BB#0:                                 # %entry
-      addiu   $sp, $sp, -8
-      addiu   $2, $zero, 0
-      st  $2, 4($sp)
-      addiu   $2, $zero, 11
-      st  $2, 0($sp)
-      addiu   $2, $zero, 10922
-      shl $2, $2, 16
-      addiu   $3, $zero, 43691
-      or  $3, $2, $3
-      addiu   $2, $zero, 12
-      smmul   $3, $2, $3
-      shr $4, $3, 31
-      sra $3, $3, 1
-      add $3, $3, $4
-      mul $3, $3, $2
-      sub $2, $2, $3
-      st  $2, 0($sp)
-      addiu   $sp, $sp, 8
-      ret $lr
-      .set    macro
-      .set    reorder
-      .end    main
+    .frame  $sp,8,$lr
+    .mask   0x00000000,0
+    .set    noreorder
+    .set    nomacro
+  # BB#0:                 # %entry
+    addiu   $sp, $sp, -8
+    addiu   $2, $zero, 0
+    st  $2, 4($sp)
+    addiu   $2, $zero, 11
+    st  $2, 0($sp)
+    addiu   $2, $zero, 10922
+    shl $2, $2, 16
+    addiu   $3, $zero, 43691
+    or  $3, $2, $3
+    addiu   $2, $zero, 12
+    smmul   $3, $2, $3
+    shr $4, $3, 31
+    sra $3, $3, 1
+    add $3, $3, $4
+    mul $3, $3, $2
+    sub $2, $2, $3
+    st  $2, 0($sp)
+    addiu   $sp, $sp, 8
+    ret $lr
+    .set    macro
+    .set    reorder
+    .end    main
   $tmp1:
-      .size   main, ($tmp1)-main
+    .size   main, ($tmp1)-main
 
 
 The other instruction UMMUL and llvm IR mulhu are unsigned int type for 
@@ -925,12 +925,12 @@ With this solution, the following code is needed.
 
   // Transformation Function - get the lower 16 bits.
   def LO16 : SDNodeXForm<imm, [{
-    return getImm(N, N->getZExtValue() & 0xFFFF);
+  return getImm(N, N->getZExtValue() & 0xFFFF);
   }]>;
   
   // Transformation Function - get the higher 16 bits.
   def HI16 : SDNodeXForm<imm, [{
-    return getImm(N, (N->getZExtValue() >> 16) & 0xFFFF);
+  return getImm(N, (N->getZExtValue() >> 16) & 0xFFFF);
   }]>;
   ...
   def SMMUL   : ArithLogicR<0x50, "smmul", mulhs, IIImul, CPURegs, 1>;
@@ -938,7 +938,7 @@ With this solution, the following code is needed.
   ...
   // Arbitrary immediates
   def : Pat<(i32 imm:$imm),
-        (OR (SHL (ADDiu ZERO, (HI16 imm:$imm)), 16), (ADDiu ZERO, (LO16 imm:$imm)))>;
+    (OR (SHL (ADDiu ZERO, (HI16 imm:$imm)), 16), (ADDiu ZERO, (LO16 imm:$imm)))>;
 
 
 Mips solution
@@ -965,21 +965,21 @@ from TargetSelectionDAG.td.
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_5_2/Cpu0RegisterInfo.td
 .. code-block:: c++
 
-    // Hi/Lo registers
-    def HI  : Register<"HI">, DwarfRegNum<[18]>;
-    def LO  : Register<"LO">, DwarfRegNum<[19]>;
-    ...
-    // Hi/Lo Registers
-    def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
+  // Hi/Lo registers
+  def HI  : Register<"HI">, DwarfRegNum<[18]>;
+  def LO  : Register<"LO">, DwarfRegNum<[19]>;
+  ...
+  // Hi/Lo Registers
+  def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
 
   // Cpu0Schedule.td
   ...
-  def IIHiLo             : InstrItinClass;
+  def IIHiLo       : InstrItinClass;
   ...
   def Cpu0GenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
-    ...
-    InstrItinData<IIHiLo             , [InstrStage<1,  [IMULDIV]>]>,
-    ...
+  ...
+  InstrItinData<IIHiLo       , [InstrStage<1,  [IMULDIV]>]>,
+  ...
   ]>;
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_5_2/Cpu0InstrInfo.td
@@ -987,86 +987,86 @@ from TargetSelectionDAG.td.
 
   // Mul, Div
   class Mult<bits<8> op, string instr_asm, InstrItinClass itin,
-             RegisterClass RC, list<Register> DefRegs>:
-    FL<op, (outs), (ins RC:$ra, RC:$rb),
-        !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
-    let imm16 = 0;
-    let isCommutable = 1;
-    let Defs = DefRegs;
-    let neverHasSideEffects = 1;
+       RegisterClass RC, list<Register> DefRegs>:
+  FL<op, (outs), (ins RC:$ra, RC:$rb),
+    !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
+  let imm16 = 0;
+  let isCommutable = 1;
+  let Defs = DefRegs;
+  let neverHasSideEffects = 1;
   }
-    
+  
   class Mult32<bits<8> op, string instr_asm, InstrItinClass itin>:
-    Mult<op, instr_asm, itin, CPURegs, [HI, LO]>;
-    
+  Mult<op, instr_asm, itin, CPURegs, [HI, LO]>;
+  
   // Move from Hi/Lo
   class MoveFromLOHI<bits<8> op, string instr_asm, RegisterClass RC,
-                   list<Register> UseRegs>:
-    FL<op, (outs RC:$ra), (ins),
-       !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
-    let rb = 0;
-    let imm16 = 0;
-    let Uses = UseRegs;
-    let neverHasSideEffects = 1;
+           list<Register> UseRegs>:
+  FL<op, (outs RC:$ra), (ins),
+     !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
+  let rb = 0;
+  let imm16 = 0;
+  let Uses = UseRegs;
+  let neverHasSideEffects = 1;
   }
   ...
   def MULT    : Mult32<0x50, "mult", IIImul>;
   def MULTu   : Mult32<0x51, "multu", IIImul>;
-    
+  
   def MFHI : MoveFromLOHI<0x40, "mfhi", CPURegs, [HI]>;
   def MFLO : MoveFromLOHI<0x41, "mflo", CPURegs, [LO]>;
-    
+  
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_5_2/Cpu0ISelDAGToDAG.cpp
 .. code-block:: c++
 
   /// Select multiply instructions.
   std::pair<SDNode*, SDNode*>
   Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
-                                bool HasLo, bool HasHi) {
-    SDNode *Lo = 0, *Hi = 0;
-    SDNode *Mul = CurDAG->getMachineNode(Opc, dl, MVT::Glue, N->getOperand(0),
-                                          N->getOperand(1));
-    SDValue InFlag = SDValue(Mul, 0);
-    
-    if (HasLo) {
-      Lo = CurDAG->getMachineNode(Cpu0::MFLO, dl,
-                                  Ty, MVT::Glue, InFlag);
-      InFlag = SDValue(Lo, 1);
-    }
-    if (HasHi)
-      Hi = CurDAG->getMachineNode(Cpu0::MFHI, dl,
-                                    Ty, InFlag);
-    
-    return std::make_pair(Lo, Hi);
+                bool HasLo, bool HasHi) {
+  SDNode *Lo = 0, *Hi = 0;
+  SDNode *Mul = CurDAG->getMachineNode(Opc, dl, MVT::Glue, N->getOperand(0),
+                      N->getOperand(1));
+  SDValue InFlag = SDValue(Mul, 0);
+  
+  if (HasLo) {
+    Lo = CurDAG->getMachineNode(Cpu0::MFLO, dl,
+                  Ty, MVT::Glue, InFlag);
+    InFlag = SDValue(Lo, 1);
   }
-    
+  if (HasHi)
+    Hi = CurDAG->getMachineNode(Cpu0::MFHI, dl,
+                  Ty, InFlag);
+  
+  return std::make_pair(Lo, Hi);
+  }
+  
   /// Select instructions not customized! Used for
   /// expanded, promoted and normal instructions
   SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
-    unsigned Opcode = Node->getOpcode();
-    DebugLoc dl = Node->getDebugLoc();
-    ...
-    EVT NodeTy = Node->getValueType(0);
-    unsigned MultOpc;
-    switch(Opcode) {
-    default: break;
-    
-    case ISD::MULHS:
-    case ISD::MULHU: {
-      MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
-      return SelectMULT(Node, MultOpc, dl, NodeTy, false, true).second;
-    }
-    ...
+  unsigned Opcode = Node->getOpcode();
+  DebugLoc dl = Node->getDebugLoc();
+  ...
+  EVT NodeTy = Node->getValueType(0);
+  unsigned MultOpc;
+  switch(Opcode) {
+  default: break;
+  
+  case ISD::MULHS:
+  case ISD::MULHU: {
+    MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
+    return SelectMULT(Node, MultOpc, dl, NodeTy, false, true).second;
   }
-    
+  ...
+  }
+  
 .. rubric:: include/llvm/Target/TargetSelectionDAG.td
 .. code-block:: c++
 
-  def mulhs      : SDNode<"ISD::MULHS"     , SDTIntBinOp, [SDNPCommutative]>;
-  def mulhu      : SDNode<"ISD::MULHU"     , SDTIntBinOp, [SDNPCommutative]>;
+  def mulhs    : SDNode<"ISD::MULHS"     , SDTIntBinOp, [SDNPCommutative]>;
+  def mulhu    : SDNode<"ISD::MULHU"     , SDTIntBinOp, [SDNPCommutative]>;
 
 
-    
+  
 Except the custom type, llvm IR operations of expand and promote type will call 
 Cpu0DAGToDAGISel::Select() during instruction selection of DAG translation. 
 In Select(), it return the HI part of multiplication result to HI register, 
@@ -1079,59 +1079,59 @@ the $rb and imm16 to 0.
 
 .. _otherinst-f4:
 .. figure:: ../Fig/otherinst/4.png
-    :height: 807 px
-    :width: 309 px
-    :scale: 75 %
-    :align: center
+  :height: 807 px
+  :width: 309 px
+  :scale: 75 %
+  :align: center
 
-    DAG for ch4_5.bc with Mips style MULT
+  DAG for ch4_5.bc with Mips style MULT
 
 .. code-block:: bash
 
   118-165-66-82:InputFiles Jonathan$ cat ch4_5.cpu0.s 
-    .section .mdebug.abi32
-    .previous
-    .file "ch4_5.bc"
-    .text
-    .globl  main
-    .align  2
-    .type main,@function
-    .ent  main                    # @main
+  .section .mdebug.abi32
+  .previous
+  .file "ch4_5.bc"
+  .text
+  .globl  main
+  .align  2
+  .type main,@function
+  .ent  main            # @main
   main:
-    .cfi_startproc
-    .frame  $sp,8,$lr
-    .mask   0x00000000,0
-    .set  noreorder
-    .set  nomacro
+  .cfi_startproc
+  .frame  $sp,8,$lr
+  .mask 0x00000000,0
+  .set  noreorder
+  .set  nomacro
   # BB#0:
-    addiu $sp, $sp, -8
+  addiu $sp, $sp, -8
   $tmp1:
-    .cfi_def_cfa_offset 8
-    addiu $2, $zero, 0
-    st  $2, 4($sp)
-    addiu $2, $zero, 11
-    st  $2, 0($sp)
-    addiu $2, $zero, 10922
-    shl $2, $2, 16
-    addiu $3, $zero, 43691
-    or  $3, $2, $3
-    addiu $2, $zero, 12
-    mult  $2, $3
-    mfhi  $3
-    shr $4, $3, 31
-    sra $3, $3, 1
-    add $3, $3, $4
-    mul $3, $3, $2
-    sub $2, $2, $3
-    st  $2, 0($sp)
-    addiu $sp, $sp, 8
-    ret $lr
-    .set  macro
-    .set  reorder
-    .end  main
+  .cfi_def_cfa_offset 8
+  addiu $2, $zero, 0
+  st  $2, 4($sp)
+  addiu $2, $zero, 11
+  st  $2, 0($sp)
+  addiu $2, $zero, 10922
+  shl $2, $2, 16
+  addiu $3, $zero, 43691
+  or  $3, $2, $3
+  addiu $2, $zero, 12
+  mult  $2, $3
+  mfhi  $3
+  shr $4, $3, 31
+  sra $3, $3, 1
+  add $3, $3, $4
+  mul $3, $3, $2
+  sub $2, $2, $3
+  st  $2, 0($sp)
+  addiu $sp, $sp, 8
+  ret $lr
+  .set  macro
+  .set  reorder
+  .end  main
   $tmp2:
-    .size main, ($tmp2)-main
-    .cfi_endproc
+  .size main, ($tmp2)-main
+  .cfi_endproc
 
 Full support %
 ---------------
@@ -1160,49 +1160,49 @@ The code added in Chapter4_6/ as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6/Cpu0InstrInfo.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter4_6/Cpu0InstrInfo.cpp
-    :start-after: return RI;
-    :end-before: MachineInstr*
-    :linenos:
+  :start-after: return RI;
+  :end-before: MachineInstr*
+  :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6/Cpu0InstrInfo.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter4_6/Cpu0InstrInfo.h
-    :start-after: virtual const Cpu0RegisterInfo &getRegisterInfo() const;
-    :end-before: public:
-    :linenos:
+  :start-after: virtual const Cpu0RegisterInfo &getRegisterInfo() const;
+  :end-before: public:
+  :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6/Cpu0InstrInfo.td
 .. code-block:: c++
 
-  def SDT_Cpu0DivRem       : SDTypeProfile<0, 2,
-                       [SDTCisInt<0>,
-                        SDTCisSameAs<0, 1>]>;
+  def SDT_Cpu0DivRem     : SDTypeProfile<0, 2,
+             [SDTCisInt<0>,
+            SDTCisSameAs<0, 1>]>;
   ...
   // DivRem(u) nodes
-  def Cpu0DivRem    : SDNode<"Cpu0ISD::DivRem", SDT_Cpu0DivRem,
-                 [SDNPOutGlue]>;
-  def Cpu0DivRemU   : SDNode<"Cpu0ISD::DivRemU", SDT_Cpu0DivRem,
-                 [SDNPOutGlue]>;
+  def Cpu0DivRem  : SDNode<"Cpu0ISD::DivRem", SDT_Cpu0DivRem,
+         [SDNPOutGlue]>;
+  def Cpu0DivRemU : SDNode<"Cpu0ISD::DivRemU", SDT_Cpu0DivRem,
+         [SDNPOutGlue]>;
   ...
   class Div<SDNode opNode, bits<8> op, string instr_asm, InstrItinClass itin,
-        RegisterClass RC, list<Register> DefRegs>:
-    FL<op, (outs), (ins RC:$rb, RC:$rc),
-     !strconcat(instr_asm, "\t$$zero, $rb, $rc"),
-     [(opNode RC:$rb, RC:$rc)], itin> {
-    let imm16 = 0;
-    let Defs = DefRegs;
+    RegisterClass RC, list<Register> DefRegs>:
+  FL<op, (outs), (ins RC:$rb, RC:$rc),
+   !strconcat(instr_asm, "\t$$zero, $rb, $rc"),
+   [(opNode RC:$rb, RC:$rc)], itin> {
+  let imm16 = 0;
+  let Defs = DefRegs;
   }
   
   class Div32<SDNode opNode, bits<8> op, string instr_asm, InstrItinClass itin>:
-    Div<opNode, op, instr_asm, itin, CPURegs, [HI, LO]>;
+  Div<opNode, op, instr_asm, itin, CPURegs, [HI, LO]>;
   ...
   class MoveToLOHI<bits<8> op, string instr_asm, RegisterClass RC,
-           list<Register> DefRegs>:
-    FL<op, (outs), (ins RC:$ra),
-     !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
-    let rb = 0;
-    let imm16 = 0;
-    let Defs = DefRegs;
-    let neverHasSideEffects = 1;
+       list<Register> DefRegs>:
+  FL<op, (outs), (ins RC:$ra),
+   !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
+  let rb = 0;
+  let imm16 = 0;
+  let Defs = DefRegs;
+  let neverHasSideEffects = 1;
   }
   ...
   def SDIV    : Div32<Cpu0DivRem, 0x16, "div", IIIdiv>;
@@ -1216,85 +1216,85 @@ The code added in Chapter4_6/ as follows,
 
   Cpu0TargetLowering::
   Cpu0TargetLowering(Cpu0TargetMachine &TM)
-    : TargetLowering(TM, new TargetLoweringObjectFileELF()),
-    Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
-    ...
-    setOperationAction(ISD::SDIV, MVT::i32, Expand);
-    setOperationAction(ISD::SREM, MVT::i32, Expand);
-    setOperationAction(ISD::UDIV, MVT::i32, Expand);
-    setOperationAction(ISD::UREM, MVT::i32, Expand);
+  : TargetLowering(TM, new TargetLoweringObjectFileELF()),
+  Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
+  ...
+  setOperationAction(ISD::SDIV, MVT::i32, Expand);
+  setOperationAction(ISD::SREM, MVT::i32, Expand);
+  setOperationAction(ISD::UDIV, MVT::i32, Expand);
+  setOperationAction(ISD::UREM, MVT::i32, Expand);
   
-    setTargetDAGCombine(ISD::SDIVREM);
-    setTargetDAGCombine(ISD::UDIVREM);
-    ...
+  setTargetDAGCombine(ISD::SDIVREM);
+  setTargetDAGCombine(ISD::UDIVREM);
+  ...
   }
   ...
   static SDValue PerformDivRemCombine(SDNode *N, SelectionDAG& DAG,
-                    TargetLowering::DAGCombinerInfo &DCI,
-                    const Cpu0Subtarget* Subtarget) {
-    if (DCI.isBeforeLegalizeOps())
-    return SDValue();
+          TargetLowering::DAGCombinerInfo &DCI,
+          const Cpu0Subtarget* Subtarget) {
+  if (DCI.isBeforeLegalizeOps())
+  return SDValue();
   
-    EVT Ty = N->getValueType(0);
-    unsigned LO = Cpu0::LO;
-    unsigned HI = Cpu0::HI;
-    unsigned opc = N->getOpcode() == ISD::SDIVREM ? Cpu0ISD::DivRem :
-                            Cpu0ISD::DivRemU;
-    DebugLoc dl = N->getDebugLoc();
+  EVT Ty = N->getValueType(0);
+  unsigned LO = Cpu0::LO;
+  unsigned HI = Cpu0::HI;
+  unsigned opc = N->getOpcode() == ISD::SDIVREM ? Cpu0ISD::DivRem :
+              Cpu0ISD::DivRemU;
+  DebugLoc dl = N->getDebugLoc();
   
-    SDValue DivRem = DAG.getNode(opc, dl, MVT::Glue,
-                   N->getOperand(0), N->getOperand(1));
-    SDValue InChain = DAG.getEntryNode();
-    SDValue InGlue = DivRem;
+  SDValue DivRem = DAG.getNode(opc, dl, MVT::Glue,
+           N->getOperand(0), N->getOperand(1));
+  SDValue InChain = DAG.getEntryNode();
+  SDValue InGlue = DivRem;
   
-    // insert MFLO
-    if (N->hasAnyUseOfValue(0)) {
-    SDValue CopyFromLo = DAG.getCopyFromReg(InChain, dl, LO, Ty,
-                        InGlue);
-    DAG.ReplaceAllUsesOfValueWith(SDValue(N, 0), CopyFromLo);
-    InChain = CopyFromLo.getValue(1);
-    InGlue = CopyFromLo.getValue(2);
-    }
+  // insert MFLO
+  if (N->hasAnyUseOfValue(0)) {
+  SDValue CopyFromLo = DAG.getCopyFromReg(InChain, dl, LO, Ty,
+            InGlue);
+  DAG.ReplaceAllUsesOfValueWith(SDValue(N, 0), CopyFromLo);
+  InChain = CopyFromLo.getValue(1);
+  InGlue = CopyFromLo.getValue(2);
+  }
   
-    // insert MFHI
-    if (N->hasAnyUseOfValue(1)) {
-    SDValue CopyFromHi = DAG.getCopyFromReg(InChain, dl,
-                        HI, Ty, InGlue);
-    DAG.ReplaceAllUsesOfValueWith(SDValue(N, 1), CopyFromHi);
-    }
+  // insert MFHI
+  if (N->hasAnyUseOfValue(1)) {
+  SDValue CopyFromHi = DAG.getCopyFromReg(InChain, dl,
+            HI, Ty, InGlue);
+  DAG.ReplaceAllUsesOfValueWith(SDValue(N, 1), CopyFromHi);
+  }
   
-    return SDValue();
+  return SDValue();
   }
   
   SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI)
-    const {
-    SelectionDAG &DAG = DCI.DAG;
-    unsigned opc = N->getOpcode();
+  const {
+  SelectionDAG &DAG = DCI.DAG;
+  unsigned opc = N->getOpcode();
   
-    switch (opc) {
-    default: break;
-    case ISD::SDIVREM:
-    case ISD::UDIVREM:
-    return PerformDivRemCombine(N, DAG, DCI, Subtarget);
-    }
+  switch (opc) {
+  default: break;
+  case ISD::SDIVREM:
+  case ISD::UDIVREM:
+  return PerformDivRemCombine(N, DAG, DCI, Subtarget);
+  }
   
-    return SDValue();
+  return SDValue();
   }
   
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_6/Cpu0ISelLowering.h
 .. code-block:: c++
 
   namespace llvm {
-    namespace Cpu0ISD {
-    enum NodeType {
-      // Start the numbering from where ISD NodeType finishes.
-      FIRST_NUMBER = ISD::BUILTIN_OP_END,
-      Ret,
-      // DivRem(u)
-      DivRem,
-      DivRemU
-    };
-    }
+  namespace Cpu0ISD {
+  enum NodeType {
+    // Start the numbering from where ISD NodeType finishes.
+    FIRST_NUMBER = ISD::BUILTIN_OP_END,
+    Ret,
+    // DivRem(u)
+    DivRem,
+    DivRemU
+  };
+  }
   ...
 
 
@@ -1313,9 +1313,9 @@ support implementation since it call the function rand().
 
   int main()
   {
-    ...
-    f = a / b;
-    ...
+  ...
+  f = a / b;
+  ...
   }
 
 .. code-block:: bash
@@ -1325,314 +1325,355 @@ support implementation since it call the function rand().
   debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch4_6_2.bc -o ch4_6_2.cpu0.s
   118-165-77-79:InputFiles Jonathan$ cat ch4_6_2.cpu0.s 
-    div $zero, $3, $2
-    mflo  $2
-    ...
+  div $zero, $3, $2
+  mflo  $2
+  ...
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_6_1.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_6_1.cpp
-    :lines: 4-
-    :linenos:
+  :lines: 4-
+  :linenos:
   
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_6_2.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_6_2.cpp
-    :lines: 4-
-    :linenos:
+  :lines: 4-
+  :linenos:
 
 To explain how Chapter4_6 work with **“div”**, let's run Chapter8_8 with 
 ch4_6_2.cpp as follows,
 
 .. code-block:: bash
 
-	cschen@cschen-BM6835-BM6635-BP6335:~/test/1/lbd/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles$ clang -c ch4_6_2.cpp -emit-llvm -o ch4_6_2.bc
-	cschen@cschen-BM6835-BM6635-BP6335:~/test/1/lbd/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/InputFiles$ /usr/local/llvm/lbd/cmake_debug_build/bin/llc -march=cpu0 -debug -relocation-model=pic -filetype=asm ch4_6_2.bc -o -
-	Args: /usr/local/llvm/lbd/cmake_debug_build/bin/llc -march=cpu0 -debug -relocation-model=pic -filetype=asm ch4_6_2.bc -o - 
-
-	=== main
-	Initial selection DAG: BB#0 'main:entry'
-	SelectionDAG has 34 nodes:
-	  0x21f57c8: ch = EntryToken [ORD=1]
-
-	  0x221a770: i32 = undef [ORD=1]
-
-	  0x221aa70: i32 = FrameIndex<1> [ORD=2]
-
-	  0x221ac70: i32 = GlobalAddress<i32 ()* @rand> 0
-
-	  0x221ad70: i32 = TargetConstant<0> [ORD=3]
-
-	  0x221b370: i32 = Register %T9 [ORD=3]
-
-		  0x21f57c8: <multiple use>
-		  0x221a570: i32 = Constant<0> [ORD=1]
-
-		  0x221a670: i32 = FrameIndex<0> [ORD=1]
-
-		  0x221a770: <multiple use>
-		0x221a870: ch = store 0x21f57c8, 0x221a570, 0x221a670, 0x221a770<ST4[%retval]> [ORD=1]
-
-		0x221a970: i32 = Constant<11> [ORD=2]
-
-		0x221aa70: <multiple use>
-		0x221a770: <multiple use>
-	      0x221ab70: ch = store 0x221a870, 0x221a970, 0x221aa70, 0x221a770<ST4[%b]> [ORD=2]
-
-	      0x221ad70: <multiple use>
-	    0x221ae70: ch,glue = callseq_start 0x221ab70, 0x221ad70 [ORD=3]
-
-	    0x221b370: <multiple use>
-	      0x21f57c8: <multiple use>
-		0x221b070: i32 = Register %GP [ORD=3]
-
-		0x221af70: i32 = TargetGlobalAddress<i32 ()* @rand> 0 [TF=3] [ORD=3]
-
-	      0x221b170: i32 = Cpu0ISD::Wrapper 0x221b070, 0x221af70 [ORD=3]
-
-	      0x221a770: <multiple use>
-	    0x221b270: i32,ch = load 0x21f57c8, 0x221b170, 0x221a770<LD4[GOT]> [ORD=3]
-
-	  0x221d3f0: ch,glue = CopyToReg 0x221ae70, 0x221b370, 0x221b270 [ORD=3]
-
-	    0x221d3f0: <multiple use>
-	    0x221b370: <multiple use>
-	    0x221d4f0: Untyped = RegisterMask [ORD=3]
-
-	    0x221d3f0: <multiple use>
-	  0x221d5f0: ch,glue = Cpu0ISD::JmpLink 0x221d3f0, 0x221b370, 0x221d4f0, 0x221d3f0:1 [ORD=3]
-
-	    0x221d5f0: <multiple use>
-	    0x221ad70: <multiple use>
-	    0x221ad70: <multiple use>
-	    0x221d5f0: <multiple use>
-	  0x221d6f0: ch,glue = callseq_end 0x221d5f0, 0x221ad70, 0x221ad70, 0x221d5f0:1 [ORD=3]
-
-	  0x221d7f0: i32 = Register %V0 [ORD=3]
-
-	    0x221d6f0: <multiple use>
-	    0x221d7f0: <multiple use>
-	    0x221d6f0: <multiple use>
-	  0x221d8f0: i32,ch,glue = CopyFromReg 0x221d6f0, 0x221d7f0, 0x221d6f0:1 [ORD=3]
-
-	  0x221d9f0: i32 = FrameIndex<2> [ORD=5]
-
-	    0x221d8f0: <multiple use>
-	    0x221d8f0: <multiple use>
-	    0x221d9f0: <multiple use>
-	    0x221a770: <multiple use>
-	  0x221daf0: ch = store 0x221d8f0:1, 0x221d8f0, 0x221d9f0, 0x221a770<ST4[%c]> [ORD=5]
-
-	    0x221daf0: <multiple use>
-	    0x221aa70: <multiple use>
-	    0x221a770: <multiple use>
-	  0x221dbf0: i32,ch = load 0x221daf0, 0x221aa70, 0x221a770<LD4[%b]> [ORD=6]
-
-	    0x221daf0: <multiple use>
-	    0x221d9f0: <multiple use>
-	    0x221a770: <multiple use>
-	  0x221def0: i32,ch = load 0x221daf0, 0x221d9f0, 0x221a770<LD4[%c]> [ORD=8]
-
-	      0x221dbf0: <multiple use>
-	      0x221def0: <multiple use>
-	    0x221e0f0: ch = TokenFactor 0x221dbf0:1, 0x221def0:1 [ORD=10]
-
-		0x221dbf0: <multiple use>
-		0x221dcf0: i32 = Constant<1> [ORD=7]
-
-	      0x221ddf0: i32 = add 0x221dbf0, 0x221dcf0 [ORD=7]
-
-	      0x221def0: <multiple use>
-	    0x221dff0: i32 = srem 0x221ddf0, 0x221def0 [ORD=9]
-
-	    0x221aa70: <multiple use>
-	    0x221a770: <multiple use>
-	  0x221e1f0: ch = store 0x221e0f0, 0x221dff0, 0x221aa70, 0x221a770<ST4[%b]> [ORD=10]
-
-	    0x221e1f0: <multiple use>
-	    0x221d7f0: <multiple use>
-	      0x221e1f0: <multiple use>
-	      0x221aa70: <multiple use>
-	      0x221a770: <multiple use>
-	    0x221e560: i32,ch = load 0x221e1f0, 0x221aa70, 0x221a770<LD4[%b]> [ORD=11]
-
-	  0x221e660: ch,glue = CopyToReg 0x221e1f0, 0x221d7f0, 0x221e560
-
-	    0x221e660: <multiple use>
-	    0x221d7f0: <multiple use>
-	    0x221e660: <multiple use>
-	  0x221e760: ch = Cpu0ISD::Ret 0x221e660, 0x221d7f0, 0x221e660:1
-
-
-
-	Replacing.1 0x221e560: i32,ch = load 0x221e1f0, 0x221aa70, 0x221a770<LD4[%b]> [ORD=11]
-
-	With: 0x221dff0: i32 = srem 0x221ddf0, 0x221def0 [ORD=9]
-	 and 1 other values
-
-	Replacing.1 0x221def0: i32,ch = load 0x221daf0, 0x221d9f0, 0x221a770<LD4[%c]> [ORD=8]
-
-	With: 0x221d8f0: i32,ch,glue = CopyFromReg 0x221d6f0, 0x221d7f0, 0x221d6f0:1 [ORD=3]
-	 and 1 other values
-
-	Replacing.3 0x221e0f0: ch = TokenFactor 0x221dbf0:1, 0x221daf0 [ORD=10]
-
-	With: 0x221dbf0: i32,ch = load 0x221daf0, 0x221aa70, 0x221a770<LD4[%b]> [ORD=6]
-
-	Optimized lowered selection DAG: BB#0 'main:entry'
-	SelectionDAG has 30 nodes:
-	  0x21f57c8: ch = EntryToken [ORD=1]
-
-	  0x221a770: i32 = undef [ORD=1]
-
-	  0x221aa70: i32 = FrameIndex<1> [ORD=2]
-
-	  0x221ad70: i32 = TargetConstant<0> [ORD=3]
-
-	  0x221b370: i32 = Register %T9 [ORD=3]
-
-		  0x21f57c8: <multiple use>
-		  0x221a570: i32 = Constant<0> [ORD=1]
-
-		  0x221a670: i32 = FrameIndex<0> [ORD=1]
-
-		  0x221a770: <multiple use>
-		0x221a870: ch = store 0x21f57c8, 0x221a570, 0x221a670, 0x221a770<ST4[%retval]> [ORD=1]
-
-		0x221a970: i32 = Constant<11> [ORD=2]
-
-		0x221aa70: <multiple use>
-		0x221a770: <multiple use>
-	      0x221ab70: ch = store 0x221a870, 0x221a970, 0x221aa70, 0x221a770<ST4[%b]> [ORD=2]
-
-	      0x221ad70: <multiple use>
-	    0x221ae70: ch,glue = callseq_start 0x221ab70, 0x221ad70 [ORD=3]
-
-	    0x221b370: <multiple use>
-	      0x21f57c8: <multiple use>
-		0x221b070: i32 = Register %GP [ORD=3]
-
-		0x221af70: i32 = TargetGlobalAddress<i32 ()* @rand> 0 [TF=3] [ORD=3]
-
-	      0x221b170: i32 = Cpu0ISD::Wrapper 0x221b070, 0x221af70 [ORD=3]
-
-	      0x221a770: <multiple use>
-	    0x221b270: i32,ch = load 0x21f57c8, 0x221b170, 0x221a770<LD4[GOT]> [ORD=3]
-
-	  0x221d3f0: ch,glue = CopyToReg 0x221ae70, 0x221b370, 0x221b270 [ORD=3]
-
-	    0x221d3f0: <multiple use>
-	    0x221b370: <multiple use>
-	    0x221d4f0: Untyped = RegisterMask [ORD=3]
-
-	    0x221d3f0: <multiple use>
-	  0x221d5f0: ch,glue = Cpu0ISD::JmpLink 0x221d3f0, 0x221b370, 0x221d4f0, 0x221d3f0:1 [ORD=3]
-
-	    0x221d5f0: <multiple use>
-	    0x221ad70: <multiple use>
-	    0x221ad70: <multiple use>
-	    0x221d5f0: <multiple use>
-	  0x221d6f0: ch,glue = callseq_end 0x221d5f0, 0x221ad70, 0x221ad70, 0x221d5f0:1 [ORD=3]
-
-	  0x221d7f0: i32 = Register %V0 [ORD=3]
-
-	    0x221d6f0: <multiple use>
-	    0x221d7f0: <multiple use>
-	    0x221d6f0: <multiple use>
-	  0x221d8f0: i32,ch,glue = CopyFromReg 0x221d6f0, 0x221d7f0, 0x221d6f0:1 [ORD=3]
-
-	      0x221d8f0: <multiple use>
-	      0x221d8f0: <multiple use>
-	      0x221d9f0: i32 = FrameIndex<2> [ORD=5]
-
-	      0x221a770: <multiple use>
-	    0x221daf0: ch = store 0x221d8f0:1, 0x221d8f0, 0x221d9f0, 0x221a770<ST4[%c]> [ORD=5]
-
-	    0x221aa70: <multiple use>
-	    0x221a770: <multiple use>
-	  0x221dbf0: i32,ch = load 0x221daf0, 0x221aa70, 0x221a770<LD4[%b]> [ORD=6]
-
-	      0x221dbf0: <multiple use>
-	      0x221dcf0: i32 = Constant<1> [ORD=7]
-
-	    0x221ddf0: i32 = add 0x221dbf0, 0x221dcf0 [ORD=7]
-
-	    0x221d8f0: <multiple use>
-	  0x221dff0: i32 = srem 0x221ddf0, 0x221d8f0 [ORD=9]
-
-	      0x221dbf0: <multiple use>
-	      0x221dff0: <multiple use>
-	      0x221aa70: <multiple use>
-	      0x221a770: <multiple use>
-	    0x221e1f0: ch = store 0x221dbf0:1, 0x221dff0, 0x221aa70, 0x221a770<ST4[%b]> [ORD=10]
-
-	    0x221d7f0: <multiple use>
-	    0x221dff0: <multiple use>
-	  0x221e660: ch,glue = CopyToReg 0x221e1f0, 0x221d7f0, 0x221dff0
-
-	    0x221e660: <multiple use>
-	    0x221d7f0: <multiple use>
-	    0x221e660: <multiple use>
-	  0x221e760: ch = Cpu0ISD::Ret 0x221e660, 0x221d7f0, 0x221e660:1
-
-	...
-
-	Type-legalized selection DAG: BB#0 'main:entry'
-	SelectionDAG has 30 nodes:
-	  ...
-
-	    0x221ddf0: i32 = add 0x221dbf0, 0x221dcf0 [ORD=7] [ID=-3]
-
-	    0x221d8f0: <multiple use>
-	  0x221dff0: i32 = srem 0x221ddf0, 0x221d8f0 [ORD=9] [ID=-3]
-	  ...
-
-	Legalized selection DAG: BB#0 'main:entry'
-	SelectionDAG has 30 nodes:
-	  0x21f57c8: ch = EntryToken [ORD=1] [ID=0]
-
-	  0x221a770: i32 = undef [ORD=1] [ID=3]
-
-	  0x221aa70: i32 = FrameIndex<1> [ORD=2] [ID=5]
-
-	  0x221ad70: i32 = TargetConstant<0> [ORD=3] [ID=6]
-
-	  0x221b370: i32 = Register %T9 [ORD=3] [ID=9]
-
-	  0x221d7f0: i32 = Register %V0 [ORD=3] [ID=11]
-	  ...
-
-	    0x221ddf0: i32 = add 0x221dbf0, 0x221dcf0 [ORD=7] [ID=25]
-
-	    0x221d8f0: <multiple use>
-	  0x221ac70: i32,i32 = sdivrem 0x221ddf0, 0x221d8f0
-	  ...
-
-	Optimized legalized selection DAG: BB#0 'main:entry'
-	SelectionDAG has 32 nodes:
-	  ...
-	    0x21f57c8: <multiple use>
-	    0x221def0: i32 = Register %HI
-
-		0x221dbf0: <multiple use>
-		0x221dcf0: i32 = Constant<1> [ORD=7] [ID=13]
-
-	      0x221ddf0: i32 = add 0x221dbf0, 0x221dcf0 [ORD=7] [ID=25]
-
-	      0x221d8f0: <multiple use>
-	    0x221e0f0: glue = Cpu0ISD::DivRem 0x221ddf0, 0x221d8f0
-
-    0x221e560: i32,ch,glue = CopyFromReg 0x21f57c8, 0x221def0, 0x221e0f0
-	  ...
-
-	===== Instruction selection begins: BB#0 'entry'
-	...
-	Selecting: 0x221e0f0: glue = Cpu0ISD::DivRem 0x221ddf0, 0x221d8f0 [ID=27]
-
-	ISEL: Starting pattern match on root node: 0x221e0f0: glue = Cpu0ISD::DivRem 0x221ddf0, 0x221d8f0 [ID=27]
-
-	  Initial Opcode index to 1308
-	  Morphed node: 0x221e0f0: i32,glue = SDIV 0x221ddf0, 0x221d8f0
-
-	ISEL: Match complete!
+  118-165-83-58:InputFiles Jonathan$ clang -c ch4_6_2.cpp -I/Applications/Xcode.app/
+  Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/
+  include/ -emit-llvm -o ch4_6_2.bc
+  118-165-83-58:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/bin/
+  Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug ch4_6_2.bc -o -
+  Args: /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 
+  -relocation-model=pic -filetype=asm -debug ch4_6_2.bc -o - 
+  
+  === main
+  Initial selection DAG: BB#0 'main:'
+  SelectionDAG has 34 nodes:
+    0x7fd25b410e18: ch = EntryToken [ORD=1]
+  
+    0x7fd25b82d210: i32 = undef [ORD=1]
+  
+    0x7fd25b82d510: i32 = FrameIndex<1> [ORD=2]
+  
+    0x7fd25b82d710: i32 = GlobalAddress<i32 ()* @rand> 0
+  
+    0x7fd25b82d810: i32 = TargetConstant<0> [ORD=3]
+  
+    0x7fd25b82de10: i32 = Register %T9 [ORD=3]
+  
+            0x7fd25b410e18: <multiple use>
+            0x7fd25b82d010: i32 = Constant<0> [ORD=1]
+  
+            0x7fd25b82d110: i32 = FrameIndex<0> [ORD=1]
+  
+            0x7fd25b82d210: <multiple use>
+          0x7fd25b82d310: ch = store 0x7fd25b410e18, 0x7fd25b82d010, 0x7fd25b82d110, 
+          0x7fd25b82d210<ST4[%1]> [ORD=1]
+  
+          0x7fd25b82d410: i32 = Constant<11> [ORD=2]
+  
+          0x7fd25b82d510: <multiple use>
+          0x7fd25b82d210: <multiple use>
+        0x7fd25b82d610: ch = store 0x7fd25b82d310, 0x7fd25b82d410, 0x7fd25b82d510, 
+        0x7fd25b82d210<ST4[%b]> [ORD=2]
+  
+        0x7fd25b82d810: <multiple use>
+      0x7fd25b82d910: ch,glue = callseq_start 0x7fd25b82d610, 0x7fd25b82d810 [ORD=3]
+  
+      0x7fd25b82de10: <multiple use>
+        0x7fd25b410e18: <multiple use>
+          0x7fd25b82db10: i32 = Register %GP [ORD=3]
+  
+          0x7fd25b82da10: i32 = TargetGlobalAddress<i32 ()* @rand> 0 [TF=3] [ORD=3]
+  
+        0x7fd25b82dc10: i32 = Cpu0ISD::Wrapper 0x7fd25b82db10, 0x7fd25b82da10 [ORD=3]
+  
+        0x7fd25b82d210: <multiple use>
+      0x7fd25b82dd10: i32,ch = load 0x7fd25b410e18, 0x7fd25b82dc10, 0x7fd25b82d210
+      <LD4[GOT]> [ORD=3]
+  
+    0x7fd25b82fc10: ch,glue = CopyToReg 0x7fd25b82d910, 0x7fd25b82de10, 
+    0x7fd25b82dd10 [ORD=3]
+  
+      0x7fd25b82fc10: <multiple use>
+      0x7fd25b82de10: <multiple use>
+      0x7fd25b82fd10: Untyped = RegisterMask [ORD=3]
+  
+      0x7fd25b82fc10: <multiple use>
+    0x7fd25b82fe10: ch,glue = Cpu0ISD::JmpLink 0x7fd25b82fc10, 0x7fd25b82de10, 
+    0x7fd25b82fd10, 0x7fd25b82fc10:1 [ORD=3]
+  
+      0x7fd25b82fe10: <multiple use>
+      0x7fd25b82d810: <multiple use>
+      0x7fd25b82d810: <multiple use>
+      0x7fd25b82fe10: <multiple use>
+    0x7fd25b82ff10: ch,glue = callseq_end 0x7fd25b82fe10, 0x7fd25b82d810, 
+    0x7fd25b82d810, 0x7fd25b82fe10:1 [ORD=3]
+  
+    0x7fd25b830010: i32 = Register %V0 [ORD=3]
+  
+      0x7fd25b82ff10: <multiple use>
+      0x7fd25b830010: <multiple use>
+      0x7fd25b82ff10: <multiple use>
+    0x7fd25b830110: i32,ch,glue = CopyFromReg 0x7fd25b82ff10, 0x7fd25b830010, 
+    0x7fd25b82ff10:1 [ORD=3]
+  
+    0x7fd25b830210: i32 = FrameIndex<2> [ORD=5]
+  
+      0x7fd25b830110: <multiple use>
+      0x7fd25b830110: <multiple use>
+      0x7fd25b830210: <multiple use>
+      0x7fd25b82d210: <multiple use>
+    0x7fd25b830310: ch = store 0x7fd25b830110:1, 0x7fd25b830110, 0x7fd25b830210, 
+    0x7fd25b82d210<ST4[%c]> [ORD=5]
+  
+      0x7fd25b830310: <multiple use>
+      0x7fd25b82d510: <multiple use>
+      0x7fd25b82d210: <multiple use>
+    0x7fd25b830410: i32,ch = load 0x7fd25b830310, 0x7fd25b82d510, 
+    0x7fd25b82d210<LD4[%b]> [ORD=6]
+  
+      0x7fd25b830310: <multiple use>
+      0x7fd25b830210: <multiple use>
+      0x7fd25b82d210: <multiple use>
+    0x7fd25b830710: i32,ch = load 0x7fd25b830310, 0x7fd25b830210, 
+    0x7fd25b82d210<LD4[%c]> [ORD=8]
+  
+        0x7fd25b830410: <multiple use>
+        0x7fd25b830710: <multiple use>
+      0x7fd25b830910: ch = TokenFactor 0x7fd25b830410:1, 0x7fd25b830710:1 [ORD=10]
+  
+          0x7fd25b830410: <multiple use>
+          0x7fd25b830510: i32 = Constant<1> [ORD=7]
+  
+        0x7fd25b830610: i32 = add 0x7fd25b830410, 0x7fd25b830510 [ORD=7]
+  
+        0x7fd25b830710: <multiple use>
+      0x7fd25b830810: i32 = srem 0x7fd25b830610, 0x7fd25b830710 [ORD=9]
+  
+      0x7fd25b82d510: <multiple use>
+      0x7fd25b82d210: <multiple use>
+    0x7fd25b830a10: ch = store 0x7fd25b830910, 0x7fd25b830810, 0x7fd25b82d510, 
+    0x7fd25b82d210<ST4[%b]> [ORD=10]
+  
+      0x7fd25b830a10: <multiple use>
+      0x7fd25b830010: <multiple use>
+        0x7fd25b830a10: <multiple use>
+        0x7fd25b82d510: <multiple use>
+        0x7fd25b82d210: <multiple use>
+      0x7fd25b830c10: i32,ch = load 0x7fd25b830a10, 0x7fd25b82d510, 
+      0x7fd25b82d210<LD4[%b]> [ORD=11]
+  
+    0x7fd25b830d10: ch,glue = CopyToReg 0x7fd25b830a10, 0x7fd25b830010, 
+    0x7fd25b830c10
+  
+      0x7fd25b830d10: <multiple use>
+      0x7fd25b830010: <multiple use>
+      0x7fd25b830d10: <multiple use>
+    0x7fd25b830e10: ch = Cpu0ISD::Ret 0x7fd25b830d10, 0x7fd25b830010, 
+    0x7fd25b830d10:1
+  
+  
+  
+  Replacing.1 0x7fd25b830c10: i32,ch = load 0x7fd25b830a10, 0x7fd25b82d510, 
+  0x7fd25b82d210<LD4[%b]> [ORD=11]
+  
+  With: 0x7fd25b830810: i32 = srem 0x7fd25b830610, 0x7fd25b830710 [ORD=9]
+   and 1 other values
+  
+  Replacing.1 0x7fd25b830710: i32,ch = load 0x7fd25b830310, 0x7fd25b830210, 
+  0x7fd25b82d210<LD4[%c]> [ORD=8]
+  
+  With: 0x7fd25b830110: i32,ch,glue = CopyFromReg 0x7fd25b82ff10, 0x7fd25b830010, 
+  0x7fd25b82ff10:1 [ORD=3]
+   and 1 other values
+  
+  Replacing.3 0x7fd25b830910: ch = TokenFactor 0x7fd25b830410:1, 
+  0x7fd25b830310 [ORD=10]
+  
+  With: 0x7fd25b830410: i32,ch = load 0x7fd25b830310, 0x7fd25b82d510, 
+  0x7fd25b82d210<LD4[%b]> [ORD=6]
+  
+  Optimized lowered selection DAG: BB#0 'main:'
+  SelectionDAG has 30 nodes:
+    0x7fd25b410e18: ch = EntryToken [ORD=1]
+  
+    0x7fd25b82d210: i32 = undef [ORD=1]
+  
+    0x7fd25b82d510: i32 = FrameIndex<1> [ORD=2]
+  
+    0x7fd25b82d810: i32 = TargetConstant<0> [ORD=3]
+  
+    0x7fd25b82de10: i32 = Register %T9 [ORD=3]
+  
+            0x7fd25b410e18: <multiple use>
+            0x7fd25b82d010: i32 = Constant<0> [ORD=1]
+  
+            0x7fd25b82d110: i32 = FrameIndex<0> [ORD=1]
+  
+            0x7fd25b82d210: <multiple use>
+          0x7fd25b82d310: ch = store 0x7fd25b410e18, 0x7fd25b82d010, 
+          0x7fd25b82d110, 0x7fd25b82d210<ST4[%1]> [ORD=1]
+  
+          0x7fd25b82d410: i32 = Constant<11> [ORD=2]
+  
+          0x7fd25b82d510: <multiple use>
+          0x7fd25b82d210: <multiple use>
+        0x7fd25b82d610: ch = store 0x7fd25b82d310, 0x7fd25b82d410, 
+        0x7fd25b82d510, 0x7fd25b82d210<ST4[%b]> [ORD=2]
+  
+        0x7fd25b82d810: <multiple use>
+      0x7fd25b82d910: ch,glue = callseq_start 0x7fd25b82d610, 
+      0x7fd25b82d810 [ORD=3]
+  
+      0x7fd25b82de10: <multiple use>
+        0x7fd25b410e18: <multiple use>
+          0x7fd25b82db10: i32 = Register %GP [ORD=3]
+  
+          0x7fd25b82da10: i32 = TargetGlobalAddress<i32 ()* @rand> 0 
+          [TF=3] [ORD=3]
+  
+        0x7fd25b82dc10: i32 = Cpu0ISD::Wrapper 0x7fd25b82db10, 0x7fd25b82da10 [
+        ORD=3]
+  
+        0x7fd25b82d210: <multiple use>
+      0x7fd25b82dd10: i32,ch = load 0x7fd25b410e18, 0x7fd25b82dc10, 
+      0x7fd25b82d210<LD4[GOT]> [ORD=3]
+  
+    0x7fd25b82fc10: ch,glue = CopyToReg 0x7fd25b82d910, 0x7fd25b82de10, 
+    0x7fd25b82dd10 [ORD=3]
+  
+      0x7fd25b82fc10: <multiple use>
+      0x7fd25b82de10: <multiple use>
+      0x7fd25b82fd10: Untyped = RegisterMask [ORD=3]
+  
+      0x7fd25b82fc10: <multiple use>
+    0x7fd25b82fe10: ch,glue = Cpu0ISD::JmpLink 0x7fd25b82fc10, 0x7fd25b82de10, 
+    0x7fd25b82fd10, 0x7fd25b82fc10:1 [ORD=3]
+  
+      0x7fd25b82fe10: <multiple use>
+      0x7fd25b82d810: <multiple use>
+      0x7fd25b82d810: <multiple use>
+      0x7fd25b82fe10: <multiple use>
+    0x7fd25b82ff10: ch,glue = callseq_end 0x7fd25b82fe10, 0x7fd25b82d810, 
+    0x7fd25b82d810, 0x7fd25b82fe10:1 [ORD=3]
+  
+    0x7fd25b830010: i32 = Register %V0 [ORD=3]
+  
+      0x7fd25b82ff10: <multiple use>
+      0x7fd25b830010: <multiple use>
+      0x7fd25b82ff10: <multiple use>
+    0x7fd25b830110: i32,ch,glue = CopyFromReg 0x7fd25b82ff10, 0x7fd25b830010, 
+    0x7fd25b82ff10:1 [ORD=3]
+  
+        0x7fd25b830110: <multiple use>
+        0x7fd25b830110: <multiple use>
+        0x7fd25b830210: i32 = FrameIndex<2> [ORD=5]
+  
+        0x7fd25b82d210: <multiple use>
+      0x7fd25b830310: ch = store 0x7fd25b830110:1, 0x7fd25b830110, 0x7fd25b830210, 
+      0x7fd25b82d210<ST4[%c]> [ORD=5]
+  
+      0x7fd25b82d510: <multiple use>
+      0x7fd25b82d210: <multiple use>
+    0x7fd25b830410: i32,ch = load 0x7fd25b830310, 0x7fd25b82d510, 
+    0x7fd25b82d210<LD4[%b]> [ORD=6]
+  
+        0x7fd25b830410: <multiple use>
+        0x7fd25b830510: i32 = Constant<1> [ORD=7]
+  
+      0x7fd25b830610: i32 = add 0x7fd25b830410, 0x7fd25b830510 [ORD=7]
+  
+      0x7fd25b830110: <multiple use>
+    0x7fd25b830810: i32 = srem 0x7fd25b830610, 0x7fd25b830110 [ORD=9]
+  
+        0x7fd25b830410: <multiple use>
+        0x7fd25b830810: <multiple use>
+        0x7fd25b82d510: <multiple use>
+        0x7fd25b82d210: <multiple use>
+      0x7fd25b830a10: ch = store 0x7fd25b830410:1, 0x7fd25b830810, 0x7fd25b82d510, 
+      0x7fd25b82d210<ST4[%b]> [ORD=10]
+  
+      0x7fd25b830010: <multiple use>
+      0x7fd25b830810: <multiple use>
+    0x7fd25b830d10: ch,glue = CopyToReg 0x7fd25b830a10, 0x7fd25b830010, 
+    0x7fd25b830810
+  
+      0x7fd25b830d10: <multiple use>
+      0x7fd25b830010: <multiple use>
+      0x7fd25b830d10: <multiple use>
+    0x7fd25b830e10: ch = Cpu0ISD::Ret 0x7fd25b830d10, 0x7fd25b830010, 
+    0x7fd25b830d10:1
+    ...
+  
+  Type-legalized selection DAG: BB#0 'main:'
+  SelectionDAG has 30 nodes:
+    ...
+  
+      0x7fd25b830610: i32 = add 0x7fd25b830410, 0x7fd25b830510 [ORD=7] [ID=-3]
+  
+      0x7fd25b830110: <multiple use>
+    0x7fd25b830810: i32 = srem 0x7fd25b830610, 0x7fd25b830110 [ORD=9] [ID=-3]
+    ...
+  
+  Legalized selection DAG: BB#0 'main:'
+  SelectionDAG has 30 nodes:
+    0x7fd25b410e18: ch = EntryToken [ORD=1] [ID=0]
+  
+    0x7fd25b82d210: i32 = undef [ORD=1] [ID=3]
+  
+    0x7fd25b82d510: i32 = FrameIndex<1> [ORD=2] [ID=5]
+  
+    0x7fd25b82d810: i32 = TargetConstant<0> [ORD=3] [ID=6]
+  
+    0x7fd25b82de10: i32 = Register %T9 [ORD=3] [ID=9]
+  
+    0x7fd25b830010: i32 = Register %V0 [ORD=3] [ID=11]
+      ...
+  
+      0x7fd25b830610: i32 = add 0x7fd25b830410, 0x7fd25b830510 [ORD=7] [ID=25]
+  
+      0x7fd25b830110: <multiple use>
+    0x7fd25b82d710: i32,i32 = sdivrem 0x7fd25b830610, 0x7fd25b830110
+    ...
+  
+  Optimized legalized selection DAG: BB#0 'main:'
+  SelectionDAG has 32 nodes:
+    ...
+      0x7fd25b410e18: <multiple use>
+      0x7fd25b830710: i32 = Register %HI
+  
+          0x7fd25b830410: <multiple use>
+          0x7fd25b830510: i32 = Constant<1> [ORD=7] [ID=13]
+  
+        0x7fd25b830610: i32 = add 0x7fd25b830410, 0x7fd25b830510 [ORD=7] [ID=25]
+  
+        0x7fd25b830110: <multiple use>
+      0x7fd25b830910: glue = Cpu0ISD::DivRem 0x7fd25b830610, 0x7fd25b830110
+  
+    0x7fd25b830c10: i32,ch,glue = CopyFromReg 0x7fd25b410e18, 0x7fd25b830710, 
+    0x7fd25b830910
+    ...
+      
+  ===== Instruction selection begins: BB#0 ''
+    ...
+  Selecting: 0x7fd25b830910: glue = Cpu0ISD::DivRem 0x7fd25b830610, 
+  0x7fd25b830110 [ID=27]
+  
+  ISEL: Starting pattern match on root node: 0x7fd25b830910: glue = 
+  Cpu0ISD::DivRem 0x7fd25b830610, 0x7fd25b830110 [ID=27]
+  
+    Initial Opcode index to 1308
+    Morphed node: 0x7fd25b830910: i32,glue = SDIV 0x7fd25b830610, 0x7fd25b830110
+  
+  ISEL: Match complete!
+  ...
 
 
 According above DAG translation message from ``llc -debug``, it do the 
@@ -1647,8 +1688,8 @@ SSA form has some redundant nodes for store and load, them can be removed.
 3. Change DAG sdivrem to Cpu0ISD::DivRem and in stage "Optimized legalized 
 selection DAG".
 
-4. Add DAG "0x221def0: i32 = Register %HI" and "CopyFromReg 0x21f57c8, 
-0x221def0, 0x221e0f0" in stage "Optimized legalized selection DAG".
+4. Add DAG "0x7fd25b830710: i32 = Register %HI" and "CopyFromReg 0x7fd25b410e18, 
+0x7fd25b830710, 0x7fd25b830910" in stage "Optimized legalized selection DAG".
 
 Above item 2, is triggered by code 
 "setOperationAction(ISD::SREM, MVT::i32, Expand);" in Cpu0ISelLowering.cpp. 
@@ -1657,41 +1698,42 @@ About **Expand** please ref. [#]_ and [#]_. Item 3 is triggered by code
 PerformDAGCombine() and PerformDivRemCombine() in Cpu0ISelLowering.cpp.
 Item 4 is did by PerformDivRemCombine() since the **%** corresponding srem 
 which make the "N->hasAnyUseOfValue(1)" is true in PerformDivRemCombine(). 
-So, it create "CopyFromReg 0x21f57c8, 0x221def0, 0x221e0f0". 
+So, it create "CopyFromReg 0x7fd25b410e18, 0x7fd25b830710, 0x7fd25b830910". 
 When use **"/"** in C, it will make "N->hasAnyUseOfValue(0)" to ture.
 For sdivrem, **sdiv** make "N->hasAnyUseOfValue(0)" true while **srem** make 
 "N->hasAnyUseOfValue(1)" ture.
 
 Above items will change the DAG when ``llc`` running. After that, the pattern 
 match defined in Chapter4_6/Cpu0InstrInfo.td will translate **Cpu0ISD::DivRem** 
-to **div** and **"CopyFromReg 0x21f57c8, Register %H, 0x221e0f0"** to **mfhi**.
+to **div**; and **"CopyFromReg 0x7fd25b410e18, Register %H, 0x7fd25b830910"** 
+to **mfhi**.
 
 Summary as Table: Stages for C operator % and Table: Functions handle the DAG 
 translation and pattern match for C operator %.
 
 Table: Stages for C operator %
 
-==================================	=====================	=========================
-Stage           			IR/DAG/instruction 	IR/DAG/instruction
-==================================	=====================	=========================
-.bc     	      			srem              	
-Legalized selection DAG    		sdivrem           	
-Optimized legalized selection DAG	Cpu0ISD::DivRem   	CopyFromReg xx, Hi, xx
-pattern match             		div			mfhi
-==================================	=====================	=========================
+==================================  ===================== =========================
+Stage                               IR/DAG/instruction    IR/DAG/instruction
+==================================  ===================== =========================
+.bc                                 srem        
+Legalized selection DAG             sdivrem       
+Optimized legalized selection DAG   Cpu0ISD::DivRem       CopyFromReg xx, Hi, xx
+pattern match                       div                   mfhi
+==================================  ===================== =========================
 
 
 Table: Functions handle the DAG translation and pattern match for C operator %
 
-====================================	============================
-Translation     			Do by
-====================================	============================
-srem => sdivrem       			setOperationAction(ISD::SREM, MVT::i32, Expand);
-sdivrem => Cpu0ISD::DivRem		setTargetDAGCombine(ISD::SDIVREM); PerformDAGCombine(); PerformDivRemCombine();
-sdivrem => CopyFromReg xx, Hi, xx	PerformDivRemCombine();
-Cpu0ISD::DivRem => div			SDIV (Cpu0InstrInfo.td)
-CopyFromReg xx, Hi, xx => mfhi          MFLO (Cpu0InstrInfo.td)
-====================================	============================
+====================================  ============================
+Translation                           Do by
+====================================  ============================
+srem => sdivrem                       setOperationAction(ISD::SREM, MVT::i32, Expand);
+sdivrem => Cpu0ISD::DivRem            setTargetDAGCombine(ISD::SDIVREM); PerformDAGCombine(); PerformDivRemCombine();
+sdivrem => CopyFromReg xx, Hi, xx     PerformDivRemCombine();
+Cpu0ISD::DivRem => div                SDIV (Cpu0InstrInfo.td)
+CopyFromReg xx, Hi, xx => mfhi        MFLO (Cpu0InstrInfo.td)
+====================================  ============================
 
 
 
@@ -1704,27 +1746,27 @@ With these 345 lines of source code added, it support the number of operators
 from three to over ten.
 
 .. _section Operator “not” !:
-    http://jonathan2251.github.com/lbd/otherinst.html#operator-not
+  http://jonathan2251.github.com/lbd/otherinst.html#operator-not
 
 .. _section Display llvm IR nodes with Graphviz:
-    http://jonathan2251.github.com/lbd/otherinst.html#display-llvm-ir-nodes-
-    with-graphviz
+  http://jonathan2251.github.com/lbd/otherinst.html#display-llvm-ir-nodes-
+  with-graphviz
 
 .. _section Adjust cpu0 instructions:
-    http://jonathan2251.github.com/lbd/otherinst.html#adjust-cpu0-instructions
+  http://jonathan2251.github.com/lbd/otherinst.html#adjust-cpu0-instructions
 
 .. _section Local variable pointer:
-    http://jonathan2251.github.com/lbd/otherinst.html#local-variable-pointer
+  http://jonathan2251.github.com/lbd/otherinst.html#local-variable-pointer
 
 .. _section Operator mod, %:
-    http://jonathan2251.github.com/lbd/otherinst.html#operator-mod
+  http://jonathan2251.github.com/lbd/otherinst.html#operator-mod
 
 .. _section Install other tools on iMac:
-    http://jonathan2251.github.com/lbd/install.html#install-other-tools-on-imac
+  http://jonathan2251.github.com/lbd/install.html#install-other-tools-on-imac
 
 .. _section Support arithmetic instructions:
-    http://jonathan2251.github.com/lbd/otherinst.html#support-arithmetic-
-    instructions
+  http://jonathan2251.github.com/lbd/otherinst.html#support-arithmetic-
+  instructions
 
 .. [#] http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html
 
