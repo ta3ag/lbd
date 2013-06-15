@@ -178,10 +178,10 @@ Cpu0 Optimization: Redesign instruction sets
 If you compare the cpu0 and Mips instruction sets, you will find the following,
 
 1. Mips has **addu** and **add** two different instructions for No Trigger 
-Exception and Trigger Exception.
+   Exception and Trigger Exception.
 
 2. Mips use SLT, BEQ and set the status in explicit/general register while Cpu0 
-use CMP, JEQ and set status in implicit/specific register.
+   use CMP, JEQ and set status in implicit/specific register.
 
 According RISC spirits, this section will replace CMP, JEQ with Mips style 
 instructions and support both Trigger and No Trigger Exception operators.

@@ -55,7 +55,8 @@ Revision history
 Version 3.2.16, Not release yet
   Add Table: C operator ! corresponding IR of .bc and IR of DAG and Table: C 
   operator ! corresponding IR of Type-legalized selection DAG and Cpu0 
-  instructions. Add explanation in section Full support %.
+  instructions. Add explanation in section Full support %. 
+  Add Table: Chapter 4 operators.
 
 Version 3.2.15, Released June 12, 2013
 	Porting to llvm 3.3.

@@ -145,7 +145,8 @@ Chapter4_1/,
 
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0Schedule.td
-  // Cpu0Schedule.td
+.. code-block:: c++
+
   ...
   def IMULDIV : FuncUnit;
   ...
@@ -166,7 +167,183 @@ site.
 So, these two function units can be executed at same time (instruction level 
 parallelism). Reference [#]_ for instruction itineraries.
 
-Now, let's build Chapter4_1/ and run with input file ch4_1_2.cpp. 
+Now, let's build Chapter4_1/ and run with input file ch4_1_2.cpp as follows,
+
+.. code-block:: bash
+
+  118-165-78-12:InputFiles Jonathan$ clang -c ch4_1_2.cpp -emit-llvm -o ch4_1_2.bc
+  118-165-78-12:InputFiles Jonathan$ llvm-dis ch4_1_2.bc -o -
+  ; ModuleID = 'ch4_1_2.bc'
+  target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-
+  f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:
+  32:64-S128"
+  target triple = "x86_64-apple-macosx10.8.0"
+  
+  define i32 @main() nounwind uwtable ssp {
+    %1 = alloca i32, align 4
+    %a = alloca i32, align 4
+    %b = alloca i32, align 4
+    %c = alloca i32, align 4
+    %d = alloca i32, align 4
+    %e = alloca i32, align 4
+    %f = alloca i32, align 4
+    %g = alloca i32, align 4
+    %h = alloca i32, align 4
+    %i = alloca i32, align 4
+    %j = alloca i32, align 4
+    %k = alloca i32, align 4
+    %l = alloca i32, align 4
+    %a1 = alloca i32, align 4
+    %k1 = alloca i32, align 4
+    %f1 = alloca i32, align 4
+    %j1 = alloca i32, align 4
+    store i32 0, i32* %1
+    store i32 5, i32* %a, align 4
+    store i32 2, i32* %b, align 4
+    store i32 0, i32* %c, align 4
+    store i32 0, i32* %d, align 4
+    store i32 0, i32* %l, align 4
+    store i32 -5, i32* %a1, align 4
+    store i32 0, i32* %k1, align 4
+    store i32 0, i32* %f1, align 4
+    %2 = load i32* %a, align 4
+    %3 = load i32* %b, align 4
+    %4 = add nsw i32 %2, %3
+    store i32 %4, i32* %c, align 4
+    %5 = load i32* %a, align 4
+    %6 = load i32* %b, align 4
+    %7 = sub nsw i32 %5, %6
+    store i32 %7, i32* %d, align 4
+    %8 = load i32* %a, align 4
+    %9 = load i32* %b, align 4
+    %10 = mul nsw i32 %8, %9
+    store i32 %10, i32* %e, align 4
+    %11 = load i32* %a, align 4
+    %12 = load i32* %b, align 4
+    %13 = sdiv i32 %11, %12
+    store i32 %13, i32* %f, align 4
+    %14 = load i32* %a1, align 4
+    %15 = load i32* %b, align 4
+    %16 = udiv i32 %14, %15
+    store i32 %16, i32* %f1, align 4
+    %17 = load i32* %a, align 4
+    %18 = load i32* %b, align 4
+    %19 = and i32 %17, %18
+    store i32 %19, i32* %g, align 4
+    %20 = load i32* %a, align 4
+    %21 = load i32* %b, align 4
+    %22 = or i32 %20, %21
+    store i32 %22, i32* %h, align 4
+    %23 = load i32* %a, align 4
+    %24 = load i32* %b, align 4
+    %25 = xor i32 %23, %24
+    store i32 %25, i32* %i, align 4
+    %26 = load i32* %a, align 4
+    %27 = shl i32 %26, 2
+    store i32 %27, i32* %j, align 4
+    %28 = load i32* %a1, align 4
+    %29 = shl i32 %28, 2
+    store i32 %29, i32* %j1, align 4
+    %30 = load i32* %a, align 4
+    %31 = ashr i32 %30, 2
+    store i32 %31, i32* %k, align 4
+    %32 = load i32* %a1, align 4
+    %33 = lshr i32 %32, 2
+    store i32 %33, i32* %k1, align 4
+    %34 = load i32* %c, align 4
+    ret i32 %34
+  }
+  
+  118-165-78-12:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_1_2.bc -o -
+    .section .mdebug.abi32
+    .previous
+    .file "ch4_1_2.bc"
+    .text
+    .globl  main
+    .align  2
+    .type main,@function
+    .ent  main                    # @main
+  main:
+    .cfi_startproc
+    .frame  $sp,72,$lr
+    .mask   0x00000000,0
+    .set  noreorder
+    .set  nomacro
+  # BB#0:
+    addiu $sp, $sp, -72
+  $tmp1:
+    .cfi_def_cfa_offset 72
+    addiu $2, $zero, 0
+    st  $2, 68($sp)
+    addiu $3, $zero, 5
+    st  $3, 64($sp)
+    addiu $3, $zero, 2
+    st  $3, 60($sp)
+    st  $2, 56($sp)
+    st  $2, 52($sp)
+    st  $2, 20($sp)
+    addiu $3, $zero, -5
+    st  $3, 16($sp)
+    st  $2, 12($sp)
+    st  $2, 8($sp)
+    ld  $2, 60($sp)
+    ld  $3, 64($sp)
+    add $2, $3, $2
+    st  $2, 56($sp)
+    ld  $2, 60($sp)
+    ld  $3, 64($sp)
+    sub $2, $3, $2
+    st  $2, 52($sp)
+    ld  $2, 60($sp)
+    ld  $3, 64($sp)
+    mul $2, $3, $2
+    st  $2, 48($sp)
+    ld  $2, 60($sp)
+    ld  $3, 64($sp)
+    div $3, $2
+    mflo  $2
+    st  $2, 44($sp)
+    ld  $2, 60($sp)
+    ld  $3, 16($sp)
+    divu  $3, $2
+    mflo  $2
+    st  $2, 8($sp)
+    ld  $2, 60($sp)
+    ld  $3, 64($sp)
+    and $2, $3, $2
+    st  $2, 40($sp)
+    ld  $2, 60($sp)
+    ld  $3, 64($sp)
+    or  $2, $3, $2
+    st  $2, 36($sp)
+    ld  $2, 60($sp)
+    ld  $3, 64($sp)
+    xor $2, $3, $2
+    st  $2, 32($sp)
+    ld  $2, 64($sp)
+    shl $2, $2, 2
+    st  $2, 28($sp)
+    ld  $2, 16($sp)
+    shl $2, $2, 2
+    st  $2, 4($sp)
+    ld  $2, 64($sp)
+    sra $2, $2, 2
+    st  $2, 24($sp)
+    ld  $2, 16($sp)
+    shr $2, $2, 2
+    st  $2, 12($sp)
+    ld  $2, 56($sp)
+    addiu $sp, $sp, 72
+    ret $2
+    .set  macro
+    .set  reorder
+    .end  main
+  $tmp2:
+    .size main, ($tmp2)-main
+    .cfi_endproc
+
+
 This version can process **+, -, \*, /, &, |, ^, <<,** and **>>** operators in C 
 language. 
 The corresponding llvm IR instructions are **add, sub, mul, sdiv, and, or, xor, 
@@ -499,29 +676,30 @@ Run it with Chapter4_2/ which added code to handle pattern
 Summary as Table: C operator ! corresponding IR of DAG and .
 
 
-Table: C operator ! corresponding IR of Type-legalized selection DAG and Cpu0 instructions
+Table: C operator ! corresponding IR of Type-legalized selection DAG 
+(include and after this stage) and Cpu0 instructions
 
-================================= ==========================
-Type-legalized selection DAG      Cpu0 instruction
-================================= ==========================
-%lnot = (setcc %tobool, 0, seteq) %1 = (xor %tobool, 0)
-                                  %true = (addiu $r0, 1)
-                                  %lnot = (xor %1, %true)
-%conv = (and %lnot, 1)            %conv = (and %lnot, 1)
-================================= ==========================
+==============================================      ==========================
+Include and after Type-legalized selection DAG      Cpu0 instruction
+==============================================      ==========================
+%lnot = (setcc %tobool, 0, seteq)                   %1 = (xor %tobool, 0)
+-                                                   %true = (addiu $r0, 1)
+-                                                   %lnot = (xor %1, %true)
+%conv = (and %lnot, 1)                              %conv = (and %lnot, 1)
+==============================================      ==========================
 
 Chapter4_2/ defined seteq DAG pattern. 
 It translate **%lnot = (setcc %tobool, 0, seteq)** into **%1 = (xor %tobool, 0)**, 
 **%true = (addiu $r0, 1)** and **%lnot = (xor %1, %true)** in 
-“Instruction selection” stage by the rules defined in Cpu0InstrInfo.td as above. 
-This translation is right accroding the following truth:
+“Instruction selection” stage according the rules defined in Cpu0InstrInfo.td as 
+above. 
+This translation is right based on the following truth:
 
-1. %lnot = 1 when %tobool = 0 and $lnot = 0 when 
-%tobool!=0. 
+1. %lnot = 1 when %tobool = 0 and $lnot = 0 when %tobool!=0. 
 
 2. %true = (addiu $r0, 1) always is 1 since $r0 is zero. %tobool is 0 or 1. 
-When %tobool = 0, %1 = 1 and %lnot = (xor %1, %true) = 0; when %tobool = 1, 
-%1 = 0 and %lnot = (xor 0, %true) = 1.
+   When %tobool = 0, %1 = 1 and %lnot = (xor %1, %true) = 0; when %tobool = 1, 
+   %1 = 0 and %lnot = (xor 0, %true) = 1.
 
 3. When %tobool = !0, %1 != 1 and %lnot = (xor %1, %true) != 0.
 
@@ -1680,33 +1858,17 @@ According above DAG translation message from ``llc -debug``, it do the
 following things:
 
 1. Reduce DAG nodes in stage "Optimized lowered selection DAG" (Replacing ... 
-displayed before "Optimized lowered selection DAG: BB#0 'main:entry'"). Since 
-SSA form has some redundant nodes for store and load, them can be removed.
+   displayed before "Optimized lowered selection DAG: BB#0 'main:entry'"). 
+   Since SSA form has some redundant nodes for store and load, them can be 
+   removed.
 
 2. Change DAG srem to sdivrem in stage "Legalized selection DAG".
 
 3. Change DAG sdivrem to Cpu0ISD::DivRem and in stage "Optimized legalized 
-selection DAG".
+   selection DAG".
 
 4. Add DAG "0x7fd25b830710: i32 = Register %HI" and "CopyFromReg 0x7fd25b410e18, 
-0x7fd25b830710, 0x7fd25b830910" in stage "Optimized legalized selection DAG".
-
-Above item 2, is triggered by code 
-"setOperationAction(ISD::SREM, MVT::i32, Expand);" in Cpu0ISelLowering.cpp. 
-About **Expand** please ref. [#]_ and [#]_. Item 3 is triggered by code 
-"setTargetDAGCombine(ISD::SDIVREM);" and handled by function 
-PerformDAGCombine() and PerformDivRemCombine() in Cpu0ISelLowering.cpp.
-Item 4 is did by PerformDivRemCombine() since the **%** corresponding srem 
-which make the "N->hasAnyUseOfValue(1)" is true in PerformDivRemCombine(). 
-So, it create "CopyFromReg 0x7fd25b410e18, 0x7fd25b830710, 0x7fd25b830910". 
-When use **"/"** in C, it will make "N->hasAnyUseOfValue(0)" to ture.
-For sdivrem, **sdiv** make "N->hasAnyUseOfValue(0)" true while **srem** make 
-"N->hasAnyUseOfValue(1)" ture.
-
-Above items will change the DAG when ``llc`` running. After that, the pattern 
-match defined in Chapter4_6/Cpu0InstrInfo.td will translate **Cpu0ISD::DivRem** 
-to **div**; and **"CopyFromReg 0x7fd25b410e18, Register %H, 0x7fd25b830910"** 
-to **mfhi**.
+   0x7fd25b830710, 0x7fd25b830910" in stage "Optimized legalized selection DAG".
 
 Summary as Table: Stages for C operator % and Table: Functions handle the DAG 
 translation and pattern match for C operator %.
@@ -1729,12 +1891,29 @@ Table: Functions handle the DAG translation and pattern match for C operator %
 Translation                           Do by
 ====================================  ============================
 srem => sdivrem                       setOperationAction(ISD::SREM, MVT::i32, Expand);
-sdivrem => Cpu0ISD::DivRem            setTargetDAGCombine(ISD::SDIVREM); PerformDAGCombine(); PerformDivRemCombine();
+sdivrem => Cpu0ISD::DivRem            setTargetDAGCombine(ISD::SDIVREM);
 sdivrem => CopyFromReg xx, Hi, xx     PerformDivRemCombine();
 Cpu0ISD::DivRem => div                SDIV (Cpu0InstrInfo.td)
 CopyFromReg xx, Hi, xx => mfhi        MFLO (Cpu0InstrInfo.td)
 ====================================  ============================
 
+
+Item 2 as above, is triggered by code 
+"setOperationAction(ISD::SREM, MVT::i32, Expand);" in Cpu0ISelLowering.cpp. 
+About **Expand** please ref. [#]_ and [#]_. Item 3 is triggered by code 
+"setTargetDAGCombine(ISD::SDIVREM);" in Cpu0ISelLowering.cpp.
+Item 4 is did by PerformDivRemCombine() which called by PerformDAGCombine() 
+since the **%** corresponding **srem** 
+make the "N->hasAnyUseOfValue(1)" to true in PerformDivRemCombine(). 
+Then, it create "CopyFromReg 0x7fd25b410e18, 0x7fd25b830710, 0x7fd25b830910". 
+When use **"/"** in C, it will make "N->hasAnyUseOfValue(0)" to ture.
+For sdivrem, **sdiv** make "N->hasAnyUseOfValue(0)" true while **srem** make 
+"N->hasAnyUseOfValue(1)" ture.
+
+Above items will change the DAG when ``llc`` running. After that, the pattern 
+match defined in Chapter4_6/Cpu0InstrInfo.td will translate **Cpu0ISD::DivRem** 
+to **div**; and **"CopyFromReg 0x7fd25b410e18, Register %H, 0x7fd25b830910"** 
+to **mfhi**.
 
 
 Summary
@@ -1744,6 +1923,32 @@ We support most of C operators in this chapter.
 Until now, we have around 3400 lines of source code with comments. 
 With these 345 lines of source code added, it support the number of operators 
 from three to over ten.
+
+List C operators, IR of .bc, Optimized legalized selection DAG and Cpu0 
+instructions implemented in this chapter in Table: Chapter 4 operators.
+
+==========  =============================  ==================================  ==========
+C           .bc                            Optimized legalized selection DAG   Cpu0
+==========  =============================  ==================================  ==========
+\+          add                            add                                 add
+\-          sub                            sub                                 sub
+\*          mul                            mul                                 mul
+/           sdiv                           Cpu0ISD::DivRem                     div
+-           udiv                           Cpu0ISD::DivRemU                    divu
+&, &&       and                            and                                 and
+\|, \|\|    or                             or                                  or
+^           xor                            xor                                 xor
+<<          shl                            shl                                 shl
+>>          ashr                           sra                                 sra
+-           lshr                           srl                                 shr
+!           %tobool = icmp ne i32 %0, 0      
+-           %lnot = xor i1 %tobool, true   %lnot = (setcc %tobool, 0, seteq)   %1 = (xor %tobool, 0)
+-           -                              -                                   %true = (addiu $r0, 1)
+-           -                              -                                   %lnot = (xor %1, %true)
+-           %conv = zext i1 %lnot to i32   %conv = (and %lnot, 1)              %conv = (and %lnot, 1)
+%           srem                           Cpu0ISD::DivRem                     div
+-           sremu                          Cpu0ISD::DivRemU                    divu
+==========  =============================  ==================================  ==========
 
 .. _section Operator “not” !:
   http://jonathan2251.github.com/lbd/otherinst.html#operator-not

@@ -19,13 +19,13 @@ int main()
   d = a - b;
   e = a * b;
   f = a / b;
-//  f1 = a1 / b;
+  f1 = a1 / b;
   g = (a & b);
   h = (a | b);
   i = (a ^ b);
   j = (a << 2);
   int j1 = (a1 << 2);
-//  k = (a >> 2);
+  k = (a >> 2);
   k1 = (a1 >> 2);
 
   return c;
