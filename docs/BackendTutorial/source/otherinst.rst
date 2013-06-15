@@ -1927,6 +1927,8 @@ from three to over ten.
 List C operators, IR of .bc, Optimized legalized selection DAG and Cpu0 
 instructions implemented in this chapter in Table: Chapter 4 operators.
 
+Table: Chapter 4 operators
+
 ==========  =============================  ==================================  ==========
 C           .bc                            Optimized legalized selection DAG   Cpu0
 ==========  =============================  ==================================  ==========

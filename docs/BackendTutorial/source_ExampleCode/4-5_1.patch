@@ -1,6 +1,6 @@
 diff -Naur Chapter4_4/Cpu0InstrInfo.td Chapter4_5_1/Cpu0InstrInfo.td
---- Chapter4_4/Cpu0InstrInfo.td	2013-06-12 13:27:20.000000000 +0800
-+++ Chapter4_5_1/Cpu0InstrInfo.td	2013-06-12 13:27:20.000000000 +0800
+--- Chapter4_4/Cpu0InstrInfo.td	2013-06-15 14:57:28.000000000 +0800
++++ Chapter4_5_1/Cpu0InstrInfo.td	2013-06-15 14:57:28.000000000 +0800
 @@ -51,6 +51,16 @@
    let EncoderMethod = "getMemEncoding";
  }
@@ -18,7 +18,7 @@ diff -Naur Chapter4_4/Cpu0InstrInfo.td Chapter4_5_1/Cpu0InstrInfo.td
  // Node immediate fits as 16-bit sign extended on target immediate.
  // e.g. addi, andi
  def immSExt16  : PatLeaf<(imm), [{ return isInt<16>(N->getSExtValue()); }]>;
-@@ -209,6 +219,8 @@
+@@ -199,6 +209,8 @@
  def AND     : ArithLogicR<0x18, "and", and, IIAlu, CPURegs, 1>;
  def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
  def XOR     : ArithLogicR<0x1A, "xor", xor, IIAlu, CPURegs, 1>;
@@ -27,7 +27,7 @@ diff -Naur Chapter4_4/Cpu0InstrInfo.td Chapter4_5_1/Cpu0InstrInfo.td
  
  /// Shift Instructions
  // sra is IR node for ashr llvm IR instruction of .bc
-@@ -240,6 +252,11 @@
+@@ -230,6 +242,11 @@
  
  def : Pat<(i32 immSExt16:$in),
            (ADDiu ZERO, imm:$in)>;

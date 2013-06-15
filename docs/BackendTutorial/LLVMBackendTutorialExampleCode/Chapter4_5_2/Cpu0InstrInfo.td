@@ -116,16 +116,6 @@ class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
   let isReMaterializable = 1;
 }
 
-// Move immediate imm16 to register ra.
-class MoveImm<bits<8> op, string instr_asm, SDNode OpNode,
-                  Operand Od, PatLeaf imm_type, RegisterClass RC> :
-  FL<op, (outs RC:$ra), (ins RC:$rb, Od:$imm16),
-     !strconcat(instr_asm, "\t$ra, $imm16"),
-     [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu> {
-  let rb = 0;
-  let isReMaterializable = 1;
-}
-
 // Shifts
 class shift_rotate_imm<bits<8> op, bits<4> isRotate, string instr_asm,
                        SDNode OpNode, PatFrag PF, Operand ImmOpnd,

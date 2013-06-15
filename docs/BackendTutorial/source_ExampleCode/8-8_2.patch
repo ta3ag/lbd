@@ -1,6 +1,6 @@
 diff -Naur Chapter8_8/Cpu0InstrInfo.cpp Chapter8_8_2/Cpu0InstrInfo.cpp
---- Chapter8_8/Cpu0InstrInfo.cpp	2013-06-12 13:27:21.000000000 +0800
-+++ Chapter8_8_2/Cpu0InstrInfo.cpp	2013-06-12 13:27:21.000000000 +0800
+--- Chapter8_8/Cpu0InstrInfo.cpp	2013-06-15 14:57:28.000000000 +0800
++++ Chapter8_8_2/Cpu0InstrInfo.cpp	2013-06-15 14:57:28.000000000 +0800
 @@ -29,6 +29,7 @@
    return RI;
  }
@@ -28,9 +28,9 @@ diff -Naur Chapter8_8/Cpu0InstrInfo.cpp Chapter8_8_2/Cpu0InstrInfo.cpp
  
    assert(Opc && "Cannot copy registers");
 diff -Naur Chapter8_8/Cpu0InstrInfo.td Chapter8_8_2/Cpu0InstrInfo.td
---- Chapter8_8/Cpu0InstrInfo.td	2013-06-12 13:27:21.000000000 +0800
-+++ Chapter8_8_2/Cpu0InstrInfo.td	2013-06-12 13:27:21.000000000 +0800
-@@ -356,6 +356,36 @@
+--- Chapter8_8/Cpu0InstrInfo.td	2013-06-15 14:57:28.000000000 +0800
++++ Chapter8_8_2/Cpu0InstrInfo.td	2013-06-15 14:57:28.000000000 +0800
+@@ -346,6 +346,36 @@
    let neverHasSideEffects = 1;
  }
  
@@ -67,7 +67,7 @@ diff -Naur Chapter8_8/Cpu0InstrInfo.td Chapter8_8_2/Cpu0InstrInfo.td
  class EffectiveAddress<string instr_asm, RegisterClass RC, Operand Mem> :
    FMem<0x09, (outs RC:$ra), (ins Mem:$addr),
       instr_asm, [(set RC:$ra, addr:$addr)], IIAlu>;
-@@ -407,7 +437,7 @@
+@@ -397,7 +427,7 @@
  
  /// Arithmetic Instructions (3-Operand, R-Type)
  def CMP     : CmpInstr<0x10, "cmp", IIAlu, CPURegs, SR, 0>;
@@ -76,7 +76,7 @@ diff -Naur Chapter8_8/Cpu0InstrInfo.td Chapter8_8_2/Cpu0InstrInfo.td
  def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
  def MUL     : ArithLogicR<0x15, "mul", mul, IIImul, CPURegs, 1>;
  def SDIV    : Div32<Cpu0DivRem, 0x16, "div", IIIdiv>;
-@@ -424,6 +454,10 @@
+@@ -414,6 +444,10 @@
  def MTHI : MoveToLOHI<0x42, "mthi", CPURegs, [HI]>;
  def MTLO : MoveToLOHI<0x43, "mtlo", CPURegs, [LO]>;
  
@@ -87,7 +87,7 @@ diff -Naur Chapter8_8/Cpu0InstrInfo.td Chapter8_8_2/Cpu0InstrInfo.td
  /// Shift Instructions
  // sra is IR node for ashr llvm IR instruction of .bc
  def SRA     : shift_rotate_imm32<0x1B, 0x00, "sra", sra>;
-@@ -502,6 +536,12 @@
+@@ -492,6 +526,12 @@
  def : Pat<(i32 (extloadi8  addr:$src)), (LBu addr:$src)>;
  def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
  
@@ -101,8 +101,8 @@ diff -Naur Chapter8_8/Cpu0InstrInfo.td Chapter8_8_2/Cpu0InstrInfo.td
  multiclass BrcondPats<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
  Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp, 
 diff -Naur Chapter8_8/Cpu0RegisterInfo.td Chapter8_8_2/Cpu0RegisterInfo.td
---- Chapter8_8/Cpu0RegisterInfo.td	2013-06-12 13:27:21.000000000 +0800
-+++ Chapter8_8_2/Cpu0RegisterInfo.td	2013-06-12 13:27:21.000000000 +0800
+--- Chapter8_8/Cpu0RegisterInfo.td	2013-06-15 14:57:28.000000000 +0800
++++ Chapter8_8_2/Cpu0RegisterInfo.td	2013-06-15 14:57:28.000000000 +0800
 @@ -51,6 +51,8 @@
    // Hi/Lo registers
    def HI   : Register<"HI">, DwarfRegNum<[18]>;

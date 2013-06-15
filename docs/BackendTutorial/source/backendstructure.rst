@@ -116,9 +116,9 @@ The Cpu0TargetMachine contents as follows,
 
 .. _backendstructure-f1: 
 .. figure:: ../Fig/backendstructure/1.png
-	:align: center
+  :align: center
 
-	TargetMachine class diagram 1
+  TargetMachine class diagram 1
 
 The Cpu0TargetMachine inherit tree is TargetMachine <- LLVMTargetMachine <- 
 Cpu0TargetMachine. 
@@ -143,15 +143,15 @@ Cpu0Subtarget and TLInfo: Cpu0TargetLowering.
 
 .. _backendstructure-f2:  
 .. figure:: ../Fig/backendstructure/2.png
-	:align: center
+  :align: center
 
-	TargetMachine class diagram 2
+  TargetMachine class diagram 2
 
 .. _backendstructure-f3: 
 .. figure:: ../Fig/backendstructure/3.png
-	:align: center
+  :align: center
 
-	TargetMachine members and operators
+  TargetMachine members and operators
 
 :num:`Figure #backendstructure-f3` shows some members and operators (member function) 
 of the parent class TargetMachine's. 
@@ -161,9 +161,9 @@ Class DAGInfo is skipped here.
 
 .. _backendstructure-f4: 
 .. figure:: ../Fig/backendstructure/4.png
-	:align: center
+  :align: center
 
-	Other class members and operators
+  Other class members and operators
 
 Benefit from the inherit tree structure, we just need to implement few code in 
 instruction, frame/stack, select DAG class. 
@@ -416,11 +416,11 @@ Following diagram came from tricore_llvm.pdf.
 
 .. _backendstructure-f5: 
 .. figure:: ../Fig/backendstructure/5.png
-	:align: center
+  :align: center
 
-	tricore_llvm.pdf: Code generation sequence. On the path from LLVM code to 
-	assembly code, numerous passes are run through and several data structures 
-	are used to represent the intermediate results.
+  tricore_llvm.pdf: Code generation sequence. On the path from LLVM code to 
+  assembly code, numerous passes are run through and several data structures 
+  are used to represent the intermediate results.
 
 LLVM is a Static Single Assignment (SSA) based representation. 
 LLVM provides an infinite virtual registers which can hold values of primitive 
@@ -504,25 +504,25 @@ next 2 sections for DAG and Instruction Selection.
 3. SSA-based Machine Code Optimization
 
     For example, common expression remove, shown in next section DAG.
-	
+  
 4. Register Allocation
 
     Allocate real register for virtual register.
-	
+  
 5. Prologue/Epilogue Code Insertion
 
     Explain in section Add Prologue/Epilogue functions
-	
+  
 6. Late Machine Code Optimizations
 
     Any “last-minute” peephole optimizations of the final machine code can be 
     applied during this phase. 
     For example, replace x = x * 2 by x = x < 1 for integer operand.
-	
+  
 7. Code Emission
-	Finally, the completed machine code is emitted. For static compilation, 
-	the end result is an assembly code file; for JIT compilation, the opcodes 
-	of the machine instructions are written into memory. 
+    Finally, the completed machine code is emitted. For static compilation, 
+    the end result is an assembly code file; for JIT compilation, the opcodes 
+    of the machine instructions are written into memory. 
 
 The llvm code generation sequence also can be obtained by 
 ``llc -debug-pass=Structure`` as the following. The first 4 code generation 
@@ -647,9 +647,9 @@ block into DAG. For example, the basic block code and it's corresponding DAG as
 
 .. _backendstructure-f6: 
 .. figure:: ../Fig/backendstructure/6.png
-	:align: center
+  :align: center
 
-	DAG example
+  DAG example
 
 If b is not live on exit from the block, then we can do common expression 
 remove to get the following code.
@@ -677,9 +677,9 @@ Selection Process as :num:`Figure #backendstructure-f7`.
 
 .. _backendstructure-f7: 
 .. figure:: ../Fig/backendstructure/7.png
-	:align: center
+  :align: center
 
-	IR and it's corresponding machine instruction
+  IR and it's corresponding machine instruction
 
 For machine instruction selection, the better solution is represent IR and 
 machine instruction by DAG. 
@@ -689,9 +689,9 @@ ADD is machine instruction.
 
 .. _backendstructure-f8: 
 .. figure:: ../Fig/backendstructure/8.png
-	:align: center
+  :align: center
 
-	Instruction DAG representation
+  Instruction DAG representation
 
 The IR DAG and machine instruction DAG can also represented as list. 
 For example, (+ ri, rj), (- ri, 1) are lists for IR DAG; (ADD ri, rj), 
@@ -734,9 +734,9 @@ node **load** and **store**.
  
 .. _backendstructure-f9: 
 .. figure:: ../Fig/backendstructure/9.png
-	:align: center
+  :align: center
 
-	Pattern match for ADDiu instruction and IR node add
+  Pattern match for ADDiu instruction and IR node add
 
 
 Some cpu/fpu (floating point processor) has multiply-and-add floating point 
@@ -929,11 +929,11 @@ takes care of all the details.
 
 .. _backendstructure-f10: 
 .. figure:: ../Fig/backendstructure/10.png
-	:align: center
+  :align: center
 
-	Addressing of a variable a located on the stack. 
-	If the stack frame has a variable size, slot must be addressed relative to 
-	the frame pointer
+  Addressing of a variable a located on the stack. 
+  If the stack frame has a variable size, slot must be addressed relative to 
+  the frame pointer
 
 We will explain the Prologue and Epilogue further by example code. 
 So for the following llvm IR code, Cpu0 back end will emit the corresponding 
@@ -1044,7 +1044,11 @@ Following is the command and output file ch3.cpu0.s,
 
 .. code-block:: bash
 
-  118-165-78-230:InputFiles Jonathan$ cat ch3.cpu0.s 
+  118-165-78-12:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug ch3.bc -o -
+  Args: /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 
+  -relocation-model=pic -filetype=asm -debug ch3.bc -o ch3.cpu0.s 
+  118-165-78-12:InputFiles Jonathan$ cat ch3.cpu0.s 
     .section .mdebug.abi32
     .previous
     .file "ch3.bc"
@@ -1073,6 +1077,125 @@ Following is the command and output file ch3.cpu0.s,
   $tmp2:
     .size main, ($tmp2)-main
     .cfi_endproc
+
+To see how the **'DAG->DAG Pattern Instruction Selection'** work in llc, let's 
+compile with ``llc -debug`` option and see what happens.
+
+.. code-block:: bash
+
+  118-165-78-12:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug ch3.bc -o -
+  Args: /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 
+  -relocation-model=pic -filetype=asm -debug ch3.bc -o - 
+  ...
+  Optimized legalized selection DAG: BB#0 'main:'
+  SelectionDAG has 8 nodes:
+    0x7fbe4082d010: i32 = Constant<0> [ORD=1] [ID=1]
+  
+    0x7fbe4082d410: i32 = Register %V0 [ID=4]
+  
+        0x7fbe40410668: ch = EntryToken [ORD=1] [ID=0]
+  
+        0x7fbe4082d010: <multiple use>
+        0x7fbe4082d110: i32 = FrameIndex<0> [ORD=1] [ID=2]
+  
+        0x7fbe4082d210: i32 = undef [ORD=1] [ID=3]
+  
+      0x7fbe4082d310: ch = store 0x7fbe40410668, 0x7fbe4082d010, 0x7fbe4082d110, 
+      0x7fbe4082d210<ST4[%1]> [ORD=1] [ID=5]
+  
+      0x7fbe4082d410: <multiple use>
+      0x7fbe4082d010: <multiple use>
+    0x7fbe4082d510: ch,glue = CopyToReg 0x7fbe4082d310, 0x7fbe4082d410, 
+    0x7fbe4082d010 [ID=6]
+  
+      0x7fbe4082d510: <multiple use>
+      0x7fbe4082d410: <multiple use>
+      0x7fbe4082d510: <multiple use>
+    0x7fbe4082d610: ch = Cpu0ISD::Ret 0x7fbe4082d510, 0x7fbe4082d410, 
+    0x7fbe4082d510:1 [ID=7]
+  
+  
+  ===== Instruction selection begins: BB#0 ''
+  Selecting: 0x7fbe4082d610: ch = Cpu0ISD::Ret 0x7fbe4082d510, 0x7fbe4082d410, 
+  0x7fbe4082d510:1 [ID=7]
+  
+  ISEL: Starting pattern match on root node: 0x7fbe4082d610: ch = Cpu0ISD::Ret 
+  0x7fbe4082d510, 0x7fbe4082d410, 0x7fbe4082d510:1 [ID=7]
+  
+    Morphed node: 0x7fbe4082d610: ch = RET 0x7fbe4082d410, 0x7fbe4082d510, 
+    0x7fbe4082d510:1
+    
+  ISEL: Match complete!
+  => 0x7fbe4082d610: ch = RET 0x7fbe4082d410, 0x7fbe4082d510, 0x7fbe4082d510:1
+  
+  Selecting: 0x7fbe4082d510: ch,glue = CopyToReg 0x7fbe4082d310, 0x7fbe4082d410, 
+  0x7fbe4082d010 [ID=6]
+  
+  => 0x7fbe4082d510: ch,glue = CopyToReg 0x7fbe4082d310, 0x7fbe4082d410, 
+  0x7fbe4082d010
+  
+  Selecting: 0x7fbe4082d310: ch = store 0x7fbe40410668, 0x7fbe4082d010, 
+  0x7fbe4082d110, 0x7fbe4082d210<ST4[%1]> [ORD=1] [ID=5]
+  
+  ISEL: Starting pattern match on root node: 0x7fbe4082d310: ch = store 0x7fbe40410668, 
+  0x7fbe4082d010, 0x7fbe4082d110, 0x7fbe4082d210<ST4[%1]> [ORD=1] [ID=5]
+  
+    Initial Opcode index to 166
+    Morphed node: 0x7fbe4082d310: ch = ST 0x7fbe4082d010, 0x7fbe4082d710, 
+    0x7fbe4082d810, 0x7fbe40410668<Mem:ST4[%1]> [ORD=1]
+  
+  ISEL: Match complete!
+  => 0x7fbe4082d310: ch = ST 0x7fbe4082d010, 0x7fbe4082d710, 0x7fbe4082d810, 
+  0x7fbe40410668<Mem:ST4[%1]> [ORD=1]
+  
+  Selecting: 0x7fbe4082d410: i32 = Register %V0 [ID=4]
+  
+  => 0x7fbe4082d410: i32 = Register %V0
+  
+  Selecting: 0x7fbe4082d010: i32 = Constant<0> [ORD=1] [ID=1]
+  
+  ISEL: Starting pattern match on root node: 0x7fbe4082d010: i32 = 
+  Constant<0> [ORD=1] [ID=1]
+  
+    Initial Opcode index to 1201
+    Morphed node: 0x7fbe4082d010: i32 = ADDiu 0x7fbe4082d110, 0x7fbe4082d810 [ORD=1]
+  
+  ISEL: Match complete!
+  => 0x7fbe4082d010: i32 = ADDiu 0x7fbe4082d110, 0x7fbe4082d810 [ORD=1]
+  
+  Selecting: 0x7fbe40410668: ch = EntryToken [ORD=1] [ID=0]
+  
+  => 0x7fbe40410668: ch = EntryToken [ORD=1]
+  
+  ===== Instruction selection ends:
+
+
+Summary above translation into Table: Table: Chapter 3 .bc IR instructions.
+
+Table: Chapter 3 .bc IR instructions
+
+=============================  ==================================  ==========
+.bc                            Optimized legalized selection DAG   Cpu0
+=============================  ==================================  ==========
+constant 0                     constant 0                          addiu         
+store                          store                               st
+ret                            Cpu0ISD::Ret                        ret
+=============================  ==================================  ==========
+
+From above ``llc -debug`` display, we see the **store** and **ret** are 
+translated into **store** and **Cpu0ISD::Ret** in stage Optimized legalized 
+selection DAG, and then translated into Cpu0 instructions **st** and **ret** 
+finally. 
+Since store use **constant 0** (**store i32 0, i32\* %1** in this example), the 
+constant 0 will be translated into **"addiu $2, $zero, 0"** via the following 
+pattern defined in Cpu0InstrInfo.td.
+
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0InstrInfo.td
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0InstrInfo.td
+    :start-after: Arbitrary patterns that map
+    :linenos:
 
 
 Summary of this Chapter

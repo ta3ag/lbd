@@ -1,6 +1,6 @@
 diff -Naur Chapter3_5/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
---- Chapter3_5/Cpu0InstrInfo.td	2013-06-12 13:27:20.000000000 +0800
-+++ Chapter4_1/Cpu0InstrInfo.td	2013-06-12 13:27:20.000000000 +0800
+--- Chapter3_5/Cpu0InstrInfo.td	2013-06-15 14:57:28.000000000 +0800
++++ Chapter4_1/Cpu0InstrInfo.td	2013-06-15 14:57:28.000000000 +0800
 @@ -36,6 +36,8 @@
    let DecoderMethod= "DecodeSimm16";
  }
@@ -38,7 +38,7 @@ diff -Naur Chapter3_5/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
  // Arithmetic and logical instructions with 2 register operands.
  class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
                    Operand Od, PatLeaf imm_type, RegisterClass RC> :
-@@ -94,6 +110,31 @@
+@@ -84,6 +100,31 @@
    let isReMaterializable = 1;
  }
  
@@ -70,7 +70,7 @@ diff -Naur Chapter3_5/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
  class FMem<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern,
            InstrItinClass itin>: FL<op, outs, ins, asmstr, pattern, itin> {
    bits<20> addr;
-@@ -149,6 +190,25 @@
+@@ -139,6 +180,25 @@
  // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
  def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
  
@@ -97,8 +97,8 @@ diff -Naur Chapter3_5/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
      isBarrier=1, hasCtrlDep=1 in
    def RET : FJ <0x2C, (outs), (ins CPURegs:$target),
 diff -Naur Chapter3_5/Cpu0Schedule.td Chapter4_1/Cpu0Schedule.td
---- Chapter3_5/Cpu0Schedule.td	2013-06-12 13:27:20.000000000 +0800
-+++ Chapter4_1/Cpu0Schedule.td	2013-06-12 13:27:20.000000000 +0800
+--- Chapter3_5/Cpu0Schedule.td	2013-06-15 14:57:28.000000000 +0800
++++ Chapter4_1/Cpu0Schedule.td	2013-06-15 14:57:28.000000000 +0800
 @@ -11,6 +11,7 @@
  // Functional units across Cpu0 chips sets. Based on GCC/Cpu0 backend files.
  //===----------------------------------------------------------------------===//

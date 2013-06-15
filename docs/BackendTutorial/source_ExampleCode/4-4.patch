@@ -1,6 +1,6 @@
 diff -Naur Chapter4_2/Cpu0InstrInfo.td Chapter4_4/Cpu0InstrInfo.td
---- Chapter4_2/Cpu0InstrInfo.td	2013-06-12 13:27:20.000000000 +0800
-+++ Chapter4_4/Cpu0InstrInfo.td	2013-06-12 13:27:20.000000000 +0800
+--- Chapter4_2/Cpu0InstrInfo.td	2013-06-15 14:57:28.000000000 +0800
++++ Chapter4_4/Cpu0InstrInfo.td	2013-06-15 14:57:28.000000000 +0800
 @@ -45,6 +45,12 @@
    let EncoderMethod = "getMemEncoding";
  }
@@ -14,7 +14,7 @@ diff -Naur Chapter4_2/Cpu0InstrInfo.td Chapter4_4/Cpu0InstrInfo.td
  // Node immediate fits as 16-bit sign extended on target immediate.
  // e.g. addi, andi
  def immSExt16  : PatLeaf<(imm), [{ return isInt<16>(N->getSExtValue()); }]>;
-@@ -173,6 +179,10 @@
+@@ -163,6 +169,10 @@
    def #NAME# : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
  }
  
@@ -25,7 +25,7 @@ diff -Naur Chapter4_2/Cpu0InstrInfo.td Chapter4_4/Cpu0InstrInfo.td
  //===----------------------------------------------------------------------===//
  // Instruction definition
  //===----------------------------------------------------------------------===//
-@@ -214,6 +224,14 @@
+@@ -204,6 +214,14 @@
    def RET : FJ <0x2C, (outs), (ins CPURegs:$target),
                  "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch>;
  
@@ -41,8 +41,8 @@ diff -Naur Chapter4_2/Cpu0InstrInfo.td Chapter4_4/Cpu0InstrInfo.td
  //  Arbitrary patterns that map to one or more instructions
  //===----------------------------------------------------------------------===//
 diff -Naur Chapter4_2/InstPrinter/Cpu0InstPrinter.cpp Chapter4_4/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter4_2/InstPrinter/Cpu0InstPrinter.cpp	2013-06-12 13:27:20.000000000 +0800
-+++ Chapter4_4/InstPrinter/Cpu0InstPrinter.cpp	2013-06-12 13:27:20.000000000 +0800
+--- Chapter4_2/InstPrinter/Cpu0InstPrinter.cpp	2013-06-15 14:57:28.000000000 +0800
++++ Chapter4_4/InstPrinter/Cpu0InstPrinter.cpp	2013-06-15 14:57:28.000000000 +0800
 @@ -110,3 +110,13 @@
    O << ")";
  }
@@ -58,8 +58,8 @@ diff -Naur Chapter4_2/InstPrinter/Cpu0InstPrinter.cpp Chapter4_4/InstPrinter/Cpu
 +}
 +
 diff -Naur Chapter4_2/InstPrinter/Cpu0InstPrinter.h Chapter4_4/InstPrinter/Cpu0InstPrinter.h
---- Chapter4_2/InstPrinter/Cpu0InstPrinter.h	2013-06-12 13:27:20.000000000 +0800
-+++ Chapter4_4/InstPrinter/Cpu0InstPrinter.h	2013-06-12 13:27:20.000000000 +0800
+--- Chapter4_2/InstPrinter/Cpu0InstPrinter.h	2013-06-15 14:57:28.000000000 +0800
++++ Chapter4_4/InstPrinter/Cpu0InstPrinter.h	2013-06-15 14:57:28.000000000 +0800
 @@ -39,6 +39,7 @@
    void printOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
    void printUnsignedImm(const MCInst *MI, int opNum, raw_ostream &O);

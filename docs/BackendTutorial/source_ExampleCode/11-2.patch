@@ -1,6 +1,6 @@
 diff -Naur Chapter11_1/AsmParser/Cpu0AsmParser.cpp Chapter11_2/AsmParser/Cpu0AsmParser.cpp
---- Chapter11_1/AsmParser/Cpu0AsmParser.cpp	2013-06-12 13:36:13.000000000 +0800
-+++ Chapter11_2/AsmParser/Cpu0AsmParser.cpp	2013-06-12 13:36:13.000000000 +0800
+--- Chapter11_1/AsmParser/Cpu0AsmParser.cpp	2013-06-15 14:57:27.000000000 +0800
++++ Chapter11_2/AsmParser/Cpu0AsmParser.cpp	2013-06-15 14:57:27.000000000 +0800
 @@ -308,8 +308,17 @@
  
    int ImmValue = ImmOp.getImm();
@@ -149,8 +149,8 @@ diff -Naur Chapter11_1/AsmParser/Cpu0AsmParser.cpp Chapter11_2/AsmParser/Cpu0Asm
        .Case("lr",  Cpu0::LR)
        .Case("pc",  Cpu0::PC)
 diff -Naur Chapter11_1/Cpu0FrameLowering.cpp Chapter11_2/Cpu0FrameLowering.cpp
---- Chapter11_1/Cpu0FrameLowering.cpp	2013-06-12 13:36:13.000000000 +0800
-+++ Chapter11_2/Cpu0FrameLowering.cpp	2013-06-12 13:36:13.000000000 +0800
+--- Chapter11_1/Cpu0FrameLowering.cpp	2013-06-15 14:57:27.000000000 +0800
++++ Chapter11_2/Cpu0FrameLowering.cpp	2013-06-15 14:57:27.000000000 +0800
 @@ -102,7 +102,7 @@
    unsigned SP = Cpu0::SP;
    unsigned FP = Cpu0::FP;
@@ -188,8 +188,8 @@ diff -Naur Chapter11_1/Cpu0FrameLowering.cpp Chapter11_2/Cpu0FrameLowering.cpp
  
    // Get the number of bytes from FrameInfo
 diff -Naur Chapter11_1/Cpu0InstrInfo.cpp Chapter11_2/Cpu0InstrInfo.cpp
---- Chapter11_1/Cpu0InstrInfo.cpp	2013-06-12 13:36:13.000000000 +0800
-+++ Chapter11_2/Cpu0InstrInfo.cpp	2013-06-12 13:36:13.000000000 +0800
+--- Chapter11_1/Cpu0InstrInfo.cpp	2013-06-15 14:57:27.000000000 +0800
++++ Chapter11_2/Cpu0InstrInfo.cpp	2013-06-15 14:57:27.000000000 +0800
 @@ -43,18 +43,12 @@
        Opc = Cpu0::MFHI, SrcReg = 0;
      else if (SrcReg == Cpu0::LO)
@@ -210,8 +210,8 @@ diff -Naur Chapter11_1/Cpu0InstrInfo.cpp Chapter11_2/Cpu0InstrInfo.cpp
  
    assert(Opc && "Cannot copy registers");
 diff -Naur Chapter11_1/Cpu0InstrInfo.td Chapter11_2/Cpu0InstrInfo.td
---- Chapter11_1/Cpu0InstrInfo.td	2013-06-12 13:36:13.000000000 +0800
-+++ Chapter11_2/Cpu0InstrInfo.td	2013-06-02 09:29:42.000000000 +0800
+--- Chapter11_1/Cpu0InstrInfo.td	2013-06-15 14:57:27.000000000 +0800
++++ Chapter11_2/Cpu0InstrInfo.td	2013-06-15 14:57:27.000000000 +0800
 @@ -136,6 +136,12 @@
      return (uint64_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
  }]>;
@@ -245,7 +245,7 @@ diff -Naur Chapter11_1/Cpu0InstrInfo.td Chapter11_2/Cpu0InstrInfo.td
  }
  
  // Arithmetic and logical instructions with 2 register operands.
-@@ -276,18 +279,33 @@
+@@ -266,18 +269,33 @@
  }
  
  // Conditional Branch
@@ -287,7 +287,7 @@ diff -Naur Chapter11_1/Cpu0InstrInfo.td Chapter11_2/Cpu0InstrInfo.td
  // Unconditional branch, such as JMP
  class UncondBranch<bits<8> op, string instr_asm>:
    FJ<op, (outs), (ins brtarget:$addr),
-@@ -435,44 +453,50 @@
+@@ -425,44 +443,50 @@
  defm SH     : StoreM32<0x08, "sh", truncstorei16_a>;
  
  /// Arithmetic Instructions (ALU Immediate)
@@ -358,7 +358,7 @@ diff -Naur Chapter11_1/Cpu0InstrInfo.td Chapter11_2/Cpu0InstrInfo.td
  
  def JMP     : UncondBranch<0x26, "jmp">;
  
-@@ -508,19 +532,20 @@
+@@ -498,19 +522,20 @@
  // Small immediates
  def : Pat<(i32 immSExt16:$in),
            (ADDiu ZERO, imm:$in)>;
@@ -384,7 +384,7 @@ diff -Naur Chapter11_1/Cpu0InstrInfo.td Chapter11_2/Cpu0InstrInfo.td
  def : Pat<(Cpu0Lo tglobaladdr:$in), (ADDiu ZERO, tglobaladdr:$in)>;
  
  def : Pat<(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
-@@ -531,51 +556,82 @@
+@@ -521,51 +546,82 @@
            (ADDiu CPURegs:$gp, tglobaladdr:$in)>;
  
  def : Pat<(not CPURegs:$in),
@@ -499,8 +499,8 @@ diff -Naur Chapter11_1/Cpu0InstrInfo.td Chapter11_2/Cpu0InstrInfo.td
 +defm : SetgePats<CPURegs, SLT, SLTu>;
 +defm : SetgeImmPats<CPURegs, SLTi, SLTiu>;
 diff -Naur Chapter11_1/Cpu0MCInstLower.cpp Chapter11_2/Cpu0MCInstLower.cpp
---- Chapter11_1/Cpu0MCInstLower.cpp	2013-06-12 13:36:13.000000000 +0800
-+++ Chapter11_2/Cpu0MCInstLower.cpp	2013-06-12 13:36:13.000000000 +0800
+--- Chapter11_1/Cpu0MCInstLower.cpp	2013-06-15 14:57:27.000000000 +0800
++++ Chapter11_2/Cpu0MCInstLower.cpp	2013-06-15 14:57:27.000000000 +0800
 @@ -94,8 +94,7 @@
  }
  
@@ -548,8 +548,8 @@ diff -Naur Chapter11_1/Cpu0MCInstLower.cpp Chapter11_2/Cpu0MCInstLower.cpp
  
    MCInst St;
 diff -Naur Chapter11_1/Cpu0RegisterInfo.td Chapter11_2/Cpu0RegisterInfo.td
---- Chapter11_1/Cpu0RegisterInfo.td	2013-06-12 13:36:13.000000000 +0800
-+++ Chapter11_2/Cpu0RegisterInfo.td	2013-06-12 13:36:13.000000000 +0800
+--- Chapter11_1/Cpu0RegisterInfo.td	2013-06-15 14:57:27.000000000 +0800
++++ Chapter11_2/Cpu0RegisterInfo.td	2013-06-15 14:57:27.000000000 +0800
 @@ -41,7 +41,7 @@
    def S2   : Cpu0GPRReg< 9, "9">,    DwarfRegNum<[9]>;
    def GP   : Cpu0GPRReg< 10, "gp">,  DwarfRegNum<[10]>;
@@ -577,8 +577,8 @@ diff -Naur Chapter11_1/Cpu0RegisterInfo.td Chapter11_2/Cpu0RegisterInfo.td
 -def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
 -
 diff -Naur Chapter11_1/Disassembler/Cpu0Disassembler.cpp Chapter11_2/Disassembler/Cpu0Disassembler.cpp
---- Chapter11_1/Disassembler/Cpu0Disassembler.cpp	2013-06-12 13:36:13.000000000 +0800
-+++ Chapter11_2/Disassembler/Cpu0Disassembler.cpp	2013-06-12 13:36:13.000000000 +0800
+--- Chapter11_1/Disassembler/Cpu0Disassembler.cpp	2013-06-15 14:57:27.000000000 +0800
++++ Chapter11_2/Disassembler/Cpu0Disassembler.cpp	2013-06-15 14:57:27.000000000 +0800
 @@ -55,7 +55,7 @@
    Cpu0::ZERO, Cpu0::AT, Cpu0::V0, Cpu0::V1,
    Cpu0::A0, Cpu0::A1, Cpu0::T9, Cpu0::S0, 
@@ -664,8 +664,8 @@ diff -Naur Chapter11_1/Disassembler/Cpu0Disassembler.cpp Chapter11_2/Disassemble
    return MCDisassembler::Success;
  }
 diff -Naur Chapter11_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp
---- Chapter11_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-06-12 13:36:13.000000000 +0800
-+++ Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp	2013-06-12 13:36:13.000000000 +0800
+--- Chapter11_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-06-15 14:57:27.000000000 +0800
++++ Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp	2013-06-15 14:57:27.000000000 +0800
 @@ -37,6 +37,7 @@
    case FK_Data_4:
    case Cpu0::fixup_Cpu0_LO16:
@@ -683,8 +683,8 @@ diff -Naur Chapter11_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter11_2/MCTargetDesc/
        { "fixup_Cpu0_CALL24",       0,     24,   0 },
        { "fixup_Cpu0_GPREL32",      0,     32,   0 },
 diff -Naur Chapter11_1/MCTargetDesc/Cpu0BaseInfo.h Chapter11_2/MCTargetDesc/Cpu0BaseInfo.h
---- Chapter11_1/MCTargetDesc/Cpu0BaseInfo.h	2013-06-12 13:36:13.000000000 +0800
-+++ Chapter11_2/MCTargetDesc/Cpu0BaseInfo.h	2013-06-12 13:36:13.000000000 +0800
+--- Chapter11_1/MCTargetDesc/Cpu0BaseInfo.h	2013-06-15 14:57:27.000000000 +0800
++++ Chapter11_2/MCTargetDesc/Cpu0BaseInfo.h	2013-06-15 14:57:27.000000000 +0800
 @@ -135,7 +135,7 @@
      return 10;
    case Cpu0::FP:
@@ -695,8 +695,8 @@ diff -Naur Chapter11_1/MCTargetDesc/Cpu0BaseInfo.h Chapter11_2/MCTargetDesc/Cpu0
    case Cpu0::SP:
      return 13;
 diff -Naur Chapter11_1/MCTargetDesc/Cpu0FixupKinds.h Chapter11_2/MCTargetDesc/Cpu0FixupKinds.h
---- Chapter11_1/MCTargetDesc/Cpu0FixupKinds.h	2013-06-12 13:36:13.000000000 +0800
-+++ Chapter11_2/MCTargetDesc/Cpu0FixupKinds.h	2013-06-12 13:36:13.000000000 +0800
+--- Chapter11_1/MCTargetDesc/Cpu0FixupKinds.h	2013-06-15 14:57:27.000000000 +0800
++++ Chapter11_2/MCTargetDesc/Cpu0FixupKinds.h	2013-06-15 14:57:27.000000000 +0800
 @@ -53,8 +53,12 @@
      // Local symbol fixup resulting in - R_CPU0_GOT16.
      fixup_Cpu0_GOT_Local,
@@ -712,8 +712,8 @@ diff -Naur Chapter11_1/MCTargetDesc/Cpu0FixupKinds.h Chapter11_2/MCTargetDesc/Cp
  
      // resulting in - R_CPU0_CALL24.
 diff -Naur Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-06-12 13:36:13.000000000 +0800
-+++ Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-06-12 13:36:13.000000000 +0800
+--- Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-06-15 14:57:27.000000000 +0800
++++ Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-06-15 14:57:27.000000000 +0800
 @@ -158,7 +158,7 @@
  
    const MCExpr *Expr = MO.getExpr();
