@@ -523,57 +523,55 @@ llvm-objdump
 llvm-objdump -t -r
 ~~~~~~~~~~~~~~~~~~
 
-In linux, ``objdump -tr`` can display the information of relocation records 
+In iMac, ``gobjdump -tr`` can display the information of relocation records 
 like ``readelf -tr``. LLVM tool llvm-objdump is the same tool as objdump. 
-Let's run the llvm-objdump command as follows to see the difference. 
+Let's run gobjdump and llvm-objdump command as follows to see the differences. 
 
 .. code-block:: bash
 
-  118-165-83-10:InputFiles Jonathan$ clang -c ch8_3_3.cpp -emit-llvm -I/
+  118-165-83-12:InputFiles Jonathan$ clang -c ch8_3_3.cpp -emit-llvm -I/
   Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/
   SDKs/MacOSX10.8.sdk/usr/include/ -o ch8_3_3.bc
   118-165-83-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch8_3_3.bc -o 
   ch8_3_3.cpu0.o
-  118-165-83-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llvm-objdump -t -r ch8_3_3.cpu0.o
+
+  118-165-78-12:InputFiles Jonathan$ gobjdump -t -r ch8_3_3.cpu0.o
   
-  118-165-83-10:InputFiles Jonathan$ llvm-objdump -t -r ch8_3_3.cpu0.o
-  
-  ch8_3_3.cpu0.o: file format ELF32-unknown
-  
-  RELOCATION RECORDS FOR [.text]:
-  0 Unknown Unknown
-  8 Unknown Unknown
-  28 Unknown Unknown
-  188 Unknown Unknown
-  224 Unknown Unknown
-  236 Unknown Unknown
-  244 Unknown Unknown
-  324 Unknown Unknown
-  344 Unknown Unknown
-  348 Unknown Unknown
-  356 Unknown Unknown
-  
-  RELOCATION RECORDS FOR [.eh_frame]:
-  28 Unknown Unknown
-  52 Unknown Unknown
+  ch8_3_3.cpu0.o: file format elf32-big
   
   SYMBOL TABLE:
-  00000000 l    df *ABS*  00000000 ch8_3_3.bc
-  00000000 l       .rodata.str1.1 00000008 $.str
-  00000000 l    d  .text  00000000 .text
-  00000000 l    d  .data  00000000 .data
-  00000000 l    d  .bss 00000000 .bss
-  00000000 l    d  .rodata.str1.1 00000000 .rodata.str1.1
-  00000000 l    d  .eh_frame  00000000 .eh_frame
-  00000000 g     F .text  000000ec _Z5sum_iiz
-  000000ec g     F .text  00000094 main
-  00000000         *UND*  00000000 __stack_chk_fail
-  00000000         *UND*  00000000 __stack_chk_guard
-  00000000         *UND*  00000000 _gp_disp
-  00000000         *UND*  00000000 printf
+  00000000 l    df *ABS*	00000000 ch8_3_3.bc
+  00000000 l     O .rodata.str1.1	00000008 $.str
+  00000000 l    d  .text	00000000 .text
+  00000000 l    d  .data	00000000 .data
+  00000000 l    d  .bss	00000000 .bss
+  00000000 l    d  .rodata.str1.1	00000000 .rodata.str1.1
+  00000000 l    d  .eh_frame	00000000 .eh_frame
+  00000000 g     F .text	000000d4 _Z5sum_iiz
+  000000d4 g     F .text	00000074 main
+  00000000         *UND*	00000000 __stack_chk_fail
+  00000000         *UND*	00000000 __stack_chk_guard
+  00000000         *UND*	00000000 printf
   
+  
+  RELOCATION RECORDS FOR [.text]:
+  OFFSET   TYPE              VALUE 
+  00000008 UNKNOWN           __stack_chk_guard
+  00000010 UNKNOWN           __stack_chk_guard
+  000000d0 UNKNOWN           __stack_chk_fail
+  00000118 UNKNOWN           _Z5sum_iiz
+  00000124 UNKNOWN           $.str
+  0000012c UNKNOWN           $.str
+  00000134 UNKNOWN           printf
+  
+  
+  RELOCATION RECORDS FOR [.eh_frame]:
+  OFFSET   TYPE              VALUE 
+  0000001c UNKNOWN           .text
+  00000034 UNKNOWN           .text
+
+
   118-165-83-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llvm-objdump -t -r ch8_3_3.cpu0.o
   
@@ -863,106 +861,93 @@ the following result.
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
   build/bin/Debug/llvm-objdump -d ch7_1_1.cpu0.o
   
-  ch7_1_1.cpu0.o: file format ELF32-CPU0
+  ch7_1_1.cpu0.o:	file format ELF32-CPU0
   
   Disassembly of section .text:
-  .text:
-       0: 09 dd ff d8                                   addiu $sp, $sp, -40
-       4: 09 30 00 00                                   addiu $3, $zero, 0
-       8: 01 3d 00 24                                   st  $3, 36($sp)
-       c: 01 3d 00 20                                   st  $3, 32($sp)
-      10: 09 20 00 01                                   addiu $2, $zero, 1
-      14: 01 2d 00 1c                                   st  $2, 28($sp)
-      18: 09 40 00 02                                   addiu $4, $zero, 2
-      1c: 01 4d 00 18                                   st  $4, 24($sp)
-      20: 09 40 00 03                                   addiu $4, $zero, 3
-      24: 01 4d 00 14                                   st  $4, 20($sp)
-      28: 09 40 00 04                                   addiu $4, $zero, 4
-      2c: 01 4d 00 10                                   st  $4, 16($sp)
-      30: 09 40 00 05                                   addiu $4, $zero, 5
-      34: 01 4d 00 0c                                   st  $4, 12($sp)
-      38: 09 40 00 06                                   addiu $4, $zero, 6
-      3c: 01 4d 00 08                                   st  $4, 8($sp)
-      40: 09 40 00 07                                   addiu $4, $zero, 7
-      44: 01 4d 00 04                                   st  $4, 4($sp)
-      48: 09 40 00 08                                   addiu $4, $zero, 8
-      4c: 01 4d 00 00                                   st  $4, 0($sp)
-      50: 00 4d 00 20                                   ld  $4, 32($sp)
-      54: 10 43 00 00                                   cmp $4, $3
-      58: 21 00 00 10                                   jne 16
-      5c: 26 00 00 00                                   jmp 0
-      60: 00 4d 00 20                                   ld  $4, 32($sp)
-      64: 09 44 00 01                                   addiu $4, $4, 1
-      68: 01 4d 00 20                                   st  $4, 32($sp)
-      6c: 00 4d 00 1c                                   ld  $4, 28($sp)
-      70: 10 43 00 00                                   cmp $4, $3
-      74: 20 00 00 10                                   jeq 16
-      78: 26 00 00 00                                   jmp 0
-      7c: 00 4d 00 1c                                   ld  $4, 28($sp)
-      80: 09 44 00 01                                   addiu $4, $4, 1
-      84: 01 4d 00 1c                                   st  $4, 28($sp)
-      88: 00 4d 00 18                                   ld  $4, 24($sp)
-      8c: 10 42 00 00                                   cmp $4, $2
-      90: 22 00 00 10                                   jlt 16
-      94: 26 00 00 00                                   jmp 0
-      98: 00 4d 00 18                                   ld  $4, 24($sp)
-      9c: 09 44 00 01                                   addiu $4, $4, 1
-      a0: 01 4d 00 18                                   st  $4, 24($sp)
-      a4: 00 4d 00 14                                   ld  $4, 20($sp)
-      a8: 10 43 00 00                                   cmp $4, $3
-      ac: 22 00 00 10                                   jlt 16
-      b0: 26 00 00 00                                   jmp 0
-      b4: 00 4d 00 14                                   ld  $4, 20($sp)
-      b8: 09 44 00 01                                   addiu $4, $4, 1
-      bc: 01 4d 00 14                                   st  $4, 20($sp)
-      c0: 09 40 ff ff                                   addiu $4, $zero, -1
-      c4: 00 5d 00 10                                   ld  $5, 16($sp)
-      c8: 10 54 00 00                                   cmp $5, $4
-      cc: 23 00 00 10                                   jgt 16
-      d0: 26 00 00 00                                   jmp 0
-      d4: 00 4d 00 10                                   ld  $4, 16($sp)
-      d8: 09 44 00 01                                   addiu $4, $4, 1
-      dc: 01 4d 00 10                                   st  $4, 16($sp)
-      e0: 00 4d 00 0c                                   ld  $4, 12($sp)
-      e4: 10 43 00 00                                   cmp $4, $3
-      e8: 23 00 00 10                                   jgt 16
-      ec: 26 00 00 00                                   jmp 0
-      f0: 00 3d 00 0c                                   ld  $3, 12($sp)
-      f4: 09 33 00 01                                   addiu $3, $3, 1
-      f8: 01 3d 00 0c                                   st  $3, 12($sp)
-      fc: 00 3d 00 08                                   ld  $3, 8($sp)
-     100: 10 32 00 00                                   cmp $3, $2
-     104: 23 00 00 10                                   jgt 16
-     108: 26 00 00 00                                   jmp 0
-     10c: 00 3d 00 08                                   ld  $3, 8($sp)
-     110: 09 33 00 01                                   addiu $3, $3, 1
-     114: 01 3d 00 08                                   st  $3, 8($sp)
-     118: 00 3d 00 04                                   ld  $3, 4($sp)
-     11c: 10 32 00 00                                   cmp $3, $2
-     120: 22 00 00 10                                   jlt 16
-     124: 26 00 00 00                                   jmp 0
-     128: 00 2d 00 04                                   ld  $2, 4($sp)
-     12c: 09 22 00 01                                   addiu $2, $2, 1
-     130: 01 2d 00 04                                   st  $2, 4($sp)
-     134: 00 2d 00 04                                   ld  $2, 4($sp)
-     138: 00 3d 00 00                                   ld  $3, 0($sp)
-     13c: 10 32 00 00                                   cmp $3, $2
-     140: 25 00 00 10                                   jge 16
-     144: 26 00 00 00                                   jmp 0
-     148: 00 2d 00 00                                   ld  $2, 0($sp)
-     14c: 09 22 00 01                                   addiu $2, $2, 1
-     150: 01 2d 00 00                                   st  $2, 0($sp)
-     154: 00 2d 00 1c                                   ld  $2, 28($sp)
-     158: 00 3d 00 20                                   ld  $3, 32($sp)
-     15c: 10 32 00 00                                   cmp $3, $2
-     160: 20 00 00 10                                   jeq 16
-     164: 26 00 00 00                                   jmp 0
-     168: 00 2d 00 20                                   ld  $2, 32($sp)
-     16c: 09 22 00 01                                   addiu $2, $2, 1
-     170: 01 2d 00 20                                   st  $2, 32($sp)
-     174: 00 2d 00 20                                   ld  $2, 32($sp)
-     178: 09 dd 00 28                                   addiu $sp, $sp, 40
-     17c: 2c 00 00 00                                   ret $zero
+  main:
+         0:	09 dd ff d8                                  	addiu	$sp, $sp, -40
+         4:	09 30 00 00                                  	addiu	$3, $zero, 0
+         8:	02 3d 00 24                                  	st	$3, 36($sp)
+         c:	02 3d 00 20                                  	st	$3, 32($sp)
+        10:	09 20 00 01                                  	addiu	$2, $zero, 1
+        14:	02 2d 00 1c                                  	st	$2, 28($sp)
+        18:	09 40 00 02                                  	addiu	$4, $zero, 2
+        1c:	02 4d 00 18                                  	st	$4, 24($sp)
+        20:	09 40 00 03                                  	addiu	$4, $zero, 3
+        24:	02 4d 00 14                                  	st	$4, 20($sp)
+        28:	09 40 00 04                                  	addiu	$4, $zero, 4
+        2c:	02 4d 00 10                                  	st	$4, 16($sp)
+        30:	09 40 00 05                                  	addiu	$4, $zero, 5
+        34:	02 4d 00 0c                                  	st	$4, 12($sp)
+        38:	09 40 00 06                                  	addiu	$4, $zero, 6
+        3c:	02 4d 00 08                                  	st	$4, 8($sp)
+        40:	09 40 00 07                                  	addiu	$4, $zero, 7
+        44:	02 4d 00 04                                  	st	$4, 4($sp)
+        48:	09 40 00 08                                  	addiu	$4, $zero, 8
+        4c:	02 4d 00 00                                  	st	$4, 0($sp)
+        50:	01 4d 00 20                                  	ld	$4, 32($sp)
+        54:	28 40 00 0c                                  	bne	$4, $zero, 12
+        58:	01 4d 00 20                                  	ld	$4, 32($sp)
+        5c:	09 44 00 01                                  	addiu	$4, $4, 1
+        60:	02 4d 00 20                                  	st	$4, 32($sp)
+        64:	01 4d 00 1c                                  	ld	$4, 28($sp)
+        68:	27 40 00 0c                                  	beq	$4, $zero, 12
+        6c:	01 4d 00 1c                                  	ld	$4, 28($sp)
+        70:	09 44 00 01                                  	addiu	$4, $4, 1
+        74:	02 4d 00 1c                                  	st	$4, 28($sp)
+        78:	01 4d 00 18                                  	ld	$4, 24($sp)
+        7c:	0a 44 00 01                                  	slti	$4, $4, 1
+        80:	28 40 00 0c                                  	bne	$4, $zero, 12
+        84:	01 4d 00 18                                  	ld	$4, 24($sp)
+        88:	09 44 00 01                                  	addiu	$4, $4, 1
+        8c:	02 4d 00 18                                  	st	$4, 24($sp)
+        90:	01 4d 00 14                                  	ld	$4, 20($sp)
+        94:	0a 44 00 00                                  	slti	$4, $4, 0
+        98:	28 40 00 0c                                  	bne	$4, $zero, 12
+        9c:	01 4d 00 14                                  	ld	$4, 20($sp)
+        a0:	09 44 00 01                                  	addiu	$4, $4, 1
+        a4:	02 4d 00 14                                  	st	$4, 20($sp)
+        a8:	01 4d 00 10                                  	ld	$4, 16($sp)
+        ac:	09 50 ff ff                                  	addiu	$5, $zero, -1
+        b0:	20 45 40 00                                  	slt	$4, $5, $4
+        b4:	28 40 00 0c                                  	bne	$4, $zero, 12
+        b8:	01 4d 00 10                                  	ld	$4, 16($sp)
+        bc:	09 44 00 01                                  	addiu	$4, $4, 1
+        c0:	02 4d 00 10                                  	st	$4, 16($sp)
+        c4:	01 4d 00 0c                                  	ld	$4, 12($sp)
+        c8:	20 33 40 00                                  	slt	$3, $3, $4
+        cc:	28 30 00 0c                                  	bne	$3, $zero, 12
+        d0:	01 3d 00 0c                                  	ld	$3, 12($sp)
+        d4:	09 33 00 01                                  	addiu	$3, $3, 1
+        d8:	02 3d 00 0c                                  	st	$3, 12($sp)
+        dc:	01 3d 00 08                                  	ld	$3, 8($sp)
+        e0:	20 22 30 00                                  	slt	$2, $2, $3
+        e4:	28 20 00 0c                                  	bne	$2, $zero, 12
+        e8:	01 2d 00 08                                  	ld	$2, 8($sp)
+        ec:	09 22 00 01                                  	addiu	$2, $2, 1
+        f0:	02 2d 00 08                                  	st	$2, 8($sp)
+        f4:	01 2d 00 04                                  	ld	$2, 4($sp)
+        f8:	0a 22 00 01                                  	slti	$2, $2, 1
+        fc:	28 20 00 0c                                  	bne	$2, $zero, 12
+       100:	01 2d 00 04                                  	ld	$2, 4($sp)
+       104:	09 22 00 01                                  	addiu	$2, $2, 1
+       108:	02 2d 00 04                                  	st	$2, 4($sp)
+       10c:	01 2d 00 04                                  	ld	$2, 4($sp)
+       110:	01 3d 00 00                                  	ld	$3, 0($sp)
+       114:	20 23 20 00                                  	slt	$2, $3, $2
+       118:	27 20 00 0c                                  	beq	$2, $zero, 12
+       11c:	01 2d 00 00                                  	ld	$2, 0($sp)
+       120:	09 22 00 01                                  	addiu	$2, $2, 1
+       124:	02 2d 00 00                                  	st	$2, 0($sp)
+       128:	01 2d 00 1c                                  	ld	$2, 28($sp)
+       12c:	01 3d 00 20                                  	ld	$3, 32($sp)
+       130:	27 32 00 0c                                  	beq	$3, $2, 12
+       134:	01 2d 00 20                                  	ld	$2, 32($sp)
+       138:	09 22 00 01                                  	addiu	$2, $2, 1
+       13c:	02 2d 00 20                                  	st	$2, 32($sp)
+       140:	01 2d 00 20                                  	ld	$2, 32($sp)
+       144:	09 dd 00 28                                  	addiu	$sp, $sp, 40
+       148:	2c 00 00 00                                  	ret	$zero
 
 
 .. _section Handle $gp register in PIC addressing mode:
