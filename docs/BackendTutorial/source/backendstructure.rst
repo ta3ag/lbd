@@ -1171,17 +1171,17 @@ compile with ``llc -debug`` option and see what happens.
   ===== Instruction selection ends:
 
 
-Summary above translation into Table: Table: Chapter 3 .bc IR instructions.
+Summary above translation into Table: Chapter 3 .bc IR instructions.
 
-Table: Chapter 3 .bc IR instructions
+.. table:: Chapter 3 .bc IR instructions
 
-=============================  ==================================  ==========
-.bc                            Optimized legalized selection DAG   Cpu0
-=============================  ==================================  ==========
-constant 0                     constant 0                          addiu         
-store                          store                               st
-ret                            Cpu0ISD::Ret                        ret
-=============================  ==================================  ==========
+  =============================  ==================================  ==========
+  .bc                            Optimized legalized selection DAG   Cpu0
+  =============================  ==================================  ==========
+  constant 0                     constant 0                          addiu         
+  store                          store                               st
+  ret                            Cpu0ISD::Ret                        ret
+  =============================  ==================================  ==========
 
 From above ``llc -debug`` display, we see the **store** and **ret** are 
 translated into **store** and **Cpu0ISD::Ret** in stage Optimized legalized 

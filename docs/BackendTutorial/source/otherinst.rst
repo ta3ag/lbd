@@ -386,24 +386,24 @@ following meaning.
   
 In llvm, IR node **sra** is defined for ashr IR instruction, node **srl** is 
 defined for lshr instruction (I don't know why don't use ashr and lshr as the 
-IR node name directly). Summary as Table: C operator >> implementation.
+IR node name directly). Summary as the Table: C operator >> implementation.
 
 
-Table: C operator >> implementation
+.. table:: C operator >> implementation
 
-======================================= ======================  =====================================
-Description                             Shift with zero filled  Shift with signed extension filled
-======================================= ======================  =====================================
-symbol in .bc                           lshr                    ashr
-symbol in IR node                       srl                     sra
-Mips instruction                        srl                     sra
-Cpu0 instruction                        shr                     sra
-signed example before x >> 1            0xfffffffe i.e. -2      0xfffffffe i.e. -2
-signed example after x >> 1             0x7fffffff i.e 2G-1     0xffffffff i.e. -1
-unsigned example before x >> 1          0xfffffffe i.e. 4G-2    0xfffffffe i.e. 4G-2
-unsigned example after x >> 1           0x7fffffff i.e 2G-1     0xffffffff i.e. 4G-1
-======================================= ======================  =====================================
-
+  ======================================= ======================  =====================================
+  Description                             Shift with zero filled  Shift with signed extension filled
+  ======================================= ======================  =====================================
+  symbol in .bc                           lshr                    ashr
+  symbol in IR node                       srl                     sra
+  Mips instruction                        srl                     sra
+  Cpu0 instruction                        shr                     sra
+  signed example before x >> 1            0xfffffffe i.e. -2      0xfffffffe i.e. -2
+  signed example after x >> 1             0x7fffffff i.e 2G-1     0xffffffff i.e. -1
+  unsigned example before x >> 1          0xfffffffe i.e. 4G-2    0xfffffffe i.e. 4G-2
+  unsigned example after x >> 1           0x7fffffff i.e 2G-1     0xffffffff i.e. 4G-1
+  ======================================= ======================  =====================================
+  
 **lshr:** Logical SHift Right
 
 **ashr:** Arithmetic SHift right
@@ -422,20 +422,20 @@ unsigned value (such as 4G-2). So, in order to satisfy this definition in
 both signed and unsigned integer of x, we need these two instructions, 
 **lshr** and **ashr**.
 
-Table: C operator << implementation
+.. table:: C operator << implementation
 
-======================================= ======================
-Description                             Shift with zero filled
-======================================= ======================
-symbol in .bc                           shl
-symbol in IR node                       shl
-Mips instruction                        sll
-Cpu0 instruction                        shl
-signed example before x << 1            0x40000000 i.e. 1G
-signed example after x << 1             0x80000000 i.e -2G
-unsigned example before x << 1          0x40000000 i.e. 1G
-unsigned example after x << 1           0x80000000 i.e 2G
-======================================= ======================
+  ======================================= ======================
+  Description                             Shift with zero filled
+  ======================================= ======================
+  symbol in .bc                           shl
+  symbol in IR node                       shl
+  Mips instruction                        sll
+  Cpu0 instruction                        shl
+  signed example before x << 1            0x40000000 i.e. 1G
+  signed example after x << 1             0x80000000 i.e -2G
+  unsigned example before x << 1          0x40000000 i.e. 1G
+  unsigned example after x << 1           0x80000000 i.e 2G
+  ======================================= ======================
 
 Again, consider the x << 1 definition is x = x*2. 
 From Table: C operator << implementation, we see **lshr** satisfy the unsigned 
@@ -603,15 +603,15 @@ as follows,
 Summary as Table: C operator ! corresponding IR of .bc and IR of DAG.
 
 
-Table: C operator ! corresponding IR of .bc and IR of DAG
+.. table:: C operator ! corresponding IR of .bc and IR of DAG
 
-============================= ================================= =============================
-IR of .bc                     Optimized lowered selection DAG   Type-legalized selection DAG
-============================= ================================= =============================
-%tobool = icmp ne i32 %0, 0     
-%lnot = xor i1 %tobool, true  %lnot = (setcc %tobool, 0, seteq) %lnot = (setcc %tobool, 0, seteq)
-%conv = zext i1 %lnot to i32  %conv = (zero_extend %lnot)       %conv = (and %lnot, 1)
-============================= ================================= =============================
+  ============================= ================================= =============================
+  IR of .bc                     Optimized lowered selection DAG   Type-legalized selection DAG
+  ============================= ================================= =============================
+  %tobool = icmp ne i32 %0, 0     
+  %lnot = xor i1 %tobool, true  %lnot = (setcc %tobool, 0, seteq) %lnot = (setcc %tobool, 0, seteq)
+  %conv = zext i1 %lnot to i32  %conv = (zero_extend %lnot)       %conv = (and %lnot, 1)
+  ============================= ================================= =============================
 
 From above DAG translation result of ``llc -debug``, we see the IRs are same in both 
 stages of “Initial selection DAG” and “Optimized lowered selection DAG”.
@@ -676,17 +676,17 @@ Run it with Chapter4_2/ which added code to handle pattern
 Summary as Table: C operator ! corresponding IR of DAG and .
 
 
-Table: C operator ! corresponding IR of Type-legalized selection DAG 
-(include and after this stage) and Cpu0 instructions
+.. table:: C operator ! corresponding IR of Type-legalized selection DAG 
+           (include and after this stage) and Cpu0 instructions
 
-==============================================      ==========================
-Include and after Type-legalized selection DAG      Cpu0 instruction
-==============================================      ==========================
-%lnot = (setcc %tobool, 0, seteq)                   %1 = (xor %tobool, 0)
--                                                   %true = (addiu $r0, 1)
--                                                   %lnot = (xor %1, %true)
-%conv = (and %lnot, 1)                              %conv = (and %lnot, 1)
-==============================================      ==========================
+  ==============================================      ==========================
+  Include and after Type-legalized selection DAG      Cpu0 instruction
+  ==============================================      ==========================
+  %lnot = (setcc %tobool, 0, seteq)                   - %1 = (xor %tobool, 0)
+                                                      - %true = (addiu $r0, 1)
+                                                      - %lnot = (xor %1, %true)
+  %conv = (and %lnot, 1)                              %conv = (and %lnot, 1)
+  ==============================================      ==========================
 
 Chapter4_2/ defined seteq DAG pattern. 
 It translate **%lnot = (setcc %tobool, 0, seteq)** into **%1 = (xor %tobool, 0)**, 
@@ -1873,29 +1873,29 @@ following things:
 Summary as Table: Stages for C operator % and Table: Functions handle the DAG 
 translation and pattern match for C operator %.
 
-Table: Stages for C operator %
+.. table:: Stages for C operator %
 
-==================================  ===================== =========================
-Stage                               IR/DAG/instruction    IR/DAG/instruction
-==================================  ===================== =========================
-.bc                                 srem        
-Legalized selection DAG             sdivrem       
-Optimized legalized selection DAG   Cpu0ISD::DivRem       CopyFromReg xx, Hi, xx
-pattern match                       div                   mfhi
-==================================  ===================== =========================
+  ==================================  ===================== =========================
+  Stage                               IR/DAG/instruction    IR/DAG/instruction
+  ==================================  ===================== =========================
+  .bc                                 srem        
+  Legalized selection DAG             sdivrem       
+  Optimized legalized selection DAG   Cpu0ISD::DivRem       CopyFromReg xx, Hi, xx
+  pattern match                       div                   mfhi
+  ==================================  ===================== =========================
 
 
-Table: Functions handle the DAG translation and pattern match for C operator %
+.. table:: Functions handle the DAG translation and pattern match for C operator %
 
-====================================  ============================
-Translation                           Do by
-====================================  ============================
-srem => sdivrem                       setOperationAction(ISD::SREM, MVT::i32, Expand);
-sdivrem => Cpu0ISD::DivRem            setTargetDAGCombine(ISD::SDIVREM);
-sdivrem => CopyFromReg xx, Hi, xx     PerformDivRemCombine();
-Cpu0ISD::DivRem => div                SDIV (Cpu0InstrInfo.td)
-CopyFromReg xx, Hi, xx => mfhi        MFLO (Cpu0InstrInfo.td)
-====================================  ============================
+  ====================================  ============================
+  Translation                           Do by
+  ====================================  ============================
+  srem => sdivrem                       setOperationAction(ISD::SREM, MVT::i32, Expand);
+  sdivrem => Cpu0ISD::DivRem            setTargetDAGCombine(ISD::SDIVREM);
+  sdivrem => CopyFromReg xx, Hi, xx     PerformDivRemCombine();
+  Cpu0ISD::DivRem => div                SDIV (Cpu0InstrInfo.td)
+  CopyFromReg xx, Hi, xx => mfhi        MFLO (Cpu0InstrInfo.td)
+  ====================================  ============================
 
 
 Item 2 as above, is triggered by code 
@@ -1927,30 +1927,30 @@ from three to over ten.
 List C operators, IR of .bc, Optimized legalized selection DAG and Cpu0 
 instructions implemented in this chapter in Table: Chapter 4 operators.
 
-Table: Chapter 4 operators
+.. table:: Chapter 4 operators
 
-==========  =============================  ==================================  ==========
-C           .bc                            Optimized legalized selection DAG   Cpu0
-==========  =============================  ==================================  ==========
-\+          add                            add                                 add
-\-          sub                            sub                                 sub
-\*          mul                            mul                                 mul
-/           sdiv                           Cpu0ISD::DivRem                     div
--           udiv                           Cpu0ISD::DivRemU                    divu
-&, &&       and                            and                                 and
-\|, \|\|    or                             or                                  or
-^           xor                            xor                                 xor
-<<          shl                            shl                                 shl
->>          ashr                           sra                                 sra
--           lshr                           srl                                 shr
-!           %tobool = icmp ne i32 %0, 0      
--           %lnot = xor i1 %tobool, true   %lnot = (setcc %tobool, 0, seteq)   %1 = (xor %tobool, 0)
--           -                              -                                   %true = (addiu $r0, 1)
--           -                              -                                   %lnot = (xor %1, %true)
--           %conv = zext i1 %lnot to i32   %conv = (and %lnot, 1)              %conv = (and %lnot, 1)
-%           srem                           Cpu0ISD::DivRem                     div
--           sremu                          Cpu0ISD::DivRemU                    divu
-==========  =============================  ==================================  ==========
+  ==========  =================================  ====================================  ==========
+  C           .bc                                Optimized legalized selection DAG     Cpu0
+  ==========  =================================  ====================================  ==========
+  \+          add                                add                                   add
+  \-          sub                                sub                                   sub
+  \*          mul                                mul                                   mul
+  /           sdiv                               Cpu0ISD::DivRem                       div
+  -           udiv                               Cpu0ISD::DivRemU                      divu
+  &, &&       and                                and                                   and
+  \|, \|\|    or                                 or                                    or
+  ^           xor                                xor                                   xor
+  <<          shl                                shl                                   shl
+  >>          - ashr                             - sra                                 - sra
+              - lshr                             - srl                                 - shr
+  !           - %tobool = icmp ne i32 %0, 0      - %lnot = (setcc %tobool, 0, seteq)   - %1 = (xor %tobool, 0)
+              - %lnot = xor i1 %tobool, true     - %conv = (and %lnot, 1)              - %true = (addiu $r0, 1)
+                                                                                       - %lnot = (xor %1, %true)
+  -           - %conv = zext i1 %lnot to i32     - %conv = (and %lnot, 1)              - %conv = (and %lnot, 1)
+  %           - srem                             - Cpu0ISD::DivRem                     - div
+              - sremu                            - Cpu0ISD::DivRemU                    - divu
+  ==========  =================================  ====================================  ==========
+
 
 .. _section Operator “not” !:
   http://jonathan2251.github.com/lbd/otherinst.html#operator-not

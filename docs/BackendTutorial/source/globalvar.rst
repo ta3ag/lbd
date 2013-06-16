@@ -21,6 +21,32 @@ Machine DAG translation directly according the input file IR DAG.
 Global variable
 ----------------
 
+.. table:: Cpu0 global variable options
+
+  =====  =====
+  col 1  col 2
+  =====  =====
+  1      Second column of row 1.
+  2      Second column of row 2.
+         Second line of paragraph.
+  3      - Second column of row 3.
+  
+         - Second item in bullet
+           list (row 3, column 2).
+  \      Row 4; column 1 will be empty.
+  =====  =====
+
+llls
+
+.. csv-table:: Cpu0 global variable options
+   :header: "Treat", "Quantity", "Description"
+   :widths: 15, 10, 30
+
+   "Albatross", 2.99, "On a stick!"
+   "Crunchy Frog", 1.49, "If we took the bones out, it wouldn't be
+   crunchy, now would it?"
+   "Gannet Ripple", 1.99, "On a stick!"
+
 Chapter6_1/ support the global variable, let's compile ch6_1.cpp with this version 
 first, and explain the code changes after that.
 

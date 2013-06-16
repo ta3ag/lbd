@@ -525,7 +525,7 @@ llvm-objdump -t -r
 
 In iMac, ``gobjdump -tr`` can display the information of relocation records 
 like ``readelf -tr``. LLVM tool llvm-objdump is the same tool as objdump. 
-Let's run gobjdump and llvm-objdump command as follows to see the differences. 
+Let's run gobjdump and llvm-objdump commands as follows to see the differences. 
 
 .. code-block:: bash
 
