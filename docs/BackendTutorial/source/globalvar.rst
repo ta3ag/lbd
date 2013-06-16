@@ -223,6 +223,10 @@ Let's run Chapter6_1/ with ch6_1.cpp via options
         0x7fad7102cc10: <multiple use>
       0x7fad7102d810: i32,ch = load 0x7fad70c10b98, 0x7fad7102d710, 
       0x7fad7102cc10<LD4[<unknown>]>
+      
+      0x7ff3ca02cc10: <multiple use>
+    0x7ff3ca02d110: i32,ch = load 0x7ff3ca02cf10, 0x7ff3ca02d810, 
+    0x7ff3ca02cc10<LD4[@gI]> [ORD=3] [ID=9]
     ...
     
 	.cpload	$t9
@@ -547,7 +551,6 @@ instructions as below.
   	addiu	$2, $zero, %hi(gI)
   	shl	$2, $2, 16
   	addiu	$2, $2, %lo(gI)
-  	ld	$2, 0($2)
   	...
 
 
@@ -664,7 +667,6 @@ instructions as below.
 .. code-block:: bash
 
   	addiu	$2, $gp, %gp_rel(gI)
-  	ld	$2, 0($2)
   	...
 
 Pat<(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)), (ADD CPURegs:$gp, (ADDiu 
@@ -714,7 +716,7 @@ Option ``llc  -relocation-model=pic`` will generate the following instructions.
   	.size	gI, 4
 
 The following code codefragment of Cpu0AsmPrinter.cpp will emit **.cpload** asm 
-pseudo instruction.
+pseudo instruction as below.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0AsmPrinter.cpp
 .. code-block:: c++
@@ -729,6 +731,12 @@ pseudo instruction.
         OutStreamer.EmitRawText(StringRef("\t.cpload\t$t9"));
   ...
   }
+
+.. code-block:: bash
+
+    ...
+	.cpload	$t9
+    ...
 
 According Mips Application Binary Interface (ABI), $t9 ($t9 is register alias 
 name for $25 in Mips) is the register 
@@ -757,8 +765,8 @@ instruction can run correctly.
 The code fragment of LowerGlobalAddress() as the following corresponding option 
 ``llc -relocation-model=pic`` will translate DAG 
 (GlobalAddress<i32* @gI> 0) into 
-(Cpu0ISD::Wrapper Register %GP, TargetGlobalAddress<i32* @gI> 0) in 
-stage "Legalized selection DAG" as below.
+(load EntryToken, (Cpu0ISD::Wrapper Register %GP, TargetGlobalAddress<i32* @gI> 0)) 
+in stage "Legalized selection DAG" as below.
 
 When PIC mode, LowerGlobalAddress() will create the DAG list (load 
 DAG.getEntryNode(), (Wrapper GetGlobalReg(), GA)) by the following code and 
@@ -830,21 +838,21 @@ the code in Cpu0ISeleDAGToDAG.cpp as follows,
         0x7fad7102cc10: <multiple use>
       0x7fad7102d810: i32,ch = load 0x7fad70c10b98, 0x7fad7102d710, 
       0x7fad7102cc10<LD4[<unknown>]>
+      0x7ff3ca02cc10: <multiple use>
+    0x7ff3ca02d110: i32,ch = load 0x7ff3ca02cf10, 0x7ff3ca02d810, 
+    0x7ff3ca02cc10<LD4[@gI]> [ORD=3] [ID=9]
     ...
 
 
-Finally, the pattern defined in Cpu0InstrInfo.td as the following will translate  
-DAG (Cpu0ISD::Wrapper Register %GP, TargetGlobalAddress<i32* @gI> 0) into Cpu0 
-instructions as below.
+Finally, the pattern defined in Cpu0InstrInfo.td as the following will translate DAG 
+(load EntryToken, (Cpu0ISD::Wrapper Register %GP, TargetGlobalAddress<i32* @gI> 0)) 
+into Cpu0 instructions as below.
 
 
 .. code-block:: bash
 
     ...
-	.cpload	$t9
-    ...
   	ld	$2, %got(gI)($gp)
-  	ld	$2, 0($2)
     ...
 
 Then it translate into the following code,
