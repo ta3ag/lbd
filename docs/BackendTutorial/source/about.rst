@@ -58,6 +58,7 @@ Version 3.2.16, Not release yet
   instructions. Add explanation in section Full support %. 
   Add Table: Chapter 4 operators.
   Add Table: Chapter 3 .bc IR instructions.
+  Rewrite Chapter 5 Global variables.
 
 Version 3.2.15, Released June 12, 2013
 	Porting to llvm 3.3.

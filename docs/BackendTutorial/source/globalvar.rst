@@ -21,32 +21,6 @@ Machine DAG translation directly according the input file IR DAG.
 Global variable
 ----------------
 
-.. table:: Cpu0 global variable options
-
-  =====  =====
-  col 1  col 2
-  =====  =====
-  1      Second column of row 1.
-  2      Second column of row 2.
-         Second line of paragraph.
-  3      - Second column of row 3.
-  
-         - Second item in bullet
-           list (row 3, column 2).
-  \      Row 4; column 1 will be empty.
-  =====  =====
-
-llls
-
-.. csv-table:: Cpu0 global variable options
-   :header: "Treat", "Quantity", "Description"
-   :widths: 15, 10, 30
-
-   "Albatross", 2.99, "On a stick!"
-   "Crunchy Frog", 1.49, "If we took the bones out, it wouldn't be
-   crunchy, now would it?"
-   "Gannet Ripple", 1.99, "On a stick!"
-
 Chapter6_1/ support the global variable, let's compile ch6_1.cpp with this version 
 first, and explain the code changes after that.
 
@@ -57,14 +31,14 @@ first, and explain the code changes after that.
 
 .. code-block:: bash
 
-  118-165-66-82:InputFiles Jonathan$ llvm-dis ch6_1.bc -o ch6_1.ll 
-  118-165-66-82:InputFiles Jonathan$ cat ch6_1.ll
+  118-165-78-166:InputFiles Jonathan$ llvm-dis ch6_1.bc -o -
   ; ModuleID = 'ch6_1.bc'
   target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-
-  f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:
-  32:64-S128"
+  f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-
+  n8:16:32:64-S128"
   target triple = "x86_64-apple-macosx10.8.0"
   
+  @gStart = global i32 2, align 4
   @gI = global i32 100, align 4
   
   define i32 @main() nounwind uwtable ssp {
@@ -77,52 +51,214 @@ first, and explain the code changes after that.
     %3 = load i32* %c, align 4
     ret i32 %3
   }
+
+Cpu0 global variable options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Cpu0 like Mips support both static and pic mode. There are two different layout 
+of global variables for static mode which controlled by option cpu0-islinux-format. 
+Chapter6_1/ support the global variable translation. 
+Let's run Chapter6_1/ with ch6_1.cpp via options 
+``llc  -relocation-model=static -cpu0-islinux-format=true``, 
+``llc  -relocation-model=static -cpu0-islinux-format=flase`` and 
+``llc  -relocation-model=pic`` to trace the DAG and Cpu0 instructions.
+
+.. code-block:: bash
+
+  118-165-78-166:InputFiles Jonathan$ clang -c ch6_1.cpp -emit-llvm -o ch6_1.bc
+  118-165-78-166:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=static -cpu0-islinux-format=true 
+  -filetype=asm -debug ch6_1.bc -o -
   
-  118-165-66-82:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_
-  debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  ch6_1.bc -o ch6_1.cpu0.s
-  118-165-66-82:InputFiles Jonathan$ cat ch6_1.cpu0.s
-    .section .mdebug.abi32
-    .previous
-    .file "ch6_1.bc"
-    .text
-    .globl  main
-    .align  2
-    .type main,@function
-    .ent  main                    # @main
-  main:
-    .cfi_startproc
-    .frame  $sp,8,$lr
-    .mask   0x00000000,0
-    .set  noreorder
-    .cpload $t9
-    .set  nomacro
-  # BB#0:
-    addiu $sp, $sp, -8
-  $tmp1:
-    .cfi_def_cfa_offset 8
-    addiu $2, $zero, 0
-    st  $2, 4($sp)
-    st  $2, 0($sp)
-    ld  $2, %got(gI)($gp)
-    ld  $2, 0($2)
-    st  $2, 0($sp)
-    addiu $sp, $sp, 8
-    ret $lr
-    .set  macro
-    .set  reorder
-    .end  main
-  $tmp2:
-    .size main, ($tmp2)-main
-    .cfi_endproc
+  ...
+  Type-legalized selection DAG: BB#0 'main:'
+  SelectionDAG has 12 nodes:
+    ...
+        0x7ffd5902cc10: <multiple use>
+      0x7ffd5902cf10: ch = store 0x7ffd5902cd10, 0x7ffd5902ca10, 0x7ffd5902ce10, 
+      0x7ffd5902cc10<ST4[%c]> [ORD=2] [ID=-3]
   
-    .type gI,@object              # @gI
-    .data
-    .globl  gI
-    .align  2
+      0x7ffd5902d010: i32 = GlobalAddress<i32* @gI> 0 [ORD=3] [ID=-3]
+  
+      0x7ffd5902cc10: <multiple use>
+    0x7ffd5902d110: i32,ch = load 0x7ffd5902cf10, 0x7ffd5902d010, 
+    0x7ffd5902cc10<LD4[@gI]> [ORD=3] [ID=-3]
+    ...
+  
+  Legalized selection DAG: BB#0 'main:'
+  SelectionDAG has 16 nodes:
+    ...
+        0x7ffd5902cc10: <multiple use>
+      0x7ffd5902cf10: ch = store 0x7ffd5902cd10, 0x7ffd5902ca10, 0x7ffd5902ce10, 
+      0x7ffd5902cc10<ST4[%c]> [ORD=2] [ID=8]
+  
+          0x7ffd5902d310: i32 = TargetGlobalAddress<i32* @gI> 0 [TF=5]
+  
+        0x7ffd5902d710: i32 = Cpu0ISD::Hi 0x7ffd5902d310
+  
+          0x7ffd5902d610: i32 = TargetGlobalAddress<i32* @gI> 0 [TF=6]
+  
+        0x7ffd5902d810: i32 = Cpu0ISD::Lo 0x7ffd5902d610
+  
+      0x7ffd5902fe10: i32 = add 0x7ffd5902d710, 0x7ffd5902d810
+  
+      0x7ffd5902cc10: <multiple use>
+    0x7ffd5902d110: i32,ch = load 0x7ffd5902cf10, 0x7ffd5902fe10, 
+    0x7ffd5902cc10<LD4[@gI]> [ORD=3] [ID=9]
+    ...
+  
+  	addiu	$2, $zero, %hi(gI)
+  	shl	$2, $2, 16
+  	addiu	$2, $2, %lo(gI)
+  	ld	$2, 0($2)
+  	...
+  	.type	gStart,@object          # @gStart
+  	.data
+  	.globl	gStart
+  	.align	2
+  gStart:
+  	.4byte	2                       # 0x2
+  	.size	gStart, 4
+  
+  	.type	gI,@object              # @gI
+  	.globl	gI
+  	.align	2
   gI:
-    .4byte  100                     # 0x64
-    .size gI, 4
+  	.4byte	100                     # 0x64
+  	.size	gI, 4
+
+.. code-block:: bash
+
+  118-165-78-166:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=static -cpu0-islinux-format=false 
+  -filetype=asm -debug ch6_1.bc -o -
+  
+  ...
+  Type-legalized selection DAG: BB#0 'main:'
+  SelectionDAG has 12 nodes:
+    ...
+        0x7fc5f382cc10: <multiple use>
+      0x7fc5f382cf10: ch = store 0x7fc5f382cd10, 0x7fc5f382ca10, 0x7fc5f382ce10, 
+      0x7fc5f382cc10<ST4[%c]> [ORD=2] [ID=-3]
+  
+      0x7fc5f382d010: i32 = GlobalAddress<i32* @gI> 0 [ORD=3] [ID=-3]
+  
+      0x7fc5f382cc10: <multiple use>
+    0x7fc5f382d110: i32,ch = load 0x7fc5f382cf10, 0x7fc5f382d010, 
+    0x7fc5f382cc10<LD4[@gI]> [ORD=3] [ID=-3]
+  
+  Legalized selection DAG: BB#0 'main:'
+  SelectionDAG has 15 nodes:
+    ...
+        0x7fc5f382cc10: <multiple use>
+      0x7fc5f382cf10: ch = store 0x7fc5f382cd10, 0x7fc5f382ca10, 0x7fc5f382ce10, 
+      0x7fc5f382cc10<ST4[%c]> [ORD=2] [ID=8]
+  
+        0x7fc5f382d710: i32 = GLOBAL_OFFSET_TABLE
+  
+          0x7fc5f382d310: i32 = TargetGlobalAddress<i32* @gI> 0 [TF=4]
+  
+        0x7fc5f382d610: i32 = Cpu0ISD::GPRel 0x7fc5f382d310
+  
+      0x7fc5f382d810: i32 = add 0x7fc5f382d710, 0x7fc5f382d610
+  
+      0x7fc5f382cc10: <multiple use>
+    0x7fc5f382d110: i32,ch = load 0x7fc5f382cf10, 0x7fc5f382d810, 
+    0x7fc5f382cc10<LD4[@gI]> [ORD=3] [ID=9]
+    ...
+  
+  	addiu	$2, $gp, %gp_rel(gI)
+  	ld	$2, 0($2)
+  	...
+  	.type	gStart,@object          # @gStart
+  	.section	.sdata,"aw",@progbits
+  	.globl	gStart
+  	.align	2
+  gStart:
+  	.4byte	2                       # 0x2
+  	.size	gStart, 4
+  
+  	.type	gI,@object              # @gI
+  	.globl	gI
+  	.align	2
+  gI:
+  	.4byte	100                     # 0x64
+  	.size	gI, 4
+
+.. code-block:: bash
+
+  118-165-78-166:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug ch6_1.bc 
+  -o -
+  
+  ...
+  Type-legalized selection DAG: BB#0 'main:'
+  SelectionDAG has 12 nodes:
+    ...
+        0x7fad7102cc10: <multiple use>
+      0x7fad7102cf10: ch = store 0x7fad7102cd10, 0x7fad7102ca10, 0x7fad7102ce10, 
+      0x7fad7102cc10<ST4[%c]> [ORD=2] [ID=-3]
+  
+      0x7fad7102d010: i32 = GlobalAddress<i32* @gI> 0 [ORD=3] [ID=-3]
+  
+      0x7fad7102cc10: <multiple use>
+    0x7fad7102d110: i32,ch = load 0x7fad7102cf10, 0x7fad7102d010, 
+    0x7fad7102cc10<LD4[@gI]> [ORD=3] [ID=-3]
+    ...
+  Legalized selection DAG: BB#0 'main:'
+  SelectionDAG has 15 nodes:
+    0x7ff3c9c10b98: ch = EntryToken [ORD=1] [ID=0]
+    ...
+        0x7fad7102cc10: <multiple use>
+      0x7fad7102cf10: ch = store 0x7fad7102cd10, 0x7fad7102ca10, 0x7fad7102ce10, 
+      0x7fad7102cc10<ST4[%c]> [ORD=2] [ID=8]
+  
+        0x7fad70c10b98: <multiple use>
+          0x7fad7102d610: i32 = Register %GP
+  
+          0x7fad7102d310: i32 = TargetGlobalAddress<i32* @gI> 0 [TF=1]
+  
+        0x7fad7102d710: i32 = Cpu0ISD::Wrapper 0x7fad7102d610, 0x7fad7102d310
+  
+        0x7fad7102cc10: <multiple use>
+      0x7fad7102d810: i32,ch = load 0x7fad70c10b98, 0x7fad7102d710, 
+      0x7fad7102cc10<LD4[<unknown>]>
+    ...
+    
+	.cpload	$t9
+    ...
+  	ld	$2, %got(gI)($gp)
+  	ld	$2, 0($2)
+    ...
+  	.type	gStart,@object          # @gStart
+  	.data
+  	.globl	gStart
+  	.align	2
+  gStart:
+  	.4byte	2                       # 0x2
+  	.size	gStart, 4
+  
+  	.type	gI,@object              # @gI
+  	.globl	gI
+  	.align	2
+  gI:
+  	.4byte	100                     # 0x64
+  	.size	gI, 4
+
+
+Summary to Table: Cpu0 global variable options.
+
+.. csv-table:: Cpu0 global variable options
+   :header: "mode", "static, cpu0-islinux-format=true", "static, cpu0-islinux-format=false", "pic"
+   :widths: 15, 30, 30, 30
+
+   "section", "data or bss", "sdata or sbss", "data or bss"
+   "range", "32 bits", "16 bits", "32 bits"
+   "addressing mode", "absolute", "absolute", "relative"
+   "addressing", "pc+offset", "pc+offset", "pc+offset"
+   "Legalized selection DAG", "(add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>)", "(add GLOBAL_OFFSET_TABLE, Cpu0ISD::GPRel<gI offset Lo16>)", "(load (Cpu0ISD::Wrapper %GP, <gI offset Lo16>))"
+   "Cpu0", "addiu $2, $zero, %hi(gI); shl $2, $2, 16; addiu $2, $2, %lo(gI); ld $2, 0($2)", "addiu	$2, $gp, %gp_rel(gI); ld $2, 0($2);", "ld $2, %got(gI)($gp); ld $2, 0($2);"
+
 
 
 As above code, it translate **“load i32* @gI, align 4”** into 
@@ -131,68 +267,6 @@ position-independent mode.
 More specifically, it translate the global integer variable gI address into 
 offset of register gp and load from $gp+(the offset) into register $2. 
 
-
-Static mode
-~~~~~~~~~~~~
-
-We can also translate it with absolute address mode by following command,
-
-.. code-block:: bash
-
-  118-165-66-82:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_
-  debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm 
-  ch6_1.bc -o ch6_1.cpu0.static.s
-  118-165-66-82:InputFiles Jonathan$ cat ch6_1.cpu0.static.s 
-    ...
-    addiu $2, $zero, %hi(gI)
-    shl $2, $2, 16
-    addiu $2, $2, %lo(gI)
-    ld  $2, 0($2) 
-
-Above code, it loads the high address part of gI absolute address (16 bits) to 
-register $2 and shift 16 bits. 
-Now, the register $2 got it's high part of gI absolute address. 
-Next, it loads the low part of gI absolute address into register 3. 
-Finally, add register $2 and $3 into $2, and loads the content of address 
-$2+offset 0 into register $2. 
-The ``llc -relocation-model=static`` is for static link mode which binding the 
-address in static, compile/link time, not dynamic/run time. 
-In this mode, you can also translate code with the following command,
-
-.. code-block:: bash
-
-  118-165-66-82:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_
-  debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -cpu0-islinux-f
-  ormat=false -filetype=asm ch6_1.bc -o ch6_1.cpu0.islinux-format-false.s
-  118-165-66-82:InputFiles Jonathan$ cat ch6_1.cpu0.islinux-format-false.s 
-    ...
-    st  $2, 0($sp)
-    addiu $2, $gp, %gp_rel(gI)
-    ld  $2, 0($2)
-    ...
-    .section  .sdata,"aw",@progbits
-    .globl  gI
-
-As above, it translate code with ``llc -relocation-model=static 
--cpu0-islinux-format=false``. 
-The -cpu0-islinux-format default is true which will allocate global variables 
-in data section. 
-With setting false, it will allocate global variables in sdata section. 
-Section data and sdata are areas for global variable with initial value (as 
-int gI = 100 in this example) while 
-Section bss and sbss are areas for global variables without initial value 
-(for example, int gI;). 
-Allocate variables in sdata or sbss sections is addressable by 16 bits + $gp. 
-The static mode with -cpu0-islinux-format=false is still static mode 
-(variable is binding in compile/link time) even it use $gp relative address. 
-The $gp content is assigned at compile/link time, changed only at program be 
-loaded, and is fixed during running the program; while the -relocation-model=pic 
-the $gp can be changed during program running. 
-For example, if $gp is assigned to start of .sdata like this example, then 
-%gp_rel(gI) = (the relative address distance between gI and $gp) (is 0 in this 
-case). 
-When sdata is loaded into address x, then the gI variable can be got from 
-address x+0 where x is the address stored in $gp, 0 is the value of $gp_rel(gI).
 
 To support global variable, first add **IsLinuxOpt** command variable to 
 Cpu0Subtarget.cpp. 
@@ -294,38 +368,13 @@ we implement global address operation in C++ function
 Cpu0TargetLowering::LowerOperation() and llvm will call this function only when 
 llvm want to translate IR DAG of loading global variable into machine code. 
 Since may have many Custom type of setOperationAction(ISD::XXX, MVT::XXX, 
-Custom) in construction function Cpu0TargetLowering(), and llvm will call 
-Cpu0TargetLowering::LowerOperation() for each ISD IR DAG node of Custom type 
-translation. The global address access can be identified by check the DAG node of 
+Custom) in construction function Cpu0TargetLowering(), and each of them will 
+trigger llvm calling 
+Cpu0TargetLowering::LowerOperation() in stage "Legalized selection DAG" . 
+The global address access can be identified by check the DAG node of 
 opcode is ISD::GlobalAddress. 
-For static mode, LowerGlobalAddress() will check the translation is for 
-IsGlobalInSmallSection() or not. 
-When IsLinuxOpt is true and static mode, IsGlobalInSmallSection() always 
-return false. 
-LowerGlobalAddress() will translate global variable by create 2 DAG IR nodes 
-ABS_HI and ABS_LO for high part and low part of address and one extra node ADD. 
-List it again as follows.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
-.. code-block:: c++
-
-    //  Cpu0ISelLowering.cpp
-    ...
-        // %hi/%lo relocation
-        SDValue GAHi = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
-                                                  Cpu0II::MO_ABS_HI);
-        SDValue GALo = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
-                                                  Cpu0II::MO_ABS_LO);
-        SDValue HiPart = DAG.getNode(Cpu0ISD::Hi, dl, VTs, &GAHi, 1);
-        SDValue Lo = DAG.getNode(Cpu0ISD::Lo, dl, MVT::i32, GALo);
-        return DAG.getNode(ISD::ADD, dl, MVT::i32, HiPart, Lo);
-    
-The DAG list form for these three DAG nodes as above code created can be 
-represented as (ADD (Hi(h1, h2), Lo (l1, l2)). 
-Since some DAG nodes are not with two arguments, we will define the list as 
-(ADD (Hi (...), Lo (...)) or (ADD (Hi, Lo)) sometimes in this book. 
-The corresponding machine instructions of these three IR nodes are defined in 
-Cpu0InstrInfo.td as follows,
+Finally, add the following code in Cpu0InstrInfo.td.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0InstrInfo.td
 .. code-block:: c++
@@ -350,76 +399,256 @@ Cpu0InstrInfo.td as follows,
   def : Pat<(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
         (ADDiu CPURegs:$gp, tglobaladdr:$in)>;
 
-Above code meaning translate ABS_HI into ADDiu and SHL two instructions. 
-Remember the DAG and Instruction Selection introduced in chapter "Back end 
-structure", DAG list 
-(SHL (ADDiu ...), 16) meaning DAG node ADDiu and it's parent DAG node SHL two 
-instructions nodes is for list IR DAG ABS_HI. 
-The Pat<> has two list DAG representation. 
-The left is IR DAG and the right is machine instruction DAG. 
-So after Instruction Selection and Register Allocation, it translate ABS_HI to,
+Static mode
+~~~~~~~~~~~~
 
-.. code-block:: c++
+From Table: Cpu0 global variable options, option cpu0-islinux-format=true put 
+the global varibale in data/bss while cpu0-islinux-format=false in sdata/sbss. 
+The sdata stand for small data area.
+Section data and sdata are areas for global variable with initial value (as 
+int gI = 100 in this example) while 
+Section bss and sbss are areas for global variables without initial value 
+(for example, int gI;).
 
-  addiu $2, %hi(gI) 
-  shl $2, $2, 16 
+data or bss
+++++++++++++
 
-According above code, we know llvm allocate register $2 for the output operand 
-of ADDiu instruction and $2 for SHL instruction in this example. 
-Since (SHL (ADDiu), 16), the ADDiu output result will be the SHL first register. 
-The result is **“shl $2, 16”**. 
-Above Pat<> also define DAG list (add $hi, (ABS_LO)) will be translated into 
-(ADD $hi, (ADDiu ZERO, ...)) where ADD is machine instruction **add** and ADDiu 
-is machine instruction **ldi** which defined in Cpu0InstrInfo.td too. 
-Remember (add $hi, (ABS_LO)) meaning add DAG has two operands, the first is $hi 
-and the second is the register which the ABS_LO output result register save to. 
-So, the IR DAG pattern and it's corresponding machine instruction node as 
-follows,
+The data/bss are 32 bits addressable areas since Cpu0 is a 32 bits architecture. 
+Option cpu0-islinux-format=true will generate the following instructions.
 
-.. code-block:: c++
+.. code-block:: bash
 
-  addiu $3, %lo(gI)  // def : Pat<(Cpu0Lo tglobaladdr:$in), (ADDiu ZERO, 
-                     // tglobaladdr:$in)>;
-    
-  // def : Pat<(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)), (ADD CPURegs:$hi, 
-  //  (LDI ZERO, tglobaladdr:$lo))>;
-  // So, the second register for add is the output register of ABS_LO IR DAG 
-  //  translation result saved to;
-  // Since LowerGlobalAddress() create list (ADD (Hi, Lo)) with 3 DAG nodes, 
-  //  the Hi output register $2 will be the first input register for add.
-     add $2, $2, $3   
-    
-After translated as above, the register $2 is the global variable address, so 
-get the global variable by IR DAG load will translate into machine instruction 
-as follows,
+    ...
+  	addiu	$2, $zero, %hi(gI)
+  	shl	$2, $2, 16
+  	addiu	$2, $2, %lo(gI)
+  	ld	$2, 0($2)
+  	...
+  	.type	gStart,@object          # @gStart
+  	.data
+  	.globl	gStart
+  	.align	2
+  gStart:
+  	.4byte	2                       # 0x2
+  	.size	gStart, 4
+  
+  	.type	gI,@object              # @gI
+  	.globl	gI
+  	.align	2
+  gI:
+  	.4byte	100                     # 0x64
+  	.size	gI, 4
+  	
+Above code, it loads the high address part of gI absolute address (16 bits) to 
+register $2 and shift 16 bits. 
+Now, the register $2 got it's high part of gI absolute address. 
+Next, it loads the low part of gI absolute address into register 3. 
+Finally, add register $2 and $3 into $2, and loads the content of address 
+$2+offset 0 into register $2. 
+The ``llc -relocation-model=static`` is for static link mode which binding the 
+address in static, compile/link time, not dynamic/run time. 
 
-.. code-block:: c++
 
-  %2 = load i32* @gI, align 4 
-  =>  ld  $2, 0($2) 
+In static mode, LowerGlobalAddress() will check the translation is for 
+IsGlobalInSmallSection() or not. 
+When IsLinuxOpt is true and static mode, IsGlobalInSmallSection() always 
+return false. 
 
-When IsLinuxOpt is false and static mode, LowerGlobalAddress() will run the 
-following code to create a DAG list (ADD GOT, GPRel).
+The code fragment of LowerGlobalAddress() as the following corresponding option 
+``llc -relocation-model=static -cpu0-islinux-format=true`` will translate DAG 
+(GlobalAddress<i32* @gI> 0) into 
+(add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>) in 
+stage "Legalized selection DAG" as below.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
-  // %gp_rel relocation
-  if (TLOF.IsGlobalInSmallSection(GV, getTargetMachine())) {
-    SDValue GA = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
-                                              Cpu0II::MO_GPREL);
-    SDValue GPRelNode = DAG.getNode(Cpu0ISD::GPRel, dl, VTs, &GA, 1);
-    SDValue GOT = DAG.getGLOBAL_OFFSET_TABLE(MVT::i32);
-    return DAG.getNode(ISD::ADD, dl, MVT::i32, GOT, GPRelNode);
-  }
+    //  Cpu0ISelLowering.cpp
+    ...
+        // %hi/%lo relocation
+        SDValue GAHi = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+                                                  Cpu0II::MO_ABS_HI);
+        SDValue GALo = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+                                                  Cpu0II::MO_ABS_LO);
+        SDValue HiPart = DAG.getNode(Cpu0ISD::Hi, dl, VTs, &GAHi, 1);
+        SDValue Lo = DAG.getNode(Cpu0ISD::Lo, dl, MVT::i32, GALo);
+        return DAG.getNode(ISD::ADD, dl, MVT::i32, HiPart, Lo);
 
 
-As mentioned just before, all global variables allocated in sdata or sbss 
-sections which is addressable by 16 bits + $gp in compile/link time (address 
-binding in compile time). 
-It's equal to offset+GOT where GOT is the base address for global variable and 
-offset is 16 bits. 
-Now, according the following Cpu0InstrInfo.td definition,
+.. code-block:: bash
+
+  118-165-78-166:InputFiles Jonathan$ clang -c ch6_1.cpp -emit-llvm -o ch6_1.bc
+  118-165-78-166:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=static -cpu0-islinux-format=true 
+  -filetype=asm -debug ch6_1.bc -o -
+  
+  ...
+  Type-legalized selection DAG: BB#0 'main:'
+  SelectionDAG has 12 nodes:
+    ...
+        0x7ffd5902cc10: <multiple use>
+      0x7ffd5902cf10: ch = store 0x7ffd5902cd10, 0x7ffd5902ca10, 0x7ffd5902ce10, 
+      0x7ffd5902cc10<ST4[%c]> [ORD=2] [ID=-3]
+  
+      0x7ffd5902d010: i32 = GlobalAddress<i32* @gI> 0 [ORD=3] [ID=-3]
+  
+      0x7ffd5902cc10: <multiple use>
+    0x7ffd5902d110: i32,ch = load 0x7ffd5902cf10, 0x7ffd5902d010, 
+    0x7ffd5902cc10<LD4[@gI]> [ORD=3] [ID=-3]
+    ...
+  
+  Legalized selection DAG: BB#0 'main:'
+  SelectionDAG has 16 nodes:
+    ...
+        0x7ffd5902cc10: <multiple use>
+      0x7ffd5902cf10: ch = store 0x7ffd5902cd10, 0x7ffd5902ca10, 0x7ffd5902ce10, 
+      0x7ffd5902cc10<ST4[%c]> [ORD=2] [ID=8]
+  
+          0x7ffd5902d310: i32 = TargetGlobalAddress<i32* @gI> 0 [TF=5]
+  
+        0x7ffd5902d710: i32 = Cpu0ISD::Hi 0x7ffd5902d310
+  
+          0x7ffd5902d610: i32 = TargetGlobalAddress<i32* @gI> 0 [TF=6]
+  
+        0x7ffd5902d810: i32 = Cpu0ISD::Lo 0x7ffd5902d610
+  
+      0x7ffd5902fe10: i32 = add 0x7ffd5902d710, 0x7ffd5902d810
+  
+      0x7ffd5902cc10: <multiple use>
+    0x7ffd5902d110: i32,ch = load 0x7ffd5902cf10, 0x7ffd5902fe10, 
+    0x7ffd5902cc10<LD4[@gI]> [ORD=3] [ID=9]
+
+
+Finally, the pattern defined in Cpu0InstrInfo.td as the following will translate  
+DAG (add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>) into Cpu0 
+instructions as below.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0InstrInfo.td
+.. code-block:: c++
+
+  // Hi and Lo nodes are used to handle global addresses. Used on
+  // Cpu0ISelLowering to lower stuff like GlobalAddress, ExternalSymbol
+  // static model. (nothing to do with Cpu0 Registers Hi and Lo)
+  def Cpu0Hi    : SDNode<"Cpu0ISD::Hi", SDTIntUnaryOp>;
+  def Cpu0Lo    : SDNode<"Cpu0ISD::Lo", SDTIntUnaryOp>;
+  ...
+  // hi/lo relocs
+  def : Pat<(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>;
+  // Expect cpu0 add LUi support, like Mips
+  //def : Pat<(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
+  def : Pat<(Cpu0Lo tglobaladdr:$in), (ADDiu ZERO, tglobaladdr:$in)>;
+  
+  def : Pat<(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
+        (ADDiu CPURegs:$hi, tglobaladdr:$lo)>;
+
+.. code-block:: bash
+
+    ...
+  	addiu	$2, $zero, %hi(gI)
+  	shl	$2, $2, 16
+  	addiu	$2, $2, %lo(gI)
+  	ld	$2, 0($2)
+  	...
+
+
+As above, Pat<> has two list DAG representation. 
+The left is IR DAG and the right is machine instruction DAG. 
+Pat<(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>; will 
+translate DAG (Cpu0ISD::Hi tglobaladdr) into (shl (addiu ZERO, tglobaladdr), 16).
+Pat<(Cpu0Lo tglobaladdr:$in), (ADDiu ZERO, tglobaladdr:$in)>; will translate 
+(Cpu0ISD::Hi tglobaladdr) into (addiu ZERO, tglobaladdr).
+Pat<(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)), (ADDiu CPURegs:$hi, tglobaladdr:$lo)>;
+will translate DAG (add Cpu0ISD::Hi, Cpu0ISD::Lo) into Cpu0 instruction 
+(add Cpu0ISD::Hi, Cpu0ISD::Lo).
+
+
+sdata or sbss
+++++++++++++++
+
+The sdata/sbss are 16 bits addressable areas which planed in ELF for fast access. 
+Option cpu0-islinux-format=false will generate the following instructions.
+
+.. code-block:: bash
+
+    	addiu	$2, $gp, %gp_rel(gI)
+    	ld	$2, 0($2)
+    	...
+  	.type	gStart,@object          # @gStart
+  	.section	.sdata,"aw",@progbits
+  	.globl	gStart
+  	.align	2
+  gStart:
+  	.4byte	2                       # 0x2
+  	.size	gStart, 4
+  
+  	.type	gI,@object              # @gI
+  	.globl	gI
+  	.align	2
+  gI:
+  	.4byte	100                     # 0x64
+  	.size	gI, 4
+
+
+The code fragment of LowerGlobalAddress() as the following corresponding option 
+``llc -relocation-model=static -cpu0-islinux-format=false`` will translate DAG 
+(GlobalAddress<i32* @gI> 0) into 
+(add GLOBAL_OFFSET_TABLE Cpu0ISD::GPRel<gI offset>) in 
+stage "Legalized selection DAG" as below.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
+.. code-block:: c++
+
+    //  Cpu0ISelLowering.cpp
+      ...
+      // %gp_rel relocation
+      if (TLOF.IsGlobalInSmallSection(GV, getTargetMachine())) {
+        SDValue GA = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+                                                Cpu0II::MO_GPREL);
+        SDValue GPRelNode = DAG.getNode(Cpu0ISD::GPRel, dl, VTs, &GA, 1);
+        SDValue GOT = DAG.getGLOBAL_OFFSET_TABLE(MVT::i32);
+        return DAG.getNode(ISD::ADD, dl, MVT::i32, GOT, GPRelNode);
+      }
+
+.. code-block:: bash
+
+  ...
+  Type-legalized selection DAG: BB#0 'main:'
+  SelectionDAG has 12 nodes:
+    ...
+        0x7fc5f382cc10: <multiple use>
+      0x7fc5f382cf10: ch = store 0x7fc5f382cd10, 0x7fc5f382ca10, 0x7fc5f382ce10, 
+      0x7fc5f382cc10<ST4[%c]> [ORD=2] [ID=-3]
+  
+      0x7fc5f382d010: i32 = GlobalAddress<i32* @gI> 0 [ORD=3] [ID=-3]
+  
+      0x7fc5f382cc10: <multiple use>
+    0x7fc5f382d110: i32,ch = load 0x7fc5f382cf10, 0x7fc5f382d010, 
+    0x7fc5f382cc10<LD4[@gI]> [ORD=3] [ID=-3]
+  
+  Legalized selection DAG: BB#0 'main:'
+  SelectionDAG has 15 nodes:
+    ...
+        0x7fc5f382cc10: <multiple use>
+      0x7fc5f382cf10: ch = store 0x7fc5f382cd10, 0x7fc5f382ca10, 0x7fc5f382ce10, 
+      0x7fc5f382cc10<ST4[%c]> [ORD=2] [ID=8]
+  
+        0x7fc5f382d710: i32 = GLOBAL_OFFSET_TABLE
+  
+          0x7fc5f382d310: i32 = TargetGlobalAddress<i32* @gI> 0 [TF=4]
+  
+        0x7fc5f382d610: i32 = Cpu0ISD::GPRel 0x7fc5f382d310
+  
+      0x7fc5f382d810: i32 = add 0x7fc5f382d710, 0x7fc5f382d610
+  
+      0x7fc5f382cc10: <multiple use>
+    0x7fc5f382d110: i32,ch = load 0x7fc5f382cf10, 0x7fc5f382d810, 
+    0x7fc5f382cc10<LD4[@gI]> [ORD=3] [ID=9]
+    ...
+
+
+Finally, the pattern defined in Cpu0InstrInfo.td as the following will translate  
+DAG (add GLOBAL_OFFSET_TABLE Cpu0ISD::GPRel<gI offset>) into Cpu0 
+instructions as below.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0InstrInfo.td
 .. code-block:: c++
@@ -431,16 +660,105 @@ Now, according the following Cpu0InstrInfo.td definition,
   def : Pat<(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
             (ADD CPURegs:$gp, (ADDiu ZERO, tglobaladdr:$in))>;
 
-It translate global variable address of list (ADD GOT, GPRel) into machine 
-instructions as follows,
 
-.. code-block:: c++
+.. code-block:: bash
 
-  addiu $2, $gp, %gp_rel(gI)
+  	addiu	$2, $gp, %gp_rel(gI)
+  	ld	$2, 0($2)
+  	...
+
+Pat<(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)), (ADD CPURegs:$gp, (ADDiu 
+ZERO, tglobaladdr:$in))>; will translate (add GLOBAL_OFFSET_TABLE 
+Cpu0ISD::GPRel tglobaladdr) into (add GLOBAL_OFFSET_TABLE, (addiu ZERO, 
+tglobaladdr)). The GLOBAL_OFFSET_TABLE will be $gp after register allocation. 
+
+
+The $gp content is assigned at compile/link time, changed only at program be 
+loaded, and is fixed during running the program; while the -relocation-model=pic 
+the $gp can be changed during program running. 
+For this example, if $gp is assigned to start of .sdata like this example, then 
+%gp_rel(gI) = (the relative address distance between gI and $gp) = 
+(&gI - &.data) = 4. 
+When output program ch6_1.cpu0.s be loaded, then the gI variable can be got from 
+address x = (addiu $2, $gp, (&gI - &.data)) which equal to x = &gI = &.data + 4 
+since ($gp == &.data).
+
 
 
 PIC mode
 ~~~~~~~~~
+
+Option ``llc  -relocation-model=pic`` will generate the following instructions.
+
+.. code-block:: bash
+
+    ...
+	.cpload	$t9
+    ...
+  	ld	$2, %got(gI)($gp)
+  	ld	$2, 0($2)
+    ...
+  	.type	gStart,@object          # @gStart
+  	.data
+  	.globl	gStart
+  	.align	2
+  gStart:
+  	.4byte	2                       # 0x2
+  	.size	gStart, 4
+  
+  	.type	gI,@object              # @gI
+  	.globl	gI
+  	.align	2
+  gI:
+  	.4byte	100                     # 0x64
+  	.size	gI, 4
+
+The following code codefragment of Cpu0AsmPrinter.cpp will emit **.cpload** asm 
+pseudo instruction.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0AsmPrinter.cpp
+.. code-block:: c++
+
+  /// EmitFunctionBodyStart - Targets can override this to emit stuff before
+  /// the first basic block in the function.
+  void Cpu0AsmPrinter::EmitFunctionBodyStart() {
+  ...
+      // Emit .cpload directive if needed.
+      if (EmitCPLoad)
+      //- .cpload $t9
+        OutStreamer.EmitRawText(StringRef("\t.cpload\t$t9"));
+  ...
+  }
+
+According Mips Application Binary Interface (ABI), $t9 ($t9 is register alias 
+name for $25 in Mips) is the register 
+used in jalr $25 for long distance function pointer (far subroutine call). 
+The jal %subroutine has 24 bits range of address offset relative to Program 
+Counter (PC) while jalr has 32 bits address range in register size is 32 bits. 
+One example of PIC mode is used in share library. 
+Share library is re-entry code which can be loaded in different memory address 
+decided on run time. 
+The static mode (absolute address mode) is usually designed to load in specific 
+memory address decided on compile time. Since share library can be loaded in 
+different memory address, the global variable address cannot be decided in 
+compile time. 
+As above, the global variable address is translated into the relative address 
+of $gp. 
+In example code ch6_1.ll, .cpload is a asm pseudo instruction just before the 
+first instruction of main(). 
+When the shared library main() function be loaded, the loader will assign the 
+$t9 value to $gp when it meet “.cpload $t9”. 
+After that, the $gp value is $t9 which point to main(), and the global variable 
+address is the relative address to main(). Loader will set the relocation record 
+offset of "ld $2, %got(gI)($gp)" to value (&gI - $gp). After that, this 
+instruction can run correctly.
+
+
+The code fragment of LowerGlobalAddress() as the following corresponding option 
+``llc -relocation-model=pic`` will translate DAG 
+(GlobalAddress<i32* @gI> 0) into 
+(Cpu0ISD::Wrapper Register %GP, TargetGlobalAddress<i32* @gI> 0) in 
+stage "Legalized selection DAG" as below.
 
 When PIC mode, LowerGlobalAddress() will create the DAG list (load 
 DAG.getEntryNode(), (Wrapper GetGlobalReg(), GA)) by the following code and 
@@ -478,6 +796,57 @@ the code in Cpu0ISeleDAGToDAG.cpp as follows,
     ...
   }
 
+.. code-block:: bash
+
+  ...
+  Type-legalized selection DAG: BB#0 'main:'
+  SelectionDAG has 12 nodes:
+    ...
+        0x7fad7102cc10: <multiple use>
+      0x7fad7102cf10: ch = store 0x7fad7102cd10, 0x7fad7102ca10, 0x7fad7102ce10, 
+      0x7fad7102cc10<ST4[%c]> [ORD=2] [ID=-3]
+  
+      0x7fad7102d010: i32 = GlobalAddress<i32* @gI> 0 [ORD=3] [ID=-3]
+  
+      0x7fad7102cc10: <multiple use>
+    0x7fad7102d110: i32,ch = load 0x7fad7102cf10, 0x7fad7102d010, 
+    0x7fad7102cc10<LD4[@gI]> [ORD=3] [ID=-3]
+    ...
+  Legalized selection DAG: BB#0 'main:'
+  SelectionDAG has 15 nodes:
+    0x7ff3c9c10b98: ch = EntryToken [ORD=1] [ID=0]
+    ...
+        0x7fad7102cc10: <multiple use>
+      0x7fad7102cf10: ch = store 0x7fad7102cd10, 0x7fad7102ca10, 0x7fad7102ce10, 
+      0x7fad7102cc10<ST4[%c]> [ORD=2] [ID=8]
+  
+        0x7fad70c10b98: <multiple use>
+          0x7fad7102d610: i32 = Register %GP
+  
+          0x7fad7102d310: i32 = TargetGlobalAddress<i32* @gI> 0 [TF=1]
+  
+        0x7fad7102d710: i32 = Cpu0ISD::Wrapper 0x7fad7102d610, 0x7fad7102d310
+  
+        0x7fad7102cc10: <multiple use>
+      0x7fad7102d810: i32,ch = load 0x7fad70c10b98, 0x7fad7102d710, 
+      0x7fad7102cc10<LD4[<unknown>]>
+    ...
+
+
+Finally, the pattern defined in Cpu0InstrInfo.td as the following will translate  
+DAG (Cpu0ISD::Wrapper Register %GP, TargetGlobalAddress<i32* @gI> 0) into Cpu0 
+instructions as below.
+
+
+.. code-block:: bash
+
+    ...
+	.cpload	$t9
+    ...
+  	ld	$2, %got(gI)($gp)
+  	ld	$2, 0($2)
+    ...
+
 Then it translate into the following code,
 
 .. code-block:: c++
@@ -488,22 +857,6 @@ Where DAG.getEntryNode() is the register $2 which decided by Register Allocator
 ; DAG.getNode(Cpu0ISD::Wrapper, dl, ValTy, GetGlobalReg(DAG, ValTy), GA) is 
 translated into Base=$gp as well as the 16 bits Offset for $gp.
 
-Apart from above code, add the following code to Cpu0AsmPrinter.cpp and it will 
-emit .cpload asm pseudo instruction,
-
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0AsmPrinter.cpp
-.. code-block:: c++
-
-  /// EmitFunctionBodyStart - Targets can override this to emit stuff before
-  /// the first basic block in the function.
-  void Cpu0AsmPrinter::EmitFunctionBodyStart() {
-  ...
-      // Emit .cpload directive if needed.
-      if (EmitCPLoad)
-      //- .cpload $t9
-        OutStreamer.EmitRawText(StringRef("\t.cpload\t$t9"));
-  ...
-  }
     
 .. code-block:: c++
 
@@ -513,25 +866,6 @@ emit .cpload asm pseudo instruction,
   # BB#0: 
       ldi $sp, -8
 
-According Mips Application Binary Interface (ABI), $t9 ($25) is the register 
-used in jalr $25 for long distance function pointer (far subroutine call). 
-The jal %subroutine has 24 bits range of address offset relative to Program 
-Counter (PC) while jalr has 32 bits address range in register size is 32 bits. 
-One example of PIC mode is used in share library. 
-Share library is re-entry code which can be loaded in different memory address 
-decided on run time. 
-The static mode (absolute address mode) is usually designed to load in specific 
-memory address decided on compile time. Since share library can be loaded in 
-different memory address, the global variable address cannot be decided in 
-compile time. 
-As above, the global variable address is translated into the relative address 
-of $gp. 
-In example code ch6_1.ll, .cpload is a asm pseudo instruction just before the 
-first instruction of main(), ldi. 
-When the share library main() function be loaded, the loader will assign the 
-$t9 value to $gp when it meet “.cpload $t9”. 
-After that, the $gp value is $9 which point to main(), and the global variable 
-address is the relative address to main().
 
 
 Global variable print support
