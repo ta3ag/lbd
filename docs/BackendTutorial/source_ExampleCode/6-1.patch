@@ -1,6 +1,6 @@
 diff -Naur Chapter5_1/CMakeLists.txt Chapter6_1/CMakeLists.txt
---- Chapter5_1/CMakeLists.txt	2013-06-15 14:57:28.000000000 +0800
-+++ Chapter6_1/CMakeLists.txt	2013-06-15 14:57:28.000000000 +0800
+--- Chapter5_1/CMakeLists.txt	2013-06-14 13:55:45.371152877 +0800
++++ Chapter6_1/CMakeLists.txt	2013-06-14 13:55:45.371152877 +0800
 @@ -29,9 +29,11 @@
    Cpu0ISelLowering.cpp
    Cpu0FrameLowering.cpp
@@ -14,8 +14,8 @@ diff -Naur Chapter5_1/CMakeLists.txt Chapter6_1/CMakeLists.txt
    )
  
 diff -Naur Chapter5_1/Cpu0AsmPrinter.cpp Chapter6_1/Cpu0AsmPrinter.cpp
---- Chapter5_1/Cpu0AsmPrinter.cpp	2013-06-15 14:57:28.000000000 +0800
-+++ Chapter6_1/Cpu0AsmPrinter.cpp	2013-06-15 14:57:28.000000000 +0800
+--- Chapter5_1/Cpu0AsmPrinter.cpp	2013-06-14 13:55:45.371152877 +0800
++++ Chapter6_1/Cpu0AsmPrinter.cpp	2013-06-14 13:55:45.371152877 +0800
 @@ -185,6 +185,9 @@
    MCInstLowering.Initialize(Mang, &MF->getContext());
  
@@ -40,9 +40,93 @@ diff -Naur Chapter5_1/Cpu0AsmPrinter.cpp Chapter6_1/Cpu0AsmPrinter.cpp
      OutStreamer.EmitRawText(StringRef("\t.set\tnomacro"));
    }
  }
+diff -Naur Chapter5_1/Cpu0InstrInfo.td Chapter6_1/Cpu0InstrInfo.td
+--- Chapter5_1/Cpu0InstrInfo.td	2013-06-17 12:35:22.247122523 +0800
++++ Chapter6_1/Cpu0InstrInfo.td	2013-06-17 12:35:22.247122523 +0800
+@@ -27,6 +27,13 @@
+                                          [SDTCisInt<0>,
+                                           SDTCisSameAs<0, 1>]>;
+ 
++// Hi and Lo nodes are used to handle global addresses. Used on
++// Cpu0ISelLowering to lower stuff like GlobalAddress, ExternalSymbol
++// static model. (nothing to do with Cpu0 Registers Hi and Lo)
++def Cpu0Hi    : SDNode<"Cpu0ISD::Hi", SDTIntUnaryOp>;
++def Cpu0Lo    : SDNode<"Cpu0ISD::Lo", SDTIntUnaryOp>;
++def Cpu0GPRel : SDNode<"Cpu0ISD::GPRel", SDTIntUnaryOp>;
++
+ // Return
+ def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDT_Cpu0Ret, [SDNPHasChain,
+                      SDNPOptInGlue]>;
+@@ -54,6 +61,11 @@
+ 
+ def shamt       : Operand<i32>;
+ 
++// Unsigned Operand
++def uimm16      : Operand<i32> {
++  let PrintMethod = "printUnsignedImm";
++}
++
+ // Address operand
+ def mem : Operand<i32> {
+   let PrintMethod = "printMemOperand";
+@@ -81,6 +93,17 @@
+ // e.g. addi, andi
+ def immSExt16  : PatLeaf<(imm), [{ return isInt<16>(N->getSExtValue()); }]>;
+ 
++// Node immediate fits as 16-bit zero extended on target immediate.
++// The LO16 param means that only the lower 16 bits of the node
++// immediate are caught.
++// e.g. addiu, sltiu
++def immZExt16  : PatLeaf<(imm), [{
++  if (N->getValueType(0) == MVT::i32)
++    return (uint32_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
++  else
++    return (uint64_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
++}]>;
++
+ // shamt field must fit in 5 bits.
+ def immZExt5 : ImmLeaf<i32, [{return Imm == (Imm & 0x1f);}]>;
+ 
+@@ -273,7 +296,6 @@
+ def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
+ def XOR     : ArithLogicR<0x1A, "xor", xor, IIAlu, CPURegs, 1>;
+ 
+-
+ def MULT    : Mult32<0x50, "mult", IIImul>;
+ def MULTu   : Mult32<0x51, "multu", IIImul>;
+ 
+@@ -313,15 +335,26 @@
+ //===----------------------------------------------------------------------===//
+ 
+ // Small immediates
+-
+ def : Pat<(i32 immSExt16:$in),
+           (ADDiu ZERO, imm:$in)>;
+-          
++
+ // Arbitrary immediates
+ def : Pat<(i32 imm:$imm),
+           (OR (SHL (ADDiu ZERO, (HI16 imm:$imm)), 16), (ADDiu ZERO, (LO16 
+               imm:$imm)))>;
+ 
++// hi/lo relocs
++def : Pat<(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>;
++// Expect cpu0 add LUi support, like Mips
++//def : Pat<(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
++def : Pat<(Cpu0Lo tglobaladdr:$in), (ADDiu ZERO, tglobaladdr:$in)>;
++
++def : Pat<(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
++          (ADDiu CPURegs:$hi, tglobaladdr:$lo)>;
++
++// gp_rel relocs
++def : Pat<(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
++          (ADDiu CPURegs:$gp, tglobaladdr:$in)>;
+ 
+ def : Pat<(not CPURegs:$in),
+           (XOR CPURegs:$in, (ADDiu ZERO, 1))>;
 diff -Naur Chapter5_1/Cpu0ISelDAGToDAG.cpp Chapter6_1/Cpu0ISelDAGToDAG.cpp
---- Chapter5_1/Cpu0ISelDAGToDAG.cpp	2013-06-15 14:57:28.000000000 +0800
-+++ Chapter6_1/Cpu0ISelDAGToDAG.cpp	2013-06-15 14:57:28.000000000 +0800
+--- Chapter5_1/Cpu0ISelDAGToDAG.cpp	2013-06-14 13:55:45.371152877 +0800
++++ Chapter6_1/Cpu0ISelDAGToDAG.cpp	2013-06-14 13:55:45.371152877 +0800
 @@ -13,6 +13,7 @@
  
  #define DEBUG_TYPE "cpu0-isel"
@@ -111,8 +195,8 @@ diff -Naur Chapter5_1/Cpu0ISelDAGToDAG.cpp Chapter6_1/Cpu0ISelDAGToDAG.cpp
      const ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Node);
      unsigned Size = CN->getValueSizeInBits(0);
 diff -Naur Chapter5_1/Cpu0ISelLowering.cpp Chapter6_1/Cpu0ISelLowering.cpp
---- Chapter5_1/Cpu0ISelLowering.cpp	2013-06-15 14:57:28.000000000 +0800
-+++ Chapter6_1/Cpu0ISelLowering.cpp	2013-06-15 14:57:28.000000000 +0800
+--- Chapter5_1/Cpu0ISelLowering.cpp	2013-06-14 13:55:45.371152877 +0800
++++ Chapter6_1/Cpu0ISelLowering.cpp	2013-06-14 13:55:45.371152877 +0800
 @@ -14,9 +14,11 @@
  
  #define DEBUG_TYPE "cpu0-lower"
@@ -237,8 +321,8 @@ diff -Naur Chapter5_1/Cpu0ISelLowering.cpp Chapter6_1/Cpu0ISelLowering.cpp
  
  /// LowerFormalArguments - transform physical registers into virtual registers
 diff -Naur Chapter5_1/Cpu0ISelLowering.h Chapter6_1/Cpu0ISelLowering.h
---- Chapter5_1/Cpu0ISelLowering.h	2013-06-15 14:57:28.000000000 +0800
-+++ Chapter6_1/Cpu0ISelLowering.h	2013-06-15 14:57:28.000000000 +0800
+--- Chapter5_1/Cpu0ISelLowering.h	2013-06-14 13:55:45.371152877 +0800
++++ Chapter6_1/Cpu0ISelLowering.h	2013-06-14 13:55:45.371152877 +0800
 @@ -25,10 +25,32 @@
      enum NodeType {
        // Start the numbering from where ISD NodeType finishes.
@@ -297,122 +381,9 @@ diff -Naur Chapter5_1/Cpu0ISelLowering.h Chapter6_1/Cpu0ISelLowering.h
  	//- must be exist without function all
      virtual SDValue
        LowerFormalArguments(SDValue Chain,
-diff -Naur Chapter5_1/Cpu0InstrInfo.td Chapter6_1/Cpu0InstrInfo.td
---- Chapter5_1/Cpu0InstrInfo.td	2013-06-15 14:57:28.000000000 +0800
-+++ Chapter6_1/Cpu0InstrInfo.td	2013-06-15 14:57:28.000000000 +0800
-@@ -27,6 +27,13 @@
-                                          [SDTCisInt<0>,
-                                           SDTCisSameAs<0, 1>]>;
- 
-+// Hi and Lo nodes are used to handle global addresses. Used on
-+// Cpu0ISelLowering to lower stuff like GlobalAddress, ExternalSymbol
-+// static model. (nothing to do with Cpu0 Registers Hi and Lo)
-+def Cpu0Hi    : SDNode<"Cpu0ISD::Hi", SDTIntUnaryOp>;
-+def Cpu0Lo    : SDNode<"Cpu0ISD::Lo", SDTIntUnaryOp>;
-+def Cpu0GPRel : SDNode<"Cpu0ISD::GPRel", SDTIntUnaryOp>;
-+
- // Return
- def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDT_Cpu0Ret, [SDNPHasChain,
-                      SDNPOptInGlue]>;
-@@ -54,6 +61,11 @@
- 
- def shamt       : Operand<i32>;
- 
-+// Unsigned Operand
-+def uimm16      : Operand<i32> {
-+  let PrintMethod = "printUnsignedImm";
-+}
-+
- // Address operand
- def mem : Operand<i32> {
-   let PrintMethod = "printMemOperand";
-@@ -81,6 +93,17 @@
- // e.g. addi, andi
- def immSExt16  : PatLeaf<(imm), [{ return isInt<16>(N->getSExtValue()); }]>;
- 
-+// Node immediate fits as 16-bit zero extended on target immediate.
-+// The LO16 param means that only the lower 16 bits of the node
-+// immediate are caught.
-+// e.g. addiu, sltiu
-+def immZExt16  : PatLeaf<(imm), [{
-+  if (N->getValueType(0) == MVT::i32)
-+    return (uint32_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
-+  else
-+    return (uint64_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
-+}]>;
-+
- // shamt field must fit in 5 bits.
- def immZExt5 : ImmLeaf<i32, [{return Imm == (Imm & 0x1f);}]>;
- 
-@@ -273,7 +296,6 @@
- def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
- def XOR     : ArithLogicR<0x1A, "xor", xor, IIAlu, CPURegs, 1>;
- 
--
- def MULT    : Mult32<0x50, "mult", IIImul>;
- def MULTu   : Mult32<0x51, "multu", IIImul>;
- 
-@@ -313,15 +335,26 @@
- //===----------------------------------------------------------------------===//
- 
- // Small immediates
--
- def : Pat<(i32 immSExt16:$in),
-           (ADDiu ZERO, imm:$in)>;
--          
-+
- // Arbitrary immediates
- def : Pat<(i32 imm:$imm),
-           (OR (SHL (ADDiu ZERO, (HI16 imm:$imm)), 16), (ADDiu ZERO, (LO16 
-               imm:$imm)))>;
- 
-+// hi/lo relocs
-+def : Pat<(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>;
-+// Expect cpu0 add LUi support, like Mips
-+//def : Pat<(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
-+def : Pat<(Cpu0Lo tglobaladdr:$in), (ADDiu ZERO, tglobaladdr:$in)>;
-+
-+def : Pat<(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
-+          (ADDiu CPURegs:$hi, tglobaladdr:$lo)>;
-+
-+// gp_rel relocs
-+def : Pat<(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
-+          (ADDiu CPURegs:$gp, tglobaladdr:$in)>;
- 
- def : Pat<(not CPURegs:$in),
-           (XOR CPURegs:$in, (ADDiu ZERO, 1))>;
-diff -Naur Chapter5_1/Cpu0MCInstLower.cpp Chapter6_1/Cpu0MCInstLower.cpp
---- Chapter5_1/Cpu0MCInstLower.cpp	2013-06-15 14:57:28.000000000 +0800
-+++ Chapter6_1/Cpu0MCInstLower.cpp	2013-06-15 14:57:28.000000000 +0800
-@@ -42,6 +42,16 @@
- 
-   switch(MO.getTargetFlags()) {
-   default:                   llvm_unreachable("Invalid target flag!");
-+// Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static -cpu0-islinux-
-+//  format=false (global var in .sdata).
-+  case Cpu0II::MO_GPREL:     Kind = MCSymbolRefExpr::VK_Cpu0_GPREL; break;
-+
-+  case Cpu0II::MO_GOT16:     Kind = MCSymbolRefExpr::VK_Cpu0_GOT16; break;
-+  case Cpu0II::MO_GOT:       Kind = MCSymbolRefExpr::VK_Cpu0_GOT; break;
-+// ABS_HI and ABS_LO is for llc -march=cpu0 -relocation-model=static (global 
-+//  var in .data).
-+  case Cpu0II::MO_ABS_HI:    Kind = MCSymbolRefExpr::VK_Cpu0_ABS_HI; break;
-+  case Cpu0II::MO_ABS_LO:    Kind = MCSymbolRefExpr::VK_Cpu0_ABS_LO; break;
-   }
- 
-   switch (MOTy) {
-@@ -78,6 +88,8 @@
-     return MCOperand::CreateReg(MO.getReg());
-   case MachineOperand::MO_Immediate:
-     return MCOperand::CreateImm(MO.getImm() + offset);
-+  case MachineOperand::MO_GlobalAddress:
-+    return LowerSymbolOperand(MO, MOTy, offset);
-   case MachineOperand::MO_RegisterMask:
-     break;
-  }
 diff -Naur Chapter5_1/Cpu0MachineFunction.cpp Chapter6_1/Cpu0MachineFunction.cpp
 --- Chapter5_1/Cpu0MachineFunction.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter6_1/Cpu0MachineFunction.cpp	2013-06-15 14:57:28.000000000 +0800
++++ Chapter6_1/Cpu0MachineFunction.cpp	2013-06-14 13:55:45.371152877 +0800
 @@ -0,0 +1,44 @@
 +//===-- Cpu0MachineFunctionInfo.cpp - Private data used for Cpu0 ----------===//
 +//
@@ -459,8 +430,8 @@ diff -Naur Chapter5_1/Cpu0MachineFunction.cpp Chapter6_1/Cpu0MachineFunction.cpp
 +
 +void Cpu0FunctionInfo::anchor() { }
 diff -Naur Chapter5_1/Cpu0MachineFunction.h Chapter6_1/Cpu0MachineFunction.h
---- Chapter5_1/Cpu0MachineFunction.h	2013-06-15 14:57:28.000000000 +0800
-+++ Chapter6_1/Cpu0MachineFunction.h	2013-06-15 14:57:28.000000000 +0800
+--- Chapter5_1/Cpu0MachineFunction.h	2013-06-14 13:55:45.371152877 +0800
++++ Chapter6_1/Cpu0MachineFunction.h	2013-06-14 13:55:45.371152877 +0800
 @@ -23,14 +23,25 @@
  /// Cpu0FunctionInfo - This class is derived from MachineFunction private
  /// Cpu0 target-specific information for each MachineFunction.
@@ -488,9 +459,38 @@ diff -Naur Chapter5_1/Cpu0MachineFunction.h Chapter6_1/Cpu0MachineFunction.h
    unsigned getMaxCallFrameSize() const { return MaxCallFrameSize; }
  };
  
+diff -Naur Chapter5_1/Cpu0MCInstLower.cpp Chapter6_1/Cpu0MCInstLower.cpp
+--- Chapter5_1/Cpu0MCInstLower.cpp	2013-06-14 13:55:45.371152877 +0800
++++ Chapter6_1/Cpu0MCInstLower.cpp	2013-06-14 13:55:45.371152877 +0800
+@@ -42,6 +42,16 @@
+ 
+   switch(MO.getTargetFlags()) {
+   default:                   llvm_unreachable("Invalid target flag!");
++// Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static -cpu0-islinux-
++//  format=false (global var in .sdata).
++  case Cpu0II::MO_GPREL:     Kind = MCSymbolRefExpr::VK_Cpu0_GPREL; break;
++
++  case Cpu0II::MO_GOT16:     Kind = MCSymbolRefExpr::VK_Cpu0_GOT16; break;
++  case Cpu0II::MO_GOT:       Kind = MCSymbolRefExpr::VK_Cpu0_GOT; break;
++// ABS_HI and ABS_LO is for llc -march=cpu0 -relocation-model=static (global 
++//  var in .data).
++  case Cpu0II::MO_ABS_HI:    Kind = MCSymbolRefExpr::VK_Cpu0_ABS_HI; break;
++  case Cpu0II::MO_ABS_LO:    Kind = MCSymbolRefExpr::VK_Cpu0_ABS_LO; break;
+   }
+ 
+   switch (MOTy) {
+@@ -78,6 +88,8 @@
+     return MCOperand::CreateReg(MO.getReg());
+   case MachineOperand::MO_Immediate:
+     return MCOperand::CreateImm(MO.getImm() + offset);
++  case MachineOperand::MO_GlobalAddress:
++    return LowerSymbolOperand(MO, MOTy, offset);
+   case MachineOperand::MO_RegisterMask:
+     break;
+  }
 diff -Naur Chapter5_1/Cpu0RegisterInfo.cpp Chapter6_1/Cpu0RegisterInfo.cpp
---- Chapter5_1/Cpu0RegisterInfo.cpp	2013-06-15 14:57:28.000000000 +0800
-+++ Chapter6_1/Cpu0RegisterInfo.cpp	2013-06-15 14:57:28.000000000 +0800
+--- Chapter5_1/Cpu0RegisterInfo.cpp	2013-06-14 13:55:45.371152877 +0800
++++ Chapter6_1/Cpu0RegisterInfo.cpp	2013-06-14 13:55:45.371152877 +0800
 @@ -78,6 +78,11 @@
    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
      Reserved.set(ReservedCPURegs[I]);
@@ -504,8 +504,8 @@ diff -Naur Chapter5_1/Cpu0RegisterInfo.cpp Chapter6_1/Cpu0RegisterInfo.cpp
  }
  
 diff -Naur Chapter5_1/Cpu0Subtarget.cpp Chapter6_1/Cpu0Subtarget.cpp
---- Chapter5_1/Cpu0Subtarget.cpp	2013-06-15 14:57:28.000000000 +0800
-+++ Chapter6_1/Cpu0Subtarget.cpp	2013-06-15 14:57:28.000000000 +0800
+--- Chapter5_1/Cpu0Subtarget.cpp	2013-06-14 13:55:45.371152877 +0800
++++ Chapter6_1/Cpu0Subtarget.cpp	2013-06-17 17:50:33.000000000 +0800
 @@ -14,6 +14,7 @@
  #include "Cpu0Subtarget.h"
  #include "Cpu0.h"
@@ -514,49 +514,86 @@ diff -Naur Chapter5_1/Cpu0Subtarget.cpp Chapter6_1/Cpu0Subtarget.cpp
  
  #define GET_SUBTARGETINFO_TARGET_DESC
  #define GET_SUBTARGETINFO_CTOR
-@@ -21,12 +22,16 @@
+@@ -21,12 +22,18 @@
  
  using namespace llvm;
  
 +static cl::opt<bool>
-+IsLinuxOpt("cpu0-islinux-format", cl::Hidden, cl::init(true),
-+                 cl::desc("Always use linux format."));
++UseSmallSectionOpt("cpu0-use-small-section", cl::Hidden, cl::init(false),
++                 cl::desc("Use small section. Only work when -relocation-model=\
++                 static. pic always not use small section."));
 +
  void Cpu0Subtarget::anchor() { }
  
  Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
-                              const std::string &FS, bool little) :
+-                             const std::string &FS, bool little) :
++                             const std::string &FS, bool little, 
++                             Reloc::Model _RM) :
    Cpu0GenSubtargetInfo(TT, CPU, FS),
 -  Cpu0ABI(UnknownABI), IsLittle(little)
-+  Cpu0ABI(UnknownABI), IsLittle(little), IsLinux(IsLinuxOpt)
++  Cpu0ABI(UnknownABI), IsLittle(little), RM(_RM)
  {
    std::string CPUName = CPU;
    if (CPUName.empty())
+@@ -41,5 +48,8 @@
+   // Set Cpu0ABI if it hasn't been set yet.
+   if (Cpu0ABI == UnknownABI)
+     Cpu0ABI = O32;
++
++  // Set UseSmallSection.
++  UseSmallSection = UseSmallSectionOpt && (RM == Reloc::Static);
+ }
+ 
 diff -Naur Chapter5_1/Cpu0Subtarget.h Chapter6_1/Cpu0Subtarget.h
---- Chapter5_1/Cpu0Subtarget.h	2013-06-15 14:57:28.000000000 +0800
-+++ Chapter6_1/Cpu0Subtarget.h	2013-06-15 14:57:28.000000000 +0800
-@@ -47,6 +47,9 @@
+--- Chapter5_1/Cpu0Subtarget.h	2013-06-14 13:55:45.371152877 +0800
++++ Chapter6_1/Cpu0Subtarget.h	2013-06-17 16:23:17.000000000 +0800
+@@ -47,15 +47,21 @@
    // IsLittle - The target is Little Endian
    bool IsLittle;
  
-+  // isLinux - Target system is Linux. Is false we consider ELFOS for now.
-+  bool IsLinux;
++  // UseSmallSection - Small section is used.
++  bool UseSmallSection;
 +
    InstrItineraryData InstrItins;
  
++  // Relocation Model
++  Reloc::Model RM;
++
  public:
-@@ -63,6 +66,7 @@
+   unsigned getTargetABI() const { return Cpu0ABI; }
+ 
+   /// This constructor initializes the data members to match that
+   /// of the specified triple.
+   Cpu0Subtarget(const std::string &TT, const std::string &CPU,
+-                const std::string &FS, bool little);
++                const std::string &FS, bool little, Reloc::Model _RM);
+ 
+ //- Vitual function, must have
+   /// ParseSubtargetFeatures - Parses features string setting specified
+@@ -63,6 +69,7 @@
    void ParseSubtargetFeatures(StringRef CPU, StringRef FS);
  
    bool isLittle() const { return IsLittle; }
-+  bool isLinux() const { return IsLinux; }
++  bool useSmallSection() const { return UseSmallSection; }
  };
  } // End llvm namespace
  
+diff -Naur Chapter5_1/Cpu0TargetMachine.cpp Chapter6_1/Cpu0TargetMachine.cpp
+--- Chapter5_1/Cpu0TargetMachine.cpp	2013-06-14 13:55:45.371152877 +0800
++++ Chapter6_1/Cpu0TargetMachine.cpp	2013-06-17 16:26:14.000000000 +0800
+@@ -41,7 +41,7 @@
+                   bool isLittle)
+   //- Default is big endian
+   : LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL),
+-    Subtarget(TT, CPU, FS, isLittle),
++    Subtarget(TT, CPU, FS, isLittle, RM),
+     DL(isLittle ?
+                ("e-p:32:32:32-i8:8:32-i16:16:32-i64:64:64-n32") :
+                ("E-p:32:32:32-i8:8:32-i16:16:32-i64:64:64-n32")),
 diff -Naur Chapter5_1/Cpu0TargetObjectFile.cpp Chapter6_1/Cpu0TargetObjectFile.cpp
 --- Chapter5_1/Cpu0TargetObjectFile.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter6_1/Cpu0TargetObjectFile.cpp	2013-06-15 14:57:28.000000000 +0800
-@@ -0,0 +1,102 @@
++++ Chapter6_1/Cpu0TargetObjectFile.cpp	2013-06-17 14:00:15.000000000 +0800
+@@ -0,0 +1,104 @@
 +//===-- Cpu0TargetObjectFile.cpp - Cpu0 Object Files ----------------------===//
 +//
 +//                     The LLVM Compiler Infrastructure
@@ -621,7 +658,9 @@ diff -Naur Chapter5_1/Cpu0TargetObjectFile.cpp Chapter6_1/Cpu0TargetObjectFile.c
 +
 +  // Only use small section for non linux targets.
 +  const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
-+  if (Subtarget.isLinux())
++
++  // Return if small section is not available.
++  if (!Subtarget.useSmallSection())
 +    return false;
 +
 +  // Only global variables, not functions.
@@ -661,7 +700,7 @@ diff -Naur Chapter5_1/Cpu0TargetObjectFile.cpp Chapter6_1/Cpu0TargetObjectFile.c
 +}
 diff -Naur Chapter5_1/Cpu0TargetObjectFile.h Chapter6_1/Cpu0TargetObjectFile.h
 --- Chapter5_1/Cpu0TargetObjectFile.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter6_1/Cpu0TargetObjectFile.h	2013-06-15 14:57:28.000000000 +0800
++++ Chapter6_1/Cpu0TargetObjectFile.h	2013-06-14 13:55:45.371152877 +0800
 @@ -0,0 +1,41 @@
 +//===-- llvm/Target/Cpu0TargetObjectFile.h - Cpu0 Object Info ---*- C++ -*-===//
 +//
@@ -705,8 +744,8 @@ diff -Naur Chapter5_1/Cpu0TargetObjectFile.h Chapter6_1/Cpu0TargetObjectFile.h
 +
 +#endif
 diff -Naur Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp	2013-06-15 14:57:28.000000000 +0800
-+++ Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp	2013-06-15 14:57:28.000000000 +0800
+--- Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp	2013-06-14 13:55:45.371152877 +0800
++++ Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp	2013-06-14 13:55:45.371152877 +0800
 @@ -56,6 +56,12 @@
    switch (Kind) {
    default:                                 llvm_unreachable("Invalid kind!");
@@ -721,8 +760,8 @@ diff -Naur Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp Chapter6_1/InstPrinter/Cpu
  
    OS << SRE->getSymbol();
 diff -Naur Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter6_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-06-15 14:57:28.000000000 +0800
-+++ Chapter6_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-06-15 14:57:28.000000000 +0800
+--- Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-06-14 13:55:45.371152877 +0800
++++ Chapter6_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-06-14 13:55:45.371152877 +0800
 @@ -157,6 +157,30 @@
  
    assert (Kind == MCExpr::SymbolRef);

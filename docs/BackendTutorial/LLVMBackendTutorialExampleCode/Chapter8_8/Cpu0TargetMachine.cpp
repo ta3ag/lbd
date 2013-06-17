@@ -41,7 +41,7 @@ Cpu0TargetMachine(const Target &T, StringRef TT,
                   bool isLittle)
   //- Default is big endian
   : LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL),
-    Subtarget(TT, CPU, FS, isLittle),
+    Subtarget(TT, CPU, FS, isLittle, RM),
     DL(isLittle ?
                ("e-p:32:32:32-i8:8:32-i16:16:32-i64:64:64-n32") :
                ("E-p:32:32:32-i8:8:32-i16:16:32-i64:64:64-n32")),

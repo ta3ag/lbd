@@ -23,15 +23,17 @@
 using namespace llvm;
 
 static cl::opt<bool>
-IsLinuxOpt("cpu0-islinux-format", cl::Hidden, cl::init(true),
-                 cl::desc("Always use linux format."));
+UseSmallSectionOpt("cpu0-use-small-section", cl::Hidden, cl::init(false),
+                 cl::desc("Use small section. Only work when -relocation-model=\
+                 static. pic always not use small section."));
 
 void Cpu0Subtarget::anchor() { }
 
 Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
-                             const std::string &FS, bool little) :
+                             const std::string &FS, bool little, 
+                             Reloc::Model _RM) :
   Cpu0GenSubtargetInfo(TT, CPU, FS),
-  Cpu0ABI(UnknownABI), IsLittle(little), IsLinux(IsLinuxOpt)
+  Cpu0ABI(UnknownABI), IsLittle(little), RM(_RM)
 {
   std::string CPUName = CPU;
   if (CPUName.empty())
@@ -46,5 +48,8 @@ Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
   // Set Cpu0ABI if it hasn't been set yet.
   if (Cpu0ABI == UnknownABI)
     Cpu0ABI = O32;
+
+  // Set UseSmallSection.
+  UseSmallSection = UseSmallSectionOpt && (RM == Reloc::Static);
 }
 

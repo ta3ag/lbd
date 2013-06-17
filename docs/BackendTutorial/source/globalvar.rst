@@ -56,18 +56,18 @@ Cpu0 global variable options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Cpu0 like Mips support both static and pic mode. There are two different layout 
-of global variables for static mode which controlled by option cpu0-islinux-format. 
+of global variables for static mode which controlled by option cpu0-use-small-section. 
 Chapter6_1/ support the global variable translation. 
 Let's run Chapter6_1/ with ch6_1.cpp via options 
-``llc  -relocation-model=static -cpu0-islinux-format=true``, 
-``llc  -relocation-model=static -cpu0-islinux-format=flase`` and 
+``llc  -relocation-model=static -cpu0-use-small-section=false``, 
+``llc  -relocation-model=static -cpu0-use-small-section=true`` and 
 ``llc  -relocation-model=pic`` to trace the DAG and Cpu0 instructions.
 
 .. code-block:: bash
 
   118-165-78-166:InputFiles Jonathan$ clang -c ch6_1.cpp -emit-llvm -o ch6_1.bc
   118-165-78-166:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=static -cpu0-islinux-format=true 
+  bin/Debug/llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=false 
   -filetype=asm -debug ch6_1.bc -o -
   
   ...
@@ -130,7 +130,7 @@ Let's run Chapter6_1/ with ch6_1.cpp via options
 .. code-block:: bash
 
   118-165-78-166:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=static -cpu0-islinux-format=false 
+  bin/Debug/llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=true 
   -filetype=asm -debug ch6_1.bc -o -
   
   ...
@@ -253,14 +253,14 @@ Let's run Chapter6_1/ with ch6_1.cpp via options
 Summary to Table: Cpu0 global variable options.
 
 .. csv-table:: Cpu0 global variable options
-   :header: "mode", "static, cpu0-islinux-format=true", "static, cpu0-islinux-format=false", "pic"
+   :header: "mode", "static, cpu0-use-small-section=true", "static, cpu0-use-small-section=false", "pic"
    :widths: 15, 30, 30, 30
 
    "section", "data or bss", "sdata or sbss", "data or bss"
    "range", "32 bits", "16 bits", "32 bits"
    "addressing mode", "absolute", "absolute", "relative"
-   "addressing", "pc+offset", "pc+offset", "pc+offset"
-   "Legalized selection DAG", "(add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>)", "(add GLOBAL_OFFSET_TABLE, Cpu0ISD::GPRel<gI offset Lo16>)", "(load (Cpu0ISD::Wrapper %GP, <gI offset Lo16>))"
+   "addressing", "pc+offset", "$gp+offset", "$gp+offset"
+   "Legalized selection DAG", "(add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>)", "(add GLOBAL_OFFSET_TABLE, Cpu0ISD::GPRel<gI offset>)", "(load (Cpu0ISD::Wrapper %GP, <gI offset>))"
    "Cpu0", "addiu $2, $zero, %hi(gI); shl $2, $2, 16; addiu $2, $2, %lo(gI); ld $2, 0($2)", "addiu	$2, $gp, %gp_rel(gI); ld $2, 0($2);", "ld $2, %got(gI)($gp); ld $2, 0($2);"
 
 
@@ -272,26 +272,46 @@ More specifically, it translate the global integer variable gI address into
 offset of register gp and load from $gp+(the offset) into register $2. 
 
 
-To support global variable, first add **IsLinuxOpt** command variable to 
+To support global variable, first add **UseSmallSectionOpt** command variable to 
 Cpu0Subtarget.cpp. 
-After that, user can run llc with argument ``llc -cpu0-islinux-format=false`` 
-to specify **IsLinuxOpt** to false. 
-The **IsLinuxOpt** is defaulted to true if without specify it. 
+After that, user can run llc with argument ``llc -cpu0-use-small-section=true`` 
+to specify **UseSmallSectionOpt** to false. 
+The **UseSmallSectionOpt** is defaulted to false if without specify it. 
 About the **cl** command variable, you can refer to [#]_ further.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0Subtarget.h
+.. code-block:: c++
+
+  class Cpu0Subtarget : public Cpu0GenSubtargetInfo {
+    ...
+    // UseSmallSection - Small section is used.
+    bool UseSmallSection;
+    ...
+    bool useSmallSection() const { return UseSmallSection; }
+  };
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0Subtarget.cpp
 .. code-block:: c++
 
   static cl::opt<bool>
-  IsLinuxOpt("cpu0-islinux-format", cl::Hidden, cl::init(true),
-                   cl::desc("Always use linux format."));
+  UseSmallSectionOpt("cpu0-use-small-section", cl::Hidden, cl::init(false),
+                   cl::desc("Use small section. Only work when -relocation-model=\
+                   static. pic always not use small section."));
     
-Next add the following code to Cpu0ISelLowering.cpp.
+Next add file Cpu0TargetObjectFile.h, Cpu0TargetObjectFile.cpp and the 
+following code to Cpu0ISelLowering.cpp.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.h
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.cpp
+    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
-  //  Cpu0ISelLowering.cpp
   Cpu0TargetLowering::
   Cpu0TargetLowering(Cpu0TargetMachine &TM)
     : TargetLowering(TM, new Cpu0TargetObjectFile()),
@@ -406,9 +426,9 @@ Finally, add the following code in Cpu0InstrInfo.td.
 Static mode
 ~~~~~~~~~~~~
 
-From Table: Cpu0 global variable options, option cpu0-islinux-format=true put 
-the global varibale in data/bss while cpu0-islinux-format=false in sdata/sbss. 
-The sdata stand for small data area.
+From Table: Cpu0 global variable options, option cpu0-use-small-section=false 
+put the global varibale in data/bss while cpu0-use-small-section=true in 
+sdata/sbss. The sdata stand for small data area.
 Section data and sdata are areas for global variable with initial value (as 
 int gI = 100 in this example) while 
 Section bss and sbss are areas for global variables without initial value 
@@ -418,7 +438,7 @@ data or bss
 ++++++++++++
 
 The data/bss are 32 bits addressable areas since Cpu0 is a 32 bits architecture. 
-Option cpu0-islinux-format=true will generate the following instructions.
+Option cpu0-use-small-section=false will generate the following instructions.
 
 .. code-block:: bash
 
@@ -454,12 +474,11 @@ address in static, compile/link time, not dynamic/run time.
 
 
 In static mode, LowerGlobalAddress() will check the translation is for 
-IsGlobalInSmallSection() or not. 
-When IsLinuxOpt is true and static mode, IsGlobalInSmallSection() always 
-return false. 
+IsGlobalInSmallSection() or not. When UseSmallSectionOpt is false and in static 
+mode, IsGlobalInSmallSection() always return false. 
 
 The code fragment of LowerGlobalAddress() as the following corresponding option 
-``llc -relocation-model=static -cpu0-islinux-format=true`` will translate DAG 
+``llc -relocation-model=static -cpu0-use-small-section=true`` will translate DAG 
 (GlobalAddress<i32* @gI> 0) into 
 (add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>) in 
 stage "Legalized selection DAG" as below.
@@ -483,7 +502,7 @@ stage "Legalized selection DAG" as below.
 
   118-165-78-166:InputFiles Jonathan$ clang -c ch6_1.cpp -emit-llvm -o ch6_1.bc
   118-165-78-166:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=static -cpu0-islinux-format=true 
+  bin/Debug/llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=false 
   -filetype=asm -debug ch6_1.bc -o -
   
   ...
@@ -569,7 +588,7 @@ sdata or sbss
 ++++++++++++++
 
 The sdata/sbss are 16 bits addressable areas which planed in ELF for fast access. 
-Option cpu0-islinux-format=false will generate the following instructions.
+Option cpu0-use-small-section=true will generate the following instructions.
 
 .. code-block:: bash
 
@@ -593,7 +612,7 @@ Option cpu0-islinux-format=false will generate the following instructions.
 
 
 The code fragment of LowerGlobalAddress() as the following corresponding option 
-``llc -relocation-model=static -cpu0-islinux-format=false`` will translate DAG 
+``llc -relocation-model=static -cpu0-use-small-section=true`` will translate DAG 
 (GlobalAddress<i32* @gI> 0) into 
 (add GLOBAL_OFFSET_TABLE Cpu0ISD::GPRel<gI offset>) in 
 stage "Legalized selection DAG" as below.
@@ -651,7 +670,34 @@ stage "Legalized selection DAG" as below.
 
 Finally, the pattern defined in Cpu0InstrInfo.td as the following will translate  
 DAG (add GLOBAL_OFFSET_TABLE Cpu0ISD::GPRel<gI offset>) into Cpu0 
-instructions as below.
+instruction as below. The following code in Cpu0ISelDAGToDAG.cpp make the 
+GLOBAL_OFFSET_TABLE translate into $gp as below.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelDAGToDAG.cpp
+.. code-block:: c++
+
+  /// getGlobalBaseReg - Output the instructions required to put the
+  /// GOT address into a register.
+  SDNode *Cpu0DAGToDAGISel::getGlobalBaseReg() {
+    unsigned GlobalBaseReg = MF->getInfo<Cpu0FunctionInfo>()->getGlobalBaseReg();
+    return CurDAG->getRegister(GlobalBaseReg, TLI.getPointerTy()).getNode();
+  }
+
+  /// Select instructions not customized! Used for
+  /// expanded, promoted and normal instructions
+  SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
+    ...
+    // Get target GOT address.
+    // For global variables as follows,
+    //- @gI = global i32 100, align 4
+    //- %2 = load i32* @gI, align 4
+    // =>
+    //- .cpload	$gp
+    //- ld	$2, %got(gI)($gp)
+    case ISD::GLOBAL_OFFSET_TABLE:
+      return getGlobalBaseReg();
+    ...
+  }
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0InstrInfo.td
 .. code-block:: c++
@@ -670,21 +716,16 @@ instructions as below.
   	...
 
 Pat<(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)), (ADD CPURegs:$gp, (ADDiu 
-ZERO, tglobaladdr:$in))>; will translate (add GLOBAL_OFFSET_TABLE 
-Cpu0ISD::GPRel tglobaladdr) into (add GLOBAL_OFFSET_TABLE, (addiu ZERO, 
-tglobaladdr)). The GLOBAL_OFFSET_TABLE will be $gp after register allocation. 
-
+ZERO, tglobaladdr:$in))>; will translate (add $gp Cpu0ISD::GPRel tglobaladdr) 
+into (add $gp, (addiu ZERO, tglobaladdr)).
 
 The $gp content is assigned at compile/link time, changed only at program be 
-loaded, and is fixed during running the program; while the -relocation-model=pic 
+loaded, and is fixed during the program running; while the -relocation-model=pic 
 the $gp can be changed during program running. 
-For this example, if $gp is assigned to start of .sdata like this example, then 
-%gp_rel(gI) = (the relative address distance between gI and $gp) = 
-(&gI - &.data) = 4. 
-When output program ch6_1.cpu0.s be loaded, then the gI variable can be got from 
-address x = (addiu $2, $gp, (&gI - &.data)) which equal to x = &gI = &.data + 4 
-since ($gp == &.data).
-
+For this example, if $gp is assigned to start of .sdata by loader when program 
+ch6_1.cpu0.s is loaded, then linker can caculate %gp_rel(gI) = (the relative 
+address distance between gI and start of .data section. Which meaning the
+instrucion is binding variable at link time, that's why it is static mode. 
 
 
 PIC mode
@@ -716,7 +757,7 @@ Option ``llc  -relocation-model=pic`` will generate the following instructions.
   	.size	gI, 4
 
 The following code codefragment of Cpu0AsmPrinter.cpp will emit **.cpload** asm 
-pseudo instruction as below.
+pseudo instruction at function entry point as below.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0AsmPrinter.cpp
 .. code-block:: c++
@@ -724,12 +765,16 @@ pseudo instruction as below.
   /// EmitFunctionBodyStart - Targets can override this to emit stuff before
   /// the first basic block in the function.
   void Cpu0AsmPrinter::EmitFunctionBodyStart() {
-  ...
+    ...
+    bool EmitCPLoad = (MF->getTarget().getRelocationModel() == Reloc::PIC_) &&
+      Cpu0FI->globalBaseRegSet() &&
+      Cpu0FI->globalBaseRegFixed();
+    ...
       // Emit .cpload directive if needed.
       if (EmitCPLoad)
       //- .cpload $t9
         OutStreamer.EmitRawText(StringRef("\t.cpload\t$t9"));
-  ...
+    ...
   }
 
 .. code-block:: bash
@@ -746,33 +791,13 @@ Counter (PC) while jalr has 32 bits address range in register size is 32 bits.
 One example of PIC mode is used in share library. 
 Share library is re-entry code which can be loaded in different memory address 
 decided on run time. 
-The static mode (absolute address mode) is usually designed to load in specific 
-memory address decided on compile time. Since share library can be loaded in 
-different memory address, the global variable address cannot be decided in 
-compile time. 
-As above, the global variable address is translated into the relative address 
-of $gp. 
-In example code ch6_1.ll, .cpload is a asm pseudo instruction just before the 
-first instruction of main(). 
-When the shared library main() function be loaded, the loader will assign the 
-$t9 value to $gp when it meet “.cpload $t9”. 
-After that, the $gp value is $t9 which point to main(), and the global variable 
-address is the relative address to main(). Loader will set the relocation record 
-offset of "ld $2, %got(gI)($gp)" to value (&gI - $gp). After that, this 
-instruction can run correctly.
-
 
 The code fragment of LowerGlobalAddress() as the following corresponding option 
-``llc -relocation-model=pic`` will translate DAG 
-(GlobalAddress<i32* @gI> 0) into 
+``llc -relocation-model=pic`` will translate DAG (GlobalAddress<i32* @gI> 0) into  
 (load EntryToken, (Cpu0ISD::Wrapper Register %GP, TargetGlobalAddress<i32* @gI> 0)) 
 in stage "Legalized selection DAG" as below.
 
-When PIC mode, LowerGlobalAddress() will create the DAG list (load 
-DAG.getEntryNode(), (Wrapper GetGlobalReg(), GA)) by the following code and 
-the code in Cpu0ISeleDAGToDAG.cpp as follows,
-
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISeleDAGToDAG.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
     ...
@@ -789,7 +814,9 @@ the code in Cpu0ISeleDAGToDAG.cpp as follows,
       return ResNode;
     ...
     
-  // Cpu0ISelDAGToDAG.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelDAGToDAG.cpp
+.. code-block:: c++
+
   /// ComplexPattern used on Cpu0InstrInfo
   /// Used on Cpu0 Load/Store instructions
   bool Cpu0DAGToDAGISel::
@@ -844,35 +871,15 @@ the code in Cpu0ISeleDAGToDAG.cpp as follows,
     ...
 
 
-Finally, the pattern defined in Cpu0InstrInfo.td as the following will translate DAG 
-(load EntryToken, (Cpu0ISD::Wrapper Register %GP, TargetGlobalAddress<i32* @gI> 0)) 
-into Cpu0 instructions as below.
-
+Finally, the pattern Cpu0 instruction **ld** defined before in Cpu0InstrInfo.td 
+will translate DAG (load EntryToken, (Cpu0ISD::Wrapper Register %GP, 
+TargetGlobalAddress<i32* @gI> 0)) into Cpu0 instruction as below.
 
 .. code-block:: bash
 
     ...
   	ld	$2, %got(gI)($gp)
     ...
-
-Then it translate into the following code,
-
-.. code-block:: c++
-
-  ld  $2, %got(gI)($gp) 
-
-Where DAG.getEntryNode() is the register $2 which decided by Register Allocator
-; DAG.getNode(Cpu0ISD::Wrapper, dl, ValTy, GetGlobalReg(DAG, ValTy), GA) is 
-translated into Base=$gp as well as the 16 bits Offset for $gp.
-
-    
-.. code-block:: c++
-
-  // ch6_1.cpu0.s
-      .cpload $t9 
-      .set    nomacro 
-  # BB#0: 
-      ldi $sp, -8
 
 
 
@@ -895,7 +902,7 @@ Cpu0ISelLowering.cpp for global variable printing operand function.
     switch(MO.getTargetFlags()) {
     default:                   llvm_unreachable("Invalid target flag!"); 
   // Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static 
-  //  -cpu0-islinux-format=false (global var in .sdata) 
+  //  -cpu0-use-small-section=false (global var in .sdata) 
     case Cpu0II::MO_GPREL:     Kind = MCSymbolRefExpr::VK_Cpu0_GPREL; break; 
     
     case Cpu0II::MO_GOT16:     Kind = MCSymbolRefExpr::VK_Cpu0_GOT16; break; 
@@ -986,7 +993,7 @@ By set the pattern Pat<> in Cpu0InstrInfo.td, the llvm can apply the compiler
 mechanism, pattern match, in the Instruction Selection stage.
 
 There are three type for setXXXAction(), Promote, Expand and Custom. 
-Except Custom, the other two usually no need to coding. 
+Except Custom, the other two maybe no need to coding. 
 The section "Instruction Selector" of [#]_ is the references.
 
 Array and struct support

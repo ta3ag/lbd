@@ -62,7 +62,9 @@ IsGlobalInSmallSection(const GlobalValue *GV, const TargetMachine &TM,
 
   // Only use small section for non linux targets.
   const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
-  if (Subtarget.isLinux())
+
+  // Return if small section is not available.
+  if (!Subtarget.useSmallSection())
     return false;
 
   // Only global variables, not functions.

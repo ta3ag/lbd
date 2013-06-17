@@ -47,10 +47,13 @@ protected:
   // IsLittle - The target is Little Endian
   bool IsLittle;
 
-  // isLinux - Target system is Linux. Is false we consider ELFOS for now.
-  bool IsLinux;
+  // UseSmallSection - Small section is used.
+  bool UseSmallSection;
 
   InstrItineraryData InstrItins;
+
+  // Relocation Model
+  Reloc::Model RM;
 
 public:
   unsigned getTargetABI() const { return Cpu0ABI; }
@@ -58,7 +61,7 @@ public:
   /// This constructor initializes the data members to match that
   /// of the specified triple.
   Cpu0Subtarget(const std::string &TT, const std::string &CPU,
-                const std::string &FS, bool little);
+                const std::string &FS, bool little, Reloc::Model _RM);
 
 //- Vitual function, must have
   /// ParseSubtargetFeatures - Parses features string setting specified
@@ -66,7 +69,7 @@ public:
   void ParseSubtargetFeatures(StringRef CPU, StringRef FS);
 
   bool isLittle() const { return IsLittle; }
-  bool isLinux() const { return IsLinux; }
+  bool useSmallSection() const { return UseSmallSection; }
 };
 } // End llvm namespace
 
