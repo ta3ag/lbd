@@ -1060,29 +1060,6 @@ file Cpu0EmitGPRestore.cpp which run as a function pass.
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0EmitGPRestore.cpp
     :linenos:
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0MachineFunctionInfo.h
-.. code-block:: c++
-
-  
-  //===-- Cpu0MachineFunctionInfo.h - Private data used for Cpu0 ----*- C++ -*-=//
-  ...
-  class Cpu0FunctionInfo : public MachineFunctionInfo {
-    ...
-    bool EmitNOAT;
-  
-  public:
-    Cpu0FunctionInfo(MachineFunction& MF)
-    : ...
-    MaxCallFrameSize(0), EmitNOAT(false)
-    ...
-    bool getEmitNOAT() const { return EmitNOAT; }
-    void setEmitNOAT() { EmitNOAT = true; }
-  
-  };
-  
-  } // end of namespace llvm
-  
-  #endif // CPU0_MACHINE_FUNCTION_INFO_H
   
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0AsmPrinter.cpp
 .. code-block:: c++

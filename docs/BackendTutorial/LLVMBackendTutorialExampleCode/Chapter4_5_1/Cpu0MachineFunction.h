@@ -32,6 +32,7 @@ public:
   {}
 
   unsigned getMaxCallFrameSize() const { return MaxCallFrameSize; }
+  void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
 };
 
 } // end of namespace llvm

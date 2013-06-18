@@ -228,8 +228,9 @@ Let's run Chapter6_1/ with ch6_1.cpp via options
     0x7ff3ca02d110: i32,ch = load 0x7ff3ca02cf10, 0x7ff3ca02d810, 
     0x7ff3ca02cc10<LD4[@gI]> [ORD=3] [ID=9]
     ...
-    
-	.cpload	$t9
+	  .set	noreorder
+	  .cpload	$t9
+	  .set	nomacro
     ...
   	ld	$2, %got(gI)($gp)
   	ld	$2, 0($2)
@@ -736,7 +737,9 @@ Option ``llc  -relocation-model=pic`` will generate the following instructions.
 .. code-block:: bash
 
     ...
-	.cpload	$t9
+	  .set	noreorder
+	  .cpload	$t9
+	  .set	nomacro
     ...
   	ld	$2, %got(gI)($gp)
   	ld	$2, 0($2)
@@ -756,9 +759,46 @@ Option ``llc  -relocation-model=pic`` will generate the following instructions.
   	.4byte	100                     # 0x64
   	.size	gI, 4
 
-The following code codefragment of Cpu0AsmPrinter.cpp will emit **.cpload** asm 
+The following code fragment of Cpu0AsmPrinter.cpp will emit **.cpload** asm 
 pseudo instruction at function entry point as below.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MachineFunction.h
+.. code-block:: c++
+
+  
+  //===-- Cpu0MachineFunction.h - Private data used for Cpu0 ----*- C++ -*-=//
+  ...
+  class Cpu0FunctionInfo : public MachineFunctionInfo {
+    virtual void anchor();
+    ...
+
+    /// GlobalBaseReg - keeps track of the virtual register initialized for
+    /// use as the global base register. This is used for PIC in some PIC
+    /// relocation models.
+    unsigned GlobalBaseReg;
+    int GPFI; // Index of the frame object for restoring $gp
+    ...
+    bool EmitNOAT;
+  
+    public:  Cpu0FunctionInfo(MachineFunction& MF)
+    : ..., GlobalBaseReg(0), ..., EmitNOAT(false)
+    {}
+
+    bool globalBaseRegFixed() const;
+    bool globalBaseRegSet() const;
+    unsigned getGlobalBaseReg();
+    ...
+    bool getEmitNOAT() const { return EmitNOAT; }
+    void setEmitNOAT() { EmitNOAT = true; }
+  };
+  
+  } // end of namespace llvm
+  
+  #endif // CPU0_MACHINE_FUNCTION_INFO_H
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MachineFunction.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MachineFunction.cpp
+    :linenos:
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0AsmPrinter.cpp
 .. code-block:: c++
 
@@ -769,18 +809,30 @@ pseudo instruction at function entry point as below.
     bool EmitCPLoad = (MF->getTarget().getRelocationModel() == Reloc::PIC_) &&
       Cpu0FI->globalBaseRegSet() &&
       Cpu0FI->globalBaseRegFixed();
-    ...
+    if (OutStreamer.hasRawTextSupport()) {
+      ...
+      OutStreamer.EmitRawText(StringRef("\t.set\tnoreorder"));
       // Emit .cpload directive if needed.
       if (EmitCPLoad)
-      //- .cpload $t9
         OutStreamer.EmitRawText(StringRef("\t.cpload\t$t9"));
-    ...
+      OutStreamer.EmitRawText(StringRef("\t.set\tnomacro"));
+      if (Cpu0FI->getEmitNOAT())
+        OutStreamer.EmitRawText(StringRef("\t.set\tnoat"));
+    } else if (EmitCPLoad) {
+      SmallVector<MCInst, 4> MCInsts;
+      MCInstLowering.LowerCPLOAD(MCInsts);
+      for (SmallVector<MCInst, 4>::iterator I = MCInsts.begin();
+         I != MCInsts.end(); ++I)
+        OutStreamer.EmitInstruction(*I);
+    }
   }
 
 .. code-block:: bash
 
     ...
-	.cpload	$t9
+	  .set	noreorder
+	  .cpload	$t9
+	  .set	nomacro
     ...
 
 According Mips Application Binary Interface (ABI), $t9 ($t9 is register alias 
@@ -790,7 +842,69 @@ The jal %subroutine has 24 bits range of address offset relative to Program
 Counter (PC) while jalr has 32 bits address range in register size is 32 bits. 
 One example of PIC mode is used in share library. 
 Share library is re-entry code which can be loaded in different memory address 
-decided on run time. 
+decided on run time. The **.cpload** is the assembly directive (macro) which 
+will expand to several instructions. 
+Issue **.cpload** before **.set nomacro** since the **.set nomacro** option 
+causes the assembler to print a warning whenever 
+an assembler operation generates more than one machine language instruction, 
+reference Mips ABI _[#].
+
+Following code will exspand .cpload into machine instructions as below. 
+"09a00000 1eaa0010 09aa0000 13aa6000" is the **.cpload** machine instructions 
+displayed in comments of Cpu0MCInstLower.cpp.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MCInstLower.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MCInstLower.cpp
+    :start-after: return MCOperand::CreateExpr(AddExpr);
+    :end-before: MCOperand Cpu0MCInstLower::LowerOperand
+    :linenos:
+
+.. code-block:: bash
+
+  118-165-76-131:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
+  cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=
+  obj ch8_2.bc -o ch8_2.cpu0.o
+  118-165-76-131:InputFiles Jonathan$ gobjdump -s ch6_1.cpu0.o 
+
+  ch6_1.cpu0.o:     file format elf32-big
+
+  Contents of section .text:
+   0000 09a00000 1eaa0010 09aa0000 13aa6000  ..............`.
+   0010 09ddfff8 09200000 022d0004 022d0000  ..... ...-...-..
+  ...
+
+  118-165-76-131:InputFiles Jonathan$ gobjdump -tr ch6_1.cpu0.o 
+  ...
+  RELOCATION RECORDS FOR [.text]:
+  OFFSET   TYPE              VALUE 
+  00000000 UNKNOWN           _gp_disp
+  00000008 UNKNOWN           _gp_disp
+  00000020 UNKNOWN           gI
+
+.. note::
+
+  // **Mips ABI: _gp_disp**
+  After calculating the gp, a function allocates the local stack space and saves 
+  the gp on the stack, so it can be restored after subsequent function calls. 
+  In other words, the gp is a caller saved register. 
+  
+  ...
+  
+  _gp_disp represents the offset between the beginning of the function and the 
+  global offset table. 
+  Various optimizations are possible in this code example and the others that 
+  follow. 
+  For example, the calculation of gp need not be done for a position-independent 
+  function that is strictly local to an object module. 
+
+The _gp_disp as above is relocation record, it meaning both the machine 
+instructions 09a00000 (offset 0) which equal to assembly 
+"addiu $gp, $zero, %hi(_gp_disp)" and 09aa0000 (offset 8) which equal to 
+assembly "addiu $gp, $gp, %lo(_gp_disp)" are relocated records depend on 
+_gp_disp. The loader or OS can adust these two 
+instructions offet correctly by search the _gp_disp in kept symbol table.
+The ELF relocation records will introduced in Chapter ELF Support. Don't worry, 
+if you don't quite understand at this point.
 
 The code fragment of LowerGlobalAddress() as the following corresponding option 
 ``llc -relocation-model=pic`` will translate DAG (GlobalAddress<i32* @gI> 0) into  
@@ -1447,6 +1561,8 @@ Run Chapter6_3/ with ch6_3.cpp will get the following result.
     http://jonathan2251.github.com/lbd/globalvar.html#array-and-struct-support
 
 .. [#] http://llvm.org/docs/CommandLine.html
+
+.. [#] http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf
 
 .. [#] http://llvm.org/docs/WritingAnLLVMBackend.html
 

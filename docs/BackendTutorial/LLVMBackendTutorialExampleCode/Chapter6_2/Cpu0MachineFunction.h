@@ -32,10 +32,11 @@ class Cpu0FunctionInfo : public MachineFunctionInfo {
   unsigned GlobalBaseReg;
   int GPFI; // Index of the frame object for restoring $gp
   unsigned MaxCallFrameSize;
+  bool EmitNOAT;
 
 public:
   Cpu0FunctionInfo(MachineFunction& MF)
-  : MF(MF), GlobalBaseReg(0), MaxCallFrameSize(0)
+  : MF(MF), GlobalBaseReg(0), MaxCallFrameSize(0), EmitNOAT(false)
   {}
 
   bool globalBaseRegFixed() const;
@@ -43,6 +44,9 @@ public:
   unsigned getGlobalBaseReg();
 
   unsigned getMaxCallFrameSize() const { return MaxCallFrameSize; }
+  void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
+  bool getEmitNOAT() const { return EmitNOAT; }
+  void setEmitNOAT() { EmitNOAT = true; }
 };
 
 } // end of namespace llvm

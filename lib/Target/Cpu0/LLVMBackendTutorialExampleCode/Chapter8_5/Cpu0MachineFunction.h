@@ -48,13 +48,14 @@ class Cpu0FunctionInfo : public MachineFunctionInfo {
   int GPFI; // Index of the frame object for restoring $gp
   mutable int DynAllocFI; // Frame index of dynamically allocated stack area.
   unsigned MaxCallFrameSize;
+  bool EmitNOAT;
 
 public:
   Cpu0FunctionInfo(MachineFunction& MF)
   : MF(MF), SRetReturnReg(0), GlobalBaseReg(0),
     VarArgsFrameIndex(0), InArgFIRange(std::make_pair(-1, 0)),
     OutArgFIRange(std::make_pair(-1, 0)), GPFI(0), DynAllocFI(0),
-    MaxCallFrameSize(0)
+    MaxCallFrameSize(0), EmitNOAT(false)
     {}
   
   bool isInArgFI(int FI) const {
@@ -100,6 +101,8 @@ public:
 
   unsigned getMaxCallFrameSize() const { return MaxCallFrameSize; }
   void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
+  bool getEmitNOAT() const { return EmitNOAT; }
+  void setEmitNOAT() { EmitNOAT = true; }
 };
 
 } // end of namespace llvm

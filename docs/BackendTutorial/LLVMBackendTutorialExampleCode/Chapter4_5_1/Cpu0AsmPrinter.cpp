@@ -191,10 +191,10 @@ void Cpu0AsmPrinter::EmitFunctionBodyStart() {
     raw_svector_ostream OS(Str);
     printSavedRegsBitmask(OS);
     OutStreamer.EmitRawText(OS.str());
-
     OutStreamer.EmitRawText(StringRef("\t.set\tnoreorder"));
-
     OutStreamer.EmitRawText(StringRef("\t.set\tnomacro"));
+    if (Cpu0FI->getEmitNOAT())
+      OutStreamer.EmitRawText(StringRef("\t.set\tat"));
   }
 }
 
@@ -208,6 +208,8 @@ void Cpu0AsmPrinter::EmitFunctionBodyEnd() {
   // always be at the function end, and we can't emit and
   // break with BB logic.
   if (OutStreamer.hasRawTextSupport()) {
+    if (Cpu0FI->getEmitNOAT())
+      OutStreamer.EmitRawText(StringRef("\t.set\tat"));
     OutStreamer.EmitRawText(StringRef("\t.set\tmacro"));
     OutStreamer.EmitRawText(StringRef("\t.set\treorder"));
     OutStreamer.EmitRawText("\t.end\t" + Twine(CurrentFnSym->getName()));

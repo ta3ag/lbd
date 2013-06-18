@@ -83,6 +83,42 @@ MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
   return MCOperand::CreateExpr(AddExpr);
 }
 
+static void CreateMCInst(MCInst& Inst, unsigned Opc, const MCOperand& Opnd0,
+                         const MCOperand& Opnd1,
+                         const MCOperand& Opnd2 = MCOperand()) {
+  Inst.setOpcode(Opc);
+  Inst.addOperand(Opnd0);
+  Inst.addOperand(Opnd1);
+  if (Opnd2.isValid())
+    Inst.addOperand(Opnd2);
+}
+
+// Lower ".cpload $reg" to
+//  "addiu $gp, $zero, %hi(_gp_disp)"
+//  "shl   $gp, $gp, 16"
+//  "addiu $gp, $gp, %lo(_gp_disp)"
+//  "addu  $gp, $gp, $t9"
+void Cpu0MCInstLower::LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts) {
+  MCOperand GPReg = MCOperand::CreateReg(Cpu0::GP);
+  MCOperand T9Reg = MCOperand::CreateReg(Cpu0::T9);
+  MCOperand ZEROReg = MCOperand::CreateReg(Cpu0::ZERO);
+  StringRef SymName("_gp_disp");
+  const MCSymbol *Sym = Ctx->GetOrCreateSymbol(SymName);
+  const MCSymbolRefExpr *MCSym;
+
+  MCSym = MCSymbolRefExpr::Create(Sym, MCSymbolRefExpr::VK_Cpu0_ABS_HI, *Ctx);
+  MCOperand SymHi = MCOperand::CreateExpr(MCSym);
+  MCSym = MCSymbolRefExpr::Create(Sym, MCSymbolRefExpr::VK_Cpu0_ABS_LO, *Ctx);
+  MCOperand SymLo = MCOperand::CreateExpr(MCSym);
+
+  MCInsts.resize(4);
+
+  CreateMCInst(MCInsts[0], Cpu0::ADDiu, GPReg, ZEROReg, SymHi);
+  CreateMCInst(MCInsts[1], Cpu0::SHL, GPReg, GPReg, MCOperand::CreateImm(16));
+  CreateMCInst(MCInsts[2], Cpu0::ADDiu, GPReg, GPReg, SymLo);
+  CreateMCInst(MCInsts[3], Cpu0::ADD, GPReg, GPReg, T9Reg);
+}
+
 MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand& MO,
                                         unsigned offset) const {
   MachineOperandType MOTy = MO.getType();
