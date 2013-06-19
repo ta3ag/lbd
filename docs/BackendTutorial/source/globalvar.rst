@@ -55,10 +55,10 @@ first, and explain the code changes after that.
 Cpu0 global variable options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Cpu0 like Mips support both static and pic mode. There are two different layout 
+Cpu0 like Mips supports both static and pic mode. There are two different layout 
 of global variables for static mode which controlled by option cpu0-use-small-section. 
 Chapter6_1/ support the global variable translation. 
-Let's run Chapter6_1/ with ch6_1.cpp via options 
+Let's run Chapter6_1/ with ch6_1.cpp via three different options 
 ``llc  -relocation-model=static -cpu0-use-small-section=false``, 
 ``llc  -relocation-model=static -cpu0-use-small-section=true`` and 
 ``llc  -relocation-model=pic`` to trace the DAG and Cpu0 instructions.
@@ -264,36 +264,33 @@ Summary to Table: Cpu0 global variable options.
    "addressing", "pc+offset", "$gp+offset", "$gp+offset"
    "Legalized selection DAG", "(add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>)", "(add GLOBAL_OFFSET_TABLE, Cpu0ISD::GPRel<gI offset>)", "(load (Cpu0ISD::Wrapper %GP, <gI offset>))"
    "Cpu0", "addiu $2, $zero, %hi(gI); shl $2, $2, 16; addiu $2, $2, %lo(gI); ld $2, 0($2)", "addiu	$2, $gp, %gp_rel(gI); ld $2, 0($2);", "ld $2, %got(gI)($gp); ld $2, 0($2);"
-   "variable binding", "link time", "link time", "load time"
-   "reason", "offset gI and .data can be caculated", "offset gI and .sdata can be caculated", "offset gI and .data cannot be caculated"
+   "relocation solved", "link time", "link time", "load time"
+   "reason", "offset gI and .data can be caculated for static link", "offset gI and .sdata can be caculated for static link", "offset gI and .data cannot be caculated for dynamic"
+   "name binding", "static", "static", "static"
 
 - In pic, offset gI and .data cannot be caculated since the function is loaded at run time.
+- In C, all variable names binding staticly. In C++, the overload variable or function are binding dynamicly.
 
 
-According boof of system program, there are Absolute Addressing Mode and 
+According book of system program, there are Absolute Addressing Mode and 
 Position Independent Addressing Mode. Cpu0 use Position Indepent Addressing, 
 such as ld $r1, (4)$sp (PC counter relative offset), to access local variables 
-and addiu $2, $gp, %gp_rel(gI) ($gp relative) to access global variables. 
-It use Absoulte Addressing "addiu $2, $zero, %hi(gI); ... " to access global 
-variables. The static and pic used in -relocation-model is not meaning Absolute 
-Addressing Mode and Position Independent Addressing Mode. It meaning this function 
-is static link or dynamic link. Static link is part code in the program body while 
-dynamic link the function body is loaded at run time when it be called. The Caller 
-program never keep this function in execution file.
-
-As above code, it translate **“load i32* @gI, align 4”** into 
-**“ld  $2, %got(gI)($gp)”** for ``llc -march=cpu0 -relocation-model=pic``, 
-position-independent mode. 
-More specifically, it translate the global integer variable gI address into 
-offset of register gp and load from $gp+(the offset) into register $2. 
-
+and "addiu $2, $gp, %gp_rel(gI)" ($gp relative) to access those global variables 
+in small data section while use Absoulte Addressing 
+"addiu $2, $zero, %hi(gI); ... " to access those global variables in large data 
+section. The static and pic used in -relocation-model is not meaning Absolute 
+Addressing Mode and Position Independent Addressing Mode. 
+It meaning this function is static link or dynamic link. Static link function 
+become a part of code in the whole program body while 
+dynamic link load the function body at run time when the function be called. 
+The Caller program never keep this function in the whole execution file.
 
 To support global variable, first add **UseSmallSectionOpt** command variable to 
 Cpu0Subtarget.cpp. 
-After that, user can run llc with argument ``llc -cpu0-use-small-section=true`` 
+After that, user can run llc with option ``llc -cpu0-use-small-section=false`` 
 to specify **UseSmallSectionOpt** to false. 
 The **UseSmallSectionOpt** is defaulted to false if without specify it. 
-About the **cl** command variable, you can refer to [#]_ further.
+About the **cl::opt** command line variable, you can refer to [#]_ further.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0Subtarget.h
 .. code-block:: c++
@@ -405,14 +402,14 @@ following code to Cpu0ISelLowering.cpp.
 
 The setOperationAction(ISD::GlobalAddress, MVT::i32, Custom) tells ``llc`` that 
 we implement global address operation in C++ function 
-Cpu0TargetLowering::LowerOperation() and llvm will call this function only when 
+Cpu0TargetLowering::LowerOperation(). LLVM will call this function only when 
 llvm want to translate IR DAG of loading global variable into machine code. 
 Since may have many Custom type of setOperationAction(ISD::XXX, MVT::XXX, 
 Custom) in construction function Cpu0TargetLowering(), and each of them will 
-trigger llvm calling 
-Cpu0TargetLowering::LowerOperation() in stage "Legalized selection DAG" . 
-The global address access can be identified by check the DAG node of 
-opcode is ISD::GlobalAddress. 
+trigger llvm calling Cpu0TargetLowering::LowerOperation() in stage 
+"Legalized selection DAG" . 
+The global address access can be identified by check if the DAG node of 
+opcode is equal to ISD::GlobalAddress. 
 
 Finally, add the following code in Cpu0InstrInfo.td.
 
@@ -444,11 +441,10 @@ Static mode
 
 From Table: Cpu0 global variable options, option cpu0-use-small-section=false 
 put the global varibale in data/bss while cpu0-use-small-section=true in 
-sdata/sbss. The sdata stand for small data area.
-Section data and sdata are areas for global variable with initial value (as 
-int gI = 100 in this example) while 
-Section bss and sbss are areas for global variables without initial value 
-(for example, int gI;).
+sdata/sbss. The sdata stands for small data area.
+Section data and sdata are areas for global variable with initial value (such 
+as int gI = 100 in this example) while Section bss and sbss are areas for 
+global variables without initial value (for example, int gI;).
 
 data or bss
 ++++++++++++
@@ -482,12 +478,17 @@ Option cpu0-use-small-section=false will generate the following instructions.
 Above code, it loads the high address part of gI absolute address (16 bits) to 
 register $2 and shift 16 bits. 
 Now, the register $2 got it's high part of gI absolute address. 
-Next, it loads the low part of gI absolute address into register 3. 
-Finally, add register $2 and $3 into $2, and loads the content of address 
-$2+offset 0 into register $2. 
+Next, it add register $2 and low part of gI absolute address into $2. 
+At this point, it get the gI memory address. Finally, it get the gI content by 
+instruction "ld $2, 0($2)". 
 The ``llc -relocation-model=static`` is for static link mode which binding the 
 address in static, compile/link time, not dynamic/run time. 
-
+If this program will be loaded at a specific address known at link stage, the 
+relocation record of gI variable access instruction can be solved at link time.
+If this program loading address is known at load time, then this relocation 
+record will be solved by loader at loading time. Both two cases of the program 
+loaded address are known or unknown at link time, the variable is binding at 
+link time.
 
 In static mode, LowerGlobalAddress() will check the translation is for 
 IsGlobalInSmallSection() or not. When UseSmallSectionOpt is false and in static 
@@ -740,8 +741,8 @@ program be loaded, and is fixed during the program running; while the
 -relocation-model=pic the $gp can be changed during program running. 
 For this example, if $gp is assigned to start of .sdata by loader when program 
 ch6_1.cpu0.s is loaded, then linker can caculate %gp_rel(gI) = (the relative 
-address distance between gI and start of .sdata section. Which meaning the
-instrucion is binding variable at link time, that's why it is static mode. 
+address distance between gI and start of .sdata section. Which meaning this 
+relocation record can be solved at link time, that's why it is static mode. 
 
 
 PIC mode
@@ -912,19 +913,21 @@ displayed in comments of Cpu0MCInstLower.cpp.
   For example, the calculation of gp need not be done for a position-independent 
   function that is strictly local to an object module. 
 
-The _gp_disp as above is relocation record, it meaning both the machine 
+The _gp_disp as above is a relocation record, it means both the machine 
 instructions 09a00000 (offset 0) which equal to assembly 
 "addiu $gp, $zero, %hi(_gp_disp)" and 09aa0000 (offset 8) which equal to 
 assembly "addiu $gp, $gp, %lo(_gp_disp)" are relocated records depend on 
-_gp_disp. The loader or OS can adust these two 
-instructions offet correctly by search the _gp_disp in stored symbol table. 
-Compare to last sub-section the function compiled with option 
-"static, cpu0-use-small-section=true" is static link.
-reloaction record "addiu	$2, $gp, %gp_rel(gI)" can be resolved in link time. 
+_gp_disp. The loader or OS can caculate _gp_disp by (x - start address of .data) 
+when load the dynamic function into memory x, and adust these two 
+instructions offet correctly. 
 Since shared function is loaded when this function be called, the relocation 
-record "addiu $2, $gp, %gp_rel(gI)" cannot be resolved in link time.
+record "ld $2, %got(gI)($gp)" cannot be resolved in link time. 
+In spite of the reloation record is solved on load time, the variable binding 
+is static since link deliver the memory address to loader and loader can solve 
+this just by caculate the offset directly. No need to search the variable name 
+at run time.
 The ELF relocation records will be introduced in Chapter ELF Support. 
-Don't worry, if you don't quite understand at this point.
+Don't worry, if you don't quite understand it at this point.
 
 The code fragment of LowerGlobalAddress() as the following corresponding option 
 ``llc -relocation-model=pic`` will translate DAG (GlobalAddress<i32* @gI> 0) into  
