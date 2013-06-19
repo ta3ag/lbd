@@ -49,17 +49,6 @@ def Cpu0AsmWriter : AsmWriter {
   bit isMCAsmWriter = 1;
 }
 
-def Cpu0AsmParser : AsmParser {
-  let ShouldEmitMatchRegisterName = 0;
-}
-
-def Cpu0AsmParserVariant : AsmParserVariant {
-  int Variant = 0;
-
-  // Recognize hard coded registers.
-  string RegisterPrefix = "$";
-}
-
 // Will generate Cpu0GenAsmWrite.inc included by Cpu0InstPrinter.cpp, contents 
 //  as follows,
 // void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) {...}
@@ -67,7 +56,5 @@ def Cpu0AsmParserVariant : AsmParserVariant {
 def Cpu0 : Target {
 // def Cpu0InstrInfo : InstrInfo as before.
   let InstructionSet = Cpu0InstrInfo;
-  let AssemblyParsers = [Cpu0AsmParser];
   let AssemblyWriters = [Cpu0AsmWriter];
-  let AssemblyParserVariants = [Cpu0AsmParserVariant];
 }

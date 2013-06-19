@@ -1,6 +1,6 @@
 diff -Naur Chapter10_1/Cpu0InstrInfo.td Chapter10_2/Cpu0InstrInfo.td
---- Chapter10_1/Cpu0InstrInfo.td	2013-06-18 18:54:11.747109501 +0800
-+++ Chapter10_2/Cpu0InstrInfo.td	2013-06-18 18:54:11.751109500 +0800
+--- Chapter10_1/Cpu0InstrInfo.td	2013-06-19 11:27:25.256714127 +0800
++++ Chapter10_2/Cpu0InstrInfo.td	2013-06-19 11:27:25.260714127 +0800
 @@ -476,6 +476,7 @@
    def RET   : FJ <0x2C, (outs), (ins CPURegs:$target),
                  "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch>;
@@ -10,8 +10,8 @@ diff -Naur Chapter10_1/Cpu0InstrInfo.td Chapter10_2/Cpu0InstrInfo.td
  
  /// No operation
 diff -Naur Chapter10_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter10_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter10_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-06-18 18:54:11.747109501 +0800
-+++ Chapter10_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-06-18 18:54:11.751109500 +0800
+--- Chapter10_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-06-19 11:27:25.256714127 +0800
++++ Chapter10_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-06-19 11:27:25.260714127 +0800
 @@ -163,19 +163,29 @@
  }
  

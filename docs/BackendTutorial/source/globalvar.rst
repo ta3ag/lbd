@@ -254,17 +254,32 @@ Let's run Chapter6_1/ with ch6_1.cpp via options
 Summary to Table: Cpu0 global variable options.
 
 .. csv-table:: Cpu0 global variable options
-   :header: "mode", "static, cpu0-use-small-section=true", "static, cpu0-use-small-section=false", "pic"
+   :header: "mode", "static, cpu0-use-small-section=false", "static, cpu0-use-small-section=true", "pic"
    :widths: 15, 30, 30, 30
 
+   "link type", "static link", "static link", "dynamic link"
    "section", "data or bss", "sdata or sbss", "data or bss"
    "range", "32 bits", "16 bits", "32 bits"
-   "addressing mode", "absolute", "absolute", "relative"
+   "addressing mode", "absolute", "PIC", "PIC"
    "addressing", "pc+offset", "$gp+offset", "$gp+offset"
    "Legalized selection DAG", "(add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>)", "(add GLOBAL_OFFSET_TABLE, Cpu0ISD::GPRel<gI offset>)", "(load (Cpu0ISD::Wrapper %GP, <gI offset>))"
    "Cpu0", "addiu $2, $zero, %hi(gI); shl $2, $2, 16; addiu $2, $2, %lo(gI); ld $2, 0($2)", "addiu	$2, $gp, %gp_rel(gI); ld $2, 0($2);", "ld $2, %got(gI)($gp); ld $2, 0($2);"
+   "variable binding", "link time", "link time", "load time"
+   "reason", "offset gI and .data can be caculated", "offset gI and .sdata can be caculated", "offset gI and .data cannot be caculated"
+
+- In pic, offset gI and .data cannot be caculated since the function is loaded at run time.
 
 
+According boof of system program, there are Absolute Addressing Mode and 
+Position Independent Addressing Mode. Cpu0 use Position Indepent Addressing, 
+such as ld $r1, (4)$sp (PC counter relative offset), to access local variables 
+and addiu $2, $gp, %gp_rel(gI) ($gp relative) to access global variables. 
+It use Absoulte Addressing "addiu $2, $zero, %hi(gI); ... " to access global 
+variables. The static and pic used in -relocation-model is not meaning Absolute 
+Addressing Mode and Position Independent Addressing Mode. It meaning this function 
+is static link or dynamic link. Static link is part code in the program body while 
+dynamic link the function body is loaded at run time when it be called. The Caller 
+program never keep this function in execution file.
 
 As above code, it translate **“load i32* @gI, align 4”** into 
 **“ld  $2, %got(gI)($gp)”** for ``llc -march=cpu0 -relocation-model=pic``, 
@@ -720,12 +735,12 @@ Pat<(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)), (ADD CPURegs:$gp, (ADDiu
 ZERO, tglobaladdr:$in))>; will translate (add $gp Cpu0ISD::GPRel tglobaladdr) 
 into (add $gp, (addiu ZERO, tglobaladdr)).
 
-The $gp content is assigned at compile/link time, changed only at program be 
-loaded, and is fixed during the program running; while the -relocation-model=pic 
-the $gp can be changed during program running. 
+In this mode, the $gp content is assigned at compile/link time, changed only at 
+program be loaded, and is fixed during the program running; while the 
+-relocation-model=pic the $gp can be changed during program running. 
 For this example, if $gp is assigned to start of .sdata by loader when program 
 ch6_1.cpu0.s is loaded, then linker can caculate %gp_rel(gI) = (the relative 
-address distance between gI and start of .data section. Which meaning the
+address distance between gI and start of .sdata section. Which meaning the
 instrucion is binding variable at link time, that's why it is static mode. 
 
 
@@ -902,9 +917,14 @@ instructions 09a00000 (offset 0) which equal to assembly
 "addiu $gp, $zero, %hi(_gp_disp)" and 09aa0000 (offset 8) which equal to 
 assembly "addiu $gp, $gp, %lo(_gp_disp)" are relocated records depend on 
 _gp_disp. The loader or OS can adust these two 
-instructions offet correctly by search the _gp_disp in kept symbol table.
-The ELF relocation records will introduced in Chapter ELF Support. Don't worry, 
-if you don't quite understand at this point.
+instructions offet correctly by search the _gp_disp in stored symbol table. 
+Compare to last sub-section the function compiled with option 
+"static, cpu0-use-small-section=true" is static link.
+reloaction record "addiu	$2, $gp, %gp_rel(gI)" can be resolved in link time. 
+Since shared function is loaded when this function be called, the relocation 
+record "addiu $2, $gp, %gp_rel(gI)" cannot be resolved in link time.
+The ELF relocation records will be introduced in Chapter ELF Support. 
+Don't worry, if you don't quite understand at this point.
 
 The code fragment of LowerGlobalAddress() as the following corresponding option 
 ``llc -relocation-model=pic`` will translate DAG (GlobalAddress<i32* @gI> 0) into  

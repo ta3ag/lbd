@@ -896,21 +896,20 @@ Run Chapter8_5/ with ch8_1.cpp will get the following result.
 Handle $gp register in PIC addressing mode
 -------------------------------------------
 
-In "section Global variable" [5]_, we mentioned two addressing 
-mode, the static address mode and PIC (position-independent code) mode. 
-We also mentioned, one example of PIC mode is used in share library. 
-Share library usually can be loaded in different memory address decided at run 
-time. 
-The static mode (absolute address mode) is usually designed to load in specific 
-memory address decided at compile time. 
+In "section Global variable" [5]_, we mentioned two link 
+type, the static link and dynamic link. 
+The option -relocation-model=static is for static link function while option 
+-relocation-model=pic is for dynamic link function.
+One example of dynamic link function is used in share library. 
+Share library include a lots of dynamic link functions usually can be loaded 
+at run time. 
 Since share library can be loaded in different memory address, the global 
-variable address cannot be decided at compile time. 
+variable address it access cannot be decided at link time. 
 But, we can caculate the distance between the global variable address and 
-shared library function if they will be loaded to the contiguous memory space 
-together.
+the start address of shared library function when it be loaded.
 
-Let's run Chapter8_6/ with ch8_2.cpp to get the following result of we putting the 
-comment in it for explanation.
+Let's run Chapter8_6/ with ch8_2.cpp to get the following result. 
+We putting the comments in the result for explanation.
 
 .. code-block:: bash
 
@@ -943,8 +942,7 @@ comment in it for explanation.
       addiu   $2, $zero, 0
   ...
       ld  $6, %call24(_Z5sum_iiiiiii)($gp)
-      jalr    $6      	// $t9 register number is 6, meaning $6 and %t9 are the 
-                      	//  same register
+      jalr    $6      	// $t9 register is the alias of $6
       ld  $gp, 24($sp)	// restore $gp from 24($sp)
   ...
       .end    main
@@ -961,29 +959,29 @@ comment in it for explanation.
       .size   gI, 4
 
 As above code comment, **“.cprestore 24”** is a pseudo instruction for saving 
-**$gp** to **24($sp)**; Instruction **“ld $gp, 24($sp)”** will restore the $gp. 
-In other word, $gp is caller saved register, so main() need to save/restore $gp 
-before/after call the shared library _Z5sum_iiiiiii() function. 
+**$gp** to **24($sp)** while Instruction **“ld $gp, 24($sp)”** will restore 
+the $gp. 
+In other word, $gp is a caller saved register, so main() need to save/restore 
+$gp before/after call the shared library _Z5sum_iiiiiii() function. 
 In _Z5sum_iiiiiii() function, we translate global variable gI address by 
-**“ld $3, %got(gI)($gp)”** where %got(gI) is offset of (gI - _Z5sum_iiiiiii) 
-(we can write our cpu0 compiler to produce obj code by calculate the offset 
-value).
+**“ld $3, %got(gI)($gp)”** where %got(gI) is the offset value of 
+(gI - _Z5sum_iiiiiii) which can be caculated at link time.
 
 According the original cpu0 web site information, it only support **“jsub”** 24 
 bits address range access. 
 We add **“jalr”** to cpu0 and expand it to 32 bit address. We did this change for 
 two reason. One is cpu0 can be expand to 32 bit address space by only add this 
 instruction. 
-The other is cpu0 is designed for teaching purpose, this book has the same 
-purpose for llvm backend design. We reserve **“jalr”** as PIC mode for shared 
-library or dynamic loading code to demonstrate the caller how to handle the 
-caller saved register $gp in calling the shared library and the shared library 
-how to use $gp to access global variable address. This solution is popular in 
-reality and deserve change cpu0 official design as a compiler book. 
+The other is cpu0 and this book are designed for teaching purpose. 
+We reserve **“jalr”** as PIC mode for dynamic linking function to demonstrate 
+how caller handle the caller saved register $gp in calling the function as well 
+as how the code in the shared libray function use $gp to access global variable 
+address. This solution is popular in reality and deserve change cpu0 official 
+design as a compiler book. 
 
-Now, as the following code added in Chapter8_6/, we can issue **“.cprestore”** in 
-emitPrologue() and emit ld $gp, ($gp save slot on stack) after jalr by create 
-file Cpu0EmitGPRestore.cpp which run as a function pass.
+Now, after the following code added in Chapter8_6/, we can issue 
+**“.cprestore”** in emitPrologue() and emit "ld $gp, ($gp save slot on stack)" 
+after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/CMakeLists.txt
 .. code-block:: c++
@@ -1030,10 +1028,6 @@ file Cpu0EmitGPRestore.cpp which run as a function pass.
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0InstrInfo.td
 .. code-block:: c++
 
-  // When handling PIC code the assembler needs .cpload and .cprestore
-  // directives. If the real instructions corresponding these directives
-  // are used, we have the same behavior, but get also a bunch of warnings
-  // from the assembler.
   let neverHasSideEffects = 1 in
   def CPRESTORE : Cpu0Pseudo<(outs), (ins i32imm:$loc, CPURegs:$gp),
                  ".cprestore\t$loc", []>;
@@ -1076,7 +1070,7 @@ file Cpu0EmitGPRestore.cpp which run as a function pass.
       OutStreamer.EmitRawText(StringRef("\t.set\tnoat"));
     OutStreamer.EmitRawText(StringRef("\t.set\tnomacro"));
   }
-  
+  ...
   void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
     ...
     unsigned Opc = MI->getOpcode();
@@ -1114,70 +1108,17 @@ file Cpu0EmitGPRestore.cpp which run as a function pass.
     OutStreamer.EmitInstruction(TmpInst0);
   }
   
-  void Cpu0AsmPrinter::EmitFunctionBodyStart() {
-    ...
-    if (OutStreamer.hasRawTextSupport()) {
-      ...
-      if (Cpu0FI->getEmitNOAT())
-        OutStreamer.EmitRawText(StringRef("\t.set\tnoat"));
-    } else if (EmitCPLoad) {
-      SmallVector<MCInst, 4> MCInsts;
-      MCInstLowering.LowerCPLOAD(MCInsts);
-      for (SmallVector<MCInst, 4>::iterator I = MCInsts.begin();
-         I != MCInsts.end(); ++I)
-        OutStreamer.EmitInstruction(*I);
-    }
-  }
-  
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0MCInstLower.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_6/Cpu0MCInstLower.cpp
-    :start-after: return MCOperand::CreateExpr(AddExpr);
+    :start-after: CreateMCInst(MCInsts[3], Cpu0::ADD, GPReg, GPReg, T9Reg);
     :end-before: MCOperand Cpu0MCInstLower::LowerOperand
     :linenos:
 
 
-The above added code of Cpu0AsmPrinter.cpp will call the LowerCPLOAD() and 
-LowerCPRESTORE() when user run with ``llc -filetype=obj``. 
-The above added code of Cpu0MCInstLower.cpp take care the .cpload and 
-.cprestore machine instructions. 
-It translate pseudo asm .cpload into four machine instructions, and .cprestore 
-into one machine instruction as below. 
-As mentioned in "section Global variable" [5]_. 
-When the share library main() function be loaded, the loader will set the 
-$t9 value to $gp when meet **“.cpload $t9”**. 
-After that, the $gp value is $t9 which point to main(), and the global variable 
-address is the relative address to main(). 
-The _gp_disp is zero as the following reason from Mips ABI.
-
-.. code-block:: c++
-
-  // Lower ".cpload $reg" to
-  //  "addiu $gp, $zero, %hi(_gp_disp)"
-  //  "shl   $gp, $gp, 16"
-  //  "addiu $gp, $gp, %lo(_gp_disp)"
-  //  "addu  $gp, $gp, $t9"
-  
-  // Lower ".cprestore offset" to "st $gp, offset($sp)".
-
-.. note::
-
-  // **Mips ABI: _gp_disp**
-  After calculating the gp, a function allocates the local stack space and saves 
-  the gp on the stack, so it can be restored after subsequent function calls. 
-  In other words, the gp is a caller saved register. 
-  
-  ...
-  
-  _gp_disp represents the offset between the beginning of the function and the 
-  global offset table. 
-  Various optimizations are possible in this code example and the others that 
-  follow. 
-  For example, the calculation of gp need not be done for a position-independent 
-  function that is strictly local to an object module. 
-
-
-By run with ``llc -filetype=obj``, the .cpload and .cprestore are translated into 
-machine code as follows,
+The added code of Cpu0AsmPrinter.cpp as above will call the LowerCPRESTORE() when 
+user run with ``llc -filetype=obj``. 
+The added code of Cpu0MCInstLower.cpp as above take care the .cprestore machine 
+instructions.
 
 .. code-block:: bash
 
@@ -1186,14 +1127,6 @@ machine code as follows,
   obj ch8_2.bc -o ch8_2.cpu0.o
   118-165-76-131:InputFiles Jonathan$ hexdump  ch8_2.cpu0.o
   ...
-  // .cpload machine instructions "09 a0 00 00 to 13 aa 60 00"
-  0000030 00 0a 00 07 09 a0 00 00 1e aa 00 10 09 aa 00 00
-  0000040 13 aa 60 00 09 dd ff e0 00 2d 00 20 01 2d 00 1c
-  ...
-
-  // .cpload machine instructions "09 a0 00 00 to 13 aa 60 00"
-  00000b0 09 dd 00 20 2c 00 00 00 09 a0 00 00 1e aa 00 10
-  00000c0 09 aa 00 00 13 aa 60 00 09 dd ff b8 01 ed 00 44
   // .cprestore machine instruction “ 01 ad 00 18”
   00000d0 01 ad 00 18 09 20 00 00 01 2d 00 40 09 20 00 06
   ...
@@ -1210,9 +1143,6 @@ machine code as follows,
   ...
     .ent  main                    # @main
   ...
-    .cpload $t9
-    .set  nomacro
-  ...
     .cprestore  24  // save $gp to 24($sp)
   ...
 
@@ -1228,8 +1158,8 @@ Run ``llc -static`` will call jsub instruction instead of jalr as follows,
     jsub  _Z5sum_iiiiiii
   ...
 
-Run with ``llc -obj``, you can find the Cx of **“jsub Cx”** is 0 since the Cx 
-is calculated by linker as below. 
+Run with ``llc -filetype=obj``, you can find the Cx of **“jsub Cx”** is 0 since 
+the Cx is calculated by linker as below. 
 Mips has the same 0 in it's jal instruction. 
 The ch8_1_2.cpp, ch8_1_3.cpp and ch8_1_4.cpp are example code more for test. 
 

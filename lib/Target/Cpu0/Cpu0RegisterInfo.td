@@ -26,11 +26,11 @@ class Cpu0GPRReg<bits<4> num, string n> : Cpu0Reg<n> {
 //===----------------------------------------------------------------------===//
 //  Registers
 //===----------------------------------------------------------------------===//
-// The register string, such as "9" or "gp will show on "llvm-objdump -d"
+
 let Namespace = "Cpu0" in {
   // General Purpose Registers
-  def ZERO : Cpu0GPRReg< 0, "zero">, DwarfRegNum<[0]>;
-  def AT   : Cpu0GPRReg< 1, "at">,   DwarfRegNum<[1]>;
+  def ZERO : Cpu0GPRReg< 0, "ZERO">, DwarfRegNum<[0]>;
+  def AT   : Cpu0GPRReg< 1, "AT">,   DwarfRegNum<[1]>;
   def V0   : Cpu0GPRReg< 2, "2">,    DwarfRegNum<[2]>;
   def V1   : Cpu0GPRReg< 3, "3">,    DwarfRegNum<[3]>;
   def A0   : Cpu0GPRReg< 4, "4">,    DwarfRegNum<[6]>;
@@ -39,27 +39,25 @@ let Namespace = "Cpu0" in {
   def S0   : Cpu0GPRReg< 7, "7">,    DwarfRegNum<[7]>;
   def S1   : Cpu0GPRReg< 8, "8">,    DwarfRegNum<[8]>;
   def S2   : Cpu0GPRReg< 9, "9">,    DwarfRegNum<[9]>;
-  def GP   : Cpu0GPRReg< 10, "gp">,  DwarfRegNum<[10]>;
-  def FP   : Cpu0GPRReg< 11, "fp">,  DwarfRegNum<[11]>;
-  def T0   : Cpu0GPRReg< 12, "t0">,   DwarfRegNum<[12]>;
-  def SP   : Cpu0GPRReg< 13, "sp">,   DwarfRegNum<[13]>;
-  def LR   : Cpu0GPRReg< 14, "lr">,   DwarfRegNum<[14]>;
-  def PC   : Cpu0GPRReg< 15, "pc">,   DwarfRegNum<[15]>;
-//  def MAR  : Register< 16, "mar">,  DwarfRegNum<[16]>;
-//  def MDR  : Register< 17, "mdr">,  DwarfRegNum<[17]>;
+  def GP   : Cpu0GPRReg< 10, "GP">,  DwarfRegNum<[10]>;
+  def FP   : Cpu0GPRReg< 11, "FP">,  DwarfRegNum<[11]>;
+  def SW   : Cpu0GPRReg< 12, "SW">,   DwarfRegNum<[12]>;
+  def SP   : Cpu0GPRReg< 13, "SP">,   DwarfRegNum<[13]>;
+  def LR   : Cpu0GPRReg< 14, "LR">,   DwarfRegNum<[14]>;
+  def PC   : Cpu0GPRReg< 15, "PC">,   DwarfRegNum<[15]>;
+//  def MAR  : Register< 16, "MAR">,  DwarfRegNum<[16]>;
+//  def MDR  : Register< 17, "MDR">,  DwarfRegNum<[17]>;
 
   // Hi/Lo registers
-  def HI   : Register<"hi">, DwarfRegNum<[18]>;
-  def LO   : Register<"lo">, DwarfRegNum<[19]>;
+  def HI   : Register<"HI">, DwarfRegNum<[18]>;
+  def LO   : Register<"LO">, DwarfRegNum<[19]>;
 }
 
 //===----------------------------------------------------------------------===//
 // Register Classes
 //===----------------------------------------------------------------------===//
 
-def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add 
-  // Reserved
-  ZERO, AT, 
+def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
   // Return Values and Arguments
   V0, V1, A0, A1, 
   // Not preserved across procedure calls
@@ -67,12 +65,11 @@ def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
   // Callee save
   S0, S1, S2, 
   // Reserved
-  GP, FP, 
-  // Not preserved across procedure calls
-  T0, 
-  // Reserved
-  SP, LR, PC)>;
+  ZERO, AT, GP, FP, SP, LR, PC)>;
 
 // Hi/Lo Registers
 def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
+
+// Status Registers
+def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
 

@@ -37,7 +37,6 @@ static unsigned adjustFixupValue(unsigned Kind, uint64_t Value) {
   case FK_Data_4:
   case Cpu0::fixup_Cpu0_LO16:
     break;
-  case Cpu0::fixup_Cpu0_PC16:
   case Cpu0::fixup_Cpu0_PC24:
     // So far we are only using this type for branches.
     // For branches we start 1 instruction after the branch
@@ -141,7 +140,6 @@ public:
       { "fixup_Cpu0_LITERAL",      0,     16,   0 },
       { "fixup_Cpu0_GOT_Global",   0,     16,   0 },
       { "fixup_Cpu0_GOT_Local",    0,     16,   0 },
-      { "fixup_Cpu0_PC16",         0,     16,  MCFixupKindInfo::FKF_IsPCRel },
       { "fixup_Cpu0_PC24",         0,     24,  MCFixupKindInfo::FKF_IsPCRel },
       { "fixup_Cpu0_CALL24",       0,     24,   0 },
       { "fixup_Cpu0_GPREL32",      0,     32,   0 },

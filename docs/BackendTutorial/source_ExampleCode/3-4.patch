@@ -1,6 +1,6 @@
 diff -Naur Chapter3_3/CMakeLists.txt Chapter3_4/CMakeLists.txt
---- Chapter3_3/CMakeLists.txt	2013-06-18 18:54:11.739109503 +0800
-+++ Chapter3_4/CMakeLists.txt	2013-06-18 18:54:11.751109500 +0800
+--- Chapter3_3/CMakeLists.txt	2013-06-19 11:27:25.232714127 +0800
++++ Chapter3_4/CMakeLists.txt	2013-06-19 11:27:25.260714127 +0800
 @@ -25,6 +25,7 @@
  add_llvm_target(Cpu0CodeGen
    Cpu0AsmPrinter.cpp
@@ -10,8 +10,8 @@ diff -Naur Chapter3_3/CMakeLists.txt Chapter3_4/CMakeLists.txt
    Cpu0FrameLowering.cpp
    Cpu0MCInstLower.cpp
 diff -Naur Chapter3_3/Cpu0InstrInfo.cpp Chapter3_4/Cpu0InstrInfo.cpp
---- Chapter3_3/Cpu0InstrInfo.cpp	2013-06-18 18:54:11.739109503 +0800
-+++ Chapter3_4/Cpu0InstrInfo.cpp	2013-06-18 18:54:11.751109500 +0800
+--- Chapter3_3/Cpu0InstrInfo.cpp	2013-06-19 11:27:25.244714127 +0800
++++ Chapter3_4/Cpu0InstrInfo.cpp	2013-06-19 11:27:25.260714127 +0800
 @@ -13,6 +13,7 @@
  
  #include "Cpu0InstrInfo.h"
@@ -34,8 +34,8 @@ diff -Naur Chapter3_3/Cpu0InstrInfo.cpp Chapter3_4/Cpu0InstrInfo.cpp
 +}
 +
 diff -Naur Chapter3_3/Cpu0InstrInfo.h Chapter3_4/Cpu0InstrInfo.h
---- Chapter3_3/Cpu0InstrInfo.h	2013-06-18 18:54:11.739109503 +0800
-+++ Chapter3_4/Cpu0InstrInfo.h	2013-06-18 18:54:11.751109500 +0800
+--- Chapter3_3/Cpu0InstrInfo.h	2013-06-19 11:27:25.244714127 +0800
++++ Chapter3_4/Cpu0InstrInfo.h	2013-06-19 11:27:25.260714127 +0800
 @@ -37,6 +37,10 @@
    virtual const Cpu0RegisterInfo &getRegisterInfo() const;
  
@@ -49,7 +49,7 @@ diff -Naur Chapter3_3/Cpu0InstrInfo.h Chapter3_4/Cpu0InstrInfo.h
  
 diff -Naur Chapter3_3/Cpu0ISelDAGToDAG.cpp Chapter3_4/Cpu0ISelDAGToDAG.cpp
 --- Chapter3_3/Cpu0ISelDAGToDAG.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_4/Cpu0ISelDAGToDAG.cpp	2013-06-18 18:54:11.751109500 +0800
++++ Chapter3_4/Cpu0ISelDAGToDAG.cpp	2013-06-19 11:27:25.260714127 +0800
 @@ -0,0 +1,183 @@
 +//===-- Cpu0ISelDAGToDAG.cpp - A Dag to Dag Inst Selector for Cpu0 --------===//
 +//
@@ -235,8 +235,8 @@ diff -Naur Chapter3_3/Cpu0ISelDAGToDAG.cpp Chapter3_4/Cpu0ISelDAGToDAG.cpp
 +  return new Cpu0DAGToDAGISel(TM);
 +}
 diff -Naur Chapter3_3/Cpu0TargetMachine.cpp Chapter3_4/Cpu0TargetMachine.cpp
---- Chapter3_3/Cpu0TargetMachine.cpp	2013-06-18 18:54:11.739109503 +0800
-+++ Chapter3_4/Cpu0TargetMachine.cpp	2013-06-18 18:54:11.751109500 +0800
+--- Chapter3_3/Cpu0TargetMachine.cpp	2013-06-19 11:27:25.232714127 +0800
++++ Chapter3_4/Cpu0TargetMachine.cpp	2013-06-19 11:27:25.260714127 +0800
 @@ -81,6 +81,7 @@
    const Cpu0Subtarget &getCpu0Subtarget() const {
      return *getCpu0TargetMachine().getSubtargetImpl();

@@ -1,6 +1,6 @@
 diff -Naur Chapter8_6/Cpu0ISelLowering.cpp Chapter8_7/Cpu0ISelLowering.cpp
---- Chapter8_6/Cpu0ISelLowering.cpp	2013-06-18 18:54:11.743109503 +0800
-+++ Chapter8_7/Cpu0ISelLowering.cpp	2013-06-18 18:54:11.739109503 +0800
+--- Chapter8_6/Cpu0ISelLowering.cpp	2013-06-19 11:27:25.248714127 +0800
++++ Chapter8_7/Cpu0ISelLowering.cpp	2013-06-19 11:27:25.228714127 +0800
 @@ -73,7 +73,8 @@
    // Cpu0 Custom Operations
    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
@@ -74,8 +74,8 @@ diff -Naur Chapter8_6/Cpu0ISelLowering.cpp Chapter8_7/Cpu0ISelLowering.cpp
    // All stores are grouped in one node to allow the matching between
    // the size of Ins and InVals. This only happens when on varg functions
 diff -Naur Chapter8_6/Cpu0ISelLowering.h Chapter8_7/Cpu0ISelLowering.h
---- Chapter8_6/Cpu0ISelLowering.h	2013-06-18 18:54:11.743109503 +0800
-+++ Chapter8_7/Cpu0ISelLowering.h	2013-06-18 18:54:11.739109503 +0800
+--- Chapter8_6/Cpu0ISelLowering.h	2013-06-19 11:27:25.248714127 +0800
++++ Chapter8_7/Cpu0ISelLowering.h	2013-06-19 11:27:25.228714127 +0800
 @@ -86,6 +86,7 @@
      // Lower Operand specifics
      SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
