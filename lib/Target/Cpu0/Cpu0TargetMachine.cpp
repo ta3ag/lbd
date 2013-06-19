@@ -82,6 +82,8 @@ public:
     return *getCpu0TargetMachine().getSubtargetImpl();
   }
   virtual bool addInstSelector();
+  virtual bool addPreRegAlloc();
+  virtual bool addPreEmitPass();
 };
 } // namespace
 
@@ -96,3 +98,18 @@ bool Cpu0PassConfig::addInstSelector() {
   return false;
 }
 
+bool Cpu0PassConfig::addPreRegAlloc() {
+  // $gp is a caller-saved register.
+
+  addPass(createCpu0EmitGPRestorePass(getCpu0TargetMachine()));
+  return true;
+}
+
+// Implemented by targets that want to run passes immediately before
+// machine code is emitted. return true if -print-machineinstrs should
+// print out the code after the passes.
+bool Cpu0PassConfig::addPreEmitPass() {
+  Cpu0TargetMachine &TM = getCpu0TargetMachine();
+  addPass(createCpu0DelJmpPass(TM));
+  return true;
+}

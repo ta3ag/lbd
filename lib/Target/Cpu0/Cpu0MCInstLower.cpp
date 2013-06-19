@@ -94,8 +94,7 @@ static void CreateMCInst(MCInst& Inst, unsigned Opc, const MCOperand& Opnd0,
 }
 
 // Lower ".cpload $reg" to
-//  "addiu $gp, $zero, %hi(_gp_disp)"
-//  "shl   $gp, $gp, 16"
+//  "lui   $gp, %hi(_gp_disp)"
 //  "addiu $gp, $gp, %lo(_gp_disp)"
 //  "addu  $gp, $gp, $t9"
 void Cpu0MCInstLower::LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts) {
@@ -111,12 +110,39 @@ void Cpu0MCInstLower::LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts) {
   MCSym = MCSymbolRefExpr::Create(Sym, MCSymbolRefExpr::VK_Cpu0_ABS_LO, *Ctx);
   MCOperand SymLo = MCOperand::CreateExpr(MCSym);
 
-  MCInsts.resize(4);
+  MCInsts.resize(3);
 
-  CreateMCInst(MCInsts[0], Cpu0::ADDiu, GPReg, ZEROReg, SymHi);
-  CreateMCInst(MCInsts[1], Cpu0::SHL, GPReg, GPReg, MCOperand::CreateImm(16));
-  CreateMCInst(MCInsts[2], Cpu0::ADDiu, GPReg, GPReg, SymLo);
-  CreateMCInst(MCInsts[3], Cpu0::ADD, GPReg, GPReg, T9Reg);
+  CreateMCInst(MCInsts[0], Cpu0::LUi, GPReg, ZEROReg, SymHi);
+  CreateMCInst(MCInsts[1], Cpu0::ADDiu, GPReg, GPReg, SymLo);
+  CreateMCInst(MCInsts[2], Cpu0::ADD, GPReg, GPReg, T9Reg);
+}
+
+// Lower ".cprestore offset" to "st $gp, offset($sp)".
+void Cpu0MCInstLower::LowerCPRESTORE(int64_t Offset,
+                                     SmallVector<MCInst, 4>& MCInsts) {
+  assert(isInt<32>(Offset) && (Offset >= 0) &&
+         "Imm operand of .cprestore must be a non-negative 32-bit value.");
+
+  MCOperand SPReg = MCOperand::CreateReg(Cpu0::SP), BaseReg = SPReg;
+  MCOperand GPReg = MCOperand::CreateReg(Cpu0::GP);
+  MCOperand ZEROReg = MCOperand::CreateReg(Cpu0::ZERO);
+
+  if (!isInt<16>(Offset)) {
+    unsigned Hi = ((Offset + 0x8000) >> 16) & 0xffff;
+    Offset &= 0xffff;
+    MCOperand ATReg = MCOperand::CreateReg(Cpu0::AT);
+    BaseReg = ATReg;
+
+    // lui   at,hi
+    // add   at,at,sp
+    MCInsts.resize(2);
+    CreateMCInst(MCInsts[0], Cpu0::LUi, ATReg, ZEROReg, MCOperand::CreateImm(Hi));
+    CreateMCInst(MCInsts[1], Cpu0::ADD, ATReg, ATReg, SPReg);
+  }
+
+  MCInst St;
+  CreateMCInst(St, Cpu0::ST, GPReg, BaseReg, MCOperand::CreateImm(Offset));
+  MCInsts.push_back(St);
 }
 
 MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand& MO,

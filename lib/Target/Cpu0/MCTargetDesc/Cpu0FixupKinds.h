@@ -53,8 +53,12 @@ namespace Cpu0 {
     // Local symbol fixup resulting in - R_CPU0_GOT16.
     fixup_Cpu0_GOT_Local,
 
+    // PC relative branch fixup resulting in - R_CPU0_PC16.
+    // cpu0 PC16, e.g. beq
+    fixup_Cpu0_PC16,
+    
     // PC relative branch fixup resulting in - R_CPU0_PC24.
-    // cpu0 PC24, e.g. jeq
+    // cpu0 PC24, e.g. jmp
     fixup_Cpu0_PC24,
 
     // resulting in - R_CPU0_CALL24.
