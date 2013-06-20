@@ -875,12 +875,32 @@ The jal %subroutine has 24 bits range of address offset relative to Program
 Counter (PC) while jalr has 32 bits address range in register size of 32 bits. 
 One example of PIC mode is used in share library. 
 Share library is re-entry code which can be loaded in different memory address 
-decided on run time. The **.cpload** is the assembly directive (macro) which 
+decided on run time. The jalr make the implementation of dynamic link function 
+easier as below.
+
+.. code-block:: bash
+
+  caller instructions:
+    SYSCALL call##fun();
+    jalr $t9;
+
+
+1. The caller issue system call to OS or loader by SYSCALL call##fun().
+
+2. OS or loader load dynamic function fun() to available address X.
+
+3. OS or loader change register $t9 to address X and jump to the next 
+   instruction of SYSCALL call##fun(). 
+
+4. The caller can call the fun() by instruction jalr $t9 correctly.
+
+
+The **.cpload** is the assembly directive (macro) which 
 will expand to several instructions. 
 Issue **.cpload** before **.set nomacro** since the **.set nomacro** option 
 causes the assembler to print a warning whenever 
 an assembler operation generates more than one machine language instruction, 
-reference Mips ABI _[#].
+reference Mips ABI [#]_.
 
 Following code will exspand .cpload into machine instructions as below. 
 "09a00000 1eaa0010 09aa0000 13aa6000" is the **.cpload** machine instructions 
