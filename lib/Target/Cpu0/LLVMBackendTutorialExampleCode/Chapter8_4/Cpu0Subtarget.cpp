@@ -24,8 +24,8 @@ using namespace llvm;
 
 static cl::opt<bool>
 UseSmallSectionOpt("cpu0-use-small-section", cl::Hidden, cl::init(false),
-                 cl::desc("Use small section. Only work when -relocation-model=\
-                 static. pic always not use small section."));
+                 cl::desc("Use small section. Only work when -relocation-model="
+                 "static. pic always not use small section."));
 
 void Cpu0Subtarget::anchor() { }
 
