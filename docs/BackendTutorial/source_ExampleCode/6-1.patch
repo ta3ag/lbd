@@ -1,6 +1,6 @@
 diff -Naur Chapter5_1/CMakeLists.txt Chapter6_1/CMakeLists.txt
---- Chapter5_1/CMakeLists.txt	2013-06-19 11:27:25.216714127 +0800
-+++ Chapter6_1/CMakeLists.txt	2013-06-19 11:27:25.220714127 +0800
+--- Chapter5_1/CMakeLists.txt	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/CMakeLists.txt	2013-06-21 18:28:13.752690494 +0800
 @@ -29,9 +29,11 @@
    Cpu0ISelLowering.cpp
    Cpu0FrameLowering.cpp
@@ -14,8 +14,8 @@ diff -Naur Chapter5_1/CMakeLists.txt Chapter6_1/CMakeLists.txt
    )
  
 diff -Naur Chapter5_1/Cpu0AsmPrinter.cpp Chapter6_1/Cpu0AsmPrinter.cpp
---- Chapter5_1/Cpu0AsmPrinter.cpp	2013-06-19 11:27:25.216714127 +0800
-+++ Chapter6_1/Cpu0AsmPrinter.cpp	2013-06-19 11:27:25.220714127 +0800
+--- Chapter5_1/Cpu0AsmPrinter.cpp	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/Cpu0AsmPrinter.cpp	2013-06-21 18:28:13.752690494 +0800
 @@ -185,6 +185,9 @@
    MCInstLowering.Initialize(Mang, &MF->getContext());
  
@@ -47,8 +47,8 @@ diff -Naur Chapter5_1/Cpu0AsmPrinter.cpp Chapter6_1/Cpu0AsmPrinter.cpp
  }
  
 diff -Naur Chapter5_1/Cpu0InstrInfo.td Chapter6_1/Cpu0InstrInfo.td
---- Chapter5_1/Cpu0InstrInfo.td	2013-06-19 11:27:25.216714127 +0800
-+++ Chapter6_1/Cpu0InstrInfo.td	2013-06-19 11:27:25.220714127 +0800
+--- Chapter5_1/Cpu0InstrInfo.td	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/Cpu0InstrInfo.td	2013-06-21 18:28:13.752690494 +0800
 @@ -27,6 +27,13 @@
                                           [SDTCisInt<0>,
                                            SDTCisSameAs<0, 1>]>;
@@ -131,8 +131,8 @@ diff -Naur Chapter5_1/Cpu0InstrInfo.td Chapter6_1/Cpu0InstrInfo.td
  def : Pat<(not CPURegs:$in),
            (XOR CPURegs:$in, (ADDiu ZERO, 1))>;
 diff -Naur Chapter5_1/Cpu0ISelDAGToDAG.cpp Chapter6_1/Cpu0ISelDAGToDAG.cpp
---- Chapter5_1/Cpu0ISelDAGToDAG.cpp	2013-06-19 11:27:25.216714127 +0800
-+++ Chapter6_1/Cpu0ISelDAGToDAG.cpp	2013-06-19 11:27:25.220714127 +0800
+--- Chapter5_1/Cpu0ISelDAGToDAG.cpp	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/Cpu0ISelDAGToDAG.cpp	2013-06-21 18:28:13.752690494 +0800
 @@ -13,6 +13,7 @@
  
  #define DEBUG_TYPE "cpu0-isel"
@@ -201,8 +201,8 @@ diff -Naur Chapter5_1/Cpu0ISelDAGToDAG.cpp Chapter6_1/Cpu0ISelDAGToDAG.cpp
      const ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Node);
      unsigned Size = CN->getValueSizeInBits(0);
 diff -Naur Chapter5_1/Cpu0ISelLowering.cpp Chapter6_1/Cpu0ISelLowering.cpp
---- Chapter5_1/Cpu0ISelLowering.cpp	2013-06-19 11:27:25.216714127 +0800
-+++ Chapter6_1/Cpu0ISelLowering.cpp	2013-06-19 11:27:25.220714127 +0800
+--- Chapter5_1/Cpu0ISelLowering.cpp	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/Cpu0ISelLowering.cpp	2013-06-21 18:28:13.752690494 +0800
 @@ -14,9 +14,11 @@
  
  #define DEBUG_TYPE "cpu0-lower"
@@ -216,13 +216,81 @@ diff -Naur Chapter5_1/Cpu0ISelLowering.cpp Chapter6_1/Cpu0ISelLowering.cpp
  #include "llvm/IR/DerivedTypes.h"
  #include "llvm/IR/Function.h"
  #include "llvm/IR/GlobalVariable.h"
-@@ -35,14 +37,36 @@
+@@ -29,20 +31,104 @@
+ #include "llvm/CodeGen/MachineRegisterInfo.h"
+ #include "llvm/CodeGen/SelectionDAGISel.h"
+ #include "llvm/CodeGen/ValueTypes.h"
++#include "llvm/Support/CommandLine.h"
+ #include "llvm/Support/Debug.h"
+ #include "llvm/Support/ErrorHandling.h"
+ #include "llvm/Support/raw_ostream.h"
  
  using namespace llvm;
  
-+static SDValue GetGlobalReg(SelectionDAG &DAG, EVT Ty) {
++static cl::opt<bool>
++LargeGOT("cpu0-mxgot", cl::Hidden,
++         cl::desc("CPU0: Enable GOT larger than 64k."), cl::init(false));
++
++SDValue Cpu0TargetLowering::getGlobalReg(SelectionDAG &DAG, EVT Ty) const {
 +  Cpu0FunctionInfo *FI = DAG.getMachineFunction().getInfo<Cpu0FunctionInfo>();
 +  return DAG.getRegister(FI->getGlobalBaseReg(), Ty);
++}
++
++static SDValue getTargetNode(SDValue Op, SelectionDAG &DAG, unsigned Flag) {
++  EVT Ty = Op.getValueType();
++
++  if (GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Op))
++    return DAG.getTargetGlobalAddress(N->getGlobal(), Op.getDebugLoc(), Ty, 0,
++                                      Flag);
++  if (ExternalSymbolSDNode *N = dyn_cast<ExternalSymbolSDNode>(Op))
++    return DAG.getTargetExternalSymbol(N->getSymbol(), Ty, Flag);
++  if (BlockAddressSDNode *N = dyn_cast<BlockAddressSDNode>(Op))
++    return DAG.getTargetBlockAddress(N->getBlockAddress(), Ty, 0, Flag);
++  if (JumpTableSDNode *N = dyn_cast<JumpTableSDNode>(Op))
++    return DAG.getTargetJumpTable(N->getIndex(), Ty, Flag);
++  if (ConstantPoolSDNode *N = dyn_cast<ConstantPoolSDNode>(Op))
++    return DAG.getTargetConstantPool(N->getConstVal(), Ty, N->getAlignment(),
++                                     N->getOffset(), Flag);
++
++  llvm_unreachable("Unexpected node type.");
++  return SDValue();
++}
++
++SDValue Cpu0TargetLowering::getAddrLocal(SDValue Op, SelectionDAG &DAG) const {
++  DebugLoc DL = Op.getDebugLoc();
++  EVT Ty = Op.getValueType();
++  unsigned GOTFlag = Cpu0II::MO_GOT;
++  SDValue GOT = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
++                            getTargetNode(Op, DAG, GOTFlag));
++  SDValue Load = DAG.getLoad(Ty, DL, DAG.getEntryNode(), GOT,
++                             MachinePointerInfo::getGOT(), false, false, false,
++                             0);
++  unsigned LoFlag = Cpu0II::MO_ABS_LO;
++  SDValue Lo = DAG.getNode(Cpu0ISD::Lo, DL, Ty, getTargetNode(Op, DAG, LoFlag));
++  return DAG.getNode(ISD::ADD, DL, Ty, Load, Lo);
++}
++
++SDValue Cpu0TargetLowering::getAddrGlobal(SDValue Op, SelectionDAG &DAG,
++                                          unsigned Flag) const {
++  DebugLoc DL = Op.getDebugLoc();
++  EVT Ty = Op.getValueType();
++  SDValue Tgt = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
++                            getTargetNode(Op, DAG, Flag));
++  return DAG.getLoad(Ty, DL, DAG.getEntryNode(), Tgt,
++                     MachinePointerInfo::getGOT(), false, false, false, 0);
++}
++
++SDValue Cpu0TargetLowering::getAddrGlobalLargeGOT(SDValue Op, SelectionDAG &DAG,
++                                                  unsigned HiFlag,
++                                                  unsigned LoFlag) const {
++  DebugLoc DL = Op.getDebugLoc();
++  EVT Ty = Op.getValueType();
++  SDValue Hi = DAG.getNode(Cpu0ISD::Hi, DL, Ty, getTargetNode(Op, DAG, HiFlag));
++  Hi = DAG.getNode(ISD::ADD, DL, Ty, Hi, getGlobalReg(DAG, Ty));
++  SDValue Wrapper = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, Hi,
++                                getTargetNode(Op, DAG, LoFlag));
++  return DAG.getLoad(Ty, DL, DAG.getEntryNode(), Wrapper,
++                     MachinePointerInfo::getGOT(), false, false, false, 0);
 +}
 +
 +const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
@@ -254,7 +322,7 @@ diff -Naur Chapter5_1/Cpu0ISelLowering.cpp Chapter6_1/Cpu0ISelLowering.cpp
    setOperationAction(ISD::SDIV, MVT::i32, Expand);
    setOperationAction(ISD::SREM, MVT::i32, Expand);
    setOperationAction(ISD::UDIV, MVT::i32, Expand);
-@@ -112,6 +136,71 @@
+@@ -112,6 +198,63 @@
    return SDValue();
  }
  
@@ -305,30 +373,22 @@ diff -Naur Chapter5_1/Cpu0ISelLowering.cpp Chapter6_1/Cpu0ISelLowering.cpp
 +    return DAG.getNode(ISD::ADD, dl, MVT::i32, HiPart, Lo);
 +  }
 +
-+  EVT ValTy = Op.getValueType();
-+  bool HasGotOfst = (GV->hasInternalLinkage() ||
-+                     (GV->hasLocalLinkage() && !isa<Function>(GV)));
-+  unsigned GotFlag = (HasGotOfst ? Cpu0II::MO_GOT : Cpu0II::MO_GOT16);
-+  SDValue GA = DAG.getTargetGlobalAddress(GV, dl, ValTy, 0, GotFlag);
-+  GA = DAG.getNode(Cpu0ISD::Wrapper, dl, ValTy, GetGlobalReg(DAG, ValTy), GA);
-+  SDValue ResNode = DAG.getLoad(ValTy, dl, DAG.getEntryNode(), GA,
-+                                MachinePointerInfo(), false, false, false, 0);
-+  // On functions and global targets not internal linked only
-+  // a load from got/GP is necessary for PIC to work.
-+  if (!HasGotOfst)
-+    return ResNode;
-+  SDValue GALo = DAG.getTargetGlobalAddress(GV, dl, ValTy, 0,
-+                                                        Cpu0II::MO_ABS_LO);
-+  SDValue Lo = DAG.getNode(Cpu0ISD::Lo, dl, ValTy, GALo);
-+  return DAG.getNode(ISD::ADD, dl, ValTy, ResNode, Lo);
++  if (GV->hasInternalLinkage() || (GV->hasLocalLinkage() && !isa<Function>(GV)))
++    return getAddrLocal(Op, DAG);
++
++  if (LargeGOT)
++    return getAddrGlobalLargeGOT(Op, DAG, Cpu0II::MO_GOT_HI16,
++                                 Cpu0II::MO_GOT_LO16);
++
++  return getAddrGlobal(Op, DAG, Cpu0II::MO_GOT16);
 +}
 +
  #include "Cpu0GenCallingConv.inc"
  
  /// LowerFormalArguments - transform physical registers into virtual registers
 diff -Naur Chapter5_1/Cpu0ISelLowering.h Chapter6_1/Cpu0ISelLowering.h
---- Chapter5_1/Cpu0ISelLowering.h	2013-06-19 11:27:25.216714127 +0800
-+++ Chapter6_1/Cpu0ISelLowering.h	2013-06-19 11:27:25.220714127 +0800
+--- Chapter5_1/Cpu0ISelLowering.h	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/Cpu0ISelLowering.h	2013-06-21 18:28:13.752690494 +0800
 @@ -25,10 +25,32 @@
      enum NodeType {
        // Start the numbering from where ISD NodeType finishes.
@@ -363,7 +423,7 @@ diff -Naur Chapter5_1/Cpu0ISelLowering.h Chapter6_1/Cpu0ISelLowering.h
      };
    }
  
-@@ -40,12 +62,23 @@
+@@ -40,12 +62,33 @@
    public:
      explicit Cpu0TargetLowering(Cpu0TargetMachine &TM);
  
@@ -377,6 +437,16 @@ diff -Naur Chapter5_1/Cpu0ISelLowering.h Chapter6_1/Cpu0ISelLowering.h
 +
      virtual SDValue PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI) const;
  
++  protected:
++    SDValue getGlobalReg(SelectionDAG &DAG, EVT Ty) const;
++
++    SDValue getAddrLocal(SDValue Op, SelectionDAG &DAG) const;
++
++    SDValue getAddrGlobal(SDValue Op, SelectionDAG &DAG, unsigned Flag) const;
++
++    SDValue getAddrGlobalLargeGOT(SDValue Op, SelectionDAG &DAG,
++                                  unsigned HiFlag, unsigned LoFlag) const;
++
    private:
      // Subtarget Info
      const Cpu0Subtarget *Subtarget;
@@ -389,7 +459,7 @@ diff -Naur Chapter5_1/Cpu0ISelLowering.h Chapter6_1/Cpu0ISelLowering.h
        LowerFormalArguments(SDValue Chain,
 diff -Naur Chapter5_1/Cpu0MachineFunction.cpp Chapter6_1/Cpu0MachineFunction.cpp
 --- Chapter5_1/Cpu0MachineFunction.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter6_1/Cpu0MachineFunction.cpp	2013-06-19 11:27:25.220714127 +0800
++++ Chapter6_1/Cpu0MachineFunction.cpp	2013-06-21 18:28:13.752690494 +0800
 @@ -0,0 +1,44 @@
 +//===-- Cpu0MachineFunctionInfo.cpp - Private data used for Cpu0 ----------===//
 +//
@@ -436,8 +506,8 @@ diff -Naur Chapter5_1/Cpu0MachineFunction.cpp Chapter6_1/Cpu0MachineFunction.cpp
 +
 +void Cpu0FunctionInfo::anchor() { }
 diff -Naur Chapter5_1/Cpu0MachineFunction.h Chapter6_1/Cpu0MachineFunction.h
---- Chapter5_1/Cpu0MachineFunction.h	2013-06-19 11:27:25.216714127 +0800
-+++ Chapter6_1/Cpu0MachineFunction.h	2013-06-19 11:27:25.220714127 +0800
+--- Chapter5_1/Cpu0MachineFunction.h	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/Cpu0MachineFunction.h	2013-06-21 18:28:13.752690494 +0800
 @@ -23,16 +23,30 @@
  /// Cpu0FunctionInfo - This class is derived from MachineFunction private
  /// Cpu0 target-specific information for each MachineFunction.
@@ -471,9 +541,9 @@ diff -Naur Chapter5_1/Cpu0MachineFunction.h Chapter6_1/Cpu0MachineFunction.h
  
  } // end of namespace llvm
 diff -Naur Chapter5_1/Cpu0MCInstLower.cpp Chapter6_1/Cpu0MCInstLower.cpp
---- Chapter5_1/Cpu0MCInstLower.cpp	2013-06-19 11:27:25.216714127 +0800
-+++ Chapter6_1/Cpu0MCInstLower.cpp	2013-06-19 11:27:25.220714127 +0800
-@@ -42,6 +42,16 @@
+--- Chapter5_1/Cpu0MCInstLower.cpp	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/Cpu0MCInstLower.cpp	2013-06-21 18:28:13.752690494 +0800
+@@ -42,6 +42,18 @@
  
    switch(MO.getTargetFlags()) {
    default:                   llvm_unreachable("Invalid target flag!");
@@ -487,10 +557,12 @@ diff -Naur Chapter5_1/Cpu0MCInstLower.cpp Chapter6_1/Cpu0MCInstLower.cpp
 +//  var in .data).
 +  case Cpu0II::MO_ABS_HI:    Kind = MCSymbolRefExpr::VK_Cpu0_ABS_HI; break;
 +  case Cpu0II::MO_ABS_LO:    Kind = MCSymbolRefExpr::VK_Cpu0_ABS_LO; break;
++  case Cpu0II::MO_GOT_HI16:  Kind = MCSymbolRefExpr::VK_Cpu0_GOT_HI16; break;
++  case Cpu0II::MO_GOT_LO16:  Kind = MCSymbolRefExpr::VK_Cpu0_GOT_LO16; break;
    }
  
    switch (MOTy) {
-@@ -66,6 +76,42 @@
+@@ -66,6 +78,42 @@
    return MCOperand::CreateExpr(AddExpr);
  }
  
@@ -533,7 +605,7 @@ diff -Naur Chapter5_1/Cpu0MCInstLower.cpp Chapter6_1/Cpu0MCInstLower.cpp
  MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand& MO,
                                          unsigned offset) const {
    MachineOperandType MOTy = MO.getType();
-@@ -78,6 +124,8 @@
+@@ -78,6 +126,8 @@
      return MCOperand::CreateReg(MO.getReg());
    case MachineOperand::MO_Immediate:
      return MCOperand::CreateImm(MO.getImm() + offset);
@@ -543,8 +615,8 @@ diff -Naur Chapter5_1/Cpu0MCInstLower.cpp Chapter6_1/Cpu0MCInstLower.cpp
      break;
   }
 diff -Naur Chapter5_1/Cpu0MCInstLower.h Chapter6_1/Cpu0MCInstLower.h
---- Chapter5_1/Cpu0MCInstLower.h	2013-06-19 11:27:25.216714127 +0800
-+++ Chapter6_1/Cpu0MCInstLower.h	2013-06-19 11:27:25.220714127 +0800
+--- Chapter5_1/Cpu0MCInstLower.h	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/Cpu0MCInstLower.h	2013-06-21 18:28:13.752690494 +0800
 @@ -33,6 +33,7 @@
    Cpu0MCInstLower(Cpu0AsmPrinter &asmprinter);
    void Initialize(Mangler *mang, MCContext* C);
@@ -554,14 +626,14 @@ diff -Naur Chapter5_1/Cpu0MCInstLower.h Chapter6_1/Cpu0MCInstLower.h
    MCOperand LowerSymbolOperand(const MachineOperand &MO,
                                 MachineOperandType MOTy, unsigned Offset) const;
 diff -Naur Chapter5_1/Cpu0RegisterInfo.cpp Chapter6_1/Cpu0RegisterInfo.cpp
---- Chapter5_1/Cpu0RegisterInfo.cpp	2013-06-19 11:27:25.216714127 +0800
-+++ Chapter6_1/Cpu0RegisterInfo.cpp	2013-06-19 11:27:25.220714127 +0800
-@@ -78,6 +78,11 @@
+--- Chapter5_1/Cpu0RegisterInfo.cpp	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/Cpu0RegisterInfo.cpp	2013-06-21 18:28:13.752690494 +0800
+@@ -77,6 +77,11 @@
    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
      Reserved.set(ReservedCPURegs[I]);
  
-+  // If GP is dedicated as a global base register, reserve it.
-+  if (MF.getInfo<Cpu0FunctionInfo>()->globalBaseRegFixed()) {
++  // Reserve GP if small section is used.
++  if (Subtarget.useSmallSection()) {
 +    Reserved.set(Cpu0::GP);
 +  }
 +
@@ -569,8 +641,8 @@ diff -Naur Chapter5_1/Cpu0RegisterInfo.cpp Chapter6_1/Cpu0RegisterInfo.cpp
  }
  
 diff -Naur Chapter5_1/Cpu0Subtarget.cpp Chapter6_1/Cpu0Subtarget.cpp
---- Chapter5_1/Cpu0Subtarget.cpp	2013-06-19 11:27:25.216714127 +0800
-+++ Chapter6_1/Cpu0Subtarget.cpp	2013-06-19 11:27:25.220714127 +0800
+--- Chapter5_1/Cpu0Subtarget.cpp	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/Cpu0Subtarget.cpp	2013-06-21 18:28:13.752690494 +0800
 @@ -14,6 +14,7 @@
  #include "Cpu0Subtarget.h"
  #include "Cpu0.h"
@@ -610,8 +682,8 @@ diff -Naur Chapter5_1/Cpu0Subtarget.cpp Chapter6_1/Cpu0Subtarget.cpp
  }
  
 diff -Naur Chapter5_1/Cpu0Subtarget.h Chapter6_1/Cpu0Subtarget.h
---- Chapter5_1/Cpu0Subtarget.h	2013-06-19 11:27:25.216714127 +0800
-+++ Chapter6_1/Cpu0Subtarget.h	2013-06-19 11:27:25.220714127 +0800
+--- Chapter5_1/Cpu0Subtarget.h	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/Cpu0Subtarget.h	2013-06-21 18:28:13.752690494 +0800
 @@ -47,15 +47,21 @@
    // IsLittle - The target is Little Endian
    bool IsLittle;
@@ -644,8 +716,8 @@ diff -Naur Chapter5_1/Cpu0Subtarget.h Chapter6_1/Cpu0Subtarget.h
  } // End llvm namespace
  
 diff -Naur Chapter5_1/Cpu0TargetMachine.cpp Chapter6_1/Cpu0TargetMachine.cpp
---- Chapter5_1/Cpu0TargetMachine.cpp	2013-06-19 11:27:25.216714127 +0800
-+++ Chapter6_1/Cpu0TargetMachine.cpp	2013-06-19 11:27:25.220714127 +0800
+--- Chapter5_1/Cpu0TargetMachine.cpp	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/Cpu0TargetMachine.cpp	2013-06-21 18:28:13.752690494 +0800
 @@ -41,7 +41,7 @@
                    bool isLittle)
    //- Default is big endian
@@ -657,7 +729,7 @@ diff -Naur Chapter5_1/Cpu0TargetMachine.cpp Chapter6_1/Cpu0TargetMachine.cpp
                 ("E-p:32:32:32-i8:8:32-i16:16:32-i64:64:64-n32")),
 diff -Naur Chapter5_1/Cpu0TargetObjectFile.cpp Chapter6_1/Cpu0TargetObjectFile.cpp
 --- Chapter5_1/Cpu0TargetObjectFile.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter6_1/Cpu0TargetObjectFile.cpp	2013-06-19 11:27:25.220714127 +0800
++++ Chapter6_1/Cpu0TargetObjectFile.cpp	2013-06-21 18:28:13.752690494 +0800
 @@ -0,0 +1,104 @@
 +//===-- Cpu0TargetObjectFile.cpp - Cpu0 Object Files ----------------------===//
 +//
@@ -765,7 +837,7 @@ diff -Naur Chapter5_1/Cpu0TargetObjectFile.cpp Chapter6_1/Cpu0TargetObjectFile.c
 +}
 diff -Naur Chapter5_1/Cpu0TargetObjectFile.h Chapter6_1/Cpu0TargetObjectFile.h
 --- Chapter5_1/Cpu0TargetObjectFile.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter6_1/Cpu0TargetObjectFile.h	2013-06-19 11:27:25.220714127 +0800
++++ Chapter6_1/Cpu0TargetObjectFile.h	2013-06-21 18:28:13.752690494 +0800
 @@ -0,0 +1,41 @@
 +//===-- llvm/Target/Cpu0TargetObjectFile.h - Cpu0 Object Info ---*- C++ -*-===//
 +//
@@ -809,9 +881,9 @@ diff -Naur Chapter5_1/Cpu0TargetObjectFile.h Chapter6_1/Cpu0TargetObjectFile.h
 +
 +#endif
 diff -Naur Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp	2013-06-19 11:27:25.216714127 +0800
-+++ Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp	2013-06-19 11:27:25.220714127 +0800
-@@ -56,6 +56,12 @@
+--- Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp	2013-06-21 18:28:13.752690494 +0800
+@@ -56,6 +56,14 @@
    switch (Kind) {
    default:                                 llvm_unreachable("Invalid kind!");
    case MCSymbolRefExpr::VK_None:           break;
@@ -821,13 +893,93 @@ diff -Naur Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp Chapter6_1/InstPrinter/Cpu
 +  case MCSymbolRefExpr::VK_Cpu0_GOT:       OS << "%got(";    break;
 +  case MCSymbolRefExpr::VK_Cpu0_ABS_HI:    OS << "%hi(";     break;
 +  case MCSymbolRefExpr::VK_Cpu0_ABS_LO:    OS << "%lo(";     break;
++  case MCSymbolRefExpr::VK_Cpu0_GOT_HI16:  OS << "%got_hi("; break;
++  case MCSymbolRefExpr::VK_Cpu0_GOT_LO16:  OS << "%got_lo("; break;
    }
  
    OS << SRE->getSymbol();
+diff -Naur Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter6_1/MCTargetDesc/Cpu0AsmBackend.cpp
+--- Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-06-21 18:28:13.752690494 +0800
+@@ -36,6 +36,7 @@
+   case FK_GPRel_4:
+   case FK_Data_4:
+   case Cpu0::fixup_Cpu0_LO16:
++  case Cpu0::fixup_Cpu0_GOT_LO16:
+     break;
+   case Cpu0::fixup_Cpu0_PC24:
+     // So far we are only using this type for branches.
+@@ -48,6 +49,7 @@
+     break;
+   case Cpu0::fixup_Cpu0_HI16:
+   case Cpu0::fixup_Cpu0_GOT_Local:
++  case Cpu0::fixup_Cpu0_GOT_HI16:
+     // Get the higher 16-bits. Also add 1 if bit 15 is 1.
+     Value = ((Value + 0x8000) >> 16) & 0xffff;
+     break;
+@@ -153,7 +155,9 @@
+       { "fixup_Cpu0_TLSLDM",       0,     16,   0 },
+       { "fixup_Cpu0_DTPREL_HI",    0,     16,   0 },
+       { "fixup_Cpu0_DTPREL_LO",    0,     16,   0 },
+-      { "fixup_Cpu0_Branch_PCRel", 0,     16,  MCFixupKindInfo::FKF_IsPCRel }
++      { "fixup_Cpu0_Branch_PCRel", 0,     16,  MCFixupKindInfo::FKF_IsPCRel },
++      { "fixup_Cpu0_GOT_HI16",     0,     16,   0 },
++      { "fixup_Cpu0_GOT_LO16",     0,     16,   0 }
+     };
+ 
+     if (Kind < FirstTargetFixupKind)
+diff -Naur Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h Chapter6_1/MCTargetDesc/Cpu0BaseInfo.h
+--- Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/MCTargetDesc/Cpu0BaseInfo.h	2013-06-21 18:28:13.752690494 +0800
+@@ -79,7 +79,11 @@
+     MO_GPOFF_LO,
+     MO_GOT_DISP,
+     MO_GOT_PAGE,
+-    MO_GOT_OFST
++    MO_GOT_OFST,
++
++    /// MO_GOT_HI16/LO16 - Relocations used for large GOTs.
++    MO_GOT_HI16,
++    MO_GOT_LO16
+   };
+ 
+   enum {
+diff -Naur Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter6_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
+--- Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-06-21 18:28:13.752690494 +0800
+@@ -145,6 +145,12 @@
+   case Cpu0::fixup_Cpu0_PC24:
+     Type = ELF::R_CPU0_PC24;
+     break;
++  case Cpu0::fixup_Cpu0_GOT_HI16:
++    Type = ELF::R_CPU0_GOT_HI16;
++    break;
++  case Cpu0::fixup_Cpu0_GOT_LO16:
++    Type = ELF::R_CPU0_GOT_LO16;
++    break;
+   }
+ 
+   return Type;
+diff -Naur Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h Chapter6_1/MCTargetDesc/Cpu0FixupKinds.h
+--- Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/MCTargetDesc/Cpu0FixupKinds.h	2013-06-21 18:28:13.752690494 +0800
+@@ -96,6 +96,12 @@
+     // PC relative branch fixup resulting in - R_CPU0_PC16
+     fixup_Cpu0_Branch_PCRel,
+ 
++    // resulting in - R_MIPS_GOT_HI16
++    fixup_Cpu0_GOT_HI16,
++
++    // resulting in - R_MIPS_GOT_LO16
++    fixup_Cpu0_GOT_LO16,
++
+     // Marker
+     LastTargetFixupKind,
+     NumTargetFixupKinds = LastTargetFixupKind - FirstTargetFixupKind
 diff -Naur Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter6_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-06-19 11:27:25.216714127 +0800
-+++ Chapter6_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-06-19 11:27:25.220714127 +0800
-@@ -157,6 +157,30 @@
+--- Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-06-21 18:28:13.748690494 +0800
++++ Chapter6_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-06-21 18:28:13.752690494 +0800
+@@ -157,6 +157,36 @@
  
    assert (Kind == MCExpr::SymbolRef);
  
@@ -848,6 +1000,12 @@ diff -Naur Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter6_1/MCTargetDesc
 +    break;
 +  case MCSymbolRefExpr::VK_Cpu0_ABS_LO:
 +    FixupKind = Cpu0::fixup_Cpu0_LO16;
++    break;
++  case MCSymbolRefExpr::VK_Cpu0_GOT_HI16:
++    FixupKind = Cpu0::fixup_Cpu0_GOT_HI16;
++    break;
++  case MCSymbolRefExpr::VK_Cpu0_GOT_LO16:
++    FixupKind = Cpu0::fixup_Cpu0_GOT_LO16;
 +    break;
 +  default:
 +    break;

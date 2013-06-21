@@ -229,6 +229,12 @@ getMachineOpValue(const MCInst &MI, const MCOperand &MO,
   case MCSymbolRefExpr::VK_Cpu0_ABS_LO:
     FixupKind = Cpu0::fixup_Cpu0_LO16;
     break;
+  case MCSymbolRefExpr::VK_Cpu0_GOT_HI16:
+    FixupKind = Cpu0::fixup_Cpu0_GOT_HI16;
+    break;
+  case MCSymbolRefExpr::VK_Cpu0_GOT_LO16:
+    FixupKind = Cpu0::fixup_Cpu0_GOT_LO16;
+    break;
   default:
     break;
   } // switch

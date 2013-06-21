@@ -63,6 +63,8 @@ static void printExpr(const MCExpr *Expr, raw_ostream &OS) {
   case MCSymbolRefExpr::VK_Cpu0_GOT:       OS << "%got(";    break;
   case MCSymbolRefExpr::VK_Cpu0_ABS_HI:    OS << "%hi(";     break;
   case MCSymbolRefExpr::VK_Cpu0_ABS_LO:    OS << "%lo(";     break;
+  case MCSymbolRefExpr::VK_Cpu0_GOT_HI16:  OS << "%got_hi("; break;
+  case MCSymbolRefExpr::VK_Cpu0_GOT_LO16:  OS << "%got_lo("; break;
   }
 
   OS << SRE->getSymbol();

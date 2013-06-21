@@ -72,6 +72,16 @@ namespace llvm {
 
     virtual SDValue PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI) const;
 
+  protected:
+    SDValue getGlobalReg(SelectionDAG &DAG, EVT Ty) const;
+
+    SDValue getAddrLocal(SDValue Op, SelectionDAG &DAG) const;
+
+    SDValue getAddrGlobal(SDValue Op, SelectionDAG &DAG, unsigned Flag) const;
+
+    SDValue getAddrGlobalLargeGOT(SDValue Op, SelectionDAG &DAG,
+                                  unsigned HiFlag, unsigned LoFlag) const;
+
   private:
     // Subtarget Info
     const Cpu0Subtarget *Subtarget;

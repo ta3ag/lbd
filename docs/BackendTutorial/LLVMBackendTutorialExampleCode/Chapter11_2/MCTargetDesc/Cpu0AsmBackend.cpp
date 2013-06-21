@@ -36,6 +36,7 @@ static unsigned adjustFixupValue(unsigned Kind, uint64_t Value) {
   case FK_GPRel_4:
   case FK_Data_4:
   case Cpu0::fixup_Cpu0_LO16:
+  case Cpu0::fixup_Cpu0_GOT_LO16:
     break;
   case Cpu0::fixup_Cpu0_PC16:
   case Cpu0::fixup_Cpu0_PC24:
@@ -49,6 +50,7 @@ static unsigned adjustFixupValue(unsigned Kind, uint64_t Value) {
     break;
   case Cpu0::fixup_Cpu0_HI16:
   case Cpu0::fixup_Cpu0_GOT_Local:
+  case Cpu0::fixup_Cpu0_GOT_HI16:
     // Get the higher 16-bits. Also add 1 if bit 15 is 1.
     Value = ((Value + 0x8000) >> 16) & 0xffff;
     break;
@@ -155,7 +157,9 @@ public:
       { "fixup_Cpu0_TLSLDM",       0,     16,   0 },
       { "fixup_Cpu0_DTPREL_HI",    0,     16,   0 },
       { "fixup_Cpu0_DTPREL_LO",    0,     16,   0 },
-      { "fixup_Cpu0_Branch_PCRel", 0,     16,  MCFixupKindInfo::FKF_IsPCRel }
+      { "fixup_Cpu0_Branch_PCRel", 0,     16,  MCFixupKindInfo::FKF_IsPCRel },
+      { "fixup_Cpu0_GOT_HI16",     0,     16,   0 },
+      { "fixup_Cpu0_GOT_LO16",     0,     16,   0 }
     };
 
     if (Kind < FirstTargetFixupKind)

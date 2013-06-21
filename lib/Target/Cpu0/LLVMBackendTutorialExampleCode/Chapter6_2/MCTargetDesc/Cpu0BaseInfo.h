@@ -79,7 +79,11 @@ namespace Cpu0II {
     MO_GPOFF_LO,
     MO_GOT_DISP,
     MO_GOT_PAGE,
-    MO_GOT_OFST
+    MO_GOT_OFST,
+
+    /// MO_GOT_HI16/LO16 - Relocations used for large GOTs.
+    MO_GOT_HI16,
+    MO_GOT_LO16
   };
 
   enum {

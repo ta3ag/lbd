@@ -1,6 +1,6 @@
 diff -Naur Chapter8_9/Cpu0FrameLowering.cpp Chapter8_10/Cpu0FrameLowering.cpp
---- Chapter8_9/Cpu0FrameLowering.cpp	2013-06-19 11:27:25.252714127 +0800
-+++ Chapter8_10/Cpu0FrameLowering.cpp	2013-06-19 11:27:25.232714127 +0800
+--- Chapter8_9/Cpu0FrameLowering.cpp	2013-06-21 18:28:13.768690494 +0800
++++ Chapter8_10/Cpu0FrameLowering.cpp	2013-06-21 18:28:13.760690494 +0800
 @@ -99,6 +99,9 @@
    MachineBasicBlock::iterator MBBI = MBB.begin();
    DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
@@ -57,9 +57,9 @@ diff -Naur Chapter8_9/Cpu0FrameLowering.cpp Chapter8_10/Cpu0FrameLowering.cpp
    uint64_t StackSize = MFI->getStackSize();
  
 diff -Naur Chapter8_9/Cpu0ISelLowering.cpp Chapter8_10/Cpu0ISelLowering.cpp
---- Chapter8_9/Cpu0ISelLowering.cpp	2013-06-19 11:27:25.252714127 +0800
-+++ Chapter8_10/Cpu0ISelLowering.cpp	2013-06-19 11:27:25.228714127 +0800
-@@ -82,6 +82,7 @@
+--- Chapter8_9/Cpu0ISelLowering.cpp	2013-06-21 18:28:13.764690494 +0800
++++ Chapter8_10/Cpu0ISelLowering.cpp	2013-06-21 18:28:13.756690494 +0800
+@@ -144,6 +144,7 @@
  
    // Operations not directly supported by Cpu0.
    setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
@@ -67,7 +67,7 @@ diff -Naur Chapter8_9/Cpu0ISelLowering.cpp Chapter8_10/Cpu0ISelLowering.cpp
  
    // Support va_arg(): variable numbers (not fixed numbers) of arguments 
    //  (parameters) for function all
-@@ -96,6 +97,8 @@
+@@ -158,6 +159,8 @@
  // It will emit .align 2 later
    setMinFunctionAlignment(2);
  
@@ -77,9 +77,9 @@ diff -Naur Chapter8_9/Cpu0ISelLowering.cpp Chapter8_10/Cpu0ISelLowering.cpp
  //  added, this allows us to compute derived properties we expose.
    computeRegisterProperties();
 diff -Naur Chapter8_9/Cpu0RegisterInfo.cpp Chapter8_10/Cpu0RegisterInfo.cpp
---- Chapter8_9/Cpu0RegisterInfo.cpp	2013-06-19 11:27:25.252714127 +0800
-+++ Chapter8_10/Cpu0RegisterInfo.cpp	2013-06-19 11:27:25.232714127 +0800
-@@ -78,6 +78,11 @@
+--- Chapter8_9/Cpu0RegisterInfo.cpp	2013-06-21 18:28:13.768690494 +0800
++++ Chapter8_10/Cpu0RegisterInfo.cpp	2013-06-21 18:28:13.760690494 +0800
+@@ -77,6 +77,11 @@
    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
      Reserved.set(ReservedCPURegs[I]);
  
@@ -88,6 +88,6 @@ diff -Naur Chapter8_9/Cpu0RegisterInfo.cpp Chapter8_10/Cpu0RegisterInfo.cpp
 +    Reserved.set(Cpu0::FP);
 +  }
 +
-   // If GP is dedicated as a global base register, reserve it.
-   if (MF.getInfo<Cpu0FunctionInfo>()->globalBaseRegFixed()) {
+   // Reserve GP if small section is used.
+   if (Subtarget.useSmallSection()) {
      Reserved.set(Cpu0::GP);

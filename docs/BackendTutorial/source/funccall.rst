@@ -972,12 +972,19 @@ bits address range access.
 We add **“jalr”** to cpu0 and expand it to 32 bit address. We did this change for 
 two reason. One is cpu0 can be expand to 32 bit address space by only add this 
 instruction. 
-The other is cpu0 and this book are designed for teaching purpose. 
-We reserve **“jalr”** as PIC mode for dynamic linking function to demonstrate 
-how caller handle the caller saved register $gp in calling the function as well 
-as how the code in the shared libray function use $gp to access global variable 
-address. This solution is popular in reality and deserve change cpu0 official 
-design as a compiler book. 
+The other is cpu0 as well as this book are designed for teaching purpose. 
+We reserve **“jalr”** as PIC mode for dynamic linking function to demonstrate: 
+
+1. How caller handle the caller saved register $gp in calling the function
+
+2. How the code in the shared libray function use $gp to access global variable 
+   address. 
+
+3. The jalr for dynamic linking function is easier in implementation and faster. 
+   As we have depicted in section "pic mode" of chapter "Global variables, structs 
+   and arrays, other type". This solution is popular in reality and deserve change 
+   cpu0 official design as a compiler book. 
+
 
 Now, after the following code added in Chapter8_6/, we can issue 
 **“.cprestore”** in emitPrologue() and emit "ld $gp, ($gp save slot on stack)" 

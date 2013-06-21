@@ -260,7 +260,7 @@ Summary above information to Table: Cpu0 global variable options.
    "link type", "static link", "static link", "dynamic link"
    "section", "data or bss", "sdata or sbss", "data or bss"
    "range", "32 bits", "16 bits", "32 bits"
-   "addressing mode", "absolute / PIC", "PIC", "PIC"
+   "addressing mode", "absolute / pc relative", "$gp relative", "$gp relative"
    "addressing", "absolute / pc+offset", "$gp+offset", "$gp+offset"
    "Legalized selection DAG", "(add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>)", "(add GLOBAL_OFFSET_TABLE, Cpu0ISD::GPRel<gI offset>)", "(load (Cpu0ISD::Wrapper %GP, <gI offset>))"
    "Cpu0", "addiu $2, $zero, %hi(gI); shl $2, $2, 16; addiu $2, $2, %lo(gI); ld $2, 0($2)", "addiu	$2, $gp, %gp_rel(gI); ld $2, 0($2);", "ld $2, %got(gI)($gp); ld $2, 0($2);"
@@ -320,7 +320,7 @@ About the **cl::opt** command line variable, you can refer to [#]_ further.
                    "static. pic always not use small section."));
     
 Next add file Cpu0TargetObjectFile.h, Cpu0TargetObjectFile.cpp and the 
-following code to Cpu0ISelLowering.cpp.
+following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.h
@@ -329,6 +329,20 @@ following code to Cpu0ISelLowering.cpp.
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.cpp
     :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0RegisterInfo.cpp
+.. code-block:: c++
+
+  // pure virtual method
+  BitVector Cpu0RegisterInfo::
+  getReservedRegs(const MachineFunction &MF) const {
+    ...
+    // Reserve GP if small section is used.
+    if (Subtarget.useSmallSection()) {
+      Reserved.set(Cpu0::GP);
+    }
+    ...
+  }
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
@@ -761,6 +775,24 @@ when program ch6_1.cpu0.s is loaded, then linker can caculate %gp_rel(gI) =
 Which meaning this relocation record can be solved at link time, that's why it 
 is static mode. 
 
+In this mode, we prereserve $gp to a specfic fixed address of both linker and 
+loader agree to. So, the $gp cannot be allocated as a general purpose for 
+variables. The following code tell llvm never allocate $gp for variables.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0RegisterInfo.cpp
+.. code-block:: c++
+
+  // pure virtual method
+  BitVector Cpu0RegisterInfo::
+  getReservedRegs(const MachineFunction &MF) const {
+    ...
+    // Reserve GP if small section is used.
+    if (Subtarget.useSmallSection()) {
+      Reserved.set(Cpu0::GP);
+    }
+    ...
+  }
+
 
 pic mode
 ~~~~~~~~~
@@ -876,7 +908,7 @@ Counter (PC) while jalr has 32 bits address range in register size of 32 bits.
 One example of PIC mode is used in share library. 
 Share library is re-entry code which can be loaded in different memory address 
 decided on run time. The jalr make the implementation of dynamic link function 
-easier as below.
+easier and faster as below.
 
 .. code-block:: bash
 
@@ -894,6 +926,11 @@ easier as below.
 
 4. The caller can call the fun() by instruction jalr $t9 correctly.
 
+If use jal instead of jalr to call dynamic function, the relocation record 
+"jal pc_offset" need to be solved at run time in "SYSCALL call##fun()". 
+That's why Mips ABI use "jalr" and register %t9 for dynamic function. 
+In addition to dynamic function, the jalr is 32 bits 
+addressable while jal is 24 bits addressable.
 
 The **.cpload** is the assembly directive (macro) which 
 will expand to several instructions. 
@@ -956,10 +993,10 @@ instructions 09a00000 (offset 0) which equal to assembly
 assembly "addiu $gp, $gp, %lo(_gp_disp)" are relocated records depend on 
 _gp_disp. The loader or OS can caculate _gp_disp by (x - start address of .data) 
 when load the dynamic function into memory x, and adust these two 
-instructions offet correctly. 
+instructions offet correctly.
 Since shared function is loaded when this function be called, the relocation 
 record "ld $2, %got(gI)($gp)" cannot be resolved in link time. 
-In spite of the reloation record is solved on load time, the variable binding 
+In spite of the reloation record is solved on load time, the name binding 
 is static since link deliver the memory address to loader and loader can solve 
 this just by caculate the offset directly. No need to search the variable name 
 at run time.
@@ -1055,6 +1092,19 @@ TargetGlobalAddress<i32* @gI> 0)) into Cpu0 instruction as below.
   	ld	$2, %got(gI)($gp)
     ...
 
+Remind in pic mode, Cpu0 use ".cpload" and "ld $2, %got(gI)($gp)" to access 
+global variable. It take 5 instructions in Cpu0 and 4 instructions in Mips. 
+The cost is came from we didn't assume the register $gp is always assigned to 
+address .sdata and fixed there. If $gp is fixed during the run time, then 
+".cpload" can be removed here and have only one instruction cost in global 
+variable access. The advantage of ".cpload" removing came from losing one 
+general purpose register $gp which can be allocated for variables. 
+In last sub-section, .sdata mode, we use ".cpload" removing since it is 
+static link, and without ".cpload" will save four instructions which has the 
+faster result in speed.
+In pic mode, the dynamic loading takes too much time.
+Romove ".cpload" by the cost of losing one general purpose
+register is not deserved in here.
 
 
 Global variable print support

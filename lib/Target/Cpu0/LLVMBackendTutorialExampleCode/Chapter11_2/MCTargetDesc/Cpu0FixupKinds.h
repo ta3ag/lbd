@@ -100,6 +100,12 @@ namespace Cpu0 {
     // PC relative branch fixup resulting in - R_CPU0_PC16
     fixup_Cpu0_Branch_PCRel,
 
+    // resulting in - R_MIPS_GOT_HI16
+    fixup_Cpu0_GOT_HI16,
+
+    // resulting in - R_MIPS_GOT_LO16
+    fixup_Cpu0_GOT_LO16,
+
     // Marker
     LastTargetFixupKind,
     NumTargetFixupKinds = LastTargetFixupKind - FirstTargetFixupKind

@@ -31,15 +31,77 @@
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 #include "llvm/CodeGen/SelectionDAGISel.h"
 #include "llvm/CodeGen/ValueTypes.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 using namespace llvm;
 
-static SDValue GetGlobalReg(SelectionDAG &DAG, EVT Ty) {
+static cl::opt<bool>
+LargeGOT("cpu0-mxgot", cl::Hidden,
+         cl::desc("CPU0: Enable GOT larger than 64k."), cl::init(false));
+
+SDValue Cpu0TargetLowering::getGlobalReg(SelectionDAG &DAG, EVT Ty) const {
   Cpu0FunctionInfo *FI = DAG.getMachineFunction().getInfo<Cpu0FunctionInfo>();
   return DAG.getRegister(FI->getGlobalBaseReg(), Ty);
+}
+
+static SDValue getTargetNode(SDValue Op, SelectionDAG &DAG, unsigned Flag) {
+  EVT Ty = Op.getValueType();
+
+  if (GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Op))
+    return DAG.getTargetGlobalAddress(N->getGlobal(), Op.getDebugLoc(), Ty, 0,
+                                      Flag);
+  if (ExternalSymbolSDNode *N = dyn_cast<ExternalSymbolSDNode>(Op))
+    return DAG.getTargetExternalSymbol(N->getSymbol(), Ty, Flag);
+  if (BlockAddressSDNode *N = dyn_cast<BlockAddressSDNode>(Op))
+    return DAG.getTargetBlockAddress(N->getBlockAddress(), Ty, 0, Flag);
+  if (JumpTableSDNode *N = dyn_cast<JumpTableSDNode>(Op))
+    return DAG.getTargetJumpTable(N->getIndex(), Ty, Flag);
+  if (ConstantPoolSDNode *N = dyn_cast<ConstantPoolSDNode>(Op))
+    return DAG.getTargetConstantPool(N->getConstVal(), Ty, N->getAlignment(),
+                                     N->getOffset(), Flag);
+
+  llvm_unreachable("Unexpected node type.");
+  return SDValue();
+}
+
+SDValue Cpu0TargetLowering::getAddrLocal(SDValue Op, SelectionDAG &DAG) const {
+  DebugLoc DL = Op.getDebugLoc();
+  EVT Ty = Op.getValueType();
+  unsigned GOTFlag = Cpu0II::MO_GOT;
+  SDValue GOT = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
+                            getTargetNode(Op, DAG, GOTFlag));
+  SDValue Load = DAG.getLoad(Ty, DL, DAG.getEntryNode(), GOT,
+                             MachinePointerInfo::getGOT(), false, false, false,
+                             0);
+  unsigned LoFlag = Cpu0II::MO_ABS_LO;
+  SDValue Lo = DAG.getNode(Cpu0ISD::Lo, DL, Ty, getTargetNode(Op, DAG, LoFlag));
+  return DAG.getNode(ISD::ADD, DL, Ty, Load, Lo);
+}
+
+SDValue Cpu0TargetLowering::getAddrGlobal(SDValue Op, SelectionDAG &DAG,
+                                          unsigned Flag) const {
+  DebugLoc DL = Op.getDebugLoc();
+  EVT Ty = Op.getValueType();
+  SDValue Tgt = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
+                            getTargetNode(Op, DAG, Flag));
+  return DAG.getLoad(Ty, DL, DAG.getEntryNode(), Tgt,
+                     MachinePointerInfo::getGOT(), false, false, false, 0);
+}
+
+SDValue Cpu0TargetLowering::getAddrGlobalLargeGOT(SDValue Op, SelectionDAG &DAG,
+                                                  unsigned HiFlag,
+                                                  unsigned LoFlag) const {
+  DebugLoc DL = Op.getDebugLoc();
+  EVT Ty = Op.getValueType();
+  SDValue Hi = DAG.getNode(Cpu0ISD::Hi, DL, Ty, getTargetNode(Op, DAG, HiFlag));
+  Hi = DAG.getNode(ISD::ADD, DL, Ty, Hi, getGlobalReg(DAG, Ty));
+  SDValue Wrapper = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, Hi,
+                                getTargetNode(Op, DAG, LoFlag));
+  return DAG.getLoad(Ty, DL, DAG.getEntryNode(), Wrapper,
+                     MachinePointerInfo::getGOT(), false, false, false, 0);
 }
 
 const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
@@ -219,22 +281,14 @@ SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
     return DAG.getNode(ISD::ADD, dl, MVT::i32, HiPart, Lo);
   }
 
-  EVT ValTy = Op.getValueType();
-  bool HasGotOfst = (GV->hasInternalLinkage() ||
-                     (GV->hasLocalLinkage() && !isa<Function>(GV)));
-  unsigned GotFlag = (HasGotOfst ? Cpu0II::MO_GOT : Cpu0II::MO_GOT16);
-  SDValue GA = DAG.getTargetGlobalAddress(GV, dl, ValTy, 0, GotFlag);
-  GA = DAG.getNode(Cpu0ISD::Wrapper, dl, ValTy, GetGlobalReg(DAG, ValTy), GA);
-  SDValue ResNode = DAG.getLoad(ValTy, dl, DAG.getEntryNode(), GA,
-                                MachinePointerInfo(), false, false, false, 0);
-  // On functions and global targets not internal linked only
-  // a load from got/GP is necessary for PIC to work.
-  if (!HasGotOfst)
-    return ResNode;
-  SDValue GALo = DAG.getTargetGlobalAddress(GV, dl, ValTy, 0,
-                                                        Cpu0II::MO_ABS_LO);
-  SDValue Lo = DAG.getNode(Cpu0ISD::Lo, dl, ValTy, GALo);
-  return DAG.getNode(ISD::ADD, dl, ValTy, ResNode, Lo);
+  if (GV->hasInternalLinkage() || (GV->hasLocalLinkage() && !isa<Function>(GV)))
+    return getAddrLocal(Op, DAG);
+
+  if (LargeGOT)
+    return getAddrGlobalLargeGOT(Op, DAG, Cpu0II::MO_GOT_HI16,
+                                 Cpu0II::MO_GOT_LO16);
+
+  return getAddrGlobal(Op, DAG, Cpu0II::MO_GOT16);
 }
 
 SDValue Cpu0TargetLowering::LowerVASTART(SDValue Op, SelectionDAG &DAG) const {
