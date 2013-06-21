@@ -50,6 +50,6 @@ Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
     Cpu0ABI = O32;
 
   // Set UseSmallSection.
-  UseSmallSection = UseSmallSectionOpt && (RM == Reloc::Static);
+  UseSmallSection = UseSmallSectionOpt;
 }
 

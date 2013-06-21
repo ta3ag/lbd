@@ -1,7 +1,7 @@
 diff -Naur Chapter8_6/Cpu0ISelLowering.cpp Chapter8_7/Cpu0ISelLowering.cpp
---- Chapter8_6/Cpu0ISelLowering.cpp	2013-06-21 18:28:13.760690494 +0800
-+++ Chapter8_7/Cpu0ISelLowering.cpp	2013-06-21 18:28:13.756690494 +0800
-@@ -135,7 +135,8 @@
+--- Chapter8_6/Cpu0ISelLowering.cpp	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_7/Cpu0ISelLowering.cpp	2013-06-21 22:46:45.000000000 +0800
+@@ -131,7 +131,8 @@
    // Cpu0 Custom Operations
    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
    setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
@@ -11,7 +11,7 @@ diff -Naur Chapter8_6/Cpu0ISelLowering.cpp Chapter8_7/Cpu0ISelLowering.cpp
    setOperationAction(ISD::SDIV, MVT::i32, Expand);
    setOperationAction(ISD::SREM, MVT::i32, Expand);
    setOperationAction(ISD::UDIV, MVT::i32, Expand);
-@@ -144,6 +145,12 @@
+@@ -140,6 +141,12 @@
    // Operations not directly supported by Cpu0.
    setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
  
@@ -24,7 +24,7 @@ diff -Naur Chapter8_6/Cpu0ISelLowering.cpp Chapter8_7/Cpu0ISelLowering.cpp
    setTargetDAGCombine(ISD::SDIVREM);
    setTargetDAGCombine(ISD::UDIVREM);
  
-@@ -215,6 +222,7 @@
+@@ -211,6 +218,7 @@
    {
      case ISD::BRCOND:             return LowerBRCOND(Op, DAG);
      case ISD::GlobalAddress:      return LowerGlobalAddress(Op, DAG);
@@ -32,7 +32,7 @@ diff -Naur Chapter8_6/Cpu0ISelLowering.cpp Chapter8_7/Cpu0ISelLowering.cpp
    }
    return SDValue();
  }
-@@ -271,6 +279,21 @@
+@@ -267,6 +275,21 @@
    return getAddrGlobal(Op, DAG, Cpu0II::MO_GOT16);
  }
  
@@ -54,7 +54,7 @@ diff -Naur Chapter8_6/Cpu0ISelLowering.cpp Chapter8_7/Cpu0ISelLowering.cpp
  #include "Cpu0GenCallingConv.inc"
  
  SDValue
-@@ -562,6 +585,18 @@
+@@ -558,6 +581,18 @@
                                   MachinePointerInfo::getFixedStack(LastFI),
                                   false, false, false, 0));
    }
@@ -74,8 +74,8 @@ diff -Naur Chapter8_6/Cpu0ISelLowering.cpp Chapter8_7/Cpu0ISelLowering.cpp
    // All stores are grouped in one node to allow the matching between
    // the size of Ins and InVals. This only happens when on varg functions
 diff -Naur Chapter8_6/Cpu0ISelLowering.h Chapter8_7/Cpu0ISelLowering.h
---- Chapter8_6/Cpu0ISelLowering.h	2013-06-21 18:28:13.760690494 +0800
-+++ Chapter8_7/Cpu0ISelLowering.h	2013-06-21 18:28:13.756690494 +0800
+--- Chapter8_6/Cpu0ISelLowering.h	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_7/Cpu0ISelLowering.h	2013-06-21 22:46:45.000000000 +0800
 @@ -96,6 +96,7 @@
      // Lower Operand specifics
      SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;

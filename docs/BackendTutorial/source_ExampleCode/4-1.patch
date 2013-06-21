@@ -1,6 +1,6 @@
 diff -Naur Chapter3_5/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
---- Chapter3_5/Cpu0InstrInfo.td	2013-06-21 18:28:13.772690494 +0800
-+++ Chapter4_1/Cpu0InstrInfo.td	2013-06-21 18:28:13.772690494 +0800
+--- Chapter3_5/Cpu0InstrInfo.td	2013-06-21 22:46:44.000000000 +0800
++++ Chapter4_1/Cpu0InstrInfo.td	2013-06-21 22:46:44.000000000 +0800
 @@ -36,6 +36,8 @@
    let DecoderMethod= "DecodeSimm16";
  }
@@ -97,8 +97,8 @@ diff -Naur Chapter3_5/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
      isBarrier=1, hasCtrlDep=1 in
    def RET : FJ <0x2C, (outs), (ins CPURegs:$target),
 diff -Naur Chapter3_5/Cpu0Schedule.td Chapter4_1/Cpu0Schedule.td
---- Chapter3_5/Cpu0Schedule.td	2013-06-21 18:28:13.772690494 +0800
-+++ Chapter4_1/Cpu0Schedule.td	2013-06-21 18:28:13.772690494 +0800
+--- Chapter3_5/Cpu0Schedule.td	2013-06-21 22:46:44.000000000 +0800
++++ Chapter4_1/Cpu0Schedule.td	2013-06-21 22:46:44.000000000 +0800
 @@ -11,6 +11,7 @@
  // Functional units across Cpu0 chips sets. Based on GCC/Cpu0 backend files.
  //===----------------------------------------------------------------------===//

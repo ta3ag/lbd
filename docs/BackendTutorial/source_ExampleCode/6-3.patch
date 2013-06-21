@@ -1,6 +1,6 @@
 diff -Naur Chapter6_2/Cpu0InstrInfo.td Chapter6_3/Cpu0InstrInfo.td
---- Chapter6_2/Cpu0InstrInfo.td	2013-06-21 18:28:13.764690494 +0800
-+++ Chapter6_3/Cpu0InstrInfo.td	2013-06-21 18:28:13.756690494 +0800
+--- Chapter6_2/Cpu0InstrInfo.td	2013-06-21 22:46:45.000000000 +0800
++++ Chapter6_3/Cpu0InstrInfo.td	2013-06-21 22:46:45.000000000 +0800
 @@ -128,7 +128,11 @@
  }]>;
  

@@ -1,6 +1,6 @@
 diff -Naur Chapter8_5/CMakeLists.txt Chapter8_6/CMakeLists.txt
---- Chapter8_5/CMakeLists.txt	2013-06-21 18:28:13.764690494 +0800
-+++ Chapter8_6/CMakeLists.txt	2013-06-21 18:28:13.760690494 +0800
+--- Chapter8_5/CMakeLists.txt	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_6/CMakeLists.txt	2013-06-21 22:46:45.000000000 +0800
 @@ -24,6 +24,7 @@
  # Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen
  add_llvm_target(Cpu0CodeGen
@@ -9,9 +9,20 @@ diff -Naur Chapter8_5/CMakeLists.txt Chapter8_6/CMakeLists.txt
    Cpu0InstrInfo.cpp
    Cpu0ISelDAGToDAG.cpp
    Cpu0ISelLowering.cpp
+diff -Naur Chapter8_5/Cpu0.h Chapter8_6/Cpu0.h
+--- Chapter8_5/Cpu0.h	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_6/Cpu0.h	2013-06-21 22:46:45.000000000 +0800
+@@ -23,6 +23,7 @@
+   class FunctionPass;
+ 
+   FunctionPass *createCpu0ISelDag(Cpu0TargetMachine &TM);
++  FunctionPass *createCpu0EmitGPRestorePass(Cpu0TargetMachine &TM);
+ 
+ } // end namespace llvm;
+ 
 diff -Naur Chapter8_5/Cpu0AsmPrinter.cpp Chapter8_6/Cpu0AsmPrinter.cpp
---- Chapter8_5/Cpu0AsmPrinter.cpp	2013-06-21 18:28:13.764690494 +0800
-+++ Chapter8_6/Cpu0AsmPrinter.cpp	2013-06-21 18:28:13.760690494 +0800
+--- Chapter8_5/Cpu0AsmPrinter.cpp	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_6/Cpu0AsmPrinter.cpp	2013-06-21 22:46:45.000000000 +0800
 @@ -40,6 +40,19 @@
  
  using namespace llvm;
@@ -72,7 +83,7 @@ diff -Naur Chapter8_5/Cpu0AsmPrinter.cpp Chapter8_6/Cpu0AsmPrinter.cpp
  }
 diff -Naur Chapter8_5/Cpu0EmitGPRestore.cpp Chapter8_6/Cpu0EmitGPRestore.cpp
 --- Chapter8_5/Cpu0EmitGPRestore.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter8_6/Cpu0EmitGPRestore.cpp	2013-06-21 18:28:13.760690494 +0800
++++ Chapter8_6/Cpu0EmitGPRestore.cpp	2013-06-21 22:46:45.000000000 +0800
 @@ -0,0 +1,99 @@
 +//===-- Cpu0EmitGPRestore.cpp - Emit GP Restore Instruction ---------------===//
 +//
@@ -174,8 +185,8 @@ diff -Naur Chapter8_5/Cpu0EmitGPRestore.cpp Chapter8_6/Cpu0EmitGPRestore.cpp
 +}
 +
 diff -Naur Chapter8_5/Cpu0FrameLowering.cpp Chapter8_6/Cpu0FrameLowering.cpp
---- Chapter8_5/Cpu0FrameLowering.cpp	2013-06-21 18:28:13.764690494 +0800
-+++ Chapter8_6/Cpu0FrameLowering.cpp	2013-06-21 18:28:13.764690494 +0800
+--- Chapter8_5/Cpu0FrameLowering.cpp	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_6/Cpu0FrameLowering.cpp	2013-06-21 22:46:45.000000000 +0800
 @@ -102,7 +102,10 @@
    unsigned ADDiu = Cpu0::ADDiu;
    // First, compute final stack size.
@@ -202,20 +213,22 @@ diff -Naur Chapter8_5/Cpu0FrameLowering.cpp Chapter8_6/Cpu0FrameLowering.cpp
  }
  
  void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
-diff -Naur Chapter8_5/Cpu0.h Chapter8_6/Cpu0.h
---- Chapter8_5/Cpu0.h	2013-06-21 18:28:13.764690494 +0800
-+++ Chapter8_6/Cpu0.h	2013-06-21 18:28:13.760690494 +0800
-@@ -23,6 +23,7 @@
-   class FunctionPass;
+diff -Naur Chapter8_5/Cpu0ISelLowering.cpp Chapter8_6/Cpu0ISelLowering.cpp
+--- Chapter8_5/Cpu0ISelLowering.cpp	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_6/Cpu0ISelLowering.cpp	2013-06-21 22:46:45.000000000 +0800
+@@ -318,6 +318,9 @@
+     NextStackOffset = (NextStackOffset + StackAlignment - 1) /
+                       StackAlignment * StackAlignment;
  
-   FunctionPass *createCpu0ISelDag(Cpu0TargetMachine &TM);
-+  FunctionPass *createCpu0EmitGPRestorePass(Cpu0TargetMachine &TM);
- 
- } // end namespace llvm;
- 
++    if (Cpu0FI->needGPSaveRestore())
++      MFI->setObjectOffset(Cpu0FI->getGPFI(), NextStackOffset);
++
+     MFI->setObjectOffset(DynAllocFI, NextStackOffset);
+   }
+   // Chain is the output chain of the last Load/Store or CopyToReg node.
 diff -Naur Chapter8_5/Cpu0InstrInfo.td Chapter8_6/Cpu0InstrInfo.td
---- Chapter8_5/Cpu0InstrInfo.td	2013-06-21 18:28:13.764690494 +0800
-+++ Chapter8_6/Cpu0InstrInfo.td	2013-06-21 18:28:13.760690494 +0800
+--- Chapter8_5/Cpu0InstrInfo.td	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_6/Cpu0InstrInfo.td	2013-06-21 22:46:45.000000000 +0800
 @@ -364,6 +364,14 @@
                                    [(callseq_end timm:$amt1, timm:$amt2)]>;
  }
@@ -231,22 +244,9 @@ diff -Naur Chapter8_5/Cpu0InstrInfo.td Chapter8_6/Cpu0InstrInfo.td
  //===----------------------------------------------------------------------===//
  // Instruction definition
  //===----------------------------------------------------------------------===//
-diff -Naur Chapter8_5/Cpu0ISelLowering.cpp Chapter8_6/Cpu0ISelLowering.cpp
---- Chapter8_5/Cpu0ISelLowering.cpp	2013-06-21 18:28:13.764690494 +0800
-+++ Chapter8_6/Cpu0ISelLowering.cpp	2013-06-21 18:28:13.760690494 +0800
-@@ -322,6 +322,9 @@
-     NextStackOffset = (NextStackOffset + StackAlignment - 1) /
-                       StackAlignment * StackAlignment;
- 
-+    if (Cpu0FI->needGPSaveRestore())
-+      MFI->setObjectOffset(Cpu0FI->getGPFI(), NextStackOffset);
-+
-     MFI->setObjectOffset(DynAllocFI, NextStackOffset);
-   }
-   // Chain is the output chain of the last Load/Store or CopyToReg node.
 diff -Naur Chapter8_5/Cpu0MCInstLower.cpp Chapter8_6/Cpu0MCInstLower.cpp
---- Chapter8_5/Cpu0MCInstLower.cpp	2013-06-21 18:28:13.764690494 +0800
-+++ Chapter8_6/Cpu0MCInstLower.cpp	2013-06-21 18:28:13.760690494 +0800
+--- Chapter8_5/Cpu0MCInstLower.cpp	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_6/Cpu0MCInstLower.cpp	2013-06-21 22:46:45.000000000 +0800
 @@ -121,6 +121,36 @@
    CreateMCInst(MCInsts[3], Cpu0::ADD, GPReg, GPReg, T9Reg);
  }
@@ -285,8 +285,8 @@ diff -Naur Chapter8_5/Cpu0MCInstLower.cpp Chapter8_6/Cpu0MCInstLower.cpp
                                          unsigned offset) const {
    MachineOperandType MOTy = MO.getType();
 diff -Naur Chapter8_5/Cpu0MCInstLower.h Chapter8_6/Cpu0MCInstLower.h
---- Chapter8_5/Cpu0MCInstLower.h	2013-06-21 18:28:13.764690494 +0800
-+++ Chapter8_6/Cpu0MCInstLower.h	2013-06-21 18:28:13.760690494 +0800
+--- Chapter8_5/Cpu0MCInstLower.h	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_6/Cpu0MCInstLower.h	2013-06-21 22:46:45.000000000 +0800
 @@ -34,6 +34,7 @@
    void Initialize(Mangler *mang, MCContext* C);
    void Lower(const MachineInstr *MI, MCInst &OutMI) const;
@@ -296,8 +296,8 @@ diff -Naur Chapter8_5/Cpu0MCInstLower.h Chapter8_6/Cpu0MCInstLower.h
    MCOperand LowerSymbolOperand(const MachineOperand &MO,
                                 MachineOperandType MOTy, unsigned Offset) const;
 diff -Naur Chapter8_5/Cpu0TargetMachine.cpp Chapter8_6/Cpu0TargetMachine.cpp
---- Chapter8_5/Cpu0TargetMachine.cpp	2013-06-21 18:28:13.764690494 +0800
-+++ Chapter8_6/Cpu0TargetMachine.cpp	2013-06-21 18:28:13.760690494 +0800
+--- Chapter8_5/Cpu0TargetMachine.cpp	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_6/Cpu0TargetMachine.cpp	2013-06-21 22:46:45.000000000 +0800
 @@ -82,6 +82,7 @@
      return *getCpu0TargetMachine().getSubtargetImpl();
    }

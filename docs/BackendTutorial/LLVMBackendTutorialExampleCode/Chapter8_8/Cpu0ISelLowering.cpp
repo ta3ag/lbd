@@ -38,10 +38,6 @@
 
 using namespace llvm;
 
-static cl::opt<bool>
-LargeGOT("cpu0-mxgot", cl::Hidden,
-         cl::desc("CPU0: Enable GOT larger than 64k."), cl::init(false));
-
 SDValue Cpu0TargetLowering::getGlobalReg(SelectionDAG &DAG, EVT Ty) const {
   Cpu0FunctionInfo *FI = DAG.getMachineFunction().getInfo<Cpu0FunctionInfo>();
   return DAG.getRegister(FI->getGlobalBaseReg(), Ty);
@@ -272,7 +268,7 @@ SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
   if (GV->hasInternalLinkage() || (GV->hasLocalLinkage() && !isa<Function>(GV)))
     return getAddrLocal(Op, DAG);
 
-  if (LargeGOT)
+  if (TLOF.IsGlobalInSmallSection(GV, getTargetMachine()))
     return getAddrGlobalLargeGOT(Op, DAG, Cpu0II::MO_GOT_HI16,
                                  Cpu0II::MO_GOT_LO16);
 

@@ -1,7 +1,7 @@
 diff -Naur Chapter8_8/Cpu0ISelLowering.cpp Chapter8_9/Cpu0ISelLowering.cpp
---- Chapter8_8/Cpu0ISelLowering.cpp	2013-06-21 18:28:13.768690494 +0800
-+++ Chapter8_9/Cpu0ISelLowering.cpp	2013-06-21 18:28:13.764690494 +0800
-@@ -231,6 +231,18 @@
+--- Chapter8_8/Cpu0ISelLowering.cpp	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_9/Cpu0ISelLowering.cpp	2013-06-21 22:46:45.000000000 +0800
+@@ -227,6 +227,18 @@
  //  Lower helper functions
  //===----------------------------------------------------------------------===//
  
@@ -20,7 +20,7 @@ diff -Naur Chapter8_8/Cpu0ISelLowering.cpp Chapter8_9/Cpu0ISelLowering.cpp
  //===----------------------------------------------------------------------===//
  //  Misc Lower Operation implementation
  //===----------------------------------------------------------------------===//
-@@ -296,6 +308,45 @@
+@@ -292,6 +304,45 @@
  
  #include "Cpu0GenCallingConv.inc"
  
@@ -66,7 +66,7 @@ diff -Naur Chapter8_8/Cpu0ISelLowering.cpp Chapter8_9/Cpu0ISelLowering.cpp
  SDValue
  Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                                SmallVectorImpl<SDValue> &InVals) const {
-@@ -376,6 +427,9 @@
+@@ -372,6 +423,9 @@
        assert("!!!Error!!!, Flags.isByVal()==true");
        assert(Flags.getByValSize() &&
               "ByVal args of size 0 should have been ignored by front-end.");
@@ -76,7 +76,7 @@ diff -Naur Chapter8_8/Cpu0ISelLowering.cpp Chapter8_9/Cpu0ISelLowering.cpp
        continue;
      }
  
-@@ -531,6 +585,34 @@
+@@ -527,6 +581,34 @@
    return Chain;
  }
  
@@ -111,7 +111,7 @@ diff -Naur Chapter8_8/Cpu0ISelLowering.cpp Chapter8_9/Cpu0ISelLowering.cpp
  /// LowerFormalArguments - transform physical registers into virtual registers
  /// and generate load operations for arguments places on the stack.
  SDValue
-@@ -570,6 +652,13 @@
+@@ -566,6 +648,13 @@
      if (Flags.isByVal()) {
        assert(Flags.getByValSize() &&
               "ByVal args of size 0 should have been ignored by front-end."); 
@@ -125,7 +125,7 @@ diff -Naur Chapter8_8/Cpu0ISelLowering.cpp Chapter8_9/Cpu0ISelLowering.cpp
        continue;
      }
      // sanity check
-@@ -586,6 +675,21 @@
+@@ -582,6 +671,21 @@
                                   false, false, false, 0));
    }
  
@@ -147,7 +147,7 @@ diff -Naur Chapter8_8/Cpu0ISelLowering.cpp Chapter8_9/Cpu0ISelLowering.cpp
    if (isVarArg) {
      unsigned RegSize = Cpu0::CPURegsRegClass.getSize();
      // Offset of the first variable argument from stack pointer.
-@@ -644,7 +748,27 @@
+@@ -640,7 +744,27 @@
      Flag = Chain.getValue(1);
      RetOps.push_back(DAG.getRegister(VA.getLocReg(), VA.getLocVT()));
    }

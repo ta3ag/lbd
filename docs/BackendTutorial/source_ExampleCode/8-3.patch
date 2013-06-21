@@ -1,106 +1,7 @@
-diff -Naur Chapter8_2/Cpu0InstrInfo.cpp Chapter8_3/Cpu0InstrInfo.cpp
---- Chapter8_2/Cpu0InstrInfo.cpp	2013-06-21 18:28:13.752690494 +0800
-+++ Chapter8_3/Cpu0InstrInfo.cpp	2013-06-21 18:28:13.764690494 +0800
-@@ -81,6 +81,25 @@
-                                  MFI.getObjectSize(FI), Align);
- }
- 
-+//- st SrcReg, MMO(FI)
-+void Cpu0InstrInfo::
-+storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
-+                    unsigned SrcReg, bool isKill, int FI,
-+                    const TargetRegisterClass *RC,
-+                    const TargetRegisterInfo *TRI) const {
-+  DebugLoc DL;
-+  if (I != MBB.end()) DL = I->getDebugLoc();
-+  MachineMemOperand *MMO = GetMemOperand(MBB, FI, MachineMemOperand::MOStore);
-+
-+  unsigned Opc = 0;
-+
-+  if (Cpu0::CPURegsRegClass.hasSubClassEq(RC))
-+    Opc = Cpu0::ST;
-+  assert(Opc && "Register class not handled!");
-+  BuildMI(MBB, I, DL, get(Opc)).addReg(SrcReg, getKillRegState(isKill))
-+    .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
-+}
-+
- void Cpu0InstrInfo::
- loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
-                      unsigned DestReg, int FI,
-diff -Naur Chapter8_2/Cpu0InstrInfo.h Chapter8_3/Cpu0InstrInfo.h
---- Chapter8_2/Cpu0InstrInfo.h	2013-06-21 18:28:13.752690494 +0800
-+++ Chapter8_3/Cpu0InstrInfo.h	2013-06-21 18:28:13.764690494 +0800
-@@ -36,12 +36,18 @@
-   ///
-   virtual const Cpu0RegisterInfo &getRegisterInfo() const;
- 
-+public:
-   virtual void copyPhysReg(MachineBasicBlock &MBB,
-                            MachineBasicBlock::iterator MI, DebugLoc DL,
-                            unsigned DestReg, unsigned SrcReg,
-                            bool KillSrc) const;
- 
--public:
-+  virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
-+                                   MachineBasicBlock::iterator MBBI,
-+                                   unsigned SrcReg, bool isKill, int FrameIndex,
-+                                   const TargetRegisterClass *RC,
-+                                   const TargetRegisterInfo *TRI) const;
-+
-   virtual void loadRegFromStackSlot(MachineBasicBlock &MBB,
-                                     MachineBasicBlock::iterator MBBI,
-                                     unsigned DestReg, int FrameIndex,
-diff -Naur Chapter8_2/Cpu0InstrInfo.td Chapter8_3/Cpu0InstrInfo.td
---- Chapter8_2/Cpu0InstrInfo.td	2013-06-21 18:28:13.748690494 +0800
-+++ Chapter8_3/Cpu0InstrInfo.td	2013-06-21 18:28:13.764690494 +0800
-@@ -29,6 +29,9 @@
- 
- def SDT_Cpu0JmpLink      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
- 
-+def SDT_Cpu0CallSeqStart : SDCallSeqStart<[SDTCisVT<0, i32>]>;
-+def SDT_Cpu0CallSeqEnd   : SDCallSeqEnd<[SDTCisVT<0, i32>, SDTCisVT<1, i32>]>;
-+
- // Call
- def Cpu0JmpLink : SDNode<"Cpu0ISD::JmpLink",SDT_Cpu0JmpLink,
-                          [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue,
-@@ -45,6 +48,12 @@
- def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDT_Cpu0Ret, [SDNPHasChain,
-                      SDNPOptInGlue]>;
- 
-+// These are target-independent nodes, but have target-specific formats.
-+def callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_Cpu0CallSeqStart,
-+                           [SDNPHasChain, SDNPOutGlue]>;
-+def callseq_end   : SDNode<"ISD::CALLSEQ_END", SDT_Cpu0CallSeqEnd,
-+                           [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]>;
-+
- // DivRem(u) nodes
- def Cpu0DivRem    : SDNode<"Cpu0ISD::DivRem", SDT_Cpu0DivRem,
-                            [SDNPOutGlue]>;
-@@ -342,6 +351,20 @@
-      instr_asm, [(set RC:$ra, addr:$addr)], IIAlu>;
- 
- //===----------------------------------------------------------------------===//
-+// Pseudo instructions
-+//===----------------------------------------------------------------------===//
-+
-+// As stack alignment is always done with addiu, we need a 16-bit immediate
-+let Defs = [SP], Uses = [SP] in {
-+def ADJCALLSTACKDOWN : Cpu0Pseudo<(outs), (ins uimm16:$amt),
-+                                  "!ADJCALLSTACKDOWN $amt",
-+                                  [(callseq_start timm:$amt)]>;
-+def ADJCALLSTACKUP   : Cpu0Pseudo<(outs), (ins uimm16:$amt1, uimm16:$amt2),
-+                                  "!ADJCALLSTACKUP $amt1",
-+                                  [(callseq_end timm:$amt1, timm:$amt2)]>;
-+}
-+
-+//===----------------------------------------------------------------------===//
- // Instruction definition
- //===----------------------------------------------------------------------===//
- 
 diff -Naur Chapter8_2/Cpu0ISelLowering.cpp Chapter8_3/Cpu0ISelLowering.cpp
---- Chapter8_2/Cpu0ISelLowering.cpp	2013-06-21 18:28:13.748690494 +0800
-+++ Chapter8_3/Cpu0ISelLowering.cpp	2013-06-21 18:28:13.764690494 +0800
-@@ -276,7 +276,233 @@
+--- Chapter8_2/Cpu0ISelLowering.cpp	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_3/Cpu0ISelLowering.cpp	2013-06-21 22:46:45.000000000 +0800
+@@ -272,7 +272,233 @@
  SDValue
  Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                                SmallVectorImpl<SDValue> &InVals) const {
@@ -335,14 +236,14 @@ diff -Naur Chapter8_2/Cpu0ISelLowering.cpp Chapter8_3/Cpu0ISelLowering.cpp
  }
  
  /// LowerFormalArguments - transform physical registers into virtual registers
-@@ -364,3 +590,4 @@
+@@ -360,3 +586,4 @@
    // The Mips target isn't yet aware of offsets.
    return false;
  }
 +
 diff -Naur Chapter8_2/Cpu0ISelLowering.h Chapter8_3/Cpu0ISelLowering.h
---- Chapter8_2/Cpu0ISelLowering.h	2013-06-21 18:28:13.748690494 +0800
-+++ Chapter8_3/Cpu0ISelLowering.h	2013-06-21 18:28:13.764690494 +0800
+--- Chapter8_2/Cpu0ISelLowering.h	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_3/Cpu0ISelLowering.h	2013-06-21 22:46:45.000000000 +0800
 @@ -85,6 +85,13 @@
    private:
      // Subtarget Info
@@ -357,3 +258,102 @@ diff -Naur Chapter8_2/Cpu0ISelLowering.h Chapter8_3/Cpu0ISelLowering.h
  
      // Lower Operand specifics
      SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
+diff -Naur Chapter8_2/Cpu0InstrInfo.cpp Chapter8_3/Cpu0InstrInfo.cpp
+--- Chapter8_2/Cpu0InstrInfo.cpp	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_3/Cpu0InstrInfo.cpp	2013-06-21 22:46:45.000000000 +0800
+@@ -81,6 +81,25 @@
+                                  MFI.getObjectSize(FI), Align);
+ }
+ 
++//- st SrcReg, MMO(FI)
++void Cpu0InstrInfo::
++storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
++                    unsigned SrcReg, bool isKill, int FI,
++                    const TargetRegisterClass *RC,
++                    const TargetRegisterInfo *TRI) const {
++  DebugLoc DL;
++  if (I != MBB.end()) DL = I->getDebugLoc();
++  MachineMemOperand *MMO = GetMemOperand(MBB, FI, MachineMemOperand::MOStore);
++
++  unsigned Opc = 0;
++
++  if (Cpu0::CPURegsRegClass.hasSubClassEq(RC))
++    Opc = Cpu0::ST;
++  assert(Opc && "Register class not handled!");
++  BuildMI(MBB, I, DL, get(Opc)).addReg(SrcReg, getKillRegState(isKill))
++    .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
++}
++
+ void Cpu0InstrInfo::
+ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
+                      unsigned DestReg, int FI,
+diff -Naur Chapter8_2/Cpu0InstrInfo.h Chapter8_3/Cpu0InstrInfo.h
+--- Chapter8_2/Cpu0InstrInfo.h	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_3/Cpu0InstrInfo.h	2013-06-21 22:46:45.000000000 +0800
+@@ -36,12 +36,18 @@
+   ///
+   virtual const Cpu0RegisterInfo &getRegisterInfo() const;
+ 
++public:
+   virtual void copyPhysReg(MachineBasicBlock &MBB,
+                            MachineBasicBlock::iterator MI, DebugLoc DL,
+                            unsigned DestReg, unsigned SrcReg,
+                            bool KillSrc) const;
+ 
+-public:
++  virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
++                                   MachineBasicBlock::iterator MBBI,
++                                   unsigned SrcReg, bool isKill, int FrameIndex,
++                                   const TargetRegisterClass *RC,
++                                   const TargetRegisterInfo *TRI) const;
++
+   virtual void loadRegFromStackSlot(MachineBasicBlock &MBB,
+                                     MachineBasicBlock::iterator MBBI,
+                                     unsigned DestReg, int FrameIndex,
+diff -Naur Chapter8_2/Cpu0InstrInfo.td Chapter8_3/Cpu0InstrInfo.td
+--- Chapter8_2/Cpu0InstrInfo.td	2013-06-21 22:46:45.000000000 +0800
++++ Chapter8_3/Cpu0InstrInfo.td	2013-06-21 22:46:45.000000000 +0800
+@@ -29,6 +29,9 @@
+ 
+ def SDT_Cpu0JmpLink      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
+ 
++def SDT_Cpu0CallSeqStart : SDCallSeqStart<[SDTCisVT<0, i32>]>;
++def SDT_Cpu0CallSeqEnd   : SDCallSeqEnd<[SDTCisVT<0, i32>, SDTCisVT<1, i32>]>;
++
+ // Call
+ def Cpu0JmpLink : SDNode<"Cpu0ISD::JmpLink",SDT_Cpu0JmpLink,
+                          [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue,
+@@ -45,6 +48,12 @@
+ def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDT_Cpu0Ret, [SDNPHasChain,
+                      SDNPOptInGlue]>;
+ 
++// These are target-independent nodes, but have target-specific formats.
++def callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_Cpu0CallSeqStart,
++                           [SDNPHasChain, SDNPOutGlue]>;
++def callseq_end   : SDNode<"ISD::CALLSEQ_END", SDT_Cpu0CallSeqEnd,
++                           [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]>;
++
+ // DivRem(u) nodes
+ def Cpu0DivRem    : SDNode<"Cpu0ISD::DivRem", SDT_Cpu0DivRem,
+                            [SDNPOutGlue]>;
+@@ -342,6 +351,20 @@
+      instr_asm, [(set RC:$ra, addr:$addr)], IIAlu>;
+ 
+ //===----------------------------------------------------------------------===//
++// Pseudo instructions
++//===----------------------------------------------------------------------===//
++
++// As stack alignment is always done with addiu, we need a 16-bit immediate
++let Defs = [SP], Uses = [SP] in {
++def ADJCALLSTACKDOWN : Cpu0Pseudo<(outs), (ins uimm16:$amt),
++                                  "!ADJCALLSTACKDOWN $amt",
++                                  [(callseq_start timm:$amt)]>;
++def ADJCALLSTACKUP   : Cpu0Pseudo<(outs), (ins uimm16:$amt1, uimm16:$amt2),
++                                  "!ADJCALLSTACKUP $amt1",
++                                  [(callseq_end timm:$amt1, timm:$amt2)]>;
++}
++
++//===----------------------------------------------------------------------===//
+ // Instruction definition
+ //===----------------------------------------------------------------------===//
+ 
