@@ -262,10 +262,10 @@ diff -Naur Chapter5_1/Cpu0ISelLowering.cpp Chapter6_1/Cpu0ISelLowering.cpp
 +  DebugLoc dl = Op.getDebugLoc();
 +  const GlobalValue *GV = cast<GlobalAddressSDNode>(Op)->getGlobal();
 +
++  Cpu0TargetObjectFile &TLOF = (Cpu0TargetObjectFile&)getObjFileLowering();
++
 +  if (getTargetMachine().getRelocationModel() != Reloc::PIC_) {
 +    SDVTList VTs = DAG.getVTList(MVT::i32);
-+
-+    Cpu0TargetObjectFile &TLOF = (Cpu0TargetObjectFile&)getObjFileLowering();
 +
 +    // %gp_rel relocation
 +    if (TLOF.IsGlobalInSmallSection(GV, getTargetMachine())) {
