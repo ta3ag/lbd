@@ -492,7 +492,7 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     if (GlobalOrExternal) {
       // Load callee address
       Callee = DAG.getNode(Cpu0ISD::Wrapper, dl, getPointerTy(),
-                           GetGlobalReg(DAG, getPointerTy()), Callee);
+                           getGlobalReg(DAG, getPointerTy()), Callee);
       SDValue LoadValue = DAG.getLoad(getPointerTy(), dl, DAG.getEntryNode(),
                                       Callee, MachinePointerInfo::getGOT(),
                                       false, false, false, 0);

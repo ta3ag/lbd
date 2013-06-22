@@ -30,7 +30,7 @@ class Cpu0GPRReg<bits<4> num, string n> : Cpu0Reg<n> {
 let Namespace = "Cpu0" in {
   // General Purpose Registers
   def ZERO : Cpu0GPRReg< 0, "ZERO">, DwarfRegNum<[0]>;
-  def AT   : Cpu0GPRReg< 1, "AT">,   DwarfRegNum<[1]>;
+  def AT   : Cpu0GPRReg< 1, "1">,   DwarfRegNum<[1]>;
   def V0   : Cpu0GPRReg< 2, "2">,    DwarfRegNum<[2]>;
   def V1   : Cpu0GPRReg< 3, "3">,    DwarfRegNum<[3]>;
   def A0   : Cpu0GPRReg< 4, "4">,    DwarfRegNum<[6]>;
