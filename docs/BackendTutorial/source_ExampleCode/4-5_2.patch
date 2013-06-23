@@ -1,6 +1,6 @@
 diff -Naur Chapter4_5_1/Cpu0ISelDAGToDAG.cpp Chapter4_5_2/Cpu0ISelDAGToDAG.cpp
---- Chapter4_5_1/Cpu0ISelDAGToDAG.cpp	2013-06-21 22:46:44.000000000 +0800
-+++ Chapter4_5_2/Cpu0ISelDAGToDAG.cpp	2013-06-21 22:46:44.000000000 +0800
+--- Chapter4_5_1/Cpu0ISelDAGToDAG.cpp	2013-06-23 17:14:38.000000000 +0800
++++ Chapter4_5_2/Cpu0ISelDAGToDAG.cpp	2013-06-23 17:14:38.000000000 +0800
 @@ -84,6 +84,9 @@
  
    SDNode *getGlobalBaseReg();
@@ -64,8 +64,8 @@ diff -Naur Chapter4_5_1/Cpu0ISelDAGToDAG.cpp Chapter4_5_2/Cpu0ISelDAGToDAG.cpp
      const ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Node);
      unsigned Size = CN->getValueSizeInBits(0);
 diff -Naur Chapter4_5_1/Cpu0InstrInfo.td Chapter4_5_2/Cpu0InstrInfo.td
---- Chapter4_5_1/Cpu0InstrInfo.td	2013-06-21 22:46:44.000000000 +0800
-+++ Chapter4_5_2/Cpu0InstrInfo.td	2013-06-21 22:46:44.000000000 +0800
+--- Chapter4_5_1/Cpu0InstrInfo.td	2013-06-23 17:14:38.000000000 +0800
++++ Chapter4_5_2/Cpu0InstrInfo.td	2013-06-23 17:14:38.000000000 +0800
 @@ -179,6 +179,31 @@
    def #NAME# : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
  }
@@ -115,29 +115,29 @@ diff -Naur Chapter4_5_1/Cpu0InstrInfo.td Chapter4_5_2/Cpu0InstrInfo.td
  /// Shift Instructions
  // sra is IR node for ashr llvm IR instruction of .bc
 diff -Naur Chapter4_5_1/Cpu0RegisterInfo.td Chapter4_5_2/Cpu0RegisterInfo.td
---- Chapter4_5_1/Cpu0RegisterInfo.td	2013-06-21 22:46:44.000000000 +0800
-+++ Chapter4_5_2/Cpu0RegisterInfo.td	2013-06-21 22:46:44.000000000 +0800
+--- Chapter4_5_1/Cpu0RegisterInfo.td	2013-06-23 17:14:38.000000000 +0800
++++ Chapter4_5_2/Cpu0RegisterInfo.td	2013-06-23 17:14:38.000000000 +0800
 @@ -47,6 +47,10 @@
-   def PC   : Cpu0GPRReg< 15, "PC">,   DwarfRegNum<[15]>;
- //  def MAR  : Register< 16, "MAR">,  DwarfRegNum<[16]>;
- //  def MDR  : Register< 17, "MDR">,  DwarfRegNum<[17]>;
+   def PC   : Cpu0GPRReg< 15, "pc">,   DwarfRegNum<[15]>;
+ //  def MAR  : Register< 16, "mar">,  DwarfRegNum<[16]>;
+ //  def MDR  : Register< 17, "mdr">,  DwarfRegNum<[17]>;
 +
 +  // Hi/Lo registers
-+  def HI   : Register<"HI">, DwarfRegNum<[18]>;
-+  def LO   : Register<"LO">, DwarfRegNum<[19]>;
++  def HI   : Register<"hi">, DwarfRegNum<[18]>;
++  def LO   : Register<"lo">, DwarfRegNum<[19]>;
  }
  
  //===----------------------------------------------------------------------===//
-@@ -63,3 +67,6 @@
+@@ -68,3 +72,6 @@
+   SW, 
    // Reserved
-   ZERO, AT, GP, FP, SW, SP, LR, PC)>;
- 
+   SP, LR, PC)>;
++
 +// Hi/Lo Registers
 +def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
-+
 diff -Naur Chapter4_5_1/Cpu0Schedule.td Chapter4_5_2/Cpu0Schedule.td
---- Chapter4_5_1/Cpu0Schedule.td	2013-06-21 22:46:44.000000000 +0800
-+++ Chapter4_5_2/Cpu0Schedule.td	2013-06-21 22:46:44.000000000 +0800
+--- Chapter4_5_1/Cpu0Schedule.td	2013-06-23 17:14:38.000000000 +0800
++++ Chapter4_5_2/Cpu0Schedule.td	2013-06-23 17:14:38.000000000 +0800
 @@ -20,6 +20,7 @@
  def IILoad             : InstrItinClass;
  def IIStore            : InstrItinClass;

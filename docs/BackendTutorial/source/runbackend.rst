@@ -281,8 +281,7 @@ LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,
   }
 
 
-Finally, we change registers name to lower case as below since the assembly 
-output and ``llvm-objdump -d`` using lower case. The CPURegs as below must 
+Finally, remind the CPURegs as below must 
 follow the order of register number because AsmParser use this when do register 
 number encode.
 
