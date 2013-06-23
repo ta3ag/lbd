@@ -1,6 +1,6 @@
 diff -Naur Chapter8_2/Cpu0ISelLowering.cpp Chapter8_3/Cpu0ISelLowering.cpp
---- Chapter8_2/Cpu0ISelLowering.cpp	2013-06-21 22:46:45.000000000 +0800
-+++ Chapter8_3/Cpu0ISelLowering.cpp	2013-06-21 22:46:45.000000000 +0800
+--- Chapter8_2/Cpu0ISelLowering.cpp	2013-06-23 17:14:38.000000000 +0800
++++ Chapter8_3/Cpu0ISelLowering.cpp	2013-06-23 17:14:38.000000000 +0800
 @@ -272,7 +272,233 @@
  SDValue
  Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
@@ -242,8 +242,8 @@ diff -Naur Chapter8_2/Cpu0ISelLowering.cpp Chapter8_3/Cpu0ISelLowering.cpp
  }
 +
 diff -Naur Chapter8_2/Cpu0ISelLowering.h Chapter8_3/Cpu0ISelLowering.h
---- Chapter8_2/Cpu0ISelLowering.h	2013-06-21 22:46:45.000000000 +0800
-+++ Chapter8_3/Cpu0ISelLowering.h	2013-06-21 22:46:45.000000000 +0800
+--- Chapter8_2/Cpu0ISelLowering.h	2013-06-23 17:14:38.000000000 +0800
++++ Chapter8_3/Cpu0ISelLowering.h	2013-06-23 17:14:38.000000000 +0800
 @@ -85,6 +85,13 @@
    private:
      // Subtarget Info
@@ -259,8 +259,8 @@ diff -Naur Chapter8_2/Cpu0ISelLowering.h Chapter8_3/Cpu0ISelLowering.h
      // Lower Operand specifics
      SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
 diff -Naur Chapter8_2/Cpu0InstrInfo.cpp Chapter8_3/Cpu0InstrInfo.cpp
---- Chapter8_2/Cpu0InstrInfo.cpp	2013-06-21 22:46:45.000000000 +0800
-+++ Chapter8_3/Cpu0InstrInfo.cpp	2013-06-21 22:46:45.000000000 +0800
+--- Chapter8_2/Cpu0InstrInfo.cpp	2013-06-23 17:14:38.000000000 +0800
++++ Chapter8_3/Cpu0InstrInfo.cpp	2013-06-23 17:14:38.000000000 +0800
 @@ -81,6 +81,25 @@
                                   MFI.getObjectSize(FI), Align);
  }
@@ -288,8 +288,8 @@ diff -Naur Chapter8_2/Cpu0InstrInfo.cpp Chapter8_3/Cpu0InstrInfo.cpp
  loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                       unsigned DestReg, int FI,
 diff -Naur Chapter8_2/Cpu0InstrInfo.h Chapter8_3/Cpu0InstrInfo.h
---- Chapter8_2/Cpu0InstrInfo.h	2013-06-21 22:46:45.000000000 +0800
-+++ Chapter8_3/Cpu0InstrInfo.h	2013-06-21 22:46:45.000000000 +0800
+--- Chapter8_2/Cpu0InstrInfo.h	2013-06-23 17:14:38.000000000 +0800
++++ Chapter8_3/Cpu0InstrInfo.h	2013-06-23 17:14:38.000000000 +0800
 @@ -36,12 +36,18 @@
    ///
    virtual const Cpu0RegisterInfo &getRegisterInfo() const;
@@ -311,8 +311,8 @@ diff -Naur Chapter8_2/Cpu0InstrInfo.h Chapter8_3/Cpu0InstrInfo.h
                                      MachineBasicBlock::iterator MBBI,
                                      unsigned DestReg, int FrameIndex,
 diff -Naur Chapter8_2/Cpu0InstrInfo.td Chapter8_3/Cpu0InstrInfo.td
---- Chapter8_2/Cpu0InstrInfo.td	2013-06-21 22:46:45.000000000 +0800
-+++ Chapter8_3/Cpu0InstrInfo.td	2013-06-21 22:46:45.000000000 +0800
+--- Chapter8_2/Cpu0InstrInfo.td	2013-06-23 17:14:38.000000000 +0800
++++ Chapter8_3/Cpu0InstrInfo.td	2013-06-23 17:14:38.000000000 +0800
 @@ -29,6 +29,9 @@
  
  def SDT_Cpu0JmpLink      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;

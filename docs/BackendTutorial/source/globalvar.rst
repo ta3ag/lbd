@@ -254,21 +254,23 @@ Let's run Chapter6_1/ with ch6_1.cpp via three different options
 Summary above information to Table: Cpu0 global variable options.
 
 .. csv-table:: Cpu0 global variable options
-   :header: "mode", "static, cpu0-use-small-section=false", "static, cpu0-use-small-section=true", "pic"
-   :widths: 15, 30, 30, 30
+   :header: "mode", "static", "-", "pic", "-"
+   :widths: 15, 25, 25, 25, 25 
 
-   "link type", "static link", "static link", "dynamic link"
-   "section", "data or bss", "sdata or sbss", "data or bss"
-   "range", "32 bits", "16 bits", "32 bits"
-   "addressing mode", "absolute / pc relative", "$gp relative", "$gp relative"
-   "addressing", "absolute / pc+offset", "$gp+offset", "$gp+offset"
+   "option: cpu0-use-small-section", "false", "true", "false", "true"
+   "link type", "static link", "static link", "dynamic link", "dynamic link"
+   "section", "data or bss", "sdata or sbss", "data or bss", "sdata or sbss"
+   "range", "32 bits", "16 bits", "32 bits", "16 bits"
+   "addressing mode", "absolute", "$gp relative", "$gp relative", "$gp relative"
+   "addressing", "absolute", "$gp+offset", "$gp+offset", "$gp+offset"
    "Legalized selection DAG", "(add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>)", "(add GLOBAL_OFFSET_TABLE, Cpu0ISD::GPRel<gI offset>)", "(load (Cpu0ISD::Wrapper %GP, <gI offset>))"
-   "Cpu0", "addiu $2, $zero, %hi(gI); shl $2, $2, 16; addiu $2, $2, %lo(gI); ld $2, 0($2)", "addiu	$2, $gp, %gp_rel(gI); ld $2, 0($2);", "ld $2, %got(gI)($gp); ld $2, 0($2);"
-   "relocation solved", "link time", "link time", "load time"
-   "reason", "offset gI and .data can be caculated for static link", "offset gI and .sdata can be caculated for static link", "offset gI and .data cannot be caculated for dynamic"
-   "name binding", "static", "static", "static"
+   "Cpu0", "addiu $2, $zero, %hi(gI); shl $2, $2, 16; addiu $2, $2, %lo(gI);", "addiu	$2, $gp, %gp_rel(gI);", "ld $2, %got(gI)($gp);"
+   "relocation records solved", "link time", "link time", "load time", "load time"
+   "reason", "Address of gI can be calculated in static link", "offset between gI and .sdata can be calculated in static link", "offset gI and .data cannot be caculated in dynamic", "offset gI and .data cannot be caculated for dynamic"
+   "name binding", "static", "static", "static", "static"
 
-- In pic, offset gI and .data cannot be caculated since the function is loaded at run time.
+- In static, cpu0-use-small-section=true, offset between gI and .data can be calculated since the $gp is assigned at fixed address of the start of global address table.
+- In pic, offset between gI and .data cannot be calculated since the function is loaded at run time.
 - In C, all variable names binding staticly. In C++, the overload variable or function are binding dynamicly.
 - In "static, cpu0-use-small-section=false", the gI high and low address (%hi(gI) and %lo(gI)) can be translated into absolute address or PC relative address. Cpu0 use PC relative address. 
 
@@ -903,6 +905,7 @@ pseudo instruction at function entry point as below.
 According Mips Application Binary Interface (ABI), $t9 is register alias 
 for $25 in Mips. The %t9 is the register 
 used in jalr $25 for long distance function pointer (far subroutine call). 
+Cpu0 use register $6 as the $t9 ($25) register of Mips.
 The jal %subroutine has 24 bits range of address offset relative to Program 
 Counter (PC) while jalr has 32 bits address range in register size of 32 bits. 
 One example of PIC mode is used in share library. 
@@ -913,24 +916,29 @@ easier and faster as below.
 .. code-block:: bash
 
   caller instructions:
+    ld  $6, %call32(fun)($gp)
     SYSCALL call##fun();
-    jalr $t9;
+    jalr $6;
 
 
 1. The caller issue system call to OS or loader by SYSCALL call##fun().
 
 2. OS or loader load dynamic function fun() to available address X.
 
-3. OS or loader change register $t9 to address X and jump to the next 
+3. OS or loader change register $6 to address X and jump to the next 
    instruction of SYSCALL call##fun(). 
 
 4. The caller can call the fun() by instruction jalr $t9 correctly.
 
 If use jal instead of jalr to call dynamic function, the relocation record 
 "jal pc_offset" need to be solved at run time in "SYSCALL call##fun()". 
-That's why Mips ABI use "jalr" and register %t9 for dynamic function. 
+That's why Mips ABI use "jalr" and register %6 for dynamic function. 
 In addition to dynamic function, the jalr is 32 bits 
-addressable while jal is 24 bits addressable.
+addressable while jal is 24 bits addressable. The caller jalr can also be 
+used in static link. If jalr is used in static link, the linker can solve 
+the relocation record of "ld $6, %call32(fun)($gp)" in link time.
+For static linke, the linker and should issue "nop" instead of issue 
+"SYSCALL call##fun()".
 
 The **.cpload** is the assembly directive (macro) which 
 will expand to several instructions. 
@@ -1103,8 +1111,32 @@ In last sub-section, .sdata mode, we use ".cpload" removing since it is
 static link, and without ".cpload" will save four instructions which has the 
 faster result in speed.
 In pic mode, the dynamic loading takes too much time.
-Romove ".cpload" by the cost of losing one general purpose
-register is not deserved in here.
+Romove ".cpload" with the cost of losing one general purpose
+register is not deserved here.
+The relocation records of ".cpload" from ``llc -relocation-model=pic`` can also 
+be solved if we want to link this function by static link.
+
+Summary as Table.
+
+.. table:: relocation-model=pic
+
+  ==============  =======================================  ====================================
+  linker          dynamic                                  static
+  ==============  =======================================  ====================================
+  caller          - ld $6, %call32(_dynamic_linker)($gp);  - ld $6, %call32(fun)($gp);
+                  - add $s0, $6, $zero;                    - nop;
+                  - addiu $s1, $gp, (_dynsym_idx)($gp);    - nop;
+                  - jalr $6;                               - jalr $6;
+  - .cpload $6    - addiu $gp, $zero, %hi(_gp_disp);       - addiu $gp, $zero, %hi(_gp_disp);
+                  - addiu $gp, $zero, %hi(_gp_disp);       - addiu $gp, $zero, %hi(_gp_disp);
+                  - _gp_disp solved in load time           - _gp_disp solved in link time
+  ==============  =======================================  ====================================
+  
+- _dynamic_linker is the offset of Global Address Table.
+- The contents of address (_dynamic_linker)($gp) point to the entry point of dynamic linker.
+- _dynsym_idx is the offset of Global Address Table.
+- The address (_dynsym_idx)($gp) point to the callee function name.
+- _gp_disp represents the offset between the beginning of the function and the global offset table.
 
 
 Global variable print support

@@ -1,6 +1,6 @@
 diff -Naur Chapter8_8/Cpu0InstrInfo.cpp Chapter8_8_2/Cpu0InstrInfo.cpp
---- Chapter8_8/Cpu0InstrInfo.cpp	2013-06-21 22:46:45.000000000 +0800
-+++ Chapter8_8_2/Cpu0InstrInfo.cpp	2013-06-21 22:46:45.000000000 +0800
+--- Chapter8_8/Cpu0InstrInfo.cpp	2013-06-23 17:14:38.000000000 +0800
++++ Chapter8_8_2/Cpu0InstrInfo.cpp	2013-06-23 17:14:38.000000000 +0800
 @@ -29,6 +29,7 @@
    return RI;
  }
@@ -28,8 +28,8 @@ diff -Naur Chapter8_8/Cpu0InstrInfo.cpp Chapter8_8_2/Cpu0InstrInfo.cpp
  
    assert(Opc && "Cannot copy registers");
 diff -Naur Chapter8_8/Cpu0InstrInfo.td Chapter8_8_2/Cpu0InstrInfo.td
---- Chapter8_8/Cpu0InstrInfo.td	2013-06-21 22:46:45.000000000 +0800
-+++ Chapter8_8_2/Cpu0InstrInfo.td	2013-06-21 22:46:45.000000000 +0800
+--- Chapter8_8/Cpu0InstrInfo.td	2013-06-23 17:14:38.000000000 +0800
++++ Chapter8_8_2/Cpu0InstrInfo.td	2013-06-23 17:14:38.000000000 +0800
 @@ -346,6 +346,36 @@
    let neverHasSideEffects = 1;
  }
@@ -100,21 +100,3 @@ diff -Naur Chapter8_8/Cpu0InstrInfo.td Chapter8_8_2/Cpu0InstrInfo.td
  // brcond patterns
  multiclass BrcondPats<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
  Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp, 
-diff -Naur Chapter8_8/Cpu0RegisterInfo.td Chapter8_8_2/Cpu0RegisterInfo.td
---- Chapter8_8/Cpu0RegisterInfo.td	2013-06-21 22:46:45.000000000 +0800
-+++ Chapter8_8_2/Cpu0RegisterInfo.td	2013-06-21 22:46:45.000000000 +0800
-@@ -51,6 +51,8 @@
-   // Hi/Lo registers
-   def HI   : Register<"HI">, DwarfRegNum<[18]>;
-   def LO   : Register<"LO">, DwarfRegNum<[19]>;
-+
-+  def ACC : Register<"acc">, DwarfRegNum<[20]>;
- }
- 
- //===----------------------------------------------------------------------===//
-@@ -73,3 +75,5 @@
- // Status Registers
- def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
- 
-+def RACC : RegisterClass<"Cpu0", [i32], 32, (add ACC)>;
-+

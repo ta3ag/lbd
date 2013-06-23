@@ -26,10 +26,10 @@ class Cpu0GPRReg<bits<4> num, string n> : Cpu0Reg<n> {
 //===----------------------------------------------------------------------===//
 //  Registers
 //===----------------------------------------------------------------------===//
-// The register string, such as "9" or "gp will show on "llvm-objdump -d"
+// The register string, such as "9" or "gp" will show on "llvm-objdump -d"
 let Namespace = "Cpu0" in {
   // General Purpose Registers
-  def ZERO : Cpu0GPRReg< 0, "ZERO">, DwarfRegNum<[0]>;
+  def ZERO : Cpu0GPRReg< 0, "zero">, DwarfRegNum<[0]>;
   def AT   : Cpu0GPRReg< 1, "1">,   DwarfRegNum<[1]>;
   def V0   : Cpu0GPRReg< 2, "2">,    DwarfRegNum<[2]>;
   def V1   : Cpu0GPRReg< 3, "3">,    DwarfRegNum<[3]>;
@@ -57,7 +57,7 @@ let Namespace = "Cpu0" in {
 // Register Classes
 //===----------------------------------------------------------------------===//
 
-def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add 
+def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
   // Reserved
   ZERO, AT, 
   // Return Values and Arguments
@@ -75,4 +75,3 @@ def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
 
 // Hi/Lo Registers
 def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
-
