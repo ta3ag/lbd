@@ -253,47 +253,34 @@ Let's run Chapter6_1/ with ch6_1.cpp via three different options
 
 Summary above information to Table: Cpu0 global variable options.
 
+
 .. csv-table:: Cpu0 global variable options
-   :header: "mode", "static", "-", "pic", "-"
-   :widths: 15, 25, 25, 25, 25 
+   :header: "relocation mode", "static", "-", "pic", "-"
+   :widths: 20, 20, 20, 20, 20 
 
    "option: cpu0-use-small-section", "false", "true", "false", "true"
-   "link type", "static link", "static link", "dynamic link", "dynamic link"
    "section", "data or bss", "sdata or sbss", "data or bss", "sdata or sbss"
    "range", "32 bits", "16 bits", "32 bits", "16 bits"
    "addressing mode", "absolute", "$gp relative", "$gp relative", "$gp relative"
    "addressing", "absolute", "$gp+offset", "$gp+offset", "$gp+offset"
    "Legalized selection DAG", "(add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>)", "(add GLOBAL_OFFSET_TABLE, Cpu0ISD::GPRel<gI offset>)", "(load (Cpu0ISD::Wrapper %GP, <gI offset>))"
    "Cpu0", "addiu $2, $zero, %hi(gI); shl $2, $2, 16; addiu $2, $2, %lo(gI);", "addiu	$2, $gp, %gp_rel(gI);", "ld $2, %got(gI)($gp);"
-   "relocation records solved", "link time", "link time", "load time", "load time"
-   "reason", "Address of gI can be calculated in static link", "offset between gI and .sdata can be calculated in static link", "offset gI and .data cannot be caculated in dynamic", "offset gI and .data cannot be caculated for dynamic"
+   "relocation records solved", "link time", "link time", "link/load time", "link/load time"
    "name binding", "static", "static", "static", "static"
 
 - In static, cpu0-use-small-section=true, offset between gI and .data can be calculated since the $gp is assigned at fixed address of the start of global address table.
-- In pic, offset between gI and .data cannot be calculated since the function is loaded at run time.
+- In pic, offset between gI and .data cannot be calculated if the function is loaded at run time (dynamic link). It can be calculated if use static link.
 - In C, all variable names binding staticly. In C++, the overload variable or function are binding dynamicly.
-- In "static, cpu0-use-small-section=false", the gI high and low address (%hi(gI) and %lo(gI)) can be translated into absolute address or PC relative address. Cpu0 use PC relative address. 
+- In "static, cpu0-use-small-section=false", the gI high and low address (%hi(gI) and %lo(gI)) are translated into absolute address. 
 
 
 According book of system program, there are Absolute Addressing Mode and 
-Position Independent Addressing Mode. Cpu0 use Position Indepent Addressing, 
-such as ld $r1, (4)$sp (PC counter relative offset), to access local variables. 
-For global variables, use "addiu $2, $gp, %gp_rel(gI)" ($gp relative) 
-in small data section. For large data section, Cpu0 also use Position 
-Independent Addressing (PC relative) instructions 
-"addiu $2, $zero, %hi(gI); ... " to access global variables. Even though 
-(%hi(gI) and %lo(gI)) can be translated into absolute address or PC relative 
-address. The linker for Cpu0 can translate these two relocation records into 
-absolute or PC relative address. We prefer Cpu0 use PC relative address since 
-the PC relative address can be applied in shared libary function while the 
-absoulte address instruction cannot.
-The static and pic used in -relocation-model is not meaning Absolute 
-Addressing Mode and Position Independent Addressing Mode.
-It meaning this function is static link or dynamic link. Static link function 
-becomes a part of code in the whole program body while 
-dynamic link load the function body at run time when the function be called. 
-In dynamic link, the Caller program never keeps this function in the 
-execution file.
+Position Independent Addressing Mode. The dynamic function must compiled with 
+Position Independent Addressing Mode. In principle, option -relocation-model is 
+be used to generate Absolute Addressing or Position Independent Addressing.
+The exception is -relocation-model=static and -cpu0-use-small-section=false.
+In this case, the register $gp is reserved to set at the start address of global 
+variable area. Cpu0 use $gp relative addressing in this mode.
 
 To support global variable, first add **UseSmallSectionOpt** command variable to 
 Cpu0Subtarget.cpp. 
@@ -348,6 +335,89 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
+
+  #include "Cpu0MachineFunction.h"
+  ...
+  #include "Cpu0TargetObjectFile.h"
+  ...
+  #include "MCTargetDesc/Cpu0BaseInfo.h"
+  ...
+  #include "llvm/Support/CommandLine.h"
+  SDValue Cpu0TargetLowering::getGlobalReg(SelectionDAG &DAG, EVT Ty) const {
+    Cpu0FunctionInfo *FI = DAG.getMachineFunction().getInfo<Cpu0FunctionInfo>();
+    return DAG.getRegister(FI->getGlobalBaseReg(), Ty);
+  }
+
+  static SDValue getTargetNode(SDValue Op, SelectionDAG &DAG, unsigned Flag) {
+    EVT Ty = Op.getValueType();
+
+    if (GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Op))
+      return DAG.getTargetGlobalAddress(N->getGlobal(), Op.getDebugLoc(), Ty, 0,
+                                        Flag);
+    if (ExternalSymbolSDNode *N = dyn_cast<ExternalSymbolSDNode>(Op))
+      return DAG.getTargetExternalSymbol(N->getSymbol(), Ty, Flag);
+    if (BlockAddressSDNode *N = dyn_cast<BlockAddressSDNode>(Op))
+      return DAG.getTargetBlockAddress(N->getBlockAddress(), Ty, 0, Flag);
+    if (JumpTableSDNode *N = dyn_cast<JumpTableSDNode>(Op))
+      return DAG.getTargetJumpTable(N->getIndex(), Ty, Flag);
+    if (ConstantPoolSDNode *N = dyn_cast<ConstantPoolSDNode>(Op))
+      return DAG.getTargetConstantPool(N->getConstVal(), Ty, N->getAlignment(),
+                                       N->getOffset(), Flag);
+
+    llvm_unreachable("Unexpected node type.");
+    return SDValue();
+  }
+
+  SDValue Cpu0TargetLowering::getAddrLocal(SDValue Op, SelectionDAG &DAG) const {
+    DebugLoc DL = Op.getDebugLoc();
+    EVT Ty = Op.getValueType();
+    unsigned GOTFlag = Cpu0II::MO_GOT;
+    SDValue GOT = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
+                              getTargetNode(Op, DAG, GOTFlag));
+    SDValue Load = DAG.getLoad(Ty, DL, DAG.getEntryNode(), GOT,
+                               MachinePointerInfo::getGOT(), false, false, false,
+                               0);
+    unsigned LoFlag = Cpu0II::MO_ABS_LO;
+    SDValue Lo = DAG.getNode(Cpu0ISD::Lo, DL, Ty, getTargetNode(Op, DAG, LoFlag));
+    return DAG.getNode(ISD::ADD, DL, Ty, Load, Lo);
+  }
+
+  SDValue Cpu0TargetLowering::getAddrGlobal(SDValue Op, SelectionDAG &DAG,
+                                            unsigned Flag) const {
+    DebugLoc DL = Op.getDebugLoc();
+    EVT Ty = Op.getValueType();
+    SDValue Tgt = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
+                              getTargetNode(Op, DAG, Flag));
+    return DAG.getLoad(Ty, DL, DAG.getEntryNode(), Tgt,
+                       MachinePointerInfo::getGOT(), false, false, false, 0);
+  }
+
+  SDValue Cpu0TargetLowering::getAddrGlobalLargeGOT(SDValue Op, SelectionDAG &DAG,
+                                                    unsigned HiFlag,
+                                                    unsigned LoFlag) const {
+    DebugLoc DL = Op.getDebugLoc();
+    EVT Ty = Op.getValueType();
+    SDValue Hi = DAG.getNode(Cpu0ISD::Hi, DL, Ty, getTargetNode(Op, DAG, HiFlag));
+    Hi = DAG.getNode(ISD::ADD, DL, Ty, Hi, getGlobalReg(DAG, Ty));
+    SDValue Wrapper = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, Hi,
+                                  getTargetNode(Op, DAG, LoFlag));
+    return DAG.getLoad(Ty, DL, DAG.getEntryNode(), Wrapper,
+                       MachinePointerInfo::getGOT(), false, false, false, 0);
+  }
+
+  const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
+    switch (Opcode) {
+    case Cpu0ISD::JmpLink:           return "Cpu0ISD::JmpLink";
+    case Cpu0ISD::Hi:                return "Cpu0ISD::Hi";
+    case Cpu0ISD::Lo:                return "Cpu0ISD::Lo";
+    case Cpu0ISD::GPRel:             return "Cpu0ISD::GPRel";
+    case Cpu0ISD::Ret:               return "Cpu0ISD::Ret";
+    case Cpu0ISD::DivRem:            return "Cpu0ISD::DivRem";
+    case Cpu0ISD::DivRemU:           return "Cpu0ISD::DivRemU";
+    case Cpu0ISD::Wrapper:           return "Cpu0ISD::Wrapper";
+    default:                         return NULL;
+    }
+  }
 
   Cpu0TargetLowering::
   Cpu0TargetLowering(Cpu0TargetMachine &TM)
@@ -406,22 +476,14 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
       return DAG.getNode(ISD::ADD, dl, MVT::i32, HiPart, Lo);
     }
     
-    EVT ValTy = Op.getValueType();
-    bool HasGotOfst = (GV->hasInternalLinkage() ||
-                       (GV->hasLocalLinkage() && !isa<Function>(GV)));
-    unsigned GotFlag = (HasGotOfst ? Cpu0II::MO_GOT : Cpu0II::MO_GOT16);
-    SDValue GA = DAG.getTargetGlobalAddress(GV, dl, ValTy, 0, GotFlag);
-    GA = DAG.getNode(Cpu0ISD::Wrapper, dl, ValTy, GetGlobalReg(DAG, ValTy), GA);
-    SDValue ResNode = DAG.getLoad(ValTy, dl, DAG.getEntryNode(), GA,
-                                  MachinePointerInfo(), false, false, false, 0);
-    // On functions and global targets not internal linked only
-    // a load from got/GP is necessary for PIC to work.
-    if (!HasGotOfst)
-      return ResNode;
-    SDValue GALo = DAG.getTargetGlobalAddress(GV, dl, ValTy, 0,
-                                                          Cpu0II::MO_ABS_LO);
-    SDValue Lo = DAG.getNode(Cpu0ISD::Lo, dl, ValTy, GALo);
-    return DAG.getNode(ISD::ADD, dl, ValTy, ResNode, Lo);
+    if (GV->hasInternalLinkage() || (GV->hasLocalLinkage() && !isa<Function>(GV)))
+      return getAddrLocal(Op, DAG);
+
+    if (TLOF.IsGlobalInSmallSection(GV, getTargetMachine()))
+      return getAddrGlobal(Op, DAG, Cpu0II::MO_GOT16);
+    else
+      return getAddrGlobalLargeGOT(Op, DAG, Cpu0II::MO_GOT_HI16,
+                                   Cpu0II::MO_GOT_LO16);
   }
 
 The setOperationAction(ISD::GlobalAddress, MVT::i32, Custom) tells ``llc`` that 
@@ -501,12 +563,13 @@ Option cpu0-use-small-section=false will generate the following instructions.
   	
 Above code, it loads the high address part of gI PC relative address (16 bits) 
 to register $2 and shift 16 bits. 
-Now, the register $2 got it's high part of gI PC relative address. 
-Next, it add register $2 and low part of gI PC relative address into $2. 
+Now, the register $2 got it's high part of gI absolute address. 
+Next, it add register $2 and low part of gI absolute address into $2. 
 At this point, it get the gI memory address. Finally, it get the gI content by 
 instruction "ld $2, 0($2)". 
-The ``llc -relocation-model=static`` is for static link mode which binding the 
-address in static/link time, not dynamic/run time. 
+The ``llc -relocation-model=static`` is for absolute address mode which must be 
+used in static link mode. The dynamic link must be encoded with Position 
+Independent Addressing. 
 As you can see, the PC relative address can be solved in static link. 
 In static, the function fun() is included to the whole execution file, ELF. 
 The offset between .data and instruction "addiu $2, $zero, %hi(gI)" can be 
@@ -514,17 +577,12 @@ caculated. Since use PC relative address coding, this program can be loaded
 to any address and run well there.
 If this program use absolute address and will be loaded at a specific address 
 known at link stage, the relocation record of gI variable access instruction 
-also can be solved at link time.
+such as "addiu $2, $zero, %hi(gI)" and "addiu	$2, $2, %lo(gI)" can be solved 
+at link time.
 If this program use absolute address and the loading address is known at load 
 time, then this relocation record will be solved by loader at loading time. 
-No matter both the cases of the program 
-loaded address are known or unknown at link time, the variable is binding at 
-link time.
 
-In static mode, LowerGlobalAddress() will check the translation is for 
-IsGlobalInSmallSection() or not. IsGlobalInSmallSection() return true only when 
-UseSmallSectionOpt is true and in static mode. 
-In pic mode, IsGlobalInSmallSection() always return false. 
+IsGlobalInSmallSection() return true or false depend on UseSmallSectionOpt. 
 
 The code fragment of LowerGlobalAddress() as the following corresponding option 
 ``llc -relocation-model=static -cpu0-use-small-section=true`` will translate DAG 
@@ -1112,25 +1170,27 @@ static link, and without ".cpload" will save four instructions which has the
 faster result in speed.
 In pic mode, the dynamic loading takes too much time.
 Romove ".cpload" with the cost of losing one general purpose
-register is not deserved here.
+register is not deserved here. Anyway, in pic mode and used in static link, you
+can choose ".cpload" removing. But we perfered use $gp for general purpose 
+register as the solution.
 The relocation records of ".cpload" from ``llc -relocation-model=pic`` can also 
-be solved if we want to link this function by static link.
+be solved in link stage if we want to link this function by static link.
 
 Summary as Table.
 
 .. table:: relocation-model=pic
 
-  ==============  =======================================  ====================================
-  linker          dynamic                                  static
-  ==============  =======================================  ====================================
-  caller          - ld $6, %call32(_dynamic_linker)($gp);  - ld $6, %call32(fun)($gp);
-                  - add $s0, $6, $zero;                    - nop;
-                  - addiu $s1, $gp, (_dynsym_idx)($gp);    - nop;
-                  - jalr $6;                               - jalr $6;
-  - .cpload $6    - addiu $gp, $zero, %hi(_gp_disp);       - addiu $gp, $zero, %hi(_gp_disp);
-                  - addiu $gp, $zero, %hi(_gp_disp);       - addiu $gp, $zero, %hi(_gp_disp);
-                  - _gp_disp solved in load time           - _gp_disp solved in link time
-  ==============  =======================================  ====================================
+  ============  ============================================  ========================================
+  linker          dynamic                                     static
+  ============  ============================================  ========================================
+  caller        - ld $6, %call32(_dynamic_linker)($gp);       - ld $6, %call32(fun)($gp);
+                - add $s0, $6, $zero;                         - jalr $6;
+                - addiu $s1, $gp, (_dynsym_idx)($gp);    
+                - jalr $6;                               
+  .cpload $6    - addiu $gp, $zero, %hi(_gp_disp);            - addiu $gp, $zero, %hi(_gp_disp);
+                - addiu $gp, $zero, %hi(_gp_disp);            - addiu $gp, $zero, %hi(_gp_disp);
+                - _gp_disp solved in load time                - _gp_disp solved in link time
+  ============  ============================================  ========================================
   
 - _dynamic_linker is the offset of Global Address Table.
 - The contents of address (_dynamic_linker)($gp) point to the entry point of dynamic linker.

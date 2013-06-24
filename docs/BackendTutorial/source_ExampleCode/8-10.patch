@@ -1,6 +1,6 @@
 diff -Naur Chapter8_9/Cpu0FrameLowering.cpp Chapter8_10/Cpu0FrameLowering.cpp
---- Chapter8_9/Cpu0FrameLowering.cpp	2013-06-23 17:14:38.000000000 +0800
-+++ Chapter8_10/Cpu0FrameLowering.cpp	2013-06-23 17:14:38.000000000 +0800
+--- Chapter8_9/Cpu0FrameLowering.cpp	2013-06-24 16:56:36.185613959 +0800
++++ Chapter8_10/Cpu0FrameLowering.cpp	2013-06-24 16:56:36.181613959 +0800
 @@ -99,6 +99,9 @@
    MachineBasicBlock::iterator MBBI = MBB.begin();
    DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
@@ -57,8 +57,8 @@ diff -Naur Chapter8_9/Cpu0FrameLowering.cpp Chapter8_10/Cpu0FrameLowering.cpp
    uint64_t StackSize = MFI->getStackSize();
  
 diff -Naur Chapter8_9/Cpu0ISelLowering.cpp Chapter8_10/Cpu0ISelLowering.cpp
---- Chapter8_9/Cpu0ISelLowering.cpp	2013-06-23 17:14:38.000000000 +0800
-+++ Chapter8_10/Cpu0ISelLowering.cpp	2013-06-23 17:14:38.000000000 +0800
+--- Chapter8_9/Cpu0ISelLowering.cpp	2013-06-24 16:56:36.181613959 +0800
++++ Chapter8_10/Cpu0ISelLowering.cpp	2013-06-24 16:56:36.181613959 +0800
 @@ -140,6 +140,7 @@
  
    // Operations not directly supported by Cpu0.
@@ -77,8 +77,8 @@ diff -Naur Chapter8_9/Cpu0ISelLowering.cpp Chapter8_10/Cpu0ISelLowering.cpp
  //  added, this allows us to compute derived properties we expose.
    computeRegisterProperties();
 diff -Naur Chapter8_9/Cpu0RegisterInfo.cpp Chapter8_10/Cpu0RegisterInfo.cpp
---- Chapter8_9/Cpu0RegisterInfo.cpp	2013-06-23 17:14:38.000000000 +0800
-+++ Chapter8_10/Cpu0RegisterInfo.cpp	2013-06-23 17:14:38.000000000 +0800
+--- Chapter8_9/Cpu0RegisterInfo.cpp	2013-06-24 16:56:36.185613959 +0800
++++ Chapter8_10/Cpu0RegisterInfo.cpp	2013-06-24 16:56:36.181613959 +0800
 @@ -77,6 +77,11 @@
    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
      Reserved.set(ReservedCPURegs[I]);
