@@ -253,6 +253,17 @@ Let's run Chapter6_1/ with ch6_1.cpp via three different options
 
 Summary above information to Table: Cpu0 global variable options.
 
+.. table:: Cpu0 global variable options
+
+  ============================  ====================  ===================  =========================================
+  option name                   default               other option value   discription
+  ============================  ====================  ===================  =========================================
+  -relocation-model             pic                   static               - pic: Postion Independent Address
+                                                                           - static: Absolute Address
+  -cpu0-use-small-section       false                 true                 - false: .data or .bss
+                                                                           - true: .sdata or .sbss 
+  ============================  ====================  ===================  =========================================
+  
 
 .. csv-table:: Cpu0 global variable options
    :header: "relocation mode", "static", "-", "pic", "-"
@@ -975,18 +986,105 @@ easier and faster as below.
 
   caller instructions:
     ld  $6, %call32(fun)($gp)
-    SYSCALL call##fun();
     jalr $6;
 
+  cschen@cschen-BM6835-BM6635-BP6335:/usr/local/llvm/test/src/docs/BackendTutorial/LLVMBackendTutorialExampleCode/InputFiles$ /usr/local/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch8_6.bc -o ch8_6.cpu0.o
 
-1. The caller issue system call to OS or loader by SYSCALL call##fun().
+  cschen@cschen-BM6835-BM6635-BP6335:/usr/local/llvm/test/src/docs/BackendTutorial/LLVMBackendTutorialExampleCode/InputFiles$ /usr/local/llvm/test/cmake_debug_build/bin/llvm-objdump -t -r ch8_6.cpu0.o
 
-2. OS or loader load dynamic function fun() to available address X.
+  ch8_6.cpu0.o:	file format ELF32-CPU0
 
-3. OS or loader change register $6 to address X and jump to the next 
-   instruction of SYSCALL call##fun(). 
+  RELOCATION RECORDS FOR [.text]:
+  4 R_CPU0_LO16 _gp_disp
+  80 R_CPU0_CALL24 _Z5sum_iiiiiii
 
-4. The caller can call the fun() by instruction jalr $t9 correctly.
+  RELOCATION RECORDS FOR [.eh_frame]:
+  28 R_CPU0_32 .text
+
+  SYMBOL TABLE:
+  00000000 l    df *ABS*	00000000 ch8_6.bc
+  00000000 l    d  .text	00000000 .text
+  00000000 l    d  .data	00000000 .data
+  00000000 l    d  .bss	00000000 .bss
+  00000000 l    d  .eh_frame	00000000 .eh_frame
+  00000000 g     F .text	0000006c main
+  00000000         *UND*	00000000 _Z5sum_iiiiiii
+  00000000         *UND*	00000000 _gp_disp
+
+  cschen@cschen-BM6835-BM6635-BP6335:/usr/local/llvm/test/src/docs/BackendTutorial/LLVMBackendTutorialExampleCode/InputFiles$ /usr/local/llvm/test/cmake_debug_build/bin/llvm-objdump -d ch8_6.cpu0.o 
+  ch8_6.cpu0.o:	file format ELF32-CPU0
+
+  Disassembly of section .text:
+  main:
+        ...
+        50:	01 6a 00 00                                  	ld	$6, 0($gp)
+        54:	2e e6 00 00                                  	jalr	$6
+
+After link stage, the linker change the ELF as follows,
+
+.. code-block:: bash
+
+  RELOCATION RECORDS FOR [.text]:
+  ...
+  80 R_CPU0_CALL24 _dynamic_linker
+  ...
+  xx R_CPU0_CALL24 _Z5sum_iiiiiii
+
+        50:	01 6a 00 00                                  	ld	$6, 0($gp)
+        54:	2e e6 00 00                                  	jalr	$6
+
+After caller be loaded, the code (or process state) in memory as the following. 
+Now, the offset between _dynamic_linker and GLOBAL_ADDRESS_TABLE is calculated 
+as "ld	$6, Z($gp)", and this "ld" relocation record is solved.
+
+- Z=(X-&main)
+
+.. code-block:: bash
+
+  RELOCATION RECORDS FOR [.text]:
+  ...
+  80 R_CPU0_CALL24 _dynamic_linker
+  ...
+  xx R_CPU0_CALL24 _Z5sum_iiiiiii
+
+        50:	01 6a Z                                     	ld	$6, Z($gp)
+        54:	2e e6 00 00                                  	jalr	$6
+
+  SYMBOL TABLE:
+  00000000 g     F .text	Y _gp_disp
+  00000000 g     F .text	X _dynamic_linker
+  00000000 g     F .text	0000006c main
+
+
+At run time, the following sequence happens.
+
+1. The caller call dynamic linker by instruction "ld	$6, Z($gp)" and "jalr	$6".
+
+2. Dynamic linker loads dynamic function _Z5sum_iiiiiii() to available address W.
+
+3. Dynamic linker change instruction "ld	$6, w1($gp)" of caller to address W as 
+   follows,
+
+- w1=(W-&main)
+
+.. code-block:: bash
+
+  RELOCATION RECORDS FOR [.text]:
+  ...
+  80 R_CPU0_CALL24 _dynamic_linker
+  ...
+  xx R_CPU0_CALL24 _Z5sum_iiiiiii
+
+        50:	01 6a w1                                     	ld	$6, w1($gp)
+        54:	2e e6 00 00                                  	jalr	$6
+
+  SYMBOL TABLE:
+  00000000 g     F .text	Y _gp_disp
+  00000000 g     F .text	X _dynamic_linker
+  00000000 g     F .text	W _Z5sum_iiiiiii
+  00000000 g     F .text	0000006c main
+
+4. The caller can call the _Z5sum_iiiiiii() by instruction jalr $6 correctly.
 
 If use jal instead of jalr to call dynamic function, the relocation record 
 "jal pc_offset" need to be solved at run time in "SYSCALL call##fun()". 
@@ -1184,7 +1282,7 @@ Summary as Table.
   linker          dynamic                                     static
   ============  ============================================  ========================================
   caller        - ld $6, %call32(_dynamic_linker)($gp);       - ld $6, %call32(fun)($gp);
-                - add $s0, $6, $zero;                         - jalr $6;
+                - add $s0, $lr, $zero;                         - jalr $6;
                 - addiu $s1, $gp, (_dynsym_idx)($gp);    
                 - jalr $6;                               
   .cpload $6    - addiu $gp, $zero, %hi(_gp_disp);            - addiu $gp, $zero, %hi(_gp_disp);

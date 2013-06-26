@@ -1,17 +1,17 @@
 diff -Naur Chapter8_5/CMakeLists.txt Chapter8_6/CMakeLists.txt
---- Chapter8_5/CMakeLists.txt	2013-06-24 16:56:36.185613959 +0800
-+++ Chapter8_6/CMakeLists.txt	2013-06-24 16:56:36.197613959 +0800
-@@ -24,6 +24,7 @@
- # Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen
+--- Chapter8_5/CMakeLists.txt	2013-06-26 12:36:34.777595199 +0800
++++ Chapter8_6/CMakeLists.txt	2013-06-26 12:36:34.789595199 +0800
+@@ -25,6 +25,7 @@
  add_llvm_target(Cpu0CodeGen
+   Cpu0AnalyzeImmediate.cpp
    Cpu0AsmPrinter.cpp
 +  Cpu0EmitGPRestore.cpp
    Cpu0InstrInfo.cpp
    Cpu0ISelDAGToDAG.cpp
    Cpu0ISelLowering.cpp
 diff -Naur Chapter8_5/Cpu0AsmPrinter.cpp Chapter8_6/Cpu0AsmPrinter.cpp
---- Chapter8_5/Cpu0AsmPrinter.cpp	2013-06-24 16:56:36.185613959 +0800
-+++ Chapter8_6/Cpu0AsmPrinter.cpp	2013-06-24 16:56:36.197613959 +0800
+--- Chapter8_5/Cpu0AsmPrinter.cpp	2013-06-26 12:36:34.777595199 +0800
++++ Chapter8_6/Cpu0AsmPrinter.cpp	2013-06-26 12:36:34.789595199 +0800
 @@ -40,6 +40,19 @@
  
  using namespace llvm;
@@ -72,7 +72,7 @@ diff -Naur Chapter8_5/Cpu0AsmPrinter.cpp Chapter8_6/Cpu0AsmPrinter.cpp
  }
 diff -Naur Chapter8_5/Cpu0EmitGPRestore.cpp Chapter8_6/Cpu0EmitGPRestore.cpp
 --- Chapter8_5/Cpu0EmitGPRestore.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter8_6/Cpu0EmitGPRestore.cpp	2013-06-24 16:56:36.197613959 +0800
++++ Chapter8_6/Cpu0EmitGPRestore.cpp	2013-06-26 12:36:34.789595199 +0800
 @@ -0,0 +1,99 @@
 +//===-- Cpu0EmitGPRestore.cpp - Emit GP Restore Instruction ---------------===//
 +//
@@ -174,9 +174,9 @@ diff -Naur Chapter8_5/Cpu0EmitGPRestore.cpp Chapter8_6/Cpu0EmitGPRestore.cpp
 +}
 +
 diff -Naur Chapter8_5/Cpu0FrameLowering.cpp Chapter8_6/Cpu0FrameLowering.cpp
---- Chapter8_5/Cpu0FrameLowering.cpp	2013-06-24 16:56:36.185613959 +0800
-+++ Chapter8_6/Cpu0FrameLowering.cpp	2013-06-24 16:56:36.197613959 +0800
-@@ -102,7 +102,10 @@
+--- Chapter8_5/Cpu0FrameLowering.cpp	2013-06-26 12:36:34.777595199 +0800
++++ Chapter8_6/Cpu0FrameLowering.cpp	2013-06-26 12:36:34.789595199 +0800
+@@ -127,7 +127,10 @@
    unsigned ADDiu = Cpu0::ADDiu;
    // First, compute final stack size.
    unsigned StackAlign = getStackAlignment();
@@ -188,7 +188,7 @@ diff -Naur Chapter8_5/Cpu0FrameLowering.cpp Chapter8_6/Cpu0FrameLowering.cpp
    uint64_t StackSize =  RoundUpToAlignment(LocalVarAreaOffset, StackAlign) +
       RoundUpToAlignment(MFI->getStackSize(), StackAlign);
  
-@@ -158,6 +161,13 @@
+@@ -184,6 +187,13 @@
        }
      }
    }
@@ -203,8 +203,8 @@ diff -Naur Chapter8_5/Cpu0FrameLowering.cpp Chapter8_6/Cpu0FrameLowering.cpp
  
  void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
 diff -Naur Chapter8_5/Cpu0.h Chapter8_6/Cpu0.h
---- Chapter8_5/Cpu0.h	2013-06-24 16:56:36.185613959 +0800
-+++ Chapter8_6/Cpu0.h	2013-06-24 16:56:36.197613959 +0800
+--- Chapter8_5/Cpu0.h	2013-06-26 12:36:34.777595199 +0800
++++ Chapter8_6/Cpu0.h	2013-06-26 12:36:34.789595199 +0800
 @@ -23,6 +23,7 @@
    class FunctionPass;
  
@@ -214,8 +214,8 @@ diff -Naur Chapter8_5/Cpu0.h Chapter8_6/Cpu0.h
  } // end namespace llvm;
  
 diff -Naur Chapter8_5/Cpu0InstrInfo.td Chapter8_6/Cpu0InstrInfo.td
---- Chapter8_5/Cpu0InstrInfo.td	2013-06-24 16:56:36.185613959 +0800
-+++ Chapter8_6/Cpu0InstrInfo.td	2013-06-24 16:56:36.197613959 +0800
+--- Chapter8_5/Cpu0InstrInfo.td	2013-06-26 12:36:34.777595199 +0800
++++ Chapter8_6/Cpu0InstrInfo.td	2013-06-26 12:36:34.789595199 +0800
 @@ -364,6 +364,14 @@
                                    [(callseq_end timm:$amt1, timm:$amt2)]>;
  }
@@ -232,8 +232,8 @@ diff -Naur Chapter8_5/Cpu0InstrInfo.td Chapter8_6/Cpu0InstrInfo.td
  // Instruction definition
  //===----------------------------------------------------------------------===//
 diff -Naur Chapter8_5/Cpu0ISelLowering.cpp Chapter8_6/Cpu0ISelLowering.cpp
---- Chapter8_5/Cpu0ISelLowering.cpp	2013-06-24 16:56:36.185613959 +0800
-+++ Chapter8_6/Cpu0ISelLowering.cpp	2013-06-24 16:56:36.197613959 +0800
+--- Chapter8_5/Cpu0ISelLowering.cpp	2013-06-26 12:36:34.777595199 +0800
++++ Chapter8_6/Cpu0ISelLowering.cpp	2013-06-26 12:36:34.789595199 +0800
 @@ -318,6 +318,9 @@
      NextStackOffset = (NextStackOffset + StackAlignment - 1) /
                        StackAlignment * StackAlignment;
@@ -245,8 +245,8 @@ diff -Naur Chapter8_5/Cpu0ISelLowering.cpp Chapter8_6/Cpu0ISelLowering.cpp
    }
    // Chain is the output chain of the last Load/Store or CopyToReg node.
 diff -Naur Chapter8_5/Cpu0MCInstLower.cpp Chapter8_6/Cpu0MCInstLower.cpp
---- Chapter8_5/Cpu0MCInstLower.cpp	2013-06-24 16:56:36.185613959 +0800
-+++ Chapter8_6/Cpu0MCInstLower.cpp	2013-06-24 16:56:36.197613959 +0800
+--- Chapter8_5/Cpu0MCInstLower.cpp	2013-06-26 12:36:34.777595199 +0800
++++ Chapter8_6/Cpu0MCInstLower.cpp	2013-06-26 12:36:34.789595199 +0800
 @@ -121,6 +121,36 @@
    CreateMCInst(MCInsts[3], Cpu0::ADD, GPReg, GPReg, T9Reg);
  }
@@ -285,8 +285,8 @@ diff -Naur Chapter8_5/Cpu0MCInstLower.cpp Chapter8_6/Cpu0MCInstLower.cpp
                                          unsigned offset) const {
    MachineOperandType MOTy = MO.getType();
 diff -Naur Chapter8_5/Cpu0MCInstLower.h Chapter8_6/Cpu0MCInstLower.h
---- Chapter8_5/Cpu0MCInstLower.h	2013-06-24 16:56:36.185613959 +0800
-+++ Chapter8_6/Cpu0MCInstLower.h	2013-06-24 16:56:36.197613959 +0800
+--- Chapter8_5/Cpu0MCInstLower.h	2013-06-26 12:36:34.777595199 +0800
++++ Chapter8_6/Cpu0MCInstLower.h	2013-06-26 12:36:34.789595199 +0800
 @@ -34,6 +34,7 @@
    void Initialize(Mangler *mang, MCContext* C);
    void Lower(const MachineInstr *MI, MCInst &OutMI) const;
@@ -296,8 +296,8 @@ diff -Naur Chapter8_5/Cpu0MCInstLower.h Chapter8_6/Cpu0MCInstLower.h
    MCOperand LowerSymbolOperand(const MachineOperand &MO,
                                 MachineOperandType MOTy, unsigned Offset) const;
 diff -Naur Chapter8_5/Cpu0TargetMachine.cpp Chapter8_6/Cpu0TargetMachine.cpp
---- Chapter8_5/Cpu0TargetMachine.cpp	2013-06-24 16:56:36.185613959 +0800
-+++ Chapter8_6/Cpu0TargetMachine.cpp	2013-06-24 16:56:36.197613959 +0800
+--- Chapter8_5/Cpu0TargetMachine.cpp	2013-06-26 12:36:34.777595199 +0800
++++ Chapter8_6/Cpu0TargetMachine.cpp	2013-06-26 12:36:34.789595199 +0800
 @@ -82,6 +82,7 @@
      return *getCpu0TargetMachine().getSubtargetImpl();
    }

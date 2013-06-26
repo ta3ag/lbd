@@ -1,6 +1,6 @@
 diff -Naur Chapter8_8/Cpu0InstrInfo.cpp Chapter8_8_2/Cpu0InstrInfo.cpp
---- Chapter8_8/Cpu0InstrInfo.cpp	2013-06-24 16:56:36.201613959 +0800
-+++ Chapter8_8_2/Cpu0InstrInfo.cpp	2013-06-24 16:56:36.189613959 +0800
+--- Chapter8_8/Cpu0InstrInfo.cpp	2013-06-26 12:36:34.793595199 +0800
++++ Chapter8_8_2/Cpu0InstrInfo.cpp	2013-06-26 12:36:34.781595199 +0800
 @@ -29,6 +29,7 @@
    return RI;
  }
@@ -28,8 +28,8 @@ diff -Naur Chapter8_8/Cpu0InstrInfo.cpp Chapter8_8_2/Cpu0InstrInfo.cpp
  
    assert(Opc && "Cannot copy registers");
 diff -Naur Chapter8_8/Cpu0InstrInfo.td Chapter8_8_2/Cpu0InstrInfo.td
---- Chapter8_8/Cpu0InstrInfo.td	2013-06-24 16:56:36.201613959 +0800
-+++ Chapter8_8_2/Cpu0InstrInfo.td	2013-06-24 16:56:36.189613959 +0800
+--- Chapter8_8/Cpu0InstrInfo.td	2013-06-26 12:36:34.793595199 +0800
++++ Chapter8_8_2/Cpu0InstrInfo.td	2013-06-26 12:36:34.777595199 +0800
 @@ -346,6 +346,36 @@
    let neverHasSideEffects = 1;
  }
