@@ -950,6 +950,133 @@ the following result.
        148:	2c 00 00 00                                  	ret	$zero
 
 
+Dynamic link
+-------------
+
+To expain how the dynamic link work with ELF format, this section use mips gcc 
+toolchain. You can get the toolchain from [#]_.
+
+Compile the following code and get result as below,
+
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/foobar.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/foobar.cpp
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/main.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/main.cpp
+    :linenos:
+
+.. code-block:: bash
+
+cschen@cschen-BM6835-BM6635-BP6335:~/test/7/mips_linux_toolchain/bin$ ./mips-linux-gnu-g++ -c -fPIC foobar.cpp
+cschen@cschen-BM6835-BM6635-BP6335:~/test/7/mips_linux_toolchain/bin$ ./mips-linux-gnu-g++ -shared -Wl -o libfoobar.so foobar.o 
+cschen@cschen-BM6835-BM6635-BP6335:~/test/7/mips_linux_toolchain/bin$ ./mips-linux-gnu-g++ -c main.cpp -o main.o
+cschen@cschen-BM6835-BM6635-BP6335:~/test/7/mips_linux_toolchain/bin$ ./mips-linux-gnu-objdump -d main.o
+main.o:     file format elf32-tradbigmips
+
+
+Disassembly of section .text:
+
+00000000 <main>:
+  ...
+  10:	24040001 	li	a0,1
+  14:	24050002 	li	a1,2
+  18:	0c000000 	jal	0 <main>
+  1c:	00000000 	nop
+  20:	afc20018 	sw	v0,24(s8)
+  24:	0c000000 	jal	0 <main>
+  28:	00000000 	nop
+	...
+
+cschen@cschen-BM6835-BM6635-BP6335:~/test/7/mips_linux_toolchain/bin$ ./mips-linux-gnu-objdump -tr main.o
+
+main.o:     file format elf32-tradbigmips
+
+SYMBOL TABLE:
+...
+00000000         *UND*	00000000 _Z3fooii
+00000000         *UND*	00000000 _Z3barv
+...
+
+RELOCATION RECORDS FOR [.text]:
+OFFSET   TYPE              VALUE 
+00000018 R_MIPS_26         _Z3fooii
+00000024 R_MIPS_26         _Z3barv
+...
+
+cschen@cschen-BM6835-BM6635-BP6335:~/test/7/mips_linux_toolchain/bin$ ./mips-linux-gnu-g++ main.o libfoobar.so
+cschen@cschen-BM6835-BM6635-BP6335:~/test/7/mips_linux_toolchain/bin$ ./mips-linux-gnu-objdump -d a.out
+
+a.out:     file format elf32-tradbigmips
+  ...
+Disassembly of section .plt:
+  ...
+00400720 <_Z3barv@plt>:
+  400720:	3c0f0041 	lui	t7,0x41
+  400724:	8df90acc 	lw	t9,2764(t7)
+  400728:	03200008 	jr	t9
+  40072c:	25f80acc 	addiu	t8,t7,2764
+
+00400730 <_Z3fooii@plt>:
+  400730:	3c0f0041 	lui	t7,0x41
+  400734:	8df90ad0 	lw	t9,2768(t7)
+  400738:	03200008 	jr	t9
+  40073c:	25f80ad0 	addiu	t8,t7,2768
+  ...
+
+00400880 <main>:
+  ...
+  400890:	24040001 	li	a0,1
+  400894:	24050002 	li	a1,2
+  400898:	0c1001cc 	jal	400730 <_Z3fooii@plt>
+  40089c:	00000000 	nop
+  4008a0:	afc20018 	sw	v0,24(s8)
+  4008a4:	0c1001c8 	jal	400720 <_Z3barv@plt>
+  4008a8:	00000000 	nop
+	...
+
+Disassembly of section .MIPS.stubs:
+
+004009f0 <.MIPS.stubs>:
+  4009f0:	8f998010 	lw	t9,-32752(gp)
+  4009f4:	03e07821 	move	t7,ra
+  4009f8:	0320f809 	jalr	t9
+  4009fc:	24180015 	li	t8,21
+	...
+
+cschen@cschen-BM6835-BM6635-BP6335:~/test/7/mips_linux_toolchain/bin$ ./mips-linux-gnu-objdump -tr a.out
+
+a.out:     file format elf32-tradbigmips
+
+SYMBOL TABLE:
+...
+0040019c l    d  .dynamic	00000000              .dynamic
+004002b4 l    d  .hash	00000000              .hash
+0040035c l    d  .dynsym	00000000              .dynsym
+004004cc l    d  .dynstr	00000000              .dynstr
+...
+0040067c l    d  .rel.plt	00000000              .rel.plt
+00400694 l    d  .init	00000000              .init
+00400700 l    d  .plt	00000000              .plt
+00400750 l    d  .text	00000000              .text
+004009f0 l    d  .MIPS.stubs	00000000              .MIPS.stubs
+...
+00000000 l    df *ABS*	00000000              main.cpp
+...
+00400700 l     F .plt	00000000              _PROCEDURE_LINKAGE_TABLE_
+0040019c l     O .dynamic	00000000              _DYNAMIC
+...
+00000000       O *UND*	00000000              _gp_disp
+00000001 g    d  *ABS*	00000000              _DYNAMIC_LINKING
+...
+00410ae0 g     O *ABS*	00000000              _GLOBAL_OFFSET_TABLE_
+...
+00400880 g     F .text	00000054              main
+00400694 g     F .init	00000000              _init
+
+
+
+
 .. _section Handle $gp register in PIC addressing mode:
 	http://jonathan2251.github.com/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode
 
@@ -967,4 +1094,6 @@ the following result.
 .. [#] http://ccckmit.wikidot.com/lk:elf
 
 .. [#] http://lld.llvm.org/
+
+.. [#] http://developer.mips.com/clang-llvm/
 
