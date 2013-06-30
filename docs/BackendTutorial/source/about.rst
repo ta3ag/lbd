@@ -60,6 +60,7 @@ Version 3.2.16, Not release yet
   Add Table: Chapter 3 .bc IR instructions.
   Rewrite Chapter 5 Global variables.
   Rewrite section Handle $gp register in PIC addressing mode.
+  Add Large Frame Stack Pointer support.
 
 Version 3.2.15, Released June 12, 2013
 	Porting to llvm 3.3.

@@ -284,10 +284,10 @@ SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
     return getAddrLocal(Op, DAG);
 
   if (TLOF.IsGlobalInSmallSection(GV, getTargetMachine()))
+    return getAddrGlobal(Op, DAG, Cpu0II::MO_GOT16);
+  else
     return getAddrGlobalLargeGOT(Op, DAG, Cpu0II::MO_GOT_HI16,
                                  Cpu0II::MO_GOT_LO16);
-
-  return getAddrGlobal(Op, DAG, Cpu0II::MO_GOT16);
 }
 
 SDValue Cpu0TargetLowering::LowerVASTART(SDValue Op, SelectionDAG &DAG) const {

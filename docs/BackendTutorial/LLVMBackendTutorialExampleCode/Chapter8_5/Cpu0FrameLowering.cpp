@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "Cpu0FrameLowering.h"
+#include "Cpu0AnalyzeImmediate.h"
 #include "Cpu0InstrInfo.h"
 #include "Cpu0MachineFunction.h"
 #include "llvm/IR/Function.h"
@@ -90,6 +91,30 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &MF) const {
       MFI->hasVarSizedObjects() || MFI->isFrameAddressTaken();
 }
 
+// Build an instruction sequence to load an immediate that is too large to fit
+// in 16-bit and add the result to Reg.
+static void expandLargeImm(unsigned Reg, int32_t Imm, 
+                           const Cpu0InstrInfo &TII, MachineBasicBlock& MBB,
+                           MachineBasicBlock::iterator II, DebugLoc DL) {
+  unsigned ADD = Cpu0::ADD;
+  unsigned ZEROReg = Cpu0::ZERO;
+  unsigned ATReg = Cpu0::AT;
+  Cpu0AnalyzeImmediate AnalyzeImm;
+  const Cpu0AnalyzeImmediate::InstSeq &Seq =
+    AnalyzeImm.Analyze(Imm, 32, false /* LastInstrIsADDiu */);
+  Cpu0AnalyzeImmediate::InstSeq::const_iterator Inst = Seq.begin();
+
+  BuildMI(MBB, II, DL, TII.get(Inst->Opc), ATReg).addReg(ZEROReg)
+    .addImm(SignExtend64<16>(Inst->ImmOpnd));
+
+  // Build the remaining instructions in Seq.
+  for (++Inst; Inst != Seq.end(); ++Inst)
+    BuildMI(MBB, II, DL, TII.get(Inst->Opc), ATReg).addReg(ATReg)
+      .addImm(SignExtend64<16>(Inst->ImmOpnd));
+
+  BuildMI(MBB, II, DL, TII.get(ADD), Reg).addReg(Reg).addReg(ATReg);
+}
+
 void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   MachineBasicBlock &MBB   = MF.front();
   MachineFrameInfo *MFI    = MF.getFrameInfo();
@@ -119,10 +144,11 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   // Adjust stack.
   if (isInt<16>(-StackSize)) // addiu sp, sp, (-stacksize)
     BuildMI(MBB, MBBI, dl, TII.get(ADDiu), SP).addReg(SP).addImm(-StackSize);
-  else { // Expand immediate that doesn't fit in 16-bit.
-	assert("No expandLargeImm(SP, -StackSize, false, TII, MBB, MBBI, dl);");
-//    expandLargeImm(SP, -StackSize, false, TII, MBB, MBBI, dl);
-  }
+  else if (StackSize <= 0x7fffffffULL)
+    // Expand immediate that doesn't fit in 16-bit.
+    expandLargeImm(SP, -StackSize, TII, MBB, MBBI, dl);
+  else
+    assert((StackSize <= 0x7fffffffULL) && "Stack Size out of range! StackSize must <= 0x7fffffff)");
 
   // emit ".cfi_def_cfa_offset StackSize"
   MCSymbol *AdjustSPLabel = MMI.getContext().CreateTempSymbol();
@@ -179,10 +205,11 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
   // Adjust stack.
   if (isInt<16>(StackSize)) // addiu sp, sp, (stacksize)
     BuildMI(MBB, MBBI, dl, TII.get(ADDiu), SP).addReg(SP).addImm(StackSize);
-  else // Expand immediate that doesn't fit in 16-bit.
-	assert("No expandLargeImm(SP, StackSize, false, TII, MBB, MBBI, dl);");
-//    expandLargeImm(SP, StackSize, false, TII, MBB, MBBI, dl);
-
+  else if (StackSize <= 0x7fffffffULL)
+    // Expand immediate that doesn't fit in 16-bit.
+    expandLargeImm(SP, StackSize, TII, MBB, MBBI, dl);
+  else
+    assert((StackSize <= 0x7fffffffULL) && "Stack Size out of range! StackSize must <= 0x7fffffff)");
 }
 
 // This function eliminate ADJCALLSTACKDOWN,

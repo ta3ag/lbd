@@ -1032,11 +1032,29 @@ The Prologue and Epilogue functions as follows,
     :start-after: MFI->hasVarSizedObjects() || MFI->isFrameAddressTaken();
     :linenos:
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0AnalyzeImmediate.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0AnalyzeImmediate.h
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0AnalyzeImmediate.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0AnalyzeImmediate.cpp
+    :linenos:
+
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0RegisterInfo.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0RegisterInfo.cpp
     :start-after: return Reserved;
     :end-before: unsigned Cpu0RegisterInfo::
     :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_5/CMakeLists.txt
+
+.. code-block:: c++
+
+add_llvm_target(Cpu0CodeGen
+  Cpu0AnalyzeImmediate.cpp
+  ...
+  )
+
 
 After add these Prologue and Epilogue functions, and build with Chapter3_5/Cpu0. 
 Now we are ready to compile our example code ch3.bc into cpu0 assembly code. 

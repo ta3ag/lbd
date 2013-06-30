@@ -669,7 +669,7 @@ command ``make`` in cpu0 example code build.
   [Gamma@localhost test]$ git clone https://github.com/Jonathan2251/lbd.git src
   [Gamma@localhost test]$ cp -rf src/lib/Target/Cpu0/
   LLVMBackendTutorialExampleCode/src_files_modify/modify/src/* src/.
-  [Gamma@localhost test]$ grep -R "Cpu0" src/inlcude
+  [Gamma@localhost test]$ grep -R "cpu0" src/include
   src/include//llvm/ADT/Triple.h:    cpu0,    // For Tutorial Backend Cpu0
   src/include//llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
   src/include//llvm/MC/MCExpr.h:    VK_Cpu0_GOT_CALL,
@@ -684,7 +684,7 @@ command ``make`` in cpu0 example code build.
   Cpu0.h			Cpu0RegisterInfo.td	ExampleCode		readme
   Cpu0.td			Cpu0Schedule.td		LLVMBuild.txt
   Cpu0InstrFormats.td	Cpu0Subtarget.h		MCTargetDesc
-  [Gamma@localhost Cpu0]$ cd ../../../..
+  [Gamma@localhost Cpu0]$ cd ../../../../..
   [Gamma@localhost test]$ pwd
   /usr/local/llvm/test
 

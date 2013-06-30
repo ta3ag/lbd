@@ -1,9 +1,202 @@
+diff -Naur Chapter3_4/CMakeLists.txt Chapter3_5/CMakeLists.txt
+--- Chapter3_4/CMakeLists.txt	2013-06-26 13:17:39.549594905 +0800
++++ Chapter3_5/CMakeLists.txt	2013-06-26 13:17:39.533594905 +0800
+@@ -23,6 +23,7 @@
+ 
+ # Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen
+ add_llvm_target(Cpu0CodeGen
++  Cpu0AnalyzeImmediate.cpp
+   Cpu0AsmPrinter.cpp
+   Cpu0InstrInfo.cpp
+   Cpu0ISelDAGToDAG.cpp
+diff -Naur Chapter3_4/Cpu0AnalyzeImmediate.cpp Chapter3_5/Cpu0AnalyzeImmediate.cpp
+--- Chapter3_4/Cpu0AnalyzeImmediate.cpp	1970-01-01 08:00:00.000000000 +0800
++++ Chapter3_5/Cpu0AnalyzeImmediate.cpp	2013-06-26 13:17:39.533594905 +0800
+@@ -0,0 +1,85 @@
++//===-- Cpu0AnalyzeImmediate.cpp - Analyze Immediates ---------------------===//
++//
++//                     The LLVM Compiler Infrastructure
++//
++// This file is distributed under the University of Illinois Open Source
++// License. See LICENSE.TXT for details.
++//
++//===----------------------------------------------------------------------===//
++#include "Cpu0AnalyzeImmediate.h"
++#include "Cpu0.h"
++#include "llvm/Support/MathExtras.h"
++
++using namespace llvm;
++
++Cpu0AnalyzeImmediate::Inst::Inst(unsigned O, unsigned I) : Opc(O), ImmOpnd(I) {}
++
++// Add I to the instruction sequences.
++void Cpu0AnalyzeImmediate::AddInstr(InstSeqLs &SeqLs, const Inst &I) {
++  // Add an instruction seqeunce consisting of just I.
++  if (SeqLs.empty()) {
++    SeqLs.push_back(InstSeq(1, I));
++    return;
++  }
++
++  for (InstSeqLs::iterator Iter = SeqLs.begin(); Iter != SeqLs.end(); ++Iter)
++    Iter->push_back(I);
++}
++
++void Cpu0AnalyzeImmediate::GetInstSeqLsADDiu(uint64_t Imm, unsigned RemSize,
++                                             InstSeqLs &SeqLs) {
++  GetInstSeqLs((Imm + 0x8000ULL) & 0xffffffffffff0000ULL, RemSize, SeqLs);
++  AddInstr(SeqLs, Inst(ADDiu, Imm & 0xffffULL));
++}
++
++void Cpu0AnalyzeImmediate::GetInstSeqLsSHL(uint64_t Imm, unsigned RemSize,
++                                           InstSeqLs &SeqLs) {
++  unsigned Shamt = CountTrailingZeros_64(Imm);
++  GetInstSeqLs(Imm >> Shamt, RemSize - Shamt, SeqLs);
++  AddInstr(SeqLs, Inst(SHL, Shamt));
++}
++
++void Cpu0AnalyzeImmediate::GetInstSeqLs(uint64_t Imm, unsigned RemSize,
++                                        InstSeqLs &SeqLs) {
++  uint64_t MaskedImm = Imm & (0xffffffffffffffffULL >> (64 - Size));
++
++  // Do nothing if Imm is 0.
++  if (!MaskedImm)
++    return;
++
++  // A single ADDiu will do if RemSize <= 16.
++  if (RemSize <= 16) {
++    AddInstr(SeqLs, Inst(ADDiu, MaskedImm));
++    return;
++  }
++
++  // Shift if the lower 16-bit is cleared.
++  if (!(Imm & 0xffff)) {
++    GetInstSeqLsSHL(Imm, RemSize, SeqLs);
++    return;
++  }
++
++  GetInstSeqLsADDiu(Imm, RemSize, SeqLs);
++}
++
++const Cpu0AnalyzeImmediate::InstSeq
++&Cpu0AnalyzeImmediate::Analyze(uint64_t Imm, unsigned Size,
++                               bool LastInstrIsADDiu) {
++  this->Size = Size;
++
++  ADDiu = Cpu0::ADDiu;
++  OR = Cpu0::OR;
++  SHL = Cpu0::SHL;
++  InstSeqLs SeqLs;
++
++  // Get the list of instruction sequences.
++  if (LastInstrIsADDiu | !Imm)
++    GetInstSeqLsADDiu(Imm, Size, SeqLs);
++  else
++    GetInstSeqLs(Imm, Size, SeqLs);
++
++  Insts.clear();
++  Insts.append(SeqLs.begin()->begin(), SeqLs.begin()->end());
++
++  return Insts;
++}
+diff -Naur Chapter3_4/Cpu0AnalyzeImmediate.h Chapter3_5/Cpu0AnalyzeImmediate.h
+--- Chapter3_4/Cpu0AnalyzeImmediate.h	1970-01-01 08:00:00.000000000 +0800
++++ Chapter3_5/Cpu0AnalyzeImmediate.h	2013-06-26 13:19:22.509594893 +0800
+@@ -0,0 +1,56 @@
++//===-- Cpu0AnalyzeImmediate.h - Analyze Immediates ------------*- C++ -*--===//
++//
++//                     The LLVM Compiler Infrastructure
++//
++// This file is distributed under the University of Illinois Open Source
++// License. See LICENSE.TXT for details.
++//
++//===----------------------------------------------------------------------===//
++#ifndef CPU0_ANALYZE_IMMEDIATE_H
++#define CPU0_ANALYZE_IMMEDIATE_H
++
++#include "llvm/ADT/SmallVector.h"
++#include "llvm/Support/DataTypes.h"
++
++namespace llvm {
++
++  class Cpu0AnalyzeImmediate {
++  public:
++    struct Inst {
++      unsigned Opc, ImmOpnd;
++      Inst(unsigned Opc, unsigned ImmOpnd);
++    };
++    typedef SmallVector<Inst, 7 > InstSeq;
++
++    /// Analyze - Get an instrucion sequence to load immediate Imm. The last
++    /// instruction in the sequence must be an ADDiu if LastInstrIsADDiu is
++    /// true;
++    const InstSeq &Analyze(uint64_t Imm, unsigned Size, bool LastInstrIsADDiu);
++  private:
++    typedef SmallVector<InstSeq, 5> InstSeqLs;
++
++    /// AddInstr - Add I to all instruction sequences in SeqLs.
++    void AddInstr(InstSeqLs &SeqLs, const Inst &I);
++
++    /// GetInstSeqLsADDiu - Get instrucion sequences which end with an ADDiu to
++    /// load immediate Imm
++    void GetInstSeqLsADDiu(uint64_t Imm, unsigned RemSize, InstSeqLs &SeqLs);
++
++    /// GetInstSeqLsORi - Get instrucion sequences which end with an ORi to
++    /// load immediate Imm
++    void GetInstSeqLsORi(uint64_t Imm, unsigned RemSize, InstSeqLs &SeqLs);
++
++    /// GetInstSeqLsSHL - Get instrucion sequences which end with a SHL to
++    /// load immediate Imm
++    void GetInstSeqLsSHL(uint64_t Imm, unsigned RemSize, InstSeqLs &SeqLs);
++
++    /// GetInstSeqLs - Get instrucion sequences to load immediate Imm.
++    void GetInstSeqLs(uint64_t Imm, unsigned RemSize, InstSeqLs &SeqLs);
++
++    unsigned Size;
++    unsigned ADDiu, OR, SHL, ADD;
++    InstSeq Insts;
++  };
++}
++
++#endif
 diff -Naur Chapter3_4/Cpu0FrameLowering.cpp Chapter3_5/Cpu0FrameLowering.cpp
---- Chapter3_4/Cpu0FrameLowering.cpp	2013-06-23 17:14:37.000000000 +0800
-+++ Chapter3_5/Cpu0FrameLowering.cpp	2013-06-23 17:14:37.000000000 +0800
-@@ -91,10 +91,140 @@
+--- Chapter3_4/Cpu0FrameLowering.cpp	2013-06-26 13:17:39.549594905 +0800
++++ Chapter3_5/Cpu0FrameLowering.cpp	2013-06-26 13:17:39.533594905 +0800
+@@ -12,6 +12,7 @@
+ //===----------------------------------------------------------------------===//
+ 
+ #include "Cpu0FrameLowering.h"
++#include "Cpu0AnalyzeImmediate.h"
+ #include "Cpu0InstrInfo.h"
+ #include "Cpu0MachineFunction.h"
+ #include "llvm/IR/Function.h"
+@@ -90,11 +91,167 @@
+       MFI->hasVarSizedObjects() || MFI->isFrameAddressTaken();
  }
  
++// Build an instruction sequence to load an immediate that is too large to fit
++// in 16-bit and add the result to Reg.
++static void expandLargeImm(unsigned Reg, int32_t Imm, 
++                           const Cpu0InstrInfo &TII, MachineBasicBlock& MBB,
++                           MachineBasicBlock::iterator II, DebugLoc DL) {
++  unsigned ADD = Cpu0::ADD;
++  unsigned ZEROReg = Cpu0::ZERO;
++  unsigned ATReg = Cpu0::AT;
++  Cpu0AnalyzeImmediate AnalyzeImm;
++  const Cpu0AnalyzeImmediate::InstSeq &Seq =
++    AnalyzeImm.Analyze(Imm, 32, false /* LastInstrIsADDiu */);
++  Cpu0AnalyzeImmediate::InstSeq::const_iterator Inst = Seq.begin();
++
++  BuildMI(MBB, II, DL, TII.get(Inst->Opc), ATReg).addReg(ZEROReg)
++    .addImm(SignExtend64<16>(Inst->ImmOpnd));
++
++  // Build the remaining instructions in Seq.
++  for (++Inst; Inst != Seq.end(); ++Inst)
++    BuildMI(MBB, II, DL, TII.get(Inst->Opc), ATReg).addReg(ATReg)
++      .addImm(SignExtend64<16>(Inst->ImmOpnd));
++
++  BuildMI(MBB, II, DL, TII.get(ADD), Reg).addReg(Reg).addReg(ATReg);
++}
++
  void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
 +  MachineBasicBlock &MBB   = MF.front();
 +  MachineFrameInfo *MFI    = MF.getFrameInfo();
@@ -33,10 +226,11 @@ diff -Naur Chapter3_4/Cpu0FrameLowering.cpp Chapter3_5/Cpu0FrameLowering.cpp
 +  // Adjust stack.
 +  if (isInt<16>(-StackSize)) // addiu sp, sp, (-stacksize)
 +    BuildMI(MBB, MBBI, dl, TII.get(ADDiu), SP).addReg(SP).addImm(-StackSize);
-+  else { // Expand immediate that doesn't fit in 16-bit.
-+	assert("No expandLargeImm(SP, -StackSize, false, TII, MBB, MBBI, dl);");
-+//    expandLargeImm(SP, -StackSize, false, TII, MBB, MBBI, dl);
-+  }
++  else if (StackSize <= 0x7fffffffULL)
++    // Expand immediate that doesn't fit in 16-bit.
++    expandLargeImm(SP, -StackSize, TII, MBB, MBBI, dl);
++  else
++    assert((StackSize <= 0x7fffffffULL) && "Stack Size out of range! StackSize must <= 0x7fffffff)");
 +
 +  // emit ".cfi_def_cfa_offset StackSize"
 +  MCSymbol *AdjustSPLabel = MMI.getContext().CreateTempSymbol();
@@ -93,10 +287,11 @@ diff -Naur Chapter3_4/Cpu0FrameLowering.cpp Chapter3_5/Cpu0FrameLowering.cpp
 +  // Adjust stack.
 +  if (isInt<16>(StackSize)) // addiu sp, sp, (stacksize)
 +    BuildMI(MBB, MBBI, dl, TII.get(ADDiu), SP).addReg(SP).addImm(StackSize);
-+  else // Expand immediate that doesn't fit in 16-bit.
-+	assert("No expandLargeImm(SP, StackSize, false, TII, MBB, MBBI, dl);");
-+//    expandLargeImm(SP, StackSize, false, TII, MBB, MBBI, dl);
-+
++  else if (StackSize <= 0x7fffffffULL)
++    // Expand immediate that doesn't fit in 16-bit.
++    expandLargeImm(SP, StackSize, TII, MBB, MBBI, dl);
++  else
++    assert((StackSize <= 0x7fffffffULL) && "Stack Size out of range! StackSize must <= 0x7fffffff)");
 +}
 +
 +// This method is called immediately before PrologEpilogInserter scans the 
@@ -143,8 +338,8 @@ diff -Naur Chapter3_4/Cpu0FrameLowering.cpp Chapter3_5/Cpu0FrameLowering.cpp
  
  
 diff -Naur Chapter3_4/Cpu0FrameLowering.h Chapter3_5/Cpu0FrameLowering.h
---- Chapter3_4/Cpu0FrameLowering.h	2013-06-23 17:14:37.000000000 +0800
-+++ Chapter3_5/Cpu0FrameLowering.h	2013-06-23 17:14:37.000000000 +0800
+--- Chapter3_4/Cpu0FrameLowering.h	2013-06-26 13:17:39.549594905 +0800
++++ Chapter3_5/Cpu0FrameLowering.h	2013-06-26 13:17:39.533594905 +0800
 @@ -35,6 +35,8 @@
    void emitPrologue(MachineFunction &MF) const;
    void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const;
@@ -155,8 +350,8 @@ diff -Naur Chapter3_4/Cpu0FrameLowering.h Chapter3_5/Cpu0FrameLowering.h
  
  } // End llvm namespace
 diff -Naur Chapter3_4/Cpu0RegisterInfo.cpp Chapter3_5/Cpu0RegisterInfo.cpp
---- Chapter3_4/Cpu0RegisterInfo.cpp	2013-06-23 17:14:37.000000000 +0800
-+++ Chapter3_5/Cpu0RegisterInfo.cpp	2013-06-23 17:14:37.000000000 +0800
+--- Chapter3_4/Cpu0RegisterInfo.cpp	2013-06-26 13:17:39.549594905 +0800
++++ Chapter3_5/Cpu0RegisterInfo.cpp	2013-06-26 13:17:39.533594905 +0800
 @@ -80,6 +80,7 @@
    return Reserved;
  }
