@@ -1023,13 +1023,13 @@ The Prologue and Epilogue functions as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0FrameLowering.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0FrameLowering.h
-    :start-after: bool hasFP(const MachineFunction &MF) const;
-    :end-before: };
+    :start-after: /// the function.
+    :end-before: bool hasFP(const MachineFunction &MF) const;
     :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0FrameLowering.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0FrameLowering.cpp
-    :start-after: MFI->hasVarSizedObjects() || MFI->isFrameAddressTaken();
+    :start-after: BuildMI(MBB, II, DL, TII.get(ADD), Reg).addReg(Reg).addReg(ATReg);
     :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0AnalyzeImmediate.h
@@ -1050,10 +1050,10 @@ The Prologue and Epilogue functions as follows,
 
 .. code-block:: c++
 
-add_llvm_target(Cpu0CodeGen
-  Cpu0AnalyzeImmediate.cpp
-  ...
-  )
+  add_llvm_target(Cpu0CodeGen
+    Cpu0AnalyzeImmediate.cpp
+    ...
+    )
 
 
 After add these Prologue and Epilogue functions, and build with Chapter3_5/Cpu0. 

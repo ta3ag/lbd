@@ -971,131 +971,6 @@ pseudo instruction at function entry point as below.
 	  .set	nomacro
     ...
 
-According Mips Application Binary Interface (ABI), $t9 is register alias 
-for $25 in Mips. The %t9 is the register 
-used in jalr $25 for long distance function pointer (far subroutine call). 
-Cpu0 use register $6 as the $t9 ($25) register of Mips.
-The jal %subroutine has 24 bits range of address offset relative to Program 
-Counter (PC) while jalr has 32 bits address range in register size of 32 bits. 
-One example of PIC mode is used in share library. 
-Share library is re-entry code which can be loaded in different memory address 
-decided on run time. The jalr make the implementation of dynamic link function 
-easier and faster as below.
-
-.. code-block:: bash
-
-  caller instructions:
-    ld  $6, %call32(fun)($gp)
-    jalr $6;
-
-  cschen@cschen-BM6835-BM6635-BP6335:/usr/local/llvm/test/src/docs/BackendTutorial/LLVMBackendTutorialExampleCode/InputFiles$ /usr/local/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch8_6.bc -o ch8_6.cpu0.o
-
-  cschen@cschen-BM6835-BM6635-BP6335:/usr/local/llvm/test/src/docs/BackendTutorial/LLVMBackendTutorialExampleCode/InputFiles$ /usr/local/llvm/test/cmake_debug_build/bin/llvm-objdump -t -r ch8_6.cpu0.o
-
-  ch8_6.cpu0.o:	file format ELF32-CPU0
-
-  RELOCATION RECORDS FOR [.text]:
-  4 R_CPU0_LO16 _gp_disp
-  80 R_CPU0_CALL24 _Z5sum_iiiiiii
-
-  RELOCATION RECORDS FOR [.eh_frame]:
-  28 R_CPU0_32 .text
-
-  SYMBOL TABLE:
-  00000000 l    df *ABS*	00000000 ch8_6.bc
-  00000000 l    d  .text	00000000 .text
-  00000000 l    d  .data	00000000 .data
-  00000000 l    d  .bss	00000000 .bss
-  00000000 l    d  .eh_frame	00000000 .eh_frame
-  00000000 g     F .text	0000006c main
-  00000000         *UND*	00000000 _Z5sum_iiiiiii
-  00000000         *UND*	00000000 _gp_disp
-
-  cschen@cschen-BM6835-BM6635-BP6335:/usr/local/llvm/test/src/docs/BackendTutorial/LLVMBackendTutorialExampleCode/InputFiles$ /usr/local/llvm/test/cmake_debug_build/bin/llvm-objdump -d ch8_6.cpu0.o 
-  ch8_6.cpu0.o:	file format ELF32-CPU0
-
-  Disassembly of section .text:
-  main:
-        ...
-        50:	01 6a 00 00                                  	ld	$6, 0($gp)
-        54:	2e e6 00 00                                  	jalr	$6
-
-After link stage, the linker change the ELF as follows,
-
-.. code-block:: bash
-
-  RELOCATION RECORDS FOR [.text]:
-  ...
-  80 R_CPU0_CALL24 _dynamic_linker
-  ...
-  xx R_CPU0_CALL24 _Z5sum_iiiiiii
-
-        50:	01 6a 00 00                                  	ld	$6, 0($gp)
-        54:	2e e6 00 00                                  	jalr	$6
-
-After caller be loaded, the code (or process state) in memory as the following. 
-Now, the offset between _dynamic_linker and GLOBAL_ADDRESS_TABLE is calculated 
-as "ld	$6, Z($gp)", and this "ld" relocation record is solved.
-
-- Z=(X-&main)
-
-.. code-block:: bash
-
-  RELOCATION RECORDS FOR [.text]:
-  ...
-  80 R_CPU0_CALL24 _dynamic_linker
-  ...
-  xx R_CPU0_CALL24 _Z5sum_iiiiiii
-
-        50:	01 6a Z                                     	ld	$6, Z($gp)
-        54:	2e e6 00 00                                  	jalr	$6
-
-  SYMBOL TABLE:
-  00000000 g     F .text	Y _gp_disp
-  00000000 g     F .text	X _dynamic_linker
-  00000000 g     F .text	0000006c main
-
-
-At run time, the following sequence happens.
-
-1. The caller call dynamic linker by instruction "ld	$6, Z($gp)" and "jalr	$6".
-
-2. Dynamic linker loads dynamic function _Z5sum_iiiiiii() to available address W.
-
-3. Dynamic linker change instruction "ld	$6, w1($gp)" of caller to address W as 
-   follows,
-
-- w1=(W-&main)
-
-.. code-block:: bash
-
-  RELOCATION RECORDS FOR [.text]:
-  ...
-  80 R_CPU0_CALL24 _dynamic_linker
-  ...
-  xx R_CPU0_CALL24 _Z5sum_iiiiiii
-
-        50:	01 6a w1                                     	ld	$6, w1($gp)
-        54:	2e e6 00 00                                  	jalr	$6
-
-  SYMBOL TABLE:
-  00000000 g     F .text	Y _gp_disp
-  00000000 g     F .text	X _dynamic_linker
-  00000000 g     F .text	W _Z5sum_iiiiiii
-  00000000 g     F .text	0000006c main
-
-4. The caller can call the _Z5sum_iiiiiii() by instruction jalr $6 correctly.
-
-If use jal instead of jalr to call dynamic function, the relocation record 
-"jal pc_offset" need to be solved at run time in "SYSCALL call##fun()". 
-That's why Mips ABI use "jalr" and register %6 for dynamic function. 
-In addition to dynamic function, the jalr is 32 bits 
-addressable while jal is 24 bits addressable. The caller jalr can also be 
-used in static link. If jalr is used in static link, the linker can solve 
-the relocation record of "ld $6, %call32(fun)($gp)" in link time.
-For static linke, the linker and should issue "nop" instead of issue 
-"SYSCALL call##fun()".
-
 The **.cpload** is the assembly directive (macro) which 
 will expand to several instructions. 
 Issue **.cpload** before **.set nomacro** since the **.set nomacro** option 
@@ -1258,7 +1133,7 @@ TargetGlobalAddress<i32* @gI> 0)) into Cpu0 instruction as below.
 
 Remind in pic mode, Cpu0 use ".cpload" and "ld $2, %got(gI)($gp)" to access 
 global variable. It take 5 instructions in Cpu0 and 4 instructions in Mips. 
-The cost is came from we didn't assume the register $gp is always assigned to 
+The cost came from we didn't assume the register $gp is always assigned to 
 address .sdata and fixed there. If $gp is fixed during the run time, then 
 ".cpload" can be removed here and have only one instruction cost in global 
 variable access. The advantage of ".cpload" removing came from losing one 
@@ -1273,28 +1148,6 @@ can choose ".cpload" removing. But we perfered use $gp for general purpose
 register as the solution.
 The relocation records of ".cpload" from ``llc -relocation-model=pic`` can also 
 be solved in link stage if we want to link this function by static link.
-
-Summary as Table.
-
-.. table:: relocation-model=pic
-
-  ============  ============================================  ========================================
-  linker          dynamic                                     static
-  ============  ============================================  ========================================
-  caller        - ld $6, %call32(_dynamic_linker)($gp);       - ld $6, %call32(fun)($gp);
-                - add $s0, $lr, $zero;                         - jalr $6;
-                - addiu $s1, $gp, (_dynsym_idx)($gp);    
-                - jalr $6;                               
-  .cpload $6    - addiu $gp, $zero, %hi(_gp_disp);            - addiu $gp, $zero, %hi(_gp_disp);
-                - addiu $gp, $zero, %hi(_gp_disp);            - addiu $gp, $zero, %hi(_gp_disp);
-                - _gp_disp solved in load time                - _gp_disp solved in link time
-  ============  ============================================  ========================================
-  
-- _dynamic_linker is the offset of Global Address Table.
-- The contents of address (_dynamic_linker)($gp) point to the entry point of dynamic linker.
-- _dynsym_idx is the offset of Global Address Table.
-- The address (_dynsym_idx)($gp) point to the callee function name.
-- _gp_disp represents the offset between the beginning of the function and the global offset table.
 
 
 Global variable print support
