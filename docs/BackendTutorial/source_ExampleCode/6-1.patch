@@ -1,6 +1,6 @@
 diff -Naur Chapter5_1/CMakeLists.txt Chapter6_1/CMakeLists.txt
---- Chapter5_1/CMakeLists.txt	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/CMakeLists.txt	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/CMakeLists.txt	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/CMakeLists.txt	2013-07-01 11:56:24.617543937 +0800
 @@ -30,9 +30,11 @@
    Cpu0ISelLowering.cpp
    Cpu0FrameLowering.cpp
@@ -14,8 +14,8 @@ diff -Naur Chapter5_1/CMakeLists.txt Chapter6_1/CMakeLists.txt
    )
  
 diff -Naur Chapter5_1/Cpu0AsmPrinter.cpp Chapter6_1/Cpu0AsmPrinter.cpp
---- Chapter5_1/Cpu0AsmPrinter.cpp	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/Cpu0AsmPrinter.cpp	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/Cpu0AsmPrinter.cpp	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/Cpu0AsmPrinter.cpp	2013-07-01 11:56:24.617543937 +0800
 @@ -185,6 +185,9 @@
    MCInstLowering.Initialize(Mang, &MF->getContext());
  
@@ -47,8 +47,8 @@ diff -Naur Chapter5_1/Cpu0AsmPrinter.cpp Chapter6_1/Cpu0AsmPrinter.cpp
  }
  
 diff -Naur Chapter5_1/Cpu0InstrInfo.td Chapter6_1/Cpu0InstrInfo.td
---- Chapter5_1/Cpu0InstrInfo.td	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/Cpu0InstrInfo.td	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/Cpu0InstrInfo.td	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/Cpu0InstrInfo.td	2013-07-01 11:56:24.617543937 +0800
 @@ -27,6 +27,13 @@
                                           [SDTCisInt<0>,
                                            SDTCisSameAs<0, 1>]>;
@@ -131,8 +131,8 @@ diff -Naur Chapter5_1/Cpu0InstrInfo.td Chapter6_1/Cpu0InstrInfo.td
  def : Pat<(not CPURegs:$in),
            (XOR CPURegs:$in, (ADDiu ZERO, 1))>;
 diff -Naur Chapter5_1/Cpu0ISelDAGToDAG.cpp Chapter6_1/Cpu0ISelDAGToDAG.cpp
---- Chapter5_1/Cpu0ISelDAGToDAG.cpp	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/Cpu0ISelDAGToDAG.cpp	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/Cpu0ISelDAGToDAG.cpp	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/Cpu0ISelDAGToDAG.cpp	2013-07-01 11:56:24.617543937 +0800
 @@ -13,6 +13,7 @@
  
  #define DEBUG_TYPE "cpu0-isel"
@@ -201,8 +201,8 @@ diff -Naur Chapter5_1/Cpu0ISelDAGToDAG.cpp Chapter6_1/Cpu0ISelDAGToDAG.cpp
      const ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Node);
      unsigned Size = CN->getValueSizeInBits(0);
 diff -Naur Chapter5_1/Cpu0ISelLowering.cpp Chapter6_1/Cpu0ISelLowering.cpp
---- Chapter5_1/Cpu0ISelLowering.cpp	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/Cpu0ISelLowering.cpp	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/Cpu0ISelLowering.cpp	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/Cpu0ISelLowering.cpp	2013-07-01 11:56:24.617543937 +0800
 @@ -14,9 +14,11 @@
  
  #define DEBUG_TYPE "cpu0-lower"
@@ -383,8 +383,8 @@ diff -Naur Chapter5_1/Cpu0ISelLowering.cpp Chapter6_1/Cpu0ISelLowering.cpp
  
  /// LowerFormalArguments - transform physical registers into virtual registers
 diff -Naur Chapter5_1/Cpu0ISelLowering.h Chapter6_1/Cpu0ISelLowering.h
---- Chapter5_1/Cpu0ISelLowering.h	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/Cpu0ISelLowering.h	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/Cpu0ISelLowering.h	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/Cpu0ISelLowering.h	2013-07-01 11:56:24.617543937 +0800
 @@ -25,10 +25,32 @@
      enum NodeType {
        // Start the numbering from where ISD NodeType finishes.
@@ -455,7 +455,7 @@ diff -Naur Chapter5_1/Cpu0ISelLowering.h Chapter6_1/Cpu0ISelLowering.h
        LowerFormalArguments(SDValue Chain,
 diff -Naur Chapter5_1/Cpu0MachineFunction.cpp Chapter6_1/Cpu0MachineFunction.cpp
 --- Chapter5_1/Cpu0MachineFunction.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter6_1/Cpu0MachineFunction.cpp	2013-07-01 10:40:46.377544480 +0800
++++ Chapter6_1/Cpu0MachineFunction.cpp	2013-07-01 11:56:24.617543937 +0800
 @@ -0,0 +1,44 @@
 +//===-- Cpu0MachineFunctionInfo.cpp - Private data used for Cpu0 ----------===//
 +//
@@ -502,9 +502,9 @@ diff -Naur Chapter5_1/Cpu0MachineFunction.cpp Chapter6_1/Cpu0MachineFunction.cpp
 +
 +void Cpu0FunctionInfo::anchor() { }
 diff -Naur Chapter5_1/Cpu0MachineFunction.h Chapter6_1/Cpu0MachineFunction.h
---- Chapter5_1/Cpu0MachineFunction.h	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/Cpu0MachineFunction.h	2013-07-01 11:56:24.621543937 +0800
 +++ Chapter6_1/Cpu0MachineFunction.h	2013-06-24 10:07:14.000000000 +0800
-@@ -23,14 +23,26 @@
+@@ -23,15 +23,26 @@
  /// Cpu0FunctionInfo - This class is derived from MachineFunction private
  /// Cpu0 target-specific information for each MachineFunction.
  class Cpu0FunctionInfo : public MachineFunctionInfo {
@@ -517,11 +517,11 @@ diff -Naur Chapter5_1/Cpu0MachineFunction.h Chapter6_1/Cpu0MachineFunction.h
 +  unsigned GlobalBaseReg;
 +  int GPFI; // Index of the frame object for restoring $gp
    unsigned MaxCallFrameSize;
-+  bool EmitNOAT;
+   bool EmitNOAT;
  
  public:
    Cpu0FunctionInfo(MachineFunction& MF)
--  : MF(MF), MaxCallFrameSize(0)
+-  : MF(MF), MaxCallFrameSize(0), EmitNOAT(false)
 +  : MF(MF), GlobalBaseReg(0), MaxCallFrameSize(0), EmitNOAT(false)
    {}
  
@@ -533,8 +533,8 @@ diff -Naur Chapter5_1/Cpu0MachineFunction.h Chapter6_1/Cpu0MachineFunction.h
    void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
    bool getEmitNOAT() const { return EmitNOAT; }
 diff -Naur Chapter5_1/Cpu0MCInstLower.cpp Chapter6_1/Cpu0MCInstLower.cpp
---- Chapter5_1/Cpu0MCInstLower.cpp	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/Cpu0MCInstLower.cpp	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/Cpu0MCInstLower.cpp	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/Cpu0MCInstLower.cpp	2013-07-01 11:56:24.617543937 +0800
 @@ -42,6 +42,18 @@
  
    switch(MO.getTargetFlags()) {
@@ -607,8 +607,8 @@ diff -Naur Chapter5_1/Cpu0MCInstLower.cpp Chapter6_1/Cpu0MCInstLower.cpp
      break;
   }
 diff -Naur Chapter5_1/Cpu0MCInstLower.h Chapter6_1/Cpu0MCInstLower.h
---- Chapter5_1/Cpu0MCInstLower.h	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/Cpu0MCInstLower.h	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/Cpu0MCInstLower.h	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/Cpu0MCInstLower.h	2013-07-01 11:56:24.617543937 +0800
 @@ -33,6 +33,7 @@
    Cpu0MCInstLower(Cpu0AsmPrinter &asmprinter);
    void Initialize(Mangler *mang, MCContext* C);
@@ -618,8 +618,8 @@ diff -Naur Chapter5_1/Cpu0MCInstLower.h Chapter6_1/Cpu0MCInstLower.h
    MCOperand LowerSymbolOperand(const MachineOperand &MO,
                                 MachineOperandType MOTy, unsigned Offset) const;
 diff -Naur Chapter5_1/Cpu0RegisterInfo.cpp Chapter6_1/Cpu0RegisterInfo.cpp
---- Chapter5_1/Cpu0RegisterInfo.cpp	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/Cpu0RegisterInfo.cpp	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/Cpu0RegisterInfo.cpp	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/Cpu0RegisterInfo.cpp	2013-07-01 11:56:24.617543937 +0800
 @@ -77,6 +77,11 @@
    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
      Reserved.set(ReservedCPURegs[I]);
@@ -633,8 +633,8 @@ diff -Naur Chapter5_1/Cpu0RegisterInfo.cpp Chapter6_1/Cpu0RegisterInfo.cpp
  }
  
 diff -Naur Chapter5_1/Cpu0Subtarget.cpp Chapter6_1/Cpu0Subtarget.cpp
---- Chapter5_1/Cpu0Subtarget.cpp	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/Cpu0Subtarget.cpp	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/Cpu0Subtarget.cpp	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/Cpu0Subtarget.cpp	2013-07-01 11:56:24.617543937 +0800
 @@ -14,6 +14,7 @@
  #include "Cpu0Subtarget.h"
  #include "Cpu0.h"
@@ -674,8 +674,8 @@ diff -Naur Chapter5_1/Cpu0Subtarget.cpp Chapter6_1/Cpu0Subtarget.cpp
  }
  
 diff -Naur Chapter5_1/Cpu0Subtarget.h Chapter6_1/Cpu0Subtarget.h
---- Chapter5_1/Cpu0Subtarget.h	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/Cpu0Subtarget.h	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/Cpu0Subtarget.h	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/Cpu0Subtarget.h	2013-07-01 11:56:24.617543937 +0800
 @@ -47,15 +47,21 @@
    // IsLittle - The target is Little Endian
    bool IsLittle;
@@ -708,8 +708,8 @@ diff -Naur Chapter5_1/Cpu0Subtarget.h Chapter6_1/Cpu0Subtarget.h
  } // End llvm namespace
  
 diff -Naur Chapter5_1/Cpu0TargetMachine.cpp Chapter6_1/Cpu0TargetMachine.cpp
---- Chapter5_1/Cpu0TargetMachine.cpp	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/Cpu0TargetMachine.cpp	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/Cpu0TargetMachine.cpp	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/Cpu0TargetMachine.cpp	2013-07-01 11:56:24.617543937 +0800
 @@ -41,7 +41,7 @@
                    bool isLittle)
    //- Default is big endian
@@ -721,7 +721,7 @@ diff -Naur Chapter5_1/Cpu0TargetMachine.cpp Chapter6_1/Cpu0TargetMachine.cpp
                 ("E-p:32:32:32-i8:8:32-i16:16:32-i64:64:64-n32")),
 diff -Naur Chapter5_1/Cpu0TargetObjectFile.cpp Chapter6_1/Cpu0TargetObjectFile.cpp
 --- Chapter5_1/Cpu0TargetObjectFile.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter6_1/Cpu0TargetObjectFile.cpp	2013-07-01 10:40:46.377544480 +0800
++++ Chapter6_1/Cpu0TargetObjectFile.cpp	2013-07-01 11:56:24.617543937 +0800
 @@ -0,0 +1,104 @@
 +//===-- Cpu0TargetObjectFile.cpp - Cpu0 Object Files ----------------------===//
 +//
@@ -829,7 +829,7 @@ diff -Naur Chapter5_1/Cpu0TargetObjectFile.cpp Chapter6_1/Cpu0TargetObjectFile.c
 +}
 diff -Naur Chapter5_1/Cpu0TargetObjectFile.h Chapter6_1/Cpu0TargetObjectFile.h
 --- Chapter5_1/Cpu0TargetObjectFile.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter6_1/Cpu0TargetObjectFile.h	2013-07-01 10:40:46.377544480 +0800
++++ Chapter6_1/Cpu0TargetObjectFile.h	2013-07-01 11:56:24.617543937 +0800
 @@ -0,0 +1,41 @@
 +//===-- llvm/Target/Cpu0TargetObjectFile.h - Cpu0 Object Info ---*- C++ -*-===//
 +//
@@ -873,8 +873,8 @@ diff -Naur Chapter5_1/Cpu0TargetObjectFile.h Chapter6_1/Cpu0TargetObjectFile.h
 +
 +#endif
 diff -Naur Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp	2013-07-01 11:56:24.617543937 +0800
 @@ -56,6 +56,14 @@
    switch (Kind) {
    default:                                 llvm_unreachable("Invalid kind!");
@@ -891,8 +891,8 @@ diff -Naur Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp Chapter6_1/InstPrinter/Cpu
  
    OS << SRE->getSymbol();
 diff -Naur Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter6_1/MCTargetDesc/Cpu0AsmBackend.cpp
---- Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-07-01 11:56:24.617543937 +0800
 @@ -36,6 +36,7 @@
    case FK_GPRel_4:
    case FK_Data_4:
@@ -921,8 +921,8 @@ diff -Naur Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter6_1/MCTargetDesc/Cp
  
      if (Kind < FirstTargetFixupKind)
 diff -Naur Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h Chapter6_1/MCTargetDesc/Cpu0BaseInfo.h
---- Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/MCTargetDesc/Cpu0BaseInfo.h	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/MCTargetDesc/Cpu0BaseInfo.h	2013-07-01 11:56:24.617543937 +0800
 @@ -79,7 +79,11 @@
      MO_GPOFF_LO,
      MO_GOT_DISP,
@@ -937,8 +937,8 @@ diff -Naur Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h Chapter6_1/MCTargetDesc/Cpu0Ba
  
    enum {
 diff -Naur Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter6_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
---- Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-07-01 11:56:24.617543937 +0800
 @@ -145,6 +145,12 @@
    case Cpu0::fixup_Cpu0_PC24:
      Type = ELF::R_CPU0_PC24;
@@ -953,8 +953,8 @@ diff -Naur Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter6_1/MCTargetDe
  
    return Type;
 diff -Naur Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h Chapter6_1/MCTargetDesc/Cpu0FixupKinds.h
---- Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/MCTargetDesc/Cpu0FixupKinds.h	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/MCTargetDesc/Cpu0FixupKinds.h	2013-07-01 11:56:24.617543937 +0800
 @@ -96,6 +96,12 @@
      // PC relative branch fixup resulting in - R_CPU0_PC16
      fixup_Cpu0_Branch_PCRel,
@@ -969,8 +969,8 @@ diff -Naur Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h Chapter6_1/MCTargetDesc/Cpu0
      LastTargetFixupKind,
      NumTargetFixupKinds = LastTargetFixupKind - FirstTargetFixupKind
 diff -Naur Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter6_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-07-01 10:40:46.377544480 +0800
-+++ Chapter6_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-07-01 10:40:46.377544480 +0800
+--- Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-07-01 11:56:24.621543937 +0800
++++ Chapter6_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-07-01 11:56:24.617543937 +0800
 @@ -157,6 +157,36 @@
  
    assert (Kind == MCExpr::SymbolRef);
