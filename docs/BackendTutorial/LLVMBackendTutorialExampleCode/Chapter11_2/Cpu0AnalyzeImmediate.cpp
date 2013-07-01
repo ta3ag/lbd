@@ -62,51 +62,6 @@ void Cpu0AnalyzeImmediate::GetInstSeqLs(uint64_t Imm, unsigned RemSize,
   GetInstSeqLsADDiu(Imm, RemSize, SeqLs);
 }
 
-// Replace a ADDiu & SLL pair with a LUi.
-// e.g. the following two instructions
-//  ADDiu 0x0111
-//  SLL 18
-// are replaced with
-//  LUi 0x444
-void Cpu0AnalyzeImmediate::ReplaceADDiuSLLWithLUi(InstSeq &Seq) {
-  // Check if the first two instructions are ADDiu and SLL and the shift amount
-  // is at least 16.
-  if ((Seq.size() < 2) || (Seq[0].Opc != ADDiu) ||
-      (Seq[1].Opc != SHL) || (Seq[1].ImmOpnd < 16))
-    return;
-
-  // Sign-extend and shift operand of ADDiu and see if it still fits in 16-bit.
-  int64_t Imm = SignExtend64<16>(Seq[0].ImmOpnd);
-  int64_t ShiftedImm = (uint64_t)Imm << (Seq[1].ImmOpnd - 16);
-
-  if (!isInt<16>(ShiftedImm))
-    return;
-
-  // Replace the first instruction and erase the second.
-  Seq[0].Opc = LUi;
-  Seq[0].ImmOpnd = (unsigned)(ShiftedImm & 0xffff);
-  Seq.erase(Seq.begin() + 1);
-}
-
-void Cpu0AnalyzeImmediate::GetShortestSeq(InstSeqLs &SeqLs, InstSeq &Insts) {
-  InstSeqLs::iterator ShortestSeq = SeqLs.end();
-  // The length of an instruction sequence is at most 7.
-  unsigned ShortestLength = 8;
-
-  for (InstSeqLs::iterator S = SeqLs.begin(); S != SeqLs.end(); ++S) {
-    ReplaceADDiuSLLWithLUi(*S);
-    assert(S->size() <= 7);
-
-    if (S->size() < ShortestLength) {
-      ShortestSeq = S;
-      ShortestLength = S->size();
-    }
-  }
-
-  Insts.clear();
-  Insts.append(ShortestSeq->begin(), ShortestSeq->end());
-}
-
 const Cpu0AnalyzeImmediate::InstSeq
 &Cpu0AnalyzeImmediate::Analyze(uint64_t Imm, unsigned Size,
                                bool LastInstrIsADDiu) {

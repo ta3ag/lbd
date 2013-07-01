@@ -33,6 +33,8 @@ public:
 
   unsigned getMaxCallFrameSize() const { return MaxCallFrameSize; }
   void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
+  bool getEmitNOAT() const { return EmitNOAT; }
+  void setEmitNOAT() { EmitNOAT = true; }
 };
 
 } // end of namespace llvm
