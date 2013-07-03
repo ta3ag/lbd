@@ -1144,7 +1144,9 @@ TargetGlobalAddress<i32* @gI> 0)) into Cpu0 instruction as below.
 Remind in pic mode, Cpu0 use ".cpload" and "ld $2, %got(gI)($gp)" to access 
 global variable. It take 5 instructions in Cpu0 and 4 instructions in Mips. 
 The cost came from we didn't assume the register $gp is always assigned to 
-address .sdata and fixed there. If $gp is fixed during the run time, then 
+address .sdata and fixed there. Even we reserve $gp in this function, the $gp
+register can be changed at other functions. In last sub-section, the $gp is
+assumed to preserve at any function. If $gp is fixed during the run time, then 
 ".cpload" can be removed here and have only one instruction cost in global 
 variable access. The advantage of ".cpload" removing came from losing one 
 general purpose register $gp which can be allocated for variables. 
@@ -1152,8 +1154,8 @@ In last sub-section, .sdata mode, we use ".cpload" removing since it is
 static link, and without ".cpload" will save four instructions which has the 
 faster result in speed.
 In pic mode, the dynamic loading takes too much time.
-Romove ".cpload" with the cost of losing one general purpose
-register is not deserved here. Anyway, in pic mode and used in static link, you
+Romove ".cpload" with the cost of losing one general purpose register at all
+functions is not deserved here. Anyway, in pic mode and used in static link, you
 can choose ".cpload" removing. But we perfered use $gp for general purpose 
 register as the solution.
 The relocation records of ".cpload" from ``llc -relocation-model=pic`` can also 

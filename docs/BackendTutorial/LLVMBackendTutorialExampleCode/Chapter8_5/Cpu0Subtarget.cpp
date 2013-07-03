@@ -27,6 +27,8 @@ UseSmallSectionOpt("cpu0-use-small-section", cl::Hidden, cl::init(false),
                  cl::desc("Use small section. Only work when -relocation-model="
                  "static. pic always not use small section."));
 
+extern bool FixGlobalBaseReg;
+
 void Cpu0Subtarget::anchor() { }
 
 Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
@@ -51,5 +53,9 @@ Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
 
   // Set UseSmallSection.
   UseSmallSection = UseSmallSectionOpt;
+  if (RM == Reloc::Static && !UseSmallSection)
+    FixGlobalBaseReg = false;
+  else
+    FixGlobalBaseReg = true;
 }
 
