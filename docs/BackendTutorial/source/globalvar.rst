@@ -265,7 +265,7 @@ Summary above information to Table: Cpu0 global variable options.
   ============================  ====================  ===================  =================================================
   
 
-.. csv-table:: Cpu0 data layour for -relocation-model=static
+.. csv-table:: Cpu0 DAGs and instructions for -relocation-model=static
    :header: "option: cpu0-use-small-section", "false", "true"
    :widths: 20, 20, 20
 
@@ -278,14 +278,14 @@ Summary above information to Table: Cpu0 global variable options.
 - In static, cpu0-use-small-section=true, offset between gI and .data can be calculated since the $gp is assigned at fixed address of the start of global address table.
 - In "static, cpu0-use-small-section=false", the gI high and low address (%hi(gI) and %lo(gI)) are translated into absolute address. 
 
-.. csv-table:: Cpu0 data layour for -relocation-model=pic
+.. csv-table:: Cpu0 DAGs and instructions for -relocation-model=pic
    :header: "option: cpu0-use-small-section", "false", "true"
    :widths: 20, 20, 20
 
    "addressing mode","$gp relative", "$gp relative"
    "addressing", "$gp+offset", "$gp+offset"
-   "Legalized selection DAG", "(load (Cpu0ISD::Wrapper %GP, <gI offset>))", "(load (Cpu0ISD::Wrapper %GP, <gI offset>))"
-   "Cpu0", "ld $2, %got(gI)($gp);", "ld $2, %got(gI)($gp);"
+   "Legalized selection DAG", "(load (Cpu0ISD::Wrapper %GP, <gI offset>))", "(load EntryToken, (Cpu0ISD::Wrapper (add Cpu0ISD::Hi<gI offset Hi16>, Register %GP), Cpu0ISD::Lo<gI offset Lo16>))"
+   "Cpu0", "ld $2, %got(gI)($gp);", "addiu	$2, $zero, %got_hi(gI); shl $2, $2, 16; add $2, $2, $gp; ld $2, %got_lo(gI)($2);"
    "relocation records solved", "link/load time", "link/load time"
 
 - In pic, offset between gI and .data cannot be calculated if the function is loaded at run time (dynamic link); the offset can be calculated if use static link.
@@ -856,6 +856,24 @@ In this mode, we reserve $gp to a specfic fixed address of both linker and
 loader agree to. So, the $gp cannot be allocated as a general purpose for 
 variables. The following code tells llvm never allocate $gp for variables.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0Subtarget.cpp
+.. code-block:: c++
+
+  Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
+                               const std::string &FS, bool little, 
+                               Reloc::Model _RM) :
+    Cpu0GenSubtargetInfo(TT, CPU, FS),
+    Cpu0ABI(UnknownABI), IsLittle(little), RM(_RM)
+  {
+    ...
+    // Set UseSmallSection.
+    UseSmallSection = UseSmallSectionOpt;
+    if (RM == Reloc::Static && !UseSmallSection)
+      FixGlobalBaseReg = false;
+    else
+      FixGlobalBaseReg = true;
+  }
+
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0RegisterInfo.cpp
 .. code-block:: c++
 
@@ -863,8 +881,9 @@ variables. The following code tells llvm never allocate $gp for variables.
   BitVector Cpu0RegisterInfo::
   getReservedRegs(const MachineFunction &MF) const {
     ...
-    // Reserve GP if small section is used.
-    if (Subtarget.useSmallSection()) {
+    const Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
+    // Reserve GP if globalBaseRegFixed()
+    if (Cpu0FI->globalBaseRegFixed())
       Reserved.set(Cpu0::GP);
     }
     ...
@@ -1243,7 +1262,7 @@ in stage "Legalized selection DAG" as below.
 
 Finally, the pattern Cpu0 instruction **ld** defined before in Cpu0InstrInfo.td 
 will translate DAG (load EntryToken, (Cpu0ISD::Wrapper (add Cpu0ISD::Hi<gI 
-offset Hi16>, Register %GP), TargetGlobalAddress<i32* @gI> 0)) into Cpu0 
+offset Hi16>, Register %GP), Cpu0ISD::Lo<gI offset Lo16>)) into Cpu0 
 instructions as below.
 
 .. code-block:: bash
@@ -1254,6 +1273,7 @@ instructions as below.
 	  add	$2, $2, $gp
 	  ld	$2, %got_lo(gI)($2)
     ...
+
 
 Global variable print support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1367,6 +1387,17 @@ mechanism, pattern match, in the Instruction Selection stage.
 There are three type for setXXXAction(), Promote, Expand and Custom. 
 Except Custom, the other two maybe no need to coding. 
 The section "Instruction Selector" of [#]_ is the references.
+
+As shown in the section, the global variable can be laid in 
+.sdata/.sbss by option -cpu0-use-small-section=true. 
+It is possible, the small data section (16 bits
+addressable) is full out at link stage. When this happens, linker will highlight
+this error and force the toolchain user to fix it. The toolchain user, need to
+reconsider which global variables should be move from .sdata/.sbss to .data/.bss
+by set option -cpu0-use-small-section=false for that global variables declared
+file. The rule for global variables allocation is "set the small and frequent
+variables in small 16 addressable area".
+
 
 Array and struct support
 -------------------------
