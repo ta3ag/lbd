@@ -1029,7 +1029,7 @@ The Prologue and Epilogue functions as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0FrameLowering.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0FrameLowering.cpp
-    :start-after: BuildMI(MBB, II, DL, TII.get(ADD), Reg).addReg(Reg).addReg(ATReg);
+    :start-after: // in 16-bit and add the result to Reg.
     :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0AnalyzeImmediate.h
@@ -1214,6 +1214,48 @@ pattern defined in Cpu0InstrInfo.td.
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_5/Cpu0InstrInfo.td
     :start-after: Arbitrary patterns that map
     :linenos:
+
+The Cpu0AnalyzeImmediate.cpp takes care the 32 bits stack size adjustments.
+It's written in recursive and a little complicate in logic. Instead tracking 
+the code, listing the stack size and the instructions generated in Table: 
+Cpu0 stack adjustment instructions as follows,
+
+.. table:: Cpu0 stack adjustment instructions
+
+  ====================  ================  ==================================  ==================================
+  stack size range      ex. stack size    Cpu0 Prolog instructions            Cpu0 Prolog instructions
+  ====================  ================  ==================================  ==================================
+  0 ~ 0x7fff            - 0x7fff          - addiu $sp, $sp, 32767;            - addiu $sp, $sp, 32767;
+  0x8000 ~ 0xffff       - 0x8000          - addiu $sp, $sp, -32768;           - addiu $1, $zero, 1;
+                                                                              - shl $1, $1, 16;
+                                                                              - addiu $1, $1, -32768;
+                                                                              - addu $sp, $sp, $1;
+  x10000 ~ 0xffffffff   - 0x7fffffff      - addiu $1, $zero, -1;              - addiu $1, $zero, 1;
+                                          - shl $1, $1, 31;                   - shl $1, $1, 31;
+                                          - addiu $1, $1, 1;                  - addiu $1, $1, -1;
+                                          - addu $sp, $sp, $1;                - addu $sp, $sp, $1;
+  x10000 ~ 0xffffffff   - 0x90008000      - addiu $1, $zero, -9;              - addiu $1, $zero, -28671;
+                                          - shl $1, $1, 28;                   - shl $1, $1, 16
+                                          - addiu $1, $1, -32768;             - addiu $1, $1, -32768;
+                                          - addu $sp, $sp, $1;                - addu $sp, $sp, $1;
+  ====================  ================  ==================================  ==================================
+
+Assume sp = 0xa0008000 and stack size = 0x90008000, then (0xa0008000 - 
+0x90008000) => 0x10000000. Verify with the Cpu0 Prolog instructions as 
+follows,
+
+1. "addiu	$1, $zero, -9" => ($1 = 0 + 0xfffffff7) => $1 = 0xfffffff7.
+2. "shl	$1, $1, 28;" => $1 = 0x70000000.
+3. "addiu	$1, $1, -32768" => $1 = (0x70000000 + 0xffff8000) => $1 = 0x6fff8000.
+4. "addu	$sp, $sp, $1" => $sp = (0xa0008000 + 0x6fff8000) => $sp = 0x10000000.
+
+Verify with the Cpu0 Epilog instructions with sp = 0x10000000 and stack size = 
+0x90008000 as follows,
+
+1. "addiu	$1, $zero, -28671" => ($1 = 0 + 0xffff9001) => $1 = 0xffff9001.
+2. "shl	$1, $1, 16;" => $1 = 0x90010000.
+3. "addiu	$1, $1, -32768" => $1 = (0x90010000 + 0xffff8000) => $1 = 0x90008000.
+4. "addu	$sp, $sp, $1" => $sp = (0x10000000 + 0x90008000) => $sp = 0xa0008000.
 
 
 Summary of this Chapter

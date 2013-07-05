@@ -1,63 +1,10 @@
 diff -Naur Chapter3_5/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
---- Chapter3_5/Cpu0InstrInfo.td	2013-06-26 12:36:34.777595199 +0800
-+++ Chapter4_1/Cpu0InstrInfo.td	2013-06-26 12:36:34.793595199 +0800
-@@ -36,6 +36,8 @@
-   let DecoderMethod= "DecodeSimm16";
- }
+--- Chapter3_5/Cpu0InstrInfo.td	2013-07-05 17:46:02.869283807 +0800
++++ Chapter4_1/Cpu0InstrInfo.td	2013-07-05 17:46:02.913283807 +0800
+@@ -132,6 +132,15 @@
+                          SDNode OpNode>:
+   shift_rotate_imm<func, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs>;
  
-+def shamt       : Operand<i32>;
-+
- // Address operand
- def mem : Operand<i32> {
-   let PrintMethod = "printMemOperand";
-@@ -47,6 +49,9 @@
- // e.g. addi, andi
- def immSExt16  : PatLeaf<(imm), [{ return isInt<16>(N->getSExtValue()); }]>;
- 
-+// shamt field must fit in 5 bits.
-+def immZExt5 : ImmLeaf<i32, [{return Imm == (Imm & 0x1f);}]>;
-+
- // Cpu0 Address Mode! SDNode frameindex could possibily be a match
- // since load and store instructions from stack used it.
- def addr : ComplexPattern<iPTR, 2, "SelectAddr", [frameindex], [SDNPWantParent]>;
-@@ -75,6 +80,17 @@
- // Instructions specific format
- //===----------------------------------------------------------------------===//
- 
-+// Arithmetic and logical instructions with 3 register operands.
-+class ArithLogicR<bits<8> op, string instr_asm, SDNode OpNode,
-+                  InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
-+  FA<op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
-+     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
-+     [(set RC:$ra, (OpNode RC:$rb, RC:$rc))], itin> {
-+  let shamt = 0;
-+  let isCommutable = isComm;	// e.g. add rb rc =  add rc rb
-+  let isReMaterializable = 1;
-+}
-+
- // Arithmetic and logical instructions with 2 register operands.
- class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
-                   Operand Od, PatLeaf imm_type, RegisterClass RC> :
-@@ -84,6 +100,31 @@
-   let isReMaterializable = 1;
- }
- 
-+// Shifts
-+class shift_rotate_imm<bits<8> op, bits<4> isRotate, string instr_asm,
-+                       SDNode OpNode, PatFrag PF, Operand ImmOpnd,
-+                       RegisterClass RC>:
-+  FA<op, (outs RC:$ra), (ins RC:$rb, ImmOpnd:$shamt),
-+     !strconcat(instr_asm, "\t$ra, $rb, $shamt"),
-+     [(set RC:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu> {
-+  let rc = isRotate;
-+  let shamt = shamt;
-+}
-+
-+// 32-bit shift instructions.
-+class shift_rotate_imm32<bits<8> func, bits<4> isRotate, string instr_asm,
-+                         SDNode OpNode>:
-+  shift_rotate_imm<func, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs>;
-+
 +// Load Upper Imediate
 +class LoadUpper<bits<8> op, string instr_asm, RegisterClass RC, Operand Imm>:
 +  FL<op, (outs RC:$ra), (ins Imm:$imm16),
@@ -70,11 +17,10 @@ diff -Naur Chapter3_5/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
  class FMem<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern,
            InstrItinClass itin>: FL<op, outs, ins, asmstr, pattern, itin> {
    bits<20> addr;
-@@ -139,6 +180,25 @@
- // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
- def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
+@@ -190,9 +199,23 @@
  
-+/// Arithmetic Instructions (3-Operand, R-Type)
+ /// Arithmetic Instructions (3-Operand, R-Type)
+ def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
 +def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
 +def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
 +def MUL     : ArithLogicR<0x15, "mul", mul, IIImul, CPURegs, 1>;
@@ -83,22 +29,21 @@ diff -Naur Chapter3_5/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
 +def AND     : ArithLogicR<0x18, "and", and, IIAlu, CPURegs, 1>;
 +def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
 +def XOR     : ArithLogicR<0x1A, "xor", xor, IIAlu, CPURegs, 1>;
-+
-+/// Shift Instructions
+ 
+ /// Shift Instructions
 +// sra is IR node for ashr llvm IR instruction of .bc
 +def SRA     : shift_rotate_imm32<0x1B, 0x00, "sra", sra>;
 +def ROL     : shift_rotate_imm32<0x1C, 0x01, "rol", rotl>;
 +def ROR     : shift_rotate_imm32<0x1D, 0x01, "ror", rotr>;
-+def SHL     : shift_rotate_imm32<0x1E, 0x00, "shl", shl>;
+ def SHL     : shift_rotate_imm32<0x1E, 0x00, "shl", shl>;
 +// srl is IR node for lshr llvm IR instruction of .bc
 +def SHR     : shift_rotate_imm32<0x1F, 0x00, "shr", srl>;
-+
+ 
  let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
      isBarrier=1, hasCtrlDep=1 in
-   def RET : FJ <0x2C, (outs), (ins CPURegs:$target),
 diff -Naur Chapter3_5/Cpu0Schedule.td Chapter4_1/Cpu0Schedule.td
---- Chapter3_5/Cpu0Schedule.td	2013-06-26 12:36:34.777595199 +0800
-+++ Chapter4_1/Cpu0Schedule.td	2013-06-26 12:36:34.793595199 +0800
+--- Chapter3_5/Cpu0Schedule.td	2013-07-05 17:46:02.869283807 +0800
++++ Chapter4_1/Cpu0Schedule.td	2013-07-05 17:46:02.913283807 +0800
 @@ -11,6 +11,7 @@
  // Functional units across Cpu0 chips sets. Based on GCC/Cpu0 backend files.
  //===----------------------------------------------------------------------===//

@@ -93,10 +93,10 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &MF) const {
 
 // Build an instruction sequence to load an immediate that is too large to fit
 // in 16-bit and add the result to Reg.
-static void expandLargeImm(unsigned Reg, int32_t Imm, 
+static void expandLargeImm(unsigned Reg, int64_t Imm, 
                            const Cpu0InstrInfo &TII, MachineBasicBlock& MBB,
                            MachineBasicBlock::iterator II, DebugLoc DL) {
-  unsigned ADD = Cpu0::ADD;
+  unsigned ADDu = Cpu0::ADDu;
   unsigned ZEROReg = Cpu0::ZERO;
   unsigned ATReg = Cpu0::AT;
   Cpu0AnalyzeImmediate AnalyzeImm;
@@ -112,7 +112,7 @@ static void expandLargeImm(unsigned Reg, int32_t Imm,
     BuildMI(MBB, II, DL, TII.get(Inst->Opc), ATReg).addReg(ATReg)
       .addImm(SignExtend64<16>(Inst->ImmOpnd));
 
-  BuildMI(MBB, II, DL, TII.get(ADD), Reg).addReg(Reg).addReg(ATReg);
+  BuildMI(MBB, II, DL, TII.get(ADDu), Reg).addReg(Reg).addReg(ATReg);
 }
 
 void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
@@ -144,11 +144,10 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   // Adjust stack.
   if (isInt<16>(-StackSize)) // addiu sp, sp, (-stacksize)
     BuildMI(MBB, MBBI, dl, TII.get(ADDiu), SP).addReg(SP).addImm(-StackSize);
-  else if (StackSize <= 0x7fffffffULL)
-    // Expand immediate that doesn't fit in 16-bit.
+  else { // Expand immediate that doesn't fit in 16-bit.
+    Cpu0FI->setEmitNOAT();
     expandLargeImm(SP, -StackSize, TII, MBB, MBBI, dl);
-  else
-    assert((StackSize <= 0x7fffffffULL) && "Stack Size out of range! StackSize must <= 0x7fffffff)");
+  }
 
   // emit ".cfi_def_cfa_offset StackSize"
   MCSymbol *AdjustSPLabel = MMI.getContext().CreateTempSymbol();
@@ -190,6 +189,7 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
                                  MachineBasicBlock &MBB) const {
   MachineBasicBlock::iterator MBBI = MBB.getLastNonDebugInstr();
   MachineFrameInfo *MFI            = MF.getFrameInfo();
+  Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
   const Cpu0InstrInfo &TII =
     *static_cast<const Cpu0InstrInfo*>(MF.getTarget().getInstrInfo());
   DebugLoc dl = MBBI->getDebugLoc();
@@ -205,11 +205,10 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
   // Adjust stack.
   if (isInt<16>(StackSize)) // addiu sp, sp, (stacksize)
     BuildMI(MBB, MBBI, dl, TII.get(ADDiu), SP).addReg(SP).addImm(StackSize);
-  else if (StackSize <= 0x7fffffffULL)
-    // Expand immediate that doesn't fit in 16-bit.
+  else { // Expand immediate that doesn't fit in 16-bit.
+    Cpu0FI->setEmitNOAT();
     expandLargeImm(SP, StackSize, TII, MBB, MBBI, dl);
-  else
-    assert((StackSize <= 0x7fffffffULL) && "Stack Size out of range! StackSize must <= 0x7fffffff)");
+  }
 }
 
 // This function eliminate ADJCALLSTACKDOWN,
