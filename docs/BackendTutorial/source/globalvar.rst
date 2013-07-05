@@ -71,7 +71,7 @@ Let's run Chapter6_1/ with ch6_1.cpp via three different options
   -filetype=asm -debug ch6_1.bc -o -
   
   ...
-  Type-legalized selection DAG: BB#0 'main:'
+  Type-legalized selection DAG: BB#0 '_Z3funv:entry'
   SelectionDAG has 12 nodes:
     ...
         0x7ffd5902cc10: <multiple use>
@@ -85,7 +85,7 @@ Let's run Chapter6_1/ with ch6_1.cpp via three different options
     0x7ffd5902cc10<LD4[@gI]> [ORD=3] [ID=-3]
     ...
   
-  Legalized selection DAG: BB#0 'main:'
+  Legalized selection DAG: BB#0 '_Z3funv:entry'
   SelectionDAG has 16 nodes:
     ...
         0x7ffd5902cc10: <multiple use>
@@ -134,7 +134,7 @@ Let's run Chapter6_1/ with ch6_1.cpp via three different options
   -filetype=asm -debug ch6_1.bc -o -
   
   ...
-  Type-legalized selection DAG: BB#0 'main:'
+  Type-legalized selection DAG: BB#0 '_Z3funv:entry'
   SelectionDAG has 12 nodes:
     ...
         0x7fc5f382cc10: <multiple use>
@@ -147,7 +147,7 @@ Let's run Chapter6_1/ with ch6_1.cpp via three different options
     0x7fc5f382d110: i32,ch = load 0x7fc5f382cf10, 0x7fc5f382d010, 
     0x7fc5f382cc10<LD4[@gI]> [ORD=3] [ID=-3]
   
-  Legalized selection DAG: BB#0 'main:'
+  Legalized selection DAG: BB#0 '_Z3funv:entry'
   SelectionDAG has 15 nodes:
     ...
         0x7fc5f382cc10: <multiple use>
@@ -192,7 +192,7 @@ Let's run Chapter6_1/ with ch6_1.cpp via three different options
   -o -
   
   ...
-  Type-legalized selection DAG: BB#0 'main:'
+  Type-legalized selection DAG: BB#0 '_Z3funv:entry'
   SelectionDAG has 12 nodes:
     ...
         0x7fad7102cc10: <multiple use>
@@ -205,7 +205,7 @@ Let's run Chapter6_1/ with ch6_1.cpp via three different options
     0x7fad7102d110: i32,ch = load 0x7fad7102cf10, 0x7fad7102d010, 
     0x7fad7102cc10<LD4[@gI]> [ORD=3] [ID=-3]
     ...
-  Legalized selection DAG: BB#0 'main:'
+  Legalized selection DAG: BB#0 '_Z3funv:entry'
   SelectionDAG has 15 nodes:
     0x7ff3c9c10b98: ch = EntryToken [ORD=1] [ID=0]
     ...
@@ -229,7 +229,7 @@ Let's run Chapter6_1/ with ch6_1.cpp via three different options
     0x7ff3ca02cc10<LD4[@gI]> [ORD=3] [ID=9]
     ...
 	  .set	noreorder
-	  .cpload	$t9
+	  .cpload	$6
 	  .set	nomacro
     ...
   	ld	$2, %got(gI)($gp)
@@ -255,40 +255,46 @@ Summary above information to Table: Cpu0 global variable options.
 
 .. table:: Cpu0 global variable options
 
-  ============================  ====================  ===================  =========================================
+  ============================  ====================  ===================  =================================================
   option name                   default               other option value   discription
-  ============================  ====================  ===================  =========================================
+  ============================  ====================  ===================  =================================================
   -relocation-model             pic                   static               - pic: Postion Independent Address
                                                                            - static: Absolute Address
-  -cpu0-use-small-section       false                 true                 - false: .data or .bss
-                                                                           - true: .sdata or .sbss 
-  ============================  ====================  ===================  =========================================
+  -cpu0-use-small-section       false                 true                 - false: .data or .bss, 16 bits addressable
+                                                                           - true: .sdata or .sbss, 32 bits addressable
+  ============================  ====================  ===================  =================================================
   
 
-.. csv-table:: Cpu0 global variable options
-   :header: "relocation mode", "static", "-", "pic", "-"
-   :widths: 20, 20, 20, 20, 20 
+.. csv-table:: Cpu0 DAGs and instructions for -relocation-model=static
+   :header: "option: cpu0-use-small-section", "false", "true"
+   :widths: 20, 20, 20
 
-   "option: cpu0-use-small-section", "false", "true", "false", "true"
-   "section", "data or bss", "sdata or sbss", "data or bss", "sdata or sbss"
-   "range", "32 bits", "16 bits", "32 bits", "16 bits"
-   "addressing mode", "absolute", "$gp relative", "$gp relative", "$gp relative"
-   "addressing", "absolute", "$gp+offset", "$gp+offset", "$gp+offset"
-   "Legalized selection DAG", "(add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>)", "(add GLOBAL_OFFSET_TABLE, Cpu0ISD::GPRel<gI offset>)", "(load (Cpu0ISD::Wrapper %GP, <gI offset>))"
-   "Cpu0", "addiu $2, $zero, %hi(gI); shl $2, $2, 16; addiu $2, $2, %lo(gI);", "addiu	$2, $gp, %gp_rel(gI);", "ld $2, %got(gI)($gp);"
-   "relocation records solved", "link time", "link time", "link/load time", "link/load time"
-   "name binding", "static", "static", "static", "static"
+   "addressing mode", "absolute", "$gp relative"
+   "addressing", "absolute", "$gp+offset"
+   "Legalized selection DAG", "(add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>)", "(add GLOBAL_OFFSET_TABLE, Cpu0ISD::GPRel<gI offset>)"
+   "Cpu0", "addiu $2, $zero, %hi(gI); shl $2, $2, 16; addiu $2, $2, %lo(gI);", "addiu	$2, $gp, %gp_rel(gI);"
+   "relocation records solved", "link time", "link time"
 
 - In static, cpu0-use-small-section=true, offset between gI and .data can be calculated since the $gp is assigned at fixed address of the start of global address table.
-- In pic, offset between gI and .data cannot be calculated if the function is loaded at run time (dynamic link). It can be calculated if use static link.
-- In C, all variable names binding staticly. In C++, the overload variable or function are binding dynamicly.
 - In "static, cpu0-use-small-section=false", the gI high and low address (%hi(gI) and %lo(gI)) are translated into absolute address. 
 
+.. csv-table:: Cpu0 DAGs and instructions for -relocation-model=pic
+   :header: "option: cpu0-use-small-section", "false", "true"
+   :widths: 20, 20, 20
+
+   "addressing mode","$gp relative", "$gp relative"
+   "addressing", "$gp+offset", "$gp+offset"
+   "Legalized selection DAG", "(load (Cpu0ISD::Wrapper %GP, <gI offset>))", "(load EntryToken, (Cpu0ISD::Wrapper (add Cpu0ISD::Hi<gI offset Hi16>, Register %GP), Cpu0ISD::Lo<gI offset Lo16>))"
+   "Cpu0", "ld $2, %got(gI)($gp);", "addiu	$2, $zero, %got_hi(gI); shl $2, $2, 16; add $2, $2, $gp; ld $2, %got_lo(gI)($2);"
+   "relocation records solved", "link/load time", "link/load time"
+
+- In pic, offset between gI and .data cannot be calculated if the function is loaded at run time (dynamic link); the offset can be calculated if use static link.
+- In C, all variable names binding staticly. In C++, the overload variable or function are binding dynamicly.
 
 According book of system program, there are Absolute Addressing Mode and 
 Position Independent Addressing Mode. The dynamic function must compiled with 
 Position Independent Addressing Mode. In principle, option -relocation-model is 
-be used to generate Absolute Addressing or Position Independent Addressing.
+used to generate Absolute Addressing or Position Independent Addressing.
 The exception is -relocation-model=static and -cpu0-use-small-section=false.
 In this case, the register $gp is reserved to set at the start address of global 
 variable area. Cpu0 use $gp relative addressing in this mode.
@@ -501,7 +507,7 @@ The setOperationAction(ISD::GlobalAddress, MVT::i32, Custom) tells ``llc`` that
 we implement global address operation in C++ function 
 Cpu0TargetLowering::LowerOperation(). LLVM will call this function only when 
 llvm want to translate IR DAG of loading global variable into machine code. 
-Since may have many Custom type of setOperationAction(ISD::XXX, MVT::XXX, 
+Since there are many Custom type of setOperationAction(ISD::XXX, MVT::XXX, 
 Custom) in construction function Cpu0TargetLowering(), and each of them will 
 trigger llvm calling Cpu0TargetLowering::LowerOperation() in stage 
 "Legalized selection DAG" . 
@@ -593,7 +599,7 @@ at link time.
 If this program use absolute address and the loading address is known at load 
 time, then this relocation record will be solved by loader at loading time. 
 
-IsGlobalInSmallSection() return true or false depend on UseSmallSectionOpt. 
+IsGlobalInSmallSection() return true or false depends on UseSmallSectionOpt. 
 
 The code fragment of LowerGlobalAddress() as the following corresponding option 
 ``llc -relocation-model=static -cpu0-use-small-section=true`` will translate DAG 
@@ -624,7 +630,7 @@ stage "Legalized selection DAG" as below.
   -filetype=asm -debug ch6_1.bc -o -
   
   ...
-  Type-legalized selection DAG: BB#0 'main:'
+  Type-legalized selection DAG: BB#0 '_Z3funv:entry'
   SelectionDAG has 12 nodes:
     ...
         0x7ffd5902cc10: <multiple use>
@@ -638,7 +644,7 @@ stage "Legalized selection DAG" as below.
     0x7ffd5902cc10<LD4[@gI]> [ORD=3] [ID=-3]
     ...
   
-  Legalized selection DAG: BB#0 'main:'
+  Legalized selection DAG: BB#0 '_Z3funv:entry'
   SelectionDAG has 16 nodes:
     ...
         0x7ffd5902cc10: <multiple use>
@@ -752,7 +758,7 @@ stage "Legalized selection DAG" as below.
 .. code-block:: bash
 
   ...
-  Type-legalized selection DAG: BB#0 'main:'
+  Type-legalized selection DAG: BB#0 '_Z3funv:entry'
   SelectionDAG has 12 nodes:
     ...
         0x7fc5f382cc10: <multiple use>
@@ -765,7 +771,7 @@ stage "Legalized selection DAG" as below.
     0x7fc5f382d110: i32,ch = load 0x7fc5f382cf10, 0x7fc5f382d010, 
     0x7fc5f382cc10<LD4[@gI]> [ORD=3] [ID=-3]
   
-  Legalized selection DAG: BB#0 'main:'
+  Legalized selection DAG: BB#0 '_Z3funv:entry'
   SelectionDAG has 15 nodes:
     ...
         0x7fc5f382cc10: <multiple use>
@@ -846,9 +852,27 @@ when program ch6_1.cpu0.s is loaded, then linker can caculate %gp_rel(gI) =
 Which meaning this relocation record can be solved at link time, that's why it 
 is static mode. 
 
-In this mode, we prereserve $gp to a specfic fixed address of both linker and 
+In this mode, we reserve $gp to a specfic fixed address of both linker and 
 loader agree to. So, the $gp cannot be allocated as a general purpose for 
-variables. The following code tell llvm never allocate $gp for variables.
+variables. The following code tells llvm never allocate $gp for variables.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0Subtarget.cpp
+.. code-block:: c++
+
+  Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
+                               const std::string &FS, bool little, 
+                               Reloc::Model _RM) :
+    Cpu0GenSubtargetInfo(TT, CPU, FS),
+    Cpu0ABI(UnknownABI), IsLittle(little), RM(_RM)
+  {
+    ...
+    // Set UseSmallSection.
+    UseSmallSection = UseSmallSectionOpt;
+    if (RM == Reloc::Static && !UseSmallSection)
+      FixGlobalBaseReg = false;
+    else
+      FixGlobalBaseReg = true;
+  }
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0RegisterInfo.cpp
 .. code-block:: c++
@@ -857,8 +881,9 @@ variables. The following code tell llvm never allocate $gp for variables.
   BitVector Cpu0RegisterInfo::
   getReservedRegs(const MachineFunction &MF) const {
     ...
-    // Reserve GP if small section is used.
-    if (Subtarget.useSmallSection()) {
+    const Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
+    // Reserve GP if globalBaseRegFixed()
+    if (Cpu0FI->globalBaseRegFixed())
       Reserved.set(Cpu0::GP);
     }
     ...
@@ -868,13 +893,17 @@ variables. The following code tell llvm never allocate $gp for variables.
 pic mode
 ~~~~~~~~~
 
-Option ``llc  -relocation-model=pic`` will generate the following instructions.
+sdata or sbss
+++++++++++++++
+
+Option ``llc -relocation-model=pic -cpu0-use-small-section=true`` will 
+generate the following instructions.
 
 .. code-block:: bash
 
     ...
 	  .set	noreorder
-	  .cpload	$t9
+	  .cpload	$6
 	  .set	nomacro
     ...
   	ld	$2, %got(gI)($gp)
@@ -914,18 +943,14 @@ pseudo instruction at function entry point as below.
     unsigned GlobalBaseReg;
     int GPFI; // Index of the frame object for restoring $gp
     ...
-    bool EmitNOAT;
   
     public:  Cpu0FunctionInfo(MachineFunction& MF)
-    : ..., GlobalBaseReg(0), ..., EmitNOAT(false)
+    : ..., GlobalBaseReg(0), ...
     {}
 
     bool globalBaseRegFixed() const;
     bool globalBaseRegSet() const;
     unsigned getGlobalBaseReg();
-    ...
-    bool getEmitNOAT() const { return EmitNOAT; }
-    void setEmitNOAT() { EmitNOAT = true; }
   };
   
   } // end of namespace llvm
@@ -950,7 +975,7 @@ pseudo instruction at function entry point as below.
       OutStreamer.EmitRawText(StringRef("\t.set\tnoreorder"));
       // Emit .cpload directive if needed.
       if (EmitCPLoad)
-        OutStreamer.EmitRawText(StringRef("\t.cpload\t$t9"));
+        OutStreamer.EmitRawText(StringRef("\t.cpload\t$6"));
       OutStreamer.EmitRawText(StringRef("\t.set\tnomacro"));
       if (Cpu0FI->getEmitNOAT())
         OutStreamer.EmitRawText(StringRef("\t.set\tnoat"));
@@ -967,134 +992,9 @@ pseudo instruction at function entry point as below.
 
     ...
 	  .set	noreorder
-	  .cpload	$t9
+	  .cpload	$6
 	  .set	nomacro
     ...
-
-According Mips Application Binary Interface (ABI), $t9 is register alias 
-for $25 in Mips. The %t9 is the register 
-used in jalr $25 for long distance function pointer (far subroutine call). 
-Cpu0 use register $6 as the $t9 ($25) register of Mips.
-The jal %subroutine has 24 bits range of address offset relative to Program 
-Counter (PC) while jalr has 32 bits address range in register size of 32 bits. 
-One example of PIC mode is used in share library. 
-Share library is re-entry code which can be loaded in different memory address 
-decided on run time. The jalr make the implementation of dynamic link function 
-easier and faster as below.
-
-.. code-block:: bash
-
-  caller instructions:
-    ld  $6, %call32(fun)($gp)
-    jalr $6;
-
-  cschen@cschen-BM6835-BM6635-BP6335:/usr/local/llvm/test/src/docs/BackendTutorial/LLVMBackendTutorialExampleCode/InputFiles$ /usr/local/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch8_6.bc -o ch8_6.cpu0.o
-
-  cschen@cschen-BM6835-BM6635-BP6335:/usr/local/llvm/test/src/docs/BackendTutorial/LLVMBackendTutorialExampleCode/InputFiles$ /usr/local/llvm/test/cmake_debug_build/bin/llvm-objdump -t -r ch8_6.cpu0.o
-
-  ch8_6.cpu0.o:	file format ELF32-CPU0
-
-  RELOCATION RECORDS FOR [.text]:
-  4 R_CPU0_LO16 _gp_disp
-  80 R_CPU0_CALL24 _Z5sum_iiiiiii
-
-  RELOCATION RECORDS FOR [.eh_frame]:
-  28 R_CPU0_32 .text
-
-  SYMBOL TABLE:
-  00000000 l    df *ABS*	00000000 ch8_6.bc
-  00000000 l    d  .text	00000000 .text
-  00000000 l    d  .data	00000000 .data
-  00000000 l    d  .bss	00000000 .bss
-  00000000 l    d  .eh_frame	00000000 .eh_frame
-  00000000 g     F .text	0000006c main
-  00000000         *UND*	00000000 _Z5sum_iiiiiii
-  00000000         *UND*	00000000 _gp_disp
-
-  cschen@cschen-BM6835-BM6635-BP6335:/usr/local/llvm/test/src/docs/BackendTutorial/LLVMBackendTutorialExampleCode/InputFiles$ /usr/local/llvm/test/cmake_debug_build/bin/llvm-objdump -d ch8_6.cpu0.o 
-  ch8_6.cpu0.o:	file format ELF32-CPU0
-
-  Disassembly of section .text:
-  main:
-        ...
-        50:	01 6a 00 00                                  	ld	$6, 0($gp)
-        54:	2e e6 00 00                                  	jalr	$6
-
-After link stage, the linker change the ELF as follows,
-
-.. code-block:: bash
-
-  RELOCATION RECORDS FOR [.text]:
-  ...
-  80 R_CPU0_CALL24 _dynamic_linker
-  ...
-  xx R_CPU0_CALL24 _Z5sum_iiiiiii
-
-        50:	01 6a 00 00                                  	ld	$6, 0($gp)
-        54:	2e e6 00 00                                  	jalr	$6
-
-After caller be loaded, the code (or process state) in memory as the following. 
-Now, the offset between _dynamic_linker and GLOBAL_ADDRESS_TABLE is calculated 
-as "ld	$6, Z($gp)", and this "ld" relocation record is solved.
-
-- Z=(X-&main)
-
-.. code-block:: bash
-
-  RELOCATION RECORDS FOR [.text]:
-  ...
-  80 R_CPU0_CALL24 _dynamic_linker
-  ...
-  xx R_CPU0_CALL24 _Z5sum_iiiiiii
-
-        50:	01 6a Z                                     	ld	$6, Z($gp)
-        54:	2e e6 00 00                                  	jalr	$6
-
-  SYMBOL TABLE:
-  00000000 g     F .text	Y _gp_disp
-  00000000 g     F .text	X _dynamic_linker
-  00000000 g     F .text	0000006c main
-
-
-At run time, the following sequence happens.
-
-1. The caller call dynamic linker by instruction "ld	$6, Z($gp)" and "jalr	$6".
-
-2. Dynamic linker loads dynamic function _Z5sum_iiiiiii() to available address W.
-
-3. Dynamic linker change instruction "ld	$6, w1($gp)" of caller to address W as 
-   follows,
-
-- w1=(W-&main)
-
-.. code-block:: bash
-
-  RELOCATION RECORDS FOR [.text]:
-  ...
-  80 R_CPU0_CALL24 _dynamic_linker
-  ...
-  xx R_CPU0_CALL24 _Z5sum_iiiiiii
-
-        50:	01 6a w1                                     	ld	$6, w1($gp)
-        54:	2e e6 00 00                                  	jalr	$6
-
-  SYMBOL TABLE:
-  00000000 g     F .text	Y _gp_disp
-  00000000 g     F .text	X _dynamic_linker
-  00000000 g     F .text	W _Z5sum_iiiiiii
-  00000000 g     F .text	0000006c main
-
-4. The caller can call the _Z5sum_iiiiiii() by instruction jalr $6 correctly.
-
-If use jal instead of jalr to call dynamic function, the relocation record 
-"jal pc_offset" need to be solved at run time in "SYSCALL call##fun()". 
-That's why Mips ABI use "jalr" and register %6 for dynamic function. 
-In addition to dynamic function, the jalr is 32 bits 
-addressable while jal is 24 bits addressable. The caller jalr can also be 
-used in static link. If jalr is used in static link, the linker can solve 
-the relocation record of "ld $6, %call32(fun)($gp)" in link time.
-For static linke, the linker and should issue "nop" instead of issue 
-"SYSCALL call##fun()".
 
 The **.cpload** is the assembly directive (macro) which 
 will expand to several instructions. 
@@ -1161,7 +1061,7 @@ instructions offet correctly.
 Since shared function is loaded when this function be called, the relocation 
 record "ld $2, %got(gI)($gp)" cannot be resolved in link time. 
 In spite of the reloation record is solved on load time, the name binding 
-is static since link deliver the memory address to loader and loader can solve 
+is static since linker deliver the memory address to loader and loader can solve 
 this just by caculate the offset directly. No need to search the variable name 
 at run time.
 The ELF relocation records will be introduced in Chapter ELF Support. 
@@ -1175,19 +1075,23 @@ in stage "Legalized selection DAG" as below.
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
+  SDValue Cpu0TargetLowering::getAddrGlobal(SDValue Op, SelectionDAG &DAG,
+                                            unsigned Flag) const {
+    DebugLoc DL = Op.getDebugLoc();
+    EVT Ty = Op.getValueType();
+    SDValue Tgt = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
+                              getTargetNode(Op, DAG, Flag));
+    return DAG.getLoad(Ty, DL, DAG.getEntryNode(), Tgt,
+                       MachinePointerInfo::getGOT(), false, false, false, 0);
+  }
+
+  SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
+                                                 SelectionDAG &DAG) const {
     ...
-    bool HasGotOfst = (GV->hasInternalLinkage() || 
-                       (GV->hasLocalLinkage() && !isa<Function>(GV))); 
-    unsigned GotFlag = (HasGotOfst ? Cpu0II::MO_GOT : Cpu0II::MO_GOT16); 
-    SDValue GA = DAG.getTargetGlobalAddress(GV, dl, ValTy, 0, GotFlag); 
-    GA = DAG.getNode(Cpu0ISD::Wrapper, dl, ValTy, GetGlobalReg(DAG, ValTy), GA); 
-    SDValue ResNode = DAG.getLoad(ValTy, dl, DAG.getEntryNode(), GA, 
-                                  MachinePointerInfo(), false, false, false, 0); 
-    // On functions and global targets not internal linked only 
-    // a load from got/GP is necessary for PIC to work. 
-    if (!HasGotOfst) 
-      return ResNode;
+    if (TLOF.IsGlobalInSmallSection(GV, getTargetMachine()))
+      return getAddrGlobal(Op, DAG, Cpu0II::MO_GOT16);
     ...
+  }
     
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelDAGToDAG.cpp
 .. code-block:: c++
@@ -1209,7 +1113,7 @@ in stage "Legalized selection DAG" as below.
 .. code-block:: bash
 
   ...
-  Type-legalized selection DAG: BB#0 'main:'
+  Type-legalized selection DAG: BB#0 '_Z3funv:entry'
   SelectionDAG has 12 nodes:
     ...
         0x7fad7102cc10: <multiple use>
@@ -1222,7 +1126,7 @@ in stage "Legalized selection DAG" as below.
     0x7fad7102d110: i32,ch = load 0x7fad7102cf10, 0x7fad7102d010, 
     0x7fad7102cc10<LD4[@gI]> [ORD=3] [ID=-3]
     ...
-  Legalized selection DAG: BB#0 'main:'
+  Legalized selection DAG: BB#0 '_Z3funv:entry'
   SelectionDAG has 15 nodes:
     0x7ff3c9c10b98: ch = EntryToken [ORD=1] [ID=0]
     ...
@@ -1258,8 +1162,10 @@ TargetGlobalAddress<i32* @gI> 0)) into Cpu0 instruction as below.
 
 Remind in pic mode, Cpu0 use ".cpload" and "ld $2, %got(gI)($gp)" to access 
 global variable. It take 5 instructions in Cpu0 and 4 instructions in Mips. 
-The cost is came from we didn't assume the register $gp is always assigned to 
-address .sdata and fixed there. If $gp is fixed during the run time, then 
+The cost came from we didn't assume the register $gp is always assigned to 
+address .sdata and fixed there. Even we reserve $gp in this function, the $gp
+register can be changed at other functions. In last sub-section, the $gp is
+assumed to preserve at any function. If $gp is fixed during the run time, then 
 ".cpload" can be removed here and have only one instruction cost in global 
 variable access. The advantage of ".cpload" removing came from losing one 
 general purpose register $gp which can be allocated for variables. 
@@ -1267,34 +1173,106 @@ In last sub-section, .sdata mode, we use ".cpload" removing since it is
 static link, and without ".cpload" will save four instructions which has the 
 faster result in speed.
 In pic mode, the dynamic loading takes too much time.
-Romove ".cpload" with the cost of losing one general purpose
-register is not deserved here. Anyway, in pic mode and used in static link, you
+Romove ".cpload" with the cost of losing one general purpose register at all
+functions is not deserved here. Anyway, in pic mode and used in static link, you
 can choose ".cpload" removing. But we perfered use $gp for general purpose 
 register as the solution.
 The relocation records of ".cpload" from ``llc -relocation-model=pic`` can also 
 be solved in link stage if we want to link this function by static link.
 
-Summary as Table.
 
-.. table:: relocation-model=pic
+data or bss
+++++++++++++
 
-  ============  ============================================  ========================================
-  linker          dynamic                                     static
-  ============  ============================================  ========================================
-  caller        - ld $6, %call32(_dynamic_linker)($gp);       - ld $6, %call32(fun)($gp);
-                - add $s0, $lr, $zero;                         - jalr $6;
-                - addiu $s1, $gp, (_dynsym_idx)($gp);    
-                - jalr $6;                               
-  .cpload $6    - addiu $gp, $zero, %hi(_gp_disp);            - addiu $gp, $zero, %hi(_gp_disp);
-                - addiu $gp, $zero, %hi(_gp_disp);            - addiu $gp, $zero, %hi(_gp_disp);
-                - _gp_disp solved in load time                - _gp_disp solved in link time
-  ============  ============================================  ========================================
+The code fragment of LowerGlobalAddress() as the following corresponding option 
+``llc -relocation-model=pic`` will translate DAG (GlobalAddress<i32* @gI> 0) into  
+(load EntryToken, (Cpu0ISD::Wrapper (add Cpu0ISD::Hi<gI offset Hi16>, Register %GP), 
+TargetGlobalAddress<i32* @gI> 0)) 
+in stage "Legalized selection DAG" as below.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
+.. code-block:: c++
+
+
+  SDValue Cpu0TargetLowering::getAddrGlobalLargeGOT(SDValue Op, SelectionDAG &DAG,
+                                                    unsigned HiFlag,
+                                                    unsigned LoFlag) const {
+    DebugLoc DL = Op.getDebugLoc();
+    EVT Ty = Op.getValueType();
+    SDValue Hi = DAG.getNode(Cpu0ISD::Hi, DL, Ty, getTargetNode(Op, DAG, HiFlag));
+    Hi = DAG.getNode(ISD::ADD, DL, Ty, Hi, getGlobalReg(DAG, Ty));
+    SDValue Wrapper = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, Hi,
+                                  getTargetNode(Op, DAG, LoFlag));
+    return DAG.getLoad(Ty, DL, DAG.getEntryNode(), Wrapper,
+                       MachinePointerInfo::getGOT(), false, false, false, 0);
+  }
+
+  SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
+                                                 SelectionDAG &DAG) const {
+    ...
+    if (TLOF.IsGlobalInSmallSection(GV, getTargetMachine()))
+      ...
+    else
+      return getAddrGlobalLargeGOT(Op, DAG, Cpu0II::MO_GOT_HI16,
+                                   Cpu0II::MO_GOT_LO16);
+  }
+
+.. code-block:: bash
+
+  ...
+  Type-legalized selection DAG: BB#0 '_Z3funv:entry'
+  SelectionDAG has 12 nodes:
+    ...
+        0x7fad7102cc10: <multiple use>
+      0x7fad7102cf10: ch = store 0x7fad7102cd10, 0x7fad7102ca10, 0x7fad7102ce10, 
+      0x7fad7102cc10<ST4[%c]> [ORD=2] [ID=-3]
   
-- _dynamic_linker is the offset of Global Address Table.
-- The contents of address (_dynamic_linker)($gp) point to the entry point of dynamic linker.
-- _dynsym_idx is the offset of Global Address Table.
-- The address (_dynsym_idx)($gp) point to the callee function name.
-- _gp_disp represents the offset between the beginning of the function and the global offset table.
+      0x7fad7102d010: i32 = GlobalAddress<i32* @gI> 0 [ORD=3] [ID=-3]
+  
+      0x7fad7102cc10: <multiple use>
+    0x7fad7102d110: i32,ch = load 0x7fad7102cf10, 0x7fad7102d010, 
+    0x7fad7102cc10<LD4[@gI]> [ORD=3] [ID=-3]
+    ...
+  Legalized selection DAG: BB#0 '_Z3funv:entry'
+  SelectionDAG has 16 nodes:
+    0x30afde8: ch = EntryToken [ORD=1] [ID=0]
+    ...
+        0x30d3ac0: <multiple use>
+      0x30d3bc0: ch = store 0x30afde8, 0x30d38c0, 0x30d39c0, 0x30d3ac0<ST4[%c]> [ORD=1] [ID=6]
+
+        0x30afde8: <multiple use>
+              0x30d3fc0: i32 = TargetGlobalAddress<i32* @gI> 0 [TF=19]
+
+            0x30d42c0: i32 = Cpu0ISD::Hi 0x30d3fc0
+
+            0x30d43c0: i32 = Register %GP
+
+          0x30d44c0: i32 = add 0x30d42c0, 0x30d43c0
+
+          0x30d45c0: i32 = TargetGlobalAddress<i32* @gI> 0 [TF=20]
+
+        0x30d46c0: i32 = Cpu0ISD::Wrapper 0x30d44c0, 0x30d45c0
+
+        0x30d3ac0: <multiple use>
+      0x30d6650: i32,ch = load 0x30afde8, 0x30d46c0, 0x30d3ac0<LD4[GOT]>
+
+      0x30d3ac0: <multiple use>
+    0x30d3dc0: i32,ch = load 0x30d3bc0, 0x30d6650, 0x30d3ac0<LD4[@gI]> [ORD=2] [ID=7]
+    ...
+
+Finally, the pattern Cpu0 instruction **ld** defined before in Cpu0InstrInfo.td 
+will translate DAG (load EntryToken, (Cpu0ISD::Wrapper (add Cpu0ISD::Hi<gI 
+offset Hi16>, Register %GP), Cpu0ISD::Lo<gI offset Lo16>)) into Cpu0 
+instructions as below.
+
+.. code-block:: bash
+
+    ...
+	  addiu	$2, $zero, %got_hi(gI)
+	  shl	$2, $2, 16
+	  add	$2, $2, $gp
+	  ld	$2, %got_lo(gI)($2)
+    ...
 
 
 Global variable print support
@@ -1396,7 +1374,7 @@ Summary
 
 The global variable Instruction Selection for DAG translation is not like the 
 ordinary IR node translation, it has static (absolute address) and PIC mode. 
-Backend deal this translation by create DAG nodes in function 
+Backend deals this translation by create DAG nodes in function 
 LowerGlobalAddress() which called by LowerOperation(). 
 Function LowerOperation() take care all Custom type of operation. 
 Backend set global address as Custom operation by 
@@ -1409,6 +1387,17 @@ mechanism, pattern match, in the Instruction Selection stage.
 There are three type for setXXXAction(), Promote, Expand and Custom. 
 Except Custom, the other two maybe no need to coding. 
 The section "Instruction Selector" of [#]_ is the references.
+
+As shown in the section, the global variable can be laid in 
+.sdata/.sbss by option -cpu0-use-small-section=true. 
+It is possible, the small data section (16 bits
+addressable) is full out at link stage. When this happens, linker will highlight
+this error and force the toolchain user to fix it. The toolchain user, need to
+reconsider which global variables should be move from .sdata/.sbss to .data/.bss
+by set option -cpu0-use-small-section=false for that global variables declared
+file. The rule for global variables allocation is "set the small and frequent
+variables in small 16 addressable area".
+
 
 Array and struct support
 -------------------------
@@ -1794,7 +1783,7 @@ Run Chapter6_3/ with ch6_3.cpp will get the following result.
   	.frame	$sp,32,$lr
   	.mask 	0x00000000,0
   	.set	noreorder
-  	.cpload	$t9
+  	.cpload	$6
   	.set	nomacro
   # BB#0:
   	addiu	$sp, $sp, -32

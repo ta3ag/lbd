@@ -148,18 +148,41 @@ The following table details the Cpu0 instruction set:
     - Add immediate
     - ADDiu Ra, Rb, Cx
     - Ra <= (Rb + Cx)
+	* - L
+	  - ANDi
+	  - 0C
+	  - AND imm
+	  - ANDi Ra, Rb, Cx
+	  - Ra <= (Rb & Cx)
+	* - L
+	  - ORi
+	  - 0D
+	  - OR
+	  - ORi Ra, Rb, Cx
+	  - Ra <= (Rb | Cx)
+	* - L
+	  - XORi
+	  - 0E
+	  - XOR
+	  - XORi Ra, Rb, Cx
+	  - Ra <= (Rb ^ Cx)
   * - A
     - CMP
     - 10
     - Compare
     - CMP Ra, Rb
     - SW <= (Ra cond Rb) [#cond-note]_
-  * - A
-    - MOV
-    - 12
-    - Move
-    - MOV Ra, Rb
-    - Ra <= Rb
+	* - A
+	  - ADDu
+	  - 11
+	  - Add unsigned
+	  - ADD Ra, Rb, Rc
+	* - A
+	  - SUBu
+	  - 12
+	  - Sub unsigned
+	  - SUB Ra, Rb, Rc
+	  - Ra <= Rb - Rc
   * - A
     - ADD
     - 13
@@ -304,30 +327,6 @@ The following table details the Cpu0 instruction set:
     - Jump to subroutine
     - JR Rb
     - LR <= PC; PC <= Rb
-  * - A
-    - PUSH
-    - 30
-    - Push word
-    - PUSH Ra
-    - [SP] <= Ra; SP -= 4
-  * - A
-    - POP
-    - 31
-    - Pop word
-    - POP Ra
-    - Ra <= [SP]; SP += 4
-  * - A
-    - PUSHB
-    - 32
-    - Push byte
-    - PUSHB Ra
-    - [SP] <= (byte)Ra; SP -= 4
-  * - A
-    - POPB
-    - 33
-    - Pop word
-    - POP Ra
-    - Ra <= (byte)[SP]; SP += 4
   * - L
     - MFHI
     - 40

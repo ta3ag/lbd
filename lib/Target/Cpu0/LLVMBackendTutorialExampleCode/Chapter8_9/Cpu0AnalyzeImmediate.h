@@ -48,7 +48,7 @@ namespace llvm {
     void GetInstSeqLs(uint64_t Imm, unsigned RemSize, InstSeqLs &SeqLs);
 
     unsigned Size;
-    unsigned ADDiu, OR, SHL, ADD;
+    unsigned ADDiu, ORi, SHL;
     InstSeq Insts;
   };
 }

@@ -1,7 +1,7 @@
 diff -Naur Chapter4_5_1/Cpu0InstrInfo.td Chapter4_5_2/Cpu0InstrInfo.td
---- Chapter4_5_1/Cpu0InstrInfo.td	2013-06-26 12:36:34.777595199 +0800
-+++ Chapter4_5_2/Cpu0InstrInfo.td	2013-06-26 12:36:34.785595199 +0800
-@@ -179,6 +179,31 @@
+--- Chapter4_5_1/Cpu0InstrInfo.td	2013-07-05 17:46:02.869283807 +0800
++++ Chapter4_5_2/Cpu0InstrInfo.td	2013-07-05 17:46:02.873283807 +0800
+@@ -195,6 +195,31 @@
    def #NAME# : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
  }
  
@@ -33,7 +33,7 @@ diff -Naur Chapter4_5_1/Cpu0InstrInfo.td Chapter4_5_2/Cpu0InstrInfo.td
  class EffectiveAddress<string instr_asm, RegisterClass RC, Operand Mem> :
    FMem<0x09, (outs RC:$ra), (ins Mem:$addr),
       instr_asm, [(set RC:$ra, addr:$addr)], IIAlu>;
-@@ -209,8 +234,13 @@
+@@ -227,8 +252,13 @@
  def AND     : ArithLogicR<0x18, "and", and, IIAlu, CPURegs, 1>;
  def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
  def XOR     : ArithLogicR<0x1A, "xor", xor, IIAlu, CPURegs, 1>;
@@ -50,8 +50,8 @@ diff -Naur Chapter4_5_1/Cpu0InstrInfo.td Chapter4_5_2/Cpu0InstrInfo.td
  /// Shift Instructions
  // sra is IR node for ashr llvm IR instruction of .bc
 diff -Naur Chapter4_5_1/Cpu0ISelDAGToDAG.cpp Chapter4_5_2/Cpu0ISelDAGToDAG.cpp
---- Chapter4_5_1/Cpu0ISelDAGToDAG.cpp	2013-06-26 12:36:34.777595199 +0800
-+++ Chapter4_5_2/Cpu0ISelDAGToDAG.cpp	2013-06-26 12:36:34.785595199 +0800
+--- Chapter4_5_1/Cpu0ISelDAGToDAG.cpp	2013-07-05 17:46:02.869283807 +0800
++++ Chapter4_5_2/Cpu0ISelDAGToDAG.cpp	2013-07-05 17:46:02.873283807 +0800
 @@ -84,6 +84,9 @@
  
    SDNode *getGlobalBaseReg();
@@ -115,8 +115,8 @@ diff -Naur Chapter4_5_1/Cpu0ISelDAGToDAG.cpp Chapter4_5_2/Cpu0ISelDAGToDAG.cpp
      const ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Node);
      unsigned Size = CN->getValueSizeInBits(0);
 diff -Naur Chapter4_5_1/Cpu0RegisterInfo.td Chapter4_5_2/Cpu0RegisterInfo.td
---- Chapter4_5_1/Cpu0RegisterInfo.td	2013-06-26 12:36:34.777595199 +0800
-+++ Chapter4_5_2/Cpu0RegisterInfo.td	2013-06-26 12:36:34.785595199 +0800
+--- Chapter4_5_1/Cpu0RegisterInfo.td	2013-07-05 17:46:02.869283807 +0800
++++ Chapter4_5_2/Cpu0RegisterInfo.td	2013-07-05 17:46:02.873283807 +0800
 @@ -47,6 +47,10 @@
    def PC   : Cpu0GPRReg< 15, "pc">,   DwarfRegNum<[15]>;
  //  def MAR  : Register< 16, "mar">,  DwarfRegNum<[16]>;
@@ -136,8 +136,8 @@ diff -Naur Chapter4_5_1/Cpu0RegisterInfo.td Chapter4_5_2/Cpu0RegisterInfo.td
 +// Hi/Lo Registers
 +def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
 diff -Naur Chapter4_5_1/Cpu0Schedule.td Chapter4_5_2/Cpu0Schedule.td
---- Chapter4_5_1/Cpu0Schedule.td	2013-06-26 12:36:34.777595199 +0800
-+++ Chapter4_5_2/Cpu0Schedule.td	2013-06-26 12:36:34.785595199 +0800
+--- Chapter4_5_1/Cpu0Schedule.td	2013-07-05 17:46:02.869283807 +0800
++++ Chapter4_5_2/Cpu0Schedule.td	2013-07-05 17:46:02.873283807 +0800
 @@ -20,6 +20,7 @@
  def IILoad             : InstrItinClass;
  def IIStore            : InstrItinClass;

@@ -55,7 +55,7 @@ namespace llvm {
     void GetShortestSeq(InstSeqLs &SeqLs, InstSeq &Insts);
 
     unsigned Size;
-    unsigned ADDiu, OR, SHL, ADD, LUi;
+    unsigned ADDiu, ORi, SHL, LUi;
     InstSeq Insts;
   };
 }
