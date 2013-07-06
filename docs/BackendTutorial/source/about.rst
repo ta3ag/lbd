@@ -62,6 +62,7 @@ Version 3.2.16, Not release yet
   Rewrite section Handle $gp register in PIC addressing mode.
   Add Large Frame Stack Pointer support.
   Add dynamic link section in elf.rst.
+  Re-oganize Chapter 3.
 
 Version 3.2.15, Released June 12, 2013
 	Porting to llvm 3.3.

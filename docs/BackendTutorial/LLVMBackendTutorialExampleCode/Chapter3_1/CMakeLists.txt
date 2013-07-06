@@ -21,6 +21,7 @@ add_llvm_target(Cpu0CodeGen
   Cpu0ISelLowering.cpp
   Cpu0InstrInfo.cpp
   Cpu0FrameLowering.cpp
+  Cpu0RegisterInfo.cpp
   Cpu0Subtarget.cpp
   Cpu0TargetMachine.cpp
   Cpu0SelectionDAGInfo.cpp

@@ -15,6 +15,7 @@
 #define CPU0INSTRUCTIONINFO_H
 
 #include "Cpu0.h"
+#include "Cpu0RegisterInfo.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Target/TargetInstrInfo.h"
 
@@ -25,8 +26,17 @@ namespace llvm {
 
 class Cpu0InstrInfo : public Cpu0GenInstrInfo {
   Cpu0TargetMachine &TM;
+  const Cpu0RegisterInfo RI;
 public:
   explicit Cpu0InstrInfo(Cpu0TargetMachine &TM);
+
+  /// getRegisterInfo - TargetInstrInfo is a superset of MRegister info.  As
+  /// such, whenever a client has an instance of instruction info, it should
+  /// always be able to get register info as well (through this method).
+  ///
+  virtual const Cpu0RegisterInfo &getRegisterInfo() const;
+
+public:
 };
 }
 
