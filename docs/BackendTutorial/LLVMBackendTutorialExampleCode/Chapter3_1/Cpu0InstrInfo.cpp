@@ -20,5 +20,10 @@ using namespace llvm;
 
 Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
   : 
-    TM(tm)
-    {}
+    TM(tm),
+    RI(*TM.getSubtargetImpl(), *this) {}
+
+const Cpu0RegisterInfo &Cpu0InstrInfo::getRegisterInfo() const {
+  return RI;
+}
+

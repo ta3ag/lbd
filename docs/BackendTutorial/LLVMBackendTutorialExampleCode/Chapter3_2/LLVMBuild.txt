@@ -18,7 +18,7 @@
 # Following comments extracted from http://llvm.org/docs/LLVMBuild.html
 
 [common]
-subdirectories =  MCTargetDesc TargetInfo
+subdirectories = InstPrinter MCTargetDesc TargetInfo
 
 [component_0]
 # TargetGroup components are an extension of LibraryGroups, specifically for 
@@ -32,7 +32,7 @@ parent = Target
 # Whether this target defines an assembly parser, assembly printer, disassembler
 #  , and supports JIT compilation. They are optional.
 #has_asmparser = 1
-#has_asmprinter = 1
+has_asmprinter = 1
 #has_disassembler = 1
 #has_jit = 1
 
@@ -48,8 +48,8 @@ parent = Cpu0
 #  dependencies for this component. When tools are built, the build system will 
 #  include the transitive closure of all required_libraries for the components 
 #  the tool needs.
-required_libraries = CodeGen Core MC Cpu0Desc Cpu0Info SelectionDAG Support 
-                     Target
+required_libraries = AsmPrinter CodeGen Core MC Cpu0AsmPrinter Cpu0Desc 
+                     Cpu0Info SelectionDAG Support Target
 # All LLVMBuild.txt in Target/Cpu0 and subdirectory use 'add_to_library_groups 
 #  = Cpu0'
 add_to_library_groups = Cpu0

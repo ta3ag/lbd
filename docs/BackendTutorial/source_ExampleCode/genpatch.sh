@@ -2,8 +2,7 @@ diff -Naur Chapter2/ Chapter3_1/ > 3-1.patch
 diff -Naur Chapter3_1/ Chapter3_2/ > 3-2.patch
 diff -Naur Chapter3_2/ Chapter3_3/ > 3-3.patch
 diff -Naur Chapter3_3/ Chapter3_4/ > 3-4.patch
-diff -Naur Chapter3_4/ Chapter3_5/ > 3-5.patch
-diff -Naur Chapter3_5/ Chapter4_1/ > 4-1.patch
+diff -Naur Chapter3_4/ Chapter4_1/ > 4-1.patch
 diff -Naur Chapter4_1/ Chapter4_2/ > 4-2.patch
 diff -Naur Chapter4_2/ Chapter4_4/ > 4-4.patch
 diff -Naur Chapter4_4/ Chapter4_5_1/ > 4-5_1.patch

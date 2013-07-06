@@ -26,7 +26,35 @@ include "Cpu0CallingConv.td"
 
 def Cpu0InstrInfo : InstrInfo;
 
+// Without this will have error: 'cpu032' is not a recognized processor for 
+//  this target (ignoring processor)
+//===----------------------------------------------------------------------===//
+// Cpu0 Subtarget features                                                    //
+//===----------------------------------------------------------------------===//
+
+def FeatureCpu032      : SubtargetFeature<"cpu032", "Cpu0ArchVersion", "Cpu032",
+                                "Cpu032 ISA Support">;
+
+//===----------------------------------------------------------------------===//
+// Cpu0 processors supported.
+//===----------------------------------------------------------------------===//
+
+class Proc<string Name, list<SubtargetFeature> Features>
+ : Processor<Name, Cpu0GenericItineraries, Features>;
+
+def : Proc<"cpu032", [FeatureCpu032]>;
+
+def Cpu0AsmWriter : AsmWriter {
+  string AsmWriterClassName  = "InstPrinter";
+  bit isMCAsmWriter = 1;
+}
+
+// Will generate Cpu0GenAsmWrite.inc included by Cpu0InstPrinter.cpp, contents 
+//  as follows,
+// void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) {...}
+// const char *Cpu0InstPrinter::getRegisterName(unsigned RegNo) {...}
 def Cpu0 : Target {
 // def Cpu0InstrInfo : InstrInfo as before.
   let InstructionSet = Cpu0InstrInfo;
+  let AssemblyWriters = [Cpu0AsmWriter];
 }

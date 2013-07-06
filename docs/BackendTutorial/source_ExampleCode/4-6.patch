@@ -1,6 +1,107 @@
+diff -Naur Chapter4_5_2/Cpu0ISelLowering.cpp Chapter4_6/Cpu0ISelLowering.cpp
+--- Chapter4_5_2/Cpu0ISelLowering.cpp	2013-07-05 23:23:45.000000000 +0800
++++ Chapter4_6/Cpu0ISelLowering.cpp	2013-07-05 23:23:45.000000000 +0800
+@@ -43,6 +43,14 @@
+   // Set up the register classes
+   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
+ 
++  setOperationAction(ISD::SDIV, MVT::i32, Expand);
++  setOperationAction(ISD::SREM, MVT::i32, Expand);
++  setOperationAction(ISD::UDIV, MVT::i32, Expand);
++  setOperationAction(ISD::UREM, MVT::i32, Expand);
++
++  setTargetDAGCombine(ISD::SDIVREM);
++  setTargetDAGCombine(ISD::UDIVREM);
++
+ //- Set .align 2
+ // It will emit .align 2 later
+   setMinFunctionAlignment(2);
+@@ -52,6 +60,58 @@
+   computeRegisterProperties();
+ }
+ 
++static SDValue PerformDivRemCombine(SDNode *N, SelectionDAG& DAG,
++                                    TargetLowering::DAGCombinerInfo &DCI,
++                                    const Cpu0Subtarget* Subtarget) {
++  if (DCI.isBeforeLegalizeOps())
++    return SDValue();
++
++  EVT Ty = N->getValueType(0);
++  unsigned LO = Cpu0::LO;
++  unsigned HI = Cpu0::HI;
++  unsigned opc = N->getOpcode() == ISD::SDIVREM ? Cpu0ISD::DivRem :
++                                                  Cpu0ISD::DivRemU;
++  DebugLoc dl = N->getDebugLoc();
++
++  SDValue DivRem = DAG.getNode(opc, dl, MVT::Glue,
++                               N->getOperand(0), N->getOperand(1));
++  SDValue InChain = DAG.getEntryNode();
++  SDValue InGlue = DivRem;
++
++  // insert MFLO
++  if (N->hasAnyUseOfValue(0)) {
++    SDValue CopyFromLo = DAG.getCopyFromReg(InChain, dl, LO, Ty,
++                                            InGlue);
++    DAG.ReplaceAllUsesOfValueWith(SDValue(N, 0), CopyFromLo);
++    InChain = CopyFromLo.getValue(1);
++    InGlue = CopyFromLo.getValue(2);
++  }
++
++  // insert MFHI
++  if (N->hasAnyUseOfValue(1)) {
++    SDValue CopyFromHi = DAG.getCopyFromReg(InChain, dl,
++                                            HI, Ty, InGlue);
++    DAG.ReplaceAllUsesOfValueWith(SDValue(N, 1), CopyFromHi);
++  }
++
++  return SDValue();
++}
++
++SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI)
++  const {
++  SelectionDAG &DAG = DCI.DAG;
++  unsigned opc = N->getOpcode();
++
++  switch (opc) {
++  default: break;
++  case ISD::SDIVREM:
++  case ISD::UDIVREM:
++    return PerformDivRemCombine(N, DAG, DCI, Subtarget);
++  }
++
++  return SDValue();
++}
++
+ #include "Cpu0GenCallingConv.inc"
+ 
+ /// LowerFormalArguments - transform physical registers into virtual registers
+diff -Naur Chapter4_5_2/Cpu0ISelLowering.h Chapter4_6/Cpu0ISelLowering.h
+--- Chapter4_5_2/Cpu0ISelLowering.h	2013-07-05 23:23:45.000000000 +0800
++++ Chapter4_6/Cpu0ISelLowering.h	2013-07-05 23:23:45.000000000 +0800
+@@ -25,7 +25,10 @@
+     enum NodeType {
+       // Start the numbering from where ISD NodeType finishes.
+       FIRST_NUMBER = ISD::BUILTIN_OP_END,
+-      Ret
++      Ret,
++      // DivRem(u)
++      DivRem,
++      DivRemU
+     };
+   }
+ 
+@@ -37,6 +40,8 @@
+   public:
+     explicit Cpu0TargetLowering(Cpu0TargetMachine &TM);
+ 
++    virtual SDValue PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI) const;
++
+   private:
+     // Subtarget Info
+     const Cpu0Subtarget *Subtarget;
 diff -Naur Chapter4_5_2/Cpu0InstrInfo.cpp Chapter4_6/Cpu0InstrInfo.cpp
---- Chapter4_5_2/Cpu0InstrInfo.cpp	2013-07-05 17:46:02.873283807 +0800
-+++ Chapter4_6/Cpu0InstrInfo.cpp	2013-07-05 17:46:02.913283807 +0800
+--- Chapter4_5_2/Cpu0InstrInfo.cpp	2013-07-05 23:23:45.000000000 +0800
++++ Chapter4_6/Cpu0InstrInfo.cpp	2013-07-05 23:23:45.000000000 +0800
 @@ -28,6 +28,42 @@
    return RI;
  }
@@ -45,8 +146,8 @@ diff -Naur Chapter4_5_2/Cpu0InstrInfo.cpp Chapter4_6/Cpu0InstrInfo.cpp
  Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
                                          uint64_t Offset, const MDNode *MDPtr,
 diff -Naur Chapter4_5_2/Cpu0InstrInfo.h Chapter4_6/Cpu0InstrInfo.h
---- Chapter4_5_2/Cpu0InstrInfo.h	2013-07-05 17:46:02.873283807 +0800
-+++ Chapter4_6/Cpu0InstrInfo.h	2013-07-05 17:46:02.913283807 +0800
+--- Chapter4_5_2/Cpu0InstrInfo.h	2013-07-05 23:23:45.000000000 +0800
++++ Chapter4_6/Cpu0InstrInfo.h	2013-07-05 23:23:45.000000000 +0800
 @@ -36,6 +36,11 @@
    ///
    virtual const Cpu0RegisterInfo &getRegisterInfo() const;
@@ -60,8 +161,8 @@ diff -Naur Chapter4_5_2/Cpu0InstrInfo.h Chapter4_6/Cpu0InstrInfo.h
    virtual MachineInstr* emitFrameIndexDebugValue(MachineFunction &MF,
                                                   int FrameIx, uint64_t Offset,
 diff -Naur Chapter4_5_2/Cpu0InstrInfo.td Chapter4_6/Cpu0InstrInfo.td
---- Chapter4_5_2/Cpu0InstrInfo.td	2013-07-05 17:46:02.873283807 +0800
-+++ Chapter4_6/Cpu0InstrInfo.td	2013-07-05 17:46:02.913283807 +0800
+--- Chapter4_5_2/Cpu0InstrInfo.td	2013-07-05 23:23:45.000000000 +0800
++++ Chapter4_6/Cpu0InstrInfo.td	2013-07-05 23:23:45.000000000 +0800
 @@ -23,10 +23,20 @@
  
  def SDT_Cpu0Ret          : SDTypeProfile<0, 1, [SDTCisInt<0>]>;
@@ -149,104 +250,3 @@ diff -Naur Chapter4_5_2/Cpu0InstrInfo.td Chapter4_6/Cpu0InstrInfo.td
  
  
  def : Pat<(not CPURegs:$in),
-diff -Naur Chapter4_5_2/Cpu0ISelLowering.cpp Chapter4_6/Cpu0ISelLowering.cpp
---- Chapter4_5_2/Cpu0ISelLowering.cpp	2013-07-05 17:46:02.873283807 +0800
-+++ Chapter4_6/Cpu0ISelLowering.cpp	2013-07-05 17:46:02.913283807 +0800
-@@ -43,6 +43,14 @@
-   // Set up the register classes
-   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
- 
-+  setOperationAction(ISD::SDIV, MVT::i32, Expand);
-+  setOperationAction(ISD::SREM, MVT::i32, Expand);
-+  setOperationAction(ISD::UDIV, MVT::i32, Expand);
-+  setOperationAction(ISD::UREM, MVT::i32, Expand);
-+
-+  setTargetDAGCombine(ISD::SDIVREM);
-+  setTargetDAGCombine(ISD::UDIVREM);
-+
- //- Set .align 2
- // It will emit .align 2 later
-   setMinFunctionAlignment(2);
-@@ -52,6 +60,58 @@
-   computeRegisterProperties();
- }
- 
-+static SDValue PerformDivRemCombine(SDNode *N, SelectionDAG& DAG,
-+                                    TargetLowering::DAGCombinerInfo &DCI,
-+                                    const Cpu0Subtarget* Subtarget) {
-+  if (DCI.isBeforeLegalizeOps())
-+    return SDValue();
-+
-+  EVT Ty = N->getValueType(0);
-+  unsigned LO = Cpu0::LO;
-+  unsigned HI = Cpu0::HI;
-+  unsigned opc = N->getOpcode() == ISD::SDIVREM ? Cpu0ISD::DivRem :
-+                                                  Cpu0ISD::DivRemU;
-+  DebugLoc dl = N->getDebugLoc();
-+
-+  SDValue DivRem = DAG.getNode(opc, dl, MVT::Glue,
-+                               N->getOperand(0), N->getOperand(1));
-+  SDValue InChain = DAG.getEntryNode();
-+  SDValue InGlue = DivRem;
-+
-+  // insert MFLO
-+  if (N->hasAnyUseOfValue(0)) {
-+    SDValue CopyFromLo = DAG.getCopyFromReg(InChain, dl, LO, Ty,
-+                                            InGlue);
-+    DAG.ReplaceAllUsesOfValueWith(SDValue(N, 0), CopyFromLo);
-+    InChain = CopyFromLo.getValue(1);
-+    InGlue = CopyFromLo.getValue(2);
-+  }
-+
-+  // insert MFHI
-+  if (N->hasAnyUseOfValue(1)) {
-+    SDValue CopyFromHi = DAG.getCopyFromReg(InChain, dl,
-+                                            HI, Ty, InGlue);
-+    DAG.ReplaceAllUsesOfValueWith(SDValue(N, 1), CopyFromHi);
-+  }
-+
-+  return SDValue();
-+}
-+
-+SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI)
-+  const {
-+  SelectionDAG &DAG = DCI.DAG;
-+  unsigned opc = N->getOpcode();
-+
-+  switch (opc) {
-+  default: break;
-+  case ISD::SDIVREM:
-+  case ISD::UDIVREM:
-+    return PerformDivRemCombine(N, DAG, DCI, Subtarget);
-+  }
-+
-+  return SDValue();
-+}
-+
- #include "Cpu0GenCallingConv.inc"
- 
- /// LowerFormalArguments - transform physical registers into virtual registers
-diff -Naur Chapter4_5_2/Cpu0ISelLowering.h Chapter4_6/Cpu0ISelLowering.h
---- Chapter4_5_2/Cpu0ISelLowering.h	2013-07-05 17:46:02.873283807 +0800
-+++ Chapter4_6/Cpu0ISelLowering.h	2013-07-05 17:46:02.913283807 +0800
-@@ -25,7 +25,10 @@
-     enum NodeType {
-       // Start the numbering from where ISD NodeType finishes.
-       FIRST_NUMBER = ISD::BUILTIN_OP_END,
--      Ret
-+      Ret,
-+      // DivRem(u)
-+      DivRem,
-+      DivRemU
-     };
-   }
- 
-@@ -37,6 +40,8 @@
-   public:
-     explicit Cpu0TargetLowering(Cpu0TargetMachine &TM);
- 
-+    virtual SDValue PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI) const;
-+
-   private:
-     // Subtarget Info
-     const Cpu0Subtarget *Subtarget;

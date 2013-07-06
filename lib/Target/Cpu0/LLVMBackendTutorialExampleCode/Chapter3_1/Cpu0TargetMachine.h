@@ -50,6 +50,10 @@ namespace llvm {
     virtual const DataLayout *getDataLayout()    const
     { return &DL;}
 
+    virtual const Cpu0RegisterInfo *getRegisterInfo()  const {
+      return &InstrInfo.getRegisterInfo();
+    }
+
     virtual const Cpu0TargetLowering *getTargetLowering() const {
       return &TLInfo;
     }
