@@ -129,7 +129,7 @@ Chapter4_1/,
   def SUB   : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
   def MUL   : ArithLogicR<0x15, "mul", mul, IIImul, CPURegs, 1>;
   def DIV   : ArithLogicR<0x16, "div", sdiv, IIIdiv, CPURegs, 1>;
-  def UDIV    : ArithLogicR<0x17, "udiv", udiv, IIIdiv, CPURegs, 1>;
+  def UDIV  : ArithLogicR<0x17, "udiv", udiv, IIIdiv, CPURegs, 1>;
   def AND   : ArithLogicR<0x18, "and", and, IIAlu, CPURegs, 1>;
   def OR    : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
   def XOR   : ArithLogicR<0x1A, "xor", xor, IIAlu, CPURegs, 1>;
@@ -139,7 +139,7 @@ Chapter4_1/,
   def SRA   : shift_rotate_imm32<0x1B, 0x00, "sra", sra>;
   def ROL   : shift_rotate_imm32<0x1C, 0x01, "rol", rotl>;
   def ROR   : shift_rotate_imm32<0x1D, 0x01, "ror", rotr>;
-  def SHL   : shift_rotate_imm32<0x1E, 0x00, "shl", shl>;
+  ...
   // srl is IR node for lshr llvm IR instruction of .bc
   def SHR   : shift_rotate_imm32<0x1F, 0x00, "shr", srl>;
 

@@ -281,7 +281,6 @@ CMakeLists.txt  modified with those new added \*.cpp as follows,
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/CMakeLists.txt
     :start-after: add_public_tablegen_target
     :end-before: Should match with
-    :linenos:
 
 
 Please take a look for Chapter3_1 code. 
@@ -329,7 +328,6 @@ Cpu0.td is added with the following fragment,
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0.td
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0.td
     :start-after: def Cpu0InstrInfo : InstrInfo;
-    :linenos:
 
 
 As comments indicate, it will generate Cpu0GenAsmWrite.inc which is included 
@@ -380,7 +378,6 @@ follows,
 .. rubric:: LLVMBackendTutorialExampleCode/MCTargetDesc/Cpu0MCTargetDesc.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: using namespace llvm
-    :linenos:
 
 Now, it's time to work with AsmPrinter. According section 
 "section Target Registration" [#]_, we can register our AsmPrinter when we need it 
@@ -746,7 +743,6 @@ previous chapter. List them again as follows,
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrFormats.td
     :start-after: let Inst{11-0}  = shamt;
     :end-before: // Format J instruction class in Cpu0
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.td
 .. code-block:: c++
@@ -870,30 +866,53 @@ IR DAG is defined in file  include/llvm/Target/TargetSelectionDAG.td.
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.td
     :start-after: // Cpu0I Instructions
     :end-before: //  Arbitrary patterns that map to one or more instructions
-    :linenos:
 
 
 Add class Cpu0DAGToDAGISel (Cpu0ISelDAGToDAG.cpp) to CMakeLists.txt, and add 
 following fragment to Cpu0TargetMachine.cpp,
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/CMakeLists.txt
+.. code-block:: c++
+
+  add_llvm_target(...
+    ...
+    Cpu0ISelDAGToDAG.cpp
+    ...
+    )
+
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0TargetMachine.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0TargetMachine.cpp
-    :start-after: return new Cpu0PassConfig(this, PM);
-    :linenos:
+    :start-after: return *getCpu0TargetMachine().getSubtargetImpl();
+    :end-before: };
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0TargetMachine.cpp
+    :start-after: // the ISelDag to gen Cpu0 code.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0ISelDAGToDAG.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0ISelDAGToDAG.cpp
-    :start-after: return ResNode;
     :linenos:
 
 
 This version adding the following code in Cpu0InstInfo.cpp to enable debug 
 information which called by llvm at proper time.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrInfo.h
+.. code-block:: c++
+
+  class Cpu0InstrInfo : public Cpu0GenInstrInfo {
+    ...
+    virtual MachineInstr* emitFrameIndexDebugValue(MachineFunction &MF,
+                                                   int FrameIx, uint64_t Offset,
+                                                   const MDNode *MDPtr,
+                                                   DebugLoc DL) const;
+  };
+
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrInfo.cpp
+.. code-block:: c++
+
+  #include "llvm/CodeGen/MachineInstrBuilder.h"
+
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrInfo.cpp
     :start-after: return RI;
-    :linenos:
 
 
 Build Chapter3_3, run it, we find the error message in Chapter3_2 is gone. 
@@ -1067,12 +1086,10 @@ The Prologue and Epilogue functions as follows,
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0FrameLowering.h
     :start-after: /// the function.
     :end-before: bool hasFP(const MachineFunction &MF) const;
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0FrameLowering.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0FrameLowering.cpp
     :start-after: // in 16-bit and add the result to Reg.
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0AnalyzeImmediate.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0AnalyzeImmediate.h
@@ -1086,13 +1103,12 @@ The Prologue and Epilogue functions as follows,
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0RegisterInfo.cpp
     :start-after: return Reserved;
     :end-before: unsigned Cpu0RegisterInfo::
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_4/CMakeLists.txt
-
 .. code-block:: c++
 
-  add_llvm_target(Cpu0CodeGen
+  add_llvm_target(...
+    ...
     Cpu0AnalyzeImmediate.cpp
     ...
     )
@@ -1255,14 +1271,12 @@ pattern defined in Cpu0InstrInfo.td.
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0InstrInfo.td
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0InstrInfo.td
     :start-after: Arbitrary patterns that map
-    :linenos:
 
 
 At this point, we have translate the very simple main() function with return 0
 single instruction. The Cpu0AnalyzeImmediate.cpp defined as above and the 
 Cpu0InstrInfo.td instructions add as below, takes care 
 the 32 bits stack size adjustments.
-
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0InstrInfo.td
 .. code-block:: c++
@@ -1337,7 +1351,7 @@ generated in Table: Cpu0 stack adjustment instructions as follows,
 .. table:: Cpu0 stack adjustment instructions
 
   ====================  ================  ==================================  ==================================
-  stack size range      ex. stack size    Cpu0 Prolog instructions            Cpu0 Prolog instructions
+  stack size range      ex. stack size    Cpu0 Prologue instructions          Cpu0 Epilogue instructions
   ====================  ================  ==================================  ==================================
   0 ~ 0x7fff            - 0x7fff          - addiu $sp, $sp, 32767;            - addiu $sp, $sp, 32767;
   0x8000 ~ 0xffff       - 0x8000          - addiu $sp, $sp, -32768;           - addiu $1, $zero, 1;
