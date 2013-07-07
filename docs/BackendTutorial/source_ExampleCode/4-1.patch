@@ -1,6 +1,6 @@
 diff -Naur Chapter3_4/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
---- Chapter3_4/Cpu0InstrInfo.td	2013-07-05 23:23:45.000000000 +0800
-+++ Chapter4_1/Cpu0InstrInfo.td	2013-07-05 23:23:45.000000000 +0800
+--- Chapter3_4/Cpu0InstrInfo.td	2013-07-07 21:14:01.000000000 +0800
++++ Chapter4_1/Cpu0InstrInfo.td	2013-07-07 21:14:01.000000000 +0800
 @@ -132,6 +132,15 @@
                           SDNode OpNode>:
    shift_rotate_imm<func, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs>;
@@ -42,8 +42,8 @@ diff -Naur Chapter3_4/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
  let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
      isBarrier=1, hasCtrlDep=1 in
 diff -Naur Chapter3_4/Cpu0Schedule.td Chapter4_1/Cpu0Schedule.td
---- Chapter3_4/Cpu0Schedule.td	2013-07-05 23:23:45.000000000 +0800
-+++ Chapter4_1/Cpu0Schedule.td	2013-07-05 23:23:45.000000000 +0800
+--- Chapter3_4/Cpu0Schedule.td	2013-07-07 21:14:01.000000000 +0800
++++ Chapter4_1/Cpu0Schedule.td	2013-07-07 21:14:01.000000000 +0800
 @@ -11,6 +11,7 @@
  // Functional units across Cpu0 chips sets. Based on GCC/Cpu0 backend files.
  //===----------------------------------------------------------------------===//

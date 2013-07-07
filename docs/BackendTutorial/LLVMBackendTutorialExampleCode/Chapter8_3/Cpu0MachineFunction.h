@@ -26,6 +26,11 @@ class Cpu0FunctionInfo : public MachineFunctionInfo {
   virtual void anchor();
   MachineFunction& MF;
 
+  /// SRetReturnReg - Some subtargets require that sret lowering includes
+  /// returning the value of the returned struct in a register. This field
+  /// holds the virtual register into which the sret argument is passed.
+  unsigned SRetReturnReg;
+
   /// GlobalBaseReg - keeps track of the virtual register initialized for
   /// use as the global base register. This is used for PIC in some PIC
   /// relocation models.
@@ -47,7 +52,7 @@ class Cpu0FunctionInfo : public MachineFunctionInfo {
 
 public:
   Cpu0FunctionInfo(MachineFunction& MF)
-  : MF(MF), GlobalBaseReg(0),
+  : MF(MF), SRetReturnReg(0), GlobalBaseReg(0),
     VarArgsFrameIndex(0), InArgFIRange(std::make_pair(-1, 0)),
     OutArgFIRange(std::make_pair(-1, 0)), GPFI(0), DynAllocFI(0),
     MaxCallFrameSize(0), EmitNOAT(false)
@@ -57,6 +62,10 @@ public:
     return FI <= InArgFIRange.first && FI >= InArgFIRange.second;
   }
   void setLastInArgFI(int FI) { InArgFIRange.second = FI; }
+
+  bool isOutArgFI(int FI) const {
+    return FI <= OutArgFIRange.first && FI >= OutArgFIRange.second;
+  }
 
   void extendOutArgFIRange(int FirstFI, int LastFI) {
     if (!OutArgFIRange.second)
@@ -79,6 +88,9 @@ public:
     return DynAllocFI;
   }
   bool isDynAllocFI(int FI) const { return DynAllocFI && DynAllocFI == FI; }
+
+  unsigned getSRetReturnReg() const { return SRetReturnReg; }
+  void setSRetReturnReg(unsigned Reg) { SRetReturnReg = Reg; }
 
   bool globalBaseRegFixed() const;
   bool globalBaseRegSet() const;

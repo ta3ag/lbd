@@ -82,6 +82,7 @@ public:
     return *getCpu0TargetMachine().getSubtargetImpl();
   }
   virtual bool addInstSelector();
+  virtual bool addPreRegAlloc();
 };
 } // namespace
 
@@ -96,3 +97,10 @@ bool Cpu0PassConfig::addInstSelector() {
   return false;
 }
 
+bool Cpu0PassConfig::addPreRegAlloc() {
+  // Do not restore $gp if target is Cpu064.
+  // In N32/64, $gp is a callee-saved register.
+
+  addPass(createCpu0EmitGPRestorePass(getCpu0TargetMachine()));
+  return true;
+}

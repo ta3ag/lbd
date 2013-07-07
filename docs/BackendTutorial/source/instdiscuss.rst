@@ -46,7 +46,7 @@ Other instructions (include add), use register to register style operation.
 We change the implicit operand support in this section. 
 It's just a demonstration with this design, not fully support. 
 The purpose is telling reader how to implement this style of CPU/MCU backend. 
-Run Chapter8_8_2/ with ch_move.cpp will get the following result,
+Run Chapter8_4_2/ with ch_move.cpp will get the following result,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_move.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_move.cpp
@@ -67,9 +67,9 @@ Run Chapter8_8_2/ with ch_move.cpp will get the following result,
 
 
 To support this implicit operand, ACC. 
-The following code is added to Chapter8_8_2.cpp.
+The following code is added to Chapter8_4_2.cpp.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_8_2/Cpu0RegisterInfo.td 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4_2/Cpu0RegisterInfo.td 
 .. code-block:: c++
 
   let Namespace = "Cpu0" in {
@@ -82,7 +82,7 @@ The following code is added to Chapter8_8_2.cpp.
   def RACC : RegisterClass<"Cpu0", [i32], 32, (add ACC)>;
   
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_8_2/Cpu0InstrInfo.td 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4_2/Cpu0InstrInfo.td 
 .. code-block:: c++
 
   class MoveFromACC<bits<8> op, string instr_asm, RegisterClass RC,
@@ -128,7 +128,7 @@ The following code is added to Chapter8_8_2.cpp.
         (ADD (MTACC CPURegs:$lhs), CPURegs:$rhs)>;
   
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_8_2/Cpu0InstrInfo.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4_2/Cpu0InstrInfo.cpp
 .. code-block:: c++
 
   //- Called when DestReg and SrcReg belong to different Register Class.

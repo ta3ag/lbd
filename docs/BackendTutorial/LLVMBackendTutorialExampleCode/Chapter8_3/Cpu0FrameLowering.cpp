@@ -127,7 +127,10 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   unsigned ADDiu = Cpu0::ADDiu;
   // First, compute final stack size.
   unsigned StackAlign = getStackAlignment();
-  unsigned LocalVarAreaOffset = Cpu0FI->getMaxCallFrameSize();
+  unsigned RegSize = 4;
+  unsigned LocalVarAreaOffset = Cpu0FI->needGPSaveRestore() ?
+    (MFI->getObjectOffset(Cpu0FI->getGPFI()) + RegSize) :
+    Cpu0FI->getMaxCallFrameSize();
   uint64_t StackSize =  RoundUpToAlignment(LocalVarAreaOffset, StackAlign) +
      RoundUpToAlignment(MFI->getStackSize(), StackAlign);
 
@@ -183,6 +186,13 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
       }
     }
   }
+  
+  // Restore GP from the saved stack location
+  if (Cpu0FI->needGPSaveRestore()) {
+    unsigned Offset = MFI->getObjectOffset(Cpu0FI->getGPFI());
+    BuildMI(MBB, MBBI, dl, TII.get(Cpu0::CPRESTORE)).addImm(Offset)
+      .addReg(Cpu0::GP);
+  }
 }
 
 void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
@@ -209,6 +219,15 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
     Cpu0FI->setEmitNOAT();
     expandLargeImm(SP, StackSize, TII, MBB, MBBI, dl);
   }
+}
+
+// This function eliminate ADJCALLSTACKDOWN,
+// ADJCALLSTACKUP pseudo instructions
+void Cpu0FrameLowering::
+eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
+                              MachineBasicBlock::iterator I) const {
+  // Simply discard ADJCALLSTACKDOWN, ADJCALLSTACKUP instructions.
+  MBB.erase(I);
 }
 
 // This method is called immediately before PrologEpilogInserter scans the 
