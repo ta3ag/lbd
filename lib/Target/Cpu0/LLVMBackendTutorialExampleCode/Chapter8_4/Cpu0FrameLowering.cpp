@@ -124,10 +124,16 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   MachineBasicBlock::iterator MBBI = MBB.begin();
   DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
   unsigned SP = Cpu0::SP;
+  unsigned FP = Cpu0::FP;
+  unsigned ZERO = Cpu0::ZERO;
+  unsigned ADD = Cpu0::ADD;
   unsigned ADDiu = Cpu0::ADDiu;
   // First, compute final stack size.
   unsigned StackAlign = getStackAlignment();
-  unsigned LocalVarAreaOffset = Cpu0FI->getMaxCallFrameSize();
+  unsigned RegSize = 4;
+  unsigned LocalVarAreaOffset = Cpu0FI->needGPSaveRestore() ?
+    (MFI->getObjectOffset(Cpu0FI->getGPFI()) + RegSize) :
+    Cpu0FI->getMaxCallFrameSize();
   uint64_t StackSize =  RoundUpToAlignment(LocalVarAreaOffset, StackAlign) +
      RoundUpToAlignment(MFI->getStackSize(), StackAlign);
 
@@ -183,6 +189,27 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
       }
     }
   }
+  
+  // if framepointer enabled, set it to point to the stack pointer.
+  if (hasFP(MF)) {
+    // Insert instruction "move $fp, $sp" at this location.
+    BuildMI(MBB, MBBI, dl, TII.get(ADD), FP).addReg(SP).addReg(ZERO);
+
+    // emit ".cfi_def_cfa_register $fp"
+    MCSymbol *SetFPLabel = MMI.getContext().CreateTempSymbol();
+    BuildMI(MBB, MBBI, dl,
+            TII.get(TargetOpcode::PROLOG_LABEL)).addSym(SetFPLabel);
+    DstML = MachineLocation(FP);
+    SrcML = MachineLocation(MachineLocation::VirtualFP);
+    Moves.push_back(MachineMove(SetFPLabel, DstML, SrcML));
+  }
+
+  // Restore GP from the saved stack location
+  if (Cpu0FI->needGPSaveRestore()) {
+    unsigned Offset = MFI->getObjectOffset(Cpu0FI->getGPFI());
+    BuildMI(MBB, MBBI, dl, TII.get(Cpu0::CPRESTORE)).addImm(Offset)
+      .addReg(Cpu0::GP);
+  }
 }
 
 void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
@@ -194,7 +221,22 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
     *static_cast<const Cpu0InstrInfo*>(MF.getTarget().getInstrInfo());
   DebugLoc dl = MBBI->getDebugLoc();
   unsigned SP = Cpu0::SP;
+  unsigned FP = Cpu0::FP;
+  unsigned ZERO = Cpu0::ZERO;
+  unsigned ADD = Cpu0::ADD;
   unsigned ADDiu = Cpu0::ADDiu;
+
+  // if framepointer enabled, restore the stack pointer.
+  if (hasFP(MF)) {
+    // Find the first instruction that restores a callee-saved register.
+    MachineBasicBlock::iterator I = MBBI;
+
+    for (unsigned i = 0; i < MFI->getCalleeSavedInfo().size(); ++i)
+      --I;
+
+    // Insert instruction "move $sp, $fp" at this location.
+    BuildMI(MBB, I, dl, TII.get(ADD), SP).addReg(FP).addReg(ZERO);
+  }
 
   // Get the number of bytes from FrameInfo
   uint64_t StackSize = MFI->getStackSize();
@@ -209,6 +251,15 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
     Cpu0FI->setEmitNOAT();
     expandLargeImm(SP, StackSize, TII, MBB, MBBI, dl);
   }
+}
+
+// This function eliminate ADJCALLSTACKDOWN,
+// ADJCALLSTACKUP pseudo instructions
+void Cpu0FrameLowering::
+eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
+                              MachineBasicBlock::iterator I) const {
+  // Simply discard ADJCALLSTACKDOWN, ADJCALLSTACKUP instructions.
+  MBB.erase(I);
 }
 
 // This method is called immediately before PrologEpilogInserter scans the 

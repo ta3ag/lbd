@@ -96,6 +96,7 @@ namespace llvm {
     // Lower Operand specifics
     SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
     SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
+    SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG) const;
 
 	//- must be exist without function all
     virtual SDValue

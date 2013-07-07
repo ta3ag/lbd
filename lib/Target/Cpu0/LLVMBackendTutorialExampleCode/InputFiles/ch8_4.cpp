@@ -1,25 +1,27 @@
-// clang -c ch8_4.cpp -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ -emit-llvm -o ch8_4.bc
+// clang -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ -c ch8_4.cpp -emit-llvm -o ch8_4.bc
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_4.bc -o ch8_4.cpu0.s
 
-#include <time.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <alloca.h>
+
+int sum(int x1, int x2, int x3, int x4, int x5, int x6)
+{
+  int sum = x1 + x2 + x3 + x4 + x5 + x6;
+  
+  return sum; 
+}
+
+int weight_sum(int x1, int x2, int x3, int x4, int x5, int x6)
+{
+  int *b = (int*)alloca(sizeof(int) * x1);
+  *b = 1111;
+  int weight = sum(6*x1, x2, x3, x4, 2*x5, x6);
+  
+  return weight; 
+}
 
 int main()
 {
-  int b = 11;
-  int iSecret = 0;
-
-  // initialize random seed:
-  srand ( time(NULL) );
-
-  // generate secret number: 
-  iSecret = rand() % 12 + 1;
-
-//  int c = rand();
+  int a = weight_sum(1, 2, 3, 4, 5, 6);
   
-  b = (b+1)%iSecret;
-//  printf("iSecret = %d, b = %d\n", iSecret, b);
-  
-  return b;
+  return a;
 }
