@@ -68,6 +68,7 @@ cp -rf Chapter8_4 ${GEN_DIR}/.
 patch -fp0 < 8-4-2.patch
 mv Chapter8_4 Chapter8_4_2
 cp -rf Chapter8_4_2 ${GEN_DIR}/.
+rm -rf Chapter8_4_2
 cp -rf ${GEN_DIR}/Chapter8_4 .
 patch -fp0 < 9-1.patch
 mv Chapter8_4 Chapter9_1
