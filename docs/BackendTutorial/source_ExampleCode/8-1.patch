@@ -1,6 +1,6 @@
 diff -Naur Chapter7_1/Cpu0CallingConv.td Chapter8_1/Cpu0CallingConv.td
---- Chapter7_1/Cpu0CallingConv.td	2013-07-07 21:14:01.000000000 +0800
-+++ Chapter8_1/Cpu0CallingConv.td	2013-07-07 21:14:01.000000000 +0800
+--- Chapter7_1/Cpu0CallingConv.td	2013-07-10 16:30:24.953143166 +0800
++++ Chapter8_1/Cpu0CallingConv.td	2013-07-10 16:30:24.941143166 +0800
 @@ -13,6 +13,37 @@
  class CCIfSubtarget<string F, CCAction A>:
    CCIf<!strconcat("State.getTarget().getSubtarget<Cpu0Subtarget>().", F), A>;
@@ -39,71 +39,9 @@ diff -Naur Chapter7_1/Cpu0CallingConv.td Chapter8_1/Cpu0CallingConv.td
  def CSR_O32 : CalleeSavedRegs<(add LR, FP,
                                     (sequence "S%u", 2, 0))>;
  
-diff -Naur Chapter7_1/Cpu0ISelLowering.cpp Chapter8_1/Cpu0ISelLowering.cpp
---- Chapter7_1/Cpu0ISelLowering.cpp	2013-07-07 21:14:01.000000000 +0800
-+++ Chapter8_1/Cpu0ISelLowering.cpp	2013-07-07 21:14:01.000000000 +0800
-@@ -285,6 +285,58 @@
-                                          DebugLoc dl, SelectionDAG &DAG,
-                                          SmallVectorImpl<SDValue> &InVals)
-                                           const {
-+  MachineFunction &MF = DAG.getMachineFunction();
-+  MachineFrameInfo *MFI = MF.getFrameInfo();
-+  Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
-+
-+  Cpu0FI->setVarArgsFrameIndex(0);
-+
-+  // Used with vargs to acumulate store chains.
-+  std::vector<SDValue> OutChains;
-+
-+  // Assign locations to all of the incoming arguments.
-+  SmallVector<CCValAssign, 16> ArgLocs;
-+  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
-+                 getTargetMachine(), ArgLocs, *DAG.getContext());
-+                         
-+  CCInfo.AnalyzeFormalArguments(Ins, CC_Cpu0);
-+
-+  Function::const_arg_iterator FuncArg =
-+    DAG.getMachineFunction().getFunction()->arg_begin();
-+  int LastFI = 0;// Cpu0FI->LastInArgFI is 0 at the entry of this function.
-+
-+  for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i, ++FuncArg) {
-+    CCValAssign &VA = ArgLocs[i];
-+    EVT ValVT = VA.getValVT();
-+    ISD::ArgFlagsTy Flags = Ins[i].Flags;
-+    bool IsRegLoc = VA.isRegLoc();
-+
-+    if (Flags.isByVal()) {
-+      assert(Flags.getByValSize() &&
-+             "ByVal args of size 0 should have been ignored by front-end."); 
-+      continue;
-+    }
-+    // sanity check
-+    assert(VA.isMemLoc());
-+
-+    // The stack pointer offset is relative to the caller stack frame.
-+    LastFI = MFI->CreateFixedObject(ValVT.getSizeInBits()/8,
-+                                    VA.getLocMemOffset(), true);
-+
-+    // Create load nodes to retrieve arguments from the stack
-+    SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
-+    InVals.push_back(DAG.getLoad(ValVT, dl, Chain, FIN,
-+                                 MachinePointerInfo::getFixedStack(LastFI),
-+                                 false, false, false, 0));
-+  }
-+  Cpu0FI->setLastInArgFI(LastFI);
-+  // All stores are grouped in one node to allow the matching between
-+  // the size of Ins and InVals. This only happens when on varg functions
-+  if (!OutChains.empty()) {
-+    OutChains.push_back(Chain);
-+    Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
-+                        &OutChains[0], OutChains.size());
-+  }
-   return Chain;
- }
- 
 diff -Naur Chapter7_1/Cpu0InstrFormats.td Chapter8_1/Cpu0InstrFormats.td
---- Chapter7_1/Cpu0InstrFormats.td	2013-07-07 21:14:01.000000000 +0800
-+++ Chapter8_1/Cpu0InstrFormats.td	2013-07-07 21:14:01.000000000 +0800
+--- Chapter7_1/Cpu0InstrFormats.td	2013-07-10 16:30:24.953143166 +0800
++++ Chapter8_1/Cpu0InstrFormats.td	2013-07-10 16:30:24.941143166 +0800
 @@ -69,6 +69,13 @@
    field bits<32> SoftFail = 0;
  }
@@ -119,8 +57,8 @@ diff -Naur Chapter7_1/Cpu0InstrFormats.td Chapter8_1/Cpu0InstrFormats.td
  // Format A instruction class in Cpu0 : <|opcode|ra|rb|rc|cx|>
  //===----------------------------------------------------------------------===//
 diff -Naur Chapter7_1/Cpu0InstrInfo.cpp Chapter8_1/Cpu0InstrInfo.cpp
---- Chapter7_1/Cpu0InstrInfo.cpp	2013-07-07 21:14:01.000000000 +0800
-+++ Chapter8_1/Cpu0InstrInfo.cpp	2013-07-07 21:14:01.000000000 +0800
+--- Chapter7_1/Cpu0InstrInfo.cpp	2013-07-10 16:30:24.953143166 +0800
++++ Chapter8_1/Cpu0InstrInfo.cpp	2013-07-10 16:30:24.941143166 +0800
 @@ -13,6 +13,7 @@
  
  #include "Cpu0InstrInfo.h"
@@ -165,8 +103,8 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.cpp Chapter8_1/Cpu0InstrInfo.cpp
  Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
                                          uint64_t Offset, const MDNode *MDPtr,
 diff -Naur Chapter7_1/Cpu0InstrInfo.h Chapter8_1/Cpu0InstrInfo.h
---- Chapter7_1/Cpu0InstrInfo.h	2013-07-07 21:14:01.000000000 +0800
-+++ Chapter8_1/Cpu0InstrInfo.h	2013-07-07 21:14:01.000000000 +0800
+--- Chapter7_1/Cpu0InstrInfo.h	2013-07-10 16:30:24.953143166 +0800
++++ Chapter8_1/Cpu0InstrInfo.h	2013-07-10 16:30:24.941143166 +0800
 @@ -42,6 +42,12 @@
                             bool KillSrc) const;
  
@@ -181,8 +119,8 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.h Chapter8_1/Cpu0InstrInfo.h
                                                   int FrameIx, uint64_t Offset,
                                                   const MDNode *MDPtr,
 diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
---- Chapter7_1/Cpu0InstrInfo.td	2013-07-07 21:14:01.000000000 +0800
-+++ Chapter8_1/Cpu0InstrInfo.td	2013-07-07 21:14:01.000000000 +0800
+--- Chapter7_1/Cpu0InstrInfo.td	2013-07-10 16:30:24.953143166 +0800
++++ Chapter8_1/Cpu0InstrInfo.td	2013-07-10 16:30:24.941143166 +0800
 @@ -27,6 +27,13 @@
                                           [SDTCisInt<0>,
                                            SDTCisSameAs<0, 1>]>;
@@ -268,20 +206,71 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
  // hi/lo relocs
  def : Pat<(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>;
  // Expect cpu0 add LUi support, like Mips
-diff -Naur Chapter7_1/Cpu0MCInstLower.cpp Chapter8_1/Cpu0MCInstLower.cpp
---- Chapter7_1/Cpu0MCInstLower.cpp	2013-07-07 21:14:01.000000000 +0800
-+++ Chapter8_1/Cpu0MCInstLower.cpp	2013-07-07 21:14:01.000000000 +0800
-@@ -48,6 +48,7 @@
- //  format=false (global var in .sdata).
-   case Cpu0II::MO_GPREL:     Kind = MCSymbolRefExpr::VK_Cpu0_GPREL; break;
+diff -Naur Chapter7_1/Cpu0ISelLowering.cpp Chapter8_1/Cpu0ISelLowering.cpp
+--- Chapter7_1/Cpu0ISelLowering.cpp	2013-07-10 16:30:24.953143166 +0800
++++ Chapter8_1/Cpu0ISelLowering.cpp	2013-07-10 16:30:24.941143166 +0800
+@@ -285,6 +285,58 @@
+                                          DebugLoc dl, SelectionDAG &DAG,
+                                          SmallVectorImpl<SDValue> &InVals)
+                                           const {
++  MachineFunction &MF = DAG.getMachineFunction();
++  MachineFrameInfo *MFI = MF.getFrameInfo();
++  Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
++
++  Cpu0FI->setVarArgsFrameIndex(0);
++
++  // Used with vargs to acumulate store chains.
++  std::vector<SDValue> OutChains;
++
++  // Assign locations to all of the incoming arguments.
++  SmallVector<CCValAssign, 16> ArgLocs;
++  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
++                 getTargetMachine(), ArgLocs, *DAG.getContext());
++                         
++  CCInfo.AnalyzeFormalArguments(Ins, CC_Cpu0);
++
++  Function::const_arg_iterator FuncArg =
++    DAG.getMachineFunction().getFunction()->arg_begin();
++  int LastFI = 0;// Cpu0FI->LastInArgFI is 0 at the entry of this function.
++
++  for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i, ++FuncArg) {
++    CCValAssign &VA = ArgLocs[i];
++    EVT ValVT = VA.getValVT();
++    ISD::ArgFlagsTy Flags = Ins[i].Flags;
++    bool IsRegLoc = VA.isRegLoc();
++
++    if (Flags.isByVal()) {
++      assert(Flags.getByValSize() &&
++             "ByVal args of size 0 should have been ignored by front-end."); 
++      continue;
++    }
++    // sanity check
++    assert(VA.isMemLoc());
++
++    // The stack pointer offset is relative to the caller stack frame.
++    LastFI = MFI->CreateFixedObject(ValVT.getSizeInBits()/8,
++                                    VA.getLocMemOffset(), true);
++
++    // Create load nodes to retrieve arguments from the stack
++    SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
++    InVals.push_back(DAG.getLoad(ValVT, dl, Chain, FIN,
++                                 MachinePointerInfo::getFixedStack(LastFI),
++                                 false, false, false, 0));
++  }
++  Cpu0FI->setLastInArgFI(LastFI);
++  // All stores are grouped in one node to allow the matching between
++  // the size of Ins and InVals. This only happens when on varg functions
++  if (!OutChains.empty()) {
++    OutChains.push_back(Chain);
++    Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
++                        &OutChains[0], OutChains.size());
++  }
+   return Chain;
+ }
  
-+  case Cpu0II::MO_GOT_CALL:  Kind = MCSymbolRefExpr::VK_Cpu0_GOT_CALL; break;
-   case Cpu0II::MO_GOT16:     Kind = MCSymbolRefExpr::VK_Cpu0_GOT16; break;
-   case Cpu0II::MO_GOT:       Kind = MCSymbolRefExpr::VK_Cpu0_GOT; break;
- // ABS_HI and ABS_LO is for llc -march=cpu0 -relocation-model=static (global 
 diff -Naur Chapter7_1/Cpu0MachineFunction.h Chapter8_1/Cpu0MachineFunction.h
---- Chapter7_1/Cpu0MachineFunction.h	2013-07-07 21:14:01.000000000 +0800
-+++ Chapter8_1/Cpu0MachineFunction.h	2013-07-07 21:14:01.000000000 +0800
+--- Chapter7_1/Cpu0MachineFunction.h	2013-07-10 16:30:24.953143166 +0800
++++ Chapter8_1/Cpu0MachineFunction.h	2013-07-10 16:30:24.941143166 +0800
 @@ -30,19 +30,63 @@
    /// use as the global base register. This is used for PIC in some PIC
    /// relocation models.
@@ -348,9 +337,20 @@ diff -Naur Chapter7_1/Cpu0MachineFunction.h Chapter8_1/Cpu0MachineFunction.h
    unsigned getMaxCallFrameSize() const { return MaxCallFrameSize; }
    void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
    bool getEmitNOAT() const { return EmitNOAT; }
+diff -Naur Chapter7_1/Cpu0MCInstLower.cpp Chapter8_1/Cpu0MCInstLower.cpp
+--- Chapter7_1/Cpu0MCInstLower.cpp	2013-07-10 16:30:24.953143166 +0800
++++ Chapter8_1/Cpu0MCInstLower.cpp	2013-07-10 16:30:24.941143166 +0800
+@@ -48,6 +48,7 @@
+ //  format=false (global var in .sdata).
+   case Cpu0II::MO_GPREL:     Kind = MCSymbolRefExpr::VK_Cpu0_GPREL; break;
+ 
++  case Cpu0II::MO_GOT_CALL:  Kind = MCSymbolRefExpr::VK_Cpu0_GOT_CALL; break;
+   case Cpu0II::MO_GOT16:     Kind = MCSymbolRefExpr::VK_Cpu0_GOT16; break;
+   case Cpu0II::MO_GOT:       Kind = MCSymbolRefExpr::VK_Cpu0_GOT; break;
+ // ABS_HI and ABS_LO is for llc -march=cpu0 -relocation-model=static (global 
 diff -Naur Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-07-07 21:14:01.000000000 +0800
-+++ Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-07-07 21:14:01.000000000 +0800
+--- Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-07-10 16:30:24.953143166 +0800
++++ Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-07-10 16:30:24.941143166 +0800
 @@ -81,6 +81,13 @@
    unsigned getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
                                    SmallVectorImpl<MCFixup> &Fixups) const;

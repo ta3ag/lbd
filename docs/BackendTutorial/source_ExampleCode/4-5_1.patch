@@ -1,6 +1,6 @@
 diff -Naur Chapter4_4/Cpu0InstrInfo.td Chapter4_5_1/Cpu0InstrInfo.td
---- Chapter4_4/Cpu0InstrInfo.td	2013-07-07 21:14:01.000000000 +0800
-+++ Chapter4_5_1/Cpu0InstrInfo.td	2013-07-07 21:14:01.000000000 +0800
+--- Chapter4_4/Cpu0InstrInfo.td	2013-07-10 16:30:24.945143166 +0800
++++ Chapter4_5_1/Cpu0InstrInfo.td	2013-07-10 16:30:24.937143166 +0800
 @@ -56,6 +56,16 @@
    let EncoderMethod = "getMemEncoding";
  }

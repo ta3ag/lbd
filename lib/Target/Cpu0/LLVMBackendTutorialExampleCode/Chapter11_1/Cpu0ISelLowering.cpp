@@ -770,17 +770,12 @@ Cpu0TargetLowering::LowerReturn(SDValue Chain,
 
   RetOps[0] = Chain;  // Update chain.
 
-  // Return on Cpu0 is always a "ret $lr"
-  if (Flag.getNode()) {
-    // Add the flag if we have it.
+  // Add the flag if we have it.
+  if (Flag.getNode())
     RetOps.push_back(Flag);
-    return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other, &RetOps[0], RetOps.size());
-  }
-  else {
-    // Return Void
-    return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
-                       Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
-  }
+
+  // Return on Cpu0 is always a "ret $lr"
+  return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other, &RetOps[0], RetOps.size());
 }
 
 bool
