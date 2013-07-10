@@ -76,14 +76,14 @@ void Cpu0AnalyzeImmediate::GetInstSeqLs(uint64_t Imm, unsigned RemSize,
   }
 }
 
-// Replace a ADDiu & SLL pair with a LUi.
+// Replace a ADDiu & SHL pair with a LUi.
 // e.g. the following two instructions
 //  ADDiu 0x0111
-//  SLL 18
+//  SHL 18
 // are replaced with
 //  LUi 0x444
-void Cpu0AnalyzeImmediate::ReplaceADDiuSLLWithLUi(InstSeq &Seq) {
-  // Check if the first two instructions are ADDiu and SLL and the shift amount
+void Cpu0AnalyzeImmediate::ReplaceADDiuSHLWithLUi(InstSeq &Seq) {
+  // Check if the first two instructions are ADDiu and SHL and the shift amount
   // is at least 16.
   if ((Seq.size() < 2) || (Seq[0].Opc != ADDiu) ||
       (Seq[1].Opc != SHL) || (Seq[1].ImmOpnd < 16))
@@ -108,7 +108,7 @@ void Cpu0AnalyzeImmediate::GetShortestSeq(InstSeqLs &SeqLs, InstSeq &Insts) {
   unsigned ShortestLength = 8;
 
   for (InstSeqLs::iterator S = SeqLs.begin(); S != SeqLs.end(); ++S) {
-    ReplaceADDiuSLLWithLUi(*S);
+    ReplaceADDiuSHLWithLUi(*S);
     assert(S->size() <= 7);
 
     if (S->size() < ShortestLength) {

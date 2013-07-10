@@ -965,6 +965,49 @@ As modified from above, it remove the CMP instruction, SW register and
 related code from Chapter11_1/, and change from JEQ 24bits offset to BEQ 16 bits 
 offset. And more, replace "ADDiu, SHL 16" with the efficient LUi instruction.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0AnalyzeImmediate.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0AnalyzeImmediate.h
+    :start-after: /// ReplaceADDiuSHLWithLUi
+    :end-before: unsigned Size;
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0AnalyzeImmediate.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0AnalyzeImmediate.cpp
+    :start-after: // Replace a ADDiu & SHL pair with a LUi.
+
+Above code replace addiu and shl with single instruction lui only. The effect as 
+the following table.
+
+.. table:: Cpu0 stack adjustment new instructions
+
+  ======  ====================  ================  ==================================  ==================================
+          stack size range      ex. stack size    Cpu0 Prologue instructions          Cpu0 Epilogue instructions
+  ======  ====================  ================  ==================================  ==================================
+  old     x10000 ~ 0xffffffff   - 0x90008000      - addiu $1, $zero, -9;              - addiu $1, $zero, -28671;
+                                                  - shl $1, $1, 28;                   - shl $1, $1, 16
+                                                  - addiu $1, $1, -32768;             - addiu $1, $1, -32768;
+                                                  - addu $sp, $sp, $1;                - addu $sp, $sp, $1;
+  ------  --------------------  ----------------  ----------------------------------  ----------------------------------
+  new     x10000 ~ 0xffffffff   - 0x90008000      - lui	$1, 28671;                    - lui	$1, 36865;
+                                                  - ori	$1, $1, 32768;                - addiu $1, $1, -32768;
+                                                  - addu $sp, $sp, $1;                - addu $sp, $sp, $1;
+  ======  ====================  ================  ==================================  ==================================
+
+
+Assume sp = 0xa0008000 and stack size = 0x90008000, then (0xa0008000 - 
+0x90008000) => 0x10000000. Verify with the Cpu0 Prologue instructions as 
+follows,
+
+1. "lui	$1, 28671" => $1 = 0x6fff0000.
+2. "ori	$1, $1, 32768" => $1 = (0x6fff0000 + 0x00008000) => $1 = 0x6fff8000.
+3. "addu	$sp, $sp, $1" => $sp = (0xa0008000 + 0x6fff8000) => $sp = 0x10000000.
+
+Verify with the Cpu0 Epilogue instructions with sp = 0x10000000 and stack size = 
+0x90008000 as follows,
+
+1. "lui	$1, 36865" => $1 = 0x90010000.
+2. "addiu $1, $1, -32768" => $1 = (0x90010000 + 0xffff8000) => $1 = 0x90008000.
+3. "addu $sp, $sp, $1" => $sp = (0x10000000 + 0x90008000) => $sp = 0xa0008000.
+
 
 Cpu0 Verilog language changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

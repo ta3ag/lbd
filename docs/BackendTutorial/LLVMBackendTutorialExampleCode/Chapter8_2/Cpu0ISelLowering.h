@@ -85,6 +85,13 @@ namespace llvm {
   private:
     // Subtarget Info
     const Cpu0Subtarget *Subtarget;
+    
+    // Lower Operand helpers
+    SDValue LowerCallResult(SDValue Chain, SDValue InFlag,
+                            CallingConv::ID CallConv, bool isVarArg,
+                            const SmallVectorImpl<ISD::InputArg> &Ins,
+                            DebugLoc dl, SelectionDAG &DAG,
+                            SmallVectorImpl<SDValue> &InVals) const;
 
     // Lower Operand specifics
     SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;

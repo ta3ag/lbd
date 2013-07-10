@@ -29,6 +29,9 @@ def SDT_Cpu0DivRem       : SDTypeProfile<0, 2,
 
 def SDT_Cpu0JmpLink      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
 
+def SDT_Cpu0CallSeqStart : SDCallSeqStart<[SDTCisVT<0, i32>]>;
+def SDT_Cpu0CallSeqEnd   : SDCallSeqEnd<[SDTCisVT<0, i32>, SDTCisVT<1, i32>]>;
+
 // Call
 def Cpu0JmpLink : SDNode<"Cpu0ISD::JmpLink",SDT_Cpu0JmpLink,
                          [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue,
@@ -44,6 +47,12 @@ def Cpu0GPRel : SDNode<"Cpu0ISD::GPRel", SDTIntUnaryOp>;
 // Return
 def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDT_Cpu0Ret, [SDNPHasChain,
                      SDNPOptInGlue]>;
+
+// These are target-independent nodes, but have target-specific formats.
+def callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_Cpu0CallSeqStart,
+                           [SDNPHasChain, SDNPOutGlue]>;
+def callseq_end   : SDNode<"ISD::CALLSEQ_END", SDT_Cpu0CallSeqEnd,
+                           [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]>;
 
 // DivRem(u) nodes
 def Cpu0DivRem    : SDNode<"Cpu0ISD::DivRem", SDT_Cpu0DivRem,
@@ -340,6 +349,20 @@ class MoveToLOHI<bits<8> op, string instr_asm, RegisterClass RC,
 class EffectiveAddress<string instr_asm, RegisterClass RC, Operand Mem> :
   FMem<0x09, (outs RC:$ra), (ins Mem:$addr),
      instr_asm, [(set RC:$ra, addr:$addr)], IIAlu>;
+
+//===----------------------------------------------------------------------===//
+// Pseudo instructions
+//===----------------------------------------------------------------------===//
+
+// As stack alignment is always done with addiu, we need a 16-bit immediate
+let Defs = [SP], Uses = [SP] in {
+def ADJCALLSTACKDOWN : Cpu0Pseudo<(outs), (ins uimm16:$amt),
+                                  "!ADJCALLSTACKDOWN $amt",
+                                  [(callseq_start timm:$amt)]>;
+def ADJCALLSTACKUP   : Cpu0Pseudo<(outs), (ins uimm16:$amt1, uimm16:$amt2),
+                                  "!ADJCALLSTACKUP $amt1",
+                                  [(callseq_end timm:$amt1, timm:$amt2)]>;
+}
 
 //===----------------------------------------------------------------------===//
 // Instruction definition

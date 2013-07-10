@@ -39,6 +39,17 @@ Cpu0TargetLowering::
 Cpu0TargetLowering(Cpu0TargetMachine &TM)
   : TargetLowering(TM, new TargetLoweringObjectFileELF()),
     Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
+
+  // Set up the register classes
+  addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
+
+//- Set .align 2
+// It will emit .align 2 later
+  setMinFunctionAlignment(2);
+
+// must, computeRegisterProperties - Once all of the register classes are 
+//  added, this allows us to compute derived properties we expose.
+  computeRegisterProperties();
 }
 
 #include "Cpu0GenCallingConv.inc"

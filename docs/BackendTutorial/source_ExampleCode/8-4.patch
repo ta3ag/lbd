@@ -1,80 +1,329 @@
-diff -Naur Chapter8_3/Cpu0MachineFunction.h Chapter8_4/Cpu0MachineFunction.h
---- Chapter8_3/Cpu0MachineFunction.h	2013-07-05 17:46:02.869283807 +0800
-+++ Chapter8_4/Cpu0MachineFunction.h	2013-07-05 17:46:02.865283807 +0800
-@@ -26,6 +26,11 @@
-   virtual void anchor();
-   MachineFunction& MF;
- 
-+  /// SRetReturnReg - Some subtargets require that sret lowering includes
-+  /// returning the value of the returned struct in a register. This field
-+  /// holds the virtual register into which the sret argument is passed.
-+  unsigned SRetReturnReg;
-+
-   /// GlobalBaseReg - keeps track of the virtual register initialized for
-   /// use as the global base register. This is used for PIC in some PIC
-   /// relocation models.
-@@ -47,7 +52,7 @@
- 
- public:
-   Cpu0FunctionInfo(MachineFunction& MF)
--  : MF(MF), GlobalBaseReg(0),
-+  : MF(MF), SRetReturnReg(0), GlobalBaseReg(0),
-     VarArgsFrameIndex(0), InArgFIRange(std::make_pair(-1, 0)),
-     OutArgFIRange(std::make_pair(-1, 0)), GPFI(0), DynAllocFI(0),
-     MaxCallFrameSize(0), EmitNOAT(false)
-@@ -58,6 +63,10 @@
+diff -Naur Chapter8_3/Cpu0FrameLowering.cpp Chapter8_4/Cpu0FrameLowering.cpp
+--- Chapter8_3/Cpu0FrameLowering.cpp	2013-07-07 21:14:01.000000000 +0800
++++ Chapter8_4/Cpu0FrameLowering.cpp	2013-07-07 21:14:01.000000000 +0800
+@@ -124,6 +124,9 @@
+   MachineBasicBlock::iterator MBBI = MBB.begin();
+   DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
+   unsigned SP = Cpu0::SP;
++  unsigned FP = Cpu0::FP;
++  unsigned ZERO = Cpu0::ZERO;
++  unsigned ADD = Cpu0::ADD;
+   unsigned ADDiu = Cpu0::ADDiu;
+   // First, compute final stack size.
+   unsigned StackAlign = getStackAlignment();
+@@ -187,6 +190,20 @@
+     }
    }
-   void setLastInArgFI(int FI) { InArgFIRange.second = FI; }
- 
-+  bool isOutArgFI(int FI) const {
-+    return FI <= OutArgFIRange.first && FI >= OutArgFIRange.second;
+   
++  // if framepointer enabled, set it to point to the stack pointer.
++  if (hasFP(MF)) {
++    // Insert instruction "move $fp, $sp" at this location.
++    BuildMI(MBB, MBBI, dl, TII.get(ADD), FP).addReg(SP).addReg(ZERO);
++
++    // emit ".cfi_def_cfa_register $fp"
++    MCSymbol *SetFPLabel = MMI.getContext().CreateTempSymbol();
++    BuildMI(MBB, MBBI, dl,
++            TII.get(TargetOpcode::PROLOG_LABEL)).addSym(SetFPLabel);
++    DstML = MachineLocation(FP);
++    SrcML = MachineLocation(MachineLocation::VirtualFP);
++    Moves.push_back(MachineMove(SetFPLabel, DstML, SrcML));
 +  }
 +
-   void extendOutArgFIRange(int FirstFI, int LastFI) {
-     if (!OutArgFIRange.second)
-       // this must be the first time this function was called.
-@@ -80,6 +89,9 @@
-   }
-   bool isDynAllocFI(int FI) const { return DynAllocFI && DynAllocFI == FI; }
+   // Restore GP from the saved stack location
+   if (Cpu0FI->needGPSaveRestore()) {
+     unsigned Offset = MFI->getObjectOffset(Cpu0FI->getGPFI());
+@@ -204,8 +221,23 @@
+     *static_cast<const Cpu0InstrInfo*>(MF.getTarget().getInstrInfo());
+   DebugLoc dl = MBBI->getDebugLoc();
+   unsigned SP = Cpu0::SP;
++  unsigned FP = Cpu0::FP;
++  unsigned ZERO = Cpu0::ZERO;
++  unsigned ADD = Cpu0::ADD;
+   unsigned ADDiu = Cpu0::ADDiu;
  
-+  unsigned getSRetReturnReg() const { return SRetReturnReg; }
-+  void setSRetReturnReg(unsigned Reg) { SRetReturnReg = Reg; }
++  // if framepointer enabled, restore the stack pointer.
++  if (hasFP(MF)) {
++    // Find the first instruction that restores a callee-saved register.
++    MachineBasicBlock::iterator I = MBBI;
 +
-   bool globalBaseRegFixed() const;
-   bool globalBaseRegSet() const;
-   unsigned getGlobalBaseReg();
-diff -Naur Chapter8_3/Cpu0RegisterInfo.cpp Chapter8_4/Cpu0RegisterInfo.cpp
---- Chapter8_3/Cpu0RegisterInfo.cpp	2013-07-05 17:46:02.869283807 +0800
-+++ Chapter8_4/Cpu0RegisterInfo.cpp	2013-07-05 17:46:02.865283807 +0800
++    for (unsigned i = 0; i < MFI->getCalleeSavedInfo().size(); ++i)
++      --I;
++
++    // Insert instruction "move $sp, $fp" at this location.
++    BuildMI(MBB, I, dl, TII.get(ADD), SP).addReg(FP).addReg(ZERO);
++  }
++
+   // Get the number of bytes from FrameInfo
+   uint64_t StackSize = MFI->getStackSize();
+ 
+diff -Naur Chapter8_3/Cpu0ISelLowering.cpp Chapter8_4/Cpu0ISelLowering.cpp
+--- Chapter8_3/Cpu0ISelLowering.cpp	2013-07-07 21:14:01.000000000 +0800
++++ Chapter8_4/Cpu0ISelLowering.cpp	2013-07-07 21:14:01.000000000 +0800
+@@ -131,6 +131,7 @@
+   // Cpu0 Custom Operations
+   setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
+   setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
++  setOperationAction(ISD::VASTART,            MVT::Other, Custom);
+ 
+   setOperationAction(ISD::SDIV, MVT::i32, Expand);
+   setOperationAction(ISD::SREM, MVT::i32, Expand);
+@@ -139,6 +140,13 @@
+ 
+   // Operations not directly supported by Cpu0.
+   setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
++  setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i32,  Expand);
++
++  // Support va_arg(): variable numbers (not fixed numbers) of arguments 
++  //  (parameters) for function all
++  setOperationAction(ISD::VAARG,             MVT::Other, Expand);
++  setOperationAction(ISD::VACOPY,            MVT::Other, Expand);
++  setOperationAction(ISD::VAEND,             MVT::Other, Expand);
+ 
+   setTargetDAGCombine(ISD::SDIVREM);
+   setTargetDAGCombine(ISD::UDIVREM);
+@@ -147,6 +155,8 @@
+ // It will emit .align 2 later
+   setMinFunctionAlignment(2);
+ 
++  setStackPointerRegisterToSaveRestore(Cpu0::SP);
++
+ // must, computeRegisterProperties - Once all of the register classes are 
+ //  added, this allows us to compute derived properties we expose.
+   computeRegisterProperties();
+@@ -211,6 +221,7 @@
+   {
+     case ISD::BRCOND:             return LowerBRCOND(Op, DAG);
+     case ISD::GlobalAddress:      return LowerGlobalAddress(Op, DAG);
++    case ISD::VASTART:            return LowerVASTART(Op, DAG);
+   }
+   return SDValue();
+ }
+@@ -219,6 +230,18 @@
+ //  Lower helper functions
+ //===----------------------------------------------------------------------===//
+ 
++// AddLiveIn - This helper function adds the specified physical register to the
++// MachineFunction as a live in value.  It also creates a corresponding
++// virtual register for it.
++static unsigned
++AddLiveIn(MachineFunction &MF, unsigned PReg, const TargetRegisterClass *RC)
++{
++  assert(RC->contains(PReg) && "Not the correct regclass!");
++  unsigned VReg = MF.getRegInfo().createVirtualRegister(RC);
++  MF.getRegInfo().addLiveIn(PReg, VReg);
++  return VReg;
++}
++
+ //===----------------------------------------------------------------------===//
+ //  Misc Lower Operation implementation
+ //===----------------------------------------------------------------------===//
+@@ -267,8 +290,62 @@
+                                  Cpu0II::MO_GOT_LO16);
+ }
+ 
++SDValue Cpu0TargetLowering::LowerVASTART(SDValue Op, SelectionDAG &DAG) const {
++  MachineFunction &MF = DAG.getMachineFunction();
++  Cpu0FunctionInfo *FuncInfo = MF.getInfo<Cpu0FunctionInfo>();
++
++  DebugLoc dl = Op.getDebugLoc();
++  SDValue FI = DAG.getFrameIndex(FuncInfo->getVarArgsFrameIndex(),
++                                 getPointerTy());
++
++  // vastart just stores the address of the VarArgsFrameIndex slot into the
++  // memory location argument.
++  const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
++  return DAG.getStore(Op.getOperand(0), dl, FI, Op.getOperand(1),
++                      MachinePointerInfo(SV), false, false, 0);
++}
++
+ #include "Cpu0GenCallingConv.inc"
+ 
++//===----------------------------------------------------------------------===//
++//                  Call Calling Convention Implementation
++//===----------------------------------------------------------------------===//
++
++static const unsigned IntRegsSize = 2;
++
++static const uint16_t IntRegs[] = {
++  Cpu0::A0, Cpu0::A1
++};
++
++// Write ByVal Arg to arg registers and stack.
++static void
++WriteByValArg(SDValue& ByValChain, SDValue Chain, DebugLoc dl,
++              SmallVector<std::pair<unsigned, SDValue>, 16>& RegsToPass,
++              SmallVector<SDValue, 8>& MemOpChains, int& LastFI,
++              MachineFrameInfo *MFI, SelectionDAG &DAG, SDValue Arg,
++              const CCValAssign &VA, const ISD::ArgFlagsTy& Flags,
++              MVT PtrType, bool isLittle) {
++  unsigned LocMemOffset = VA.getLocMemOffset();
++  unsigned Offset = 0;
++  uint32_t RemainingSize = Flags.getByValSize();
++  unsigned ByValAlign = Flags.getByValAlign();
++
++  if (RemainingSize == 0)
++    return;
++
++  // Create a fixed object on stack at offset LocMemOffset and copy
++  // remaining part of byval arg to it using memcpy.
++  SDValue Src = DAG.getNode(ISD::ADD, dl, MVT::i32, Arg,
++                            DAG.getConstant(Offset, MVT::i32));
++  LastFI = MFI->CreateFixedObject(RemainingSize, LocMemOffset, true);
++  SDValue Dst = DAG.getFrameIndex(LastFI, PtrType);
++  ByValChain = DAG.getMemcpy(ByValChain, dl, Dst, Src,
++                             DAG.getConstant(RemainingSize, MVT::i32),
++                             std::min(ByValAlign, (unsigned)4),
++                             /*isVolatile=*/false, /*AlwaysInline=*/false,
++                             MachinePointerInfo(0), MachinePointerInfo(0));
++}
++
+ SDValue
+ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
+                               SmallVectorImpl<SDValue> &InVals) const {
+@@ -349,6 +426,9 @@
+       assert("!!!Error!!!, Flags.isByVal()==true");
+       assert(Flags.getByValSize() &&
+              "ByVal args of size 0 should have been ignored by front-end.");
++      WriteByValArg(ByValChain, Chain, dl, RegsToPass, MemOpChains, LastFI,
++                    MFI, DAG, Arg, VA, Flags, getPointerTy(),
++                    Subtarget->isLittle());
+       continue;
+     }
+ 
+@@ -504,6 +584,34 @@
+   return Chain;
+ }
+ 
++//===----------------------------------------------------------------------===//
++//             Formal Arguments Calling Convention Implementation
++//===----------------------------------------------------------------------===//
++static void ReadByValArg(MachineFunction &MF, SDValue Chain, DebugLoc dl,
++                         std::vector<SDValue>& OutChains,
++                         SelectionDAG &DAG, unsigned NumWords, SDValue FIN,
++                         const CCValAssign &VA, const ISD::ArgFlagsTy& Flags,
++                         const Argument *FuncArg) {
++  unsigned LocMem = VA.getLocMemOffset();
++  unsigned FirstWord = LocMem / 4;
++
++  // copy register A0 - A1 to frame object
++  for (unsigned i = 0; i < NumWords; ++i) {
++    unsigned CurWord = FirstWord + i;
++    if (CurWord >= IntRegsSize)
++      break;
++
++    unsigned SrcReg = IntRegs[CurWord];
++    unsigned Reg = AddLiveIn(MF, SrcReg, &Cpu0::CPURegsRegClass);
++    SDValue StorePtr = DAG.getNode(ISD::ADD, dl, MVT::i32, FIN,
++                                   DAG.getConstant(i * 4, MVT::i32));
++    SDValue Store = DAG.getStore(Chain, dl, DAG.getRegister(Reg, MVT::i32),
++                                 StorePtr, MachinePointerInfo(FuncArg, i * 4),
++                                 false, false, 0);
++    OutChains.push_back(Store);
++  }
++}
++
+ /// LowerFormalArguments - transform physical registers into virtual registers
+ /// and generate load operations for arguments places on the stack.
+ SDValue
+@@ -543,6 +651,13 @@
+     if (Flags.isByVal()) {
+       assert(Flags.getByValSize() &&
+              "ByVal args of size 0 should have been ignored by front-end."); 
++      unsigned NumWords = (Flags.getByValSize() + 3) / 4;
++      LastFI = MFI->CreateFixedObject(NumWords * 4, VA.getLocMemOffset(),
++                                      true);
++      SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
++      InVals.push_back(FIN);
++      ReadByValArg(MF, Chain, dl, OutChains, DAG, NumWords, FIN, VA, Flags,
++                   &*FuncArg);
+       continue;
+     }
+     // sanity check
+@@ -559,6 +674,32 @@
+                                  false, false, false, 0));
+   }
+ 
++#if 1	// Without this, it will use $3 instead of $2 as return register.
++  // The cpu0 ABIs for returning structs by value requires that we copy
++  // the sret argument into $v0 for the return. Save the argument into
++  // a virtual register so that we can access it from the return points.
++  if (DAG.getMachineFunction().getFunction()->hasStructRetAttr()) {
++    unsigned Reg = Cpu0FI->getSRetReturnReg();
++    if (!Reg) {
++      Reg = MF.getRegInfo().createVirtualRegister(getRegClassFor(MVT::i32));
++      Cpu0FI->setSRetReturnReg(Reg);
++    }
++    SDValue Copy = DAG.getCopyToReg(DAG.getEntryNode(), dl, Reg, InVals[0]);
++    Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other, Copy, Chain);
++  }
++#endif
++
++  if (isVarArg) {
++    unsigned RegSize = Cpu0::CPURegsRegClass.getSize();
++    // Offset of the first variable argument from stack pointer.
++    int FirstVaArgOffset = RegSize;
++
++    // Record the frame index of the first variable argument
++    // which is a value necessary to VASTART.
++    LastFI = MFI->CreateFixedObject(RegSize, FirstVaArgOffset, true);
++    Cpu0FI->setVarArgsFrameIndex(LastFI);
++  }
++
+   Cpu0FI->setLastInArgFI(LastFI);
+   // All stores are grouped in one node to allow the matching between
+   // the size of Ins and InVals. This only happens when on varg functions
+@@ -606,7 +747,27 @@
+     Flag = Chain.getValue(1);
+     RetOps.push_back(DAG.getRegister(VA.getLocReg(), VA.getLocVT()));
+   }
+-  
++
++#if 1	// Without this, it will use $3 instead of $2 as return register.
++  // The cpu0 ABIs for returning structs by value requires that we copy
++  // the sret argument into $v0 for the return. We saved the argument into
++  // a virtual register in the entry block, so now we copy the value out
++  // and into $v0.
++  if (DAG.getMachineFunction().getFunction()->hasStructRetAttr()) {
++    MachineFunction &MF      = DAG.getMachineFunction();
++    Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
++    unsigned Reg = Cpu0FI->getSRetReturnReg();
++
++    if (!Reg)
++      llvm_unreachable("sret virtual register not created in the entry block");
++    SDValue Val = DAG.getCopyFromReg(Chain, dl, Reg, getPointerTy());
++
++    Chain = DAG.getCopyToReg(Chain, dl, Cpu0::V0, Val, Flag);
++    Flag = Chain.getValue(1);
++    RetOps.push_back(DAG.getRegister(Cpu0::V0, getPointerTy()));
++  }
++#endif
++
+   RetOps[0] = Chain;  // Update chain.
+ 
+   // Return on Cpu0 is always a "ret $lr"
+diff -Naur Chapter8_3/Cpu0ISelLowering.h Chapter8_4/Cpu0ISelLowering.h
+--- Chapter8_3/Cpu0ISelLowering.h	2013-07-07 21:14:01.000000000 +0800
++++ Chapter8_4/Cpu0ISelLowering.h	2013-07-07 21:14:01.000000000 +0800
 @@ -96,6 +96,7 @@
-   MachineInstr &MI = *II;
-   MachineFunction &MF = *MI.getParent()->getParent();
-   MachineFrameInfo *MFI = MF.getFrameInfo();
-+  Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
+     // Lower Operand specifics
+     SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
+     SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
++    SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG) const;
  
-   unsigned i = 0;
-   while (!MI.getOperand(i).isFI()) {
-@@ -132,6 +133,10 @@
-   // getFrameRegister() returns.
-   unsigned FrameReg;
+ 	//- must be exist without function all
+     virtual SDValue
+diff -Naur Chapter8_3/Cpu0RegisterInfo.cpp Chapter8_4/Cpu0RegisterInfo.cpp
+--- Chapter8_3/Cpu0RegisterInfo.cpp	2013-07-07 21:14:01.000000000 +0800
++++ Chapter8_4/Cpu0RegisterInfo.cpp	2013-07-07 21:14:01.000000000 +0800
+@@ -77,6 +77,11 @@
+   for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
+     Reserved.set(ReservedCPURegs[I]);
  
-+  if (Cpu0FI->isOutArgFI(FrameIndex) || Cpu0FI->isDynAllocFI(FrameIndex) ||
-+      (FrameIndex >= MinCSFI && FrameIndex <= MaxCSFI))
-+    FrameReg = Cpu0::SP;
-+  else
-     FrameReg = getFrameRegister(MF);
- 
-   // Calculate final offset.
-@@ -142,7 +147,11 @@
-   //   by adding the size of the stack:
-   //   incoming argument, callee-saved register location or local variable.
-   int64_t Offset;
--  Offset = spOffset + (int64_t)stackSize;
-+  if (Cpu0FI->isOutArgFI(FrameIndex) || Cpu0FI->isGPFI(FrameIndex) ||
-+      Cpu0FI->isDynAllocFI(FrameIndex))
-+    Offset = spOffset;
-+  else
-+    Offset = spOffset + (int64_t)stackSize;
- 
-   Offset    += MI.getOperand(i+1).getImm();
- 
++  // Reserve FP if this function should have a dedicated frame pointer register.
++  if (MF.getTarget().getFrameLowering()->hasFP(MF)) {
++    Reserved.set(Cpu0::FP);
++  }
++
+   const Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
+   // Reserve GP if globalBaseRegFixed()
+   if (Cpu0FI->globalBaseRegFixed())

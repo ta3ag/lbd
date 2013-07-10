@@ -47,8 +47,8 @@ namespace llvm {
     /// GetInstSeqLs - Get instrucion sequences to load immediate Imm.
     void GetInstSeqLs(uint64_t Imm, unsigned RemSize, InstSeqLs &SeqLs);
 
-    /// ReplaceADDiuSLLWithLUi - Replace an ADDiu & SLL pair with a LUi.
-    void ReplaceADDiuSLLWithLUi(InstSeq &Seq);
+    /// ReplaceADDiuSHLWithLUi - Replace an ADDiu & SHL pair with a LUi.
+    void ReplaceADDiuSHLWithLUi(InstSeq &Seq);
 
     /// GetShortestSeq - Find the shortest instruction sequence in SeqLs and
     /// return it in Insts.

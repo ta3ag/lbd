@@ -97,6 +97,7 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &MF) const {
 static void expandLargeImm(unsigned Reg, int64_t Imm, 
                            const Cpu0InstrInfo &TII, MachineBasicBlock& MBB,
                            MachineBasicBlock::iterator II, DebugLoc DL) {
+  unsigned LUi = Cpu0::LUi;
   unsigned ADDu = Cpu0::ADDu;
   unsigned ZEROReg = Cpu0::ZERO;
   unsigned ATReg = Cpu0::AT;
@@ -105,8 +106,15 @@ static void expandLargeImm(unsigned Reg, int64_t Imm,
     AnalyzeImm.Analyze(Imm, 32, false /* LastInstrIsADDiu */);
   Cpu0AnalyzeImmediate::InstSeq::const_iterator Inst = Seq.begin();
 
-  BuildMI(MBB, II, DL, TII.get(Inst->Opc), ATReg).addReg(ZEROReg)
-    .addImm(SignExtend64<16>(Inst->ImmOpnd));
+  // The first instruction can be a LUi, which is different from other
+  // instructions (ADDiu, ORI and SLL) in that it does not have a register
+  // operand.
+  if (Inst->Opc == LUi)
+    BuildMI(MBB, II, DL, TII.get(LUi), ATReg)
+      .addImm(SignExtend64<16>(Inst->ImmOpnd));
+  else
+    BuildMI(MBB, II, DL, TII.get(Inst->Opc), ATReg).addReg(ZEROReg)
+      .addImm(SignExtend64<16>(Inst->ImmOpnd));
 
   // Build the remaining instructions in Seq.
   for (++Inst; Inst != Seq.end(); ++Inst)
