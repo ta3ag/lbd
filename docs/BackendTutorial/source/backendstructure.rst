@@ -654,7 +654,7 @@ time.
         Live Register Matrix
         Bundle Machine CFG Edges
         Spill Code Placement Analysis
-        Greedy Register Allocator
+      * Greedy Register Allocator
         Virtual Register Rewriter
         Stack Slot Coloring
         Machine Loop Invariant Code Motion
@@ -662,7 +662,7 @@ time.
         Control Flow Optimizer
         Tail Duplication
         Machine Copy Propagation Pass
-        Post-RA pseudo instruction expansion pass
+      * Post-RA pseudo instruction expansion pass
         MachineDominator Tree Construction
         Machine Natural Loop Construction
         Post RA top-down list latency scheduler
