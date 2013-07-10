@@ -1255,7 +1255,8 @@ Above code do the following:
         0x1ea1c50: i32 = FrameIndex<2> [ORD=7]
 
         0x1e9f120: <multiple use>
-      0x1ea1d50: ch = store 0x1e9fd20:1, 0x1e9fd20, 0x1ea1c50, 0x1e9f120<ST4[%i]> [ORD=7]
+      0x1ea1d50: ch = store 0x1e9fd20:1, 0x1e9fd20, 0x1ea1c50, 
+      0x1e9f120<ST4[%i]> [ORD=7]
 
       0x1ea1e50: <multiple use>
       0x1e9ef20: <multiple use>
@@ -1273,9 +1274,11 @@ Above code do the following:
 .. code-block:: bash
 
   ===== Instruction selection begins: BB#0 'entry'
-  Selecting: 0x1ea4050: ch = Cpu0ISD::Ret 0x1ea3f50, 0x1ea3e50, 0x1ea3f50:1 [ID=27]
+  Selecting: 0x1ea4050: ch = Cpu0ISD::Ret 0x1ea3f50, 0x1ea3e50, 
+  0x1ea3f50:1 [ID=27]
 
-  ISEL: Starting pattern match on root node: 0x1ea4050: ch = Cpu0ISD::Ret 0x1ea3f50, 0x1ea3e50, 0x1ea3f50:1 [ID=27]
+  ISEL: Starting pattern match on root node: 0x1ea4050: ch = Cpu0ISD::Ret 
+  0x1ea3f50, 0x1ea3e50, 0x1ea3f50:1 [ID=27]
 
     Morphed node: 0x1ea4050: ch = RetLR 0x1ea3e50, 0x1ea3f50, 0x1ea3f50:1
   ...
