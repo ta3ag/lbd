@@ -1358,6 +1358,21 @@ Pseudo-instructions" stage and step 5 is "Cpu0 Assembly Printer" stage.
         ...
         Cpu0 Assembly Printer
 
+
+Summary to Table: Correct the return value in each stage.
+
+.. table:: Correct the return value in each stage
+
+  ===================================================  ======================================
+  Stage                                                Function   
+  ===================================================  ======================================
+  Write Code                                           Declare a pseudo node Cpu0::Ret
+  Before CPU0 DAG->DAG Pattern Instruction Selection   Create Cpu0ISD::Ret DAG
+  Instruction selection                                Cpu0::Ret is replaced by Cpu0::RetLR
+  Expand ISel Pseudo-instructions                      Cpu0::RetLR -> ret $lr
+  Cpu0 Assembly Printer                                Print according "def RET"
+  ===================================================  ======================================
+
   
 Run Chapter8_3/ to get the correct result (return register $2 is 0) as follows, 
 
