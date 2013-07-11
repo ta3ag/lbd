@@ -1390,6 +1390,51 @@ Verify with the Cpu0 Epilogue instructions with sp = 0x10000000 and stack size =
 Summary of this Chapter
 -----------------------
 
+Summary the functions for llvm backend stages as the following table.
+
+.. code-block:: bash
+
+  118-165-79-200:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc 
+  -debug-pass=Structure -o -
+  ...
+  Machine Branch Probability Analysis
+    ModulePass Manager
+      FunctionPass Manager
+        ...
+        CPU0 DAG->DAG Pattern Instruction Selection
+          Initial selection DAG
+          Optimized lowered selection DAG
+          Type-legalized selection DAG
+          Optimized type-legalized selection DAG
+          Legalized selection DAG
+          Optimized legalized selection DAG
+          Instruction selection
+          Selected selection DAG
+          Scheduling
+        ...
+        Greedy Register Allocator
+        ...
+        Post-RA pseudo instruction expansion pass
+        ...
+        Cpu0 Assembly Printer
+
+
+.. table:: functions for llvm backend stage
+
+  ===================================================  ===========================================
+  Stage                                                Function   
+  ===================================================  ===========================================
+  Before CPU0 DAG->DAG Pattern Instruction Selection   - Cpu0TargetLowering::LowerFormalArguments
+                                                       - Cpu0TargetLowering::LowerReturn
+  Instruction selection                                - Cpu0DAGToDAGISel::Select
+  Prologue/Epilogue Insertion & Frame Finalization     - Cpu0FrameLowering.cpp
+                                                       - Cpu0RegisterInfo::eliminateFrameIndex()
+  Cpu0 Assembly Printer                                - Cpu0AsmPrinter.cpp -> Cpu0MCInstLower.cpp
+                                                       - Cpu0InstPrinter.cpp
+  ===================================================  ===========================================
+
+
 We have finished a simple assembler for cpu0 which only support **ld**, 
 **st**, **addiu**, **ori**, **addu**, **shl** and **ret** 7 instructions.
 
