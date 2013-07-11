@@ -818,17 +818,17 @@ It correct arguements offset im main() from (0+40)$sp, (8+40)$sp, ..., to
 
 The incoming arguments is the formal arguments defined in compiler and program 
 language books. The outgoing arguments is the actual arguments.
-Summary callee incoming arguments and caller outgoing arguments as 
-:num:`Figure #funccall-f3`.
+Summary as Table: Callee incoming arguments and caller outgoing arguments.
 
-.. _funccall-f3:
-.. figure:: ../Table/funccall/1.png
-    :height: 156 px
-    :width: 697 px
-    :scale: 100 %
-    :align: center
+.. table:: Callee incoming arguments and caller outgoing arguments
 
-    Callee incoming arguments and caller outgoing arguments
+  ========================  ===========================================    ===============================
+  Description               Callee                                         Caller   
+  ========================  ===========================================    ===============================
+  Charged Function          LowerFormalArguments()                         LowerCall()
+  Charged Function Created  Create load vectors for incoming arguments     Create store vectors for outgoing arguments
+  Arguments location        spOffset + stackSize                           spOffset
+  ========================  ===========================================    ===============================
 
 
 
@@ -1369,7 +1369,7 @@ Summary to Table: Correct the return value in each stage.
   Write Code                                           Declare a pseudo node Cpu0::Ret
   Before CPU0 DAG->DAG Pattern Instruction Selection   Create Cpu0ISD::Ret DAG
   Instruction selection                                Cpu0::Ret is replaced by Cpu0::RetLR
-  Expand ISel Pseudo-instructions                      Cpu0::RetLR -> ret $lr
+  Post-RA pseudo instruction expansion pass            Cpu0::RetLR -> ret $lr
   Cpu0 Assembly Printer                                Print according "def RET"
   ===================================================  ======================================
 
@@ -1587,16 +1587,16 @@ function call.
     ...
     // Walk the register/memloc assignments, inserting copies/loads.
     for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
-    ...
-    // ByVal Arg.
-    if (Flags.isByVal()) {
       ...
-      WriteByValArg(ByValChain, Chain, dl, RegsToPass, MemOpChains, LastFI,
-            MFI, DAG, Arg, VA, Flags, getPointerTy(),
-            Subtarget->isLittle());
+      // ByVal Arg.
+      if (Flags.isByVal()) {
+        ...
+        WriteByValArg(ByValChain, Chain, dl, RegsToPass, MemOpChains, LastFI,
+              MFI, DAG, Arg, VA, Flags, getPointerTy(),
+              Subtarget->isLittle());
+        ...
+      }
       ...
-    }
-    ...
     }
     ...
   }
@@ -1639,20 +1639,20 @@ function call.
                         const {
     ...
     for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i, ++FuncArg) {
-    ...
-    if (Flags.isByVal()) {
-      assert(Flags.getByValSize() &&
-         "ByVal args of size 0 should have been ignored by front-end."); 
-      unsigned NumWords = (Flags.getByValSize() + 3) / 4;
-      LastFI = MFI->CreateFixedObject(NumWords * 4, VA.getLocMemOffset(),
-                      true);
-      SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
-      InVals.push_back(FIN);
-      ReadByValArg(MF, Chain, dl, OutChains, DAG, NumWords, FIN, VA, Flags,
-             &*FuncArg);
-      continue;
-    }
-    ...
+      ...
+      if (Flags.isByVal()) {
+        assert(Flags.getByValSize() &&
+           "ByVal args of size 0 should have been ignored by front-end."); 
+        unsigned NumWords = (Flags.getByValSize() + 3) / 4;
+        LastFI = MFI->CreateFixedObject(NumWords * 4, VA.getLocMemOffset(),
+                        true);
+        SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
+        InVals.push_back(FIN);
+        ReadByValArg(MF, Chain, dl, OutChains, DAG, NumWords, FIN, VA, Flags,
+               &*FuncArg);
+        continue;
+      }
+      ...
     }
     // The cpu0 ABIs for returning structs by value requires that we copy
     // the sret argument into $v0 for the return. Save the argument into
