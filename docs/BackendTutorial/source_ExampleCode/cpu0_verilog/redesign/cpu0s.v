@@ -128,10 +128,10 @@ module cpu0(input clock, reset, output reg [2:0] tick,
       // Mathematic 
       ADDiu:  R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra<=Rb+Cx
 //      CMP: begin `N=(Ra-Rb<0);`Z=(Ra-Rb==0); end // CMP Ra, Rb; SW=(Ra >=< Rb)
-      ADDu:  regSet(a, Rb+Rc);               // ADD Ra,Rb,Rc; Ra<=Rb+Rc
+      ADDu:  regSet(a, Rb+Rc);               // ADDu Ra,Rb,Rc; Ra<=Rb+Rc
       ADD:   begin regSet(a, Rb+Rc); if (a < Rb) `V = 1; else `V =0; end
                                              // ADD Ra,Rb,Rc; Ra<=Rb+Rc
-      SUBu:  regSet(a, Rb-Rc);               // SUB Ra,Rb,Rc; Ra<=Rb-Rc
+      SUBu:  regSet(a, Rb-Rc);               // SUBu Ra,Rb,Rc; Ra<=Rb-Rc
       SUB:   begin regSet(a, Rb-Rc); if (Rb < 0 && Rc > 0 && a >= 0) 
              `V = 1; else `V =0; end         // SUB Ra,Rb,Rc; Ra<=Rb-Rc
       MUL:   regSet(a, Rb*Rc);               // MUL Ra,Rb,Rc;     Ra<=Rb*Rc
@@ -141,11 +141,11 @@ module cpu0(input clock, reset, output reg [2:0] tick,
              else `V =0; end  // DIVu Ra,Rb; HI<=Ra%Rb; LO<=Ra/Rb; With overflow
                                            // with exception overflow
       AND:   regSet(a, Rb&Rc);               // AND Ra,Rb,Rc; Ra<=(Rb and Rc)
-      ANDi:  regSet(a, Rb&uc16);             // AND Ra,Rb,c16; Ra<=(Rb and c16)
+      ANDi:  regSet(a, Rb&uc16);             // ANDi Ra,Rb,c16; Ra<=(Rb and c16)
       OR:    regSet(a, Rb|Rc);               // OR Ra,Rb,Rc; Ra<=(Rb or Rc)
-      ORi:   regSet(a, Rb|uc16);             // OR Ra,Rb,c16; Ra<=(Rb or c16)
+      ORi:   regSet(a, Rb|uc16);             // ORi Ra,Rb,c16; Ra<=(Rb or c16)
       XOR:   regSet(a, Rb^Rc);               // XOR Ra,Rb,Rc; Ra<=(Rb xor Rc)
-      XORi:  regSet(a, Rb^uc16);             // XOR Ra,Rb,c16; Ra<=(Rb xor c16)
+      XORi:  regSet(a, Rb^uc16);             // XORi Ra,Rb,c16; Ra<=(Rb xor c16)
       LUi:   regSet(a, uc16<<16);
       SHL:   regSet(a, Rb<<c5);     // Shift Left; SHL Ra,Rb,Cx; Ra<=(Rb << Cx)
       SRA:   regSet(a, (Rb&'h80000000)|(Rb>>c5)); 

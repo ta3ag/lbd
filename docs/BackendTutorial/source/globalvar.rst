@@ -1220,45 +1220,47 @@ in stage "Legalized selection DAG" as below.
 .. code-block:: bash
 
   ...
-  Type-legalized selection DAG: BB#0 '_Z3funv:entry'
-  SelectionDAG has 12 nodes:
+  Type-legalized selection DAG: BB#0 '_Z3funv:'
+  SelectionDAG has 10 nodes:
     ...
-        0x7fad7102cc10: <multiple use>
-      0x7fad7102cf10: ch = store 0x7fad7102cd10, 0x7fad7102ca10, 0x7fad7102ce10, 
-      0x7fad7102cc10<ST4[%c]> [ORD=2] [ID=-3]
+      0x7fb77a02cd10: ch = store 0x7fb779c10a08, 0x7fb77a02ca10, 0x7fb77a02cb10, 
+      0x7fb77a02cc10<ST4[%c]> [ORD=1] [ID=-3]
   
-      0x7fad7102d010: i32 = GlobalAddress<i32* @gI> 0 [ORD=3] [ID=-3]
+      0x7fb77a02ce10: i32 = GlobalAddress<i32* @gI> 0 [ORD=2] [ID=-3]
   
-      0x7fad7102cc10: <multiple use>
-    0x7fad7102d110: i32,ch = load 0x7fad7102cf10, 0x7fad7102d010, 
-    0x7fad7102cc10<LD4[@gI]> [ORD=3] [ID=-3]
+      0x7fb77a02cc10: <multiple use>
+    0x7fb77a02cf10: i32,ch = load 0x7fb77a02cd10, 0x7fb77a02ce10, 
+    0x7fb77a02cc10<LD4[@gI]> [ORD=2] [ID=-3]
     ...
-  Legalized selection DAG: BB#0 '_Z3funv:entry'
+  
+  Legalized selection DAG: BB#0 '_Z3funv:'
   SelectionDAG has 16 nodes:
-    0x30afde8: ch = EntryToken [ORD=1] [ID=0]
     ...
-        0x30d3ac0: <multiple use>
-      0x30d3bc0: ch = store 0x30afde8, 0x30d38c0, 0x30d39c0, 0x30d3ac0<ST4[%c]> [ORD=1] [ID=6]
-
-        0x30afde8: <multiple use>
-              0x30d3fc0: i32 = TargetGlobalAddress<i32* @gI> 0 [TF=19]
-
-            0x30d42c0: i32 = Cpu0ISD::Hi 0x30d3fc0
-
-            0x30d43c0: i32 = Register %GP
-
-          0x30d44c0: i32 = add 0x30d42c0, 0x30d43c0
-
-          0x30d45c0: i32 = TargetGlobalAddress<i32* @gI> 0 [TF=20]
-
-        0x30d46c0: i32 = Cpu0ISD::Wrapper 0x30d44c0, 0x30d45c0
-
-        0x30d3ac0: <multiple use>
-      0x30d6650: i32,ch = load 0x30afde8, 0x30d46c0, 0x30d3ac0<LD4[GOT]>
-
-      0x30d3ac0: <multiple use>
-    0x30d3dc0: i32,ch = load 0x30d3bc0, 0x30d6650, 0x30d3ac0<LD4[@gI]> [ORD=2] [ID=7]
+      0x7fb77a02cd10: ch = store 0x7fb779c10a08, 0x7fb77a02ca10, 0x7fb77a02cb10, 
+      0x7fb77a02cc10<ST4[%c]> [ORD=1] [ID=6]
+  
+        0x7fb779c10a08: <multiple use>
+              0x7fb77a02d110: i32 = TargetGlobalAddress<i32* @gI> 0 [TF=19]
+  
+            0x7fb77a02d410: i32 = Cpu0ISD::Hi 0x7fb77a02d110
+  
+            0x7fb77a02d510: i32 = Register %GP
+  
+          0x7fb77a02d610: i32 = add 0x7fb77a02d410, 0x7fb77a02d510
+  
+          0x7fb77a02d710: i32 = TargetGlobalAddress<i32* @gI> 0 [TF=20]
+  
+        0x7fb77a02d810: i32 = Cpu0ISD::Wrapper 0x7fb77a02d610, 0x7fb77a02d710
+  
+        0x7fb77a02cc10: <multiple use>
+      0x7fb77a02fe10: i32,ch = load 0x7fb779c10a08, 0x7fb77a02d810, 
+      0x7fb77a02cc10<LD4[GOT]>
+      
+      0x7fb77a02cc10: <multiple use>
+    0x7fb77a02cf10: i32,ch = load 0x7fb77a02cd10, 0x7fb77a02fe10, 
+    0x7fb77a02cc10<LD4[@gI]> [ORD=2] [ID=7]
     ...
+
 
 Finally, the pattern Cpu0 instruction **ld** defined before in Cpu0InstrInfo.td 
 will translate DAG (load EntryToken, (Cpu0ISD::Wrapper (add Cpu0ISD::Hi<gI 

@@ -519,8 +519,7 @@ def : Pat<(i32 immSExt16:$in),
 
 // Arbitrary immediates
 def : Pat<(i32 imm:$imm),
-          (OR (SHL (ADDiu ZERO, (HI16 imm:$imm)), 16), (ADDiu ZERO, (LO16 
-              imm:$imm)))>;
+          (ORi (SHL (ADDiu ZERO, (HI16 imm:$imm)), 16), (LO16 imm:$imm))>;
 
 def : Pat<(Cpu0JmpLink (i32 tglobaladdr:$dst)),
           (JSUB tglobaladdr:$dst)>;

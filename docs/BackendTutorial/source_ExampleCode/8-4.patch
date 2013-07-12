@@ -1,6 +1,6 @@
 diff -Naur Chapter8_3/Cpu0FrameLowering.cpp Chapter8_4/Cpu0FrameLowering.cpp
---- Chapter8_3/Cpu0FrameLowering.cpp	2013-07-10 16:30:24.937143166 +0800
-+++ Chapter8_4/Cpu0FrameLowering.cpp	2013-07-10 16:30:24.937143166 +0800
+--- Chapter8_3/Cpu0FrameLowering.cpp	2013-07-12 21:51:53.000000000 +0800
++++ Chapter8_4/Cpu0FrameLowering.cpp	2013-07-12 21:51:53.000000000 +0800
 @@ -124,6 +124,9 @@
    MachineBasicBlock::iterator MBBI = MBB.begin();
    DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
@@ -57,8 +57,8 @@ diff -Naur Chapter8_3/Cpu0FrameLowering.cpp Chapter8_4/Cpu0FrameLowering.cpp
    uint64_t StackSize = MFI->getStackSize();
  
 diff -Naur Chapter8_3/Cpu0ISelLowering.cpp Chapter8_4/Cpu0ISelLowering.cpp
---- Chapter8_3/Cpu0ISelLowering.cpp	2013-07-10 16:30:24.937143166 +0800
-+++ Chapter8_4/Cpu0ISelLowering.cpp	2013-07-10 16:30:24.933143166 +0800
+--- Chapter8_3/Cpu0ISelLowering.cpp	2013-07-12 21:51:53.000000000 +0800
++++ Chapter8_4/Cpu0ISelLowering.cpp	2013-07-12 21:51:53.000000000 +0800
 @@ -131,6 +131,7 @@
    // Cpu0 Custom Operations
    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
@@ -302,8 +302,8 @@ diff -Naur Chapter8_3/Cpu0ISelLowering.cpp Chapter8_4/Cpu0ISelLowering.cpp
  
    // Add the flag if we have it.
 diff -Naur Chapter8_3/Cpu0ISelLowering.h Chapter8_4/Cpu0ISelLowering.h
---- Chapter8_3/Cpu0ISelLowering.h	2013-07-10 16:30:24.937143166 +0800
-+++ Chapter8_4/Cpu0ISelLowering.h	2013-07-10 16:30:24.937143166 +0800
+--- Chapter8_3/Cpu0ISelLowering.h	2013-07-12 21:51:53.000000000 +0800
++++ Chapter8_4/Cpu0ISelLowering.h	2013-07-12 21:51:53.000000000 +0800
 @@ -96,6 +96,7 @@
      // Lower Operand specifics
      SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
@@ -313,8 +313,8 @@ diff -Naur Chapter8_3/Cpu0ISelLowering.h Chapter8_4/Cpu0ISelLowering.h
  	//- must be exist without function all
      virtual SDValue
 diff -Naur Chapter8_3/Cpu0RegisterInfo.cpp Chapter8_4/Cpu0RegisterInfo.cpp
---- Chapter8_3/Cpu0RegisterInfo.cpp	2013-07-10 16:30:24.937143166 +0800
-+++ Chapter8_4/Cpu0RegisterInfo.cpp	2013-07-10 16:30:24.937143166 +0800
+--- Chapter8_3/Cpu0RegisterInfo.cpp	2013-07-12 21:51:53.000000000 +0800
++++ Chapter8_4/Cpu0RegisterInfo.cpp	2013-07-12 21:51:53.000000000 +0800
 @@ -77,6 +77,11 @@
    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
      Reserved.set(ReservedCPURegs[I]);
