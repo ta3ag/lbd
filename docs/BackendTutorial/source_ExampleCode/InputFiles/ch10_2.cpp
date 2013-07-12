@@ -75,7 +75,7 @@ int test_operators(int x)
   int* p = &b;
   o = *p;
   
-  return (c+d+e+f+g+h+i+j+l+m+o); // (13+9+22+5+2+11+9+44+4+0+2)=121
+  return (c+d+e+f+g+h+i+j+l+m+o); // (13+9+22+5+2+11+9+44+11+0+2)=128
 }
 
 int test_control()
