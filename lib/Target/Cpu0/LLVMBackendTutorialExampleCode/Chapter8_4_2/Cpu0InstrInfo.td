@@ -45,8 +45,8 @@ def Cpu0Lo    : SDNode<"Cpu0ISD::Lo", SDTIntUnaryOp>;
 def Cpu0GPRel : SDNode<"Cpu0ISD::GPRel", SDTIntUnaryOp>;
 
 // Return
-def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDT_Cpu0Ret, [SDNPHasChain,
-                     SDNPOptInGlue]>;
+def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDTNone,
+                     [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
 // These are target-independent nodes, but have target-specific formats.
 def callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_Cpu0CallSeqStart,
@@ -281,6 +281,23 @@ class UncondBranch<bits<8> op, string instr_asm>:
   let DecoderMethod = "DecodeJumpRelativeTarget";
 }
 
+let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
+    isIndirectBranch = 1 in
+class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
+  FL<op, (outs), (ins RC:$ra),
+     !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch> {
+  let rb = 0;
+  let imm16 = 0;
+}
+
+// Return instruction
+class RetBase<RegisterClass RC>: JumpFR<0x2C, "ret", RC> {
+  let isReturn = 1;
+  let isCodeGenOnly = 1;
+  let hasCtrlDep = 1;
+  let hasExtraSrcRegAllocReq = 1;
+}
+
 // Jump and Link (Call)
 let isCall=1, hasDelaySlot=0 in {
   class JumpLink<bits<8> op, string instr_asm>:
@@ -473,10 +490,10 @@ def JMP     : UncondBranch<0x26, "jmp">;
 def SWI     : JumpLink<0x2A, "swi">;
 def JSUB    : JumpLink<0x2B, "jsub">;
 
-let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
-    isBarrier=1, hasCtrlDep=1, addr=0 in
-  def RET   : FJ <0x2C, (outs), (ins CPURegs:$target),
-                "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch>;
+let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
+  def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
+
+def RET     : RetBase<CPURegs>;
 
 def JALR    : JumpLinkReg<0x2E, "jalr", CPURegs>;
 

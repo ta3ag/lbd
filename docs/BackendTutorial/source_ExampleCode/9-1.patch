@@ -1,6 +1,6 @@
 diff -Naur Chapter8_4/CMakeLists.txt Chapter9_1/CMakeLists.txt
---- Chapter8_4/CMakeLists.txt	2013-07-07 21:14:01.000000000 +0800
-+++ Chapter9_1/CMakeLists.txt	2013-07-07 21:14:01.000000000 +0800
+--- Chapter8_4/CMakeLists.txt	2013-07-10 16:30:24.933143166 +0800
++++ Chapter9_1/CMakeLists.txt	2013-07-10 16:30:24.945143166 +0800
 @@ -9,7 +9,7 @@
  #  came from Cpu0InstrInfo.td.
  tablegen(LLVM Cpu0GenRegisterInfo.inc -gen-register-info)
@@ -18,8 +18,8 @@ diff -Naur Chapter8_4/CMakeLists.txt Chapter9_1/CMakeLists.txt
  add_subdirectory(TargetInfo)
  add_subdirectory(MCTargetDesc)
 diff -Naur Chapter8_4/Cpu0InstrInfo.td Chapter9_1/Cpu0InstrInfo.td
---- Chapter8_4/Cpu0InstrInfo.td	2013-07-07 21:14:01.000000000 +0800
-+++ Chapter9_1/Cpu0InstrInfo.td	2013-07-07 21:14:01.000000000 +0800
+--- Chapter8_4/Cpu0InstrInfo.td	2013-07-10 16:30:24.937143166 +0800
++++ Chapter9_1/Cpu0InstrInfo.td	2013-07-10 16:30:24.945143166 +0800
 @@ -184,6 +184,7 @@
    let rc = 0;
    let shamt = 0;
@@ -36,22 +36,7 @@ diff -Naur Chapter8_4/Cpu0InstrInfo.td Chapter9_1/Cpu0InstrInfo.td
  }
  
  // Unconditional branch, such as JMP
-@@ -281,12 +283,22 @@
-   let DecoderMethod = "DecodeJumpRelativeTarget";
- }
- 
-+let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
-+    isIndirectBranch = 1 in
-+class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
-+  FL<op, (outs), (ins RC:$ra),
-+     !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch> {
-+  let rb = 0;
-+  let imm16 = 0;
-+}
-+
- // Jump and Link (Call)
- let isCall=1, hasDelaySlot=0 in {
-   class JumpLink<bits<8> op, string instr_asm>:
+@@ -304,6 +306,7 @@
      FJ<op, (outs), (ins calltarget:$target, variable_ops),
         !strconcat(instr_asm, "\t$target"), [(Cpu0JmpLink imm:$target)],
         IIBranch> {
@@ -59,17 +44,17 @@ diff -Naur Chapter8_4/Cpu0InstrInfo.td Chapter9_1/Cpu0InstrInfo.td
         }
  
    class JumpLinkReg<bits<8> op, string instr_asm,
-@@ -438,6 +450,7 @@
+@@ -455,6 +458,7 @@
  /// Jump and Branch Instructions
  def SWI     : JumpLink<0x2A, "swi">;
  def JSUB    : JumpLink<0x2B, "jsub">;
 +def JR      : JumpFR<0x2C, "ret", CPURegs>;
  
- let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
-     isBarrier=1, hasCtrlDep=1, addr=0 in
+ let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
+   def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
 diff -Naur Chapter8_4/Disassembler/CMakeLists.txt Chapter9_1/Disassembler/CMakeLists.txt
 --- Chapter8_4/Disassembler/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter9_1/Disassembler/CMakeLists.txt	2013-07-07 21:14:01.000000000 +0800
++++ Chapter9_1/Disassembler/CMakeLists.txt	2013-07-10 16:30:24.945143166 +0800
 @@ -0,0 +1,15 @@
 +include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
 +
@@ -88,7 +73,7 @@ diff -Naur Chapter8_4/Disassembler/CMakeLists.txt Chapter9_1/Disassembler/CMakeL
 +add_dependencies(LLVMCpu0Disassembler Cpu0CommonTableGen)
 diff -Naur Chapter8_4/Disassembler/Cpu0Disassembler.cpp Chapter9_1/Disassembler/Cpu0Disassembler.cpp
 --- Chapter8_4/Disassembler/Cpu0Disassembler.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter9_1/Disassembler/Cpu0Disassembler.cpp	2013-07-07 21:14:01.000000000 +0800
++++ Chapter9_1/Disassembler/Cpu0Disassembler.cpp	2013-07-10 16:30:24.945143166 +0800
 @@ -0,0 +1,301 @@
 +//===- Cpu0Disassembler.cpp - Disassembler for Cpu0 -------------*- C++ -*-===//
 +//
@@ -393,7 +378,7 @@ diff -Naur Chapter8_4/Disassembler/Cpu0Disassembler.cpp Chapter9_1/Disassembler/
 +
 diff -Naur Chapter8_4/Disassembler/LLVMBuild.txt Chapter9_1/Disassembler/LLVMBuild.txt
 --- Chapter8_4/Disassembler/LLVMBuild.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter9_1/Disassembler/LLVMBuild.txt	2013-07-07 21:14:01.000000000 +0800
++++ Chapter9_1/Disassembler/LLVMBuild.txt	2013-07-10 16:30:24.945143166 +0800
 @@ -0,0 +1,23 @@
 +;===- ./lib/Target/Cpu0/Disassembler/LLVMBuild.txt --------------*- Conf -*--===;
 +;
@@ -419,8 +404,8 @@ diff -Naur Chapter8_4/Disassembler/LLVMBuild.txt Chapter9_1/Disassembler/LLVMBui
 +required_libraries = MC Support Cpu0Info
 +add_to_library_groups = Cpu0
 diff -Naur Chapter8_4/LLVMBuild.txt Chapter9_1/LLVMBuild.txt
---- Chapter8_4/LLVMBuild.txt	2013-07-07 21:14:01.000000000 +0800
-+++ Chapter9_1/LLVMBuild.txt	2013-07-07 21:14:01.000000000 +0800
+--- Chapter8_4/LLVMBuild.txt	2013-07-10 16:30:24.937143166 +0800
++++ Chapter9_1/LLVMBuild.txt	2013-07-10 16:30:24.945143166 +0800
 @@ -18,7 +18,7 @@
  # Following comments extracted from http://llvm.org/docs/LLVMBuild.html
  

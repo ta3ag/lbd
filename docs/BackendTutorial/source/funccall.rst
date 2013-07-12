@@ -818,17 +818,17 @@ It correct arguements offset im main() from (0+40)$sp, (8+40)$sp, ..., to
 
 The incoming arguments is the formal arguments defined in compiler and program 
 language books. The outgoing arguments is the actual arguments.
-Summary callee incoming arguments and caller outgoing arguments as 
-:num:`Figure #funccall-f3`.
+Summary as Table: Callee incoming arguments and caller outgoing arguments.
 
-.. _funccall-f3:
-.. figure:: ../Table/funccall/1.png
-    :height: 156 px
-    :width: 697 px
-    :scale: 100 %
-    :align: center
+.. table:: Callee incoming arguments and caller outgoing arguments
 
-    Callee incoming arguments and caller outgoing arguments
+  ========================  ===========================================    ===============================
+  Description               Callee                                         Caller   
+  ========================  ===========================================    ===============================
+  Charged Function          LowerFormalArguments()                         LowerCall()
+  Charged Function Created  Create load vectors for incoming arguments     Create store vectors for outgoing arguments
+  Arguments location        spOffset + stackSize                           spOffset
+  ========================  ===========================================    ===============================
 
 
 
@@ -1154,7 +1154,7 @@ Run ``llc -static`` will call jsub instruction instead of jalr as follows,
 
   118-165-76-131:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=
-  asm ch8_1.bc -o ch8_2.cpu0.s
+  asm ch8_1.bc -o ch8_1.cpu0.s
   118-165-76-131:InputFiles Jonathan$ cat ch8_1.cpu0.s
   ...
     jsub  _Z5sum_iiiiiii
@@ -1174,16 +1174,210 @@ The ch8_1_2.cpp, ch8_1_3.cpp and ch8_1_4.cpp are example code more for test.
 Correct the return of main()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The LowerReturn() modified in Chapter8_3/ as below. 
-It add the live out register $2 to function (main() as this example), and copy 
-the OutVals[0] (0 as this example) to $2. Then call DAG.getNode(..., Flag) 
-where Flag contains $2 and OutVals[0] information.  
+The LowerReturn() modified in Chapter8_3/ as follows, 
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0ISelLowering.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0ISelLowering.cpp
     :start-after: Return Value Calling Convention Implementation
     :end-before: Cpu0TargetLowering::isOffsetFoldingLegal
     :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.h
+    :start-after: /// Expand Pseudo instructions into real backend instructions
+    :end-before: };
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.cpp
+    :start-after: // Cpu0InstrInfo::expandPostRAPseudo
+    :linenos:
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.td
+.. code-block:: c++
+
+  // Return
+  def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDTNone,
+                       [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
+  ...
+  let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
+      isIndirectBranch = 1 in
+  class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
+    FL<op, (outs), (ins RC:$ra),
+       !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch> {
+    let rb = 0;
+    let imm16 = 0;
+  }
+  // Return instruction
+  class RetBase<RegisterClass RC>: JumpFR<0x2C, "ret", RC> {
+    let isReturn = 1;
+    let isCodeGenOnly = 1;
+    let hasCtrlDep = 1;
+    let hasExtraSrcRegAllocReq = 1;
+  }
+  ...
+  let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
+      isBarrier=1, hasCtrlDep=1, addr=0 in
+    def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
+
+  def RET     : RetBase<CPURegs>;
+
+
+Above code do the following:
+
+1. Declare a pseudo node by the following code,
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.td
+.. code-block:: c++
+
+  // Return
+  def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDTNone,
+                       [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
+  ...
+  let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
+      isBarrier=1, hasCtrlDep=1, addr=0 in
+    def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
+
+
+2. Create Cpu0ISD::Ret node in LowerReturn() which is called when meet function
+   return as above code in Chapter8_3/Cpu0ISelLowering.cpp. More specific, it 
+   create DAGs (Cpu0ISD::Ret (CopyToReg %X, %V0, %Y), %V0, Flag). Since the the 
+   V0 register is assigned in CopyToReg and Cpu0ISD::Ret use V0, the CopyToReg
+   with V0 register will live out and won't be removed in any later optimization
+   step. Remember, if use "return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other, 
+   Chain, DAG.getRegister(Cpu0::LR, MVT::i32));" instead of "return DAG.getNode
+   (Cpu0ISD::Ret, dl, MVT::Other, &RetOps[0], RetOps.size());" the V0 register
+   won't be live out, the previous DAG (CopyToReg %X, %V0, %Y) will be removed
+   in later optimization stage. Then the result is same with Chapter8_2
+   which the return value is error. 
+
+
+.. code-block:: bash
+
+  Initial selection DAG: BB#0 'main:entry'
+  SelectionDAG has 21 nodes:
+    ...
+    0x1ea1e50: i32 = Register %V0
+
+        0x1e9fd20: <multiple use>
+        0x1e9fd20: <multiple use>
+        0x1ea1c50: i32 = FrameIndex<2> [ORD=7]
+
+        0x1e9f120: <multiple use>
+      0x1ea1d50: ch = store 0x1e9fd20:1, 0x1e9fd20, 0x1ea1c50, 
+      0x1e9f120<ST4[%i]> [ORD=7]
+
+      0x1ea1e50: <multiple use>
+      0x1e9ef20: <multiple use>
+    0x1ea1f50: ch,glue = CopyToReg 0x1ea1d50, 0x1ea1e50, 0x1e9ef20
+
+      0x1ea1f50: <multiple use>
+      0x1ea1e50: <multiple use>
+      0x1ea1f50: <multiple use>
+    0x1ea2050: ch = Cpu0ISD::Ret 0x1ea1f50, 0x1ea1e50, 0x1ea1f50:1
+
+
+3. After instruction selection, the Cpu0::Ret is replaced by Cpu0::RetLR 
+   as below. This effect came from "def RetLR" as step 1.
+
+.. code-block:: bash
+
+  ===== Instruction selection begins: BB#0 'entry'
+  Selecting: 0x1ea4050: ch = Cpu0ISD::Ret 0x1ea3f50, 0x1ea3e50, 
+  0x1ea3f50:1 [ID=27]
+
+  ISEL: Starting pattern match on root node: 0x1ea4050: ch = Cpu0ISD::Ret 
+  0x1ea3f50, 0x1ea3e50, 0x1ea3f50:1 [ID=27]
+
+    Morphed node: 0x1ea4050: ch = RetLR 0x1ea3e50, 0x1ea3f50, 0x1ea3f50:1
+  ...
+  ISEL: Match complete!
+  => 0x1ea4050: ch = RetLR 0x1ea3e50, 0x1ea3f50, 0x1ea3f50:1
+  ...
+  ===== Instruction selection ends:
+  Selected selection DAG: BB#0 'main:entry'
+  SelectionDAG has 28 nodes:
+  ...
+      0x1ea3e50: <multiple use>
+      0x1ea3f50: <multiple use>
+      0x1ea3f50: <multiple use>
+    0x1ea4050: ch = RetLR 0x1ea3e50, 0x1ea3f50, 0x1ea3f50:1
+
+
+4. Expand the Cpu0::RetLR into instruction **ret $lr** in "Post-RA pseudo 
+   instruction expansion pass" stage by the code in Chapter8_3/Cpu0InstrInfo.cpp 
+   as above. This stage is after the register allocation, so we can replace the
+   V0 ($r2) by LR ($lr) without any side effect.
+
+5. Print assembly or obj according the information (those \*.inc generated by 
+   TableGen from \*.td) generated by the following code at "Cpu0 Assembly 
+   Printer" stage.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.td
+.. code-block:: c++
+
+  class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
+    FL<op, (outs), (ins RC:$ra),
+       !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch> {
+    let rb = 0;
+    let imm16 = 0;
+  }
+  // Return instruction
+  class RetBase<RegisterClass RC>: JumpFR<0x2C, "ret", RC> {
+    let isReturn = 1;
+    let isCodeGenOnly = 1;
+    let hasCtrlDep = 1;
+    let hasExtraSrcRegAllocReq = 1;
+  }
+  ...
+  def RET     : RetBase<CPURegs>;
+
+List the stages mentioned in Chapter 3 and sub-stages in Chapter 4 again as 
+below. Step 2 as above is before "CPU0 DAG->DAG Pattern Instruction Selection"
+stage, step 3 is in "Instruction selection" stage, step 4 is in "Expand ISel 
+Pseudo-instructions" stage and step 5 is "Cpu0 Assembly Printer" stage.
+
+.. code-block:: bash
+
+  118-165-79-200:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch6_2.bc 
+  -debug-pass=Structure -o -
+  ...
+  Machine Branch Probability Analysis
+    ModulePass Manager
+      FunctionPass Manager
+        ...
+        CPU0 DAG->DAG Pattern Instruction Selection
+          Initial selection DAG
+          Optimized lowered selection DAG
+          Type-legalized selection DAG
+          Optimized type-legalized selection DAG
+          Legalized selection DAG
+          Optimized legalized selection DAG
+          Instruction selection
+          Selected selection DAG
+          Scheduling
+        ...
+        Greedy Register Allocator
+        ...
+        Post-RA pseudo instruction expansion pass
+        ...
+        Cpu0 Assembly Printer
+
+
+Summary to Table: Correct the return value in each stage.
+
+.. table:: Correct the return value in each stage
+
+  ===================================================  ======================================
+  Stage                                                Function   
+  ===================================================  ======================================
+  Write Code                                           Declare a pseudo node Cpu0::Ret
+  Before CPU0 DAG->DAG Pattern Instruction Selection   Create Cpu0ISD::Ret DAG
+  Instruction selection                                Cpu0::Ret is replaced by Cpu0::RetLR
+  Post-RA pseudo instruction expansion pass            Cpu0::RetLR -> ret $lr
+  Cpu0 Assembly Printer                                Print according "def RET"
+  ===================================================  ======================================
 
   
 Run Chapter8_3/ to get the correct result (return register $2 is 0) as follows, 
@@ -1399,16 +1593,16 @@ function call.
     ...
     // Walk the register/memloc assignments, inserting copies/loads.
     for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
-    ...
-    // ByVal Arg.
-    if (Flags.isByVal()) {
       ...
-      WriteByValArg(ByValChain, Chain, dl, RegsToPass, MemOpChains, LastFI,
-            MFI, DAG, Arg, VA, Flags, getPointerTy(),
-            Subtarget->isLittle());
+      // ByVal Arg.
+      if (Flags.isByVal()) {
+        ...
+        WriteByValArg(ByValChain, Chain, dl, RegsToPass, MemOpChains, LastFI,
+              MFI, DAG, Arg, VA, Flags, getPointerTy(),
+              Subtarget->isLittle());
+        ...
+      }
       ...
-    }
-    ...
     }
     ...
   }
@@ -1451,20 +1645,20 @@ function call.
                         const {
     ...
     for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i, ++FuncArg) {
-    ...
-    if (Flags.isByVal()) {
-      assert(Flags.getByValSize() &&
-         "ByVal args of size 0 should have been ignored by front-end."); 
-      unsigned NumWords = (Flags.getByValSize() + 3) / 4;
-      LastFI = MFI->CreateFixedObject(NumWords * 4, VA.getLocMemOffset(),
-                      true);
-      SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
-      InVals.push_back(FIN);
-      ReadByValArg(MF, Chain, dl, OutChains, DAG, NumWords, FIN, VA, Flags,
-             &*FuncArg);
-      continue;
-    }
-    ...
+      ...
+      if (Flags.isByVal()) {
+        assert(Flags.getByValSize() &&
+           "ByVal args of size 0 should have been ignored by front-end."); 
+        unsigned NumWords = (Flags.getByValSize() + 3) / 4;
+        LastFI = MFI->CreateFixedObject(NumWords * 4, VA.getLocMemOffset(),
+                        true);
+        SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
+        InVals.push_back(FIN);
+        ReadByValArg(MF, Chain, dl, OutChains, DAG, NumWords, FIN, VA, Flags,
+               &*FuncArg);
+        continue;
+      }
+      ...
     }
     // The cpu0 ABIs for returning structs by value requires that we copy
     // the sret argument into $v0 for the return. Save the argument into
