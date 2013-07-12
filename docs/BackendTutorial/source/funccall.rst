@@ -2749,31 +2749,6 @@ As ch8_4.cpu0.s, it access local variable (above of alloca()) by fp offset
 and outgoing arguments (below of alloca()) by sp offset.
 
 
-Verify DIV for operator %
---------------------------
-
-Now, let's run Chapter8_4/ with ch4_6_2.cpp to get the correct result as below. 
-It translate **“(b+1)%c”** into **“div $zero, $3, $2”** and **“mfhi $2”**.
-
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_6_2.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_6_2.cpp
-    :lines: 4-
-    :linenos:
-
-.. code-block:: bash
-
-  118-165-70-242:InputFiles Jonathan$ clang -c ch4_6_2.cpp -I/Applications/
-  Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
-  MacOSX10.8.sdk/usr/include/ -emit-llvm -o ch4_6_2.bc
-  118-165-70-242:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake
-  _debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  ch4_6_2.bc -o ch4_6_2.cpu0.s
-  118-165-70-242:InputFiles Jonathan$ cat ch4_6_2.cpu0.s 
-    ...
-    div $3, $2
-    mfhi  $2
-    ...
-
 
 Summary of this chapter
 ------------------------

@@ -84,11 +84,13 @@ down for each type of instruction.
 
 The following table details the Cpu0 instruction set:
 
+- First column F: meaning Format.
+
 .. list-table:: Cpu0 Instruction Set
-  :widths: 3 4 3 11 7 10
+  :widths: 1 4 3 11 7 10
   :header-rows: 1
 
-  * - Format
+  * - F
     - Mnemonic
     - Opcode
     - Meaning
@@ -364,8 +366,6 @@ The following table details the Cpu0 instruction set:
     - MULT for unsigned 64 bits
     - MULTU Ra, Rb
     - (HI,LO) <= MULTU(Ra,Rb)
-
-
 
 
 The Status Register
