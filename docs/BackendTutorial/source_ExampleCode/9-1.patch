@@ -1,6 +1,6 @@
 diff -Naur Chapter8_4/CMakeLists.txt Chapter9_1/CMakeLists.txt
---- Chapter8_4/CMakeLists.txt	2013-07-10 16:30:24.933143166 +0800
-+++ Chapter9_1/CMakeLists.txt	2013-07-10 16:30:24.945143166 +0800
+--- Chapter8_4/CMakeLists.txt	2013-07-12 21:51:53.000000000 +0800
++++ Chapter9_1/CMakeLists.txt	2013-07-12 21:51:53.000000000 +0800
 @@ -9,7 +9,7 @@
  #  came from Cpu0InstrInfo.td.
  tablegen(LLVM Cpu0GenRegisterInfo.inc -gen-register-info)
@@ -18,8 +18,8 @@ diff -Naur Chapter8_4/CMakeLists.txt Chapter9_1/CMakeLists.txt
  add_subdirectory(TargetInfo)
  add_subdirectory(MCTargetDesc)
 diff -Naur Chapter8_4/Cpu0InstrInfo.td Chapter9_1/Cpu0InstrInfo.td
---- Chapter8_4/Cpu0InstrInfo.td	2013-07-10 16:30:24.937143166 +0800
-+++ Chapter9_1/Cpu0InstrInfo.td	2013-07-10 16:30:24.945143166 +0800
+--- Chapter8_4/Cpu0InstrInfo.td	2013-07-12 21:51:53.000000000 +0800
++++ Chapter9_1/Cpu0InstrInfo.td	2013-07-12 21:51:53.000000000 +0800
 @@ -184,6 +184,7 @@
    let rc = 0;
    let shamt = 0;
@@ -54,7 +54,7 @@ diff -Naur Chapter8_4/Cpu0InstrInfo.td Chapter9_1/Cpu0InstrInfo.td
    def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
 diff -Naur Chapter8_4/Disassembler/CMakeLists.txt Chapter9_1/Disassembler/CMakeLists.txt
 --- Chapter8_4/Disassembler/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter9_1/Disassembler/CMakeLists.txt	2013-07-10 16:30:24.945143166 +0800
++++ Chapter9_1/Disassembler/CMakeLists.txt	2013-07-12 21:51:53.000000000 +0800
 @@ -0,0 +1,15 @@
 +include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
 +
@@ -73,7 +73,7 @@ diff -Naur Chapter8_4/Disassembler/CMakeLists.txt Chapter9_1/Disassembler/CMakeL
 +add_dependencies(LLVMCpu0Disassembler Cpu0CommonTableGen)
 diff -Naur Chapter8_4/Disassembler/Cpu0Disassembler.cpp Chapter9_1/Disassembler/Cpu0Disassembler.cpp
 --- Chapter8_4/Disassembler/Cpu0Disassembler.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter9_1/Disassembler/Cpu0Disassembler.cpp	2013-07-10 16:30:24.945143166 +0800
++++ Chapter9_1/Disassembler/Cpu0Disassembler.cpp	2013-07-12 21:51:53.000000000 +0800
 @@ -0,0 +1,301 @@
 +//===- Cpu0Disassembler.cpp - Disassembler for Cpu0 -------------*- C++ -*-===//
 +//
@@ -378,7 +378,7 @@ diff -Naur Chapter8_4/Disassembler/Cpu0Disassembler.cpp Chapter9_1/Disassembler/
 +
 diff -Naur Chapter8_4/Disassembler/LLVMBuild.txt Chapter9_1/Disassembler/LLVMBuild.txt
 --- Chapter8_4/Disassembler/LLVMBuild.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter9_1/Disassembler/LLVMBuild.txt	2013-07-10 16:30:24.945143166 +0800
++++ Chapter9_1/Disassembler/LLVMBuild.txt	2013-07-12 21:51:53.000000000 +0800
 @@ -0,0 +1,23 @@
 +;===- ./lib/Target/Cpu0/Disassembler/LLVMBuild.txt --------------*- Conf -*--===;
 +;
@@ -404,8 +404,8 @@ diff -Naur Chapter8_4/Disassembler/LLVMBuild.txt Chapter9_1/Disassembler/LLVMBui
 +required_libraries = MC Support Cpu0Info
 +add_to_library_groups = Cpu0
 diff -Naur Chapter8_4/LLVMBuild.txt Chapter9_1/LLVMBuild.txt
---- Chapter8_4/LLVMBuild.txt	2013-07-10 16:30:24.937143166 +0800
-+++ Chapter9_1/LLVMBuild.txt	2013-07-10 16:30:24.945143166 +0800
+--- Chapter8_4/LLVMBuild.txt	2013-07-12 21:51:53.000000000 +0800
++++ Chapter9_1/LLVMBuild.txt	2013-07-12 21:51:53.000000000 +0800
 @@ -18,7 +18,7 @@
  # Following comments extracted from http://llvm.org/docs/LLVMBuild.html
  

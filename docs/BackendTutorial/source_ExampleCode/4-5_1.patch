@@ -1,6 +1,6 @@
 diff -Naur Chapter4_4/Cpu0InstrInfo.td Chapter4_5_1/Cpu0InstrInfo.td
---- Chapter4_4/Cpu0InstrInfo.td	2013-07-10 16:30:24.945143166 +0800
-+++ Chapter4_5_1/Cpu0InstrInfo.td	2013-07-10 16:30:24.937143166 +0800
+--- Chapter4_4/Cpu0InstrInfo.td	2013-07-12 21:51:53.000000000 +0800
++++ Chapter4_5_1/Cpu0InstrInfo.td	2013-07-12 21:51:53.000000000 +0800
 @@ -56,6 +56,16 @@
    let EncoderMethod = "getMemEncoding";
  }
@@ -27,15 +27,15 @@ diff -Naur Chapter4_4/Cpu0InstrInfo.td Chapter4_5_1/Cpu0InstrInfo.td
  
  /// Shift Instructions
  // sra is IR node for ashr llvm IR instruction of .bc
-@@ -248,6 +260,11 @@
- 
+@@ -249,6 +261,11 @@
  def : Pat<(i32 immSExt16:$in),
            (ADDiu ZERO, imm:$in)>;
-+          
+ 
 +// Arbitrary immediates
 +def : Pat<(i32 imm:$imm),
-+          (OR (SHL (ADDiu ZERO, (HI16 imm:$imm)), 16), (ADDiu ZERO, (LO16 imm:$imm)))>;
++          (ORi (SHL (ADDiu ZERO, (HI16 imm:$imm)), 16), (LO16 imm:$imm))>;
 +
- 
++
  def : Pat<(not CPURegs:$in),
            (XOR CPURegs:$in, (ADDiu ZERO, 1))>;
+ 

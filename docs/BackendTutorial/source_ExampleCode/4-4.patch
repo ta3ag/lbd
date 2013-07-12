@@ -1,6 +1,6 @@
 diff -Naur Chapter4_2/Cpu0InstrInfo.td Chapter4_4/Cpu0InstrInfo.td
---- Chapter4_2/Cpu0InstrInfo.td	2013-07-10 16:30:24.945143166 +0800
-+++ Chapter4_4/Cpu0InstrInfo.td	2013-07-10 16:30:24.945143166 +0800
+--- Chapter4_2/Cpu0InstrInfo.td	2013-07-12 21:51:53.000000000 +0800
++++ Chapter4_4/Cpu0InstrInfo.td	2013-07-12 21:51:53.000000000 +0800
 @@ -50,6 +50,12 @@
    let EncoderMethod = "getMemEncoding";
  }
@@ -41,8 +41,8 @@ diff -Naur Chapter4_2/Cpu0InstrInfo.td Chapter4_4/Cpu0InstrInfo.td
  //  Arbitrary patterns that map to one or more instructions
  //===----------------------------------------------------------------------===//
 diff -Naur Chapter4_2/InstPrinter/Cpu0InstPrinter.cpp Chapter4_4/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter4_2/InstPrinter/Cpu0InstPrinter.cpp	2013-07-10 16:30:24.945143166 +0800
-+++ Chapter4_4/InstPrinter/Cpu0InstPrinter.cpp	2013-07-10 16:30:24.945143166 +0800
+--- Chapter4_2/InstPrinter/Cpu0InstPrinter.cpp	2013-07-12 21:51:53.000000000 +0800
++++ Chapter4_4/InstPrinter/Cpu0InstPrinter.cpp	2013-07-12 21:51:53.000000000 +0800
 @@ -110,3 +110,13 @@
    O << ")";
  }
@@ -58,8 +58,8 @@ diff -Naur Chapter4_2/InstPrinter/Cpu0InstPrinter.cpp Chapter4_4/InstPrinter/Cpu
 +}
 +
 diff -Naur Chapter4_2/InstPrinter/Cpu0InstPrinter.h Chapter4_4/InstPrinter/Cpu0InstPrinter.h
---- Chapter4_2/InstPrinter/Cpu0InstPrinter.h	2013-07-10 16:30:24.945143166 +0800
-+++ Chapter4_4/InstPrinter/Cpu0InstPrinter.h	2013-07-10 16:30:24.945143166 +0800
+--- Chapter4_2/InstPrinter/Cpu0InstPrinter.h	2013-07-12 21:51:53.000000000 +0800
++++ Chapter4_4/InstPrinter/Cpu0InstPrinter.h	2013-07-12 21:51:53.000000000 +0800
 @@ -39,6 +39,7 @@
    void printOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
    void printUnsignedImm(const MCInst *MI, int opNum, raw_ostream &O);

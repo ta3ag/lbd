@@ -9,13 +9,13 @@
 asm("addiu $sp, $zero, 0x6ffc");
 
 void print_integer(int x);
-int test_operators();
+int test_operators(int x);
 int test_control();
 
 int main()
 {
   int a = 0;
-  a = test_operators(); // a = 13
+  a = test_operators(12); // a = 13
   print_integer(a);
   a += test_control();	// a = 31
   print_integer(a);
@@ -48,33 +48,34 @@ void print2_integer(int x)
 }
 #endif
 
-int test_operators()
+int test_operators(int x)
 {
   int a = 11;
   int b = 2;
-  int c = 0;
-  int d = 0;
-  int e, f, g, h, i, j, k, l = 0;
-  unsigned int a1 = -5, k1 = 0;
+  int c, d, e, f, g, h, i, j, k, l, m, n, o;
+  unsigned int a1 = -11, k1 = 0;
 
+  k = (a >> 2);
+  print_integer(k); // 2
+  k1 = (a1 >> 2);
+  print_integer((int)k1); // 0x3fffffd = 1073741821
   c = a + b;
   d = a - b;
   e = a * b;
   f = a / b;
-  b = (a+1)%12;
   g = (a & b);
   h = (a | b);
   i = (a ^ b);
   j = (a << 2);
-  k = (a >> 2);
-  print_integer(k);
-  k1 = (a1 >> 2);
-  print_integer((int)k1);
+  l = a % x;
+  m = (a+1)%12;
 
-  b = !a;
+  n = !a;
+  print_integer(n); // 0
   int* p = &b;
+  o = *p;
   
-  return c; // 13
+  return (c+d+e+f+g+h+i+j+l+m+o); // (13+9+22+5+2+11+9+44+4+0+2)=121
 }
 
 int test_control()

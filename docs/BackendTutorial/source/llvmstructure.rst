@@ -148,41 +148,42 @@ The following table details the Cpu0 instruction set:
     - Add immediate
     - ADDiu Ra, Rb, Cx
     - Ra <= (Rb + Cx)
-	* - L
-	  - ANDi
-	  - 0C
-	  - AND imm
-	  - ANDi Ra, Rb, Cx
-	  - Ra <= (Rb & Cx)
-	* - L
-	  - ORi
-	  - 0D
-	  - OR
-	  - ORi Ra, Rb, Cx
-	  - Ra <= (Rb | Cx)
-	* - L
-	  - XORi
-	  - 0E
-	  - XOR
-	  - XORi Ra, Rb, Cx
-	  - Ra <= (Rb ^ Cx)
+  * - L
+    - ANDi
+    - 0C
+    - AND imm
+    - ANDi Ra, Rb, Cx
+    - Ra <= (Rb & Cx)
+  * - L
+    - ORi
+    - 0D
+    - OR
+    - ORi Ra, Rb, Cx
+    - Ra <= (Rb | Cx)
+  * - L
+    - XORi
+    - 0E
+    - XOR
+    - XORi Ra, Rb, Cx
+    - Ra <= (Rb ^ Cx)
   * - A
     - CMP
     - 10
     - Compare
     - CMP Ra, Rb
     - SW <= (Ra cond Rb) [#cond-note]_
-	* - A
-	  - ADDu
-	  - 11
-	  - Add unsigned
-	  - ADD Ra, Rb, Rc
-	* - A
-	  - SUBu
-	  - 12
-	  - Sub unsigned
-	  - SUB Ra, Rb, Rc
-	  - Ra <= Rb - Rc
+  * - A
+    - ADDu
+    - 11
+    - Add unsigned
+    - ADD Ra, Rb, Rc
+    - Ra <= Rb + Rc
+  * - A
+    - SUBu
+    - 12
+    - Sub unsigned
+    - SUB Ra, Rb, Rc
+    - Ra <= Rb - Rc
   * - A
     - ADD
     - 13

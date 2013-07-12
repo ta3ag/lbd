@@ -16,7 +16,7 @@ module cpu0(input clock, reset, output reg [2:0] tick,
   reg [7:0] op;
   reg [3:0] a, b, c;
   reg [4:0] c5;
-  reg signed [31:0] c12, c16, c24, Ra, Rb, Rc, pc0; // pc0 : instruction pc
+  reg signed [31:0] c12, c16, uc16, c24, Ra, Rb, Rc, pc0; // pc0 : instruction pc
 
   // register name
   `define PC   R[15]   // Program Counter
@@ -33,7 +33,8 @@ module cpu0(input clock, reset, output reg [2:0] tick,
   `define M    `SW[0]  // Mode bit
   // Instruction Opcode 
   parameter [7:0] LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,LH=8'h06,
-  LHu=8'h07,SH=8'h08,ADDiu=8'h09,CMP=8'h10,MOV=8'h12,ADD=8'h13,
+  LHu=8'h07,SH=8'h08,ADDiu=8'h09,ANDi=8'h0C,ORi=8'h0D,XORi=8'h0E,
+  CMP=8'h10,ADDu=8'h11,SUBu=8'h12,ADD=8'h13,
   SUB=8'h14,MUL=8'h15,SDIV=8'h16,AND=8'h18,OR=8'h19,XOR=8'h1A,
   SRA=8'h1B,ROL=8'h1C,ROR=8'h1D,SHL=8'h1E,SHR=8'h1F,
   JEQ=8'h20,JNE=8'h21,JLT=8'h22,JGT=8'h23,JLE=8'h24,JGE=8'h25,JMP=8'h26,
@@ -103,6 +104,7 @@ module cpu0(input clock, reset, output reg [2:0] tick,
       {op,a,b,c} = ir[31:12];
       c24 = $signed(ir[23:0]);
       c16 = $signed(ir[15:0]);
+      uc16 = ir[15:0];
       c12 = $signed(ir[11:0]);
       c5  = ir[4:0];
       Ra = R[a];
@@ -123,21 +125,27 @@ module cpu0(input clock, reset, output reg [2:0] tick,
       SH:  memWriteStart(Rb+c16, Ra, `INT16);// SH Ra,[Rb+Cx]; Ra=>(2bytes)[Rb+Cx]
       // Mathematic 
       ADDiu: R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra<=Rb+Cx
-      CMP: begin `N=(Ra-Rb<0);`Z=(Ra-Rb==0); end // CMP Ra, Rb; SW=(Ra >=< Rb)
-      MOV: regSet(a, Rb);                  // MOV Ra,Rb; Ra<=Rb 
-      ADD: regSet(a, Rb+Rc);               // ADD Ra,Rb,Rc; Ra<=Rb+Rc
-      SUB: regSet(a, Rb-Rc);               // SUB Ra,Rb,Rc; Ra<=Rb-Rc
-      MUL: regSet(a, Rb*Rc);               // MUL Ra,Rb,Rc;     Ra<=Rb*Rc
-      SDIV: regHILOSet(Ra%Rb, Ra/Rb);          // SDIV Ra,Rb; HI<=Ra%Rb; LO<=Ra/Rb
+      CMP:   begin `N=(Ra-Rb<0);`Z=(Ra-Rb==0); end // CMP Ra, Rb; SW=(Ra >=< Rb)
+      ADDu:  regSet(a, Rb+Rc);               // ADDu Ra,Rb,Rc; Ra<=Rb+Rc
+      ADD:   begin regSet(a, Rb+Rc); if (a < Rb) `V = 1; else `V =0; end
+                                             // ADD Ra,Rb,Rc; Ra<=Rb+Rc
+      SUBu:  regSet(a, Rb-Rc);               // SUBu Ra,Rb,Rc; Ra<=Rb-Rc
+      SUB:   begin regSet(a, Rb-Rc); if (Rb < 0 && Rc > 0 && a >= 0) 
+             `V = 1; else `V =0; end         // SUB Ra,Rb,Rc; Ra<=Rb-Rc
+      MUL:   regSet(a, Rb*Rc);               // MUL Ra,Rb,Rc;     Ra<=Rb*Rc
+      SDIV:  regHILOSet(Ra%Rb, Ra/Rb);          // SDIV Ra,Rb; HI<=Ra%Rb; LO<=Ra/Rb
                                            // with exception overflow
-      AND: regSet(a, Rb&Rc);               // AND Ra,Rb,Rc; Ra<=(Rb and Rc)
-      OR:  regSet(a, Rb|Rc);               // OR Ra,Rb,Rc; Ra<=(Rb or Rc)
-      XOR: regSet(a, Rb^Rc);               // XOR Ra,Rb,Rc; Ra<=(Rb xor Rc)
-      SHL: regSet(a, Rb<<c5);     // Shift Left; SHL Ra,Rb,Cx; Ra<=(Rb << Cx)
-      SRA: regSet(a, (Rb&'h80000000)|(Rb>>c5)); 
+      AND:   regSet(a, Rb&Rc);               // AND Ra,Rb,Rc; Ra<=(Rb and Rc)
+      ANDi:  regSet(a, Rb&uc16);             // ANDi Ra,Rb,c16; Ra<=(Rb and c16)
+      OR:    regSet(a, Rb|Rc);               // OR Ra,Rb,Rc; Ra<=(Rb or Rc)
+      ORi:   regSet(a, Rb|uc16);             // ORi Ra,Rb,c16; Ra<=(Rb or c16)
+      XOR:   regSet(a, Rb^Rc);               // XOR Ra,Rb,Rc; Ra<=(Rb xor Rc)
+      XORi:  regSet(a, Rb^uc16);             // XORi Ra,Rb,c16; Ra<=(Rb xor c16)
+      SHL:   regSet(a, Rb<<c5);     // Shift Left; SHL Ra,Rb,Cx; Ra<=(Rb << Cx)
+      SRA:   regSet(a, (Rb&'h80000000)|(Rb>>c5)); 
                                   // Shift Right with signed bit fill;
                                   // SHR Ra,Rb,Cx; Ra<=(Rb&0x80000000)|(Rb>>Cx)
-      SHR: regSet(a, Rb>>c5);     // Shift Right with 0 fill; 
+      SHR:   regSet(a, Rb>>c5);     // Shift Right with 0 fill; 
                                   // SHR Ra,Rb,Cx; Ra<=(Rb >> Cx)
       // Jump Instructions
       JEQ: if (`Z) `PC=`PC+c24;            // JEQ Cx; if SW(=) PC  PC+Cx
@@ -156,19 +164,6 @@ module cpu0(input clock, reset, output reg [2:0] tick,
       IRET:begin 
         `PC=`LR;`I = 1'b0; 
       end // Interrupt Return; IRET; PC <= LR; INT<=0
-      // 
-      PUSH:begin 
-        `SP = `SP-4; memWriteStart(`SP, Ra, `INT32); 
-      end // PUSH Ra; SP-=4; [SP]<=Ra;
-      POP: begin 
-        memReadStart(`SP, `INT32); `SP = `SP + 4; 
-      end // POP Ra; Ra=[SP]; SP+=4;
-      PUSHB:begin 
-        `SP = `SP-1; memWriteStart(`SP, Ra, `BYTE); 
-      end // Push byte; PUSHB Ra; SP--; [SP]<=Ra;(byte)
-      POPB:begin 
-        memReadStart(`SP, `BYTE); `SP = `SP+1; 
-      end // Pop byte; POPB Ra; Ra<=[SP]; SP++;(byte)
       MULT: {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
                             // LO<=((Ra*Rb) and 0x00000000ffffffff);
                             // with exception overflow
