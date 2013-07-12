@@ -1154,7 +1154,7 @@ Run ``llc -static`` will call jsub instruction instead of jalr as follows,
 
   118-165-76-131:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=
-  asm ch8_1.bc -o ch8_2.cpu0.s
+  asm ch8_1.bc -o ch8_1.cpu0.s
   118-165-76-131:InputFiles Jonathan$ cat ch8_1.cpu0.s
   ...
     jsub  _Z5sum_iiiiiii
@@ -1244,7 +1244,13 @@ Above code do the following:
    create DAGs (Cpu0ISD::Ret (CopyToReg %X, %V0, %Y), %V0, Flag). Since the the 
    V0 register is assigned in CopyToReg and Cpu0ISD::Ret use V0, the CopyToReg
    with V0 register will live out and won't be removed in any later optimization
-   step.
+   step. Remember, if use "return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other, 
+   Chain, DAG.getRegister(Cpu0::LR, MVT::i32));" instead of "return DAG.getNode
+   (Cpu0ISD::Ret, dl, MVT::Other, &RetOps[0], RetOps.size());" the V0 register
+   won't be live out, the previous DAG (CopyToReg %X, %V0, %Y) will be removed
+   in later optimization stage. Then the result is same with Chapter8_2
+   which the return value is error. 
+
 
 .. code-block:: bash
 
