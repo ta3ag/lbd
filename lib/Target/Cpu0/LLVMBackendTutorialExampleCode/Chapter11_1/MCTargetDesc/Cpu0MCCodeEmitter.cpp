@@ -180,7 +180,7 @@ getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
   if (Opcode == Cpu0::JSUB)
     Fixups.push_back(MCFixup::Create(0, Expr,
                                      MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
-  else if (Opcode == Cpu0::JSUB)
+  else if (Opcode == Cpu0::SWI)
     Fixups.push_back(MCFixup::Create(0, Expr,
                                      MCFixupKind(Cpu0::fixup_Cpu0_24)));
   else
