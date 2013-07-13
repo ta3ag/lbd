@@ -11,62 +11,13 @@
 
 asm("addiu $sp, $zero, 0x6ffc");
 
-void print_integer(int x);
-int test_operators();
 void test_operators_asm();
-int test_control();
 
 int main()
 {
-  int a = 0;
-  a = test_operators(); // a = 13
-  print_integer(a);
-  a += test_control();	// a = 31
-  print_integer(a);
   test_operators_asm();
 
-  return a;
-}
-
-// For memory mapped I/O
-void print_integer(int x)
-{
-  int *p = (int*)OUT_MEM;
-  *p = x;
- return;
-}
-
-int test_operators()
-{
-  int a = 11;
-  int b = 2;
-  int c = 0;
-  int d = 0;
-  int e, f, g, h, i, j, k, l = 0;
-  unsigned int a1 = -5, k1 = 0;
-  unsigned int b1 = 0xf0000001;
-  unsigned int c1 = 0x000fffff;
-
-  a1 = b1 + c1;
-  c = a + b;
-//  c = 0x7fff0000 + 0x10000000;
-  d = a - b;
-  e = a * b;
-  f = a / b;
-  b = (a+1)%12;
-  g = (a & b);
-  h = (a | b);
-  i = (a ^ b);
-  j = (a << 2);
-  k = (a >> 2);
-  print_integer(k);
-  k1 = (a1 >> 2);
-  print_integer((int)k1);
-
-  b = !a;
-  int* p = &b;
-  
-  return c; // 13
+  return 0;
 }
 
 void test_operators_asm()
@@ -103,31 +54,3 @@ void test_operators_asm()
   asm("ld $4, 0($sp)");
   asm("addiu $sp, $sp, 12");
 }
-
-int test_control()
-{
-  int b = 1;
-  int c = 2;
-  int d = 3;
-  int e = 4;
-  int f = 5;
-  
-  if (b != 0) {
-    b++;
-  }
-  if (c > 0) {
-    c++;
-  }
-  if (d >= 0) {
-    d++;
-  }
-  if (e < 0) {
-    e++;
-  }
-  if (f <= 0) {
-    f++;
-  }
-  
-  return (b+c+d+e+f); // (2+3+4+4+5)=18
-}
-
