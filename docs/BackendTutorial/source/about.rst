@@ -64,6 +64,7 @@ Version 3.2.16, Not release yet
   Add dynamic link section in elf.rst.
   Re-oganize Chapter 3.
   Re-oganize Chapter 8.
+  Re-oganize Chapter 10.
   Fix bug that ret not $lr register.
 
 Version 3.2.15, Released June 12, 2013

@@ -84,13 +84,13 @@ down for each type of instruction.
 
 The following table details the Cpu0 instruction set:
 
-- First column F: meaning Format.
+- First column F\.: meaning Format.
 
 .. list-table:: Cpu0 Instruction Set
   :widths: 1 4 3 11 7 10
   :header-rows: 1
 
-  * - F
+  * - F\.
     - Mnemonic
     - Opcode
     - Meaning
@@ -316,7 +316,7 @@ The following table details the Cpu0 instruction set:
     - RET
     - 2C
     - Return from subroutine
-    - RET Cx
+    - RET LR
     - PC <= LR
   * - J
     - IRET
@@ -325,7 +325,7 @@ The following table details the Cpu0 instruction set:
     - IRET
     - PC <= LR; INT 0
   * - J
-    - JR
+    - JALR
     - 2E
     - Jump to subroutine
     - JR Rb

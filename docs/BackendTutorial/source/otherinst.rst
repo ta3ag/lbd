@@ -502,19 +502,19 @@ and it's corresponding llvm IR. List them as follows,
   
   define i32 @main() nounwind ssp {
   entry:
-  %retval = alloca i32, align 4
-  %a = alloca i32, align 4
-  %b = alloca i32, align 4
-  store i32 0, i32* %retval
-  store i32 5, i32* %a, align 4
-  store i32 0, i32* %b, align 4
-  %0 = load i32* %a, align 4      // a = %0
-  %tobool = icmp ne i32 %0, 0   // ne: stand for not egual
-  %lnot = xor i1 %tobool, true
-  %conv = zext i1 %lnot to i32  
-  store i32 %conv, i32* %b, align 4
-  %1 = load i32* %b, align 4
-  ret i32 %1
+    %retval = alloca i32, align 4
+    %a = alloca i32, align 4
+    %b = alloca i32, align 4
+    store i32 0, i32* %retval
+    store i32 5, i32* %a, align 4
+    store i32 0, i32* %b, align 4
+    %0 = load i32* %a, align 4      // a = %0
+    %tobool = icmp ne i32 %0, 0   // ne: stand for not egual
+    %lnot = xor i1 %tobool, true
+    %conv = zext i1 %lnot to i32  
+    store i32 %conv, i32* %b, align 4
+    %1 = load i32* %b, align 4
+    ret i32 %1
   }
 
 As above, b = !a, is translated into (xor (icmp ne i32 %0, 0), true). 
@@ -713,23 +713,23 @@ the final result.
   118-165-16-22:InputFiles Jonathan$ cat ch4_2.cpu0.s
   ...
   # BB#0:
-  addiu $sp, $sp, -16
+    addiu $sp, $sp, -16
   $tmp1:
-  .cfi_def_cfa_offset 16
-  addiu $2, $zero, 0
-  st  $2, 12($sp)
-  addiu $3, $zero, 5
-  st  $3, 8($sp)
-  st  $2, 4($sp)
-  ld  $3, 8($sp)
-  xor $2, $3, $2
-  addiu $3, $zero, 1
-  xor $2, $2, $3
-  and $2, $2, $3
-  st  $2, 4($sp)
-  addiu $sp, $sp, 16
-  ret $lr
-  ...
+    .cfi_def_cfa_offset 16
+    addiu $2, $zero, 0
+    st  $2, 12($sp)
+    addiu $3, $zero, 5
+    st  $3, 8($sp)
+    st  $2, 4($sp)
+    ld  $3, 8($sp)
+    xor $2, $3, $2
+    addiu $3, $zero, 1
+    xor $2, $2, $3
+    and $2, $2, $3
+    st  $2, 4($sp)
+    addiu $sp, $sp, 16
+    ret $lr
+    ...
 
 
 Display llvm IR nodes with Graphviz
@@ -876,38 +876,38 @@ will get result as follows,
   debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch4_4.bc -o ch4_4.cpu0.s
   118-165-66-82:InputFiles Jonathan$ cat ch4_4.cpu0.s 
-  .section .mdebug.abi32
-  .previous
-  .file "ch4_5.bc"
-  .text
-  .globl  main
-  .align  2
-  .type main,@function
-  .ent  main            # @main
+    .section .mdebug.abi32
+    .previous
+    .file "ch4_5.bc"
+    .text
+    .globl  main
+    .align  2
+    .type main,@function
+    .ent  main            # @main
   main:
-  .cfi_startproc
-  .frame  $sp,16,$lr
-  .mask 0x00000000,0
-  .set  noreorder
-  .set  nomacro
+    .cfi_startproc
+    .frame  $sp,16,$lr
+    .mask 0x00000000,0
+    .set  noreorder
+    .set  nomacro
   # BB#0:
-  addiu $sp, $sp, -16
+    addiu $sp, $sp, -16
   $tmp1:
-  .cfi_def_cfa_offset 16
-  addiu $2, $zero, 0
-  st  $2, 12($sp)
-  addiu $2, $zero, 3
-  st  $2, 8($sp)
-  addiu $2, $sp, 8
-  st  $2, 0($sp)
-  addiu $sp, $sp, 16
-  ret $lr
-  .set  macro
-  .set  reorder
-  .end  main
+    .cfi_def_cfa_offset 16
+    addiu $2, $zero, 0
+    st  $2, 12($sp)
+    addiu $2, $zero, 3
+    st  $2, 8($sp)
+    addiu $2, $sp, 8
+    st  $2, 0($sp)
+    addiu $sp, $sp, 16
+    ret $lr
+    .set  macro
+    .set  reorder
+    .end  main
   $tmp2:
-  .size main, ($tmp2)-main
-  .cfi_endproc
+    .size main, ($tmp2)-main
+    .cfi_endproc
 
 
 Operator mod, %
