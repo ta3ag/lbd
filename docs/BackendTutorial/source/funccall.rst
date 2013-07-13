@@ -86,7 +86,7 @@ See comment **"//"**.
     .cfi_def_cfa_offset 32
     sw  $4, 28($sp)
     sw  $5, 24($sp)
-    sw  $6, 20($sp)
+    sw  $t9, 20($sp)
     sw  $7, 16($sp)
     lw  $1, 48($sp) // load argument 5
     sw  $1, 12($sp)
@@ -144,7 +144,7 @@ See comment **"//"**.
     lw  $25, %call16(_Z5sum_iiiiiii)($gp)
     addiu $4, $zero, 1    // Pass argument 1 to $4 (=$a0)
     addiu $5, $zero, 2    // Pass argument 2 to $5 (=$a1)
-    addiu $6, $zero, 3
+    addiu $t9, $zero, 3
     jalr  $25
     addiu $7, $zero, 4
     sw  $2, 28($sp)
@@ -481,8 +481,8 @@ CCInfo(CallConv,..., ArgLocs, ...) to get outgoing arguments information before
 enter **“for loop”** and set stack alignment with 8 bytes. 
 They're almost same in **“for loop”** with LowerFormalArguments(), except 
 LowerCall() create store DAG vector instead of load DAG vector. 
-After the **“for loop”**, it create **“ld $6, %call24(_Z5sum_iiiiiii)($gp)”** 
-and jalr $6 for calling subroutine (the $6 is $t9) in PIC mode.
+After the **“for loop”**, it create **“ld $t9, %call24(_Z5sum_iiiiiii)($gp)”** 
+and jalr $t9 for calling subroutine (the $6 is $t9) in PIC mode.
 DAG.getCALLSEQ_START() and DAG.getCALLSEQ_END() are set before the 
 **“for loop”** and after call subroutine, they insert CALLSEQ_START, 
 CALLSEQ_END, and translate into pseudo machine instructions !ADJCALLSTACKDOWN, 
@@ -811,8 +811,8 @@ It correct arguements offset im main() from (0+40)$sp, (8+40)$sp, ..., to
     st  $2, 4($sp)
     addiu $2, $zero, 1
     st  $2, 0($sp)
-    ld  $6, %call24(_Z5sum_iiiiiii)($gp)
-    jalr  $6
+    ld  $t9, %call24(_Z5sum_iiiiiii)($gp)
+    jalr  $t9
     ...
 
 
@@ -920,8 +920,8 @@ We putting the comments in the result for explanation.
       .cprestore  24  	// save $gp to 24($sp)
       addiu   $2, $zero, 0
   ...
-      ld  $6, %call24(_Z5sum_iiiiiii)($gp)
-      jalr    $6      	// $t9 register is the alias of $6
+      ld  $t9, %call24(_Z5sum_iiiiiii)($gp)
+      jalr    $t9      	// $t9 register is the alias of $6
       ld  $gp, 24($sp)	// restore $gp from 24($sp)
   ...
       .end    main
@@ -1958,8 +1958,8 @@ example.
     st  $2, 216($sp)
     addiu $8, $sp, 192
     st  $8, 0($sp)      // *(0($sp)) = 192($sp)
-    ld  $6, %call24(_Z7getDatev)($gp) // copy gDate contents to date1, 212..192($sp)
-    jalr  $6
+    ld  $t9, %call24(_Z7getDatev)($gp) // copy gDate contents to date1, 212..192($sp)
+    jalr  $t9
     ld  $gp, 16($sp)
     ld  $2, 212($sp)    // copy 212..192($sp) to 164..144($sp)
     st  $2, 164($sp)
@@ -1987,14 +1987,14 @@ example.
     st  $2, 4($sp)
     addiu $2, $sp, 168
     st  $2, 0($sp)      // *0($sp) = 168($sp)
-    ld  $6, %call24(_Z8copyDate4Date)($gp)
-    jalr  $6
+    ld  $t9, %call24(_Z8copyDate4Date)($gp)
+    jalr  $t9
     ld  $gp, 16($sp)
     st  $8, 4($sp)      // 4($sp) = 192($sp) date1
     addiu $2, $sp, 120
     st  $2, 0($sp)      // *0($sp) = 120($sp) date2
-    ld  $6, %call24(_Z8copyDateP4Date)($gp)
-    jalr  $6
+    ld  $t9, %call24(_Z8copyDateP4Date)($gp)
+    jalr  $t9
     ld  $gp, 16($sp)
     ld  $2, 224($sp)    // save time1 to arguments passing location, 
     st  $2, 96($sp)     //  8..0($sp)
@@ -2008,8 +2008,8 @@ example.
     st  $4, 8($sp)
     st  $3, 4($sp)
     st  $2, 0($sp)
-    ld  $6, %call24(_Z8copyTime4Time)($gp)
-    jalr  $6
+    ld  $t9, %call24(_Z8copyTime4Time)($gp)
+    jalr  $t9
     ld  $gp, 16($sp)
     st  $3, 76($sp)     // save return value time2 from $2, $3, $4 to
     st  $2, 72($sp)     //   80..72($sp) and 112..104($sp)
@@ -2022,8 +2022,8 @@ example.
     st  $2, 104($sp)
     addiu $2, $sp, 216
     st  $2, 0($sp)      // *(0($sp)) = 216($sp)
-    ld  $6, %call24(_Z8copyTimeP4Time)($gp)
-    jalr  $6
+    ld  $t9, %call24(_Z8copyTimeP4Time)($gp)
+    jalr  $t9
     ld  $gp, 16($sp)
     st  $3, 44($sp)     // save return value time3 from $2, $3, $4 to
     st  $2, 40($sp)     //  48..44($sp) 64..56($sp)
@@ -2108,7 +2108,7 @@ missing the following code in caller, main(),
     
     addiu $2, $sp, 168
     st  $2, 0($sp)      // *0($sp) = 168($sp)
-    ld  $6, %call24(_Z8copyDate4Date)($gp)
+    ld  $t9, %call24(_Z8copyDate4Date)($gp)
 
 In LowerFormalArguments(), the "if (Flags.isByVal())" getting the incoming 
 arguments which corresponding the outgoing arguments of LowerCall().
@@ -2154,7 +2154,7 @@ List the code and their effect as follows,
     st  $2, 0($sp)      // *0($sp) = 168($sp); LowerFormalArguments(): 
                         //  return register is $2, virtual register is 
                         //  0($sp)
-    ld  $6, %call24(_Z8copyDate4Date)($gp)
+    ld  $t9, %call24(_Z8copyDate4Date)($gp)
 
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0ISelLowering.cpp
@@ -2368,8 +2368,8 @@ Run Chapter8_4/ with ch8_3.cpp as well as clang option,
     st  $2, 4($sp)
     addiu $2, $zero, 6
     st  $2, 0($sp)
-    ld  $6, %call24(_Z5sum_iiz)($gp)
-    jalr  $6
+    ld  $t9, %call24(_Z5sum_iiz)($gp)
+    jalr  $t9
     ld  $gp, 32($sp)
     st  $2, 76($sp)
     ld  $lr, 84($sp)            # 4-byte Folded Reload
@@ -2651,19 +2651,19 @@ Run Chapter8_4 with ch8_4.cpp will get the following correct result.
   	ld	$3, 60($fp)
   	ld	$4, 56($fp)
   	ld	$5, 52($fp)
-  	ld	$6, 48($fp)
+  	ld	$t9, 48($fp)
   	ld	$t0, 44($fp)
   	st	$t0, 20($sp)
-  	shl	$6, $6, 1
-  	st	$6, 16($sp)
+  	shl	$t9, $t9, 1
+  	st	$t9, 16($sp)
   	st	$5, 12($sp)
   	st	$4, 8($sp)
   	st	$3, 4($sp)
   	addiu	$3, $zero, 6
   	mul	$2, $2, $3
   	st	$2, 0($sp)
-  	ld	$6, %call24(_Z3sumiiiiii)($gp)
-  	jalr	$6
+  	ld	$t9, %call24(_Z3sumiiiiii)($gp)
+  	jalr	$t9
   	ld	$gp, 24($fp)
   	st	$2, 36($fp)
   	ld	$3, 0($7)
@@ -2676,8 +2676,8 @@ Run Chapter8_4 with ch8_4.cpp will get the following correct result.
   	addiu	$sp, $sp, 80
   	ret	$2
   $BB1_2:                                 # %CallStackCheckFailBlk
-  	ld	$6, %call24(__stack_chk_fail)($gp)
-  	jalr	$6
+  	ld	$t9, %call24(__stack_chk_fail)($gp)
+  	jalr	$t9
   	ld	$gp, 24($fp)
   	.set	macro
   	.set	reorder

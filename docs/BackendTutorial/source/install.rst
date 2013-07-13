@@ -5,8 +5,7 @@ Appendix A: Getting Started: Installing LLVM and the Cpu0 example code
 
 This book is on the process of merging into llvm trunk but not finished 
 yet. 
-The merged llvm trunk version on my git hub is LLVM 3.3 of merged date 
-2013/03/28.
+The merged llvm trunk version on my git hub is LLVM 3.3 relased.
 So, you have to get book example code and the based llvm trunk by git command
 as follows,
 

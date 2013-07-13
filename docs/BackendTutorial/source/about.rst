@@ -52,7 +52,9 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.2.16, Not release yet
+Version 3.3.01, Not release yet
+
+Version 3.3.0, Released July 13, 2013
   Add Table: C operator ! corresponding IR of .bc and IR of DAG and Table: C 
   operator ! corresponding IR of Type-legalized selection DAG and Cpu0 
   instructions. Add explanation in section Full support %. 
@@ -68,6 +70,7 @@ Version 3.2.16, Not release yet
   Re-oganize Chapter 11.
   Re-oganize Chapter 12.
   Fix bug that ret not $lr register.
+  Porting to LLVM 3.3.
 
 Version 3.2.15, Released June 12, 2013
 	Porting to llvm 3.3.
