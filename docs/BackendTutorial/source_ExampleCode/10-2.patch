@@ -36,7 +36,7 @@ diff -Naur Chapter10_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter10_2/MCTargetDe
 +  if (Opcode == Cpu0::JSUB)
 +    Fixups.push_back(MCFixup::Create(0, Expr,
 +                                     MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
-+  else if (Opcode == Cpu0::JSUB)
++  else if (Opcode == Cpu0::SWI)
 +    Fixups.push_back(MCFixup::Create(0, Expr,
 +                                     MCFixupKind(Cpu0::fixup_Cpu0_24)));
 +  else

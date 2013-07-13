@@ -93,75 +93,73 @@ Let's run Chapter11_1/ with ch11_1.cpp to explain it easier.
    2 del-jmp        - Number of useless jmp deleted
    ...
   
-  118-165-78-10:InputFiles Jonathan$ cat ch11_1.cpu0.s 
-  	.section .mdebug.abi32
-  	.previous
-  	.file	"ch11_1.bc"
-  	.text
-  	.globl	main
-  	.align	2
-  	.type	main,@function
-  	.ent	main                    # @main
+    .section .mdebug.abi32
+    .previous
+    .file "ch11_1.bc"
+    .text
+    .globl  main
+    .align  2
+    .type main,@function
+    .ent  main                    # @main
   main:
-  	.frame	$sp,16,$lr
-  	.mask 	0x00000000,0
-  	.set	noreorder
-  	.set	nomacro
+    .frame  $sp,16,$lr
+    .mask   0x00000000,0
+    .set  noreorder
+    .set  nomacro
   # BB#0:
-  	addiu	$sp, $sp, -16
-  	addiu	$3, $zero, 0
-  	st	$3, 12($sp)
-  	st	$3, 8($sp)
-  	addiu	$2, $zero, 1
-  	st	$2, 4($sp)
-  	addiu	$4, $zero, 2
-  	st	$4, 0($sp)
-  	ld	$4, 8($sp)
-  	cmp	$sw, $4, $3
-  	jne	$sw, $BB0_2
+    addiu $sp, $sp, -16
+    addiu $2, $zero, 0
+    st  $2, 12($sp)
+    st  $2, 8($sp)
+    addiu $2, $zero, 1
+    st  $2, 4($sp)
+    addiu $2, $zero, 2
+    st  $2, 0($sp)
+    ld  $2, 8($sp)
+    bne $2, $zero, $BB0_2
   # BB#1:
-  	ld	$4, 8($sp)
-  	addiu	$4, $4, 1
-  	st	$4, 8($sp)
+    ld  $2, 8($sp)
+    addiu $2, $2, 1
+    st  $2, 8($sp)
   $BB0_2:
-  	ld	$4, 4($sp)
-  	cmp	$sw, $4, $3
-  	jne	$sw, $BB0_4
-  	jmp	$BB0_3
+    ld  $2, 4($sp)
+    bne $2, $zero, $BB0_4
+    jmp $BB0_3
   $BB0_4:
-  	addiu	$3, $zero, -1
-  	ld	$4, 4($sp)
-  	cmp	$sw, $4, $3
-  	jgt	$sw, $BB0_6
-  	jmp	$BB0_5
+    ld  $2, 4($sp)
+    addiu $3, $zero, -1
+    slt $2, $3, $2
+    bne $2, $zero, $BB0_6
+    jmp $BB0_5
   $BB0_3:
-  	ld	$3, 4($sp)
-  	ld	$4, 8($sp)
-  	add	$3, $4, $3
-  	st	$3, 8($sp)
-  	jmp	$BB0_6
+    ld  $2, 4($sp)
+    ld  $3, 8($sp)
+    addu  $2, $3, $2
+    st  $2, 8($sp)
+    jmp $BB0_6
   $BB0_5:
-  	ld	$3, 8($sp)
-  	addiu	$4, $3, -1
-  	st	$4, 8($sp)
-  	st	$3, 8($sp)
+    ld  $2, 8($sp)
+    addiu $3, $2, -1
+    st  $3, 8($sp)
+    st  $2, 8($sp)
   $BB0_6:
-  	ld	$3, 0($sp)
-  	cmp	$sw, $3, $2
-  	jlt	$sw, $BB0_8
+    ld  $2, 0($sp)
+    slti  $2, $2, 1
+    bne $2, $zero, $BB0_8
   # BB#7:
-  	ld	$2, 0($sp)
-  	addiu	$2, $2, 1
-  	st	$2, 0($sp)
+    ld  $2, 0($sp)
+    addiu $2, $2, 1
+    st  $2, 0($sp)
   $BB0_8:
-  	ld	$2, 8($sp)
-  	addiu	$sp, $sp, 16
-  	ret	$lr
-  	.set	macro
-  	.set	reorder
-  	.end	main
+    ld  $2, 8($sp)
+    addiu $sp, $sp, 16
+    ret $lr
+    .set  macro
+    .set  reorder
+    .end  main
   $tmp1:
-  	.size	main, ($tmp1)-main
+    .size main, ($tmp1)-main
+
 
 The terminal display "Number of useless jmp deleted" by ``llc -stats`` option 
 because we set the "STATISTIC(NumDelJmp, "Number of useless jmp deleted")" in 
@@ -194,11 +192,13 @@ Cpu0 new instruction sets table
 Redesign Cpu0 instruction set and remap OP code as follows (OP code 
 0x00 is reserved for NOP operation in pipeline architecture),
 
+- First column F\.: meaning Format.
+
 .. list-table:: Cpu0 Instruction Set
-	:widths: 3 4 3 11 7 10
+	:widths: 1 4 3 11 7 10
 	:header-rows: 1
 
-	* - Format
+	* - F\.
 	  - Mnemonic
 	  - Opcode
 	  - Meaning
@@ -704,10 +704,24 @@ Chapter11_2/ include the changes for new instruction sets as follows,
                                      MCFixupKind(Cpu0::fixup_Cpu0_PC16)));
     return 0;
   }
-  
+  ...
+  unsigned Cpu0MCCodeEmitter::
+  getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
+                       SmallVectorImpl<MCFixup> &Fixups) const {
+    ...
+    if (Opcode == Cpu0::JSUB || Opcode == Cpu0::JMP)
+    ...
+  }
+
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0InstrInfo.td
 .. code-block:: c++
 
+  def jmptarget    : Operand<OtherVT> {
+    let EncoderMethod = "getJumpTargetOpValue";
+    let OperandType = "OPERAND_PCREL";
+    let DecoderMethod = "DecodeJumpRelativeTarget";
+  }
+  ...
   // Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
   def immLow16Zero : PatLeaf<(imm), [{
     int64_t Val = N->getSExtValue();
@@ -776,48 +790,16 @@ Chapter11_2/ include the changes for new instruction sets as follows,
   def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
   def XOR     : ArithLogicR<0x1A, "xor", xor, IIAlu, CPURegs, 1>;
   
-  def SLT     : SetCC_R<0x20, "slt", setlt, CPURegs>;
-  def SLTu    : SetCC_R<0x21, "sltu", setult, CPURegs>;
-  
-  def MFHI    : MoveFromLOHI<0x22, "mfhi", CPURegs, [HI]>;
-  def MFLO    : MoveFromLOHI<0x23, "mflo", CPURegs, [LO]>;
-  def MTHI    : MoveToLOHI<0x24, "mthi", CPURegs, [HI]>;
-  def MTLO    : MoveToLOHI<0x25, "mtlo", CPURegs, [LO]>;
-  
-  def MULT    : Mult32<0x26, "mult", IIImul>;
-  def MULTu   : Mult32<0x27, "multu", IIImul>;
+  def SLT     : SetCC_R<0x30, "slt", setlt, CPURegs>;
+  def SLTu    : SetCC_R<0x31, "sltu", setult, CPURegs>;
   ...
   
   /// Jump and Branch Instructions
-  def BEQ     : CBranch<0x27, "beq", seteq, CPURegs>;
-  def BNE     : CBranch<0x28, "bne", setne, CPURegs>;
-  
+  def BEQ     : CBranch<0x20, "beq", seteq, CPURegs>;
+  def BNE     : CBranch<0x21, "bne", setne, CPURegs>;
+
   def JMP     : UncondBranch<0x26, "jmp">;
-  
-  /// Jump and Branch Instructions
-  def SWI     : JumpLink<0x2A, "swi">;
-  def JSUB    : JumpLink<0x2B, "jsub">;
-  def JR      : JumpFR<0x2C, "ret", CPURegs>;
-  
-  let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
-      isBarrier=1, hasCtrlDep=1, addr=0 in
-    def RET   : FJ <0x2C, (outs), (ins CPURegs:$target),
-                  "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch>;
-  
-  def IRET    : JumpFR<0x2D, "iret", CPURegs>;
-  def JALR    : JumpLinkReg<0x2E, "jalr", CPURegs>;
-  
-  /// No operation
-  let addr=0 in
-    def NOP   : FJ<0, (outs), (ins), "nop", [], IIAlu>;
-  
-  // FrameIndexes are legalized when they are operands from load/store
-  // instructions. The same not happens for stack address copies, so an
-  // add op with mem ComplexPattern is used and the stack address copy
-  // can be matched. It's similar to Sparc LEA_ADDRi
-  def LEA_ADDiu : EffectiveAddress<"addiu\t$ra, $addr", CPURegs, mem_ea> {
-    let isCodeGenOnly = 1;
-  }
+
   
   //===----------------------------------------------------------------------===//
   //  Arbitrary patterns that map to one or more instructions
@@ -1515,128 +1497,132 @@ to 1 single instruction ether is BEQ or BNE, as follows,
   bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_1_1.bc -o 
   ch7_1_1.cpu0.s
   118-165-77-203:InputFiles Jonathan$ cat ch7_1_1.cpu0.s 
-  	.section .mdebug.abi32
-  	.previous
-  	.file	"ch7_1_1.bc"
-  	.text
-  	.globl	main
-  	.align	2
-  	.type	main,@function
-  	.ent	main                    # @main
+    .section .mdebug.abi32
+    .previous
+    .file "ch7_1_1.bc"
+    .text
+    .globl  main
+    .align  2
+    .type main,@function
+    .ent  main                    # @main
   main:
-  	.frame	$sp,40,$lr
-  	.mask 	0x00000000,0
-  	.set	noreorder
-  	.set	nomacro
+    .cfi_startproc
+    .frame  $sp,40,$lr
+    .mask   0x00000000,0
+    .set  noreorder
+    .set  nomacro
   # BB#0:
-  	addiu	$sp, $sp, -40
-  	addiu	$3, $zero, 0
-  	st	$3, 36($sp)
-  	st	$3, 32($sp)
-  	addiu	$2, $zero, 1
-  	st	$2, 28($sp)
-  	addiu	$4, $zero, 2
-  	st	$4, 24($sp)
-  	addiu	$4, $zero, 3
-  	st	$4, 20($sp)
-  	addiu	$4, $zero, 4
-  	st	$4, 16($sp)
-  	addiu	$4, $zero, 5
-  	st	$4, 12($sp)
-  	addiu	$4, $zero, 6
-  	st	$4, 8($sp)
-  	addiu	$4, $zero, 7
-  	st	$4, 4($sp)
-  	addiu	$4, $zero, 8
-  	st	$4, 0($sp)
-  	ld	$4, 32($sp)
-  	bne	$4, $zero, $BB0_2
-  # BB#1:
-  	ld	$4, 32($sp)
-  	addiu	$4, $4, 1
-  	st	$4, 32($sp)
-  $BB0_2:
-  	ld	$4, 28($sp)
-  	beq	$4, $zero, $BB0_4
-  # BB#3:
-  	ld	$4, 28($sp)
-  	addiu	$4, $4, 1
-  	st	$4, 28($sp)
-  $BB0_4:
-  	ld	$4, 24($sp)
-  	slti	$4, $4, 1
-  	bne	$4, $zero, $BB0_6
-  # BB#5:
-  	ld	$4, 24($sp)
-  	addiu	$4, $4, 1
-  	st	$4, 24($sp)
-  $BB0_6:
-  	ld	$4, 20($sp)
-  	slti	$4, $4, 0
-  	bne	$4, $zero, $BB0_8
-  # BB#7:
-  	ld	$4, 20($sp)
-  	addiu	$4, $4, 1
-  	st	$4, 20($sp)
-  $BB0_8:
-  	ld	$4, 16($sp)
-  	addiu	$5, $zero, -1
-  	slt	$4, $5, $4
-  	bne	$4, $zero, $BB0_10
-  # BB#9:
-  	ld	$4, 16($sp)
-  	addiu	$4, $4, 1
-  	st	$4, 16($sp)
-  $BB0_10:
-  	ld	$4, 12($sp)
-  	slt	$3, $3, $4
-  	bne	$3, $zero, $BB0_12
-  # BB#11:
-  	ld	$3, 12($sp)
-  	addiu	$3, $3, 1
-  	st	$3, 12($sp)
-  $BB0_12:
-  	ld	$3, 8($sp)
-  	slt	$2, $2, $3
-  	bne	$2, $zero, $BB0_14
-  # BB#13:
-  	ld	$2, 8($sp)
-  	addiu	$2, $2, 1
-  	st	$2, 8($sp)
-  $BB0_14:
-  	ld	$2, 4($sp)
-  	slti	$2, $2, 1
-  	bne	$2, $zero, $BB0_16
-  # BB#15:
-  	ld	$2, 4($sp)
-  	addiu	$2, $2, 1
-  	st	$2, 4($sp)
-  $BB0_16:
-  	ld	$2, 4($sp)
-  	ld	$3, 0($sp)
-  	slt	$2, $3, $2
-  	beq	$2, $zero, $BB0_18
-  # BB#17:
-  	ld	$2, 0($sp)
-  	addiu	$2, $2, 1
-  	st	$2, 0($sp)
-  $BB0_18:
-  	ld	$2, 28($sp)
-  	ld	$3, 32($sp)
-  	beq	$3, $2, $BB0_20
-  # BB#19:
-  	ld	$2, 32($sp)
-  	addiu	$2, $2, 1
-  	st	$2, 32($sp)
-  $BB0_20:
-  	ld	$2, 32($sp)
-  	addiu	$sp, $sp, 40
-  	ret	$lr
-  	.set	macro
-  	.set	reorder
-  	.end	main
+    addiu $sp, $sp, -40
   $tmp1:
-  	.size	main, ($tmp1)-main
+    .cfi_def_cfa_offset 40
+    addiu $3, $zero, 0
+    st  $3, 36($sp)
+    st  $3, 32($sp)
+    addiu $2, $zero, 1
+    st  $2, 28($sp)
+    addiu $4, $zero, 2
+    st  $4, 24($sp)
+    addiu $4, $zero, 3
+    st  $4, 20($sp)
+    addiu $4, $zero, 4
+    st  $4, 16($sp)
+    addiu $4, $zero, 5
+    st  $4, 12($sp)
+    addiu $4, $zero, 6
+    st  $4, 8($sp)
+    addiu $4, $zero, 7
+    st  $4, 4($sp)
+    addiu $4, $zero, 8
+    st  $4, 0($sp)
+    ld  $4, 32($sp)
+    bne $4, $zero, $BB0_2
+  # BB#1:
+    ld  $4, 32($sp)
+    addiu $4, $4, 1
+    st  $4, 32($sp)
+  $BB0_2:
+    ld  $4, 28($sp)
+    beq $4, $zero, $BB0_4
+  # BB#3:
+    ld  $4, 28($sp)
+    addiu $4, $4, 1
+    st  $4, 28($sp)
+  $BB0_4:
+    ld  $4, 24($sp)
+    slti  $4, $4, 1
+    bne $4, $zero, $BB0_6
+  # BB#5:
+    ld  $4, 24($sp)
+    addiu $4, $4, 1
+    st  $4, 24($sp)
+  $BB0_6:
+    ld  $4, 20($sp)
+    slti  $4, $4, 0
+    bne $4, $zero, $BB0_8
+  # BB#7:
+    ld  $4, 20($sp)
+    addiu $4, $4, 1
+    st  $4, 20($sp)
+  $BB0_8:
+    ld  $4, 16($sp)
+    addiu $5, $zero, -1
+    slt $4, $5, $4
+    bne $4, $zero, $BB0_10
+  # BB#9:
+    ld  $4, 16($sp)
+    addiu $4, $4, 1
+    st  $4, 16($sp)
+  $BB0_10:
+    ld  $4, 12($sp)
+    slt $3, $3, $4
+    bne $3, $zero, $BB0_12
+  # BB#11:
+    ld  $3, 12($sp)
+    addiu $3, $3, 1
+    st  $3, 12($sp)
+  $BB0_12:
+    ld  $3, 8($sp)
+    slt $2, $2, $3
+    bne $2, $zero, $BB0_14
+  # BB#13:
+    ld  $2, 8($sp)
+    addiu $2, $2, 1
+    st  $2, 8($sp)
+  $BB0_14:
+    ld  $2, 4($sp)
+    slti  $2, $2, 1
+    bne $2, $zero, $BB0_16
+  # BB#15:
+    ld  $2, 4($sp)
+    addiu $2, $2, 1
+    st  $2, 4($sp)
+  $BB0_16:
+    ld  $2, 4($sp)
+    ld  $3, 0($sp)
+    slt $2, $3, $2
+    beq $2, $zero, $BB0_18
+  # BB#17:
+    ld  $2, 0($sp)
+    addiu $2, $2, 1
+    st  $2, 0($sp)
+  $BB0_18:
+    ld  $2, 28($sp)
+    ld  $3, 32($sp)
+    beq $3, $2, $BB0_20
+  # BB#19:
+    ld  $2, 32($sp)
+    addiu $2, $2, 1
+    st  $2, 32($sp)
+  $BB0_20:
+    ld  $2, 32($sp)
+    addiu $sp, $sp, 40
+    ret $lr
+    .set  macro
+    .set  reorder
+    .end  main
+  $tmp2:
+    .size main, ($tmp2)-main
+    .cfi_endproc
 
 
 The ch11_3.cpp is written in assembly for AsmParser test. You can check if it 
