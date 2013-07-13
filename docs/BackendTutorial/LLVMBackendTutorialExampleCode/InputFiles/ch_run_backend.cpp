@@ -1,6 +1,8 @@
-// clang -c ch10_2.cpp -emit-llvm -o ch10_2.bc
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=obj ch10_2.bc -o ch10_2.cpu0.o
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llvm-objdump -d ch10_2.cpu0.o | tail -n +6| awk '{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t*/"}' > ../cpu0_verilog/raw/cpu0s.hex
+// clang -target `llvm-config --host-target` -c ch_run_backend.cpp -emit-llvm -o ch_run_backend.bc
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=obj ch_run_backend.bc -o ch_run_backend.cpu0.o
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk '{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t*/"}' > ../cpu0_verilog/raw/cpu0s.hex
+
+#include <stdarg.h>
 
 #include "InitRegs.h"
 
@@ -11,14 +13,17 @@ asm("addiu $sp, $zero, 0x6ffc");
 void print_integer(int x);
 int test_operators(int x);
 int test_control();
+int sum_i(int amount, ...);
 
 int main()
 {
   int a = 0;
   a = test_operators(12); // a = 13
   print_integer(a);
-  a += test_control();	// a = 31
+  a += test_control();	// a = (128+18) = 146
   print_integer(a);
+  a = sum_i(6, 0, 1, 2, 3, 4, 5);
+  print_integer(a);    // a = 21
 
   return a;
 }
@@ -75,7 +80,7 @@ int test_operators(int x)
   int* p = &b;
   o = *p;
   
-  return (c+d+e+f+g+h+i+j+l+m+o); // (13+9+22+5+2+11+9+44+4+0+2)=121
+  return (c+d+e+f+g+h+i+j+l+m+o); // (13+9+22+5+2+11+9+44+11+0+2)=128
 }
 
 int test_control()
@@ -105,3 +110,20 @@ int test_control()
   return (b+c+d+e+f); // (2+3+4+4+5)=18
 }
 
+int sum_i(int amount, ...)
+{
+  int i = 0;
+  int val = 0;
+  int sum = 0;
+	
+  va_list vl;
+  va_start(vl, amount);
+  for (i = 0; i < amount; i++)
+  {
+    val = va_arg(vl, int);
+    sum += val;
+  }
+  va_end(vl);
+  
+  return sum; 
+}
