@@ -12,7 +12,8 @@
 module cpu0(input clock, reset, output reg [2:0] tick, 
             output reg [31:0] ir, pc, mar, mdr, inout [31:0] dbus, 
             output reg m_en, m_rw, output reg [1:0] m_size);
-  reg signed [31:0] R [0:15], HI, LO; // High and Low part of 64 bit result
+  reg signed [31:0] R [0:15], HI, LO;
+  // High and Low part of 64 bit result
   reg [7:0] op;
   reg [3:0] a, b, c;
   reg [4:0] c5;
@@ -33,13 +34,14 @@ module cpu0(input clock, reset, output reg [2:0] tick,
   `define M    `SW[0]  // Mode bit
   // Instruction Opcode 
   parameter [7:0] LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,LH=8'h06,
-  LHu=8'h07,SH=8'h08,ADDiu=8'h09,ANDi=8'h0C,ORi=8'h0D,XORi=8'h0E,
-  CMP=8'h10,ADDu=8'h11,SUBu=8'h12,ADD=8'h13,
-  SUB=8'h14,MUL=8'h15,SDIV=8'h16,AND=8'h18,OR=8'h19,XOR=8'h1A,
+  LHu=8'h07,SH=8'h08,ADDiu=8'h09,ANDi=8'h0C,ORi=8'h0D,
+  XORi=8'h0E,
+  CMP=8'h10,
+  ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,MUL=8'h15,SDIV=8'h16,
+  AND=8'h18,OR=8'h19,XOR=8'h1A,
   SRA=8'h1B,ROL=8'h1C,ROR=8'h1D,SHL=8'h1E,SHR=8'h1F,
   JEQ=8'h20,JNE=8'h21,JLT=8'h22,JGT=8'h23,JLE=8'h24,JGE=8'h25,JMP=8'h26,
   SWI=8'h2A,JSUB=8'h2B,RET=8'h2C,IRET=8'h2D,JALR=8'h2E,
-  PUSH=8'h30,POP=8'h31,PUSHB=8'h32,POPB=8'h33,
   MFHI=8'h40,MFLO=8'h41,MTHI=8'h42,MTLO=8'h43,MULT=8'h50;
   
   reg [2:0] state, next_state;
@@ -147,6 +149,15 @@ module cpu0(input clock, reset, output reg [2:0] tick,
                                   // SHR Ra,Rb,Cx; Ra<=(Rb&0x80000000)|(Rb>>Cx)
       SHR:   regSet(a, Rb>>c5);     // Shift Right with 0 fill; 
                                   // SHR Ra,Rb,Cx; Ra<=(Rb >> Cx)
+      ROL:   regSet(a, (Rb<<c5)|(Rb>>(32-c5)));     // Rotate Left;
+      ROR:   regSet(a, (Rb>>c5)|(Rb<<(32-c5)));     // Rotate Right;
+      MFLO: regSet(a, LO);            // MFLO Ra; Ra<=LO
+      MFHI: regSet(a, HI);            // MFHI Ra; Ra<=HI
+      MTLO: LO = Ra;             // MTLO Ra; LO<=Ra
+      MTHI: HI = Ra;             // MTHI Ra; HI<=Ra
+      MULT: {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
+                            // LO<=((Ra*Rb) and 0x00000000ffffffff);
+                            // with exception overflow
       // Jump Instructions
       JEQ: if (`Z) `PC=`PC+c24;            // JEQ Cx; if SW(=) PC  PC+Cx
       JNE: if (!`Z) `PC=`PC+c24;           // JNE Cx; if SW(!=) PC PC+Cx
@@ -164,21 +175,14 @@ module cpu0(input clock, reset, output reg [2:0] tick,
       IRET:begin 
         `PC=`LR;`I = 1'b0; 
       end // Interrupt Return; IRET; PC <= LR; INT<=0
-      MULT: {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
-                            // LO<=((Ra*Rb) and 0x00000000ffffffff);
-                            // with exception overflow
-      MFLO: regSet(a, LO);            // MFLO Ra; Ra<=LO
-      MFHI: regSet(a, HI);            // MFHI Ra; Ra<=HI
-      MTLO: LO = Ra;             // MTLO Ra; LO<=Ra
-      MTHI: HI = Ra;             // MTHI Ra; HI<=Ra
       endcase
       next_state = WriteBack;
     end
     WriteBack: begin // Read/Write finish, close memory
       case (op)
-        LD, LB, LBu, LH, LHu, POP, POPB  : memReadEnd(R[a]); 
+        LD, LB, LBu, LH, LHu  : memReadEnd(R[a]); 
                                           //read memory complete
-        ST, SB, SH, PUSH, PUSHB: memWriteEnd(); 
+        ST, SB, SH: memWriteEnd(); 
                                           // write memory complete
       endcase
       case (op)
@@ -189,7 +193,7 @@ module cpu0(input clock, reset, output reg [2:0] tick,
         if (R[b]+c16 == `IOADDR)
           $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);
         else
-          $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d   SW=%8x", $stime, pc0, ir, 
+          $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d  SW=%8x", $stime, pc0, ir, 
           R[b], c16, R[a], `SW);
       default : 
         $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a, 
@@ -214,9 +218,11 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
 
   integer i;
   initial begin
+  // erase memory
     for (i=0; i < `MEMSIZE; i=i+1) begin
        m[i] = `MEMEMPTY;
     end
+  // display memory contents
     $readmemh("cpu0s.hex", m);
     for (i=0; i < `MEMSIZE && m[i] != `MEMEMPTY; i=i+4) begin
        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});

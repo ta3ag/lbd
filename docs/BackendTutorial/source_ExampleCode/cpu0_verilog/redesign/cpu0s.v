@@ -202,7 +202,7 @@ module cpu0(input clock, reset, output reg [2:0] tick,
         if (R[b]+c16 == `IOADDR)
           $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);
         else
-          $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d   SW=%8x", $stime, pc0, ir, 
+          $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d  SW=%8x", $stime, pc0, ir, 
           R[b], c16, R[a], SW);
       default : 
         $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a, 
@@ -228,9 +228,11 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
 
   integer i;
   initial begin
+  // erase memory
     for (i=0; i < `MEMSIZE; i=i+1) begin
        m[i] = `MEMEMPTY;
     end
+  // display memory contents
     $readmemh("cpu0s.hex", m);
     for (i=0; i < `MEMSIZE && m[i] != `MEMEMPTY; i=i+4) begin
        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
