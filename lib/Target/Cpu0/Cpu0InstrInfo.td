@@ -76,6 +76,12 @@ def brtarget    : Operand<OtherVT> {
   let DecoderMethod = "DecodeBranchTarget";
 }
 
+def jmptarget    : Operand<OtherVT> {
+  let EncoderMethod = "getJumpTargetOpValue";
+  let OperandType = "OPERAND_PCREL";
+  let DecoderMethod = "DecodeJumpRelativeTarget";
+}
+
 def calltarget  : Operand<iPTR> {
   let EncoderMethod = "getJumpTargetOpValue";
 }
@@ -298,13 +304,12 @@ class SetCC_I<bits<8> op, string instr_asm, PatFrag cond_op, Operand Od,
 
 // Unconditional branch, such as JMP
 class UncondBranch<bits<8> op, string instr_asm>:
-  FJ<op, (outs), (ins brtarget:$addr),
+  FJ<op, (outs), (ins jmptarget:$addr),
              !strconcat(instr_asm, "\t$addr"), [(br bb:$addr)], IIBranch> {
   let isBranch = 1;
   let isTerminator = 1;
   let isBarrier = 1;
   let hasDelaySlot = 0;
-  let DecoderMethod = "DecodeJumpRelativeTarget";
 }
 
 let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
@@ -451,7 +456,7 @@ defm LHu    : LoadM32<0x07, "lhu", zextloadi16_a>;
 defm SH     : StoreM32<0x08, "sh", truncstorei16_a>;
 
 /// Arithmetic Instructions (ALU Immediate)
-// add defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
+// IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
 def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
 def SLTi    : SetCC_I<0x0a, "slti", setlt, simm16, immSExt16, CPURegs>;
 def SLTiu   : SetCC_I<0x0b, "sltiu", setult, simm16, immSExt16, CPURegs>;
@@ -472,29 +477,29 @@ def AND     : ArithLogicR<0x18, "and", and, IIAlu, CPURegs, 1>;
 def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
 def XOR     : ArithLogicR<0x1A, "xor", xor, IIAlu, CPURegs, 1>;
 
-def SLT     : SetCC_R<0x20, "slt", setlt, CPURegs>;
-def SLTu    : SetCC_R<0x21, "sltu", setult, CPURegs>;
+def SLT     : SetCC_R<0x30, "slt", setlt, CPURegs>;
+def SLTu    : SetCC_R<0x31, "sltu", setult, CPURegs>;
 
-def MFHI    : MoveFromLOHI<0x22, "mfhi", CPURegs, [HI]>;
-def MFLO    : MoveFromLOHI<0x23, "mflo", CPURegs, [LO]>;
-def MTHI    : MoveToLOHI<0x24, "mthi", CPURegs, [HI]>;
-def MTLO    : MoveToLOHI<0x25, "mtlo", CPURegs, [LO]>;
+def MULT    : Mult32<0x50, "mult", IIImul>;
+def MULTu   : Mult32<0x51, "multu", IIImul>;
 
-def MULT    : Mult32<0x26, "mult", IIImul>;
-def MULTu   : Mult32<0x27, "multu", IIImul>;
+def MFHI    : MoveFromLOHI<0x40, "mfhi", CPURegs, [HI]>;
+def MFLO    : MoveFromLOHI<0x41, "mflo", CPURegs, [LO]>;
+def MTHI    : MoveToLOHI<0x42, "mthi", CPURegs, [HI]>;
+def MTLO    : MoveToLOHI<0x43, "mtlo", CPURegs, [LO]>;
 
 /// Shift Instructions
-// work, sra for ashr llvm IR instruction
+// sra is IR node for ashr llvm IR instruction of .bc
 def SRA     : shift_rotate_imm32<0x1B, 0x00, "sra", sra>;
 def ROL     : shift_rotate_imm32<0x1C, 0x01, "rol", rotl>;
 def ROR     : shift_rotate_imm32<0x1D, 0x01, "ror", rotr>;
 def SHL     : shift_rotate_imm32<0x1E, 0x00, "shl", shl>;
-// work, srl for lshr llvm IR instruction
+// srl is IR node for lshr llvm IR instruction of .bc
 def SHR     : shift_rotate_imm32<0x1F, 0x00, "shr", srl>;
 
 /// Jump and Branch Instructions
-def BEQ     : CBranch<0x27, "beq", seteq, CPURegs>;
-def BNE     : CBranch<0x28, "bne", setne, CPURegs>;
+def BEQ     : CBranch<0x20, "beq", seteq, CPURegs>;
+def BNE     : CBranch<0x21, "bne", setne, CPURegs>;
 
 def JMP     : UncondBranch<0x26, "jmp">;
 

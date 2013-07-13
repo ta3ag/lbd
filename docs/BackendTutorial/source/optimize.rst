@@ -378,72 +378,24 @@ Redesign Cpu0 instruction set and remap OP code as follows (OP code
 	  - Shift right
 	  - SHR Ra, Rb, Cx
 	  - Ra <= Rb >> Cx
-	* - A
-	  - SLT
+   	* - L
+	  - BEQ
 	  - 20
-	  - Set less Then
-	  - SLT Ra, Rb, Rc
-	  - Ra <= (Rb < Rc)
-	* - A
-	  - SLT
+	  - Jump if equal
+	  - BEQ Ra, Rb, Cx
+	  - if (Ra==Rb), PC <= PC + Cx
+   	* - L
+	  - BNE
 	  - 21
-	  - SLT unsigned
-	  - SLTu Ra, Rb, Rc
-	  - Ra <= (Rb < Rc)
-   	* - L
-	  - MFHI
-	  - 22
-	  - Move HI to GPR
-	  - MFHI Ra
-	  - Ra <= HI
-   	* - L
-	  - MFLO
-	  - 23
-	  - Move LO to GPR
-	  - MFLO Ra
-	  - Ra <= LO
-   	* - L
-	  - MTHI
-	  - 24
-	  - Move GPR to HI
-	  - MTHI Ra
-	  - HI <= Ra
-   	* - L
-	  - MTLO
-	  - 25
-	  - Move GPR to LO
-	  - MTLO Ra
-	  - LO <= Ra
-   	* - L
-	  - MULT
-	  - 26
-	  - Multiply for 64 bits result
-	  - MULT Ra, Rb
-	  - (HI,LO) <= MULT(Ra,Rb)
-   	* - L
-	  - MULTU
-	  - 27
-	  - MULT for unsigned 64 bits
-	  - MULTU Ra, Rb
-	  - (HI,LO) <= MULTU(Ra,Rb)
+	  - Jump if not equal
+	  - BNE Ra, Rb, Cx
+	  - if (Ra!=Rb), PC <= PC + Cx
    	* - J
 	  - JMP
 	  - 26
 	  - Jump (unconditional)
 	  - JMP Cx
 	  - PC <= PC + Cx
-   	* - L
-	  - BEQ
-	  - 27
-	  - Jump if equal
-	  - BEQ Ra, Rb, Cx
-	  - if (Ra==Rb), PC <= PC + Cx
-   	* - L
-	  - BNE
-	  - 28
-	  - Jump if not equal
-	  - BNE Ra, Rb, Cx
-	  - if (Ra!=Rb), PC <= PC + Cx
    	* - J
 	  - SWI
 	  - 2A
@@ -474,6 +426,54 @@ Redesign Cpu0 instruction set and remap OP code as follows (OP code
 	  - Jump to subroutine
 	  - JR Rb
 	  - LR <= PC; PC <= Rb
+	* - A
+	  - SLT
+	  - 30
+	  - Set less Then
+	  - SLT Ra, Rb, Rc
+	  - Ra <= (Rb < Rc)
+	* - A
+	  - SLTu
+	  - 31
+	  - SLT unsigned
+	  - SLTu Ra, Rb, Rc
+	  - Ra <= (Rb < Rc)
+   	* - L
+	  - MFHI
+	  - 40
+	  - Move HI to GPR
+	  - MFHI Ra
+	  - Ra <= HI
+   	* - L
+	  - MFLO
+	  - 41
+	  - Move LO to GPR
+	  - MFLO Ra
+	  - Ra <= LO
+   	* - L
+	  - MTHI
+	  - 42
+	  - Move GPR to HI
+	  - MTHI Ra
+	  - HI <= Ra
+   	* - L
+	  - MTLO
+	  - 43
+	  - Move GPR to LO
+	  - MTLO Ra
+	  - LO <= Ra
+   	* - L
+	  - MULT
+	  - 50
+	  - Multiply for 64 bits result
+	  - MULT Ra, Rb
+	  - (HI,LO) <= MULT(Ra,Rb)
+   	* - L
+	  - MULTU
+	  - 51
+	  - MULT for unsigned 64 bits
+	  - MULTU Ra, Rb
+	  - (HI,LO) <= MULTU(Ra,Rb)
 	  
 
 As above, the OPu, such as ADDu is for unsigned integer or No Trigger 
@@ -1020,21 +1020,21 @@ Cpu0 Verilog language changes
 Run the redesigned Cpu0
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Run Chapter11_2/ with ch11_2.cpp to get result as below. 
-It match the expect value as comment in ch11_2.cpp.
+Run Chapter11_2/ with ch_run_backend.cpp to get result as below. 
+It match the expect value as comment in ch_run_backend.cpp.
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch11_2.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch11_2.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
     :lines: 8-
     :linenos:
 
 .. code-block:: bash
 
   118-165-77-203:InputFiles Jonathan$ clang -target `llvm-config --host-target` 
-  -c ch11_2.cpp -emit-llvm -o ch11_2.bc
+  -c ch_run_backend.cpp -emit-llvm -o ch_run_backend.bc
   118-165-77-203:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=obj -stats 
-  ch11_2.bc -o ch11_2.cpu0.o
+  ch_run_backend.bc -o ch_run_backend.cpu0.o
   ===-------------------------------------------------------------------------===
                             ... Statistics Collected ...
   ===-------------------------------------------------------------------------===
@@ -1043,7 +1043,7 @@ It match the expect value as comment in ch11_2.cpp.
     ...
   
   118-165-77-203:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llvm-objdump -d ch11_2.cpu0.o | tail -n +6| awk '{print "/* " $1 
+  bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk '{print "/* " $1 
   " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t
 
   118-165-77-203:redesign Jonathan$ ./cpu0s

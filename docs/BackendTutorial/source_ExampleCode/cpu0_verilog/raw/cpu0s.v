@@ -40,9 +40,11 @@ module cpu0(input clock, reset, output reg [2:0] tick,
   ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,MUL=8'h15,SDIV=8'h16,
   AND=8'h18,OR=8'h19,XOR=8'h1A,
   SRA=8'h1B,ROL=8'h1C,ROR=8'h1D,SHL=8'h1E,SHR=8'h1F,
-  JEQ=8'h20,JNE=8'h21,JLT=8'h22,JGT=8'h23,JLE=8'h24,JGE=8'h25,JMP=8'h26,
+  JEQ=8'h20,JNE=8'h21,JLT=8'h22,JGT=8'h23,JLE=8'h24,JGE=8'h25,
+  JMP=8'h26,
   SWI=8'h2A,JSUB=8'h2B,RET=8'h2C,IRET=8'h2D,JALR=8'h2E,
-  MFHI=8'h40,MFLO=8'h41,MTHI=8'h42,MTLO=8'h43,MULT=8'h50;
+  MFHI=8'h40,MFLO=8'h41,MTHI=8'h42,MTLO=8'h43,
+  MULT=8'h50;
   
   reg [2:0] state, next_state;
   parameter Reset=3'h0, Fetch=3'h1, Decode=3'h2, Execute=3'h3, WriteBack=3'h4;
