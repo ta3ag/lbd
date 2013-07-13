@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.15',
+        VERSION:     '3.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -56,8 +56,7 @@
 <span id="sec-appendix-installing"></span><h1>Appendix A: Getting Started: Installing LLVM and the Cpu0 example code<a class="headerlink" href="#appendix-a-getting-started-installing-llvm-and-the-cpu0-example-code" title="Permalink to this headline">¶</a></h1>
 <p>This book is on the process of merging into llvm trunk but not finished
 yet.
-The merged llvm trunk version on my git hub is LLVM 3.3 of merged date
-2013/03/28.
+The merged llvm trunk version on my git hub is LLVM 3.3 relased.
 So, you have to get book example code and the based llvm trunk by git command
 as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>git clone https://github.com/Jonathan2251/lbd.git
@@ -138,7 +137,7 @@ Open <em class="menuselection">System Preferences ‣ Security &amp; Privacy</em
 the radio button next to &#8220;Anywhere.&#8221; See <a class="pageref" href="#install-f2">Figure  1</a> below for an
 illustration. You may want to revert this setting after installing cmake.</p>
 <div class="figure align-center" id="install-f2">
-<img alt="_images/23.png" src="_images/23.png" />
+<img alt="_images/24.png" src="_images/24.png" />
 <p class="caption">Figure 1: Adjusting Mac OS X security settings to allow cmake installation.</p>
 </div>
 <p>Alternatively, you can mount the cmake .dmg image file you downloaded, right
@@ -163,7 +162,7 @@ First, create LLVM.xcodeproj as
 <a class="pageref" href="#install-f4">Figure  3</a>,
 and then click <strong>Done</strong> button to get <a class="pageref" href="#install-f5">Figure  4</a>.</p>
 <div class="figure align-center" id="install-f3">
-<img alt="_images/32.png" src="_images/32.png" />
+<img alt="_images/33.png" src="_images/33.png" />
 <p class="caption">Figure 2: Start to create LLVM.xcodeproj by cmake</p>
 </div>
 <div class="figure align-center" id="install-f4">
@@ -487,7 +486,7 @@ Then select <strong>“Front document&#8217;s file”</strong> as <a class="page
 <p class="caption">Figure 13: Select Hex Dump menu</p>
 </div>
 <div class="figure align-center" id="install-f15">
-<img alt="_images/151.png" src="_images/151.png" />
+<img alt="_images/15.png" src="_images/15.png" />
 <p class="caption">Figure 14: Select Front document&#8217;s file in TextWrangler</p>
 </div>
 <p>Install binutils by command <tt class="docutils literal"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">binutils</span></tt> as follows,</p>
@@ -618,7 +617,7 @@ command <tt class="docutils literal"><span class="pre">make</span></tt> in cpu0 
 <span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>git clone https://github.com/Jonathan2251/lbd.git src
 <span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>cp -rf src/lib/Target/Cpu0/
 LLVMBackendTutorialExampleCode/src_files_modify/modify/src/* src/.
-<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>grep -R <span class="s2">&quot;Cpu0&quot;</span> src/inlcude
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>grep -R <span class="s2">&quot;cpu0&quot;</span> src/include
 src/include//llvm/ADT/Triple.h:    cpu0,    // For Tutorial Backend Cpu0
 src/include//llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
 src/include//llvm/MC/MCExpr.h:    VK_Cpu0_GOT_CALL,
@@ -633,7 +632,7 @@ CMakeLists.txt                Cpu0InstrInfo.td        Cpu0TargetMachine.cpp   Ta
 Cpu0.h                        Cpu0RegisterInfo.td     ExampleCode             readme
 Cpu0.td                       Cpu0Schedule.td         LLVMBuild.txt
 Cpu0InstrFormats.td   Cpu0Subtarget.h         MCTargetDesc
-<span class="o">[</span>Gamma@localhost Cpu0<span class="o">]</span><span class="nv">$ </span><span class="nb">cd</span> ../../../..
+<span class="o">[</span>Gamma@localhost Cpu0<span class="o">]</span><span class="nv">$ </span><span class="nb">cd</span> ../../../../..
 <span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
 /usr/local/llvm/test
 </pre></div>

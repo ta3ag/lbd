@@ -795,3 +795,11 @@ The book of “Computer Organization and Design: The Hardware/Software Interface
 “Computer Architecture: A Quantitative Approach” (there are 5 editions until 
 the book is written) is more complicate and deep in CPU architecture. 
 
+Above two books use Mips CPU as example since Mips is more RISC-like than other 
+market CPUs. ARM serials of CPU dominate the embedded market especially in 
+mobile phone and other portable devices. The following book is good which I am 
+reading now.
+
+ARM System Developer's Guide: Designing and Optimizing System Software 
+(The Morgan Kaufmann Series in Computer Architecture and Design).
+

@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.15',
+        VERSION:     '3.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -87,7 +87,6 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="backendstructure.html">Backend structure</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="backendstructure.html#targetmachine-structure">TargetMachine structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="backendstructure.html#add-registerinfo">Add RegisterInfo</a></li>
 <li class="toctree-l2"><a class="reference internal" href="backendstructure.html#add-asmprinter">Add AsmPrinter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="backendstructure.html#llvm-code-generation-sequence">LLVM Code Generation Sequence</a></li>
 <li class="toctree-l2"><a class="reference internal" href="backendstructure.html#dag-directed-acyclic-graph">DAG (Directed Acyclic Graph)</a></li>
@@ -119,8 +118,9 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="globalvar.html">Global variables, structs and arrays, other type</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="globalvar.html#global-variable">Global variable</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="globalvar.html#cpu0-global-variable-options">Cpu0 global variable options</a></li>
 <li class="toctree-l3"><a class="reference internal" href="globalvar.html#static-mode">Static mode</a></li>
-<li class="toctree-l3"><a class="reference internal" href="globalvar.html#pic-mode">PIC mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="globalvar.html#pic-mode">pic mode</a></li>
 <li class="toctree-l3"><a class="reference internal" href="globalvar.html#global-variable-print-support">Global variable print support</a></li>
 <li class="toctree-l3"><a class="reference internal" href="globalvar.html#summary">Summary</a></li>
 </ul>
@@ -138,14 +138,19 @@
 <li class="toctree-l2"><a class="reference internal" href="funccall.html#mips-stack-frame">Mips stack frame</a></li>
 <li class="toctree-l2"><a class="reference internal" href="funccall.html#load-incoming-arguments-from-stack-frame">Load incoming arguments from stack frame</a></li>
 <li class="toctree-l2"><a class="reference internal" href="funccall.html#store-outgoing-arguments-to-stack-frame">Store outgoing arguments to stack frame</a></li>
-<li class="toctree-l2"><a class="reference internal" href="funccall.html#fix-the-wrong-offset-in-storing-arguments-to-stack-frame">Fix the wrong offset in storing arguments to stack frame</a></li>
-<li class="toctree-l2"><a class="reference internal" href="funccall.html#pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup">Pseudo hook instruction ADJCALLSTACKDOWN and ADJCALLSTACKUP</a></li>
-<li class="toctree-l2"><a class="reference internal" href="funccall.html#handle-gp-register-in-pic-addressing-mode">Handle $gp register in PIC addressing mode</a></li>
-<li class="toctree-l2"><a class="reference internal" href="funccall.html#variable-number-of-arguments">Variable number of arguments</a></li>
-<li class="toctree-l2"><a class="reference internal" href="funccall.html#correct-the-return-of-main">Correct the return of main()</a></li>
-<li class="toctree-l2"><a class="reference internal" href="funccall.html#verify-div-for-operator">Verify DIV for operator %</a></li>
-<li class="toctree-l2"><a class="reference internal" href="funccall.html#structure-type-support">Structure type support</a></li>
-<li class="toctree-l2"><a class="reference internal" href="funccall.html#dynamic-stack-allocation-support">Dynamic stack allocation support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="funccall.html#fix-issues">Fix issues</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="funccall.html#fix-the-wrong-offset-in-storing-arguments-to-stack-frame">Fix the wrong offset in storing arguments to stack frame</a></li>
+<li class="toctree-l3"><a class="reference internal" href="funccall.html#pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup">Pseudo hook instruction ADJCALLSTACKDOWN and ADJCALLSTACKUP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="funccall.html#handle-gp-register-in-pic-addressing-mode">Handle $gp register in PIC addressing mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="funccall.html#correct-the-return-of-main">Correct the return of main()</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="funccall.html#support-features">Support features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="funccall.html#structure-type-support">Structure type support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="funccall.html#variable-number-of-arguments">Variable number of arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="funccall.html#dynamic-stack-allocation-support">Dynamic stack allocation support</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="funccall.html#summary-of-this-chapter">Summary of this chapter</a></li>
 </ul>
 </li>
@@ -158,6 +163,12 @@
 <li class="toctree-l2"><a class="reference internal" href="elf.html#llvm-objdump">llvm-objdump</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="elf.html#llvm-objdump-t-r">llvm-objdump -t -r</a></li>
 <li class="toctree-l3"><a class="reference internal" href="elf.html#llvm-objdump-d">llvm-objdump -d</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="elf.html#dynamic-link">Dynamic link</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="elf.html#linker-support">Linker support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="elf.html#principle">Principle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="elf.html#trace-with-lldb">Trace with lldb</a></li>
 </ul>
 </li>
 </ul>

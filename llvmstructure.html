@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.15',
+        VERSION:     '3.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -90,9 +90,10 @@ illustrated in <a class="pageref" href="#llvmstructure-f1">Figure  1</a> below.<
 </div>
 <p>The registers are used for the following purposes:</p>
 <table border="1" class="docutils">
+<caption>Cpu0 registers purposes</caption>
 <colgroup>
-<col width="21%" />
-<col width="79%" />
+<col width="29%" />
+<col width="71%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Register</th>
@@ -144,22 +145,25 @@ operations, and J-type instructions that are typically used when altering contro
 (i.e. jumps).  <a class="pageref" href="#llvmstructure-f2">Figure  2</a> illustrates how the bitfields are broken
 down for each type of instruction.</p>
 <div class="figure align-center" id="llvmstructure-f2">
-<img alt="_images/24.png" src="_images/24.png" />
+<img alt="_images/25.png" src="_images/25.png" />
 <p class="caption">Figure 2: Cpu0&#8217;s three instruction formats</p>
 </div>
 <p>The following table details the Cpu0 instruction set:</p>
+<ul class="simple">
+<li>First column F.: meaning Format.</li>
+</ul>
 <table border="1" class="docutils">
 <caption>Cpu0 Instruction Set</caption>
 <colgroup>
-<col width="8%" />
+<col width="3%" />
 <col width="11%" />
 <col width="8%" />
-<col width="29%" />
-<col width="18%" />
-<col width="26%" />
+<col width="31%" />
+<col width="19%" />
+<col width="28%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head">Format</th>
+<tr class="row-odd"><th class="head">F.</th>
 <th class="head">Mnemonic</th>
 <th class="head">Opcode</th>
 <th class="head">Meaning</th>
@@ -231,19 +235,47 @@ down for each type of instruction.</p>
 <td>ADDiu Ra, Rb, Cx</td>
 <td>Ra &lt;= (Rb + Cx)</td>
 </tr>
-<tr class="row-odd"><td>A</td>
+<tr class="row-odd"><td>L</td>
+<td>ANDi</td>
+<td>0C</td>
+<td>AND imm</td>
+<td>ANDi Ra, Rb, Cx</td>
+<td>Ra &lt;= (Rb &amp; Cx)</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>ORi</td>
+<td>0D</td>
+<td>OR</td>
+<td>ORi Ra, Rb, Cx</td>
+<td>Ra &lt;= (Rb | Cx)</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>XORi</td>
+<td>0E</td>
+<td>XOR</td>
+<td>XORi Ra, Rb, Cx</td>
+<td>Ra &lt;= (Rb ^ Cx)</td>
+</tr>
+<tr class="row-even"><td>A</td>
 <td>CMP</td>
 <td>10</td>
 <td>Compare</td>
 <td>CMP Ra, Rb</td>
 <td>SW &lt;= (Ra cond Rb) <a class="footnote-reference" href="#cond-note" id="id4">[3]</a></td>
 </tr>
+<tr class="row-odd"><td>A</td>
+<td>ADDu</td>
+<td>11</td>
+<td>Add unsigned</td>
+<td>ADD Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb + Rc</td>
+</tr>
 <tr class="row-even"><td>A</td>
-<td>MOV</td>
+<td>SUBu</td>
 <td>12</td>
-<td>Move</td>
-<td>MOV Ra, Rb</td>
-<td>Ra &lt;= Rb</td>
+<td>Sub unsigned</td>
+<td>SUB Ra, Rb, Rc</td>
+<td>Ra &lt;= Rb - Rc</td>
 </tr>
 <tr class="row-odd"><td>A</td>
 <td>ADD</td>
@@ -396,7 +428,7 @@ down for each type of instruction.</p>
 <td>RET</td>
 <td>2C</td>
 <td>Return from subroutine</td>
-<td>RET Cx</td>
+<td>RET LR</td>
 <td>PC &lt;= LR</td>
 </tr>
 <tr class="row-odd"><td>J</td>
@@ -407,39 +439,11 @@ down for each type of instruction.</p>
 <td>PC &lt;= LR; INT 0</td>
 </tr>
 <tr class="row-even"><td>J</td>
-<td>JR</td>
+<td>JALR</td>
 <td>2E</td>
 <td>Jump to subroutine</td>
 <td>JR Rb</td>
 <td>LR &lt;= PC; PC &lt;= Rb</td>
-</tr>
-<tr class="row-odd"><td>A</td>
-<td>PUSH</td>
-<td>30</td>
-<td>Push word</td>
-<td>PUSH Ra</td>
-<td>[SP] &lt;= Ra; SP -= 4</td>
-</tr>
-<tr class="row-even"><td>A</td>
-<td>POP</td>
-<td>31</td>
-<td>Pop word</td>
-<td>POP Ra</td>
-<td>Ra &lt;= [SP]; SP += 4</td>
-</tr>
-<tr class="row-odd"><td>A</td>
-<td>PUSHB</td>
-<td>32</td>
-<td>Push byte</td>
-<td>PUSHB Ra</td>
-<td>[SP] &lt;= (byte)Ra; SP -= 4</td>
-</tr>
-<tr class="row-even"><td>A</td>
-<td>POPB</td>
-<td>33</td>
-<td>Pop word</td>
-<td>POP Ra</td>
-<td>Ra &lt;= (byte)[SP]; SP += 4</td>
 </tr>
 <tr class="row-odd"><td>L</td>
 <td>MFHI</td>
@@ -492,7 +496,7 @@ down for each type of instruction.</p>
 Carry (C), Overflow (V), and Interrupt (I), Trap (T), and Mode (M) boolean flags.
 The bit layout of the SW register is shown in <a class="pageref" href="#llvmstructure-f3">Figure  3</a> below.</p>
 <div class="figure align-center" id="llvmstructure-f3">
-<img alt="_images/33.png" src="_images/33.png" />
+<img alt="_images/34.png" src="_images/34.png" />
 <p class="caption">Figure 3: Cpu0 status word (SW) register</p>
 </div>
 <p>When a CMP Ra, Rb instruction executes, the condition flags will change. For example:</p>
@@ -846,7 +850,13 @@ are not modified by instructions during execution.</p>
 61
 62
 63
-64</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0RegisterInfo.td - Cpu0 Register defs -----------*- tablegen -*-===//</span>
+64
+65
+66
+67
+68
+69
+70</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0RegisterInfo.td - Cpu0 Register defs -----------*- tablegen -*-===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -874,27 +884,27 @@ are not modified by instructions during execution.</p>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">//  Registers</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
-
+<span class="c1">// The register string, such as &quot;9&quot; or &quot;gp&quot; will show on &quot;llvm-objdump -d&quot;</span>
 <span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span> <span class="n">in</span> <span class="p">{</span>
   <span class="c1">// General Purpose Registers</span>
-  <span class="n">def</span> <span class="n">ZERO</span> <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;ZERO&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">AT</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;AT&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">ZERO</span> <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;zero&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">AT</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;1&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">V0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;2&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">V1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">3</span><span class="p">,</span> <span class="s">&quot;3&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">A0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&quot;4&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">A1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">5</span><span class="p">,</span> <span class="s">&quot;5&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">T9</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">6</span><span class="p">,</span> <span class="s">&quot;6&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">T9</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">6</span><span class="p">,</span> <span class="s">&quot;t9&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">S0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">7</span><span class="p">,</span> <span class="s">&quot;7&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">S1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">8</span><span class="p">,</span> <span class="s">&quot;8&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">S2</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">9</span><span class="p">,</span> <span class="s">&quot;9&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">GP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">10</span><span class="p">,</span> <span class="s">&quot;GP&quot;</span><span class="o">&gt;</span><span class="p">,</span>  <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">FP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">11</span><span class="p">,</span> <span class="s">&quot;FP&quot;</span><span class="o">&gt;</span><span class="p">,</span>  <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">SW</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">12</span><span class="p">,</span> <span class="s">&quot;SW&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">SP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">13</span><span class="p">,</span> <span class="s">&quot;SP&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">LR</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">14</span><span class="p">,</span> <span class="s">&quot;LR&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">PC</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">15</span><span class="p">,</span> <span class="s">&quot;PC&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">15</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="c1">//  def MAR  : Register&lt; 16, &quot;MAR&quot;&gt;,  DwarfRegNum&lt;[16]&gt;;</span>
-<span class="c1">//  def MDR  : Register&lt; 17, &quot;MDR&quot;&gt;,  DwarfRegNum&lt;[17]&gt;;</span>
+  <span class="n">def</span> <span class="n">GP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">10</span><span class="p">,</span> <span class="s">&quot;gp&quot;</span><span class="o">&gt;</span><span class="p">,</span>  <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">FP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">11</span><span class="p">,</span> <span class="s">&quot;fp&quot;</span><span class="o">&gt;</span><span class="p">,</span>  <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">SW</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">12</span><span class="p">,</span> <span class="s">&quot;sw&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">SP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">13</span><span class="p">,</span> <span class="s">&quot;sp&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">LR</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">14</span><span class="p">,</span> <span class="s">&quot;lr&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">PC</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">15</span><span class="p">,</span> <span class="s">&quot;pc&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">15</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="c1">//  def MAR  : Register&lt; 16, &quot;mar&quot;&gt;,  DwarfRegNum&lt;[16]&gt;;</span>
+<span class="c1">//  def MDR  : Register&lt; 17, &quot;mdr&quot;&gt;,  DwarfRegNum&lt;[17]&gt;;</span>
 <span class="p">}</span>
 
 <span class="c1">//===----------------------------------------------------------------------===//</span>
@@ -902,6 +912,8 @@ are not modified by instructions during execution.</p>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="n">def</span> <span class="n">CPURegs</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span>
+  <span class="c1">// Reserved</span>
+  <span class="n">ZERO</span><span class="p">,</span> <span class="n">AT</span><span class="p">,</span> 
   <span class="c1">// Return Values and Arguments</span>
   <span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">A0</span><span class="p">,</span> <span class="n">A1</span><span class="p">,</span> 
   <span class="c1">// Not preserved across procedure calls</span>
@@ -909,7 +921,11 @@ are not modified by instructions during execution.</p>
   <span class="c1">// Callee save</span>
   <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">S2</span><span class="p">,</span> 
   <span class="c1">// Reserved</span>
-  <span class="n">ZERO</span><span class="p">,</span> <span class="n">AT</span><span class="p">,</span> <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> 
+  <span class="c1">// Not preserved across procedure calls</span>
+  <span class="n">SW</span><span class="p">,</span> 
+  <span class="c1">// Reserved</span>
+  <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </td></tr></table></div>
 <p>In C++, classes typically provide a structure to lay out some data and functions,
@@ -1036,16 +1052,6 @@ class ArithLogicI&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
   FL&lt;op, (outs RC:$ra), (ins RC:$rb, Od:$imm16),
      !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
      [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu&gt; {
-  let isReMaterializable = 1;
-}
-
-// Move immediate imm16 to register ra.
-class MoveImm&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
-                  Operand Od, PatLeaf imm_type, RegisterClass RC&gt; :
-  FL&lt;op, (outs RC:$ra), (ins RC:$rb, Od:$imm16),
-     !strconcat(instr_asm, "\t$ra, $imm16"),
-     [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu&gt; {
-  let rb = 0;
   let isReMaterializable = 1;
 }
 

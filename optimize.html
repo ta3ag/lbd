@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.2.15',
+        VERSION:     '3.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -367,75 +367,72 @@ ch11_1.bc -o ch11_1.cpu0.s
  2 del-jmp        - Number of useless jmp deleted
  ...
 
-118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>cat ch11_1.cpu0.s
-      .section .mdebug.abi32
-      .previous
-      .file   <span class="s2">&quot;ch11_1.bc&quot;</span>
-      .text
-      .globl  main
-      .align  2
-      .type   main,@function
-      .ent    main                    <span class="c"># @main</span>
+  .section .mdebug.abi32
+  .previous
+  .file <span class="s2">&quot;ch11_1.bc&quot;</span>
+  .text
+  .globl  main
+  .align  2
+  .type main,@function
+  .ent  main                    <span class="c"># @main</span>
 main:
-      .frame  <span class="nv">$sp</span>,16,<span class="nv">$lr</span>
-      .mask   0x00000000,0
-      .set    noreorder
-      .set    nomacro
+  .frame  <span class="nv">$sp</span>,16,<span class="nv">$lr</span>
+  .mask   0x00000000,0
+  .set  noreorder
+  .set  nomacro
 <span class="c"># BB#0:</span>
-      addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
-      addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
-      st      <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      st      <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
-      st      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 2
-      st      <span class="nv">$4</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      ld      <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      cmp     <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-      jne     <span class="nv">$sw</span>, <span class="nv">$BB0_2</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
+  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  bne <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_2</span>
 <span class="c"># BB#1:</span>
-      ld      <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-      st      <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
 <span class="nv">$BB0_2</span>:
-      ld      <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      cmp     <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-      jne     <span class="nv">$sw</span>, <span class="nv">$BB0_4</span>
-      jmp     <span class="nv">$BB0_3</span>
+  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  bne <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_4</span>
+  jmp <span class="nv">$BB0_3</span>
 <span class="nv">$BB0_4</span>:
-      addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, -1
-      ld      <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      cmp     <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-      jgt     <span class="nv">$sw</span>, <span class="nv">$BB0_6</span>
-      jmp     <span class="nv">$BB0_5</span>
+  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, -1
+  slt <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  bne <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_6</span>
+  jmp <span class="nv">$BB0_5</span>
 <span class="nv">$BB0_3</span>:
-      ld      <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      ld      <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      add     <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-      st      <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      jmp     <span class="nv">$BB0_6</span>
+  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  jmp <span class="nv">$BB0_6</span>
 <span class="nv">$BB0_5</span>:
-      ld      <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$4</span>, <span class="nv">$3</span>, -1
-      st      <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      st      <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$2</span>, -1
+  st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
 <span class="nv">$BB0_6</span>:
-      ld      <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      cmp     <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-      jlt     <span class="nv">$sw</span>, <span class="nv">$BB0_8</span>
+  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  slti  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+  bne <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_8</span>
 <span class="c"># BB#7:</span>
-      ld      <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-      st      <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
 <span class="nv">$BB0_8</span>:
-      ld      <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
-      ret     <span class="nv">$lr</span>
-      .set    macro
-      .set    reorder
-      .end    main
+  ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
+  ret <span class="nv">$lr</span>
+  .set  macro
+  .set  reorder
+  .end  main
 <span class="nv">$tmp1</span>:
-      .size   main, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-main
+  .size main, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-main
 </pre></div>
 </div>
 <p>The terminal display &#8220;Number of useless jmp deleted&#8221; by <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-stats</span></tt> option
@@ -449,10 +446,12 @@ lines of assembly code, which meaning 10% enhance in speed and code size.</p>
 <div class="section" id="cpu0-optimization-redesign-instruction-sets">
 <h2>Cpu0 Optimization: Redesign instruction sets<a class="headerlink" href="#cpu0-optimization-redesign-instruction-sets" title="Permalink to this headline">¶</a></h2>
 <p>If you compare the cpu0 and Mips instruction sets, you will find the following,</p>
-<p>1. Mips has <strong>addu</strong> and <strong>add</strong> two different instructions for No Trigger
-Exception and Trigger Exception.</p>
-<p>2. Mips use SLT, BEQ and set the status in explicit/general register while Cpu0
-use CMP, JEQ and set status in implicit/specific register.</p>
+<ol class="arabic simple">
+<li>Mips has <strong>addu</strong> and <strong>add</strong> two different instructions for No Trigger
+Exception and Trigger Exception.</li>
+<li>Mips use SLT, BEQ and set the status in explicit/general register while Cpu0
+use CMP, JEQ and set status in implicit/specific register.</li>
+</ol>
 <p>According RISC spirits, this section will replace CMP, JEQ with Mips style
 instructions and support both Trigger and No Trigger Exception operators.
 Mips style BEQ instructions will reduce the number of branch instructions too.
@@ -461,18 +460,21 @@ Which means optimization in speed and code size.</p>
 <h3>Cpu0 new instruction sets table<a class="headerlink" href="#cpu0-new-instruction-sets-table" title="Permalink to this headline">¶</a></h3>
 <p>Redesign Cpu0 instruction set and remap OP code as follows (OP code
 0x00 is reserved for NOP operation in pipeline architecture),</p>
+<ul class="simple">
+<li>First column F.: meaning Format.</li>
+</ul>
 <table border="1" class="docutils">
 <caption>Cpu0 Instruction Set</caption>
 <colgroup>
-<col width="8%" />
+<col width="3%" />
 <col width="11%" />
 <col width="8%" />
-<col width="29%" />
-<col width="18%" />
-<col width="26%" />
+<col width="31%" />
+<col width="19%" />
+<col width="28%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head">Format</th>
+<tr class="row-odd"><th class="head">F.</th>
 <th class="head">Mnemonic</th>
 <th class="head">Opcode</th>
 <th class="head">Meaning</th>
@@ -684,61 +686,19 @@ Which means optimization in speed and code size.</p>
 <td>SHR Ra, Rb, Cx</td>
 <td>Ra &lt;= Rb &gt;&gt; Cx</td>
 </tr>
-<tr class="row-odd"><td>A</td>
-<td>SLT</td>
+<tr class="row-odd"><td>L</td>
+<td>BEQ</td>
 <td>20</td>
-<td>Set less Then</td>
-<td>SLT Ra, Rb, Rc</td>
-<td>Ra &lt;= (Rb &lt; Rc)</td>
+<td>Jump if equal</td>
+<td>BEQ Ra, Rb, Cx</td>
+<td>if (Ra==Rb), PC &lt;= PC + Cx</td>
 </tr>
-<tr class="row-even"><td>A</td>
-<td>SLT</td>
+<tr class="row-even"><td>L</td>
+<td>BNE</td>
 <td>21</td>
-<td>SLT unsigned</td>
-<td>SLTu Ra, Rb, Rc</td>
-<td>Ra &lt;= (Rb &lt; Rc)</td>
-</tr>
-<tr class="row-odd"><td>L</td>
-<td>MFHI</td>
-<td>22</td>
-<td>Move HI to GPR</td>
-<td>MFHI Ra</td>
-<td>Ra &lt;= HI</td>
-</tr>
-<tr class="row-even"><td>L</td>
-<td>MFLO</td>
-<td>23</td>
-<td>Move LO to GPR</td>
-<td>MFLO Ra</td>
-<td>Ra &lt;= LO</td>
-</tr>
-<tr class="row-odd"><td>L</td>
-<td>MTHI</td>
-<td>24</td>
-<td>Move GPR to HI</td>
-<td>MTHI Ra</td>
-<td>HI &lt;= Ra</td>
-</tr>
-<tr class="row-even"><td>L</td>
-<td>MTLO</td>
-<td>25</td>
-<td>Move GPR to LO</td>
-<td>MTLO Ra</td>
-<td>LO &lt;= Ra</td>
-</tr>
-<tr class="row-odd"><td>L</td>
-<td>MULT</td>
-<td>26</td>
-<td>Multiply for 64 bits result</td>
-<td>MULT Ra, Rb</td>
-<td>(HI,LO) &lt;= MULT(Ra,Rb)</td>
-</tr>
-<tr class="row-even"><td>L</td>
-<td>MULTU</td>
-<td>27</td>
-<td>MULT for unsigned 64 bits</td>
-<td>MULTU Ra, Rb</td>
-<td>(HI,LO) &lt;= MULTU(Ra,Rb)</td>
+<td>Jump if not equal</td>
+<td>BNE Ra, Rb, Cx</td>
+<td>if (Ra!=Rb), PC &lt;= PC + Cx</td>
 </tr>
 <tr class="row-odd"><td>J</td>
 <td>JMP</td>
@@ -746,20 +706,6 @@ Which means optimization in speed and code size.</p>
 <td>Jump (unconditional)</td>
 <td>JMP Cx</td>
 <td>PC &lt;= PC + Cx</td>
-</tr>
-<tr class="row-even"><td>L</td>
-<td>BEQ</td>
-<td>27</td>
-<td>Jump if equal</td>
-<td>BEQ Ra, Rb, Cx</td>
-<td>if (Ra==Rb), PC &lt;= PC + Cx</td>
-</tr>
-<tr class="row-odd"><td>L</td>
-<td>BNE</td>
-<td>28</td>
-<td>Jump if not equal</td>
-<td>BNE Ra, Rb, Cx</td>
-<td>if (Ra!=Rb), PC &lt;= PC + Cx</td>
 </tr>
 <tr class="row-even"><td>J</td>
 <td>SWI</td>
@@ -795,6 +741,62 @@ Which means optimization in speed and code size.</p>
 <td>Jump to subroutine</td>
 <td>JR Rb</td>
 <td>LR &lt;= PC; PC &lt;= Rb</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>SLT</td>
+<td>30</td>
+<td>Set less Then</td>
+<td>SLT Ra, Rb, Rc</td>
+<td>Ra &lt;= (Rb &lt; Rc)</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>SLTu</td>
+<td>31</td>
+<td>SLT unsigned</td>
+<td>SLTu Ra, Rb, Rc</td>
+<td>Ra &lt;= (Rb &lt; Rc)</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>MFHI</td>
+<td>40</td>
+<td>Move HI to GPR</td>
+<td>MFHI Ra</td>
+<td>Ra &lt;= HI</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>MFLO</td>
+<td>41</td>
+<td>Move LO to GPR</td>
+<td>MFLO Ra</td>
+<td>Ra &lt;= LO</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>MTHI</td>
+<td>42</td>
+<td>Move GPR to HI</td>
+<td>MTHI Ra</td>
+<td>HI &lt;= Ra</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>MTLO</td>
+<td>43</td>
+<td>Move GPR to LO</td>
+<td>MTLO Ra</td>
+<td>LO &lt;= Ra</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>MULT</td>
+<td>50</td>
+<td>Multiply for 64 bits result</td>
+<td>MULT Ra, Rb</td>
+<td>(HI,LO) &lt;= MULT(Ra,Rb)</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>MULTU</td>
+<td>51</td>
+<td>MULT for unsigned 64 bits</td>
+<td>MULTU Ra, Rb</td>
+<td>(HI,LO) &lt;= MULTU(Ra,Rb)</td>
 </tr>
 </tbody>
 </table>
@@ -1016,10 +1018,24 @@ of $2 and fill the low 16 bits of $2 to 0x0000.</p>
                                    <span class="n">MCFixupKind</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_PC16</span><span class="p">)));</span>
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
+<span class="p">...</span>
+<span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
+<span class="n">getJumpTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+                     <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JSUB</span> <span class="o">||</span> <span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JMP</span><span class="p">)</span>
+  <span class="p">...</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><pre>// Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
+<div class="highlight-c++"><pre>def jmptarget    : Operand&lt;OtherVT&gt; {
+  let EncoderMethod = "getJumpTargetOpValue";
+  let OperandType = "OPERAND_PCREL";
+  let DecoderMethod = "DecodeJumpRelativeTarget";
+}
+...
+// Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
 def immLow16Zero : PatLeaf&lt;(imm), [{
   int64_t Val = N-&gt;getSExtValue();
   return isInt&lt;32&gt;(Val) &amp;&amp; !(Val &amp; 0xffff);
@@ -1087,48 +1103,16 @@ def AND     : ArithLogicR&lt;0x18, "and", and, IIAlu, CPURegs, 1&gt;;
 def OR      : ArithLogicR&lt;0x19, "or", or, IIAlu, CPURegs, 1&gt;;
 def XOR     : ArithLogicR&lt;0x1A, "xor", xor, IIAlu, CPURegs, 1&gt;;
 
-def SLT     : SetCC_R&lt;0x20, "slt", setlt, CPURegs&gt;;
-def SLTu    : SetCC_R&lt;0x21, "sltu", setult, CPURegs&gt;;
-
-def MFHI    : MoveFromLOHI&lt;0x22, "mfhi", CPURegs, [HI]&gt;;
-def MFLO    : MoveFromLOHI&lt;0x23, "mflo", CPURegs, [LO]&gt;;
-def MTHI    : MoveToLOHI&lt;0x24, "mthi", CPURegs, [HI]&gt;;
-def MTLO    : MoveToLOHI&lt;0x25, "mtlo", CPURegs, [LO]&gt;;
-
-def MULT    : Mult32&lt;0x26, "mult", IIImul&gt;;
-def MULTu   : Mult32&lt;0x27, "multu", IIImul&gt;;
+def SLT     : SetCC_R&lt;0x30, "slt", setlt, CPURegs&gt;;
+def SLTu    : SetCC_R&lt;0x31, "sltu", setult, CPURegs&gt;;
 ...
 
 /// Jump and Branch Instructions
-def BEQ     : CBranch&lt;0x27, "beq", seteq, CPURegs&gt;;
-def BNE     : CBranch&lt;0x28, "bne", setne, CPURegs&gt;;
+def BEQ     : CBranch&lt;0x20, "beq", seteq, CPURegs&gt;;
+def BNE     : CBranch&lt;0x21, "bne", setne, CPURegs&gt;;
 
 def JMP     : UncondBranch&lt;0x26, "jmp"&gt;;
 
-/// Jump and Branch Instructions
-def SWI     : JumpLink&lt;0x2A, "swi"&gt;;
-def JSUB    : JumpLink&lt;0x2B, "jsub"&gt;;
-def JR      : JumpFR&lt;0x2C, "ret", CPURegs&gt;;
-
-let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
-    isBarrier=1, hasCtrlDep=1, addr=0 in
-  def RET   : FJ &lt;0x2C, (outs), (ins CPURegs:$target),
-                "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch&gt;;
-
-def IRET    : JumpFR&lt;0x2D, "iret", CPURegs&gt;;
-def JALR    : JumpLinkReg&lt;0x2E, "jalr", CPURegs&gt;;
-
-/// No operation
-let addr=0 in
-  def NOP   : FJ&lt;0, (outs), (ins), "nop", [], IIAlu&gt;;
-
-// FrameIndexes are legalized when they are operands from load/store
-// instructions. The same not happens for stack address copies, so an
-// add op with mem ComplexPattern is used and the stack address copy
-// can be matched. It's similar to Sparc LEA_ADDRi
-def LEA_ADDiu : EffectiveAddress&lt;"addiu\t$ra, $addr", CPURegs, mem_ea&gt; {
-  let isCodeGenOnly = 1;
-}
 
 //===----------------------------------------------------------------------===//
 //  Arbitrary patterns that map to one or more instructions
@@ -1272,6 +1256,161 @@ defm : SetgeImmPats&lt;CPURegs, SLTi, SLTiu&gt;;</pre>
 <p>As modified from above, it remove the CMP instruction, SW register and
 related code from Chapter11_1/, and change from JEQ 24bits offset to BEQ 16 bits
 offset. And more, replace &#8220;ADDiu, SHL 16&#8221; with the efficient LUi instruction.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0AnalyzeImmediate.h</p>
+<div class="highlight-c++"><div class="highlight"><pre>    <span class="kt">void</span> <span class="n">ReplaceADDiuSHLWithLUi</span><span class="p">(</span><span class="n">InstSeq</span> <span class="o">&amp;</span><span class="n">Seq</span><span class="p">);</span>
+
+    <span class="c1">/// GetShortestSeq - Find the shortest instruction sequence in SeqLs and</span>
+    <span class="c1">/// return it in Insts.</span>
+    <span class="kt">void</span> <span class="n">GetShortestSeq</span><span class="p">(</span><span class="n">InstSeqLs</span> <span class="o">&amp;</span><span class="n">SeqLs</span><span class="p">,</span> <span class="n">InstSeq</span> <span class="o">&amp;</span><span class="n">Insts</span><span class="p">);</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0AnalyzeImmediate.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// e.g. the following two instructions</span>
+<span class="c1">//  ADDiu 0x0111</span>
+<span class="c1">//  SHL 18</span>
+<span class="c1">// are replaced with</span>
+<span class="c1">//  LUi 0x444</span>
+<span class="kt">void</span> <span class="n">Cpu0AnalyzeImmediate</span><span class="o">::</span><span class="n">ReplaceADDiuSHLWithLUi</span><span class="p">(</span><span class="n">InstSeq</span> <span class="o">&amp;</span><span class="n">Seq</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// Check if the first two instructions are ADDiu and SHL and the shift amount</span>
+  <span class="c1">// is at least 16.</span>
+  <span class="k">if</span> <span class="p">((</span><span class="n">Seq</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="n">Seq</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">Opc</span> <span class="o">!=</span> <span class="n">ADDiu</span><span class="p">)</span> <span class="o">||</span>
+      <span class="p">(</span><span class="n">Seq</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">Opc</span> <span class="o">!=</span> <span class="n">SHL</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="n">Seq</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">ImmOpnd</span> <span class="o">&lt;</span> <span class="mi">16</span><span class="p">))</span>
+    <span class="k">return</span><span class="p">;</span>
+
+  <span class="c1">// Sign-extend and shift operand of ADDiu and see if it still fits in 16-bit.</span>
+  <span class="n">int64_t</span> <span class="n">Imm</span> <span class="o">=</span> <span class="n">SignExtend64</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Seq</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">ImmOpnd</span><span class="p">);</span>
+  <span class="n">int64_t</span> <span class="n">ShiftedImm</span> <span class="o">=</span> <span class="p">(</span><span class="n">uint64_t</span><span class="p">)</span><span class="n">Imm</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">Seq</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">ImmOpnd</span> <span class="o">-</span> <span class="mi">16</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ShiftedImm</span><span class="p">))</span>
+    <span class="k">return</span><span class="p">;</span>
+
+  <span class="c1">// Replace the first instruction and erase the second.</span>
+  <span class="n">Seq</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">Opc</span> <span class="o">=</span> <span class="n">LUi</span><span class="p">;</span>
+  <span class="n">Seq</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">ImmOpnd</span> <span class="o">=</span> <span class="p">(</span><span class="kt">unsigned</span><span class="p">)(</span><span class="n">ShiftedImm</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">);</span>
+  <span class="n">Seq</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">Seq</span><span class="p">.</span><span class="n">begin</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0AnalyzeImmediate</span><span class="o">::</span><span class="n">GetShortestSeq</span><span class="p">(</span><span class="n">InstSeqLs</span> <span class="o">&amp;</span><span class="n">SeqLs</span><span class="p">,</span> <span class="n">InstSeq</span> <span class="o">&amp;</span><span class="n">Insts</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">InstSeqLs</span><span class="o">::</span><span class="n">iterator</span> <span class="n">ShortestSeq</span> <span class="o">=</span> <span class="n">SeqLs</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
+  <span class="c1">// The length of an instruction sequence is at most 7.</span>
+  <span class="kt">unsigned</span> <span class="n">ShortestLength</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="n">InstSeqLs</span><span class="o">::</span><span class="n">iterator</span> <span class="n">S</span> <span class="o">=</span> <span class="n">SeqLs</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span> <span class="n">S</span> <span class="o">!=</span> <span class="n">SeqLs</span><span class="p">.</span><span class="n">end</span><span class="p">();</span> <span class="o">++</span><span class="n">S</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">ReplaceADDiuSHLWithLUi</span><span class="p">(</span><span class="o">*</span><span class="n">S</span><span class="p">);</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">S</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="mi">7</span><span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">S</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">ShortestLength</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">ShortestSeq</span> <span class="o">=</span> <span class="n">S</span><span class="p">;</span>
+      <span class="n">ShortestLength</span> <span class="o">=</span> <span class="n">S</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="n">Insts</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+  <span class="n">Insts</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">ShortestSeq</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">(),</span> <span class="n">ShortestSeq</span><span class="o">-&gt;</span><span class="n">end</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="k">const</span> <span class="n">Cpu0AnalyzeImmediate</span><span class="o">::</span><span class="n">InstSeq</span>
+<span class="o">&amp;</span><span class="n">Cpu0AnalyzeImmediate</span><span class="o">::</span><span class="n">Analyze</span><span class="p">(</span><span class="n">uint64_t</span> <span class="n">Imm</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">Size</span><span class="p">,</span>
+                               <span class="kt">bool</span> <span class="n">LastInstrIsADDiu</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">this</span><span class="o">-&gt;</span><span class="n">Size</span> <span class="o">=</span> <span class="n">Size</span><span class="p">;</span>
+
+  <span class="n">ADDiu</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">;</span>
+  <span class="n">ORi</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ORi</span><span class="p">;</span>
+  <span class="n">SHL</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SHL</span><span class="p">;</span>
+  <span class="n">LUi</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">;</span>
+
+  <span class="n">InstSeqLs</span> <span class="n">SeqLs</span><span class="p">;</span>
+
+  <span class="c1">// Get the list of instruction sequences.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">LastInstrIsADDiu</span> <span class="o">|</span> <span class="o">!</span><span class="n">Imm</span><span class="p">)</span>
+    <span class="n">GetInstSeqLsADDiu</span><span class="p">(</span><span class="n">Imm</span><span class="p">,</span> <span class="n">Size</span><span class="p">,</span> <span class="n">SeqLs</span><span class="p">);</span>
+  <span class="k">else</span>
+    <span class="n">GetInstSeqLs</span><span class="p">(</span><span class="n">Imm</span><span class="p">,</span> <span class="n">Size</span><span class="p">,</span> <span class="n">SeqLs</span><span class="p">);</span>
+
+  <span class="c1">// Set Insts to the shortest instruction sequence.</span>
+  <span class="n">GetShortestSeq</span><span class="p">(</span><span class="n">SeqLs</span><span class="p">,</span> <span class="n">Insts</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">Insts</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Above code replace addiu and shl with single instruction lui only. The effect as
+the following table.</p>
+<table border="1" class="docutils">
+<caption>Cpu0 stack adjustment new instructions</caption>
+<colgroup>
+<col width="5%" />
+<col width="18%" />
+<col width="15%" />
+<col width="31%" />
+<col width="31%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">&nbsp;</th>
+<th class="head">&nbsp;</th>
+<th class="head">&nbsp;</th>
+<th class="head">&nbsp;</th>
+<th class="head">&nbsp;</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>old</td>
+<td>x10000 ~ 0xffffffff</td>
+<td><ul class="first last simple">
+<li>0x90008000</li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li>addiu $1, $zero, -9;</li>
+<li>shl $1, $1, 28;</li>
+<li>addiu $1, $1, -32768;</li>
+<li>addu $sp, $sp, $1;</li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li>addiu $1, $zero, -28671;</li>
+<li>shl $1, $1, 16</li>
+<li>addiu $1, $1, -32768;</li>
+<li>addu $sp, $sp, $1;</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td>new</td>
+<td>x10000 ~ 0xffffffff</td>
+<td><ul class="first last simple">
+<li>0x90008000</li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li>lui $1, 28671;</li>
+<li>ori $1, $1, 32768;</li>
+<li>addu $sp, $sp, $1;</li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li>lui     $1, 36865;</li>
+<li>addiu $1, $1, -32768;</li>
+<li>addu $sp, $sp, $1;</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Assume sp = 0xa0008000 and stack size = 0x90008000, then (0xa0008000 -
+0x90008000) =&gt; 0x10000000. Verify with the Cpu0 Prologue instructions as
+follows,</p>
+<ol class="arabic simple">
+<li>&#8220;lui $1, 28671&#8221; =&gt; $1 = 0x6fff0000.</li>
+<li>&#8220;ori $1, $1, 32768&#8221; =&gt; $1 = (0x6fff0000 + 0x00008000) =&gt; $1 = 0x6fff8000.</li>
+<li>&#8220;addu        $sp, $sp, $1&#8221; =&gt; $sp = (0xa0008000 + 0x6fff8000) =&gt; $sp = 0x10000000.</li>
+</ol>
+<p>Verify with the Cpu0 Epilogue instructions with sp = 0x10000000 and stack size =
+0x90008000 as follows,</p>
+<ol class="arabic simple">
+<li>&#8220;lui $1, 36865&#8221; =&gt; $1 = 0x90010000.</li>
+<li>&#8220;addiu $1, $1, -32768&#8221; =&gt; $1 = (0x90010000 + 0xffff8000) =&gt; $1 = 0x90008000.</li>
+<li>&#8220;addu $sp, $sp, $1&#8221; =&gt; $sp = (0x10000000 + 0x90008000) =&gt; $sp = 0xa0008000.</li>
+</ol>
 </div>
 <div class="section" id="cpu0-verilog-language-changes">
 <h3>Cpu0 Verilog language changes<a class="headerlink" href="#cpu0-verilog-language-changes" title="Permalink to this headline">¶</a></h3>
@@ -1317,10 +1456,12 @@ module cpu0(input clock, reset, output reg [2:0] tick,
   ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,MUL=8'h15,DIV=8'h16,DIVu=8'h17,
   AND=8'h18,OR=8'h19,XOR=8'h1A,
   SRA=8'h1B,ROL=8'h1C,ROR=8'h1D,SHL=8'h1E,SHR=8'h1F,
-  SLT=8'h20,SLTu=8'h21,
-  MFHI=8'h22,MFLO=8'h23,MTHI=8'h24,MTLO=8'h25,MULT=8'h26,MULTu=8'h27,
-  JMP=8'h26,BEQ=8'h27,BNE=8'h28,
-  SWI=8'h2A,JSUB=8'h2B,RET=8'h2C,IRET=8'h2D,JALR=8'h2E;
+  BEQ=8'h20,BNE=8'h21,
+  JMP=8'h26,
+  SWI=8'h2A,JSUB=8'h2B,RET=8'h2C,IRET=8'h2D,JALR=8'h2E,
+  SLT=8'h30,SLTu=8'h31,
+  MFHI=8'h40,MFLO=8'h41,MTHI=8'h42,MTLO=8'h43,
+  MULT=8'h50,MULTu=8'h51;
   
   reg [2:0] state, next_state;
   parameter Reset=3'h0, Fetch=3'h1, Decode=3'h2, Execute=3'h3, WriteBack=3'h4;
@@ -1406,10 +1547,10 @@ module cpu0(input clock, reset, output reg [2:0] tick,
       // Mathematic 
       ADDiu:  R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra&lt;=Rb+Cx
 //      CMP: begin `N=(Ra-Rb&lt;0);`Z=(Ra-Rb==0); end // CMP Ra, Rb; SW=(Ra &gt;=&lt; Rb)
-      ADDu:  regSet(a, Rb+Rc);               // ADD Ra,Rb,Rc; Ra&lt;=Rb+Rc
+      ADDu:  regSet(a, Rb+Rc);               // ADDu Ra,Rb,Rc; Ra&lt;=Rb+Rc
       ADD:   begin regSet(a, Rb+Rc); if (a &lt; Rb) `V = 1; else `V =0; end
                                              // ADD Ra,Rb,Rc; Ra&lt;=Rb+Rc
-      SUBu:  regSet(a, Rb-Rc);               // SUB Ra,Rb,Rc; Ra&lt;=Rb-Rc
+      SUBu:  regSet(a, Rb-Rc);               // SUBu Ra,Rb,Rc; Ra&lt;=Rb-Rc
       SUB:   begin regSet(a, Rb-Rc); if (Rb &lt; 0 &amp;&amp; Rc &gt; 0 &amp;&amp; a &gt;= 0) 
              `V = 1; else `V =0; end         // SUB Ra,Rb,Rc; Ra&lt;=Rb-Rc
       MUL:   regSet(a, Rb*Rc);               // MUL Ra,Rb,Rc;     Ra&lt;=Rb*Rc
@@ -1419,11 +1560,11 @@ module cpu0(input clock, reset, output reg [2:0] tick,
              else `V =0; end  // DIVu Ra,Rb; HI&lt;=Ra%Rb; LO&lt;=Ra/Rb; With overflow
                                            // with exception overflow
       AND:   regSet(a, Rb&amp;Rc);               // AND Ra,Rb,Rc; Ra&lt;=(Rb and Rc)
-      ANDi:  regSet(a, Rb&amp;uc16);             // AND Ra,Rb,c16; Ra&lt;=(Rb and c16)
+      ANDi:  regSet(a, Rb&amp;uc16);             // ANDi Ra,Rb,c16; Ra&lt;=(Rb and c16)
       OR:    regSet(a, Rb|Rc);               // OR Ra,Rb,Rc; Ra&lt;=(Rb or Rc)
-      ORi:   regSet(a, Rb|uc16);             // OR Ra,Rb,c16; Ra&lt;=(Rb or c16)
+      ORi:   regSet(a, Rb|uc16);             // ORi Ra,Rb,c16; Ra&lt;=(Rb or c16)
       XOR:   regSet(a, Rb^Rc);               // XOR Ra,Rb,Rc; Ra&lt;=(Rb xor Rc)
-      XORi:  regSet(a, Rb^uc16);             // XOR Ra,Rb,c16; Ra&lt;=(Rb xor c16)
+      XORi:  regSet(a, Rb^uc16);             // XORi Ra,Rb,c16; Ra&lt;=(Rb xor c16)
       LUi:   regSet(a, uc16&lt;&lt;16);
       SHL:   regSet(a, Rb&lt;&lt;c5);     // Shift Left; SHL Ra,Rb,Cx; Ra&lt;=(Rb &lt;&lt; Cx)
       SRA:   regSet(a, (Rb&amp;'h80000000)|(Rb&gt;&gt;c5)); 
@@ -1480,7 +1621,7 @@ module cpu0(input clock, reset, output reg [2:0] tick,
         if (R[b]+c16 == `IOADDR)
           $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);
         else
-          $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d   SW=%8x", $stime, pc0, ir, 
+          $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d  SW=%8x", $stime, pc0, ir, 
           R[b], c16, R[a], SW);
       default : 
         $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a, 
@@ -1506,9 +1647,11 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
 
   integer i;
   initial begin
+  // erase memory
     for (i=0; i &lt; `MEMSIZE; i=i+1) begin
        m[i] = `MEMEMPTY;
     end
+  // display memory contents
     $readmemh("cpu0s.hex", m);
     for (i=0; i &lt; `MEMSIZE &amp;&amp; m[i] != `MEMEMPTY; i=i+4) begin
        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
@@ -1569,9 +1712,9 @@ endmodule
 </div>
 <div class="section" id="run-the-redesigned-cpu0">
 <h3>Run the redesigned Cpu0<a class="headerlink" href="#run-the-redesigned-cpu0" title="Permalink to this headline">¶</a></h3>
-<p>Run Chapter11_2/ with ch11_2.cpp to get result as below.
-It match the expect value as comment in ch11_2.cpp.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch11_2.cpp</p>
+<p>Run Chapter11_2/ with ch_run_backend.cpp to get result as below.
+It match the expect value as comment in ch_run_backend.cpp.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp</p>
 <div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
   2
   3
@@ -1694,32 +1837,31 @@ It match the expect value as comment in ch11_2.cpp.</p>
 120
 121
 122
-123
-124
-125</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">#include &quot;InitRegs.h&quot;</span>
+123</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">#include &quot;InitRegs.h&quot;</span>
 
 <span class="cp">#define OUT_MEM 0x7000 </span><span class="c1">// 28672</span>
 
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $zero, 0x6ffc&quot;</span><span class="p">);</span>
 
 <span class="kt">void</span> <span class="n">print_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">);</span>
-<span class="kt">int</span> <span class="n">test_operators</span><span class="p">();</span>
-<span class="kt">void</span> <span class="n">test_operators_asm</span><span class="p">();</span>
+<span class="kt">int</span> <span class="n">test_operators</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">);</span>
 <span class="kt">int</span> <span class="n">test_control</span><span class="p">();</span>
+<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...);</span>
 
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_operators</span><span class="p">();</span> <span class="c1">// a = 13</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_operators</span><span class="p">(</span><span class="mi">12</span><span class="p">);</span> <span class="c1">// a = 13</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
-  <span class="n">a</span> <span class="o">+=</span> <span class="n">test_control</span><span class="p">();</span>	<span class="c1">// a = 31</span>
+  <span class="n">a</span> <span class="o">+=</span> <span class="n">test_control</span><span class="p">();</span>	<span class="c1">// a = (128+18) = 146</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
-  <span class="n">test_operators_asm</span><span class="p">();</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>    <span class="c1">// a = 15</span>
 
   <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="c1">// For memory mapped I/O</span>
+<span class="c1">// For memory IO</span>
 <span class="kt">void</span> <span class="n">print_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">)</span><span class="n">OUT_MEM</span><span class="p">;</span>
@@ -1727,72 +1869,51 @@ It match the expect value as comment in ch11_2.cpp.</p>
  <span class="k">return</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="kt">int</span> <span class="n">test_operators</span><span class="p">()</span>
+<span class="kt">void</span> <span class="n">print1_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld $at, 8($sp)&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;st $at, 28672($0)&quot;</span><span class="p">);</span>
+ <span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cp">#if 0</span><span class="c"></span>
+<span class="c">// For instruction IO</span>
+<span class="c">void print2_integer(int x)</span>
+<span class="c">{</span>
+<span class="c">  asm(&quot;ld $at, 8($sp)&quot;);</span>
+<span class="c">  asm(&quot;outw $tat&quot;);</span>
+<span class="c">  return;</span>
+<span class="c">}</span>
+<span class="cp">#endif</span>
+
+<span class="kt">int</span> <span class="n">test_operators</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="n">k1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">b1</span> <span class="o">=</span> <span class="mh">0xf0000001</span><span class="p">;</span>
-  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">c1</span> <span class="o">=</span> <span class="mh">0x000fffff</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">o</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">11</span><span class="p">,</span> <span class="n">k1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
-  <span class="n">a1</span> <span class="o">=</span> <span class="n">b1</span> <span class="o">+</span> <span class="n">c1</span><span class="p">;</span>
+  <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">k</span><span class="p">);</span> <span class="c1">// 2</span>
+  <span class="n">k1</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
+  <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">k1</span><span class="p">);</span> <span class="c1">// 0x3fffffd = 1073741821</span>
   <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
-<span class="c1">//  c = 0x7fff0000 + 0x10000000;</span>
   <span class="n">d</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">;</span>
   <span class="n">e</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">;</span>
   <span class="n">f</span> <span class="o">=</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="mi">12</span><span class="p">;</span>
   <span class="n">g</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&amp;</span> <span class="n">b</span><span class="p">);</span>
   <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">|</span> <span class="n">b</span><span class="p">);</span>
   <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">^</span> <span class="n">b</span><span class="p">);</span>
   <span class="n">j</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">k</span><span class="p">);</span>
-  <span class="n">k1</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">k1</span><span class="p">);</span>
+  <span class="n">l</span> <span class="o">=</span> <span class="n">a</span> <span class="o">%</span> <span class="n">x</span><span class="p">;</span>
+  <span class="n">m</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="mi">12</span><span class="p">;</span>
 
-  <span class="n">b</span> <span class="o">=</span> <span class="o">!</span><span class="n">a</span><span class="p">;</span>
+  <span class="n">n</span> <span class="o">=</span> <span class="o">!</span><span class="n">a</span><span class="p">;</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">n</span><span class="p">);</span> <span class="c1">// 0</span>
   <span class="kt">int</span><span class="o">*</span> <span class="n">p</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">;</span>
+  <span class="n">o</span> <span class="o">=</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>
   
-  <span class="k">return</span> <span class="n">c</span><span class="p">;</span> <span class="c1">// 13</span>
-<span class="p">}</span>
-
-<span class="kt">void</span> <span class="n">test_operators_asm</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $sp, -12&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;st $2, 8($sp)&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;st $3, 4($sp)&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;st $4, 0($sp)&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $2, 0x7fff&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $3, 0x1000&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addu $4, $2, $3&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $2, 0x7fff&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $3, 0x1000&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;add $4, $2, $3&quot;</span><span class="p">);</span>	<span class="c1">// overflow</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $2, 0x8fff&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $3, 0x7000&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;sub $4, $2, $3&quot;</span><span class="p">);</span>	<span class="c1">// overflow</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $2, 0x0&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $3, $0, -1&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;sub $4, $2, $3&quot;</span><span class="p">);</span>	<span class="c1">// $4=1, no overflow</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $2, -1&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ori $2, $2, 0xffff&quot;</span><span class="p">);</span>	<span class="c1">// $2=0xffffffff=-1</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;andi $2, $2, 0xffff&quot;</span><span class="p">);</span>	<span class="c1">// $2=0x0000ffff</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;shl $2, $2, 16&quot;</span><span class="p">);</span>	<span class="c1">// $2=0xffff0000</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;xori $2, $2, 0xffff&quot;</span><span class="p">);</span>	<span class="c1">// $2=0xffffffff=-1</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $3, $0, -1&quot;</span><span class="p">);</span>	<span class="c1">// $3=0xffffffff=-1</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;divu $2, $3&quot;</span><span class="p">);</span>		<span class="c1">// HI=0, LO=1</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;div $2, $3&quot;</span><span class="p">);</span>		<span class="c1">// HI=0, LO=1, overflow</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;xori $2, $2, 1&quot;</span><span class="p">);</span>	<span class="c1">// $2 = 0xffffffffe</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;rol $4, $2, 4&quot;</span><span class="p">);</span>		<span class="c1">// $2 = 0xfffffffef</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ror $4, $2, 8&quot;</span><span class="p">);</span>		<span class="c1">// $2 = 0xfefffffff</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld $2, 8($sp)&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld $3, 4($sp)&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld $4, 0($sp)&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $sp, 12&quot;</span><span class="p">);</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">d</span><span class="o">+</span><span class="n">e</span><span class="o">+</span><span class="n">f</span><span class="o">+</span><span class="n">g</span><span class="o">+</span><span class="n">h</span><span class="o">+</span><span class="n">i</span><span class="o">+</span><span class="n">j</span><span class="o">+</span><span class="n">l</span><span class="o">+</span><span class="n">m</span><span class="o">+</span><span class="n">o</span><span class="p">);</span> <span class="c1">// (13+9+22+5+2+11+9+44+11+0+2)=128</span>
 <span class="p">}</span>
 
 <span class="kt">int</span> <span class="n">test_control</span><span class="p">()</span>
@@ -1821,13 +1942,31 @@ It match the expect value as comment in ch11_2.cpp.</p>
   
   <span class="k">return</span> <span class="p">(</span><span class="n">b</span><span class="o">+</span><span class="n">c</span><span class="o">+</span><span class="n">d</span><span class="o">+</span><span class="n">e</span><span class="o">+</span><span class="n">f</span><span class="p">);</span> <span class="c1">// (2+3+4+4+5)=18</span>
 <span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	
+  <span class="n">va_list</span> <span class="n">vl</span><span class="p">;</span>
+  <span class="n">va_start</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">amount</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">amount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">va_arg</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
+    <span class="n">sum</span> <span class="o">+=</span> <span class="n">val</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">va_end</span><span class="p">(</span><span class="n">vl</span><span class="p">);</span>
+  
+  <span class="k">return</span> <span class="n">sum</span><span class="p">;</span> 
+<span class="p">}</span>
 </pre></div>
 </td></tr></table></div>
 <div class="highlight-bash"><pre>118-165-77-203:InputFiles Jonathan$ clang -target `llvm-config --host-target`
--c ch11_2.cpp -emit-llvm -o ch11_2.bc
+-c ch_run_backend.cpp -emit-llvm -o ch_run_backend.bc
 118-165-77-203:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=obj -stats
-ch11_2.bc -o ch11_2.cpu0.o
+ch_run_backend.bc -o ch_run_backend.cpu0.o
 ===-------------------------------------------------------------------------===
                           ... Statistics Collected ...
 ===-------------------------------------------------------------------------===
@@ -1836,7 +1975,7 @@ ch11_2.bc -o ch11_2.cpu0.o
   ...
 
 118-165-77-203:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llvm-objdump -d ch11_2.cpu0.o | tail -n +6| awk '{print "/* " $1
+bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk '{print "/* " $1
 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t
 
 118-165-77-203:redesign Jonathan$ ./cpu0s
@@ -2305,128 +2444,132 @@ to 1 single instruction ether is BEQ or BNE, as follows,</p>
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch7_1_1.bc -o
 ch7_1_1.cpu0.s
 118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1_1.cpu0.s
-      .section .mdebug.abi32
-      .previous
-      .file   <span class="s2">&quot;ch7_1_1.bc&quot;</span>
-      .text
-      .globl  main
-      .align  2
-      .type   main,@function
-      .ent    main                    <span class="c"># @main</span>
+  .section .mdebug.abi32
+  .previous
+  .file <span class="s2">&quot;ch7_1_1.bc&quot;</span>
+  .text
+  .globl  main
+  .align  2
+  .type main,@function
+  .ent  main                    <span class="c"># @main</span>
 main:
-      .frame  <span class="nv">$sp</span>,40,<span class="nv">$lr</span>
-      .mask   0x00000000,0
-      .set    noreorder
-      .set    nomacro
+  .cfi_startproc
+  .frame  <span class="nv">$sp</span>,40,<span class="nv">$lr</span>
+  .mask   0x00000000,0
+  .set  noreorder
+  .set  nomacro
 <span class="c"># BB#0:</span>
-      addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -40
-      addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
-      st      <span class="nv">$3</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      st      <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
-      st      <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 2
-      st      <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 3
-      st      <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 4
-      st      <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 5
-      st      <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 6
-      st      <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 7
-      st      <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 8
-      st      <span class="nv">$4</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      ld      <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      bne     <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_2</span>
-<span class="c"># BB#1:</span>
-      ld      <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-      st      <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_2</span>:
-      ld      <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      beq     <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_4</span>
-<span class="c"># BB#3:</span>
-      ld      <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-      st      <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_4</span>:
-      ld      <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      slti    <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-      bne     <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_6</span>
-<span class="c"># BB#5:</span>
-      ld      <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-      st      <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_6</span>:
-      ld      <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      slti    <span class="nv">$4</span>, <span class="nv">$4</span>, 0
-      bne     <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_8</span>
-<span class="c"># BB#7:</span>
-      ld      <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-      st      <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_8</span>:
-      ld      <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$5</span>, <span class="nv">$zero</span>, -1
-      slt     <span class="nv">$4</span>, <span class="nv">$5</span>, <span class="nv">$4</span>
-      bne     <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_10</span>
-<span class="c"># BB#9:</span>
-      ld      <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-      st      <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_10</span>:
-      ld      <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      slt     <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-      bne     <span class="nv">$3</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_12</span>
-<span class="c"># BB#11:</span>
-      ld      <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$3</span>, <span class="nv">$3</span>, 1
-      st      <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_12</span>:
-      ld      <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      slt     <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-      bne     <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_14</span>
-<span class="c"># BB#13:</span>
-      ld      <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-      st      <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_14</span>:
-      ld      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      slti    <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-      bne     <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_16</span>
-<span class="c"># BB#15:</span>
-      ld      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-      st      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_16</span>:
-      ld      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      ld      <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      slt     <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-      beq     <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_18</span>
-<span class="c"># BB#17:</span>
-      ld      <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-      st      <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_18</span>:
-      ld      <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      ld      <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      beq     <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="nv">$BB0_20</span>
-<span class="c"># BB#19:</span>
-      ld      <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-      st      <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_20</span>:
-      ld      <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 40
-      ret     <span class="nv">$lr</span>
-      .set    macro
-      .set    reorder
-      .end    main
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -40
 <span class="nv">$tmp1</span>:
-      .size   main, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-main
+  .cfi_def_cfa_offset 40
+  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
+  st  <span class="nv">$3</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+  st  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 2
+  st  <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 3
+  st  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 4
+  st  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 5
+  st  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 6
+  st  <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 7
+  st  <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 8
+  st  <span class="nv">$4</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  bne <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_2</span>
+<span class="c"># BB#1:</span>
+  ld  <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+  st  <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_2</span>:
+  ld  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  beq <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_4</span>
+<span class="c"># BB#3:</span>
+  ld  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+  st  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_4</span>:
+  ld  <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  slti  <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+  bne <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_6</span>
+<span class="c"># BB#5:</span>
+  ld  <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+  st  <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_6</span>:
+  ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  slti  <span class="nv">$4</span>, <span class="nv">$4</span>, 0
+  bne <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_8</span>
+<span class="c"># BB#7:</span>
+  ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+  st  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_8</span>:
+  ld  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$5</span>, <span class="nv">$zero</span>, -1
+  slt <span class="nv">$4</span>, <span class="nv">$5</span>, <span class="nv">$4</span>
+  bne <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_10</span>
+<span class="c"># BB#9:</span>
+  ld  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+  st  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_10</span>:
+  ld  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  slt <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+  bne <span class="nv">$3</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_12</span>
+<span class="c"># BB#11:</span>
+  ld  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$3</span>, 1
+  st  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_12</span>:
+  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  slt <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+  bne <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_14</span>
+<span class="c"># BB#13:</span>
+  ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_14</span>:
+  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  slti  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+  bne <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_16</span>
+<span class="c"># BB#15:</span>
+  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_16</span>:
+  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  slt <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  beq <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_18</span>
+<span class="c"># BB#17:</span>
+  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_18</span>:
+  ld  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  beq <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="nv">$BB0_20</span>
+<span class="c"># BB#19:</span>
+  ld  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+  st  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_20</span>:
+  ld  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 40
+  ret <span class="nv">$lr</span>
+  .set  macro
+  .set  reorder
+  .end  main
+<span class="nv">$tmp2</span>:
+  .size main, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-main
+  .cfi_endproc
 </pre></div>
 </div>
 <p>The ch11_3.cpp is written in assembly for AsmParser test. You can check if it

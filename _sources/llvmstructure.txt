@@ -42,28 +42,30 @@ illustrated in :num:`Figure #llvmstructure-f1` below.
 
 .. _llvmstructure-f1: 
 .. figure:: ../Fig/llvmstructure/1.png
-	:align: center
+  :align: center
 
-	Architectural block diagram of the Cpu0 processor
+  Architectural block diagram of the Cpu0 processor
 
 
 The registers are used for the following purposes:
 
-============	===========
-Register		Description
-============	===========
-IR				Instruction register
-R0				Constant register, value is 0
-R1-R11			General-purpose registers
-R12				Status Word register (SW)
-R13				Stack Pointer register (SP)
-R14				Link Register (LR)
-R15				Program Counter (PC)
-MAR				Memory Address Register (MAR)
-MDR				Memory Data Register (MDR)
-HI				High part of MULT result
-LO				Low part of MULT result
-============	===========
+.. table:: Cpu0 registers purposes
+
+  ============  ===========
+  Register      Description
+  ============  ===========
+  IR            Instruction register
+  R0            Constant register, value is 0
+  R1-R11        General-purpose registers
+  R12           Status Word register (SW)
+  R13           Stack Pointer register (SP)
+  R14           Link Register (LR)
+  R15           Program Counter (PC)
+  MAR           Memory Address Register (MAR)
+  MDR           Memory Data Register (MDR)
+  HI            High part of MULT result
+  LO            Low part of MULT result
+  ============  ===========
 
 The Cpu0 Instruction Set
 ++++++++++++++++++++++++
@@ -76,294 +78,294 @@ down for each type of instruction.
 
 .. _llvmstructure-f2: 
 .. figure:: ../Fig/llvmstructure/2.png
-	:align: center
+  :align: center
 
-	Cpu0's three instruction formats
+  Cpu0's three instruction formats
 
 The following table details the Cpu0 instruction set:
 
+- First column F\.: meaning Format.
+
 .. list-table:: Cpu0 Instruction Set
-	:widths: 3 4 3 11 7 10
-	:header-rows: 1
+  :widths: 1 4 3 11 7 10
+  :header-rows: 1
 
-	* - Format
-	  - Mnemonic
-	  - Opcode
-	  - Meaning
-	  - Syntax
-	  - Operation
-	* - L
-	  - LD
-	  - 01
-	  - Load word
-	  - LD Ra, [Rb+Cx]
-	  - Ra <= [Rb+Cx]
-	* - L
-	  - ST
-	  - 02
-	  - Store word
-	  - ST Ra, [Rb+Cx]
-	  - [Rb+Cx] <= Ra
-	* - L
-	  - LB
-	  - 03
-	  - Load byte
-	  - LB Ra, [Rb+Cx]
-	  - Ra <= (byte)[Rb+Cx]
-	* - L
-	  - LBu
-	  - 04
-	  - Load byte unsigned
-	  - LBu Ra, [Rb+Cx]
-	  - Ra <= (byte)[Rb+Cx]
-	* - L
-	  - SB
-	  - 05
-	  - Store byte
-	  - SB Ra, [Rb+Cx]
-	  - [Rb+Cx] <= (byte)Ra
-	* - A
-	  - LH
-	  - 06
-	  - Load half word unsigned
-	  - LH Ra, [Rb+Cx]
-	  - Ra <= (2bytes)[Rb+Cx]
-	* - A
-	  - LHu
-	  - 07
-	  - Load half word
-	  - LHu Ra, [Rb+Cx]
-	  - Ra <= (2bytes)[Rb+Cx]
-	* - A
-	  - SH
-	  - 08
-	  - Store half word
-	  - SH Ra, [Rb+Cx]
-	  - [Rb+Rc] <= Ra
-	* - L
-	  - ADDiu
-	  - 09
-	  - Add immediate
-	  - ADDiu Ra, Rb, Cx
-	  - Ra <= (Rb + Cx)
-	* - A
-	  - CMP
-	  - 10
-	  - Compare
-	  - CMP Ra, Rb
-	  - SW <= (Ra cond Rb) [#cond-note]_
-	* - A
-	  - MOV
-	  - 12
-	  - Move
-	  - MOV Ra, Rb
-	  - Ra <= Rb
-	* - A
-	  - ADD
-	  - 13
-	  - Add
-	  - ADD Ra, Rb, Rc
-	  - Ra <= Rb + Rc
-	* - A
-	  - SUB
-	  - 14
-	  - Subtract
-	  - SUB Ra, Rb, Rc
-	  - Ra <= Rb - Rc
-	* - A
-	  - MUL
-	  - 15
-	  - Multiply
-	  - MUL Ra, Rb, Rc
-	  - Ra <= Rb * Rc
-	* - A
-	  - DIV
-	  - 16
-	  - Divide
-	  - DIV Ra, Rb
-	  - HI<=Ra%Rb, LO<=Ra/Rb
-	* - A
-	  - AND
-	  - 18
-	  - Bitwise and
-	  - AND Ra, Rb, Rc
-	  - Ra <= Rb & Rc
-	* - A
-	  - OR
-	  - 19
-	  - Bitwise or
-	  - OR Ra, Rb, Rc
-	  - Ra <= Rb | Rc
-	* - A
-	  - XOR
-	  - 1A
-	  - Bitwise exclusive or
-	  - XOR Ra, Rb, Rc
-	  - Ra <= Rb ^ Rc
-   	* - A
-	  - SRA
-	  - 1B
-	  - Shift right
-	  - SHR Ra, Rb, Cx
-	  - Ra <= (h80000000|Rb>>Cx)
-  	* - A
-	  - ROL
-	  - 1C
-	  - Rotate left
-	  - ROL Ra, Rb, Cx
-	  - Ra <= Rb rol Cx
-  	* - A
-	  - ROR
-	  - 1D
-	  - Rotate right
-	  - ROR Ra, Rb, Cx
-	  - Ra <= Rb ror Cx
-   	* - A
-	  - SHL
-	  - 1E
-	  - Shift left
-	  - SHL Ra, Rb, Cx
-	  - Ra <= Rb << Cx
-   	* - A
-	  - SHR
-	  - 1F
-	  - Shift right
-	  - SHR Ra, Rb, Cx
-	  - Ra <= Rb >> Cx
-   	* - J
-	  - JEQ
-	  - 20
-	  - Jump if equal (==)
-	  - JEQ Cx
-	  - if SW(==), PC <= PC + Cx
-   	* - J
-	  - JNE
-	  - 21
-	  - Jump if not equal (!=)
-	  - JNE Cx
-	  - if SW(!=), PC <= PC + Cx
-   	* - J
-	  - JLT
-	  - 22
-	  - Jump if less than (<)
-	  - JLT Cx
-	  - if SW(<), PC <= PC + Cx
-   	* - J
-	  - JGT
-	  - 23
-	  - Jump if greater than (>)
-	  - JGT Cx
-	  - if SW(>), PC <= PC + Cx
-   	* - J
-	  - JLE
-	  - 24
-	  - Jump if less than or equals (<=)
-	  - JLE Cx
-	  - if SW(<=), PC <= PC + Cx
-   	* - J
-	  - JGE
-	  - 25
-	  - Jump if greater than or equals (>=)
-	  - JGE Cx
-	  - if SW(>=), PC <= PC + Cx
-   	* - J
-	  - JMP
-	  - 26
-	  - Jump (unconditional)
-	  - JMP Cx
-	  - PC <= PC + Cx
-   	* - J
-	  - SWI
-	  - 2A
-	  - Software interrupt
-	  - SWI Cx
-	  - LR <= PC; PC <= Cx
-   	* - J
-	  - JSUB
-	  - 2B
-	  - Jump to subroutine
-	  - JSUB Cx
-	  - LR <= PC; PC <= PC + Cx
-   	* - J
-	  - RET
-	  - 2C
-	  - Return from subroutine
-	  - RET Cx
-	  - PC <= LR
-   	* - J
-	  - IRET
-	  - 2D
-	  - Return from interrupt handler
-	  - IRET
-	  - PC <= LR; INT 0
-   	* - J
-	  - JR
-	  - 2E
-	  - Jump to subroutine
-	  - JR Rb
-	  - LR <= PC; PC <= Rb
-   	* - A
-	  - PUSH
-	  - 30
-	  - Push word
-	  - PUSH Ra
-	  - [SP] <= Ra; SP -= 4
-   	* - A
-	  - POP
-	  - 31
-	  - Pop word
-	  - POP Ra
-	  - Ra <= [SP]; SP += 4
-   	* - A
-	  - PUSHB
-	  - 32
-	  - Push byte
-	  - PUSHB Ra
-	  - [SP] <= (byte)Ra; SP -= 4
-   	* - A
-	  - POPB
-	  - 33
-	  - Pop word
-	  - POP Ra
-	  - Ra <= (byte)[SP]; SP += 4
-   	* - L
-	  - MFHI
-	  - 40
-	  - Move HI to GPR
-	  - MFHI Ra
-	  - Ra <= HI
-   	* - L
-	  - MFLO
-	  - 41
-	  - Move LO to GPR
-	  - MFLO Ra
-	  - Ra <= LO
-   	* - L
-	  - MTHI
-	  - 42
-	  - Move GPR to HI
-	  - MTHI Ra
-	  - HI <= Ra
-   	* - L
-	  - MTLO
-	  - 43
-	  - Move GPR to LO
-	  - MTLO Ra
-	  - LO <= Ra
-   	* - L
-	  - MULT
-	  - 50
-	  - Multiply for 64 bits result
-	  - MULT Ra, Rb
-	  - (HI,LO) <= MULT(Ra,Rb)
-   	* - L
-	  - MULTU
-	  - 51
-	  - MULT for unsigned 64 bits
-	  - MULTU Ra, Rb
-	  - (HI,LO) <= MULTU(Ra,Rb)
-
-
+  * - F\.
+    - Mnemonic
+    - Opcode
+    - Meaning
+    - Syntax
+    - Operation
+  * - L
+    - LD
+    - 01
+    - Load word
+    - LD Ra, [Rb+Cx]
+    - Ra <= [Rb+Cx]
+  * - L
+    - ST
+    - 02
+    - Store word
+    - ST Ra, [Rb+Cx]
+    - [Rb+Cx] <= Ra
+  * - L
+    - LB
+    - 03
+    - Load byte
+    - LB Ra, [Rb+Cx]
+    - Ra <= (byte)[Rb+Cx]
+  * - L
+    - LBu
+    - 04
+    - Load byte unsigned
+    - LBu Ra, [Rb+Cx]
+    - Ra <= (byte)[Rb+Cx]
+  * - L
+    - SB
+    - 05
+    - Store byte
+    - SB Ra, [Rb+Cx]
+    - [Rb+Cx] <= (byte)Ra
+  * - A
+    - LH
+    - 06
+    - Load half word unsigned
+    - LH Ra, [Rb+Cx]
+    - Ra <= (2bytes)[Rb+Cx]
+  * - A
+    - LHu
+    - 07
+    - Load half word
+    - LHu Ra, [Rb+Cx]
+    - Ra <= (2bytes)[Rb+Cx]
+  * - A
+    - SH
+    - 08
+    - Store half word
+    - SH Ra, [Rb+Cx]
+    - [Rb+Rc] <= Ra
+  * - L
+    - ADDiu
+    - 09
+    - Add immediate
+    - ADDiu Ra, Rb, Cx
+    - Ra <= (Rb + Cx)
+  * - L
+    - ANDi
+    - 0C
+    - AND imm
+    - ANDi Ra, Rb, Cx
+    - Ra <= (Rb & Cx)
+  * - L
+    - ORi
+    - 0D
+    - OR
+    - ORi Ra, Rb, Cx
+    - Ra <= (Rb | Cx)
+  * - L
+    - XORi
+    - 0E
+    - XOR
+    - XORi Ra, Rb, Cx
+    - Ra <= (Rb ^ Cx)
+  * - A
+    - CMP
+    - 10
+    - Compare
+    - CMP Ra, Rb
+    - SW <= (Ra cond Rb) [#cond-note]_
+  * - A
+    - ADDu
+    - 11
+    - Add unsigned
+    - ADD Ra, Rb, Rc
+    - Ra <= Rb + Rc
+  * - A
+    - SUBu
+    - 12
+    - Sub unsigned
+    - SUB Ra, Rb, Rc
+    - Ra <= Rb - Rc
+  * - A
+    - ADD
+    - 13
+    - Add
+    - ADD Ra, Rb, Rc
+    - Ra <= Rb + Rc
+  * - A
+    - SUB
+    - 14
+    - Subtract
+    - SUB Ra, Rb, Rc
+    - Ra <= Rb - Rc
+  * - A
+    - MUL
+    - 15
+    - Multiply
+    - MUL Ra, Rb, Rc
+    - Ra <= Rb * Rc
+  * - A
+    - DIV
+    - 16
+    - Divide
+    - DIV Ra, Rb
+    - HI<=Ra%Rb, LO<=Ra/Rb
+  * - A
+    - AND
+    - 18
+    - Bitwise and
+    - AND Ra, Rb, Rc
+    - Ra <= Rb & Rc
+  * - A
+    - OR
+    - 19
+    - Bitwise or
+    - OR Ra, Rb, Rc
+    - Ra <= Rb | Rc
+  * - A
+    - XOR
+    - 1A
+    - Bitwise exclusive or
+    - XOR Ra, Rb, Rc
+    - Ra <= Rb ^ Rc
+  * - A
+    - SRA
+    - 1B
+    - Shift right
+    - SHR Ra, Rb, Cx
+    - Ra <= (h80000000|Rb>>Cx)
+  * - A
+    - ROL
+    - 1C
+    - Rotate left
+    - ROL Ra, Rb, Cx
+    - Ra <= Rb rol Cx
+  * - A
+    - ROR
+    - 1D
+    - Rotate right
+    - ROR Ra, Rb, Cx
+    - Ra <= Rb ror Cx
+  * - A
+    - SHL
+    - 1E
+    - Shift left
+    - SHL Ra, Rb, Cx
+    - Ra <= Rb << Cx
+  * - A
+    - SHR
+    - 1F
+    - Shift right
+    - SHR Ra, Rb, Cx
+    - Ra <= Rb >> Cx
+  * - J
+    - JEQ
+    - 20
+    - Jump if equal (==)
+    - JEQ Cx
+    - if SW(==), PC <= PC + Cx
+  * - J
+    - JNE
+    - 21
+    - Jump if not equal (!=)
+    - JNE Cx
+    - if SW(!=), PC <= PC + Cx
+  * - J
+    - JLT
+    - 22
+    - Jump if less than (<)
+    - JLT Cx
+    - if SW(<), PC <= PC + Cx
+  * - J
+    - JGT
+    - 23
+    - Jump if greater than (>)
+    - JGT Cx
+    - if SW(>), PC <= PC + Cx
+  * - J
+    - JLE
+    - 24
+    - Jump if less than or equals (<=)
+    - JLE Cx
+    - if SW(<=), PC <= PC + Cx
+  * - J
+    - JGE
+    - 25
+    - Jump if greater than or equals (>=)
+    - JGE Cx
+    - if SW(>=), PC <= PC + Cx
+  * - J
+    - JMP
+    - 26
+    - Jump (unconditional)
+    - JMP Cx
+    - PC <= PC + Cx
+  * - J
+    - SWI
+    - 2A
+    - Software interrupt
+    - SWI Cx
+    - LR <= PC; PC <= Cx
+  * - J
+    - JSUB
+    - 2B
+    - Jump to subroutine
+    - JSUB Cx
+    - LR <= PC; PC <= PC + Cx
+  * - J
+    - RET
+    - 2C
+    - Return from subroutine
+    - RET LR
+    - PC <= LR
+  * - J
+    - IRET
+    - 2D
+    - Return from interrupt handler
+    - IRET
+    - PC <= LR; INT 0
+  * - J
+    - JALR
+    - 2E
+    - Jump to subroutine
+    - JR Rb
+    - LR <= PC; PC <= Rb
+  * - L
+    - MFHI
+    - 40
+    - Move HI to GPR
+    - MFHI Ra
+    - Ra <= HI
+  * - L
+    - MFLO
+    - 41
+    - Move LO to GPR
+    - MFLO Ra
+    - Ra <= LO
+  * - L
+    - MTHI
+    - 42
+    - Move GPR to HI
+    - MTHI Ra
+    - HI <= Ra
+  * - L
+    - MTLO
+    - 43
+    - Move GPR to LO
+    - MTLO Ra
+    - LO <= Ra
+  * - L
+    - MULT
+    - 50
+    - Multiply for 64 bits result
+    - MULT Ra, Rb
+    - (HI,LO) <= MULT(Ra,Rb)
+  * - L
+    - MULTU
+    - 51
+    - MULT for unsigned 64 bits
+    - MULTU Ra, Rb
+    - (HI,LO) <= MULTU(Ra,Rb)
 
 
 The Status Register
@@ -375,15 +377,15 @@ The bit layout of the SW register is shown in :num:`Figure #llvmstructure-f3` be
 
 .. _llvmstructure-f3: 
 .. figure:: ../Fig/llvmstructure/3.png
-	:align: center
+  :align: center
 
-	Cpu0 status word (SW) register
+  Cpu0 status word (SW) register
 
 When a CMP Ra, Rb instruction executes, the condition flags will change. For example:
 
--	If Ra > Rb, then N = 0, Z = 0
--	If Ra < Rb, then N = 1, Z = 0
--	If Ra = Rb, then N = 0, Z = 1
+- If Ra > Rb, then N = 0, Z = 0
+- If Ra < Rb, then N = 1, Z = 0
+- If Ra = Rb, then N = 0, Z = 1
 
 The direction (i.e. taken/not taken) of the conditional jump instructions JGT, JLT, JGE, 
 JLE, JEQ, JNE is determined by the N and Z flags in the SW register.
@@ -397,20 +399,20 @@ what happens in the processor:
 
 1) Instruction fetch
 
--	The Cpu0 fetches the instruction pointed to by the Program Counter (PC) into the 
-	Instruction Register (IR): IR = [PC].
--	The PC is then updated to point to the next instruction: PC = PC + 4.
+- The Cpu0 fetches the instruction pointed to by the Program Counter (PC) into the 
+  Instruction Register (IR): IR = [PC].
+- The PC is then updated to point to the next instruction: PC = PC + 4.
 
 2) Decode
 
--	The control unit decodes the instruction stored in IR, which routes necessary data
-	stored in registers to the ALU, and sets the ALU's operation mode based on the 
-	current instruction's opcode.
+- The control unit decodes the instruction stored in IR, which routes necessary data
+  stored in registers to the ALU, and sets the ALU's operation mode based on the 
+  current instruction's opcode.
 
 3) Execute
 
--	The ALU executes the operation designated by the control unit upon data in registers. 
-	After the ALU is done, the result is stored in the destination register. 
+- The ALU executes the operation designated by the control unit upon data in registers. 
+  After the ALU is done, the result is stored in the destination register. 
 
 LLVM Structure
 --------------
@@ -428,9 +430,9 @@ the optimizer and back end are run on the code.
 
 .. _llvmstructure-f6: 
 .. figure:: ../Fig/llvmstructure/6.png
-	:align: center
+  :align: center
 
-	Three Major Components of a Three Phase Compiler
+  Three Major Components of a Three Phase Compiler
 
 The optimizer is responsible for doing a broad variety of transformations to 
 try to improve the code's running time, such as eliminating redundant 
@@ -455,10 +457,10 @@ end can be written for any target that can compile from it, as shown in
 
 .. _llvmstructure-f7: 
 .. figure:: ../Fig/llvmstructure/7.png
-	:align: center
-	:width: 600px
+  :align: center
+  :width: 600px
 
-	Retargetablity
+  Retargetablity
 
 With this design, porting the compiler to support a new source language (e.g., 
 Algol or BASIC) requires implementing a new front end, but the existing 
@@ -565,7 +567,7 @@ language or a specific target machine.
 On the other hand, it has to serve both well: it has to be designed to be easy 
 for a front end to generate and be expressive enough to allow important 
 optimizations to be performed for real targets.
-	
+  
 
 .td: LLVM's Target Description Files
 ------------------------------------
@@ -586,10 +588,10 @@ The (simplified) build process for the x86 target is shown in
 
 .. _llvmstructure-f8: 
 .. figure:: ../Fig/llvmstructure/8.png
-	:align: center
-	:width: 600px
+  :align: center
+  :width: 600px
 
-	Simplified x86 Target Definition
+  Simplified x86 Target Definition
 
 The different subsystems supported by the .td files allow target authors to 
 build up the different pieces of their target. 
@@ -665,7 +667,7 @@ ZERO register is defined as a member of the ``Cpu0GPRReg`` class:
 
 .. code-block:: c++
 
-	def ZERO : Cpu0GPRReg< 0, "ZERO">, DwarfRegNum<[0]>;
+  def ZERO : Cpu0GPRReg< 0, "ZERO">, DwarfRegNum<[0]>;
 
 The ``def ZERO`` indicates the name of this register.  ``< 0, "ZERO">`` are the 
 parameters used when creating this specific instance of the ``Cpu0GPRReg`` class, thus 
@@ -1072,40 +1074,40 @@ The error message say we didn't define our target machine.
 
 .. commenting out this subsection
 
-	this subsection was originally between Stages of Cpu0 pipeline and LLVM Structure
-	
-	Replace ldi instruction by addiu instruction
-	++++++++++++++++++++++++++++++++++++++++++++
-	
-	We have recognized the ldi instruction is a bad design and replace it with mips 
-	instruction addiu. 
-	The reason we replace ldi with addiu is that ldi use only one register even 
-	though ldi is L type format and has two registers, as :ref:`llvmstructure_f4`. 
-	Mips addiu which allow programmer to do load constant to register like ldi, 
-	and add constant to a register. So, it's powerful and fully contains the ldi 
-	ability. 
-	These two instructions format as :ref:`llvmstructure_f4` and :ref:`llvmstructure_f5`.
-	
-	.. _llvmstructure_f4: 
-	.. figure:: ../Fig/llvmstructure/4.png
-		:align: center
-	
-		Cpu0 ldi instruction
+  this subsection was originally between Stages of Cpu0 pipeline and LLVM Structure
+  
+  Replace ldi instruction by addiu instruction
+  ++++++++++++++++++++++++++++++++++++++++++++
+  
+  We have recognized the ldi instruction is a bad design and replace it with mips 
+  instruction addiu. 
+  The reason we replace ldi with addiu is that ldi use only one register even 
+  though ldi is L type format and has two registers, as :ref:`llvmstructure_f4`. 
+  Mips addiu which allow programmer to do load constant to register like ldi, 
+  and add constant to a register. So, it's powerful and fully contains the ldi 
+  ability. 
+  These two instructions format as :ref:`llvmstructure_f4` and :ref:`llvmstructure_f5`.
+  
+  .. _llvmstructure_f4: 
+  .. figure:: ../Fig/llvmstructure/4.png
+    :align: center
+  
+    Cpu0 ldi instruction
 
-	.. _llvmstructure_f5: 
-	.. figure:: ../Fig/llvmstructure/5.png
-		:align: center
-	
-		Mips addiu instruction format
+  .. _llvmstructure_f5: 
+  .. figure:: ../Fig/llvmstructure/5.png
+    :align: center
+  
+    Mips addiu instruction format
 
-	From :ref:`llvmstructure_f4` and :ref:`llvmstructure_f5`, you can find ldi $Ra, 
-	5 can be replaced by addiu $Ra, $zero, 5. 
-	And more, addiu can do addiu $Ra, $Rb, 5 which add $Rb and 5 then save to $Ra, 
-	but ldi cannot. 
-	As a cpu design, it's common to redesign CPU instruction when find a better 
-	solution during design the compiler backend for that CPU. 
-	So, we add addiu instruction to cpu0. 
-	The cpu0 is my brother's work, I will find time to talk with him.
+  From :ref:`llvmstructure_f4` and :ref:`llvmstructure_f5`, you can find ldi $Ra, 
+  5 can be replaced by addiu $Ra, $zero, 5. 
+  And more, addiu can do addiu $Ra, $Rb, 5 which add $Rb and 5 then save to $Ra, 
+  but ldi cannot. 
+  As a cpu design, it's common to redesign CPU instruction when find a better 
+  solution during design the compiler backend for that CPU. 
+  So, we add addiu instruction to cpu0. 
+  The cpu0 is my brother's work, I will find time to talk with him.
 .. end subsection
 
 
