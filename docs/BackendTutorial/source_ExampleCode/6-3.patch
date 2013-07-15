@@ -1,6 +1,6 @@
 diff -Naur Chapter6_2/Cpu0InstrInfo.td Chapter6_3/Cpu0InstrInfo.td
---- Chapter6_2/Cpu0InstrInfo.td	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter6_3/Cpu0InstrInfo.td	2013-07-12 21:51:53.000000000 +0800
+--- Chapter6_2/Cpu0InstrInfo.td	2013-07-15 13:41:33.972210288 +0800
++++ Chapter6_3/Cpu0InstrInfo.td	2013-07-15 13:41:33.972210288 +0800
 @@ -128,7 +128,11 @@
  }]>;
  
@@ -37,3 +37,23 @@ diff -Naur Chapter6_2/Cpu0InstrInfo.td Chapter6_3/Cpu0InstrInfo.td
  // setcc patterns
  multiclass SeteqPats<RegisterClass RC, Instruction XOROp> {
    def : Pat<(seteq RC:$lhs, RC:$rhs),
+diff -Naur Chapter6_2/Cpu0ISelLowering.cpp Chapter6_3/Cpu0ISelLowering.cpp
+--- Chapter6_2/Cpu0ISelLowering.cpp	2013-07-15 13:41:33.972210288 +0800
++++ Chapter6_3/Cpu0ISelLowering.cpp	2013-07-15 13:41:33.972210288 +0800
+@@ -122,6 +122,16 @@
+   // Set up the register classes
+   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
+ 
++  // Cpu0 does not have i1 type, so use i32 for
++  // setcc operations results (slt, sgt, ...).
++  setBooleanContents(ZeroOrOneBooleanContent);
++  setBooleanVectorContents(ZeroOrNegativeOneBooleanContent);
++
++  // Load extented operations for i1 types must be promoted
++  setLoadExtAction(ISD::EXTLOAD,  MVT::i1,  Promote);
++  setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
++  setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
++
+   // Cpu0 Custom Operations
+   setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
+ 

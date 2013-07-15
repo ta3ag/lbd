@@ -53,6 +53,7 @@ Revision history
 ----------------
 
 Version 3.3.01, Not release yet
+  Add load bool type in chapter 6.
 
 Version 3.3.0, Released July 13, 2013
   Add Table: C operator ! corresponding IR of .bc and IR of DAG and Table: C 

@@ -20,6 +20,7 @@ int sum_i(int amount, ...);
 int main()
 {
   int a = 0;
+  test_load_bool();
   a = test_operators(12); // a = 13
   print_integer(a);
   a += test_control();	// a = (128+18) = 146
@@ -54,6 +55,16 @@ void print2_integer(int x)
   return;
 }
 #endif
+
+bool test_load_bool()
+{
+  int a = 1;
+
+  if (a < 0)
+    return false;
+
+  return true;
+}
 
 int test_operators(int x)
 {

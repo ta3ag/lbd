@@ -1,6 +1,6 @@
 diff -Naur Chapter10_1/Cpu0InstrInfo.td Chapter10_2/Cpu0InstrInfo.td
---- Chapter10_1/Cpu0InstrInfo.td	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter10_2/Cpu0InstrInfo.td	2013-07-12 21:51:53.000000000 +0800
+--- Chapter10_1/Cpu0InstrInfo.td	2013-07-15 13:41:33.960210288 +0800
++++ Chapter10_2/Cpu0InstrInfo.td	2013-07-15 13:41:33.968210288 +0800
 @@ -486,6 +486,7 @@
  
  def RET     : RetBase<CPURegs>;
@@ -10,8 +10,8 @@ diff -Naur Chapter10_1/Cpu0InstrInfo.td Chapter10_2/Cpu0InstrInfo.td
  
  /// No operation
 diff -Naur Chapter10_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter10_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter10_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter10_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-07-12 21:51:53.000000000 +0800
+--- Chapter10_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-07-15 13:41:33.960210288 +0800
++++ Chapter10_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-07-15 13:41:33.968210288 +0800
 @@ -163,19 +163,29 @@
  }
  

@@ -1,6 +1,6 @@
 diff -Naur Chapter6_1/Cpu0ISelDAGToDAG.cpp Chapter6_2/Cpu0ISelDAGToDAG.cpp
---- Chapter6_1/Cpu0ISelDAGToDAG.cpp	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter6_2/Cpu0ISelDAGToDAG.cpp	2013-07-12 21:51:53.000000000 +0800
+--- Chapter6_1/Cpu0ISelDAGToDAG.cpp	2013-07-15 13:41:33.956210288 +0800
++++ Chapter6_2/Cpu0ISelDAGToDAG.cpp	2013-07-15 13:41:33.972210288 +0800
 @@ -152,6 +152,23 @@
          Addr.getOpcode() == ISD::TargetGlobalAddress))
        return false;
@@ -26,8 +26,8 @@ diff -Naur Chapter6_1/Cpu0ISelDAGToDAG.cpp Chapter6_2/Cpu0ISelDAGToDAG.cpp
    Base   = Addr;
    Offset = CurDAG->getTargetConstant(0, ValTy);
 diff -Naur Chapter6_1/Cpu0ISelLowering.cpp Chapter6_2/Cpu0ISelLowering.cpp
---- Chapter6_1/Cpu0ISelLowering.cpp	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter6_2/Cpu0ISelLowering.cpp	2013-07-12 21:51:53.000000000 +0800
+--- Chapter6_1/Cpu0ISelLowering.cpp	2013-07-15 13:41:33.952210288 +0800
++++ Chapter6_2/Cpu0ISelLowering.cpp	2013-07-15 13:41:33.972210288 +0800
 @@ -280,3 +280,9 @@
      return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
                         Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
@@ -39,8 +39,8 @@ diff -Naur Chapter6_1/Cpu0ISelLowering.cpp Chapter6_2/Cpu0ISelLowering.cpp
 +  return false;
 +}
 diff -Naur Chapter6_1/Cpu0ISelLowering.h Chapter6_2/Cpu0ISelLowering.h
---- Chapter6_1/Cpu0ISelLowering.h	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter6_2/Cpu0ISelLowering.h	2013-07-12 21:51:53.000000000 +0800
+--- Chapter6_1/Cpu0ISelLowering.h	2013-07-15 13:41:33.952210288 +0800
++++ Chapter6_2/Cpu0ISelLowering.h	2013-07-15 13:41:33.972210288 +0800
 @@ -104,6 +104,8 @@
                    const SmallVectorImpl<ISD::OutputArg> &Outs,
                    const SmallVectorImpl<SDValue> &OutVals,

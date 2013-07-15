@@ -1,6 +1,6 @@
 diff -Naur Chapter8_4/Cpu0InstrInfo.cpp Chapter8_4_2/Cpu0InstrInfo.cpp
---- Chapter8_4/Cpu0InstrInfo.cpp	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter8_4_2/Cpu0InstrInfo.cpp	2013-07-12 21:51:53.000000000 +0800
+--- Chapter8_4/Cpu0InstrInfo.cpp	2013-07-15 13:41:33.952210288 +0800
++++ Chapter8_4_2/Cpu0InstrInfo.cpp	2013-07-15 13:41:33.968210288 +0800
 @@ -45,6 +45,8 @@
        Opc = Cpu0::MFLO, SrcReg = 0;
      else if (SrcReg == Cpu0::SW)	// add $ra, $ZERO, $SW
@@ -20,8 +20,8 @@ diff -Naur Chapter8_4/Cpu0InstrInfo.cpp Chapter8_4_2/Cpu0InstrInfo.cpp
  
    assert(Opc && "Cannot copy registers");
 diff -Naur Chapter8_4/Cpu0InstrInfo.td Chapter8_4_2/Cpu0InstrInfo.td
---- Chapter8_4/Cpu0InstrInfo.td	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter8_4_2/Cpu0InstrInfo.td	2013-07-12 21:51:53.000000000 +0800
+--- Chapter8_4/Cpu0InstrInfo.td	2013-07-15 13:41:33.948210288 +0800
++++ Chapter8_4_2/Cpu0InstrInfo.td	2013-07-15 13:41:33.968210288 +0800
 @@ -363,6 +363,36 @@
    let neverHasSideEffects = 1;
  }
@@ -93,8 +93,8 @@ diff -Naur Chapter8_4/Cpu0InstrInfo.td Chapter8_4_2/Cpu0InstrInfo.td
  multiclass BrcondPats<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
  Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp, 
 diff -Naur Chapter8_4/Cpu0RegisterInfo.td Chapter8_4_2/Cpu0RegisterInfo.td
---- Chapter8_4/Cpu0RegisterInfo.td	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter8_4_2/Cpu0RegisterInfo.td	2013-07-12 21:51:53.000000000 +0800
+--- Chapter8_4/Cpu0RegisterInfo.td	2013-07-15 13:41:33.952210288 +0800
++++ Chapter8_4_2/Cpu0RegisterInfo.td	2013-07-15 13:41:33.968210288 +0800
 @@ -51,6 +51,8 @@
    // Hi/Lo registers
    def HI   : Register<"hi">, DwarfRegNum<[18]>;
