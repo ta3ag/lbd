@@ -1,6 +1,6 @@
 diff -Naur Chapter8_3/Cpu0FrameLowering.cpp Chapter8_4/Cpu0FrameLowering.cpp
---- Chapter8_3/Cpu0FrameLowering.cpp	2013-07-15 13:41:33.952210288 +0800
-+++ Chapter8_4/Cpu0FrameLowering.cpp	2013-07-15 13:41:33.952210288 +0800
+--- Chapter8_3/Cpu0FrameLowering.cpp	2013-07-21 22:50:09.213536843 +0800
++++ Chapter8_4/Cpu0FrameLowering.cpp	2013-07-21 22:50:09.244536845 +0800
 @@ -124,6 +124,9 @@
    MachineBasicBlock::iterator MBBI = MBB.begin();
    DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
@@ -56,9 +56,74 @@ diff -Naur Chapter8_3/Cpu0FrameLowering.cpp Chapter8_4/Cpu0FrameLowering.cpp
    // Get the number of bytes from FrameInfo
    uint64_t StackSize = MFI->getStackSize();
  
+@@ -221,6 +253,37 @@
+   }
+ }
+ 
++bool Cpu0FrameLowering::
++spillCalleeSavedRegisters(MachineBasicBlock &MBB,
++                          MachineBasicBlock::iterator MI,
++                          const std::vector<CalleeSavedInfo> &CSI,
++                          const TargetRegisterInfo *TRI) const {
++  MachineFunction *MF = MBB.getParent();
++  MachineBasicBlock *EntryBlock = MF->begin();
++  const TargetInstrInfo &TII = *MF->getTarget().getInstrInfo();
++
++  for (unsigned i = 0, e = CSI.size(); i != e; ++i) {
++    // Add the callee-saved register as live-in. Do not add if the register is
++    // RA and return address is taken, because it has already been added in
++    // method Cpu0TargetLowering::LowerRETURNADDR.
++    // It's killed at the spill, unless the register is RA and return address
++    // is taken.
++    unsigned Reg = CSI[i].getReg();
++    bool IsRAAndRetAddrIsTaken = (Reg == Cpu0::LR)
++        && MF->getFrameInfo()->isReturnAddressTaken();
++    if (!IsRAAndRetAddrIsTaken)
++      EntryBlock->addLiveIn(Reg);
++
++    // Insert the spill to the stack frame.
++    bool IsKill = !IsRAAndRetAddrIsTaken;
++    const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(Reg);
++    TII.storeRegToStackSlot(*EntryBlock, MI, Reg, IsKill,
++                            CSI[i].getFrameIdx(), RC, TRI);
++  }
++
++  return true;
++}
++
+ // This function eliminate ADJCALLSTACKDOWN,
+ // ADJCALLSTACKUP pseudo instructions
+ void Cpu0FrameLowering::
+@@ -256,6 +319,12 @@
+ processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
+                                      RegScavenger *RS) const {
+   MachineRegisterInfo& MRI = MF.getRegInfo();
++  Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
++  unsigned FP = Cpu0::FP;
++
++  // Mark $fp as used if function has dedicated frame pointer.
++  if (hasFP(MF))
++    MRI.setPhysRegUsed(FP);
+ 
+   // FIXME: remove this code if register allocator can correctly mark
+   //        $fp and $ra used or unused.
+diff -Naur Chapter8_3/Cpu0FrameLowering.h Chapter8_4/Cpu0FrameLowering.h
+--- Chapter8_3/Cpu0FrameLowering.h	2013-07-21 22:50:09.211536843 +0800
++++ Chapter8_4/Cpu0FrameLowering.h	2013-07-21 22:50:09.243536845 +0800
+@@ -38,6 +38,10 @@
+   void eliminateCallFramePseudoInstr(MachineFunction &MF,
+                                      MachineBasicBlock &MBB,
+                                      MachineBasicBlock::iterator I) const;
++  bool spillCalleeSavedRegisters(MachineBasicBlock &MBB,
++                                 MachineBasicBlock::iterator MI,
++                                 const std::vector<CalleeSavedInfo> &CSI,
++                                 const TargetRegisterInfo *TRI) const;
+   void processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
+                                             RegScavenger *RS) const;
+ };
 diff -Naur Chapter8_3/Cpu0ISelLowering.cpp Chapter8_4/Cpu0ISelLowering.cpp
---- Chapter8_3/Cpu0ISelLowering.cpp	2013-07-15 13:41:33.952210288 +0800
-+++ Chapter8_4/Cpu0ISelLowering.cpp	2013-07-15 13:41:33.948210288 +0800
+--- Chapter8_3/Cpu0ISelLowering.cpp	2013-07-21 22:50:09.210536843 +0800
++++ Chapter8_4/Cpu0ISelLowering.cpp	2013-07-21 22:50:09.242536845 +0800
 @@ -141,6 +141,7 @@
    // Cpu0 Custom Operations
    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
@@ -302,8 +367,8 @@ diff -Naur Chapter8_3/Cpu0ISelLowering.cpp Chapter8_4/Cpu0ISelLowering.cpp
  
    // Add the flag if we have it.
 diff -Naur Chapter8_3/Cpu0ISelLowering.h Chapter8_4/Cpu0ISelLowering.h
---- Chapter8_3/Cpu0ISelLowering.h	2013-07-15 13:41:33.952210288 +0800
-+++ Chapter8_4/Cpu0ISelLowering.h	2013-07-15 13:41:33.948210288 +0800
+--- Chapter8_3/Cpu0ISelLowering.h	2013-07-21 22:50:09.212536843 +0800
++++ Chapter8_4/Cpu0ISelLowering.h	2013-07-21 22:50:09.244536845 +0800
 @@ -96,6 +96,7 @@
      // Lower Operand specifics
      SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
@@ -313,8 +378,8 @@ diff -Naur Chapter8_3/Cpu0ISelLowering.h Chapter8_4/Cpu0ISelLowering.h
  	//- must be exist without function all
      virtual SDValue
 diff -Naur Chapter8_3/Cpu0RegisterInfo.cpp Chapter8_4/Cpu0RegisterInfo.cpp
---- Chapter8_3/Cpu0RegisterInfo.cpp	2013-07-15 13:41:33.952210288 +0800
-+++ Chapter8_4/Cpu0RegisterInfo.cpp	2013-07-15 13:41:33.952210288 +0800
+--- Chapter8_3/Cpu0RegisterInfo.cpp	2013-07-21 22:50:09.213536843 +0800
++++ Chapter8_4/Cpu0RegisterInfo.cpp	2013-07-21 22:50:09.244536845 +0800
 @@ -77,6 +77,11 @@
    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
      Reserved.set(ReservedCPURegs[I]);

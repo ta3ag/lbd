@@ -1,6 +1,6 @@
 diff -Naur Chapter6_2/Cpu0InstrInfo.td Chapter6_3/Cpu0InstrInfo.td
---- Chapter6_2/Cpu0InstrInfo.td	2013-07-15 13:41:33.972210288 +0800
-+++ Chapter6_3/Cpu0InstrInfo.td	2013-07-15 13:41:33.972210288 +0800
+--- Chapter6_2/Cpu0InstrInfo.td	2013-07-21 22:50:09.194536843 +0800
++++ Chapter6_3/Cpu0InstrInfo.td	2013-07-21 22:50:09.183536843 +0800
 @@ -128,7 +128,11 @@
  }]>;
  
@@ -38,8 +38,8 @@ diff -Naur Chapter6_2/Cpu0InstrInfo.td Chapter6_3/Cpu0InstrInfo.td
  multiclass SeteqPats<RegisterClass RC, Instruction XOROp> {
    def : Pat<(seteq RC:$lhs, RC:$rhs),
 diff -Naur Chapter6_2/Cpu0ISelLowering.cpp Chapter6_3/Cpu0ISelLowering.cpp
---- Chapter6_2/Cpu0ISelLowering.cpp	2013-07-15 13:41:33.972210288 +0800
-+++ Chapter6_3/Cpu0ISelLowering.cpp	2013-07-15 13:41:33.972210288 +0800
+--- Chapter6_2/Cpu0ISelLowering.cpp	2013-07-21 22:50:09.192536844 +0800
++++ Chapter6_3/Cpu0ISelLowering.cpp	2013-07-21 22:50:09.181536843 +0800
 @@ -122,6 +122,16 @@
    // Set up the register classes
    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);

@@ -1,6 +1,6 @@
 diff -Naur Chapter8_2/CMakeLists.txt Chapter8_3/CMakeLists.txt
---- Chapter8_2/CMakeLists.txt	2013-07-15 13:41:33.944210288 +0800
-+++ Chapter8_3/CMakeLists.txt	2013-07-15 13:41:33.952210288 +0800
+--- Chapter8_2/CMakeLists.txt	2013-07-21 22:50:09.225536843 +0800
++++ Chapter8_3/CMakeLists.txt	2013-07-21 22:50:09.212536843 +0800
 @@ -25,6 +25,7 @@
  add_llvm_target(Cpu0CodeGen
    Cpu0AnalyzeImmediate.cpp
@@ -10,8 +10,8 @@ diff -Naur Chapter8_2/CMakeLists.txt Chapter8_3/CMakeLists.txt
    Cpu0ISelDAGToDAG.cpp
    Cpu0ISelLowering.cpp
 diff -Naur Chapter8_2/Cpu0AsmPrinter.cpp Chapter8_3/Cpu0AsmPrinter.cpp
---- Chapter8_2/Cpu0AsmPrinter.cpp	2013-07-15 13:41:33.948210288 +0800
-+++ Chapter8_3/Cpu0AsmPrinter.cpp	2013-07-15 13:41:33.952210288 +0800
+--- Chapter8_2/Cpu0AsmPrinter.cpp	2013-07-21 22:50:09.224536843 +0800
++++ Chapter8_3/Cpu0AsmPrinter.cpp	2013-07-21 22:50:09.212536843 +0800
 @@ -40,6 +40,19 @@
  
  using namespace llvm;
@@ -72,7 +72,7 @@ diff -Naur Chapter8_2/Cpu0AsmPrinter.cpp Chapter8_3/Cpu0AsmPrinter.cpp
  }
 diff -Naur Chapter8_2/Cpu0EmitGPRestore.cpp Chapter8_3/Cpu0EmitGPRestore.cpp
 --- Chapter8_2/Cpu0EmitGPRestore.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter8_3/Cpu0EmitGPRestore.cpp	2013-07-15 13:41:33.952210288 +0800
++++ Chapter8_3/Cpu0EmitGPRestore.cpp	2013-07-21 22:50:09.211536843 +0800
 @@ -0,0 +1,99 @@
 +//===-- Cpu0EmitGPRestore.cpp - Emit GP Restore Instruction ---------------===//
 +//
@@ -174,8 +174,8 @@ diff -Naur Chapter8_2/Cpu0EmitGPRestore.cpp Chapter8_3/Cpu0EmitGPRestore.cpp
 +}
 +
 diff -Naur Chapter8_2/Cpu0FrameLowering.cpp Chapter8_3/Cpu0FrameLowering.cpp
---- Chapter8_2/Cpu0FrameLowering.cpp	2013-07-15 13:41:33.948210288 +0800
-+++ Chapter8_3/Cpu0FrameLowering.cpp	2013-07-15 13:41:33.952210288 +0800
+--- Chapter8_2/Cpu0FrameLowering.cpp	2013-07-21 22:50:09.225536843 +0800
++++ Chapter8_3/Cpu0FrameLowering.cpp	2013-07-21 22:50:09.213536843 +0800
 @@ -127,7 +127,10 @@
    unsigned ADDiu = Cpu0::ADDiu;
    // First, compute final stack size.
@@ -219,8 +219,8 @@ diff -Naur Chapter8_2/Cpu0FrameLowering.cpp Chapter8_3/Cpu0FrameLowering.cpp
  //  physical registers used to determine what callee saved registers should be 
  //  spilled. This method is optional. 
 diff -Naur Chapter8_2/Cpu0FrameLowering.h Chapter8_3/Cpu0FrameLowering.h
---- Chapter8_2/Cpu0FrameLowering.h	2013-07-15 13:41:33.948210288 +0800
-+++ Chapter8_3/Cpu0FrameLowering.h	2013-07-15 13:41:33.952210288 +0800
+--- Chapter8_2/Cpu0FrameLowering.h	2013-07-21 22:50:09.224536843 +0800
++++ Chapter8_3/Cpu0FrameLowering.h	2013-07-21 22:50:09.211536843 +0800
 @@ -35,6 +35,9 @@
    void emitPrologue(MachineFunction &MF) const;
    void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const;
@@ -232,8 +232,8 @@ diff -Naur Chapter8_2/Cpu0FrameLowering.h Chapter8_3/Cpu0FrameLowering.h
                                              RegScavenger *RS) const;
  };
 diff -Naur Chapter8_2/Cpu0.h Chapter8_3/Cpu0.h
---- Chapter8_2/Cpu0.h	2013-07-15 13:41:33.948210288 +0800
-+++ Chapter8_3/Cpu0.h	2013-07-15 13:41:33.952210288 +0800
+--- Chapter8_2/Cpu0.h	2013-07-21 22:50:09.224536843 +0800
++++ Chapter8_3/Cpu0.h	2013-07-21 22:50:09.211536843 +0800
 @@ -23,6 +23,7 @@
    class FunctionPass;
  
@@ -243,8 +243,8 @@ diff -Naur Chapter8_2/Cpu0.h Chapter8_3/Cpu0.h
  } // end namespace llvm;
  
 diff -Naur Chapter8_2/Cpu0InstrInfo.cpp Chapter8_3/Cpu0InstrInfo.cpp
---- Chapter8_2/Cpu0InstrInfo.cpp	2013-07-15 13:41:33.948210288 +0800
-+++ Chapter8_3/Cpu0InstrInfo.cpp	2013-07-15 13:41:33.952210288 +0800
+--- Chapter8_2/Cpu0InstrInfo.cpp	2013-07-21 22:50:09.224536843 +0800
++++ Chapter8_3/Cpu0InstrInfo.cpp	2013-07-21 22:50:09.212536843 +0800
 @@ -21,7 +21,7 @@
  using namespace llvm;
  
@@ -283,8 +283,8 @@ diff -Naur Chapter8_2/Cpu0InstrInfo.cpp Chapter8_3/Cpu0InstrInfo.cpp
 +
 +
 diff -Naur Chapter8_2/Cpu0InstrInfo.h Chapter8_3/Cpu0InstrInfo.h
---- Chapter8_2/Cpu0InstrInfo.h	2013-07-15 13:41:33.948210288 +0800
-+++ Chapter8_3/Cpu0InstrInfo.h	2013-07-15 13:41:33.952210288 +0800
+--- Chapter8_2/Cpu0InstrInfo.h	2013-07-21 22:50:09.224536843 +0800
++++ Chapter8_3/Cpu0InstrInfo.h	2013-07-21 22:50:09.211536843 +0800
 @@ -58,6 +58,12 @@
                                                   int FrameIx, uint64_t Offset,
                                                   const MDNode *MDPtr,
@@ -299,8 +299,8 @@ diff -Naur Chapter8_2/Cpu0InstrInfo.h Chapter8_3/Cpu0InstrInfo.h
  }
  
 diff -Naur Chapter8_2/Cpu0InstrInfo.td Chapter8_3/Cpu0InstrInfo.td
---- Chapter8_2/Cpu0InstrInfo.td	2013-07-15 13:41:33.948210288 +0800
-+++ Chapter8_3/Cpu0InstrInfo.td	2013-07-15 13:41:33.952210288 +0800
+--- Chapter8_2/Cpu0InstrInfo.td	2013-07-21 22:50:09.225536843 +0800
++++ Chapter8_3/Cpu0InstrInfo.td	2013-07-21 22:50:09.212536843 +0800
 @@ -45,8 +45,8 @@
  def Cpu0GPRel : SDNode<"Cpu0ISD::GPRel", SDTIntUnaryOp>;
  
@@ -367,8 +367,8 @@ diff -Naur Chapter8_2/Cpu0InstrInfo.td Chapter8_3/Cpu0InstrInfo.td
  def JALR    : JumpLinkReg<0x2E, "jalr", CPURegs>;
  
 diff -Naur Chapter8_2/Cpu0ISelLowering.cpp Chapter8_3/Cpu0ISelLowering.cpp
---- Chapter8_2/Cpu0ISelLowering.cpp	2013-07-15 13:41:33.948210288 +0800
-+++ Chapter8_3/Cpu0ISelLowering.cpp	2013-07-15 13:41:33.952210288 +0800
+--- Chapter8_2/Cpu0ISelLowering.cpp	2013-07-21 22:50:09.223536843 +0800
++++ Chapter8_3/Cpu0ISelLowering.cpp	2013-07-21 22:50:09.210536843 +0800
 @@ -141,7 +141,7 @@
    // Cpu0 Custom Operations
    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
@@ -446,8 +446,8 @@ diff -Naur Chapter8_2/Cpu0ISelLowering.cpp Chapter8_3/Cpu0ISelLowering.cpp
  }
  
 diff -Naur Chapter8_2/Cpu0MachineFunction.h Chapter8_3/Cpu0MachineFunction.h
---- Chapter8_2/Cpu0MachineFunction.h	2013-07-15 13:41:33.948210288 +0800
-+++ Chapter8_3/Cpu0MachineFunction.h	2013-07-15 13:41:33.952210288 +0800
+--- Chapter8_2/Cpu0MachineFunction.h	2013-07-21 22:50:09.224536843 +0800
++++ Chapter8_3/Cpu0MachineFunction.h	2013-07-21 22:50:09.211536843 +0800
 @@ -26,6 +26,11 @@
    virtual void anchor();
    MachineFunction& MF;
@@ -491,8 +491,8 @@ diff -Naur Chapter8_2/Cpu0MachineFunction.h Chapter8_3/Cpu0MachineFunction.h
    bool globalBaseRegSet() const;
    unsigned getGlobalBaseReg();
 diff -Naur Chapter8_2/Cpu0MCInstLower.cpp Chapter8_3/Cpu0MCInstLower.cpp
---- Chapter8_2/Cpu0MCInstLower.cpp	2013-07-15 13:41:33.948210288 +0800
-+++ Chapter8_3/Cpu0MCInstLower.cpp	2013-07-15 13:41:33.952210288 +0800
+--- Chapter8_2/Cpu0MCInstLower.cpp	2013-07-21 22:50:09.225536843 +0800
++++ Chapter8_3/Cpu0MCInstLower.cpp	2013-07-21 22:50:09.213536843 +0800
 @@ -121,6 +121,36 @@
    CreateMCInst(MCInsts[3], Cpu0::ADD, GPReg, GPReg, T9Reg);
  }
@@ -531,8 +531,8 @@ diff -Naur Chapter8_2/Cpu0MCInstLower.cpp Chapter8_3/Cpu0MCInstLower.cpp
                                          unsigned offset) const {
    MachineOperandType MOTy = MO.getType();
 diff -Naur Chapter8_2/Cpu0MCInstLower.h Chapter8_3/Cpu0MCInstLower.h
---- Chapter8_2/Cpu0MCInstLower.h	2013-07-15 13:41:33.948210288 +0800
-+++ Chapter8_3/Cpu0MCInstLower.h	2013-07-15 13:41:33.952210288 +0800
+--- Chapter8_2/Cpu0MCInstLower.h	2013-07-21 22:50:09.224536843 +0800
++++ Chapter8_3/Cpu0MCInstLower.h	2013-07-21 22:50:09.212536843 +0800
 @@ -34,6 +34,7 @@
    void Initialize(Mangler *mang, MCContext* C);
    void Lower(const MachineInstr *MI, MCInst &OutMI) const;
@@ -542,8 +542,8 @@ diff -Naur Chapter8_2/Cpu0MCInstLower.h Chapter8_3/Cpu0MCInstLower.h
    MCOperand LowerSymbolOperand(const MachineOperand &MO,
                                 MachineOperandType MOTy, unsigned Offset) const;
 diff -Naur Chapter8_2/Cpu0RegisterInfo.cpp Chapter8_3/Cpu0RegisterInfo.cpp
---- Chapter8_2/Cpu0RegisterInfo.cpp	2013-07-15 13:41:33.948210288 +0800
-+++ Chapter8_3/Cpu0RegisterInfo.cpp	2013-07-15 13:41:33.952210288 +0800
+--- Chapter8_2/Cpu0RegisterInfo.cpp	2013-07-21 22:50:09.225536843 +0800
++++ Chapter8_3/Cpu0RegisterInfo.cpp	2013-07-21 22:50:09.213536843 +0800
 @@ -96,6 +96,7 @@
    MachineInstr &MI = *II;
    MachineFunction &MF = *MI.getParent()->getParent();
@@ -577,8 +577,8 @@ diff -Naur Chapter8_2/Cpu0RegisterInfo.cpp Chapter8_3/Cpu0RegisterInfo.cpp
    Offset    += MI.getOperand(i+1).getImm();
  
 diff -Naur Chapter8_2/Cpu0TargetMachine.cpp Chapter8_3/Cpu0TargetMachine.cpp
---- Chapter8_2/Cpu0TargetMachine.cpp	2013-07-15 13:41:33.948210288 +0800
-+++ Chapter8_3/Cpu0TargetMachine.cpp	2013-07-15 13:41:33.952210288 +0800
+--- Chapter8_2/Cpu0TargetMachine.cpp	2013-07-21 22:50:09.224536843 +0800
++++ Chapter8_3/Cpu0TargetMachine.cpp	2013-07-21 22:50:09.211536843 +0800
 @@ -82,6 +82,7 @@
      return *getCpu0TargetMachine().getSubtargetImpl();
    }

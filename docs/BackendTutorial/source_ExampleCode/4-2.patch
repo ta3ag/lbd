@@ -1,6 +1,6 @@
 diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
---- Chapter4_1/Cpu0InstrInfo.td	2013-07-15 13:41:33.968210288 +0800
-+++ Chapter4_2/Cpu0InstrInfo.td	2013-07-15 13:41:33.964210288 +0800
+--- Chapter4_1/Cpu0InstrInfo.td	2013-07-21 22:50:09.260536845 +0800
++++ Chapter4_2/Cpu0InstrInfo.td	2013-07-21 22:50:09.197536843 +0800
 @@ -230,3 +230,14 @@
  
  def : Pat<(i32 immSExt16:$in),

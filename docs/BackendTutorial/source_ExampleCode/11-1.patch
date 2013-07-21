@@ -1,6 +1,6 @@
 diff -Naur Chapter10_2/CMakeLists.txt Chapter11_1/CMakeLists.txt
---- Chapter10_2/CMakeLists.txt	2013-07-15 13:41:33.968210288 +0800
-+++ Chapter11_1/CMakeLists.txt	2013-07-15 13:41:33.960210288 +0800
+--- Chapter10_2/CMakeLists.txt	2013-07-21 22:50:09.169536841 +0800
++++ Chapter11_1/CMakeLists.txt	2013-07-21 22:50:09.165536841 +0800
 @@ -26,6 +26,7 @@
  add_llvm_target(Cpu0CodeGen
    Cpu0AnalyzeImmediate.cpp
@@ -11,7 +11,7 @@ diff -Naur Chapter10_2/CMakeLists.txt Chapter11_1/CMakeLists.txt
    Cpu0ISelDAGToDAG.cpp
 diff -Naur Chapter10_2/Cpu0DelUselessJMP.cpp Chapter11_1/Cpu0DelUselessJMP.cpp
 --- Chapter10_2/Cpu0DelUselessJMP.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter11_1/Cpu0DelUselessJMP.cpp	2013-07-15 13:41:33.960210288 +0800
++++ Chapter11_1/Cpu0DelUselessJMP.cpp	2013-07-21 22:50:09.164536841 +0800
 @@ -0,0 +1,99 @@
 +//===-- Cpu0DelUselessJMP.cpp - Cpu0 DelJmp -------------------------------===//
 +//
@@ -113,8 +113,8 @@ diff -Naur Chapter10_2/Cpu0DelUselessJMP.cpp Chapter11_1/Cpu0DelUselessJMP.cpp
 +  return new DelJmp(tm);
 +}
 diff -Naur Chapter10_2/Cpu0.h Chapter11_1/Cpu0.h
---- Chapter10_2/Cpu0.h	2013-07-15 13:41:33.968210288 +0800
-+++ Chapter11_1/Cpu0.h	2013-07-15 13:41:33.960210288 +0800
+--- Chapter10_2/Cpu0.h	2013-07-21 22:50:09.169536841 +0800
++++ Chapter11_1/Cpu0.h	2013-07-21 22:50:09.164536841 +0800
 @@ -24,6 +24,7 @@
  
    FunctionPass *createCpu0ISelDag(Cpu0TargetMachine &TM);
@@ -124,8 +124,8 @@ diff -Naur Chapter10_2/Cpu0.h Chapter11_1/Cpu0.h
  } // end namespace llvm;
  
 diff -Naur Chapter10_2/Cpu0TargetMachine.cpp Chapter11_1/Cpu0TargetMachine.cpp
---- Chapter10_2/Cpu0TargetMachine.cpp	2013-07-15 13:41:33.968210288 +0800
-+++ Chapter11_1/Cpu0TargetMachine.cpp	2013-07-15 13:41:33.960210288 +0800
+--- Chapter10_2/Cpu0TargetMachine.cpp	2013-07-21 22:50:09.169536841 +0800
++++ Chapter11_1/Cpu0TargetMachine.cpp	2013-07-21 22:50:09.164536841 +0800
 @@ -83,6 +83,7 @@
    }
    virtual bool addInstSelector();
