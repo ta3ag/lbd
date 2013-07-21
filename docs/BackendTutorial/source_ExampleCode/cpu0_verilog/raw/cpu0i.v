@@ -35,10 +35,11 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   `define Z    `SW[30] // Zero
   `define C    `SW[29] // Carry
   `define V    `SW[28] // Overflow
+  `define MODE `SW[25:23] // itype
   `define I2   `SW[16] // Hardware Interrupt 1, IO1 interrupt, status, 1: in interrupt
   `define I1   `SW[15] // Hardware Interrupt 0, timer interrupt, status, 1: in interrupt
   `define I0   `SW[14] // Software interrupt, status, 1: in interrupt
-  `define I    `SW[14] // Interrupt, 1: in interrupt
+  `define I    `SW[13] // Interrupt, 1: in interrupt
   `define I2E  `SW[8]  // Hardware Interrupt 1, IO1 interrupt, Enable
   `define I1E  `SW[7]  // Hardware Interrupt 0, timer interrupt, Enable
   `define I0E  `SW[6]  // Software Interrupt Enable
@@ -58,8 +59,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   MFHI=8'h40,MFLO=8'h41,MTHI=8'h42,MTLO=8'h43,
   MULT=8'h50;
 
-  reg inInt = 0;
-  reg [2:0] state, next_state;
+  reg [0:0] inInt = 0;
+  reg [2:0] state, next_state; 
   parameter Reset=3'h0, Fetch=3'h1, Decode=3'h2, Execute=3'h3, WriteBack=3'h4;
 
   task memReadStart(input [31:0] addr, input [1:0] size); begin // Read Memory Word
@@ -88,8 +89,9 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
     m_en = 0; // write complete
   end endtask
 
-  task regSet(input [3:0] i, input [31:0] data); begin
+  task regSet(input [3:0] i, input [31:0] data, input [2:0] itype); begin
     if (i != 0) R[i] = data;
+    if (i == 12) itype = `MODE;
   end endtask
 
   task regHILOSet(input [31:0] data1, input [31:0] data2); begin
@@ -98,7 +100,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   end endtask
 
   task taskInterrupt(input [2:0] iMode); begin
-  if (inInt==1) begin
+  if (inInt == 0) begin
     case (iMode)
       `RESET: begin 
         `PC = 0; tick = 0; R[0] = 0; `SW = 0; `LR = -1; 
@@ -109,6 +111,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       `ERROR: begin `LR = `PC; `PC = 12; end
     endcase
     $display("taskInterrupt(%3b)", iMode);
+    inInt = 1;
   end
   end endtask
 
@@ -150,31 +153,31 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       // Mathematic 
       ADDiu: R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra<=Rb+Cx
       CMP:   begin `N=(Ra-Rb<0);`Z=(Ra-Rb==0); end // CMP Ra, Rb; SW=(Ra >=< Rb)
-      ADDu:  regSet(a, Rb+Rc);               // ADDu Ra,Rb,Rc; Ra<=Rb+Rc
-      ADD:   begin regSet(a, Rb+Rc); if (a < Rb) `V = 1; else `V =0; end
+      ADDu:  regSet(a, Rb+Rc, itype);               // ADDu Ra,Rb,Rc; Ra<=Rb+Rc
+      ADD:   begin regSet(a, Rb+Rc, itype); if (a < Rb) `V = 1; else `V =0; end
                                              // ADD Ra,Rb,Rc; Ra<=Rb+Rc
-      SUBu:  regSet(a, Rb-Rc);               // SUBu Ra,Rb,Rc; Ra<=Rb-Rc
-      SUB:   begin regSet(a, Rb-Rc); if (Rb < 0 && Rc > 0 && a >= 0) 
+      SUBu:  regSet(a, Rb-Rc, itype);               // SUBu Ra,Rb,Rc; Ra<=Rb-Rc
+      SUB:   begin regSet(a, Rb-Rc, itype); if (Rb < 0 && Rc > 0 && a >= 0) 
              `V = 1; else `V =0; end         // SUB Ra,Rb,Rc; Ra<=Rb-Rc
-      MUL:   regSet(a, Rb*Rc);               // MUL Ra,Rb,Rc;     Ra<=Rb*Rc
+      MUL:   regSet(a, Rb*Rc, itype);               // MUL Ra,Rb,Rc;     Ra<=Rb*Rc
       SDIV:  regHILOSet(Ra%Rb, Ra/Rb);          // SDIV Ra,Rb; HI<=Ra%Rb; LO<=Ra/Rb
                                            // with exception overflow
-      AND:   regSet(a, Rb&Rc);               // AND Ra,Rb,Rc; Ra<=(Rb and Rc)
-      ANDi:  regSet(a, Rb&uc16);             // ANDi Ra,Rb,c16; Ra<=(Rb and c16)
-      OR:    regSet(a, Rb|Rc);               // OR Ra,Rb,Rc; Ra<=(Rb or Rc)
-      ORi:   regSet(a, Rb|uc16);             // ORi Ra,Rb,c16; Ra<=(Rb or c16)
-      XOR:   regSet(a, Rb^Rc);               // XOR Ra,Rb,Rc; Ra<=(Rb xor Rc)
-      XORi:  regSet(a, Rb^uc16);             // XORi Ra,Rb,c16; Ra<=(Rb xor c16)
-      SHL:   regSet(a, Rb<<c5);     // Shift Left; SHL Ra,Rb,Cx; Ra<=(Rb << Cx)
-      SRA:   regSet(a, (Rb&'h80000000)|(Rb>>c5)); 
+      AND:   regSet(a, Rb&Rc, itype);               // AND Ra,Rb,Rc; Ra<=(Rb and Rc)
+      ANDi:  regSet(a, Rb&uc16, itype);             // ANDi Ra,Rb,c16; Ra<=(Rb and c16)
+      OR:    regSet(a, Rb|Rc, itype);               // OR Ra,Rb,Rc; Ra<=(Rb or Rc)
+      ORi:   regSet(a, Rb|uc16, itype);             // ORi Ra,Rb,c16; Ra<=(Rb or c16)
+      XOR:   regSet(a, Rb^Rc, itype);               // XOR Ra,Rb,Rc; Ra<=(Rb xor Rc)
+      XORi:  regSet(a, Rb^uc16, itype);             // XORi Ra,Rb,c16; Ra<=(Rb xor c16)
+      SHL:   regSet(a, Rb<<c5, itype);     // Shift Left; SHL Ra,Rb,Cx; Ra<=(Rb << Cx)
+      SRA:   regSet(a, (Rb&'h80000000)|(Rb>>c5), itype); 
                                   // Shift Right with signed bit fill;
                                   // SHR Ra,Rb,Cx; Ra<=(Rb&0x80000000)|(Rb>>Cx)
-      SHR:   regSet(a, Rb>>c5);     // Shift Right with 0 fill; 
+      SHR:   regSet(a, Rb>>c5, itype);     // Shift Right with 0 fill; 
                                   // SHR Ra,Rb,Cx; Ra<=(Rb >> Cx)
-      ROL:   regSet(a, (Rb<<c5)|(Rb>>(32-c5)));     // Rotate Left;
-      ROR:   regSet(a, (Rb>>c5)|(Rb<<(32-c5)));     // Rotate Right;
-      MFLO:  regSet(a, LO);            // MFLO Ra; Ra<=LO
-      MFHI:  regSet(a, HI);            // MFHI Ra; Ra<=HI
+      ROL:   regSet(a, (Rb<<c5)|(Rb>>(32-c5)), itype);     // Rotate Left;
+      ROR:   regSet(a, (Rb>>c5)|(Rb<<(32-c5)), itype);     // Rotate Right;
+      MFLO:  regSet(a, LO, itype);            // MFLO Ra; Ra<=LO
+      MFHI:  regSet(a, HI, itype);            // MFHI Ra; Ra<=HI
       MTLO:  LO = Ra;             // MTLO Ra; LO<=Ra
       MTHI:  HI = Ra;             // MTHI Ra; HI<=Ra
       MULT:  {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
@@ -195,7 +198,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       JALR:  begin `LR=`PC;`PC=Ra; end // JALR Ra,Rb; Ra<=PC; PC<=Rb
       RET:   begin `PC=`LR; end               // RET; PC <= LR
       IRET:  begin 
-        `PC=`LR;`I = 1'b0;
+        `PC=Ra;`I = 1'b0; `MODE = `EXE;
       end // Interrupt Return; IRET; PC <= LR; INT<=0
       endcase
       next_state = WriteBack;
@@ -211,6 +214,9 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       MULT, SDIV, MTHI, MTLO :
         $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
         LO, `SW);
+      LD :
+          $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d  SW=%8x", $stime, pc0, ir, 
+          R[b], c16, R[a], `SW);
       ST :
         if (R[b]+c16 == `IOADDR)
           $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);
@@ -231,15 +237,15 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   end endtask
 
   always @(posedge clock) begin
-    if (`RESET) begin
-      taskInterrupt(itype);
+    if (inInt == 0 && itype == `RESET) begin
+      taskInterrupt(`RESET);
+      `MODE = `RESET;
       state = Fetch;
-    end else if ((state == WriteBack) && (`IE && `I) && ((`I0E && `I0) || (`I1E && `I1) || (`I2E && `I2)) ) begin
-      itype = `IRQ;
-      taskInterrupt(itype);
+    end else if (inInt == 0 && (state == Fetch) && (`IE && `I) && ((`I0E && `I0) || (`I1E && `I1) || (`I2E && `I2)) ) begin
+      `MODE = `IRQ;
+      taskInterrupt(`IRQ);
       state = Fetch;
     end else begin
-      inInt = 0;
       taskExecute();
       state = next_state;
     end
@@ -260,7 +266,7 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
     end
   // display memory contents
     $readmemh("cpu0s.hex", m);
-    for (i=0; i < `MEMSIZE && m[i] != `MEMEMPTY; i=i+4) begin
+    for (i=0; i < `MEMSIZE && (m[i] != `MEMEMPTY || m[i+1] != `MEMEMPTY || m[i+2] != `MEMEMPTY || m[i+3] != `MEMEMPTY); i=i+4) begin
        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
     end
   end
@@ -292,14 +298,14 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
 endmodule
 
 module main;
-  reg clock, reset;
+  reg clock;
   reg [2:0] itype;
   wire [2:0] tick;
   wire [31:0] pc, ir, mar, mdr, dbus;
   wire m_en, m_rw;
   wire [1:0] m_size;
 
-  cpu0 cpu(.clock(clock), .reset(reset), .pc(pc), .tick(tick), .ir(ir),
+  cpu0 cpu(.clock(clock), .itype(itype), .pc(pc), .tick(tick), .ir(ir),
   .mar(mar), .mdr(mdr), .dbus(dbus), .m_en(m_en), .m_rw(m_rw), .m_size(m_size));
 
   memory0 mem(.clock(clock), .reset(reset), .en(m_en), .rw(m_rw), .m_size(m_size), 
@@ -309,7 +315,6 @@ module main;
   begin
     clock = 0;
     itype = `RESET;
-    #20 reset = 0; itype = `EXE;
     #300000 $finish;
   end
 
