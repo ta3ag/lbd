@@ -2494,6 +2494,20 @@ languages use it frequently. The following C example code use it.
 
 Chapter8_4 support dynamic stack allocation with the following code added.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0FrameLowering.h
+.. code-block:: c++
+
+  class Cpu0FrameLowering : public TargetFrameLowering {
+    ...
+  public:
+    ...
+    bool spillCalleeSavedRegisters(MachineBasicBlock &MBB,
+                                   MachineBasicBlock::iterator MI,
+                                   const std::vector<CalleeSavedInfo> &CSI,
+                                   const TargetRegisterInfo *TRI) const;
+    ...
+  }
+
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0FrameLowering.cpp
 .. code-block:: c++
 
@@ -2538,6 +2552,50 @@ Chapter8_4 support dynamic stack allocation with the following code added.
       // Insert instruction "move $sp, $fp" at this location.
       BuildMI(MBB, I, dl, TII.get(ADDu), SP).addReg(FP).addReg(ZERO);
     }
+    ...
+  }
+
+  bool Cpu0FrameLowering::
+  spillCalleeSavedRegisters(MachineBasicBlock &MBB,
+                            MachineBasicBlock::iterator MI,
+                            const std::vector<CalleeSavedInfo> &CSI,
+                            const TargetRegisterInfo *TRI) const {
+    MachineFunction *MF = MBB.getParent();
+    MachineBasicBlock *EntryBlock = MF->begin();
+    const TargetInstrInfo &TII = *MF->getTarget().getInstrInfo();
+
+    for (unsigned i = 0, e = CSI.size(); i != e; ++i) {
+      // Add the callee-saved register as live-in. Do not add if the register is
+      // RA and return address is taken, because it has already been added in
+      // method Cpu0TargetLowering::LowerRETURNADDR.
+      // It's killed at the spill, unless the register is RA and return address
+      // is taken.
+      unsigned Reg = CSI[i].getReg();
+      bool IsRAAndRetAddrIsTaken = (Reg == Cpu0::LR)
+          && MF->getFrameInfo()->isReturnAddressTaken();
+      if (!IsRAAndRetAddrIsTaken)
+        EntryBlock->addLiveIn(Reg);
+
+      // Insert the spill to the stack frame.
+      bool IsKill = !IsRAAndRetAddrIsTaken;
+      const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(Reg);
+      TII.storeRegToStackSlot(*EntryBlock, MI, Reg, IsKill,
+                              CSI[i].getFrameIdx(), RC, TRI);
+    }
+
+    return true;
+  }
+
+  void Cpu0FrameLowering::
+  processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
+                                       RegScavenger *RS) const {
+    MachineRegisterInfo& MRI = MF.getRegInfo();
+    Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
+    unsigned FP = Cpu0::FP;
+
+    // Mark $fp as used if function has dedicated frame pointer.
+    if (hasFP(MF))
+      MRI.setPhysRegUsed(FP);
     ...
   }
 
@@ -2697,6 +2755,11 @@ Remind, the alloca() area which the b point to,
 **"*b = (int*)alloca(sizeof(int) * x1)"** is 
 allocated at run time since the spaces is variable size which depend on x1 
 variable and cannot be calculated at link time. 
+The functions spillCalleeSavedRegisters() and 
+processFunctionBeforeCalleeSavedScan() of Cpu0FrameLowering.cpp will spill 
+register $fp (save to stack and restore from stack) in the generated function 
+body. Without this,the caller function will get the incorrect result and 
+assigned the incorrect value to $sp.
 
 :num:`Figure #funccall-f5` depicted how the stack pointer changes back to the 
 caller stack bottom. As above, the **fp** is set to the just above of alloca(). 

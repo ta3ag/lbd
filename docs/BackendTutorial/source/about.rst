@@ -56,7 +56,7 @@ Version 3.3.01, Not release yet
   Add load bool type in chapter 6.
   Fix chapter 4 error.
   Add interrupt function in cpu0i.v.
-  Fix bug in alloc() support of Chapter 8 by adding code of spill $lr register. 
+  Fix bug in alloc() support of Chapter 8 by adding code of spill $fp register. 
 
 Version 3.3.0, Released July 13, 2013
   Add Table: C operator ! corresponding IR of .bc and IR of DAG and Table: C 
