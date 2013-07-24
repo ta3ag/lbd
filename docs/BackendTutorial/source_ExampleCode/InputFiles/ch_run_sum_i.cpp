@@ -11,8 +11,7 @@ int sum_i(int amount, ...);
 
 #define OUT_MEM 0x7000 // 28672
 
-//void boot()
-//{
+// boot:
   asm("jmp 12"); // RESET: jmp RESET_START;
   asm("jmp 4");  // ERROR: jmp ERR_HANDLE;
   asm("jmp 4");  // IRQ: jmp IRQ_HANDLE;
@@ -24,7 +23,6 @@ int sum_i(int amount, ...);
   asm("addiu $sp, $zero, 0x6ffc");
   asm("addiu $3, $ZERO, 0x50");
   asm("iret $3");
-//}
 
 int main()
 {

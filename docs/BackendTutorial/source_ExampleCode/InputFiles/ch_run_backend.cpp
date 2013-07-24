@@ -6,13 +6,20 @@
 
 #include <stdarg.h>
 
-#include "InitRegs.h"
-
 #define OUT_MEM 0x7000 // 28672
+
+asm("jmp 12"); // RESET: jmp RESET_START;
+asm("jmp 4");  // ERROR: jmp ERR_HANDLE;
+asm("jmp 4");  // IRQ: jmp IRQ_HANDLE;
+asm("jmp -4"); // ERR_HANDLE: jmp ERR_HANDLE; (loop forever)
+
+// RESET_START:
+#include "InitRegs.h"
 
 asm("addiu $sp, $zero, 0x6ffc");
 
 void print_integer(int x);
+bool test_load_bool();
 int test_operators(int x);
 int test_control();
 int sum_i(int amount, ...);

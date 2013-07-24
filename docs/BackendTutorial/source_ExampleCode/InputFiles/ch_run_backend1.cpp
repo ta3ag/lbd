@@ -14,8 +14,7 @@ int sum_i(int amount, ...);
 
 #define OUT_MEM 0x7000 // 28672
 
-void boot()
-{
+// boot:
   asm("jmp 12"); // RESET: jmp RESET_START;
   asm("jmp 4");  // ERROR: jmp ERR_HANDLE;
   asm("jmp 4");  // IRQ: jmp IRQ_HANDLE;
@@ -25,14 +24,14 @@ void boot()
   #include "InitRegs.h"
   
   asm("addiu $sp, $zero, 0x6ffc");
-  asm("addiu $3, $ZERO, 0x58");
+  asm("addiu $3, $ZERO, 0x50"); // Assume main() entry point is address 0x50
   asm("iret $3");
-}
 
 int main()
 {
   int a = 0;
-  test_load_bool();
+  a = (int)test_load_bool();
+  print_integer(a);  // a = 1
   a = test_operators(12); // a = 13
   print_integer(a);
   a += test_control();	// a = (128+18) = 146
