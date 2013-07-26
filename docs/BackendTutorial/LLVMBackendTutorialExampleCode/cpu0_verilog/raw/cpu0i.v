@@ -199,7 +199,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
 
   task output_string(output [`OUTMEMSIZE*8-1:0] data); begin
     memcpy(data);
-    $display("%4dns %8x : %8x OUTPUT=%s", $stime, pc0, ir, data);
+    $display("%s", data);
     clearbuffer(`NULL);
     out_buffer_size = 0;
   end endtask
