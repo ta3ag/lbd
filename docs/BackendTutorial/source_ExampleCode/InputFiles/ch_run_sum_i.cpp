@@ -4,25 +4,11 @@
 
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llvm-objdump -d ch_run_sum_i.cpu0.o | tail -n +6| awk '{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t*/"}' > ../cpu0_verilog/redesign/cpu0s.hex
 
-#include <stdarg.h>
+#include "boot.cpp"
 
-void print_integer(int x);
+#include "print.h"
+
 int sum_i(int amount, ...);
-
-#define OUT_MEM 0x7000 // 28672
-
-// boot:
-  asm("jmp 12"); // RESET: jmp RESET_START;
-  asm("jmp 4");  // ERROR: jmp ERR_HANDLE;
-  asm("jmp 4");  // IRQ: jmp IRQ_HANDLE;
-  asm("jmp -4"); // ERR_HANDLE: jmp ERR_HANDLE; (loop forever)
-
-  // RESET_START:
-  #include "InitRegs.h"
-  
-  asm("addiu $sp, $zero, 0x6ffc");
-  asm("addiu $3, $ZERO, 0x50");
-  asm("iret $3");
 
 int main()
 {
@@ -33,14 +19,9 @@ int main()
   return a;
 }
 
-// For memory IO
-void print_integer(int x)
-{
-  int *p = (int*)OUT_MEM;
-  *p = x;
- return;
-}
+#include "print.cpp"
 
+#include <stdarg.h>
 int sum_i(int amount, ...)
 {
   int i = 0;

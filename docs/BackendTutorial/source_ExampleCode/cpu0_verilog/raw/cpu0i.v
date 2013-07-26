@@ -1,5 +1,7 @@
 `define MEMSIZE 'h7000
+`define OUTMEMSIZE 82
 `define MEMEMPTY 8'hFF
+`define NULL     8'h00
 `define IOADDR  'h7000
 
 // Operand width
@@ -24,6 +26,9 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   reg [3:0] a, b, c;
   reg [4:0] c5;
   reg signed [31:0] c12, c16, uc16, c24, Ra, Rb, Rc, pc0; // pc0 : instruction pc
+  reg [7:0] out_buffer [0:`OUTMEMSIZE-1];
+  reg [7:0] out_buffer_size;
+  reg [`OUTMEMSIZE*8-1:0] os;
 
   // register name
   `define PC   R[15]   // Program Counter
@@ -62,6 +67,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   reg [0:0] inInt = 0;
   reg [2:0] state, next_state; 
   parameter Reset=3'h0, Fetch=3'h1, Decode=3'h2, Execute=3'h3, WriteBack=3'h4;
+  integer i;
 
   task memReadStart(input [31:0] addr, input [1:0] size); begin // Read Memory Word
     mar = addr;     // read(m[addr])
@@ -99,11 +105,110 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
     LO = data2;
   end endtask
 
+  task memcpy(output [`OUTMEMSIZE*8-1:0] data); begin
+    data[7:0]     = out_buffer[81];
+    data[15:8]    = out_buffer[80];
+    data[23:16]   = out_buffer[79];
+    data[31:24]   = out_buffer[78];
+    data[39:32]   = out_buffer[77];
+    data[47:40]   = out_buffer[76];
+    data[55:48]   = out_buffer[75];
+    data[63:56]   = out_buffer[74];
+    data[71:64]   = out_buffer[73];
+    data[79:72]   = out_buffer[72];
+    data[87:80]   = out_buffer[71];
+    data[95:88]   = out_buffer[70];
+    data[103:96]  = out_buffer[69];
+    data[111:104] = out_buffer[68];
+    data[119:112] = out_buffer[67];
+    data[127:120] = out_buffer[66];
+    data[135:128] = out_buffer[65];
+    data[143:136] = out_buffer[64];
+    data[151:144] = out_buffer[63];
+    data[159:152] = out_buffer[62];
+    data[167:160] = out_buffer[61];
+    data[175:168] = out_buffer[60];
+    data[183:176] = out_buffer[59];
+    data[191:184] = out_buffer[58];
+    data[199:192] = out_buffer[57];
+    data[207:200] = out_buffer[56];
+    data[215:208] = out_buffer[55];
+    data[223:216] = out_buffer[54];
+    data[231:224] = out_buffer[53];
+    data[239:232] = out_buffer[52];
+    data[247:240] = out_buffer[51];
+    data[255:248] = out_buffer[50];
+    data[263:256] = out_buffer[49];
+    data[271:264] = out_buffer[48];
+    data[279:272] = out_buffer[47];
+    data[287:280] = out_buffer[46];
+    data[295:288] = out_buffer[45];
+    data[303:296] = out_buffer[44];
+    data[311:304] = out_buffer[43];
+    data[319:312] = out_buffer[42];
+    data[327:320] = out_buffer[41];
+    data[335:328] = out_buffer[40];
+    data[343:336] = out_buffer[39];
+    data[351:344] = out_buffer[38];
+    data[359:352] = out_buffer[37];
+    data[367:360] = out_buffer[36];
+    data[375:368] = out_buffer[35];
+    data[383:376] = out_buffer[34];
+    data[391:384] = out_buffer[33];
+    data[399:392] = out_buffer[32];
+    data[407:400] = out_buffer[31];
+    data[415:408] = out_buffer[30];
+    data[423:416] = out_buffer[29];
+    data[431:424] = out_buffer[28];
+    data[439:432] = out_buffer[27];
+    data[447:440] = out_buffer[26];
+    data[455:448] = out_buffer[25];
+    data[463:456] = out_buffer[24];
+    data[471:464] = out_buffer[23];
+    data[479:472] = out_buffer[22];
+    data[487:480] = out_buffer[21];
+    data[495:488] = out_buffer[20];
+    data[503:496] = out_buffer[19];
+    data[511:504] = out_buffer[18];
+    data[519:512] = out_buffer[17];
+    data[527:520] = out_buffer[16];
+    data[535:528] = out_buffer[15];
+    data[543:536] = out_buffer[14];
+    data[551:544] = out_buffer[13];
+    data[559:552] = out_buffer[12];
+    data[567:560] = out_buffer[11];
+    data[575:568] = out_buffer[10];
+    data[583:576] = out_buffer[9];
+    data[591:584] = out_buffer[8];
+    data[599:592] = out_buffer[7];
+    data[607:600] = out_buffer[6];
+    data[615:608] = out_buffer[5];
+    data[623:616] = out_buffer[4];
+    data[631:624] = out_buffer[3];
+    data[639:632] = out_buffer[2];
+    data[647:640] = out_buffer[1];
+    data[655:648] = out_buffer[0];
+  end endtask
+
+  task clearbuffer(input [7:0] byte); begin
+    // erase buffer
+    for (i=0; i < `OUTMEMSIZE; i=i+1) begin
+      out_buffer[i] = byte;
+    end
+  end endtask
+
+  task output_string(output [`OUTMEMSIZE*8-1:0] data); begin
+    memcpy(data);
+    $display("%4dns %8x : %8x OUTPUT=%s", $stime, pc0, ir, data);
+    clearbuffer(`NULL);
+    out_buffer_size = 0;
+  end endtask
+
   task taskInterrupt(input [2:0] iMode); begin
   if (inInt == 0) begin
     case (iMode)
       `RESET: begin 
-        `PC = 0; tick = 0; R[0] = 0; `SW = 0; `LR = -1; 
+        `PC = 0; tick = 0; R[0] = 0; `SW = 0; `LR = -1; out_buffer_size = 0;
         `IE = 0; `I0E = 0; `I1E = 0; `I2E = 0; `I = 0; `I0 = 0; `I1 = 0; `I2 = 0;
       end
       `ABORT: begin `LR = `PC; `PC = 4; end
@@ -211,21 +316,25 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
                                           // write memory complete
       endcase
       case (op)
-      MULT, SDIV, MTHI, MTLO :
-        $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
-        LO, `SW);
-      LD :
-          $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d  SW=%8x", $stime, pc0, ir, 
-          R[b], c16, R[a], `SW);
       ST :
-        if (R[b]+c16 == `IOADDR)
-          $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);
-        else
-          $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d  SW=%8x", $stime, pc0, ir, 
-          R[b], c16, R[a], `SW);
-      default : 
-        $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a, 
-        R[a], R[a], `SW);
+        if (R[b]+c16 == `IOADDR) begin
+          out_buffer[out_buffer_size+3] = R[a][7:0];
+          out_buffer[out_buffer_size+2] = R[a][15:8];
+          out_buffer[out_buffer_size+1] = R[a][23:16];
+          out_buffer[out_buffer_size] = R[a][31:24];
+          out_buffer_size = out_buffer_size+4;
+          if ((R[a][7:0] == 8'h00)||(R[a][15:8] == 8'h00)||(R[a][23:16] == 8'h00)||(R[a][31:24] == 8'h00)) begin
+            output_string(os);
+          end
+        end
+      SB :
+        if (R[b]+c16 == `IOADDR) begin
+          out_buffer[out_buffer_size] = R[a][7:0];
+          out_buffer_size = out_buffer_size+1;
+          if (R[a][7:0] == 8'h00) begin
+            output_string(os);
+          end
+        end
       endcase
       if (op==RET && `PC < 0) begin
         $display("RET to PC < 0, finished!");
@@ -318,10 +427,6 @@ module main;
     #300000 $finish;
   end
 
-/*  always #1000 begin
-    itype = `IRQ; #200 itype = `EXE;
-  end
-*/
   always #10 clock=clock+1;
 
 endmodule
