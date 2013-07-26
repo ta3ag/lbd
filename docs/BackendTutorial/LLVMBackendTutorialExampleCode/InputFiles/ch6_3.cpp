@@ -21,6 +21,7 @@ int main()
   Date date1 = {2012, (char)11, (char)25, (char)9, (char)40, (char)15};
   char m = date1.month;
   char s = date1.second;
+  char str[81] = "Hello";
 
   return 0;
 }
