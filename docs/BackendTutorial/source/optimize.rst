@@ -1001,7 +1001,7 @@ It match the expect value as comment in ch_run_backend.cpp.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
-    :lines: 8-
+    :lines: 7-
     :linenos:
 
 .. code-block:: bash
