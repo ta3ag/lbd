@@ -57,6 +57,7 @@ Version 3.3.01, Not release yet
   Fix chapter 4 error.
   Add interrupt function in cpu0i.v.
   Fix bug in alloc() support of Chapter 8 by adding code of spill $fp register. 
+  Add JSUB texternalsym for memcpy function call of llvm auto reference.
 
 Version 3.3.0, Released July 13, 2013
   Add Table: C operator ! corresponding IR of .bc and IR of DAG and Table: C 
