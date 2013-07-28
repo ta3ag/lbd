@@ -418,7 +418,7 @@ cpu0s.v use 0x7000 bytes of memory.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
-    :lines: 5-
+    :lines: 7-
     :linenos:
 
 .. code-block:: bash
@@ -508,12 +508,9 @@ compile with option ``clang -target mips-unknown-linux-gnu`` and use the clang o
 your build instead of download from Xcode on iMac. The ~/llvm/release/
 cmake_debug_build/bin/Debug/ is my build clang from source code.
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
-    :linenos:
-
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_run_sum_i.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_run_sum_i.cpp
+    :lines: 7-
     :linenos:
 
 .. code-block:: bash

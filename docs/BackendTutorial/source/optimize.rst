@@ -1020,8 +1020,22 @@ It match the expect value as comment in ch_run_backend.cpp.
   
   118-165-77-203:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk '{print "/* " $1 
-  " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t
-
+  " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t*/"}' > 
+  ../cpu0_verilog/redesign/cpu0s.hex
+  
+  JonathantekiiMac:InputFiles Jonathan$ cd ../cpu0_verilog/redesign/
+  JonathantekiiMac:redesign Jonathan$ iverilog -o cpu0s cpu0s.v 
+  JonathantekiiMac:redesign Jonathan$ ./cpu0s
+  WARNING: cpu0s.v:396: $readmemh(cpu0s.hex): Not enough words in the file for the 
+  requested range [0:28671].
+  taskInterrupt(001)
+  1                                                                                 
+  2                                                                                 
+  1073741821                                                                         
+  0                                                                                 
+  128                                                                               
+  146                                                                               
+  RET to PC < 0, finished!
 
 Run with ch7_1_1.cpp, it reduce some branch from pair instructions "CMP, JXX" 
 to 1 single instruction ether is BEQ or BNE, as follows,

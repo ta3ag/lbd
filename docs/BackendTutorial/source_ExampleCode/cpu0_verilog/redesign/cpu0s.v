@@ -323,12 +323,12 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
                                           // write memory complete
       endcase
       case (op)
-      MULT, MULTu, DIV, DIVu, MTHI, MTLO :
-        $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
-        LO, SW);
+//      MULT, MULTu, DIV, DIVu, MTHI, MTLO :
+//        $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
+//        LO, SW);
       ST : begin
-        $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d  SW=%8x", $stime, pc0, ir, 
-        R[b], c16, R[a], SW);
+//        $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d  SW=%8x", $stime, pc0, ir, 
+//        R[b], c16, R[a], SW);
         if (R[b]+c16 == `IOADDR) begin
           out_buffer[out_buffer_size+3] = R[a][7:0];
           out_buffer[out_buffer_size+2] = R[a][15:8];
@@ -341,8 +341,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
         end
       end
       SB : begin
-        $display("%4dns %8x : %8x m[%-04d+%-04d]=%c  SW=%8x", $stime, pc0, ir, 
-        R[b], c16, R[a][7:0], SW);
+//        $display("%4dns %8x : %8x m[%-04d+%-04d]=%c  SW=%8x", $stime, pc0, ir, 
+//        R[b], c16, R[a][7:0], SW);
         if (R[b]+c16 == `IOADDR) begin
           out_buffer[out_buffer_size] = R[a][7:0];
           out_buffer_size = out_buffer_size+1;
@@ -351,9 +351,9 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
           end
         end
       end
-      default : 
+/*      default : 
         $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a, 
-        R[a], R[a], SW);
+        R[a], R[a], SW);*/
       endcase
       if (op==RET && `PC < 0) begin
         $display("RET to PC < 0, finished!");
