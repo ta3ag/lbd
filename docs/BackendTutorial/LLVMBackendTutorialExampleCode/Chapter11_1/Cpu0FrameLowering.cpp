@@ -311,7 +311,7 @@ eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
 //  Aborted (core dumped)
 
 // Must exist
-//	ldi	$sp, $sp, 8
+//	addiu	$sp, $sp, 8
 //->	ret	$lr
 //	.set	macro
 //	.set	reorder

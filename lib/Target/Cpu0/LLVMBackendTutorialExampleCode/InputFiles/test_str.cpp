@@ -4,21 +4,24 @@
 
 #define OUT_MEM 0x7000 // 28672
 
-void print_string(const char *str);
+void print_char(char c);
+void print_string(char *str);
 
 int main()
 {
   int a = 0;
 
-  char str[81] = "Hello";
+  char str[0] = {'H','e','l','l','o',' ','w','o','r','l','d','\0'};
+//  print_string((char*)&("Hello world"));
+  print_string(str);
 
   return a;
 }
-/*
-void print_string(const char *str)
+
+void print_string(char *str)
 {
-  const char *p = str;
+  char *p = str;
 
   return;
 }
-*/
+

@@ -67,6 +67,11 @@ MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
     Symbol = Mang->getSymbol(MO.getGlobal());
     break;
 
+  case MachineOperand::MO_BlockAddress:
+    Symbol = AsmPrinter.GetBlockAddressSymbol(MO.getBlockAddress());
+    Offset += MO.getOffset();
+    break;
+
   default:
     llvm_unreachable("<unknown operand type>");
   }

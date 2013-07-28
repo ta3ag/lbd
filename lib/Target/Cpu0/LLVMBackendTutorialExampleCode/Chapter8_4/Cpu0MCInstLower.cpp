@@ -68,6 +68,16 @@ MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
     Symbol = Mang->getSymbol(MO.getGlobal());
     break;
 
+  case MachineOperand::MO_BlockAddress:
+    Symbol = AsmPrinter.GetBlockAddressSymbol(MO.getBlockAddress());
+    Offset += MO.getOffset();
+    break;
+
+  case MachineOperand::MO_ExternalSymbol:
+    Symbol = AsmPrinter.GetExternalSymbolSymbol(MO.getSymbolName());
+    Offset += MO.getOffset();
+    break;
+
   default:
     llvm_unreachable("<unknown operand type>");
   }
@@ -165,6 +175,7 @@ MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand& MO,
     return MCOperand::CreateImm(MO.getImm() + offset);
   case MachineOperand::MO_MachineBasicBlock:
   case MachineOperand::MO_GlobalAddress:
+  case MachineOperand::MO_ExternalSymbol:
   case MachineOperand::MO_BlockAddress:
     return LowerSymbolOperand(MO, MOTy, offset);
   case MachineOperand::MO_RegisterMask:
