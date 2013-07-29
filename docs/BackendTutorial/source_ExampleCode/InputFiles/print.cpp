@@ -29,7 +29,8 @@ void print_integer(int x)
   *p = x;
 #endif
 
-  char* str = itoa(x);
+  char str[INT_DIGITS + 2];
+  itoa(str, x);
   print_string(str);
 
   return;

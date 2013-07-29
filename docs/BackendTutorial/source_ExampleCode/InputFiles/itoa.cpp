@@ -19,17 +19,22 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
 
 #define INT_DIGITS 19		/* enough for 64 bit integer */
 
-char *itoa(int i)
+void itoa(char* s, int i)
 {
   /* Room for INT_DIGITS digits, - and '\0' */
-  static char buf[INT_DIGITS + 2];
+  char buf[INT_DIGITS + 2];
+  buf[INT_DIGITS + 1] = '\0';
   char *p = buf + INT_DIGITS + 1;	/* points to terminating '\0' */
+  char *q;
   if (i >= 0) {
     do {
       *--p = '0' + (i % 10);
       i /= 10;
     } while (i != 0);
-    return p;
+    for (q = s; *p != '\0'; p++, q++)
+      *q = *p;
+    *q = *p;
+    return;
   }
   else {			/* i < 0 */
     do {
@@ -37,7 +42,10 @@ char *itoa(int i)
       i /= 10;
     } while (i != 0);
     *--p = '-';
+    for (q = s; *p != '\0'; p++, q++)
+      *q = *p;
+    *q = *p;
   }
-  return p;
+  return;
 }
 
