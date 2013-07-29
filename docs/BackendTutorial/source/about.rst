@@ -59,6 +59,7 @@ Version 3.3.01, Not release yet
   Fix bug in alloc() support of Chapter 8 by adding code of spill $fp register. 
   Add JSUB texternalsym for memcpy function call of llvm auto reference.
   Rename cpu0i.v to cpu0s.v.
+  Modify itoa.cpp.
 
 Version 3.3.0, Released July 13, 2013
   Add Table: C operator ! corresponding IR of .bc and IR of DAG and Table: C 
