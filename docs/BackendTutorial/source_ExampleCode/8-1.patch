@@ -1,6 +1,6 @@
 diff -Naur Chapter7_1/Cpu0CallingConv.td Chapter8_1/Cpu0CallingConv.td
---- Chapter7_1/Cpu0CallingConv.td	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter8_1/Cpu0CallingConv.td	2013-07-12 21:51:53.000000000 +0800
+--- Chapter7_1/Cpu0CallingConv.td	2013-07-27 16:51:58.000000000 +0800
++++ Chapter8_1/Cpu0CallingConv.td	2013-07-27 16:51:58.000000000 +0800
 @@ -13,6 +13,37 @@
  class CCIfSubtarget<string F, CCAction A>:
    CCIf<!strconcat("State.getTarget().getSubtarget<Cpu0Subtarget>().", F), A>;
@@ -40,9 +40,9 @@ diff -Naur Chapter7_1/Cpu0CallingConv.td Chapter8_1/Cpu0CallingConv.td
                                     (sequence "S%u", 2, 0))>;
  
 diff -Naur Chapter7_1/Cpu0ISelLowering.cpp Chapter8_1/Cpu0ISelLowering.cpp
---- Chapter7_1/Cpu0ISelLowering.cpp	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter8_1/Cpu0ISelLowering.cpp	2013-07-12 21:51:53.000000000 +0800
-@@ -285,6 +285,58 @@
+--- Chapter7_1/Cpu0ISelLowering.cpp	2013-07-27 16:51:58.000000000 +0800
++++ Chapter8_1/Cpu0ISelLowering.cpp	2013-07-27 16:51:58.000000000 +0800
+@@ -295,6 +295,58 @@
                                           DebugLoc dl, SelectionDAG &DAG,
                                           SmallVectorImpl<SDValue> &InVals)
                                            const {
@@ -102,8 +102,8 @@ diff -Naur Chapter7_1/Cpu0ISelLowering.cpp Chapter8_1/Cpu0ISelLowering.cpp
  }
  
 diff -Naur Chapter7_1/Cpu0InstrFormats.td Chapter8_1/Cpu0InstrFormats.td
---- Chapter7_1/Cpu0InstrFormats.td	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter8_1/Cpu0InstrFormats.td	2013-07-12 21:51:53.000000000 +0800
+--- Chapter7_1/Cpu0InstrFormats.td	2013-07-27 16:51:58.000000000 +0800
++++ Chapter8_1/Cpu0InstrFormats.td	2013-07-27 16:51:58.000000000 +0800
 @@ -69,6 +69,13 @@
    field bits<32> SoftFail = 0;
  }
@@ -119,8 +119,8 @@ diff -Naur Chapter7_1/Cpu0InstrFormats.td Chapter8_1/Cpu0InstrFormats.td
  // Format A instruction class in Cpu0 : <|opcode|ra|rb|rc|cx|>
  //===----------------------------------------------------------------------===//
 diff -Naur Chapter7_1/Cpu0InstrInfo.cpp Chapter8_1/Cpu0InstrInfo.cpp
---- Chapter7_1/Cpu0InstrInfo.cpp	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter8_1/Cpu0InstrInfo.cpp	2013-07-12 21:51:53.000000000 +0800
+--- Chapter7_1/Cpu0InstrInfo.cpp	2013-07-27 16:51:58.000000000 +0800
++++ Chapter8_1/Cpu0InstrInfo.cpp	2013-07-27 16:51:58.000000000 +0800
 @@ -13,6 +13,7 @@
  
  #include "Cpu0InstrInfo.h"
@@ -165,8 +165,8 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.cpp Chapter8_1/Cpu0InstrInfo.cpp
  Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
                                          uint64_t Offset, const MDNode *MDPtr,
 diff -Naur Chapter7_1/Cpu0InstrInfo.h Chapter8_1/Cpu0InstrInfo.h
---- Chapter7_1/Cpu0InstrInfo.h	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter8_1/Cpu0InstrInfo.h	2013-07-12 21:51:53.000000000 +0800
+--- Chapter7_1/Cpu0InstrInfo.h	2013-07-27 16:51:58.000000000 +0800
++++ Chapter8_1/Cpu0InstrInfo.h	2013-07-27 16:51:58.000000000 +0800
 @@ -42,6 +42,12 @@
                             bool KillSrc) const;
  
@@ -181,8 +181,8 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.h Chapter8_1/Cpu0InstrInfo.h
                                                   int FrameIx, uint64_t Offset,
                                                   const MDNode *MDPtr,
 diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
---- Chapter7_1/Cpu0InstrInfo.td	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter8_1/Cpu0InstrInfo.td	2013-07-12 21:51:53.000000000 +0800
+--- Chapter7_1/Cpu0InstrInfo.td	2013-07-27 16:51:58.000000000 +0800
++++ Chapter8_1/Cpu0InstrInfo.td	2013-07-27 16:51:58.000000000 +0800
 @@ -27,6 +27,13 @@
                                           [SDTCisInt<0>,
                                            SDTCisSameAs<0, 1>]>;
@@ -258,19 +258,21 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
  // FrameIndexes are legalized when they are operands from load/store
  // instructions. The same not happens for stack address copies, so an
  // add op with mem ComplexPattern is used and the stack address copy
-@@ -405,6 +439,9 @@
+@@ -405,6 +439,11 @@
  def : Pat<(i32 imm:$imm),
            (ORi (SHL (ADDiu ZERO, (HI16 imm:$imm)), 16), (LO16 imm:$imm))>;
  
 +def : Pat<(Cpu0JmpLink (i32 tglobaladdr:$dst)),
 +          (JSUB tglobaladdr:$dst)>;
++def : Pat<(Cpu0JmpLink (i32 texternalsym:$dst)),
++          (JSUB texternalsym:$dst)>;
 +
  // hi/lo relocs
  def : Pat<(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>;
  // Expect cpu0 add LUi support, like Mips
 diff -Naur Chapter7_1/Cpu0MCInstLower.cpp Chapter8_1/Cpu0MCInstLower.cpp
---- Chapter7_1/Cpu0MCInstLower.cpp	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter8_1/Cpu0MCInstLower.cpp	2013-07-12 21:51:53.000000000 +0800
+--- Chapter7_1/Cpu0MCInstLower.cpp	2013-07-27 16:51:58.000000000 +0800
++++ Chapter8_1/Cpu0MCInstLower.cpp	2013-07-27 16:51:58.000000000 +0800
 @@ -48,6 +48,7 @@
  //  format=false (global var in .sdata).
    case Cpu0II::MO_GPREL:     Kind = MCSymbolRefExpr::VK_Cpu0_GPREL; break;
@@ -279,9 +281,29 @@ diff -Naur Chapter7_1/Cpu0MCInstLower.cpp Chapter8_1/Cpu0MCInstLower.cpp
    case Cpu0II::MO_GOT16:     Kind = MCSymbolRefExpr::VK_Cpu0_GOT16; break;
    case Cpu0II::MO_GOT:       Kind = MCSymbolRefExpr::VK_Cpu0_GOT; break;
  // ABS_HI and ABS_LO is for llc -march=cpu0 -relocation-model=static (global 
+@@ -72,6 +73,11 @@
+     Offset += MO.getOffset();
+     break;
+ 
++  case MachineOperand::MO_ExternalSymbol:
++    Symbol = AsmPrinter.GetExternalSymbolSymbol(MO.getSymbolName());
++    Offset += MO.getOffset();
++    break;
++
+   default:
+     llvm_unreachable("<unknown operand type>");
+   }
+@@ -139,6 +145,7 @@
+     return MCOperand::CreateImm(MO.getImm() + offset);
+   case MachineOperand::MO_MachineBasicBlock:
+   case MachineOperand::MO_GlobalAddress:
++  case MachineOperand::MO_ExternalSymbol:
+   case MachineOperand::MO_BlockAddress:
+     return LowerSymbolOperand(MO, MOTy, offset);
+   case MachineOperand::MO_RegisterMask:
 diff -Naur Chapter7_1/Cpu0MachineFunction.h Chapter8_1/Cpu0MachineFunction.h
---- Chapter7_1/Cpu0MachineFunction.h	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter8_1/Cpu0MachineFunction.h	2013-07-12 21:51:53.000000000 +0800
+--- Chapter7_1/Cpu0MachineFunction.h	2013-07-27 16:51:58.000000000 +0800
++++ Chapter8_1/Cpu0MachineFunction.h	2013-07-27 16:51:58.000000000 +0800
 @@ -30,19 +30,63 @@
    /// use as the global base register. This is used for PIC in some PIC
    /// relocation models.
@@ -349,8 +371,8 @@ diff -Naur Chapter7_1/Cpu0MachineFunction.h Chapter8_1/Cpu0MachineFunction.h
    void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
    bool getEmitNOAT() const { return EmitNOAT; }
 diff -Naur Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-07-12 21:51:53.000000000 +0800
-+++ Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-07-12 21:51:53.000000000 +0800
+--- Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-07-27 16:51:58.000000000 +0800
++++ Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-07-27 16:51:58.000000000 +0800
 @@ -81,6 +81,13 @@
    unsigned getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
                                    SmallVectorImpl<MCFixup> &Fixups) const;

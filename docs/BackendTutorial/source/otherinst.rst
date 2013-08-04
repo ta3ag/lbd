@@ -1479,11 +1479,13 @@ The code added in Chapter4_6/ as follows,
   ...
 
 
-Run with ch4_6_2.cpp can get the result for operator **“/”** as below. 
-But run with ch4_6_1.cpp as below, cannot get the **“div”** for operator 
+Run with ch4_6_2.cpp can get the "div" result for operator **“/”** but it cannot
+be compiled at this point. It need the function call argument support in Chapter
+8 of Function call. 
+If run with ch4_6_1.cpp as below, cannot get the **“div”** for operator 
 **“%”**. 
-It still use **"multiplication"** instead of **"div"** because llvm do 
-**“Constant Propagation Optimization”** on this. 
+It still use **"multiplication"** instead of **"div"** in ch4_6_1.cpp because 
+llvm do **“Constant Propagation Optimization”** on this. 
 The ch4_6_2.cpp can get the **“div”** for **“%”** result since it make the 
 llvm **“Constant Propagation Optimization”** useless in this. 
 
@@ -1508,7 +1510,7 @@ llvm **“Constant Propagation Optimization”** useless in this.
   mflo  $2
   ...
 
-To explain how Chapter4_6 work with **“div”**, let's run Chapter8_8 with 
+To explain how work with **“div”**, let's run Chapter8_4 with 
 ch4_6_2.cpp as follows,
 
 .. code-block:: bash

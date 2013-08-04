@@ -319,7 +319,6 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
       FJ<op, (outs), (ins calltarget:$target, variable_ops),
          !strconcat(instr_asm, "\t$target"), [(Cpu0JmpLink imm:$target)],
          IIBranch> {
-         let DecoderMethod = "DecodeJumpTarget";
          }
     
     class JumpLinkReg<bits<8> op, string instr_asm,
@@ -341,6 +340,8 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
   ...
   def : Pat<(Cpu0JmpLink (i32 tglobaladdr:$dst)),
             (JSUB tglobaladdr:$dst)>;
+  def : Pat<(Cpu0JmpLink (i32 texternalsym:$dst)),
+            (JSUB texternalsym:$dst)>;
   ...
     
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstPrinter.cpp
@@ -355,6 +356,37 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
   ...
   }
     
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0MCInstLower.cpp
+.. code-block:: c++
+
+  MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
+                                                MachineOperandType MOTy,
+                                                unsigned Offset) const {
+    ...
+    switch (MOTy) {
+    ...
+    case MachineOperand::MO_ExternalSymbol:
+      Symbol = AsmPrinter.GetExternalSymbolSymbol(MO.getSymbolName());
+      Offset += MO.getOffset();
+      break;
+      ...
+    }
+    ...
+  }
+  
+  MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand& MO,
+                                          unsigned offset) const {
+    ...
+    switch (MOTy) {
+    ...
+    case MachineOperand::MO_ExternalSymbol:
+    case MachineOperand::MO_BlockAddress:
+      return LowerSymbolOperand(MO, MOTy, offset);
+    ...
+   }
+    ...
+  }
+
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 .. code-block:: c++
 
@@ -431,6 +463,87 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
     unsigned getMaxCallFrameSize() const { return MaxCallFrameSize; }
     void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
   };
+
+
+The SWI, JSUB and JALR defined in Cpu0InstrInfo.td as above all use Cpu0JmpLink
+node. They are distinguishable since both SWI and JSUB use "imm" operand while
+JALR use register operand. JSUB take the priority to match since we set the
+following code in Cpu0InstrInfo.td.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td
+.. code-block:: c++
+
+  def : Pat<(Cpu0JmpLink (i32 tglobaladdr:$dst)),
+            (JSUB tglobaladdr:$dst)>;
+  def : Pat<(Cpu0JmpLink (i32 texternalsym:$dst)),
+            (JSUB texternalsym:$dst)>;
+
+The code tells TableGen generate pattern match pattern to match the "imm" for
+"tglobaladdr" pattern first. If it fails then try to match "texternalsym" next.
+The function you declared is "tglobaladdr", the function which implicit used by
+llvm most are "texternalsym" such as "memcpy". The "memcpy" will be generated
+when define a long string. The ch8_1_2.cpp is an example to generate "memcpy"
+function call. It will be shown in next section of Chapter8_2 example code.
+Even though SWI have no chance to match in C/C++ language. We define it for easy
+to implement assembly parser which introduced in Chapter 11. This
+SWI definition will save us to implement the assembly parser for this
+instruction. TableGen will generate information for SWI instruction in assembly
+and ELF obj encode automatically. The Cpu0GenDAGISel.inc contains the TablGen
+generated information about JSUB and JALR pattern match information as follows,
+
+.. code-block:: c++
+
+            /*SwitchOpcode*/ 74,  TARGET_VAL(Cpu0ISD::JmpLink),// ->734
+  /*660*/     OPC_RecordNode,   // #0 = 'Cpu0JmpLink' chained node
+  /*661*/     OPC_CaptureGlueInput,
+  /*662*/     OPC_RecordChild1, // #1 = $target
+  /*663*/     OPC_Scope, 57, /*->722*/ // 2 children in Scope
+  /*665*/       OPC_MoveChild, 1,
+  /*667*/       OPC_SwitchOpcode /*3 cases */, 22,  TARGET_VAL(ISD::Constant),
+  // ->693
+  /*671*/         OPC_MoveParent,
+  /*672*/         OPC_EmitMergeInputChains1_0,
+  /*673*/         OPC_EmitConvertToTarget, 1,
+  /*675*/         OPC_Scope, 7, /*->684*/ // 2 children in Scope
+  /*677*/           OPC_MorphNodeTo, TARGET_VAL(Cpu0::SWI), 0|OPFL_Chain|
+  OPFL_GlueInput|OPFL_GlueOutput|OPFL_Variadic1,
+                        0/*#VTs*/, 1/*#Ops*/, 2, 
+                    // Src: (Cpu0JmpLink (imm:iPTR):$target) - Complexity = 6
+                    // Dst: (SWI (imm:iPTR):$target)
+  /*684*/         /*Scope*/ 7, /*->692*/
+  /*685*/           OPC_MorphNodeTo, TARGET_VAL(Cpu0::JSUB), 0|OPFL_Chain|
+  OPFL_GlueInput|OPFL_GlueOutput|OPFL_Variadic1,
+                        0/*#VTs*/, 1/*#Ops*/, 2, 
+                    // Src: (Cpu0JmpLink (imm:iPTR):$target) - Complexity = 6
+                    // Dst: (JSUB (imm:iPTR):$target)
+  /*692*/         0, /*End of Scope*/
+                /*SwitchOpcode*/ 11,  TARGET_VAL(ISD::TargetGlobalAddress),// ->707
+  /*696*/         OPC_CheckType, MVT::i32,
+  /*698*/         OPC_MoveParent,
+  /*699*/         OPC_EmitMergeInputChains1_0,
+  /*700*/         OPC_MorphNodeTo, TARGET_VAL(Cpu0::JSUB), 0|OPFL_Chain|
+  OPFL_GlueInput|OPFL_GlueOutput|OPFL_Variadic1,
+                      0/*#VTs*/, 1/*#Ops*/, 1, 
+                  // Src: (Cpu0JmpLink (tglobaladdr:i32):$dst) - Complexity = 6
+                  // Dst: (JSUB (tglobaladdr:i32):$dst)
+                /*SwitchOpcode*/ 11,  TARGET_VAL(ISD::TargetExternalSymbol),// ->721
+  /*710*/         OPC_CheckType, MVT::i32,
+  /*712*/         OPC_MoveParent,
+  /*713*/         OPC_EmitMergeInputChains1_0,
+  /*714*/         OPC_MorphNodeTo, TARGET_VAL(Cpu0::JSUB), 0|OPFL_Chain|
+  OPFL_GlueInput|OPFL_GlueOutput|OPFL_Variadic1,
+                      0/*#VTs*/, 1/*#Ops*/, 1, 
+                  // Src: (Cpu0JmpLink (texternalsym:i32):$dst) - Complexity = 6
+                  // Dst: (JSUB (texternalsym:i32):$dst)
+                0, // EndSwitchOpcode
+  /*722*/     /*Scope*/ 10, /*->733*/
+  /*723*/       OPC_CheckChild1Type, MVT::i32,
+  /*725*/       OPC_EmitMergeInputChains1_0,
+  /*726*/       OPC_MorphNodeTo, TARGET_VAL(Cpu0::JALR), 0|OPFL_Chain|OPFL_GlueInput|OPFL_GlueOutput|OPFL_Variadic1,
+                    0/*#VTs*/, 1/*#Ops*/, 1, 
+                // Src: (Cpu0JmpLink CPURegs:i32:$rb) - Complexity = 3
+                // Dst: (JALR CPURegs:i32:$rb)
+  /*733*/     0, /*End of Scope*/
 
 
 After above changes, you can run Chapter8_1/ with ch8_1.cpp and see what happens 
@@ -660,6 +773,107 @@ Now, let's run Chapter8_2/ with ch8_1.cpp to get result as follows (see comment
   gI:
   	.4byte	100                     # 0x64
   	.size	gI, 4
+
+The last section mentioned the "JSUB texternalsym" pattern. Run Chapter8_2 with
+ch8_1_2.cpp to get the result as below. For long string, llvm call memcpy() to
+initialize string (char str[81] = "Hello world" in this case). For short string,
+the "call memcpy" is translated into "store with contant" in stages of
+optimization.
+
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_1_2.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_1_2.cpp
+    :lines: 4-
+    :linenos:
+
+.. code-block:: bash
+
+  JonathantekiiMac:InputFiles Jonathan$ llvm-dis ch8_1_2.bc -o -
+  ; ModuleID = 'ch8_1_2.bc'
+  ...
+  @_ZZ4mainE3str = private unnamed_addr constant [81 x i8] c"Hello world\00\00\00\
+  00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00
+  \00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0
+  0\00\00\00\00\00\00\00\00\00\00\00\00\00", align 1
+  @_ZZ4mainE1s = private unnamed_addr constant [6 x i8] c"Hello\00", align 1
+  
+  ; Function Attrs: nounwind
+  define i32 @main() #0 {
+  entry:
+    %retval = alloca i32, align 4
+    %str = alloca [81 x i8], align 1
+    store i32 0, i32* %retval
+    %0 = bitcast [81 x i8]* %str to i8*
+    call void @llvm.memcpy.p0i8.p0i8.i32(i8* %0, i8* getelementptr inbounds 
+    ([81 x i8]* @_ZZ4mainE3str, i32 0, i32 0), i32 81, i32 1, i1 false)
+    %1 = bitcast [6 x i8]* %s to i8*
+    call void @llvm.memcpy.p0i8.p0i8.i32(i8* %1, i8* getelementptr inbounds 
+    ([6 x i8]* @_ZZ4mainE1s, i32 0, i32 0), i32 6, i32 1, i1 false)
+  
+    ret i32 0
+  }
+  
+  JonathantekiiMac:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch8_1_2.cpp -emit-llvm -o ch8_1_2.bc
+  JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build
+  /bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch8_1_2.bc -o -
+    .section .mdebug.abi32
+    ...
+    addiu $2, $zero, 81
+    st  $2, 128($fp)
+    addiu $2, $zero, %hi($_ZZ4mainE3str)
+    shl $2, $2, 16
+    addiu $2, $2, %lo($_ZZ4mainE3str)
+    st  $2, 124($fp)
+    addiu $2, $fp, 28
+    st  $2, 120($fp)
+    jsub  memcpy
+    !ADJCALLSTACKUP 16
+    addiu $2, $zero, 28416  // 28416=0x6f00="o\0"
+    sh  $2, 24($fp)
+    addiu $2, $zero, 18533  // 18533=0x4865="He"
+    shl $2, $2, 16
+    ori $2, $2, 27756         // 27756=0x6c6c="ll"
+    st  $2, 20($fp)
+    ...
+    .type $_ZZ4mainE3str,@object  # @_ZZ4mainE3str
+    .section  .rodata,"a",@progbits
+  $_ZZ4mainE3str:
+    .asciz   "Hello world\000\000\000\000\000\000\000\000\000\000\000\000\000\000
+    \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\
+    000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\0
+    00\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+    .size $_ZZ4mainE3str, 81
+
+The "call memcpy" for short string is optimized by llvm before "DAG->DAG Pattern 
+Instruction Selection" stage and translate it into "store with contant" as
+follows,
+
+.. code-block:: bash
+
+  JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build
+  /bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch8_1_2.bc 
+  -debug -o -
+  
+  Initial selection DAG: BB#0 'main:entry'
+  SelectionDAG has 35 nodes:
+    ...
+          0x7fd909030810: <multiple use>
+          0x7fd909030c10: i32 = Constant<1214606444>  // 1214606444=0x48656c6c="Hell"
+  
+          0x7fd909030910: <multiple use>
+          0x7fd90902d810: <multiple use>
+        0x7fd909030d10: ch = store 0x7fd909030810, 0x7fd909030c10, 0x7fd909030910, 
+        0x7fd90902d810<ST4[%1]>
+  
+          0x7fd909030810: <multiple use>
+          0x7fd909030e10: i16 = Constant<28416>      // 28416=0x6f00="o\0"
+  
+          ...
+  
+          0x7fd90902d810: <multiple use>
+        0x7fd909031210: ch = store 0x7fd909030810, 0x7fd909030e10, 0x7fd909031010, 
+        0x7fd90902d810<ST2[%1+4](align=4)>
+    ...
 
 
 Fix issues
@@ -1163,7 +1377,7 @@ Run ``llc -static`` will call jsub instruction instead of jalr as follows,
 Run with ``llc -filetype=obj``, you can find the Cx of **“jsub Cx”** is 0 since 
 the Cx is calculated by linker as below. 
 Mips has the same 0 in it's jal instruction. 
-The ch8_1_2.cpp, ch8_1_3.cpp and ch8_1_4.cpp are example code more for test. 
+The ch8_1_3.cpp and ch8_1_4.cpp are example code more for test. 
 
 .. code-block:: bash
 

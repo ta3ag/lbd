@@ -880,6 +880,9 @@ following fragment to Cpu0TargetMachine.cpp,
     ...
     )
 
+The following code in Cpu0TargetMachine.cpp will create a pass in instruction 
+selection stage.
+
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0TargetMachine.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0TargetMachine.cpp
     :start-after: return *getCpu0TargetMachine().getSubtargetImpl();
@@ -1434,6 +1437,10 @@ Summary the functions for llvm backend stages as the following table.
                                                        - Cpu0InstPrinter.cpp
   ===================================================  ===========================================
 
+We add a pass in Instruction Section stage in section "Add Cpu0DAGToDAGISel 
+class". You can embed your code into other pass like that. Please check 
+CodeGen/Passes.h for the information. Remember the pass is called according 
+the function unit as the ``llc -debug-pass=Structure`` indicated.
 
 We have finished a simple assembler for cpu0 which only support **ld**, 
 **st**, **addiu**, **ori**, **addu**, **shl** and **ret** 7 instructions.

@@ -122,6 +122,16 @@ Cpu0TargetLowering(Cpu0TargetMachine &TM)
   // Set up the register classes
   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
 
+  // Cpu0 does not have i1 type, so use i32 for
+  // setcc operations results (slt, sgt, ...).
+  setBooleanContents(ZeroOrOneBooleanContent);
+  setBooleanVectorContents(ZeroOrNegativeOneBooleanContent);
+
+  // Load extented operations for i1 types must be promoted
+  setLoadExtAction(ISD::EXTLOAD,  MVT::i1,  Promote);
+  setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
+  setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
+
   // Used by legalize types to correctly generate the setcc result.
   // Without this, every float setcc comes with a AND/OR with the result,
   // we don't want this, since the fpcmp result goes to a flag register,

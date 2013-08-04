@@ -414,6 +414,20 @@ what happens in the processor:
 - The ALU executes the operation designated by the control unit upon data in registers. 
   After the ALU is done, the result is stored in the destination register. 
 
+Cpu0's Interrupt Vector
+++++++++++++++++++++++++
+
+.. table:: Cpu0's Interrupt Vector
+
+  ========  ===========
+  Address   type
+  ========  ===========
+  0x00      Reset
+  0x04      Error Handle
+  0x08      Interrupt
+  ========  ===========
+
+
 LLVM Structure
 --------------
 

@@ -441,6 +441,8 @@ def : Pat<(i32 imm:$imm),
 
 def : Pat<(Cpu0JmpLink (i32 tglobaladdr:$dst)),
           (JSUB tglobaladdr:$dst)>;
+def : Pat<(Cpu0JmpLink (i32 texternalsym:$dst)),
+          (JSUB texternalsym:$dst)>;
 
 // hi/lo relocs
 def : Pat<(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>;

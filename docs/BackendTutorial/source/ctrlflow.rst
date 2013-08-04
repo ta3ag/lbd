@@ -437,6 +437,11 @@ Finally we list the code added for full support of control flow statement,
         Symbol = MO.getMBB()->getSymbol();
         break;
       ...
+      case MachineOperand::MO_BlockAddress:
+      Symbol = AsmPrinter.GetBlockAddressSymbol(MO.getBlockAddress());
+      Offset += MO.getOffset();
+      break;
+      ...
     }
     
     MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand& MO,

@@ -1736,8 +1736,8 @@ follows.
   ld  $2, 4($2)
 
 
-Type of char and short int
---------------------------
+Type of char, short int and bool
+---------------------------------
 
 To support signed/unsigned char and short int, we add the following code to 
 Chapter6_3/.
@@ -1843,7 +1843,106 @@ Run Chapter6_3/ with ch6_3.cpp will get the following result.
   	.space	1
   	.size	$_ZZ4mainE5date1, 8
 
+To support load bool type, the following code added.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_3/Cpu0ISelLowering.cpp
+.. code-block:: c++
+
+  Cpu0TargetLowering::
+  Cpu0TargetLowering(Cpu0TargetMachine &TM)
+    : TargetLowering(TM, new Cpu0TargetObjectFile()),
+      Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
+    ...
+    // Cpu0 does not have i1 type, so use i32 for
+    // setcc operations results (slt, sgt, ...).
+    setBooleanContents(ZeroOrOneBooleanContent);
+    setBooleanVectorContents(ZeroOrNegativeOneBooleanContent);
+
+    // Load extented operations for i1 types must be promoted
+    setLoadExtAction(ISD::EXTLOAD,  MVT::i1,  Promote);
+    setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
+    setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
+    ...
+  }
+
+Above code setLoadExtAction() are work enough. The setBooleanContents() purpose
+as following, but I don't know it well. Without it, the ch6_3_2.ll still works 
+as below. 
+The IR input file ch6_3_2.ll is used in testing here since the c++ version
+need flow control which is not support here. File ch_run_backend.cpp include the
+test fragment as below.
+
+.. rubric:: include/llvm/Target/TargetLowering.h
+.. code-block:: c++
+
+    enum BooleanContent { // How the target represents true/false values.
+      UndefinedBooleanContent,    // Only bit 0 counts, the rest can hold garbage.
+      ZeroOrOneBooleanContent,        // All bits zero except for bit 0.
+      ZeroOrNegativeOneBooleanContent // All bits equal to bit 0.
+    };
+  ...
+  protected:
+    /// setBooleanContents - Specify how the target extends the result of a
+    /// boolean value from i1 to a wider type.  See getBooleanContents.
+    void setBooleanContents(BooleanContent Ty) { BooleanContents = Ty; }
+    /// setBooleanVectorContents - Specify how the target extends the result
+    /// of a vector boolean value from a vector of i1 to a wider type.  See
+    /// getBooleanContents.
+    void setBooleanVectorContents(BooleanContent Ty) {
+      BooleanVectorContents = Ty;
+    }
+
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch6_3_2.ll
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch6_3_2.ll
+    :lines: 3-
+    :linenos:
+
+.. code-block:: bash
+
+    118-165-64-245:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+    bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch6_3_2.ll -o -
+
+	  .section .mdebug.abi32
+	  .previous
+	  .file	"ch6_4.ll"
+	  .text
+	  .globl	verify_load_bool
+	  .align	2
+	  .type	verify_load_bool,@function
+	  .ent	verify_load_bool        # @verify_load_bool
+  verify_load_bool:
+	  .cfi_startproc
+	  .frame	$sp,8,$lr
+	  .mask 	0x00000000,0
+	  .set	noreorder
+	  .set	nomacro
+  # BB#0:                                 # %entry
+	  addiu	$sp, $sp, -8
+  $tmp1:
+	  .cfi_def_cfa_offset 8
+	  lbu	$2, 7($sp)
+	  addiu	$sp, $sp, 8
+	  ret	$lr
+	  .set	macro
+	  .set	reorder
+	  .end	verify_load_bool
+  $tmp2:
+	  .size	verify_load_bool, ($tmp2)-verify_load_bool
+	  .cfi_endproc
+
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
+.. code-block:: c++
+
+  ...
+  bool test_load_bool()
+  {
+    int a = 1;
+
+    if (a < 0)
+      return false;
+
+    return true;
+  }
 
 .. _section Global variable:
     http://jonathan2251.github.com/lbd/globalvar.html#global-variable
