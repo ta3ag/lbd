@@ -20,7 +20,7 @@
 namespace lld {
 #if 1
 namespace elf {
-/// \brief x86-64 internal references.
+/// \brief cpu0 internal references.
 enum {
   /// \brief The 32 bit index of the relocation in the got this reference refers
   /// to.
