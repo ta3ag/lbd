@@ -22,7 +22,7 @@ void relocHI16(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
       (uint64_t) * reinterpret_cast<llvm::support::ulittle64_t *>(location);
 }
 
-int relocLO16(uint8_t *location, uint64_t P, uint64_t S, uint64_t A) {
+void relocLO16(uint8_t *location, uint64_t P, uint64_t S, uint64_t A) {
   uint32_t result = (uint32_t)(S + A);
   *reinterpret_cast<llvm::support::ulittle64_t *>(location) =
       result |
@@ -80,6 +80,11 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     break;
   case R_CPU0_32:
     reloc32(location, relocVAddress, targetVAddress, ref.addend());
+    break;
+
+  case lld::Reference::kindLayoutAfter:
+  case lld::Reference::kindLayoutBefore:
+  case lld::Reference::kindInGroup:
     break;
 
   default: {
