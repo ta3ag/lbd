@@ -115,10 +115,6 @@ Writer &ELFLinkingContext::writer() const { return *_writer; }
 
 std::unique_ptr<ELFLinkingContext>
 ELFLinkingContext::create(llvm::Triple triple) {
-#if 1
-    return std::unique_ptr<ELFLinkingContext>(
-        new lld::elf::Cpu0LinkingContext(triple));
-#else
   switch (triple.getArch()) {
   case llvm::Triple::x86:
     return std::unique_ptr<ELFLinkingContext>(
@@ -132,10 +128,12 @@ ELFLinkingContext::create(llvm::Triple triple) {
   case llvm::Triple::ppc:
     return std::unique_ptr<ELFLinkingContext>(
         new lld::elf::PPCLinkingContext(triple));
+  case llvm::Triple::cpu0:
+    return std::unique_ptr<ELFLinkingContext>(
+        new lld::elf::Cpu0LinkingContext(triple));
   default:
     return nullptr;
   }
-#endif
 }
 
 bool ELFLinkingContext::appendLibrary(StringRef libName) {

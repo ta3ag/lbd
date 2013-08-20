@@ -1,3 +1,6 @@
+/home/cschen/test/lld_20130816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu ch6_1.cpu0.static.o
+
+
 cschen@cschen-BM6835-BM6635-BP6335:~/test/lbd/docs/BackendTutorial/LLVMBackendTutorialExampleCode/InputFiles$ clang -c ch6_1.cpp -emit-llvm -o ch6_1.bccschen@cschen-BM6835-BM6635-BP6335:~/test/lbd/docs/BackendTutorial/LLVMBackendTutorialExampleCode/InputFiles$ /home/cschen/test/lld_20130805/cmake_debug_build/bin/llc -march=x86-64 -relocation-model=static -filetype=obj ch6_1.bc -o ch6_1.o
 cschen@cschen-BM6835-BM6635-BP6335:~/test/lbd/docs/BackendTutorial/LLVMBackendTutorialExampleCode/InputFiles$ /home/cschen/test/lld_20130805/cmake_debug_build/bin/lld -flavor gnu ch6_1.o
 cschen@cschen-BM6835-BM6635-BP6335:~/test/lbd/docs/BackendTutorial/LLVMBackendTutorialExampleCode/InputFiles$ date
