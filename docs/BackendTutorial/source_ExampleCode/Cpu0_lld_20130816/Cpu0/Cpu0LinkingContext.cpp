@@ -183,7 +183,7 @@ protected:
     auto got = _gotMap.find(da);
     if (got == _gotMap.end()) {
       auto g = new (_file._alloc) Cpu0GOTAtom(_file, ".got");
-      g->addReference(R_CPU0_64, 0, da, 0);
+      g->addReference(R_CPU0_32, 0, da, 0);
 #ifndef NDEBUG
       g->_name = "__got_";
       g->_name += da->name();
@@ -339,7 +339,7 @@ public:
     pa->addReference(R_CPU0_PC24, 12, getPLT0(), -4);
     // Set the starting address of the got entry to the second instruction in
     // the plt entry.
-    ga->addReference(R_CPU0_64, 0, pa, 6);
+    ga->addReference(R_CPU0_32, 0, pa, 6);
 #ifndef NDEBUG
     ga->_name = "__got_";
     ga->_name += a->name();

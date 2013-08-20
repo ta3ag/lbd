@@ -18,7 +18,7 @@
 
 namespace lld {
 namespace elf {
-typedef llvm::object::ELFType<llvm::support::little, 8, true> Cpu0ELFType;
+typedef llvm::object::ELFType<llvm::support::big, 4, false> Cpu0ELFType;
 class Cpu0LinkingContext;
 
 class Cpu0TargetHandler LLVM_FINAL

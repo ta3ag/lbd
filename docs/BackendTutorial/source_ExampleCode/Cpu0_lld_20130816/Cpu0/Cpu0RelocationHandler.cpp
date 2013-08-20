@@ -17,32 +17,32 @@ namespace {
 /// \brief R_CPU0_HI16 - word64: (S + A) >> 16
 void relocHI16(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
   uint32_t result = (uint32_t)((S + A) >> 16);
-  *reinterpret_cast<llvm::support::ulittle64_t *>(location) =
+  *reinterpret_cast<llvm::support::ubig32_t *>(location) =
       result |
-      (uint64_t) * reinterpret_cast<llvm::support::ulittle64_t *>(location);
+      (uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>(location);
 }
 
 void relocLO16(uint8_t *location, uint64_t P, uint64_t S, uint64_t A) {
-  uint32_t result = (uint32_t)(S + A);
-  *reinterpret_cast<llvm::support::ulittle64_t *>(location) =
+  uint32_t result = (uint32_t)((S + A) && 0xffff);
+  *reinterpret_cast<llvm::support::ubig32_t *>(location) =
       result |
-      (uint64_t) * reinterpret_cast<llvm::support::ulittle64_t *>(location);
+      (uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>(location);
 }
 
 /// \brief R_CPU0_PC24 - word32: S + A - P
 void relocPC24(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
   uint32_t result = (uint32_t)((S + A) - P);
-  *reinterpret_cast<llvm::support::ulittle32_t *>(location) =
+  *reinterpret_cast<llvm::support::ubig32_t *>(location) =
       result +
-      (uint32_t) * reinterpret_cast<llvm::support::ulittle32_t *>(location);
+      (uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>(location);
 }
 
 /// \brief R_CPU0_32 - word32:  S + A
 void reloc32(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
   int32_t result = (uint32_t)(S + A);
-  *reinterpret_cast<llvm::support::ulittle32_t *>(location) =
+  *reinterpret_cast<llvm::support::ubig32_t *>(location) =
       result |
-      (uint32_t) * reinterpret_cast<llvm::support::ulittle32_t *>(location);
+      (uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>(location);
   // TODO: Make sure that the result zero extends to the 64bit value.
 }
 

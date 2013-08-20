@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLD_READER_WRITER_ELF_Cpu0_LINKER_CONTEXT_H
-#define LLD_READER_WRITER_ELF_Cpu0_LINKER_CONTEXT_H
+#ifndef LLD_READER_WRITER_ELF_CPU0_LINKER_CONTEXT_H
+#define LLD_READER_WRITER_ELF_CPU0_LINKER_CONTEXT_H
 
 #include "Cpu0TargetHandler.h"
 
@@ -18,20 +18,23 @@
 #include "llvm/Support/ELF.h"
 
 namespace lld {
-#if 1
 namespace elf {
+#if 1
 /// \brief cpu0 internal references.
 enum {
   /// \brief The 32 bit index of the relocation in the got this reference refers
   /// to.
   LLD_R_CPU0_GOTRELINDEX = 1024,
 };
+#endif
 
 class Cpu0LinkingContext LLVM_FINAL : public ELFLinkingContext {
 public:
   Cpu0LinkingContext(llvm::Triple triple)
       : ELFLinkingContext(triple, std::unique_ptr<TargetHandlerBase>(
                                   new Cpu0TargetHandler(*this))) {}
+
+  virtual bool isLittleEndian() const { return false; }
 
   virtual void addPasses(PassManager &) const;
 
@@ -83,7 +86,6 @@ public:
 
 };
 } // end namespace elf
-#endif
 } // end namespace lld
 
 #endif
