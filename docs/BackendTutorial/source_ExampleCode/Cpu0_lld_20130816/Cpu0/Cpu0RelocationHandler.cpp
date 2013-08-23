@@ -16,14 +16,16 @@ using namespace elf;
 namespace {
 /// \brief R_CPU0_HI16 - word64: (S + A) >> 16
 void relocHI16(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
-  uint32_t result = (uint32_t)((S + A) >> 16);
+//  uint32_t result = (uint32_t)((S + A) >> 16); // Don't know why ref.addend() = 9
+  uint32_t result = (uint32_t)(S >> 16);
   *reinterpret_cast<llvm::support::ubig32_t *>(location) =
       result |
       (uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>(location);
 }
 
 void relocLO16(uint8_t *location, uint64_t P, uint64_t S, uint64_t A) {
-  uint32_t result = (uint32_t)((S + A) && 0xffff);
+//  uint32_t result = (uint32_t)((S + A) & 0x0000ffff);
+  uint32_t result = (uint32_t)(S & 0x0000ffff);
   *reinterpret_cast<llvm::support::ubig32_t *>(location) =
       result |
       (uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>(location);
@@ -31,7 +33,8 @@ void relocLO16(uint8_t *location, uint64_t P, uint64_t S, uint64_t A) {
 
 /// \brief R_CPU0_PC24 - word32: S + A - P
 void relocPC24(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
-  uint32_t result = (uint32_t)((S + A) - P);
+//  uint32_t result = (uint32_t)((S + A) - P);
+  uint32_t result = (uint32_t)(S  - P);
   *reinterpret_cast<llvm::support::ubig32_t *>(location) =
       result +
       (uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>(location);
@@ -39,7 +42,8 @@ void relocPC24(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
 
 /// \brief R_CPU0_32 - word32:  S + A
 void reloc32(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
-  int32_t result = (uint32_t)(S + A);
+//  int32_t result = (uint32_t)(S + A);
+  int32_t result = (uint32_t)(S);
   *reinterpret_cast<llvm::support::ubig32_t *>(location) =
       result |
       (uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>(location);
