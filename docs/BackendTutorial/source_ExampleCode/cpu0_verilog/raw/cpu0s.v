@@ -1,3 +1,5 @@
+//`define TRACE
+
 `define MEMSIZE 'h7000
 `define OUTMEMSIZE 82
 `define MEMEMPTY 8'hFF
@@ -232,26 +234,34 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
                                           // write memory complete
       endcase
       case (op)
-//      MULT, MULTu, DIV, DIVu, MTHI, MTLO :
-//        $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
-//        LO, `SW);
+      `ifdef TRACE
+      MULT, MULTu, DIV, DIVu, MTHI, MTLO :
+        $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
+        LO, `SW);
+      `endif
       ST : begin
-//        $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d  SW=%8x", $stime, pc0, ir, 
-//        R[b], c16, R[a], `SW);
+      `ifdef TRACE
+        $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d  SW=%8x", $stime, pc0, ir, 
+        R[b], c16, R[a], `SW);
+      `endif
         if (R[b]+c16 == `IOADDR) begin
           outw(R[a]);
         end
       end
       SB : begin
-//        $display("%4dns %8x : %8x m[%-04d+%-04d]=%c  SW=%8x", $stime, pc0, ir, 
-//        R[b], c16, R[a][7:0], `SW);
+      `ifdef TRACE
+        $display("%4dns %8x : %8x m[%-04d+%-04d]=%c  SW=%8x", $stime, pc0, ir, 
+        R[b], c16, R[a][7:0], `SW);
+      `endif
         if (R[b]+c16 == `IOADDR) begin
           outc(R[a][7:0]);
         end
       end
-/*      default : 
+      `ifdef TRACE
+      default : 
         $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a, 
-        R[a], R[a], `SW);*/
+        R[a], R[a], `SW);
+      `endif
       endcase
       if (op==RET && `PC < 0) begin
         $display("RET to PC < 0, finished!");
@@ -292,9 +302,11 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
     end
   // display memory contents
     $readmemh("cpu0s.hex", m);
+    `ifdef TRACE
     for (i=0; i < `MEMSIZE && (m[i] != `MEMEMPTY || m[i+1] != `MEMEMPTY || m[i+2] != `MEMEMPTY || m[i+3] != `MEMEMPTY); i=i+4) begin
-//       $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
+       $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
     end
+    `endif
   end
 
   always @(clock or abus or en or rw or dbus_in) 
