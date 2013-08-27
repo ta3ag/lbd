@@ -26,6 +26,12 @@
 #define putchar(c) outbyte(c)
 */
 
+// gcc -static -Ttext 0x00 printf-stdarg-orig.c
+
+#include <stdio.h>
+#define TEST_PRINTF
+
+#if 0
 #include <stdarg.h>
 
 static void printchar(char **str, int c)
@@ -197,6 +203,7 @@ int sprintf(char *out, const char *format, ...)
         va_start( args, format );
         return print( &out, format, args );
 }
+#endif
 
 #ifdef TEST_PRINTF
 int main(void)
@@ -221,6 +228,7 @@ int main(void)
 	printf("%d %s(s)%", 0, "message");
 	printf("\n");
 	printf("%d %s(s) with %%\n", 0, "message");
+#if 0
 	sprintf(buf, "justif: \"%-10s\"\n", "left"); printf("%s", buf);
 	sprintf(buf, "justif: \"%10s\"\n", "right"); printf("%s", buf);
 	sprintf(buf, " 3: %04d zero padded\n", 3); printf("%s", buf);
@@ -229,6 +237,16 @@ int main(void)
 	sprintf(buf, "-3: %04d zero padded\n", -3); printf("%s", buf);
 	sprintf(buf, "-3: %-4d left justif.\n", -3); printf("%s", buf);
 	sprintf(buf, "-3: %4d right justif.\n", -3); printf("%s", buf);
+#else
+	printf("justif: \"%-10s\"\n", "left");
+	printf("justif: \"%10s\"\n", "right");
+	printf(" 3: %04d zero padded\n", 3);
+	printf(" 3: %-4d left justif.\n", 3);
+	printf(" 3: %4d right justif.\n", 3);
+	printf("-3: %04d zero padded\n", -3);
+	printf("-3: %-4d left justif.\n", -3);
+	printf("-3: %4d right justif.\n", -3);
+#endif
 
 	return 0;
 }

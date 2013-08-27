@@ -516,6 +516,350 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
   }
 }
 
+static void PrintRelocations(const ObjectFile *o) {
+  error_code ec;
+  for (section_iterator si = o->begin_sections(), se = o->end_sections();
+                                                  si != se; si.increment(ec)){
+    if (error(ec)) return;
+    if (si->begin_relocations() == si->end_relocations())
+      continue;
+    StringRef secname;
+    if (error(si->getName(secname))) continue;
+    outs() << "RELOCATION RECORDS FOR [" << secname << "]:\n";
+    for (relocation_iterator ri = si->begin_relocations(),
+                             re = si->end_relocations();
+                             ri != re; ri.increment(ec)) {
+      if (error(ec)) return;
+
+      bool hidden;
+      uint64_t address;
+      SmallString<32> relocname;
+      SmallString<32> valuestr;
+      if (error(ri->getHidden(hidden))) continue;
+      if (hidden) continue;
+      if (error(ri->getTypeName(relocname))) continue;
+      if (error(ri->getOffset(address))) continue;
+      if (error(ri->getValueString(valuestr))) continue;
+      outs() << address << " " << relocname << " " << valuestr << "\n";
+    }
+    outs() << "\n";
+  }
+}
+
+static void PrintSectionHeaders(const ObjectFile *o) {
+  outs() << "Sections:\n"
+            "Idx Name          Size      Address          Type\n";
+  error_code ec;
+  unsigned i = 0;
+  for (section_iterator si = o->begin_sections(), se = o->end_sections();
+                                                  si != se; si.increment(ec)) {
+    if (error(ec)) return;
+    StringRef Name;
+    if (error(si->getName(Name))) return;
+    uint64_t Address;
+    if (error(si->getAddress(Address))) return;
+    uint64_t Size;
+    if (error(si->getSize(Size))) return;
+    bool Text, Data, BSS;
+    if (error(si->isText(Text))) return;
+    if (error(si->isData(Data))) return;
+    if (error(si->isBSS(BSS))) return;
+    std::string Type = (std::string(Text ? "TEXT " : "") +
+                        (Data ? "DATA " : "") + (BSS ? "BSS" : ""));
+    outs() << format("%3d %-13s %08" PRIx64 " %016" PRIx64 " %s\n",
+                     i, Name.str().c_str(), Size, Address, Type.c_str());
+    ++i;
+  }
+}
+
+static void PrintSectionContents(const ObjectFile *o) {
+  error_code ec;
+  for (section_iterator si = o->begin_sections(),
+                        se = o->end_sections();
+                        si != se; si.increment(ec)) {
+    if (error(ec)) return;
+    StringRef Name;
+    StringRef Contents;
+    uint64_t BaseAddr;
+    bool BSS;
+    if (error(si->getName(Name))) continue;
+    if (error(si->getContents(Contents))) continue;
+    if (error(si->getAddress(BaseAddr))) continue;
+    if (error(si->isBSS(BSS))) continue;
+
+    outs() << "Contents of section " << Name << ":\n";
+    if (BSS) {
+      outs() << format("<skipping contents of bss section at [%04" PRIx64
+                       ", %04" PRIx64 ")>\n", BaseAddr,
+                       BaseAddr + Contents.size());
+      continue;
+    }
+
+    // Dump out the content as hex and printable ascii characters.
+    for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
+      outs() << "/*" << format(" %04" PRIx64 " ", BaseAddr + addr);
+      // Dump line of hex.
+      for (std::size_t i = 0; i < 16; ++i) {
+        if (i != 0 && i % 4 == 0)
+          outs() << ' ';
+        if (addr + i < end)
+          outs() << hexdigit((Contents[addr + i] >> 4) & 0xF, true)
+                 << hexdigit(Contents[addr + i] & 0xF, true);
+        else
+          outs() << "  ";
+      }
+      outs() << "*/";
+      // Print ascii.
+      outs() << "  ";
+      for (std::size_t i = 0; i < 16 && addr + i < end; ++i) {
+        if (std::isprint(static_cast<unsigned char>(Contents[addr + i]) & 0xFF))
+          outs() << Contents[addr + i];
+        else
+          outs() << ".";
+      }
+      outs() << "\n";
+    }
+  }
+}
+
+static void PrintCOFFSymbolTable(const COFFObjectFile *coff) {
+  const coff_file_header *header;
+  if (error(coff->getHeader(header))) return;
+  int aux_count = 0;
+  const coff_symbol *symbol = 0;
+  for (int i = 0, e = header->NumberOfSymbols; i != e; ++i) {
+    if (aux_count--) {
+      // Figure out which type of aux this is.
+      if (symbol->StorageClass == COFF::IMAGE_SYM_CLASS_STATIC
+          && symbol->Value == 0) { // Section definition.
+        const coff_aux_section_definition *asd;
+        if (error(coff->getAuxSymbol<coff_aux_section_definition>(i, asd)))
+          return;
+        outs() << "AUX "
+               << format("scnlen 0x%x nreloc %d nlnno %d checksum 0x%x "
+                         , unsigned(asd->Length)
+                         , unsigned(asd->NumberOfRelocations)
+                         , unsigned(asd->NumberOfLinenumbers)
+                         , unsigned(asd->CheckSum))
+               << format("assoc %d comdat %d\n"
+                         , unsigned(asd->Number)
+                         , unsigned(asd->Selection));
+      } else
+        outs() << "AUX Unknown\n";
+    } else {
+      StringRef name;
+      if (error(coff->getSymbol(i, symbol))) return;
+      if (error(coff->getSymbolName(symbol, name))) return;
+      outs() << "[" << format("%2d", i) << "]"
+             << "(sec " << format("%2d", int(symbol->SectionNumber)) << ")"
+             << "(fl 0x00)" // Flag bits, which COFF doesn't have.
+             << "(ty " << format("%3x", unsigned(symbol->Type)) << ")"
+             << "(scl " << format("%3x", unsigned(symbol->StorageClass)) << ") "
+             << "(nx " << unsigned(symbol->NumberOfAuxSymbols) << ") "
+             << "0x" << format("%08x", unsigned(symbol->Value)) << " "
+             << name << "\n";
+      aux_count = symbol->NumberOfAuxSymbols;
+    }
+  }
+}
+
+static void PrintSymbolTable(const ObjectFile *o) {
+  outs() << "SYMBOL TABLE:\n";
+
+  if (const COFFObjectFile *coff = dyn_cast<const COFFObjectFile>(o))
+    PrintCOFFSymbolTable(coff);
+  else {
+    error_code ec;
+    for (symbol_iterator si = o->begin_symbols(),
+                         se = o->end_symbols(); si != se; si.increment(ec)) {
+      if (error(ec)) return;
+      StringRef Name;
+      uint64_t Address;
+      SymbolRef::Type Type;
+      uint64_t Size;
+      uint32_t Flags;
+      section_iterator Section = o->end_sections();
+      if (error(si->getName(Name))) continue;
+      if (error(si->getAddress(Address))) continue;
+      if (error(si->getFlags(Flags))) continue;
+      if (error(si->getType(Type))) continue;
+      if (error(si->getSize(Size))) continue;
+      if (error(si->getSection(Section))) continue;
+
+      bool Global = Flags & SymbolRef::SF_Global;
+      bool Weak = Flags & SymbolRef::SF_Weak;
+      bool Absolute = Flags & SymbolRef::SF_Absolute;
+
+      if (Address == UnknownAddressOrSize)
+        Address = 0;
+      if (Size == UnknownAddressOrSize)
+        Size = 0;
+      char GlobLoc = ' ';
+      if (Type != SymbolRef::ST_Unknown)
+        GlobLoc = Global ? 'g' : 'l';
+      char Debug = (Type == SymbolRef::ST_Debug || Type == SymbolRef::ST_File)
+                   ? 'd' : ' ';
+      char FileFunc = ' ';
+      if (Type == SymbolRef::ST_File)
+        FileFunc = 'f';
+      else if (Type == SymbolRef::ST_Function)
+        FileFunc = 'F';
+
+      const char *Fmt = o->getBytesInAddress() > 4 ? "%016" PRIx64 :
+                                                     "%08" PRIx64;
+
+      outs() << format(Fmt, Address) << " "
+             << GlobLoc // Local -> 'l', Global -> 'g', Neither -> ' '
+             << (Weak ? 'w' : ' ') // Weak?
+             << ' ' // Constructor. Not supported yet.
+             << ' ' // Warning. Not supported yet.
+             << ' ' // Indirect reference to another symbol.
+             << Debug // Debugging (d) or dynamic (D) symbol.
+             << FileFunc // Name of function (F), file (f) or object (O).
+             << ' ';
+      if (Absolute)
+        outs() << "*ABS*";
+      else if (Section == o->end_sections())
+        outs() << "*UND*";
+      else {
+        if (const MachOObjectFile *MachO =
+            dyn_cast<const MachOObjectFile>(o)) {
+          DataRefImpl DR = Section->getRawDataRefImpl();
+          StringRef SegmentName = MachO->getSectionFinalSegmentName(DR);
+          outs() << SegmentName << ",";
+        }
+        StringRef SectionName;
+        if (error(Section->getName(SectionName)))
+          SectionName = "";
+        outs() << SectionName;
+      }
+      outs() << '\t'
+             << format("%08" PRIx64 " ", Size)
+             << Name
+             << '\n';
+    }
+  }
+}
+
+static void PrintUnwindInfo(const ObjectFile *o) {
+  outs() << "Unwind info:\n\n";
+
+  if (const COFFObjectFile *coff = dyn_cast<COFFObjectFile>(o)) {
+    printCOFFUnwindInfo(coff);
+  } else {
+    // TODO: Extract DWARF dump tool to objdump.
+    errs() << "This operation is only currently supported "
+              "for COFF object files.\n";
+    return;
+  }
+}
+
+// For cpu0 -elf2hex begin:
+static uint64_t GetSectionHeaderStartAddress(const ObjectFile *o, StringRef sectionName) {
+  outs() << "Sections:\n"
+            "Idx Name          Size      Address          Type\n";
+  error_code ec;
+  unsigned i = 0;
+  for (section_iterator si = o->begin_sections(), se = o->end_sections();
+                                                  si != se; si.increment(ec)) {
+    if (error(ec)) return 0;
+    StringRef Name;
+    if (error(si->getName(Name))) return 0;
+    uint64_t Address;
+    if (error(si->getAddress(Address))) return 0;
+    uint64_t Size;
+    if (error(si->getSize(Size))) return 0;
+    bool Text, Data, BSS;
+    if (error(si->isText(Text))) return 0;
+    if (error(si->isData(Data))) return 0;
+    if (error(si->isBSS(BSS))) return 0;
+    if (Name == sectionName)
+      return Address;
+    else
+      return 0;
+    ++i;
+  }
+  return 0;
+}
+
+static void GetSymbolTableStartAddress(const ObjectFile *o, StringRef sectionName) {
+  outs() << "SYMBOL TABLE:\n";
+
+  if (const COFFObjectFile *coff = dyn_cast<const COFFObjectFile>(o))
+    PrintCOFFSymbolTable(coff);
+  else {
+    error_code ec;
+    for (symbol_iterator si = o->begin_symbols(),
+                         se = o->end_symbols(); si != se; si.increment(ec)) {
+      if (error(ec)) return;
+      StringRef Name;
+      uint64_t Address;
+      SymbolRef::Type Type;
+      uint64_t Size;
+      uint32_t Flags;
+      section_iterator Section = o->end_sections();
+      if (error(si->getName(Name))) continue;
+      if (error(si->getAddress(Address))) continue;
+      if (error(si->getFlags(Flags))) continue;
+      if (error(si->getType(Type))) continue;
+      if (error(si->getSize(Size))) continue;
+      if (error(si->getSection(Section))) continue;
+
+      bool Global = Flags & SymbolRef::SF_Global;
+      bool Weak = Flags & SymbolRef::SF_Weak;
+      bool Absolute = Flags & SymbolRef::SF_Absolute;
+
+      if (Address == UnknownAddressOrSize)
+        Address = 0;
+      if (Size == UnknownAddressOrSize)
+        Size = 0;
+      char GlobLoc = ' ';
+      if (Type != SymbolRef::ST_Unknown)
+        GlobLoc = Global ? 'g' : 'l';
+      char Debug = (Type == SymbolRef::ST_Debug || Type == SymbolRef::ST_File)
+                   ? 'd' : ' ';
+      char FileFunc = ' ';
+      if (Type == SymbolRef::ST_File)
+        FileFunc = 'f';
+      else if (Type == SymbolRef::ST_Function)
+        FileFunc = 'F';
+
+      const char *Fmt = o->getBytesInAddress() > 4 ? "%016" PRIx64 :
+                                                     "%08" PRIx64;
+
+      outs() << format(Fmt, Address) << " "
+             << GlobLoc // Local -> 'l', Global -> 'g', Neither -> ' '
+             << (Weak ? 'w' : ' ') // Weak?
+             << ' ' // Constructor. Not supported yet.
+             << ' ' // Warning. Not supported yet.
+             << ' ' // Indirect reference to another symbol.
+             << Debug // Debugging (d) or dynamic (D) symbol.
+             << FileFunc // Name of function (F), file (f) or object (O).
+             << ' ';
+      if (Absolute)
+        outs() << "*ABS*";
+      else if (Section == o->end_sections())
+        outs() << "*UND*";
+      else {
+        if (const MachOObjectFile *MachO =
+            dyn_cast<const MachOObjectFile>(o)) {
+          DataRefImpl DR = Section->getRawDataRefImpl();
+          StringRef SegmentName = MachO->getSectionFinalSegmentName(DR);
+          outs() << SegmentName << ",";
+        }
+        StringRef SectionName;
+        if (error(Section->getName(SectionName)))
+          SectionName = "";
+        outs() << SectionName;
+      }
+      outs() << '\t'
+             << format("%08" PRIx64 " ", Size)
+             << Name
+             << '\n';
+    }
+  }
+}
+
 static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/, uint64_t& lastAddr) {
   const Target *TheTarget = getTarget(Obj);
   // getTarget() will have already issued a diagnostic if necessary, so
@@ -776,112 +1120,6 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
   }
 }
 
-static void PrintRelocations(const ObjectFile *o) {
-  error_code ec;
-  for (section_iterator si = o->begin_sections(), se = o->end_sections();
-                                                  si != se; si.increment(ec)){
-    if (error(ec)) return;
-    if (si->begin_relocations() == si->end_relocations())
-      continue;
-    StringRef secname;
-    if (error(si->getName(secname))) continue;
-    outs() << "RELOCATION RECORDS FOR [" << secname << "]:\n";
-    for (relocation_iterator ri = si->begin_relocations(),
-                             re = si->end_relocations();
-                             ri != re; ri.increment(ec)) {
-      if (error(ec)) return;
-
-      bool hidden;
-      uint64_t address;
-      SmallString<32> relocname;
-      SmallString<32> valuestr;
-      if (error(ri->getHidden(hidden))) continue;
-      if (hidden) continue;
-      if (error(ri->getTypeName(relocname))) continue;
-      if (error(ri->getOffset(address))) continue;
-      if (error(ri->getValueString(valuestr))) continue;
-      outs() << address << " " << relocname << " " << valuestr << "\n";
-    }
-    outs() << "\n";
-  }
-}
-
-static void PrintSectionHeaders(const ObjectFile *o) {
-  outs() << "Sections:\n"
-            "Idx Name          Size      Address          Type\n";
-  error_code ec;
-  unsigned i = 0;
-  for (section_iterator si = o->begin_sections(), se = o->end_sections();
-                                                  si != se; si.increment(ec)) {
-    if (error(ec)) return;
-    StringRef Name;
-    if (error(si->getName(Name))) return;
-    uint64_t Address;
-    if (error(si->getAddress(Address))) return;
-    uint64_t Size;
-    if (error(si->getSize(Size))) return;
-    bool Text, Data, BSS;
-    if (error(si->isText(Text))) return;
-    if (error(si->isData(Data))) return;
-    if (error(si->isBSS(BSS))) return;
-    std::string Type = (std::string(Text ? "TEXT " : "") +
-                        (Data ? "DATA " : "") + (BSS ? "BSS" : ""));
-    outs() << format("%3d %-13s %08" PRIx64 " %016" PRIx64 " %s\n",
-                     i, Name.str().c_str(), Size, Address, Type.c_str());
-    ++i;
-  }
-}
-
-static void PrintSectionContents(const ObjectFile *o) {
-  error_code ec;
-  for (section_iterator si = o->begin_sections(),
-                        se = o->end_sections();
-                        si != se; si.increment(ec)) {
-    if (error(ec)) return;
-    StringRef Name;
-    StringRef Contents;
-    uint64_t BaseAddr;
-    bool BSS;
-    if (error(si->getName(Name))) continue;
-    if (error(si->getContents(Contents))) continue;
-    if (error(si->getAddress(BaseAddr))) continue;
-    if (error(si->isBSS(BSS))) continue;
-
-    outs() << "Contents of section " << Name << ":\n";
-    if (BSS) {
-      outs() << format("<skipping contents of bss section at [%04" PRIx64
-                       ", %04" PRIx64 ")>\n", BaseAddr,
-                       BaseAddr + Contents.size());
-      continue;
-    }
-
-    // Dump out the content as hex and printable ascii characters.
-    for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
-      outs() << "/*" << format(" %04" PRIx64 " ", BaseAddr + addr);
-      // Dump line of hex.
-      for (std::size_t i = 0; i < 16; ++i) {
-        if (i != 0 && i % 4 == 0)
-          outs() << ' ';
-        if (addr + i < end)
-          outs() << hexdigit((Contents[addr + i] >> 4) & 0xF, true)
-                 << hexdigit(Contents[addr + i] & 0xF, true);
-        else
-          outs() << "  ";
-      }
-      outs() << "*/";
-      // Print ascii.
-      outs() << "  ";
-      for (std::size_t i = 0; i < 16 && addr + i < end; ++i) {
-        if (std::isprint(static_cast<unsigned char>(Contents[addr + i]) & 0xFF))
-          outs() << Contents[addr + i];
-        else
-          outs() << ".";
-      }
-      outs() << "\n";
-    }
-  }
-}
-
 static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
   error_code ec;
   for (section_iterator si = o->begin_sections(),
@@ -898,8 +1136,12 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
     if (error(si->isBSS(BSS))) continue;
 
     if (Name == ".rodata" || Name == ".data") {
-      for (std::size_t addr = lastAddr, end = BaseAddr + addr; addr < end; addr += 4) {
-        outs() << format("%04" PRIx64 " ", 0) << '\n';
+      if (Contents.size() <= 0) {
+        continue;
+      }
+      for (std::size_t addr = lastAddr, end = BaseAddr; addr < end; addr += 4) {
+        outs() << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) \
+        << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) << '\n';
       }
 
       outs() << "/*Contents of section " << Name << ":*/\n";
@@ -912,7 +1154,7 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
             outs() << ' ';
           if (addr + i < end)
             outs() << hexdigit((Contents[addr + i] >> 4) & 0xF, true)
-                   << hexdigit(Contents[addr + i] & 0xF, true);
+                   << hexdigit(Contents[addr + i] & 0xF, true) << " ";
           else
             outs() << "  ";
         }
@@ -931,142 +1173,13 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
 }
 
 static void Elf2Hex(const ObjectFile *o) {
+  uint64_t startAddr = GetSectionHeaderStartAddress(o, "_start");
+  outs() << format("_start address:%08" PRIx64 "\n", startAddr);
   uint64_t lastAddr;
   DisassembleObjectForHex(o, lastAddr);
   PrintDataSections(o, lastAddr);
 }
-
-static void PrintCOFFSymbolTable(const COFFObjectFile *coff) {
-  const coff_file_header *header;
-  if (error(coff->getHeader(header))) return;
-  int aux_count = 0;
-  const coff_symbol *symbol = 0;
-  for (int i = 0, e = header->NumberOfSymbols; i != e; ++i) {
-    if (aux_count--) {
-      // Figure out which type of aux this is.
-      if (symbol->StorageClass == COFF::IMAGE_SYM_CLASS_STATIC
-          && symbol->Value == 0) { // Section definition.
-        const coff_aux_section_definition *asd;
-        if (error(coff->getAuxSymbol<coff_aux_section_definition>(i, asd)))
-          return;
-        outs() << "AUX "
-               << format("scnlen 0x%x nreloc %d nlnno %d checksum 0x%x "
-                         , unsigned(asd->Length)
-                         , unsigned(asd->NumberOfRelocations)
-                         , unsigned(asd->NumberOfLinenumbers)
-                         , unsigned(asd->CheckSum))
-               << format("assoc %d comdat %d\n"
-                         , unsigned(asd->Number)
-                         , unsigned(asd->Selection));
-      } else
-        outs() << "AUX Unknown\n";
-    } else {
-      StringRef name;
-      if (error(coff->getSymbol(i, symbol))) return;
-      if (error(coff->getSymbolName(symbol, name))) return;
-      outs() << "[" << format("%2d", i) << "]"
-             << "(sec " << format("%2d", int(symbol->SectionNumber)) << ")"
-             << "(fl 0x00)" // Flag bits, which COFF doesn't have.
-             << "(ty " << format("%3x", unsigned(symbol->Type)) << ")"
-             << "(scl " << format("%3x", unsigned(symbol->StorageClass)) << ") "
-             << "(nx " << unsigned(symbol->NumberOfAuxSymbols) << ") "
-             << "0x" << format("%08x", unsigned(symbol->Value)) << " "
-             << name << "\n";
-      aux_count = symbol->NumberOfAuxSymbols;
-    }
-  }
-}
-
-static void PrintSymbolTable(const ObjectFile *o) {
-  outs() << "SYMBOL TABLE:\n";
-
-  if (const COFFObjectFile *coff = dyn_cast<const COFFObjectFile>(o))
-    PrintCOFFSymbolTable(coff);
-  else {
-    error_code ec;
-    for (symbol_iterator si = o->begin_symbols(),
-                         se = o->end_symbols(); si != se; si.increment(ec)) {
-      if (error(ec)) return;
-      StringRef Name;
-      uint64_t Address;
-      SymbolRef::Type Type;
-      uint64_t Size;
-      uint32_t Flags;
-      section_iterator Section = o->end_sections();
-      if (error(si->getName(Name))) continue;
-      if (error(si->getAddress(Address))) continue;
-      if (error(si->getFlags(Flags))) continue;
-      if (error(si->getType(Type))) continue;
-      if (error(si->getSize(Size))) continue;
-      if (error(si->getSection(Section))) continue;
-
-      bool Global = Flags & SymbolRef::SF_Global;
-      bool Weak = Flags & SymbolRef::SF_Weak;
-      bool Absolute = Flags & SymbolRef::SF_Absolute;
-
-      if (Address == UnknownAddressOrSize)
-        Address = 0;
-      if (Size == UnknownAddressOrSize)
-        Size = 0;
-      char GlobLoc = ' ';
-      if (Type != SymbolRef::ST_Unknown)
-        GlobLoc = Global ? 'g' : 'l';
-      char Debug = (Type == SymbolRef::ST_Debug || Type == SymbolRef::ST_File)
-                   ? 'd' : ' ';
-      char FileFunc = ' ';
-      if (Type == SymbolRef::ST_File)
-        FileFunc = 'f';
-      else if (Type == SymbolRef::ST_Function)
-        FileFunc = 'F';
-
-      const char *Fmt = o->getBytesInAddress() > 4 ? "%016" PRIx64 :
-                                                     "%08" PRIx64;
-
-      outs() << format(Fmt, Address) << " "
-             << GlobLoc // Local -> 'l', Global -> 'g', Neither -> ' '
-             << (Weak ? 'w' : ' ') // Weak?
-             << ' ' // Constructor. Not supported yet.
-             << ' ' // Warning. Not supported yet.
-             << ' ' // Indirect reference to another symbol.
-             << Debug // Debugging (d) or dynamic (D) symbol.
-             << FileFunc // Name of function (F), file (f) or object (O).
-             << ' ';
-      if (Absolute)
-        outs() << "*ABS*";
-      else if (Section == o->end_sections())
-        outs() << "*UND*";
-      else {
-        if (const MachOObjectFile *MachO =
-            dyn_cast<const MachOObjectFile>(o)) {
-          DataRefImpl DR = Section->getRawDataRefImpl();
-          StringRef SegmentName = MachO->getSectionFinalSegmentName(DR);
-          outs() << SegmentName << ",";
-        }
-        StringRef SectionName;
-        if (error(Section->getName(SectionName)))
-          SectionName = "";
-        outs() << SectionName;
-      }
-      outs() << '\t'
-             << format("%08" PRIx64 " ", Size)
-             << Name
-             << '\n';
-    }
-  }
-}
-
-static void PrintUnwindInfo(const ObjectFile *o) {
-  outs() << "Unwind info:\n\n";
-
-  if (const COFFObjectFile *coff = dyn_cast<COFFObjectFile>(o)) {
-    printCOFFUnwindInfo(coff);
-  } else {
-    // TODO: Extract DWARF dump tool to objdump.
-    errs() << "This operation is only currently supported "
-              "for COFF object files.\n";
-    return;
-  }
-}
+// For cpu0 -elf2hex end:
 
 static void DumpObject(const ObjectFile *o) {
   outs() << '\n';
