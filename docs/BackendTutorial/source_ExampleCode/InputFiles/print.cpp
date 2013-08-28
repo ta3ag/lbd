@@ -17,6 +17,7 @@ void print_string(const char *str)
   for (p = str; *p != '\0'; p++)
     print_char(*p);
   print_char(*p);
+  print_char('\n');
 
   return;
 }

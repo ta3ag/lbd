@@ -4,6 +4,10 @@
 
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk '{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t*/"}' > ../cpu0_verilog/redesign/cpu0s.hex
 
+// /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj ch_run_backend.bc -o ch_run_backend.cpu0.o
+// /home/cschen/test/lld_20130816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu ch_run_backend.cpu0.o -o a.out
+// /home/cschen/test/lld_20130816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
+
 #include "boot.cpp"
 
 #include "print.h"
@@ -11,6 +15,7 @@
 bool test_load_bool();
 int test_operators(int x);
 int test_control();
+int test_global();
 
 int main()
 {
@@ -20,6 +25,8 @@ int main()
   a = test_operators(12); // a = 13
   print_integer(a);
   a += test_control();	// a = (128+18) = 146
+  print_integer(a);
+  a = test_global();	// a = 100
   print_integer(a);
 
   return a;
@@ -110,3 +117,11 @@ int test_control()
   
   return (b+c+d+e+f); // (2+3+4+4+5)=18
 }
+
+int gI = 100;
+
+int test_global()
+{
+  return gI;
+}
+
