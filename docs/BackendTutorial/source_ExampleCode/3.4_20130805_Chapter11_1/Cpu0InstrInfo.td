@@ -270,7 +270,7 @@ class CBranch<bits<8> op, string instr_asm, RegisterClass RC,
                    list<Register> UseRegs>:
   FJ<op, (outs), (ins RC:$ra, brtarget:$addr),
              !strconcat(instr_asm, "\t$ra, $addr"),
-             [(brcond RC:$ra, bb:$addr)], IIBranch> {
+             [], IIBranch> {
   let isBranch = 1;
   let isTerminator = 1;
   let hasDelaySlot = 0;
@@ -435,11 +435,14 @@ defm SH     : StoreM32<0x08, "sh", truncstorei16_a>;
 /// Arithmetic Instructions (ALU Immediate)
 // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
 def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
+def ANDi    : ArithLogicI<0x0C, "andi", and, uimm16, immZExt16, CPURegs>;
 def ORi     : ArithLogicI<0x0D, "ori", or, uimm16, immZExt16, CPURegs>;
+def XORi    : ArithLogicI<0x0E, "xori", xor, uimm16, immZExt16, CPURegs>;
 
 /// Arithmetic Instructions (3-Operand, R-Type)
 def CMP     : CmpInstr<0x10, "cmp", IIAlu, CPURegs, SR, 0>;
 def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
+def SUBu    : ArithLogicR<0x12, "subu", sub, IIAlu, CPURegs>;
 def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
 def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
 def MUL     : ArithLogicR<0x15, "mul", mul, IIImul, CPURegs, 1>;
@@ -573,10 +576,72 @@ def : Pat<(brcond RC:$cond, bb:$dst),
 
 defm : BrcondPats<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
 
+def : Pat<(brcond SR:$cond, bb:$dst),
+          (JNE (CMP SR:$cond, ZERO), bb:$dst)>;
+
 // setcc patterns
 multiclass SeteqPats<RegisterClass RC, Instruction XOROp> {
   def : Pat<(seteq RC:$lhs, RC:$rhs),
             (XOROp (XOROp RC:$lhs, RC:$rhs), (ADDiu ZERO, 1))>;
+  def : Pat<(setne RC:$lhs, RC:$rhs),
+            (XOROp RC:$lhs, RC:$rhs)>;
+}
+
+multiclass SetltPats<RegisterClass RC> {
+// lhs < rhs => (SUB lhs, rhs) < 0 => 0b1xxxxx...
+  def : Pat<(setlt RC:$lhs, RC:$rhs),
+            (ROL (ANDi (SUB RC:$lhs, RC:$rhs), (SHL 0x8000, 16)), 1)>;
+  def : Pat<(setult RC:$lhs, RC:$rhs),
+            (ROL (ANDi (SUBu RC:$lhs, RC:$rhs), (SHL 0x8000, 16)), 1)>;
+}
+
+multiclass SetlePats<RegisterClass RC> {
+// lhs <= rhs => (SUB (SUB lhs, rhs), 1) < 0 
+  def : Pat<(setle RC:$lhs, RC:$rhs),
+            (ROL (ANDi (SUB (SUB RC:$lhs, RC:$rhs), (ORi ZERO, 1)), (SHL 0x8000, 16)), 1)>;
+  def : Pat<(setule RC:$lhs, RC:$rhs),
+            (ROL (ANDi (SUBu (SUBu RC:$lhs, RC:$rhs), (ORi ZERO, 1)), (SHL 0x8000, 16)), 1)>;
+}
+
+multiclass SetgtPats<RegisterClass RC> {
+// lhs > rhs => (SUB (SUB lhs, rhs), 1) > 0 => 0b0xxxxxx... => (0b0xxx... & 0x1000...) = 0
+  def : Pat<(setgt RC:$lhs, RC:$rhs),
+            (XORi (ANDi (SUB (SUB RC:$lhs, RC:$rhs), (ORi ZERO, 1)), (SHL 0x8000, 16)), 1)>;
+  def : Pat<(setugt RC:$lhs, RC:$rhs),
+            (XORi (ANDi (SUBu (SUBu RC:$lhs, RC:$rhs), (ORi ZERO, 1)), (SHL 0x8000, 16)), 1)>;
+}
+
+multiclass SetgePats<RegisterClass RC> {
+// lhs > rhs => (SUB lhs, rhs) > 0 => 0b0xxxxxx... => (0b0xxx... & 0x1000...) = 0
+  def : Pat<(setge RC:$lhs, RC:$rhs),
+            (XORi (ANDi (SUB RC:$lhs, RC:$rhs), (SHL 0x8000, 16)), 1)>;
+  def : Pat<(setuge RC:$lhs, RC:$rhs),
+            (XORi (ANDi (SUBu RC:$lhs, RC:$rhs), (SHL 0x8000, 16)), 1)>;
 }
 
 defm : SeteqPats<CPURegs, XOR>;
+defm : SetltPats<CPURegs>;
+defm : SetlePats<CPURegs>;
+defm : SetgtPats<CPURegs>;
+defm : SetgePats<CPURegs>;
+
+/*
+multiclass SeteqPats<RegisterClass RC, Instruction CMPOp> {
+  def : Pat<(seteq RC:$lhs, RC:$rhs),
+                (CMPOp RC:$rhs, RC:$lhs)>;
+}
+multiclass SetnePats<RegisterClass RC, Instruction CMPOp> {
+  def : Pat<(setne RC:$lhs, RC:$rhs),
+                (CMPOp RC:$rhs, RC:$lhs)>;
+}
+multiclass SetltPats<RegisterClass RC, Instruction CMPOp> {
+  def : Pat<(setlt RC:$lhs, RC:$rhs),
+                (CMPOp RC:$rhs, RC:$lhs)>;
+  def : Pat<(setult RC:$lhs, RC:$rhs),
+                (CMPOp RC:$rhs, RC:$lhs)>;
+}*/
+
+//defm : SeteqPats<CPURegs, CMP>;
+//defm : SetnePats<CPURegs, CMP>;
+//defm : SetltPats<CPURegs, CMP>;
+

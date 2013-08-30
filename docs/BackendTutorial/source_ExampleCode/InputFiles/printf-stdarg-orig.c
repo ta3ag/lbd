@@ -28,10 +28,17 @@
 
 // gcc -static -Ttext 0x00 printf-stdarg-orig.c
 
-#include <stdio.h>
-#define TEST_PRINTF
+// /home/cschen/test/lld_20130816/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg-orig.c -emit-llvm -o printf-stdarg-orig.bc
+// /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg-orig.bc -o printf-stdarg-orig.cpu0.o
+// /home/cschen/test/lld_20130816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu printf-stdarg-orig.cpu0.o -o a.out
+// /home/cschen/test/lld_20130816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
 
 #if 0
+#include <stdio.h>
+#define TEST_PRINTF
+#endif
+
+#if 1
 #include <stdarg.h>
 
 static void printchar(char **str, int c)
@@ -228,7 +235,7 @@ int main(void)
 	printf("%d %s(s)%", 0, "message");
 	printf("\n");
 	printf("%d %s(s) with %%\n", 0, "message");
-#if 0
+#if 1
 	sprintf(buf, "justif: \"%-10s\"\n", "left"); printf("%s", buf);
 	sprintf(buf, "justif: \"%10s\"\n", "right"); printf("%s", buf);
 	sprintf(buf, " 3: %04d zero padded\n", 3); printf("%s", buf);

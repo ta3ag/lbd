@@ -26,7 +26,7 @@
 #define putchar(c) outbyte(c)
 */
 
-// clang -target mips-unknown-linux-gnu -c printf-stdarg-2.c -emit-llvm -o printf-stdarg-2.bc
+// /home/cschen/test/lld_20130816/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg-2.c -emit-llvm -o printf-stdarg-2.bc
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg-2.bc -o printf-stdarg-2.cpu0.o
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu printf-stdarg-2.cpu0.o -o a.out
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
@@ -120,7 +120,7 @@ int main(void)
 
 #endif
 
-#include "print.cpp"  // debug
+//#include "print.cpp"  // debug
 
 // For memory IO
 void putchar(const char c)
@@ -155,12 +155,8 @@ static int prints(char **out, const char *string, int width, int pad)
 		else width -= len;
 		if (pad & PAD_ZERO) padchar = '0';
 	}
-//	if (!(pad & PAD_RIGHT)) {
-  int padright = (pad & PAD_RIGHT);
-	if (padright != PAD_RIGHT) {
+	if (!(pad & PAD_RIGHT)) {
     // pad left
-  print_integer(PAD_RIGHT);    // debug
-  print_integer(padright);    // debug
 		for ( ; width > 0; --width) {
 			printchar (out, padchar);
 			++pc;
