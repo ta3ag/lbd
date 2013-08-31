@@ -33,7 +33,7 @@ int test1()
 {
   int sum = 0;
   int pad = (PAD_ZERO | PAD_RIGHT);
-	if (!(pad & PAD_RIGHT)) {
+  if (!(pad & PAD_RIGHT)) {
   // (pad & PAD_RIGHT) == 0
     sum = 1;
   }

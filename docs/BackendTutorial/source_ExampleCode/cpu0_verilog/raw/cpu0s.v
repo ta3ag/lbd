@@ -21,7 +21,7 @@
 module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick, 
             output reg [31:0] ir, pc, mar, mdr, inout [31:0] dbus, 
             output reg m_en, m_rw, output reg [1:0] m_size);
-  reg signed [31:0] R [0:15], HI, LO, SW /* Status Word */;
+  reg signed [31:0] R [0:15], HI, LO;
   // High and Low part of 64 bit result
   reg [7:0] op;
   reg [3:0] a, b, c;
@@ -32,21 +32,22 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   `define PC   R[15]   // Program Counter
   `define LR   R[14]   // Link Register
   `define SP   R[13]   // Stack Pointer
+  `define SW   R[12]   // Status Word
   // SW Flage
-  `define N    SW[31] // Negative flag
-  `define Z    SW[30] // Zero
-  `define C    SW[29] // Carry
-  `define V    SW[28] // Overflow
-  `define MODE SW[25:23] // itype
-  `define I2   SW[16] // Hardware Interrupt 1, IO1 interrupt, status, 1: in interrupt
-  `define I1   SW[15] // Hardware Interrupt 0, timer interrupt, status, 1: in interrupt
-  `define I0   SW[14] // Software interrupt, status, 1: in interrupt
-  `define I    SW[13] // Interrupt, 1: in interrupt
-  `define I2E  SW[8]  // Hardware Interrupt 1, IO1 interrupt, Enable
-  `define I1E  SW[7]  // Hardware Interrupt 0, timer interrupt, Enable
-  `define I0E  SW[6]  // Software Interrupt Enable
-  `define IE   SW[5]  // Interrupt Enable
-  `define M    SW[0]  // Mode bit
+  `define C    `SW[29] // Carry
+  `define V    `SW[28] // Overflow
+  `define MODE `SW[25:23] // itype
+  `define I2   `SW[16] // Hardware Interrupt 1, IO1 interrupt, status, 1: in interrupt
+  `define I1   `SW[15] // Hardware Interrupt 0, timer interrupt, status, 1: in interrupt
+  `define I0   `SW[14] // Software interrupt, status, 1: in interrupt
+  `define I    `SW[13] // Interrupt, 1: in interrupt
+  `define I2E  `SW[8]  // Hardware Interrupt 1, IO1 interrupt, Enable
+  `define I1E  `SW[7]  // Hardware Interrupt 0, timer interrupt, Enable
+  `define I0E  `SW[6]  // Software Interrupt Enable
+  `define IE   `SW[5]  // Interrupt Enable
+  `define M    `SW[4]  // Mode bit
+  `define Z    `SW[1] // Zero
+  `define N    `SW[0] // Negative flag
   // Instruction Opcode 
   parameter [7:0] LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,LH=8'h06,
   LHu=8'h07,SH=8'h08,ADDiu=8'h09,ANDi=8'h0C,ORi=8'h0D,
@@ -121,7 +122,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   if (inInt == 0) begin
     case (iMode)
       `RESET: begin 
-        `PC = 0; tick = 0; R[0] = 0; SW = 0; `LR = -1;
+        `PC = 0; tick = 0; R[0] = 0; `SW = 0; `LR = -1;
         `IE = 0; `I0E = 0; `I1E = 0; `I2E = 0; `I = 0; `I0 = 0; `I1 = 0; `I2 = 0;
       end
       `ABORT: begin `LR = `PC; `PC = 4; end
@@ -235,12 +236,12 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       `ifdef TRACE
       MULT, MULTu, DIV, DIVu, MTHI, MTLO :
         $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
-        LO, SW);
+        LO, `SW);
       `endif
       ST : begin
       `ifdef TRACE
         $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d  SW=%8x", $stime, pc0, ir, 
-        R[b], c16, R[a], SW);
+        R[b], c16, R[a], `SW);
       `endif
         if (R[b]+c16 == `IOADDR) begin
           outw(R[a]);
@@ -249,7 +250,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       SB : begin
       `ifdef TRACE
         $display("%4dns %8x : %8x m[%-04d+%-04d]=%c  SW=%8x", $stime, pc0, ir, 
-        R[b], c16, R[a][7:0], SW);
+        R[b], c16, R[a][7:0], `SW);
       `endif
         if (R[b]+c16 == `IOADDR) begin
           outc(R[a][7:0]);
@@ -258,7 +259,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       `ifdef TRACE
       default : 
         $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a, 
-        R[a], R[a], SW);
+        R[a], R[a], `SW);
       `endif
       endcase
       if (op==RET && `PC < 0) begin
