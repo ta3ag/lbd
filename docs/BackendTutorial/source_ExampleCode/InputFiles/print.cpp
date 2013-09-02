@@ -9,7 +9,24 @@ void print_char(const char c)
 
   return;
 }
+#if 0
+void dump_mem(char *str, int n)
+{
+  int i = 0;
+  const char *p;
 
+  for (i = 0, p = str; i < n; i++) {
+    char x = (char)(*p >> 4);
+    if (x <= 9)
+      print_char(x+'0');
+    else
+      print_char(x+'A');
+  }
+  print_char('\n');
+
+  return;
+}
+#endif
 void print_string(const char *str)
 {
   const char *p;

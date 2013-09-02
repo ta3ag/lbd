@@ -25,7 +25,7 @@ int main()
 }
 
 #include "print.cpp"
-#endif
+
 #define PAD_RIGHT 0x00000001
 #define PAD_ZERO 0x00000002
 
@@ -42,12 +42,15 @@ int test1()
   }
   return sum; 
 }
+#endif
 
 int test2(const char *format)
 {
 	register int width;
 
-	for ( ; *format >= '0' && *format <= '9'; ++format) {
+	for ( ; (*format >= '0' && *format <= '9'); ++format) {
+//	for ( ; ; ++format) {
+//    if (!(*format >= '0' && *format <= '9')) break;
 		width *= 10;
 		width += *format - '0';
 	}

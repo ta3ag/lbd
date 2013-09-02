@@ -51,7 +51,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   // Instruction Opcode 
   parameter [7:0] LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,LH=8'h06,
   LHu=8'h07,SH=8'h08,ADDiu=8'h09,ANDi=8'h0C,ORi=8'h0D,
-  XORi=8'h0E,
+  XORi=8'h0E,LUi=8'h0F,
   CMP=8'h10,
   ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,MUL=8'h15,DIV=8'h16,DIVu=8'h17,
   AND=8'h18,OR=8'h19,XOR=8'h1A,
@@ -190,6 +190,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       ORi:   regSet(a, Rb|uc16);             // ORi Ra,Rb,c16; Ra<=(Rb or c16)
       XOR:   regSet(a, Rb^Rc);               // XOR Ra,Rb,Rc; Ra<=(Rb xor Rc)
       XORi:  regSet(a, Rb^uc16);             // XORi Ra,Rb,c16; Ra<=(Rb xor c16)
+      LUi:   regSet(a, uc16<<16);
       SHL:   regSet(a, Rb<<c5);     // Shift Left; SHL Ra,Rb,Cx; Ra<=(Rb << Cx)
       SRA:   regSet(a, (Rb&'h80000000)|(Rb>>c5)); 
                                     // Shift Right with signed bit fill;
@@ -222,6 +223,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       IRET:  begin 
         `PC=Ra;`I = 1'b0; `MODE = `EXE;
       end // Interrupt Return; IRET; PC <= LR; INT<=0
+      default : 
+        $display("%4dns %8x : OP code %8x not support", $stime, pc0, op);
       endcase
       next_state = WriteBack;
     end

@@ -26,19 +26,19 @@
 #define putchar(c) outbyte(c)
 */
 
-// gcc -static -Ttext 0x00 printf-stdarg-orig.c
+// gcc -static printf-stdarg-orig.c
 
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg-orig.c -emit-llvm -o printf-stdarg-orig.bc
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg-orig.bc -o printf-stdarg-orig.cpu0.o
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu printf-stdarg-orig.cpu0.o -o a.out
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
 
-#if 0
+#if 1
 #include <stdio.h>
 #define TEST_PRINTF
 #endif
 
-#if 1
+#if 0
 #include <stdarg.h>
 
 static void printchar(char **str, int c)
