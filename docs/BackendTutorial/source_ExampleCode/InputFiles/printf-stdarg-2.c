@@ -69,7 +69,7 @@ int main(void)
 	printf("\n");
 	printf("%d %s(s) with %%\n", 0, "message");
 #endif
-#if 0
+#if 1
 	sprintf(buf, "justif: \"%-10s\"\n", "left"); printf("%s", buf);
 	sprintf(buf, "justif: \"%10s\"\n", "right"); printf("%s", buf);
 	sprintf(buf, " 3: %04d zero padded\n", 3); printf("%s", buf);
@@ -249,8 +249,6 @@ static int print(char **out, const char *format, va_list args )
 				pad |= PAD_ZERO;
 			}
 			for ( ; *format >= '0' && *format <= '9'; ++format) {
-//			for ( ; ; ++format) {
-//        if (!(*format >= '0' && *format <= '9')) break;
 				width *= 10;
 				width += *format - '0';
 			}

@@ -270,7 +270,7 @@ class CBranch<bits<8> op, string instr_asm, RegisterClass RC,
                    list<Register> UseRegs>:
   FJ<op, (outs), (ins RC:$ra, brtarget:$addr),
              !strconcat(instr_asm, "\t$ra, $addr"),
-             [/*(brcond RC:$ra, bb:$addr)*/], IIBranch> {
+             [], IIBranch> {
   let isBranch = 1;
   let isTerminator = 1;
   let hasDelaySlot = 0;
@@ -580,7 +580,7 @@ defm : BrcondPats<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
 multiclass SeteqPats<RegisterClass RC> {
 // a == b
   def : Pat<(seteq RC:$lhs, RC:$rhs),
-            (XORi (SHR (ANDi (CMP RC:$lhs, RC:$rhs), 2), 1), 0)>;
+            (SHR (ANDi (CMP RC:$lhs, RC:$rhs), 2), 1)>;
 // a != b
   def : Pat<(setne RC:$lhs, RC:$rhs),
             (XORi (SHR (ANDi (CMP RC:$lhs, RC:$rhs), 2), 1), 1)>;
@@ -589,39 +589,39 @@ multiclass SeteqPats<RegisterClass RC> {
 // a < b
 multiclass SetltPats<RegisterClass RC> {
   def : Pat<(setlt RC:$lhs, RC:$rhs),
-            (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
+            (ANDi (CMP RC:$lhs, RC:$rhs), 1)>;
 // if cpu0  `define N    `SW[31]  instead of `SW[0] // Negative flag, then need
 // 2 more instructions as follows,
 //          (XORi (ANDi (SHR (CMP RC:$lhs, RC:$rhs), (LUi 0x8000), 31), 1), 1)>;
   def : Pat<(setult RC:$lhs, RC:$rhs),
-            (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
+            (ANDi (CMP RC:$lhs, RC:$rhs), 1)>;
 }
 
 // a <= b
 multiclass SetlePats<RegisterClass RC> {
   def : Pat<(setle RC:$lhs, RC:$rhs),
 // a <= b is equal to (XORi (b < a), 1)
-            (XORi (XORi (ANDi (CMP RC:$rhs, RC:$lhs), 1), 1), 1)>;
+            (XORi (ANDi (CMP RC:$rhs, RC:$lhs), 1), 1)>;
   def : Pat<(setule RC:$lhs, RC:$rhs),
-            (XORi (XORi (ANDi (CMP RC:$rhs, RC:$lhs), 1), 1), 1)>;
+            (XORi (ANDi (CMP RC:$rhs, RC:$lhs), 1), 1)>;
 }
 
 // a > b
 multiclass SetgtPats<RegisterClass RC> {
   def : Pat<(setgt RC:$lhs, RC:$rhs),
-// a > b is equal to b < a
-            (XORi (ANDi (CMP RC:$rhs, RC:$lhs), 1), 1)>;
+// a > b is equal to b < a is equal to setlt(b, a)
+            (ANDi (CMP RC:$rhs, RC:$lhs), 1)>;
   def : Pat<(setugt RC:$lhs, RC:$rhs),
-            (XORi (ANDi (CMP RC:$rhs, RC:$lhs), 1), 1)>;
+            (ANDi (CMP RC:$rhs, RC:$lhs), 1)>;
 }
 
 // a >= b
 multiclass SetgePats<RegisterClass RC> {
   def : Pat<(setge RC:$lhs, RC:$rhs),
 // a >= b is equal to b <= a
-            (XORi (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1), 1)>;
+            (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
   def : Pat<(setuge RC:$lhs, RC:$rhs),
-            (XORi (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1), 1)>;
+            (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
 }
 
 defm : SeteqPats<CPURegs>;

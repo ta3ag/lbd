@@ -145,9 +145,6 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   if (StackSize == 0 && !MFI->adjustsStack()) return;
 
   MachineModuleInfo &MMI = MF.getMMI();
-#if 0
-  std::vector<MachineMove> &Moves = MMI.getFrameMoves();
-#endif
   const MCRegisterInfo *MRI = MMI.getContext().getRegisterInfo();
   MachineLocation DstML, SrcML;
 
@@ -165,11 +162,6 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
           TII.get(TargetOpcode::PROLOG_LABEL)).addSym(AdjustSPLabel);
   MMI.addFrameInst(
       MCCFIInstruction::createDefCfaOffset(AdjustSPLabel, -StackSize));
-#if 0
-  DstML = MachineLocation(MachineLocation::VirtualFP);
-  SrcML = MachineLocation(MachineLocation::VirtualFP, -StackSize);
-  Moves.push_back(MachineMove(AdjustSPLabel, DstML, SrcML));
-#endif
   const std::vector<CalleeSavedInfo> &CSI = MFI->getCalleeSavedInfo();
 
   if (CSI.size()) {
@@ -190,11 +182,6 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
       unsigned Reg = I->getReg();
       {
         // Reg is in CPURegs.
-#if 0
-        DstML = MachineLocation(MachineLocation::VirtualFP, Offset);
-        SrcML = MachineLocation(Reg);
-        Moves.push_back(MachineMove(CSLabel, DstML, SrcML));
-#endif
         MMI.addFrameInst(MCCFIInstruction::createOffset(
             CSLabel, MRI->getDwarfRegNum(Reg, 1), Offset));
       }
@@ -210,11 +197,6 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
     MCSymbol *SetFPLabel = MMI.getContext().CreateTempSymbol();
     BuildMI(MBB, MBBI, dl,
             TII.get(TargetOpcode::PROLOG_LABEL)).addSym(SetFPLabel);
-#if 0
-    DstML = MachineLocation(FP);
-    SrcML = MachineLocation(MachineLocation::VirtualFP);
-    Moves.push_back(MachineMove(SetFPLabel, DstML, SrcML));
-#endif
     MMI.addFrameInst(MCCFIInstruction::createDefCfaRegister(
         SetFPLabel, MRI->getDwarfRegNum(FP, true)));
   }
