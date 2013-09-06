@@ -33,12 +33,12 @@
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu printf-stdarg-orig.cpu0.o -o a.out
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
 
-#if 1
+#if 0
 #include <stdio.h>
 #define TEST_PRINTF
 #endif
 
-#if 0
+#if 1
 #include <stdarg.h>
 
 static void printchar(char **str, int c)

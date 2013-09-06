@@ -42,18 +42,25 @@ int test1()
   }
   return sum; 
 }
-#endif
 
 int test2(const char *format)
 {
 	register int width;
 
 	for ( ; (*format >= '0' && *format <= '9'); ++format) {
-//	for ( ; ; ++format) {
-//    if (!(*format >= '0' && *format <= '9')) break;
 		width *= 10;
 		width += *format - '0';
 	}
 
   return 0; 
+}
+#endif
+
+int test1(int bs)
+{
+//	unsigned int bs = sizeof(int)*8;
+	int mi;
+	mi = (1 << (bs-1)) + 1;
+//	mi = (bs << 14) + 1;
+  return mi;
 }

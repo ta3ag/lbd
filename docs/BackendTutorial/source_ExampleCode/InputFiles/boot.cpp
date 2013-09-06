@@ -1,6 +1,4 @@
 
-#define OUT_MEM 0x10000 // 28672
-
 // boot:
   asm("boot:");
 //  asm("_start:");

@@ -54,7 +54,6 @@ int main(void)
 	int mi;
 	char buf[80];
 
-#if 1
 	mi = (1 << (bs-1)) + 1;
 	printf("%s\n", ptr);
 	printf("printf test\n");
@@ -68,26 +67,14 @@ int main(void)
 	printf("%d %s(s)%", 0, "message");
 	printf("\n");
 	printf("%d %s(s) with %%\n", 0, "message");
-#endif
-#if 1
 	sprintf(buf, "justif: \"%-10s\"\n", "left"); printf("%s", buf);
 	sprintf(buf, "justif: \"%10s\"\n", "right"); printf("%s", buf);
 	sprintf(buf, " 3: %04d zero padded\n", 3); printf("%s", buf);
-	sprintf(buf, " 3: %-4d left justif.\n", 3); /*dump_mem(buf, 30);*/ printf("%s", buf);
+	sprintf(buf, " 3: %-4d left justif.\n", 3); printf("%s", buf);
 	sprintf(buf, " 3: %4d right justif.\n", 3); printf("%s", buf);
 	sprintf(buf, "-3: %04d zero padded\n", -3); printf("%s", buf);
 	sprintf(buf, "-3: %-4d left justif.\n", -3); printf("%s", buf);
 	sprintf(buf, "-3: %4d right justif.\n", -3); printf("%s", buf);
-#else
-	printf("justif: \"%-10s\"\n", "left");
-	printf("justif: \"%10s\"\n", "right");
-	printf(" 3: %04d zero padded\n", 3);
-	printf(" 3: %-4d left justif.\n", 3);
-	printf(" 3: %4d right justif.\n", 3);
-	printf("-3: %04d zero padded\n", -3);
-	printf("-3: %-4d left justif.\n", -3);
-	printf("-3: %4d right justif.\n", -3);
-#endif
 
 	return 0;
 }
@@ -235,11 +222,10 @@ static int print(char **out, const char *format, va_list args )
 
 	for (; *format != 0; ++format) {
 		if (*format == '%') {
-//print_string("format == %");
 			++format;
 			width = pad = 0;
 			if (*format == '\0') break;
-			if (*format == '%') goto out;
+			if (*format == '%') goto outplace;
 			if (*format == '-') {
 				++format;
 				pad = PAD_RIGHT;
@@ -282,7 +268,7 @@ static int print(char **out, const char *format, va_list args )
 			}
 		}
 		else {
-		out:
+		outplace:
 			printchar (out, *format);
 			++pc;
 		}
@@ -294,17 +280,18 @@ static int print(char **out, const char *format, va_list args )
 
 int printf(const char *format, ...)
 {
-        va_list args;
+  va_list args;
         
-        va_start( args, format );
-        return print( 0, format, args );
+  va_start( args, format );
+  return print( 0, format, args );
 }
 
 int sprintf(char *out, const char *format, ...)
 {
-        va_list args;
+  va_list args;
         
-        va_start( args, format );
-        return print( &out, format, args );
+  va_start( args, format );
+  va_arg( args, int); // Discard first argument which is format.
+  return print( &out, format, args );
 }
 

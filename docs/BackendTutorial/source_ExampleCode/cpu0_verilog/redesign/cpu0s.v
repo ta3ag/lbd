@@ -1,8 +1,8 @@
-`define MEMSIZE 'h7000
+`define MEMSIZE 'h10000
 `define OUTMEMSIZE 82
 `define MEMEMPTY 8'hFF
 `define NULL     8'h00
-`define IOADDR  'h7000
+`define IOADDR  'h10000
 
 // Operand width
 `define INT32 2'b11     // 32 bits

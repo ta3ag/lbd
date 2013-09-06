@@ -55,10 +55,11 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   CMP=8'h10,
   ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,MUL=8'h15,DIV=8'h16,DIVu=8'h17,
   AND=8'h18,OR=8'h19,XOR=8'h1A,
-  SRA=8'h1B,ROL=8'h1C,ROR=8'h1D,SHL=8'h1E,SHR=8'h1F,
-  JEQ=8'h20,JNE=8'h21,JLT=8'h22,JGT=8'h23,JLE=8'h24,JGE=8'h25,
-  JMP=8'h26,
-  SWI=8'h2A,JSUB=8'h2B,RET=8'h2C,IRET=8'h2D,JALR=8'h2E,
+  ROL=8'h1B,ROR=8'h1C,SRA=8'h1D,SHL=8'h1E,SHR=8'h1F,
+  SRAV=8'h20,SHLV=8'h21,SHRV=8'h22,
+  JEQ=8'h30,JNE=8'h31,JLT=8'h32,JGT=8'h33,JLE=8'h34,JGE=8'h35,
+  JMP=8'h36,
+  SWI=8'h3A,JSUB=8'h3B,RET=8'h3C,IRET=8'h3D,JALR=8'h3E,
   MFHI=8'h40,MFLO=8'h41,MTHI=8'h42,MTLO=8'h43,
   MULT=8'h50,MULTu=8'h51;
 
@@ -197,6 +198,12 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
                                     // SHR Ra,Rb,Cx; Ra<=(Rb&0x80000000)|(Rb>>Cx)
       SHR:   regSet(a, Rb>>c5);     // Shift Right with 0 fill; 
                                     // SHR Ra,Rb,Cx; Ra<=(Rb >> Cx)
+      SHLV:  regSet(a, Rb<<Rc);     // Shift Left; SHLV Ra,Rb,Rc; Ra<=(Rb << Rc)
+      SRAV:  regSet(a, (Rb&'h80000000)|(Rb>>Rc)); 
+                                    // Shift Right with signed bit fill;
+                                    // SHRV Ra,Rb,Rc; Ra<=(Rb&0x80000000)|(Rb>>Rc)
+      SHRV:  regSet(a, Rb>>Rc);     // Shift Right with 0 fill; 
+                                    // SHRV Ra,Rb,Rc; Ra<=(Rb >> Rc)
       ROL:   regSet(a, (Rb<<c5)|(Rb>>(32-c5)));     // Rotate Left;
       ROR:   regSet(a, (Rb>>c5)|(Rb<<(32-c5)));     // Rotate Right;
       MFLO:  regSet(a, LO);            // MFLO Ra; Ra<=LO
