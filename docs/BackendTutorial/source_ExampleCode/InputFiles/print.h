@@ -1,7 +1,7 @@
 #ifndef _PRINT_H_
 #define _PRINT_H_
 
-#define OUT_MEM 0x10000 // 28672
+#define OUT_MEM 0x10000
 
 void print_char(const char c);
 void dump_mem(unsigned char *str, int n);

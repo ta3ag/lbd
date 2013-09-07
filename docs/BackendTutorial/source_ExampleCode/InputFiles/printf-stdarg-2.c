@@ -31,6 +31,11 @@
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu printf-stdarg-2.cpu0.o -o a.out
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
 
+// /home/Gamma/test/lld_0816/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg-2.c -emit-llvm -o printf-stdarg-2.bc
+// /home/Gamma/test/lld_0816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg-2.bc -o printf-stdarg-2.cpu0.o
+// /home/Gamma/test/lld_0816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu printf-stdarg-2.cpu0.o -o a.out
+// /home/Gamma/test/lld_0816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
+
 // hexdump -s 0x0ef0 -n 368  -v -e '4/1 "%02x " "\n"' a.out
 
 // objdump -s -j .rodata a.out | tail -n +5| awk '{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6 " " $7 " " $8 " " $9 " " $10 " " $11 " " $12 " " $13 " " $14 " " $15 " " $16 " " $17 " " $18 " " $19 " " $20 "\t*/"}' >> ../cpu0_verilog/raw/cpu0s.hex
@@ -138,7 +143,6 @@ static int prints(char **out, const char *string, int width, int pad)
 {
 	register int pc = 0, padchar = ' ';
 
-//  print_integer(width);    // debug
 	if (width > 0) {
 		register int len = 0;
 		register const char *ptr;
@@ -291,7 +295,6 @@ int sprintf(char *out, const char *format, ...)
   va_list args;
         
   va_start( args, format );
-  va_arg( args, int); // Discard first argument which is format.
   return print( &out, format, args );
 }
 

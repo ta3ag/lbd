@@ -4,9 +4,14 @@
 
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk '{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t*/"}' > ../cpu0_verilog/redesign/cpu0s.hex
 
+// /home/Gamma/test/lld_0816/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c ch_run_backend.cpp -emit-llvm -o ch_run_backend.bc
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj ch_run_backend.bc -o ch_run_backend.cpu0.o
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu ch_run_backend.cpu0.o -o a.out
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
+
+// /home/Gamma/test/lld_0816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj ch_run_backend.bc -o ch_run_backend.cpu0.o
+// /home/Gamma/test/lld_0816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu ch_run_backend.cpu0.o -o a.out
+// /home/Gamma/test/lld_0816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
 
 #include "boot.cpp"
 

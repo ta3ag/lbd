@@ -320,12 +320,13 @@ SDValue Cpu0TargetLowering::LowerVASTART(SDValue Op, SelectionDAG &DAG) const {
 //===----------------------------------------------------------------------===//
 //                  Call Calling Convention Implementation
 //===----------------------------------------------------------------------===//
-
+#if 0
 static const unsigned IntRegsSize = 2;
 
 static const uint16_t IntRegs[] = {
   Cpu0::A0, Cpu0::A1
 };
+#endif
 
 // Write ByVal Arg to arg registers and stack.
 static void
@@ -439,6 +440,29 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
       WriteByValArg(ByValChain, Chain, DL, RegsToPass, MemOpChains, LastFI,
                     MFI, DAG, Arg, VA, Flags, getPointerTy(),
                     Subtarget->isLittle());
+      continue;
+    }
+
+    // Promote the value if needed.
+    switch (VA.getLocInfo()) {
+    default: llvm_unreachable("Unknown loc info!");
+    case CCValAssign::Full:
+      break;
+    case CCValAssign::SExt:
+      Arg = DAG.getNode(ISD::SIGN_EXTEND, DL, LocVT, Arg);
+      break;
+    case CCValAssign::ZExt:
+      Arg = DAG.getNode(ISD::ZERO_EXTEND, DL, LocVT, Arg);
+      break;
+    case CCValAssign::AExt:
+      Arg = DAG.getNode(ISD::ANY_EXTEND, DL, LocVT, Arg);
+      break;
+    }
+
+    // Arguments that can be passed on register must be kept at
+    // RegsToPass vector
+    if (VA.isRegLoc()) {
+      RegsToPass.push_back(std::make_pair(VA.getLocReg(), Arg));
       continue;
     }
 
@@ -594,6 +618,7 @@ Cpu0TargetLowering::LowerCallResult(SDValue Chain, SDValue InFlag,
   return Chain;
 }
 
+#if 0
 //===----------------------------------------------------------------------===//
 //             Formal Arguments Calling Convention Implementation
 //===----------------------------------------------------------------------===//
@@ -621,6 +646,7 @@ static void ReadByValArg(MachineFunction &MF, SDValue Chain, SDLoc DL,
     OutChains.push_back(Store);
   }
 }
+#endif
 
 /// LowerFormalArguments - transform physical registers into virtual registers
 /// and generate load operations for arguments places on the stack.
@@ -659,6 +685,7 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
     bool IsRegLoc = VA.isRegLoc();
 
     if (Flags.isByVal()) {
+#if 0
       assert(Flags.getByValSize() &&
              "ByVal args of size 0 should have been ignored by front-end."); 
       unsigned NumWords = (Flags.getByValSize() + 3) / 4;
@@ -669,6 +696,9 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
       ReadByValArg(MF, Chain, DL, OutChains, DAG, NumWords, FIN, VA, Flags,
                    &*FuncArg);
       continue;
+#else
+      assert("ByVal args of size 0 should have been ignored by front-end."); 
+#endif
     }
     // sanity check
     assert(VA.isMemLoc());
@@ -700,9 +730,15 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
 #endif
 
   if (isVarArg) {
+    unsigned NumOfRegs = 0;
+    int FirstRegSlotOffset = 0; // offset of $a0's slot.
     unsigned RegSize = Cpu0::CPURegsRegClass.getSize();
+    int RegSlotOffset = FirstRegSlotOffset + ArgLocs.size() * RegSize;
+
     // Offset of the first variable argument from stack pointer.
-    int FirstVaArgOffset = RegSize;
+    int FirstVaArgOffset;
+
+    FirstVaArgOffset = RegSlotOffset;
 
     // Record the frame index of the first variable argument
     // which is a value necessary to VASTART.
