@@ -756,8 +756,8 @@ static void PrintUnwindInfo(const ObjectFile *o) {
 
 // For cpu0 -elf2hex begin:
 static uint64_t GetSectionHeaderStartAddress(const ObjectFile *o, StringRef sectionName) {
-  outs() << "Sections:\n"
-            "Idx Name          Size      Address          Type\n";
+//  outs() << "Sections:\n"
+//            "Idx Name          Size      Address          Type\n";
   error_code ec;
   unsigned i = 0;
   for (section_iterator si = o->begin_sections(), se = o->end_sections();
@@ -1174,7 +1174,7 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
 
 static void Elf2Hex(const ObjectFile *o) {
   uint64_t startAddr = GetSectionHeaderStartAddress(o, "_start");
-  outs() << format("_start address:%08" PRIx64 "\n", startAddr);
+//  outs() << format("_start address:%08" PRIx64 "\n", startAddr);
   uint64_t lastAddr;
   DisassembleObjectForHex(o, lastAddr);
   PrintDataSections(o, lastAddr);

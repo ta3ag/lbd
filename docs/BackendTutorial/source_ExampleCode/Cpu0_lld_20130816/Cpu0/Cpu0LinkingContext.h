@@ -40,7 +40,7 @@ public:
 
   virtual uint64_t getBaseAddress() const {
     if (_baseAddress == 0)
-      return 0x400000;
+      return 0x000000;
     return _baseAddress;
   }
 

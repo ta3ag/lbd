@@ -1,4 +1,4 @@
-`define TRACE
+//`define TRACE
 
 `define MEMSIZE 'h10000
 `define MEMEMPTY 8'hFF
@@ -34,8 +34,6 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   `define SP   R[13]   // Stack Pointer
   `define SW   R[12]   // Status Word
   // SW Flage
-  `define N    `SW[31] // Negative flag
-  `define Z    `SW[30] // Zero
   `define C    `SW[29] // Carry
   `define V    `SW[28] // Overflow
   `define MODE `SW[25:23] // itype
@@ -47,18 +45,21 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   `define I1E  `SW[7]  // Hardware Interrupt 0, timer interrupt, Enable
   `define I0E  `SW[6]  // Software Interrupt Enable
   `define IE   `SW[5]  // Interrupt Enable
-  `define M    `SW[0]  // Mode bit
+  `define M    `SW[4]  // Mode bit
+  `define Z    `SW[1] // Zero
+  `define N    `SW[0] // Negative flag
   // Instruction Opcode 
   parameter [7:0] LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,LH=8'h06,
   LHu=8'h07,SH=8'h08,ADDiu=8'h09,ANDi=8'h0C,ORi=8'h0D,
-  XORi=8'h0E,
+  XORi=8'h0E,LUi=8'h0F,
   CMP=8'h10,
   ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,MUL=8'h15,DIV=8'h16,DIVu=8'h17,
   AND=8'h18,OR=8'h19,XOR=8'h1A,
-  SRA=8'h1B,ROL=8'h1C,ROR=8'h1D,SHL=8'h1E,SHR=8'h1F,
-  JEQ=8'h20,JNE=8'h21,JLT=8'h22,JGT=8'h23,JLE=8'h24,JGE=8'h25,
-  JMP=8'h26,
-  SWI=8'h2A,JSUB=8'h2B,RET=8'h2C,IRET=8'h2D,JALR=8'h2E,
+  ROL=8'h1B,ROR=8'h1C,SRA=8'h1D,SHL=8'h1E,SHR=8'h1F,
+  SRAV=8'h20,SHLV=8'h21,SHRV=8'h22,
+  JEQ=8'h30,JNE=8'h31,JLT=8'h32,JGT=8'h33,JLE=8'h34,JGE=8'h35,
+  JMP=8'h36,
+  SWI=8'h3A,JSUB=8'h3B,RET=8'h3C,IRET=8'h3D,JALR=8'h3E,
   MFHI=8'h40,MFLO=8'h41,MTHI=8'h42,MTLO=8'h43,
   MULT=8'h50,MULTu=8'h51;
 
@@ -190,12 +191,19 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       ORi:   regSet(a, Rb|uc16);             // ORi Ra,Rb,c16; Ra<=(Rb or c16)
       XOR:   regSet(a, Rb^Rc);               // XOR Ra,Rb,Rc; Ra<=(Rb xor Rc)
       XORi:  regSet(a, Rb^uc16);             // XORi Ra,Rb,c16; Ra<=(Rb xor c16)
+      LUi:   regSet(a, uc16<<16);
       SHL:   regSet(a, Rb<<c5);     // Shift Left; SHL Ra,Rb,Cx; Ra<=(Rb << Cx)
       SRA:   regSet(a, (Rb&'h80000000)|(Rb>>c5)); 
                                     // Shift Right with signed bit fill;
                                     // SHR Ra,Rb,Cx; Ra<=(Rb&0x80000000)|(Rb>>Cx)
       SHR:   regSet(a, Rb>>c5);     // Shift Right with 0 fill; 
                                     // SHR Ra,Rb,Cx; Ra<=(Rb >> Cx)
+      SHLV:  regSet(a, Rb<<Rc);     // Shift Left; SHLV Ra,Rb,Rc; Ra<=(Rb << Rc)
+      SRAV:  regSet(a, (Rb&'h80000000)|(Rb>>Rc)); 
+                                    // Shift Right with signed bit fill;
+                                    // SHRV Ra,Rb,Rc; Ra<=(Rb&0x80000000)|(Rb>>Rc)
+      SHRV:  regSet(a, Rb>>Rc);     // Shift Right with 0 fill; 
+                                    // SHRV Ra,Rb,Rc; Ra<=(Rb >> Rc)
       ROL:   regSet(a, (Rb<<c5)|(Rb>>(32-c5)));     // Rotate Left;
       ROR:   regSet(a, (Rb>>c5)|(Rb<<(32-c5)));     // Rotate Right;
       MFLO:  regSet(a, LO);            // MFLO Ra; Ra<=LO
@@ -222,6 +230,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       IRET:  begin 
         `PC=Ra;`I = 1'b0; `MODE = `EXE;
       end // Interrupt Return; IRET; PC <= LR; INT<=0
+      default : 
+        $display("%4dns %8x : OP code %8x not support", $stime, pc0, op);
       endcase
       next_state = WriteBack;
     end

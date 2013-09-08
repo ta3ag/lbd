@@ -26,21 +26,28 @@
 #define putchar(c) outbyte(c)
 */
 
-// clang -target mips-unknown-linux-gnu -c printf-stdarg-2.c -emit-llvm -o printf-stdarg-2.bc
+// /home/cschen/test/lld_20130816/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg-2.c -emit-llvm -o printf-stdarg-2.bc
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg-2.bc -o printf-stdarg-2.cpu0.o
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu printf-stdarg-2.cpu0.o -o a.out
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
+
+// /home/Gamma/test/lld_0816/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg-2.c -emit-llvm -o printf-stdarg-2.bc
+// /home/Gamma/test/lld_0816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg-2.bc -o printf-stdarg-2.cpu0.o
+// /home/Gamma/test/lld_0816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu printf-stdarg-2.cpu0.o -o a.out
+// /home/Gamma/test/lld_0816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
 
 // hexdump -s 0x0ef0 -n 368  -v -e '4/1 "%02x " "\n"' a.out
 
 // objdump -s -j .rodata a.out | tail -n +5| awk '{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6 " " $7 " " $8 " " $9 " " $10 " " $11 " " $12 " " $13 " " $14 " " $15 " " $16 " " $17 " " $18 " " $19 " " $20 "\t*/"}' >> ../cpu0_verilog/raw/cpu0s.hex
 
 
-#include <stdarg.h>
-
 #define TEST_PRINTF
 
 #include "boot.cpp"
+#include "print.h"
+
+int printf(const char *format, ...);
+int sprintf(char *out, const char *format, ...);
 
 #ifdef TEST_PRINTF
 int main(void)
@@ -52,7 +59,7 @@ int main(void)
 	int mi;
 	char buf[80];
 
-/*	mi = (1 << (bs-1)) + 1;
+	mi = (1 << (bs-1)) + 1;
 	printf("%s\n", ptr);
 	printf("printf test\n");
 	printf("%s is null pointer\n", np);
@@ -64,8 +71,7 @@ int main(void)
 	printf("signed %d = unsigned %u = hex %x\n", -3, -3, -3);
 	printf("%d %s(s)%", 0, "message");
 	printf("\n");
-	printf("%d %s(s) with %%\n", 0, "message");*/
-#if 0
+	printf("%d %s(s) with %%\n", 0, "message");
 	sprintf(buf, "justif: \"%-10s\"\n", "left"); printf("%s", buf);
 	sprintf(buf, "justif: \"%10s\"\n", "right"); printf("%s", buf);
 	sprintf(buf, " 3: %04d zero padded\n", 3); printf("%s", buf);
@@ -74,16 +80,6 @@ int main(void)
 	sprintf(buf, "-3: %04d zero padded\n", -3); printf("%s", buf);
 	sprintf(buf, "-3: %-4d left justif.\n", -3); printf("%s", buf);
 	sprintf(buf, "-3: %4d right justif.\n", -3); printf("%s", buf);
-#else
-/*	printf("justif: \"%-10s\"\n", "left");
-	printf("justif: \"%10s\"\n", "right");
-	printf(" 3: %04d zero padded\n", 3);*/
-	printf(" 3: %-4d left justif.\n", 3);
-/*	printf(" 3: %4d right justif.\n", 3);
-	printf("-3: %04d zero padded\n", -3);
-	printf("-3: %-4d left justif.\n", -3);
-	printf("-3: %4d right justif.\n", -3);*/
-#endif
 
 	return 0;
 }
@@ -155,12 +151,8 @@ static int prints(char **out, const char *string, int width, int pad)
 		else width -= len;
 		if (pad & PAD_ZERO) padchar = '0';
 	}
-//	if (!(pad & PAD_RIGHT)) {
-  int padright = (pad & PAD_RIGHT);
-	if (padright != PAD_RIGHT) {
+	if (!(pad & PAD_RIGHT)) {
     // pad left
-  print_integer(PAD_RIGHT);    // debug
-  print_integer(padright);    // debug
 		for ( ; width > 0; --width) {
 			printchar (out, padchar);
 			++pc;
@@ -170,7 +162,6 @@ static int prints(char **out, const char *string, int width, int pad)
 		printchar (out, *string);
 		++pc;
 	}
-//  print_integer(width);    // debug
 	for ( ; width > 0; --width) {
 		printchar (out, padchar);
 		++pc;
@@ -225,6 +216,8 @@ static int printi(char **out, int i, int b, int sg, int width, int pad, int letb
 	return pc + prints (out, s, width, pad);
 }
 
+#include <stdarg.h>
+
 static int print(char **out, const char *format, va_list args )
 {
 	register int width, pad;
@@ -236,7 +229,7 @@ static int print(char **out, const char *format, va_list args )
 			++format;
 			width = pad = 0;
 			if (*format == '\0') break;
-			if (*format == '%') goto out;
+			if (*format == '%') goto outplace;
 			if (*format == '-') {
 				++format;
 				pad = PAD_RIGHT;
@@ -245,10 +238,7 @@ static int print(char **out, const char *format, va_list args )
 				++format;
 				pad |= PAD_ZERO;
 			}
-      printi(out, pad, 10, 1, width, pad, 'a'); // debug
-//			for ( ; *format >= '0' && *format <= '9'; ++format) {
-			for ( ; ; ++format) {
-        if (!(*format >= '0' && *format <= '9')) break;
+			for ( ; *format >= '0' && *format <= '9'; ++format) {
 				width *= 10;
 				width += *format - '0';
 			}
@@ -282,7 +272,7 @@ static int print(char **out, const char *format, va_list args )
 			}
 		}
 		else {
-		out:
+		outplace:
 			printchar (out, *format);
 			++pc;
 		}
@@ -294,17 +284,17 @@ static int print(char **out, const char *format, va_list args )
 
 int printf(const char *format, ...)
 {
-        va_list args;
+  va_list args;
         
-        va_start( args, format );
-        return print( 0, format, args );
+  va_start( args, format );
+  return print( 0, format, args );
 }
 
 int sprintf(char *out, const char *format, ...)
 {
-        va_list args;
+  va_list args;
         
-        va_start( args, format );
-        return print( &out, format, args );
+  va_start( args, format );
+  return print( &out, format, args );
 }
 
