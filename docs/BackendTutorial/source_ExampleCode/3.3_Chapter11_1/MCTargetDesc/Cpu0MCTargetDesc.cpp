@@ -34,6 +34,7 @@
 
 using namespace llvm;
 
+// ParseCpu0Triple()
 static std::string ParseCpu0Triple(StringRef TT, StringRef CPU) {
   std::string Cpu0ArchFeature;
   size_t DashPosition = 0;
@@ -58,18 +59,21 @@ static std::string ParseCpu0Triple(StringRef TT, StringRef CPU) {
   return Cpu0ArchFeature;
 }
 
+// createCpu0MCInstrInfo()
 static MCInstrInfo *createCpu0MCInstrInfo() {
   MCInstrInfo *X = new MCInstrInfo();
   InitCpu0MCInstrInfo(X); // defined in Cpu0GenInstrInfo.inc
   return X;
 }
 
+// createCpu0MCRegisterInfo()
 static MCRegisterInfo *createCpu0MCRegisterInfo(StringRef TT) {
   MCRegisterInfo *X = new MCRegisterInfo();
   InitCpu0MCRegisterInfo(X, Cpu0::LR); // defined in Cpu0GenRegisterInfo.inc
   return X;
 }
 
+// createCpu0MCSubtargetInfo()
 static MCSubtargetInfo *createCpu0MCSubtargetInfo(StringRef TT, StringRef CPU,
                                                   StringRef FS) {
   std::string ArchFS = ParseCpu0Triple(TT,CPU);
@@ -84,6 +88,7 @@ static MCSubtargetInfo *createCpu0MCSubtargetInfo(StringRef TT, StringRef CPU,
   return X;
 }
 
+// createCpu0MCAsmInfo()
 static MCAsmInfo *createCpu0MCAsmInfo(const Target &T, StringRef TT) {
   MCAsmInfo *MAI = new Cpu0MCAsmInfo(T, TT);
 
@@ -94,6 +99,7 @@ static MCAsmInfo *createCpu0MCAsmInfo(const Target &T, StringRef TT) {
   return MAI;
 }
 
+// createCpu0MCCodeGenInfo()
 static MCCodeGenInfo *createCpu0MCCodeGenInfo(StringRef TT, Reloc::Model RM,
                                               CodeModel::Model CM,
                                               CodeGenOpt::Level OL) {
@@ -106,6 +112,7 @@ static MCCodeGenInfo *createCpu0MCCodeGenInfo(StringRef TT, Reloc::Model RM,
   return X;
 }
 
+// createCpu0MCInstPrinter()
 static MCInstPrinter *createCpu0MCInstPrinter(const Target &T,
                                               unsigned SyntaxVariant,
                                               const MCAsmInfo &MAI,
@@ -115,6 +122,7 @@ static MCInstPrinter *createCpu0MCInstPrinter(const Target &T,
   return new Cpu0InstPrinter(MAI, MII, MRI);
 }
 
+// createMCStreamer()
 static MCStreamer *createMCStreamer(const Target &T, StringRef TT,
                                     MCContext &Ctx, MCAsmBackend &MAB,
                                     raw_ostream &_OS,
@@ -126,6 +134,7 @@ static MCStreamer *createMCStreamer(const Target &T, StringRef TT,
   return createELFStreamer(Ctx, MAB, _OS, _Emitter, RelaxAll, NoExecStack);
 }
 
+// LLVMInitializeCpu0TargetMC()
 extern "C" void LLVMInitializeCpu0TargetMC() {
   // Register the MC asm info.
   RegisterMCAsmInfoFn X(TheCpu0Target, createCpu0MCAsmInfo);

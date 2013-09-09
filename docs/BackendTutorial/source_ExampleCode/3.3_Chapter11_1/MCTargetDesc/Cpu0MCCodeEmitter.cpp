@@ -49,16 +49,20 @@ class Cpu0MCCodeEmitter : public MCCodeEmitter {
   bool IsLittleEndian;
 
 public:
+  // Cpu0MCCodeEmitter()
   Cpu0MCCodeEmitter(const MCInstrInfo &mcii, const MCSubtargetInfo &sti,
                     MCContext &ctx, bool IsLittle) :
             MCII(mcii), STI(sti) , Ctx(ctx), IsLittleEndian(IsLittle) {}
 
+  // ~Cpu0MCCodeEmitter()
   ~Cpu0MCCodeEmitter() {}
 
+  // EmitByte()
   void EmitByte(unsigned char C, raw_ostream &OS) const {
     OS << (char)C;
   }
 
+  // EmitInstruction()
   void EmitInstruction(uint64_t Val, unsigned Size, raw_ostream &OS) const {
     // Output the instruction encoding in little endian byte order.
     for (unsigned i = 0; i < Size; ++i) {
@@ -67,20 +71,24 @@ public:
     }
   }
 
+  // EncodeInstruction()
   void EncodeInstruction(const MCInst &MI, raw_ostream &OS,
                          SmallVectorImpl<MCFixup> &Fixups) const;
 
+  // getBinaryCodeForInstr()
   // getBinaryCodeForInstr - TableGen'erated function for getting the
   // binary encoding for an instruction.
   uint64_t getBinaryCodeForInstr(const MCInst &MI,
                                  SmallVectorImpl<MCFixup> &Fixups) const;
 
+  // getBranchTargetOpValue()
   // getBranchTargetOpValue - Return binary encoding of the branch
   // target operand, such as JMP #BB01, JEQ, JSUB. If the machine operand
   // requires relocation, record the relocation and return zero.
   unsigned getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
                                   SmallVectorImpl<MCFixup> &Fixups) const;
 
+  // getJumpTargetOpValue()
   // getJumpTargetOpValue - Return binary encoding of the jump
   // target operand, such as SWI #interrupt_addr and JSUB #function_addr. 
   // If the machine operand requires relocation,
@@ -88,16 +96,19 @@ public:
    unsigned getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
                                  SmallVectorImpl<MCFixup> &Fixups) const;
 
-   // getMachineOpValue - Return binary encoding of operand. If the machin
-   // operand requires relocation, record the relocation and return zero.
+  // getMachineOpValue()
+  // getMachineOpValue - Return binary encoding of operand. If the machin
+  // operand requires relocation, record the relocation and return zero.
   unsigned getMachineOpValue(const MCInst &MI,const MCOperand &MO,
                              SmallVectorImpl<MCFixup> &Fixups) const;
 
+  // getMemEncoding()
   unsigned getMemEncoding(const MCInst &MI, unsigned OpNo,
                           SmallVectorImpl<MCFixup> &Fixups) const;
 }; // class Cpu0MCCodeEmitter
 }  // namespace
 
+// llvm::createCpu0MCCodeEmitterEB()
 MCCodeEmitter *llvm::createCpu0MCCodeEmitterEB(const MCInstrInfo &MCII,
                                                const MCRegisterInfo &MRI,
                                                const MCSubtargetInfo &STI,
@@ -106,6 +117,7 @@ MCCodeEmitter *llvm::createCpu0MCCodeEmitterEB(const MCInstrInfo &MCII,
   return new Cpu0MCCodeEmitter(MCII, STI, Ctx, false);
 }
 
+// llvm::createCpu0MCCodeEmitterEL()
 MCCodeEmitter *llvm::createCpu0MCCodeEmitterEL(const MCInstrInfo &MCII,
                                                const MCRegisterInfo &MRI,
                                                const MCSubtargetInfo &STI,
@@ -114,6 +126,7 @@ MCCodeEmitter *llvm::createCpu0MCCodeEmitterEL(const MCInstrInfo &MCII,
   return new Cpu0MCCodeEmitter(MCII, STI, Ctx, true);
 }
 
+// Cpu0MCCodeEmitter::EncodeInstruction()
 /// EncodeInstruction - Emit the instruction.
 /// Size the instruction (currently only 4 bytes
 void Cpu0MCCodeEmitter::
@@ -143,6 +156,7 @@ EncodeInstruction(const MCInst &MI, raw_ostream &OS,
   EmitInstruction(Binary, Size, OS);
 }
 
+// Cpu0MCCodeEmitter::getBranchTargetOpValue()
 /// getBranchTargetOpValue - Return binary encoding of the branch
 /// target operand. If the machine operand requires relocation,
 /// record the relocation and return zero.
@@ -162,6 +176,7 @@ getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
   return 0;
 }
 
+// Cpu0MCCodeEmitter::getJumpTargetOpValue()
 /// getJumpTargetOpValue - Return binary encoding of the jump
 /// target operand. Such as SWI and JSUB. 
 /// If the machine operand requires relocation,
@@ -189,6 +204,7 @@ getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
   return 0;
 }
 
+// Cpu0MCCodeEmitter::getMachineOpValue()
 /// getMachineOpValue - Return binary encoding of operand. If the machine
 /// operand requires relocation, record the relocation and return zero.
 unsigned Cpu0MCCodeEmitter::
@@ -255,6 +271,7 @@ getMachineOpValue(const MCInst &MI, const MCOperand &MO,
   return 0;
 }
 
+// Cpu0MCCodeEmitter::getMemEncoding()
 /// getMemEncoding - Return binary encoding of memory related operand.
 /// If the offset operand requires relocation, record the relocation.
 unsigned

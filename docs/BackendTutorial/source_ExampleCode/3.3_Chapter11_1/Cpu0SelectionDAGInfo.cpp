@@ -15,9 +15,11 @@
 #include "Cpu0TargetMachine.h"
 using namespace llvm;
 
+// Cpu0SelectionDAGInfo::Cpu0SelectionDAGInfo()
 Cpu0SelectionDAGInfo::Cpu0SelectionDAGInfo(const Cpu0TargetMachine &TM)
   : TargetSelectionDAGInfo(TM) {
 }
 
+// Cpu0SelectionDAGInfo::~Cpu0SelectionDAGInfo()
 Cpu0SelectionDAGInfo::~Cpu0SelectionDAGInfo() {
 }

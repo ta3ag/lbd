@@ -110,6 +110,7 @@ namespace Cpu0II {
   };
 }
 
+// getCpu0RegisterNumbering()
 /// getCpu0RegisterNumbering - Given the enum value for some register,
 /// return the number that it corresponds to.
 inline static unsigned getCpu0RegisterNumbering(unsigned RegEnum)

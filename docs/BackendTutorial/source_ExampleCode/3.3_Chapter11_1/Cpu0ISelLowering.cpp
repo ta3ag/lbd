@@ -38,11 +38,13 @@
 
 using namespace llvm;
 
+// Cpu0TargetLowering::getGlobalReg()
 SDValue Cpu0TargetLowering::getGlobalReg(SelectionDAG &DAG, EVT Ty) const {
   Cpu0FunctionInfo *FI = DAG.getMachineFunction().getInfo<Cpu0FunctionInfo>();
   return DAG.getRegister(FI->getGlobalBaseReg(), Ty);
 }
 
+// getTargetNode()
 static SDValue getTargetNode(SDValue Op, SelectionDAG &DAG, unsigned Flag) {
   EVT Ty = Op.getValueType();
 
@@ -63,6 +65,7 @@ static SDValue getTargetNode(SDValue Op, SelectionDAG &DAG, unsigned Flag) {
   return SDValue();
 }
 
+// Cpu0TargetLowering::getAddrLocal()
 SDValue Cpu0TargetLowering::getAddrLocal(SDValue Op, SelectionDAG &DAG) const {
   DebugLoc DL = Op.getDebugLoc();
   EVT Ty = Op.getValueType();
@@ -77,6 +80,7 @@ SDValue Cpu0TargetLowering::getAddrLocal(SDValue Op, SelectionDAG &DAG) const {
   return DAG.getNode(ISD::ADD, DL, Ty, Load, Lo);
 }
 
+// Cpu0TargetLowering::getAddrGlobal()
 SDValue Cpu0TargetLowering::getAddrGlobal(SDValue Op, SelectionDAG &DAG,
                                           unsigned Flag) const {
   DebugLoc DL = Op.getDebugLoc();
@@ -87,6 +91,7 @@ SDValue Cpu0TargetLowering::getAddrGlobal(SDValue Op, SelectionDAG &DAG,
                      MachinePointerInfo::getGOT(), false, false, false, 0);
 }
 
+// Cpu0TargetLowering::getAddrGlobalLargeGOT()
 SDValue Cpu0TargetLowering::getAddrGlobalLargeGOT(SDValue Op, SelectionDAG &DAG,
                                                   unsigned HiFlag,
                                                   unsigned LoFlag) const {
@@ -100,6 +105,7 @@ SDValue Cpu0TargetLowering::getAddrGlobalLargeGOT(SDValue Op, SelectionDAG &DAG,
                      MachinePointerInfo::getGOT(), false, false, false, 0);
 }
 
+// Cpu0TargetLowering::getTargetNodeName()
 const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
   switch (Opcode) {
   case Cpu0ISD::JmpLink:           return "Cpu0ISD::JmpLink";
@@ -114,6 +120,7 @@ const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
   }
 }
 
+// Cpu0TargetLowering::Cpu0TargetLowering()
 Cpu0TargetLowering::
 Cpu0TargetLowering(Cpu0TargetMachine &TM)
   : TargetLowering(TM, new Cpu0TargetObjectFile()),
@@ -172,6 +179,7 @@ Cpu0TargetLowering(Cpu0TargetMachine &TM)
   computeRegisterProperties();
 }
 
+// PerformDivRemCombine()
 static SDValue PerformDivRemCombine(SDNode *N, SelectionDAG& DAG,
                                     TargetLowering::DAGCombinerInfo &DCI,
                                     const Cpu0Subtarget* Subtarget) {
@@ -209,6 +217,7 @@ static SDValue PerformDivRemCombine(SDNode *N, SelectionDAG& DAG,
   return SDValue();
 }
 
+// Cpu0TargetLowering::PerformDAGCombine()
 SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI)
   const {
   SelectionDAG &DAG = DCI.DAG;
@@ -224,6 +233,7 @@ SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI)
   return SDValue();
 }
 
+// Cpu0TargetLowering::LowerOperation()
 SDValue Cpu0TargetLowering::
 LowerOperation(SDValue Op, SelectionDAG &DAG) const
 {
@@ -240,6 +250,7 @@ LowerOperation(SDValue Op, SelectionDAG &DAG) const
 //  Lower helper functions
 //===----------------------------------------------------------------------===//
 
+// AddLiveIn()
 // AddLiveIn - This helper function adds the specified physical register to the
 // MachineFunction as a live in value.  It also creates a corresponding
 // virtual register for it.
@@ -252,6 +263,7 @@ AddLiveIn(MachineFunction &MF, unsigned PReg, const TargetRegisterClass *RC)
   return VReg;
 }
 
+// Cpu0TargetLowering::LowerBRCOND()
 //===----------------------------------------------------------------------===//
 //  Misc Lower Operation implementation
 //===----------------------------------------------------------------------===//
@@ -261,6 +273,7 @@ LowerBRCOND(SDValue Op, SelectionDAG &DAG) const
   return Op;
 }
 
+// Cpu0TargetLowering::LowerGlobalAddress()
 SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
                                                SelectionDAG &DAG) const {
   // FIXME there isn't actually debug info here
@@ -300,6 +313,7 @@ SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
                                  Cpu0II::MO_GOT_LO16);
 }
 
+// Cpu0TargetLowering::LowerVASTART()
 SDValue Cpu0TargetLowering::LowerVASTART(SDValue Op, SelectionDAG &DAG) const {
   MachineFunction &MF = DAG.getMachineFunction();
   Cpu0FunctionInfo *FuncInfo = MF.getInfo<Cpu0FunctionInfo>();
@@ -321,6 +335,7 @@ SDValue Cpu0TargetLowering::LowerVASTART(SDValue Op, SelectionDAG &DAG) const {
 //                  Call Calling Convention Implementation
 //===----------------------------------------------------------------------===//
 
+// WriteByValArg()
 // Write ByVal Arg to arg registers and stack.
 static void
 WriteByValArg(SDValue& ByValChain, SDValue Chain, DebugLoc dl,
@@ -350,6 +365,7 @@ WriteByValArg(SDValue& ByValChain, SDValue Chain, DebugLoc dl,
                              MachinePointerInfo(0), MachinePointerInfo(0));
 }
 
+// Cpu0TargetLowering::LowerCall()
 SDValue
 Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                               SmallVectorImpl<SDValue> &InVals) const {
@@ -584,6 +600,7 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                          Ins, dl, DAG, InVals);
 }
 
+// Cpu0TargetLowering::LowerCallResult()
 /// LowerCallResult - Lower the result values of a call into the
 /// appropriate copies out of appropriate physical registers.
 SDValue
@@ -614,6 +631,7 @@ Cpu0TargetLowering::LowerCallResult(SDValue Chain, SDValue InFlag,
 //             Formal Arguments Calling Convention Implementation
 //===----------------------------------------------------------------------===//
 
+// Cpu0TargetLowering::LowerFormalArguments()
 /// LowerFormalArguments - transform physical registers into virtual registers
 /// and generate load operations for arguments places on the stack.
 SDValue
@@ -715,6 +733,7 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
 //               Return Value Calling Convention Implementation
 //===----------------------------------------------------------------------===//
 
+// Cpu0TargetLowering::LowerReturn()
 SDValue
 Cpu0TargetLowering::LowerReturn(SDValue Chain,
                                 CallingConv::ID CallConv, bool isVarArg,
@@ -778,6 +797,7 @@ Cpu0TargetLowering::LowerReturn(SDValue Chain,
   return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other, &RetOps[0], RetOps.size());
 }
 
+// Cpu0TargetLowering::isOffsetFoldingLegal()
 bool
 Cpu0TargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
   // The Cpu0 target isn't yet aware of offsets.

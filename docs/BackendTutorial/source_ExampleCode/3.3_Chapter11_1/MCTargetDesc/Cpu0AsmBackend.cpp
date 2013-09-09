@@ -26,6 +26,7 @@
 
 using namespace llvm;
 
+// adjustFixupValue()
 // Prepare value for the target space for it
 static unsigned adjustFixupValue(unsigned Kind, uint64_t Value) {
 
@@ -68,6 +69,7 @@ public:
                  bool _isLittle)
     :MCAsmBackend(), OSType(_OSType), IsLittle(_isLittle) {}
 
+  // createObjectWriter()
   MCObjectWriter *createObjectWriter(raw_ostream &OS) const {
   // Change Reason:
   // Reduce the exposure of Triple::OSType in the ELF object writer. This will
@@ -79,6 +81,7 @@ public:
   //    return createCpu0ELFObjectWriter(OS, OSType, IsLittle);
   }
 
+  // applyFixup()
   /// ApplyFixup - Apply the \arg Value for given \arg Fixup into the provided
   /// data fragment, at the offset specified by the fixup and following the
   /// fixup kind as appropriate.
@@ -124,8 +127,10 @@ public:
     }
   }
 
+  // getNumFixupKinds()
   unsigned getNumFixupKinds() const { return Cpu0::NumTargetFixupKinds; }
 
+  // getFixupKindInfo()
   const MCFixupKindInfo &getFixupKindInfo(MCFixupKind Kind) const {
     const static MCFixupKindInfo Infos[Cpu0::NumTargetFixupKinds] = {
       // This table *must* be in same the order of fixup_* kinds in
@@ -168,6 +173,7 @@ public:
     return Infos[Kind - FirstTargetFixupKind];
   }
 
+  // mayNeedRelaxation()
   /// @name Target Relaxation Interfaces
   /// @{
 
@@ -179,6 +185,7 @@ public:
     return false;
   }
 
+  // fixupNeedsRelaxation()
   /// fixupNeedsRelaxation - Target specific predicate for whether a given
   /// fixup requires the associated instruction to be relaxed.
   bool fixupNeedsRelaxation(const MCFixup &Fixup,
@@ -190,6 +197,7 @@ public:
     return false;
   }
 
+ // relaxInstruction()
   /// RelaxInstruction - Relax the instruction in the given fragment
   /// to the next wider instruction.
   ///
@@ -201,6 +209,7 @@ public:
 
   /// @}
 
+  // writeNopData()
   /// WriteNopData - Write an (optimal) nop sequence of Count bytes
   /// to the given output. If the target cannot generate such a sequence,
   /// it should return an error.
@@ -214,12 +223,14 @@ public:
 } // namespace
 
 // MCAsmBackend
+// llvm::createCpu0AsmBackendEL32()
 MCAsmBackend *llvm::createCpu0AsmBackendEL32(const Target &T, StringRef TT,
                                              StringRef CPU) {
   return new Cpu0AsmBackend(T, Triple(TT).getOS(),
                             /*IsLittle*/true);
 }
 
+// llvm::createCpu0AsmBackendEB32()
 MCAsmBackend *llvm::createCpu0AsmBackendEB32(const Target &T, StringRef TT,
                                              StringRef CPU) {
   return new Cpu0AsmBackend(T, Triple(TT).getOS(),

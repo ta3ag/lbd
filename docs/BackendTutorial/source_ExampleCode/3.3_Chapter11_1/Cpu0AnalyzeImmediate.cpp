@@ -12,8 +12,10 @@
 
 using namespace llvm;
 
+// Cpu0AnalyzeImmediate::Inst::Inst()
 Cpu0AnalyzeImmediate::Inst::Inst(unsigned O, unsigned I) : Opc(O), ImmOpnd(I) {}
 
+// Cpu0AnalyzeImmediate::AddInstr()
 // Add I to the instruction sequences.
 void Cpu0AnalyzeImmediate::AddInstr(InstSeqLs &SeqLs, const Inst &I) {
   // Add an instruction seqeunce consisting of just I.
@@ -26,18 +28,21 @@ void Cpu0AnalyzeImmediate::AddInstr(InstSeqLs &SeqLs, const Inst &I) {
     Iter->push_back(I);
 }
 
+// Cpu0AnalyzeImmediate::GetInstSeqLsADDiu()
 void Cpu0AnalyzeImmediate::GetInstSeqLsADDiu(uint64_t Imm, unsigned RemSize,
                                              InstSeqLs &SeqLs) {
   GetInstSeqLs((Imm + 0x8000ULL) & 0xffffffffffff0000ULL, RemSize, SeqLs);
   AddInstr(SeqLs, Inst(ADDiu, Imm & 0xffffULL));
 }
 
+// Cpu0AnalyzeImmediate::GetInstSeqLsORi()
 void Cpu0AnalyzeImmediate::GetInstSeqLsORi(uint64_t Imm, unsigned RemSize,
                                            InstSeqLs &SeqLs) {
   GetInstSeqLs(Imm & 0xffffffffffff0000ULL, RemSize, SeqLs);
   AddInstr(SeqLs, Inst(ORi, Imm & 0xffffULL));
 }
 
+// Cpu0AnalyzeImmediate::GetInstSeqLsSHL()
 void Cpu0AnalyzeImmediate::GetInstSeqLsSHL(uint64_t Imm, unsigned RemSize,
                                            InstSeqLs &SeqLs) {
   unsigned Shamt = CountTrailingZeros_64(Imm);
@@ -45,6 +50,7 @@ void Cpu0AnalyzeImmediate::GetInstSeqLsSHL(uint64_t Imm, unsigned RemSize,
   AddInstr(SeqLs, Inst(SHL, Shamt));
 }
 
+// Cpu0AnalyzeImmediate::GetInstSeqLs()
 void Cpu0AnalyzeImmediate::GetInstSeqLs(uint64_t Imm, unsigned RemSize,
                                         InstSeqLs &SeqLs) {
   uint64_t MaskedImm = Imm & (0xffffffffffffffffULL >> (64 - Size));
@@ -76,6 +82,7 @@ void Cpu0AnalyzeImmediate::GetInstSeqLs(uint64_t Imm, unsigned RemSize,
   }
 }
 
+// Cpu0AnalyzeImmediate::Analyze()
 const Cpu0AnalyzeImmediate::InstSeq
 &Cpu0AnalyzeImmediate::Analyze(uint64_t Imm, unsigned Size,
                                bool LastInstrIsADDiu) {

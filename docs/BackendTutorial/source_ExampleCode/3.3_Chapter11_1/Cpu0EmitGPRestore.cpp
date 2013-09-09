@@ -43,6 +43,7 @@ namespace {
   char Inserter::ID = 0;
 } // end of anonymous namespace
 
+// Inserter::runOnMachineFunction()
 bool Inserter::runOnMachineFunction(MachineFunction &F) {
   Cpu0FunctionInfo *Cpu0FI = F.getInfo<Cpu0FunctionInfo>();
 
@@ -91,6 +92,7 @@ bool Inserter::runOnMachineFunction(MachineFunction &F) {
   return Changed;
 }
 
+// llvm::createCpu0EmitGPRestorePass()
 /// createCpu0EmitGPRestorePass - Returns a pass that emits instructions that
 /// restores $gp clobbered by jalr instructions.
 FunctionPass *llvm::createCpu0EmitGPRestorePass(Cpu0TargetMachine &tm) {

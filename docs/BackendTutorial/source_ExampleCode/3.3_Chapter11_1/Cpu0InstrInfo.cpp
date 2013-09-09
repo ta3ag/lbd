@@ -20,15 +20,18 @@
 
 using namespace llvm;
 
+// Cpu0InstrInfo::Cpu0InstrInfo()
 Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
   : Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
     TM(tm),
     RI(*TM.getSubtargetImpl(), *this) {}
 
+// Cpu0InstrInfo::getRegisterInfo()
 const Cpu0RegisterInfo &Cpu0InstrInfo::getRegisterInfo() const {
   return RI;
 }
 
+// Cpu0InstrInfo::copyPhysReg()
 void Cpu0InstrInfo::
 copyPhysReg(MachineBasicBlock &MBB,
             MachineBasicBlock::iterator I, DebugLoc DL,
@@ -71,6 +74,7 @@ copyPhysReg(MachineBasicBlock &MBB,
     MIB.addReg(SrcReg, getKillRegState(KillSrc));
 }
 
+// GetMemOperand()
 static MachineMemOperand* GetMemOperand(MachineBasicBlock &MBB, int FI,
                                         unsigned Flag) {
   MachineFunction &MF = *MBB.getParent();
@@ -81,6 +85,7 @@ static MachineMemOperand* GetMemOperand(MachineBasicBlock &MBB, int FI,
                                  MFI.getObjectSize(FI), Align);
 }
 
+// Cpu0InstrInfo::storeRegToStackSlot()
 //- st SrcReg, MMO(FI)
 void Cpu0InstrInfo::
 storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
@@ -100,6 +105,7 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
     .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
 }
 
+// Cpu0InstrInfo::loadRegFromStackSlot()
 void Cpu0InstrInfo::
 loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                      unsigned DestReg, int FI,
@@ -118,6 +124,7 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
     .addMemOperand(MMO);
 }
 
+// Cpu0InstrInfo::emitFrameIndexDebugValue()
 MachineInstr*
 Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
                                         uint64_t Offset, const MDNode *MDPtr,
@@ -127,7 +134,7 @@ Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
   return &*MIB;
 }
 
-// Cpu0InstrInfo::expandPostRAPseudo
+// Cpu0InstrInfo::expandPostRAPseudo()
 /// Expand Pseudo instructions into real backend instructions
 bool Cpu0InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
   MachineBasicBlock &MBB = *MI->getParent();
@@ -144,6 +151,7 @@ bool Cpu0InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
   return true;
 }
 
+// Cpu0InstrInfo::ExpandRetLR()
 void Cpu0InstrInfo::ExpandRetLR(MachineBasicBlock &MBB,
                                 MachineBasicBlock::iterator I,
                                 unsigned Opc) const {

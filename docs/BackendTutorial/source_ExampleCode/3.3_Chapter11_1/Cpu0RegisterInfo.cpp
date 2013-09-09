@@ -41,6 +41,7 @@
 
 using namespace llvm;
 
+// Cpu0RegisterInfo::Cpu0RegisterInfo()
 Cpu0RegisterInfo::Cpu0RegisterInfo(const Cpu0Subtarget &ST,
                                    const TargetInstrInfo &tii)
   : Cpu0GenRegisterInfo(Cpu0::LR), Subtarget(ST), TII(tii) {}
@@ -53,18 +54,21 @@ Cpu0RegisterInfo::Cpu0RegisterInfo(const Cpu0Subtarget &ST,
 // def CSR_O32 : CalleeSavedRegs<(add LR, FP,
 //                                   (sequence "S%u", 2, 0))>;
 // llc create CSR_O32_SaveList and CSR_O32_RegMask from above defined.
+// Cpu0RegisterInfo::getCalleeSavedRegs()
 const uint16_t* Cpu0RegisterInfo::
 getCalleeSavedRegs(const MachineFunction *MF) const
 {
   return CSR_O32_SaveList;
 }
 
+// Cpu0RegisterInfo::getCallPreservedMask()
 const uint32_t*
 Cpu0RegisterInfo::getCallPreservedMask(CallingConv::ID) const
 {
   return CSR_O32_RegMask; 
 }
 
+// Cpu0RegisterInfo::getReservedRegs()
 // pure virtual method
 BitVector Cpu0RegisterInfo::
 getReservedRegs(const MachineFunction &MF) const {
@@ -90,6 +94,7 @@ getReservedRegs(const MachineFunction &MF) const {
   return Reserved;
 }
 
+// Cpu0RegisterInfo::eliminateFrameIndex()
 //- If eliminateFrameIndex() is empty, it will hang on run. 
 // pure virtual method
 // FrameIndex represent objects inside a abstract stack.
@@ -172,6 +177,7 @@ eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
   MI.getOperand(i+1).ChangeToImmediate(Offset);
 }
 
+// Cpu0RegisterInfo::getFrameRegister()
 // pure virtual method
 unsigned Cpu0RegisterInfo::
 getFrameRegister(const MachineFunction &MF) const {

@@ -26,14 +26,17 @@
 
 using namespace llvm;
 
+// Cpu0MCInstLower::Cpu0MCInstLower()
 Cpu0MCInstLower::Cpu0MCInstLower(Cpu0AsmPrinter &asmprinter)
   : AsmPrinter(asmprinter) {}
 
+// Cpu0MCInstLower::Initialize()
 void Cpu0MCInstLower::Initialize(Mangler *M, MCContext* C) {
   Mang = M;
   Ctx = C;
 }
 
+// Cpu0MCInstLower::LowerSymbolOperand()
 MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
                                               MachineOperandType MOTy,
                                               unsigned Offset) const {
@@ -95,6 +98,7 @@ MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
   return MCOperand::CreateExpr(AddExpr);
 }
 
+// CreateMCInst()
 static void CreateMCInst(MCInst& Inst, unsigned Opc, const MCOperand& Opnd0,
                          const MCOperand& Opnd1,
                          const MCOperand& Opnd2 = MCOperand()) {
@@ -105,6 +109,7 @@ static void CreateMCInst(MCInst& Inst, unsigned Opc, const MCOperand& Opnd0,
     Inst.addOperand(Opnd2);
 }
 
+// Cpu0MCInstLower::LowerCPLOAD()
 // Lower ".cpload $reg" to
 //  "addiu $gp, $zero, %hi(_gp_disp)"
 //  "shl   $gp, $gp, 16"
@@ -131,6 +136,7 @@ void Cpu0MCInstLower::LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts) {
   CreateMCInst(MCInsts[3], Cpu0::ADD, GPReg, GPReg, T9Reg);
 }
 
+// Cpu0MCInstLower::LowerCPRESTORE()
 // Lower ".cprestore offset" to "st $gp, offset($sp)".
 void Cpu0MCInstLower::LowerCPRESTORE(int64_t Offset,
                                      SmallVector<MCInst, 4>& MCInsts) {
@@ -161,6 +167,7 @@ void Cpu0MCInstLower::LowerCPRESTORE(int64_t Offset,
   MCInsts.push_back(St);
 }
 
+// Cpu0MCInstLower::LowerOperand()
 MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand& MO,
                                         unsigned offset) const {
   MachineOperandType MOTy = MO.getType();
@@ -185,6 +192,7 @@ MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand& MO,
   return MCOperand();
 }
 
+// Cpu0MCInstLower::Lower()
 void Cpu0MCInstLower::Lower(const MachineInstr *MI, MCInst &OutMI) const {
   OutMI.setOpcode(MI->getOpcode());
 

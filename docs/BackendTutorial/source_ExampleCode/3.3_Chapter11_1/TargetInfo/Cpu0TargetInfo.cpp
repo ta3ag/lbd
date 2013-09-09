@@ -14,6 +14,7 @@ using namespace llvm;
 
 Target llvm::TheCpu0Target, llvm::TheCpu0elTarget;
 
+// LLVMInitializeCpu0TargetInfo()
 extern "C" void LLVMInitializeCpu0TargetInfo() {
   RegisterTarget<Triple::cpu0,
         /*HasJIT=*/true> X(TheCpu0Target, "cpu0", "Cpu0");

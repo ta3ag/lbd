@@ -38,6 +38,7 @@ public:
   ~Cpu0Disassembler() {
   }
 
+  // getInstruction()
   /// getInstruction - See MCDisassembler.
   DecodeStatus getInstruction(MCInst &instr,
                               uint64_t &size,
@@ -58,31 +59,37 @@ static const unsigned CPURegsTable[] = {
   Cpu0::SW, Cpu0::SP, Cpu0::LR, Cpu0::PC
 };
 
+// DecodeCPURegsRegisterClass()
 static DecodeStatus DecodeCPURegsRegisterClass(MCInst &Inst,
                                                unsigned RegNo,
                                                uint64_t Address,
                                                const void *Decoder);
+// DecodeCMPInstruction()
 static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder);
+// DecodeBranchTarget()
 static DecodeStatus DecodeBranchTarget(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder);
+// DecodeJumpRelativeTarget()
 static DecodeStatus DecodeJumpRelativeTarget(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder);
+// DecodeJumpAbsoluteTarget()
 static DecodeStatus DecodeJumpAbsoluteTarget(MCInst &Inst,
                                      unsigned Insn,
                                      uint64_t Address,
                                      const void *Decoder);
-
+// DecodeMem()
 static DecodeStatus DecodeMem(MCInst &Inst,
                               unsigned Insn,
                               uint64_t Address,
                               const void *Decoder);
+// DecodeSimm16()
 static DecodeStatus DecodeSimm16(MCInst &Inst,
                                  unsigned Insn,
                                  uint64_t Address,
@@ -93,18 +100,21 @@ extern Target TheCpu0elTarget, TheCpu0Target, TheCpu064Target,
               TheCpu064elTarget;
 }
 
+/// createCpu0elDisassembler()
 static MCDisassembler *createCpu0Disassembler(
                        const Target &T,
                        const MCSubtargetInfo &STI) {
   return new Cpu0Disassembler(STI,true);
 }
 
+/// createCpu0elDisassembler()
 static MCDisassembler *createCpu0elDisassembler(
                        const Target &T,
                        const MCSubtargetInfo &STI) {
   return new Cpu0Disassembler(STI,false);
 }
 
+/// LLVMInitializeCpu0Disassembler()
 extern "C" void LLVMInitializeCpu0Disassembler() {
   // Register the disassembler.
   TargetRegistry::RegisterMCDisassembler(TheCpu0Target,
@@ -116,6 +126,7 @@ extern "C" void LLVMInitializeCpu0Disassembler() {
 
 #include "Cpu0GenDisassemblerTables.inc"
 
+/// readInstruction32()
   /// readInstruction - read four bytes from the MemoryObject
   /// and return 32 bit word sorted according to the given endianess
 static DecodeStatus readInstruction32(const MemoryObject &region,
@@ -149,6 +160,7 @@ static DecodeStatus readInstruction32(const MemoryObject &region,
   return MCDisassembler::Success;
 }
 
+/// Cpu0Disassembler::getInstruction()
 DecodeStatus
 Cpu0Disassembler::getInstruction(MCInst &instr,
                                  uint64_t &Size,
@@ -174,6 +186,7 @@ Cpu0Disassembler::getInstruction(MCInst &instr,
   return MCDisassembler::Fail;
 }
 
+/// DecodeCPURegsRegisterClass()
 static DecodeStatus DecodeCPURegsRegisterClass(MCInst &Inst,
                                                unsigned RegNo,
                                                uint64_t Address,
@@ -185,6 +198,7 @@ static DecodeStatus DecodeCPURegsRegisterClass(MCInst &Inst,
   return MCDisassembler::Success;
 }
 
+/// DecodeMem()
 static DecodeStatus DecodeMem(MCInst &Inst,
                               unsigned Insn,
                               uint64_t Address,
@@ -200,6 +214,7 @@ static DecodeStatus DecodeMem(MCInst &Inst,
   return MCDisassembler::Success;
 }
 
+/// DecodeCMPInstruction()
 /* CMP instruction define $rc and then $ra, $rb; The printOperand() print 
 operand 1 and operand 2 (operand 0 is $rc and operand 1 is $ra), so we Create 
 register $rc first and create $ra next, as follows,
@@ -238,6 +253,7 @@ static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
   return MCDisassembler::Success;
 }
 
+/// DecodeBranchTarget()
 /* CBranch instruction define $ra and then imm24; The printOperand() print 
 operand 1 (operand 0 is $ra and operand 1 is imm24), so we Create register 
 operand first and create imm24 next, as follows,
@@ -269,6 +285,7 @@ static DecodeStatus DecodeBranchTarget(MCInst &Inst,
   return MCDisassembler::Success;
 }
 
+/// DecodeJumpRelativeTarget()
 static DecodeStatus DecodeJumpRelativeTarget(MCInst &Inst,
                                      unsigned Insn,
                                      uint64_t Address,
@@ -281,6 +298,7 @@ static DecodeStatus DecodeJumpRelativeTarget(MCInst &Inst,
   return MCDisassembler::Success;
 }
 
+/// DecodeJumpAbsoluteTarget()
 static DecodeStatus DecodeJumpAbsoluteTarget(MCInst &Inst,
                                      unsigned Insn,
                                      uint64_t Address,
@@ -291,6 +309,7 @@ static DecodeStatus DecodeJumpAbsoluteTarget(MCInst &Inst,
   return MCDisassembler::Success;
 }
 
+/// DecodeSimm16()
 static DecodeStatus DecodeSimm16(MCInst &Inst,
                                  unsigned Insn,
                                  uint64_t Address,

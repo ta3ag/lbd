@@ -24,6 +24,7 @@ SSThreshold("cpu0-ssection-threshold", cl::Hidden,
             cl::desc("Small data and bss section threshold size (default=8)"),
             cl::init(8));
 
+// Cpu0TargetObjectFile::Initialize()
 void Cpu0TargetObjectFile::Initialize(MCContext &Ctx, const TargetMachine &TM){
   TargetLoweringObjectFileELF::Initialize(Ctx, TM);
 
@@ -39,6 +40,7 @@ void Cpu0TargetObjectFile::Initialize(MCContext &Ctx, const TargetMachine &TM){
 
 }
 
+// IsInSmallSection()
 // A address must be loaded from a small section if its size is less than the
 // small section size threshold. Data in this section must be addressed using
 // gp_rel operator.
@@ -46,6 +48,7 @@ static bool IsInSmallSection(uint64_t Size) {
   return Size > 0 && Size <= SSThreshold;
 }
 
+// Cpu0TargetObjectFile::IsGlobalInSmallSection()
 bool Cpu0TargetObjectFile::IsGlobalInSmallSection(const GlobalValue *GV,
                                                 const TargetMachine &TM) const {
   if (GV->isDeclaration() || GV->hasAvailableExternallyLinkage())
@@ -54,6 +57,7 @@ bool Cpu0TargetObjectFile::IsGlobalInSmallSection(const GlobalValue *GV,
   return IsGlobalInSmallSection(GV, TM, getKindForGlobal(GV, TM));
 }
 
+// Cpu0TargetObjectFile::IsGlobalInSmallSection()
 /// IsGlobalInSmallSection - Return true if this global address should be
 /// placed into small data/bss section.
 bool Cpu0TargetObjectFile::
@@ -85,8 +89,7 @@ IsGlobalInSmallSection(const GlobalValue *GV, const TargetMachine &TM,
   return IsInSmallSection(TM.getDataLayout()->getTypeAllocSize(Ty));
 }
 
-
-
+// Cpu0TargetObjectFile::SelectSectionForGlobal()
 const MCSection *Cpu0TargetObjectFile::
 SelectSectionForGlobal(const GlobalValue *GV, SectionKind Kind,
                        Mangler *Mang, const TargetMachine &TM) const {

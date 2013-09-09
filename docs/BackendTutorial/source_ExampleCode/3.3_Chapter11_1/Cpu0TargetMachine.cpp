@@ -18,6 +18,7 @@
 #include "llvm/Support/TargetRegistry.h"
 using namespace llvm;
 
+// LLVMInitializeCpu0Target()
 extern "C" void LLVMInitializeCpu0Target() {
   // Register the target.
   //- Big endian Target Machine
@@ -26,6 +27,7 @@ extern "C" void LLVMInitializeCpu0Target() {
   RegisterTargetMachine<Cpu0elTargetMachine> Y(TheCpu0elTarget);
 }
 
+// Cpu0TargetMachine::Cpu0TargetMachine()
 // DataLayout --> Big-endian, 32-bit pointer/ABI/alignment
 // The stack is always 8 byte aligned
 // On function prologue, the stack is created by decrementing
@@ -50,8 +52,10 @@ Cpu0TargetMachine(const Target &T, StringRef TT,
     TLInfo(*this), TSInfo(*this) {
 }
 
+// Cpu0ebTargetMachine::anchor()
 void Cpu0ebTargetMachine::anchor() { }
 
+// Cpu0ebTargetMachine::Cpu0ebTargetMachine()
 Cpu0ebTargetMachine::
 Cpu0ebTargetMachine(const Target &T, StringRef TT,
                     StringRef CPU, StringRef FS, const TargetOptions &Options,
@@ -87,10 +91,12 @@ public:
 };
 } // namespace
 
+// Cpu0TargetMachine::createPassConfig()
 TargetPassConfig *Cpu0TargetMachine::createPassConfig(PassManagerBase &PM) {
   return new Cpu0PassConfig(this, PM);
 }
 
+// Cpu0PassConfig::addInstSelector()
 // Install an instruction selector pass using
 // the ISelDag to gen Cpu0 code.
 bool Cpu0PassConfig::addInstSelector() {
@@ -98,6 +104,7 @@ bool Cpu0PassConfig::addInstSelector() {
   return false;
 }
 
+// Cpu0PassConfig::addPreRegAlloc()
 bool Cpu0PassConfig::addPreRegAlloc() {
   // $gp is a caller-saved register.
 
@@ -105,6 +112,7 @@ bool Cpu0PassConfig::addPreRegAlloc() {
   return true;
 }
 
+// Cpu0PassConfig::addPreEmitPass()
 // Implemented by targets that want to run passes immediately before
 // machine code is emitted. return true if -print-machineinstrs should
 // print out the code after the passes.

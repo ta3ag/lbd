@@ -52,12 +52,15 @@ namespace {
   };
 }
 
+// Cpu0ELFObjectWriter::Cpu0ELFObjectWriter()
 Cpu0ELFObjectWriter::Cpu0ELFObjectWriter(uint8_t OSABI)
   : MCELFObjectTargetWriter(/*_is64Bit=false*/ false, OSABI, ELF::EM_CPU0,
                             /*HasRelocationAddend*/ false) {}
 
+// Cpu0ELFObjectWriter::~Cpu0ELFObjectWriter()
 Cpu0ELFObjectWriter::~Cpu0ELFObjectWriter() {}
 
+// Cpu0ELFObjectWriter::getEFlags()
 // FIXME: get the real EABI Version from the Subtarget class.
 unsigned Cpu0ELFObjectWriter::getEFlags() const {
 
@@ -68,6 +71,7 @@ unsigned Cpu0ELFObjectWriter::getEFlags() const {
   return Flag;
 }
 
+// Cpu0ELFObjectWriter::ExplicitRelSym()
 const MCSymbol *Cpu0ELFObjectWriter::ExplicitRelSym(const MCAssembler &Asm,
                                                     const MCValue &Target,
                                                     const MCFragment &F,
@@ -83,6 +87,7 @@ const MCSymbol *Cpu0ELFObjectWriter::ExplicitRelSym(const MCAssembler &Asm,
   return NULL;
 }
 
+// Cpu0ELFObjectWriter::GetRelocType()
 unsigned Cpu0ELFObjectWriter::GetRelocType(const MCValue &Target,
                                            const MCFixup &Fixup,
                                            bool IsPCRel,
@@ -156,6 +161,7 @@ unsigned Cpu0ELFObjectWriter::GetRelocType(const MCValue &Target,
   return Type;
 }
 
+// NeedsMatchingLo()
 // Return true if R is either a GOT16 against a local symbol or HI16.
 static bool NeedsMatchingLo(const MCAssembler &Asm, const RelEntry &R) {
   if (!R.Sym)
@@ -167,6 +173,7 @@ static bool NeedsMatchingLo(const MCAssembler &Asm, const RelEntry &R) {
     (R.Reloc.Type == ELF::R_CPU0_HI16);
 }
 
+// HasMatchingLo()
 static bool HasMatchingLo(const MCAssembler &Asm, RelLsIter I, RelLsIter Last) {
   if (I == Last)
     return false;
@@ -177,14 +184,17 @@ static bool HasMatchingLo(const MCAssembler &Asm, RelLsIter I, RelLsIter Last) {
     (Hi->Offset == I->Offset);
 }
 
+// HasSameSymbol()
 static bool HasSameSymbol(const RelEntry &R0, const RelEntry &R1) {
   return R0.Sym == R1.Sym;
 }
 
+// CompareOffset()
 static int CompareOffset(const RelEntry &R0, const RelEntry &R1) {
   return (R0.Offset > R1.Offset) ? 1 : ((R0.Offset == R1.Offset) ? 0 : -1);
 }
 
+// Cpu0ELFObjectWriter::sortRelocs()
 void Cpu0ELFObjectWriter::sortRelocs(const MCAssembler &Asm,
                                      std::vector<ELFRelocationEntry> &Relocs) {
   // Call the defualt function first. Relocations are sorted in descending
@@ -243,6 +253,7 @@ void Cpu0ELFObjectWriter::sortRelocs(const MCAssembler &Asm,
     Relocs[--I] = R->Reloc;
 }
 
+// llvm::createCpu0ELFObjectWriter()
 MCObjectWriter *llvm::createCpu0ELFObjectWriter(raw_ostream &OS,
                                                 uint8_t OSABI,
                                                 bool IsLittleEndian) {

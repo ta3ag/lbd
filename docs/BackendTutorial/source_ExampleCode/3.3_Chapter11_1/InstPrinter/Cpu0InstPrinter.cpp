@@ -24,12 +24,14 @@ using namespace llvm;
 
 #include "Cpu0GenAsmWriter.inc"
 
+// Cpu0InstPrinter::printRegName()
 void Cpu0InstPrinter::printRegName(raw_ostream &OS, unsigned RegNo) const {
 //- getRegisterName(RegNo) defined in Cpu0GenAsmWriter.inc which came from 
 //   Cpu0.td indicate.
   OS << '$' << StringRef(getRegisterName(RegNo)).lower();
 }
 
+// Cpu0InstPrinter::printInst()
 void Cpu0InstPrinter::printInst(const MCInst *MI, raw_ostream &O,
                                 StringRef Annot) {
 //- printInstruction(MI, O) defined in Cpu0GenAsmWriter.inc which came from 
@@ -38,6 +40,7 @@ void Cpu0InstPrinter::printInst(const MCInst *MI, raw_ostream &O,
   printAnnotation(O, Annot);
 }
 
+// printExpr()
 static void printExpr(const MCExpr *Expr, raw_ostream &OS) {
   int Offset = 0;
   const MCSymbolRefExpr *SRE;
@@ -82,6 +85,7 @@ static void printExpr(const MCExpr *Expr, raw_ostream &OS) {
     OS << ')';
 }
 
+// Cpu0InstPrinter::printOperand()
 void Cpu0InstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
                                    raw_ostream &O) {
   const MCOperand &Op = MI->getOperand(OpNo);
@@ -99,6 +103,7 @@ void Cpu0InstPrinter::printOperand(const MCInst *MI, unsigned OpNo,
   printExpr(Op.getExpr(), O);
 }
 
+// Cpu0InstPrinter::printUnsignedImm()
 void Cpu0InstPrinter::printUnsignedImm(const MCInst *MI, int opNum,
                                        raw_ostream &O) {
   const MCOperand &MO = MI->getOperand(opNum);
@@ -108,6 +113,7 @@ void Cpu0InstPrinter::printUnsignedImm(const MCInst *MI, int opNum,
     printOperand(MI, opNum, O);
 }
 
+// Cpu0InstPrinter::printMemOperand()
 void Cpu0InstPrinter::
 printMemOperand(const MCInst *MI, int opNum, raw_ostream &O) {
   // Load/Store memory operands -- imm($reg)
@@ -119,6 +125,7 @@ printMemOperand(const MCInst *MI, int opNum, raw_ostream &O) {
   O << ")";
 }
 
+// Cpu0InstPrinter::printMemOperandEA()
 void Cpu0InstPrinter::
 printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &O) {
   // when using stack locations for not load/store instructions

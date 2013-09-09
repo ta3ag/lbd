@@ -40,6 +40,7 @@
 
 using namespace llvm;
 
+// EmitInstrWithMacroNoAT()
 void Cpu0AsmPrinter::EmitInstrWithMacroNoAT(const MachineInstr *MI) {
   MCInst TmpInst;
 
@@ -53,13 +54,14 @@ void Cpu0AsmPrinter::EmitInstrWithMacroNoAT(const MachineInstr *MI) {
   OutStreamer.EmitRawText(StringRef("\t.set\tnomacro"));
 }
 
+// Cpu0AsmPrinter::runOnMachineFunction()
 bool Cpu0AsmPrinter::runOnMachineFunction(MachineFunction &MF) {
   Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
   AsmPrinter::runOnMachineFunction(MF);
   return true;
 }
 
-//- EmitInstruction() must exists or will have run time error.
+// Cpu0AsmPrinter::EmitInstruction() must exists or will have run time error.
 void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
   if (MI->isDebugValue()) {
     SmallString<128> Str;
@@ -104,6 +106,7 @@ void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
   OutStreamer.EmitInstruction(TmpInst0);
 }
 
+// Cpu0AsmPrinter::printSavedRegsBitmask()
 //===----------------------------------------------------------------------===//
 //
 //  Cpu0 Asm Directives
@@ -135,6 +138,7 @@ void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
 //
 //===----------------------------------------------------------------------===//
 
+// Cpu0AsmPrinter::printSavedRegsBitmask()
 //===----------------------------------------------------------------------===//
 // Mask directives
 //===----------------------------------------------------------------------===//
@@ -171,6 +175,7 @@ void Cpu0AsmPrinter::printSavedRegsBitmask(raw_ostream &O) {
   O << ',' << CPUTopSavedRegOff << '\n';
 }
 
+// Cpu0AsmPrinter::printHex32()
 // Print a 32 bit hex number with all numbers.
 void Cpu0AsmPrinter::printHex32(unsigned Value, raw_ostream &O) {
   O << "0x";
@@ -178,6 +183,7 @@ void Cpu0AsmPrinter::printHex32(unsigned Value, raw_ostream &O) {
     O.write_hex((Value & (0xF << (i*4))) >> (i*4));
 }
 
+// Cpu0AsmPrinter::emitFrameDirective()
 //===----------------------------------------------------------------------===//
 // Frame and Set directives
 //===----------------------------------------------------------------------===//
@@ -200,6 +206,7 @@ void Cpu0AsmPrinter::emitFrameDirective() {
            StringRef(Cpu0InstPrinter::getRegisterName(returnReg)).lower());
 }
 
+// Cpu0AsmPrinter::getCurrentABIString()
 /// Emit Set directives.
 const char *Cpu0AsmPrinter::getCurrentABIString() const {
   switch (Subtarget->getTargetABI()) {
@@ -208,6 +215,7 @@ const char *Cpu0AsmPrinter::getCurrentABIString() const {
   }
 }
 
+// Cpu0AsmPrinter::EmitFunctionEntryLabel()
 //		.type	main,@function
 //->		.ent	main                    # @main
 //	main:
@@ -217,7 +225,7 @@ void Cpu0AsmPrinter::EmitFunctionEntryLabel() {
   OutStreamer.EmitLabel(CurrentFnSym);
 }
 
-
+// Cpu0AsmPrinter::EmitFunctionBodyStart()
 //	.frame	$sp,8,$pc
 //	.mask 	0x00000000,0
 //->	.set	noreorder
@@ -253,6 +261,7 @@ void Cpu0AsmPrinter::EmitFunctionBodyStart() {
   }
 }
 
+// Cpu0AsmPrinter::EmitFunctionBodyEnd()
 //->	.set	macro
 //->	.set	reorder
 //->	.end	main
@@ -271,6 +280,7 @@ void Cpu0AsmPrinter::EmitFunctionBodyEnd() {
   }
 }
 
+// Cpu0AsmPrinter::EmitStartOfAsmFile()
 //	.section .mdebug.abi32
 //	.previous
 void Cpu0AsmPrinter::EmitStartOfAsmFile(Module &M) {
@@ -286,6 +296,7 @@ void Cpu0AsmPrinter::EmitStartOfAsmFile(Module &M) {
     OutStreamer.EmitRawText(StringRef("\t.previous"));
 }
 
+// Cpu0AsmPrinter::getDebugValueLocation()
 MachineLocation
 Cpu0AsmPrinter::getDebugValueLocation(const MachineInstr *MI) const {
   // Handles frame addresses emitted in Cpu0InstrInfo::emitFrameIndexDebugValue.
@@ -296,12 +307,14 @@ Cpu0AsmPrinter::getDebugValueLocation(const MachineInstr *MI) const {
                          MI->getOperand(1).getImm());
 }
 
+// Cpu0AsmPrinter::PrintDebugValueComment()
 void Cpu0AsmPrinter::PrintDebugValueComment(const MachineInstr *MI,
                                            raw_ostream &OS) {
   // TODO: implement
   OS << "PrintDebugValueComment()";
 }
 
+// LLVMInitializeCpu0AsmPrinter()
 // Force static initialization.
 extern "C" void LLVMInitializeCpu0AsmPrinter() {
   RegisterAsmPrinter<Cpu0AsmPrinter> X(TheCpu0Target);

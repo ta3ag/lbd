@@ -16,8 +16,10 @@
 
 using namespace llvm;
 
+// Cpu0MCAsmInfo::anchor()
 void Cpu0MCAsmInfo::anchor() { }
 
+// Cpu0MCAsmInfo(const Target &T, StringRef TT)
 Cpu0MCAsmInfo::Cpu0MCAsmInfo(const Target &T, StringRef TT) {
   Triple TheTriple(TT);
   if ((TheTriple.getArch() == Triple::cpu0))

@@ -82,6 +82,7 @@ using namespace llvm;
 //
 //===----------------------------------------------------------------------===//
 
+// Cpu0FrameLowering::hasFP()
 //- Must have, hasFP() is pure virtual of parent
 // hasFP - Return true if the specified function should have a dedicated frame
 // pointer register.  This is true if the function has variable sized allocas or
@@ -92,6 +93,7 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &MF) const {
       MFI->hasVarSizedObjects() || MFI->isFrameAddressTaken();
 }
 
+// expandLargeImm()
 // Build an instruction sequence to load an immediate that is too large to fit
 // in 16-bit and add the result to Reg.
 static void expandLargeImm(unsigned Reg, int64_t Imm, 
@@ -116,6 +118,7 @@ static void expandLargeImm(unsigned Reg, int64_t Imm,
   BuildMI(MBB, II, DL, TII.get(ADDu), Reg).addReg(Reg).addReg(ATReg);
 }
 
+// Cpu0FrameLowering::emitPrologue()
 void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   MachineBasicBlock &MBB   = MF.front();
   MachineFrameInfo *MFI    = MF.getFrameInfo();
@@ -213,6 +216,7 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   }
 }
 
+// Cpu0FrameLowering::emitEpilogue()
 void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
                                  MachineBasicBlock &MBB) const {
   MachineBasicBlock::iterator MBBI = MBB.getLastNonDebugInstr();
@@ -254,6 +258,7 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
   }
 }
 
+// Cpu0FrameLowering::spillCalleeSavedRegisters()
 bool Cpu0FrameLowering::
 spillCalleeSavedRegisters(MachineBasicBlock &MBB,
                           MachineBasicBlock::iterator MI,
@@ -285,6 +290,7 @@ spillCalleeSavedRegisters(MachineBasicBlock &MBB,
   return true;
 }
 
+// Cpu0FrameLowering::eliminateCallFramePseudoInstr()
 // This function eliminate ADJCALLSTACKDOWN,
 // ADJCALLSTACKUP pseudo instructions
 void Cpu0FrameLowering::
@@ -294,6 +300,7 @@ eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
   MBB.erase(I);
 }
 
+// Cpu0FrameLowering::processFunctionBeforeCalleeSavedScan()
 // This method is called immediately before PrologEpilogInserter scans the 
 //  physical registers used to determine what callee saved registers should be 
 //  spilled. This method is optional. 
@@ -310,6 +317,7 @@ eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
 //      function '@main'
 //  Aborted (core dumped)
 
+// Cpu0FrameLowering::processFunctionBeforeCalleeSavedScan()
 // Must exist
 //	addiu	$sp, $sp, 8
 //->	ret	$lr

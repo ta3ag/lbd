@@ -26,6 +26,7 @@ using namespace llvm;
 
 STATISTIC(NumDelJmp, "Number of useless jmp deleted");
 
+// EnableDelJmp()
 static cl::opt<bool> EnableDelJmp(
   "enable-cpu0-del-useless-jmp",
   cl::init(true),
@@ -70,6 +71,7 @@ namespace {
   char DelJmp::ID = 0;
 } // end of anonymous namespace
 
+// DelJmp::runOnMachineBasicBlock()
 bool DelJmp::
 runOnMachineBasicBlock(MachineBasicBlock &MBB, MachineBasicBlock &MBBN) {
   bool Changed = false;
@@ -93,6 +95,7 @@ runOnMachineBasicBlock(MachineBasicBlock &MBB, MachineBasicBlock &MBBN) {
 
 }
 
+// llvm::createCpu0DelJmpPass()
 /// createCpu0DelJmpPass - Returns a pass that DelJmp in Cpu0 MachineFunctions
 FunctionPass *llvm::createCpu0DelJmpPass(Cpu0TargetMachine &tm) {
   return new DelJmp(tm);

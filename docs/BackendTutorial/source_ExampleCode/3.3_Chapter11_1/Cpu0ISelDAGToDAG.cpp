@@ -99,12 +99,14 @@ private:
 };
 }
 
+// Cpu0DAGToDAGISel::runOnMachineFunction()
 bool Cpu0DAGToDAGISel::runOnMachineFunction(MachineFunction &MF) {
   bool Ret = SelectionDAGISel::runOnMachineFunction(MF);
 
   return Ret;
 }
 
+// Cpu0DAGToDAGISel::getGlobalBaseReg()
 /// getGlobalBaseReg - Output the instructions required to put the
 /// GOT address into a register.
 SDNode *Cpu0DAGToDAGISel::getGlobalBaseReg() {
@@ -112,6 +114,7 @@ SDNode *Cpu0DAGToDAGISel::getGlobalBaseReg() {
   return CurDAG->getRegister(GlobalBaseReg, TLI.getPointerTy()).getNode();
 }
 
+// Cpu0DAGToDAGISel::SelectAddr()
 /// ComplexPattern used on Cpu0InstrInfo
 /// Used on Cpu0 Load/Store instructions
 bool Cpu0DAGToDAGISel::
@@ -175,6 +178,7 @@ SelectAddr(SDNode *Parent, SDValue Addr, SDValue &Base, SDValue &Offset) {
   return true;
 }
 
+// Cpu0DAGToDAGISel::SelectMULT()
 /// Select multiply instructions.
 std::pair<SDNode*, SDNode*>
 Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
@@ -196,6 +200,7 @@ Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
   return std::make_pair(Lo, Hi);
 }
 
+// Cpu0DAGToDAGISel::Select()
 /// Select instructions not customized! Used for
 /// expanded, promoted and normal instructions
 SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
@@ -258,6 +263,7 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
   return ResNode;
 }
 
+// llvm::createCpu0ISelDag()
 /// createCpu0ISelDag - This pass converts a legalized DAG into a
 /// CPU0-specific DAG, ready for instruction scheduling.
 FunctionPass *llvm::createCpu0ISelDag(Cpu0TargetMachine &TM) {

@@ -29,8 +29,10 @@ UseSmallSectionOpt("cpu0-use-small-section", cl::Hidden, cl::init(false),
 
 extern bool FixGlobalBaseReg;
 
+// Cpu0Subtarget::anchor()
 void Cpu0Subtarget::anchor() { }
 
+// Cpu0Subtarget::Cpu0Subtarget()
 Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
                              const std::string &FS, bool little, 
                              Reloc::Model _RM) :

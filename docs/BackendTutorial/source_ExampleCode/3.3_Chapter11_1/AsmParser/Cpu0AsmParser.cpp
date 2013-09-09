@@ -23,6 +23,7 @@
 
 using namespace llvm;
 
+// class Cpu0AssemblerOptions
 namespace {
 class Cpu0AssemblerOptions {
 public:
@@ -45,6 +46,7 @@ private:
 };
 }
 
+// class Cpu0AsmParser
 namespace {
 class Cpu0AsmParser : public MCTargetAsmParser {
   MCSubtargetInfo &STI;
@@ -129,6 +131,7 @@ public:
 
 namespace {
 
+// class Cpu0Operand
 /// Cpu0Operand - Instances of this class represent a parsed Cpu0 machine
 /// instruction.
 class Cpu0Operand : public MCParsedAsmOperand {
@@ -168,11 +171,13 @@ class Cpu0Operand : public MCParsedAsmOperand {
   SMLoc StartLoc, EndLoc;
 
 public:
+// addRegOperands()
   void addRegOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
     Inst.addOperand(MCOperand::CreateReg(getReg()));
   }
 
+// addExpr()
   void addExpr(MCInst &Inst, const MCExpr *Expr) const{
     // Add as immediate when possible.  Null MCExpr = 0.
     if (Expr == 0)
@@ -183,12 +188,14 @@ public:
       Inst.addOperand(MCOperand::CreateExpr(Expr));
   }
 
+// addImmOperands()
   void addImmOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
     const MCExpr *Expr = getImm();
     addExpr(Inst,Expr);
   }
 
+// addMemOperands()
   void addMemOperands(MCInst &Inst, unsigned N) const {
     assert(N == 2 && "Invalid number of operands!");
 
@@ -198,6 +205,7 @@ public:
     addExpr(Inst,Expr);
   }
 
+// isReg()
   bool isReg() const { return Kind == k_Register; }
   bool isImm() const { return Kind == k_Immediate; }
   bool isToken() const { return Kind == k_Token; }
@@ -208,26 +216,31 @@ public:
     return StringRef(Tok.Data, Tok.Length);
   }
 
+// getReg()
   unsigned getReg() const {
     assert((Kind == k_Register) && "Invalid access!");
     return Reg.RegNum;
   }
 
+// getImm()
   const MCExpr *getImm() const {
     assert((Kind == k_Immediate) && "Invalid access!");
     return Imm.Val;
   }
 
+// getMemBase()
   unsigned getMemBase() const {
     assert((Kind == k_Memory) && "Invalid access!");
     return Mem.Base;
   }
 
+// getMemOff()
   const MCExpr *getMemOff() const {
     assert((Kind == k_Memory) && "Invalid access!");
     return Mem.Off;
   }
 
+// CreateToken()
   static Cpu0Operand *CreateToken(StringRef Str, SMLoc S) {
     Cpu0Operand *Op = new Cpu0Operand(k_Token);
     Op->Tok.Data = Str.data();
@@ -237,6 +250,7 @@ public:
     return Op;
   }
 
+// CreateReg()
   static Cpu0Operand *CreateReg(unsigned RegNum, SMLoc S, SMLoc E) {
     Cpu0Operand *Op = new Cpu0Operand(k_Register);
     Op->Reg.RegNum = RegNum;
@@ -245,6 +259,7 @@ public:
     return Op;
   }
 
+// CreateImm()
   static Cpu0Operand *CreateImm(const MCExpr *Val, SMLoc S, SMLoc E) {
     Cpu0Operand *Op = new Cpu0Operand(k_Immediate);
     Op->Imm.Val = Val;
@@ -253,6 +268,7 @@ public:
     return Op;
   }
 
+// CreateMem()
   static Cpu0Operand *CreateMem(unsigned Base, const MCExpr *Off,
                                  SMLoc S, SMLoc E) {
     Cpu0Operand *Op = new Cpu0Operand(k_Memory);
@@ -268,12 +284,14 @@ public:
   /// getEndLoc - Get the location of the last token of this operand.
   SMLoc getEndLoc() const { return EndLoc; }
 
+// print()
   virtual void print(raw_ostream &OS) const {
     llvm_unreachable("unimplemented!");
   }
 };
 }
 
+// Cpu0AsmParser::needsExpansion()
 bool Cpu0AsmParser::needsExpansion(MCInst &Inst) {
 
   switch(Inst.getOpcode()) {
@@ -286,6 +304,7 @@ bool Cpu0AsmParser::needsExpansion(MCInst &Inst) {
   }
 }
 
+// Cpu0AsmParser::expandInstruction()
 void Cpu0AsmParser::expandInstruction(MCInst &Inst, SMLoc IDLoc,
                         SmallVectorImpl<MCInst> &Instructions){
   switch(Inst.getOpcode()) {
@@ -298,6 +317,7 @@ void Cpu0AsmParser::expandInstruction(MCInst &Inst, SMLoc IDLoc,
     }
 }
 
+// Cpu0AsmParser::expandLoadImm()
 void Cpu0AsmParser::expandLoadImm(MCInst &Inst, SMLoc IDLoc,
                                   SmallVectorImpl<MCInst> &Instructions){
   MCInst tmpInst;
@@ -350,6 +370,7 @@ void Cpu0AsmParser::expandLoadImm(MCInst &Inst, SMLoc IDLoc,
   }
 }
 
+// Cpu0AsmParser::expandLoadAddressReg()
 void Cpu0AsmParser::expandLoadAddressReg(MCInst &Inst, SMLoc IDLoc,
                                          SmallVectorImpl<MCInst> &Instructions){
   MCInst tmpInst;
@@ -408,6 +429,7 @@ void Cpu0AsmParser::expandLoadAddressReg(MCInst &Inst, SMLoc IDLoc,
   }
 }
 
+// Cpu0AsmParser::expandLoadAddressImm()
 void Cpu0AsmParser::expandLoadAddressImm(MCInst &Inst, SMLoc IDLoc,
                                          SmallVectorImpl<MCInst> &Instructions){
   MCInst tmpInst;
@@ -458,6 +480,7 @@ void Cpu0AsmParser::expandLoadAddressImm(MCInst &Inst, SMLoc IDLoc,
   }
 }
 
+// Cpu0AsmParser::MatchAndEmitInstruction()
 bool Cpu0AsmParser::
 MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                         SmallVectorImpl<MCParsedAsmOperand*> &Operands,
@@ -503,6 +526,7 @@ MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
   return true;
 }
 
+// Cpu0AsmParser::matchRegisterName()
 int Cpu0AsmParser::matchRegisterName(StringRef Name) {
 
    int CC;
@@ -531,10 +555,12 @@ int Cpu0AsmParser::matchRegisterName(StringRef Name) {
   return -1;
 }
 
+// Cpu0AsmParser::getReg()
 unsigned Cpu0AsmParser::getReg(int RC,int RegNo) {
   return *(getContext().getRegisterInfo().getRegClass(RC).begin() + RegNo);
 }
 
+// Cpu0AsmParser::matchRegisterByNumber()
 int Cpu0AsmParser::matchRegisterByNumber(unsigned RegNum, StringRef Mnemonic) {
   if (RegNum > 15)
     return -1;
@@ -542,6 +568,7 @@ int Cpu0AsmParser::matchRegisterByNumber(unsigned RegNum, StringRef Mnemonic) {
   return getReg(Cpu0::CPURegsRegClassID, RegNum);
 }
 
+// Cpu0AsmParser::tryParseRegister()
 int Cpu0AsmParser::tryParseRegister(StringRef Mnemonic) {
   const AsmToken &Tok = Parser.getTok();
   int RegNum = -1;
@@ -557,6 +584,7 @@ int Cpu0AsmParser::tryParseRegister(StringRef Mnemonic) {
   return RegNum;
 }
 
+// Cpu0AsmParser::tryParseRegisterOperand()
 bool Cpu0AsmParser::
   tryParseRegisterOperand(SmallVectorImpl<MCParsedAsmOperand*> &Operands,
                           StringRef Mnemonic){
@@ -574,6 +602,7 @@ bool Cpu0AsmParser::
   return false;
 }
 
+// Cpu0AsmParser::ParseOperand()
 bool Cpu0AsmParser::ParseOperand(SmallVectorImpl<MCParsedAsmOperand*>&Operands,
                                  StringRef Mnemonic) {
   // Check if the current operand has a custom associated parser, if so, try to
@@ -664,6 +693,7 @@ bool Cpu0AsmParser::ParseOperand(SmallVectorImpl<MCParsedAsmOperand*>&Operands,
   return true;
 }
 
+// Cpu0AsmParser::parseRelocOperand()
 bool Cpu0AsmParser::parseRelocOperand(const MCExpr *&Res) {
 
   Parser.Lex(); // eat % token
@@ -726,6 +756,7 @@ bool Cpu0AsmParser::parseRelocOperand(const MCExpr *&Res) {
   return true;
 }
 
+// Cpu0AsmParser::ParseRegister()
 bool Cpu0AsmParser::ParseRegister(unsigned &RegNo, SMLoc &StartLoc,
                                   SMLoc &EndLoc) {
 
@@ -735,6 +766,7 @@ bool Cpu0AsmParser::ParseRegister(unsigned &RegNo, SMLoc &StartLoc,
   return (RegNo == (unsigned)-1);
 }
 
+// Cpu0AsmParser::parseMemOffset()
 bool Cpu0AsmParser::parseMemOffset(const MCExpr *&Res) {
 
   SMLoc S;
@@ -754,6 +786,7 @@ bool Cpu0AsmParser::parseMemOffset(const MCExpr *&Res) {
   return true;
 }
 
+// Cpu0AsmParser::parseMemOperand()
 // eg, 12($sp) or 12(la)
 Cpu0AsmParser::OperandMatchResultTy Cpu0AsmParser::parseMemOperand(
                SmallVectorImpl<MCParsedAsmOperand*>&Operands) {
@@ -817,6 +850,7 @@ Cpu0AsmParser::OperandMatchResultTy Cpu0AsmParser::parseMemOperand(
   return MatchOperand_Success;
 }
 
+// Cpu0AsmParser::getVariantKind()
 MCSymbolRefExpr::VariantKind Cpu0AsmParser::getVariantKind(StringRef Symbol) {
 
   MCSymbolRefExpr::VariantKind VK
@@ -843,6 +877,7 @@ MCSymbolRefExpr::VariantKind Cpu0AsmParser::getVariantKind(StringRef Symbol) {
   return VK;
 }
 
+// Cpu0AsmParser::parseMathOperation()
 bool Cpu0AsmParser::
 parseMathOperation(StringRef Name, SMLoc NameLoc,
                    SmallVectorImpl<MCParsedAsmOperand*> &Operands) {
@@ -893,6 +928,7 @@ parseMathOperation(StringRef Name, SMLoc NameLoc,
   return false;
 }
 
+// Cpu0AsmParser::ParseInstruction()
 bool Cpu0AsmParser::
 ParseInstruction(ParseInstructionInfo &Info, StringRef Name, SMLoc NameLoc,
                  SmallVectorImpl<MCParsedAsmOperand*> &Operands) {
@@ -934,12 +970,14 @@ ParseInstruction(ParseInstructionInfo &Info, StringRef Name, SMLoc NameLoc,
   return false;
 }
 
+// Cpu0AsmParser::reportParseError()
 bool Cpu0AsmParser::reportParseError(StringRef ErrorMsg) {
    SMLoc Loc = getLexer().getLoc();
    Parser.eatToEndOfStatement();
    return Error(Loc, ErrorMsg);
 }
 
+// Cpu0AsmParser::parseSetReorderDirective()
 bool Cpu0AsmParser::parseSetReorderDirective() {
   Parser.Lex();
   // if this is not the end of the statement, report error
@@ -952,6 +990,7 @@ bool Cpu0AsmParser::parseSetReorderDirective() {
   return false;
 }
 
+// Cpu0AsmParser::parseSetNoReorderDirective()
 bool Cpu0AsmParser::parseSetNoReorderDirective() {
     Parser.Lex();
     // if this is not the end of the statement, report error
@@ -964,6 +1003,7 @@ bool Cpu0AsmParser::parseSetNoReorderDirective() {
     return false;
 }
 
+// Cpu0AsmParser::parseSetMacroDirective()
 bool Cpu0AsmParser::parseSetMacroDirective() {
   Parser.Lex();
   // if this is not the end of the statement, report error
@@ -976,6 +1016,7 @@ bool Cpu0AsmParser::parseSetMacroDirective() {
   return false;
 }
 
+// Cpu0AsmParser::parseSetNoMacroDirective()
 bool Cpu0AsmParser::parseSetNoMacroDirective() {
   Parser.Lex();
   // if this is not the end of the statement, report error
@@ -991,6 +1032,8 @@ bool Cpu0AsmParser::parseSetNoMacroDirective() {
   Parser.Lex(); // Consume the EndOfStatement
   return false;
 }
+
+// Cpu0AsmParser::parseDirectiveSet()
 bool Cpu0AsmParser::parseDirectiveSet() {
 
   // get next token
@@ -1008,6 +1051,7 @@ bool Cpu0AsmParser::parseDirectiveSet() {
   return true;
 }
 
+// Cpu0AsmParser::ParseDirective()
 bool Cpu0AsmParser::ParseDirective(AsmToken DirectiveID) {
 
   if (DirectiveID.getString() == ".ent") {
@@ -1053,6 +1097,7 @@ bool Cpu0AsmParser::ParseDirective(AsmToken DirectiveID) {
   return true;
 }
 
+// LLVMInitializeCpu0AsmParser()
 extern "C" void LLVMInitializeCpu0AsmParser() {
   RegisterMCAsmParser<Cpu0AsmParser> X(TheCpu0Target);
   RegisterMCAsmParser<Cpu0AsmParser> Y(TheCpu0elTarget);

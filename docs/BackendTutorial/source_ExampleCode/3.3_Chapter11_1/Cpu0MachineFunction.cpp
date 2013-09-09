@@ -19,14 +19,17 @@ using namespace llvm;
 
 bool FixGlobalBaseReg = true;
 
+// Cpu0FunctionInfo::globalBaseRegFixed()
 bool Cpu0FunctionInfo::globalBaseRegFixed() const {
   return FixGlobalBaseReg;
 }
 
+// Cpu0FunctionInfo::globalBaseRegSet()
 bool Cpu0FunctionInfo::globalBaseRegSet() const {
   return GlobalBaseReg;
 }
 
+// Cpu0FunctionInfo::getGlobalBaseReg()
 unsigned Cpu0FunctionInfo::getGlobalBaseReg() {
   // Return if it has already been initialized.
   if (GlobalBaseReg)
@@ -41,4 +44,5 @@ unsigned Cpu0FunctionInfo::getGlobalBaseReg() {
   return GlobalBaseReg = MF.getRegInfo().createVirtualRegister(RC);
 }
 
+// Cpu0FunctionInfo::anchor()
 void Cpu0FunctionInfo::anchor() { }
