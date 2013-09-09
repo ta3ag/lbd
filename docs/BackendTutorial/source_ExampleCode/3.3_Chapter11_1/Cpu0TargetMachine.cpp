@@ -63,8 +63,10 @@ Cpu0ebTargetMachine(const Target &T, StringRef TT,
                     CodeGenOpt::Level OL)
   : Cpu0TargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, false) {}
 
+// Cpu0elTargetMachine::anchor()
 void Cpu0elTargetMachine::anchor() { }
 
+// Cpu0elTargetMachine::Cpu0elTargetMachine()
 Cpu0elTargetMachine::
 Cpu0elTargetMachine(const Target &T, StringRef TT,
                     StringRef CPU, StringRef FS, const TargetOptions &Options,
