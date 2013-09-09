@@ -43,7 +43,7 @@ Cpu0TargetMachine(const Target &T, StringRef TT,
                   bool isLittle)
   //- Default is big endian
   : LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL),
-    Subtarget(TT, CPU, FS, isLittle, RM),
+    Subtarget(TT, CPU, FS, isLittle),
     DL(isLittle ?
                ("e-p:32:32:32-i8:8:32-i16:16:32-i64:64:64-n32") :
                ("E-p:32:32:32-i8:8:32-i16:16:32-i64:64:64-n32")),
@@ -89,8 +89,6 @@ public:
   }
   // addInstSelector()
   virtual bool addInstSelector();
-  virtual bool addPreRegAlloc();
-  virtual bool addPreEmitPass();
 };
 } // namespace
 
@@ -107,20 +105,3 @@ bool Cpu0PassConfig::addInstSelector() {
   return false;
 }
 
-// Cpu0PassConfig::addPreRegAlloc()
-bool Cpu0PassConfig::addPreRegAlloc() {
-  // $gp is a caller-saved register.
-
-  addPass(createCpu0EmitGPRestorePass(getCpu0TargetMachine()));
-  return true;
-}
-
-// Cpu0PassConfig::addPreEmitPass()
-// Implemented by targets that want to run passes immediately before
-// machine code is emitted. return true if -print-machineinstrs should
-// print out the code after the passes.
-bool Cpu0PassConfig::addPreEmitPass() {
-  Cpu0TargetMachine &TM = getCpu0TargetMachine();
-  addPass(createCpu0DelJmpPass(TM));
-  return true;
-}
