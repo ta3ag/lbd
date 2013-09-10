@@ -110,12 +110,12 @@ def mem_ea : Operand<i32> {
 
 // Transformation Function - get the lower 16 bits.
 def LO16 : SDNodeXForm<imm, [{
-  return getImm(N, N->getZExtValue() & 0xFFFF);
+  return getImm(N, N->getZExtValue() & 0xffff);
 }]>;
 
 // Transformation Function - get the higher 16 bits.
 def HI16 : SDNodeXForm<imm, [{
-  return getImm(N, (N->getZExtValue() >> 16) & 0xFFFF);
+  return getImm(N, (N->getZExtValue() >> 16) & 0xffff);
 }]>;
 
 // Node immediate fits as 16-bit sign extended on target immediate.
@@ -310,7 +310,7 @@ class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
 }
 
 // Return instruction
-class RetBase<RegisterClass RC>: JumpFR<0x3C, "ret", RC> {
+class RetBase<RegisterClass RC>: JumpFR<0x3c, "ret", RC> {
   let isReturn = 1;
   let isCodeGenOnly = 1;
   let hasCtrlDep = 1;
@@ -446,9 +446,9 @@ defm SH     : StoreM32<0x08, "sh", truncstorei16_a>;
 /// Arithmetic Instructions (ALU Immediate)
 // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
 def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
-def ANDi    : ArithLogicI<0x0C, "andi", and, uimm16, immZExt16, CPURegs>;
-def ORi     : ArithLogicI<0x0D, "ori", or, uimm16, immZExt16, CPURegs>;
-def XORi    : ArithLogicI<0x0E, "xori", xor, uimm16, immZExt16, CPURegs>;
+def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs>;
+def ORi     : ArithLogicI<0x0d, "ori", or, uimm16, immZExt16, CPURegs>;
+def XORi    : ArithLogicI<0x0e, "xori", xor, uimm16, immZExt16, CPURegs>;
 def LUi     : LoadUpper<0x0f, "lui", CPURegs, uimm16>;
 
 /// Arithmetic Instructions (3-Operand, R-Type)
@@ -457,29 +457,19 @@ def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
 def SUBu    : ArithLogicR<0x12, "subu", sub, IIAlu, CPURegs>;
 def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
 def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
-def MUL     : ArithLogicR<0x15, "mul", mul, IIImul, CPURegs, 1>;
-def SDIV    : Div32<Cpu0DivRem, 0x16, "div", IIIdiv>;
-def UDIV    : Div32<Cpu0DivRemU, 0x17, "divu", IIIdiv>;
+def MUL     : ArithLogicR<0x17, "mul", mul, IIImul, CPURegs, 1>;
 def AND     : ArithLogicR<0x18, "and", and, IIAlu, CPURegs, 1>;
 def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
-def XOR     : ArithLogicR<0x1A, "xor", xor, IIAlu, CPURegs, 1>;
-
-def MULT    : Mult32<0x50, "mult", IIImul>;
-def MULTu   : Mult32<0x51, "multu", IIImul>;
-
-def MFHI    : MoveFromLOHI<0x40, "mfhi", CPURegs, [HI]>;
-def MFLO    : MoveFromLOHI<0x41, "mflo", CPURegs, [LO]>;
-def MTHI    : MoveToLOHI<0x42, "mthi", CPURegs, [HI]>;
-def MTLO    : MoveToLOHI<0x43, "mtlo", CPURegs, [LO]>;
+def XOR     : ArithLogicR<0x1a, "xor", xor, IIAlu, CPURegs, 1>;
 
 /// Shift Instructions
 // sra is IR node for ashr llvm IR instruction of .bc
-def ROL     : shift_rotate_imm32<0x1B, 0x01, "rol", rotl>;
-def ROR     : shift_rotate_imm32<0x1C, 0x01, "ror", rotr>;
-def SRA     : shift_rotate_imm32<0x1D, 0x00, "sra", sra>;
-def SHL     : shift_rotate_imm32<0x1E, 0x00, "shl", shl>;
+def ROL     : shift_rotate_imm32<0x1b, 0x01, "rol", rotl>;
+def ROR     : shift_rotate_imm32<0x1c, 0x01, "ror", rotr>;
+def SRA     : shift_rotate_imm32<0x1d, 0x00, "sra", sra>;
+def SHL     : shift_rotate_imm32<0x1e, 0x00, "shl", shl>;
 // srl is IR node for lshr llvm IR instruction of .bc
-def SHR     : shift_rotate_imm32<0x1F, 0x00, "shr", srl>;
+def SHR     : shift_rotate_imm32<0x1f, 0x00, "shr", srl>;
 def SRAV    : shift_rotate_reg<0x20, 0x00, "srav", sra, CPURegs>;
 def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
 def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
@@ -495,17 +485,28 @@ def JGE     : CBranch<0x35, "jge", SR, [SW]>;
 def JMP     : UncondBranch<0x36, "jmp">;
 
 /// Jump and Branch Instructions
-def SWI     : JumpLink<0x3A, "swi">;
-def JSUB    : JumpLink<0x3B, "jsub">;
-def JR      : JumpFR<0x3C, "ret", CPURegs>;
+def SWI     : JumpLink<0x3a, "swi">;
+def JSUB    : JumpLink<0x3b, "jsub">;
+def JR      : JumpFR<0x3c, "ret", CPURegs>;
 
 let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
   def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
 
 def RET     : RetBase<CPURegs>;
 
-def IRET    : JumpFR<0x3D, "iret", CPURegs>;
-def JALR    : JumpLinkReg<0x3E, "jalr", CPURegs>;
+def IRET    : JumpFR<0x3d, "iret", CPURegs>;
+def JALR    : JumpLinkReg<0x3e, "jalr", CPURegs>;
+
+/// Multiply and Divide Instructions.
+def MULT    : Mult32<0x41, "mult", IIImul>;
+def MULTu   : Mult32<0x42, "multu", IIImul>;
+def SDIV    : Div32<Cpu0DivRem, 0x43, "div", IIIdiv>;
+def UDIV    : Div32<Cpu0DivRemU, 0x44, "divu", IIIdiv>;
+
+def MFHI    : MoveFromLOHI<0x46, "mfhi", CPURegs, [HI]>;
+def MFLO    : MoveFromLOHI<0x47, "mflo", CPURegs, [LO]>;
+def MTHI    : MoveToLOHI<0x48, "mthi", CPURegs, [HI]>;
+def MTLO    : MoveToLOHI<0x49, "mtlo", CPURegs, [LO]>;
 
 /// No operation
 let addr=0 in

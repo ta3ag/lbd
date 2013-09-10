@@ -1291,6 +1291,16 @@ the 32 bits stack size adjustments.
     let PrintMethod = "printUnsignedImm";
   }
   ...
+  // Transformation Function - get the lower 16 bits.
+  def LO16 : SDNodeXForm<imm, [{
+    return getImm(N, N->getZExtValue() & 0xffff);
+  }]>;
+
+  // Transformation Function - get the higher 16 bits.
+  def HI16 : SDNodeXForm<imm, [{
+    return getImm(N, (N->getZExtValue() >> 16) & 0xffff);
+  }]>;
+  ...
   // Node immediate fits as 16-bit zero extended on target immediate.
   // The LO16 param means that only the lower 16 bits of the node
   // immediate are caught.
@@ -1300,6 +1310,12 @@ the 32 bits stack size adjustments.
       return (uint32_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
     else
       return (uint64_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
+  }], LO16>;
+
+  // Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
+  def immLow16Zero : PatLeaf<(imm), [{
+    int64_t Val = N->getSExtValue();
+    return isInt<32>(Val) && !(Val & 0xffff);
   }]>;
   
   // shamt field must fit in 5 bits.
@@ -1332,26 +1348,50 @@ the 32 bits stack size adjustments.
   class shift_rotate_imm32<bits<8> func, bits<4> isRotate, string instr_asm,
                            SDNode OpNode>:
     shift_rotate_imm<func, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs>;
+
+  // Load Upper Imediate
+  class LoadUpper<bits<8> op, string instr_asm, RegisterClass RC, Operand Imm>:
+    FL<op, (outs RC:$ra), (ins Imm:$imm16),
+       !strconcat(instr_asm, "\t$ra, $imm16"), [], IIAlu> {
+    let rb = 0;
+    let neverHasSideEffects = 1;
+    let isReMaterializable = 1;
+  }
   ...
-  def ORi     : ArithLogicI<0x0D, "ori", or, uimm16, immZExt16, CPURegs>;
+  def ORi     : ArithLogicI<0x0d, "ori", or, uimm16, immZExt16, CPURegs>;
+  def LUi     : LoadUpper<0x0f, "lui", CPURegs, uimm16>;
   
   /// Arithmetic Instructions (3-Operand, R-Type)
   def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
   
   /// Shift Instructions
-  def SHL     : shift_rotate_imm32<0x1E, 0x00, "shl", shl>;
+  def SHL     : shift_rotate_imm32<0x1e, 0x00, "shl", shl>;
   ...
 
+  // Small immediates
+  ...
+  def : Pat<(i32 immZExt16:$in),
+            (ORi ZERO, imm:$in)>;
+  def : Pat<(i32 immLow16Zero:$in),
+            (LUi (HI16 imm:$in))>;
+
+  // Arbitrary immediates
+  def : Pat<(i32 imm:$imm),
+            (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
 
 The Cpu0AnalyzeImmediate.cpp written in recursive and a little complicate in 
-logic. You can skip these recursive code and think these code in last chapter 12.
+logic. You can skip these recursive code and think these code in last chapter 
+12.
 Since in Chapter 12 Optimization, it replace addiu and shl with lui single 
-instruction, you have chance to think this thing in details. Anyway, the recursive
+instruction, you have chance to think this thing in details. Anyway, the 
+recursive
 skills is used in the front end compile book, you should fimiliar with it.
 Instead tracking the code, listing the stack size and the instructions 
-generated in Table: Cpu0 stack adjustment instructions as follows,
+generated in Table: Cpu0 stack adjustment instructions before replace addiu and 
+shl with lui instruction as follows (Cpu0 stack adjustment instructions after 
+replace addiu and shl with lui instruction as below),
 
-.. table:: Cpu0 stack adjustment instructions
+.. table:: Cpu0 stack adjustment instructions before replace addiu and shl with lui instruction
 
   ====================  ================  ==================================  ==================================
   stack size range      ex. stack size    Cpu0 Prologue instructions          Cpu0 Epilogue instructions
@@ -1387,6 +1427,42 @@ Verify with the Cpu0 Epilogue instructions with sp = 0x10000000 and stack size =
 2. "shl	$1, $1, 16;" => $1 = 0x90010000.
 3. "addiu	$1, $1, -32768" => $1 = (0x90010000 + 0xffff8000) => $1 = 0x90008000.
 4. "addu	$sp, $sp, $1" => $sp = (0x10000000 + 0x90008000) => $sp = 0xa0008000.
+
+
+The Cpu0AnalyzeImmediate::GetShortestSeq() will call Cpu0AnalyzeImmediate::
+ReplaceADDiuSHLWithLUi() to replace addiu and shl with single instruction lui 
+only. The effect as the following table.
+
+.. table:: Cpu0 stack adjustment instructions after replace addiu and shl with lui instruction
+
+  ======  ====================  ================  ==================================  ==================================
+          stack size range      ex. stack size    Cpu0 Prologue instructions          Cpu0 Epilogue instructions
+  ======  ====================  ================  ==================================  ==================================
+  old     x10000 ~ 0xffffffff   - 0x90008000      - addiu $1, $zero, -9;              - addiu $1, $zero, -28671;
+                                                  - shl $1, $1, 28;                   - shl $1, $1, 16
+                                                  - addiu $1, $1, -32768;             - addiu $1, $1, -32768;
+                                                  - addu $sp, $sp, $1;                - addu $sp, $sp, $1;
+  ------  --------------------  ----------------  ----------------------------------  ----------------------------------
+  new     x10000 ~ 0xffffffff   - 0x90008000      - lui	$1, 28671;                    - lui	$1, 36865;
+                                                  - ori	$1, $1, 32768;                - addiu $1, $1, -32768;
+                                                  - addu $sp, $sp, $1;                - addu $sp, $sp, $1;
+  ======  ====================  ================  ==================================  ==================================
+
+
+Assume sp = 0xa0008000 and stack size = 0x90008000, then (0xa0008000 - 
+0x90008000) => 0x10000000. Verify with the Cpu0 Prologue instructions as 
+follows,
+
+1. "lui	$1, 28671" => $1 = 0x6fff0000.
+2. "ori	$1, $1, 32768" => $1 = (0x6fff0000 + 0x00008000) => $1 = 0x6fff8000.
+3. "addu	$sp, $sp, $1" => $sp = (0xa0008000 + 0x6fff8000) => $sp = 0x10000000.
+
+Verify with the Cpu0 Epilogue instructions with sp = 0x10000000 and stack size = 
+0x90008000 as follows,
+
+1. "lui	$1, 36865" => $1 = 0x90010000.
+2. "addiu $1, $1, -32768" => $1 = (0x90010000 + 0xffff8000) => $1 = 0x90008000.
+3. "addu $sp, $sp, $1" => $sp = (0x10000000 + 0x90008000) => $sp = 0xa0008000.
 
 
 
@@ -1443,10 +1519,11 @@ CodeGen/Passes.h for the information. Remember the pass is called according
 the function unit as the ``llc -debug-pass=Structure`` indicated.
 
 We have finished a simple assembler for cpu0 which only support **ld**, 
-**st**, **addiu**, **ori**, **addu**, **shl** and **ret** 7 instructions.
+**st**, **addiu**, **ori**, **lui**, **addu**, **shl** and **ret** 8 
+instructions.
 
 We are satisfied with this result. 
-But you may think “After so many codes we program, and just get these 7 
+But you may think “After so many codes we program, and just get these 8 
 instructions”. 
 The point is we have created a frame work for cpu0 target machine (please 
 look back the llvm back end structure class inherit tree early in this 

@@ -98,6 +98,7 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &MF) const {
 static void expandLargeImm(unsigned Reg, int64_t Imm, 
                            const Cpu0InstrInfo &TII, MachineBasicBlock& MBB,
                            MachineBasicBlock::iterator II, DebugLoc DL) {
+  unsigned LUi = Cpu0::LUi;
   unsigned ADDu = Cpu0::ADDu;
   unsigned ZEROReg = Cpu0::ZERO;
   unsigned ATReg = Cpu0::AT;
@@ -106,8 +107,15 @@ static void expandLargeImm(unsigned Reg, int64_t Imm,
     AnalyzeImm.Analyze(Imm, 32, false /* LastInstrIsADDiu */);
   Cpu0AnalyzeImmediate::InstSeq::const_iterator Inst = Seq.begin();
 
-  BuildMI(MBB, II, DL, TII.get(Inst->Opc), ATReg).addReg(ZEROReg)
-    .addImm(SignExtend64<16>(Inst->ImmOpnd));
+  // The first instruction can be a LUi, which is different from other
+  // instructions (ADDiu, ORI and SLL) in that it does not have a register
+  // operand.
+  if (Inst->Opc == LUi)
+    BuildMI(MBB, II, DL, TII.get(LUi), ATReg)
+      .addImm(SignExtend64<16>(Inst->ImmOpnd));
+  else
+    BuildMI(MBB, II, DL, TII.get(Inst->Opc), ATReg).addReg(ZEROReg)
+      .addImm(SignExtend64<16>(Inst->ImmOpnd));
 
   // Build the remaining instructions in Seq.
   for (++Inst; Inst != Seq.end(); ++Inst)
@@ -133,7 +141,7 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   unsigned LocalVarAreaOffset = Cpu0FI->getMaxCallFrameSize();
   uint64_t StackSize =  RoundUpToAlignment(LocalVarAreaOffset, StackAlign) +
      RoundUpToAlignment(MFI->getStackSize(), StackAlign);
-
+StackSize = 0x90008000;
    // Update stack size
   MFI->setStackSize(StackSize);
 
@@ -203,6 +211,7 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
   // Get the number of bytes from FrameInfo
   uint64_t StackSize = MFI->getStackSize();
 
+StackSize = 0x90008000;
   if (!StackSize)
     return;
 

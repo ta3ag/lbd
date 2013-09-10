@@ -1,6 +1,6 @@
 diff -Naur Chapter3_3/CMakeLists.txt Chapter3_4/CMakeLists.txt
---- Chapter3_3/CMakeLists.txt	2013-07-27 16:51:58.000000000 +0800
-+++ Chapter3_4/CMakeLists.txt	2013-07-27 16:51:58.000000000 +0800
+--- Chapter3_3/CMakeLists.txt	2013-09-10 17:57:15.285606252 +0800
++++ Chapter3_4/CMakeLists.txt	2013-09-10 17:57:15.293606252 +0800
 @@ -23,6 +23,7 @@
  
  # Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen
@@ -11,8 +11,8 @@ diff -Naur Chapter3_3/CMakeLists.txt Chapter3_4/CMakeLists.txt
    Cpu0ISelDAGToDAG.cpp
 diff -Naur Chapter3_3/Cpu0AnalyzeImmediate.cpp Chapter3_4/Cpu0AnalyzeImmediate.cpp
 --- Chapter3_3/Cpu0AnalyzeImmediate.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_4/Cpu0AnalyzeImmediate.cpp	2013-07-27 16:51:58.000000000 +0800
-@@ -0,0 +1,100 @@
++++ Chapter3_4/Cpu0AnalyzeImmediate.cpp	2013-09-10 18:03:40.461606206 +0800
+@@ -0,0 +1,146 @@
 +//===-- Cpu0AnalyzeImmediate.cpp - Analyze Immediates ---------------------===//
 +//
 +//                     The LLVM Compiler Infrastructure
@@ -91,6 +91,51 @@ diff -Naur Chapter3_3/Cpu0AnalyzeImmediate.cpp Chapter3_4/Cpu0AnalyzeImmediate.c
 +  }
 +}
 +
++// Replace a ADDiu & SHL pair with a LUi.
++// e.g. the following two instructions
++//  ADDiu 0x0111
++//  SHL 18
++// are replaced with
++//  LUi 0x444
++void Cpu0AnalyzeImmediate::ReplaceADDiuSHLWithLUi(InstSeq &Seq) {
++  // Check if the first two instructions are ADDiu and SHL and the shift amount
++  // is at least 16.
++  if ((Seq.size() < 2) || (Seq[0].Opc != ADDiu) ||
++      (Seq[1].Opc != SHL) || (Seq[1].ImmOpnd < 16))
++    return;
++
++  // Sign-extend and shift operand of ADDiu and see if it still fits in 16-bit.
++  int64_t Imm = SignExtend64<16>(Seq[0].ImmOpnd);
++  int64_t ShiftedImm = (uint64_t)Imm << (Seq[1].ImmOpnd - 16);
++
++  if (!isInt<16>(ShiftedImm))
++    return;
++
++  // Replace the first instruction and erase the second.
++  Seq[0].Opc = LUi;
++  Seq[0].ImmOpnd = (unsigned)(ShiftedImm & 0xffff);
++  Seq.erase(Seq.begin() + 1);
++}
++
++void Cpu0AnalyzeImmediate::GetShortestSeq(InstSeqLs &SeqLs, InstSeq &Insts) {
++  InstSeqLs::iterator ShortestSeq = SeqLs.end();
++  // The length of an instruction sequence is at most 7.
++  unsigned ShortestLength = 8;
++
++  for (InstSeqLs::iterator S = SeqLs.begin(); S != SeqLs.end(); ++S) {
++    ReplaceADDiuSHLWithLUi(*S);
++    assert(S->size() <= 7);
++
++    if (S->size() < ShortestLength) {
++      ShortestSeq = S;
++      ShortestLength = S->size();
++    }
++  }
++
++  Insts.clear();
++  Insts.append(ShortestSeq->begin(), ShortestSeq->end());
++}
++
 +const Cpu0AnalyzeImmediate::InstSeq
 +&Cpu0AnalyzeImmediate::Analyze(uint64_t Imm, unsigned Size,
 +                               bool LastInstrIsADDiu) {
@@ -99,6 +144,7 @@ diff -Naur Chapter3_3/Cpu0AnalyzeImmediate.cpp Chapter3_4/Cpu0AnalyzeImmediate.c
 +  ADDiu = Cpu0::ADDiu;
 +  ORi = Cpu0::ORi;
 +  SHL = Cpu0::SHL;
++  LUi = Cpu0::LUi;
 +
 +  InstSeqLs SeqLs;
 +
@@ -108,15 +154,15 @@ diff -Naur Chapter3_3/Cpu0AnalyzeImmediate.cpp Chapter3_4/Cpu0AnalyzeImmediate.c
 +  else
 +    GetInstSeqLs(Imm, Size, SeqLs);
 +
-+  Insts.clear();
-+  Insts.append(SeqLs.begin()->begin(), SeqLs.begin()->end());
++  // Set Insts to the shortest instruction sequence.
++  GetShortestSeq(SeqLs, Insts);
 +
 +  return Insts;
 +}
 diff -Naur Chapter3_3/Cpu0AnalyzeImmediate.h Chapter3_4/Cpu0AnalyzeImmediate.h
 --- Chapter3_3/Cpu0AnalyzeImmediate.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_4/Cpu0AnalyzeImmediate.h	2013-07-27 16:51:58.000000000 +0800
-@@ -0,0 +1,56 @@
++++ Chapter3_4/Cpu0AnalyzeImmediate.h	2013-07-29 09:46:53.000000000 +0800
+@@ -0,0 +1,63 @@
 +//===-- Cpu0AnalyzeImmediate.h - Analyze Immediates ------------*- C++ -*--===//
 +//
 +//                     The LLVM Compiler Infrastructure
@@ -166,16 +212,23 @@ diff -Naur Chapter3_3/Cpu0AnalyzeImmediate.h Chapter3_4/Cpu0AnalyzeImmediate.h
 +    /// GetInstSeqLs - Get instrucion sequences to load immediate Imm.
 +    void GetInstSeqLs(uint64_t Imm, unsigned RemSize, InstSeqLs &SeqLs);
 +
++    /// ReplaceADDiuSHLWithLUi - Replace an ADDiu & SHL pair with a LUi.
++    void ReplaceADDiuSHLWithLUi(InstSeq &Seq);
++
++    /// GetShortestSeq - Find the shortest instruction sequence in SeqLs and
++    /// return it in Insts.
++    void GetShortestSeq(InstSeqLs &SeqLs, InstSeq &Insts);
++
 +    unsigned Size;
-+    unsigned ADDiu, ORi, SHL;
++    unsigned ADDiu, ORi, SHL, LUi;
 +    InstSeq Insts;
 +  };
 +}
 +
 +#endif
 diff -Naur Chapter3_3/Cpu0FrameLowering.cpp Chapter3_4/Cpu0FrameLowering.cpp
---- Chapter3_3/Cpu0FrameLowering.cpp	2013-07-27 16:51:58.000000000 +0800
-+++ Chapter3_4/Cpu0FrameLowering.cpp	2013-07-27 16:51:58.000000000 +0800
+--- Chapter3_3/Cpu0FrameLowering.cpp	2013-09-10 17:57:15.285606252 +0800
++++ Chapter3_4/Cpu0FrameLowering.cpp	2013-09-10 18:01:29.701606223 +0800
 @@ -12,6 +12,7 @@
  //===----------------------------------------------------------------------===//
  
@@ -184,7 +237,7 @@ diff -Naur Chapter3_3/Cpu0FrameLowering.cpp Chapter3_4/Cpu0FrameLowering.cpp
  #include "Cpu0InstrInfo.h"
  #include "Cpu0MachineFunction.h"
  #include "llvm/IR/Function.h"
-@@ -90,11 +91,166 @@
+@@ -90,11 +91,174 @@
        MFI->hasVarSizedObjects() || MFI->isFrameAddressTaken();
  }
  
@@ -193,6 +246,7 @@ diff -Naur Chapter3_3/Cpu0FrameLowering.cpp Chapter3_4/Cpu0FrameLowering.cpp
 +static void expandLargeImm(unsigned Reg, int64_t Imm, 
 +                           const Cpu0InstrInfo &TII, MachineBasicBlock& MBB,
 +                           MachineBasicBlock::iterator II, DebugLoc DL) {
++  unsigned LUi = Cpu0::LUi;
 +  unsigned ADDu = Cpu0::ADDu;
 +  unsigned ZEROReg = Cpu0::ZERO;
 +  unsigned ATReg = Cpu0::AT;
@@ -201,8 +255,15 @@ diff -Naur Chapter3_3/Cpu0FrameLowering.cpp Chapter3_4/Cpu0FrameLowering.cpp
 +    AnalyzeImm.Analyze(Imm, 32, false /* LastInstrIsADDiu */);
 +  Cpu0AnalyzeImmediate::InstSeq::const_iterator Inst = Seq.begin();
 +
-+  BuildMI(MBB, II, DL, TII.get(Inst->Opc), ATReg).addReg(ZEROReg)
-+    .addImm(SignExtend64<16>(Inst->ImmOpnd));
++  // The first instruction can be a LUi, which is different from other
++  // instructions (ADDiu, ORI and SLL) in that it does not have a register
++  // operand.
++  if (Inst->Opc == LUi)
++    BuildMI(MBB, II, DL, TII.get(LUi), ATReg)
++      .addImm(SignExtend64<16>(Inst->ImmOpnd));
++  else
++    BuildMI(MBB, II, DL, TII.get(Inst->Opc), ATReg).addReg(ZEROReg)
++      .addImm(SignExtend64<16>(Inst->ImmOpnd));
 +
 +  // Build the remaining instructions in Seq.
 +  for (++Inst; Inst != Seq.end(); ++Inst)
@@ -352,8 +413,8 @@ diff -Naur Chapter3_3/Cpu0FrameLowering.cpp Chapter3_4/Cpu0FrameLowering.cpp
  
  
 diff -Naur Chapter3_3/Cpu0FrameLowering.h Chapter3_4/Cpu0FrameLowering.h
---- Chapter3_3/Cpu0FrameLowering.h	2013-07-27 16:51:58.000000000 +0800
-+++ Chapter3_4/Cpu0FrameLowering.h	2013-07-27 16:51:58.000000000 +0800
+--- Chapter3_3/Cpu0FrameLowering.h	2013-09-10 17:57:15.285606252 +0800
++++ Chapter3_4/Cpu0FrameLowering.h	2013-09-10 17:57:15.293606252 +0800
 @@ -35,6 +35,8 @@
    void emitPrologue(MachineFunction &MF) const;
    void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const;
@@ -364,8 +425,8 @@ diff -Naur Chapter3_3/Cpu0FrameLowering.h Chapter3_4/Cpu0FrameLowering.h
  
  } // End llvm namespace
 diff -Naur Chapter3_3/Cpu0InstrInfo.td Chapter3_4/Cpu0InstrInfo.td
---- Chapter3_3/Cpu0InstrInfo.td	2013-07-27 16:51:58.000000000 +0800
-+++ Chapter3_4/Cpu0InstrInfo.td	2013-07-27 16:51:58.000000000 +0800
+--- Chapter3_3/Cpu0InstrInfo.td	2013-09-10 17:57:15.285606252 +0800
++++ Chapter3_4/Cpu0InstrInfo.td	2013-09-10 15:30:37.000000000 +0800
 @@ -36,6 +36,13 @@
    let DecoderMethod= "DecodeSimm16";
  }
@@ -380,7 +441,21 @@ diff -Naur Chapter3_3/Cpu0InstrInfo.td Chapter3_4/Cpu0InstrInfo.td
  // Address operand
  def mem : Operand<i32> {
    let PrintMethod = "printMemOperand";
-@@ -47,6 +54,20 @@
+@@ -43,10 +50,40 @@
+   let EncoderMethod = "getMemEncoding";
+ }
+ 
++// Transformation Function - get the lower 16 bits.
++def LO16 : SDNodeXForm<imm, [{
++  return getImm(N, N->getZExtValue() & 0xffff);
++}]>;
++
++// Transformation Function - get the higher 16 bits.
++def HI16 : SDNodeXForm<imm, [{
++  return getImm(N, (N->getZExtValue() >> 16) & 0xffff);
++}]>;
++
+ // Node immediate fits as 16-bit sign extended on target immediate.
  // e.g. addi, andi
  def immSExt16  : PatLeaf<(imm), [{ return isInt<16>(N->getSExtValue()); }]>;
  
@@ -393,6 +468,12 @@ diff -Naur Chapter3_3/Cpu0InstrInfo.td Chapter3_4/Cpu0InstrInfo.td
 +    return (uint32_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
 +  else
 +    return (uint64_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
++}], LO16>;
++
++// Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
++def immLow16Zero : PatLeaf<(imm), [{
++  int64_t Val = N->getSExtValue();
++  return isInt<32>(Val) && !(Val & 0xffff);
 +}]>;
 +
 +// shamt field must fit in 5 bits.
@@ -401,7 +482,7 @@ diff -Naur Chapter3_3/Cpu0InstrInfo.td Chapter3_4/Cpu0InstrInfo.td
  // Cpu0 Address Mode! SDNode frameindex could possibily be a match
  // since load and store instructions from stack used it.
  def addr : ComplexPattern<iPTR, 2, "SelectAddr", [frameindex], [SDNPWantParent]>;
-@@ -75,6 +96,17 @@
+@@ -75,6 +112,17 @@
  // Instructions specific format
  //===----------------------------------------------------------------------===//
  
@@ -419,7 +500,7 @@ diff -Naur Chapter3_3/Cpu0InstrInfo.td Chapter3_4/Cpu0InstrInfo.td
  // Arithmetic and logical instructions with 2 register operands.
  class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
                    Operand Od, PatLeaf imm_type, RegisterClass RC> :
-@@ -84,6 +116,22 @@
+@@ -84,6 +132,31 @@
    let isReMaterializable = 1;
  }
  
@@ -439,26 +520,49 @@ diff -Naur Chapter3_3/Cpu0InstrInfo.td Chapter3_4/Cpu0InstrInfo.td
 +                         SDNode OpNode>:
 +  shift_rotate_imm<func, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs>;
 +
++// Load Upper Imediate
++class LoadUpper<bits<8> op, string instr_asm, RegisterClass RC, Operand Imm>:
++  FL<op, (outs RC:$ra), (ins Imm:$imm16),
++     !strconcat(instr_asm, "\t$ra, $imm16"), [], IIAlu> {
++  let rb = 0;
++  let neverHasSideEffects = 1;
++  let isReMaterializable = 1;
++}
++
  class FMem<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern,
            InstrItinClass itin>: FL<op, outs, ins, asmstr, pattern, itin> {
    bits<20> addr;
-@@ -138,6 +186,13 @@
+@@ -138,6 +211,14 @@
  /// Arithmetic Instructions (ALU Immediate)
  // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
  def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
-+def ORi     : ArithLogicI<0x0D, "ori", or, uimm16, immZExt16, CPURegs>;
++def ORi     : ArithLogicI<0x0d, "ori", or, uimm16, immZExt16, CPURegs>;
++def LUi     : LoadUpper<0x0f, "lui", CPURegs, uimm16>;
 +
 +/// Arithmetic Instructions (3-Operand, R-Type)
 +def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
 +
 +/// Shift Instructions
-+def SHL     : shift_rotate_imm32<0x1E, 0x00, "shl", shl>;
++def SHL     : shift_rotate_imm32<0x1e, 0x00, "shl", shl>;
  
  let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
      isBarrier=1, hasCtrlDep=1 in
+@@ -152,3 +233,12 @@
+ 
+ def : Pat<(i32 immSExt16:$in),
+           (ADDiu ZERO, imm:$in)>;
++def : Pat<(i32 immZExt16:$in),
++          (ORi ZERO, imm:$in)>;
++def : Pat<(i32 immLow16Zero:$in),
++          (LUi (HI16 imm:$in))>;
++
++// Arbitrary immediates
++def : Pat<(i32 imm:$imm),
++          (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
++
 diff -Naur Chapter3_3/Cpu0RegisterInfo.cpp Chapter3_4/Cpu0RegisterInfo.cpp
---- Chapter3_3/Cpu0RegisterInfo.cpp	2013-07-27 16:51:58.000000000 +0800
-+++ Chapter3_4/Cpu0RegisterInfo.cpp	2013-07-27 16:51:58.000000000 +0800
+--- Chapter3_3/Cpu0RegisterInfo.cpp	2013-09-10 17:57:15.285606252 +0800
++++ Chapter3_4/Cpu0RegisterInfo.cpp	2013-09-10 17:57:15.297606252 +0800
 @@ -80,6 +80,7 @@
    return Reserved;
  }

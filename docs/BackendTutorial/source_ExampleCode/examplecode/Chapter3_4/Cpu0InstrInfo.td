@@ -50,6 +50,16 @@ def mem : Operand<i32> {
   let EncoderMethod = "getMemEncoding";
 }
 
+// Transformation Function - get the lower 16 bits.
+def LO16 : SDNodeXForm<imm, [{
+  return getImm(N, N->getZExtValue() & 0xffff);
+}]>;
+
+// Transformation Function - get the higher 16 bits.
+def HI16 : SDNodeXForm<imm, [{
+  return getImm(N, (N->getZExtValue() >> 16) & 0xffff);
+}]>;
+
 // Node immediate fits as 16-bit sign extended on target immediate.
 // e.g. addi, andi
 def immSExt16  : PatLeaf<(imm), [{ return isInt<16>(N->getSExtValue()); }]>;
@@ -63,6 +73,12 @@ def immZExt16  : PatLeaf<(imm), [{
     return (uint32_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
   else
     return (uint64_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
+}], LO16>;
+
+// Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
+def immLow16Zero : PatLeaf<(imm), [{
+  int64_t Val = N->getSExtValue();
+  return isInt<32>(Val) && !(Val & 0xffff);
 }]>;
 
 // shamt field must fit in 5 bits.
@@ -132,6 +148,15 @@ class shift_rotate_imm32<bits<8> func, bits<4> isRotate, string instr_asm,
                          SDNode OpNode>:
   shift_rotate_imm<func, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs>;
 
+// Load Upper Imediate
+class LoadUpper<bits<8> op, string instr_asm, RegisterClass RC, Operand Imm>:
+  FL<op, (outs RC:$ra), (ins Imm:$imm16),
+     !strconcat(instr_asm, "\t$ra, $imm16"), [], IIAlu> {
+  let rb = 0;
+  let neverHasSideEffects = 1;
+  let isReMaterializable = 1;
+}
+
 class FMem<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern,
           InstrItinClass itin>: FL<op, outs, ins, asmstr, pattern, itin> {
   bits<20> addr;
@@ -186,17 +211,18 @@ defm ST     : StoreM32<0x02, "st",  store_a>;
 /// Arithmetic Instructions (ALU Immediate)
 // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
 def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
-def ORi     : ArithLogicI<0x0D, "ori", or, uimm16, immZExt16, CPURegs>;
+def ORi     : ArithLogicI<0x0d, "ori", or, uimm16, immZExt16, CPURegs>;
+def LUi     : LoadUpper<0x0f, "lui", CPURegs, uimm16>;
 
 /// Arithmetic Instructions (3-Operand, R-Type)
 def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
 
 /// Shift Instructions
-def SHL     : shift_rotate_imm32<0x1E, 0x00, "shl", shl>;
+def SHL     : shift_rotate_imm32<0x1e, 0x00, "shl", shl>;
 
 let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
     isBarrier=1, hasCtrlDep=1 in
-  def RET : FJ <0x2C, (outs), (ins CPURegs:$target),
+  def RET : FJ <0x2c, (outs), (ins CPURegs:$target),
                 "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch>;
 
 //===----------------------------------------------------------------------===//
@@ -207,3 +233,12 @@ let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
 
 def : Pat<(i32 immSExt16:$in),
           (ADDiu ZERO, imm:$in)>;
+def : Pat<(i32 immZExt16:$in),
+          (ORi ZERO, imm:$in)>;
+def : Pat<(i32 immLow16Zero:$in),
+          (LUi (HI16 imm:$in))>;
+
+// Arbitrary immediates
+def : Pat<(i32 imm:$imm),
+          (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
+
