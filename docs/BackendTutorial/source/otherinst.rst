@@ -20,7 +20,7 @@ Finally, `section Operator mod, %`_ take care the C operator %.
 Support arithmetic instructions
 --------------------------------
 
-Run the Chapter3_5/Cpu0 ``llc`` with input file ch4_1_1.bc will get the error as 
+Run the Chapter3_4/Cpu0 ``llc`` with input file ch4_1_1.bc will get the error as 
 follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_1_1.cpp
