@@ -1,6 +1,6 @@
 diff -Naur Chapter6_2/Cpu0ISelLowering.cpp Chapter6_3/Cpu0ISelLowering.cpp
---- Chapter6_2/Cpu0ISelLowering.cpp	2013-07-27 16:51:58.000000000 +0800
-+++ Chapter6_3/Cpu0ISelLowering.cpp	2013-07-27 16:51:58.000000000 +0800
+--- Chapter6_2/Cpu0ISelLowering.cpp	2013-09-12 01:09:59.000000000 +0800
++++ Chapter6_3/Cpu0ISelLowering.cpp	2013-09-12 01:10:00.000000000 +0800
 @@ -122,6 +122,16 @@
    // Set up the register classes
    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
@@ -19,9 +19,9 @@ diff -Naur Chapter6_2/Cpu0ISelLowering.cpp Chapter6_3/Cpu0ISelLowering.cpp
    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
  
 diff -Naur Chapter6_2/Cpu0InstrInfo.td Chapter6_3/Cpu0InstrInfo.td
---- Chapter6_2/Cpu0InstrInfo.td	2013-07-27 16:51:58.000000000 +0800
-+++ Chapter6_3/Cpu0InstrInfo.td	2013-07-27 16:51:58.000000000 +0800
-@@ -128,7 +128,11 @@
+--- Chapter6_2/Cpu0InstrInfo.td	2013-09-12 01:09:59.000000000 +0800
++++ Chapter6_3/Cpu0InstrInfo.td	2013-09-12 01:16:23.000000000 +0800
+@@ -133,7 +133,11 @@
  }]>;
  
  // Load/Store PatFrags.
@@ -33,7 +33,7 @@ diff -Naur Chapter6_2/Cpu0InstrInfo.td Chapter6_3/Cpu0InstrInfo.td
  def store_a         : AlignedStore<store>;
  
  //===----------------------------------------------------------------------===//
-@@ -281,6 +285,12 @@
+@@ -304,6 +308,12 @@
  ///  aligned
  defm LD     : LoadM32<0x01,  "ld",  load_a>;
  defm ST     : StoreM32<0x02, "st",  store_a>;
@@ -46,14 +46,14 @@ diff -Naur Chapter6_2/Cpu0InstrInfo.td Chapter6_3/Cpu0InstrInfo.td
  
  /// Arithmetic Instructions (ALU Immediate)
  // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
-@@ -360,6 +370,10 @@
- def : Pat<(not CPURegs:$in),
-           (XOR CPURegs:$in, (ADDiu ZERO, 1))>;
+@@ -395,6 +405,10 @@
+ // 1: in == 0; 0: in != 0
+           (XORi CPURegs:$in, 1)>;
  
 +def : Pat<(i32 (extloadi1  addr:$src)), (LBu addr:$src)>;
 +def : Pat<(i32 (extloadi8  addr:$src)), (LBu addr:$src)>;
 +def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
 +
- // setcc patterns
- multiclass SeteqPats<RegisterClass RC, Instruction XOROp> {
-   def : Pat<(seteq RC:$lhs, RC:$rhs),
+ // Sign Extend in Register. 
+ // Get the least 7bits from register $in and signed bit (the 31th bit) from the 
+ // 8th bit of register $in.

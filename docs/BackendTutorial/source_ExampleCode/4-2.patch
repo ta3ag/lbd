@@ -1,18 +1,123 @@
 diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
---- Chapter4_1/Cpu0InstrInfo.td	2013-07-27 16:51:58.000000000 +0800
-+++ Chapter4_2/Cpu0InstrInfo.td	2013-07-27 16:51:58.000000000 +0800
-@@ -230,3 +230,14 @@
+--- Chapter4_1/Cpu0InstrInfo.td	2013-09-12 00:02:17.000000000 +0800
++++ Chapter4_2/Cpu0InstrInfo.td	2013-09-12 00:42:24.000000000 +0800
+@@ -138,6 +138,16 @@
+   let isReMaterializable = 1;
+ }
  
- def : Pat<(i32 immSExt16:$in),
-           (ADDiu ZERO, imm:$in)>;
-+
-+def : Pat<(not CPURegs:$in),
-+          (XOR CPURegs:$in, (ADDiu ZERO, 1))>;
-+
-+// setcc patterns
-+multiclass SeteqPats<RegisterClass RC, Instruction XOROp> {
-+  def : Pat<(seteq RC:$lhs, RC:$rhs),
-+            (XOROp (XOROp RC:$lhs, RC:$rhs), (ADDiu ZERO, 1))>;
++class CmpInstr<bits<8> op, string instr_asm, 
++               InstrItinClass itin, RegisterClass RC, RegisterClass RD, 
++               bit isComm = 0>:
++  FA<op, (outs RD:$rc), (ins RC:$ra, RC:$rb),
++     !strconcat(instr_asm, "\t$rc, $ra, $rb"), [], itin> {
++  let rc = 0;
++  let shamt = 0;
++  let isCommutable = isComm;
 +}
 +
-+defm : SeteqPats<CPURegs, XOR>;
+ // Arithmetic and logical instructions with 2 register operands.
+ class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
+                   Operand Od, PatLeaf imm_type, RegisterClass RC> :
+@@ -285,15 +295,21 @@
+ /// Arithmetic Instructions (ALU Immediate)
+ // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
+ def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
++def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs>;
+ def ORi     : ArithLogicI<0x0d, "ori", or, uimm16, immZExt16, CPURegs>;
++def XORi    : ArithLogicI<0x0e, "xori", xor, uimm16, immZExt16, CPURegs>;
+ def LUi     : LoadUpper<0x0f, "lui", CPURegs, uimm16>;
+ 
+ /// Arithmetic Instructions (3-Operand, R-Type)
++def CMP     : CmpInstr<0x10, "cmp", IIAlu, CPURegs, SR, 0>;
+ def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
+ def SUBu    : ArithLogicR<0x12, "subu", sub, IIAlu, CPURegs>;
+ def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
+ def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
+ def MUL     : ArithLogicR<0x17, "mul", mul, IIImul, CPURegs, 1>;
++def AND     : ArithLogicR<0x18, "and", and, IIAlu, CPURegs, 1>;
++def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
++def XOR     : ArithLogicR<0x1a, "xor", xor, IIAlu, CPURegs, 1>;
+ 
+ /// Shift Instructions
+ // sra is IR node for ashr llvm IR instruction of .bc
+@@ -352,3 +368,70 @@
+ def : Pat<(i32 imm:$imm),
+           (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
+ 
++def : Pat<(not CPURegs:$in),
++// 1: in == 0; 0: in != 0
++          (XORi CPURegs:$in, 1)>;
++
++// Sign Extend in Register. 
++// Get the least 7bits from register $in and signed bit (the 31th bit) from the 
++// 8th bit of register $in.
++def : Pat<(sext_inreg CPURegs:$in, i8),
++          (OR (ANDi CPURegs:$in, 0x0080), (ANDi CPURegs:$in, 0x007f))>;
++// Get the least 15bits from register $in and signed bit (the 31th bit) from the 
++// 16th bit of register $in.
++def : Pat<(sext_inreg CPURegs:$in, i8),
++          (OR (ANDi CPURegs:$in, 0x8000), (ANDi CPURegs:$in, 0x7fff))>;
++
++// setcc patterns
++multiclass SeteqPats<RegisterClass RC> {
++// a == b
++  def : Pat<(seteq RC:$lhs, RC:$rhs),
++            (SHR (ANDi (CMP RC:$lhs, RC:$rhs), 2), 1)>;
++// a != b
++  def : Pat<(setne RC:$lhs, RC:$rhs),
++            (XORi (SHR (ANDi (CMP RC:$lhs, RC:$rhs), 2), 1), 1)>;
++}
++
++// a < b
++multiclass SetltPats<RegisterClass RC> {
++  def : Pat<(setlt RC:$lhs, RC:$rhs),
++            (ANDi (CMP RC:$lhs, RC:$rhs), 1)>;
++// if cpu0  `define N    `SW[31]  instead of `SW[0] // Negative flag, then need
++// 2 more instructions as follows,
++//          (XORi (ANDi (SHR (CMP RC:$lhs, RC:$rhs), (LUi 0x8000), 31), 1), 1)>;
++  def : Pat<(setult RC:$lhs, RC:$rhs),
++            (ANDi (CMP RC:$lhs, RC:$rhs), 1)>;
++}
++
++// a <= b
++multiclass SetlePats<RegisterClass RC> {
++  def : Pat<(setle RC:$lhs, RC:$rhs),
++// a <= b is equal to (XORi (b < a), 1)
++            (XORi (ANDi (CMP RC:$rhs, RC:$lhs), 1), 1)>;
++  def : Pat<(setule RC:$lhs, RC:$rhs),
++            (XORi (ANDi (CMP RC:$rhs, RC:$lhs), 1), 1)>;
++}
++
++// a > b
++multiclass SetgtPats<RegisterClass RC> {
++  def : Pat<(setgt RC:$lhs, RC:$rhs),
++// a > b is equal to b < a is equal to setlt(b, a)
++            (ANDi (CMP RC:$rhs, RC:$lhs), 1)>;
++  def : Pat<(setugt RC:$lhs, RC:$rhs),
++            (ANDi (CMP RC:$rhs, RC:$lhs), 1)>;
++}
++
++// a >= b
++multiclass SetgePats<RegisterClass RC> {
++  def : Pat<(setge RC:$lhs, RC:$rhs),
++// a >= b is equal to b <= a
++            (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
++  def : Pat<(setuge RC:$lhs, RC:$rhs),
++            (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
++}
++
++defm : SeteqPats<CPURegs>;
++defm : SetltPats<CPURegs>;
++defm : SetlePats<CPURegs>;
++defm : SetgtPats<CPURegs>;
++defm : SetgePats<CPURegs>;
+diff -Naur Chapter4_1/Cpu0RegisterInfo.td Chapter4_2/Cpu0RegisterInfo.td
+--- Chapter4_1/Cpu0RegisterInfo.td	2013-09-12 00:02:17.000000000 +0800
++++ Chapter4_2/Cpu0RegisterInfo.td	2013-09-12 00:37:17.000000000 +0800
+@@ -75,3 +75,6 @@
+ 
+ // Hi/Lo Registers
+ def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
++
++// Status Registers
++def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;

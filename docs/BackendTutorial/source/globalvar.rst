@@ -1017,7 +1017,7 @@ displayed in comments of Cpu0MCInstLower.cpp.
 
   118-165-76-131:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=
-  obj ch8_2.bc -o ch8_2.cpu0.o
+  obj ch6_1.bc -o ch6_1.cpu0.o
   118-165-76-131:InputFiles Jonathan$ gobjdump -s ch6_1.cpu0.o 
 
   ch6_1.cpu0.o:     file format elf32-big
