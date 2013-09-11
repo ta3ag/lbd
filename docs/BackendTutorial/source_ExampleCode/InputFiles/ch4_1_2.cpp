@@ -10,24 +10,12 @@ int main()
 {
   int a = 5;
   int b = 2;
-  int c = 0;
   int d = 0;
-  int e, f, g, h, i, j, k, l = 0;
-  unsigned int a1 = -5, k1 = 0, f1 = 0;
+  unsigned int a1 = -5, d1 = 0;
 
-  c = a + b;
-  d = a - b;
-  e = a * b;
-  f = a / b;
-  f1 = a1 / b;
-  g = (a & b);
-  h = (a | b);
-  i = (a ^ b);
-  j = (a << 2);
-  int j1 = (a1 << 2);
-  k = (a >> 2);
-  k1 = (a1 >> 2);
+  d = a / b;
+  d1 = a1 / b;
 
-  return c;
+  return d;
 }
 

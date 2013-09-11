@@ -23,21 +23,21 @@ cp -rf Chapter3_4 ${GEN_DIR}/.
 patch -fp0 < 4-1.patch
 mv Chapter3_4 Chapter4_1
 cp -rf Chapter4_1 ${GEN_DIR}/.
-patch -fp0 < 4-2.patch
-mv Chapter4_1 Chapter4_2
-cp -rf Chapter4_2 ${GEN_DIR}/.
-patch -fp0 < 4-4.patch
-mv Chapter4_2 Chapter4_4
-cp -rf Chapter4_4 ${GEN_DIR}/.
-patch -fp0 < 4-5_1.patch
-mv Chapter4_4 Chapter4_5_1
-cp -rf Chapter4_5_1 ${GEN_DIR}/.
-patch -fp0 < 4-5_2.patch
-mv Chapter4_5_1 Chapter4_5_2
-cp -rf Chapter4_5_2 ${GEN_DIR}/.
-patch -fp0 < 4-6.patch
-mv Chapter4_5_2 Chapter4_6
-cp -rf Chapter4_6 ${GEN_DIR}/.
+#patch -fp0 < 4-2.patch
+#mv Chapter4_1 Chapter4_2
+#cp -rf Chapter4_2 ${GEN_DIR}/.
+#patch -fp0 < 4-4.patch
+#mv Chapter4_2 Chapter4_4
+#cp -rf Chapter4_4 ${GEN_DIR}/.
+#patch -fp0 < 4-5_1.patch
+#mv Chapter4_4 Chapter4_5_1
+#cp -rf Chapter4_5_1 ${GEN_DIR}/.
+#patch -fp0 < 4-5_2.patch
+#mv Chapter4_5_1 Chapter4_5_2
+#cp -rf Chapter4_5_2 ${GEN_DIR}/.
+#patch -fp0 < 4-6.patch
+#mv Chapter4_5_2 Chapter4_6
+#cp -rf Chapter4_6 ${GEN_DIR}/.
 patch -fp0 < 5-1.patch
 mv Chapter4_6 Chapter5_1
 cp -rf Chapter5_1 ${GEN_DIR}/.
