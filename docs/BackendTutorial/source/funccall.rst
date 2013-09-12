@@ -1326,7 +1326,7 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
   
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0MCInstLower.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0MCInstLower.cpp
-    :start-after: CreateMCInst(MCInsts[3], Cpu0::ADD, GPReg, GPReg, T9Reg);
+    :start-after: // Lower ".cprestore offset" to "st $gp, offset($sp)"
     :end-before: MCOperand Cpu0MCInstLower::LowerOperand
     :linenos:
 

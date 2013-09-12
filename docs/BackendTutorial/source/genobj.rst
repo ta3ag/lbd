@@ -71,6 +71,7 @@ Run it will get the obj files as follows,
    0000 00000010 00000000 017a5200 017c0e01  .........zR..|..
    0010 1b0c0d00 00000010 00000018 00000000  ................
    0020 000000d8 00440e28                    .....D.(                    
+   
   [Gamma@localhost InputFiles]$ /usr/local/llvm/test/
   cmake_debug_build/bin/llc -march=cpu0el -relocation-model=pic -filetype=obj 
   ch4_1.bc -o ch4_1.cpu0el.o 
