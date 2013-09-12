@@ -1,24 +1,24 @@
 diff -Naur Chapter8_3/Cpu0FrameLowering.cpp Chapter8_4/Cpu0FrameLowering.cpp
---- Chapter8_3/Cpu0FrameLowering.cpp	2013-07-27 16:51:58.000000000 +0800
-+++ Chapter8_4/Cpu0FrameLowering.cpp	2013-07-27 16:51:58.000000000 +0800
-@@ -124,6 +124,9 @@
+--- Chapter8_3/Cpu0FrameLowering.cpp	2013-09-12 13:40:11.001587474 +0800
++++ Chapter8_4/Cpu0FrameLowering.cpp	2013-09-12 13:55:45.061587361 +0800
+@@ -132,6 +132,9 @@
    MachineBasicBlock::iterator MBBI = MBB.begin();
    DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
    unsigned SP = Cpu0::SP;
 +  unsigned FP = Cpu0::FP;
 +  unsigned ZERO = Cpu0::ZERO;
-+  unsigned ADD = Cpu0::ADD;
++  unsigned ADDu = Cpu0::ADDu;
    unsigned ADDiu = Cpu0::ADDiu;
    // First, compute final stack size.
    unsigned StackAlign = getStackAlignment();
-@@ -187,6 +190,20 @@
+@@ -195,6 +198,20 @@
      }
    }
    
 +  // if framepointer enabled, set it to point to the stack pointer.
 +  if (hasFP(MF)) {
 +    // Insert instruction "move $fp, $sp" at this location.
-+    BuildMI(MBB, MBBI, dl, TII.get(ADD), FP).addReg(SP).addReg(ZERO);
++    BuildMI(MBB, MBBI, dl, TII.get(ADDu), FP).addReg(SP).addReg(ZERO);
 +
 +    // emit ".cfi_def_cfa_register $fp"
 +    MCSymbol *SetFPLabel = MMI.getContext().CreateTempSymbol();
@@ -32,13 +32,13 @@ diff -Naur Chapter8_3/Cpu0FrameLowering.cpp Chapter8_4/Cpu0FrameLowering.cpp
    // Restore GP from the saved stack location
    if (Cpu0FI->needGPSaveRestore()) {
      unsigned Offset = MFI->getObjectOffset(Cpu0FI->getGPFI());
-@@ -204,8 +221,23 @@
+@@ -212,8 +229,23 @@
      *static_cast<const Cpu0InstrInfo*>(MF.getTarget().getInstrInfo());
    DebugLoc dl = MBBI->getDebugLoc();
    unsigned SP = Cpu0::SP;
 +  unsigned FP = Cpu0::FP;
 +  unsigned ZERO = Cpu0::ZERO;
-+  unsigned ADD = Cpu0::ADD;
++  unsigned ADDu = Cpu0::ADDu;
    unsigned ADDiu = Cpu0::ADDiu;
  
 +  // if framepointer enabled, restore the stack pointer.
@@ -50,13 +50,13 @@ diff -Naur Chapter8_3/Cpu0FrameLowering.cpp Chapter8_4/Cpu0FrameLowering.cpp
 +      --I;
 +
 +    // Insert instruction "move $sp, $fp" at this location.
-+    BuildMI(MBB, I, dl, TII.get(ADD), SP).addReg(FP).addReg(ZERO);
++    BuildMI(MBB, I, dl, TII.get(ADDu), SP).addReg(FP).addReg(ZERO);
 +  }
 +
    // Get the number of bytes from FrameInfo
    uint64_t StackSize = MFI->getStackSize();
  
-@@ -221,6 +253,37 @@
+@@ -229,6 +261,37 @@
    }
  }
  
@@ -94,7 +94,7 @@ diff -Naur Chapter8_3/Cpu0FrameLowering.cpp Chapter8_4/Cpu0FrameLowering.cpp
  // This function eliminate ADJCALLSTACKDOWN,
  // ADJCALLSTACKUP pseudo instructions
  void Cpu0FrameLowering::
-@@ -256,6 +319,12 @@
+@@ -264,6 +327,12 @@
  processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
                                       RegScavenger *RS) const {
    MachineRegisterInfo& MRI = MF.getRegInfo();
@@ -108,8 +108,8 @@ diff -Naur Chapter8_3/Cpu0FrameLowering.cpp Chapter8_4/Cpu0FrameLowering.cpp
    // FIXME: remove this code if register allocator can correctly mark
    //        $fp and $ra used or unused.
 diff -Naur Chapter8_3/Cpu0FrameLowering.h Chapter8_4/Cpu0FrameLowering.h
---- Chapter8_3/Cpu0FrameLowering.h	2013-07-27 16:51:58.000000000 +0800
-+++ Chapter8_4/Cpu0FrameLowering.h	2013-07-27 16:51:58.000000000 +0800
+--- Chapter8_3/Cpu0FrameLowering.h	2013-09-12 13:40:10.989587474 +0800
++++ Chapter8_4/Cpu0FrameLowering.h	2013-09-12 13:40:11.001587474 +0800
 @@ -38,6 +38,10 @@
    void eliminateCallFramePseudoInstr(MachineFunction &MF,
                                       MachineBasicBlock &MBB,
@@ -122,8 +122,8 @@ diff -Naur Chapter8_3/Cpu0FrameLowering.h Chapter8_4/Cpu0FrameLowering.h
                                              RegScavenger *RS) const;
  };
 diff -Naur Chapter8_3/Cpu0ISelLowering.cpp Chapter8_4/Cpu0ISelLowering.cpp
---- Chapter8_3/Cpu0ISelLowering.cpp	2013-07-27 16:51:58.000000000 +0800
-+++ Chapter8_4/Cpu0ISelLowering.cpp	2013-07-27 16:51:58.000000000 +0800
+--- Chapter8_3/Cpu0ISelLowering.cpp	2013-09-12 13:40:10.989587474 +0800
++++ Chapter8_4/Cpu0ISelLowering.cpp	2013-09-12 13:40:11.001587474 +0800
 @@ -141,6 +141,7 @@
    // Cpu0 Custom Operations
    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
@@ -367,8 +367,8 @@ diff -Naur Chapter8_3/Cpu0ISelLowering.cpp Chapter8_4/Cpu0ISelLowering.cpp
  
    // Add the flag if we have it.
 diff -Naur Chapter8_3/Cpu0ISelLowering.h Chapter8_4/Cpu0ISelLowering.h
---- Chapter8_3/Cpu0ISelLowering.h	2013-07-27 16:51:58.000000000 +0800
-+++ Chapter8_4/Cpu0ISelLowering.h	2013-07-27 16:51:58.000000000 +0800
+--- Chapter8_3/Cpu0ISelLowering.h	2013-09-12 13:40:10.989587474 +0800
++++ Chapter8_4/Cpu0ISelLowering.h	2013-09-12 13:40:11.001587474 +0800
 @@ -96,6 +96,7 @@
      // Lower Operand specifics
      SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
@@ -378,8 +378,8 @@ diff -Naur Chapter8_3/Cpu0ISelLowering.h Chapter8_4/Cpu0ISelLowering.h
  	//- must be exist without function all
      virtual SDValue
 diff -Naur Chapter8_3/Cpu0RegisterInfo.cpp Chapter8_4/Cpu0RegisterInfo.cpp
---- Chapter8_3/Cpu0RegisterInfo.cpp	2013-07-27 16:51:58.000000000 +0800
-+++ Chapter8_4/Cpu0RegisterInfo.cpp	2013-07-27 16:51:58.000000000 +0800
+--- Chapter8_3/Cpu0RegisterInfo.cpp	2013-09-12 13:40:11.001587474 +0800
++++ Chapter8_4/Cpu0RegisterInfo.cpp	2013-09-12 13:40:11.013587474 +0800
 @@ -77,6 +77,11 @@
    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
      Reserved.set(ReservedCPURegs[I]);

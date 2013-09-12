@@ -1,7 +1,7 @@
 diff -Naur Chapter8_4/Cpu0InstrInfo.cpp Chapter8_4_2/Cpu0InstrInfo.cpp
---- Chapter8_4/Cpu0InstrInfo.cpp	2013-07-27 16:51:58.000000000 +0800
-+++ Chapter8_4_2/Cpu0InstrInfo.cpp	2013-07-27 16:51:58.000000000 +0800
-@@ -45,6 +45,8 @@
+--- Chapter8_4/Cpu0InstrInfo.cpp	2013-09-12 13:24:26.145587585 +0800
++++ Chapter8_4_2/Cpu0InstrInfo.cpp	2013-09-12 13:24:26.233587585 +0800
+@@ -46,6 +46,8 @@
        Opc = Cpu0::MFLO, SrcReg = 0;
      else if (SrcReg == Cpu0::SW)	// add $ra, $ZERO, $SW
        Opc = Cpu0::ADD, ZeroReg = Cpu0::ZERO;
@@ -10,7 +10,7 @@ diff -Naur Chapter8_4/Cpu0InstrInfo.cpp Chapter8_4_2/Cpu0InstrInfo.cpp
    }
    else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
      if (DestReg == Cpu0::HI)
-@@ -55,6 +57,8 @@
+@@ -56,6 +58,8 @@
      //  cmp $SW, $ZERO, $rc
      else if (DestReg == Cpu0::SW)
        Opc = Cpu0::CMP, ZeroReg = Cpu0::ZERO;
@@ -20,9 +20,9 @@ diff -Naur Chapter8_4/Cpu0InstrInfo.cpp Chapter8_4_2/Cpu0InstrInfo.cpp
  
    assert(Opc && "Cannot copy registers");
 diff -Naur Chapter8_4/Cpu0InstrInfo.td Chapter8_4_2/Cpu0InstrInfo.td
---- Chapter8_4/Cpu0InstrInfo.td	2013-07-27 16:51:58.000000000 +0800
-+++ Chapter8_4_2/Cpu0InstrInfo.td	2013-07-27 16:51:58.000000000 +0800
-@@ -363,6 +363,36 @@
+--- Chapter8_4/Cpu0InstrInfo.td	2013-09-12 13:24:26.145587585 +0800
++++ Chapter8_4_2/Cpu0InstrInfo.td	2013-09-12 13:24:26.233587585 +0800
+@@ -376,6 +376,36 @@
    let neverHasSideEffects = 1;
  }
  
@@ -59,18 +59,9 @@ diff -Naur Chapter8_4/Cpu0InstrInfo.td Chapter8_4_2/Cpu0InstrInfo.td
  class EffectiveAddress<string instr_asm, RegisterClass RC, Operand Mem> :
    FMem<0x09, (outs RC:$ra), (ins Mem:$addr),
       instr_asm, [(set RC:$ra, addr:$addr)], IIAlu>;
-@@ -416,7 +446,7 @@
- /// Arithmetic Instructions (3-Operand, R-Type)
- def CMP     : CmpInstr<0x10, "cmp", IIAlu, CPURegs, SR, 0>;
- def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
--def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
-+//def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
- def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
- def MUL     : ArithLogicR<0x15, "mul", mul, IIImul, CPURegs, 1>;
- def SDIV    : Div32<Cpu0DivRem, 0x16, "div", IIIdiv>;
-@@ -433,6 +463,10 @@
- def MTHI : MoveToLOHI<0x42, "mthi", CPURegs, [HI]>;
- def MTLO : MoveToLOHI<0x43, "mtlo", CPURegs, [LO]>;
+@@ -440,6 +470,10 @@
+ def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
+ def XOR     : ArithLogicR<0x1a, "xor", xor, IIAlu, CPURegs, 1>;
  
 +def MFACC : MoveFromACC<0x44, "mfacc", CPURegs, [ACC]>;
 +def MTACC : MoveToACC<0x45, "mtacc", CPURegs, [ACC]>;
@@ -78,10 +69,10 @@ diff -Naur Chapter8_4/Cpu0InstrInfo.td Chapter8_4_2/Cpu0InstrInfo.td
 +
  /// Shift Instructions
  // sra is IR node for ashr llvm IR instruction of .bc
- def SRA     : shift_rotate_imm32<0x1B, 0x00, "sra", sra>;
-@@ -512,6 +546,12 @@
- def : Pat<(i32 (extloadi8  addr:$src)), (LBu addr:$src)>;
- def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
+ def ROL     : shift_rotate_imm32<0x1b, 0x01, "rol", rotl>;
+@@ -546,6 +580,12 @@
+ def : Pat<(sext_inreg CPURegs:$in, i8),
+           (OR (ANDi CPURegs:$in, 0x8000), (ANDi CPURegs:$in, 0x7fff))>;
  
 +def : Pat<(add RACC:$lhs, CPURegs:$rhs),
 +          (ADD RACC:$lhs, CPURegs:$rhs)>;
@@ -93,8 +84,8 @@ diff -Naur Chapter8_4/Cpu0InstrInfo.td Chapter8_4_2/Cpu0InstrInfo.td
  multiclass BrcondPats<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
  Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp, 
 diff -Naur Chapter8_4/Cpu0RegisterInfo.td Chapter8_4_2/Cpu0RegisterInfo.td
---- Chapter8_4/Cpu0RegisterInfo.td	2013-07-27 16:51:58.000000000 +0800
-+++ Chapter8_4_2/Cpu0RegisterInfo.td	2013-07-27 16:51:58.000000000 +0800
+--- Chapter8_4/Cpu0RegisterInfo.td	2013-09-12 13:24:26.145587585 +0800
++++ Chapter8_4_2/Cpu0RegisterInfo.td	2013-09-12 13:24:26.233587585 +0800
 @@ -51,6 +51,8 @@
    // Hi/Lo registers
    def HI   : Register<"hi">, DwarfRegNum<[18]>;
