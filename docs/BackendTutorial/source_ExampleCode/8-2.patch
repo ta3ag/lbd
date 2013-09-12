@@ -1,6 +1,6 @@
 diff -Naur Chapter8_1/Cpu0InstrInfo.cpp Chapter8_2/Cpu0InstrInfo.cpp
---- Chapter8_1/Cpu0InstrInfo.cpp	2013-09-12 16:56:38.381586066 +0800
-+++ Chapter8_2/Cpu0InstrInfo.cpp	2013-09-12 16:56:38.365586066 +0800
+--- Chapter8_1/Cpu0InstrInfo.cpp	2013-09-12 16:58:23.049586055 +0800
++++ Chapter8_2/Cpu0InstrInfo.cpp	2013-09-12 16:58:23.033586055 +0800
 @@ -82,6 +82,25 @@
                                   MFI.getObjectSize(FI), Align);
  }
@@ -28,8 +28,8 @@ diff -Naur Chapter8_1/Cpu0InstrInfo.cpp Chapter8_2/Cpu0InstrInfo.cpp
  loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                       unsigned DestReg, int FI,
 diff -Naur Chapter8_1/Cpu0InstrInfo.h Chapter8_2/Cpu0InstrInfo.h
---- Chapter8_1/Cpu0InstrInfo.h	2013-09-12 16:56:38.381586066 +0800
-+++ Chapter8_2/Cpu0InstrInfo.h	2013-09-12 16:56:38.365586066 +0800
+--- Chapter8_1/Cpu0InstrInfo.h	2013-09-12 16:58:23.049586055 +0800
++++ Chapter8_2/Cpu0InstrInfo.h	2013-09-12 16:58:23.033586055 +0800
 @@ -36,12 +36,18 @@
    ///
    virtual const Cpu0RegisterInfo &getRegisterInfo() const;
@@ -51,8 +51,8 @@ diff -Naur Chapter8_1/Cpu0InstrInfo.h Chapter8_2/Cpu0InstrInfo.h
                                      MachineBasicBlock::iterator MBBI,
                                      unsigned DestReg, int FrameIndex,
 diff -Naur Chapter8_1/Cpu0InstrInfo.td Chapter8_2/Cpu0InstrInfo.td
---- Chapter8_1/Cpu0InstrInfo.td	2013-09-12 16:56:38.381586066 +0800
-+++ Chapter8_2/Cpu0InstrInfo.td	2013-09-12 16:56:38.365586066 +0800
+--- Chapter8_1/Cpu0InstrInfo.td	2013-09-12 16:58:23.049586055 +0800
++++ Chapter8_2/Cpu0InstrInfo.td	2013-09-12 16:58:23.033586055 +0800
 @@ -28,6 +28,9 @@
  
  def SDT_Cpu0JmpLink      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
@@ -98,9 +98,9 @@ diff -Naur Chapter8_1/Cpu0InstrInfo.td Chapter8_2/Cpu0InstrInfo.td
  //===----------------------------------------------------------------------===//
  
 diff -Naur Chapter8_1/Cpu0ISelLowering.cpp Chapter8_2/Cpu0ISelLowering.cpp
---- Chapter8_1/Cpu0ISelLowering.cpp	2013-09-12 16:56:38.381586066 +0800
-+++ Chapter8_2/Cpu0ISelLowering.cpp	2013-09-12 16:56:38.365586066 +0800
-@@ -282,7 +282,233 @@
+--- Chapter8_1/Cpu0ISelLowering.cpp	2013-09-12 16:58:23.049586055 +0800
++++ Chapter8_2/Cpu0ISelLowering.cpp	2013-09-12 18:06:01.777585569 +0800
+@@ -282,7 +282,255 @@
  SDValue
  Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                                SmallVectorImpl<SDValue> &InVals) const {
@@ -179,6 +179,28 @@ diff -Naur Chapter8_1/Cpu0ISelLowering.cpp Chapter8_2/Cpu0ISelLowering.cpp
 +      assert("!!!Error!!!, Flags.isByVal()==true");
 +      assert(Flags.getByValSize() &&
 +             "ByVal args of size 0 should have been ignored by front-end.");
++      continue;
++    }
++
++    // Promote the value if needed.
++    switch (VA.getLocInfo()) {
++    default: llvm_unreachable("Unknown loc info!");
++    case CCValAssign::Full:
++      break;
++    case CCValAssign::SExt:
++      Arg = DAG.getNode(ISD::SIGN_EXTEND, dl, LocVT, Arg);
++      break;
++    case CCValAssign::ZExt:
++      Arg = DAG.getNode(ISD::ZERO_EXTEND, dl, LocVT, Arg);
++      break;
++    case CCValAssign::AExt:
++      Arg = DAG.getNode(ISD::ANY_EXTEND, dl, LocVT, Arg);
++      break;
++    }
++    // Arguments that can be passed on register must be kept at
++    // RegsToPass vector
++    if (VA.isRegLoc()) {
++      RegsToPass.push_back(std::make_pair(VA.getLocReg(), Arg));
 +      continue;
 +    }
 +
@@ -335,14 +357,14 @@ diff -Naur Chapter8_1/Cpu0ISelLowering.cpp Chapter8_2/Cpu0ISelLowering.cpp
  }
  
  /// LowerFormalArguments - transform physical registers into virtual registers
-@@ -370,3 +596,4 @@
+@@ -370,3 +618,4 @@
    // The Mips target isn't yet aware of offsets.
    return false;
  }
 +
 diff -Naur Chapter8_1/Cpu0ISelLowering.h Chapter8_2/Cpu0ISelLowering.h
---- Chapter8_1/Cpu0ISelLowering.h	2013-09-12 16:56:38.381586066 +0800
-+++ Chapter8_2/Cpu0ISelLowering.h	2013-09-12 16:56:38.365586066 +0800
+--- Chapter8_1/Cpu0ISelLowering.h	2013-09-12 16:58:23.049586055 +0800
++++ Chapter8_2/Cpu0ISelLowering.h	2013-09-12 16:58:23.033586055 +0800
 @@ -85,6 +85,13 @@
    private:
      // Subtarget Info
