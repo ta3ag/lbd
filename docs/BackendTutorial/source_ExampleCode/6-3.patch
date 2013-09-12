@@ -1,6 +1,6 @@
 diff -Naur Chapter6_2/Cpu0InstrInfo.td Chapter6_3/Cpu0InstrInfo.td
---- Chapter6_2/Cpu0InstrInfo.td	2013-09-12 16:56:38.373586066 +0800
-+++ Chapter6_3/Cpu0InstrInfo.td	2013-09-12 16:56:38.365586066 +0800
+--- Chapter6_2/Cpu0InstrInfo.td	2013-09-12 18:31:13.609585390 +0800
++++ Chapter6_3/Cpu0InstrInfo.td	2013-09-12 18:31:13.601585390 +0800
 @@ -133,7 +133,11 @@
  }]>;
  
@@ -38,8 +38,8 @@ diff -Naur Chapter6_2/Cpu0InstrInfo.td Chapter6_3/Cpu0InstrInfo.td
  // Get the least 7bits from register $in and signed bit (the 31th bit) from the 
  // 8th bit of register $in.
 diff -Naur Chapter6_2/Cpu0ISelLowering.cpp Chapter6_3/Cpu0ISelLowering.cpp
---- Chapter6_2/Cpu0ISelLowering.cpp	2013-09-12 16:56:38.373586066 +0800
-+++ Chapter6_3/Cpu0ISelLowering.cpp	2013-09-12 16:56:38.365586066 +0800
+--- Chapter6_2/Cpu0ISelLowering.cpp	2013-09-12 18:31:13.609585390 +0800
++++ Chapter6_3/Cpu0ISelLowering.cpp	2013-09-12 18:31:13.601585390 +0800
 @@ -122,6 +122,16 @@
    // Set up the register classes
    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);

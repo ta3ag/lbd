@@ -1,6 +1,6 @@
 diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
---- Chapter4_1/Cpu0InstrInfo.td	2013-09-12 16:56:38.381586066 +0800
-+++ Chapter4_2/Cpu0InstrInfo.td	2013-09-12 16:56:38.369586066 +0800
+--- Chapter4_1/Cpu0InstrInfo.td	2013-09-12 18:31:13.617585390 +0800
++++ Chapter4_2/Cpu0InstrInfo.td	2013-09-12 18:31:13.605585390 +0800
 @@ -138,6 +138,16 @@
    let isReMaterializable = 1;
  }
@@ -112,8 +112,8 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +defm : SetgtPats<CPURegs>;
 +defm : SetgePats<CPURegs>;
 diff -Naur Chapter4_1/Cpu0RegisterInfo.td Chapter4_2/Cpu0RegisterInfo.td
---- Chapter4_1/Cpu0RegisterInfo.td	2013-09-12 16:56:38.381586066 +0800
-+++ Chapter4_2/Cpu0RegisterInfo.td	2013-09-12 16:56:38.369586066 +0800
+--- Chapter4_1/Cpu0RegisterInfo.td	2013-09-12 18:31:13.617585390 +0800
++++ Chapter4_2/Cpu0RegisterInfo.td	2013-09-12 18:31:13.605585390 +0800
 @@ -75,3 +75,6 @@
  
  // Hi/Lo Registers
