@@ -173,13 +173,13 @@ The following table details the Cpu0 instruction set:
     - 0E
     - XOR
     - XORi Ra, Rb, Cx
-    - Ra <= (Rb ^ Cx)
-	* - L
-	  - LUi
-	  - 0F
-	  - Load upper
-	  - LUi Ra, Cx
-	  - Ra <= (Cx << 16)
+    - Ra <= (Rb \^ Cx)
+  * - L
+    - LUi
+    - 0F
+    - Load upper
+    - LUi Ra, Cx
+    - Ra <= (Cx << 16)
   * - A
     - CMP
     - 10
@@ -250,8 +250,8 @@ The following table details the Cpu0 instruction set:
     - SRA
     - 1D
     - Shift right
-    - SHR Ra, Rb, Cx
-    - Ra <= ((Rb&'h80000000)|Rb>>Cx)
+    - SRA Ra, Rb, Cx
+    - Ra <= Rb '>> Cx [#sra-note]_
   * - A
     - SHL
     - 1E
@@ -268,19 +268,19 @@ The following table details the Cpu0 instruction set:
     - SRAV
     - 20
     - Shift right
-    - SHR Ra, Rb, Rc
-    - Ra <= ((Rb&'h80000000)|Rb>>Rc)
+    - SRAV Ra, Rb, Rc
+    - Ra <= Rb '>> Rc [#sra-note]_
   * - A
     - SHLV
     - 21
     - Shift left
-    - SHL Ra, Rb, Rc
+    - SHLV Ra, Rb, Rc
     - Ra <= Rb << Rc
   * - A
     - SHRV
     - 22
     - Shift right
-    - SHR Ra, Rb, Rc
+    - SHRV Ra, Rb, Rc
     - Ra <= Rb >> Rc
   * - J
     - JEQ
@@ -1166,6 +1166,8 @@ The error message say we didn't define our target machine.
 .. [#cpu0-english] English translation of Cpu0 description. http://translate.google.com.tw/translate?js=n&prev=_t&hl=zh-TW&ie=UTF-8&layout=2&eotf=1&sl=zh-CN&tl=en&u=http://ccckmit.wikidot.com/ocs:cpu0
 
 .. [#cond-note] Conditions include the following comparisons: >, >=, ==, !=, <=, <. SW is actually set by the subtraction of the two register operands, and the flags indicate which conditions are present.
+
+.. [#sra-note] Rb '>> Cx, Rb '>> Rc: Shift with signed bit remain. It's equal to ((Rb&'h80000000)|Rb>>Cx) or ((Rb&'h80000000)|Rb>>Rc).
 
 .. [#aosa-book] Chris Lattner, **LLVM**. Published in The Architecture of Open Source Applications. http://www.aosabook.org/en/llvm.html
 

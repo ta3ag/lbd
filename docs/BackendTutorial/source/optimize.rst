@@ -198,313 +198,314 @@ Redesign Cpu0 instruction set and remap OP code as follows (OP code
 	:widths: 1 4 3 11 7 10
 	:header-rows: 1
 
-	* - F\.
-	  - Mnemonic
-	  - Opcode
-	  - Meaning
-	  - Syntax
-	  - Operation
+
+  * - F\.
+    - Mnemonic
+    - Opcode
+    - Meaning
+    - Syntax
+    - Operation
   * - L
     - NOP
     - 00
     - No Operation
     - 
     - 
-	* - L
-	  - LD
-	  - 01
-	  - Load word
-	  - LD Ra, [Rb+Cx]
-	  - Ra <= [Rb+Cx]
-	* - L
-	  - ST
-	  - 02
-	  - Store word
-	  - ST Ra, [Rb+Cx]
-	  - [Rb+Cx] <= Ra
-	* - L
-	  - LB
-	  - 03
-	  - Load byte
-	  - LB Ra, [Rb+Cx]
-	  - Ra <= (byte)[Rb+Cx]
-	* - L
-	  - LBu
-	  - 04
-	  - Load byte unsigned
-	  - LBu Ra, [Rb+Cx]
-	  - Ra <= (byte)[Rb+Cx]
-	* - L
-	  - SB
-	  - 05
-	  - Store byte
-	  - SB Ra, [Rb+Cx]
-	  - [Rb+Cx] <= (byte)Ra
-	* - A
-	  - LH
-	  - 06
-	  - Load half word unsigned
-	  - LH Ra, [Rb+Cx]
-	  - Ra <= (2bytes)[Rb+Cx]
-	* - A
-	  - LHu
-	  - 07
-	  - Load half word
-	  - LHu Ra, [Rb+Cx]
-	  - Ra <= (2bytes)[Rb+Cx]
-	* - A
-	  - SH
-	  - 08
-	  - Store half word
-	  - SH Ra, [Rb+Cx]
-	  - [Rb+Rc] <= Ra
-	* - L
-	  - ADDiu
-	  - 09
-	  - Add immediate
-	  - ADDiu Ra, Rb, Cx
-	  - Ra <= (Rb + Cx)
-	* - L
-	  - ANDi
-	  - 0C
-	  - AND imm
-	  - ANDi Ra, Rb, Cx
-	  - Ra <= (Rb & Cx)
-	* - L
-	  - ORi
-	  - 0D
-	  - OR
-	  - ORi Ra, Rb, Cx
-	  - Ra <= (Rb | Cx)
-	* - L
-	  - XORi
-	  - 0E
-	  - XOR
-	  - XORi Ra, Rb, Cx
-	  - Ra <= (Rb ^ Cx)
-	* - L
-	  - LUi
-	  - 0F
-	  - Load upper
-	  - LUi Ra, Cx
-	  - Ra <= (Cx << 16)
-	* - A
-	  - ADDu
-	  - 11
-	  - Add unsigned
-	  - ADD Ra, Rb, Rc
-	  - Ra <= Rb + Rc
-	* - A
-	  - SUBu
-	  - 12
-	  - Sub unsigned
-	  - SUB Ra, Rb, Rc
-	  - Ra <= Rb - Rc
-	* - A
-	  - ADD
-	  - 13
-	  - Add
-	  - ADD Ra, Rb, Rc
-	  - Ra <= Rb + Rc
-	* - A
-	  - SUB
-	  - 14
-	  - Subtract
-	  - SUB Ra, Rb, Rc
-	  - Ra <= Rb - Rc
-	* - A
-	  - MUL
-	  - 17
-	  - Multiply
-	  - MUL Ra, Rb, Rc
-	  - Ra <= Rb * Rc
-	* - A
-	  - AND
-	  - 18
-	  - Bitwise and
-	  - AND Ra, Rb, Rc
-	  - Ra <= Rb & Rc
-	* - A
-	  - OR
-	  - 19
-	  - Bitwise or
-	  - OR Ra, Rb, Rc
-	  - Ra <= Rb | Rc
-	* - A
-	  - XOR
-	  - 1A
-	  - Bitwise exclusive or
-	  - XOR Ra, Rb, Rc
-	  - Ra <= Rb ^ Rc
+  * - L
+    - LD
+    - 01
+    - Load word
+    - LD Ra, [Rb+Cx]
+    - Ra <= [Rb+Cx]
+  * - L
+    - ST
+    - 02
+    - Store word
+    - ST Ra, [Rb+Cx]
+    - [Rb+Cx] <= Ra
+  * - L
+    - LB
+    - 03
+    - Load byte
+    - LB Ra, [Rb+Cx]
+    - Ra <= (byte)[Rb+Cx]
+  * - L
+    - LBu
+    - 04
+    - Load byte unsigned
+    - LBu Ra, [Rb+Cx]
+    - Ra <= (byte)[Rb+Cx]
+  * - L
+    - SB
+    - 05
+    - Store byte
+    - SB Ra, [Rb+Cx]
+    - [Rb+Cx] <= (byte)Ra
   * - A
-	  - ROL
-	  - 1B
-	  - Rotate left
-	  - ROL Ra, Rb, Cx
-	  - Ra <= Rb rol Cx
+    - LH
+    - 06
+    - Load half word unsigned
+    - LH Ra, [Rb+Cx]
+    - Ra <= (2bytes)[Rb+Cx]
   * - A
-	  - ROR
-	  - 1C
-	  - Rotate right
-	  - ROR Ra, Rb, Cx
-	  - Ra <= Rb ror Cx
+    - LHu
+    - 07
+    - Load half word
+    - LHu Ra, [Rb+Cx]
+    - Ra <= (2bytes)[Rb+Cx]
+  * - A
+    - SH
+    - 08
+    - Store half word
+    - SH Ra, [Rb+Cx]
+    - [Rb+Rc] <= Ra
+  * - L
+    - ADDiu
+    - 09
+    - Add immediate
+    - ADDiu Ra, Rb, Cx
+    - Ra <= (Rb + Cx)
+  * - L
+    - ANDi
+    - 0C
+    - AND imm
+    - ANDi Ra, Rb, Cx
+    - Ra <= (Rb & Cx)
+  * - L
+    - ORi
+    - 0D
+    - OR
+    - ORi Ra, Rb, Cx
+    - Ra <= (Rb | Cx)
+  * - L
+    - XORi
+    - 0E
+    - XOR
+    - XORi Ra, Rb, Cx
+    - Ra <= (Rb \^ Cx)
+  * - L
+    - LUi
+    - 0F
+    - Load upper
+    - LUi Ra, Cx
+    - Ra <= (Cx << 16)
+  * - A
+    - ADDu
+    - 11
+    - Add unsigned
+    - ADD Ra, Rb, Rc
+    - Ra <= Rb + Rc
+  * - A
+    - SUBu
+    - 12
+    - Sub unsigned
+    - SUB Ra, Rb, Rc
+    - Ra <= Rb - Rc
+  * - A
+    - ADD
+    - 13
+    - Add
+    - ADD Ra, Rb, Rc
+    - Ra <= Rb + Rc
+  * - A
+    - SUB
+    - 14
+    - Subtract
+    - SUB Ra, Rb, Rc
+    - Ra <= Rb - Rc
+  * - A
+    - MUL
+    - 17
+    - Multiply
+    - MUL Ra, Rb, Rc
+    - Ra <= Rb * Rc
+  * - A
+    - AND
+    - 18
+    - Bitwise and
+    - AND Ra, Rb, Rc
+    - Ra <= Rb & Rc
+  * - A
+    - OR
+    - 19
+    - Bitwise or
+    - OR Ra, Rb, Rc
+    - Ra <= Rb | Rc
+  * - A
+    - XOR
+    - 1A
+    - Bitwise exclusive or
+    - XOR Ra, Rb, Rc
+    - Ra <= Rb ^ Rc
+  * - A
+    - ROL
+    - 1B
+    - Rotate left
+    - ROL Ra, Rb, Cx
+    - Ra <= Rb rol Cx
+  * - A
+    - ROR
+    - 1C
+    - Rotate right
+    - ROR Ra, Rb, Cx
+    - Ra <= Rb ror Cx
   * - A
     - SRA
     - 1D
     - Shift right
+    - SRA Ra, Rb, Cx
+    - Ra <= Rb '>> Cx [#sra-note]_
+  * - A
+    - SHL
+    - 1E
+    - Shift left
+    - SHL Ra, Rb, Cx
+    - Ra <= Rb << Cx
+  * - A
+    - SHR
+    - 1F
+    - Shift right
     - SHR Ra, Rb, Cx
-    - Ra <= ((Rb&'h80000000)|Rb>>Cx)
-  * - A
-	  - SHL
-	  - 1E
-	  - Shift left
-	  - SHL Ra, Rb, Cx
-	  - Ra <= Rb << Cx
-  * - A
-	  - SHR
-	  - 1F
-	  - Shift right
-	  - SHR Ra, Rb, Cx
-	  - Ra <= Rb >> Cx
+    - Ra <= Rb >> Cx
   * - A
     - SRAV
     - 20
     - Shift right
-    - SHR Ra, Rb, Rc
-    - Ra <= ((Rb&'h80000000)|Rb>>Rc)
+    - SRAV Ra, Rb, Rc
+    - Ra <= Rb '>> Rc [#sra-note]_
   * - A
     - SHLV
     - 21
     - Shift left
-    - SHL Ra, Rb, Rc
+    - SHLV Ra, Rb, Rc
     - Ra <= Rb << Rc
   * - A
     - SHRV
     - 22
     - Shift right
-    - SHR Ra, Rb, Rc
+    - SHRV Ra, Rb, Rc
     - Ra <= Rb >> Rc
   * - L
-	  - BEQ
-	  - 30
-	  - Jump if equal
-	  - BEQ Ra, Rb, Cx
-	  - if (Ra==Rb), PC <= PC + Cx
+    - BEQ
+    - 30
+    - Jump if equal
+    - BEQ Ra, Rb, Cx
+    - if (Ra==Rb), PC <= PC + Cx
   * - L
-	  - BNE
-	  - 31
-	  - Jump if not equal
-	  - BNE Ra, Rb, Cx
-	  - if (Ra!=Rb), PC <= PC + Cx
+    - BNE
+    - 31
+    - Jump if not equal
+    - BNE Ra, Rb, Cx
+    - if (Ra!=Rb), PC <= PC + Cx
   * - J
-	  - JMP
-	  - 36
-	  - Jump (unconditional)
-	  - JMP Cx
-	  - PC <= PC + Cx
+    - JMP
+    - 36
+    - Jump (unconditional)
+    - JMP Cx
+    - PC <= PC + Cx
   * - J
-	  - SWI
-	  - 3A
-	  - Software interrupt
-	  - SWI Cx
-	  - LR <= PC; PC <= Cx
+    - SWI
+    - 3A
+    - Software interrupt
+    - SWI Cx
+    - LR <= PC; PC <= Cx
   * - J
-	  - JSUB
-	  - 3B
-	  - Jump to subroutine
-	  - JSUB Cx
-	  - LR <= PC; PC <= PC + Cx
+    - JSUB
+    - 3B
+    - Jump to subroutine
+    - JSUB Cx
+    - LR <= PC; PC <= PC + Cx
   * - J
-	  - RET
-	  - 3C
-	  - Return from subroutine
-	  - RET Cx
-	  - PC <= LR
+    - RET
+    - 3C
+    - Return from subroutine
+    - RET LR
+    - PC <= LR
   * - J
-	  - IRET
-	  - 3D
-	  - Return from interrupt handler
-	  - IRET
-	  - PC <= LR; INT 0
+    - IRET
+    - 3D
+    - Return from interrupt handler
+    - IRET
+    - PC <= LR; INT 0
   * - J
     - JALR
     - 3E
     - Jump to subroutine
     - JR Rb
     - LR <= PC; PC <= Rb
-	* - L
-	  - SLTi
-	  - 26
-	  - Set less Then
-	  - SLTi Ra, Rb, Cx
-	  - Ra <= (Rb < Cx)
-	* - L
-	  - SLTiu
-	  - 27
-	  - SLTi unsigned 
-	  - SLTiu Ra, Rb, Cx
-	  - Ra <= (Rb < Cx)
-	* - A
-	  - SLT
-	  - 28
-	  - Set less Then
-	  - SLT Ra, Rb, Rc
-	  - Ra <= (Rb < Rc)
-	* - A
-	  - SLTu
-	  - 29
-	  - SLT unsigned
-	  - SLTu Ra, Rb, Rc
-	  - Ra <= (Rb < Rc)
   * - L
-	  - MULT
-	  - 41
-	  - Multiply for 64 bits result
-	  - MULT Ra, Rb
-	  - (HI,LO) <= MULT(Ra,Rb)
+    - SLTi
+    - 26
+    - Set less Then
+    - SLTi Ra, Rb, Cx
+    - Ra <= (Rb < Cx)
   * - L
-	  - MULTU
-	  - 42
-	  - MULT for unsigned 64 bits
-	  - MULTU Ra, Rb
-	  - (HI,LO) <= MULTU(Ra,Rb)
-	* - L
-	  - DIV
-	  - 43
-	  - Divide
-	  - DIV Ra, Rb
-	  - HI<=Ra%Rb, LO<=Ra/Rb
-	* - L
-	  - DIVu
-	  - 44
-	  - Div unsigned
-	  - DIVu Ra, Rb
-	  - HI<=Ra%Rb, LO<=Ra/Rb
+    - SLTiu
+    - 27
+    - SLTi unsigned 
+    - SLTiu Ra, Rb, Cx
+    - Ra <= (Rb < Cx)
+  * - A
+    - SLT
+    - 28
+    - Set less Then
+    - SLT Ra, Rb, Rc
+    - Ra <= (Rb < Rc)
+  * - A
+    - SLTu
+    - 29
+    - SLT unsigned
+    - SLTu Ra, Rb, Rc
+    - Ra <= (Rb < Rc)
   * - L
-	  - MFHI
-	  - 46
-	  - Move HI to GPR
-	  - MFHI Ra
-	  - Ra <= HI
+    - MULT
+    - 41
+    - Multiply for 64 bits result
+    - MULT Ra, Rb
+    - (HI,LO) <= MULT(Ra,Rb)
   * - L
-	  - MFLO
-	  - 47
-	  - Move LO to GPR
-	  - MFLO Ra
-	  - Ra <= LO
+    - MULTU
+    - 42
+    - MULT for unsigned 64 bits
+    - MULTU Ra, Rb
+    - (HI,LO) <= MULTU(Ra,Rb)
   * - L
-	  - MTHI
-	  - 48
-	  - Move GPR to HI
-	  - MTHI Ra
-	  - HI <= Ra
+    - DIV
+    - 43
+    - Divide
+    - DIV Ra, Rb
+    - HI<=Ra%Rb, LO<=Ra/Rb
   * - L
-	  - MTLO
-	  - 49
-	  - Move GPR to LO
-	  - MTLO Ra
-	  - LO <= Ra
-	  
+    - DIVU
+    - 44
+    - Divide
+    - DIV Ra, Rb
+    - HI<=Ra%Rb, LO<=Ra/Rb
+  * - L
+    - MFHI
+    - 46
+    - Move HI to GPR
+    - MFHI Ra
+    - Ra <= HI
+  * - L
+    - MFLO
+    - 47
+    - Move LO to GPR
+    - MFLO Ra
+    - Ra <= LO
+  * - L
+    - MTHI
+    - 48
+    - Move GPR to HI
+    - MTHI Ra
+    - HI <= Ra
+  * - L
+    - MTLO
+    - 49
+    - Move GPR to LO
+    - MTLO Ra
+    - LO <= Ra
+
 
 As above, the OPu, such as ADDu is for unsigned integer or No Trigger 
 Exception. The LUi for example, "LUi $2, 0x7000", load 0x700 to high 16 bits 
@@ -1206,4 +1207,6 @@ to 1 single instruction ether is BEQ or BNE, as follows,
 
 The ch11_3.cpp is written in assembly for AsmParser test. You can check if it 
 will generate the obj.
+
+.. [#sra-note] Rb '>> Cx, Rb '>> Rc: Shift with signed bit remain. It's equal to ((Rb&'h80000000)|Rb>>Cx) or ((Rb&'h80000000)|Rb>>Rc).
 
