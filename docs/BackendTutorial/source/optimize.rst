@@ -204,6 +204,12 @@ Redesign Cpu0 instruction set and remap OP code as follows (OP code
 	  - Meaning
 	  - Syntax
 	  - Operation
+  * - L
+    - NOP
+    - 00
+    - No Operation
+    - 
+    - 
 	* - L
 	  - LD
 	  - 01
@@ -259,18 +265,6 @@ Redesign Cpu0 instruction set and remap OP code as follows (OP code
 	  - ADDiu Ra, Rb, Cx
 	  - Ra <= (Rb + Cx)
 	* - L
-	  - SLTi
-	  - 0A
-	  - Set less Then
-	  - SLTi Ra, Rb, Cx
-	  - Ra <= (Rb < Cx)
-	* - L
-	  - SLTiu
-	  - 0B
-	  - SLTi unsigned 
-	  - SLTiu Ra, Rb, Cx
-	  - Ra <= (Rb < Cx)
-	* - L
 	  - ANDi
 	  - 0C
 	  - AND imm
@@ -293,7 +287,7 @@ Redesign Cpu0 instruction set and remap OP code as follows (OP code
 	  - 0F
 	  - Load upper
 	  - LUi Ra, Cx
-	  - Ra <= (Cx||0x0000)
+	  - Ra <= (Cx << 16)
 	* - A
 	  - ADDu
 	  - 11
@@ -320,22 +314,10 @@ Redesign Cpu0 instruction set and remap OP code as follows (OP code
 	  - Ra <= Rb - Rc
 	* - A
 	  - MUL
-	  - 15
+	  - 17
 	  - Multiply
 	  - MUL Ra, Rb, Rc
 	  - Ra <= Rb * Rc
-	* - A
-	  - DIV
-	  - 16
-	  - Divide
-	  - DIV Ra, Rb
-	  - HI<=Ra%Rb, LO<=Ra/Rb
-	* - A
-	  - DIVu
-	  - 16
-	  - Div unsigned
-	  - DIVu Ra, Rb
-	  - HI<=Ra%Rb, LO<=Ra/Rb
 	* - A
 	  - AND
 	  - 18
@@ -354,126 +336,174 @@ Redesign Cpu0 instruction set and remap OP code as follows (OP code
 	  - Bitwise exclusive or
 	  - XOR Ra, Rb, Rc
 	  - Ra <= Rb ^ Rc
-  	* - A
+  * - A
 	  - ROL
-	  - 1C
+	  - 1B
 	  - Rotate left
 	  - ROL Ra, Rb, Cx
 	  - Ra <= Rb rol Cx
-  	* - A
+  * - A
 	  - ROR
-	  - 1D
+	  - 1C
 	  - Rotate right
 	  - ROR Ra, Rb, Cx
 	  - Ra <= Rb ror Cx
-   	* - A
+  * - A
+    - SRA
+    - 1D
+    - Shift right
+    - SHR Ra, Rb, Cx
+    - Ra <= ((Rb&'h80000000)|Rb>>Cx)
+  * - A
 	  - SHL
 	  - 1E
 	  - Shift left
 	  - SHL Ra, Rb, Cx
 	  - Ra <= Rb << Cx
-   	* - A
+  * - A
 	  - SHR
 	  - 1F
 	  - Shift right
 	  - SHR Ra, Rb, Cx
 	  - Ra <= Rb >> Cx
-   	* - L
+  * - A
+    - SRAV
+    - 20
+    - Shift right
+    - SHR Ra, Rb, Rc
+    - Ra <= ((Rb&'h80000000)|Rb>>Rc)
+  * - A
+    - SHLV
+    - 21
+    - Shift left
+    - SHL Ra, Rb, Rc
+    - Ra <= Rb << Rc
+  * - A
+    - SHRV
+    - 22
+    - Shift right
+    - SHR Ra, Rb, Rc
+    - Ra <= Rb >> Rc
+  * - L
 	  - BEQ
-	  - 20
+	  - 30
 	  - Jump if equal
 	  - BEQ Ra, Rb, Cx
 	  - if (Ra==Rb), PC <= PC + Cx
-   	* - L
+  * - L
 	  - BNE
-	  - 21
+	  - 31
 	  - Jump if not equal
 	  - BNE Ra, Rb, Cx
 	  - if (Ra!=Rb), PC <= PC + Cx
-   	* - J
+  * - J
 	  - JMP
-	  - 26
+	  - 36
 	  - Jump (unconditional)
 	  - JMP Cx
 	  - PC <= PC + Cx
-   	* - J
+  * - J
 	  - SWI
-	  - 2A
+	  - 3A
 	  - Software interrupt
 	  - SWI Cx
 	  - LR <= PC; PC <= Cx
-   	* - J
+  * - J
 	  - JSUB
-	  - 2B
+	  - 3B
 	  - Jump to subroutine
 	  - JSUB Cx
 	  - LR <= PC; PC <= PC + Cx
-   	* - J
+  * - J
 	  - RET
-	  - 2C
+	  - 3C
 	  - Return from subroutine
 	  - RET Cx
 	  - PC <= LR
-   	* - J
+  * - J
 	  - IRET
-	  - 2D
+	  - 3D
 	  - Return from interrupt handler
 	  - IRET
 	  - PC <= LR; INT 0
-   	* - J
-	  - JR
-	  - 2E
-	  - Jump to subroutine
-	  - JR Rb
-	  - LR <= PC; PC <= Rb
+  * - J
+    - JALR
+    - 3E
+    - Jump to subroutine
+    - JR Rb
+    - LR <= PC; PC <= Rb
+	* - L
+	  - SLTi
+	  - 26
+	  - Set less Then
+	  - SLTi Ra, Rb, Cx
+	  - Ra <= (Rb < Cx)
+	* - L
+	  - SLTiu
+	  - 27
+	  - SLTi unsigned 
+	  - SLTiu Ra, Rb, Cx
+	  - Ra <= (Rb < Cx)
 	* - A
 	  - SLT
-	  - 30
+	  - 28
 	  - Set less Then
 	  - SLT Ra, Rb, Rc
 	  - Ra <= (Rb < Rc)
 	* - A
 	  - SLTu
-	  - 31
+	  - 29
 	  - SLT unsigned
 	  - SLTu Ra, Rb, Rc
 	  - Ra <= (Rb < Rc)
-   	* - L
-	  - MFHI
-	  - 40
-	  - Move HI to GPR
-	  - MFHI Ra
-	  - Ra <= HI
-   	* - L
-	  - MFLO
-	  - 41
-	  - Move LO to GPR
-	  - MFLO Ra
-	  - Ra <= LO
-   	* - L
-	  - MTHI
-	  - 42
-	  - Move GPR to HI
-	  - MTHI Ra
-	  - HI <= Ra
-   	* - L
-	  - MTLO
-	  - 43
-	  - Move GPR to LO
-	  - MTLO Ra
-	  - LO <= Ra
-   	* - L
+  * - L
 	  - MULT
-	  - 50
+	  - 41
 	  - Multiply for 64 bits result
 	  - MULT Ra, Rb
 	  - (HI,LO) <= MULT(Ra,Rb)
-   	* - L
+  * - L
 	  - MULTU
-	  - 51
+	  - 42
 	  - MULT for unsigned 64 bits
 	  - MULTU Ra, Rb
 	  - (HI,LO) <= MULTU(Ra,Rb)
+	* - L
+	  - DIV
+	  - 43
+	  - Divide
+	  - DIV Ra, Rb
+	  - HI<=Ra%Rb, LO<=Ra/Rb
+	* - L
+	  - DIVu
+	  - 44
+	  - Div unsigned
+	  - DIVu Ra, Rb
+	  - HI<=Ra%Rb, LO<=Ra/Rb
+  * - L
+	  - MFHI
+	  - 46
+	  - Move HI to GPR
+	  - MFHI Ra
+	  - Ra <= HI
+  * - L
+	  - MFLO
+	  - 47
+	  - Move LO to GPR
+	  - MFLO Ra
+	  - Ra <= LO
+  * - L
+	  - MTHI
+	  - 48
+	  - Move GPR to HI
+	  - MTHI Ra
+	  - HI <= Ra
+  * - L
+	  - MTLO
+	  - 49
+	  - Move GPR to LO
+	  - MTLO Ra
+	  - LO <= Ra
 	  
 
 As above, the OPu, such as ADDu is for unsigned integer or No Trigger 

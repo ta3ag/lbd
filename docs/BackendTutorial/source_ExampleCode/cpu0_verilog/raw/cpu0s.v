@@ -53,15 +53,15 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   LHu=8'h07,SH=8'h08,ADDiu=8'h09,ANDi=8'h0C,ORi=8'h0D,
   XORi=8'h0E,LUi=8'h0F,
   CMP=8'h10,
-  ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,MUL=8'h15,DIV=8'h16,DIVu=8'h17,
+  ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,MUL=8'h17,
   AND=8'h18,OR=8'h19,XOR=8'h1A,
   ROL=8'h1B,ROR=8'h1C,SRA=8'h1D,SHL=8'h1E,SHR=8'h1F,
   SRAV=8'h20,SHLV=8'h21,SHRV=8'h22,
   JEQ=8'h30,JNE=8'h31,JLT=8'h32,JGT=8'h33,JLE=8'h34,JGE=8'h35,
   JMP=8'h36,
   SWI=8'h3A,JSUB=8'h3B,RET=8'h3C,IRET=8'h3D,JALR=8'h3E,
-  MFHI=8'h40,MFLO=8'h41,MTHI=8'h42,MTLO=8'h43,
-  MULT=8'h50,MULTu=8'h51;
+  MULT=8'h41,MULTu=8'h42,DIV=8'h43,DIVu=8'h44,
+  MFHI=8'h46,MFLO=8'h47,MTHI=8'h48,MTLO=8'h49;
 
   reg [0:0] inInt = 0;
   reg [2:0] state, next_state; 
@@ -213,6 +213,9 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       MULT:  {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
                             // LO<=((Ra*Rb) and 0x00000000ffffffff);
                             // with exception overflow
+      MULTu: {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
+                            // LO<=((Ra*Rb) and 0x00000000ffffffff);
+                            // without exception overflow
       // Jump Instructions
       JEQ:   if (`Z) `PC=`PC+c24;            // JEQ Cx; if SW(=) PC  PC+Cx
       JNE:   if (!`Z) `PC=`PC+c24;           // JNE Cx; if SW(!=) PC PC+Cx

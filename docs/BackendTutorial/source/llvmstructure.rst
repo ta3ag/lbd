@@ -97,6 +97,12 @@ The following table details the Cpu0 instruction set:
     - Syntax
     - Operation
   * - L
+    - NOP
+    - 00
+    - No Operation
+    - 
+    - 
+  * - L
     - LD
     - 01
     - Load word
@@ -168,6 +174,12 @@ The following table details the Cpu0 instruction set:
     - XOR
     - XORi Ra, Rb, Cx
     - Ra <= (Rb ^ Cx)
+	* - L
+	  - LUi
+	  - 0F
+	  - Load upper
+	  - LUi Ra, Cx
+	  - Ra <= (Cx << 16)
   * - A
     - CMP
     - 10
@@ -200,16 +212,10 @@ The following table details the Cpu0 instruction set:
     - Ra <= Rb - Rc
   * - A
     - MUL
-    - 15
+    - 17
     - Multiply
     - MUL Ra, Rb, Rc
     - Ra <= Rb * Rc
-  * - A
-    - DIV
-    - 16
-    - Divide
-    - DIV Ra, Rb
-    - HI<=Ra%Rb, LO<=Ra/Rb
   * - A
     - AND
     - 18
@@ -229,23 +235,23 @@ The following table details the Cpu0 instruction set:
     - XOR Ra, Rb, Rc
     - Ra <= Rb ^ Rc
   * - A
-    - SRA
-    - 1B
-    - Shift right
-    - SHR Ra, Rb, Cx
-    - Ra <= (h80000000|Rb>>Cx)
-  * - A
     - ROL
-    - 1C
+    - 1B
     - Rotate left
     - ROL Ra, Rb, Cx
     - Ra <= Rb rol Cx
   * - A
     - ROR
-    - 1D
+    - 1C
     - Rotate right
     - ROR Ra, Rb, Cx
     - Ra <= Rb ror Cx
+  * - A
+    - SRA
+    - 1D
+    - Shift right
+    - SHR Ra, Rb, Cx
+    - Ra <= ((Rb&'h80000000)|Rb>>Cx)
   * - A
     - SHL
     - 1E
@@ -258,114 +264,144 @@ The following table details the Cpu0 instruction set:
     - Shift right
     - SHR Ra, Rb, Cx
     - Ra <= Rb >> Cx
+  * - A
+    - SRAV
+    - 20
+    - Shift right
+    - SHR Ra, Rb, Rc
+    - Ra <= ((Rb&'h80000000)|Rb>>Rc)
+  * - A
+    - SHLV
+    - 21
+    - Shift left
+    - SHL Ra, Rb, Rc
+    - Ra <= Rb << Rc
+  * - A
+    - SHRV
+    - 22
+    - Shift right
+    - SHR Ra, Rb, Rc
+    - Ra <= Rb >> Rc
   * - J
     - JEQ
-    - 20
+    - 30
     - Jump if equal (==)
     - JEQ Cx
     - if SW(==), PC <= PC + Cx
   * - J
     - JNE
-    - 21
+    - 31
     - Jump if not equal (!=)
     - JNE Cx
     - if SW(!=), PC <= PC + Cx
   * - J
     - JLT
-    - 22
+    - 32
     - Jump if less than (<)
     - JLT Cx
     - if SW(<), PC <= PC + Cx
   * - J
     - JGT
-    - 23
+    - 33
     - Jump if greater than (>)
     - JGT Cx
     - if SW(>), PC <= PC + Cx
   * - J
     - JLE
-    - 24
+    - 34
     - Jump if less than or equals (<=)
     - JLE Cx
     - if SW(<=), PC <= PC + Cx
   * - J
     - JGE
-    - 25
+    - 35
     - Jump if greater than or equals (>=)
     - JGE Cx
     - if SW(>=), PC <= PC + Cx
   * - J
     - JMP
-    - 26
+    - 36
     - Jump (unconditional)
     - JMP Cx
     - PC <= PC + Cx
   * - J
     - SWI
-    - 2A
+    - 3A
     - Software interrupt
     - SWI Cx
     - LR <= PC; PC <= Cx
   * - J
     - JSUB
-    - 2B
+    - 3B
     - Jump to subroutine
     - JSUB Cx
     - LR <= PC; PC <= PC + Cx
   * - J
     - RET
-    - 2C
+    - 3C
     - Return from subroutine
     - RET LR
     - PC <= LR
   * - J
     - IRET
-    - 2D
+    - 3D
     - Return from interrupt handler
     - IRET
     - PC <= LR; INT 0
   * - J
     - JALR
-    - 2E
+    - 3E
     - Jump to subroutine
     - JR Rb
     - LR <= PC; PC <= Rb
   * - L
-    - MFHI
-    - 40
-    - Move HI to GPR
-    - MFHI Ra
-    - Ra <= HI
-  * - L
-    - MFLO
-    - 41
-    - Move LO to GPR
-    - MFLO Ra
-    - Ra <= LO
-  * - L
-    - MTHI
-    - 42
-    - Move GPR to HI
-    - MTHI Ra
-    - HI <= Ra
-  * - L
-    - MTLO
-    - 43
-    - Move GPR to LO
-    - MTLO Ra
-    - LO <= Ra
-  * - L
     - MULT
-    - 50
+    - 41
     - Multiply for 64 bits result
     - MULT Ra, Rb
     - (HI,LO) <= MULT(Ra,Rb)
   * - L
     - MULTU
-    - 51
+    - 42
     - MULT for unsigned 64 bits
     - MULTU Ra, Rb
     - (HI,LO) <= MULTU(Ra,Rb)
+  * - L
+    - DIV
+    - 43
+    - Divide
+    - DIV Ra, Rb
+    - HI<=Ra%Rb, LO<=Ra/Rb
+  * - L
+    - DIVU
+    - 44
+    - Divide
+    - DIV Ra, Rb
+    - HI<=Ra%Rb, LO<=Ra/Rb
+  * - L
+    - MFHI
+    - 46
+    - Move HI to GPR
+    - MFHI Ra
+    - Ra <= HI
+  * - L
+    - MFLO
+    - 47
+    - Move LO to GPR
+    - MFLO Ra
+    - Ra <= LO
+  * - L
+    - MTHI
+    - 48
+    - Move GPR to HI
+    - MTHI Ra
+    - HI <= Ra
+  * - L
+    - MTLO
+    - 49
+    - Move GPR to LO
+    - MTLO Ra
+    - LO <= Ra
 
 
 The Status Register
