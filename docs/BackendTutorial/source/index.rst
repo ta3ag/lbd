@@ -22,9 +22,9 @@ Table of Contents
    funccall
    elf
    runbackend
+   lld
    optimize
    install
-   oldver
    instdiscuss
    todo
    
