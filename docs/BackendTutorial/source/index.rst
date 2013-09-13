@@ -22,8 +22,8 @@ Table of Contents
    funccall
    elf
    runbackend
-   lld
    optimize
+   lld
    install
    instdiscuss
    todo
