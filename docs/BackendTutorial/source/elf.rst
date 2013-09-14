@@ -806,15 +806,12 @@ To support llvm-objdump, the following code added to Chapter9_1/.
   
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/CMakeLists.txt
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/CMakeLists.txt
-    :linenos:
   
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/LLVMBuild.txt
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/LLVMBuild.txt
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/Cpu0Disassembler.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/Cpu0Disassembler.cpp
-    :linenos:
   
 
 As above code, it add directory Disassembler for handling the obj to assembly 
@@ -969,7 +966,7 @@ Compile main.cpp to get the Cpu0 PIC assembly code as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/main.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/main.cpp
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 

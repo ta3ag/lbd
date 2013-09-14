@@ -1,6 +1,7 @@
 // clang -c ch4_5.cpp -emit-llvm -o ch4_5.bc
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_5.bc -o -
 
+/// start
 int test_andorxornot()
 {
   int a = 5;

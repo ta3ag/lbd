@@ -224,8 +224,7 @@ Now, let's build Chapter4_1/ and run with input file ch4_1.cpp as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_1.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_1.cpp
-  :start-after: // test_math()
-  :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 
@@ -475,8 +474,7 @@ corresponding llvm IR, as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_2.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_2.cpp
-  :start-after: // test_mod()
-  :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 
@@ -929,13 +927,11 @@ The code added in Chapter4_1/ as follows,
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.cpp
   :start-after: // Cpu0InstrInfo::copyPhysReg()
   :end-before: MachineInstr*
-  :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.h
   :start-after: virtual const Cpu0RegisterInfo &getRegisterInfo() const;
   :end-before: public:
-  :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.td
 .. code-block:: c++
@@ -1078,13 +1074,11 @@ llvm **“Constant Propagation Optimization”** useless in this.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_2_1.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_2_1.cpp
-  :start-after: // test_mod()
-  :linenos:
+    :start-after: /// start
   
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_2_2.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_2_2.cpp
-  :start-after: // test_mod()
-  :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 
@@ -1449,8 +1443,7 @@ will get result as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp
-  :lines: 4-
-  :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 
@@ -1595,14 +1588,15 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   defm : SetgtPats<CPURegs>;
   defm : SetgePats<CPURegs>;
 
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
+    :start-after: /// start
+
 .. code-block:: bash
 
   114-43-204-152:InputFiles Jonathan$ clang -c ch4_5.cpp -emit-llvm -o ch4_5.bc
   114-43-204-152:InputFiles Jonathan$ llvm-dis ch4_5.bc -o -
-  ; ModuleID = 'ch4_5.bc'
-  target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128"
-  target triple = "x86_64-apple-macosx10.8.0"
-  
+  ...
   ; Function Attrs: nounwind ssp uwtable
   define i32 @_Z16test_andorxornotv() #0 {
   entry:
@@ -1848,8 +1842,8 @@ Summary
 
 List C operators, IR of .bc, Optimized legalized selection DAG and Cpu0 
 instructions implemented in this chapter in Table: Chapter 4 mathmetic 
-operators. There are 20 operators totally in mathmetic in logic support in
-this chapter and spent 360 lines of source code. 
+operators. There are 20 operators totally in mathmetic and logic support in
+this chapter and spend 360 lines of source code. 
 
 .. table:: Chapter 4 mathmetic operators
 

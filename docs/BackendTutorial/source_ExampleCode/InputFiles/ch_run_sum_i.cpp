@@ -14,6 +14,7 @@
 // /home/Gamma/test/lld_0816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu ch_run_sum_i.cpu0.o -o a.out
 // /home/Gamma/test/lld_0816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
 
+/// start
 #include "boot.cpp"
 
 #include "print.h"

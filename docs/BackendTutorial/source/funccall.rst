@@ -53,8 +53,7 @@ See comment **"//"**.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_1.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_1.cpp
-    :lines: 5-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 
@@ -219,7 +218,6 @@ for cpu0 passing rule as follows,
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0CallingConv.td
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0CallingConv.td
     :start-after: CCIf<!strconcat("State.getTarget().getSubtarget<Cpu0Subtarget>().", F), A>;
-    :linenos:
 
 
 As above, CC_Cpu0 is the cpu0 Calling Convention which delegate to CC_Cpu0EABI 
@@ -240,7 +238,6 @@ We define it as follows,
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0ISelLowering.cpp
     :start-after: return CLI.Chain;
     :end-before: Return Value Calling Convention Implementation
-    :linenos:
 
 
 Refresh "section Global variable" [#]_, we handled global 
@@ -278,7 +275,6 @@ variable, which is the offset.
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.cpp
     :start-after: MIB.addReg(SrcReg, getKillRegState(KillSrc));
     :end-before: MachineInstr*
-    :linenos:
 
 
 In addition to Calling Convention and LowerFormalArguments(), Chapter8_1/ add the 
@@ -586,7 +582,6 @@ LowerCall() is responsible to do this. The implementation as follows,
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0ISelLowering.cpp
     :start-after: #include "Cpu0GenCallingConv.inc"
     :end-before: LowerFormalArguments
-    :linenos:
 
 
 Just like load incoming arguments from stack frame, we call 
@@ -782,8 +777,7 @@ optimization.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_1_2.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_1_2.cpp
-    :lines: 4-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 
@@ -884,8 +878,7 @@ $2 is not 0) as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp
-    :lines: 11-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 
@@ -1268,7 +1261,6 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
   
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0EmitGPRestore.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0EmitGPRestore.cpp
-    :linenos:
 
   
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0AsmPrinter.cpp
@@ -1328,7 +1320,6 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0MCInstLower.cpp
     :start-after: // Lower ".cprestore offset" to "st $gp, offset($sp)"
     :end-before: MCOperand Cpu0MCInstLower::LowerOperand
-    :linenos:
 
 
 The added code of Cpu0AsmPrinter.cpp as above will call the LowerCPRESTORE() when 
@@ -1394,18 +1385,15 @@ The LowerReturn() modified in Chapter8_3/ as follows,
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0ISelLowering.cpp
     :start-after: Return Value Calling Convention Implementation
     :end-before: Cpu0TargetLowering::isOffsetFoldingLegal
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.h
     :start-after: /// Expand Pseudo instructions into real backend instructions
     :end-before: };
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.cpp
     :start-after: // Cpu0InstrInfo::expandPostRAPseudo
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.td
 .. code-block:: c++
@@ -1671,8 +1659,7 @@ Run Chapter8_3 with ch8_2_1.cpp will get the error message as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_2_1.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_2_1.cpp
-    :lines: 4-
-    :linenos:
+    :start-after: /// start
 
 
 .. code-block:: bash
@@ -1693,8 +1680,7 @@ Run Chapter8_3/ with ch8_3.cpp to get the following error,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_3.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_3.cpp
-    :lines: 5-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 
@@ -1711,8 +1697,7 @@ Run Chapter8_3/ with ch8_3.cpp to get the following error,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_4.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_4.cpp
-    :lines: 4-
-    :linenos:
+    :start-after: /// start
 
 
 Run Chapter8_3 with ch8_4.cpp will get the following error.
@@ -2692,8 +2677,7 @@ backend code too.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_3_2.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_3_2.cpp
-    :lines: 5-
-    :linenos:
+    :start-after: /// start
 
 Mips qemu reference [#]_, you can download and run it with gcc to verify the 
 result with printf() function. We will verify the code correction in chapter 

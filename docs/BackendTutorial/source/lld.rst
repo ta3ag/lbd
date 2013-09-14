@@ -765,10 +765,11 @@ compare with the result of printf() function which implemented by PC OS as follo
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-1.c
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-1.c
+    :start-after: /// start
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-2.c
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-2.c
-  :start-after: // objdump -s -j .rodata a.out
+    :start-after: /// start
 
 .. code-block:: bash
 

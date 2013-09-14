@@ -14,8 +14,7 @@ Run ch7_1_1.cpp with clang will get result as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_1_1.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch7_1_1.cpp
-    :lines: 5-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 
@@ -284,7 +283,6 @@ function code we defined before,
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0RegisterInfo.cpp
     :start-after: return CSR_O32_RegMask;
     :end-before: //- If eliminateFrameIndex() is empty
-    :linenos:
 
 
 Although the following definition in Cpu0RegisterInfo.td has no real effect in 
@@ -417,7 +415,6 @@ Finally we list the code added for full support of control flow statement,
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
     :start-after: EmitInstruction(Binary, Size, OS);
     :end-before: /// getMachineOpValue - Return binary encoding of operand
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0MCInstLower.cpp
 .. code-block:: c++
@@ -625,8 +622,7 @@ ch7_1_4.cpu0.s as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_1_4.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch7_1_4.cpp
-    :lines: 4-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 
@@ -710,8 +706,7 @@ follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_1_5.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch7_1_5.cpp
-    :lines: 6-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 

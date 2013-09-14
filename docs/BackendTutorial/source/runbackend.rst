@@ -24,8 +24,7 @@ Run Chapter9_1/ with ch10_1.cpp will get the following error message.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch10_1.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch10_1.cpp
-    :lines: 4-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 
@@ -45,15 +44,12 @@ The Chapter10_1/ include AsmParser implementation as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/Cpu0AsmParser.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/Cpu0AsmParser.cpp
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/CMakeLists.txt
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/CMakeLists.txt
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/LLVMBuild.txt
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/LLVMBuild.txt
-    :linenos:
 
 
 The Cpu0AsmParser.cpp contains one thousand of code which do the assembly 
@@ -289,7 +285,6 @@ number encode.
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0RegisterInfo.td
     :start-after: //  Registers
     :end-before: // Hi/Lo Registers
-    :linenos:
 
 
 Run Chapter10_1/ with ch10_1.cpp to get the correct result as follows,
@@ -387,7 +382,6 @@ cx($rb) is 0x7000 (28672), CPU0 display the content as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/raw/cpu0s.v
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/raw/cpu0s.v
-    :linenos:
 
 
 .. code-block:: bash
@@ -406,20 +400,19 @@ cpu0s.v use 0x7000 bytes of memory.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/InitRegs.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/InitRegs.cpp
-    :linenos:
+    :start-after: /// start
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/print.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/print.h
-    :linenos:
+    :start-after: /// start
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/print.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/print.cpp
-    :linenos:
+    :start-after: /// start
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
-    :lines: 7-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 
@@ -510,8 +503,7 @@ cmake_debug_build/bin/Debug/ is my build clang from source code.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_run_sum_i.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_run_sum_i.cpp
-    :lines: 7-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 

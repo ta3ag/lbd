@@ -26,8 +26,7 @@ first, and explain the code changes after that.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch6_1.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch6_1.cpp
-    :lines: 13-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 
@@ -330,11 +329,9 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.cpp
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0RegisterInfo.cpp
 .. code-block:: c++
@@ -959,7 +956,7 @@ pseudo instruction at function entry point as below.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MachineFunction.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MachineFunction.cpp
-    :linenos:
+
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0AsmPrinter.cpp
 .. code-block:: c++
 
@@ -1011,7 +1008,6 @@ displayed in comments of Cpu0MCInstLower.cpp.
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MCInstLower.cpp
     :start-after: return MCOperand::CreateExpr(AddExpr);
     :end-before: MCOperand Cpu0MCInstLower::LowerOperand
-    :linenos:
 
 .. code-block:: bash
 
@@ -1410,8 +1406,7 @@ For ch6_2.cpp, the llvm IR as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp
-    :lines: 11-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 
@@ -1762,8 +1757,7 @@ Run Chapter6_3/ with ch6_3.cpp will get the following result.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch6_3.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch6_3.cpp
-    :lines: 5-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 
@@ -1894,8 +1888,7 @@ test fragment as below.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch6_3_2.ll
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch6_3_2.ll
-    :lines: 3-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 

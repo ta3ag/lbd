@@ -8,6 +8,7 @@
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch6_2.bc -o ch6_2.cpu0.static.s
 // /Applications/Xcode.app/Contents/Developer/usr/bin/lldb -- /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -filetype=asm ch6_2.bc -o ch6_2.cpu0.s 
 
+/// start
 struct Date
 {
   int year;

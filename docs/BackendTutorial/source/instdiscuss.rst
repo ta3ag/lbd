@@ -1,6 +1,6 @@
 .. _sec-appendix-inst-discuss:
 
-Appendix C: instructions discuss
+Appendix B: instructions discuss
 =================================
 
 This chapter discuss other backend instructions.
@@ -50,8 +50,7 @@ Run Chapter8_4_2/ with ch_move.cpp will get the following result,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_move.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_move.cpp
-    :lines: 5-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 

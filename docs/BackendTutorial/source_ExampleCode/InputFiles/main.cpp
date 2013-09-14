@@ -1,4 +1,5 @@
 
+/// start
 extern int foo(int x1, int x2);
 extern int bar();
 

@@ -2,6 +2,7 @@
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch6_3.bc -o ch6_3.cpu0.s
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch6_3.bc -o ch6_3.cpu0.static.s
 
+/// start
 struct Date
 {
   short year;

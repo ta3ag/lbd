@@ -7,7 +7,7 @@
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1.bc -o ch4_1.cpu0.o
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0el -relocation-model=pic -filetype=obj ch4_1.bc -o ch4_1.cpu0el.o
 
-// test_math()
+/// start
 int test_math()
 {
   int a = 5;

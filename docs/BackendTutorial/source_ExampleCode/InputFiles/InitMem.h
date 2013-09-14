@@ -1,3 +1,5 @@
+
+/// start
 #if 1
 asm("st	$0, 0($sp)");
 //asm("st	$0, 4($sp)");

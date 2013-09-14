@@ -673,7 +673,6 @@ target description file is called Cpu0.td, which is shown below:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/Cpu0.td
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/Cpu0.td
-    :linenos:
 
 Cpu0.td includes a few other .td files.  Cpu0RegisterInfo.td (shown below) describes the 
 Cpu0's set of registers.  In this file, we see that registers have been given names, i.e.
@@ -686,7 +685,6 @@ are not modified by instructions during execution.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/Cpu0RegisterInfo.td
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/Cpu0RegisterInfo.td
-    :linenos:
 
 
 In C++, classes typically provide a structure to lay out some data and functions, 
@@ -741,14 +739,12 @@ The cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrInfo.td
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrInfo.td
-    :linenos:
 
 
 The Cpu0InstrFormats.td is included by Cpu0InstInfo.td as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrFormats.td
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrFormats.td
-    :linenos:
 
 
 ADDiu is class ArithLogicI inherited from FL, can expand and get member value 
@@ -909,11 +905,9 @@ contents as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/CMakeLists.txt
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/CMakeLists.txt
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/LLVMBuild.txt
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/LLVMBuild.txt
-    :linenos:
 
 
 CMakeLists.txt is the make information for cmake, # is comment.
@@ -950,7 +944,6 @@ big endian and TheCpu0elTarget for little endian, as follows.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
-    :linenos:
 
 
 Files Cpu0TargetMachine.cpp and MCTargetDesc/Cpu0MCTargetDesc.cpp just define 
@@ -958,11 +951,9 @@ the empty initialize function since we register nothing in them for this moment.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp
-    :linenos:
 
 
 Please see "Target Registration" [#target-reg]_ for reference.
@@ -1045,7 +1036,6 @@ List them as follows again,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
-    :linenos:
 
 
 Let's build LLVMBackendTutorialExampleCode/Chapter2 code as follows,
@@ -1075,8 +1065,7 @@ Now try to do ``llc`` command to compile input file ch3.cpp as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch3.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch3.cpp
-    :lines: 8-
-    :linenos:
+    :start-after: /// start
 
 
 First step, compile it with clang and get output ch3.bc as follows,

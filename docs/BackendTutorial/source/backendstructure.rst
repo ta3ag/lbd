@@ -70,11 +70,9 @@ The Cpu0TargetMachine contents and it's own class as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.cpp
-    :linenos:
   
 .. rubric:: include/llvm/Target/TargetInstInfo.h
 .. code-block:: c++
@@ -98,43 +96,33 @@ The Cpu0TargetMachine contents and it's own class as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0CallingConv.td
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0CallingConv.td
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0FrameLowering.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0FrameLowering.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0FrameLowering.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0FrameLowering.cpp
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0InstrInfo.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0InstrInfo.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0InstrInfo.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0InstrInfo.cpp
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0ISelLowering.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0ISelLowering.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0ISelLowering.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0ISelLowering.cpp
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0MachineFunction.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0MachineFunction.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0SelectionDAGInfo.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0SelectionDAGInfo.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0SelectionDAGInfo.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0SelectionDAGInfo.cpp
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0Subtarget.h
 
@@ -154,23 +142,18 @@ The Cpu0TargetMachine contents and it's own class as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0Subtarget.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0Subtarget.cpp
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0RegisterInfo.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0RegisterInfo.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0RegisterInfo.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0RegisterInfo.cpp
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.cpp
-    :linenos:
 
 .. rubric:: cmake_debug_build/lib/Target/Cpu0/Cpu0GenInstInfo.inc
 .. code-block:: c++
@@ -349,27 +332,21 @@ sub-directory MCTargetDesc as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0MCInstLower.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0MCInstLower.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0MCInstLower.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0MCInstLower.cpp
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0BaseInfo.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0BaseInfo.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0FixupKinds.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0FixupKinds.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.cpp
-    :linenos:
 
 
 Finally, add code in Cpu0MCTargetDesc.cpp to register Cpu0InstPrinter as 
@@ -385,11 +362,9 @@ as the following function of LLVMInitializeCpu0AsmPrinter(),
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0AsmPrinter.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0AsmPrinter.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0AsmPrinter.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0AsmPrinter.cpp
-    :linenos:
 
 
 The dynamic register mechanism is a good idea, right.
@@ -892,7 +867,6 @@ selection stage.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0ISelDAGToDAG.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0ISelDAGToDAG.cpp
-    :linenos:
 
 
 This version adding the following code in Cpu0InstInfo.cpp to enable debug 
@@ -1096,11 +1070,9 @@ The Prologue and Epilogue functions as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0AnalyzeImmediate.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0AnalyzeImmediate.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0AnalyzeImmediate.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0AnalyzeImmediate.cpp
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0RegisterInfo.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0RegisterInfo.cpp

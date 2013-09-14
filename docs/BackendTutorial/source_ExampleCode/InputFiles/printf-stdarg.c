@@ -1,3 +1,5 @@
+
+/// start
 /*
 	Copyright 2001, 2002 Georges Menie (www.menie.org)
 	stdarg version contributed by Christian Ettinger

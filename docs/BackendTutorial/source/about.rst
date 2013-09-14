@@ -52,7 +52,9 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.3.01, Not release yet
+Version 3.3.2, Not release yet
+
+Version 3.3.1, Released September 14, 2013
   Add load bool type in chapter 6.
   Fix chapter 4 error.
   Add interrupt function in cpu0i.v.
@@ -60,6 +62,7 @@ Version 3.3.01, Not release yet
   Add JSUB texternalsym for memcpy function call of llvm auto reference.
   Rename cpu0i.v to cpu0s.v.
   Modify itoa.cpp.
+  Cpu0 of lld.
 
 Version 3.3.0, Released July 13, 2013
   Add Table: C operator ! corresponding IR of .bc and IR of DAG and Table: C 

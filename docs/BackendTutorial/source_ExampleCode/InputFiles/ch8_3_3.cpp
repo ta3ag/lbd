@@ -13,6 +13,7 @@
 // mips-linux-gnu-g++ -S ch8_3_3.cpp
 // cat ch8_3_3.s
 
+/// start
 #include <stdio.h>
 #include <stdarg.h>
 

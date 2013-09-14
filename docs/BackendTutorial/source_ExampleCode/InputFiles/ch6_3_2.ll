@@ -1,3 +1,5 @@
+
+/// start
 define zeroext i1 @verify_load_bool() #0 {
 entry:
   %retval = alloca i1, align 1

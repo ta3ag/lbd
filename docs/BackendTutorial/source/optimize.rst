@@ -60,7 +60,6 @@ Chapter11_1/ support this optimization algorithm include the added codes as foll
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0DelUselessJMP.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0DelUselessJMP.cpp
-    :linenos:
 
 
 As above code, except Cpu0DelUselessJMP.cpp, other files changed for register 
@@ -75,8 +74,7 @@ Let's run Chapter11_1/ with ch11_1.cpp to explain it easier.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch11_1.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch11_1.cpp
-    :lines: 5-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 
@@ -1021,7 +1019,6 @@ Cpu0 Verilog language changes
 
 .. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/redesign/cpu0s.v
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/redesign/cpu0s.v
-    :linenos:
 
 
 Run the redesigned Cpu0
@@ -1032,8 +1029,7 @@ It match the expect value as comment in ch_run_backend.cpp.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
-    :lines: 7-
-    :linenos:
+    :start-after: /// start
 
 .. code-block:: bash
 

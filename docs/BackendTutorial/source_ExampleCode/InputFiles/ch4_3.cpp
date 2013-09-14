@@ -6,6 +6,8 @@
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch4_1_2.bc -o ch4_1_2.cpu0.static.s
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch4_1_2.bc -o ch4_1_2.cpu0.o
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0el -relocation-model=pic -filetype=obj ch4_1_2.bc -o ch4_1_2.cpu0el.o
+
+/// start
 int main()
 {
   int a = 5;

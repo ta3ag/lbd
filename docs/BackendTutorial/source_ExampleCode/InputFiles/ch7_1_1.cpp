@@ -2,6 +2,7 @@
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_1_1.bc -o ch7_1_1.cpu0.s
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -view-isel-dags -relocation-model=pic -filetype=asm ch7_1_1.bc -o ch7_1_1.cpu0.s
 
+/// start
 int main()
 {
   unsigned int a = 0;
