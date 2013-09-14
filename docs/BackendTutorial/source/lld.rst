@@ -196,6 +196,103 @@ Now, build llvm/lld 2013/08/16 with Cpu0 support as follows,
   -- Build files have been written to: /home/Gamma/test/lld/cmake_debug_build
 
 
+Cpu0 lld
+---------
+
+The code added on lld to support Cpu0 ELF as follows,
+
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/CMakeLists.txt
+.. code-block:: c++
+
+  target_link_libraries(lldELF
+    ...
+    lldCpu0ELFTarget
+    )
+
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/ELFLinkingContext.cpp
+.. code-block:: c++
+
+  uint16_t ELFLinkingContext::getOutputMachine() const {
+    switch (getTriple().getArch()) {
+    ...
+    case llvm::Triple::cpu0:
+      return llvm::ELF::EM_CPU0;
+    ...
+    }
+  }
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Targets.h
+.. code-block:: c++
+
+#include "Cpu0/Cpu0Target.h"
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Resolver.cpp
+.. code-block:: c++
+
+  bool Resolver::checkUndefines(bool final) {
+    ...
+        if (_context.printRemainingUndefines()) {
+          if (undefAtom->name() == "_start") { // cschen debug
+            foundUndefines = false;
+            continue;
+          }
+          ...
+        }
+    ...
+  }
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/CMakeLists.txt
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/CMakeLists.txt
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0LinkingContext.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0LinkingContext.h
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0LinkingContext.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0LinkingContext.cpp
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0RelocationHandler.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0RelocationHandler.h
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0RelocationHandler.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0RelocationHandler.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0LinkingContext.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0LinkingContext.cpp
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0Target.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0Target.h
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0TargetHandler.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0TargetHandler.h
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0TargetHandler.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0TargetHandler.cpp
+
+
+ELF to Hex
+-----------
+
+Update llvm-objdump driver to support ELF to Hex for Cpu0 backend as follows,
+
+
+
+Run
+-----
+
+File printf-stdarg.c came from internet download which is GPL2 license. GPL2 
+is more restricted than LLVM license. File printf-stdarg-2.c is modified from 
+printf-stdarg.c which to supply the printf() function for /demo/verification/debug
+purpose on Cpu0 backend. File printf-stdarg-1.c is file for testing the printf()
+function implemented on PC OS platform. Let's run printf-stdarg-2.c on Cpu0 and
+compare with the result of printf() function which implemented by PC OS as follows,
+
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-1.c
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-1.c
+
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-2.c
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-2.c
+
 
 
 .. [#] http://lld.llvm.org/
