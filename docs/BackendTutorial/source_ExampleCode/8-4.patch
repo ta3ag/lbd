@@ -1,6 +1,20 @@
+diff -Naur Chapter8_3/Cpu0CallingConv.td Chapter8_4/Cpu0CallingConv.td
+--- Chapter8_3/Cpu0CallingConv.td	2013-09-14 16:35:11.000000000 +0800
++++ Chapter8_4/Cpu0CallingConv.td	2013-09-14 23:15:10.000000000 +0800
+@@ -14,8 +14,8 @@
+   CCIf<!strconcat("State.getTarget().getSubtarget<Cpu0Subtarget>().", F), A>;
+ 
+ def RetCC_Cpu0EABI : CallingConv<[
+-  // i32 are returned in registers V0, V1
+-  CCIfType<[i32], CCAssignToReg<[V0, V1]>>
++  // i32 are returned in registers V0, V1, A0, A1
++  CCIfType<[i32], CCAssignToReg<[V0, V1, A0, A1]>>
+ ]>;
+ 
+ //===----------------------------------------------------------------------===//
 diff -Naur Chapter8_3/Cpu0FrameLowering.cpp Chapter8_4/Cpu0FrameLowering.cpp
---- Chapter8_3/Cpu0FrameLowering.cpp	2013-09-12 18:31:13.609585390 +0800
-+++ Chapter8_4/Cpu0FrameLowering.cpp	2013-09-12 18:31:13.609585390 +0800
+--- Chapter8_3/Cpu0FrameLowering.cpp	2013-09-14 16:35:11.000000000 +0800
++++ Chapter8_4/Cpu0FrameLowering.cpp	2013-09-14 16:35:11.000000000 +0800
 @@ -132,6 +132,9 @@
    MachineBasicBlock::iterator MBBI = MBB.begin();
    DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
@@ -108,8 +122,8 @@ diff -Naur Chapter8_3/Cpu0FrameLowering.cpp Chapter8_4/Cpu0FrameLowering.cpp
    // FIXME: remove this code if register allocator can correctly mark
    //        $fp and $ra used or unused.
 diff -Naur Chapter8_3/Cpu0FrameLowering.h Chapter8_4/Cpu0FrameLowering.h
---- Chapter8_3/Cpu0FrameLowering.h	2013-09-12 18:31:13.609585390 +0800
-+++ Chapter8_4/Cpu0FrameLowering.h	2013-09-12 18:31:13.609585390 +0800
+--- Chapter8_3/Cpu0FrameLowering.h	2013-09-14 16:35:11.000000000 +0800
++++ Chapter8_4/Cpu0FrameLowering.h	2013-09-14 16:35:11.000000000 +0800
 @@ -38,6 +38,10 @@
    void eliminateCallFramePseudoInstr(MachineFunction &MF,
                                       MachineBasicBlock &MBB,
@@ -122,8 +136,8 @@ diff -Naur Chapter8_3/Cpu0FrameLowering.h Chapter8_4/Cpu0FrameLowering.h
                                              RegScavenger *RS) const;
  };
 diff -Naur Chapter8_3/Cpu0ISelLowering.cpp Chapter8_4/Cpu0ISelLowering.cpp
---- Chapter8_3/Cpu0ISelLowering.cpp	2013-09-12 18:31:13.609585390 +0800
-+++ Chapter8_4/Cpu0ISelLowering.cpp	2013-09-12 18:31:13.609585390 +0800
+--- Chapter8_3/Cpu0ISelLowering.cpp	2013-09-14 16:35:11.000000000 +0800
++++ Chapter8_4/Cpu0ISelLowering.cpp	2013-09-14 18:15:12.000000000 +0800
 @@ -141,6 +141,7 @@
    // Cpu0 Custom Operations
    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
@@ -182,7 +196,7 @@ diff -Naur Chapter8_3/Cpu0ISelLowering.cpp Chapter8_4/Cpu0ISelLowering.cpp
  //===----------------------------------------------------------------------===//
  //  Misc Lower Operation implementation
  //===----------------------------------------------------------------------===//
-@@ -277,8 +300,56 @@
+@@ -277,8 +300,62 @@
                                   Cpu0II::MO_GOT_LO16);
  }
  
@@ -206,6 +220,12 @@ diff -Naur Chapter8_3/Cpu0ISelLowering.cpp Chapter8_4/Cpu0ISelLowering.cpp
 +//===----------------------------------------------------------------------===//
 +//                  Call Calling Convention Implementation
 +//===----------------------------------------------------------------------===//
++
++static const unsigned IntRegsSize = 2;
++
++static const uint16_t IntRegs[] = {
++  Cpu0::A0, Cpu0::A1
++};
 +
 +// Write ByVal Arg to arg registers and stack.
 +static void
@@ -239,7 +259,7 @@ diff -Naur Chapter8_3/Cpu0ISelLowering.cpp Chapter8_4/Cpu0ISelLowering.cpp
  SDValue
  Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                                SmallVectorImpl<SDValue> &InVals) const {
-@@ -359,6 +430,9 @@
+@@ -359,6 +436,9 @@
        assert("!!!Error!!!, Flags.isByVal()==true");
        assert(Flags.getByValSize() &&
               "ByVal args of size 0 should have been ignored by front-end.");
@@ -249,31 +269,59 @@ diff -Naur Chapter8_3/Cpu0ISelLowering.cpp Chapter8_4/Cpu0ISelLowering.cpp
        continue;
      }
  
-@@ -536,6 +610,10 @@
+@@ -536,6 +616,34 @@
    return Chain;
  }
  
 +//===----------------------------------------------------------------------===//
 +//             Formal Arguments Calling Convention Implementation
 +//===----------------------------------------------------------------------===//
++static void ReadByValArg(MachineFunction &MF, SDValue Chain, DebugLoc dl,
++                         std::vector<SDValue>& OutChains,
++                         SelectionDAG &DAG, unsigned NumWords, SDValue FIN,
++                         const CCValAssign &VA, const ISD::ArgFlagsTy& Flags,
++                         const Argument *FuncArg) {
++  unsigned LocMem = VA.getLocMemOffset();
++  unsigned FirstWord = LocMem / 4;
++
++  // copy register A0 - A1 to frame object
++  for (unsigned i = 0; i < NumWords; ++i) {
++    unsigned CurWord = FirstWord + i;
++    if (CurWord >= IntRegsSize)
++      break;
++
++    unsigned SrcReg = IntRegs[CurWord];
++    unsigned Reg = AddLiveIn(MF, SrcReg, &Cpu0::CPURegsRegClass);
++    SDValue StorePtr = DAG.getNode(ISD::ADD, dl, MVT::i32, FIN,
++                                   DAG.getConstant(i * 4, MVT::i32));
++    SDValue Store = DAG.getStore(Chain, dl, DAG.getRegister(Reg, MVT::i32),
++                                 StorePtr, MachinePointerInfo(FuncArg, i * 4),
++                                 false, false, 0);
++    OutChains.push_back(Store);
++  }
++}
 +
  /// LowerFormalArguments - transform physical registers into virtual registers
  /// and generate load operations for arguments places on the stack.
  SDValue
-@@ -573,10 +651,9 @@
-     bool IsRegLoc = VA.isRegLoc();
- 
+@@ -575,8 +683,16 @@
      if (Flags.isByVal()) {
--      assert(Flags.getByValSize() &&
--             "ByVal args of size 0 should have been ignored by front-end."); 
--      continue;
-+      assert("ByVal args of size 0 should have been ignored by front-end."); 
+       assert(Flags.getByValSize() &&
+              "ByVal args of size 0 should have been ignored by front-end."); 
++      unsigned NumWords = (Flags.getByValSize() + 3) / 4;
++      LastFI = MFI->CreateFixedObject(NumWords * 4, VA.getLocMemOffset(),
++                                      true);
++      SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
++      InVals.push_back(FIN);
++      ReadByValArg(MF, Chain, dl, OutChains, DAG, NumWords, FIN, VA, Flags,
++                   &*FuncArg);
+       continue;
      }
 +
      // sanity check
      assert(VA.isMemLoc());
  
-@@ -591,6 +668,38 @@
+@@ -591,6 +707,38 @@
                                   false, false, false, 0));
    }
  
@@ -312,7 +360,7 @@ diff -Naur Chapter8_3/Cpu0ISelLowering.cpp Chapter8_4/Cpu0ISelLowering.cpp
    Cpu0FI->setLastInArgFI(LastFI);
    // All stores are grouped in one node to allow the matching between
    // the size of Ins and InVals. This only happens when on varg functions
-@@ -638,7 +747,27 @@
+@@ -638,7 +786,27 @@
      Flag = Chain.getValue(1);
      RetOps.push_back(DAG.getRegister(VA.getLocReg(), VA.getLocVT()));
    }
@@ -342,8 +390,8 @@ diff -Naur Chapter8_3/Cpu0ISelLowering.cpp Chapter8_4/Cpu0ISelLowering.cpp
  
    // Add the flag if we have it.
 diff -Naur Chapter8_3/Cpu0ISelLowering.h Chapter8_4/Cpu0ISelLowering.h
---- Chapter8_3/Cpu0ISelLowering.h	2013-09-12 18:31:13.609585390 +0800
-+++ Chapter8_4/Cpu0ISelLowering.h	2013-09-12 18:31:13.609585390 +0800
+--- Chapter8_3/Cpu0ISelLowering.h	2013-09-14 16:35:11.000000000 +0800
++++ Chapter8_4/Cpu0ISelLowering.h	2013-09-14 16:35:11.000000000 +0800
 @@ -96,6 +96,7 @@
      // Lower Operand specifics
      SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
@@ -353,8 +401,8 @@ diff -Naur Chapter8_3/Cpu0ISelLowering.h Chapter8_4/Cpu0ISelLowering.h
  	//- must be exist without function all
      virtual SDValue
 diff -Naur Chapter8_3/Cpu0RegisterInfo.cpp Chapter8_4/Cpu0RegisterInfo.cpp
---- Chapter8_3/Cpu0RegisterInfo.cpp	2013-09-12 18:31:13.609585390 +0800
-+++ Chapter8_4/Cpu0RegisterInfo.cpp	2013-09-12 18:31:13.609585390 +0800
+--- Chapter8_3/Cpu0RegisterInfo.cpp	2013-09-14 16:35:11.000000000 +0800
++++ Chapter8_4/Cpu0RegisterInfo.cpp	2013-09-14 16:35:11.000000000 +0800
 @@ -77,6 +77,11 @@
    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
      Reserved.set(ReservedCPURegs[I]);
