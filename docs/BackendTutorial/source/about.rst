@@ -298,8 +298,4 @@ redesign Cpu0 instruction sets to be a efficient RISC CPU.
 Details how to set up the LLVM source code, development tools, and environment
 setting for Mac OS X and Linux platforms.
 
-:ref:`sec-appendix-inst-discuss`:
-
-Discuss the other backend instructions.  
-
 

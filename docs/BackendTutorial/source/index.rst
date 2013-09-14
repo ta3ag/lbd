@@ -25,7 +25,6 @@ Table of Contents
    optimize
    lld
    install
-   instdiscuss
    todo
    
 

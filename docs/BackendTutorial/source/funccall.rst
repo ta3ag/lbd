@@ -1913,8 +1913,8 @@ this chapter as follows,
   ]>;
 
 
-It meaning for the return value, we keep it in registers V0, V1, A0, A1 if the 
-return value didn't over 4 registers size; If it over 4 size, cpu0 will save 
+It meaning for the return value, we keep it in registers V0, V1, A0, A1 if the return 
+value didn't over 4 registers size; If it over 4 registers size, cpu0 will save 
 them with pointer.
 For explanation, let's run Chapter8_4/ with ch8_2_1.cpp and explain with this 
 example.
