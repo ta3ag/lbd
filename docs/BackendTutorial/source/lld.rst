@@ -770,6 +770,95 @@ compare with the result of printf() function which implemented by PC OS as follo
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-2.c
   :start-after: // objdump -s -j .rodata a.out
 
+.. code-block:: bash
+
+  [Gamma@localhost InputFiles]$ /usr/local/llvm/release/cmake_debug_build/bin/
+  clang -target mips-unknown-linux-gnu -c printf-stdarg-2.c -emit-llvm -o
+  printf-stdarg-2.bc
+  printf-stdarg-2.c:75:19: warning: incomplete format specifier [-Wformat]
+    printf("%d %s(s)%", 0, "message");
+                    ^
+  1 warning generated.
+  [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/llc
+  -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg-2.bc -o
+  printf-stdarg-2.cpu0.o
+  [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/lld 
+  -flavor gnu -target cpu0-unknown-linux-gnu printf-stdarg-2.cpu0.o -o a.out
+  [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/
+  llvm-objdump -elf2hex a.out > ../cpu0_verilog/redesign/cpu0s.hex
+  [Gamma@localhost InputFiles]$ cd ../cpu0_verilog/redesign/
+  [Gamma@localhost redesign]$ iverilog -o cpu0s cpu0s.v 
+  [Gamma@localhost redesign]$ ls
+  cpu0s  cpu0s.hex  cpu0s.v
+  [Gamma@localhost redesign]$ ./cpu0s 
+  WARNING: cpu0s.v:317: $readmemh(cpu0s.hex): Not enough words in the file for 
+  the requested range [0:65535].
+  taskInterrupt(001)
+  Hello world!
+  printf test
+  (null) is null pointer
+  5 = 5
+  -2147483647 = - max int
+  char a = 'a'
+  hex ff = ff
+  hex 00 = 00
+  signed -3 = unsigned - = hex -
+  0 message(s)
+  0 message(s) with %
+  justif: "left      "
+  justif: "     right"
+   3: 0003 zero padded
+   3: 3    left justif.
+   3:    3 right justif.
+  -3: -003 zero padded
+  -3: -3   left justif.
+  -3:   -3 right justif.
+  global variable gI = 0
+  RET to PC < 0, finished!
+
+  [Gamma@localhost InputFiles]$ gcc printf-stdarg-1.c
+  /usr/lib/gcc/x86_64-redhat-linux/4.7.2/../../../../lib64/crt1.o: In function 
+  `_start':
+  (.text+0x20): undefined reference to `main'
+  collect2: error: ld returned 1 exit status
+  [Gamma@localhost InputFiles]$ gcc printf-stdarg-1.c
+  [Gamma@localhost InputFiles]$ ./a.out
+  Hello world!
+  printf test
+  (null) is null pointer
+  5 = 5
+  -2147483647 = - max int
+  char a = 'a'
+  hex ff = ff
+  hex 00 = 00
+  signed -3 = unsigned 4294967293 = hex fffffffd
+  0 message(s)
+  0 message(s) with %
+  justif: "left      "
+  justif: "     right"
+   3: 0003 zero padded
+   3: 3    left justif.
+   3:    3 right justif.
+  -3: -003 zero padded
+  -3: -3   left justif.
+  -3:   -3 right justif.
+
+
+Except "signed -3 = unsigned - = hex -" didn't display well on Cpu0 version, others are fine.
+
+
+Summary
+--------
+
+Thanks the llvm open source project. 
+To write a linker and ELF to Hex tools for the new CPU architecture is easy and reliable. 
+Combine with the llvm compiler backend of support new architecture Cpu0 and 
+Verilog language program in the previouse Chapters, we design a software 
+toolchain to compile C/C++ code, link and run it on Verilog Cpu0 simulated
+machine of PC without any real hardware to investment.
+If you like to pay money to buy the FPGA development hardware, we believe the 
+code can run on FPGA CPU without problem even though we didn't do it.
+System program toolchain can be designed just like we show you at this point. School knowledge of system program, compiler, linker, loader, computer architecture and CPU design can be translate into a real work and see how it be run. These school books knowledge is not limited on paper. We program it, design it and run it on real world.
 
 
 .. [#] http://lld.llvm.org/

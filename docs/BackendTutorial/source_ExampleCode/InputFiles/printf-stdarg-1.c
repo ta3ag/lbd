@@ -26,9 +26,12 @@
 #define putchar(c) outbyte(c)
 */
 
-// g++ -static printf-stdarg-1.c
+// gcc printf-stdarg-1.c
+// ./a.out
 
 #include <stdio.h>
+
+#define TEST_PRINTF
 
 #ifdef TEST_PRINTF
 int main(void)
