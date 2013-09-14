@@ -38,6 +38,7 @@ public:
 
   virtual void addPasses(PassManager &) const;
 
+  // Cpu0 run begin from address 0 while X86 from 0x400000
   virtual uint64_t getBaseAddress() const {
     if (_baseAddress == 0)
       return 0x000000;
