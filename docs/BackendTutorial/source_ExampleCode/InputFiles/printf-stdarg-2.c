@@ -84,8 +84,8 @@ int main(void)
   sprintf(buf, "-3: %4d right justif.\n", -3); printf("%s", buf);
 
     int a = 0;
-    a = test_global();  // a = 100
-    printf("a = %d\n", a);
+    a = test_global();  // gI = 100
+    printf("global variable gI = %d\n", a);
   return 0;
 }
 
