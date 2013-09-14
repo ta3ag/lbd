@@ -31,10 +31,10 @@
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu printf-stdarg-2.cpu0.o -o a.out
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
 
-// /home/Gamma/test/lld_0816/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg-2.c -emit-llvm -o printf-stdarg-2.bc
-// /home/Gamma/test/lld_0816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg-2.bc -o printf-stdarg-2.cpu0.o
-// /home/Gamma/test/lld_0816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu printf-stdarg-2.cpu0.o -o a.out
-// /home/Gamma/test/lld_0816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
+// /home/Gamma/test/lld/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg-2.c -emit-llvm -o printf-stdarg-2.bc
+// /home/Gamma/test/lld/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg-2.bc -o printf-stdarg-2.cpu0.o
+// /home/Gamma/test/lld/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu printf-stdarg-2.cpu0.o -o a.out
+// /home/Gamma/test/lld/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
 
 // hexdump -s 0x0ef0 -n 368  -v -e '4/1 "%02x " "\n"' a.out
 
@@ -44,10 +44,11 @@
 #define TEST_PRINTF
 
 #include "boot.cpp"
-#include "print.h"
+int test_global();
 
 int printf(const char *format, ...);
 int sprintf(char *out, const char *format, ...);
+
 
 #ifdef TEST_PRINTF
 int main(void)
@@ -81,6 +82,9 @@ int main(void)
 	sprintf(buf, "-3: %-4d left justif.\n", -3); printf("%s", buf);
 	sprintf(buf, "-3: %4d right justif.\n", -3); printf("%s", buf);
 
+    int a = 0;
+    a = test_global();	// a = 100
+    printf("a = %d\n", a);
 	return 0;
 }
 
@@ -115,8 +119,6 @@ int main(void)
  */
 
 #endif
-
-#include "print.cpp"  // debug
 
 // For memory IO
 void putchar(const char c)
@@ -229,7 +231,7 @@ static int print(char **out, const char *format, va_list args )
 			++format;
 			width = pad = 0;
 			if (*format == '\0') break;
-			if (*format == '%') goto outplace;
+			if (*format == '%') goto out;
 			if (*format == '-') {
 				++format;
 				pad = PAD_RIGHT;
@@ -272,7 +274,7 @@ static int print(char **out, const char *format, va_list args )
 			}
 		}
 		else {
-		outplace:
+		out:
 			printchar (out, *format);
 			++pc;
 		}
@@ -298,3 +300,10 @@ int sprintf(char *out, const char *format, ...)
   return print( &out, format, args );
 }
 
+
+int gI = 100;
+
+int test_global()
+{
+  return gI;
+}
