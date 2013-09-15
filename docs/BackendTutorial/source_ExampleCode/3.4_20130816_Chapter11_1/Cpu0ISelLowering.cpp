@@ -620,7 +620,7 @@ Cpu0TargetLowering::LowerCallResult(SDValue Chain, SDValue InFlag,
 //===----------------------------------------------------------------------===//
 //             Formal Arguments Calling Convention Implementation
 //===----------------------------------------------------------------------===//
-static void ReadByValArg(MachineFunction &MF, SDValue Chain, DebugLoc dl,
+static void ReadByValArg(MachineFunction &MF, SDValue Chain, SDLoc dl,
                          std::vector<SDValue>& OutChains,
                          SelectionDAG &DAG, unsigned NumWords, SDValue FIN,
                          const CCValAssign &VA, const ISD::ArgFlagsTy& Flags,
@@ -689,7 +689,7 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
                                       true);
       SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
       InVals.push_back(FIN);
-      ReadByValArg(MF, Chain, dl, OutChains, DAG, NumWords, FIN, VA, Flags,
+      ReadByValArg(MF, Chain, DL, OutChains, DAG, NumWords, FIN, VA, Flags,
                    &*FuncArg);
       continue;
     }
