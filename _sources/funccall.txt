@@ -535,7 +535,8 @@ generated information about JSUB and JALR pattern match information as follows,
   /*722*/     /*Scope*/ 10, /*->733*/
   /*723*/       OPC_CheckChild1Type, MVT::i32,
   /*725*/       OPC_EmitMergeInputChains1_0,
-  /*726*/       OPC_MorphNodeTo, TARGET_VAL(Cpu0::JALR), 0|OPFL_Chain|OPFL_GlueInput|OPFL_GlueOutput|OPFL_Variadic1,
+  /*726*/       OPC_MorphNodeTo, TARGET_VAL(Cpu0::JALR), 0|OPFL_Chain|
+  OPFL_GlueInput|OPFL_GlueOutput|OPFL_Variadic1,
                     0/*#VTs*/, 1/*#Ops*/, 1, 
                 // Src: (Cpu0JmpLink CPURegs:i32:$rb) - Complexity = 3
                 // Dst: (JALR CPURegs:i32:$rb)
