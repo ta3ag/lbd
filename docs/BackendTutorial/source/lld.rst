@@ -7,7 +7,7 @@ This chapter add Cpu0 backend in lld. With this lld Cpu0 for ELF linker support,
 the program with global variables can be allocated in ELF file format layout. 
 Meaning the relocation records of global variable can be solved. In addition, 
 llvm-objdump driver is modified for support generate Hex file from ELF.
-With these two tool supported, the program with global variables exist in section
+With these two tools supported, the program with global variables exist in section
 .data and .rodata can be accessed and transfered to Hex file which feed to 
 Verilog Cpu0 machine and run on your PC/Laptop.
 
@@ -845,21 +845,27 @@ compare with the result of printf() function which implemented by PC OS as follo
   -3:   -3 right justif.
 
 
-Except "signed -3 = unsigned - = hex -" didn't display well on Cpu0 version, others are fine.
+Except "signed -3 = unsigned - = hex -" didn't display well on Cpu0 version, 
+others are fine.
 
 
 Summary
 --------
 
 Thanks the llvm open source project. 
-To write a linker and ELF to Hex tools for the new CPU architecture is easy and reliable. 
+To write a linker and ELF to Hex tools for the new CPU architecture is easy and 
+reliable. 
 Combine with the llvm compiler backend of support new architecture Cpu0 and 
 Verilog language program in the previouse Chapters, we design a software 
 toolchain to compile C/C++ code, link and run it on Verilog Cpu0 simulated
 machine of PC without any real hardware to investment.
 If you like to pay money to buy the FPGA development hardware, we believe the 
 code can run on FPGA CPU without problem even though we didn't do it.
-System program toolchain can be designed just like we show you at this point. School knowledge of system program, compiler, linker, loader, computer architecture and CPU design can be translate into a real work and see how it be run. These school books knowledge is not limited on paper. We program it, design it and run it on real world.
+System program toolchain can be designed just like we show you at this point. 
+School knowledge of system program, compiler, linker, loader, computer 
+architecture and CPU design can be translate into a real work and see how it be 
+run. Now, these school books knowledge is not limited on paper. 
+We program it, design it and run it on real world.
 
 
 .. [#] http://lld.llvm.org/
