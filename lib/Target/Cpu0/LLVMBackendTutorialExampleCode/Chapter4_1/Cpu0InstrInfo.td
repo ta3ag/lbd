@@ -22,10 +22,19 @@ include "Cpu0InstrFormats.td"
 //===----------------------------------------------------------------------===//
 
 def SDT_Cpu0Ret          : SDTypeProfile<0, 1, [SDTCisInt<0>]>;
+def SDT_Cpu0DivRem       : SDTypeProfile<0, 2,
+                                         [SDTCisInt<0>,
+                                          SDTCisSameAs<0, 1>]>;
 
 // Return
 def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDT_Cpu0Ret, [SDNPHasChain,
                      SDNPOptInGlue]>;
+
+// DivRem(u) nodes
+def Cpu0DivRem    : SDNode<"Cpu0ISD::DivRem", SDT_Cpu0DivRem,
+                           [SDNPOutGlue]>;
+def Cpu0DivRemU   : SDNode<"Cpu0ISD::DivRemU", SDT_Cpu0DivRem,
+                           [SDNPOutGlue]>;
 
 //===----------------------------------------------------------------------===//
 // Cpu0 Operand, Complex Patterns and Transformations Definitions.
@@ -50,6 +59,22 @@ def mem : Operand<i32> {
   let EncoderMethod = "getMemEncoding";
 }
 
+def mem_ea : Operand<i32> {
+  let PrintMethod = "printMemOperandEA";
+  let MIOperandInfo = (ops CPURegs, simm16);
+  let EncoderMethod = "getMemEncoding";
+}
+
+// Transformation Function - get the lower 16 bits.
+def LO16 : SDNodeXForm<imm, [{
+  return getImm(N, N->getZExtValue() & 0xffff);
+}]>;
+
+// Transformation Function - get the higher 16 bits.
+def HI16 : SDNodeXForm<imm, [{
+  return getImm(N, (N->getZExtValue() >> 16) & 0xffff);
+}]>;
+
 // Node immediate fits as 16-bit sign extended on target immediate.
 // e.g. addi, andi
 def immSExt16  : PatLeaf<(imm), [{ return isInt<16>(N->getSExtValue()); }]>;
@@ -63,6 +88,12 @@ def immZExt16  : PatLeaf<(imm), [{
     return (uint32_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
   else
     return (uint64_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
+}], LO16>;
+
+// Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
+def immLow16Zero : PatLeaf<(imm), [{
+  int64_t Val = N->getSExtValue();
+  return isInt<32>(Val) && !(Val & 0xffff);
 }]>;
 
 // shamt field must fit in 5 bits.
@@ -123,14 +154,22 @@ class shift_rotate_imm<bits<8> op, bits<4> isRotate, string instr_asm,
   FA<op, (outs RC:$ra), (ins RC:$rb, ImmOpnd:$shamt),
      !strconcat(instr_asm, "\t$ra, $rb, $shamt"),
      [(set RC:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu> {
-  let rc = isRotate;
+  let rc = 0;
   let shamt = shamt;
 }
 
 // 32-bit shift instructions.
-class shift_rotate_imm32<bits<8> func, bits<4> isRotate, string instr_asm,
+class shift_rotate_imm32<bits<8> op, bits<4> isRotate, string instr_asm,
                          SDNode OpNode>:
-  shift_rotate_imm<func, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs>;
+  shift_rotate_imm<op, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs>;
+
+class shift_rotate_reg<bits<8> op, bits<4> isRotate, string instr_asm,
+                       SDNode OpNode, RegisterClass RC>:
+  FA<op, (outs RC:$ra), (ins CPURegs:$rb, RC:$rc),
+     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
+     [(set RC:$ra, (OpNode RC:$rb, CPURegs:$rc))], IIAlu> {
+  let shamt = 0;
+}
 
 // Load Upper Imediate
 class LoadUpper<bits<8> op, string instr_asm, RegisterClass RC, Operand Imm>:
@@ -179,6 +218,57 @@ multiclass StoreM32<bits<8> op, string instr_asm, PatFrag OpNode,
   def #NAME# : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
 }
 
+// Mul, Div
+class Mult<bits<8> op, string instr_asm, InstrItinClass itin,
+           RegisterClass RC, list<Register> DefRegs>:
+  FL<op, (outs), (ins RC:$ra, RC:$rb),
+     !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
+  let imm16 = 0;
+  let isCommutable = 1;
+  let Defs = DefRegs;
+  let neverHasSideEffects = 1;
+}
+
+class Mult32<bits<8> op, string instr_asm, InstrItinClass itin>:
+  Mult<op, instr_asm, itin, CPURegs, [HI, LO]>;
+
+class Div<SDNode opNode, bits<8> op, string instr_asm, InstrItinClass itin,
+          RegisterClass RC, list<Register> DefRegs>:
+  FL<op, (outs), (ins RC:$ra, RC:$rb),
+     !strconcat(instr_asm, "\t$ra, $rb"),
+     [(opNode RC:$ra, RC:$rb)], itin> {
+  let imm16 = 0;
+  let Defs = DefRegs;
+}
+
+class Div32<SDNode opNode, bits<8> op, string instr_asm, InstrItinClass itin>:
+  Div<opNode, op, instr_asm, itin, CPURegs, [HI, LO]>;
+
+// Move from Hi/Lo
+class MoveFromLOHI<bits<8> op, string instr_asm, RegisterClass RC,
+                   list<Register> UseRegs>:
+  FL<op, (outs RC:$ra), (ins),
+     !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
+  let rb = 0;
+  let imm16 = 0;
+  let Uses = UseRegs;
+  let neverHasSideEffects = 1;
+}
+
+class MoveToLOHI<bits<8> op, string instr_asm, RegisterClass RC,
+                 list<Register> DefRegs>:
+  FL<op, (outs), (ins RC:$ra),
+     !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
+  let rb = 0;
+  let imm16 = 0;
+  let Defs = DefRegs;
+  let neverHasSideEffects = 1;
+}
+
+class EffectiveAddress<string instr_asm, RegisterClass RC, Operand Mem> :
+  FMem<0x09, (outs RC:$ra), (ins Mem:$addr),
+     instr_asm, [(set RC:$ra, addr:$addr)], IIAlu>;
+
 //===----------------------------------------------------------------------===//
 // Instruction definition
 //===----------------------------------------------------------------------===//
@@ -195,32 +285,55 @@ defm ST     : StoreM32<0x02, "st",  store_a>;
 /// Arithmetic Instructions (ALU Immediate)
 // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
 def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
-def ORi     : ArithLogicI<0x0D, "ori", or, uimm16, immZExt16, CPURegs>;
+def ORi     : ArithLogicI<0x0d, "ori", or, uimm16, immZExt16, CPURegs>;
+def LUi     : LoadUpper<0x0f, "lui", CPURegs, uimm16>;
 
 /// Arithmetic Instructions (3-Operand, R-Type)
 def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
+def SUBu    : ArithLogicR<0x12, "subu", sub, IIAlu, CPURegs>;
 def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
 def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
-def MUL     : ArithLogicR<0x15, "mul", mul, IIImul, CPURegs, 1>;
-def DIV     : ArithLogicR<0x16, "div", sdiv, IIIdiv, CPURegs, 1>;
-def UDIV    : ArithLogicR<0x17, "udiv", udiv, IIIdiv, CPURegs, 1>;
-def AND     : ArithLogicR<0x18, "and", and, IIAlu, CPURegs, 1>;
-def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
-def XOR     : ArithLogicR<0x1A, "xor", xor, IIAlu, CPURegs, 1>;
+def MUL     : ArithLogicR<0x17, "mul", mul, IIImul, CPURegs, 1>;
 
 /// Shift Instructions
 // sra is IR node for ashr llvm IR instruction of .bc
-def SRA     : shift_rotate_imm32<0x1B, 0x00, "sra", sra>;
-def ROL     : shift_rotate_imm32<0x1C, 0x01, "rol", rotl>;
-def ROR     : shift_rotate_imm32<0x1D, 0x01, "ror", rotr>;
-def SHL     : shift_rotate_imm32<0x1E, 0x00, "shl", shl>;
+def ROL     : shift_rotate_imm32<0x1b, 0x01, "rol", rotl>;
+def ROR     : shift_rotate_imm32<0x1c, 0x01, "ror", rotr>;
+def SRA     : shift_rotate_imm32<0x1d, 0x00, "sra", sra>;
+def SHL     : shift_rotate_imm32<0x1e, 0x00, "shl", shl>;
 // srl is IR node for lshr llvm IR instruction of .bc
-def SHR     : shift_rotate_imm32<0x1F, 0x00, "shr", srl>;
+def SHR     : shift_rotate_imm32<0x1f, 0x00, "shr", srl>;
+def SRAV    : shift_rotate_reg<0x20, 0x00, "srav", sra, CPURegs>;
+def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
+def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
 
 let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
     isBarrier=1, hasCtrlDep=1 in
-  def RET : FJ <0x2C, (outs), (ins CPURegs:$target),
+  def RET : FJ <0x2c, (outs), (ins CPURegs:$target),
                 "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch>;
+
+/// Multiply and Divide Instructions.
+def MULT    : Mult32<0x41, "mult", IIImul>;
+def MULTu   : Mult32<0x42, "multu", IIImul>;
+def SDIV    : Div32<Cpu0DivRem, 0x43, "div", IIIdiv>;
+def UDIV    : Div32<Cpu0DivRemU, 0x44, "divu", IIIdiv>;
+
+def MFHI    : MoveFromLOHI<0x46, "mfhi", CPURegs, [HI]>;
+def MFLO    : MoveFromLOHI<0x47, "mflo", CPURegs, [LO]>;
+def MTHI    : MoveToLOHI<0x48, "mthi", CPURegs, [HI]>;
+def MTLO    : MoveToLOHI<0x49, "mtlo", CPURegs, [LO]>;
+
+/// No operation
+let addr=0 in
+  def NOP   : FJ<0, (outs), (ins), "nop", [], IIAlu>;
+
+// FrameIndexes are legalized when they are operands from load/store
+// instructions. The same not happens for stack address copies, so an
+// add op with mem ComplexPattern is used and the stack address copy
+// can be matched. It's similar to Sparc LEA_ADDRi
+def LEA_ADDiu : EffectiveAddress<"addiu\t$ra, $addr", CPURegs, mem_ea> {
+  let isCodeGenOnly = 1;
+}
 
 //===----------------------------------------------------------------------===//
 //  Arbitrary patterns that map to one or more instructions
@@ -230,3 +343,12 @@ let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
 
 def : Pat<(i32 immSExt16:$in),
           (ADDiu ZERO, imm:$in)>;
+def : Pat<(i32 immZExt16:$in),
+          (ORi ZERO, imm:$in)>;
+def : Pat<(i32 immLow16Zero:$in),
+          (LUi (HI16 imm:$in))>;
+
+// Arbitrary immediates
+def : Pat<(i32 imm:$imm),
+          (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
+

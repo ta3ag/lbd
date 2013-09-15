@@ -5,6 +5,7 @@
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=obj -stats ch11_2.bc -o ch11_2.cpu0.o
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llvm-objdump -d ch11_2.cpu0.o | tail -n +6| awk '{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t*/"}' > ../cpu0_verilog/redesign/cpu0s.hex
 
+/// start
 #include "InitRegs.h"
 
 #define OUT_MEM 0x7000 // 28672

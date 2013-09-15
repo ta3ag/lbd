@@ -1,7 +1,7 @@
 // clang -c ch_move.cpp -emit-llvm -o ch_move.bc
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch_move.bc -o ch_move.cpu0.s
 
-// ch_move.cpp
+/// start
 int main()
 {
   int a = 1;

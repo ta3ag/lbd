@@ -76,6 +76,51 @@ void Cpu0AnalyzeImmediate::GetInstSeqLs(uint64_t Imm, unsigned RemSize,
   }
 }
 
+// Replace a ADDiu & SHL pair with a LUi.
+// e.g. the following two instructions
+//  ADDiu 0x0111
+//  SHL 18
+// are replaced with
+//  LUi 0x444
+void Cpu0AnalyzeImmediate::ReplaceADDiuSHLWithLUi(InstSeq &Seq) {
+  // Check if the first two instructions are ADDiu and SHL and the shift amount
+  // is at least 16.
+  if ((Seq.size() < 2) || (Seq[0].Opc != ADDiu) ||
+      (Seq[1].Opc != SHL) || (Seq[1].ImmOpnd < 16))
+    return;
+
+  // Sign-extend and shift operand of ADDiu and see if it still fits in 16-bit.
+  int64_t Imm = SignExtend64<16>(Seq[0].ImmOpnd);
+  int64_t ShiftedImm = (uint64_t)Imm << (Seq[1].ImmOpnd - 16);
+
+  if (!isInt<16>(ShiftedImm))
+    return;
+
+  // Replace the first instruction and erase the second.
+  Seq[0].Opc = LUi;
+  Seq[0].ImmOpnd = (unsigned)(ShiftedImm & 0xffff);
+  Seq.erase(Seq.begin() + 1);
+}
+
+void Cpu0AnalyzeImmediate::GetShortestSeq(InstSeqLs &SeqLs, InstSeq &Insts) {
+  InstSeqLs::iterator ShortestSeq = SeqLs.end();
+  // The length of an instruction sequence is at most 7.
+  unsigned ShortestLength = 8;
+
+  for (InstSeqLs::iterator S = SeqLs.begin(); S != SeqLs.end(); ++S) {
+    ReplaceADDiuSHLWithLUi(*S);
+    assert(S->size() <= 7);
+
+    if (S->size() < ShortestLength) {
+      ShortestSeq = S;
+      ShortestLength = S->size();
+    }
+  }
+
+  Insts.clear();
+  Insts.append(ShortestSeq->begin(), ShortestSeq->end());
+}
+
 const Cpu0AnalyzeImmediate::InstSeq
 &Cpu0AnalyzeImmediate::Analyze(uint64_t Imm, unsigned Size,
                                bool LastInstrIsADDiu) {
@@ -84,6 +129,7 @@ const Cpu0AnalyzeImmediate::InstSeq
   ADDiu = Cpu0::ADDiu;
   ORi = Cpu0::ORi;
   SHL = Cpu0::SHL;
+  LUi = Cpu0::LUi;
 
   InstSeqLs SeqLs;
 
@@ -93,8 +139,8 @@ const Cpu0AnalyzeImmediate::InstSeq
   else
     GetInstSeqLs(Imm, Size, SeqLs);
 
-  Insts.clear();
-  Insts.append(SeqLs.begin()->begin(), SeqLs.begin()->end());
+  // Set Insts to the shortest instruction sequence.
+  GetShortestSeq(SeqLs, Insts);
 
   return Insts;
 }

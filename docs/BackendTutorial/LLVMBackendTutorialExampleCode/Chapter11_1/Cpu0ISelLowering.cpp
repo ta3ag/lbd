@@ -442,6 +442,28 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
       continue;
     }
 
+    // Promote the value if needed.
+    switch (VA.getLocInfo()) {
+    default: llvm_unreachable("Unknown loc info!");
+    case CCValAssign::Full:
+      break;
+    case CCValAssign::SExt:
+      Arg = DAG.getNode(ISD::SIGN_EXTEND, dl, LocVT, Arg);
+      break;
+    case CCValAssign::ZExt:
+      Arg = DAG.getNode(ISD::ZERO_EXTEND, dl, LocVT, Arg);
+      break;
+    case CCValAssign::AExt:
+      Arg = DAG.getNode(ISD::ANY_EXTEND, dl, LocVT, Arg);
+      break;
+    }
+    // Arguments that can be passed on register must be kept at
+    // RegsToPass vector
+    if (VA.isRegLoc()) {
+      RegsToPass.push_back(std::make_pair(VA.getLocReg(), Arg));
+      continue;
+    }
+
     // Register can't get to this point...
     assert(VA.isMemLoc());
 
@@ -670,6 +692,7 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
                    &*FuncArg);
       continue;
     }
+
     // sanity check
     assert(VA.isMemLoc());
 
@@ -700,9 +723,15 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
 #endif
 
   if (isVarArg) {
+    unsigned NumOfRegs = 0;
+    int FirstRegSlotOffset = 0; // offset of $a0's slot.
     unsigned RegSize = Cpu0::CPURegsRegClass.getSize();
+    int RegSlotOffset = FirstRegSlotOffset + ArgLocs.size() * RegSize;
+
     // Offset of the first variable argument from stack pointer.
-    int FirstVaArgOffset = RegSize;
+    int FirstVaArgOffset;
+
+    FirstVaArgOffset = RegSlotOffset;
 
     // Record the frame index of the first variable argument
     // which is a value necessary to VASTART.

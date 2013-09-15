@@ -1,4 +1,6 @@
 
+/// start
+#include "print.h"
 #include "itoa.cpp"
 
 // For memory IO
@@ -17,6 +19,7 @@ void print_string(const char *str)
   for (p = str; *p != '\0'; p++)
     print_char(*p);
   print_char(*p);
+  print_char('\n');
 
   return;
 }
@@ -24,11 +27,6 @@ void print_string(const char *str)
 // For memory IO
 void print_integer(int x)
 {
-#if 0
-  int *p = (int*)OUT_MEM;
-  *p = x;
-#endif
-
   char str[INT_DIGITS + 2];
   itoa(str, x);
   print_string(str);

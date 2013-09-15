@@ -2,7 +2,7 @@
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_3_2.bc -o ch8_3_2.cpu0.s
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=mips -relocation-model=pic -filetype=asm ch8_3_2.bc -o ch8_3_2.mips.s
 
-//#include <stdio.h>
+/// start
 #include <stdarg.h>
 
 template<class T>
@@ -27,7 +27,6 @@ T sum(T amount, ...)
 int main()
 {
   int a = sum<int>(6, 0, 1, 2, 3, 4, 5);
-//  printf("a = %d\n", a);
 	
   return a;
 }

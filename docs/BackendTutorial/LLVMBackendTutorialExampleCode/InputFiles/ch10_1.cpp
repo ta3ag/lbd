@@ -1,6 +1,7 @@
 // clang -c ch10_1.cpp -emit-llvm -o ch10_1.bc
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch10_1.bc -o ch10_1.cpu0.o
 
+/// start
 asm("ld	$2, 8($sp)");
 asm("st	$0, 4($sp)");
 asm("addiu $3,	$ZERO, 0");

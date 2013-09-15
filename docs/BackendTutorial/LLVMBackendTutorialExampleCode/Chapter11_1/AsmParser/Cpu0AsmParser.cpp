@@ -308,8 +308,17 @@ void Cpu0AsmParser::expandLoadImm(MCInst &Inst, SMLoc IDLoc,
 
   int ImmValue = ImmOp.getImm();
   tmpInst.setLoc(IDLoc);
-  if ( -32768 <= ImmValue && ImmValue <= 32767) {
-    // for -32768 <= j < 32767.
+  if ( 0 <= ImmValue && ImmValue <= 65535) {
+    // for 0 <= j <= 65535.
+    // li d,j => ori d,$zero,j
+    tmpInst.setOpcode(Cpu0::ORi);
+    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
+    tmpInst.addOperand(
+              MCOperand::CreateReg(Cpu0::ZERO));
+    tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
+    Instructions.push_back(tmpInst);
+  } else if ( ImmValue < 0 && ImmValue >= -32768) {
+    // for -32768 <= j < 0.
     // li d,j => addiu d,$zero,j
     tmpInst.setOpcode(Cpu0::ADDiu); //TODO:no ADDiu64 in td files?
     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
@@ -319,32 +328,17 @@ void Cpu0AsmParser::expandLoadImm(MCInst &Inst, SMLoc IDLoc,
     Instructions.push_back(tmpInst);
   } else {
     // for any other value of j that is representable as a 32-bit integer.
-    // li d,j => addiu d, $0, hi16(j)
-    //           shl d, d, 16
-    //           addiu at, $0, lo16(j)
-    //           or d, d, at
-    tmpInst.setOpcode(Cpu0::ADDiu);
+    // li d,j => lui d,hi16(j)
+    //           ori d,d,lo16(j)
+    tmpInst.setOpcode(Cpu0::LUi);
     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
     tmpInst.addOperand(MCOperand::CreateImm((ImmValue & 0xffff0000) >> 16));
     Instructions.push_back(tmpInst);
     tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::SHL);
+    tmpInst.setOpcode(Cpu0::ORi);
     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateImm(16));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::ADDiu);
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0x0000ffff));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::OR);
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
+    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0xffff));
     tmpInst.setLoc(IDLoc);
     Instructions.push_back(tmpInst);
   }
@@ -370,34 +364,18 @@ void Cpu0AsmParser::expandLoadAddressReg(MCInst &Inst, SMLoc IDLoc,
     Instructions.push_back(tmpInst);
   } else {
     // for any other value of j that is representable as a 32-bit integer.
-    // li d,j(s) => addiu d, $0, hi16(j)
-    //           shl d, d, 16
-    //           addiu at, $0, lo16(j)
-    //           or d, d, at
-    //           add d,d,s
-    tmpInst.setOpcode(Cpu0::ADDiu);
+    // la d,j(s) => lui d,hi16(j)
+    //              ori d,d,lo16(j)
+    //              add d,d,s
+    tmpInst.setOpcode(Cpu0::LUi);
     tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
     tmpInst.addOperand(MCOperand::CreateImm((ImmValue & 0xffff0000) >> 16));
     Instructions.push_back(tmpInst);
     tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::SHL);
+    tmpInst.setOpcode(Cpu0::ORi);
     tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateImm(16));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::ADDiu);
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0x0000ffff));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::OR);
     tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
-    tmpInst.setLoc(IDLoc);
+    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0xffff));
     Instructions.push_back(tmpInst);
     tmpInst.clear();
     tmpInst.setOpcode(Cpu0::ADD);
@@ -427,33 +405,17 @@ void Cpu0AsmParser::expandLoadAddressImm(MCInst &Inst, SMLoc IDLoc,
     Instructions.push_back(tmpInst);
   } else {
     // for any other value of j that is representable as a 32-bit integer.
-    // la d,j => addiu d, $0, hi16(j)
-    //           shl d, d, 16
-    //           addiu at, $0, lo16(j)
-    //           or d, d, at
-    tmpInst.setOpcode(Cpu0::ADDiu);
+    // la d,j => lui d,hi16(j)
+    //           ori d,d,lo16(j)
+    tmpInst.setOpcode(Cpu0::LUi);
     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
     tmpInst.addOperand(MCOperand::CreateImm((ImmValue & 0xffff0000) >> 16));
     Instructions.push_back(tmpInst);
     tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::SHL);
+    tmpInst.setOpcode(Cpu0::ORi);
     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
     tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateImm(16));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::ADDiu);
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::ZERO));
-    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0x0000ffff));
-    Instructions.push_back(tmpInst);
-    tmpInst.clear();
-    tmpInst.setOpcode(Cpu0::OR);
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-    tmpInst.addOperand(MCOperand::CreateReg(Cpu0::AT));
-    tmpInst.setLoc(IDLoc);
+    tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0xffff));
     Instructions.push_back(tmpInst);
   }
 }

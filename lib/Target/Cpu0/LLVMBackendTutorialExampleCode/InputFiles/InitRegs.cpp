@@ -1,4 +1,5 @@
 
+/// start
 asm("addiu $1,	$ZERO, 0");
 asm("addiu $2,	$ZERO, 0");
 asm("addiu $3,	$ZERO, 0");

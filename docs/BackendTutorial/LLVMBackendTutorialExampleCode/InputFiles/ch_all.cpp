@@ -11,6 +11,8 @@
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch_all.bc -o ch_all.3.2.mips.s
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch_all.bc -o ch_all.3.2.mips.static.s
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch_all.bc -o ch_all.3.2.mips.o
+
+/// start
 #if 1
 //#include <stdio.h>
 #include <stdarg.h>

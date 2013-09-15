@@ -28,6 +28,7 @@ const Cpu0RegisterInfo &Cpu0InstrInfo::getRegisterInfo() const {
   return RI;
 }
 
+// Cpu0InstrInfo::copyPhysReg()
 void Cpu0InstrInfo::
 copyPhysReg(MachineBasicBlock &MBB,
             MachineBasicBlock::iterator I, DebugLoc DL,
