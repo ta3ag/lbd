@@ -644,8 +644,8 @@ get Cpu0 example code as well as the llvm trunk of Cpu0 based.
 2) Make dir Cpu0 in src/lib/Target and download example code.
 
 3) Update my modified files to support cpu0 by command, ``cp -rf /usr/local/llvm/
-test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/
-src_files_modify/modify/src .``.
+test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/``
+``src_files_modify/modify/src .``.
 
 4) Check step 2 is effective by command 
 ``grep -R "Cpu0" . | more```. I add the Cpu0 backend support, so check with 
