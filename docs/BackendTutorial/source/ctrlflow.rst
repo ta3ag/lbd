@@ -554,13 +554,13 @@ Finally we list the code added for full support of control flow statement,
 	}
     ...
     /// Jump and Branch Instructions
-    def JEQ     : CBranch<0x20, "jeq", CPURegs>;
-    def JNE     : CBranch<0x21, "jne", CPURegs>;
-    def JLT     : CBranch<0x22, "jlt", CPURegs>;
-    def JGT     : CBranch<0x23, "jgt", CPURegs>;
-    def JLE     : CBranch<0x24, "jle", CPURegs>;
-    def JGE     : CBranch<0x25, "jge", CPURegs>;
-    def JMP     : UncondBranch<0x26, "jmp">;
+    def JEQ     : CBranch<0x30, "jeq", CPURegs>;
+    def JNE     : CBranch<0x31, "jne", CPURegs>;
+    def JLT     : CBranch<0x32, "jlt", CPURegs>;
+    def JGT     : CBranch<0x33, "jgt", CPURegs>;
+    def JLE     : CBranch<0x34, "jle", CPURegs>;
+    def JGE     : CBranch<0x35, "jge", CPURegs>;
+    def JMP     : UncondBranch<0x36, "jmp">;
     ...
     // brcond patterns
     multiclass BrcondPats<RegisterClass RC, Instruction JEQOp, 

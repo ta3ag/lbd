@@ -780,7 +780,7 @@ To support llvm-objdump, the following code added to Chapter9_1/.
              list<Register> UseRegs>:
     FJ<op, (outs), (ins RC:$ra, brtarget:$addr),
          !strconcat(instr_asm, "\t$addr"),
-         [(brcond RC:$ra, bb:$addr)], IIBranch> {
+         [], IIBranch> {
     ...
     let DecoderMethod = "DecodeBranchTarget";
   }

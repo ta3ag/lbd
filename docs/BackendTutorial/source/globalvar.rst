@@ -677,9 +677,7 @@ instructions as below.
   def Cpu0Lo    : SDNode<"Cpu0ISD::Lo", SDTIntUnaryOp>;
   ...
   // hi/lo relocs
-  def : Pat<(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>;
-  // Expect cpu0 add LUi support, like Mips
-  //def : Pat<(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
+  def : Pat<(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
   def : Pat<(Cpu0Lo tglobaladdr:$in), (ADDiu ZERO, tglobaladdr:$in)>;
   
   def : Pat<(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),

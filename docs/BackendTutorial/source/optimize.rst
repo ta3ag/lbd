@@ -519,128 +519,7 @@ Chapter11_2/ include the changes for new instruction sets as follows,
 .. code-block:: c++
 
   // Cpu0AsmParser.cpp
-  void Cpu0AsmParser::expandLoadImm(MCInst &Inst, SMLoc IDLoc,
-                                    SmallVectorImpl<MCInst> &Instructions){
-    MCInst tmpInst;
-    const MCOperand &ImmOp = Inst.getOperand(1);
-    assert(ImmOp.isImm() && "expected immediate operand kind");
-    const MCOperand &RegOp = Inst.getOperand(0);
-    assert(RegOp.isReg() && "expected register operand kind");
-  
-    int ImmValue = ImmOp.getImm();
-    tmpInst.setLoc(IDLoc);
-    if ( 0 <= ImmValue && ImmValue <= 65535) {
-      // for 0 <= j <= 65535.
-      // li d,j => ori d,$zero,j
-      tmpInst.setOpcode(Cpu0::ORi);
-      tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-      tmpInst.addOperand(
-                MCOperand::CreateReg(Cpu0::ZERO));
-      tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
-      Instructions.push_back(tmpInst);
-    } else if ( ImmValue < 0 && ImmValue >= -32768) {
-      // for -32768 <= j < 0.
-      // li d,j => addiu d,$zero,j
-      tmpInst.setOpcode(Cpu0::ADDiu); //TODO:no ADDiu64 in td files?
-      tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-      tmpInst.addOperand(
-                MCOperand::CreateReg(Cpu0::ZERO));
-      tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
-      Instructions.push_back(tmpInst);
-    } else {
-      // for any other value of j that is representable as a 32-bit integer.
-      // li d,j => lui d,hi16(j)
-      //           ori d,d,lo16(j)
-      tmpInst.setOpcode(Cpu0::LUi);
-      tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-      tmpInst.addOperand(MCOperand::CreateImm((ImmValue & 0xffff0000) >> 16));
-      Instructions.push_back(tmpInst);
-      tmpInst.clear();
-      tmpInst.setOpcode(Cpu0::ORi);
-      tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-      tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-      tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0xffff));
-      tmpInst.setLoc(IDLoc);
-      Instructions.push_back(tmpInst);
-    }
-  }
-  
-  void Cpu0AsmParser::expandLoadAddressReg(MCInst &Inst, SMLoc IDLoc,
-                                           SmallVectorImpl<MCInst> &Instructions){
-    MCInst tmpInst;
-    const MCOperand &ImmOp = Inst.getOperand(2);
-    assert(ImmOp.isImm() && "expected immediate operand kind");
-    const MCOperand &SrcRegOp = Inst.getOperand(1);
-    assert(SrcRegOp.isReg() && "expected register operand kind");
-    const MCOperand &DstRegOp = Inst.getOperand(0);
-    assert(DstRegOp.isReg() && "expected register operand kind");
-    int ImmValue = ImmOp.getImm();
-    if ( -32768 <= ImmValue && ImmValue <= 32767) {
-      // for -32768 <= j < 32767.
-      //la d,j(s) => addiu d,s,j
-      tmpInst.setOpcode(Cpu0::ADDiu); //TODO:no ADDiu64 in td files?
-      tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-      tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
-      tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
-      Instructions.push_back(tmpInst);
-    } else {
-      // for any other value of j that is representable as a 32-bit integer.
-      // la d,j(s) => lui d,hi16(j)
-      //              ori d,d,lo16(j)
-      //              add d,d,s
-      tmpInst.setOpcode(Cpu0::LUi);
-      tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-      tmpInst.addOperand(MCOperand::CreateImm((ImmValue & 0xffff0000) >> 16));
-      Instructions.push_back(tmpInst);
-      tmpInst.clear();
-      tmpInst.setOpcode(Cpu0::ORi);
-      tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-      tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-      tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0xffff));
-      Instructions.push_back(tmpInst);
-      tmpInst.clear();
-      tmpInst.setOpcode(Cpu0::ADD);
-      tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-      tmpInst.addOperand(MCOperand::CreateReg(DstRegOp.getReg()));
-      tmpInst.addOperand(MCOperand::CreateReg(SrcRegOp.getReg()));
-      Instructions.push_back(tmpInst);
-    }
-  }
-  
-  void Cpu0AsmParser::expandLoadAddressImm(MCInst &Inst, SMLoc IDLoc,
-                                           SmallVectorImpl<MCInst> &Instructions){
-    MCInst tmpInst;
-    const MCOperand &ImmOp = Inst.getOperand(1);
-    assert(ImmOp.isImm() && "expected immediate operand kind");
-    const MCOperand &RegOp = Inst.getOperand(0);
-    assert(RegOp.isReg() && "expected register operand kind");
-    int ImmValue = ImmOp.getImm();
-    if ( -32768 <= ImmValue && ImmValue <= 32767) {
-      // for -32768 <= j < 32767.
-      //la d,j => addiu d,$zero,j
-      tmpInst.setOpcode(Cpu0::ADDiu);
-      tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-      tmpInst.addOperand(
-                MCOperand::CreateReg(Cpu0::ZERO));
-      tmpInst.addOperand(MCOperand::CreateImm(ImmValue));
-      Instructions.push_back(tmpInst);
-    } else {
-      // for any other value of j that is representable as a 32-bit integer.
-      // la d,j => lui d,hi16(j)
-      //           ori d,d,lo16(j)
-      tmpInst.setOpcode(Cpu0::LUi);
-      tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-      tmpInst.addOperand(MCOperand::CreateImm((ImmValue & 0xffff0000) >> 16));
-      Instructions.push_back(tmpInst);
-      tmpInst.clear();
-      tmpInst.setOpcode(Cpu0::ORi);
-      tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-      tmpInst.addOperand(MCOperand::CreateReg(RegOp.getReg()));
-      tmpInst.addOperand(MCOperand::CreateImm(ImmValue & 0xffff));
-      Instructions.push_back(tmpInst);
-    }
-  }
-  
+  ...
   int Cpu0AsmParser::matchRegisterName(StringRef Name) {
     ...
         .Case("t0",  Cpu0::T0)
@@ -742,6 +621,46 @@ Chapter11_2/ include the changes for new instruction sets as follows,
     ...
   }
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0InstrInfo.cpp
+.. code-block:: c++
+
+  // Cpu0InstrInfo::copyPhysReg()
+  void Cpu0InstrInfo::
+  copyPhysReg(MachineBasicBlock &MBB,
+              MachineBasicBlock::iterator I, DebugLoc DL,
+              unsigned DestReg, unsigned SrcReg,
+              bool KillSrc) const {
+    unsigned Opc = 0, ZeroReg = 0;
+  
+    if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
+      if (Cpu0::CPURegsRegClass.contains(SrcReg))
+        Opc = Cpu0::ADD, ZeroReg = Cpu0::ZERO;
+      else if (SrcReg == Cpu0::HI)
+        Opc = Cpu0::MFHI, SrcReg = 0;
+      else if (SrcReg == Cpu0::LO)
+        Opc = Cpu0::MFLO, SrcReg = 0;
+    }
+    else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
+      if (DestReg == Cpu0::HI)
+        Opc = Cpu0::MTHI, DestReg = 0;
+      else if (DestReg == Cpu0::LO)
+        Opc = Cpu0::MTLO, DestReg = 0;
+    }
+  
+    assert(Opc && "Cannot copy registers");
+  
+    MachineInstrBuilder MIB = BuildMI(MBB, I, DL, get(Opc));
+  
+    if (DestReg)
+      MIB.addReg(DestReg, RegState::Define);
+  
+    if (ZeroReg)
+      MIB.addReg(ZeroReg);
+  
+    if (SrcReg)
+      MIB.addReg(SrcReg, getKillRegState(KillSrc));
+  }
+
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0InstrInfo.td
 .. code-block:: c++
 
@@ -791,60 +710,24 @@ Chapter11_2/ include the changes for new instruction sets as follows,
        !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
        [(set CPURegs:$ra, (cond_op RC:$rb, imm_type:$imm16))],
        IIAlu>;
+  // Unconditional branch, such as JMP
+  class UncondBranch<bits<8> op, string instr_asm>:
+    FJ<op, (outs), (ins jmptarget:$addr),
+               !strconcat(instr_asm, "\t$addr"), [(br bb:$addr)], IIBranch> {
+    let isBranch = 1;
+    let isTerminator = 1;
+    let isBarrier = 1;
+    let hasDelaySlot = 0;
+  }
   ...
-  /// Load and Store Instructions
-  ///  aligned
-  defm LD     : LoadM32<0x01,  "ld",  load_a>;
-  defm ST     : StoreM32<0x02, "st",  store_a>;
-  
-  /// Arithmetic Instructions (ALU Immediate)
-  ...
-  def SLTi    : SetCC_I<0x0a, "slti", setlt, simm16, immSExt16, CPURegs>;
-  def SLTiu   : SetCC_I<0x0b, "sltiu", setult, simm16, immSExt16, CPURegs>;
-  def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs>;
-  def ORi     : ArithLogicI<0x0d, "ori", or, uimm16, immZExt16, CPURegs>;
-  def XORi    : ArithLogicI<0x0e, "xori", xor, uimm16, immZExt16, CPURegs>;
-  def LUi     : LoadUpper<0x0f, "lui", CPURegs, uimm16>;
-  
-  /// Arithmetic Instructions (3-Operand, R-Type)
-  ...
-  def SUBu    : ArithLogicR<0x12, "subu", sub, IIAlu, CPURegs>;
-  def ADD     : ArithOverflowR<0x13, "add", IIAlu, CPURegs, 1>;
-  def SUB     : ArithOverflowR<0x14, "sub", IIAlu, CPURegs>;
-  ...
-  def DIV     : Div32<Cpu0DivRem, 0x16, "div", IIIdiv>;
-  def DIVu    : Div32<Cpu0DivRemU, 0x17, "divu", IIIdiv>;
-  ...
-  def SLT     : SetCC_R<0x30, "slt", setlt, CPURegs>;
-  def SLTu    : SetCC_R<0x31, "sltu", setult, CPURegs>;
-  ...
+  def SLTi    : SetCC_I<0x26, "slti", setlt, simm16, immSExt16, CPURegs>;
+  def SLTiu   : SetCC_I<0x27, "sltiu", setult, simm16, immSExt16, CPURegs>;
+  def SLT     : SetCC_R<0x28, "slt", setlt, CPURegs>;
+  def SLTu    : SetCC_R<0x29, "sltu", setult, CPURegs>;
   
   /// Jump and Branch Instructions
-  def BEQ     : CBranch<0x20, "beq", seteq, CPURegs>;
-  def BNE     : CBranch<0x21, "bne", setne, CPURegs>;
-  ...
-  
-  //===----------------------------------------------------------------------===//
-  //  Arbitrary patterns that map to one or more instructions
-  //===----------------------------------------------------------------------===//
-  
-  // Small immediates
-  ...
-  def : Pat<(i32 immZExt16:$in),
-            (ORi ZERO, imm:$in)>;
-  def : Pat<(i32 immLow16Zero:$in),
-            (LUi (HI16 imm:$in))>;
-  
-  // Arbitrary immediates
-  def : Pat<(i32 imm:$imm),
-            (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
-  ...
-  
-  // gp_rel relocs
-  ...
-  def : Pat<(not CPURegs:$in),
-            (XORi CPURegs:$in, 1)>;
-  
+  def BEQ     : CBranch<0x30, "beq", seteq, CPURegs>;
+  def BNE     : CBranch<0x31, "bne", setne, CPURegs>;
   
   // brcond patterns
   multiclass BrcondPats<RegisterClass RC, Instruction BEQOp, Instruction BNEOp,
@@ -875,31 +758,40 @@ Chapter11_2/ include the changes for new instruction sets as follows,
   
   defm : BrcondPats<CPURegs, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO>;
   
+  
   // setcc patterns
   multiclass SeteqPats<RegisterClass RC, Instruction SLTiuOp, Instruction XOROp,
                        Instruction SLTuOp, Register ZEROReg> {
+  // a == b
     def : Pat<(seteq RC:$lhs, RC:$rhs),
                   (SLTiuOp (XOROp RC:$lhs, RC:$rhs), 1)>;
+  // a != b
     def : Pat<(setne RC:$lhs, RC:$rhs),
                   (SLTuOp ZEROReg, (XOROp RC:$lhs, RC:$rhs))>;
   }
   
+  // a <= b
   multiclass SetlePats<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
     def : Pat<(setle RC:$lhs, RC:$rhs),
+  // a <= b is equal to (XORi (b < a), 1)
                   (XORi (SLTOp RC:$rhs, RC:$lhs), 1)>;
     def : Pat<(setule RC:$lhs, RC:$rhs),
                   (XORi (SLTuOp RC:$rhs, RC:$lhs), 1)>;
   }
   
+  // a > b
   multiclass SetgtPats<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
     def : Pat<(setgt RC:$lhs, RC:$rhs),
+  // a > b is equal to b < a is equal to setlt(b, a)
                   (SLTOp RC:$rhs, RC:$lhs)>;
     def : Pat<(setugt RC:$lhs, RC:$rhs),
                   (SLTuOp RC:$rhs, RC:$lhs)>;
   }
   
+  // a >= b
   multiclass SetgePats<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
     def : Pat<(setge RC:$lhs, RC:$rhs),
+  // a >= b is equal to b <= a
                   (XORi (SLTOp RC:$lhs, RC:$rhs), 1)>;
     def : Pat<(setuge RC:$lhs, RC:$rhs),
                   (XORi (SLTuOp RC:$lhs, RC:$rhs), 1)>;
@@ -918,34 +810,7 @@ Chapter11_2/ include the changes for new instruction sets as follows,
   defm : SetgtPats<CPURegs, SLT, SLTu>;
   defm : SetgePats<CPURegs, SLT, SLTu>;
   defm : SetgeImmPats<CPURegs, SLTi, SLTiu>;
-  
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0MCInstLower.cpp
-.. code-block:: c++
 
-  / Lower ".cpload $reg" to
-  //  "lui   $gp, %hi(_gp_disp)"
-  //  "addiu $gp, $gp, %lo(_gp_disp)"
-  //  "addu  $gp, $gp, $t9"
-  void Cpu0MCInstLower::LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts) {
-    ...
-    MCInsts.resize(3);
-  
-    CreateMCInst(MCInsts[0], Cpu0::LUi, GPReg, ZEROReg, SymHi);
-    CreateMCInst(MCInsts[1], Cpu0::ADDiu, GPReg, GPReg, SymLo);
-    CreateMCInst(MCInsts[2], Cpu0::ADD, GPReg, GPReg, T9Reg);
-    ...
-  }
-  
-  // Lower ".cprestore offset" to "st $gp, offset($sp)".
-  void Cpu0MCInstLower::LowerCPRESTORE(int64_t Offset,
-                                       SmallVector<MCInst, 4>& MCInsts) {
-      ...
-      // lui   at,hi
-      // add   at,at,sp
-      MCInsts.resize(2);
-      CreateMCInst(MCInsts[0], Cpu0::LUi, ATReg, ZEROReg, MCOperand::CreateImm(Hi));
-      CreateMCInst(MCInsts[1], Cpu0::ADD, ATReg, ATReg, SPReg);
-    }
   
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0RegisterInfo.td
 .. code-block:: c++
@@ -968,50 +833,7 @@ Chapter11_2/ include the changes for new instruction sets as follows,
 
 As modified from above, it remove the CMP instruction, SW register and 
 related code from Chapter11_1/, and change from JEQ 24bits offset to BEQ 16 bits 
-offset. And more, replace "ADDiu, SHL 16" with the efficient LUi instruction.
-
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0AnalyzeImmediate.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0AnalyzeImmediate.h
-    :start-after: /// ReplaceADDiuSHLWithLUi
-    :end-before: unsigned Size;
-
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0AnalyzeImmediate.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0AnalyzeImmediate.cpp
-    :start-after: // Replace a ADDiu & SHL pair with a LUi.
-
-Above code replace addiu and shl with single instruction lui only. The effect as 
-the following table.
-
-.. table:: Cpu0 stack adjustment new instructions
-
-  ======  ====================  ================  ==================================  ==================================
-          stack size range      ex. stack size    Cpu0 Prologue instructions          Cpu0 Epilogue instructions
-  ======  ====================  ================  ==================================  ==================================
-  old     x10000 ~ 0xffffffff   - 0x90008000      - addiu $1, $zero, -9;              - addiu $1, $zero, -28671;
-                                                  - shl $1, $1, 28;                   - shl $1, $1, 16
-                                                  - addiu $1, $1, -32768;             - addiu $1, $1, -32768;
-                                                  - addu $sp, $sp, $1;                - addu $sp, $sp, $1;
-  ------  --------------------  ----------------  ----------------------------------  ----------------------------------
-  new     x10000 ~ 0xffffffff   - 0x90008000      - lui	$1, 28671;                    - lui	$1, 36865;
-                                                  - ori	$1, $1, 32768;                - addiu $1, $1, -32768;
-                                                  - addu $sp, $sp, $1;                - addu $sp, $sp, $1;
-  ======  ====================  ================  ==================================  ==================================
-
-
-Assume sp = 0xa0008000 and stack size = 0x90008000, then (0xa0008000 - 
-0x90008000) => 0x10000000. Verify with the Cpu0 Prologue instructions as 
-follows,
-
-1. "lui	$1, 28671" => $1 = 0x6fff0000.
-2. "ori	$1, $1, 32768" => $1 = (0x6fff0000 + 0x00008000) => $1 = 0x6fff8000.
-3. "addu	$sp, $sp, $1" => $sp = (0xa0008000 + 0x6fff8000) => $sp = 0x10000000.
-
-Verify with the Cpu0 Epilogue instructions with sp = 0x10000000 and stack size = 
-0x90008000 as follows,
-
-1. "lui	$1, 36865" => $1 = 0x90010000.
-2. "addiu $1, $1, -32768" => $1 = (0x90010000 + 0xffff8000) => $1 = 0x90008000.
-3. "addu $sp, $sp, $1" => $sp = (0x10000000 + 0x90008000) => $sp = 0xa0008000.
+offset.
 
 
 Cpu0 Verilog language changes

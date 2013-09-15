@@ -780,7 +780,7 @@ from TargetSelectionDAG.td.
   def MFHI    : MoveFromLOHI<0x46, "mfhi", CPURegs, [HI]>;
   def MFLO    : MoveFromLOHI<0x47, "mflo", CPURegs, [LO]>;
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_5_2/Cpu0ISelDAGToDAG.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0ISelDAGToDAG.cpp
 .. code-block:: c++
 
   /// Select multiply instructions.
@@ -1393,7 +1393,7 @@ For sdivrem, **sdiv** make "N->hasAnyUseOfValue(0)" true while **srem** make
 "N->hasAnyUseOfValue(1)" ture.
 
 Above items will change the DAG when ``llc`` running. After that, the pattern 
-match defined in Chapter4_6/Cpu0InstrInfo.td will translate **Cpu0ISD::DivRem** 
+match defined in Chapter4_1/Cpu0InstrInfo.td will translate **Cpu0ISD::DivRem** 
 to **div**; and **"CopyFromReg 0x7fd25b410e18, Register %H, 0x7fd25b830910"** 
 to **mfhi**.
 
@@ -1404,7 +1404,7 @@ Local variable pointer
 To support pointer to local variable, add this code fragment in 
 Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_4/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   def mem_ea : Operand<i32> {
@@ -1425,7 +1425,7 @@ Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
     let isCodeGenOnly = 1;
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_4/Cpu0InstPrinter.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstPrinter.td
 .. code-block:: c++
 
   void Cpu0InstPrinter::
