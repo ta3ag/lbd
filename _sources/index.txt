@@ -23,9 +23,8 @@ Table of Contents
    elf
    runbackend
    optimize
+   lld
    install
-   oldver
-   instdiscuss
    todo
    
 

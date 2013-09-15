@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.0',
+        VERSION:     '3.3.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -71,16 +71,7 @@ Machine DAG translation directly according the input file IR DAG.</p>
 <p>Chapter6_1/ support the global variable, let&#8217;s compile ch6_1.cpp with this version
 first, and explain the code changes after that.</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch6_1.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10</pre></div></td><td class="code"><div class="highlight"><pre><span class="kt">int</span> <span class="n">gStart</span><span class="p">;</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">gStart</span><span class="p">;</span>
 <span class="kt">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
 <span class="kt">int</span> <span class="n">fun</span><span class="p">()</span>
 <span class="p">{</span>
@@ -91,7 +82,7 @@ first, and explain the code changes after that.</p>
   <span class="k">return</span> <span class="n">c</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-166:InputFiles Jonathan<span class="nv">$ </span>llvm-dis ch6_1.bc -o -
 ; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch6_1.bc&#39;</span>
 target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-</span>
@@ -457,47 +448,7 @@ About the <strong>cl::opt</strong> command line variable, you can refer to <a cl
 <p>Next add file Cpu0TargetObjectFile.h, Cpu0TargetObjectFile.cpp and the
 following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.h</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- llvm/Target/Cpu0TargetObjectFile.h - Cpu0 Object Info ---*- C++ -*-===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- llvm/Target/Cpu0TargetObjectFile.h - Cpu0 Object Info ---*- C++ -*-===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -539,112 +490,9 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.</p>
 
 <span class="cp">#endif</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
- 26
- 27
- 28
- 29
- 30
- 31
- 32
- 33
- 34
- 35
- 36
- 37
- 38
- 39
- 40
- 41
- 42
- 43
- 44
- 45
- 46
- 47
- 48
- 49
- 50
- 51
- 52
- 53
- 54
- 55
- 56
- 57
- 58
- 59
- 60
- 61
- 62
- 63
- 64
- 65
- 66
- 67
- 68
- 69
- 70
- 71
- 72
- 73
- 74
- 75
- 76
- 77
- 78
- 79
- 80
- 81
- 82
- 83
- 84
- 85
- 86
- 87
- 88
- 89
- 90
- 91
- 92
- 93
- 94
- 95
- 96
- 97
- 98
- 99
-100
-101
-102
-103
-104</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetObjectFile.cpp - Cpu0 Object Files ----------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetObjectFile.cpp - Cpu0 Object Files ----------------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -749,7 +597,7 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.</p>
   <span class="k">return</span> <span class="n">TargetLoweringObjectFileELF</span><span class="o">::</span><span class="n">SelectSectionForGlobal</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">Kind</span><span class="p">,</span> <span class="n">Mang</span><span class="p">,</span><span class="n">TM</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0RegisterInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// pure virtual method</span>
 <span class="n">BitVector</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
@@ -1074,9 +922,7 @@ def Cpu0Hi    : SDNode&lt;"Cpu0ISD::Hi", SDTIntUnaryOp&gt;;
 def Cpu0Lo    : SDNode&lt;"Cpu0ISD::Lo", SDTIntUnaryOp&gt;;
 ...
 // hi/lo relocs
-def : Pat&lt;(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)&gt;;
-// Expect cpu0 add LUi support, like Mips
-//def : Pat&lt;(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)&gt;;
+def : Pat&lt;(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)&gt;;
 def : Pat&lt;(Cpu0Lo tglobaladdr:$in), (ADDiu ZERO, tglobaladdr:$in)&gt;;
 
 def : Pat&lt;(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
@@ -1324,50 +1170,7 @@ pseudo instruction at function entry point as below.</p>
 </pre></div>
 </div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MachineFunction.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0MachineFunctionInfo.cpp - Private data used for Cpu0 ----------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MachineFunctionInfo.cpp - Private data used for Cpu0 ----------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -1412,7 +1215,7 @@ pseudo instruction at function entry point as below.</p>
 
 <span class="kt">void</span> <span class="n">Cpu0FunctionInfo</span><span class="o">::</span><span class="n">anchor</span><span class="p">()</span> <span class="p">{</span> <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0AsmPrinter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// EmitFunctionBodyStart - Targets can override this to emit stuff before</span>
 <span class="c1">/// the first basic block in the function.</span>
@@ -1457,43 +1260,7 @@ reference Mips ABI <a class="footnote-reference" href="#id8" id="id3">[2]</a>.</
 &#8220;09a00000 1eaa0010 09aa0000 13aa6000&#8221; is the <strong>.cpload</strong> machine instructions
 displayed in comments of Cpu0MCInstLower.cpp.</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MCInstLower.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">}</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 
 <span class="k">static</span> <span class="kt">void</span> <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInst</span><span class="o">&amp;</span> <span class="n">Inst</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">Opc</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCOperand</span><span class="o">&amp;</span> <span class="n">Opnd0</span><span class="p">,</span>
                          <span class="k">const</span> <span class="n">MCOperand</span><span class="o">&amp;</span> <span class="n">Opnd1</span><span class="p">,</span>
@@ -1506,8 +1273,7 @@ displayed in comments of Cpu0MCInstLower.cpp.</p>
 <span class="p">}</span>
 
 <span class="c1">// Lower &quot;.cpload $reg&quot; to</span>
-<span class="c1">//  &quot;addiu $gp, $zero, %hi(_gp_disp)&quot;</span>
-<span class="c1">//  &quot;shl   $gp, $gp, 16&quot;</span>
+<span class="c1">//  &quot;lui   $gp, %hi(_gp_disp)&quot;</span>
 <span class="c1">//  &quot;addiu $gp, $gp, %lo(_gp_disp)&quot;</span>
 <span class="c1">//  &quot;addu  $gp, $gp, $t9&quot;</span>
 <span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerCPLOAD</span><span class="p">(</span><span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;&amp;</span> <span class="n">MCInsts</span><span class="p">)</span> <span class="p">{</span>
@@ -1523,18 +1289,17 @@ displayed in comments of Cpu0MCInstLower.cpp.</p>
   <span class="n">MCSym</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="n">Sym</span><span class="p">,</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_ABS_LO</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
   <span class="n">MCOperand</span> <span class="n">SymLo</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateExpr</span><span class="p">(</span><span class="n">MCSym</span><span class="p">);</span>
 
-  <span class="n">MCInsts</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">4</span><span class="p">);</span>
+  <span class="n">MCInsts</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
 
-  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">ZEROReg</span><span class="p">,</span> <span class="n">SymHi</span><span class="p">);</span>
-  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SHL</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="mi">16</span><span class="p">));</span>
-  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">SymLo</span><span class="p">);</span>
-  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">T9Reg</span><span class="p">);</span>
+  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">ZEROReg</span><span class="p">,</span> <span class="n">SymHi</span><span class="p">);</span>
+  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">SymLo</span><span class="p">);</span>
+  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">T9Reg</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>
-obj ch8_2.bc -o ch8_2.cpu0.o
+obj ch6_1.bc -o ch6_1.cpu0.o
 118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>gobjdump -s ch6_1.cpu0.o
 
 ch6_1.cpu0.o:     file format elf32-big
@@ -1895,23 +1660,7 @@ variables in small 16 addressable area&#8221;.</p>
 Please reference section getelementptr of <a class="footnote-reference" href="#id10" id="id6">[4]</a>.
 For ch6_2.cpp, the llvm IR as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17</pre></div></td><td class="code"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">year</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">month</span><span class="p">;</span>
@@ -1929,7 +1678,7 @@ For ch6_2.cpp, the llvm IR as follows,</p>
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <div class="highlight-bash"><div class="highlight"><pre>// ch6_2.ll
 ; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch6_2.bc&#39;</span>
 target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-</span>
@@ -2235,8 +1984,8 @@ ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$2</sp
 </pre></div>
 </div>
 </div>
-<div class="section" id="type-of-char-and-short-int">
-<h2>Type of char and short int<a class="headerlink" href="#type-of-char-and-short-int" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="type-of-char-short-int-and-bool">
+<h2>Type of char, short int and bool<a class="headerlink" href="#type-of-char-short-int-and-bool" title="Permalink to this headline">¶</a></h2>
 <p>To support signed/unsigned char and short int, we add the following code to
 Chapter6_3/.</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_3/Cpu0InstrInfo.td</p>
@@ -2256,28 +2005,7 @@ Chapter6_3/.</p>
 </div>
 <p>Run Chapter6_3/ with ch6_3.cpp will get the following result.</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch6_3.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22</pre></div></td><td class="code"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
 <span class="p">{</span>
   <span class="kt">short</span> <span class="n">year</span><span class="p">;</span>
   <span class="kt">char</span> <span class="n">month</span><span class="p">;</span>
@@ -2300,7 +2028,7 @@ Chapter6_3/.</p>
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-64-245:InputFiles Jonathan<span class="nv">$ </span>clang -c ch6_3.cpp -emit-llvm -o ch6_3.bc
 118-165-64-245:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch6_3.bc -o
@@ -2376,6 +2104,105 @@ b:
       .byte   15                      <span class="c"># 0xf</span>
       .space  1
       .size   <span class="nv">$_ZZ4mainE5date1</span>, 8
+</pre></div>
+</div>
+<p>To support load bool type, the following code added.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_3/Cpu0ISelLowering.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
+  <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">Cpu0TargetObjectFile</span><span class="p">()),</span>
+    <span class="n">Subtarget</span><span class="p">(</span><span class="o">&amp;</span><span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">())</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// Cpu0 does not have i1 type, so use i32 for</span>
+  <span class="c1">// setcc operations results (slt, sgt, ...).</span>
+  <span class="n">setBooleanContents</span><span class="p">(</span><span class="n">ZeroOrOneBooleanContent</span><span class="p">);</span>
+  <span class="n">setBooleanVectorContents</span><span class="p">(</span><span class="n">ZeroOrNegativeOneBooleanContent</span><span class="p">);</span>
+
+  <span class="c1">// Load extented operations for i1 types must be promoted</span>
+  <span class="n">setLoadExtAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">EXTLOAD</span><span class="p">,</span>  <span class="n">MVT</span><span class="o">::</span><span class="n">i1</span><span class="p">,</span>  <span class="n">Promote</span><span class="p">);</span>
+  <span class="n">setLoadExtAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">ZEXTLOAD</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i1</span><span class="p">,</span>  <span class="n">Promote</span><span class="p">);</span>
+  <span class="n">setLoadExtAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">SEXTLOAD</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i1</span><span class="p">,</span>  <span class="n">Promote</span><span class="p">);</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Above code setLoadExtAction() are work enough. The setBooleanContents() purpose
+as following, but I don&#8217;t know it well. Without it, the ch6_3_2.ll still works
+as below.
+The IR input file ch6_3_2.ll is used in testing here since the c++ version
+need flow control which is not support here. File ch_run_backend.cpp include the
+test fragment as below.</p>
+<p class="rubric">include/llvm/Target/TargetLowering.h</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="k">enum</span> <span class="n">BooleanContent</span> <span class="p">{</span> <span class="c1">// How the target represents true/false values.</span>
+    <span class="n">UndefinedBooleanContent</span><span class="p">,</span>    <span class="c1">// Only bit 0 counts, the rest can hold garbage.</span>
+    <span class="n">ZeroOrOneBooleanContent</span><span class="p">,</span>        <span class="c1">// All bits zero except for bit 0.</span>
+    <span class="n">ZeroOrNegativeOneBooleanContent</span> <span class="c1">// All bits equal to bit 0.</span>
+  <span class="p">};</span>
+<span class="p">...</span>
+<span class="k">protected</span><span class="o">:</span>
+  <span class="c1">/// setBooleanContents - Specify how the target extends the result of a</span>
+  <span class="c1">/// boolean value from i1 to a wider type.  See getBooleanContents.</span>
+  <span class="kt">void</span> <span class="n">setBooleanContents</span><span class="p">(</span><span class="n">BooleanContent</span> <span class="n">Ty</span><span class="p">)</span> <span class="p">{</span> <span class="n">BooleanContents</span> <span class="o">=</span> <span class="n">Ty</span><span class="p">;</span> <span class="p">}</span>
+  <span class="c1">/// setBooleanVectorContents - Specify how the target extends the result</span>
+  <span class="c1">/// of a vector boolean value from a vector of i1 to a wider type.  See</span>
+  <span class="c1">/// getBooleanContents.</span>
+  <span class="kt">void</span> <span class="n">setBooleanVectorContents</span><span class="p">(</span><span class="n">BooleanContent</span> <span class="n">Ty</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">BooleanVectorContents</span> <span class="o">=</span> <span class="n">Ty</span><span class="p">;</span>
+  <span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch6_3_2.ll</p>
+<div class="highlight-c++"><pre>define zeroext i1 @verify_load_bool() #0 {
+entry:
+  %retval = alloca i1, align 1
+  %0 = load i1* %retval
+  ret i1 %0
+}
+</pre>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>  118-165-64-245:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch6_3_2.ll -o -
+
+        .section .mdebug.abi32
+        .previous
+        .file <span class="s2">&quot;ch6_4.ll&quot;</span>
+        .text
+        .globl        verify_load_bool
+        .align        2
+        .type verify_load_bool,@function
+        .ent  verify_load_bool        <span class="c"># @verify_load_bool</span>
+verify_load_bool:
+        .cfi_startproc
+        .frame        <span class="nv">$sp</span>,8,<span class="nv">$lr</span>
+        .mask         0x00000000,0
+        .set  noreorder
+        .set  nomacro
+<span class="c"># BB#0:                                 # %entry</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -8
+<span class="nv">$tmp1</span>:
+        .cfi_def_cfa_offset 8
+        lbu   <span class="nv">$2</span>, 7<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 8
+        ret   <span class="nv">$lr</span>
+        .set  macro
+        .set  reorder
+        .end  verify_load_bool
+<span class="nv">$tmp2</span>:
+        .size verify_load_bool, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-verify_load_bool
+        .cfi_endproc
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
+<span class="kt">bool</span> <span class="n">test_load_bool</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <table class="docutils footnote" frame="void" id="id7" rules="none">

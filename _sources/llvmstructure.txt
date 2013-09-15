@@ -97,6 +97,12 @@ The following table details the Cpu0 instruction set:
     - Syntax
     - Operation
   * - L
+    - NOP
+    - 00
+    - No Operation
+    - 
+    - 
+  * - L
     - LD
     - 01
     - Load word
@@ -167,7 +173,13 @@ The following table details the Cpu0 instruction set:
     - 0E
     - XOR
     - XORi Ra, Rb, Cx
-    - Ra <= (Rb ^ Cx)
+    - Ra <= (Rb \^ Cx)
+  * - L
+    - LUi
+    - 0F
+    - Load upper
+    - LUi Ra, Cx
+    - Ra <= (Cx << 16)
   * - A
     - CMP
     - 10
@@ -200,16 +212,10 @@ The following table details the Cpu0 instruction set:
     - Ra <= Rb - Rc
   * - A
     - MUL
-    - 15
+    - 17
     - Multiply
     - MUL Ra, Rb, Rc
     - Ra <= Rb * Rc
-  * - A
-    - DIV
-    - 16
-    - Divide
-    - DIV Ra, Rb
-    - HI<=Ra%Rb, LO<=Ra/Rb
   * - A
     - AND
     - 18
@@ -229,23 +235,23 @@ The following table details the Cpu0 instruction set:
     - XOR Ra, Rb, Rc
     - Ra <= Rb ^ Rc
   * - A
-    - SRA
-    - 1B
-    - Shift right
-    - SHR Ra, Rb, Cx
-    - Ra <= (h80000000|Rb>>Cx)
-  * - A
     - ROL
-    - 1C
+    - 1B
     - Rotate left
     - ROL Ra, Rb, Cx
     - Ra <= Rb rol Cx
   * - A
     - ROR
-    - 1D
+    - 1C
     - Rotate right
     - ROR Ra, Rb, Cx
     - Ra <= Rb ror Cx
+  * - A
+    - SRA
+    - 1D
+    - Shift right
+    - SRA Ra, Rb, Cx
+    - Ra <= Rb '>> Cx [#sra-note]_
   * - A
     - SHL
     - 1E
@@ -258,114 +264,144 @@ The following table details the Cpu0 instruction set:
     - Shift right
     - SHR Ra, Rb, Cx
     - Ra <= Rb >> Cx
+  * - A
+    - SRAV
+    - 20
+    - Shift right
+    - SRAV Ra, Rb, Rc
+    - Ra <= Rb '>> Rc [#sra-note]_
+  * - A
+    - SHLV
+    - 21
+    - Shift left
+    - SHLV Ra, Rb, Rc
+    - Ra <= Rb << Rc
+  * - A
+    - SHRV
+    - 22
+    - Shift right
+    - SHRV Ra, Rb, Rc
+    - Ra <= Rb >> Rc
   * - J
     - JEQ
-    - 20
+    - 30
     - Jump if equal (==)
     - JEQ Cx
     - if SW(==), PC <= PC + Cx
   * - J
     - JNE
-    - 21
+    - 31
     - Jump if not equal (!=)
     - JNE Cx
     - if SW(!=), PC <= PC + Cx
   * - J
     - JLT
-    - 22
+    - 32
     - Jump if less than (<)
     - JLT Cx
     - if SW(<), PC <= PC + Cx
   * - J
     - JGT
-    - 23
+    - 33
     - Jump if greater than (>)
     - JGT Cx
     - if SW(>), PC <= PC + Cx
   * - J
     - JLE
-    - 24
+    - 34
     - Jump if less than or equals (<=)
     - JLE Cx
     - if SW(<=), PC <= PC + Cx
   * - J
     - JGE
-    - 25
+    - 35
     - Jump if greater than or equals (>=)
     - JGE Cx
     - if SW(>=), PC <= PC + Cx
   * - J
     - JMP
-    - 26
+    - 36
     - Jump (unconditional)
     - JMP Cx
     - PC <= PC + Cx
   * - J
     - SWI
-    - 2A
+    - 3A
     - Software interrupt
     - SWI Cx
     - LR <= PC; PC <= Cx
   * - J
     - JSUB
-    - 2B
+    - 3B
     - Jump to subroutine
     - JSUB Cx
     - LR <= PC; PC <= PC + Cx
   * - J
     - RET
-    - 2C
+    - 3C
     - Return from subroutine
     - RET LR
     - PC <= LR
   * - J
     - IRET
-    - 2D
+    - 3D
     - Return from interrupt handler
     - IRET
     - PC <= LR; INT 0
   * - J
     - JALR
-    - 2E
+    - 3E
     - Jump to subroutine
     - JR Rb
     - LR <= PC; PC <= Rb
   * - L
-    - MFHI
-    - 40
-    - Move HI to GPR
-    - MFHI Ra
-    - Ra <= HI
-  * - L
-    - MFLO
-    - 41
-    - Move LO to GPR
-    - MFLO Ra
-    - Ra <= LO
-  * - L
-    - MTHI
-    - 42
-    - Move GPR to HI
-    - MTHI Ra
-    - HI <= Ra
-  * - L
-    - MTLO
-    - 43
-    - Move GPR to LO
-    - MTLO Ra
-    - LO <= Ra
-  * - L
     - MULT
-    - 50
+    - 41
     - Multiply for 64 bits result
     - MULT Ra, Rb
     - (HI,LO) <= MULT(Ra,Rb)
   * - L
     - MULTU
-    - 51
+    - 42
     - MULT for unsigned 64 bits
     - MULTU Ra, Rb
     - (HI,LO) <= MULTU(Ra,Rb)
+  * - L
+    - DIV
+    - 43
+    - Divide
+    - DIV Ra, Rb
+    - HI<=Ra%Rb, LO<=Ra/Rb
+  * - L
+    - DIVU
+    - 44
+    - Divide
+    - DIV Ra, Rb
+    - HI<=Ra%Rb, LO<=Ra/Rb
+  * - L
+    - MFHI
+    - 46
+    - Move HI to GPR
+    - MFHI Ra
+    - Ra <= HI
+  * - L
+    - MFLO
+    - 47
+    - Move LO to GPR
+    - MFLO Ra
+    - Ra <= LO
+  * - L
+    - MTHI
+    - 48
+    - Move GPR to HI
+    - MTHI Ra
+    - HI <= Ra
+  * - L
+    - MTLO
+    - 49
+    - Move GPR to LO
+    - MTLO Ra
+    - LO <= Ra
 
 
 The Status Register
@@ -413,6 +449,20 @@ what happens in the processor:
 
 - The ALU executes the operation designated by the control unit upon data in registers. 
   After the ALU is done, the result is stored in the destination register. 
+
+Cpu0's Interrupt Vector
+++++++++++++++++++++++++
+
+.. table:: Cpu0's Interrupt Vector
+
+  ========  ===========
+  Address   type
+  ========  ===========
+  0x00      Reset
+  0x04      Error Handle
+  0x08      Interrupt
+  ========  ===========
+
 
 LLVM Structure
 --------------
@@ -623,7 +673,6 @@ target description file is called Cpu0.td, which is shown below:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/Cpu0.td
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/Cpu0.td
-    :linenos:
 
 Cpu0.td includes a few other .td files.  Cpu0RegisterInfo.td (shown below) describes the 
 Cpu0's set of registers.  In this file, we see that registers have been given names, i.e.
@@ -636,7 +685,6 @@ are not modified by instructions during execution.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/Cpu0RegisterInfo.td
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/Cpu0RegisterInfo.td
-    :linenos:
 
 
 In C++, classes typically provide a structure to lay out some data and functions, 
@@ -691,14 +739,12 @@ The cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrInfo.td
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrInfo.td
-    :linenos:
 
 
 The Cpu0InstrFormats.td is included by Cpu0InstInfo.td as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrFormats.td
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrFormats.td
-    :linenos:
 
 
 ADDiu is class ArithLogicI inherited from FL, can expand and get member value 
@@ -859,11 +905,9 @@ contents as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/CMakeLists.txt
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/CMakeLists.txt
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/LLVMBuild.txt
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/LLVMBuild.txt
-    :linenos:
 
 
 CMakeLists.txt is the make information for cmake, # is comment.
@@ -900,7 +944,6 @@ big endian and TheCpu0elTarget for little endian, as follows.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
-    :linenos:
 
 
 Files Cpu0TargetMachine.cpp and MCTargetDesc/Cpu0MCTargetDesc.cpp just define 
@@ -908,11 +951,9 @@ the empty initialize function since we register nothing in them for this moment.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h
-    :linenos:
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp
-    :linenos:
 
 
 Please see "Target Registration" [#target-reg]_ for reference.
@@ -995,7 +1036,6 @@ List them as follows again,
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
-    :linenos:
 
 
 Let's build LLVMBackendTutorialExampleCode/Chapter2 code as follows,
@@ -1025,8 +1065,7 @@ Now try to do ``llc`` command to compile input file ch3.cpp as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch3.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch3.cpp
-    :lines: 8-
-    :linenos:
+    :start-after: /// start
 
 
 First step, compile it with clang and get output ch3.bc as follows,
@@ -1116,6 +1155,8 @@ The error message say we didn't define our target machine.
 .. [#cpu0-english] English translation of Cpu0 description. http://translate.google.com.tw/translate?js=n&prev=_t&hl=zh-TW&ie=UTF-8&layout=2&eotf=1&sl=zh-CN&tl=en&u=http://ccckmit.wikidot.com/ocs:cpu0
 
 .. [#cond-note] Conditions include the following comparisons: >, >=, ==, !=, <=, <. SW is actually set by the subtraction of the two register operands, and the flags indicate which conditions are present.
+
+.. [#sra-note] Rb '>> Cx, Rb '>> Rc: Shift with signed bit remain. It's equal to ((Rb&'h80000000)|Rb>>Cx) or ((Rb&'h80000000)|Rb>>Rc).
 
 .. [#aosa-book] Chris Lattner, **LLVM**. Published in The Architecture of Open Source Applications. http://www.aosabook.org/en/llvm.html
 

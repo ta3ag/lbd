@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.0',
+        VERSION:     '3.3.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -75,6 +75,7 @@
 <li class="toctree-l3"><a class="reference internal" href="llvmstructure.html#the-cpu0-instruction-set">The Cpu0 Instruction Set</a></li>
 <li class="toctree-l3"><a class="reference internal" href="llvmstructure.html#the-status-register">The Status Register</a></li>
 <li class="toctree-l3"><a class="reference internal" href="llvmstructure.html#cpu0-s-stages-of-instruction-execution">Cpu0&#8217;s Stages of Instruction Execution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="llvmstructure.html#cpu0-s-interrupt-vector">Cpu0&#8217;s Interrupt Vector</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="llvmstructure.html#llvm-structure">LLVM Structure</a></li>
@@ -96,18 +97,15 @@
 <li class="toctree-l2"><a class="reference internal" href="backendstructure.html#summary-of-this-chapter">Summary of this Chapter</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="otherinst.html">Adding arithmetic and local pointer support</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="otherinst.html#support-arithmetic-instructions">Support arithmetic instructions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="otherinst.html#operator-not">Operator “not” !</a></li>
-<li class="toctree-l2"><a class="reference internal" href="otherinst.html#display-llvm-ir-nodes-with-graphviz">Display llvm IR nodes with Graphviz</a></li>
-<li class="toctree-l2"><a class="reference internal" href="otherinst.html#local-variable-pointer">Local variable pointer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="otherinst.html#operator-mod">Operator mod, %</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="otherinst.html#the-dag-of">The DAG of %</a></li>
-<li class="toctree-l3"><a class="reference internal" href="otherinst.html#arm-solution">Arm solution</a></li>
-<li class="toctree-l3"><a class="reference internal" href="otherinst.html#mips-solution">Mips solution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="otherinst.html">Arithmetic, local pointer and logic lsupport</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="otherinst.html#arithmetic">Arithmetic</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="otherinst.html#and"><strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="otherinst.html#display-llvm-ir-nodes-with-graphviz">Display llvm IR nodes with Graphviz</a></li>
+<li class="toctree-l3"><a class="reference internal" href="otherinst.html#operator-and">Operator % and /</a></li>
+<li class="toctree-l3"><a class="reference internal" href="otherinst.html#local-variable-pointer">Local variable pointer</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="otherinst.html#full-support">Full support %</a></li>
+<li class="toctree-l2"><a class="reference internal" href="otherinst.html#logic">Logic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="otherinst.html#summary">Summary</a></li>
 </ul>
 </li>
@@ -126,7 +124,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="globalvar.html#array-and-struct-support">Array and struct support</a></li>
-<li class="toctree-l2"><a class="reference internal" href="globalvar.html#type-of-char-and-short-int">Type of char and short int</a></li>
+<li class="toctree-l2"><a class="reference internal" href="globalvar.html#type-of-char-short-int-and-bool">Type of char, short int and bool</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ctrlflow.html">Control flow statements</a><ul>
@@ -190,6 +188,14 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="lld.html">LLD for Cpu0</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lld.html#install-lld">Install lld</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lld.html#cpu0-lld">Cpu0 lld</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lld.html#elf-to-hex">ELF to Hex</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lld.html#run">Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lld.html#summary">Summary</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Appendix A: Getting Started: Installing LLVM and the Cpu0 example code</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="install.html#setting-up-your-mac">Setting Up Your Mac</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="install.html#installing-llvm-xcode-and-cmake">Installing LLVM, Xcode and cmake</a></li>
@@ -208,20 +214,7 @@
 <li class="toctree-l3"><a class="reference internal" href="install.html#install-other-tools-on-linux">Install other tools on Linux</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="oldver.html">Appendix B: LLVM changes</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="oldver.html#difference-between-3-2-and-3-1">Difference between 3.2 and 3.1</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="oldver.html#api-difference">API difference</a></li>
-<li class="toctree-l3"><a class="reference internal" href="oldver.html#structure-difference">Structure difference</a></li>
-<li class="toctree-l3"><a class="reference internal" href="oldver.html#verify-the-cpu0-for-difference">Verify the Cpu0 for difference</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="oldver.html#difference-in-mips-backend">Difference in Mips backend</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="instdiscuss.html">Appendix C: instructions discuss</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="instdiscuss.html#implicit-operand">Implicit operand</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#install-sphinx">Install sphinx</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="todo.html">Todo List</a></li>

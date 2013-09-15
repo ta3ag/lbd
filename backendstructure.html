@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.0',
+        VERSION:     '3.3.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -30,7 +30,7 @@
     <script type="text/javascript" src="_static/theme_extras.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
-    <link rel="next" title="Adding arithmetic and local pointer support" href="otherinst.html" />
+    <link rel="next" title="Arithmetic, local pointer and logic lsupport" href="otherinst.html" />
     <link rel="prev" title="Cpu0 Instruction Set and LLVM Target Description" href="llvmstructure.html" /> 
   </head>
   <body>
@@ -45,7 +45,7 @@
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="otherinst.html">Adding arithmetic and local pointer support</a>&#160;&#160;»
+        <a href="otherinst.html">Arithmetic, local pointer and logic lsupport</a>&#160;&#160;»
         </p>
 
       </div>
@@ -114,98 +114,7 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 </pre></div>
 </div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
-91
-92</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetMachine.h - Define TargetMachine for Cpu0 -----*- C++ -*-===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetMachine.h - Define TargetMachine for Cpu0 -----*- C++ -*-===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -298,97 +207,9 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 
 <span class="cp">#endif</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetMachine.cpp - Define TargetMachine for Cpu0 -------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetMachine.cpp - Define TargetMachine for Cpu0 -------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -478,7 +299,7 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
   <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0PassConfig</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="n">PM</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">include/llvm/Target/TargetInstInfo.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">TargetInstrInfo</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCInstrInfo</span> <span class="p">{</span>
   <span class="n">TargetInstrInfo</span><span class="p">(</span><span class="k">const</span> <span class="n">TargetInstrInfo</span> <span class="o">&amp;</span><span class="p">)</span> <span class="n">LLVM_DELETED_FUNCTION</span><span class="p">;</span>
@@ -498,23 +319,7 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 </pre></div>
 </div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0CallingConv.td</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0CallingConv.td - Calling Conventions for Cpu0 --*- tablegen -*-===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0CallingConv.td - Calling Conventions for Cpu0 --*- tablegen -*-===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -532,50 +337,9 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="n">def</span> <span class="n">CSR_O32</span> <span class="o">:</span> <span class="n">CalleeSavedRegs</span><span class="o">&lt;</span><span class="p">(</span><span class="n">add</span> <span class="n">LR</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span>
                                    <span class="p">(</span><span class="n">sequence</span> <span class="s">&quot;S%u&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0FrameLowering.h</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0FrameLowering.h - Define frame lowering for Cpu0 ----*- C++ -*-===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0FrameLowering.h - Define frame lowering for Cpu0 ----*- C++ -*-===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -618,106 +382,9 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 
 <span class="cp">#endif</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0FrameLowering.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
-91
-92
-93
-94
-95
-96
-97
-98</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0FrameLowering.cpp - Cpu0 Frame Information --------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0FrameLowering.cpp - Cpu0 Frame Information --------------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -816,51 +483,9 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
                                  <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0InstrInfo.h</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0InstrInfo.h - Cpu0 Instruction Information ----------*- C++ -*-===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0InstrInfo.h - Cpu0 Instruction Information ----------*- C++ -*-===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -904,36 +529,9 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 
 <span class="cp">#endif</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0InstrInfo.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0InstrInfo.cpp - Cpu0 Instruction Information ------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0InstrInfo.cpp - Cpu0 Instruction Information ------------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -962,70 +560,9 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
   <span class="k">return</span> <span class="n">RI</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0ISelLowering.h</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0ISelLowering.h - Cpu0 DAG Lowering Interface --------*- C++ -*-===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0ISelLowering.h - Cpu0 DAG Lowering Interface --------*- C++ -*-===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -1088,80 +625,9 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 
 <span class="cp">#endif </span><span class="c1">// Cpu0ISELLOWERING_H</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0ISelLowering.cpp - Cpu0 DAG Lowering Implementation -----------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0ISelLowering.cpp - Cpu0 DAG Lowering Implementation -----------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -1234,48 +700,9 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
                        <span class="n">Chain</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">));</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0MachineFunction.h</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0MachineFunctionInfo.h - Private data used for Cpu0 ----*- C++ -*-=//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MachineFunctionInfo.h - Private data used for Cpu0 ----*- C++ -*-=//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -1316,39 +743,9 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 
 <span class="cp">#endif </span><span class="c1">// CPU0_MACHINE_FUNCTION_INFO_H</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0SelectionDAGInfo.h</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0SelectionDAGInfo.h - Cpu0 SelectionDAG Info ---------*- C++ -*-===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0SelectionDAGInfo.h - Cpu0 SelectionDAG Info ---------*- C++ -*-===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -1380,31 +777,9 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 
 <span class="cp">#endif</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0SelectionDAGInfo.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0SelectionDAGInfo.cpp - Cpu0 SelectionDAG Info -----------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0SelectionDAGInfo.cpp - Cpu0 SelectionDAG Info -----------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -1428,7 +803,7 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="n">Cpu0SelectionDAGInfo</span><span class="o">::~</span><span class="n">Cpu0SelectionDAGInfo</span><span class="p">()</span> <span class="p">{</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0Subtarget.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#define GET_SUBTARGETINFO_HEADER</span>
 <span class="cp">#include &quot;Cpu0GenSubtargetInfo.inc&quot;</span>
@@ -1444,50 +819,7 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 </pre></div>
 </div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0Subtarget.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0Subtarget.cpp - Cpu0 Subtarget Information --------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0Subtarget.cpp - Cpu0 Subtarget Information --------------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -1532,66 +864,9 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
     <span class="n">Cpu0ABI</span> <span class="o">=</span> <span class="n">O32</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0RegisterInfo.h</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0RegisterInfo.h - Cpu0 Register Information Impl -----*- C++ -*-===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0RegisterInfo.h - Cpu0 Register Information Impl -----*- C++ -*-===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -1650,106 +925,9 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 
 <span class="cp">#endif</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0RegisterInfo.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
-91
-92
-93
-94
-95
-96
-97
-98</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0RegisterInfo.cpp - CPU0 Register Information -== --------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0RegisterInfo.cpp - CPU0 Register Information -== --------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -1848,100 +1026,9 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
                           <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
-91
-92</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetMachine.h - Define TargetMachine for Cpu0 -----*- C++ -*-===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetMachine.h - Define TargetMachine for Cpu0 -----*- C++ -*-===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -2034,97 +1121,9 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 
 <span class="cp">#endif</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetMachine.cpp - Define TargetMachine for Cpu0 -------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetMachine.cpp - Define TargetMachine for Cpu0 -------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -2214,7 +1213,7 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
   <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0PassConfig</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="n">PM</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">cmake_debug_build/lib/Target/Cpu0/Cpu0GenInstInfo.inc</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td</span>
 <span class="cp">#ifdef GET_INSTRINFO_HEADER</span>
@@ -2399,49 +1398,7 @@ Cpu0BaseInfo.h,
 Cpu0FixupKinds.h and Cpu0MCAsmInfo (Cpu0MCAsmInfo.h, Cpu0MCAsmInfo.cpp) in
 sub-directory MCTargetDesc as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0MCInstLower.h</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCInstLower.h - Lower MachineInstr to MCInst -------*- C++ -*--===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCInstLower.h - Lower MachineInstr to MCInst -------*- C++ -*--===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -2485,106 +1442,9 @@ sub-directory MCTargetDesc as follows,</p>
 
 <span class="cp">#endif</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0MCInstLower.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
-91
-92
-93
-94
-95
-96
-97
-98</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCInstLower.cpp - Convert Cpu0 MachineInstr to MCInst ---------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCInstLower.cpp - Convert Cpu0 MachineInstr to MCInst ---------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -2683,105 +1543,9 @@ sub-directory MCTargetDesc as follows,</p>
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0BaseInfo.h</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
-91
-92
-93
-94
-95
-96
-97</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0BaseInfo.h - Top level definitions for CPU0 MC ------*- C++ -*-===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0BaseInfo.h - Top level definitions for CPU0 MC ------*- C++ -*-===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -2879,45 +1643,9 @@ sub-directory MCTargetDesc as follows,</p>
 
 <span class="cp">#endif</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0FixupKinds.h</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0FixupKinds.h - Cpu0 Specific Fixup Entries ----------*- C++ -*-===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0FixupKinds.h - Cpu0 Specific Fixup Entries ----------*- C++ -*-===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -2955,39 +1683,9 @@ sub-directory MCTargetDesc as follows,</p>
 
 <span class="cp">#endif </span><span class="c1">// LLVM_CPU0_CPU0FIXUPKINDS_H</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.h</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCAsmInfo.h - Cpu0 Asm Info ------------------------*- C++ -*--===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCAsmInfo.h - Cpu0 Asm Info ------------------------*- C++ -*--===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -3019,49 +1717,9 @@ sub-directory MCTargetDesc as follows,</p>
 
 <span class="cp">#endif</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCAsmInfo.cpp - Cpu0 Asm Properties ---------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCAsmInfo.cpp - Cpu0 Asm Properties ---------------------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -3103,7 +1761,7 @@ sub-directory MCTargetDesc as follows,</p>
   <span class="n">DwarfRegNumForCFI</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p>Finally, add code in Cpu0MCTargetDesc.cpp to register Cpu0InstPrinter as
 follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/MCTargetDesc/Cpu0MCTargetDesc.cpp</p>
@@ -3223,73 +1881,7 @@ follows,</p>
 &#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id6" id="id2">[2]</a>, we can register our AsmPrinter when we need it
 as the following function of LLVMInitializeCpu0AsmPrinter(),</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0AsmPrinter.h</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0AsmPrinter.h - Cpu0 LLVM Assembly Printer ----------*- C++ -*--===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0AsmPrinter.h - Cpu0 LLVM Assembly Printer ----------*- C++ -*--===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -3357,262 +1949,9 @@ as the following function of LLVMInitializeCpu0AsmPrinter(),</p>
 
 <span class="cp">#endif</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0AsmPrinter.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
- 26
- 27
- 28
- 29
- 30
- 31
- 32
- 33
- 34
- 35
- 36
- 37
- 38
- 39
- 40
- 41
- 42
- 43
- 44
- 45
- 46
- 47
- 48
- 49
- 50
- 51
- 52
- 53
- 54
- 55
- 56
- 57
- 58
- 59
- 60
- 61
- 62
- 63
- 64
- 65
- 66
- 67
- 68
- 69
- 70
- 71
- 72
- 73
- 74
- 75
- 76
- 77
- 78
- 79
- 80
- 81
- 82
- 83
- 84
- 85
- 86
- 87
- 88
- 89
- 90
- 91
- 92
- 93
- 94
- 95
- 96
- 97
- 98
- 99
-100
-101
-102
-103
-104
-105
-106
-107
-108
-109
-110
-111
-112
-113
-114
-115
-116
-117
-118
-119
-120
-121
-122
-123
-124
-125
-126
-127
-128
-129
-130
-131
-132
-133
-134
-135
-136
-137
-138
-139
-140
-141
-142
-143
-144
-145
-146
-147
-148
-149
-150
-151
-152
-153
-154
-155
-156
-157
-158
-159
-160
-161
-162
-163
-164
-165
-166
-167
-168
-169
-170
-171
-172
-173
-174
-175
-176
-177
-178
-179
-180
-181
-182
-183
-184
-185
-186
-187
-188
-189
-190
-191
-192
-193
-194
-195
-196
-197
-198
-199
-200
-201
-202
-203
-204
-205
-206
-207
-208
-209
-210
-211
-212
-213
-214
-215
-216
-217
-218
-219
-220
-221
-222
-223
-224
-225
-226
-227
-228
-229
-230
-231
-232
-233
-234
-235
-236
-237
-238
-239
-240
-241
-242
-243
-244
-245
-246
-247
-248
-249
-250
-251
-252
-253
-254</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0AsmPrinter.cpp - Cpu0 LLVM Assembly Printer -------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0AsmPrinter.cpp - Cpu0 LLVM Assembly Printer -------------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -3867,7 +2206,7 @@ as the following function of LLVMInitializeCpu0AsmPrinter(),</p>
   <span class="n">RegisterAsmPrinter</span><span class="o">&lt;</span><span class="n">Cpu0AsmPrinter</span><span class="o">&gt;</span> <span class="n">Y</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p>The dynamic register mechanism is a good idea, right.</p>
 <p>Beyond add these new .cpp files to CMakeLists.txt, please remember to add
 subdirectory InstPrinter, enable asmprinter, add libraries AsmPrinter and
@@ -4322,7 +2661,7 @@ def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;
 
 let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
     isBarrier=1, hasCtrlDep=1 in
-  def RET : FJ &lt;0x2C, (outs), (ins CPURegs:$target),
+  def RET : FJ &lt;0x2c, (outs), (ins CPURegs:$target),
                 "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch&gt;;
 
 //===----------------------------------------------------------------------===//
@@ -4338,6 +2677,8 @@ following fragment to Cpu0TargetMachine.cpp,</p>
   <span class="p">)</span>
 </pre></div>
 </div>
+<p>The following code in Cpu0TargetMachine.cpp will create a pass in instruction
+selection stage.</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0TargetMachine.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre>  <span class="p">}</span>
   <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">addInstSelector</span><span class="p">();</span>
@@ -4350,189 +2691,7 @@ following fragment to Cpu0TargetMachine.cpp,</p>
 </pre></div>
 </div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0ISelDAGToDAG.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
- 26
- 27
- 28
- 29
- 30
- 31
- 32
- 33
- 34
- 35
- 36
- 37
- 38
- 39
- 40
- 41
- 42
- 43
- 44
- 45
- 46
- 47
- 48
- 49
- 50
- 51
- 52
- 53
- 54
- 55
- 56
- 57
- 58
- 59
- 60
- 61
- 62
- 63
- 64
- 65
- 66
- 67
- 68
- 69
- 70
- 71
- 72
- 73
- 74
- 75
- 76
- 77
- 78
- 79
- 80
- 81
- 82
- 83
- 84
- 85
- 86
- 87
- 88
- 89
- 90
- 91
- 92
- 93
- 94
- 95
- 96
- 97
- 98
- 99
-100
-101
-102
-103
-104
-105
-106
-107
-108
-109
-110
-111
-112
-113
-114
-115
-116
-117
-118
-119
-120
-121
-122
-123
-124
-125
-126
-127
-128
-129
-130
-131
-132
-133
-134
-135
-136
-137
-138
-139
-140
-141
-142
-143
-144
-145
-146
-147
-148
-149
-150
-151
-152
-153
-154
-155
-156
-157
-158
-159
-160
-161
-162
-163
-164
-165
-166
-167
-168
-169
-170
-171
-172
-173
-174
-175
-176
-177
-178
-179
-180
-181
-182
-183</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0ISelDAGToDAG.cpp - A Dag to Dag Inst Selector for Cpu0 --------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0ISelDAGToDAG.cpp - A Dag to Dag Inst Selector for Cpu0 --------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -4716,7 +2875,7 @@ following fragment to Cpu0TargetMachine.cpp,</p>
   <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0DAGToDAGISel</span><span class="p">(</span><span class="n">TM</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p>This version adding the following code in Cpu0InstInfo.cpp to enable debug
 information which called by llvm at proper time.</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrInfo.h</p>
@@ -4901,6 +3060,7 @@ bottom) as follows,</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="n">expandLargeImm</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Reg</span><span class="p">,</span> <span class="n">int64_t</span> <span class="n">Imm</span><span class="p">,</span> 
                            <span class="k">const</span> <span class="n">Cpu0InstrInfo</span> <span class="o">&amp;</span><span class="n">TII</span><span class="p">,</span> <span class="n">MachineBasicBlock</span><span class="o">&amp;</span> <span class="n">MBB</span><span class="p">,</span>
                            <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">II</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">unsigned</span> <span class="n">LUi</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">;</span>
   <span class="kt">unsigned</span> <span class="n">ADDu</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDu</span><span class="p">;</span>
   <span class="kt">unsigned</span> <span class="n">ZEROReg</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">;</span>
   <span class="kt">unsigned</span> <span class="n">ATReg</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">;</span>
@@ -4909,8 +3069,15 @@ bottom) as follows,</p>
     <span class="n">AnalyzeImm</span><span class="p">.</span><span class="n">Analyze</span><span class="p">(</span><span class="n">Imm</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="kc">false</span> <span class="cm">/* LastInstrIsADDiu */</span><span class="p">);</span>
   <span class="n">Cpu0AnalyzeImmediate</span><span class="o">::</span><span class="n">InstSeq</span><span class="o">::</span><span class="n">const_iterator</span> <span class="n">Inst</span> <span class="o">=</span> <span class="n">Seq</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
 
-  <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">II</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">Inst</span><span class="o">-&gt;</span><span class="n">Opc</span><span class="p">),</span> <span class="n">ATReg</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">ZEROReg</span><span class="p">)</span>
-    <span class="p">.</span><span class="n">addImm</span><span class="p">(</span><span class="n">SignExtend64</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Inst</span><span class="o">-&gt;</span><span class="n">ImmOpnd</span><span class="p">));</span>
+  <span class="c1">// The first instruction can be a LUi, which is different from other</span>
+  <span class="c1">// instructions (ADDiu, ORI and SLL) in that it does not have a register</span>
+  <span class="c1">// operand.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Inst</span><span class="o">-&gt;</span><span class="n">Opc</span> <span class="o">==</span> <span class="n">LUi</span><span class="p">)</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">II</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">LUi</span><span class="p">),</span> <span class="n">ATReg</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">addImm</span><span class="p">(</span><span class="n">SignExtend64</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Inst</span><span class="o">-&gt;</span><span class="n">ImmOpnd</span><span class="p">));</span>
+  <span class="k">else</span>
+    <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">II</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">TII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">Inst</span><span class="o">-&gt;</span><span class="n">Opc</span><span class="p">),</span> <span class="n">ATReg</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">ZEROReg</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">addImm</span><span class="p">(</span><span class="n">SignExtend64</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Inst</span><span class="o">-&gt;</span><span class="n">ImmOpnd</span><span class="p">));</span>
 
   <span class="c1">// Build the remaining instructions in Seq.</span>
   <span class="k">for</span> <span class="p">(</span><span class="o">++</span><span class="n">Inst</span><span class="p">;</span> <span class="n">Inst</span> <span class="o">!=</span> <span class="n">Seq</span><span class="p">.</span><span class="n">end</span><span class="p">();</span> <span class="o">++</span><span class="n">Inst</span><span class="p">)</span>
@@ -5033,7 +3200,7 @@ bottom) as follows,</p>
 <span class="c1">//  Aborted (core dumped)</span>
 
 <span class="c1">// Must exist</span>
-<span class="c1">//	ldi	$sp, $sp, 8</span>
+<span class="c1">//	addiu	$sp, $sp, 8</span>
 <span class="c1">//-&gt;	ret	$lr</span>
 <span class="c1">//	.set	macro</span>
 <span class="c1">//	.set	reorder</span>
@@ -5060,62 +3227,7 @@ bottom) as follows,</p>
 </pre></div>
 </div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0AnalyzeImmediate.h</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0AnalyzeImmediate.h - Analyze Immediates ------------*- C++ -*--===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0AnalyzeImmediate.h - Analyze Immediates ------------*- C++ -*--===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -5164,116 +3276,24 @@ bottom) as follows,</p>
     <span class="c1">/// GetInstSeqLs - Get instrucion sequences to load immediate Imm.</span>
     <span class="kt">void</span> <span class="n">GetInstSeqLs</span><span class="p">(</span><span class="n">uint64_t</span> <span class="n">Imm</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">RemSize</span><span class="p">,</span> <span class="n">InstSeqLs</span> <span class="o">&amp;</span><span class="n">SeqLs</span><span class="p">);</span>
 
+    <span class="c1">/// ReplaceADDiuSHLWithLUi - Replace an ADDiu &amp; SHL pair with a LUi.</span>
+    <span class="kt">void</span> <span class="n">ReplaceADDiuSHLWithLUi</span><span class="p">(</span><span class="n">InstSeq</span> <span class="o">&amp;</span><span class="n">Seq</span><span class="p">);</span>
+
+    <span class="c1">/// GetShortestSeq - Find the shortest instruction sequence in SeqLs and</span>
+    <span class="c1">/// return it in Insts.</span>
+    <span class="kt">void</span> <span class="n">GetShortestSeq</span><span class="p">(</span><span class="n">InstSeqLs</span> <span class="o">&amp;</span><span class="n">SeqLs</span><span class="p">,</span> <span class="n">InstSeq</span> <span class="o">&amp;</span><span class="n">Insts</span><span class="p">);</span>
+
     <span class="kt">unsigned</span> <span class="n">Size</span><span class="p">;</span>
-    <span class="kt">unsigned</span> <span class="n">ADDiu</span><span class="p">,</span> <span class="n">ORi</span><span class="p">,</span> <span class="n">SHL</span><span class="p">;</span>
+    <span class="kt">unsigned</span> <span class="n">ADDiu</span><span class="p">,</span> <span class="n">ORi</span><span class="p">,</span> <span class="n">SHL</span><span class="p">,</span> <span class="n">LUi</span><span class="p">;</span>
     <span class="n">InstSeq</span> <span class="n">Insts</span><span class="p">;</span>
   <span class="p">};</span>
 <span class="p">}</span>
 
 <span class="cp">#endif</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0AnalyzeImmediate.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
- 26
- 27
- 28
- 29
- 30
- 31
- 32
- 33
- 34
- 35
- 36
- 37
- 38
- 39
- 40
- 41
- 42
- 43
- 44
- 45
- 46
- 47
- 48
- 49
- 50
- 51
- 52
- 53
- 54
- 55
- 56
- 57
- 58
- 59
- 60
- 61
- 62
- 63
- 64
- 65
- 66
- 67
- 68
- 69
- 70
- 71
- 72
- 73
- 74
- 75
- 76
- 77
- 78
- 79
- 80
- 81
- 82
- 83
- 84
- 85
- 86
- 87
- 88
- 89
- 90
- 91
- 92
- 93
- 94
- 95
- 96
- 97
- 98
- 99
-100</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0AnalyzeImmediate.cpp - Analyze Immediates ---------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0AnalyzeImmediate.cpp - Analyze Immediates ---------------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -5351,6 +3371,51 @@ bottom) as follows,</p>
   <span class="p">}</span>
 <span class="p">}</span>
 
+<span class="c1">// Replace a ADDiu &amp; SHL pair with a LUi.</span>
+<span class="c1">// e.g. the following two instructions</span>
+<span class="c1">//  ADDiu 0x0111</span>
+<span class="c1">//  SHL 18</span>
+<span class="c1">// are replaced with</span>
+<span class="c1">//  LUi 0x444</span>
+<span class="kt">void</span> <span class="n">Cpu0AnalyzeImmediate</span><span class="o">::</span><span class="n">ReplaceADDiuSHLWithLUi</span><span class="p">(</span><span class="n">InstSeq</span> <span class="o">&amp;</span><span class="n">Seq</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// Check if the first two instructions are ADDiu and SHL and the shift amount</span>
+  <span class="c1">// is at least 16.</span>
+  <span class="k">if</span> <span class="p">((</span><span class="n">Seq</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="n">Seq</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">Opc</span> <span class="o">!=</span> <span class="n">ADDiu</span><span class="p">)</span> <span class="o">||</span>
+      <span class="p">(</span><span class="n">Seq</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">Opc</span> <span class="o">!=</span> <span class="n">SHL</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="n">Seq</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">ImmOpnd</span> <span class="o">&lt;</span> <span class="mi">16</span><span class="p">))</span>
+    <span class="k">return</span><span class="p">;</span>
+
+  <span class="c1">// Sign-extend and shift operand of ADDiu and see if it still fits in 16-bit.</span>
+  <span class="n">int64_t</span> <span class="n">Imm</span> <span class="o">=</span> <span class="n">SignExtend64</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Seq</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">ImmOpnd</span><span class="p">);</span>
+  <span class="n">int64_t</span> <span class="n">ShiftedImm</span> <span class="o">=</span> <span class="p">(</span><span class="n">uint64_t</span><span class="p">)</span><span class="n">Imm</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">Seq</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">ImmOpnd</span> <span class="o">-</span> <span class="mi">16</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ShiftedImm</span><span class="p">))</span>
+    <span class="k">return</span><span class="p">;</span>
+
+  <span class="c1">// Replace the first instruction and erase the second.</span>
+  <span class="n">Seq</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">Opc</span> <span class="o">=</span> <span class="n">LUi</span><span class="p">;</span>
+  <span class="n">Seq</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">ImmOpnd</span> <span class="o">=</span> <span class="p">(</span><span class="kt">unsigned</span><span class="p">)(</span><span class="n">ShiftedImm</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">);</span>
+  <span class="n">Seq</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">Seq</span><span class="p">.</span><span class="n">begin</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0AnalyzeImmediate</span><span class="o">::</span><span class="n">GetShortestSeq</span><span class="p">(</span><span class="n">InstSeqLs</span> <span class="o">&amp;</span><span class="n">SeqLs</span><span class="p">,</span> <span class="n">InstSeq</span> <span class="o">&amp;</span><span class="n">Insts</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">InstSeqLs</span><span class="o">::</span><span class="n">iterator</span> <span class="n">ShortestSeq</span> <span class="o">=</span> <span class="n">SeqLs</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
+  <span class="c1">// The length of an instruction sequence is at most 7.</span>
+  <span class="kt">unsigned</span> <span class="n">ShortestLength</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="n">InstSeqLs</span><span class="o">::</span><span class="n">iterator</span> <span class="n">S</span> <span class="o">=</span> <span class="n">SeqLs</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span> <span class="n">S</span> <span class="o">!=</span> <span class="n">SeqLs</span><span class="p">.</span><span class="n">end</span><span class="p">();</span> <span class="o">++</span><span class="n">S</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">ReplaceADDiuSHLWithLUi</span><span class="p">(</span><span class="o">*</span><span class="n">S</span><span class="p">);</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">S</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="mi">7</span><span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">S</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">ShortestLength</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">ShortestSeq</span> <span class="o">=</span> <span class="n">S</span><span class="p">;</span>
+      <span class="n">ShortestLength</span> <span class="o">=</span> <span class="n">S</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="n">Insts</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+  <span class="n">Insts</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">ShortestSeq</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">(),</span> <span class="n">ShortestSeq</span><span class="o">-&gt;</span><span class="n">end</span><span class="p">());</span>
+<span class="p">}</span>
+
 <span class="k">const</span> <span class="n">Cpu0AnalyzeImmediate</span><span class="o">::</span><span class="n">InstSeq</span>
 <span class="o">&amp;</span><span class="n">Cpu0AnalyzeImmediate</span><span class="o">::</span><span class="n">Analyze</span><span class="p">(</span><span class="n">uint64_t</span> <span class="n">Imm</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">Size</span><span class="p">,</span>
                                <span class="kt">bool</span> <span class="n">LastInstrIsADDiu</span><span class="p">)</span> <span class="p">{</span>
@@ -5359,6 +3424,7 @@ bottom) as follows,</p>
   <span class="n">ADDiu</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">;</span>
   <span class="n">ORi</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ORi</span><span class="p">;</span>
   <span class="n">SHL</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SHL</span><span class="p">;</span>
+  <span class="n">LUi</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">;</span>
 
   <span class="n">InstSeqLs</span> <span class="n">SeqLs</span><span class="p">;</span>
 
@@ -5368,13 +3434,13 @@ bottom) as follows,</p>
   <span class="k">else</span>
     <span class="n">GetInstSeqLs</span><span class="p">(</span><span class="n">Imm</span><span class="p">,</span> <span class="n">Size</span><span class="p">,</span> <span class="n">SeqLs</span><span class="p">);</span>
 
-  <span class="n">Insts</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
-  <span class="n">Insts</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">SeqLs</span><span class="p">.</span><span class="n">begin</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">(),</span> <span class="n">SeqLs</span><span class="p">.</span><span class="n">begin</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">end</span><span class="p">());</span>
+  <span class="c1">// Set Insts to the shortest instruction sequence.</span>
+  <span class="n">GetShortestSeq</span><span class="p">(</span><span class="n">SeqLs</span><span class="p">,</span> <span class="n">Insts</span><span class="p">);</span>
 
   <span class="k">return</span> <span class="n">Insts</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0RegisterInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 
@@ -5633,6 +3699,15 @@ pattern defined in Cpu0InstrInfo.td.</p>
 
 def : Pat&lt;(i32 immSExt16:$in),
           (ADDiu ZERO, imm:$in)&gt;;
+def : Pat&lt;(i32 immZExt16:$in),
+          (ORi ZERO, imm:$in)&gt;;
+def : Pat&lt;(i32 immLow16Zero:$in),
+          (LUi (HI16 imm:$in))&gt;;
+
+// Arbitrary immediates
+def : Pat&lt;(i32 imm:$imm),
+          (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))&gt;;
+
 </pre>
 </div>
 <p>At this point, we have translate the very simple main() function with return 0
@@ -5647,6 +3722,16 @@ def uimm16      : Operand&lt;i32&gt; {
   let PrintMethod = "printUnsignedImm";
 }
 ...
+// Transformation Function - get the lower 16 bits.
+def LO16 : SDNodeXForm&lt;imm, [{
+  return getImm(N, N-&gt;getZExtValue() &amp; 0xffff);
+}]&gt;;
+
+// Transformation Function - get the higher 16 bits.
+def HI16 : SDNodeXForm&lt;imm, [{
+  return getImm(N, (N-&gt;getZExtValue() &gt;&gt; 16) &amp; 0xffff);
+}]&gt;;
+...
 // Node immediate fits as 16-bit zero extended on target immediate.
 // The LO16 param means that only the lower 16 bits of the node
 // immediate are caught.
@@ -5656,6 +3741,12 @@ def immZExt16  : PatLeaf&lt;(imm), [{
     return (uint32_t)N-&gt;getZExtValue() == (unsigned short)N-&gt;getZExtValue();
   else
     return (uint64_t)N-&gt;getZExtValue() == (unsigned short)N-&gt;getZExtValue();
+}], LO16&gt;;
+
+// Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
+def immLow16Zero : PatLeaf&lt;(imm), [{
+  int64_t Val = N-&gt;getSExtValue();
+  return isInt&lt;32&gt;(Val) &amp;&amp; !(Val &amp; 0xffff);
 }]&gt;;
 
 // shamt field must fit in 5 bits.
@@ -5688,25 +3779,50 @@ class shift_rotate_imm&lt;bits&lt;8&gt; op, bits&lt;4&gt; isRotate, string instr
 class shift_rotate_imm32&lt;bits&lt;8&gt; func, bits&lt;4&gt; isRotate, string instr_asm,
                          SDNode OpNode&gt;:
   shift_rotate_imm&lt;func, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs&gt;;
+
+// Load Upper Imediate
+class LoadUpper&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC, Operand Imm&gt;:
+  FL&lt;op, (outs RC:$ra), (ins Imm:$imm16),
+     !strconcat(instr_asm, "\t$ra, $imm16"), [], IIAlu&gt; {
+  let rb = 0;
+  let neverHasSideEffects = 1;
+  let isReMaterializable = 1;
+}
 ...
-def ORi     : ArithLogicI&lt;0x0D, "ori", or, uimm16, immZExt16, CPURegs&gt;;
+def ORi     : ArithLogicI&lt;0x0d, "ori", or, uimm16, immZExt16, CPURegs&gt;;
+def LUi     : LoadUpper&lt;0x0f, "lui", CPURegs, uimm16&gt;;
 
 /// Arithmetic Instructions (3-Operand, R-Type)
 def ADDu    : ArithLogicR&lt;0x11, "addu", add, IIAlu, CPURegs, 1&gt;;
 
 /// Shift Instructions
-def SHL     : shift_rotate_imm32&lt;0x1E, 0x00, "shl", shl&gt;;
-...</pre>
+def SHL     : shift_rotate_imm32&lt;0x1e, 0x00, "shl", shl&gt;;
+...
+
+// Small immediates
+...
+def : Pat&lt;(i32 immZExt16:$in),
+          (ORi ZERO, imm:$in)&gt;;
+def : Pat&lt;(i32 immLow16Zero:$in),
+          (LUi (HI16 imm:$in))&gt;;
+
+// Arbitrary immediates
+def : Pat&lt;(i32 imm:$imm),
+          (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))&gt;;</pre>
 </div>
 <p>The Cpu0AnalyzeImmediate.cpp written in recursive and a little complicate in
-logic. You can skip these recursive code and think these code in last chapter 12.
+logic. You can skip these recursive code and think these code in last chapter
+12.
 Since in Chapter 12 Optimization, it replace addiu and shl with lui single
-instruction, you have chance to think this thing in details. Anyway, the recursive
+instruction, you have chance to think this thing in details. Anyway, the
+recursive
 skills is used in the front end compile book, you should fimiliar with it.
 Instead tracking the code, listing the stack size and the instructions
-generated in Table: Cpu0 stack adjustment instructions as follows,</p>
+generated in Table: Cpu0 stack adjustment instructions before replace addiu and
+shl with lui instruction as follows (Cpu0 stack adjustment instructions after
+replace addiu and shl with lui instruction as below),</p>
 <table border="1" class="docutils">
-<caption>Cpu0 stack adjustment instructions</caption>
+<caption>Cpu0 stack adjustment instructions before replace addiu and shl with lui instruction</caption>
 <colgroup>
 <col width="19%" />
 <col width="15%" />
@@ -5811,6 +3927,84 @@ follows,</p>
 <li>&#8220;addiu       $1, $1, -32768&#8221; =&gt; $1 = (0x90010000 + 0xffff8000) =&gt; $1 = 0x90008000.</li>
 <li>&#8220;addu        $sp, $sp, $1&#8221; =&gt; $sp = (0x10000000 + 0x90008000) =&gt; $sp = 0xa0008000.</li>
 </ol>
+<p>The Cpu0AnalyzeImmediate::GetShortestSeq() will call Cpu0AnalyzeImmediate::
+ReplaceADDiuSHLWithLUi() to replace addiu and shl with single instruction lui
+only. The effect as the following table.</p>
+<table border="1" class="docutils">
+<caption>Cpu0 stack adjustment instructions after replace addiu and shl with lui instruction</caption>
+<colgroup>
+<col width="5%" />
+<col width="18%" />
+<col width="15%" />
+<col width="31%" />
+<col width="31%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">&nbsp;</th>
+<th class="head">&nbsp;</th>
+<th class="head">&nbsp;</th>
+<th class="head">&nbsp;</th>
+<th class="head">&nbsp;</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>old</td>
+<td>x10000 ~ 0xffffffff</td>
+<td><ul class="first last simple">
+<li>0x90008000</li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li>addiu $1, $zero, -9;</li>
+<li>shl $1, $1, 28;</li>
+<li>addiu $1, $1, -32768;</li>
+<li>addu $sp, $sp, $1;</li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li>addiu $1, $zero, -28671;</li>
+<li>shl $1, $1, 16</li>
+<li>addiu $1, $1, -32768;</li>
+<li>addu $sp, $sp, $1;</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td>new</td>
+<td>x10000 ~ 0xffffffff</td>
+<td><ul class="first last simple">
+<li>0x90008000</li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li>lui $1, 28671;</li>
+<li>ori $1, $1, 32768;</li>
+<li>addu $sp, $sp, $1;</li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li>lui     $1, 36865;</li>
+<li>addiu $1, $1, -32768;</li>
+<li>addu $sp, $sp, $1;</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Assume sp = 0xa0008000 and stack size = 0x90008000, then (0xa0008000 -
+0x90008000) =&gt; 0x10000000. Verify with the Cpu0 Prologue instructions as
+follows,</p>
+<ol class="arabic simple">
+<li>&#8220;lui $1, 28671&#8221; =&gt; $1 = 0x6fff0000.</li>
+<li>&#8220;ori $1, $1, 32768&#8221; =&gt; $1 = (0x6fff0000 + 0x00008000) =&gt; $1 = 0x6fff8000.</li>
+<li>&#8220;addu        $sp, $sp, $1&#8221; =&gt; $sp = (0xa0008000 + 0x6fff8000) =&gt; $sp = 0x10000000.</li>
+</ol>
+<p>Verify with the Cpu0 Epilogue instructions with sp = 0x10000000 and stack size =
+0x90008000 as follows,</p>
+<ol class="arabic simple">
+<li>&#8220;lui $1, 36865&#8221; =&gt; $1 = 0x90010000.</li>
+<li>&#8220;addiu $1, $1, -32768&#8221; =&gt; $1 = (0x90010000 + 0xffff8000) =&gt; $1 = 0x90008000.</li>
+<li>&#8220;addu $sp, $sp, $1&#8221; =&gt; $sp = (0x10000000 + 0x90008000) =&gt; $sp = 0xa0008000.</li>
+</ol>
 </div>
 <div class="section" id="summary-of-this-chapter">
 <h2>Summary of this Chapter<a class="headerlink" href="#summary-of-this-chapter" title="Permalink to this headline">¶</a></h2>
@@ -5882,10 +4076,15 @@ Machine Branch Probability Analysis
 </tr>
 </tbody>
 </table>
+<p>We add a pass in Instruction Section stage in section &#8220;Add Cpu0DAGToDAGISel
+class&#8221;. You can embed your code into other pass like that. Please check
+CodeGen/Passes.h for the information. Remember the pass is called according
+the function unit as the <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug-pass=Structure</span></tt> indicated.</p>
 <p>We have finished a simple assembler for cpu0 which only support <strong>ld</strong>,
-<strong>st</strong>, <strong>addiu</strong>, <strong>ori</strong>, <strong>addu</strong>, <strong>shl</strong> and <strong>ret</strong> 7 instructions.</p>
+<strong>st</strong>, <strong>addiu</strong>, <strong>ori</strong>, <strong>lui</strong>, <strong>addu</strong>, <strong>shl</strong> and <strong>ret</strong> 8
+instructions.</p>
 <p>We are satisfied with this result.
-But you may think “After so many codes we program, and just get these 7
+But you may think “After so many codes we program, and just get these 8
 instructions”.
 The point is we have created a frame work for cpu0 target machine (please
 look back the llvm back end structure class inherit tree early in this
@@ -5940,7 +4139,7 @@ as 123.</p>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="otherinst.html">Adding arithmetic and local pointer support</a>&#160;&#160;»
+        <a href="otherinst.html">Arithmetic, local pointer and logic lsupport</a>&#160;&#160;»
         </p>
 
       </div>

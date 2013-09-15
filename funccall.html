@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.0',
+        VERSION:     '3.3.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -93,21 +93,7 @@ if it over 4 arguments. <a class="pageref" href="#funccall-f1">Figure  1</a> is 
 <p>Run <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=mips</span></tt> for ch8_1.bc, you will get the following result.
 See comment <strong>&#8220;//&#8221;</strong>.</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_1.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15</pre></div></td><td class="code"><div class="highlight"><pre><span class="kt">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
 
 <span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">x1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x2</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x3</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x4</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x5</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x6</span><span class="p">)</span>
 <span class="p">{</span>
@@ -118,12 +104,13 @@ See comment <strong>&#8220;//&#8221;</strong>.</p>
 
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span> 
+  <span class="kt">char</span> <span class="n">str</span><span class="p">[</span><span class="mi">81</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Hello world&quot;</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">);</span>  
   
   <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -c ch8_1.cpp -emit-llvm -o ch8_1.bc
 118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>mips -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o
@@ -272,41 +259,9 @@ We don&#8217;t reserve any dedicated register for arguments passing since cpu0 h
 only 16 registers while Mips has 32 registers. Cpu0CallingConv.td is defined
 for cpu0 passing rule as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0CallingConv.td</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33</pre></div></td><td class="code"><div class="highlight"><pre><span class="n">def</span> <span class="n">RetCC_Cpu0EABI</span> <span class="o">:</span> <span class="n">CallingConv</span><span class="o">&lt;</span><span class="p">[</span>
-  <span class="c1">// i32 are returned in registers V0, V1, A0, A1</span>
-  <span class="n">CCIfType</span><span class="o">&lt;</span><span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="n">CCAssignToReg</span><span class="o">&lt;</span><span class="p">[</span><span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">A0</span><span class="p">,</span> <span class="n">A1</span><span class="p">]</span><span class="o">&gt;&gt;</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">RetCC_Cpu0EABI</span> <span class="o">:</span> <span class="n">CallingConv</span><span class="o">&lt;</span><span class="p">[</span>
+  <span class="c1">// i32 are returned in registers V0, V1</span>
+  <span class="n">CCIfType</span><span class="o">&lt;</span><span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="n">CCAssignToReg</span><span class="o">&lt;</span><span class="p">[</span><span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">]</span><span class="o">&gt;&gt;</span>
 <span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 
 <span class="c1">//===----------------------------------------------------------------------===//</span>
@@ -338,7 +293,7 @@ for cpu0 passing rule as follows,</p>
 <span class="n">def</span> <span class="n">CSR_O32</span> <span class="o">:</span> <span class="n">CalleeSavedRegs</span><span class="o">&lt;</span><span class="p">(</span><span class="n">add</span> <span class="n">LR</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span>
                                    <span class="p">(</span><span class="n">sequence</span> <span class="s">&quot;S%u&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p>As above, CC_Cpu0 is the cpu0 Calling Convention which delegate to CC_Cpu0EABI
 and define the CC_Cpu0EABI.
 The reason we don&#8217;t define the Calling Convention directly in CC_Cpu0 is that
@@ -352,74 +307,7 @@ pass arguments in stack frame.</p>
 <p>Function LowerFormalArguments() charge function incoming arguments creation.
 We define it as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">}</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 
 <span class="c1">/// LowerFormalArguments - transform physical registers into virtual registers</span>
 <span class="c1">/// and generate load operations for arguments places on the stack.</span>
@@ -488,7 +376,7 @@ We define it as follows,</p>
 
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p>Refresh &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id13" id="id5">[5]</a>, we handled global
 variable translation by create the IR DAG in LowerGlobalAddress() first, and
 then do the Instruction Selection by their corresponding machine instruction
@@ -520,35 +408,7 @@ define the loadRegFromStackSlot() to issue the machine instruction
 GetMemOperand(..., FI, ...) return the Memory location of the frame index
 variable, which is the offset.</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">}</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 
 <span class="k">static</span> <span class="n">MachineMemOperand</span><span class="o">*</span> <span class="n">GetMemOperand</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="kt">int</span> <span class="n">FI</span><span class="p">,</span>
                                         <span class="kt">unsigned</span> <span class="n">Flag</span><span class="p">)</span> <span class="p">{</span>
@@ -578,7 +438,7 @@ variable, which is the offset.</p>
     <span class="p">.</span><span class="n">addMemOperand</span><span class="p">(</span><span class="n">MMO</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p>In addition to Calling Convention and LowerFormalArguments(), Chapter8_1/ add the
 following code for cpu0 instructions <strong>swi</strong> (Software Interrupt), <strong>jsub</strong> and
 <strong>jalr</strong> (function call) definition and printing.</p>
@@ -613,7 +473,6 @@ let isCall=1, hasDelaySlot=0 in {
     FJ&lt;op, (outs), (ins calltarget:$target, variable_ops),
        !strconcat(instr_asm, "\t$target"), [(Cpu0JmpLink imm:$target)],
        IIBranch&gt; {
-       let DecoderMethod = "DecodeJumpTarget";
        }
 
   class JumpLinkReg&lt;bits&lt;8&gt; op, string instr_asm,
@@ -627,14 +486,16 @@ let isCall=1, hasDelaySlot=0 in {
 }
 ...
 /// Jump and Branch Instructions
-def SWI  : JumpLink&lt;0x2A, "swi"&gt;;
-def JSUB : JumpLink&lt;0x2B, "jsub"&gt;;
+def SWI  : JumpLink&lt;0x2a, "swi"&gt;;
+def JSUB : JumpLink&lt;0x2b, "jsub"&gt;;
 ...
-def IRET    : JumpFR&lt;0x2D, "iret", CPURegs&gt;;
-def JALR    : JumpLinkReg&lt;0x2E, "jalr", CPURegs&gt;;
+def IRET    : JumpFR&lt;0x2d, "iret", CPURegs&gt;;
+def JALR    : JumpLinkReg&lt;0x2e, "jalr", CPURegs&gt;;
 ...
 def : Pat&lt;(Cpu0JmpLink (i32 tglobaladdr:$dst)),
           (JSUB tglobaladdr:$dst)&gt;;
+def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
+          (JSUB texternalsym:$dst)&gt;;
 ...</pre>
 </div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstPrinter.cpp</p>
@@ -645,6 +506,36 @@ def : Pat&lt;(Cpu0JmpLink (i32 tglobaladdr:$dst)),
   <span class="p">...</span>
   <span class="p">}</span>
 <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0MCInstLower.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
+                                              <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
+                                              <span class="kt">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">MOTy</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_ExternalSymbol:</span>
+    <span class="n">Symbol</span> <span class="o">=</span> <span class="n">AsmPrinter</span><span class="p">.</span><span class="n">GetExternalSymbolSymbol</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getSymbolName</span><span class="p">());</span>
+    <span class="n">Offset</span> <span class="o">+=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getOffset</span><span class="p">();</span>
+    <span class="k">break</span><span class="p">;</span>
+    <span class="p">...</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span><span class="o">&amp;</span> <span class="n">MO</span><span class="p">,</span>
+                                        <span class="kt">unsigned</span> <span class="n">offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">MOTy</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_ExternalSymbol:</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_BlockAddress:</span>
+    <span class="k">return</span> <span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="n">MO</span><span class="p">,</span> <span class="n">MOTy</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
+  <span class="p">...</span>
+ <span class="p">}</span>
+  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -723,6 +614,81 @@ def : Pat&lt;(Cpu0JmpLink (i32 tglobaladdr:$dst)),
 <span class="p">};</span>
 </pre></div>
 </div>
+<p>The SWI, JSUB and JALR defined in Cpu0InstrInfo.td as above all use Cpu0JmpLink
+node. They are distinguishable since both SWI and JSUB use &#8220;imm&#8221; operand while
+JALR use register operand. JSUB take the priority to match since we set the
+following code in Cpu0InstrInfo.td.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><pre>def : Pat&lt;(Cpu0JmpLink (i32 tglobaladdr:$dst)),
+          (JSUB tglobaladdr:$dst)&gt;;
+def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
+          (JSUB texternalsym:$dst)&gt;;</pre>
+</div>
+<p>The code tells TableGen generate pattern match pattern to match the &#8220;imm&#8221; for
+&#8220;tglobaladdr&#8221; pattern first. If it fails then try to match &#8220;texternalsym&#8221; next.
+The function you declared is &#8220;tglobaladdr&#8221;, the function which implicit used by
+llvm most are &#8220;texternalsym&#8221; such as &#8220;memcpy&#8221;. The &#8220;memcpy&#8221; will be generated
+when define a long string. The ch8_1_2.cpp is an example to generate &#8220;memcpy&#8221;
+function call. It will be shown in next section of Chapter8_2 example code.
+Even though SWI have no chance to match in C/C++ language. We define it for easy
+to implement assembly parser which introduced in Chapter 11. This
+SWI definition will save us to implement the assembly parser for this
+instruction. TableGen will generate information for SWI instruction in assembly
+and ELF obj encode automatically. The Cpu0GenDAGISel.inc contains the TablGen
+generated information about JSUB and JALR pattern match information as follows,</p>
+<div class="highlight-c++"><div class="highlight"><pre>          <span class="cm">/*SwitchOpcode*/</span> <span class="mi">74</span><span class="p">,</span>  <span class="n">TARGET_VAL</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">JmpLink</span><span class="p">),</span><span class="c1">// -&gt;734</span>
+<span class="cm">/*660*/</span>     <span class="n">OPC_RecordNode</span><span class="p">,</span>   <span class="c1">// #0 = &#39;Cpu0JmpLink&#39; chained node</span>
+<span class="cm">/*661*/</span>     <span class="n">OPC_CaptureGlueInput</span><span class="p">,</span>
+<span class="cm">/*662*/</span>     <span class="n">OPC_RecordChild1</span><span class="p">,</span> <span class="c1">// #1 = $target</span>
+<span class="cm">/*663*/</span>     <span class="n">OPC_Scope</span><span class="p">,</span> <span class="mi">57</span><span class="p">,</span> <span class="cm">/*-&gt;722*/</span> <span class="c1">// 2 children in Scope</span>
+<span class="cm">/*665*/</span>       <span class="n">OPC_MoveChild</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>
+<span class="cm">/*667*/</span>       <span class="n">OPC_SwitchOpcode</span> <span class="cm">/*3 cases */</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span>  <span class="n">TARGET_VAL</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">Constant</span><span class="p">),</span>
+<span class="c1">// -&gt;693</span>
+<span class="cm">/*671*/</span>         <span class="n">OPC_MoveParent</span><span class="p">,</span>
+<span class="cm">/*672*/</span>         <span class="n">OPC_EmitMergeInputChains1_0</span><span class="p">,</span>
+<span class="cm">/*673*/</span>         <span class="n">OPC_EmitConvertToTarget</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>
+<span class="cm">/*675*/</span>         <span class="n">OPC_Scope</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="cm">/*-&gt;684*/</span> <span class="c1">// 2 children in Scope</span>
+<span class="cm">/*677*/</span>           <span class="n">OPC_MorphNodeTo</span><span class="p">,</span> <span class="n">TARGET_VAL</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">SWI</span><span class="p">),</span> <span class="mi">0</span><span class="o">|</span><span class="n">OPFL_Chain</span><span class="o">|</span>
+<span class="n">OPFL_GlueInput</span><span class="o">|</span><span class="n">OPFL_GlueOutput</span><span class="o">|</span><span class="n">OPFL_Variadic1</span><span class="p">,</span>
+                      <span class="mi">0</span><span class="cm">/*#VTs*/</span><span class="p">,</span> <span class="mi">1</span><span class="cm">/*#Ops*/</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span>
+                  <span class="c1">// Src: (Cpu0JmpLink (imm:iPTR):$target) - Complexity = 6</span>
+                  <span class="c1">// Dst: (SWI (imm:iPTR):$target)</span>
+<span class="cm">/*684*/</span>         <span class="cm">/*Scope*/</span> <span class="mi">7</span><span class="p">,</span> <span class="cm">/*-&gt;692*/</span>
+<span class="cm">/*685*/</span>           <span class="n">OPC_MorphNodeTo</span><span class="p">,</span> <span class="n">TARGET_VAL</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">JSUB</span><span class="p">),</span> <span class="mi">0</span><span class="o">|</span><span class="n">OPFL_Chain</span><span class="o">|</span>
+<span class="n">OPFL_GlueInput</span><span class="o">|</span><span class="n">OPFL_GlueOutput</span><span class="o">|</span><span class="n">OPFL_Variadic1</span><span class="p">,</span>
+                      <span class="mi">0</span><span class="cm">/*#VTs*/</span><span class="p">,</span> <span class="mi">1</span><span class="cm">/*#Ops*/</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span>
+                  <span class="c1">// Src: (Cpu0JmpLink (imm:iPTR):$target) - Complexity = 6</span>
+                  <span class="c1">// Dst: (JSUB (imm:iPTR):$target)</span>
+<span class="cm">/*692*/</span>         <span class="mi">0</span><span class="p">,</span> <span class="cm">/*End of Scope*/</span>
+              <span class="cm">/*SwitchOpcode*/</span> <span class="mi">11</span><span class="p">,</span>  <span class="n">TARGET_VAL</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">TargetGlobalAddress</span><span class="p">),</span><span class="c1">// -&gt;707</span>
+<span class="cm">/*696*/</span>         <span class="n">OPC_CheckType</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span>
+<span class="cm">/*698*/</span>         <span class="n">OPC_MoveParent</span><span class="p">,</span>
+<span class="cm">/*699*/</span>         <span class="n">OPC_EmitMergeInputChains1_0</span><span class="p">,</span>
+<span class="cm">/*700*/</span>         <span class="n">OPC_MorphNodeTo</span><span class="p">,</span> <span class="n">TARGET_VAL</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">JSUB</span><span class="p">),</span> <span class="mi">0</span><span class="o">|</span><span class="n">OPFL_Chain</span><span class="o">|</span>
+<span class="n">OPFL_GlueInput</span><span class="o">|</span><span class="n">OPFL_GlueOutput</span><span class="o">|</span><span class="n">OPFL_Variadic1</span><span class="p">,</span>
+                    <span class="mi">0</span><span class="cm">/*#VTs*/</span><span class="p">,</span> <span class="mi">1</span><span class="cm">/*#Ops*/</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="c1">// Src: (Cpu0JmpLink (tglobaladdr:i32):$dst) - Complexity = 6</span>
+                <span class="c1">// Dst: (JSUB (tglobaladdr:i32):$dst)</span>
+              <span class="cm">/*SwitchOpcode*/</span> <span class="mi">11</span><span class="p">,</span>  <span class="n">TARGET_VAL</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">TargetExternalSymbol</span><span class="p">),</span><span class="c1">// -&gt;721</span>
+<span class="cm">/*710*/</span>         <span class="n">OPC_CheckType</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span>
+<span class="cm">/*712*/</span>         <span class="n">OPC_MoveParent</span><span class="p">,</span>
+<span class="cm">/*713*/</span>         <span class="n">OPC_EmitMergeInputChains1_0</span><span class="p">,</span>
+<span class="cm">/*714*/</span>         <span class="n">OPC_MorphNodeTo</span><span class="p">,</span> <span class="n">TARGET_VAL</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">JSUB</span><span class="p">),</span> <span class="mi">0</span><span class="o">|</span><span class="n">OPFL_Chain</span><span class="o">|</span>
+<span class="n">OPFL_GlueInput</span><span class="o">|</span><span class="n">OPFL_GlueOutput</span><span class="o">|</span><span class="n">OPFL_Variadic1</span><span class="p">,</span>
+                    <span class="mi">0</span><span class="cm">/*#VTs*/</span><span class="p">,</span> <span class="mi">1</span><span class="cm">/*#Ops*/</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="c1">// Src: (Cpu0JmpLink (texternalsym:i32):$dst) - Complexity = 6</span>
+                <span class="c1">// Dst: (JSUB (texternalsym:i32):$dst)</span>
+              <span class="mi">0</span><span class="p">,</span> <span class="c1">// EndSwitchOpcode</span>
+<span class="cm">/*722*/</span>     <span class="cm">/*Scope*/</span> <span class="mi">10</span><span class="p">,</span> <span class="cm">/*-&gt;733*/</span>
+<span class="cm">/*723*/</span>       <span class="n">OPC_CheckChild1Type</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span>
+<span class="cm">/*725*/</span>       <span class="n">OPC_EmitMergeInputChains1_0</span><span class="p">,</span>
+<span class="cm">/*726*/</span>       <span class="n">OPC_MorphNodeTo</span><span class="p">,</span> <span class="n">TARGET_VAL</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">JALR</span><span class="p">),</span> <span class="mi">0</span><span class="o">|</span><span class="n">OPFL_Chain</span><span class="o">|</span><span class="n">OPFL_GlueInput</span><span class="o">|</span><span class="n">OPFL_GlueOutput</span><span class="o">|</span><span class="n">OPFL_Variadic1</span><span class="p">,</span>
+                  <span class="mi">0</span><span class="cm">/*#VTs*/</span><span class="p">,</span> <span class="mi">1</span><span class="cm">/*#Ops*/</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>
+              <span class="c1">// Src: (Cpu0JmpLink CPURegs:i32:$rb) - Complexity = 3</span>
+              <span class="c1">// Dst: (JALR CPURegs:i32:$rb)</span>
+<span class="cm">/*733*/</span>     <span class="mi">0</span><span class="p">,</span> <span class="cm">/*End of Scope*/</span>
+</pre></div>
+</div>
 <p>After above changes, you can run Chapter8_1/ with ch8_1.cpp and see what happens
 in the following,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-79-83:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
@@ -755,237 +721,7 @@ function last section.
 Now, we will finish <strong>“store outgoing arguments”</strong> in caller function.
 LowerCall() is responsible to do this. The implementation as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0ISelLowering.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
- 11
- 12
- 13
- 14
- 15
- 16
- 17
- 18
- 19
- 20
- 21
- 22
- 23
- 24
- 25
- 26
- 27
- 28
- 29
- 30
- 31
- 32
- 33
- 34
- 35
- 36
- 37
- 38
- 39
- 40
- 41
- 42
- 43
- 44
- 45
- 46
- 47
- 48
- 49
- 50
- 51
- 52
- 53
- 54
- 55
- 56
- 57
- 58
- 59
- 60
- 61
- 62
- 63
- 64
- 65
- 66
- 67
- 68
- 69
- 70
- 71
- 72
- 73
- 74
- 75
- 76
- 77
- 78
- 79
- 80
- 81
- 82
- 83
- 84
- 85
- 86
- 87
- 88
- 89
- 90
- 91
- 92
- 93
- 94
- 95
- 96
- 97
- 98
- 99
-100
-101
-102
-103
-104
-105
-106
-107
-108
-109
-110
-111
-112
-113
-114
-115
-116
-117
-118
-119
-120
-121
-122
-123
-124
-125
-126
-127
-128
-129
-130
-131
-132
-133
-134
-135
-136
-137
-138
-139
-140
-141
-142
-143
-144
-145
-146
-147
-148
-149
-150
-151
-152
-153
-154
-155
-156
-157
-158
-159
-160
-161
-162
-163
-164
-165
-166
-167
-168
-169
-170
-171
-172
-173
-174
-175
-176
-177
-178
-179
-180
-181
-182
-183
-184
-185
-186
-187
-188
-189
-190
-191
-192
-193
-194
-195
-196
-197
-198
-199
-200
-201
-202
-203
-204
-205
-206
-207
-208
-209
-210
-211
-212
-213
-214
-215
-216
-217
-218
-219
-220
-221
-222
-223
-224
-225
-226
-227
-228
-229
-230
-231</pre></div></td><td class="code"><div class="highlight"><pre><span class="n">SDValue</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">SDValue</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerCall</span><span class="p">(</span><span class="n">TargetLowering</span><span class="o">::</span><span class="n">CallLoweringInfo</span> <span class="o">&amp;</span><span class="n">CLI</span><span class="p">,</span>
                               <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span>                     <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">DAG</span><span class="p">;</span>
@@ -1062,6 +798,28 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
       <span class="n">assert</span><span class="p">(</span><span class="s">&quot;!!!Error!!!, Flags.isByVal()==true&quot;</span><span class="p">);</span>
       <span class="n">assert</span><span class="p">(</span><span class="n">Flags</span><span class="p">.</span><span class="n">getByValSize</span><span class="p">()</span> <span class="o">&amp;&amp;</span>
              <span class="s">&quot;ByVal args of size 0 should have been ignored by front-end.&quot;</span><span class="p">);</span>
+      <span class="k">continue</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Promote the value if needed.</span>
+    <span class="k">switch</span> <span class="p">(</span><span class="n">VA</span><span class="p">.</span><span class="n">getLocInfo</span><span class="p">())</span> <span class="p">{</span>
+    <span class="k">default</span><span class="o">:</span> <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Unknown loc info!&quot;</span><span class="p">);</span>
+    <span class="k">case</span> <span class="n">CCValAssign</span><span class="o">::</span><span class="nl">Full:</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">CCValAssign</span><span class="o">::</span><span class="nl">SExt:</span>
+      <span class="n">Arg</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">SIGN_EXTEND</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">LocVT</span><span class="p">,</span> <span class="n">Arg</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">CCValAssign</span><span class="o">::</span><span class="nl">ZExt:</span>
+      <span class="n">Arg</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">ZERO_EXTEND</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">LocVT</span><span class="p">,</span> <span class="n">Arg</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">CCValAssign</span><span class="o">::</span><span class="nl">AExt:</span>
+      <span class="n">Arg</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">ANY_EXTEND</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">LocVT</span><span class="p">,</span> <span class="n">Arg</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="c1">// Arguments that can be passed on register must be kept at</span>
+    <span class="c1">// RegsToPass vector</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">VA</span><span class="p">.</span><span class="n">isRegLoc</span><span class="p">())</span> <span class="p">{</span>
+      <span class="n">RegsToPass</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">(</span><span class="n">VA</span><span class="p">.</span><span class="n">getLocReg</span><span class="p">(),</span> <span class="n">Arg</span><span class="p">));</span>
       <span class="k">continue</span><span class="p">;</span>
     <span class="p">}</span>
 
@@ -1217,7 +975,7 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
   <span class="k">return</span> <span class="n">Chain</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p>Just like load incoming arguments from stack frame, we call
 CCInfo(CallConv,..., ArgLocs, ...) to get outgoing arguments information before
 enter <strong>“for loop”</strong> and set stack alignment with 8 bytes.
@@ -1395,29 +1153,115 @@ gI:
       .size   gI, 4
 </pre></div>
 </div>
+<p>The last section mentioned the &#8220;JSUB texternalsym&#8221; pattern. Run Chapter8_2 with
+ch8_1_2.cpp to get the result as below. For long string, llvm call memcpy() to
+initialize string (char str[81] = &#8220;Hello world&#8221; in this case). For short string,
+the &#8220;call memcpy&#8221; is translated into &#8220;store with contant&#8221; in stages of
+optimization.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_1_2.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">char</span> <span class="n">str</span><span class="p">[</span><span class="mi">81</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Hello world&quot;</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">s</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Hello&quot;</span><span class="p">;</span>
+  
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>llvm-dis ch8_1_2.bc -o -
+; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch8_1_2.bc&#39;</span>
+...
+@_ZZ4mainE3str <span class="o">=</span> private unnamed_addr constant <span class="o">[</span>81 x i8<span class="o">]</span> c<span class="s2">&quot;Hello world\00\00\00\</span>
+<span class="s2">00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00</span>
+<span class="s2">\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\0</span>
+<span class="s2">0\00\00\00\00\00\00\00\00\00\00\00\00\00&quot;</span>, align 1
+@_ZZ4mainE1s <span class="o">=</span> private unnamed_addr constant <span class="o">[</span>6 x i8<span class="o">]</span> c<span class="s2">&quot;Hello\00&quot;</span>, align 1
+
+; Function Attrs: nounwind
+define i32 @main<span class="o">()</span> <span class="c">#0 {</span>
+entry:
+  %retval <span class="o">=</span> alloca i32, align 4
+  %str <span class="o">=</span> alloca <span class="o">[</span>81 x i8<span class="o">]</span>, align 1
+  store i32 0, i32* %retval
+  %0 <span class="o">=</span> bitcast <span class="o">[</span>81 x i8<span class="o">]</span>* %str to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32<span class="o">(</span>i8* %0, i8* getelementptr inbounds
+  <span class="o">([</span>81 x i8<span class="o">]</span>* @_ZZ4mainE3str, i32 0, i32 0<span class="o">)</span>, i32 81, i32 1, i1 <span class="nb">false</span><span class="o">)</span>
+  %1 <span class="o">=</span> bitcast <span class="o">[</span>6 x i8<span class="o">]</span>* %s to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32<span class="o">(</span>i8* %1, i8* getelementptr inbounds
+  <span class="o">([</span>6 x i8<span class="o">]</span>* @_ZZ4mainE1s, i32 0, i32 0<span class="o">)</span>, i32 6, i32 1, i1 <span class="nb">false</span><span class="o">)</span>
+
+  ret i32 0
+<span class="o">}</span>
+
+JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
+ch8_1_2.cpp -emit-llvm -o ch8_1_2.bc
+JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build
+/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch8_1_2.bc -o -
+  .section .mdebug.abi32
+  ...
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 81
+  st  <span class="nv">$2</span>, 128<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, %hi<span class="o">(</span><span class="nv">$_ZZ4mainE3str</span><span class="o">)</span>
+  shl <span class="nv">$2</span>, <span class="nv">$2</span>, 16
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span><span class="nv">$_ZZ4mainE3str</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 124<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$fp</span>, 28
+  st  <span class="nv">$2</span>, 120<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  jsub  memcpy
+  !ADJCALLSTACKUP 16
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 28416  // <span class="nv">28416</span><span class="o">=</span><span class="nv">0x6f00</span><span class="o">=</span><span class="s2">&quot;o\0&quot;</span>
+  sh  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 18533  // <span class="nv">18533</span><span class="o">=</span><span class="nv">0x4865</span><span class="o">=</span><span class="s2">&quot;He&quot;</span>
+  shl <span class="nv">$2</span>, <span class="nv">$2</span>, 16
+  ori <span class="nv">$2</span>, <span class="nv">$2</span>, 27756         // <span class="nv">27756</span><span class="o">=</span><span class="nv">0x6c6c</span><span class="o">=</span><span class="s2">&quot;ll&quot;</span>
+  st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  ...
+  .type <span class="nv">$_ZZ4mainE3str</span>,@object  <span class="c"># @_ZZ4mainE3str</span>
+  .section  .rodata,<span class="s2">&quot;a&quot;</span>,@progbits
+<span class="nv">$_ZZ4mainE3str</span>:
+  .asciz   <span class="s2">&quot;Hello world\000\000\000\000\000\000\000\000\000\000\000\000\000\000</span>
+<span class="s2">  \000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\</span>
+<span class="s2">  000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\0</span>
+<span class="s2">  00\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000&quot;</span>
+  .size <span class="nv">$_ZZ4mainE3str</span>, 81
+</pre></div>
+</div>
+<p>The &#8220;call memcpy&#8221; for short string is optimized by llvm before &#8220;DAG-&gt;DAG Pattern
+Instruction Selection&#8221; stage and translate it into &#8220;store with contant&#8221; as
+follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build
+/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch8_1_2.bc
+-debug -o -
+
+Initial selection DAG: BB#0 <span class="s1">&#39;main:entry&#39;</span>
+SelectionDAG has 35 nodes:
+  ...
+        0x7fd909030810: &lt;multiple use&gt;
+        0x7fd909030c10: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;1214606444&gt;  // <span class="nv">1214606444</span><span class="o">=</span><span class="nv">0x48656c6c</span><span class="o">=</span><span class="s2">&quot;Hell&quot;</span>
+
+        0x7fd909030910: &lt;multiple use&gt;
+        0x7fd90902d810: &lt;multiple use&gt;
+      0x7fd909030d10: <span class="nv">ch</span> <span class="o">=</span> store 0x7fd909030810, 0x7fd909030c10, 0x7fd909030910,
+      0x7fd90902d810&lt;ST4<span class="o">[</span>%1<span class="o">]</span>&gt;
+
+        0x7fd909030810: &lt;multiple use&gt;
+        0x7fd909030e10: <span class="nv">i16</span> <span class="o">=</span> Constant&lt;28416&gt;      // <span class="nv">28416</span><span class="o">=</span><span class="nv">0x6f00</span><span class="o">=</span><span class="s2">&quot;o\0&quot;</span>
+
+        ...
+
+        0x7fd90902d810: &lt;multiple use&gt;
+      0x7fd909031210: <span class="nv">ch</span> <span class="o">=</span> store 0x7fd909030810, 0x7fd909030e10, 0x7fd909031010,
+      0x7fd90902d810&lt;ST2<span class="o">[</span>%1+4<span class="o">](</span><span class="nv">align</span><span class="o">=</span>4<span class="o">)</span>&gt;
+  ...
+</pre></div>
+</div>
 </div>
 <div class="section" id="fix-issues">
 <h2>Fix issues<a class="headerlink" href="#fix-issues" title="Permalink to this headline">¶</a></h2>
 <p>Run Chapter8_2/ with ch6_2.cpp to get the incorrect main return (return register
 $2 is not 0) as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17</pre></div></td><td class="code"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">year</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">month</span><span class="p">;</span>
@@ -1435,7 +1279,7 @@ $2 is not 0) as follows,</p>
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>clang -c ch6_2.cpp -emit-llvm -o ch6_2.bc
 118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch6_2.bc -o
@@ -1799,104 +1643,7 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
 </pre></div>
 </div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0EmitGPRestore.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
-91
-92
-93
-94
-95
-96
-97
-98</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===-- Cpu0EmitGPRestore.cpp - Emit GP Restore Instruction ---------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0EmitGPRestore.cpp - Emit GP Restore Instruction ---------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -1995,7 +1742,7 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
   <span class="k">return</span> <span class="k">new</span> <span class="n">Inserter</span><span class="p">(</span><span class="n">tm</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0AsmPrinter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">EmitInstrWithMacroNoAT</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">MCInst</span> <span class="n">TmpInst</span><span class="p">;</span>
@@ -2049,40 +1796,7 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
 </pre></div>
 </div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0MCInstLower.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">}</span>
-
-<span class="c1">// Lower &quot;.cprestore offset&quot; to &quot;st $gp, offset($sp)&quot;.</span>
-<span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerCPRESTORE</span><span class="p">(</span><span class="n">int64_t</span> <span class="n">Offset</span><span class="p">,</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerCPRESTORE</span><span class="p">(</span><span class="n">int64_t</span> <span class="n">Offset</span><span class="p">,</span>
                                      <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;&amp;</span> <span class="n">MCInsts</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">assert</span><span class="p">(</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">32</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Offset</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">Offset</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
          <span class="s">&quot;Imm operand of .cprestore must be a non-negative 32-bit value.&quot;</span><span class="p">);</span>
@@ -2097,13 +1811,11 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
     <span class="n">MCOperand</span> <span class="n">ATReg</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">);</span>
     <span class="n">BaseReg</span> <span class="o">=</span> <span class="n">ATReg</span><span class="p">;</span>
 
-    <span class="c1">// addiu   at,zero,hi</span>
-    <span class="c1">// shl     at,at,16</span>
-    <span class="c1">// add     at,at,sp</span>
-    <span class="n">MCInsts</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
-    <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">ZEROReg</span><span class="p">,</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">Hi</span><span class="p">));</span>
-    <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SHL</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="mi">16</span><span class="p">));</span>
-    <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">SPReg</span><span class="p">);</span>
+    <span class="c1">// lui   at,hi</span>
+    <span class="c1">// add   at,at,sp</span>
+    <span class="n">MCInsts</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+    <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">ZEROReg</span><span class="p">,</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">Hi</span><span class="p">));</span>
+    <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">SPReg</span><span class="p">);</span>
   <span class="p">}</span>
 
   <span class="n">MCInst</span> <span class="n">St</span><span class="p">;</span>
@@ -2111,7 +1823,7 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
   <span class="n">MCInsts</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">St</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p>The added code of Cpu0AsmPrinter.cpp as above will call the LowerCPRESTORE() when
 user run with <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></tt>.
 The added code of Cpu0MCInstLower.cpp as above take care the .cprestore machine
@@ -2154,7 +1866,7 @@ asm ch8_1.bc -o ch8_1.cpu0.s
 <p>Run with <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></tt>, you can find the Cx of <strong>“jsub Cx”</strong> is 0 since
 the Cx is calculated by linker as below.
 Mips has the same 0 in it&#8217;s jal instruction.
-The ch8_1_2.cpp, ch8_1_3.cpp and ch8_1_4.cpp are example code more for test.</p>
+The ch8_1_3.cpp and ch8_1_4.cpp are example code more for test.</p>
 <div class="highlight-bash"><div class="highlight"><pre>// jsub _Z5sum_iiiiiii translate into 2B 00 00 00
 00F0: 2B 00 00 00 01 2D 00 34 00 ED 00 3C 09 DD 00 40
 </pre></div>
@@ -2164,52 +1876,7 @@ The ch8_1_2.cpp, ch8_1_3.cpp and ch8_1_4.cpp are example code more for test.</p>
 <h3>Correct the return of main()<a class="headerlink" href="#correct-the-return-of-main" title="Permalink to this headline">¶</a></h3>
 <p>The LowerReturn() modified in Chapter8_3/ as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0ISelLowering.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="n">SDValue</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerReturn</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span>
@@ -2256,41 +1923,17 @@ The ch8_1_2.cpp, ch8_1_3.cpp and ch8_1_4.cpp are example code more for test.</p>
 
 <span class="kt">bool</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.h</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
-2
-3
-4
-5</pre></div></td><td class="code"><div class="highlight"><pre>  <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">expandPostRAPseudo</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">expandPostRAPseudo</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
 
 <span class="k">private</span><span class="o">:</span>
   <span class="kt">void</span> <span class="n">ExpandRetLR</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span>
                    <span class="kt">unsigned</span> <span class="n">Opc</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">/// Expand Pseudo instructions into real backend instructions</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// Expand Pseudo instructions into real backend instructions</span>
 <span class="kt">bool</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">expandPostRAPseudo</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span> <span class="o">=</span> <span class="o">*</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">();</span>
 
@@ -2312,7 +1955,7 @@ The ch8_1_2.cpp, ch8_1_3.cpp and ch8_1_4.cpp are example code more for test.</p>
   <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">I</span><span class="o">-&gt;</span><span class="n">getDebugLoc</span><span class="p">(),</span> <span class="n">get</span><span class="p">(</span><span class="n">Opc</span><span class="p">)).</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// Return
 def Cpu0Ret : SDNode&lt;"Cpu0ISD::Ret", SDTNone,
@@ -2574,61 +2217,7 @@ a:
 dynamic stack allocation.</p>
 <p>Run Chapter8_3 with ch8_2_1.cpp will get the error message as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_2_1.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55</pre></div></td><td class="code"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">year</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">month</span><span class="p">;</span>
@@ -2684,7 +2273,7 @@ dynamic stack allocation.</p>
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>clang -c ch8_2_1.cpp -emit-llvm -o
 ch8_2_1.bc
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
@@ -2700,35 +2289,7 @@ line 6712.
 </div>
 <p>Run Chapter8_3/ with ch8_3.cpp to get the following error,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_3.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//#include &lt;stdio.h&gt;</span>
-<span class="cp">#include &lt;stdarg.h&gt;</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &lt;stdarg.h&gt;</span>
 
 <span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
 <span class="p">{</span>
@@ -2751,12 +2312,11 @@ line 6712.
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
-<span class="c1">//  printf(&quot;a = %d\n&quot;, a);</span>
 	
   <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -target <span class="sb">`</span>llvm-config --host-target<span class="sb">`</span> -c
 ch8_3.cpp -emit-llvm -o ch8_3.bc
 118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
@@ -2769,30 +2329,7 @@ In <span class="k">function</span>: _Z5sum_iiz
 </pre></div>
 </div>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_4.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">#include &lt;alloca.h&gt;</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &lt;alloca.h&gt;</span>
 
 <span class="kt">int</span> <span class="n">sum</span><span class="p">(</span><span class="kt">int</span> <span class="n">x1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x2</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x3</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x4</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x5</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x6</span><span class="p">)</span>
 <span class="p">{</span>
@@ -2817,7 +2354,7 @@ In <span class="k">function</span>: _Z5sum_iiz
   <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p>Run Chapter8_3 with ch8_4.cpp will get the following error.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-72-242:InputFiles Jonathan<span class="nv">$ </span>clang -I/Applications/Xcode.app/Contents/
 Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/
@@ -3022,8 +2559,8 @@ this chapter as follows,</p>
 <span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>It meaning for the return value, we keep it in registers V0, V1, A0, A1 if the
-return value didn&#8217;t over 4 registers size; If it over 4 size, cpu0 will save
+<p>It meaning for the return value, we keep it in registers V0, V1, A0, A1 if the return
+value didn&#8217;t over 4 registers size; If it over 4 registers size, cpu0 will save
 them with pointer.
 For explanation, let&#8217;s run Chapter8_4/ with ch8_2_1.cpp and explain with this
 example.</p>
@@ -3761,36 +3298,7 @@ backend code too.</p>
 </pre></div>
 </div>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_3_2.cpp</p>
-<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">//#include &lt;stdio.h&gt;</span>
-<span class="cp">#include &lt;stdarg.h&gt;</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &lt;stdarg.h&gt;</span>
 
 <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">T</span><span class="o">&gt;</span>
 <span class="n">T</span> <span class="n">sum</span><span class="p">(</span><span class="n">T</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
@@ -3814,12 +3322,11 @@ backend code too.</p>
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sum</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
-<span class="c1">//  printf(&quot;a = %d\n&quot;, a);</span>
 	
   <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p>Mips qemu reference <a class="footnote-reference" href="#id15" id="id8">[7]</a>, you can download and run it with gcc to verify the
 result with printf() function. We will verify the code correction in chapter
 &#8220;Run backend&#8221; through the CPU0 Verilog language machine.</p>
