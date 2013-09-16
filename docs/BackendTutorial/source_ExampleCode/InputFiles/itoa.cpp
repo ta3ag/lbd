@@ -39,10 +39,12 @@ void itoa(char* s, int i)
     return;
   }
   else {			/* i < 0 */
+    unsigned int ui;
+    ui = (unsigned int)i; // cannot use i = -i since i can be 0x80000000
     do {
-      *--p = '0' - (i % 10);
-      i /= 10;
-    } while (i != 0);
+      *--p = '0' + (ui % 10); // bug in original itoa.c
+      ui /= 10;
+    } while (ui != 0);
     *--p = '-';
     for (q = s; *p != '\0'; p++, q++)
       *q = *p;

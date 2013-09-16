@@ -21,13 +21,14 @@
 module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick, 
             output reg [31:0] ir, pc, mar, mdr, inout [31:0] dbus, 
             output reg m_en, m_rw, output reg [1:0] m_size);
-  reg signed [31:0] R [0:15], HI, LO, SW; 
+  reg signed [31:0] R [0:15], SW; 
   // HI, LO: High and Low part of 64 bit result
   // SW: Status Word
   reg [7:0] op;
   reg [3:0] a, b, c;
   reg [4:0] c5;
   reg signed [31:0] c12, c16, uc16, c24, Ra, Rb, Rc, pc0; // pc0 : instruction pc
+  reg [31:0] URa, URb, URc, HI, LO;
 
   // register name
   `define PC   R[15]   // Program Counter
@@ -179,7 +180,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       SUB:   begin regSet(a, Rb-Rc); if (Rb < 0 && Rc > 0 && a >= 0) 
              `V = 1; else `V =0; end         // SUB Ra,Rb,Rc; Ra<=Rb-Rc
       MUL:   regSet(a, Rb*Rc);               // MUL Ra,Rb,Rc;     Ra<=Rb*Rc
-      DIVu:  regHILOSet(Ra%Rb, Ra/Rb);       // DIVu Ra,Rb; HI<=Ra%Rb; LO<=Ra/Rb
+      DIVu:  regHILOSet(URa%URb, URa/URb);   // DIVu URa,URb; HI<=URa%URb; LO<=URa/URb
                                              // without exception overflow
       DIV:   begin regHILOSet(Ra%Rb, Ra/Rb); 
              if ((Ra < 0 && Rb < 0) || (Ra == 0)) `V = 1; 
@@ -213,16 +214,16 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       // Branch Instructions
       BEQ:   if (Ra==Rb) `PC=`PC+c16; 
       BNE:   if (Ra!=Rb) `PC=`PC+c16;
-      MFLO:  regSet(a, LO);            // MFLO Ra; Ra<=LO
-      MFHI:  regSet(a, HI);            // MFHI Ra; Ra<=HI
-      MTLO:  LO = Ra;             // MTLO Ra; LO<=Ra
-      MTHI:  HI = Ra;             // MTHI Ra; HI<=Ra
-      MULT:  {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
-                            // LO<=((Ra*Rb) and 0x00000000ffffffff);
-                            // with exception overflow
-      MULTu: {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
-                            // LO<=((Ra*Rb) and 0x00000000ffffffff);
-                            // without exception overflow
+      MFLO:  regSet(a, LO);         // MFLO Ra; Ra<=LO
+      MFHI:  regSet(a, HI);         // MFHI Ra; Ra<=HI
+      MTLO:  LO = Ra;               // MTLO Ra; LO<=Ra
+      MTHI:  HI = Ra;               // MTHI Ra; HI<=Ra
+      MULT:  {HI, LO}=Ra*Rb;        // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
+                                    // LO<=((Ra*Rb) and 0x00000000ffffffff);
+                                    // with exception overflow
+      MULTu: {HI, LO}=URa*URb;      // MULT URa,URb; HI<=((URa*URb)>>32); 
+                                    // LO<=((URa*URb) and 0x00000000ffffffff);
+                                    // without exception overflow
       // Jump Instructions
       JMP:   `PC = `PC+c24;                  // JMP Cx; PC <= PC+Cx
       SWI:   begin 

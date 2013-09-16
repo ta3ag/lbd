@@ -22,6 +22,8 @@ int main()
   print_integer(a);
   a += test_control();	// a = (128+18) = 146
   print_integer(a);
+  print_integer(2147483647); // test mult from itoa.cpp
+  print_integer(-2147483648); // test multu from itoa.cpp
 
   return a;
 }
@@ -32,7 +34,8 @@ void print1_integer(int x)
 {
   asm("ld $at, 8($sp)");
   asm("st $at, 28672($0)");
- return;
+
+  return;
 }
 
 #if 0
