@@ -1,6 +1,6 @@
 diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
---- Chapter4_1/Cpu0InstrInfo.td	2013-09-16 14:39:37.845545807 +0800
-+++ Chapter4_2/Cpu0InstrInfo.td	2013-09-16 14:47:18.333545752 +0800
+--- Chapter4_1/Cpu0InstrInfo.td	2013-09-16 14:48:42.909545742 +0800
++++ Chapter4_2/Cpu0InstrInfo.td	2013-09-16 14:48:42.905545742 +0800
 @@ -138,6 +138,16 @@
    let isReMaterializable = 1;
  }
@@ -113,7 +113,7 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +defm : SetgePats<CPURegs>;
 diff -Naur Chapter4_1/Cpu0InstrInfo.td~ Chapter4_2/Cpu0InstrInfo.td~
 --- Chapter4_1/Cpu0InstrInfo.td~	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter4_2/Cpu0InstrInfo.td~	2013-09-16 14:39:37.841545807 +0800
++++ Chapter4_2/Cpu0InstrInfo.td~	2013-09-16 14:48:42.905545742 +0800
 @@ -0,0 +1,437 @@
 +//===- Cpu0InstrInfo.td - Target Description for Cpu0 Target -*- tablegen -*-=//
 +//
@@ -553,8 +553,8 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td~ Chapter4_2/Cpu0InstrInfo.td~
 +defm : SetgtPats<CPURegs>;
 +defm : SetgePats<CPURegs>;
 diff -Naur Chapter4_1/Cpu0RegisterInfo.td Chapter4_2/Cpu0RegisterInfo.td
---- Chapter4_1/Cpu0RegisterInfo.td	2013-09-16 14:39:37.845545807 +0800
-+++ Chapter4_2/Cpu0RegisterInfo.td	2013-09-16 14:39:37.841545807 +0800
+--- Chapter4_1/Cpu0RegisterInfo.td	2013-09-16 14:48:42.909545742 +0800
++++ Chapter4_2/Cpu0RegisterInfo.td	2013-09-16 14:48:42.905545742 +0800
 @@ -75,3 +75,6 @@
  
  // Hi/Lo Registers
