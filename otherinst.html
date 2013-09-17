@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.1',
+        VERSION:     '3.3.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -311,24 +311,24 @@ sra, ... are for 1 virtual registers and 1 constant input operands.</p>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">e</span><span class="p">,</span> <span class="n">f</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="n">e1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">f1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a1</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">i</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">f1</span><span class="p">,</span> <span class="n">g1</span><span class="p">,</span> <span class="n">h1</span><span class="p">,</span> <span class="n">i1</span><span class="p">;</span>
 
-  <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">d</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">d</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">e</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="n">e1</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="n">f</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="n">f1</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="n">e</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">a</span><span class="p">);</span>
-  <span class="n">e1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">a1</span><span class="p">);</span>
-  <span class="n">f</span> <span class="o">=</span> <span class="p">(</span><span class="mh">0x80000000</span> <span class="o">&gt;&gt;</span> <span class="n">a</span><span class="p">);</span>
-  <span class="n">f1</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span> <span class="o">&gt;&gt;</span> <span class="n">a</span><span class="p">);</span>
+  <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>      <span class="c1">// c = 7</span>
+  <span class="n">d</span> <span class="o">=</span> <span class="n">a</span> <span class="o">-</span> <span class="n">b</span><span class="p">;</span>      <span class="c1">// d = 3</span>
+  <span class="n">e</span> <span class="o">=</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">;</span>      <span class="c1">// e = 10</span>
+  <span class="n">f</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;&lt;</span> <span class="mi">2</span><span class="p">);</span>   <span class="c1">// f = 20</span>
+  <span class="n">f1</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span><span class="p">);</span> <span class="c1">// f1 = 0xfffffff6 = -10</span>
+  <span class="n">g</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;&gt;</span> <span class="mi">2</span><span class="p">);</span>   <span class="c1">// g = 1</span>
+  <span class="n">g1</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span> <span class="o">&gt;&gt;</span> <span class="mi">30</span><span class="p">);</span> <span class="c1">// g1 = 0x03 = 3</span>
+  <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">a</span><span class="p">);</span>   <span class="c1">// h = 0x20 = 32</span>
+  <span class="n">h1</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">b</span><span class="p">);</span>  <span class="c1">// h1 = 0x04</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="mh">0x80</span> <span class="o">&gt;&gt;</span> <span class="n">a</span><span class="p">);</span> <span class="c1">// i = 0x04</span>
+  <span class="n">i1</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span> <span class="o">&gt;&gt;</span> <span class="n">a</span><span class="p">);</span>  <span class="c1">// i1 = 0x0</span>
 
-  <span class="k">return</span> <span class="n">c</span><span class="p">;</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">d</span><span class="o">+</span><span class="n">e</span><span class="o">+</span><span class="n">f</span><span class="o">+</span><span class="kt">int</span><span class="p">(</span><span class="n">f1</span><span class="p">)</span><span class="o">+</span><span class="n">g</span><span class="o">+</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">g1</span><span class="o">+</span><span class="n">h</span><span class="o">+</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">h1</span><span class="o">+</span><span class="n">i</span><span class="o">+</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">i1</span><span class="p">);</span>
+<span class="c1">// 7+3+10+20-10+1+3+32+4+4+0 = 74</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -340,21 +340,21 @@ define i32 @_Z9test_mathv<span class="o">()</span> <span class="c">#0 {</span>
 entry:
   %a <span class="o">=</span> alloca i32, align 4
   %b <span class="o">=</span> alloca i32, align 4
+  %a1 <span class="o">=</span> alloca i32, align 4
   %c <span class="o">=</span> alloca i32, align 4
   %d <span class="o">=</span> alloca i32, align 4
   %e <span class="o">=</span> alloca i32, align 4
   %f <span class="o">=</span> alloca i32, align 4
-  %a1 <span class="o">=</span> alloca i32, align 4
-  %e1 <span class="o">=</span> alloca i32, align 4
+  %g <span class="o">=</span> alloca i32, align 4
+  %h <span class="o">=</span> alloca i32, align 4
+  %i <span class="o">=</span> alloca i32, align 4
   %f1 <span class="o">=</span> alloca i32, align 4
+  %g1 <span class="o">=</span> alloca i32, align 4
+  %h1 <span class="o">=</span> alloca i32, align 4
+  %i1 <span class="o">=</span> alloca i32, align 4
   store i32 5, i32* %a, align 4
   store i32 2, i32* %b, align 4
-  store i32 0, i32* %c, align 4
-  store i32 0, i32* %d, align 4
-  store i32 0, i32* %f, align 4
   store i32 -5, i32* %a1, align 4
-  store i32 0, i32* %e1, align 4
-  store i32 0, i32* %f1, align 4
   %0 <span class="o">=</span> load i32* %a, align 4
   %1 <span class="o">=</span> load i32* %b, align 4
   %add <span class="o">=</span> add nsw i32 %0, %1
@@ -366,34 +366,54 @@ entry:
   %4 <span class="o">=</span> load i32* %a, align 4
   %5 <span class="o">=</span> load i32* %b, align 4
   %mul <span class="o">=</span> mul nsw i32 %4, %5
-  store i32 %mul, i32* %d, align 4
+  store i32 %mul, i32* %e, align 4
   %6 <span class="o">=</span> load i32* %a, align 4
   %shl <span class="o">=</span> shl i32 %6, 2
-  store i32 %shl, i32* %e, align 4
+  store i32 %shl, i32* %f, align 4
   %7 <span class="o">=</span> load i32* %a1, align 4
-  %shl1 <span class="o">=</span> shl i32 %7, 2
-  store i32 %shl1, i32* %e1, align 4
+  %shl1 <span class="o">=</span> shl i32 %7, 1
+  store i32 %shl1, i32* %f1, align 4
   %8 <span class="o">=</span> load i32* %a, align 4
   %shr <span class="o">=</span> ashr i32 %8, 2
-  store i32 %shr, i32* %f, align 4
+  store i32 %shr, i32* %g, align 4
   %9 <span class="o">=</span> load i32* %a1, align 4
-  %shr2 <span class="o">=</span> lshr i32 %9, 2
-  store i32 %shr2, i32* %f1, align 4
+  %shr2 <span class="o">=</span> lshr i32 %9, 30
+  store i32 %shr2, i32* %g1, align 4
   %10 <span class="o">=</span> load i32* %a, align 4
   %shl3 <span class="o">=</span> shl i32 1, %10
-  store i32 %shl3, i32* %e, align 4
-  %11 <span class="o">=</span> load i32* %a1, align 4
+  store i32 %shl3, i32* %h, align 4
+  %11 <span class="o">=</span> load i32* %b, align 4
   %shl4 <span class="o">=</span> shl i32 1, %11
-  store i32 %shl4, i32* %e1, align 4
+  store i32 %shl4, i32* %h1, align 4
   %12 <span class="o">=</span> load i32* %a, align 4
-  %shr5 <span class="o">=</span> lshr i32 -2147483648, %12
-  store i32 %shr5, i32* %f, align 4
+  %shr5 <span class="o">=</span> ashr i32 128, %12
+  store i32 %shr5, i32* %i, align 4
   %13 <span class="o">=</span> load i32* %b, align 4
   %14 <span class="o">=</span> load i32* %a, align 4
   %shr6 <span class="o">=</span> ashr i32 %13, %14
-  store i32 %shr6, i32* %f1, align 4
+  store i32 %shr6, i32* %i1, align 4
   %15 <span class="o">=</span> load i32* %c, align 4
-  ret i32 %15
+  %16 <span class="o">=</span> load i32* %d, align 4
+  %add7 <span class="o">=</span> add nsw i32 %15, %16
+  %17 <span class="o">=</span> load i32* %e, align 4
+  %add8 <span class="o">=</span> add nsw i32 %add7, %17
+  %18 <span class="o">=</span> load i32* %f, align 4
+  %add9 <span class="o">=</span> add nsw i32 %add8, %18
+  %19 <span class="o">=</span> load i32* %f1, align 4
+  %add10 <span class="o">=</span> add nsw i32 %add9, %19
+  %20 <span class="o">=</span> load i32* %g, align 4
+  %add11 <span class="o">=</span> add nsw i32 %add10, %20
+  %21 <span class="o">=</span> load i32* %g1, align 4
+  %add12 <span class="o">=</span> add nsw i32 %add11, %21
+  %22 <span class="o">=</span> load i32* %h, align 4
+  %add13 <span class="o">=</span> add nsw i32 %add12, %22
+  %23 <span class="o">=</span> load i32* %h1, align 4
+  %add14 <span class="o">=</span> add nsw i32 %add13, %23
+  %24 <span class="o">=</span> load i32* %i, align 4
+  %add15 <span class="o">=</span> add nsw i32 %add14, %24
+  %25 <span class="o">=</span> load i32* %i1, align 4
+  %add16 <span class="o">=</span> add nsw i32 %add15, %25
+  ret i32 %add16
 <span class="o">}</span>
 
 118-165-78-12:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
@@ -408,72 +428,94 @@ bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o
         .ent  _Z9test_mathv           <span class="c"># @_Z9test_mathv</span>
 _Z9test_mathv:
         .cfi_startproc
-        .frame        <span class="nv">$fp</span>,40,<span class="nv">$lr</span>
-        .mask         0x00000000,0
+        .frame        <span class="nv">$fp</span>,64,<span class="nv">$lr</span>
+        .mask         0x00000800,-4
         .set  noreorder
         .set  nomacro
 <span class="c"># BB#0:                                 # %entry</span>
-        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -40
-<span class="nv">$tmp1</span>:
-        .cfi_def_cfa_offset 40
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -64
+<span class="nv">$tmp3</span>:
+        .cfi_def_cfa_offset 64
+        st    <span class="nv">$fp</span>, 60<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+<span class="nv">$tmp4</span>:
+        .cfi_offset 11, -4
+        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
+<span class="nv">$tmp5</span>:
+        .cfi_def_cfa_register 11
         addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
-        st    <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$2</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
-        st    <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-        st    <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        st    <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, -5
-        st    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, -5
+        st    <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        st    <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         subu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         mul   <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         shl   <span class="nv">$2</span>, <span class="nv">$2</span>, 2
-        st    <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        shl   <span class="nv">$2</span>, <span class="nv">$2</span>, 2
-        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        sra   <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+        st    <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        shl   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
         st    <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        shr   <span class="nv">$2</span>, <span class="nv">$2</span>, 2
-        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        sra   <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+        st    <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        shr   <span class="nv">$2</span>, <span class="nv">$2</span>, 30
+        st    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
-        ld    <span class="nv">$3</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         shlv  <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-        st    <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         shlv  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
         st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        lui   <span class="nv">$2</span>, 32768
-        ld    <span class="nv">$3</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 128
+        ld    <span class="nv">$3</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         shrv  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-        st    <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         srav  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
         st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 40
+        ld    <span class="nv">$3</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$4</span>, 44<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+        ld    <span class="nv">$4</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        ld    <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        ld    <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        ld    <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        ld    <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        ld    <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        ld    <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        ld    <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
+        ld    <span class="nv">$fp</span>, 60<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 64
         ret   <span class="nv">$lr</span>
         .set  macro
         .set  reorder
         .end  _Z9test_mathv
-<span class="nv">$tmp2</span>:
-        .size _Z9test_mathv, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-_Z9test_mathv
+<span class="nv">$tmp6</span>:
+        .size _Z9test_mathv, <span class="o">(</span><span class="nv">$tmp6</span><span class="o">)</span>-_Z9test_mathv
         .cfi_endproc
 </pre></div>
 </div>
@@ -565,11 +607,7 @@ corresponding llvm IR, as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch4_2.bc&#39;</span>
- target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-</span>
-<span class="s2"> f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128&quot;</span>
-target <span class="nv">triple</span> <span class="o">=</span> <span class="s2">&quot;i386-apple-macosx10.8.0&quot;</span>
-
+<div class="highlight-bash"><div class="highlight"><pre>...
 define i32 @main<span class="o">()</span> nounwind ssp <span class="o">{</span>
 entry:
 %retval <span class="o">=</span> alloca i32, align 4
@@ -1127,7 +1165,7 @@ def MTLO    : MoveToLOHI&lt;0x49, "mtlo", CPURegs, [LO]&gt;;</pre>
 </pre></div>
 </div>
 <p>IR instruction <strong>sdiv</strong> stand for signed div while <strong>udiv</strong> is for unsigned div.</p>
-<p>Run with ch4_2_2.cpp can get the &#8220;div&#8221; result for operator <strong>“/”</strong> but it cannot
+<p>Run with ch4_2_2.cpp can get the &#8220;div&#8221; result for operator <strong>“%”</strong> but it cannot
 be compiled at this point. It need the function call argument support in Chapter
 8 of Function call.
 If run with ch4_2_1.cpp as below, cannot get the <strong>“div”</strong> for operator
@@ -1502,6 +1540,7 @@ For sdivrem, <strong>sdiv</strong> make &#8220;N-&gt;hasAnyUseOfValue(0)&#8221; 
 match defined in Chapter4_1/Cpu0InstrInfo.td will translate <strong>Cpu0ISD::DivRem</strong>
 to <strong>div</strong>; and <strong>&#8220;CopyFromReg 0x7fd25b410e18, Register %H, 0x7fd25b830910&#8221;</strong>
 to <strong>mfhi</strong>.</p>
+<p>The ch4_3.cpp is for <strong>/</strong> div operator test.</p>
 </div>
 </div>
 <div class="section" id="local-variable-pointer">
@@ -1542,7 +1581,7 @@ def LEA_ADDiu : EffectiveAddress&lt;"addiu\t$ra, $addr", CPURegs, mem_ea&gt; {
 <p>Run ch4_4.cpp with code Chapter4_1/ which support pointer to local variable,
 will get result as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">test_local_pointer</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
   
@@ -1555,40 +1594,47 @@ will get result as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_4.cpp -emit-llvm -o ch4_4.bc
 118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
 debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch4_4.bc -o ch4_4.cpu0.s
-118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>cat ch4_4.cpu0.s
-  .section .mdebug.abi32
-  .previous
-  .file <span class="s2">&quot;ch4_2.bc&quot;</span>
-  .text
-  .globl  main
-  .align  2
-  .type main,@function
-  .ent  main            <span class="c"># @main</span>
-main:
-  .cfi_startproc
-  .frame  <span class="nv">$sp</span>,16,<span class="nv">$lr</span>
-  .mask 0x00000000,0
-  .set  noreorder
-  .set  nomacro
-<span class="c"># BB#0:</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
-<span class="nv">$tmp1</span>:
-  .cfi_def_cfa_offset 16
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
-  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$sp</span>, 8
-  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
-  ret <span class="nv">$lr</span>
-  .set  macro
-  .set  reorder
-  .end  main
-<span class="nv">$tmp2</span>:
-  .size main, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-main
-  .cfi_endproc
+  ch4_4.bc -o ch4_4.cpu0.s
+  118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>cat ch4_4.cpu0.s
+        .section .mdebug.abi32
+        .previous
+        .file <span class="s2">&quot;ch4_4.bc&quot;</span>
+        .text
+        .globl        _Z18test_local_pointerv
+        .align        2
+        .type _Z18test_local_pointerv,@function
+        .ent  _Z18test_local_pointerv <span class="c"># @_Z18test_local_pointerv</span>
+_Z18test_local_pointerv:
+        .cfi_startproc
+        .frame        <span class="nv">$fp</span>,16,<span class="nv">$lr</span>
+        .mask         0x00000800,-4
+        .set  noreorder
+        .set  nomacro
+<span class="c"># BB#0:                                 # %entry</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+<span class="nv">$tmp3</span>:
+        .cfi_def_cfa_offset 16
+        st    <span class="nv">$fp</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+<span class="nv">$tmp4</span>:
+        .cfi_offset 11, -4
+        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
+<span class="nv">$tmp5</span>:
+        .cfi_def_cfa_register 11
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
+        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$fp</span>, 8
+        st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
+        ld    <span class="nv">$fp</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
+        ret   <span class="nv">$lr</span>
+        .set  macro
+        .set  reorder
+        .end  _Z18test_local_pointerv
+<span class="nv">$tmp6</span>:
+        .size _Z18test_local_pointerv, <span class="o">(</span><span class="nv">$tmp6</span><span class="o">)</span>-_Z18test_local_pointerv
+        .cfi_endproc
 </pre></div>
 </div>
 </div>
@@ -1631,11 +1677,11 @@ def : Pat&lt;(not CPURegs:$in),
 // Get the least 7bits from register $in and signed bit (the 31th bit) from the
 // 8th bit of register $in.
 def : Pat&lt;(sext_inreg CPURegs:$in, i8),
-          (OR (ANDi CPURegs:$in, 0x0080), (ANDi CPURegs:$in, 0x007f))&gt;;
+          (OR (SHL (ANDi CPURegs:$in, 0x0080), 16), (ANDi CPURegs:$in, 0x007f))&gt;;
 // Get the least 15bits from register $in and signed bit (the 31th bit) from the
 // 16th bit of register $in.
 def : Pat&lt;(sext_inreg CPURegs:$in, i8),
-          (OR (ANDi CPURegs:$in, 0x8000), (ANDi CPURegs:$in, 0x7fff))&gt;;
+          (OR (SHL (ANDi CPURegs:$in, 0x8000), 16), (ANDi CPURegs:$in, 0x7fff))&gt;;
 
 // setcc patterns
 multiclass SeteqPats&lt;RegisterClass RC&gt; {
@@ -1698,34 +1744,35 @@ defm : SetgePats&lt;CPURegs&gt;;</pre>
   <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
-  <span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&amp;</span> <span class="n">b</span><span class="p">);</span>
-  <span class="n">d</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">|</span> <span class="n">b</span><span class="p">);</span>
-  <span class="n">e</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">^</span> <span class="n">b</span><span class="p">);</span>
-  <span class="n">b</span> <span class="o">=</span> <span class="o">!</span><span class="n">a</span><span class="p">;</span>
+  <span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&amp;</span> <span class="n">b</span><span class="p">);</span>  <span class="c1">// c = 1</span>
+  <span class="n">d</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">|</span> <span class="n">b</span><span class="p">);</span>  <span class="c1">// d = 7</span>
+  <span class="n">e</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">^</span> <span class="n">b</span><span class="p">);</span>  <span class="c1">// e = 6</span>
+  <span class="n">b</span> <span class="o">=</span> <span class="o">!</span><span class="n">a</span><span class="p">;</span>       <span class="c1">// b = 0</span>
   
-  <span class="k">return</span> <span class="n">b</span><span class="p">;</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">d</span><span class="o">+</span><span class="n">e</span><span class="o">+</span><span class="n">b</span><span class="p">);</span> <span class="c1">// 14</span>
 <span class="p">}</span>
 
 <span class="kt">int</span> <span class="n">test_setxx</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">;</span>
   
-  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="p">);</span> <span class="c1">// seq</span>
-  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="n">b</span><span class="p">);</span> <span class="c1">// sne</span>
-  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">);</span>  <span class="c1">// slt</span>
-  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;=</span> <span class="n">b</span><span class="p">);</span> <span class="c1">// sle</span>
-  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;</span> <span class="n">b</span><span class="p">);</span>  <span class="c1">// sgt</span>
-  <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;=</span> <span class="n">b</span><span class="p">);</span> <span class="c1">// sge</span>
+  <span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="p">);</span> <span class="c1">// seq, c = 0</span>
+  <span class="n">d</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="n">b</span><span class="p">);</span> <span class="c1">// sne, d = 1</span>
+  <span class="n">e</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">);</span>  <span class="c1">// slt, e = 0</span>
+  <span class="n">f</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;=</span> <span class="n">b</span><span class="p">);</span> <span class="c1">// sle, f = 0</span>
+  <span class="n">g</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;</span> <span class="n">b</span><span class="p">);</span>  <span class="c1">// sgt, g = 1</span>
+  <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;=</span> <span class="n">b</span><span class="p">);</span> <span class="c1">// sge, g = 1</span>
   
-  <span class="k">return</span> <span class="n">b</span><span class="p">;</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">c</span><span class="o">+</span><span class="n">d</span><span class="o">+</span><span class="n">e</span><span class="o">+</span><span class="n">f</span><span class="o">+</span><span class="n">g</span><span class="o">+</span><span class="n">h</span><span class="p">);</span> <span class="c1">// 3</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>114-43-204-152:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_5.cpp -emit-llvm -o ch4_5.bc
 114-43-204-152:InputFiles Jonathan<span class="nv">$ </span>llvm-dis ch4_5.bc -o -
 ...
-; Function Attrs: nounwind ssp uwtable
+; Function Attrs: nounwind uwtable
 define i32 @_Z16test_andorxornotv<span class="o">()</span> <span class="c">#0 {</span>
 entry:
   %a <span class="o">=</span> alloca i32, align 4
@@ -1755,176 +1802,219 @@ entry:
   %lnot <span class="o">=</span> xor i1 %tobool, <span class="nb">true</span>
   %conv <span class="o">=</span> zext i1 %lnot to i32
   store i32 %conv, i32* %b, align 4
-  %7 <span class="o">=</span> load i32* %b, align 4
-  ret i32 %7
+  %7 <span class="o">=</span> load i32* %c, align 4
+  %8 <span class="o">=</span> load i32* %d, align 4
+  %add <span class="o">=</span> add nsw i32 %7, %8
+  %9 <span class="o">=</span> load i32* %e, align 4
+  %add1 <span class="o">=</span> add nsw i32 %add, %9
+  %10 <span class="o">=</span> load i32* %b, align 4
+  %add2 <span class="o">=</span> add nsw i32 %add1, %10
+  ret i32 %add2
 <span class="o">}</span>
 
-; Function Attrs: nounwind ssp uwtable
+; Function Attrs: nounwind uwtable
 define i32 @_Z10test_setxxv<span class="o">()</span> <span class="c">#0 {</span>
 entry:
   %a <span class="o">=</span> alloca i32, align 4
   %b <span class="o">=</span> alloca i32, align 4
+  %c <span class="o">=</span> alloca i32, align 4
+  %d <span class="o">=</span> alloca i32, align 4
+  %e <span class="o">=</span> alloca i32, align 4
+  %f <span class="o">=</span> alloca i32, align 4
+  %g <span class="o">=</span> alloca i32, align 4
+  %h <span class="o">=</span> alloca i32, align 4
   store i32 5, i32* %a, align 4
   store i32 3, i32* %b, align 4
   %0 <span class="o">=</span> load i32* %a, align 4
   %1 <span class="o">=</span> load i32* %b, align 4
   %cmp <span class="o">=</span> icmp eq i32 %0, %1
   %conv <span class="o">=</span> zext i1 %cmp to i32
-  store i32 %conv, i32* %b, align 4
+  store i32 %conv, i32* %c, align 4
   %2 <span class="o">=</span> load i32* %a, align 4
   %3 <span class="o">=</span> load i32* %b, align 4
   %cmp1 <span class="o">=</span> icmp ne i32 %2, %3
   %conv2 <span class="o">=</span> zext i1 %cmp1 to i32
-  store i32 %conv2, i32* %b, align 4
+  store i32 %conv2, i32* %d, align 4
   %4 <span class="o">=</span> load i32* %a, align 4
   %5 <span class="o">=</span> load i32* %b, align 4
   %cmp3 <span class="o">=</span> icmp slt i32 %4, %5
   %conv4 <span class="o">=</span> zext i1 %cmp3 to i32
-  store i32 %conv4, i32* %b, align 4
+  store i32 %conv4, i32* %e, align 4
   %6 <span class="o">=</span> load i32* %a, align 4
   %7 <span class="o">=</span> load i32* %b, align 4
   %cmp5 <span class="o">=</span> icmp sle i32 %6, %7
   %conv6 <span class="o">=</span> zext i1 %cmp5 to i32
-  store i32 %conv6, i32* %b, align 4
+  store i32 %conv6, i32* %f, align 4
   %8 <span class="o">=</span> load i32* %a, align 4
   %9 <span class="o">=</span> load i32* %b, align 4
   %cmp7 <span class="o">=</span> icmp sgt i32 %8, %9
   %conv8 <span class="o">=</span> zext i1 %cmp7 to i32
-  store i32 %conv8, i32* %b, align 4
+  store i32 %conv8, i32* %g, align 4
   %10 <span class="o">=</span> load i32* %a, align 4
   %11 <span class="o">=</span> load i32* %b, align 4
   %cmp9 <span class="o">=</span> icmp sge i32 %10, %11
   %conv10 <span class="o">=</span> zext i1 %cmp9 to i32
-  store i32 %conv10, i32* %b, align 4
-  %12 <span class="o">=</span> load i32* %b, align 4
-  ret i32 %12
+  store i32 %conv10, i32* %h, align 4
+  %12 <span class="o">=</span> load i32* %c, align 4
+  %13 <span class="o">=</span> load i32* %d, align 4
+  %add <span class="o">=</span> add nsw i32 %12, %13
+  %14 <span class="o">=</span> load i32* %e, align 4
+  %add11 <span class="o">=</span> add nsw i32 %add, %14
+  %15 <span class="o">=</span> load i32* %f, align 4
+  %add12 <span class="o">=</span> add nsw i32 %add11, %15
+  %16 <span class="o">=</span> load i32* %g, align 4
+  %add13 <span class="o">=</span> add nsw i32 %add12, %16
+  %17 <span class="o">=</span> load i32* %h, align 4
+  %add14 <span class="o">=</span> add nsw i32 %add13, %17
+  ret i32 %add14
 <span class="o">}</span>
 
 114-43-204-152:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch4_5.bc -o -
-  .section .mdebug.abi32
-  .previous
-  .file <span class="s2">&quot;ch4_5.bc&quot;</span>
-  .text
-  .globl  _Z16test_andorxornotv
-  .align  2
-  .type _Z16test_andorxornotv,@function
-  .ent  _Z16test_andorxornotv   <span class="c"># @_Z16test_andorxornotv</span>
+        .section .mdebug.abi32
+        .previous
+        .file <span class="s2">&quot;ch4_5.bc&quot;</span>
+        .text
+        .globl        _Z16test_andorxornotv
+        .align        2
+        .type _Z16test_andorxornotv,@function
+        .ent  _Z16test_andorxornotv   <span class="c"># @_Z16test_andorxornotv</span>
 _Z16test_andorxornotv:
-  .cfi_startproc
-  .frame  <span class="nv">$fp</span>,24,<span class="nv">$lr</span>
-  .mask   0x00000800,-4
-  .set  noreorder
-  .set  nomacro
+        .cfi_startproc
+        .frame        <span class="nv">$fp</span>,24,<span class="nv">$lr</span>
+        .mask         0x00000800,-4
+        .set  noreorder
+        .set  nomacro
 <span class="c"># BB#0:                                 # %entry</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
 <span class="nv">$tmp3</span>:
-  .cfi_def_cfa_offset 24
-  st  <span class="nv">$fp</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+        .cfi_def_cfa_offset 24
+        st    <span class="nv">$fp</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
 <span class="nv">$tmp4</span>:
-  .cfi_offset 11, -4
-  addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
+        .cfi_offset 11, -4
+        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
 <span class="nv">$tmp5</span>:
-  .cfi_def_cfa_register 11
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
-  st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
-  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  and <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-  st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  or  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-  st  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  xor <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-  st  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-  andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 2
-  shr <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
-  ld  <span class="nv">$fp</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 24
-  ret <span class="nv">$lr</span>
-  .set  macro
-  .set  reorder
-  .end  _Z16test_andorxornotv
+        .cfi_def_cfa_register 11
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
+        st    <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
+        st    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        and   <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+        st    <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        or    <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+        st    <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        xor   <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+        st    <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 2
+        shr   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+        st    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+        ld    <span class="nv">$4</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
+        ld    <span class="nv">$fp</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 24
+        ret   <span class="nv">$lr</span>
+        .set  macro
+        .set  reorder
+        .end  _Z16test_andorxornotv
 <span class="nv">$tmp6</span>:
-  .size _Z16test_andorxornotv, <span class="o">(</span><span class="nv">$tmp6</span><span class="o">)</span>-_Z16test_andorxornotv
-  .cfi_endproc
+        .size _Z16test_andorxornotv, <span class="o">(</span><span class="nv">$tmp6</span><span class="o">)</span>-_Z16test_andorxornotv
+        .cfi_endproc
 
-  .globl  _Z10test_setxxv
-  .align  2
-  .type _Z10test_setxxv,@function
-  .ent  _Z10test_setxxv         <span class="c"># @_Z10test_setxxv</span>
+        .globl        _Z10test_setxxv
+        .align        2
+        .type _Z10test_setxxv,@function
+        .ent  _Z10test_setxxv         <span class="c"># @_Z10test_setxxv</span>
 _Z10test_setxxv:
-  .cfi_startproc
-  .frame  <span class="nv">$fp</span>,16,<span class="nv">$lr</span>
-  .mask   0x00000800,-4
-  .set  noreorder
-  .set  nomacro
+        .cfi_startproc
+        .frame        <span class="nv">$fp</span>,40,<span class="nv">$lr</span>
+        .mask         0x00000800,-4
+        .set  noreorder
+        .set  nomacro
 <span class="c"># BB#0:                                 # %entry</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -40
 <span class="nv">$tmp10</span>:
-  .cfi_def_cfa_offset 16
-  st  <span class="nv">$fp</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+        .cfi_def_cfa_offset 40
+        st    <span class="nv">$fp</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
 <span class="nv">$tmp11</span>:
-  .cfi_offset 11, -4
-  addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
+        .cfi_offset 11, -4
+        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
 <span class="nv">$tmp12</span>:
-  .cfi_def_cfa_register 11
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
-  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-  andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 2
-  shr <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-  andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 2
-  shr <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-  xori  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-  andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  cmp <span class="nv">$sw</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-  andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
-  xori  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  cmp <span class="nv">$sw</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-  andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-  andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
-  xori  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
-  ld  <span class="nv">$fp</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
-  ret <span class="nv">$lr</span>
-  .set  macro
-  .set  reorder
-  .end  _Z10test_setxxv
+        .cfi_def_cfa_register 11
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
+        st    <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
+        st    <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 2
+        shr   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 2
+        shr   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+        xori  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+        st    <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
+        st    <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
+        xori  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+        st    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
+        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
+        xori  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+        ld    <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        ld    <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        ld    <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
+        ld    <span class="nv">$fp</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 40
+        ret   <span class="nv">$lr</span>
+        .set  macro
+        .set  reorder
+        .end  _Z10test_setxxv
 <span class="nv">$tmp13</span>:
-  .size _Z10test_setxxv, <span class="o">(</span><span class="nv">$tmp13</span><span class="o">)</span>-_Z10test_setxxv
-  .cfi_endproc
+        .size _Z10test_setxxv, <span class="o">(</span><span class="nv">$tmp13</span><span class="o">)</span>-_Z10test_setxxv
+        .cfi_endproc
 </pre></div>
 </div>
 <table border="1" class="docutils">

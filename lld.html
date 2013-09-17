@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.1',
+        VERSION:     '3.3.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -1572,29 +1572,10 @@ LLVMBackendTutorialExampleCode/llvm-objdump/* .
 <h2>ELF to Hex<a class="headerlink" href="#elf-to-hex" title="Permalink to this headline">¶</a></h2>
 <p>Update llvm-objdump driver to support ELF to Hex for Cpu0 backend as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/llvm-objdump/llvm-objdump.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// llvm-objdump -elf2hex code added begin:</span>
+<span class="k">static</span> <span class="n">cl</span><span class="o">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span>
 <span class="n">ConvertElf2Hex</span><span class="p">(</span><span class="s">&quot;elf2hex&quot;</span><span class="p">,</span> <span class="n">cl</span><span class="o">::</span><span class="n">desc</span><span class="p">(</span><span class="s">&quot;Display the hex content of verilog cpu0 needed sections&quot;</span><span class="p">));</span>
 
-<span class="k">static</span> <span class="n">cl</span><span class="o">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span>
-<span class="p">...</span>
-<span class="k">static</span> <span class="kt">void</span> <span class="n">PrintSectionContents</span><span class="p">(</span><span class="k">const</span> <span class="n">ObjectFile</span> <span class="o">*</span><span class="n">o</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">error_code</span> <span class="n">ec</span><span class="p">;</span>
-  <span class="k">for</span> <span class="p">(</span><span class="n">section_iterator</span> <span class="n">si</span> <span class="o">=</span> <span class="n">o</span><span class="o">-&gt;</span><span class="n">begin_sections</span><span class="p">(),</span>
-                        <span class="n">se</span> <span class="o">=</span> <span class="n">o</span><span class="o">-&gt;</span><span class="n">end_sections</span><span class="p">();</span>
-                        <span class="n">si</span> <span class="o">!=</span> <span class="n">se</span><span class="p">;</span> <span class="n">si</span><span class="p">.</span><span class="n">increment</span><span class="p">(</span><span class="n">ec</span><span class="p">))</span> <span class="p">{</span>
-    <span class="p">...</span>
-    <span class="c1">// Dump out the content as hex and printable ascii characters.</span>
-    <span class="k">for</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">size_t</span> <span class="n">addr</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">Contents</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="n">addr</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">;</span> <span class="n">addr</span> <span class="o">+=</span> <span class="mi">16</span><span class="p">)</span> <span class="p">{</span>
-      <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;/*&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">format</span><span class="p">(</span><span class="s">&quot; %04&quot;</span> <span class="n">PRIx64</span> <span class="s">&quot; &quot;</span><span class="p">,</span> <span class="n">BaseAddr</span> <span class="o">+</span> <span class="n">addr</span><span class="p">);</span>
-      <span class="p">...</span>
-      <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;*/&quot;</span><span class="p">;</span>
-      <span class="c1">// Print ascii.</span>
-      <span class="p">...</span>
-    <span class="p">}</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-
-<span class="c1">// For cpu0 -elf2hex begin:</span>
 <span class="k">static</span> <span class="n">uint64_t</span> <span class="n">GetSectionHeaderStartAddress</span><span class="p">(</span><span class="k">const</span> <span class="n">ObjectFile</span> <span class="o">*</span><span class="n">o</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">sectionName</span><span class="p">)</span> <span class="p">{</span>
 <span class="c1">//  outs() &lt;&lt; &quot;Sections:\n&quot;</span>
 <span class="c1">//            &quot;Idx Name          Size      Address          Type\n&quot;;</span>
@@ -1700,6 +1681,7 @@ LLVMBackendTutorialExampleCode/llvm-objdump/* .
   <span class="p">}</span>
 <span class="p">}</span>
 
+<span class="c1">// Modified from DisassembleObject()</span>
 <span class="k">static</span> <span class="kt">void</span> <span class="n">DisassembleObjectForHex</span><span class="p">(</span><span class="k">const</span> <span class="n">ObjectFile</span> <span class="o">*</span><span class="n">Obj</span><span class="cm">/*, bool InlineRelocs*/</span><span class="p">,</span> <span class="n">uint64_t</span><span class="o">&amp;</span> <span class="n">lastAddr</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">const</span> <span class="n">Target</span> <span class="o">*</span><span class="n">TheTarget</span> <span class="o">=</span> <span class="n">getTarget</span><span class="p">(</span><span class="n">Obj</span><span class="p">);</span>
   <span class="c1">// getTarget() will have already issued a diagnostic if necessary, so</span>
@@ -1960,8 +1942,10 @@ LLVMBackendTutorialExampleCode/llvm-objdump/* .
   <span class="p">}</span>
 <span class="p">}</span>
 
+<span class="c1">// Modified from PrintSectionContents()</span>
 <span class="k">static</span> <span class="kt">void</span> <span class="n">PrintDataSections</span><span class="p">(</span><span class="k">const</span> <span class="n">ObjectFile</span> <span class="o">*</span><span class="n">o</span><span class="p">,</span> <span class="n">uint64_t</span> <span class="n">lastAddr</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">error_code</span> <span class="n">ec</span><span class="p">;</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">size_t</span> <span class="n">addr</span><span class="p">,</span> <span class="n">end</span><span class="p">;</span>
   <span class="k">for</span> <span class="p">(</span><span class="n">section_iterator</span> <span class="n">si</span> <span class="o">=</span> <span class="n">o</span><span class="o">-&gt;</span><span class="n">begin_sections</span><span class="p">(),</span>
                         <span class="n">se</span> <span class="o">=</span> <span class="n">o</span><span class="o">-&gt;</span><span class="n">end_sections</span><span class="p">();</span>
                         <span class="n">si</span> <span class="o">!=</span> <span class="n">se</span><span class="p">;</span> <span class="n">si</span><span class="p">.</span><span class="n">increment</span><span class="p">(</span><span class="n">ec</span><span class="p">))</span> <span class="p">{</span>
@@ -1979,7 +1963,9 @@ LLVMBackendTutorialExampleCode/llvm-objdump/* .
       <span class="k">if</span> <span class="p">(</span><span class="n">Contents</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">continue</span><span class="p">;</span>
       <span class="p">}</span>
-      <span class="k">for</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">size_t</span> <span class="n">addr</span> <span class="o">=</span> <span class="n">lastAddr</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">BaseAddr</span><span class="p">;</span> <span class="n">addr</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">;</span> <span class="n">addr</span> <span class="o">+=</span> <span class="mi">4</span><span class="p">)</span> <span class="p">{</span>
+      <span class="c1">// Fill /*address*/ 00 00 00 00 between lastAddr and BaseAddr</span>
+      <span class="k">for</span> <span class="p">(</span><span class="n">addr</span> <span class="o">=</span> <span class="n">lastAddr</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">BaseAddr</span><span class="p">;</span> <span class="n">addr</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">;</span> <span class="n">addr</span> <span class="o">+=</span> <span class="mi">4</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">format</span><span class="p">(</span><span class="s">&quot;/*%04&quot;</span> <span class="n">PRIx64</span> <span class="s">&quot; */&quot;</span><span class="p">,</span> <span class="n">addr</span><span class="p">);</span>
         <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">format</span><span class="p">(</span><span class="s">&quot;%02&quot;</span> <span class="n">PRIx64</span> <span class="s">&quot; &quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">format</span><span class="p">(</span><span class="s">&quot;%02&quot;</span> <span class="n">PRIx64</span> <span class="s">&quot; &quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> \
         <span class="o">&lt;&lt;</span> <span class="n">format</span><span class="p">(</span><span class="s">&quot;%02&quot;</span> <span class="n">PRIx64</span> <span class="s">&quot; &quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">format</span><span class="p">(</span><span class="s">&quot;%02&quot;</span> <span class="n">PRIx64</span> <span class="s">&quot; &quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;\n&#39;</span><span class="p">;</span>
       <span class="p">}</span>
@@ -1998,6 +1984,11 @@ LLVMBackendTutorialExampleCode/llvm-objdump/* .
           <span class="k">else</span>
             <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;  &quot;</span><span class="p">;</span>
         <span class="p">}</span>
+        <span class="c1">// save lastAddr</span>
+        <span class="k">if</span> <span class="p">((</span><span class="n">BaseAddr</span> <span class="o">+</span> <span class="n">addr</span> <span class="o">+</span> <span class="mi">16</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">)</span> 
+          <span class="n">lastAddr</span> <span class="o">=</span> <span class="n">BaseAddr</span> <span class="o">+</span> <span class="n">end</span><span class="p">;</span>
+        <span class="k">else</span>
+          <span class="n">lastAddr</span> <span class="o">=</span> <span class="n">BaseAddr</span> <span class="o">+</span> <span class="n">addr</span> <span class="o">+</span> <span class="mi">16</span><span class="p">;</span>
         <span class="c1">// Print ascii.</span>
         <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;/*&quot;</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;  &quot;</span><span class="p">;</span>
         <span class="k">for</span> <span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">16</span> <span class="o">&amp;&amp;</span> <span class="n">addr</span> <span class="o">+</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
@@ -2017,11 +2008,132 @@ LLVMBackendTutorialExampleCode/llvm-objdump/* .
 <span class="c1">//  outs() &lt;&lt; format(&quot;_start address:%08&quot; PRIx64 &quot;\n&quot;, startAddr);</span>
   <span class="n">uint64_t</span> <span class="n">lastAddr</span><span class="p">;</span>
   <span class="n">DisassembleObjectForHex</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">lastAddr</span><span class="p">);</span>
+<span class="c1">//  outs() &lt;&lt; format(&quot;lastAddr:%08&quot; PRIx64 &quot;\n&quot;, lastAddr);</span>
   <span class="n">PrintDataSections</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">lastAddr</span><span class="p">);</span>
 <span class="p">}</span>
-<span class="c1">// For cpu0 -elf2hex end:</span>
+<span class="c1">// llvm-objdump -elf2hex code added end:</span>
+<span class="c1">// Code added fo cpu0 -elf2hex end:</span>
 
 <span class="k">static</span> <span class="kt">void</span> <span class="n">DumpObject</span><span class="p">(</span><span class="k">const</span> <span class="n">ObjectFile</span> <span class="o">*</span><span class="n">o</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;\n&#39;</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">ConvertElf2Hex</span><span class="p">)</span>
+    <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;/*&quot;</span><span class="p">;</span>
+  <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">o</span><span class="o">-&gt;</span><span class="n">getFileName</span><span class="p">()</span>
+         <span class="o">&lt;&lt;</span> <span class="s">&quot;:</span><span class="se">\t</span><span class="s">file format &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">o</span><span class="o">-&gt;</span><span class="n">getFileFormatName</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">ConvertElf2Hex</span><span class="p">)</span>
+    <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;*/&quot;</span><span class="p">;</span>
+  <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">Disassemble</span><span class="p">)</span>
+    <span class="n">DisassembleObject</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">Relocations</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Relocations</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">Disassemble</span><span class="p">)</span>
+    <span class="n">PrintRelocations</span><span class="p">(</span><span class="n">o</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">SectionHeaders</span><span class="p">)</span>
+    <span class="n">PrintSectionHeaders</span><span class="p">(</span><span class="n">o</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">SectionContents</span><span class="p">)</span>
+    <span class="n">PrintSectionContents</span><span class="p">(</span><span class="n">o</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">ConvertElf2Hex</span><span class="p">)</span>
+    <span class="n">Elf2Hex</span><span class="p">(</span><span class="n">o</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">SymbolTable</span><span class="p">)</span>
+    <span class="n">PrintSymbolTable</span><span class="p">(</span><span class="n">o</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">UnwindInfo</span><span class="p">)</span>
+    <span class="n">PrintUnwindInfo</span><span class="p">(</span><span class="n">o</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">PrivateHeaders</span> <span class="o">&amp;&amp;</span> <span class="n">o</span><span class="o">-&gt;</span><span class="n">isELF</span><span class="p">())</span>
+    <span class="n">printELFFileHeader</span><span class="p">(</span><span class="n">o</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">/// @brief Dump each object file in \a a;</span>
+<span class="k">static</span> <span class="kt">void</span> <span class="n">DumpArchive</span><span class="p">(</span><span class="k">const</span> <span class="n">Archive</span> <span class="o">*</span><span class="n">a</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">Archive</span><span class="o">::</span><span class="n">child_iterator</span> <span class="n">i</span> <span class="o">=</span> <span class="n">a</span><span class="o">-&gt;</span><span class="n">begin_children</span><span class="p">(),</span>
+                               <span class="n">e</span> <span class="o">=</span> <span class="n">a</span><span class="o">-&gt;</span><span class="n">end_children</span><span class="p">();</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">e</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">OwningPtr</span><span class="o">&lt;</span><span class="n">Binary</span><span class="o">&gt;</span> <span class="n">child</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">error_code</span> <span class="n">ec</span> <span class="o">=</span> <span class="n">i</span><span class="o">-&gt;</span><span class="n">getAsBinary</span><span class="p">(</span><span class="n">child</span><span class="p">))</span> <span class="p">{</span>
+      <span class="c1">// Ignore non-object files.</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">ec</span> <span class="o">!=</span> <span class="n">object_error</span><span class="o">::</span><span class="n">invalid_file_type</span><span class="p">)</span>
+        <span class="n">errs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">ToolName</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;: &#39;&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">a</span><span class="o">-&gt;</span><span class="n">getFileName</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;&#39;: &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">ec</span><span class="p">.</span><span class="n">message</span><span class="p">()</span>
+               <span class="o">&lt;&lt;</span> <span class="s">&quot;.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+      <span class="k">continue</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ObjectFile</span> <span class="o">*</span><span class="n">o</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">ObjectFile</span><span class="o">&gt;</span><span class="p">(</span><span class="n">child</span><span class="p">.</span><span class="n">get</span><span class="p">()))</span>
+      <span class="n">DumpObject</span><span class="p">(</span><span class="n">o</span><span class="p">);</span>
+    <span class="k">else</span>
+      <span class="n">errs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">ToolName</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;: &#39;&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">a</span><span class="o">-&gt;</span><span class="n">getFileName</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;&#39;: &quot;</span>
+              <span class="o">&lt;&lt;</span> <span class="s">&quot;Unrecognized file type.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">/// @brief Open file and figure out how to dump it.</span>
+<span class="k">static</span> <span class="kt">void</span> <span class="n">DumpInput</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">file</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// If file isn&#39;t stdin, check that it exists.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">file</span> <span class="o">!=</span> <span class="s">&quot;-&quot;</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">sys</span><span class="o">::</span><span class="n">fs</span><span class="o">::</span><span class="n">exists</span><span class="p">(</span><span class="n">file</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">errs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">ToolName</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;: &#39;&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">file</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;&#39;: &quot;</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;No such file</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">MachOOpt</span> <span class="o">&amp;&amp;</span> <span class="n">Disassemble</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">DisassembleInputMachO</span><span class="p">(</span><span class="n">file</span><span class="p">);</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="c1">// Attempt to open the binary.</span>
+  <span class="n">OwningPtr</span><span class="o">&lt;</span><span class="n">Binary</span><span class="o">&gt;</span> <span class="n">binary</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">error_code</span> <span class="n">ec</span> <span class="o">=</span> <span class="n">createBinary</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">binary</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">errs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">ToolName</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;: &#39;&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">file</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;&#39;: &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">ec</span><span class="p">.</span><span class="n">message</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">Archive</span> <span class="o">*</span><span class="n">a</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">Archive</span><span class="o">&gt;</span><span class="p">(</span><span class="n">binary</span><span class="p">.</span><span class="n">get</span><span class="p">()))</span>
+    <span class="n">DumpArchive</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">ObjectFile</span> <span class="o">*</span><span class="n">o</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">ObjectFile</span><span class="o">&gt;</span><span class="p">(</span><span class="n">binary</span><span class="p">.</span><span class="n">get</span><span class="p">()))</span>
+    <span class="n">DumpObject</span><span class="p">(</span><span class="n">o</span><span class="p">);</span>
+  <span class="k">else</span>
+    <span class="n">errs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">ToolName</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;: &#39;&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">file</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;&#39;: &quot;</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;Unrecognized file type.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// Print a stack trace if we signal out.</span>
+  <span class="n">sys</span><span class="o">::</span><span class="n">PrintStackTraceOnErrorSignal</span><span class="p">();</span>
+  <span class="n">PrettyStackTraceProgram</span> <span class="n">X</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">);</span>
+  <span class="n">llvm_shutdown_obj</span> <span class="n">Y</span><span class="p">;</span>  <span class="c1">// Call llvm_shutdown() on exit.</span>
+
+  <span class="c1">// Initialize targets and assembly printers/parsers.</span>
+  <span class="n">llvm</span><span class="o">::</span><span class="n">InitializeAllTargetInfos</span><span class="p">();</span>
+  <span class="n">llvm</span><span class="o">::</span><span class="n">InitializeAllTargetMCs</span><span class="p">();</span>
+  <span class="n">llvm</span><span class="o">::</span><span class="n">InitializeAllAsmParsers</span><span class="p">();</span>
+  <span class="n">llvm</span><span class="o">::</span><span class="n">InitializeAllDisassemblers</span><span class="p">();</span>
+
+  <span class="c1">// Register the target printer for --version.</span>
+  <span class="n">cl</span><span class="o">::</span><span class="n">AddExtraVersionPrinter</span><span class="p">(</span><span class="n">TargetRegistry</span><span class="o">::</span><span class="n">printRegisteredTargetsForVersion</span><span class="p">);</span>
+
+  <span class="n">cl</span><span class="o">::</span><span class="n">ParseCommandLineOptions</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span> <span class="n">argv</span><span class="p">,</span> <span class="s">&quot;llvm object file dumper</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+  <span class="n">TripleName</span> <span class="o">=</span> <span class="n">Triple</span><span class="o">::</span><span class="n">normalize</span><span class="p">(</span><span class="n">TripleName</span><span class="p">);</span>
+
+  <span class="n">ToolName</span> <span class="o">=</span> <span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+
+  <span class="c1">// Defaults to a.out if no filenames specified.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">InputFilenames</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">InputFilenames</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="s">&quot;a.out&quot;</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Disassemble</span>
+      <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">Relocations</span>
+      <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">SectionHeaders</span>
+      <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">SectionContents</span>
+      <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">ConvertElf2Hex</span>
+      <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">SymbolTable</span>
+      <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">UnwindInfo</span>
+      <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">PrivateHeaders</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">cl</span><span class="o">::</span><span class="n">PrintHelpMessage</span><span class="p">();</span>
+    <span class="k">return</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">std</span><span class="o">::</span><span class="n">for_each</span><span class="p">(</span><span class="n">InputFilenames</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">InputFilenames</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span>
+                <span class="n">DumpInput</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="n">DumpObject</span><span class="p">(</span><span class="k">const</span> <span class="n">ObjectFile</span> <span class="o">*</span><span class="n">o</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;\n&#39;</span><span class="p">;</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">ConvertElf2Hex</span><span class="p">)</span>
     <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;/*&quot;</span><span class="p">;</span>
@@ -2052,8 +2164,9 @@ LLVMBackendTutorialExampleCode/llvm-objdump/* .
 <h2>Run<a class="headerlink" href="#run" title="Permalink to this headline">¶</a></h2>
 <p>File printf-stdarg.c came from internet download which is GPL2 license. GPL2
 is more restricted than LLVM license. File printf-stdarg-2.c is modified from
-printf-stdarg.c which to supply the printf() function for /demo/verification/debug
-purpose on Cpu0 backend. File printf-stdarg-1.c is file for testing the printf()
+printf-stdarg.c of printf() function supplied and add some test function for
+/demo/verification/debugpurpose on Cpu0 backend.
+File printf-stdarg-1.c is file for testing the printf()
 function implemented on PC OS platform. Let&#8217;s run printf-stdarg-2.c on Cpu0 and
 compare with the result of printf() function which implemented by PC OS as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-1.c</p>
@@ -2195,11 +2308,32 @@ compare with the result of printf() function which implemented by PC OS as follo
 <span class="cp">#define TEST_PRINTF</span>
 
 <span class="cp">#include &quot;boot.cpp&quot;</span>
-<span class="kt">int</span> <span class="n">test_global</span><span class="p">();</span>
 
+<span class="k">struct</span> <span class="n">Time</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">hour</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">minute</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">second</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="n">Date</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">year</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">month</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">day</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">hour</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">minute</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">second</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="kt">int</span> <span class="n">test_global</span><span class="p">();</span>
 <span class="kt">int</span> <span class="n">printf</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">...);</span>
 <span class="kt">int</span> <span class="n">sprintf</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">out</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">...);</span>
+<span class="k">struct</span> <span class="n">Date</span> <span class="n">copyDate</span><span class="p">(</span><span class="k">struct</span> <span class="n">Date</span> <span class="n">date</span><span class="p">);</span>
+<span class="k">struct</span> <span class="n">Time</span> <span class="n">copyTime</span><span class="p">(</span><span class="k">struct</span> <span class="n">Time</span> <span class="n">time</span><span class="p">);</span>
 
+<span class="kt">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
+<span class="k">struct</span> <span class="n">Date</span> <span class="n">gDate</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">};</span>
 
 <span class="cp">#ifdef TEST_PRINTF</span>
 <span class="kt">int</span> <span class="n">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
@@ -2210,6 +2344,19 @@ compare with the result of printf() function which implemented by PC OS as follo
   <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">bs</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="o">*</span><span class="mi">8</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">mi</span><span class="p">;</span>
   <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mi">80</span><span class="p">];</span>
+
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">struct</span> <span class="n">Time</span> <span class="n">time1</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
+  <span class="k">struct</span> <span class="n">Time</span> <span class="n">time2</span><span class="p">;</span>
+  <span class="k">struct</span> <span class="n">Date</span> <span class="n">date</span><span class="p">;</span>
+
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_global</span><span class="p">();</span>  <span class="c1">// gI = 100</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;global variable gI = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;time1 = %d %d %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">time1</span><span class="p">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">time1</span><span class="p">.</span><span class="n">minute</span><span class="p">,</span> <span class="n">time1</span><span class="p">.</span><span class="n">second</span><span class="p">);</span>
+  <span class="n">date</span> <span class="o">=</span> <span class="n">copyDate</span><span class="p">(</span><span class="n">gDate</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;date = %d %d %d %d %d %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">date</span><span class="p">.</span><span class="n">year</span><span class="p">,</span> <span class="n">date</span><span class="p">.</span><span class="n">month</span><span class="p">,</span> <span class="n">date</span><span class="p">.</span><span class="n">day</span><span class="p">,</span> <span class="n">date</span><span class="p">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">date</span><span class="p">.</span><span class="n">minute</span><span class="p">,</span> <span class="n">date</span><span class="p">.</span><span class="n">second</span><span class="p">);</span>
+  <span class="n">time2</span> <span class="o">=</span> <span class="n">copyTime</span><span class="p">(</span><span class="n">time1</span><span class="p">);</span> <span class="c1">// test return V0, V1, A0</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;time2 = %d %d %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">time2</span><span class="p">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">time2</span><span class="p">.</span><span class="n">minute</span><span class="p">,</span> <span class="n">time2</span><span class="p">.</span><span class="n">second</span><span class="p">);</span>
 
   <span class="n">mi</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">bs</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
   <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">ptr</span><span class="p">);</span>
@@ -2233,9 +2380,6 @@ compare with the result of printf() function which implemented by PC OS as follo
   <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;-3: %-4d left justif.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
   <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;-3: %4d right justif.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
 
-    <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">test_global</span><span class="p">();</span>  <span class="c1">// gI = 100</span>
-    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;global variable gI = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span>
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 
@@ -2449,12 +2593,19 @@ compare with the result of printf() function which implemented by PC OS as follo
   <span class="k">return</span> <span class="n">print</span><span class="p">(</span> <span class="o">&amp;</span><span class="n">out</span><span class="p">,</span> <span class="n">format</span><span class="p">,</span> <span class="n">args</span> <span class="p">);</span>
 <span class="p">}</span>
 
-
-<span class="kt">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
-
 <span class="kt">int</span> <span class="n">test_global</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="k">return</span> <span class="n">gI</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">struct</span> <span class="n">Date</span> <span class="n">copyDate</span><span class="p">(</span><span class="k">struct</span> <span class="n">Date</span> <span class="n">date</span><span class="p">)</span>
+<span class="p">{</span> 
+  <span class="k">return</span> <span class="n">date</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">struct</span> <span class="n">Time</span> <span class="n">copyTime</span><span class="p">(</span><span class="k">struct</span> <span class="n">Time</span> <span class="n">time</span><span class="p">)</span>
+<span class="p">{</span> 
+  <span class="k">return</span> <span class="n">time</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -2480,6 +2631,10 @@ cpu0s  cpu0s.hex  cpu0s.v
 WARNING: cpu0s.v:317: <span class="nv">$readmemh</span><span class="o">(</span>cpu0s.hex<span class="o">)</span>: Not enough words in the file <span class="k">for</span>
 the requested range <span class="o">[</span>0:65535<span class="o">]</span>.
 taskInterrupt<span class="o">(</span>001<span class="o">)</span>
+global variable <span class="nv">gI</span> <span class="o">=</span> 100
+<span class="nv">time1</span> <span class="o">=</span> 1 10 12
+<span class="nv">date</span> <span class="o">=</span> 2012 10 12 1 2 3
+<span class="nv">time2</span> <span class="o">=</span> 1 10 12
 Hello world!
 <span class="nb">printf test</span>
 <span class="o">(</span>null<span class="o">)</span> is null pointer
@@ -2488,7 +2643,7 @@ Hello world!
 char <span class="nv">a</span> <span class="o">=</span> <span class="s1">&#39;a&#39;</span>
 hex <span class="nv">ff</span> <span class="o">=</span> ff
 hex <span class="nv">00</span> <span class="o">=</span> 00
-signed -3 <span class="o">=</span> unsigned - <span class="o">=</span> hex -
+signed -3 <span class="o">=</span> unsigned <span class="nv">4294967293</span> <span class="o">=</span> hex fffffffd
 0 message<span class="o">(</span>s<span class="o">)</span>
 0 message<span class="o">(</span>s<span class="o">)</span> with %
 justif: <span class="s2">&quot;left      &quot;</span>
@@ -2497,10 +2652,6 @@ justif: <span class="s2">&quot;     right&quot;</span>
  3: 3    left justif.
  3:    3 right justif.
 -3: -003 zero padded
--3: -3   left justif.
--3:   -3 right justif.
-global variable <span class="nv">gI</span> <span class="o">=</span> 0
-RET to PC &lt; 0, finished!
 
 <span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>gcc <span class="nb">printf</span>-stdarg-1.c
 /usr/lib/gcc/x86_64-redhat-linux/4.7.2/../../../../lib64/crt1.o: In <span class="k">function</span>
@@ -2530,8 +2681,7 @@ justif: <span class="s2">&quot;     right&quot;</span>
 -3:   -3 right justif.
 </pre></div>
 </div>
-<p>Except &#8220;signed -3 = unsigned - = hex -&#8221; didn&#8217;t display well on Cpu0 version,
-others are fine.</p>
+<p>They are same after the &#8220;Hello world!&#8221; of printf() function support.</p>
 </div>
 <div class="section" id="summary">
 <h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>

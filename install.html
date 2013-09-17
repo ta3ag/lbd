@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.1',
+        VERSION:     '3.3.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -54,14 +54,10 @@
         
   <div class="section" id="appendix-a-getting-started-installing-llvm-and-the-cpu0-example-code">
 <span id="sec-appendix-installing"></span><h1>Appendix A: Getting Started: Installing LLVM and the Cpu0 example code<a class="headerlink" href="#appendix-a-getting-started-installing-llvm-and-the-cpu0-example-code" title="Permalink to this headline">¶</a></h1>
-<p>This book is on the process of merging into llvm trunk but not finished
+<p>This book is in the process of merging into llvm trunk but not finished
 yet.
 The merged llvm trunk version on my git hub is LLVM 3.3 relased.
-So, you have to get book example code and the based llvm trunk by git command
-as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>git clone https://github.com/Jonathan2251/lbd.git
-</pre></div>
-</div>
+My Cpu0 example code is also based on llvm 3.3.</p>
 <p>In this chapter, we will run through how to set up LLVM using if you are using
 Mac OS X or Linux.  When discussing Mac OS X, we are using Apple&#8217;s Xcode IDE
 (version 4.5.1) running on Mac OS X Mountain Lion (version 10.8) to modify and
@@ -97,23 +93,23 @@ program and without clang and clang++.</p>
 <p class="first admonition-title">Todo</p>
 <p class="last">Fix centering for figure captions.</p>
 </div>
-<p>Please download LLVM latest release version 3.2 (llvm, clang, compiler-rf) from
+<p>Please download LLVM latest release version 3.3 (llvm, clang, compiler-rf) from
 the &#8220;LLVM Download Page&#8221; <a class="footnote-reference" href="#id17" id="id2">[2]</a>. Then extract them using
-<tt class="docutils literal"><span class="pre">tar</span> <span class="pre">-zxvf</span> <span class="pre">{llvm-3.2.src.tar,</span> <span class="pre">clang-3.2.src.tar,</span> <span class="pre">compiler-rt-3.2.src.tar}</span></tt>,
+<tt class="docutils literal"><span class="pre">tar</span> <span class="pre">-zxvf</span> <span class="pre">{llvm-3.3.src.tar,</span> <span class="pre">clang-3.3.src.tar,</span> <span class="pre">compiler-rt-3.3.src.tar}</span></tt>,
 and change the llvm source code root directory into src.
 After that, move the clang source code to src/tools/clang, and move the
 compiler-rt source to src/project/compiler-rt as shown as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-111:Downloads Jonathan<span class="nv">$ </span>tar -zxvf clang-3.2.src.tar.gz
-118-165-78-111:Downloads Jonathan<span class="nv">$ </span>tar -zxvf compiler-rt-3.2.src.tar.gz
-118-165-78-111:Downloads Jonathan<span class="nv">$ </span>tar -zxvf llvm-3.2.src.tar.gz
-118-165-78-111:Downloads Jonathan<span class="nv">$ </span>mv llvm-3.2.src src
-118-165-78-111:Downloads Jonathan<span class="nv">$ </span>mv clang-3.2.src src/tools/clang
-118-165-78-111:Downloads Jonathan<span class="nv">$ </span>mv compiler-rt-3.2.src src/projects/compiler-rt
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-111:Downloads Jonathan<span class="nv">$ </span>tar -zxvf clang-3.3.src.tar.gz
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>tar -zxvf compiler-rt-3.3.src.tar.gz
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>tar -zxvf llvm-3.3.src.tar.gz
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>mv llvm-3.3.src src
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>mv clang-3.3.src src/tools/clang
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>mv compiler-rt-3.3.src src/projects/compiler-rt
 118-165-78-111:Downloads Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
 /Users/Jonathan/Downloads
 118-165-78-111:Downloads Jonathan<span class="nv">$ </span>ls
-clang-3.2.src.tar.gz        llvm-3.2.src.tar.gz
-compiler-rt-3.2.src.tar.gz  src
+clang-3.3.src.tar.gz        llvm-3.3.src.tar.gz
+compiler-rt-3.3.src.tar.gz  src
 118-165-78-111:Downloads Jonathan<span class="nv">$ </span>ls src/tools/
 CMakeLists.txt  clang       llvm-as         llvm-dis        llvm-mcmarkup
 llvm-readobj    llvm-stub   LLVMBuild.txt   gold            llvm-bcanalyzer
@@ -256,19 +252,26 @@ LLVM.xcodeproj by cmake graphic UI.
 We can create LLVM.xcodeproj by <tt class="docutils literal"><span class="pre">cmake</span></tt> command on terminal also.
 This book is on the process of merging into llvm trunk but not finished
 yet.
-The merged llvm trunk version on my git hub is LLVM 3.3 of merged date
-2013/03/28.
-So, you have to get book example code and the based llvm trunk by git command
-as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>git clone https://github.com/Jonathan2251/lbd.git
-</pre></div>
-</div>
+The merged llvm trunk version on my git hub is LLVM 3.3 released version.
+My Cpu0 example code is also based on llvm 3.3.
+So, please install the llvm 3.3 debug version as the llvm release 3.3
+installation, but without clang since the clang will waste time in build the
+Cpu0 backend tutorial code.
+Steps as follows,</p>
 <p>The details of installing Cpu0 backend example code as follows,</p>
 <div class="highlight-bash"><pre>118-165-78-111:llvm Jonathan$ mkdir test
 118-165-78-111:llvm Jonathan$ cd test
 118-165-78-111:test Jonathan$ pwd
 /Users/Jonathan/llvm/test
-118-165-78-111:test Jonathan$ git clone https://github.com/Jonathan2251/lbd.git src
+118-165-78-111:test Jonathan$ cp /Users/Jonathan/Downloads/llvm-3.3.src.tar.gz .
+118-165-78-111:test Jonathan$ tar -zxvf llvm-3.3.src.tar.gz
+118-165-78-111:test Jonathan$ mv llvm-3.3.src src
+118-165-78-111:test Jonathan$ cp /Users/Jonathan/Downloads/
+LLVMBackendTutorialExampleCode.tar.gz .
+118-165-78-111:test Jonathan$ tar -zxvf LLVMBackendTutorialExampleCode.tar.gz
+118-165-78-111:test Jonathan$ mkdir src/lib/Target/Cpu0
+118-165-78-111:test Jonathan$ mv LLVMBackendTutorialExampleCode
+src/lib/Target/Cpu0/.
 118-165-78-111:test Jonathan$ cp -rf src/lib/Target/Cpu0/
 LLVMBackendTutorialExampleCode/src_files_modify/modify/src/* src/.
 118-165-78-111:test Jonathan$ grep -R "Cpu0" src/include
@@ -307,9 +310,7 @@ Cpu0InstrFormats.td   Cpu0Subtarget.h         MCTargetDesc
 <span class="pre">=Debug</span> <span class="pre">-G</span> <span class="pre">&quot;Xcode&quot;</span> <span class="pre">../src/</span></tt> as follows.
 Remind, currently, the <tt class="docutils literal"><span class="pre">cmake</span></tt> terminal command can work with lldb debug, but
 the &#8220;section Create LLVM.xcodeproj by cmake Graphic UI&#8221; <a class="footnote-reference" href="#id20" id="id6">[5]</a> cannot.</p>
-<div class="highlight-bash"><pre>118-165-78-111:Target Jonathan$ cd ../../../
-118-165-78-111:test Jonathan$ ls
-src
+<div class="highlight-bash"><pre>118-165-78-111:Target Jonathan$ cd ../../../../
 118-165-78-111:test Jonathan$ pwd
 /Users/Jonathan/llvm/test
 118-165-78-111:test Jonathan$ ls
@@ -512,8 +513,8 @@ gar   gelfedit  gobjcopy  granlib gsize   gstrip
 </div>
 <div class="section" id="setting-up-your-linux-machine">
 <h2>Setting Up Your Linux Machine<a class="headerlink" href="#setting-up-your-linux-machine" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="install-llvm-3-2-release-build-on-linux">
-<h3>Install LLVM 3.2 release build on Linux<a class="headerlink" href="#install-llvm-3-2-release-build-on-linux" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="install-llvm-3-3-release-build-on-linux">
+<h3>Install LLVM 3.3 release build on Linux<a class="headerlink" href="#install-llvm-3-3-release-build-on-linux" title="Permalink to this headline">¶</a></h3>
 <p>First, install the llvm release build by,</p>
 <blockquote>
 <div><ol class="arabic simple">
@@ -541,7 +542,7 @@ gar   gelfedit  gobjcopy  granlib gsize   gstrip
 -- Targeting Sparc
 -- Targeting X86
 -- Targeting XCore
--- Clang version: 3.2
+-- Clang version: 3.3
 -- Found Subversion: /usr/bin/svn <span class="o">(</span>found version <span class="s2">&quot;1.7.6&quot;</span><span class="o">)</span>
 -- Configuring <span class="k">done</span>
 -- Generating <span class="k">done</span>
@@ -583,41 +584,47 @@ chain/bin:/home/Gamma/.local/bin:/home/Gamma/bin:/usr/local/sphinx/bin:/usr/
 <h3>Install cpu0 debug build on Linux<a class="headerlink" href="#install-cpu0-debug-build-on-linux" title="Permalink to this headline">¶</a></h3>
 <p>This book is on the process of merging into llvm trunk but not finished
 yet.
-The merged llvm trunk version on my git hub is LLVM 3.3 of merged date
-2013/03/28.
-So, you have to get book example code and the based llvm trunk by git command
-as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>git clone https://github.com/Jonathan2251/lbd.git
-</pre></div>
-</div>
+The merged llvm trunk version on my git hub is LLVM 3.3 released version.
+My Cpu0 example code is also based on llvm 3.3.
+So, please install the llvm 3.3 debug version as the llvm release 3.3
+installation, but without clang since the clang will waste time in build the
+Cpu0 backend tutorial code.
+Steps as follows,</p>
 <p>The details of installing Cpu0 backend example code according the following
 list steps, and the corresponding commands shown as below,</p>
 <p>1) Enter /usr/local/llvm/test/ and
-get Cpu0 example code as well as the llvm trunk of Cpu0 based.</p>
+get Cpu0 example code as well as the llvm 3.3.</p>
 <ol class="arabic simple" start="2">
 <li>Make dir Cpu0 in src/lib/Target and download example code.</li>
 </ol>
 <p>3) Update my modified files to support cpu0 by command, <tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/usr/local/llvm/</span>
 <span class="pre">test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/</span></tt>
 <tt class="docutils literal"><span class="pre">src_files_modify/modify/src</span> <span class="pre">.</span></tt>.</p>
-<p>4) Check step 2 is effective by command
+<p>4) Check step 3 is effective by command
 <tt class="docutils literal"><span class="pre">grep</span> <span class="pre">-R</span> <span class="pre">&quot;Cpu0&quot;</span> <span class="pre">.</span> <span class="pre">|</span> <span class="pre">more`</span></tt>. I add the Cpu0 backend support, so check with
 grep.</p>
-<p>5) Enter src/lib/Target/Cpu0/, generate LLVMBackendTutorialExampleCode,
-and copy example code LLVMBackendTutorialExampleCode/2/Cpu0 to the directory by
-commands
+<p>5) Enter src/lib/Target/Cpu0/ and copy example code
+LLVMBackendTutorialExampleCode/2/Cpu0 to the directory by commands
 <tt class="docutils literal"><span class="pre">cd</span> <span class="pre">src/lib/Target/Cpu0/</span></tt> and
 <tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">LLVMBackendTutorialExample/Chapter2/*</span> <span class="pre">../.</span></tt>.</p>
 <p>6) Remove clang from /usr/local/llvm/test/src/tools/clang, and mkdir
 test/cmake_debug_build. Without this you will waste extra time for
 command <tt class="docutils literal"><span class="pre">make</span></tt> in cpu0 example code build.</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-111:llvm Jonathan<span class="nv">$ </span>mkdir <span class="nb">test</span>
-118-165-78-111:llvm Jonathan<span class="nv">$ </span><span class="nb">cd test</span>
+<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost llvm<span class="o">]</span><span class="nv">$ </span>mkdir <span class="nb">test</span>
+<span class="o">[</span>Gamma@localhost llvm<span class="o">]</span><span class="nv">$ </span><span class="nb">cd test</span>
 <span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
 /usr/local/llvm/test
-<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>git clone https://github.com/Jonathan2251/lbd.git src
-<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>cp -rf src/lib/Target/Cpu0/
-LLVMBackendTutorialExampleCode/src_files_modify/modify/src/* src/.
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>cp /home/Gamma/Downloads/llvm-3.3.src.tar.gz .
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>tar -zxvf llvm-3.3.src.tar.gz
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>mv llvm-3.3.src src
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>cp /Users/Jonathan/Downloads/
+LLVMBackendTutorialExampleCode.tar.gz .
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>tar -zxvf LLVMBackendTutorialExampleCode.tar.gz
+...
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>mkdir src/lib/Target/Cpu0
+118-165-78-111:test Jonathan<span class="nv">$ </span>mv LLVMBackendTutorialExampleCode src/lib/Target/Cpu0/.
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>cp -rf LLVMBackendTutorialExampleCode/src_files_modify/
+modify/src/* src/.
 <span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>grep -R <span class="s2">&quot;cpu0&quot;</span> src/include
 src/include//llvm/ADT/Triple.h:    cpu0,    // For Tutorial Backend Cpu0
 src/include//llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
@@ -650,8 +657,8 @@ as follows,</p>
 [Gamma@localhost cmake_debug_build]$ cmake
 -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang
 -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ../src/
--- The C compiler identification is Clang 3.2.0
--- The CXX compiler identification is Clang 3.2.0
+-- The C compiler identification is Clang 3.3.0
+-- The CXX compiler identification is Clang 3.3.0
 -- Check for working C compiler: /usr/local/llvm/release/cmake_release_build/bin/
 clang
 -- Check for working C compiler: /usr/local/llvm/release/cmake_release_build/bin/
@@ -804,7 +811,7 @@ pdfjam.noarch                        2.08-3.fc17                         @fedora
 <table class="docutils footnote" frame="void" id="id17" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://llvm.org/releases/download.html#3.2">http://llvm.org/releases/download.html#3.2</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://llvm.org/releases/download.html#3.3">http://llvm.org/releases/download.html#3.3</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id18" rules="none">

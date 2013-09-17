@@ -521,12 +521,15 @@ cmake_debug_build/bin/Debug/ is my build clang from source code.
   WARNING: cpu0s.v:386: $readmemh(cpu0s.hex): Not enough words in the file for the 
   requested range [0:28671].
   taskInterrupt(001)
-  0                                                                                 
-  2                                                                                 
-  1073741821                                                                         
-  10                                                                                 
-  128                                                                               
-  146                                                                               
+  74
+  253
+  3
+  1
+  14
+  3
+  51
+  2147483647
+  -2147483648                                                                 
   RET to PC < 0, finished!
   
   JonathantekiiMac:raw Jonathan$ cd ../../InputFiles/

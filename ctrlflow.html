@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.1',
+        VERSION:     '3.3.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -61,7 +61,7 @@ translate these control flow statements of llvm IR into cpu0 instructions.</p>
 <h2>Control flow statement<a class="headerlink" href="#control-flow-statement" title="Permalink to this headline">¶</a></h2>
 <p>Run ch7_1_1.cpp with clang will get result as follows,</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch7_1_1.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">test_control1</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
@@ -72,50 +72,46 @@ translate these control flow statements of llvm IR into cpu0 instructions.</p>
   <span class="kt">int</span> <span class="n">g</span> <span class="o">=</span> <span class="mi">6</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">h</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">9</span><span class="p">;</span>
   
   <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">a</span><span class="o">++</span><span class="p">;</span>
+    <span class="n">a</span><span class="o">++</span><span class="p">;</span> <span class="c1">// a = 1</span>
   <span class="p">}</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">b</span><span class="o">++</span><span class="p">;</span>
+    <span class="n">b</span><span class="o">++</span><span class="p">;</span> <span class="c1">// b = 2</span>
   <span class="p">}</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">c</span><span class="o">++</span><span class="p">;</span>
+    <span class="n">c</span><span class="o">++</span><span class="p">;</span> <span class="c1">// c = 3</span>
   <span class="p">}</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">d</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">d</span><span class="o">++</span><span class="p">;</span>
+    <span class="n">d</span><span class="o">++</span><span class="p">;</span> <span class="c1">// d = 4</span>
   <span class="p">}</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">e</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">e</span><span class="o">++</span><span class="p">;</span>
+    <span class="n">e</span><span class="o">++</span><span class="p">;</span> <span class="c1">// e = 4</span>
   <span class="p">}</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">f</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">f</span><span class="o">++</span><span class="p">;</span>
+    <span class="n">f</span><span class="o">++</span><span class="p">;</span> <span class="c1">// f = 5</span>
   <span class="p">}</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">g</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">g</span><span class="o">++</span><span class="p">;</span>
+    <span class="n">g</span><span class="o">++</span><span class="p">;</span> <span class="c1">// g = 6</span>
   <span class="p">}</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">h</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">h</span><span class="o">++</span><span class="p">;</span>
+    <span class="n">h</span><span class="o">++</span><span class="p">;</span> <span class="c1">// h = 8</span>
   <span class="p">}</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">h</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">i</span><span class="o">++</span><span class="p">;</span>
+    <span class="n">i</span><span class="o">++</span><span class="p">;</span> <span class="c1">// i = 8</span>
   <span class="p">}</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">a</span><span class="o">++</span><span class="p">;</span>
+    <span class="n">j</span><span class="o">++</span><span class="p">;</span> <span class="c1">// j = 10</span>
   <span class="p">}</span>
   
-  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="o">+</span><span class="n">c</span><span class="o">+</span><span class="n">d</span><span class="o">+</span><span class="n">e</span><span class="o">+</span><span class="n">f</span><span class="o">+</span><span class="n">g</span><span class="o">+</span><span class="n">h</span><span class="o">+</span><span class="n">i</span><span class="o">+</span><span class="n">j</span><span class="p">);</span> <span class="c1">// 1+2+3+4+4+5+6+8+8+10 = 51</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch7_1_1.bc&#39;</span>
-target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-</span>
-<span class="s2">f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128&quot;</span>
-target <span class="nv">triple</span> <span class="o">=</span> <span class="s2">&quot;i386-apple-macosx10.8.0&quot;</span>
-
-define i32 @main<span class="o">()</span> nounwind ssp <span class="o">{</span>
+<div class="highlight-bash"><div class="highlight"><pre>; Function Attrs: nounwind uwtable
+define i32 @_Z13test_control1v<span class="o">()</span> <span class="c">#0 {</span>
 entry:
-  %retval <span class="o">=</span> alloca i32, align 4
   %a <span class="o">=</span> alloca i32, align 4
   %b <span class="o">=</span> alloca i32, align 4
   %c <span class="o">=</span> alloca i32, align 4
@@ -125,7 +121,7 @@ entry:
   %g <span class="o">=</span> alloca i32, align 4
   %h <span class="o">=</span> alloca i32, align 4
   %i <span class="o">=</span> alloca i32, align 4
-  store i32 0, i32* %retval
+  %j <span class="o">=</span> alloca i32, align 4
   store i32 0, i32* %a, align 4
   store i32 1, i32* %b, align 4
   store i32 2, i32* %c, align 4
@@ -135,120 +131,139 @@ entry:
   store i32 6, i32* %g, align 4
   store i32 7, i32* %h, align 4
   store i32 8, i32* %i, align 4
+  store i32 9, i32* %j, align 4
   %0 <span class="o">=</span> load i32* %a, align 4
   %cmp <span class="o">=</span> icmp eq i32 %0, 0
   br i1 %cmp, label %if.then, label %if.end
 
-<span class="k">if</span>.then:                                        ; <span class="nv">preds</span> <span class="o">=</span> %entry
+<span class="k">if</span>.then:                                          ; <span class="nv">preds</span> <span class="o">=</span> %entry
   %1 <span class="o">=</span> load i32* %a, align 4
   %inc <span class="o">=</span> add i32 %1, 1
   store i32 %inc, i32* %a, align 4
   br label %if.end
 
-<span class="k">if</span>.end:                                         ; <span class="nv">preds</span> <span class="o">=</span> %if.then, %entry
+<span class="k">if</span>.end:                                           ; <span class="nv">preds</span> <span class="o">=</span> %if.then, %entry
   %2 <span class="o">=</span> load i32* %b, align 4
   %cmp1 <span class="o">=</span> icmp ne i32 %2, 0
   br i1 %cmp1, label %if.then2, label %if.end4
 
-<span class="k">if</span>.then2:                                       ; <span class="nv">preds</span> <span class="o">=</span> %if.end
+<span class="k">if</span>.then2:                                         ; <span class="nv">preds</span> <span class="o">=</span> %if.end
   %3 <span class="o">=</span> load i32* %b, align 4
   %inc3 <span class="o">=</span> add nsw i32 %3, 1
   store i32 %inc3, i32* %b, align 4
   br label %if.end4
 
-<span class="k">if</span>.end4:                                        ; <span class="nv">preds</span> <span class="o">=</span> %if.then2, %if.end
+<span class="k">if</span>.end4:                                          ; <span class="nv">preds</span> <span class="o">=</span> %if.then2, %if.end
   %4 <span class="o">=</span> load i32* %c, align 4
   %cmp5 <span class="o">=</span> icmp sgt i32 %4, 0
   br i1 %cmp5, label %if.then6, label %if.end8
 
-<span class="k">if</span>.then6:                                       ; <span class="nv">preds</span> <span class="o">=</span> %if.end4
+<span class="k">if</span>.then6:                                         ; <span class="nv">preds</span> <span class="o">=</span> %if.end4
   %5 <span class="o">=</span> load i32* %c, align 4
   %inc7 <span class="o">=</span> add nsw i32 %5, 1
   store i32 %inc7, i32* %c, align 4
   br label %if.end8
 
-<span class="k">if</span>.end8:                                        ; <span class="nv">preds</span> <span class="o">=</span> %if.then6, %if.end4
+<span class="k">if</span>.end8:                                          ; <span class="nv">preds</span> <span class="o">=</span> %if.then6, %if.end4
   %6 <span class="o">=</span> load i32* %d, align 4
   %cmp9 <span class="o">=</span> icmp sge i32 %6, 0
   br i1 %cmp9, label %if.then10, label %if.end12
 
-<span class="k">if</span>.then10:                                      ; <span class="nv">preds</span> <span class="o">=</span> %if.end8
+<span class="k">if</span>.then10:                                        ; <span class="nv">preds</span> <span class="o">=</span> %if.end8
   %7 <span class="o">=</span> load i32* %d, align 4
   %inc11 <span class="o">=</span> add nsw i32 %7, 1
   store i32 %inc11, i32* %d, align 4
   br label %if.end12
 
-<span class="k">if</span>.end12:                                       ; <span class="nv">preds</span> <span class="o">=</span> %if.then10, %if.end8
+<span class="k">if</span>.end12:                                         ; <span class="nv">preds</span> <span class="o">=</span> %if.then10, %if.end8
   %8 <span class="o">=</span> load i32* %e, align 4
   %cmp13 <span class="o">=</span> icmp slt i32 %8, 0
   br i1 %cmp13, label %if.then14, label %if.end16
 
-<span class="k">if</span>.then14:                                      ; <span class="nv">preds</span> <span class="o">=</span> %if.end12
+<span class="k">if</span>.then14:                                        ; <span class="nv">preds</span> <span class="o">=</span> %if.end12
   %9 <span class="o">=</span> load i32* %e, align 4
   %inc15 <span class="o">=</span> add nsw i32 %9, 1
   store i32 %inc15, i32* %e, align 4
   br label %if.end16
 
-<span class="k">if</span>.end16:                                       ; <span class="nv">preds</span> <span class="o">=</span> %if.then14, %if.end12
+<span class="k">if</span>.end16:                                         ; <span class="nv">preds</span> <span class="o">=</span> %if.then14, %if.end12
   %10 <span class="o">=</span> load i32* %f, align 4
   %cmp17 <span class="o">=</span> icmp sle i32 %10, 0
   br i1 %cmp17, label %if.then18, label %if.end20
 
-<span class="k">if</span>.then18:                                      ; <span class="nv">preds</span> <span class="o">=</span> %if.end16
+<span class="k">if</span>.then18:                                        ; <span class="nv">preds</span> <span class="o">=</span> %if.end16
   %11 <span class="o">=</span> load i32* %f, align 4
   %inc19 <span class="o">=</span> add nsw i32 %11, 1
   store i32 %inc19, i32* %f, align 4
   br label %if.end20
 
-<span class="k">if</span>.end20:                                       ; <span class="nv">preds</span> <span class="o">=</span> %if.then18, %if.end16
+<span class="k">if</span>.end20:                                         ; <span class="nv">preds</span> <span class="o">=</span> %if.then18, %if.end16
   %12 <span class="o">=</span> load i32* %g, align 4
   %cmp21 <span class="o">=</span> icmp sle i32 %12, 1
   br i1 %cmp21, label %if.then22, label %if.end24
 
-<span class="k">if</span>.then22:                                      ; <span class="nv">preds</span> <span class="o">=</span> %if.end20
+<span class="k">if</span>.then22:                                        ; <span class="nv">preds</span> <span class="o">=</span> %if.end20
   %13 <span class="o">=</span> load i32* %g, align 4
   %inc23 <span class="o">=</span> add nsw i32 %13, 1
   store i32 %inc23, i32* %g, align 4
   br label %if.end24
 
-<span class="k">if</span>.end24:                                       ; <span class="nv">preds</span> <span class="o">=</span> %if.then22, %if.end20
+<span class="k">if</span>.end24:                                         ; <span class="nv">preds</span> <span class="o">=</span> %if.then22, %if.end20
   %14 <span class="o">=</span> load i32* %h, align 4
   %cmp25 <span class="o">=</span> icmp sge i32 %14, 1
   br i1 %cmp25, label %if.then26, label %if.end28
 
-<span class="k">if</span>.then26:                                      ; <span class="nv">preds</span> <span class="o">=</span> %if.end24
+<span class="k">if</span>.then26:                                        ; <span class="nv">preds</span> <span class="o">=</span> %if.end24
   %15 <span class="o">=</span> load i32* %h, align 4
   %inc27 <span class="o">=</span> add nsw i32 %15, 1
   store i32 %inc27, i32* %h, align 4
   br label %if.end28
 
-<span class="k">if</span>.end28:                                       ; <span class="nv">preds</span> <span class="o">=</span> %if.then26, %if.end24
+<span class="k">if</span>.end28:                                         ; <span class="nv">preds</span> <span class="o">=</span> %if.then26, %if.end24
   %16 <span class="o">=</span> load i32* %i, align 4
   %17 <span class="o">=</span> load i32* %h, align 4
   %cmp29 <span class="o">=</span> icmp slt i32 %16, %17
   br i1 %cmp29, label %if.then30, label %if.end32
 
-<span class="k">if</span>.then30:                                      ; <span class="nv">preds</span> <span class="o">=</span> %if.end28
+<span class="k">if</span>.then30:                                        ; <span class="nv">preds</span> <span class="o">=</span> %if.end28
   %18 <span class="o">=</span> load i32* %i, align 4
   %inc31 <span class="o">=</span> add nsw i32 %18, 1
   store i32 %inc31, i32* %i, align 4
   br label %if.end32
 
-<span class="k">if</span>.end32:                                       ; <span class="nv">preds</span> <span class="o">=</span> %if.then30, %if.end28
+<span class="k">if</span>.end32:                                         ; <span class="nv">preds</span> <span class="o">=</span> %if.then30, %if.end28
   %19 <span class="o">=</span> load i32* %a, align 4
   %20 <span class="o">=</span> load i32* %b, align 4
   %cmp33 <span class="o">=</span> icmp ne i32 %19, %20
   br i1 %cmp33, label %if.then34, label %if.end36
 
-<span class="k">if</span>.then34:                                      ; <span class="nv">preds</span> <span class="o">=</span> %if.end32
-  %21 <span class="o">=</span> load i32* %a, align 4
-  %inc35 <span class="o">=</span> add i32 %21, 1
-  store i32 %inc35, i32* %a, align 4
+<span class="k">if</span>.then34:                                        ; <span class="nv">preds</span> <span class="o">=</span> %if.end32
+  %21 <span class="o">=</span> load i32* %j, align 4
+  %inc35 <span class="o">=</span> add nsw i32 %21, 1
+  store i32 %inc35, i32* %j, align 4
   br label %if.end36
 
-<span class="k">if</span>.end36:                                       ; <span class="nv">preds</span> <span class="o">=</span> %if.then34, %if.end32
+<span class="k">if</span>.end36:                                         ; <span class="nv">preds</span> <span class="o">=</span> %if.then34, %if.end32
   %22 <span class="o">=</span> load i32* %a, align 4
-  ret i32 %22
+  %23 <span class="o">=</span> load i32* %b, align 4
+  %add <span class="o">=</span> add i32 %22, %23
+  %24 <span class="o">=</span> load i32* %c, align 4
+  %add37 <span class="o">=</span> add i32 %add, %24
+  %25 <span class="o">=</span> load i32* %d, align 4
+  %add38 <span class="o">=</span> add i32 %add37, %25
+  %26 <span class="o">=</span> load i32* %e, align 4
+  %add39 <span class="o">=</span> add i32 %add38, %26
+  %27 <span class="o">=</span> load i32* %f, align 4
+  %add40 <span class="o">=</span> add i32 %add39, %27
+  %28 <span class="o">=</span> load i32* %g, align 4
+  %add41 <span class="o">=</span> add i32 %add40, %28
+  %29 <span class="o">=</span> load i32* %h, align 4
+  %add42 <span class="o">=</span> add i32 %add41, %29
+  %30 <span class="o">=</span> load i32* %i, align 4
+  %add43 <span class="o">=</span> add i32 %add42, %30
+  %31 <span class="o">=</span> load i32* %j, align 4
+  %add44 <span class="o">=</span> add i32 %add43, %31
+  ret i32 %add44
 <span class="o">}</span>
 </pre></div>
 </div>
@@ -423,19 +438,19 @@ Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
 <p>Chapter7_1/ include support for control flow statement.
 Run with it as well as the following <tt class="docutils literal"><span class="pre">llc</span></tt> option, you can get the obj file
 and dump it&#8217;s content by hexdump as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1_1.cpu0.s
-...
-    ld  <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    cmp <span class="nv">$3</span>, <span class="nv">$2</span>
-    jne <span class="nv">$BB0_2</span>
-    jmp <span class="nv">$BB0_1</span>
+<div class="highlight-bash"><div class="highlight"><pre>  118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1_1.cpu0.s
+  ...
+  ld  <span class="nv">$4</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  cmp <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+  jne <span class="nv">$BB0_2</span>
+  jmp <span class="nv">$BB0_1</span>
 <span class="nv">$BB0_1</span>:                                 <span class="c"># %if.then</span>
-    ld  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-    st  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$4</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+  st  <span class="nv">$4</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
 <span class="nv">$BB0_2</span>:                                 <span class="c"># %if.end</span>
-    ld  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-...
+  ld  <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  ...
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
@@ -444,12 +459,11 @@ ch7_1_1.bc -o ch7_1_1.cpu0.o
 
 118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>hexdump ch7_1_1.cpu0.o
     // jmp offset is <span class="nv">0x10</span><span class="o">=</span>16 bytes which is correct
-0000080 ............................ 10 20 20 02 21 00 00 10
-
-0000090 26 00 00 00 ...............................................
+0000080 ...................................... 10 43 00 00
+0000090 31 00 00 10 36 00 00 00 ..........................
 </pre></div>
 </div>
-<p>The immediate value of jne (op 0x21) is 16; The offset between jne and $BB0_2
+<p>The immediate value of jne (op 0x31) is 16; The offset between jne and $BB0_2
 is 20 (5 words = 5*4 bytes). Suppose the jne address is X, then the label
 $BB0_2 is X+20.
 Cpu0 is a RISC cpu0 with 3 stages of pipeline which are fetch, decode and
@@ -460,19 +474,19 @@ update PC at fetch stage.
 The $BB0_2 address is equal to PC+16 for the jne branch instruction execute at
 decode stage.
 List and explain this again as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>                // Fetch instruction stage <span class="k">for </span>jne instruction. The fetch stage
-                // can be divided into 2 cycles. First cycle fetch the
-                // instruction. Second cycle adjust <span class="nv">PC</span> <span class="o">=</span> PC+4.
-    jne <span class="nv">$BB0_2</span>  // Do jne compare in decode stage. <span class="nv">PC</span> <span class="o">=</span> X+4 at this stage.
-                // When jne immediate value is 16, <span class="nv">PC</span> <span class="o">=</span> PC+16. It will fetch
-                //  X+20 which equal to label <span class="nv">$BB0_2</span> instruction, ld <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>.
-    jmp <span class="nv">$BB0_1</span>
+<div class="highlight-bash"><div class="highlight"><pre>              // Fetch instruction stage <span class="k">for </span>jne instruction. The fetch stage
+              // can be divided into 2 cycles. First cycle fetch the
+              // instruction. Second cycle adjust <span class="nv">PC</span> <span class="o">=</span> PC+4.
+  jne <span class="nv">$BB0_2</span>  // Do jne compare in decode stage. <span class="nv">PC</span> <span class="o">=</span> X+4 at this stage.
+              // When jne immediate value is 16, <span class="nv">PC</span> <span class="o">=</span> PC+16. It will fetch
+              //  X+20 which equal to label <span class="nv">$BB0_2</span> instruction, ld <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>.
+  jmp <span class="nv">$BB0_1</span>
 <span class="nv">$BB0_1</span>:                                 <span class="c"># %if.then</span>
-    ld  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-    addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-    st  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$4</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+  st  <span class="nv">$4</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
 <span class="nv">$BB0_2</span>:                                 <span class="c"># %if.end</span>
-    ld  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
 </pre></div>
 </div>
 <p>If cpu0 do <strong>&#8220;jne&#8221;</strong> compare in execution stage, then we should set PC=PC+12,
