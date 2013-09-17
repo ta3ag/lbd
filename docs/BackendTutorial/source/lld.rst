@@ -313,8 +313,9 @@ Run
 
 File printf-stdarg.c came from internet download which is GPL2 license. GPL2 
 is more restricted than LLVM license. File printf-stdarg-2.c is modified from 
-printf-stdarg.c which to supply the printf() function for /demo/verification/debug
-purpose on Cpu0 backend. File printf-stdarg-1.c is file for testing the printf()
+printf-stdarg.c of printf() function supplied and add some test function for 
+/demo/verification/debugpurpose on Cpu0 backend. 
+File printf-stdarg-1.c is file for testing the printf()
 function implemented on PC OS platform. Let's run printf-stdarg-2.c on Cpu0 and
 compare with the result of printf() function which implemented by PC OS as follows,
 
@@ -399,9 +400,7 @@ compare with the result of printf() function which implemented by PC OS as follo
   -3: -3   left justif.
   -3:   -3 right justif.
 
-
-Except "signed -3 = unsigned - = hex -" didn't display well on Cpu0 version, 
-others are fine.
+They are same after the "Hello world!" of printf() function support.
 
 
 Summary
