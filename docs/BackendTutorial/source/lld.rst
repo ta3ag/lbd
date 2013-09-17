@@ -795,6 +795,10 @@ compare with the result of printf() function which implemented by PC OS as follo
   WARNING: cpu0s.v:317: $readmemh(cpu0s.hex): Not enough words in the file for 
   the requested range [0:65535].
   taskInterrupt(001)
+  global variable gI = 100
+  time1 = 1 10 12
+  date = 2012 10 12 1 2 3
+  time2 = 1 10 12
   Hello world!
   printf test
   (null) is null pointer
@@ -803,7 +807,7 @@ compare with the result of printf() function which implemented by PC OS as follo
   char a = 'a'
   hex ff = ff
   hex 00 = 00
-  signed -3 = unsigned - = hex -
+  signed -3 = unsigned 4294967293 = hex fffffffd
   0 message(s)
   0 message(s) with %
   justif: "left      "
@@ -812,10 +816,6 @@ compare with the result of printf() function which implemented by PC OS as follo
    3: 3    left justif.
    3:    3 right justif.
   -3: -003 zero padded
-  -3: -3   left justif.
-  -3:   -3 right justif.
-  global variable gI = 0
-  RET to PC < 0, finished!
 
   [Gamma@localhost InputFiles]$ gcc printf-stdarg-1.c
   /usr/lib/gcc/x86_64-redhat-linux/4.7.2/../../../../lib64/crt1.o: In function 
