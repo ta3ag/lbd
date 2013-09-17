@@ -1,9 +1,9 @@
 //`define TRACE
 
-`define MEMSIZE 'h10000
+`define MEMSIZE 'h80000
 `define MEMEMPTY 8'hFF
 `define NULL     8'h00
-`define IOADDR  'h10000
+`define IOADDR  'h80000
 
 // Operand width
 `define INT32 2'b11     // 32 bits
@@ -21,12 +21,13 @@
 module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick, 
             output reg [31:0] ir, pc, mar, mdr, inout [31:0] dbus, 
             output reg m_en, m_rw, output reg [1:0] m_size);
-  reg signed [31:0] R [0:15], HI, LO;
+  reg signed [31:0] R [0:15];
   // High and Low part of 64 bit result
   reg [7:0] op;
   reg [3:0] a, b, c;
   reg [4:0] c5;
   reg signed [31:0] c12, c16, uc16, c24, Ra, Rb, Rc, pc0; // pc0 : instruction pc
+  reg [31:0] URa, URb, URc, HI, LO;
 
   // register name
   `define PC   R[15]   // Program Counter
@@ -157,6 +158,9 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       Ra = R[a];
       Rb = R[b];
       Rc = R[c];
+      URa = R[a];
+      URb = R[b];
+      URc = R[c];
       next_state = Execute;
     end
     Execute: begin // Tick 3 : instruction execution
@@ -180,7 +184,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       SUB:   begin regSet(a, Rb-Rc); if (Rb < 0 && Rc > 0 && a >= 0) 
              `V = 1; else `V =0; end         // SUB Ra,Rb,Rc; Ra<=Rb-Rc
       MUL:   regSet(a, Rb*Rc);               // MUL Ra,Rb,Rc;     Ra<=Rb*Rc
-      DIVu:  regHILOSet(Ra%Rb, Ra/Rb);       // DIVu Ra,Rb; HI<=Ra%Rb; LO<=Ra/Rb
+      DIVu:  regHILOSet(URa%URb, URa/URb);   // DIVu URa,URb; HI<=URa%URb; LO<=URa/URb
                                              // without exception overflow
       DIV:   begin regHILOSet(Ra%Rb, Ra/Rb); 
              if ((Ra < 0 && Rb < 0) || (Ra == 0)) `V = 1; 
@@ -206,16 +210,16 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
                                     // SHRV Ra,Rb,Rc; Ra<=(Rb >> Rc)
       ROL:   regSet(a, (Rb<<c5)|(Rb>>(32-c5)));     // Rotate Left;
       ROR:   regSet(a, (Rb>>c5)|(Rb<<(32-c5)));     // Rotate Right;
-      MFLO:  regSet(a, LO);            // MFLO Ra; Ra<=LO
-      MFHI:  regSet(a, HI);            // MFHI Ra; Ra<=HI
-      MTLO:  LO = Ra;             // MTLO Ra; LO<=Ra
-      MTHI:  HI = Ra;             // MTHI Ra; HI<=Ra
-      MULT:  {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
-                            // LO<=((Ra*Rb) and 0x00000000ffffffff);
-                            // with exception overflow
-      MULTu: {HI, LO}=Ra*Rb; // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
-                            // LO<=((Ra*Rb) and 0x00000000ffffffff);
-                            // without exception overflow
+      MFLO:  regSet(a, LO);         // MFLO Ra; Ra<=LO
+      MFHI:  regSet(a, HI);         // MFHI Ra; Ra<=HI
+      MTLO:  LO = Ra;               // MTLO Ra; LO<=Ra
+      MTHI:  HI = Ra;               // MTHI Ra; HI<=Ra
+      MULT:  {HI, LO}=Ra*Rb;        // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
+                                    // LO<=((Ra*Rb) and 0x00000000ffffffff);
+                                    // with exception overflow
+      MULTu: {HI, LO}=URa*URb;      // MULT URa,URb; HI<=((URa*URb)>>32); 
+                                    // LO<=((URa*URb) and 0x00000000ffffffff);
+                                    // without exception overflow
       // Jump Instructions
       JEQ:   if (`Z) `PC=`PC+c24;            // JEQ Cx; if SW(=) PC  PC+Cx
       JNE:   if (!`Z) `PC=`PC+c24;           // JNE Cx; if SW(!=) PC PC+Cx

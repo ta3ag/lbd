@@ -9,19 +9,34 @@
 
 #include "print.h"
 
+int test_math();
+int test_div();
+int test_local_pointer();
+int test_andorxornot();
+int test_setxx();
 bool test_load_bool();
 int test_operators(int x);
-int test_control();
+int test_control1();
 
 int main()
 {
   int a = 0;
+  a = test_math();
+  print_integer(a);  // a = 74
+  a = test_div();
+  print_integer(a);  // a = 253
+  a = test_local_pointer();
+  print_integer(a);  // a = 3
   a = (int)test_load_bool();
   print_integer(a);  // a = 1
-  a = test_operators(12); // a = 13
+  a = test_andorxornot(); // a = 14
   print_integer(a);
-  a += test_control();	// a = (128+18) = 146
+  a = test_setxx(); // a = 3
   print_integer(a);
+  a = test_control1();
+  print_integer(a);	// a = 51
+  print_integer(2147483647); // test mod % (mult) from itoa.cpp
+  print_integer(-2147483648); // test mod % (multu) from itoa.cpp
 
   return a;
 }
@@ -32,7 +47,8 @@ void print1_integer(int x)
 {
   asm("ld $at, 8($sp)");
   asm("st $at, 28672($0)");
- return;
+
+  return;
 }
 
 #if 0
@@ -55,59 +71,9 @@ bool test_load_bool()
   return true;
 }
 
-int test_operators(int x)
-{
-  int a = 11;
-  int b = 2;
-  int c, d, e, f, g, h, i, j, k, l, m, n, o;
-  unsigned int a1 = -11, k1 = 0;
+#include "ch4_1.cpp"
+#include "ch4_3.cpp"
+#include "ch4_4.cpp"
+#include "ch4_5.cpp"
+#include "ch7_1_1.cpp"
 
-  k = (a >> 2);
-  print_integer(k); // 2
-  k1 = (a1 >> 2);
-  print_integer((int)k1); // 0x3fffffd = 1073741821
-  c = a + b;
-  d = a - b;
-  e = a * b;
-  f = a / b;
-  g = (a & b);
-  h = (a | b);
-  i = (a ^ b);
-  j = (a << 2);
-  l = a % x;
-  m = (a+1)%12;
-
-  n = !a;
-  print_integer(n); // 0
-  int* p = &b;
-  o = *p;
-  
-  return (c+d+e+f+g+h+i+j+l+m+o); // (13+9+22+5+2+11+9+44+11+0+2)=128
-}
-
-int test_control()
-{
-  int b = 1;
-  int c = 2;
-  int d = 3;
-  int e = 4;
-  int f = 5;
-  
-  if (b != 0) {
-    b++;
-  }
-  if (c > 0) {
-    c++;
-  }
-  if (d >= 0) {
-    d++;
-  }
-  if (e < 0) {
-    e++;
-  }
-  if (f <= 0) {
-    f++;
-  }
-  
-  return (b+c+d+e+f); // (2+3+4+4+5)=18
-}

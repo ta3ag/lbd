@@ -399,11 +399,11 @@ def : Pat<(not CPURegs:$in),
 // Get the least 7bits from register $in and signed bit (the 31th bit) from the 
 // 8th bit of register $in.
 def : Pat<(sext_inreg CPURegs:$in, i8),
-          (OR (ANDi CPURegs:$in, 0x0080), (ANDi CPURegs:$in, 0x007f))>;
+          (OR (SHL (ANDi CPURegs:$in, 0x0080), 16), (ANDi CPURegs:$in, 0x007f))>;
 // Get the least 15bits from register $in and signed bit (the 31th bit) from the 
 // 16th bit of register $in.
 def : Pat<(sext_inreg CPURegs:$in, i8),
-          (OR (ANDi CPURegs:$in, 0x8000), (ANDi CPURegs:$in, 0x7fff))>;
+          (OR (SHL (ANDi CPURegs:$in, 0x8000), 16), (ANDi CPURegs:$in, 0x7fff))>;
 
 // setcc patterns
 multiclass SeteqPats<RegisterClass RC> {

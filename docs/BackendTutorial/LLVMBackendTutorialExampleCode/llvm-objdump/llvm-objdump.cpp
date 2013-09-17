@@ -81,9 +81,6 @@ static cl::opt<bool>
 SectionContents("s", cl::desc("Display the content of each section"));
 
 static cl::opt<bool>
-ConvertElf2Hex("elf2hex", cl::desc("Display the hex content of verilog cpu0 needed sections"));
-
-static cl::opt<bool>
 SymbolTable("t", cl::desc("Display the symbol table"));
 
 static cl::opt<bool>
@@ -597,7 +594,7 @@ static void PrintSectionContents(const ObjectFile *o) {
 
     // Dump out the content as hex and printable ascii characters.
     for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
-      outs() << "/*" << format(" %04" PRIx64 " ", BaseAddr + addr);
+      outs() << format(" %04" PRIx64 " ", BaseAddr + addr);
       // Dump line of hex.
       for (std::size_t i = 0; i < 16; ++i) {
         if (i != 0 && i % 4 == 0)
@@ -608,7 +605,6 @@ static void PrintSectionContents(const ObjectFile *o) {
         else
           outs() << "  ";
       }
-      outs() << "*/";
       // Print ascii.
       outs() << "  ";
       for (std::size_t i = 0; i < 16 && addr + i < end; ++i) {
@@ -754,7 +750,11 @@ static void PrintUnwindInfo(const ObjectFile *o) {
   }
 }
 
-// For cpu0 -elf2hex begin:
+// Code added for cpu0 -elf2hex begin:
+// llvm-objdump -elf2hex code added begin:
+static cl::opt<bool>
+ConvertElf2Hex("elf2hex", cl::desc("Display the hex content of verilog cpu0 needed sections"));
+
 static uint64_t GetSectionHeaderStartAddress(const ObjectFile *o, StringRef sectionName) {
 //  outs() << "Sections:\n"
 //            "Idx Name          Size      Address          Type\n";
@@ -860,6 +860,7 @@ static void GetSymbolTableStartAddress(const ObjectFile *o, StringRef sectionNam
   }
 }
 
+// Modified from DisassembleObject()
 static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/, uint64_t& lastAddr) {
   const Target *TheTarget = getTarget(Obj);
   // getTarget() will have already issued a diagnostic if necessary, so
@@ -1120,8 +1121,10 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
   }
 }
 
+// Modified from PrintSectionContents()
 static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
   error_code ec;
+  std::size_t addr, end;
   for (section_iterator si = o->begin_sections(),
                         se = o->end_sections();
                         si != se; si.increment(ec)) {
@@ -1139,7 +1142,9 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
       if (Contents.size() <= 0) {
         continue;
       }
-      for (std::size_t addr = lastAddr, end = BaseAddr; addr < end; addr += 4) {
+      // Fill /*address*/ 00 00 00 00 between lastAddr and BaseAddr
+      for (addr = lastAddr, end = BaseAddr; addr < end; addr += 4) {
+        outs() << format("/*%04" PRIx64 " */", addr);
         outs() << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) \
         << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) << '\n';
       }
@@ -1158,6 +1163,11 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
           else
             outs() << "  ";
         }
+        // save lastAddr
+        if ((BaseAddr + addr + 16) > end) 
+          lastAddr = BaseAddr + end;
+        else
+          lastAddr = BaseAddr + addr + 16;
         // Print ascii.
         outs() << "/*" << "  ";
         for (std::size_t i = 0; i < 16 && addr + i < end; ++i) {
@@ -1177,9 +1187,11 @@ static void Elf2Hex(const ObjectFile *o) {
 //  outs() << format("_start address:%08" PRIx64 "\n", startAddr);
   uint64_t lastAddr;
   DisassembleObjectForHex(o, lastAddr);
+//  outs() << format("lastAddr:%08" PRIx64 "\n", lastAddr);
   PrintDataSections(o, lastAddr);
 }
-// For cpu0 -elf2hex end:
+// llvm-objdump -elf2hex code added end:
+// Code added fo cpu0 -elf2hex end:
 
 static void DumpObject(const ObjectFile *o) {
   outs() << '\n';

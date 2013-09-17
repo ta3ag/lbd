@@ -321,6 +321,12 @@ SDValue Cpu0TargetLowering::LowerVASTART(SDValue Op, SelectionDAG &DAG) const {
 //                  Call Calling Convention Implementation
 //===----------------------------------------------------------------------===//
 
+static const unsigned IntRegsSize = 2;
+
+static const uint16_t IntRegs[] = {
+  Cpu0::A0, Cpu0::A1
+};
+
 // Write ByVal Arg to arg registers and stack.
 static void
 WriteByValArg(SDValue& ByValChain, SDValue Chain, SDLoc DL,
@@ -614,6 +620,30 @@ Cpu0TargetLowering::LowerCallResult(SDValue Chain, SDValue InFlag,
 //===----------------------------------------------------------------------===//
 //             Formal Arguments Calling Convention Implementation
 //===----------------------------------------------------------------------===//
+static void ReadByValArg(MachineFunction &MF, SDValue Chain, SDLoc dl,
+                         std::vector<SDValue>& OutChains,
+                         SelectionDAG &DAG, unsigned NumWords, SDValue FIN,
+                         const CCValAssign &VA, const ISD::ArgFlagsTy& Flags,
+                         const Argument *FuncArg) {
+  unsigned LocMem = VA.getLocMemOffset();
+  unsigned FirstWord = LocMem / 4;
+
+  // copy register A0 - A1 to frame object
+  for (unsigned i = 0; i < NumWords; ++i) {
+    unsigned CurWord = FirstWord + i;
+    if (CurWord >= IntRegsSize)
+      break;
+
+    unsigned SrcReg = IntRegs[CurWord];
+    unsigned Reg = AddLiveIn(MF, SrcReg, &Cpu0::CPURegsRegClass);
+    SDValue StorePtr = DAG.getNode(ISD::ADD, dl, MVT::i32, FIN,
+                                   DAG.getConstant(i * 4, MVT::i32));
+    SDValue Store = DAG.getStore(Chain, dl, DAG.getRegister(Reg, MVT::i32),
+                                 StorePtr, MachinePointerInfo(FuncArg, i * 4),
+                                 false, false, 0);
+    OutChains.push_back(Store);
+  }
+}
 
 /// LowerFormalArguments - transform physical registers into virtual registers
 /// and generate load operations for arguments places on the stack.
@@ -652,7 +682,16 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
     bool IsRegLoc = VA.isRegLoc();
 
     if (Flags.isByVal()) {
-      assert("ByVal args of size 0 should have been ignored by front-end."); 
+      assert(Flags.getByValSize() &&
+             "ByVal args of size 0 should have been ignored by front-end."); 
+      unsigned NumWords = (Flags.getByValSize() + 3) / 4;
+      LastFI = MFI->CreateFixedObject(NumWords * 4, VA.getLocMemOffset(),
+                                      true);
+      SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
+      InVals.push_back(FIN);
+      ReadByValArg(MF, Chain, DL, OutChains, DAG, NumWords, FIN, VA, Flags,
+                   &*FuncArg);
+      continue;
     }
     // sanity check
     assert(VA.isMemLoc());

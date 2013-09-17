@@ -2,7 +2,7 @@
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_4.bc -o ch4_4.cpu0.s
 
 /// start
-int main()
+int test_local_pointer()
 {
   int b = 3;
   

@@ -14,8 +14,8 @@ class CCIfSubtarget<string F, CCAction A>:
   CCIf<!strconcat("State.getTarget().getSubtarget<Cpu0Subtarget>().", F), A>;
 
 def RetCC_Cpu0EABI : CallingConv<[
-  // i32 are returned in registers V0, V1
-  CCIfType<[i32], CCAssignToReg<[V0, V1]>>
+  // i32 are returned in registers V0, V1, A0, A1
+  CCIfType<[i32], CCAssignToReg<[V0, V1, A0, A1]>>
 ]>;
 
 //===----------------------------------------------------------------------===//
