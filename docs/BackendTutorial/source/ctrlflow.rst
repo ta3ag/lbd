@@ -361,16 +361,16 @@ and dump it's content by hexdump as follows,
 
     118-165-79-206:InputFiles Jonathan$ cat ch7_1_1.cpu0.s 
     ...
-        ld  $4, 40($sp)
-        cmp $4, $3
-        jne $BB0_2
-        jmp $BB0_1
-    $BB0_1:                                 # %if.then
-        ld  $4, 40($sp)
-        addiu   $4, $4, 1
-        st  $4, 40($sp)
-    $BB0_2:                                 # %if.end
-        ld  $4, 36($sp)
+    ld  $4, 36($fp)
+    cmp $sw, $4, $3
+    jne $BB0_2
+    jmp $BB0_1
+  $BB0_1:                                 # %if.then
+    ld  $4, 36($fp)
+    addiu $4, $4, 1
+    st  $4, 36($fp)
+  $BB0_2:                                 # %if.end
+    ld  $4, 32($fp)
     ...
 
 .. code-block:: bash
@@ -381,11 +381,10 @@ and dump it's content by hexdump as follows,
 
     118-165-79-206:InputFiles Jonathan$ hexdump ch7_1_1.cpu0.o 
         // jmp offset is 0x10=16 bytes which is correct
-    0000080 ............................ 10 20 20 02 21 00 00 10
-    
-    0000090 26 00 00 00 ...............................................
+    0000080 ...................................... 10 43 00 00
+    0000090 31 00 00 10 36 00 00 00 ..........................
 
-The immediate value of jne (op 0x21) is 16; The offset between jne and $BB0_2 
+The immediate value of jne (op 0x31) is 16; The offset between jne and $BB0_2 
 is 20 (5 words = 5*4 bytes). Suppose the jne address is X, then the label 
 $BB0_2 is X+20. 
 Cpu0 is a RISC cpu0 with 3 stages of pipeline which are fetch, decode and 
@@ -399,19 +398,19 @@ List and explain this again as follows,
 
 .. code-block:: bash
 
-                    // Fetch instruction stage for jne instruction. The fetch stage 
-                    // can be divided into 2 cycles. First cycle fetch the 
-                    // instruction. Second cycle adjust PC = PC+4. 
-        jne $BB0_2  // Do jne compare in decode stage. PC = X+4 at this stage. 
-                    // When jne immediate value is 16, PC = PC+16. It will fetch 
-                    //  X+20 which equal to label $BB0_2 instruction, ld $2, 28($sp). 
-        jmp $BB0_1 
-    $BB0_1:                                 # %if.then
-        ld  $2, 32($sp)
-        addiu   $2, $2, 1
-        st  $2, 32($sp)
-    $BB0_2:                                 # %if.end
-        ld  $2, 28($sp)
+                // Fetch instruction stage for jne instruction. The fetch stage 
+                // can be divided into 2 cycles. First cycle fetch the 
+                // instruction. Second cycle adjust PC = PC+4. 
+    jne $BB0_2  // Do jne compare in decode stage. PC = X+4 at this stage. 
+                // When jne immediate value is 16, PC = PC+16. It will fetch 
+                //  X+20 which equal to label $BB0_2 instruction, ld $2, 28($sp). 
+    jmp $BB0_1
+  $BB0_1:                                 # %if.then
+    ld  $4, 36($fp)
+    addiu $4, $4, 1
+    st  $4, 36($fp)
+  $BB0_2:                                 # %if.end
+    ld  $4, 32($fp)
 
 If cpu0 do **"jne"** compare in execution stage, then we should set PC=PC+12, 
 offset of ($BB0_2, jn e $BB02) – 8, in this example.

@@ -54,6 +54,12 @@ Revision history
 
 Version 3.3.2, Not release yet
 
+Version 3.3.2, Released September 17, 2013
+  Update example code.
+  Fix bug sext_inreg.
+  Fix llvm-objdump.cpp bug to support global variable of .data.
+  Update install.rst to run on llvm 3.3.  
+
 Version 3.3.1, Released September 14, 2013
   Add load bool type in chapter 6.
   Fix chapter 4 error.
