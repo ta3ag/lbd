@@ -158,6 +158,9 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       Ra = R[a];
       Rb = R[b];
       Rc = R[c];
+      URa = R[a];
+      URb = R[b];
+      URc = R[c];
       next_state = Execute;
     end
     Execute: begin // Tick 3 : instruction execution
