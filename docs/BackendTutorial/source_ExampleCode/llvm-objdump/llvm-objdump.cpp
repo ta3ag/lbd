@@ -1122,6 +1122,7 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
 
 static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
   error_code ec;
+  std::size_t addr, end;
   for (section_iterator si = o->begin_sections(),
                         se = o->end_sections();
                         si != se; si.increment(ec)) {
@@ -1139,7 +1140,9 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
       if (Contents.size() <= 0) {
         continue;
       }
-      for (std::size_t addr = lastAddr, end = BaseAddr; addr < end; addr += 4) {
+      // Fill /*address*/ 00 00 00 00 between lastAddr and BaseAddr
+      for (addr = lastAddr, end = BaseAddr; addr < end; addr += 4) {
+        outs() << format("/*%04" PRIx64 " */", addr);
         outs() << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) \
         << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) << '\n';
       }
@@ -1158,6 +1161,11 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
           else
             outs() << "  ";
         }
+        // save lastAddr
+        if ((BaseAddr + addr + 16) > end) 
+          lastAddr = BaseAddr + end;
+        else
+          lastAddr = BaseAddr + addr + 16;
         // Print ascii.
         outs() << "/*" << "  ";
         for (std::size_t i = 0; i < 16 && addr + i < end; ++i) {
@@ -1177,6 +1185,7 @@ static void Elf2Hex(const ObjectFile *o) {
 //  outs() << format("_start address:%08" PRIx64 "\n", startAddr);
   uint64_t lastAddr;
   DisassembleObjectForHex(o, lastAddr);
+//  outs() << format("lastAddr:%08" PRIx64 "\n", lastAddr);
   PrintDataSections(o, lastAddr);
 }
 // For cpu0 -elf2hex end:
