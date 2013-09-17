@@ -3,7 +3,7 @@
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -view-isel-dags -relocation-model=pic -filetype=asm ch7_1_1.bc -o ch7_1_1.cpu0.s
 
 /// start
-int main()
+int test_control1()
 {
   unsigned int a = 0;
   int b = 1;
@@ -14,37 +14,38 @@ int main()
   int g = 6;
   int h = 7;
   int i = 8;
+  int j = 9;
   
   if (a == 0) {
-    a++;
+    a++; // a = 1
   }
   if (b != 0) {
-    b++;
+    b++; // b = 2
   }
   if (c > 0) {
-    c++;
+    c++; // c = 3
   }
   if (d >= 0) {
-    d++;
+    d++; // d = 4
   }
   if (e < 0) {
-    e++;
+    e++; // e = 4
   }
   if (f <= 0) {
-    f++;
+    f++; // f = 5
   }
   if (g <= 1) {
-    g++;
+    g++; // g = 6
   }
   if (h >= 1) {
-    h++;
+    h++; // h = 8
   }
   if (i < h) {
-    i++;
+    i++; // i = 8
   }
   if (a != b) {
-    a++;
+    j++; // j = 10
   }
   
-  return a;
+  return (a+b+c+d+e+f+g+h+i+j); // 1+2+3+4+4+5+6+8+8+10 = 51
 }

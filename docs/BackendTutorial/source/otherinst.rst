@@ -236,21 +236,21 @@ Now, let's build Chapter4_1/ and run with input file ch4_1.cpp as follows,
   entry:
     %a = alloca i32, align 4
     %b = alloca i32, align 4
+    %a1 = alloca i32, align 4
     %c = alloca i32, align 4
     %d = alloca i32, align 4
     %e = alloca i32, align 4
     %f = alloca i32, align 4
-    %a1 = alloca i32, align 4
-    %e1 = alloca i32, align 4
+    %g = alloca i32, align 4
+    %h = alloca i32, align 4
+    %i = alloca i32, align 4
     %f1 = alloca i32, align 4
+    %g1 = alloca i32, align 4
+    %h1 = alloca i32, align 4
+    %i1 = alloca i32, align 4
     store i32 5, i32* %a, align 4
     store i32 2, i32* %b, align 4
-    store i32 0, i32* %c, align 4
-    store i32 0, i32* %d, align 4
-    store i32 0, i32* %f, align 4
     store i32 -5, i32* %a1, align 4
-    store i32 0, i32* %e1, align 4
-    store i32 0, i32* %f1, align 4
     %0 = load i32* %a, align 4
     %1 = load i32* %b, align 4
     %add = add nsw i32 %0, %1
@@ -262,34 +262,54 @@ Now, let's build Chapter4_1/ and run with input file ch4_1.cpp as follows,
     %4 = load i32* %a, align 4
     %5 = load i32* %b, align 4
     %mul = mul nsw i32 %4, %5
-    store i32 %mul, i32* %d, align 4
+    store i32 %mul, i32* %e, align 4
     %6 = load i32* %a, align 4
     %shl = shl i32 %6, 2
-    store i32 %shl, i32* %e, align 4
+    store i32 %shl, i32* %f, align 4
     %7 = load i32* %a1, align 4
-    %shl1 = shl i32 %7, 2
-    store i32 %shl1, i32* %e1, align 4
+    %shl1 = shl i32 %7, 1
+    store i32 %shl1, i32* %f1, align 4
     %8 = load i32* %a, align 4
     %shr = ashr i32 %8, 2
-    store i32 %shr, i32* %f, align 4
+    store i32 %shr, i32* %g, align 4
     %9 = load i32* %a1, align 4
-    %shr2 = lshr i32 %9, 2
-    store i32 %shr2, i32* %f1, align 4
+    %shr2 = lshr i32 %9, 30
+    store i32 %shr2, i32* %g1, align 4
     %10 = load i32* %a, align 4
     %shl3 = shl i32 1, %10
-    store i32 %shl3, i32* %e, align 4
-    %11 = load i32* %a1, align 4
+    store i32 %shl3, i32* %h, align 4
+    %11 = load i32* %b, align 4
     %shl4 = shl i32 1, %11
-    store i32 %shl4, i32* %e1, align 4
+    store i32 %shl4, i32* %h1, align 4
     %12 = load i32* %a, align 4
-    %shr5 = lshr i32 -2147483648, %12
-    store i32 %shr5, i32* %f, align 4
+    %shr5 = ashr i32 128, %12
+    store i32 %shr5, i32* %i, align 4
     %13 = load i32* %b, align 4
     %14 = load i32* %a, align 4
     %shr6 = ashr i32 %13, %14
-    store i32 %shr6, i32* %f1, align 4
+    store i32 %shr6, i32* %i1, align 4
     %15 = load i32* %c, align 4
-    ret i32 %15
+    %16 = load i32* %d, align 4
+    %add7 = add nsw i32 %15, %16
+    %17 = load i32* %e, align 4
+    %add8 = add nsw i32 %add7, %17
+    %18 = load i32* %f, align 4
+    %add9 = add nsw i32 %add8, %18
+    %19 = load i32* %f1, align 4
+    %add10 = add nsw i32 %add9, %19
+    %20 = load i32* %g, align 4
+    %add11 = add nsw i32 %add10, %20
+    %21 = load i32* %g1, align 4
+    %add12 = add nsw i32 %add11, %21
+    %22 = load i32* %h, align 4
+    %add13 = add nsw i32 %add12, %22
+    %23 = load i32* %h1, align 4
+    %add14 = add nsw i32 %add13, %23
+    %24 = load i32* %i, align 4
+    %add15 = add nsw i32 %add14, %24
+    %25 = load i32* %i1, align 4
+    %add16 = add nsw i32 %add15, %25
+    ret i32 %add16
   }
   
   118-165-78-12:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
@@ -304,72 +324,94 @@ Now, let's build Chapter4_1/ and run with input file ch4_1.cpp as follows,
 	  .ent	_Z9test_mathv           # @_Z9test_mathv
   _Z9test_mathv:
 	  .cfi_startproc
-	  .frame	$fp,40,$lr
-	  .mask 	0x00000000,0
+	  .frame	$fp,64,$lr
+	  .mask 	0x00000800,-4
 	  .set	noreorder
 	  .set	nomacro
   # BB#0:                                 # %entry
-	  addiu	$sp, $sp, -40
-  $tmp1:
-	  .cfi_def_cfa_offset 40
+	  addiu	$sp, $sp, -64
+  $tmp3:
+	  .cfi_def_cfa_offset 64
+	  st	$fp, 60($sp)            # 4-byte Folded Spill
+  $tmp4:
+	  .cfi_offset 11, -4
+	  addu	$fp, $sp, $zero
+  $tmp5:
+	  .cfi_def_cfa_register 11
 	  addiu	$2, $zero, 5
-	  st	$2, 36($fp)
+	  st	$2, 56($fp)
 	  addiu	$2, $zero, 2
-	  st	$2, 32($fp)
-	  addiu	$2, $zero, 0
-	  st	$2, 28($fp)
-	  st	$2, 24($fp)
-	  st	$2, 16($fp)
-	  addiu	$3, $zero, -5
-	  st	$3, 12($fp)
-	  st	$2, 8($fp)
-	  st	$2, 4($fp)
-	  ld	$2, 32($fp)
-	  ld	$3, 36($fp)
+	  st	$2, 52($fp)
+	  addiu	$2, $zero, -5
+	  st	$2, 48($fp)
+	  ld	$2, 52($fp)
+	  ld	$3, 56($fp)
 	  addu	$2, $3, $2
-	  st	$2, 28($fp)
-	  ld	$2, 32($fp)
-	  ld	$3, 36($fp)
+	  st	$2, 44($fp)
+	  ld	$2, 52($fp)
+	  ld	$3, 56($fp)
 	  subu	$2, $3, $2
-	  st	$2, 24($fp)
-	  ld	$2, 32($fp)
-	  ld	$3, 36($fp)
+	  st	$2, 40($fp)
+	  ld	$2, 52($fp)
+	  ld	$3, 56($fp)
 	  mul	$2, $3, $2
-	  st	$2, 24($fp)
-	  ld	$2, 36($fp)
+	  st	$2, 36($fp)
+	  ld	$2, 56($fp)
 	  shl	$2, $2, 2
-	  st	$2, 20($fp)
-	  ld	$2, 12($fp)
-	  shl	$2, $2, 2
-	  st	$2, 8($fp)
-	  ld	$2, 36($fp)
-	  sra	$2, $2, 2
+	  st	$2, 32($fp)
+	  ld	$2, 48($fp)
+	  shl	$2, $2, 1
 	  st	$2, 16($fp)
-	  ld	$2, 12($fp)
-	  shr	$2, $2, 2
-	  st	$2, 4($fp)
+	  ld	$2, 56($fp)
+	  sra	$2, $2, 2
+	  st	$2, 28($fp)
+	  ld	$2, 48($fp)
+	  shr	$2, $2, 30
+	  st	$2, 12($fp)
 	  addiu	$2, $zero, 1
-	  ld	$3, 36($fp)
+	  ld	$3, 56($fp)
 	  shlv	$3, $2, $3
-	  st	$3, 20($fp)
-	  ld	$3, 12($fp)
+	  st	$3, 24($fp)
+	  ld	$3, 52($fp)
 	  shlv	$2, $2, $3
 	  st	$2, 8($fp)
-	  lui	$2, 32768
-	  ld	$3, 36($fp)
+	  addiu	$2, $zero, 128
+	  ld	$3, 56($fp)
 	  shrv	$2, $2, $3
-	  st	$2, 16($fp)
-	  ld	$2, 36($fp)
-	  ld	$3, 32($fp)
+	  st	$2, 20($fp)
+	  ld	$2, 56($fp)
+	  ld	$3, 52($fp)
 	  srav	$2, $3, $2
 	  st	$2, 4($fp)
-	  addiu	$sp, $sp, 40
+	  ld	$3, 40($fp)
+	  ld	$4, 44($fp)
+	  addu	$3, $4, $3
+	  ld	$4, 36($fp)
+	  addu	$3, $3, $4
+	  ld	$4, 32($fp)
+	  addu	$3, $3, $4
+	  ld	$4, 16($fp)
+	  addu	$3, $3, $4
+	  ld	$4, 28($fp)
+	  addu	$3, $3, $4
+	  ld	$4, 12($fp)
+	  addu	$3, $3, $4
+	  ld	$4, 24($fp)
+	  addu	$3, $3, $4
+	  ld	$4, 8($fp)
+	  addu	$3, $3, $4
+	  ld	$4, 20($fp)
+	  addu	$3, $3, $4
+	  addu	$2, $3, $2
+	  addu	$sp, $fp, $zero
+	  ld	$fp, 60($sp)            # 4-byte Folded Reload
+	  addiu	$sp, $sp, 64
 	  ret	$lr
 	  .set	macro
 	  .set	reorder
 	  .end	_Z9test_mathv
-  $tmp2:
-	  .size	_Z9test_mathv, ($tmp2)-_Z9test_mathv
+  $tmp6:
+	  .size	_Z9test_mathv, ($tmp6)-_Z9test_mathv
 	  .cfi_endproc
 
 
@@ -478,11 +520,7 @@ corresponding llvm IR, as follows,
 
 .. code-block:: bash
 
-  ; ModuleID = 'ch4_2.bc'
-   target datalayout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-
-   f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128"
-  target triple = "i386-apple-macosx10.8.0"
-  
+  ...
   define i32 @main() nounwind ssp {
   entry:
   %retval = alloca i32, align 4
@@ -1062,7 +1100,7 @@ The code added in Chapter4_1/ as follows,
 
 IR instruction **sdiv** stand for signed div while **udiv** is for unsigned div.
 
-Run with ch4_2_2.cpp can get the "div" result for operator **“/”** but it cannot
+Run with ch4_2_2.cpp can get the "div" result for operator **“%”** but it cannot
 be compiled at this point. It need the function call argument support in Chapter
 8 of Function call. 
 If run with ch4_2_1.cpp as below, cannot get the **“div”** for operator 
@@ -1397,6 +1435,8 @@ match defined in Chapter4_1/Cpu0InstrInfo.td will translate **Cpu0ISD::DivRem**
 to **div**; and **"CopyFromReg 0x7fd25b410e18, Register %H, 0x7fd25b830910"** 
 to **mfhi**.
 
+The ch4_3.cpp is for **/** div operator test.
+
 
 Local variable pointer
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -1450,40 +1490,47 @@ will get result as follows,
   118-165-66-82:InputFiles Jonathan$ clang -c ch4_4.cpp -emit-llvm -o ch4_4.bc
   118-165-66-82:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_
   debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  ch4_4.bc -o ch4_4.cpu0.s
-  118-165-66-82:InputFiles Jonathan$ cat ch4_4.cpu0.s 
-    .section .mdebug.abi32
-    .previous
-    .file "ch4_2.bc"
-    .text
-    .globl  main
-    .align  2
-    .type main,@function
-    .ent  main            # @main
-  main:
-    .cfi_startproc
-    .frame  $sp,16,$lr
-    .mask 0x00000000,0
-    .set  noreorder
-    .set  nomacro
-  # BB#0:
-    addiu $sp, $sp, -16
-  $tmp1:
-    .cfi_def_cfa_offset 16
-    addiu $2, $zero, 0
-    st  $2, 12($sp)
-    addiu $2, $zero, 3
-    st  $2, 8($sp)
-    addiu $2, $sp, 8
-    st  $2, 0($sp)
-    addiu $sp, $sp, 16
-    ret $lr
-    .set  macro
-    .set  reorder
-    .end  main
-  $tmp2:
-    .size main, ($tmp2)-main
-    .cfi_endproc
+    ch4_4.bc -o ch4_4.cpu0.s
+    118-165-66-82:InputFiles Jonathan$ cat ch4_4.cpu0.s 
+	  .section .mdebug.abi32
+	  .previous
+	  .file	"ch4_4.bc"
+	  .text
+	  .globl	_Z18test_local_pointerv
+	  .align	2
+	  .type	_Z18test_local_pointerv,@function
+	  .ent	_Z18test_local_pointerv # @_Z18test_local_pointerv
+  _Z18test_local_pointerv:
+	  .cfi_startproc
+	  .frame	$fp,16,$lr
+	  .mask 	0x00000800,-4
+	  .set	noreorder
+	  .set	nomacro
+  # BB#0:                                 # %entry
+	  addiu	$sp, $sp, -16
+  $tmp3:
+	  .cfi_def_cfa_offset 16
+	  st	$fp, 12($sp)            # 4-byte Folded Spill
+  $tmp4:
+	  .cfi_offset 11, -4
+	  addu	$fp, $sp, $zero
+  $tmp5:
+	  .cfi_def_cfa_register 11
+	  addiu	$2, $zero, 3
+	  st	$2, 8($fp)
+	  addiu	$2, $fp, 8
+	  st	$2, 0($fp)
+	  ld	$2, 8($fp)
+	  addu	$sp, $fp, $zero
+	  ld	$fp, 12($sp)            # 4-byte Folded Reload
+	  addiu	$sp, $sp, 16
+	  ret	$lr
+	  .set	macro
+	  .set	reorder
+	  .end	_Z18test_local_pointerv
+  $tmp6:
+	  .size	_Z18test_local_pointerv, ($tmp6)-_Z18test_local_pointerv
+	  .cfi_endproc
 
 
 Logic
@@ -1597,7 +1644,7 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   114-43-204-152:InputFiles Jonathan$ clang -c ch4_5.cpp -emit-llvm -o ch4_5.bc
   114-43-204-152:InputFiles Jonathan$ llvm-dis ch4_5.bc -o -
   ...
-  ; Function Attrs: nounwind ssp uwtable
+  ; Function Attrs: nounwind uwtable
   define i32 @_Z16test_andorxornotv() #0 {
   entry:
     %a = alloca i32, align 4
@@ -1627,177 +1674,219 @@ run result of bc and asm instructions for ch4_5.cpp as below.
     %lnot = xor i1 %tobool, true
     %conv = zext i1 %lnot to i32
     store i32 %conv, i32* %b, align 4
-    %7 = load i32* %b, align 4
-    ret i32 %7
+    %7 = load i32* %c, align 4
+    %8 = load i32* %d, align 4
+    %add = add nsw i32 %7, %8
+    %9 = load i32* %e, align 4
+    %add1 = add nsw i32 %add, %9
+    %10 = load i32* %b, align 4
+    %add2 = add nsw i32 %add1, %10
+    ret i32 %add2
   }
-  
-  ; Function Attrs: nounwind ssp uwtable
+
+  ; Function Attrs: nounwind uwtable
   define i32 @_Z10test_setxxv() #0 {
   entry:
     %a = alloca i32, align 4
     %b = alloca i32, align 4
+    %c = alloca i32, align 4
+    %d = alloca i32, align 4
+    %e = alloca i32, align 4
+    %f = alloca i32, align 4
+    %g = alloca i32, align 4
+    %h = alloca i32, align 4
     store i32 5, i32* %a, align 4
     store i32 3, i32* %b, align 4
     %0 = load i32* %a, align 4
     %1 = load i32* %b, align 4
     %cmp = icmp eq i32 %0, %1
     %conv = zext i1 %cmp to i32
-    store i32 %conv, i32* %b, align 4
+    store i32 %conv, i32* %c, align 4
     %2 = load i32* %a, align 4
     %3 = load i32* %b, align 4
     %cmp1 = icmp ne i32 %2, %3
     %conv2 = zext i1 %cmp1 to i32
-    store i32 %conv2, i32* %b, align 4
+    store i32 %conv2, i32* %d, align 4
     %4 = load i32* %a, align 4
     %5 = load i32* %b, align 4
     %cmp3 = icmp slt i32 %4, %5
     %conv4 = zext i1 %cmp3 to i32
-    store i32 %conv4, i32* %b, align 4
+    store i32 %conv4, i32* %e, align 4
     %6 = load i32* %a, align 4
     %7 = load i32* %b, align 4
     %cmp5 = icmp sle i32 %6, %7
     %conv6 = zext i1 %cmp5 to i32
-    store i32 %conv6, i32* %b, align 4
+    store i32 %conv6, i32* %f, align 4
     %8 = load i32* %a, align 4
     %9 = load i32* %b, align 4
     %cmp7 = icmp sgt i32 %8, %9
     %conv8 = zext i1 %cmp7 to i32
-    store i32 %conv8, i32* %b, align 4
+    store i32 %conv8, i32* %g, align 4
     %10 = load i32* %a, align 4
     %11 = load i32* %b, align 4
     %cmp9 = icmp sge i32 %10, %11
     %conv10 = zext i1 %cmp9 to i32
-    store i32 %conv10, i32* %b, align 4
-    %12 = load i32* %b, align 4
-    ret i32 %12
+    store i32 %conv10, i32* %h, align 4
+    %12 = load i32* %c, align 4
+    %13 = load i32* %d, align 4
+    %add = add nsw i32 %12, %13
+    %14 = load i32* %e, align 4
+    %add11 = add nsw i32 %add, %14
+    %15 = load i32* %f, align 4
+    %add12 = add nsw i32 %add11, %15
+    %16 = load i32* %g, align 4
+    %add13 = add nsw i32 %add12, %16
+    %17 = load i32* %h, align 4
+    %add14 = add nsw i32 %add13, %17
+    ret i32 %add14
   }
   
   114-43-204-152:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_5.bc -o -
-    .section .mdebug.abi32
-    .previous
-    .file "ch4_5.bc"
-    .text
-    .globl  _Z16test_andorxornotv
-    .align  2
-    .type _Z16test_andorxornotv,@function
-    .ent  _Z16test_andorxornotv   # @_Z16test_andorxornotv
+	  .section .mdebug.abi32
+	  .previous
+	  .file	"ch4_5.bc"
+	  .text
+	  .globl	_Z16test_andorxornotv
+	  .align	2
+	  .type	_Z16test_andorxornotv,@function
+	  .ent	_Z16test_andorxornotv   # @_Z16test_andorxornotv
   _Z16test_andorxornotv:
-    .cfi_startproc
-    .frame  $fp,24,$lr
-    .mask   0x00000800,-4
-    .set  noreorder
-    .set  nomacro
+	  .cfi_startproc
+	  .frame	$fp,24,$lr
+	  .mask 	0x00000800,-4
+	  .set	noreorder
+	  .set	nomacro
   # BB#0:                                 # %entry
-    addiu $sp, $sp, -24
+	  addiu	$sp, $sp, -24
   $tmp3:
-    .cfi_def_cfa_offset 24
-    st  $fp, 20($sp)            # 4-byte Folded Spill
+	  .cfi_def_cfa_offset 24
+	  st	$fp, 20($sp)            # 4-byte Folded Spill
   $tmp4:
-    .cfi_offset 11, -4
-    addu  $fp, $sp, $zero
+	  .cfi_offset 11, -4
+	  addu	$fp, $sp, $zero
   $tmp5:
-    .cfi_def_cfa_register 11
-    addiu $2, $zero, 5
-    st  $2, 16($fp)
-    addiu $2, $zero, 3
-    st  $2, 12($fp)
-    addiu $2, $zero, 0
-    st  $2, 8($fp)
-    st  $2, 4($fp)
-    st  $2, 0($fp)
-    ld  $3, 12($fp)
-    ld  $4, 16($fp)
-    and $3, $4, $3
-    st  $3, 8($fp)
-    ld  $3, 12($fp)
-    ld  $4, 16($fp)
-    or  $3, $4, $3
-    st  $3, 4($fp)
-    ld  $3, 12($fp)
-    ld  $4, 16($fp)
-    xor $3, $4, $3
-    st  $3, 0($fp)
-    ld  $3, 16($fp)
-    cmp $sw, $3, $2
-    andi  $2, $sw, 2
-    shr $2, $2, 1
-    st  $2, 12($fp)
-    addu  $sp, $fp, $zero
-    ld  $fp, 20($sp)            # 4-byte Folded Reload
-    addiu $sp, $sp, 24
-    ret $lr
-    .set  macro
-    .set  reorder
-    .end  _Z16test_andorxornotv
+	  .cfi_def_cfa_register 11
+	  addiu	$2, $zero, 5
+	  st	$2, 16($fp)
+	  addiu	$2, $zero, 3
+	  st	$2, 12($fp)
+	  addiu	$2, $zero, 0
+	  st	$2, 8($fp)
+	  st	$2, 4($fp)
+	  st	$2, 0($fp)
+	  ld	$3, 12($fp)
+	  ld	$4, 16($fp)
+	  and	$3, $4, $3
+	  st	$3, 8($fp)
+	  ld	$3, 12($fp)
+	  ld	$4, 16($fp)
+	  or	$3, $4, $3
+	  st	$3, 4($fp)
+	  ld	$3, 12($fp)
+	  ld	$4, 16($fp)
+	  xor	$3, $4, $3
+	  st	$3, 0($fp)
+	  ld	$3, 16($fp)
+	  cmp	$sw, $3, $2
+	  andi	$2, $sw, 2
+	  shr	$2, $2, 1
+	  st	$2, 12($fp)
+	  ld	$3, 4($fp)
+	  ld	$4, 8($fp)
+	  addu	$3, $4, $3
+	  ld	$4, 0($fp)
+	  addu	$3, $3, $4
+	  addu	$2, $3, $2
+	  addu	$sp, $fp, $zero
+	  ld	$fp, 20($sp)            # 4-byte Folded Reload
+	  addiu	$sp, $sp, 24
+	  ret	$lr
+	  .set	macro
+	  .set	reorder
+	  .end	_Z16test_andorxornotv
   $tmp6:
-    .size _Z16test_andorxornotv, ($tmp6)-_Z16test_andorxornotv
-    .cfi_endproc
-  
-    .globl  _Z10test_setxxv
-    .align  2
-    .type _Z10test_setxxv,@function
-    .ent  _Z10test_setxxv         # @_Z10test_setxxv
-  _Z10test_setxxv:
-    .cfi_startproc
-    .frame  $fp,16,$lr
-    .mask   0x00000800,-4
-    .set  noreorder
-    .set  nomacro
-  # BB#0:                                 # %entry
-    addiu $sp, $sp, -16
-  $tmp10:
-    .cfi_def_cfa_offset 16
-    st  $fp, 12($sp)            # 4-byte Folded Spill
-  $tmp11:
-    .cfi_offset 11, -4
-    addu  $fp, $sp, $zero
-  $tmp12:
-    .cfi_def_cfa_register 11
-    addiu $2, $zero, 5
-    st  $2, 8($fp)
-    addiu $2, $zero, 3
-    st  $2, 4($fp)
-    ld  $3, 8($fp)
-    cmp $sw, $3, $2
-    andi  $2, $sw, 2
-    shr $2, $2, 1
-    st  $2, 4($fp)
-    ld  $3, 8($fp)
-    cmp $sw, $3, $2
-    andi  $2, $sw, 2
-    shr $2, $2, 1
-    xori  $2, $2, 1
-    st  $2, 4($fp)
-    ld  $3, 8($fp)
-    cmp $sw, $3, $2
-    andi  $2, $sw, 1
-    st  $2, 4($fp)
-    ld  $3, 8($fp)
-    cmp $sw, $2, $3
-    andi  $2, $sw, 1
-    xori  $2, $2, 1
-    st  $2, 4($fp)
-    ld  $3, 8($fp)
-    cmp $sw, $2, $3
-    andi  $2, $sw, 1
-    st  $2, 4($fp)
-    ld  $3, 8($fp)
-    cmp $sw, $3, $2
-    andi  $2, $sw, 1
-    xori  $2, $2, 1
-    st  $2, 4($fp)
-    addu  $sp, $fp, $zero
-    ld  $fp, 12($sp)            # 4-byte Folded Reload
-    addiu $sp, $sp, 16
-    ret $lr
-    .set  macro
-    .set  reorder
-    .end  _Z10test_setxxv
-  $tmp13:
-    .size _Z10test_setxxv, ($tmp13)-_Z10test_setxxv
-    .cfi_endproc
+	  .size	_Z16test_andorxornotv, ($tmp6)-_Z16test_andorxornotv
+	  .cfi_endproc
 
+	  .globl	_Z10test_setxxv
+	  .align	2
+	  .type	_Z10test_setxxv,@function
+	  .ent	_Z10test_setxxv         # @_Z10test_setxxv
+  _Z10test_setxxv:
+	  .cfi_startproc
+	  .frame	$fp,40,$lr
+	  .mask 	0x00000800,-4
+	  .set	noreorder
+	  .set	nomacro
+  # BB#0:                                 # %entry
+	  addiu	$sp, $sp, -40
+  $tmp10:
+	  .cfi_def_cfa_offset 40
+	  st	$fp, 36($sp)            # 4-byte Folded Spill
+  $tmp11:
+	  .cfi_offset 11, -4
+	  addu	$fp, $sp, $zero
+  $tmp12:
+	  .cfi_def_cfa_register 11
+	  addiu	$2, $zero, 5
+	  st	$2, 32($fp)
+	  addiu	$2, $zero, 3
+	  st	$2, 28($fp)
+	  ld	$3, 32($fp)
+	  cmp	$sw, $3, $2
+	  andi	$2, $sw, 2
+	  shr	$2, $2, 1
+	  st	$2, 24($fp)
+	  ld	$2, 28($fp)
+	  ld	$3, 32($fp)
+	  cmp	$sw, $3, $2
+	  andi	$2, $sw, 2
+	  shr	$2, $2, 1
+	  xori	$2, $2, 1
+	  st	$2, 20($fp)
+	  ld	$2, 28($fp)
+	  ld	$3, 32($fp)
+	  cmp	$sw, $3, $2
+	  andi	$2, $sw, 1
+	  st	$2, 16($fp)
+	  ld	$2, 32($fp)
+	  ld	$3, 28($fp)
+	  cmp	$sw, $3, $2
+	  andi	$2, $sw, 1
+	  xori	$2, $2, 1
+	  st	$2, 12($fp)
+	  ld	$2, 32($fp)
+	  ld	$3, 28($fp)
+	  cmp	$sw, $3, $2
+	  andi	$2, $sw, 1
+	  st	$2, 8($fp)
+	  ld	$2, 28($fp)
+	  ld	$3, 32($fp)
+	  cmp	$sw, $3, $2
+	  andi	$2, $sw, 1
+	  xori	$2, $2, 1
+	  st	$2, 4($fp)
+	  ld	$3, 20($fp)
+	  ld	$4, 24($fp)
+	  addu	$3, $4, $3
+	  ld	$4, 16($fp)
+	  addu	$3, $3, $4
+	  ld	$4, 12($fp)
+	  addu	$3, $3, $4
+	  ld	$4, 8($fp)
+	  addu	$3, $3, $4
+	  addu	$2, $3, $2
+	  addu	$sp, $fp, $zero
+	  ld	$fp, 36($sp)            # 4-byte Folded Reload
+	  addiu	$sp, $sp, 40
+	  ret	$lr
+	  .set	macro
+	  .set	reorder
+	  .end	_Z10test_setxxv
+  $tmp13:
+	  .size	_Z10test_setxxv, ($tmp13)-_Z10test_setxxv
+	  .cfi_endproc
 
 
 .. table:: Logic operators
