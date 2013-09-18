@@ -1,6 +1,6 @@
 diff -Naur Chapter6_2/Cpu0InstrInfo.td Chapter6_3/Cpu0InstrInfo.td
---- Chapter6_2/Cpu0InstrInfo.td	2013-09-18 09:17:03.481527498 +0800
-+++ Chapter6_3/Cpu0InstrInfo.td	2013-09-18 09:17:03.485527498 +0800
+--- Chapter6_2/Cpu0InstrInfo.td	2013-09-18 14:25:59.841525286 +0800
++++ Chapter6_3/Cpu0InstrInfo.td	2013-09-18 14:25:59.841525286 +0800
 @@ -133,7 +133,11 @@
  }]>;
  
@@ -34,12 +34,12 @@ diff -Naur Chapter6_2/Cpu0InstrInfo.td Chapter6_3/Cpu0InstrInfo.td
 +def : Pat<(i32 (extloadi8  addr:$src)), (LBu addr:$src)>;
 +def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
 +
- // Sign Extend in Register. 
- // Get the least 7bits from register $in and signed bit (the 31th bit) from the 
- // 8th bit of register $in.
+ // setcc patterns
+ multiclass SeteqPats<RegisterClass RC> {
+ // a == b
 diff -Naur Chapter6_2/Cpu0ISelLowering.cpp Chapter6_3/Cpu0ISelLowering.cpp
---- Chapter6_2/Cpu0ISelLowering.cpp	2013-09-18 09:17:03.481527498 +0800
-+++ Chapter6_3/Cpu0ISelLowering.cpp	2013-09-18 09:17:03.481527498 +0800
+--- Chapter6_2/Cpu0ISelLowering.cpp	2013-09-18 14:25:59.841525286 +0800
++++ Chapter6_3/Cpu0ISelLowering.cpp	2013-09-18 14:25:59.841525286 +0800
 @@ -122,6 +122,16 @@
    // Set up the register classes
    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);

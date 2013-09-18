@@ -1,6 +1,6 @@
 diff -Naur Chapter3_4/Cpu0InstrInfo.cpp Chapter4_1/Cpu0InstrInfo.cpp
---- Chapter3_4/Cpu0InstrInfo.cpp	2013-09-18 09:17:03.481527498 +0800
-+++ Chapter4_1/Cpu0InstrInfo.cpp	2013-09-18 09:17:03.477527498 +0800
+--- Chapter3_4/Cpu0InstrInfo.cpp	2013-09-18 14:25:59.841525286 +0800
++++ Chapter4_1/Cpu0InstrInfo.cpp	2013-09-18 14:25:59.837525286 +0800
 @@ -28,6 +28,43 @@
    return RI;
  }
@@ -46,8 +46,8 @@ diff -Naur Chapter3_4/Cpu0InstrInfo.cpp Chapter4_1/Cpu0InstrInfo.cpp
  Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
                                          uint64_t Offset, const MDNode *MDPtr,
 diff -Naur Chapter3_4/Cpu0InstrInfo.h Chapter4_1/Cpu0InstrInfo.h
---- Chapter3_4/Cpu0InstrInfo.h	2013-09-18 09:17:03.481527498 +0800
-+++ Chapter4_1/Cpu0InstrInfo.h	2013-09-18 09:17:03.477527498 +0800
+--- Chapter3_4/Cpu0InstrInfo.h	2013-09-18 14:25:59.841525286 +0800
++++ Chapter4_1/Cpu0InstrInfo.h	2013-09-18 14:25:59.837525286 +0800
 @@ -36,6 +36,11 @@
    ///
    virtual const Cpu0RegisterInfo &getRegisterInfo() const;
@@ -61,8 +61,8 @@ diff -Naur Chapter3_4/Cpu0InstrInfo.h Chapter4_1/Cpu0InstrInfo.h
    virtual MachineInstr* emitFrameIndexDebugValue(MachineFunction &MF,
                                                   int FrameIx, uint64_t Offset,
 diff -Naur Chapter3_4/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
---- Chapter3_4/Cpu0InstrInfo.td	2013-09-18 09:17:03.481527498 +0800
-+++ Chapter4_1/Cpu0InstrInfo.td	2013-09-18 09:17:03.477527498 +0800
+--- Chapter3_4/Cpu0InstrInfo.td	2013-09-18 14:25:59.841525286 +0800
++++ Chapter4_1/Cpu0InstrInfo.td	2013-09-18 14:25:59.837525286 +0800
 @@ -22,11 +22,20 @@
  //===----------------------------------------------------------------------===//
  
@@ -223,8 +223,8 @@ diff -Naur Chapter3_4/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
  //  Arbitrary patterns that map to one or more instructions
  //===----------------------------------------------------------------------===//
 diff -Naur Chapter3_4/Cpu0ISelDAGToDAG.cpp Chapter4_1/Cpu0ISelDAGToDAG.cpp
---- Chapter3_4/Cpu0ISelDAGToDAG.cpp	2013-09-18 09:17:03.481527498 +0800
-+++ Chapter4_1/Cpu0ISelDAGToDAG.cpp	2013-09-18 09:17:03.477527498 +0800
+--- Chapter3_4/Cpu0ISelDAGToDAG.cpp	2013-09-18 14:25:59.841525286 +0800
++++ Chapter4_1/Cpu0ISelDAGToDAG.cpp	2013-09-18 14:25:59.837525286 +0800
 @@ -84,6 +84,9 @@
  
    SDNode *getGlobalBaseReg();
@@ -288,8 +288,8 @@ diff -Naur Chapter3_4/Cpu0ISelDAGToDAG.cpp Chapter4_1/Cpu0ISelDAGToDAG.cpp
      const ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Node);
      unsigned Size = CN->getValueSizeInBits(0);
 diff -Naur Chapter3_4/Cpu0ISelLowering.cpp Chapter4_1/Cpu0ISelLowering.cpp
---- Chapter3_4/Cpu0ISelLowering.cpp	2013-09-18 09:17:03.481527498 +0800
-+++ Chapter4_1/Cpu0ISelLowering.cpp	2013-09-18 09:17:03.477527498 +0800
+--- Chapter3_4/Cpu0ISelLowering.cpp	2013-09-18 14:25:59.841525286 +0800
++++ Chapter4_1/Cpu0ISelLowering.cpp	2013-09-18 14:25:59.837525286 +0800
 @@ -43,6 +43,14 @@
    // Set up the register classes
    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
@@ -365,8 +365,8 @@ diff -Naur Chapter3_4/Cpu0ISelLowering.cpp Chapter4_1/Cpu0ISelLowering.cpp
  
  /// LowerFormalArguments - transform physical registers into virtual registers
 diff -Naur Chapter3_4/Cpu0ISelLowering.h Chapter4_1/Cpu0ISelLowering.h
---- Chapter3_4/Cpu0ISelLowering.h	2013-09-18 09:17:03.481527498 +0800
-+++ Chapter4_1/Cpu0ISelLowering.h	2013-09-18 09:17:03.477527498 +0800
+--- Chapter3_4/Cpu0ISelLowering.h	2013-09-18 14:25:59.841525286 +0800
++++ Chapter4_1/Cpu0ISelLowering.h	2013-09-18 14:25:59.837525286 +0800
 @@ -25,7 +25,10 @@
      enum NodeType {
        // Start the numbering from where ISD NodeType finishes.
@@ -389,8 +389,8 @@ diff -Naur Chapter3_4/Cpu0ISelLowering.h Chapter4_1/Cpu0ISelLowering.h
      // Subtarget Info
      const Cpu0Subtarget *Subtarget;
 diff -Naur Chapter3_4/Cpu0RegisterInfo.td Chapter4_1/Cpu0RegisterInfo.td
---- Chapter3_4/Cpu0RegisterInfo.td	2013-09-18 09:17:03.481527498 +0800
-+++ Chapter4_1/Cpu0RegisterInfo.td	2013-09-18 09:17:03.477527498 +0800
+--- Chapter3_4/Cpu0RegisterInfo.td	2013-09-18 14:25:59.841525286 +0800
++++ Chapter4_1/Cpu0RegisterInfo.td	2013-09-18 14:25:59.837525286 +0800
 @@ -47,6 +47,10 @@
    def PC   : Cpu0GPRReg< 15, "pc">,   DwarfRegNum<[15]>;
  //  def MAR  : Register< 16, "mar">,  DwarfRegNum<[16]>;
@@ -410,8 +410,8 @@ diff -Naur Chapter3_4/Cpu0RegisterInfo.td Chapter4_1/Cpu0RegisterInfo.td
 +// Hi/Lo Registers
 +def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
 diff -Naur Chapter3_4/Cpu0Schedule.td Chapter4_1/Cpu0Schedule.td
---- Chapter3_4/Cpu0Schedule.td	2013-09-18 09:17:03.481527498 +0800
-+++ Chapter4_1/Cpu0Schedule.td	2013-09-18 09:17:03.477527498 +0800
+--- Chapter3_4/Cpu0Schedule.td	2013-09-18 14:25:59.841525286 +0800
++++ Chapter4_1/Cpu0Schedule.td	2013-09-18 14:25:59.837525286 +0800
 @@ -11,6 +11,7 @@
  // Functional units across Cpu0 chips sets. Based on GCC/Cpu0 backend files.
  //===----------------------------------------------------------------------===//
@@ -446,8 +446,8 @@ diff -Naur Chapter3_4/Cpu0Schedule.td Chapter4_1/Cpu0Schedule.td
 +  InstrItinData<IIIdiv             , [InstrStage<38, [IMULDIV]>]>
  ]>;
 diff -Naur Chapter3_4/InstPrinter/Cpu0InstPrinter.cpp Chapter4_1/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter3_4/InstPrinter/Cpu0InstPrinter.cpp	2013-09-18 09:17:03.481527498 +0800
-+++ Chapter4_1/InstPrinter/Cpu0InstPrinter.cpp	2013-09-18 09:17:03.477527498 +0800
+--- Chapter3_4/InstPrinter/Cpu0InstPrinter.cpp	2013-09-18 14:25:59.841525286 +0800
++++ Chapter4_1/InstPrinter/Cpu0InstPrinter.cpp	2013-09-18 14:25:59.837525286 +0800
 @@ -110,3 +110,13 @@
    O << ")";
  }
@@ -463,8 +463,8 @@ diff -Naur Chapter3_4/InstPrinter/Cpu0InstPrinter.cpp Chapter4_1/InstPrinter/Cpu
 +}
 +
 diff -Naur Chapter3_4/InstPrinter/Cpu0InstPrinter.h Chapter4_1/InstPrinter/Cpu0InstPrinter.h
---- Chapter3_4/InstPrinter/Cpu0InstPrinter.h	2013-09-18 09:17:03.481527498 +0800
-+++ Chapter4_1/InstPrinter/Cpu0InstPrinter.h	2013-09-18 09:17:03.477527498 +0800
+--- Chapter3_4/InstPrinter/Cpu0InstPrinter.h	2013-09-18 14:25:59.841525286 +0800
++++ Chapter4_1/InstPrinter/Cpu0InstPrinter.h	2013-09-18 14:25:59.837525286 +0800
 @@ -39,6 +39,7 @@
    void printOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
    void printUnsignedImm(const MCInst *MI, int opNum, raw_ostream &O);

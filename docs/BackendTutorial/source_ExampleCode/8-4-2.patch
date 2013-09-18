@@ -1,6 +1,6 @@
 diff -Naur Chapter8_4/Cpu0InstrInfo.cpp Chapter8_4_2/Cpu0InstrInfo.cpp
---- Chapter8_4/Cpu0InstrInfo.cpp	2013-09-18 09:17:03.465527498 +0800
-+++ Chapter8_4_2/Cpu0InstrInfo.cpp	2013-09-18 09:17:03.477527498 +0800
+--- Chapter8_4/Cpu0InstrInfo.cpp	2013-09-18 14:25:59.825525286 +0800
++++ Chapter8_4_2/Cpu0InstrInfo.cpp	2013-09-18 14:25:59.837525286 +0800
 @@ -46,6 +46,8 @@
        Opc = Cpu0::MFLO, SrcReg = 0;
      else if (SrcReg == Cpu0::SW)	// add $ra, $ZERO, $SW
@@ -20,8 +20,8 @@ diff -Naur Chapter8_4/Cpu0InstrInfo.cpp Chapter8_4_2/Cpu0InstrInfo.cpp
  
    assert(Opc && "Cannot copy registers");
 diff -Naur Chapter8_4/Cpu0InstrInfo.td Chapter8_4_2/Cpu0InstrInfo.td
---- Chapter8_4/Cpu0InstrInfo.td	2013-09-18 09:17:03.461527498 +0800
-+++ Chapter8_4_2/Cpu0InstrInfo.td	2013-09-18 09:17:03.477527498 +0800
+--- Chapter8_4/Cpu0InstrInfo.td	2013-09-18 14:25:59.825525286 +0800
++++ Chapter8_4_2/Cpu0InstrInfo.td	2013-09-18 14:25:59.833525286 +0800
 @@ -376,6 +376,36 @@
    let neverHasSideEffects = 1;
  }
@@ -70,9 +70,9 @@ diff -Naur Chapter8_4/Cpu0InstrInfo.td Chapter8_4_2/Cpu0InstrInfo.td
  /// Shift Instructions
  // sra is IR node for ashr llvm IR instruction of .bc
  def ROL     : shift_rotate_imm32<0x1b, 0x01, "rol", rotl>;
-@@ -546,6 +580,12 @@
- def : Pat<(sext_inreg CPURegs:$in, i8),
-           (OR (SHL (ANDi CPURegs:$in, 0x8000), 16), (ANDi CPURegs:$in, 0x7fff))>;
+@@ -536,6 +570,12 @@
+ def : Pat<(i32 (extloadi8  addr:$src)), (LBu addr:$src)>;
+ def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
  
 +def : Pat<(add RACC:$lhs, CPURegs:$rhs),
 +          (ADD RACC:$lhs, CPURegs:$rhs)>;
@@ -84,8 +84,8 @@ diff -Naur Chapter8_4/Cpu0InstrInfo.td Chapter8_4_2/Cpu0InstrInfo.td
  multiclass BrcondPats<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
  Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp, 
 diff -Naur Chapter8_4/Cpu0RegisterInfo.td Chapter8_4_2/Cpu0RegisterInfo.td
---- Chapter8_4/Cpu0RegisterInfo.td	2013-09-18 09:17:03.461527498 +0800
-+++ Chapter8_4_2/Cpu0RegisterInfo.td	2013-09-18 09:17:03.477527498 +0800
+--- Chapter8_4/Cpu0RegisterInfo.td	2013-09-18 14:25:59.825525286 +0800
++++ Chapter8_4_2/Cpu0RegisterInfo.td	2013-09-18 14:25:59.837525286 +0800
 @@ -51,6 +51,8 @@
    // Hi/Lo registers
    def HI   : Register<"hi">, DwarfRegNum<[18]>;

@@ -570,16 +570,6 @@ def : Pat<(i32 (extloadi1  addr:$src)), (LBu addr:$src)>;
 def : Pat<(i32 (extloadi8  addr:$src)), (LBu addr:$src)>;
 def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
 
-// Sign Extend in Register. 
-// Get the least 7bits from register $in and signed bit (the 31th bit) from the 
-// 8th bit of register $in.
-def : Pat<(sext_inreg CPURegs:$in, i8),
-          (OR (SHL (ANDi CPURegs:$in, 0x0080), 16), (ANDi CPURegs:$in, 0x007f))>;
-// Get the least 15bits from register $in and signed bit (the 31th bit) from the 
-// 16th bit of register $in.
-def : Pat<(sext_inreg CPURegs:$in, i8),
-          (OR (SHL (ANDi CPURegs:$in, 0x8000), 16), (ANDi CPURegs:$in, 0x7fff))>;
-
 def : Pat<(add RACC:$lhs, CPURegs:$rhs),
           (ADD RACC:$lhs, CPURegs:$rhs)>;
 

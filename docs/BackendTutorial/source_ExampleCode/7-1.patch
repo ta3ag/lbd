@@ -1,6 +1,6 @@
 diff -Naur Chapter6_3/Cpu0InstrInfo.cpp Chapter7_1/Cpu0InstrInfo.cpp
---- Chapter6_3/Cpu0InstrInfo.cpp	2013-09-18 09:17:03.485527498 +0800
-+++ Chapter7_1/Cpu0InstrInfo.cpp	2013-09-18 09:17:03.481527498 +0800
+--- Chapter6_3/Cpu0InstrInfo.cpp	2013-09-18 14:25:59.841525286 +0800
++++ Chapter7_1/Cpu0InstrInfo.cpp	2013-09-18 14:25:59.841525286 +0800
 @@ -43,12 +43,18 @@
        Opc = Cpu0::MFHI, SrcReg = 0;
      else if (SrcReg == Cpu0::LO)
@@ -21,8 +21,8 @@ diff -Naur Chapter6_3/Cpu0InstrInfo.cpp Chapter7_1/Cpu0InstrInfo.cpp
  
    assert(Opc && "Cannot copy registers");
 diff -Naur Chapter6_3/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
---- Chapter6_3/Cpu0InstrInfo.td	2013-09-18 09:17:03.485527498 +0800
-+++ Chapter7_1/Cpu0InstrInfo.td	2013-09-18 09:17:03.481527498 +0800
+--- Chapter6_3/Cpu0InstrInfo.td	2013-09-18 14:25:59.841525286 +0800
++++ Chapter7_1/Cpu0InstrInfo.td	2013-09-18 14:25:59.841525286 +0800
 @@ -52,6 +52,12 @@
  //===----------------------------------------------------------------------===//
  // Cpu0 Operand, Complex Patterns and Transformations Definitions.
@@ -84,9 +84,9 @@ diff -Naur Chapter6_3/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
  let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
      isBarrier=1, hasCtrlDep=1 in
    def RET : FJ <0x2c, (outs), (ins CPURegs:$target),
-@@ -419,6 +459,41 @@
- def : Pat<(sext_inreg CPURegs:$in, i8),
-           (OR (SHL (ANDi CPURegs:$in, 0x8000), 16), (ANDi CPURegs:$in, 0x7fff))>;
+@@ -409,6 +449,41 @@
+ def : Pat<(i32 (extloadi8  addr:$src)), (LBu addr:$src)>;
+ def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
  
 +// brcond patterns
 +multiclass BrcondPats<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
@@ -127,9 +127,9 @@ diff -Naur Chapter6_3/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
  multiclass SeteqPats<RegisterClass RC> {
  // a == b
 diff -Naur Chapter6_3/Cpu0ISelLowering.cpp Chapter7_1/Cpu0ISelLowering.cpp
---- Chapter6_3/Cpu0ISelLowering.cpp	2013-09-18 09:17:03.481527498 +0800
-+++ Chapter7_1/Cpu0ISelLowering.cpp	2013-09-18 09:17:03.481527498 +0800
-@@ -132,14 +132,24 @@
+--- Chapter6_3/Cpu0ISelLowering.cpp	2013-09-18 14:25:59.841525286 +0800
++++ Chapter7_1/Cpu0ISelLowering.cpp	2013-09-18 14:25:59.841525286 +0800
+@@ -132,8 +132,15 @@
    setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
    setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
  
@@ -141,11 +141,11 @@ diff -Naur Chapter6_3/Cpu0ISelLowering.cpp Chapter7_1/Cpu0ISelLowering.cpp
 +
    // Cpu0 Custom Operations
    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
--
 +  setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
-+  
-   setOperationAction(ISD::SDIV, MVT::i32, Expand);
-   setOperationAction(ISD::SREM, MVT::i32, Expand);
+ 
+   // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
+   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
+@@ -143,6 +150,9 @@
    setOperationAction(ISD::UDIV, MVT::i32, Expand);
    setOperationAction(ISD::UREM, MVT::i32, Expand);
  
@@ -155,7 +155,7 @@ diff -Naur Chapter6_3/Cpu0ISelLowering.cpp Chapter7_1/Cpu0ISelLowering.cpp
    setTargetDAGCombine(ISD::SDIVREM);
    setTargetDAGCombine(ISD::UDIVREM);
  
-@@ -209,6 +219,7 @@
+@@ -212,6 +222,7 @@
  {
    switch (Op.getOpcode())
    {
@@ -163,7 +163,7 @@ diff -Naur Chapter6_3/Cpu0ISelLowering.cpp Chapter7_1/Cpu0ISelLowering.cpp
      case ISD::GlobalAddress:      return LowerGlobalAddress(Op, DAG);
    }
    return SDValue();
-@@ -221,6 +232,11 @@
+@@ -224,6 +235,11 @@
  //===----------------------------------------------------------------------===//
  //  Misc Lower Operation implementation
  //===----------------------------------------------------------------------===//
@@ -175,7 +175,7 @@ diff -Naur Chapter6_3/Cpu0ISelLowering.cpp Chapter7_1/Cpu0ISelLowering.cpp
  
  SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
                                                 SelectionDAG &DAG) const {
-@@ -263,6 +279,12 @@
+@@ -266,6 +282,12 @@
  
  #include "Cpu0GenCallingConv.inc"
  
@@ -189,8 +189,8 @@ diff -Naur Chapter6_3/Cpu0ISelLowering.cpp Chapter7_1/Cpu0ISelLowering.cpp
  /// and generate load operations for arguments places on the stack.
  SDValue
 diff -Naur Chapter6_3/Cpu0ISelLowering.h Chapter7_1/Cpu0ISelLowering.h
---- Chapter6_3/Cpu0ISelLowering.h	2013-09-18 09:17:03.485527498 +0800
-+++ Chapter7_1/Cpu0ISelLowering.h	2013-09-18 09:17:03.481527498 +0800
+--- Chapter6_3/Cpu0ISelLowering.h	2013-09-18 14:25:59.841525286 +0800
++++ Chapter7_1/Cpu0ISelLowering.h	2013-09-18 14:25:59.841525286 +0800
 @@ -87,6 +87,7 @@
      const Cpu0Subtarget *Subtarget;
  
@@ -211,8 +211,8 @@ diff -Naur Chapter6_3/Cpu0ISelLowering.h Chapter7_1/Cpu0ISelLowering.h
      virtual SDValue
        LowerReturn(SDValue Chain,
 diff -Naur Chapter6_3/Cpu0MCInstLower.cpp Chapter7_1/Cpu0MCInstLower.cpp
---- Chapter6_3/Cpu0MCInstLower.cpp	2013-09-18 09:17:03.481527498 +0800
-+++ Chapter7_1/Cpu0MCInstLower.cpp	2013-09-18 09:17:03.481527498 +0800
+--- Chapter6_3/Cpu0MCInstLower.cpp	2013-09-18 14:25:59.841525286 +0800
++++ Chapter7_1/Cpu0MCInstLower.cpp	2013-09-18 14:25:59.841525286 +0800
 @@ -42,6 +42,8 @@
  
    switch(MO.getTargetFlags()) {
@@ -253,8 +253,8 @@ diff -Naur Chapter6_3/Cpu0MCInstLower.cpp Chapter7_1/Cpu0MCInstLower.cpp
    case MachineOperand::MO_RegisterMask:
      break;
 diff -Naur Chapter6_3/InstPrinter/Cpu0InstPrinter.cpp Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter6_3/InstPrinter/Cpu0InstPrinter.cpp	2013-09-18 09:17:03.485527498 +0800
-+++ Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp	2013-09-18 09:17:03.481527498 +0800
+--- Chapter6_3/InstPrinter/Cpu0InstPrinter.cpp	2013-09-18 14:25:59.841525286 +0800
++++ Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp	2013-09-18 14:25:59.841525286 +0800
 @@ -58,6 +58,7 @@
    case MCSymbolRefExpr::VK_None:           break;
  // Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static
@@ -264,8 +264,8 @@ diff -Naur Chapter6_3/InstPrinter/Cpu0InstPrinter.cpp Chapter7_1/InstPrinter/Cpu
    case MCSymbolRefExpr::VK_Cpu0_GOT:       OS << "%got(";    break;
    case MCSymbolRefExpr::VK_Cpu0_ABS_HI:    OS << "%hi(";     break;
 diff -Naur Chapter6_3/MCTargetDesc/Cpu0BaseInfo.h Chapter7_1/MCTargetDesc/Cpu0BaseInfo.h
---- Chapter6_3/MCTargetDesc/Cpu0BaseInfo.h	2013-09-18 09:17:03.485527498 +0800
-+++ Chapter7_1/MCTargetDesc/Cpu0BaseInfo.h	2013-09-18 09:17:03.481527498 +0800
+--- Chapter6_3/MCTargetDesc/Cpu0BaseInfo.h	2013-09-18 14:25:59.841525286 +0800
++++ Chapter7_1/MCTargetDesc/Cpu0BaseInfo.h	2013-09-18 14:25:59.841525286 +0800
 @@ -147,6 +147,10 @@
      return 14;
    case Cpu0::PC:
@@ -278,8 +278,8 @@ diff -Naur Chapter6_3/MCTargetDesc/Cpu0BaseInfo.h Chapter7_1/MCTargetDesc/Cpu0Ba
    }
  }
 diff -Naur Chapter6_3/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter6_3/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-09-18 09:17:03.485527498 +0800
-+++ Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-09-18 09:17:03.481527498 +0800
+--- Chapter6_3/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-09-18 14:25:59.841525286 +0800
++++ Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-09-18 14:25:59.841525286 +0800
 @@ -69,10 +69,18 @@
  
    void EncodeInstruction(const MCInst &MI, raw_ostream &OS,

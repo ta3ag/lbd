@@ -43,6 +43,9 @@ Cpu0TargetLowering(Cpu0TargetMachine &TM)
   // Set up the register classes
   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
 
+  // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
+  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
+
   setOperationAction(ISD::SDIV, MVT::i32, Expand);
   setOperationAction(ISD::SREM, MVT::i32, Expand);
   setOperationAction(ISD::UDIV, MVT::i32, Expand);

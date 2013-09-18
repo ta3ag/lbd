@@ -1,6 +1,6 @@
 diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
---- Chapter4_1/Cpu0InstrInfo.td	2013-09-18 09:17:03.477527498 +0800
-+++ Chapter4_2/Cpu0InstrInfo.td	2013-09-18 09:17:03.473527498 +0800
+--- Chapter4_1/Cpu0InstrInfo.td	2013-09-18 14:25:59.837525286 +0800
++++ Chapter4_2/Cpu0InstrInfo.td	2013-09-18 14:25:59.833525286 +0800
 @@ -138,6 +138,16 @@
    let isReMaterializable = 1;
  }
@@ -40,23 +40,13 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
  
  /// Shift Instructions
  // sra is IR node for ashr llvm IR instruction of .bc
-@@ -352,3 +368,70 @@
+@@ -352,3 +368,60 @@
  def : Pat<(i32 imm:$imm),
            (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
  
 +def : Pat<(not CPURegs:$in),
 +// 1: in == 0; 0: in != 0
 +          (XORi CPURegs:$in, 1)>;
-+
-+// Sign Extend in Register. 
-+// Get the least 7bits from register $in and signed bit (the 31th bit) from the 
-+// 8th bit of register $in.
-+def : Pat<(sext_inreg CPURegs:$in, i8),
-+          (OR (SHL (ANDi CPURegs:$in, 0x0080), 16), (ANDi CPURegs:$in, 0x007f))>;
-+// Get the least 15bits from register $in and signed bit (the 31th bit) from the 
-+// 16th bit of register $in.
-+def : Pat<(sext_inreg CPURegs:$in, i8),
-+          (OR (SHL (ANDi CPURegs:$in, 0x8000), 16), (ANDi CPURegs:$in, 0x7fff))>;
 +
 +// setcc patterns
 +multiclass SeteqPats<RegisterClass RC> {
@@ -111,9 +101,22 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +defm : SetlePats<CPURegs>;
 +defm : SetgtPats<CPURegs>;
 +defm : SetgePats<CPURegs>;
+diff -Naur Chapter4_1/Cpu0ISelLowering.cpp Chapter4_2/Cpu0ISelLowering.cpp
+--- Chapter4_1/Cpu0ISelLowering.cpp	2013-09-18 14:25:59.837525286 +0800
++++ Chapter4_2/Cpu0ISelLowering.cpp	2013-09-18 14:25:59.833525286 +0800
+@@ -43,6 +43,9 @@
+   // Set up the register classes
+   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
+ 
++  // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
++  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
++
+   setOperationAction(ISD::SDIV, MVT::i32, Expand);
+   setOperationAction(ISD::SREM, MVT::i32, Expand);
+   setOperationAction(ISD::UDIV, MVT::i32, Expand);
 diff -Naur Chapter4_1/Cpu0RegisterInfo.td Chapter4_2/Cpu0RegisterInfo.td
---- Chapter4_1/Cpu0RegisterInfo.td	2013-09-18 09:17:03.477527498 +0800
-+++ Chapter4_2/Cpu0RegisterInfo.td	2013-09-18 09:17:03.473527498 +0800
+--- Chapter4_1/Cpu0RegisterInfo.td	2013-09-18 14:25:59.837525286 +0800
++++ Chapter4_2/Cpu0RegisterInfo.td	2013-09-18 14:25:59.833525286 +0800
 @@ -75,3 +75,6 @@
  
  // Hi/Lo Registers

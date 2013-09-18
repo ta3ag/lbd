@@ -141,7 +141,10 @@ Cpu0TargetLowering(Cpu0TargetMachine &TM)
   // Cpu0 Custom Operations
   setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
   setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
-  
+
+  // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
+  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
+
   setOperationAction(ISD::SDIV, MVT::i32, Expand);
   setOperationAction(ISD::SREM, MVT::i32, Expand);
   setOperationAction(ISD::UDIV, MVT::i32, Expand);
