@@ -1570,17 +1570,7 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   def : Pat<(not CPURegs:$in),
   // 1: in == 0; 0: in != 0
             (XORi CPURegs:$in, 1)>;
-  
-  // Sign Extend in Register. 
-  // Get the least 7bits from register $in and signed bit (the 31th bit) from the 
-  // 8th bit of register $in.
-  def : Pat<(sext_inreg CPURegs:$in, i8),
-            (OR (SHL (ANDi CPURegs:$in, 0x0080), 16), (ANDi CPURegs:$in, 0x007f))>;
-  // Get the least 15bits from register $in and signed bit (the 31th bit) from the 
-  // 16th bit of register $in.
-  def : Pat<(sext_inreg CPURegs:$in, i8),
-            (OR (SHL (ANDi CPURegs:$in, 0x8000), 16), (ANDi CPURegs:$in, 0x7fff))>;
-  
+    
   // setcc patterns
   multiclass SeteqPats<RegisterClass RC> {
   // a == b
@@ -1634,6 +1624,19 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   defm : SetlePats<CPURegs>;
   defm : SetgtPats<CPURegs>;
   defm : SetgePats<CPURegs>;
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_2/Cpu0ISelLowering.cpp
+.. code-block:: c++
+
+  Cpu0TargetLowering::
+  Cpu0TargetLowering(Cpu0TargetMachine &TM)
+    : TargetLowering(TM, new Cpu0TargetObjectFile()),
+      Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
+    ...
+    // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
+    setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
+    ...
+  }
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
