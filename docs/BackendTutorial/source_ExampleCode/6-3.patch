@@ -1,26 +1,6 @@
-diff -Naur Chapter6_2/Cpu0ISelLowering.cpp Chapter6_3/Cpu0ISelLowering.cpp
---- Chapter6_2/Cpu0ISelLowering.cpp	2013-09-17 20:37:38.000000000 +0800
-+++ Chapter6_3/Cpu0ISelLowering.cpp	2013-09-17 20:37:38.000000000 +0800
-@@ -122,6 +122,16 @@
-   // Set up the register classes
-   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
- 
-+  // Cpu0 does not have i1 type, so use i32 for
-+  // setcc operations results (slt, sgt, ...).
-+  setBooleanContents(ZeroOrOneBooleanContent);
-+  setBooleanVectorContents(ZeroOrNegativeOneBooleanContent);
-+
-+  // Load extented operations for i1 types must be promoted
-+  setLoadExtAction(ISD::EXTLOAD,  MVT::i1,  Promote);
-+  setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
-+  setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
-+
-   // Cpu0 Custom Operations
-   setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
- 
 diff -Naur Chapter6_2/Cpu0InstrInfo.td Chapter6_3/Cpu0InstrInfo.td
---- Chapter6_2/Cpu0InstrInfo.td	2013-09-17 20:37:38.000000000 +0800
-+++ Chapter6_3/Cpu0InstrInfo.td	2013-09-17 20:37:38.000000000 +0800
+--- Chapter6_2/Cpu0InstrInfo.td	2013-09-18 09:17:03.481527498 +0800
++++ Chapter6_3/Cpu0InstrInfo.td	2013-09-18 09:17:03.485527498 +0800
 @@ -133,7 +133,11 @@
  }]>;
  
@@ -57,3 +37,23 @@ diff -Naur Chapter6_2/Cpu0InstrInfo.td Chapter6_3/Cpu0InstrInfo.td
  // Sign Extend in Register. 
  // Get the least 7bits from register $in and signed bit (the 31th bit) from the 
  // 8th bit of register $in.
+diff -Naur Chapter6_2/Cpu0ISelLowering.cpp Chapter6_3/Cpu0ISelLowering.cpp
+--- Chapter6_2/Cpu0ISelLowering.cpp	2013-09-18 09:17:03.481527498 +0800
++++ Chapter6_3/Cpu0ISelLowering.cpp	2013-09-18 09:17:03.481527498 +0800
+@@ -122,6 +122,16 @@
+   // Set up the register classes
+   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
+ 
++  // Cpu0 does not have i1 type, so use i32 for
++  // setcc operations results (slt, sgt, ...).
++  setBooleanContents(ZeroOrOneBooleanContent);
++  setBooleanVectorContents(ZeroOrNegativeOneBooleanContent);
++
++  // Load extented operations for i1 types must be promoted
++  setLoadExtAction(ISD::EXTLOAD,  MVT::i1,  Promote);
++  setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
++  setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
++
+   // Cpu0 Custom Operations
+   setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
+ 

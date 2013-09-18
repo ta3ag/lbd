@@ -878,12 +878,15 @@ It match the expect value as comment in ch_run_backend.cpp.
   WARNING: cpu0s.v:396: $readmemh(cpu0s.hex): Not enough words in the file for the 
   requested range [0:28671].
   taskInterrupt(001)
-  1                                                                                 
-  2                                                                                 
-  1073741821                                                                         
-  0                                                                                 
-  128                                                                               
-  146                                                                               
+  74
+  253
+  3
+  1
+  14
+  3
+  51
+  2147483647
+  -2147483648
   RET to PC < 0, finished!
 
 Run with ch7_1_1.cpp, it reduce some branch from pair instructions "CMP, JXX" 
