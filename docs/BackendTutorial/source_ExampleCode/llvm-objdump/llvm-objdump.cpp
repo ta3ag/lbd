@@ -753,9 +753,12 @@ static void PrintUnwindInfo(const ObjectFile *o) {
 // Code added for cpu0 -elf2hex begin:
 // llvm-objdump -elf2hex code added begin:
 static cl::opt<bool>
-ConvertElf2Hex("elf2hex", cl::desc("Display the hex content of verilog cpu0 needed sections"));
+ConvertElf2Hex("elf2hex", 
+cl::desc("Display the hex content of verilog cpu0 needed sections"));
 
-static uint64_t GetSectionHeaderStartAddress(const ObjectFile *o, StringRef sectionName) {
+// Modified from PrintSectionHeaders()
+static uint64_t GetSectionHeaderStartAddress(const ObjectFile *o, 
+  StringRef sectionName) {
 //  outs() << "Sections:\n"
 //            "Idx Name          Size      Address          Type\n";
   error_code ec;
@@ -782,6 +785,7 @@ static uint64_t GetSectionHeaderStartAddress(const ObjectFile *o, StringRef sect
   return 0;
 }
 
+// Modified from PrintSymbolTable()
 static void GetSymbolTableStartAddress(const ObjectFile *o, StringRef sectionName) {
   outs() << "SYMBOL TABLE:\n";
 
@@ -861,7 +865,9 @@ static void GetSymbolTableStartAddress(const ObjectFile *o, StringRef sectionNam
 }
 
 // Modified from DisassembleObject()
-static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/, uint64_t& lastAddr) {
+static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
+  , uint64_t& lastAddr) {
+
   const Target *TheTarget = getTarget(Obj);
   // getTarget() will have already issued a diagnostic if necessary, so
   // just bail here if it failed.
@@ -1138,7 +1144,8 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
     if (error(si->getAddress(BaseAddr))) continue;
     if (error(si->isBSS(BSS))) continue;
 
-    if (Name == ".rodata" || Name == ".data") {
+    if (Name == ".rodata" || Name == ".rodata1" || Name == ".data" || 
+      Name == ".data1" || Name == ".sdata") {
       if (Contents.size() <= 0) {
         continue;
       }

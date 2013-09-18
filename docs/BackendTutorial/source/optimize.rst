@@ -898,132 +898,159 @@ to 1 single instruction ether is BEQ or BNE, as follows,
   bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_1_1.bc -o 
   ch7_1_1.cpu0.s
   118-165-77-203:InputFiles Jonathan$ cat ch7_1_1.cpu0.s 
-    .section .mdebug.abi32
-    .previous
-    .file "ch7_1_1.bc"
-    .text
-    .globl  main
-    .align  2
-    .type main,@function
-    .ent  main                    # @main
-  main:
-    .cfi_startproc
-    .frame  $sp,40,$lr
-    .mask   0x00000000,0
-    .set  noreorder
-    .set  nomacro
-  # BB#0:
-    addiu $sp, $sp, -40
-  $tmp1:
-    .cfi_def_cfa_offset 40
-    addiu $3, $zero, 0
-    st  $3, 36($sp)
-    st  $3, 32($sp)
-    addiu $2, $zero, 1
-    st  $2, 28($sp)
-    addiu $4, $zero, 2
-    st  $4, 24($sp)
-    addiu $4, $zero, 3
-    st  $4, 20($sp)
-    addiu $4, $zero, 4
-    st  $4, 16($sp)
-    addiu $4, $zero, 5
-    st  $4, 12($sp)
-    addiu $4, $zero, 6
-    st  $4, 8($sp)
-    addiu $4, $zero, 7
-    st  $4, 4($sp)
-    addiu $4, $zero, 8
-    st  $4, 0($sp)
-    ld  $4, 32($sp)
-    bne $4, $zero, $BB0_2
-  # BB#1:
-    ld  $4, 32($sp)
-    addiu $4, $4, 1
-    st  $4, 32($sp)
-  $BB0_2:
-    ld  $4, 28($sp)
-    beq $4, $zero, $BB0_4
-  # BB#3:
-    ld  $4, 28($sp)
-    addiu $4, $4, 1
-    st  $4, 28($sp)
-  $BB0_4:
-    ld  $4, 24($sp)
-    slti  $4, $4, 1
-    bne $4, $zero, $BB0_6
-  # BB#5:
-    ld  $4, 24($sp)
-    addiu $4, $4, 1
-    st  $4, 24($sp)
-  $BB0_6:
-    ld  $4, 20($sp)
-    slti  $4, $4, 0
-    bne $4, $zero, $BB0_8
-  # BB#7:
-    ld  $4, 20($sp)
-    addiu $4, $4, 1
-    st  $4, 20($sp)
-  $BB0_8:
-    ld  $4, 16($sp)
-    addiu $5, $zero, -1
-    slt $4, $5, $4
-    bne $4, $zero, $BB0_10
-  # BB#9:
-    ld  $4, 16($sp)
-    addiu $4, $4, 1
-    st  $4, 16($sp)
-  $BB0_10:
-    ld  $4, 12($sp)
-    slt $3, $3, $4
-    bne $3, $zero, $BB0_12
-  # BB#11:
-    ld  $3, 12($sp)
-    addiu $3, $3, 1
-    st  $3, 12($sp)
-  $BB0_12:
-    ld  $3, 8($sp)
-    slt $2, $2, $3
-    bne $2, $zero, $BB0_14
-  # BB#13:
-    ld  $2, 8($sp)
-    addiu $2, $2, 1
-    st  $2, 8($sp)
-  $BB0_14:
-    ld  $2, 4($sp)
-    slti  $2, $2, 1
-    bne $2, $zero, $BB0_16
-  # BB#15:
-    ld  $2, 4($sp)
-    addiu $2, $2, 1
-    st  $2, 4($sp)
-  $BB0_16:
-    ld  $2, 4($sp)
-    ld  $3, 0($sp)
-    slt $2, $3, $2
-    beq $2, $zero, $BB0_18
-  # BB#17:
-    ld  $2, 0($sp)
-    addiu $2, $2, 1
-    st  $2, 0($sp)
-  $BB0_18:
-    ld  $2, 28($sp)
-    ld  $3, 32($sp)
-    beq $3, $2, $BB0_20
-  # BB#19:
-    ld  $2, 32($sp)
-    addiu $2, $2, 1
-    st  $2, 32($sp)
-  $BB0_20:
-    ld  $2, 32($sp)
-    addiu $sp, $sp, 40
-    ret $lr
-    .set  macro
-    .set  reorder
-    .end  main
-  $tmp2:
-    .size main, ($tmp2)-main
-    .cfi_endproc
+	  .section .mdebug.abi32
+	  .previous
+	  .file	"ch7_1_1.bc"
+	  .text
+	  .globl	_Z13test_control1v
+	  .align	2
+	  .type	_Z13test_control1v,@function
+	  .ent	_Z13test_control1v      # @_Z13test_control1v
+  _Z13test_control1v:
+	  .cfi_startproc
+	  .frame	$fp,48,$lr
+	  .mask 	0x00000800,-4
+	  .set	noreorder
+	  .set	nomacro
+  # BB#0:                                 # %entry
+	  addiu	$sp, $sp, -48
+  $tmp3:
+	  .cfi_def_cfa_offset 48
+	  st	$fp, 44($sp)            # 4-byte Folded Spill
+  $tmp4:
+	  .cfi_offset 11, -4
+	  addu	$fp, $sp, $zero
+  $tmp5:
+	  .cfi_def_cfa_register 11
+	  addiu	$3, $zero, 0
+	  st	$3, 40($fp)
+	  addiu	$2, $zero, 1
+	  st	$2, 36($fp)
+	  addiu	$4, $zero, 2
+	  st	$4, 32($fp)
+	  addiu	$4, $zero, 3
+	  st	$4, 28($fp)
+	  addiu	$4, $zero, 4
+	  st	$4, 24($fp)
+	  addiu	$4, $zero, 5
+	  st	$4, 20($fp)
+	  addiu	$4, $zero, 6
+	  st	$4, 16($fp)
+	  addiu	$4, $zero, 7
+	  st	$4, 12($fp)
+	  addiu	$4, $zero, 8
+	  st	$4, 8($fp)
+	  addiu	$4, $zero, 9
+	  st	$4, 4($fp)
+	  ld	$4, 40($fp)
+	  bne	$4, $zero, $BB0_2
+  # BB#1:                                 # %if.then
+	  ld	$4, 40($fp)
+	  addiu	$4, $4, 1
+	  st	$4, 40($fp)
+  $BB0_2:                                 # %if.end
+	  ld	$4, 36($fp)
+	  beq	$4, $zero, $BB0_4
+  # BB#3:                                 # %if.then2
+	  ld	$4, 36($fp)
+	  addiu	$4, $4, 1
+	  st	$4, 36($fp)
+  $BB0_4:                                 # %if.end4
+	  ld	$4, 32($fp)
+	  slti	$4, $4, 1
+	  bne	$4, $zero, $BB0_6
+  # BB#5:                                 # %if.then6
+	  ld	$4, 32($fp)
+	  addiu	$4, $4, 1
+	  st	$4, 32($fp)
+  $BB0_6:                                 # %if.end8
+	  ld	$4, 28($fp)
+	  slti	$4, $4, 0
+	  bne	$4, $zero, $BB0_8
+  # BB#7:                                 # %if.then10
+	  ld	$4, 28($fp)
+	  addiu	$4, $4, 1
+	  st	$4, 28($fp)
+  $BB0_8:                                 # %if.end12
+	  ld	$4, 24($fp)
+	  addiu	$5, $zero, -1
+	  slt	$4, $5, $4
+	  bne	$4, $zero, $BB0_10
+  # BB#9:                                 # %if.then14
+	  ld	$4, 24($fp)
+	  addiu	$4, $4, 1
+	  st	$4, 24($fp)
+  $BB0_10:                                # %if.end16
+	  ld	$4, 20($fp)
+	  slt	$3, $3, $4
+	  bne	$3, $zero, $BB0_12
+  # BB#11:                                # %if.then18
+	  ld	$3, 20($fp)
+	  addiu	$3, $3, 1
+	  st	$3, 20($fp)
+  $BB0_12:                                # %if.end20
+	  ld	$3, 16($fp)
+	  slt	$2, $2, $3
+	  bne	$2, $zero, $BB0_14
+  # BB#13:                                # %if.then22
+	  ld	$2, 16($fp)
+	  addiu	$2, $2, 1
+	  st	$2, 16($fp)
+  $BB0_14:                                # %if.end24
+	  ld	$2, 12($fp)
+	  slti	$2, $2, 1
+	  bne	$2, $zero, $BB0_16
+  # BB#15:                                # %if.then26
+	  ld	$2, 12($fp)
+	  addiu	$2, $2, 1
+	  st	$2, 12($fp)
+  $BB0_16:                                # %if.end28
+	  ld	$2, 12($fp)
+	  ld	$3, 8($fp)
+	  slt	$2, $3, $2
+	  beq	$2, $zero, $BB0_18
+  # BB#17:                                # %if.then30
+	  ld	$2, 8($fp)
+	  addiu	$2, $2, 1
+	  st	$2, 8($fp)
+  $BB0_18:                                # %if.end32
+	  ld	$2, 36($fp)
+	  ld	$3, 40($fp)
+	  beq	$3, $2, $BB0_20
+  # BB#19:                                # %if.then34
+	  ld	$2, 4($fp)
+	  addiu	$2, $2, 1
+	  st	$2, 4($fp)
+  $BB0_20:                                # %if.end36
+	  ld	$2, 36($fp)
+	  ld	$3, 40($fp)
+	  addu	$2, $3, $2
+	  ld	$3, 32($fp)
+	  addu	$2, $2, $3
+	  ld	$3, 28($fp)
+	  addu	$2, $2, $3
+	  ld	$3, 24($fp)
+	  addu	$2, $2, $3
+	  ld	$3, 20($fp)
+	  addu	$2, $2, $3
+	  ld	$3, 16($fp)
+	  addu	$2, $2, $3
+	  ld	$3, 12($fp)
+	  addu	$2, $2, $3
+	  ld	$3, 8($fp)
+	  addu	$2, $2, $3
+	  ld	$3, 4($fp)
+	  addu	$2, $2, $3
+	  addu	$sp, $fp, $zero
+	  ld	$fp, 44($sp)            # 4-byte Folded Reload
+	  addiu	$sp, $sp, 48
+	  ret	$lr
+	  .set	macro
+	  .set	reorder
+	  .end	_Z13test_control1v
+  $tmp6:
+	  .size	_Z13test_control1v, ($tmp6)-_Z13test_control1v
+	  .cfi_endproc
 
 
 The ch11_3.cpp is written in assembly for AsmParser test. You can check if it 
