@@ -52,7 +52,9 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.3.2, Not release yet
+Version 3.3.4, Not release yet
+
+Version 3.3.3, Not release yet
   Add Chapter othertype
 
 Version 3.3.2, Released September 17, 2013
