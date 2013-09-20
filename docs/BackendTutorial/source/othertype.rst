@@ -4,12 +4,12 @@ Other data type
 =================
 
 Until now, we only handle the type int and long of 32 bits long. 
-This chapter introduce other type such as pointer, char, longlong which are not
+This chapter introduce other type such as pointer, char, long long which are not
 32 bits size.
  
  
 Local variable pointer
-~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------
 
 To support pointer to local variable, add this code fragment in 
 Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
@@ -349,7 +349,10 @@ Chapter7_1/.
       SDValue RHS = Node->getOperand(1);
   
       EVT VT = LHS.getValueType();
-      SDNode *Carry = CurDAG->getMachineNode(Cpu0::SLTu, dl, VT, Ops);
+      SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, dl, VT, Ops);
+      SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
+      SDNode *Carry = CurDAG->getMachineNode(Cpu0::ANDi, dl, VT, 
+                                             SDValue(StatusWord,0), Constant1);
       SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, dl, VT,
                                                 SDValue(Carry,0), RHS);
   
