@@ -57,7 +57,8 @@ See comment **"//"**.
 
 .. code-block:: bash
 
-  118-165-78-230:InputFiles Jonathan$ clang -c ch9_1.cpp -emit-llvm -o ch9_1.bc
+  118-165-78-230:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_1.cpp -emit-llvm -o ch9_1.bc
   118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=mips -relocation-model=pic -filetype=asm ch9_1.bc -o 
   ch9_1.mips.s
@@ -883,7 +884,8 @@ $2 is not 0) as follows,
 
 .. code-block:: bash
 
-  118-165-78-31:InputFiles Jonathan$ clang -c ch7_5.cpp -emit-llvm -o ch7_5.bc
+  118-165-78-31:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch7_5.cpp -emit-llvm -o ch7_5.bc
   118-165-78-31:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_5.bc -o 
   ch7_5.cpu0.static.s
@@ -1665,8 +1667,8 @@ Run Chapter9_3 with ch9_2_1.cpp will get the error message as follows,
 
 .. code-block:: bash
 
-  JonathantekiiMac:InputFiles Jonathan$ clang -c ch9_2_1.cpp -emit-llvm -o 
-  ch9_2_1.bc
+  JonathantekiiMac:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_2_1.cpp -emit-llvm -o ch9_2_1.bc
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch9_2_1.bc -o ch9_2_1.cpu0.s
@@ -1685,7 +1687,7 @@ Run Chapter9_3/ with ch9_3.cpp to get the following error,
 
 .. code-block:: bash
 
-  118-165-78-230:InputFiles Jonathan$ clang -target `llvm-config --host-target` -c 
+  118-165-78-230:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_3.cpp -emit-llvm -o ch9_3.bc
   118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_3.bc -o 
@@ -1705,9 +1707,9 @@ Run Chapter9_3 with ch9_4.cpp will get the following error.
 
 .. code-block:: bash
 
-  118-165-72-242:InputFiles Jonathan$ clang -I/Applications/Xcode.app/Contents/
-  Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ 
-  -c ch9_4.cpp -emit-llvm -o ch9_4.bc
+  118-165-72-242:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -I/
+  Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/
+  SDKs/MacOSX10.8.sdk/usr/include/ -c ch9_4.cpp -emit-llvm -o ch9_4.bc
   118-165-72-242:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_4.bc -o 
   ch9_4.cpu0.s
@@ -2473,11 +2475,11 @@ This section support variable number of arguments since C language support
 this feature.
 
 Run Chapter9_4/ with ch9_3.cpp as well as clang option, 
-**clang -target `llvm-config --host-target`**, to get the following result,
+**clang -target mips-unknown-linux-gnu**, to get the following result,
 
 .. code-block:: bash
 
-  118-165-76-131:InputFiles Jonathan$ clang -target `llvm-config --host-target` -c 
+  118-165-76-131:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch9_3.cpp -emit-llvm -o ch9_3.bc
   118-165-76-131:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
@@ -2772,9 +2774,9 @@ Run Chapter9_4 with ch9_4.cpp will get the following correct result.
 
 .. code-block:: bash
 
-  118-165-72-242:InputFiles Jonathan$ clang -I/Applications/Xcode.app/Contents/
-  Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ 
-  -c ch9_4.cpp -emit-llvm -o ch9_4.bc
+  118-165-72-242:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -I/
+  Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/
+  SDKs/MacOSX10.8.sdk/usr/include/ -c ch9_4.cpp -emit-llvm -o ch9_4.bc
   118-165-72-242:InputFiles Jonathan$ llvm-dis ch9_4.bc -o ch9_4.ll
   118-165-72-242:InputFiles Jonathan$ cat ch9_4.ll
   ; ModuleID = 'ch9_4.bc'

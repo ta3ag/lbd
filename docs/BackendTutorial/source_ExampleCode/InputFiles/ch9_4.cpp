@@ -20,9 +20,9 @@ int weight_sum(int x1, int x2, int x3, int x4, int x5, int x6)
   return weight; 
 }
 
-int main()
+int test_alloc()
 {
-  int a = weight_sum(1, 2, 3, 4, 5, 6);
+  int a = weight_sum(1, 2, 3, 4, 5, 6); // 31
   
   return a;
 }

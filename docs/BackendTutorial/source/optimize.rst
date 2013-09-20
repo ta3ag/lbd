@@ -78,8 +78,7 @@ Let's run Chapter12_1/ with ch12_1.cpp to explain it easier.
 
 .. code-block:: bash
 
-  118-165-78-10:InputFiles Jonathan$ clang -c ch12_1.cpp -emit-llvm -o ch12_1.bc
-  118-165-78-10:InputFiles Jonathan$ clang -target `llvm-config --host-target` 
+  118-165-78-10:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu 
   -c ch12_1.cpp -emit-llvm -o ch12_1.bc
   118-165-78-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm -stats 
@@ -164,7 +163,7 @@ because we set the "STATISTIC(NumDelJmp, "Number of useless jmp deleted")" in
 code. It delete 2 jmp instructions from block "# BB#0" and "$BB0_6".
 You can check it by ``llc -enable-cpu0-del-useless-jmp=false`` option to see 
 the difference from no optimization version.
-If you run with ch7_1_1.cpp, will find 10 jmp instructions are deleted in 100 
+If you run with ch8_1_1.cpp, will find 10 jmp instructions are deleted in 100 
 lines of assembly code, which meaning 10% enhance in speed and code size.
 
 
@@ -811,7 +810,25 @@ Chapter12_2/ include the changes for new instruction sets as follows,
   defm : SetgePats<CPURegs, SLT, SLTu>;
   defm : SetgeImmPats<CPURegs, SLTi, SLTiu>;
 
-  
+
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter12_2/Cpu0ISelDAGToDAG.cpp
+.. code-block:: c++
+
+  /// Select instructions not customized! Used for
+  /// expanded, promoted and normal instructions
+  SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
+    ...
+    case ISD::SUBE:
+    case ISD::ADDE: {
+      ...
+      SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, dl, VT, Ops);
+      SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
+      SDNode *Carry = CurDAG->getMachineNode(Cpu0::ANDi, dl, VT, 
+                                             SDValue(StatusWord,0), Constant1);
+      ...
+    ...
+  }
+
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter12_2/Cpu0RegisterInfo.td
 .. code-block:: c++
 
@@ -855,8 +872,6 @@ It match the expect value as comment in ch_run_backend.cpp.
 
 .. code-block:: bash
 
-  118-165-77-203:InputFiles Jonathan$ clang -target `llvm-config --host-target` 
-  -c ch_run_backend.cpp -emit-llvm -o ch_run_backend.bc
   118-165-77-203:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=obj -stats 
   ch_run_backend.bc -o ch_run_backend.cpu0.o
@@ -875,8 +890,6 @@ It match the expect value as comment in ch_run_backend.cpp.
   JonathantekiiMac:InputFiles Jonathan$ cd ../cpu0_verilog/redesign/
   JonathantekiiMac:redesign Jonathan$ iverilog -o cpu0s cpu0s.v 
   JonathantekiiMac:redesign Jonathan$ ./cpu0s
-  WARNING: cpu0s.v:396: $readmemh(cpu0s.hex): Not enough words in the file for the 
-  requested range [0:28671].
   taskInterrupt(001)
   74
   253
@@ -884,23 +897,26 @@ It match the expect value as comment in ch_run_backend.cpp.
   1
   14
   3
+  393307
+  16777222
   51
   2147483647
   -2147483648
+  15
   RET to PC < 0, finished!
 
-Run with ch7_1_1.cpp, it reduce some branch from pair instructions "CMP, JXX" 
+Run with ch8_1_1.cpp, it reduce some branch from pair instructions "CMP, JXX" 
 to 1 single instruction ether is BEQ or BNE, as follows,
 
 .. code-block:: bash
 
   118-165-77-203:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_1_1.bc -o 
-  ch7_1_1.cpu0.s
-  118-165-77-203:InputFiles Jonathan$ cat ch7_1_1.cpu0.s 
+  bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch8_1_1.bc -o 
+  ch8_1_1.cpu0.s
+  118-165-77-203:InputFiles Jonathan$ cat ch8_1_1.cpu0.s 
 	  .section .mdebug.abi32
 	  .previous
-	  .file	"ch7_1_1.bc"
+	  .file	"ch8_1_1.bc"
 	  .text
 	  .globl	_Z13test_control1v
 	  .align	2

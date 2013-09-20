@@ -493,10 +493,10 @@ possibility.
     }
 
 Let's run the Chapter11_2/ with ``llvm-objdump -d`` for input files 
-ch_run_backend.cpp and ch_run_sum_i.cpp to generate the hex file 
+ch_run_backend.cpp to generate the hex file 
 and input to cpu0s Verilog simulator to get the output result as below. You can
 unmark the $display() in cpu0s.v to trace the memory binary code and destination
-register change at every instruction execution. Remind ch_run_sum_i.cpp have to
+register change at every instruction execution. Remind ch_run_backend.cpp have to
 compile with option ``clang -target mips-unknown-linux-gnu`` and use the clang of
 your build instead of download from Xcode on iMac. The ~/llvm/release/
 cmake_debug_build/bin/Debug/ is my build clang from source code.
@@ -507,8 +507,8 @@ cmake_debug_build/bin/Debug/ is my build clang from source code.
 
 .. code-block:: bash
 
-  JonathantekiiMac:InputFiles Jonathan$ clang -c ch_run_backend.cpp -emit-llvm -o 
-  ch_run_backend.bc
+  JonathantekiiMac:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch_run_backend.cpp -emit-llvm -o ch_run_backend.bc
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
   build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=obj 
   ch_run_backend.bc -o ch_run_backend.cpu0.o
@@ -519,7 +519,6 @@ cmake_debug_build/bin/Debug/ is my build clang from source code.
    
   JonathantekiiMac:raw Jonathan$ ./cpu0s
   WARNING: cpu0s.v:386: $readmemh(cpu0s.hex): Not enough words in the file for the 
-  requested range [0:28671].
   taskInterrupt(001)
   74
   253
@@ -527,28 +526,12 @@ cmake_debug_build/bin/Debug/ is my build clang from source code.
   1
   14
   3
+  393307
+  16777222
   51
   2147483647
   -2147483648
-  RET to PC < 0, finished!
-  
-  JonathantekiiMac:raw Jonathan$ cd ../../InputFiles/
-  JonathantekiiMac:InputFiles Jonathan$ ~/llvm/release/cmake_debug_build/bin/Debug/
-  clang -target mips-unknown-linux-gnu -c ch_run_sum_i.cpp -emit-llvm -o 
-  ch_run_sum_i.bc
-  JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-  build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=obj 
-  ch_run_sum_i.bc -o ch_run_sum_i.cpu0.o
-  JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-  build/bin/Debug/llvm-objdump -d ch_run_sum_i.cpu0.o | tail -n +6| awk '{print 
-  "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 
-  "\t*/"}' > ../cpu0_verilog/raw/cpu0s.hex
-  JonathantekiiMac:InputFiles Jonathan$ cd ../cpu0_verilog/raw/
-  JonathantekiiMac:raw Jonathan$ ./cpu0s
-  WARNING: cpu0s.v:386: $readmemh(cpu0s.hex): Not enough words in the file for the 
-  requested range [0:28671].
-  taskInterrupt(001)
-  15                                                                                 
+  15
   RET to PC < 0, finished!
 
 
@@ -565,35 +548,35 @@ assumption that the stack size of print1_integer() is 8.
   /bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o 
   ...
   _Z13print_integeri:
-       100: 09 dd ff e8                                   addiu $sp, $sp, -24
-       104: 02 ed 00 14                                   st  $lr, 20($sp)
-       108: 02 bd 00 10                                   st  $fp, 16($sp)
-       10c: 13 bd 00 00                                   add $fp, $sp, $zero
-       110: 01 2b 00 18                                   ld  $2, 24($fp)
-       114: 02 2b 00 0c                                   st  $2, 12($fp)
-       118: 02 2d 00 00                                   st  $2, 0($sp)
-       11c: 2b 00 02 cc                                   jsub  716
-       120: 02 2b 00 08                                   st  $2, 8($fp)
-       124: 02 2d 00 00                                   st  $2, 0($sp)
-       128: 2b 00 04 3c                                   jsub  1084
-       12c: 13 db 00 00                                   add $sp, $fp, $zero
-       130: 01 bd 00 10                                   ld  $fp, 16($sp)
-       134: 01 ed 00 14                                   ld  $lr, 20($sp)
-       138: 09 dd 00 18                                   addiu $sp, $sp, 24
-       13c: 2c e0 00 00                                   ret $lr
+       ................                                   addiu $sp, $sp, -24
+       ................                                   st  $lr, 20($sp)
+       ................                                   st  $fp, 16($sp)
+       ................                                   add $fp, $sp, $zero
+       ................                                   ld  $2, 24($fp)
+       ................                                   st  $2, 12($fp)
+       ................                                   st  $2, 0($sp)
+       ................                                   jsub  716
+       ................                                   st  $2, 8($fp)
+       ................                                   st  $2, 0($sp)
+       ................                                   jsub  1084
+       ................                                   add $sp, $fp, $zero
+       ................                                   ld  $fp, 16($sp)
+       ................                                   ld  $lr, 20($sp)
+       ................                                   addiu $sp, $sp, 24
+       ................                                   ret $lr
   ...
   _Z14print1_integeri:
-       5e4: 09 dd ff f8                                   addiu $sp, $sp, -8
-       5e8: 02 bd 00 04                                   st  $fp, 4($sp)
-       5ec: 13 bd 00 00                                   add $fp, $sp, $zero
-       5f0: 01 2b 00 08                                   ld  $2, 8($fp)
-       5f4: 02 2b 00 00                                   st  $2, 0($fp)
-       5f8: 01 1d 00 08                                   ld  $1, 8($sp)
-       5fc: 02 10 70 00                                   st  $1, 28672($zero)
-       600: 13 db 00 00                                   add $sp, $fp, $zero
-       604: 01 bd 00 04                                   ld  $fp, 4($sp)
-       608: 09 dd 00 08                                   addiu $sp, $sp, 8
-       60c: 2c e0 00 00                                   ret $lr
+       ................                                   addiu $sp, $sp, -8
+       ................                                   st  $fp, 4($sp)
+       ................                                   add $fp, $sp, $zero
+       ................                                   ld  $2, 8($fp)
+       ................                                   st  $2, 0($fp)
+       ................                                   ld  $1, 8($sp)
+       ................                                   st  $1, 28672($zero)
+       ................                                   add $sp, $fp, $zero
+       ................                                   ld  $fp, 4($sp)
+       ................                                   addiu $sp, $sp, 8
+       ................                                   ret $lr
 
 
 Unmark the $display() in cpu0s.v to trace the memory binary code and destination
@@ -614,26 +597,21 @@ register change at every instruction execution as follows,
   taskInterrupt(001)
   1530ns 00000054 : 02ed002c m[28620+44  ]=-1          SW=00000000
   1610ns 00000058 : 02bd0028 m[28620+40  ]=0           SW=00000000
-  1850ns 00000064 : 022b0024 m[28620+36  ]=0           SW=10000000
-  1930ns 00000068 : 022b0020 m[28620+32  ]=0           SW=10000000
-  ...
-  29370ns 000002ec : 022b0004 m[28548+4   ]=28672       SW=50000000
-  29530ns 000002f4 : 05320000 m[28672+0   ]=  SW=50000000
-  15                                                                                 
+  ...                     
   RET to PC < 0, finished!
+
 
 As above result, cpu0s.v dump the memory first after read input cpu0s.hex. 
 Next, it run instructions from address 0 and print each destination 
 register value in the fourth column. 
 The first column is the nano seconds of timing. The second 
 is instruction address. The third is instruction content. 
-We have checked the **">>"** is correct on both signed and unsigned int type 
-, and tracking the variable **a** value by print_integer(). The output value
-**a** is 15 in this program.
+We have checked many example code is correct by print the variable with 
+print_integer().
 
-
-We show Verilog PC output by display the I/O memory mapped address but didn't 
-implementing the output hardware interface or port. The real output hardware 
+This chapter show Verilog PC output by display the I/O memory mapped address but
+didn't implementing the output hardware interface or port. 
+The real output hardware 
 interface/port is hardware output device dependent, such as RS232, speaker, 
 LED, .... You should implement the I/O interface/port when you want to program 
 FPGA and wire I/O device to the I/O port.

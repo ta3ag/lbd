@@ -193,7 +193,8 @@ The cpu0 backend translate global variable as follows,
 
 .. code-block:: bash
 
-  [Gamma@localhost InputFiles]$ clang -c ch6_1.cpp -emit-llvm -o ch6_1.bc
+  [Gamma@localhost InputFiles]$ clang -target mips-unknown-linux-gnu -c ch6_1.cpp 
+  -emit-llvm -o ch6_1.bc
   [Gamma@localhost InputFiles]$ /usr/local/llvm/test/cmake_debug_build/
   bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch6_1.bc -o ch6_1.cpu0.s
   [Gamma@localhost InputFiles]$ cat ch6_1.cpu0.s 
@@ -529,19 +530,19 @@ Let's run gobjdump and llvm-objdump commands as follows to see the differences.
 
 .. code-block:: bash
 
-  118-165-83-12:InputFiles Jonathan$ clang -c ch8_3_3.cpp -emit-llvm -I/
-  Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/
-  SDKs/MacOSX10.8.sdk/usr/include/ -o ch8_3_3.bc
+  118-165-83-12:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch8_3_3.cpp -emit-llvm -I/Applications/Xcode.app/Contents/Developer/Platforms/
+  MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ -o ch9_3_3.bc
   118-165-83-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch8_3_3.bc -o 
-  ch8_3_3.cpu0.o
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch9_3_3.bc -o 
+  ch9_3_3.cpu0.o
 
-  118-165-78-12:InputFiles Jonathan$ gobjdump -t -r ch8_3_3.cpu0.o
+  118-165-78-12:InputFiles Jonathan$ gobjdump -t -r ch9_3_3.cpu0.o
   
-  ch8_3_3.cpu0.o: file format elf32-big
+  ch9_3_3.cpu0.o: file format elf32-big
   
   SYMBOL TABLE:
-  00000000 l    df *ABS*	00000000 ch8_3_3.bc
+  00000000 l    df *ABS*	00000000 ch9_3_3.bc
   00000000 l     O .rodata.str1.1	00000008 $.str
   00000000 l    d  .text	00000000 .text
   00000000 l    d  .data	00000000 .data
@@ -573,9 +574,9 @@ Let's run gobjdump and llvm-objdump commands as follows to see the differences.
 
 
   118-165-83-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llvm-objdump -t -r ch8_3_3.cpu0.o
+  bin/Debug/llvm-objdump -t -r ch9_3_3.cpu0.o
   
-  ch8_3_3.cpu0.o: file format ELF32-CPU0
+  ch9_3_3.cpu0.o: file format ELF32-CPU0
   
   RELOCATION RECORDS FOR [.text]:
   0 R_CPU0_HI16 _gp_disp
@@ -595,7 +596,7 @@ Let's run gobjdump and llvm-objdump commands as follows to see the differences.
   52 R_CPU0_32 .text
   
   SYMBOL TABLE:
-  00000000 l    df *ABS*  00000000 ch8_3_3.bc
+  00000000 l    df *ABS*  00000000 ch9_3_3.bc
   00000000 l       .rodata.str1.1 00000008 $.str
   00000000 l    d  .text  00000000 .text
   00000000 l    d  .data  00000000 .data
@@ -734,8 +735,8 @@ file from elf to hex as follows,
 
 .. code-block:: bash
 
-  JonathantekiiMac:InputFiles Jonathan$ clang -c ch8_1_1.cpp -emit-llvm -o 
-  ch8_1_1.bc
+  JonathantekiiMac:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch8_1_1.cpp -emit-llvm -o ch8_1_1.bc
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
   build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch8_1_1.bc 
   -o ch8_1_1.cpu0.o

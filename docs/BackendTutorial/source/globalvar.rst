@@ -59,7 +59,8 @@ Let's run Chapter6_1/ with ch6_1.cpp via three different options
 
 .. code-block:: bash
 
-  118-165-78-166:InputFiles Jonathan$ clang -c ch6_1.cpp -emit-llvm -o ch6_1.bc
+  118-165-78-166:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch6_1.cpp -emit-llvm -o ch6_1.bc
   118-165-78-166:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=false 
   -filetype=asm -debug ch6_1.bc -o -
@@ -616,7 +617,8 @@ stage "Legalized selection DAG" as below.
 
 .. code-block:: bash
 
-  118-165-78-166:InputFiles Jonathan$ clang -c ch6_1.cpp -emit-llvm -o ch6_1.bc
+  118-165-78-166:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch6_1.cpp -emit-llvm -o ch6_1.bc
   118-165-78-166:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=false 
   -filetype=asm -debug ch6_1.bc -o -

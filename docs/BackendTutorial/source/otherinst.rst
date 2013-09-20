@@ -228,7 +228,8 @@ Now, let's build Chapter4_1/ and run with input file ch4_1.cpp as follows,
 
 .. code-block:: bash
 
-  118-165-78-12:InputFiles Jonathan$ clang -c ch4_1.cpp -emit-llvm -o ch4_1.bc
+  118-165-78-12:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch4_1.cpp -emit-llvm -o ch4_1.bc
   118-165-78-12:InputFiles Jonathan$ llvm-dis ch4_1.bc -o -
   ...
   ; Function Attrs: nounwind uwtable
@@ -1120,7 +1121,8 @@ llvm **“Constant Propagation Optimization”** useless in this.
 
 .. code-block:: bash
 
-  118-165-77-79:InputFiles Jonathan$ clang -c ch4_2_2.cpp -emit-llvm -o ch4_2_2.bc
+  118-165-77-79:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch4_2_2.cpp -emit-llvm -o ch4_2_2.bc
   118-165-77-79:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_
   debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch4_2_2.bc -o -
@@ -1134,9 +1136,10 @@ ch4_2_2.cpp as follows,
 
 .. code-block:: bash
 
-  118-165-83-58:InputFiles Jonathan$ clang -c ch4_2_2.cpp -I/Applications/Xcode.app/
-  Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/
-  include/ -emit-llvm -o ch4_2_2.bc
+  118-165-83-58:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch4_2_2.cpp -I/Applications/Xcode.app/Contents/Developer/Platforms/
+  MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ -emit-llvm -o 
+  ch4_2_2.bc
   118-165-83-58:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/bin/
   Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug ch4_2_2.bc -o -
   Args: /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 
@@ -1549,7 +1552,8 @@ run result of bc and asm instructions for ch4_5.cpp as below.
 
 .. code-block:: bash
 
-  114-43-204-152:InputFiles Jonathan$ clang -c ch4_5.cpp -emit-llvm -o ch4_5.bc
+  114-43-204-152:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch4_5.cpp -emit-llvm -o ch4_5.bc
   114-43-204-152:InputFiles Jonathan$ llvm-dis ch4_5.bc -o -
   ...
   ; Function Attrs: nounwind uwtable

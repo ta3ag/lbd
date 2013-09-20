@@ -723,7 +723,8 @@ follows,
 
 .. code-block:: bash
 
-  118-165-78-230:InputFiles Jonathan$ clang -c ch8_1_5.cpp -emit-llvm -o ch8_1_5.bc
+  118-165-78-230:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch8_1_5.cpp -emit-llvm -o ch8_1_5.bc
   118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_1_5.bc -o 
   ch8_1_5.cpu0.s
