@@ -555,6 +555,14 @@ def : Pat<(i32 immLow16Zero:$in),
 def : Pat<(i32 imm:$imm),
           (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
 
+// Carry patterns
+def : Pat<(subc CPURegs:$lhs, CPURegs:$rhs),
+          (SUBu CPURegs:$lhs, CPURegs:$rhs)>;
+def : Pat<(addc CPURegs:$lhs, CPURegs:$rhs),
+          (ADDu CPURegs:$lhs, CPURegs:$rhs)>;
+def : Pat<(addc  CPURegs:$src, immSExt16:$imm),
+          (ADDiu CPURegs:$src, imm:$imm)>;
+
 def : Pat<(Cpu0JmpLink (i32 tglobaladdr:$dst)),
           (JSUB tglobaladdr:$dst)>;
 def : Pat<(Cpu0JmpLink (i32 texternalsym:$dst)),
