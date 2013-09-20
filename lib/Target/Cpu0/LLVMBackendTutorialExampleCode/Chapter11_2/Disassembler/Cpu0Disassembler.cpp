@@ -55,7 +55,7 @@ static const unsigned CPURegsTable[] = {
   Cpu0::ZERO, Cpu0::AT, Cpu0::V0, Cpu0::V1,
   Cpu0::A0, Cpu0::A1, Cpu0::T9, Cpu0::S0, 
   Cpu0::S1, Cpu0::S2, Cpu0::GP, Cpu0::FP, 
-  Cpu0::T0, Cpu0::SP, Cpu0::LR, Cpu0::PC
+  Cpu0::SW, Cpu0::SP, Cpu0::LR, Cpu0::PC
 };
 
 static DecodeStatus DecodeCPURegsRegisterClass(MCInst &Inst,
@@ -200,13 +200,71 @@ static DecodeStatus DecodeMem(MCInst &Inst,
   return MCDisassembler::Success;
 }
 
+/* CMP instruction define $rc and then $ra, $rb; The printOperand() print 
+operand 1 and operand 2 (operand 0 is $rc and operand 1 is $ra), so we Create 
+register $rc first and create $ra next, as follows,
+
+// Cpu0InstrInfo.td
+class CmpInstr<bits<8> op, string instr_asm, 
+                    InstrItinClass itin, RegisterClass RC, RegisterClass RD, bit isComm = 0>:
+  FA<op, (outs RD:$rc), (ins RC:$ra, RC:$rb),
+     !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
+
+// Cpu0AsmWriter.inc
+void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) {
+...
+  case 3:
+    // CMP, JEQ, JGE, JGT, JLE, JLT, JNE
+    printOperand(MI, 1, O); 
+    break;
+...
+  case 1:
+    // CMP
+    printOperand(MI, 2, O); 
+    return;
+    break;
+*/
+static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
+                                       unsigned Insn,
+                                       uint64_t Address,
+                                       const void *Decoder) {
+  int Reg_a = (int)fieldFromInstruction(Insn, 20, 4);
+  int Reg_b = (int)fieldFromInstruction(Insn, 16, 4);
+  int Reg_c = (int)fieldFromInstruction(Insn, 12, 4);
+
+  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_c]));
+  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_a]));
+  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_b]));
+  return MCDisassembler::Success;
+}
+
+/* CBranch instruction define $ra and then imm24; The printOperand() print 
+operand 1 (operand 0 is $ra and operand 1 is imm24), so we Create register 
+operand first and create imm24 next, as follows,
+
+// Cpu0InstrInfo.td
+class CBranch<bits<8> op, string instr_asm, RegisterClass RC,
+                   list<Register> UseRegs>:
+  FJ<op, (outs), (ins RC:$ra, brtarget:$addr),
+             !strconcat(instr_asm, "\t$addr"),
+             [(brcond RC:$ra, bb:$addr)], IIBranch> {
+
+// Cpu0AsmWriter.inc
+void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) {
+...
+  case 3:
+    // CMP, JEQ, JGE, JGT, JLE, JLT, JNE
+    printOperand(MI, 1, O); 
+    break;
+*/
 static DecodeStatus DecodeBranchTarget(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder) {
-  int BranchOffset = fieldFromInstruction(Insn, 0, 16);
-  if (BranchOffset > 0x8fff)
-  	BranchOffset = -1*(0x10000 - BranchOffset);
+  int BranchOffset = fieldFromInstruction(Insn, 0, 24);
+  if (BranchOffset > 0x8fffff)
+  	BranchOffset = -1*(0x1000000 - BranchOffset);
+  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[0]));
   Inst.addOperand(MCOperand::CreateImm(BranchOffset));
   return MCDisassembler::Success;
 }

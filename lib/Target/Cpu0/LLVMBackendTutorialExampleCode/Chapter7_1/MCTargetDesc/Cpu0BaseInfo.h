@@ -147,10 +147,6 @@ inline static unsigned getCpu0RegisterNumbering(unsigned RegEnum)
     return 14;
   case Cpu0::PC:
     return 15;
-  case Cpu0::HI:
-    return 18;
-  case Cpu0::LO:
-    return 19;
   default: llvm_unreachable("Unknown register number!");
   }
 }

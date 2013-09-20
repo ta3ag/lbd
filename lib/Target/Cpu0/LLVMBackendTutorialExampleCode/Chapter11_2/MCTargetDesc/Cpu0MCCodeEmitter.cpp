@@ -158,7 +158,7 @@ getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
 
   const MCExpr *Expr = MO.getExpr();
   Fixups.push_back(MCFixup::Create(0, Expr,
-                                   MCFixupKind(Cpu0::fixup_Cpu0_PC16)));
+                                   MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
   return 0;
 }
 
@@ -177,7 +177,7 @@ getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
   assert(MO.isExpr() && "getJumpTargetOpValue expects only expressions");
 
   const MCExpr *Expr = MO.getExpr();
-  if (Opcode == Cpu0::JSUB || Opcode == Cpu0::JMP)
+  if (Opcode == Cpu0::JSUB)
     Fixups.push_back(MCFixup::Create(0, Expr,
                                      MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
   else if (Opcode == Cpu0::SWI)

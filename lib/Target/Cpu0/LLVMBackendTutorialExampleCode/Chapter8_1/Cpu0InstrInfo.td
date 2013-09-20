@@ -26,13 +26,6 @@ def SDT_Cpu0DivRem       : SDTypeProfile<0, 2,
                                          [SDTCisInt<0>,
                                           SDTCisSameAs<0, 1>]>;
 
-def SDT_Cpu0JmpLink      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
-
-// Call
-def Cpu0JmpLink : SDNode<"Cpu0ISD::JmpLink",SDT_Cpu0JmpLink,
-                         [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue,
-                          SDNPVariadic]>;
-
 // Hi and Lo nodes are used to handle global addresses. Used on
 // Cpu0ISelLowering to lower stuff like GlobalAddress, ExternalSymbol
 // static model. (nothing to do with Cpu0 Registers Hi and Lo)
@@ -64,10 +57,6 @@ def brtarget    : Operand<OtherVT> {
   let EncoderMethod = "getBranchTargetOpValue";
   let OperandType = "OPERAND_PCREL";
   let DecoderMethod = "DecodeBranchTarget";
-}
-
-def calltarget  : Operand<iPTR> {
-  let EncoderMethod = "getJumpTargetOpValue";
 }
 
 // Signed Operand
@@ -285,24 +274,6 @@ class UncondBranch<bits<8> op, string instr_asm>:
   let DecoderMethod = "DecodeJumpRelativeTarget";
 }
 
-// Jump and Link (Call)
-let isCall=1, hasDelaySlot=0 in {
-  class JumpLink<bits<8> op, string instr_asm>:
-    FJ<op, (outs), (ins calltarget:$target, variable_ops),
-       !strconcat(instr_asm, "\t$target"), [(Cpu0JmpLink imm:$target)],
-       IIBranch> {
-       }
-
-  class JumpLinkReg<bits<8> op, string instr_asm,
-                    RegisterClass RC>:
-    FA<op, (outs), (ins RC:$rb, variable_ops),
-       !strconcat(instr_asm, "\t$rb"), [(Cpu0JmpLink RC:$rb)], IIBranch> {
-    let rc = 0;
-    let ra = 14;
-    let shamt = 0;
-  }
-}
-
 // Mul, Div
 class Mult<bits<8> op, string instr_asm, InstrItinClass itin,
            RegisterClass RC, list<Register> DefRegs>:
@@ -414,16 +385,11 @@ def JGE     : CBranch<0x35, "jge", SR, [SW]>;
 
 def JMP     : UncondBranch<0x36, "jmp">;
 
-/// Jump and Branch Instructions
-def SWI     : JumpLink<0x3a, "swi">;
-def JSUB    : JumpLink<0x3b, "jsub">;
 
 let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
     isBarrier=1, hasCtrlDep=1 in
   def RET : FJ <0x2c, (outs), (ins CPURegs:$target),
                 "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch>;
-
-def JALR    : JumpLinkReg<0x3e, "jalr", CPURegs>;
 
 /// Multiply and Divide Instructions.
 def MULT    : Mult32<0x41, "mult", IIImul>;
@@ -464,10 +430,13 @@ def : Pat<(i32 immLow16Zero:$in),
 def : Pat<(i32 imm:$imm),
           (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
 
-def : Pat<(Cpu0JmpLink (i32 tglobaladdr:$dst)),
-          (JSUB tglobaladdr:$dst)>;
-def : Pat<(Cpu0JmpLink (i32 texternalsym:$dst)),
-          (JSUB texternalsym:$dst)>;
+// Carry patterns
+def : Pat<(subc CPURegs:$lhs, CPURegs:$rhs),
+          (SUBu CPURegs:$lhs, CPURegs:$rhs)>;
+def : Pat<(addc CPURegs:$lhs, CPURegs:$rhs),
+          (ADDu CPURegs:$lhs, CPURegs:$rhs)>;
+def : Pat<(addc  CPURegs:$src, immSExt16:$imm),
+          (ADDiu CPURegs:$src, imm:$imm)>;
 
 // hi/lo relocs
 def : Pat<(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>;

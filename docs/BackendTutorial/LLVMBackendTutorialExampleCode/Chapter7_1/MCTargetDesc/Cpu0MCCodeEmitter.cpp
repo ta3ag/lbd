@@ -69,18 +69,10 @@ public:
 
   void EncodeInstruction(const MCInst &MI, raw_ostream &OS,
                          SmallVectorImpl<MCFixup> &Fixups) const;
-
   // getBinaryCodeForInstr - TableGen'erated function for getting the
   // binary encoding for an instruction.
   uint64_t getBinaryCodeForInstr(const MCInst &MI,
                                  SmallVectorImpl<MCFixup> &Fixups) const;
-
-  // getBranchTargetOpValue - Return binary encoding of the branch
-  // target operand, such as JMP #BB01, JEQ, JSUB. If the machine operand
-  // requires relocation, record the relocation and return zero.
-  unsigned getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
-                                  SmallVectorImpl<MCFixup> &Fixups) const;
-
    // getMachineOpValue - Return binary encoding of operand. If the machin
    // operand requires relocation, record the relocation and return zero.
   unsigned getMachineOpValue(const MCInst &MI,const MCOperand &MO,
@@ -134,22 +126,6 @@ EncodeInstruction(const MCInst &MI, raw_ostream &OS,
   int Size = 4; // FIXME: Have Desc.getSize() return the correct value!
 
   EmitInstruction(Binary, Size, OS);
-}
-
-/// getBranchTargetOpValue - Return binary encoding of the branch
-/// target operand. If the machine operand requires relocation,
-/// record the relocation and return zero.
-unsigned Cpu0MCCodeEmitter::
-getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
-                       SmallVectorImpl<MCFixup> &Fixups) const {
-
-  const MCOperand &MO = MI.getOperand(OpNo);
-  assert(MO.isExpr() && "getBranchTargetOpValue expects only expressions");
-
-  const MCExpr *Expr = MO.getExpr();
-  Fixups.push_back(MCFixup::Create(0, Expr,
-                                   MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
-  return 0;
 }
 
 /// getMachineOpValue - Return binary encoding of operand. If the machine

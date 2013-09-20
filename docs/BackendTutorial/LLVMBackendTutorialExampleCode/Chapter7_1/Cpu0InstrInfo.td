@@ -52,12 +52,6 @@ def RelocPIC    :     Predicate<"TM.getRelocationModel() == Reloc::PIC_">,
 //===----------------------------------------------------------------------===//
 // Cpu0 Operand, Complex Patterns and Transformations Definitions.
 //===----------------------------------------------------------------------===//
-// Instruction operand types
-def brtarget    : Operand<OtherVT> {
-  let EncoderMethod = "getBranchTargetOpValue";
-  let OperandType = "OPERAND_PCREL";
-  let DecoderMethod = "DecodeBranchTarget";
-}
 
 // Signed Operand
 def simm16      : Operand<i32> {
@@ -251,29 +245,6 @@ multiclass StoreM32<bits<8> op, string instr_asm, PatFrag OpNode,
   def #NAME# : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
 }
 
-// Conditional Branch
-class CBranch<bits<8> op, string instr_asm, RegisterClass RC,
-                   list<Register> UseRegs>:
-  FJ<op, (outs), (ins RC:$ra, brtarget:$addr),
-             !strconcat(instr_asm, "\t$addr"),
-             [], IIBranch> {
-  let isBranch = 1;
-  let isTerminator = 1;
-  let hasDelaySlot = 0;
-  let neverHasSideEffects = 1;
-}
-
-// Unconditional branch, such as JMP
-class UncondBranch<bits<8> op, string instr_asm>:
-  FJ<op, (outs), (ins brtarget:$addr),
-             !strconcat(instr_asm, "\t$addr"), [(br bb:$addr)], IIBranch> {
-  let isBranch = 1;
-  let isTerminator = 1;
-  let isBarrier = 1;
-  let hasDelaySlot = 0;
-  let DecoderMethod = "DecodeJumpRelativeTarget";
-}
-
 // Mul, Div
 class Mult<bits<8> op, string instr_asm, InstrItinClass itin,
            RegisterClass RC, list<Register> DefRegs>:
@@ -375,17 +346,6 @@ def SRAV    : shift_rotate_reg<0x20, 0x00, "srav", sra, CPURegs>;
 def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
 def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
 
-/// Jump and Branch Instructions
-def JEQ     : CBranch<0x30, "jeq", SR, [SW]>;
-def JNE     : CBranch<0x31, "jne", SR, [SW]>;
-def JLT     : CBranch<0x32, "jlt", SR, [SW]>;
-def JGT     : CBranch<0x33, "jgt", SR, [SW]>;
-def JLE     : CBranch<0x34, "jle", SR, [SW]>;
-def JGE     : CBranch<0x35, "jge", SR, [SW]>;
-
-def JMP     : UncondBranch<0x36, "jmp">;
-
-
 let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
     isBarrier=1, hasCtrlDep=1 in
   def RET : FJ <0x2c, (outs), (ins CPURegs:$target),
@@ -430,6 +390,14 @@ def : Pat<(i32 immLow16Zero:$in),
 def : Pat<(i32 imm:$imm),
           (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
 
+// Carry patterns
+def : Pat<(subc CPURegs:$lhs, CPURegs:$rhs),
+          (SUBu CPURegs:$lhs, CPURegs:$rhs)>;
+def : Pat<(addc CPURegs:$lhs, CPURegs:$rhs),
+          (ADDu CPURegs:$lhs, CPURegs:$rhs)>;
+def : Pat<(addc  CPURegs:$src, immSExt16:$imm),
+          (ADDiu CPURegs:$src, imm:$imm)>;
+
 // hi/lo relocs
 def : Pat<(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>;
 def : Pat<(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
@@ -448,41 +416,6 @@ def : Pat<(not CPURegs:$in),
 def : Pat<(i32 (extloadi1  addr:$src)), (LBu addr:$src)>;
 def : Pat<(i32 (extloadi8  addr:$src)), (LBu addr:$src)>;
 def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
-
-// brcond patterns
-multiclass BrcondPats<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
-Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp, 
-Instruction CMPOp, Register ZEROReg> {
-def : Pat<(brcond (i32 (seteq RC:$lhs, RC:$rhs)), bb:$dst),
-          (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setueq RC:$lhs, RC:$rhs)), bb:$dst),
-          (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setne RC:$lhs, RC:$rhs)), bb:$dst),
-          (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setune RC:$lhs, RC:$rhs)), bb:$dst),
-          (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setlt RC:$lhs, RC:$rhs)), bb:$dst),
-          (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setult RC:$lhs, RC:$rhs)), bb:$dst),
-          (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setgt RC:$lhs, RC:$rhs)), bb:$dst),
-          (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setugt RC:$lhs, RC:$rhs)), bb:$dst),
-          (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setle RC:$lhs, RC:$rhs)), bb:$dst),
-          (JLEOp (CMPOp RC:$rhs, RC:$lhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setule RC:$lhs, RC:$rhs)), bb:$dst),
-          (JLEOp (CMPOp RC:$rhs, RC:$lhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setge RC:$lhs, RC:$rhs)), bb:$dst),
-          (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setuge RC:$lhs, RC:$rhs)), bb:$dst),
-          (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-
-def : Pat<(brcond RC:$cond, bb:$dst),
-          (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)>;
-}
-
-defm : BrcondPats<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
 
 // setcc patterns
 multiclass SeteqPats<RegisterClass RC> {

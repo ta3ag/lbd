@@ -151,9 +151,6 @@ getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
                        SmallVectorImpl<MCFixup> &Fixups) const {
 
   const MCOperand &MO = MI.getOperand(OpNo);
-
-  // If the destination is an immediate, we have nothing to do.
-  if (MO.isImm()) return MO.getImm();
   assert(MO.isExpr() && "getBranchTargetOpValue expects only expressions");
 
   const MCExpr *Expr = MO.getExpr();

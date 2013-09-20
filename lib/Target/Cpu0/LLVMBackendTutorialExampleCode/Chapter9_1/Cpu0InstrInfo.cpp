@@ -21,7 +21,7 @@
 using namespace llvm;
 
 Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
-  : Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
+  : 
     TM(tm),
     RI(*TM.getSubtargetImpl(), *this) {}
 
@@ -82,25 +82,6 @@ static MachineMemOperand* GetMemOperand(MachineBasicBlock &MBB, int FI,
                                  MFI.getObjectSize(FI), Align);
 }
 
-//- st SrcReg, MMO(FI)
-void Cpu0InstrInfo::
-storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
-                    unsigned SrcReg, bool isKill, int FI,
-                    const TargetRegisterClass *RC,
-                    const TargetRegisterInfo *TRI) const {
-  DebugLoc DL;
-  if (I != MBB.end()) DL = I->getDebugLoc();
-  MachineMemOperand *MMO = GetMemOperand(MBB, FI, MachineMemOperand::MOStore);
-
-  unsigned Opc = 0;
-
-  if (Cpu0::CPURegsRegClass.hasSubClassEq(RC))
-    Opc = Cpu0::ST;
-  assert(Opc && "Register class not handled!");
-  BuildMI(MBB, I, DL, get(Opc)).addReg(SrcReg, getKillRegState(isKill))
-    .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
-}
-
 void Cpu0InstrInfo::
 loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                      unsigned DestReg, int FI,
@@ -127,28 +108,4 @@ Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
     .addFrameIndex(FrameIx).addImm(0).addImm(Offset).addMetadata(MDPtr);
   return &*MIB;
 }
-
-// Cpu0InstrInfo::expandPostRAPseudo
-/// Expand Pseudo instructions into real backend instructions
-bool Cpu0InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
-  MachineBasicBlock &MBB = *MI->getParent();
-
-  switch(MI->getDesc().getOpcode()) {
-  default:
-    return false;
-  case Cpu0::RetLR:
-    ExpandRetLR(MBB, MI, Cpu0::RET);
-    break;
-  }
-
-  MBB.erase(MI);
-  return true;
-}
-
-void Cpu0InstrInfo::ExpandRetLR(MachineBasicBlock &MBB,
-                                MachineBasicBlock::iterator I,
-                                unsigned Opc) const {
-  BuildMI(MBB, I, I->getDebugLoc(), get(Opc)).addReg(Cpu0::LR);
-}
-
 

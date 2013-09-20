@@ -91,17 +91,11 @@ def uimm16      : Operand<i32> {
   let PrintMethod = "printUnsignedImm";
 }
 
-def Cpu0MemAsmOperand : AsmOperandClass {
-  let Name = "Mem";
-  let ParserMethod = "parseMemOperand";
-}
-
 // Address operand
 def mem : Operand<i32> {
   let PrintMethod = "printMemOperand";
   let MIOperandInfo = (ops CPURegs, simm16);
   let EncoderMethod = "getMemEncoding";
-  let ParserMatchClass = Cpu0MemAsmOperand;
 }
 
 def mem_ea : Operand<i32> {
@@ -282,7 +276,7 @@ multiclass StoreM32<bits<8> op, string instr_asm, PatFrag OpNode,
 class CBranch<bits<8> op, string instr_asm, RegisterClass RC,
                    list<Register> UseRegs>:
   FJ<op, (outs), (ins RC:$ra, brtarget:$addr),
-             !strconcat(instr_asm, "\t$ra, $addr"),
+             !strconcat(instr_asm, "\t$addr"),
              [], IIBranch> {
   let isBranch = 1;
   let isTerminator = 1;
@@ -412,26 +406,11 @@ def CPRESTORE : Cpu0Pseudo<(outs), (ins i32imm:$loc, CPURegs:$gp),
                            ".cprestore\t$loc", []>;
 
 //===----------------------------------------------------------------------===//
-// Pseudo Instruction definition
+// Instruction definition
 //===----------------------------------------------------------------------===//
 
-class LoadImm32< string instr_asm, Operand Od, RegisterClass RC> :
-  Cpu0AsmPseudoInst<(outs RC:$ra), (ins Od:$imm32),
-                     !strconcat(instr_asm, "\t$ra, $imm32")> ;
-def LoadImm32Reg : LoadImm32<"li", shamt, CPURegs>;
-
-class LoadAddress<string instr_asm, Operand MemOpnd, RegisterClass RC> :
-  Cpu0AsmPseudoInst<(outs RC:$ra), (ins MemOpnd:$addr),
-                     !strconcat(instr_asm, "\t$ra, $addr")> ;
-def LoadAddr32Reg : LoadAddress<"la", mem, CPURegs>;
-
-class LoadAddressImm<string instr_asm, Operand Od, RegisterClass RC> :
-  Cpu0AsmPseudoInst<(outs RC:$ra), (ins Od:$imm32),
-                     !strconcat(instr_asm, "\t$ra, $imm32")> ;
-def LoadAddr32Imm : LoadAddressImm<"la", shamt, CPURegs>;
-
 //===----------------------------------------------------------------------===//
-// Cpu0 Instructions
+// Cpu0I Instructions
 //===----------------------------------------------------------------------===//
 
 /// Load and Store Instructions
@@ -536,6 +515,14 @@ def : Pat<(i32 immLow16Zero:$in),
 // Arbitrary immediates
 def : Pat<(i32 imm:$imm),
           (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
+
+// Carry patterns
+def : Pat<(subc CPURegs:$lhs, CPURegs:$rhs),
+          (SUBu CPURegs:$lhs, CPURegs:$rhs)>;
+def : Pat<(addc CPURegs:$lhs, CPURegs:$rhs),
+          (ADDu CPURegs:$lhs, CPURegs:$rhs)>;
+def : Pat<(addc  CPURegs:$src, immSExt16:$imm),
+          (ADDiu CPURegs:$src, imm:$imm)>;
 
 def : Pat<(Cpu0JmpLink (i32 tglobaladdr:$dst)),
           (JSUB tglobaladdr:$dst)>;

@@ -81,13 +81,6 @@ public:
   unsigned getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
                                   SmallVectorImpl<MCFixup> &Fixups) const;
 
-  // getJumpTargetOpValue - Return binary encoding of the jump
-  // target operand, such as SWI #interrupt_addr and JSUB #function_addr. 
-  // If the machine operand requires relocation,
-  // record the relocation and return zero.
-   unsigned getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
-                                 SmallVectorImpl<MCFixup> &Fixups) const;
-
    // getMachineOpValue - Return binary encoding of operand. If the machin
    // operand requires relocation, record the relocation and return zero.
   unsigned getMachineOpValue(const MCInst &MI,const MCOperand &MO,
@@ -159,23 +152,6 @@ getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
   return 0;
 }
 
-/// getJumpTargetOpValue - Return binary encoding of the jump
-/// target operand. Such as SWI and JSUB.
-unsigned Cpu0MCCodeEmitter::
-getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
-                     SmallVectorImpl<MCFixup> &Fixups) const {
-
-  const MCOperand &MO = MI.getOperand(OpNo);
-  // If the destination is an immediate, we have nothing to do.
-  if (MO.isImm()) return MO.getImm();
-  assert(MO.isExpr() && "getJumpTargetOpValue expects only expressions");
-
-  const MCExpr *Expr = MO.getExpr();
-  Fixups.push_back(MCFixup::Create(0, Expr,
-                                   MCFixupKind(Cpu0::fixup_Cpu0_24)));
-  return 0;
-}
-
 /// getMachineOpValue - Return binary encoding of operand. If the machine
 /// operand requires relocation, record the relocation and return zero.
 unsigned Cpu0MCCodeEmitter::
@@ -210,9 +186,6 @@ getMachineOpValue(const MCInst &MI, const MCOperand &MO,
   switch(cast<MCSymbolRefExpr>(Expr)->getKind()) {
   case MCSymbolRefExpr::VK_Cpu0_GPREL:
     FixupKind = Cpu0::fixup_Cpu0_GPREL16;
-    break;
-  case MCSymbolRefExpr::VK_Cpu0_GOT_CALL:
-    FixupKind = Cpu0::fixup_Cpu0_CALL24;
     break;
   case MCSymbolRefExpr::VK_Cpu0_GOT16:
     FixupKind = Cpu0::fixup_Cpu0_GOT_Global;

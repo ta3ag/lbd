@@ -83,7 +83,6 @@ public:
   }
   virtual bool addInstSelector();
   virtual bool addPreRegAlloc();
-  virtual bool addPreEmitPass();
 };
 } // namespace
 
@@ -99,17 +98,9 @@ bool Cpu0PassConfig::addInstSelector() {
 }
 
 bool Cpu0PassConfig::addPreRegAlloc() {
-  // $gp is a caller-saved register.
+  // Do not restore $gp if target is Cpu064.
+  // In N32/64, $gp is a callee-saved register.
 
   addPass(createCpu0EmitGPRestorePass(getCpu0TargetMachine()));
-  return true;
-}
-
-// Implemented by targets that want to run passes immediately before
-// machine code is emitted. return true if -print-machineinstrs should
-// print out the code after the passes.
-bool Cpu0PassConfig::addPreEmitPass() {
-  Cpu0TargetMachine &TM = getCpu0TargetMachine();
-  addPass(createCpu0DelJmpPass(TM));
   return true;
 }

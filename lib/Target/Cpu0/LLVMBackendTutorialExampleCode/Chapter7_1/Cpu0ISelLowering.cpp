@@ -132,15 +132,8 @@ Cpu0TargetLowering(Cpu0TargetMachine &TM)
   setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
   setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
 
-  // Used by legalize types to correctly generate the setcc result.
-  // Without this, every float setcc comes with a AND/OR with the result,
-  // we don't want this, since the fpcmp result goes to a flag register,
-  // which is used implicitly by brcond and select operations.
-  AddPromotedToType(ISD::SETCC, MVT::i1, MVT::i32);
-
   // Cpu0 Custom Operations
   setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
-  setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
 
   // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
@@ -149,9 +142,6 @@ Cpu0TargetLowering(Cpu0TargetMachine &TM)
   setOperationAction(ISD::SREM, MVT::i32, Expand);
   setOperationAction(ISD::UDIV, MVT::i32, Expand);
   setOperationAction(ISD::UREM, MVT::i32, Expand);
-
-  // Operations not directly supported by Cpu0.
-  setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
 
   setTargetDAGCombine(ISD::SDIVREM);
   setTargetDAGCombine(ISD::UDIVREM);
@@ -222,7 +212,6 @@ LowerOperation(SDValue Op, SelectionDAG &DAG) const
 {
   switch (Op.getOpcode())
   {
-    case ISD::BRCOND:             return LowerBRCOND(Op, DAG);
     case ISD::GlobalAddress:      return LowerGlobalAddress(Op, DAG);
   }
   return SDValue();
@@ -235,11 +224,6 @@ LowerOperation(SDValue Op, SelectionDAG &DAG) const
 //===----------------------------------------------------------------------===//
 //  Misc Lower Operation implementation
 //===----------------------------------------------------------------------===//
-SDValue Cpu0TargetLowering::
-LowerBRCOND(SDValue Op, SelectionDAG &DAG) const
-{
-  return Op;
-}
 
 SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
                                                SelectionDAG &DAG) const {
@@ -281,12 +265,6 @@ SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
 }
 
 #include "Cpu0GenCallingConv.inc"
-
-SDValue
-Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
-                              SmallVectorImpl<SDValue> &InVals) const {
-  return CLI.Chain;
-}
 
 /// LowerFormalArguments - transform physical registers into virtual registers
 /// and generate load operations for arguments places on the stack.

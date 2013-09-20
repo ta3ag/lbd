@@ -36,18 +36,12 @@ public:
   ///
   virtual const Cpu0RegisterInfo &getRegisterInfo() const;
 
-public:
   virtual void copyPhysReg(MachineBasicBlock &MBB,
                            MachineBasicBlock::iterator MI, DebugLoc DL,
                            unsigned DestReg, unsigned SrcReg,
                            bool KillSrc) const;
 
-  virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
-                                   MachineBasicBlock::iterator MBBI,
-                                   unsigned SrcReg, bool isKill, int FrameIndex,
-                                   const TargetRegisterClass *RC,
-                                   const TargetRegisterInfo *TRI) const;
-
+public:
   virtual void loadRegFromStackSlot(MachineBasicBlock &MBB,
                                     MachineBasicBlock::iterator MBBI,
                                     unsigned DestReg, int FrameIndex,
@@ -58,12 +52,6 @@ public:
                                                  int FrameIx, uint64_t Offset,
                                                  const MDNode *MDPtr,
                                                  DebugLoc DL) const;
-  /// Expand Pseudo instructions into real backend instructions
-  virtual bool expandPostRAPseudo(MachineBasicBlock::iterator MI) const;
-
-private:
-  void ExpandRetLR(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
-                   unsigned Opc) const;
 };
 }
 

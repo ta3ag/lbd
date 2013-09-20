@@ -28,9 +28,6 @@ def SDT_Cpu0DivRem       : SDTypeProfile<0, 2,
 
 def SDT_Cpu0JmpLink      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
 
-def SDT_Cpu0CallSeqStart : SDCallSeqStart<[SDTCisVT<0, i32>]>;
-def SDT_Cpu0CallSeqEnd   : SDCallSeqEnd<[SDTCisVT<0, i32>, SDTCisVT<1, i32>]>;
-
 // Call
 def Cpu0JmpLink : SDNode<"Cpu0ISD::JmpLink",SDT_Cpu0JmpLink,
                          [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue,
@@ -44,14 +41,8 @@ def Cpu0Lo    : SDNode<"Cpu0ISD::Lo", SDTIntUnaryOp>;
 def Cpu0GPRel : SDNode<"Cpu0ISD::GPRel", SDTIntUnaryOp>;
 
 // Return
-def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDTNone,
-                     [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
-
-// These are target-independent nodes, but have target-specific formats.
-def callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_Cpu0CallSeqStart,
-                           [SDNPHasChain, SDNPOutGlue]>;
-def callseq_end   : SDNode<"ISD::CALLSEQ_END", SDT_Cpu0CallSeqEnd,
-                           [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]>;
+def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDT_Cpu0Ret, [SDNPHasChain,
+                     SDNPOptInGlue]>;
 
 // DivRem(u) nodes
 def Cpu0DivRem    : SDNode<"Cpu0ISD::DivRem", SDT_Cpu0DivRem,
@@ -189,7 +180,6 @@ class CmpInstr<bits<8> op, string instr_asm,
   let rc = 0;
   let shamt = 0;
   let isCommutable = isComm;
-  let DecoderMethod = "DecodeCMPInstruction";
 }
 
 // Arithmetic and logical instructions with 2 register operands.
@@ -282,7 +272,6 @@ class CBranch<bits<8> op, string instr_asm, RegisterClass RC,
   let isTerminator = 1;
   let hasDelaySlot = 0;
   let neverHasSideEffects = 1;
-  let DecoderMethod = "DecodeBranchTarget";
 }
 
 // Unconditional branch, such as JMP
@@ -296,30 +285,12 @@ class UncondBranch<bits<8> op, string instr_asm>:
   let DecoderMethod = "DecodeJumpRelativeTarget";
 }
 
-let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
-    isIndirectBranch = 1 in
-class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
-  FL<op, (outs), (ins RC:$ra),
-     !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch> {
-  let rb = 0;
-  let imm16 = 0;
-}
-
-// Return instruction
-class RetBase<RegisterClass RC>: JumpFR<0x3c, "ret", RC> {
-  let isReturn = 1;
-  let isCodeGenOnly = 1;
-  let hasCtrlDep = 1;
-  let hasExtraSrcRegAllocReq = 1;
-}
-
 // Jump and Link (Call)
 let isCall=1, hasDelaySlot=0 in {
   class JumpLink<bits<8> op, string instr_asm>:
     FJ<op, (outs), (ins calltarget:$target, variable_ops),
        !strconcat(instr_asm, "\t$target"), [(Cpu0JmpLink imm:$target)],
        IIBranch> {
-       let DecoderMethod = "DecodeJumpAbsoluteTarget";
        }
 
   class JumpLinkReg<bits<8> op, string instr_asm,
@@ -384,28 +355,6 @@ class EffectiveAddress<string instr_asm, RegisterClass RC, Operand Mem> :
      instr_asm, [(set RC:$ra, addr:$addr)], IIAlu>;
 
 //===----------------------------------------------------------------------===//
-// Pseudo instructions
-//===----------------------------------------------------------------------===//
-
-// As stack alignment is always done with addiu, we need a 16-bit immediate
-let Defs = [SP], Uses = [SP] in {
-def ADJCALLSTACKDOWN : Cpu0Pseudo<(outs), (ins uimm16:$amt),
-                                  "!ADJCALLSTACKDOWN $amt",
-                                  [(callseq_start timm:$amt)]>;
-def ADJCALLSTACKUP   : Cpu0Pseudo<(outs), (ins uimm16:$amt1, uimm16:$amt2),
-                                  "!ADJCALLSTACKUP $amt1",
-                                  [(callseq_end timm:$amt1, timm:$amt2)]>;
-}
-
-// When handling PIC code the assembler needs .cpload and .cprestore
-// directives. If the real instructions corresponding these directives
-// are used, we have the same behavior, but get also a bunch of warnings
-// from the assembler.
-let neverHasSideEffects = 1 in
-def CPRESTORE : Cpu0Pseudo<(outs), (ins i32imm:$loc, CPURegs:$gp),
-                           ".cprestore\t$loc", []>;
-
-//===----------------------------------------------------------------------===//
 // Instruction definition
 //===----------------------------------------------------------------------===//
 
@@ -468,12 +417,11 @@ def JMP     : UncondBranch<0x36, "jmp">;
 /// Jump and Branch Instructions
 def SWI     : JumpLink<0x3a, "swi">;
 def JSUB    : JumpLink<0x3b, "jsub">;
-def JR      : JumpFR<0x3c, "ret", CPURegs>;
 
-let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
-  def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
-
-def RET     : RetBase<CPURegs>;
+let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
+    isBarrier=1, hasCtrlDep=1 in
+  def RET : FJ <0x2c, (outs), (ins CPURegs:$target),
+                "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch>;
 
 def JALR    : JumpLinkReg<0x3e, "jalr", CPURegs>;
 
@@ -515,6 +463,14 @@ def : Pat<(i32 immLow16Zero:$in),
 // Arbitrary immediates
 def : Pat<(i32 imm:$imm),
           (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
+
+// Carry patterns
+def : Pat<(subc CPURegs:$lhs, CPURegs:$rhs),
+          (SUBu CPURegs:$lhs, CPURegs:$rhs)>;
+def : Pat<(addc CPURegs:$lhs, CPURegs:$rhs),
+          (ADDu CPURegs:$lhs, CPURegs:$rhs)>;
+def : Pat<(addc  CPURegs:$src, immSExt16:$imm),
+          (ADDiu CPURegs:$src, imm:$imm)>;
 
 def : Pat<(Cpu0JmpLink (i32 tglobaladdr:$dst)),
           (JSUB tglobaladdr:$dst)>;

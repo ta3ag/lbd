@@ -9,7 +9,7 @@ set(LLVM_TARGET_DEFINITIONS Cpu0.td)
 #  came from Cpu0InstrInfo.td.
 tablegen(LLVM Cpu0GenRegisterInfo.inc -gen-register-info)
 tablegen(LLVM Cpu0GenInstrInfo.inc -gen-instr-info)
-tablegen(LLVM Cpu0GenDisassemblerTables.inc -gen-disassembler)
+
 tablegen(LLVM Cpu0GenCodeEmitter.inc -gen-emitter)
 tablegen(LLVM Cpu0GenMCCodeEmitter.inc -gen-emitter -mc-emitter)
 
@@ -25,7 +25,6 @@ add_public_tablegen_target(Cpu0CommonTableGen)
 add_llvm_target(Cpu0CodeGen
   Cpu0AnalyzeImmediate.cpp
   Cpu0AsmPrinter.cpp
-  Cpu0EmitGPRestore.cpp
   Cpu0InstrInfo.cpp
   Cpu0ISelDAGToDAG.cpp
   Cpu0ISelLowering.cpp
@@ -41,6 +40,5 @@ add_llvm_target(Cpu0CodeGen
 
 # Should match with "subdirectories =  MCTargetDesc TargetInfo" in LLVMBuild.txt
 add_subdirectory(InstPrinter)
-add_subdirectory(Disassembler)
 add_subdirectory(TargetInfo)
 add_subdirectory(MCTargetDesc)

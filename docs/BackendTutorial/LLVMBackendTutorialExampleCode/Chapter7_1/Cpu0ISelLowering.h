@@ -87,7 +87,6 @@ namespace llvm {
     const Cpu0Subtarget *Subtarget;
 
     // Lower Operand specifics
-    SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
     SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
 
 	//- must be exist without function all
@@ -97,10 +96,6 @@ namespace llvm {
                            const SmallVectorImpl<ISD::InputArg> &Ins,
                            DebugLoc dl, SelectionDAG &DAG,
                            SmallVectorImpl<SDValue> &InVals) const;
-
-    virtual SDValue
-      LowerCall(TargetLowering::CallLoweringInfo &CLI,
-                SmallVectorImpl<SDValue> &InVals) const;
 
 	//- must be exist without function all
     virtual SDValue
