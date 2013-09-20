@@ -1,17 +1,17 @@
-// clang -c ch8_3_3.cpp -emit-llvm -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ -o ch8_3_3.bc
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc ch8_3_3.bc -o ch8_3_3.s
-// clang++ ch8_3_3.s -o ch8_3_3.native
-// ./ch8_3_3.native
-// lldb -- ch7_3_3.native
+// clang -target mips-unknown-linux-gnu -c ch9_3_3.cpp -emit-llvm -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ -o ch9_3_3.bc
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc ch9_3_3.bc -o ch9_3_3.s
+// clang++ ch9_3_3.s -o ch9_3_3.native
+// ./ch9_3_3.native
+// lldb -- ch9_3_3.native
 // b main
 // s
 // ...
 // print $rsp		; print %rsp, choose $ instead of % in assembly code
 
-// mips-linux-gnu-g++ -g ch8_3_3.cpp -o ch8_3_3 -static
-// qemu-mips ch8_3_3
-// mips-linux-gnu-g++ -S ch8_3_3.cpp
-// cat ch8_3_3.s
+// mips-linux-gnu-g++ -g ch9_3_3.cpp -o ch9_3_3 -static
+// qemu-mips ch9_3_3
+// mips-linux-gnu-g++ -S ch9_3_3.cpp
+// cat ch9_3_3.s
 
 /// start
 #include <stdio.h>

@@ -1,6 +1,6 @@
-// clang -target `llvm-config --host-target` -c ch11_1.cpp -emit-llvm -o ch11_1.bc
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm -enable-cpu0-del-useless-jmp=false ch11_1.bc -o ch11_1.cpu0.s
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm -stats ch11_1.bc -o ch11_1.cpu0.s
+// clang -target mips-unknown-linux-gnu -c ch12_1.cpp -emit-llvm -o ch12_1.bc
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm -enable-cpu0-del-useless-jmp=false ch12_1.bc -o -
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm -stats ch12_1.bc -o -
 
 /// start
 int main()

@@ -1,6 +1,6 @@
-// clang -target `llvm-config --host-target` -c ch8_3.cpp -emit-llvm -o ch8_3.bc
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_3.bc -o ch8_3.cpu0.s
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=mips -relocation-model=pic -filetype=asm ch8_3.bc -o ch8_3.mips.s
+// clang -target mips-unknown-linux-gnu -c ch9_3.cpp -emit-llvm -o ch9_3.bc
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_3.bc -o -
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=mips -relocation-model=pic -filetype=asm ch9_3.bc -o -
 
 /// start
 #include <stdarg.h>

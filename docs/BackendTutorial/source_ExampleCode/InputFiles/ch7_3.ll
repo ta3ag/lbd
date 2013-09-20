@@ -1,4 +1,4 @@
-; /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -target mips-unknown-linux-gnu -march=cpu0 -relocation-model=pic -filetype=asm ch7_3.ll -o -
+; /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_3.ll -o -
 
 ; /// start
 define zeroext i1 @verify_load_bool() #0 {

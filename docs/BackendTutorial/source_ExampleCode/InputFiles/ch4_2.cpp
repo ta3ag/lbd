@@ -1,4 +1,4 @@
-// clang -c ch4_2.cpp -emit-llvm -o ch4_2.bc
+// clang -target mips-unknown-linux-gnu -c ch4_2.cpp -emit-llvm -o ch4_2.bc
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_2.bc -o ch4_2.cpu0.s
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -view-isel-dags -view-sched-dags -relocation-model=pic -filetype=asm ch4_2.bc -o -
 
