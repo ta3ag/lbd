@@ -17,6 +17,6 @@ int test_struct()
   int day = date.day;
   int i = a[1];
 
-  return 0;
+  return (i+day); // 12+2012=2024
 }
 

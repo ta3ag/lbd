@@ -2,27 +2,18 @@
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_4.bc -o -
 
 /// start
-int test_local_pointer()
+long long test_longlong()
 {
-  int b = 3;
+  long long a = 0x300000002;
+  long long b = 0x100000001;
+  int a1 = 0x3001000;
+  int b1 = 0x2001000;
   
-  int* p = &b;
+  long long c = a + b;   // c = 0x00000004,00000003
+  long long d = a - b;   // d = 0x00000002,00000001
+  long long e = a * b;   // e = 0x00000005,00000002
+  long long f = (long long)a1 * (long long)b1; // f = 0x00060050,01000000
 
-  return *p;
-}
-
-int test_longlong()
-{
-  long long a = 0x3080000000;
-  long long b = 0x2080000000;
-  int a1 = 0x30008000;
-  int b1 = 0x20008000;
-  
-  long long c = a + b;
-  c = a - b;
-  long long d = a * b;
-  d = a1 * b1;
-  
-  return 0;
+  return (c+d+e+f); // (0x0006005b,01000006) = (393307,16777222)
 }
 
