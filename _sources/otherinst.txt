@@ -1,7 +1,7 @@
 .. _sec-addingmoresupport:
 
-Arithmetic, local pointer and logic lsupport
-==============================================
+Arithmetic and logic lsupport
+===============================
 
 This chapter adds more cpu0 arithmetic instructions support first.
 The logic operation **“not”** support and translation in 
@@ -228,7 +228,8 @@ Now, let's build Chapter4_1/ and run with input file ch4_1.cpp as follows,
 
 .. code-block:: bash
 
-  118-165-78-12:InputFiles Jonathan$ clang -c ch4_1.cpp -emit-llvm -o ch4_1.bc
+  118-165-78-12:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch4_1.cpp -emit-llvm -o ch4_1.bc
   118-165-78-12:InputFiles Jonathan$ llvm-dis ch4_1.bc -o -
   ...
   ; Function Attrs: nounwind uwtable
@@ -1120,7 +1121,8 @@ llvm **“Constant Propagation Optimization”** useless in this.
 
 .. code-block:: bash
 
-  118-165-77-79:InputFiles Jonathan$ clang -c ch4_2_2.cpp -emit-llvm -o ch4_2_2.bc
+  118-165-77-79:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch4_2_2.cpp -emit-llvm -o ch4_2_2.bc
   118-165-77-79:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_
   debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch4_2_2.bc -o -
@@ -1134,9 +1136,10 @@ ch4_2_2.cpp as follows,
 
 .. code-block:: bash
 
-  118-165-83-58:InputFiles Jonathan$ clang -c ch4_2_2.cpp -I/Applications/Xcode.app/
-  Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/
-  include/ -emit-llvm -o ch4_2_2.bc
+  118-165-83-58:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch4_2_2.cpp -I/Applications/Xcode.app/Contents/Developer/Platforms/
+  MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ -emit-llvm -o 
+  ch4_2_2.bc
   118-165-83-58:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/bin/
   Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug ch4_2_2.bc -o -
   Args: /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 
@@ -1438,101 +1441,6 @@ to **mfhi**.
 The ch4_3.cpp is for **/** div operator test.
 
 
-Local variable pointer
-~~~~~~~~~~~~~~~~~~~~~~~
-
-To support pointer to local variable, add this code fragment in 
-Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
-
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.td
-.. code-block:: c++
-
-  def mem_ea : Operand<i32> {
-    let PrintMethod = "printMemOperandEA";
-    let MIOperandInfo = (ops CPURegs, simm16);
-    let EncoderMethod = "getMemEncoding";
-  }
-  ...
-  class EffectiveAddress<string instr_asm, RegisterClass RC, Operand Mem> :
-    FMem<0x09, (outs RC:$ra), (ins Mem:$addr),
-       instr_asm, [(set RC:$ra, addr:$addr)], IIAlu>;
-  ...
-  // FrameIndexes are legalized when they are operands from load/store
-  // instructions. The same not happens for stack address copies, so an
-  // add op with mem ComplexPattern is used and the stack address copy
-  // can be matched. It's similar to Sparc LEA_ADDRi
-  def LEA_ADDiu : EffectiveAddress<"addiu\t$ra, $addr", CPURegs, mem_ea> {
-    let isCodeGenOnly = 1;
-  }
-  
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstPrinter.td
-.. code-block:: c++
-
-  void Cpu0InstPrinter::
-  printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &O) {
-    // when using stack locations for not load/store instructions
-    // print the same way as all normal 3 operand instructions.
-    printOperand(MI, opNum, O);
-    O << ", ";
-    printOperand(MI, opNum+1, O);
-    return;
-  }
-
-Run ch4_4.cpp with code Chapter4_1/ which support pointer to local variable, 
-will get result as follows,
-
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp
-    :start-after: /// start
-
-.. code-block:: bash
-
-  118-165-66-82:InputFiles Jonathan$ clang -c ch4_4.cpp -emit-llvm -o ch4_4.bc
-  118-165-66-82:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_
-  debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-    ch4_4.bc -o ch4_4.cpu0.s
-    118-165-66-82:InputFiles Jonathan$ cat ch4_4.cpu0.s 
-	  .section .mdebug.abi32
-	  .previous
-	  .file	"ch4_4.bc"
-	  .text
-	  .globl	_Z18test_local_pointerv
-	  .align	2
-	  .type	_Z18test_local_pointerv,@function
-	  .ent	_Z18test_local_pointerv # @_Z18test_local_pointerv
-  _Z18test_local_pointerv:
-	  .cfi_startproc
-	  .frame	$fp,16,$lr
-	  .mask 	0x00000800,-4
-	  .set	noreorder
-	  .set	nomacro
-  # BB#0:                                 # %entry
-	  addiu	$sp, $sp, -16
-  $tmp3:
-	  .cfi_def_cfa_offset 16
-	  st	$fp, 12($sp)            # 4-byte Folded Spill
-  $tmp4:
-	  .cfi_offset 11, -4
-	  addu	$fp, $sp, $zero
-  $tmp5:
-	  .cfi_def_cfa_register 11
-	  addiu	$2, $zero, 3
-	  st	$2, 8($fp)
-	  addiu	$2, $fp, 8
-	  st	$2, 0($fp)
-	  ld	$2, 8($fp)
-	  addu	$sp, $fp, $zero
-	  ld	$fp, 12($sp)            # 4-byte Folded Reload
-	  addiu	$sp, $sp, 16
-	  ret	$lr
-	  .set	macro
-	  .set	reorder
-	  .end	_Z18test_local_pointerv
-  $tmp6:
-	  .size	_Z18test_local_pointerv, ($tmp6)-_Z18test_local_pointerv
-	  .cfi_endproc
-
-
 Logic
 -------
 
@@ -1570,17 +1478,7 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   def : Pat<(not CPURegs:$in),
   // 1: in == 0; 0: in != 0
             (XORi CPURegs:$in, 1)>;
-  
-  // Sign Extend in Register. 
-  // Get the least 7bits from register $in and signed bit (the 31th bit) from the 
-  // 8th bit of register $in.
-  def : Pat<(sext_inreg CPURegs:$in, i8),
-            (OR (SHL (ANDi CPURegs:$in, 0x0080), 16), (ANDi CPURegs:$in, 0x007f))>;
-  // Get the least 15bits from register $in and signed bit (the 31th bit) from the 
-  // 16th bit of register $in.
-  def : Pat<(sext_inreg CPURegs:$in, i8),
-            (OR (SHL (ANDi CPURegs:$in, 0x8000), 16), (ANDi CPURegs:$in, 0x7fff))>;
-  
+    
   // setcc patterns
   multiclass SeteqPats<RegisterClass RC> {
   // a == b
@@ -1635,13 +1533,27 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   defm : SetgtPats<CPURegs>;
   defm : SetgePats<CPURegs>;
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_2/Cpu0ISelLowering.cpp
+.. code-block:: c++
+
+  Cpu0TargetLowering::
+  Cpu0TargetLowering(Cpu0TargetMachine &TM)
+    : TargetLowering(TM, new Cpu0TargetObjectFile()),
+      Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
+    ...
+    // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
+    setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
+    ...
+  }
+
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
-  114-43-204-152:InputFiles Jonathan$ clang -c ch4_5.cpp -emit-llvm -o ch4_5.bc
+  114-43-204-152:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch4_5.cpp -emit-llvm -o ch4_5.bc
   114-43-204-152:InputFiles Jonathan$ llvm-dis ch4_5.bc -o -
   ...
   ; Function Attrs: nounwind uwtable

@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.2',
+        VERSION:     '3.3.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -68,8 +68,8 @@ backend on PC by feed the hex file and see the Cpu0 instructions execution
 result.</p>
 <div class="section" id="asmparser-support">
 <h2>AsmParser support<a class="headerlink" href="#asmparser-support" title="Permalink to this headline">¶</a></h2>
-<p>Run Chapter9_1/ with ch10_1.cpp will get the following error message.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch10_1.cpp</p>
+<p>Run Chapter10_1/ with ch11_1.cpp will get the following error message.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch11_1.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld	$2, 8($sp)&quot;</span><span class="p">);</span>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;st	$0, 4($sp)&quot;</span><span class="p">);</span>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $3,	$ZERO, 0&quot;</span><span class="p">);</span>
@@ -108,11 +108,11 @@ result.</p>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;la $3, 0x00900000&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><pre>JonathantekiiMac:InputFiles Jonathan$ clang -c ch10_1.cpp -emit-llvm -o
-ch10_1.bc
+<div class="highlight-bash"><pre>JonathantekiiMac:InputFiles Jonathan$ clang -c ch11_1.cpp -emit-llvm -o
+ch11_1.bc
 JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch10_1.bc
--o ch10_1.cpu0.o
+build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch11_1.bc
+-o ch11_1.cpu0.o
 LLVM ERROR: Inline asm not supported by this streamer because we don't have
 an asm parser for this target</pre>
 </div>
@@ -120,8 +120,8 @@ an asm parser for this target</pre>
 The cpu0 can translate LLVM IR into assembly and obj directly, but it cannot
 translate hand code assembly into obj.
 Directory AsmParser handle the assembly to obj translation.
-The Chapter10_1/ include AsmParser implementation as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/Cpu0AsmParser.cpp</p>
+The Chapter11_1/ include AsmParser implementation as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/AsmParser/Cpu0AsmParser.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0AsmParser.cpp - Parse Cpu0 assembly to MCInst instructions ----===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
@@ -1149,7 +1149,7 @@ The Chapter10_1/ include AsmParser implementation as follows,</p>
 <span class="cp">#include &quot;Cpu0GenAsmMatcher.inc&quot;</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/CMakeLists.txt</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/AsmParser/CMakeLists.txt</p>
 <div class="highlight-c++"><pre>include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
 add_llvm_library(LLVMCpu0AsmParser
   Cpu0AsmParser.cpp
@@ -1158,7 +1158,7 @@ add_llvm_library(LLVMCpu0AsmParser
 add_dependencies(LLVMCpu0AsmParser Cpu0CommonTableGen)
 </pre>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/LLVMBuild.txt</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/AsmParser/LLVMBuild.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">;</span><span class="o">===-</span> <span class="p">.</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">Target</span><span class="o">/</span><span class="n">Mips</span><span class="o">/</span><span class="n">AsmParser</span><span class="o">/</span><span class="n">LLVMBuild</span><span class="p">.</span><span class="n">txt</span> <span class="o">----------------*-</span> <span class="n">Conf</span> <span class="o">-*--===</span><span class="p">;</span>
 <span class="p">;</span>
 <span class="p">;</span>                     <span class="n">The</span> <span class="n">LLVM</span> <span class="n">Compiler</span> <span class="n">Infrastructure</span>
@@ -1188,20 +1188,20 @@ add_dependencies(LLVMCpu0AsmParser Cpu0CommonTableGen)
 language parsing. You can understand it with a little patient only.
 To let directory AsmParser be built, modify CMakeLists.txt and LLVMBuild.txt as
 follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/CMakeLists.txt</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenAsmMatcher</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="k">asm</span><span class="o">-</span><span class="n">matcher</span><span class="p">)</span>
 <span class="p">...</span>
 <span class="n">add_subdirectory</span><span class="p">(</span><span class="n">AsmParser</span><span class="p">)</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/LLVMBuild.txt</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/LLVMBuild.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">subdirectories</span> <span class="o">=</span> <span class="n">AsmParser</span> <span class="p">...</span>
 <span class="p">...</span>
 <span class="n">has_asmparser</span> <span class="o">=</span> <span class="mi">1</span>
 </pre></div>
 </div>
 <p>The other files change as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
 <span class="n">getBranchTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
              <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -1223,7 +1223,7 @@ follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">Cpu0AsmParser</span> <span class="o">:</span> <span class="n">AsmParser</span> <span class="p">{</span>
   <span class="n">let</span> <span class="n">ShouldEmitMatchRegisterName</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
@@ -1243,7 +1243,7 @@ follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0InstrFormats.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0InstrFormats.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Pseudo-instructions for alternate assembly syntax (never used by codegen).</span>
 <span class="c1">// These are aliases that require C++ handling to convert to the target</span>
 <span class="c1">// instruction, while InstAliases can be handled directly by tblgen.</span>
@@ -1254,7 +1254,7 @@ follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0InstrInfo.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// Cpu0InstrInfo.td
 def Cpu0MemAsmOperand : AsmOperandClass {
   let Name = "Mem";
@@ -1346,7 +1346,7 @@ the following structure and functions in Cpu0GenAsmMatcher.inc.</p>
 </div>
 <p>Above 3 Pseudo Instruction definitions in Cpu0InstrInfo.td such as
 LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/AsmParser/Cpu0AsmParser.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/AsmParser/Cpu0AsmParser.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">needsExpansion</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">)</span> <span class="p">{</span>
 
   <span class="k">switch</span><span class="p">(</span><span class="n">Inst</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
@@ -1395,7 +1395,7 @@ LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,</p>
 <p>Finally, remind the CPURegs as below must
 follow the order of register number because AsmParser use this when do register
 number encode.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0RegisterInfo.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0RegisterInfo.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">// The register string, such as &quot;9&quot; or &quot;gp&quot; will show on &quot;llvm-objdump -d&quot;</span>
 <span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span> <span class="n">in</span> <span class="p">{</span>
@@ -1445,14 +1445,14 @@ number encode.</p>
   <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<p>Run Chapter10_1/ with ch10_1.cpp to get the correct result as follows,</p>
+<p>Run Chapter11_1/ with ch11_1.cpp to get the correct result as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
-build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch10_1.bc -o
-ch10_1.cpu0.o
+build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch11_1.bc -o
+ch11_1.cpu0.o
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
-build/bin/Debug/llvm-objdump -d ch10_1.cpu0.o
+build/bin/Debug/llvm-objdump -d ch11_1.cpu0.o
 
-ch10_1.cpu0.o:  file format ELF32-unknown
+ch11_1.cpu0.o:  file format ELF32-unknown
 
 Disassembly of section .text:
 .text:
@@ -1996,8 +1996,9 @@ cpu0s.v use 0x7000 bytes of memory.</p>
 <span class="kt">int</span> <span class="n">test_andorxornot</span><span class="p">();</span>
 <span class="kt">int</span> <span class="n">test_setxx</span><span class="p">();</span>
 <span class="kt">bool</span> <span class="n">test_load_bool</span><span class="p">();</span>
-<span class="kt">int</span> <span class="n">test_operators</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">);</span>
+<span class="kt">long</span> <span class="kt">long</span> <span class="n">test_longlong</span><span class="p">();</span>
 <span class="kt">int</span> <span class="n">test_control1</span><span class="p">();</span>
+<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...);</span>
 
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
@@ -2014,10 +2015,15 @@ cpu0s.v use 0x7000 bytes of memory.</p>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
   <span class="n">a</span> <span class="o">=</span> <span class="n">test_setxx</span><span class="p">();</span> <span class="c1">// a = 3</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+  <span class="kt">long</span> <span class="kt">long</span> <span class="n">b</span> <span class="o">=</span> <span class="n">test_longlong</span><span class="p">();</span> <span class="c1">// 0x800000002</span>
+  <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)(</span><span class="n">b</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">));</span> <span class="c1">// 393307</span>
+  <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">b</span><span class="p">);</span> <span class="c1">// 16777222</span>
   <span class="n">a</span> <span class="o">=</span> <span class="n">test_control1</span><span class="p">();</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>	<span class="c1">// a = 51</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="mi">2147483647</span><span class="p">);</span> <span class="c1">// test mod % (mult) from itoa.cpp</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="o">-</span><span class="mi">2147483648</span><span class="p">);</span> <span class="c1">// test mod % (multu) from itoa.cpp</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>    <span class="c1">// a = 15</span>
 
   <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
 <span class="p">}</span>
@@ -2052,11 +2058,31 @@ cpu0s.v use 0x7000 bytes of memory.</p>
   <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
 <span class="p">}</span>
 
+<span class="cp">#include &lt;stdarg.h&gt;</span>
+<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	
+  <span class="n">va_list</span> <span class="n">vl</span><span class="p">;</span>
+  <span class="n">va_start</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">amount</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">amount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">va_arg</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
+    <span class="n">sum</span> <span class="o">+=</span> <span class="n">val</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">va_end</span><span class="p">(</span><span class="n">vl</span><span class="p">);</span>
+  
+  <span class="k">return</span> <span class="n">sum</span><span class="p">;</span> 
+<span class="p">}</span>
+
 <span class="cp">#include &quot;ch4_1.cpp&quot;</span>
 <span class="cp">#include &quot;ch4_3.cpp&quot;</span>
-<span class="cp">#include &quot;ch4_4.cpp&quot;</span>
 <span class="cp">#include &quot;ch4_5.cpp&quot;</span>
-<span class="cp">#include &quot;ch7_1_1.cpp&quot;</span>
+<span class="cp">#include &quot;ch7_1.cpp&quot;</span>
+<span class="cp">#include &quot;ch7_4.cpp&quot;</span>
+<span class="cp">#include &quot;ch8_1_1.cpp&quot;</span>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
@@ -2083,8 +2109,8 @@ This is correct since C language support separate compile and the subroutine
 address is decided at link time for static address mode or at
 load time for PIC address mode.
 Since our backend didn&#8217;t implement the linker and loader, we change the
-<strong>&#8220;jsub #offset&#8221;</strong> encode in Chapter10_2/ as follow,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
+<strong>&#8220;jsub #offset&#8221;</strong> encode in Chapter11_2/ as follow,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
 <span class="n">getJumpTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
            <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -2114,7 +2140,7 @@ Records. A good linker will reorder the sections for optimization in
 data/function access. In other word,
 keep the global variable access as close as possible to reduce cache miss
 possibility.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_2/MCTargetDesc/Cpu0AsmBackend.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">const</span> <span class="n">MCFixupKindInfo</span> <span class="o">&amp;</span><span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">MCFixupKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="k">const</span> <span class="k">static</span> <span class="n">MCFixupKindInfo</span> <span class="n">Infos</span><span class="p">[</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">NumTargetFixupKinds</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="c1">// This table *must* be in same the order of fixup_* kinds in</span>
@@ -2131,11 +2157,11 @@ possibility.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Let&#8217;s run the Chapter10_2/ with <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></tt> for input files
-ch_run_backend.cpp and ch_run_sum_i.cpp to generate the hex file
+<p>Let&#8217;s run the Chapter11_2/ with <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></tt> for input files
+ch_run_backend.cpp to generate the hex file
 and input to cpu0s Verilog simulator to get the output result as below. You can
 unmark the $display() in cpu0s.v to trace the memory binary code and destination
-register change at every instruction execution. Remind ch_run_sum_i.cpp have to
+register change at every instruction execution. Remind ch_run_backend.cpp have to
 compile with option <tt class="docutils literal"><span class="pre">clang</span> <span class="pre">-target</span> <span class="pre">mips-unknown-linux-gnu</span></tt> and use the clang of
 your build instead of download from Xcode on iMac. The ~/llvm/release/
 cmake_debug_build/bin/Debug/ is my build clang from source code.</p>
@@ -2177,8 +2203,8 @@ cmake_debug_build/bin/Debug/ is my build clang from source code.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>clang -c ch_run_backend.cpp -emit-llvm -o
-ch_run_backend.bc
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
+ch_run_backend.cpp -emit-llvm -o ch_run_backend.bc
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
 build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>obj
 ch_run_backend.bc -o ch_run_backend.cpu0.o
@@ -2189,7 +2215,6 @@ build/bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk <span cl
 
 JonathantekiiMac:raw Jonathan<span class="nv">$ </span>./cpu0s
 WARNING: cpu0s.v:386: <span class="nv">$readmemh</span><span class="o">(</span>cpu0s.hex<span class="o">)</span>: Not enough words in the file <span class="k">for </span>the
-requested range <span class="o">[</span>0:28671<span class="o">]</span>.
 taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 74
 253
@@ -2197,27 +2222,11 @@ taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 1
 14
 3
+393307
+16777222
 51
 2147483647
 -2147483648
-RET to PC &lt; 0, finished!
-
-JonathantekiiMac:raw Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../../InputFiles/
-JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>~/llvm/release/cmake_debug_build/bin/Debug/
-clang -target mips-unknown-linux-gnu -c ch_run_sum_i.cpp -emit-llvm -o
-ch_run_sum_i.bc
-JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
-build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>obj
-ch_run_sum_i.bc -o ch_run_sum_i.cpu0.o
-JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
-build/bin/Debug/llvm-objdump -d ch_run_sum_i.cpu0.o | tail -n +6| awk <span class="s1">&#39;{print</span>
-<span class="s1">&quot;/* &quot; $1 &quot; */\t&quot; $2 &quot; &quot; $3 &quot; &quot; $4 &quot; &quot; $5 &quot;\t/* &quot; $6&quot;\t&quot; $7&quot; &quot; $8&quot; &quot; $9&quot; &quot; $10</span>
-<span class="s1">&quot;\t*/&quot;}&#39;</span> &gt; ../cpu0_verilog/raw/cpu0s.hex
-JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../cpu0_verilog/raw/
-JonathantekiiMac:raw Jonathan<span class="nv">$ </span>./cpu0s
-WARNING: cpu0s.v:386: <span class="nv">$readmemh</span><span class="o">(</span>cpu0s.hex<span class="o">)</span>: Not enough words in the file <span class="k">for </span>the
-requested range <span class="o">[</span>0:28671<span class="o">]</span>.
-taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 15
 RET to PC &lt; 0, finished!
 </pre></div>
@@ -2232,35 +2241,35 @@ JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/ll
 /bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o
 ...
 _Z13print_integeri:
-     100: 09 dd ff e8                                   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
-     104: 02 ed 00 14                                   st  <span class="nv">$lr</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     108: 02 bd 00 10                                   st  <span class="nv">$fp</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     10c: 13 bd 00 00                                   add <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
-     110: 01 2b 00 18                                   ld  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-     114: 02 2b 00 0c                                   st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-     118: 02 2d 00 00                                   st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     11c: 2b 00 02 cc                                   jsub  716
-     120: 02 2b 00 08                                   st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-     124: 02 2d 00 00                                   st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     128: 2b 00 04 3c                                   jsub  1084
-     12c: 13 db 00 00                                   add <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
-     130: 01 bd 00 10                                   ld  <span class="nv">$fp</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     134: 01 ed 00 14                                   ld  <span class="nv">$lr</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     138: 09 dd 00 18                                   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 24
-     13c: 2c e0 00 00                                   ret <span class="nv">$lr</span>
+     ................                                   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
+     ................                                   st  <span class="nv">$lr</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+     ................                                   st  <span class="nv">$fp</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+     ................                                   add <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
+     ................                                   ld  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     ................                                   st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     ................                                   st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+     ................                                   jsub  716
+     ................                                   st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     ................                                   st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+     ................                                   jsub  1084
+     ................                                   add <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
+     ................                                   ld  <span class="nv">$fp</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+     ................                                   ld  <span class="nv">$lr</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+     ................                                   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 24
+     ................                                   ret <span class="nv">$lr</span>
 ...
 _Z14print1_integeri:
-     5e4: 09 dd ff f8                                   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -8
-     5e8: 02 bd 00 04                                   st  <span class="nv">$fp</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     5ec: 13 bd 00 00                                   add <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
-     5f0: 01 2b 00 08                                   ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-     5f4: 02 2b 00 00                                   st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-     5f8: 01 1d 00 08                                   ld  <span class="nv">$1</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     5fc: 02 10 70 00                                   st  <span class="nv">$1</span>, 28672<span class="o">(</span><span class="nv">$zero</span><span class="o">)</span>
-     600: 13 db 00 00                                   add <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
-     604: 01 bd 00 04                                   ld  <span class="nv">$fp</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     608: 09 dd 00 08                                   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 8
-     60c: 2c e0 00 00                                   ret <span class="nv">$lr</span>
+     ................                                   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -8
+     ................                                   st  <span class="nv">$fp</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+     ................                                   add <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
+     ................                                   ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     ................                                   st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     ................                                   ld  <span class="nv">$1</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+     ................                                   st  <span class="nv">$1</span>, 28672<span class="o">(</span><span class="nv">$zero</span><span class="o">)</span>
+     ................                                   add <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
+     ................                                   ld  <span class="nv">$fp</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+     ................                                   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 8
+     ................                                   ret <span class="nv">$lr</span>
 </pre></div>
 </div>
 <p>Unmark the $display() in cpu0s.v to trace the memory binary code and destination
@@ -2278,12 +2287,7 @@ requested range <span class="o">[</span>0:28671<span class="o">]</span>.
 taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 1530ns 00000054 : 02ed002c m<span class="o">[</span>28620+44  <span class="o">]=</span>-1          <span class="nv">SW</span><span class="o">=</span>00000000
 1610ns 00000058 : 02bd0028 m<span class="o">[</span>28620+40  <span class="o">]=</span>0           <span class="nv">SW</span><span class="o">=</span>00000000
-1850ns 00000064 : 022b0024 m<span class="o">[</span>28620+36  <span class="o">]=</span>0           <span class="nv">SW</span><span class="o">=</span>10000000
-1930ns 00000068 : 022b0020 m<span class="o">[</span>28620+32  <span class="o">]=</span>0           <span class="nv">SW</span><span class="o">=</span>10000000
 ...
-29370ns 000002ec : 022b0004 m<span class="o">[</span>28548+4   <span class="o">]=</span>28672       <span class="nv">SW</span><span class="o">=</span>50000000
-29530ns 000002f4 : 05320000 m<span class="o">[</span>28672+0   <span class="o">]=</span>  <span class="nv">SW</span><span class="o">=</span>50000000
-15
 RET to PC &lt; 0, finished!
 </pre></div>
 </div>
@@ -2292,11 +2296,11 @@ Next, it run instructions from address 0 and print each destination
 register value in the fourth column.
 The first column is the nano seconds of timing. The second
 is instruction address. The third is instruction content.
-We have checked the <strong>&#8220;&gt;&gt;&#8221;</strong> is correct on both signed and unsigned int type
-, and tracking the variable <strong>a</strong> value by print_integer(). The output value
-<strong>a</strong> is 15 in this program.</p>
-<p>We show Verilog PC output by display the I/O memory mapped address but didn&#8217;t
-implementing the output hardware interface or port. The real output hardware
+We have checked many example code is correct by print the variable with
+print_integer().</p>
+<p>This chapter show Verilog PC output by display the I/O memory mapped address but
+didn&#8217;t implementing the output hardware interface or port.
+The real output hardware
 interface/port is hardware output device dependent, such as RS232, speaker,
 LED, .... You should implement the I/O interface/port when you want to program
 FPGA and wire I/O device to the I/O port.</p>

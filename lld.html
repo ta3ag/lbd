@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.2',
+        VERSION:     '3.3.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -174,7 +174,7 @@ Mips            TargetIntrinsicInfo.cpp
 <span class="o">[</span>Gamma@localhost Target<span class="o">]</span><span class="nv">$ </span>mkdir Cpu0
 <span class="o">[</span>Gamma@localhost Target<span class="o">]</span><span class="nv">$ </span><span class="nb">cd </span>Cpu0/
 <span class="o">[</span>Gamma@localhost Cpu0<span class="o">]</span><span class="nv">$ </span>cp -rf ~/test/lbd/docs/BackendTutorial/
-LLVMBackendTutorialExampleCode/3.4_20130816_Chapter11_2/* .
+LLVMBackendTutorialExampleCode/3.4_20130816_Chapter12_2/* .
 <span class="o">[</span>Gamma@localhost Cpu0<span class="o">]</span><span class="nv">$ </span>ls
 AsmParser                 Cpu0InstrInfo.h           Cpu0SelectionDAGInfo.h
 CMakeLists.txt            Cpu0InstrInfo.td          Cpu0Subtarget.cpp
@@ -1574,9 +1574,12 @@ LLVMBackendTutorialExampleCode/llvm-objdump/* .
 <p class="rubric">LLVMBackendTutorialExampleCode/llvm-objdump/llvm-objdump.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// llvm-objdump -elf2hex code added begin:</span>
 <span class="k">static</span> <span class="n">cl</span><span class="o">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span>
-<span class="n">ConvertElf2Hex</span><span class="p">(</span><span class="s">&quot;elf2hex&quot;</span><span class="p">,</span> <span class="n">cl</span><span class="o">::</span><span class="n">desc</span><span class="p">(</span><span class="s">&quot;Display the hex content of verilog cpu0 needed sections&quot;</span><span class="p">));</span>
+<span class="n">ConvertElf2Hex</span><span class="p">(</span><span class="s">&quot;elf2hex&quot;</span><span class="p">,</span> 
+<span class="n">cl</span><span class="o">::</span><span class="n">desc</span><span class="p">(</span><span class="s">&quot;Display the hex content of verilog cpu0 needed sections&quot;</span><span class="p">));</span>
 
-<span class="k">static</span> <span class="n">uint64_t</span> <span class="n">GetSectionHeaderStartAddress</span><span class="p">(</span><span class="k">const</span> <span class="n">ObjectFile</span> <span class="o">*</span><span class="n">o</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">sectionName</span><span class="p">)</span> <span class="p">{</span>
+<span class="c1">// Modified from PrintSectionHeaders()</span>
+<span class="k">static</span> <span class="n">uint64_t</span> <span class="n">GetSectionHeaderStartAddress</span><span class="p">(</span><span class="k">const</span> <span class="n">ObjectFile</span> <span class="o">*</span><span class="n">o</span><span class="p">,</span> 
+  <span class="n">StringRef</span> <span class="n">sectionName</span><span class="p">)</span> <span class="p">{</span>
 <span class="c1">//  outs() &lt;&lt; &quot;Sections:\n&quot;</span>
 <span class="c1">//            &quot;Idx Name          Size      Address          Type\n&quot;;</span>
   <span class="n">error_code</span> <span class="n">ec</span><span class="p">;</span>
@@ -1603,6 +1606,7 @@ LLVMBackendTutorialExampleCode/llvm-objdump/* .
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 
+<span class="c1">// Modified from PrintSymbolTable()</span>
 <span class="k">static</span> <span class="kt">void</span> <span class="n">GetSymbolTableStartAddress</span><span class="p">(</span><span class="k">const</span> <span class="n">ObjectFile</span> <span class="o">*</span><span class="n">o</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">sectionName</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;SYMBOL TABLE:</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
 
@@ -1682,7 +1686,9 @@ LLVMBackendTutorialExampleCode/llvm-objdump/* .
 <span class="p">}</span>
 
 <span class="c1">// Modified from DisassembleObject()</span>
-<span class="k">static</span> <span class="kt">void</span> <span class="n">DisassembleObjectForHex</span><span class="p">(</span><span class="k">const</span> <span class="n">ObjectFile</span> <span class="o">*</span><span class="n">Obj</span><span class="cm">/*, bool InlineRelocs*/</span><span class="p">,</span> <span class="n">uint64_t</span><span class="o">&amp;</span> <span class="n">lastAddr</span><span class="p">)</span> <span class="p">{</span>
+<span class="k">static</span> <span class="kt">void</span> <span class="n">DisassembleObjectForHex</span><span class="p">(</span><span class="k">const</span> <span class="n">ObjectFile</span> <span class="o">*</span><span class="n">Obj</span><span class="cm">/*, bool InlineRelocs*/</span>
+  <span class="p">,</span> <span class="n">uint64_t</span><span class="o">&amp;</span> <span class="n">lastAddr</span><span class="p">)</span> <span class="p">{</span>
+
   <span class="k">const</span> <span class="n">Target</span> <span class="o">*</span><span class="n">TheTarget</span> <span class="o">=</span> <span class="n">getTarget</span><span class="p">(</span><span class="n">Obj</span><span class="p">);</span>
   <span class="c1">// getTarget() will have already issued a diagnostic if necessary, so</span>
   <span class="c1">// just bail here if it failed.</span>
@@ -1959,7 +1965,8 @@ LLVMBackendTutorialExampleCode/llvm-objdump/* .
     <span class="k">if</span> <span class="p">(</span><span class="n">error</span><span class="p">(</span><span class="n">si</span><span class="o">-&gt;</span><span class="n">getAddress</span><span class="p">(</span><span class="n">BaseAddr</span><span class="p">)))</span> <span class="k">continue</span><span class="p">;</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">error</span><span class="p">(</span><span class="n">si</span><span class="o">-&gt;</span><span class="n">isBSS</span><span class="p">(</span><span class="n">BSS</span><span class="p">)))</span> <span class="k">continue</span><span class="p">;</span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="n">Name</span> <span class="o">==</span> <span class="s">&quot;.rodata&quot;</span> <span class="o">||</span> <span class="n">Name</span> <span class="o">==</span> <span class="s">&quot;.data&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">Name</span> <span class="o">==</span> <span class="s">&quot;.rodata&quot;</span> <span class="o">||</span> <span class="n">Name</span> <span class="o">==</span> <span class="s">&quot;.rodata1&quot;</span> <span class="o">||</span> <span class="n">Name</span> <span class="o">==</span> <span class="s">&quot;.data&quot;</span> <span class="o">||</span> 
+      <span class="n">Name</span> <span class="o">==</span> <span class="s">&quot;.data1&quot;</span> <span class="o">||</span> <span class="n">Name</span> <span class="o">==</span> <span class="s">&quot;.sdata&quot;</span><span class="p">)</span> <span class="p">{</span>
       <span class="k">if</span> <span class="p">(</span><span class="n">Contents</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
         <span class="k">continue</span><span class="p">;</span>
       <span class="p">}</span>

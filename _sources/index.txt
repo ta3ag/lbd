@@ -18,6 +18,7 @@ Table of Contents
    otherinst
    genobj
    globalvar
+   othertype
    ctrlflow
    funccall
    elf

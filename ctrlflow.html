@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.2',
+        VERSION:     '3.3.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -31,7 +31,7 @@
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="top" title="Tutorial: Creating an LLVM Backend for the Cpu0 Architecture" href="index.html" />
     <link rel="next" title="Function call" href="funccall.html" />
-    <link rel="prev" title="Global variables, structs and arrays, other type" href="globalvar.html" /> 
+    <link rel="prev" title="Other data type" href="othertype.html" /> 
   </head>
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
@@ -41,7 +41,7 @@
       <div class="topnav">
       
         <p>
-        «&#160;&#160;<a href="globalvar.html">Global variables, structs and arrays, other type</a>
+        «&#160;&#160;<a href="othertype.html">Other data type</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
@@ -59,8 +59,8 @@
 translate these control flow statements of llvm IR into cpu0 instructions.</p>
 <div class="section" id="control-flow-statement">
 <h2>Control flow statement<a class="headerlink" href="#control-flow-statement" title="Permalink to this headline">¶</a></h2>
-<p>Run ch7_1_1.cpp with clang will get result as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch7_1_1.cpp</p>
+<p>Run ch8_1_1.cpp with clang will get result as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_1_1.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">test_control1</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
@@ -289,7 +289,7 @@ jmp BasicBlock_01
 </div>
 <p>For the first addiu instruction as above which move Constant&lt;c&gt; into register,
 we have defined it before by the following code,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// Small immediates
 def : Pat&lt;(i32 immSExt16:$in),
           (ADDiu ZERO, imm:$in)&gt;;
@@ -301,7 +301,7 @@ def : Pat&lt;(i32 imm:$imm),
 </div>
 <p>For the last IR br, we translate unconditional branch (br BasicBlock_01) into
 jmp BasicBlock_01 by the following pattern definition,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>def brtarget    : Operand&lt;OtherVT&gt; {
   let EncoderMethod = "getBranchTargetOpValue";
   let OperandType = "OPERAND_PCREL";
@@ -326,7 +326,7 @@ The other two cpu0 instructions translation is more complicate than simple
 one-to-one IR to machine instruction translation we have experienced until now.
 To solve this chained IR to machine instructions translation, we define the
 following pattern,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// brcond patterns
 multiclass BrcondPats&lt;RegisterClass RC, Instruction JEQOp, Instruction JNEOp,
   Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp,
@@ -362,7 +362,7 @@ jne BasicBlock_02</pre>
 </div>
 <p>The reserved registers setting by the following
 function code we defined before,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0RegisterInfo.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0RegisterInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 
 <span class="c1">// pure virtual method</span>
@@ -393,7 +393,7 @@ allocated to the register used by other instruction.
 The copyPhysReg() is called when DestReg and SrcReg belong to different Register
 Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
 &#8220;cmp $SW, $ZERO, $rc&#8221;.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0RegisterInfo.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0RegisterInfo.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">// Register Classes</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
@@ -412,7 +412,7 @@ Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
 <span class="n">def</span> <span class="n">SR</span>   <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="n">SW</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- Called when DestReg and SrcReg belong to different Register Class.</span>
 <span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
 <span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
@@ -435,10 +435,10 @@ Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
   <span class="p">}</span>
 </pre></div>
 </div>
-<p>Chapter7_1/ include support for control flow statement.
+<p>Chapter8_1/ include support for control flow statement.
 Run with it as well as the following <tt class="docutils literal"><span class="pre">llc</span></tt> option, you can get the obj file
 and dump it&#8217;s content by hexdump as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>  118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1_1.cpu0.s
+<div class="highlight-bash"><div class="highlight"><pre>  118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1_1.cpu0.s
   ...
   ld  <span class="nv">$4</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
   cmp <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
@@ -455,9 +455,9 @@ and dump it&#8217;s content by hexdump as follows,</p>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj
-ch7_1_1.bc -o ch7_1_1.cpu0.o
+ch8_1_1.bc -o ch8_1_1.cpu0.o
 
-118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>hexdump ch7_1_1.cpu0.o
+118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>hexdump ch8_1_1.cpu0.o
     // jmp offset is <span class="nv">0x10</span><span class="o">=</span>16 bytes which is correct
 0000080 ...................................... 10 43 00 00
 0000090 31 00 00 10 36 00 00 00 ..........................
@@ -498,7 +498,7 @@ instruction in average.
 Cpu0 take 2 instructions for conditional branch, (jne(cmp...)), while Mips use
 one instruction (bne).</p>
 <p>Finally we list the code added for full support of control flow statement,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 
 <span class="c1">/// getBranchTargetOpValue - Return binary encoding of the branch</span>
@@ -518,7 +518,7 @@ one instruction (bne).</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0MCInstLower.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0MCInstLower.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
                                               <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
                                               <span class="kt">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -558,7 +558,7 @@ one instruction (bne).</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- Called when DestReg and SrcReg belong to different Register Class.</span>
 <span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
 <span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
@@ -581,7 +581,7 @@ one instruction (bne).</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelLowering.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
 <span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
   <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">Cpu0TargetObjectFile</span><span class="p">()),</span>
@@ -601,7 +601,7 @@ one instruction (bne).</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrFormats.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrFormats.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">// Format J instruction class in Cpu0 : &lt;|opcode|address|&gt;</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
@@ -617,7 +617,7 @@ one instruction (bne).</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// Cpu0InstrInfo.td
 // Instruction operand types
 def brtarget    : Operand&lt;OtherVT&gt; {
@@ -694,13 +694,13 @@ def : Pat&lt;(brcond RC:$cond, bb:$dst),
 
 defm : BrcondPats&lt;CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO&gt;;</pre>
 </div>
-<p>The ch7_1_2.cpp is for <strong>“nest if”</strong> test. The ch7_1_3.cpp is the
+<p>The ch8_1_2.cpp is for <strong>“nest if”</strong> test. The ch8_1_3.cpp is the
 <strong>“for loop”</strong> as well as <strong>“while loop”</strong>, <strong>“continue”</strong>, <strong>“break”</strong>,
-<strong>“goto”</strong> test. The ch7_1_6.cpp is for <strong>“goto”</strong> test.
+<strong>“goto”</strong> test. The ch8_1_6.cpp is for <strong>“goto”</strong> test.
 You can run with them if you like to test more.</p>
-<p>Finally, Chapter7_1/ support the local array definition by add the LowerCall()
+<p>Finally, Chapter8_1/ support the local array definition by add the LowerCall()
 empty function in Cpu0ISelLowering.cpp as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelLowering.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0ISelLowering.cpp</span>
 <span class="n">SDValue</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerCall</span><span class="p">(</span><span class="n">TargetLowering</span><span class="o">::</span><span class="n">CallLoweringInfo</span> <span class="o">&amp;</span><span class="n">CLI</span><span class="p">,</span>
@@ -709,9 +709,9 @@ empty function in Cpu0ISelLowering.cpp as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>With this LowerCall(), it can translate ch7_1_4.cpp, ch7_1_4.bc to
-ch7_1_4.cpu0.s as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch7_1_4.cpp</p>
+<p>With this LowerCall(), it can translate ch8_1_4.cpp, ch8_1_4.bc to
+ch8_1_4.cpu0.s as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_1_4.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">};</span>
@@ -720,7 +720,7 @@ ch7_1_4.cpu0.s as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch7_1_4 .bc&#39;</span>
+<div class="highlight-bash"><div class="highlight"><pre>; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch8_1_4 .bc&#39;</span>
 target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-</span>
 <span class="s2">f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128&quot;</span>
 target <span class="nv">triple</span> <span class="o">=</span> <span class="s2">&quot;i386-apple-macosx10.8.0&quot;</span>
@@ -739,10 +739,10 @@ entry:
   ret i32 0
 <span class="o">}</span>
 
-118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1_4.cpu0.s
+118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1_4.cpu0.s
     .section .mdebug.abi32
     .previous
-    .file   <span class="s2">&quot;ch7_1_4.bc&quot;</span>
+    .file   <span class="s2">&quot;ch8_1_4.bc&quot;</span>
     .text
     .globl  main
     .align  2
@@ -794,11 +794,11 @@ main:
     .size   <span class="nv">$_ZZ4mainE1a</span>, 12
 </pre></div>
 </div>
-<p>The ch7_1_5.cpp is for test C operators <strong>==, !=, &amp;&amp;, ||</strong>. No code need to
+<p>The ch8_1_5.cpp is for test C operators <strong>==, !=, &amp;&amp;, ||</strong>. No code need to
 add since we have take care them before.
 But it can be test only when the control flow statement support is ready, as
 follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch7_1_5.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_1_5.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
@@ -813,14 +813,15 @@ follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -c ch7_1_5.cpp -emit-llvm -o ch7_1_5.bc
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
+ch8_1_5.cpp -emit-llvm -o ch8_1_5.bc
 118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch7_1_5.bc -o
-ch7_1_5.cpu0.s
-118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1_5.cpu0.s
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1_5.bc -o
+ch8_1_5.cpu0.s
+118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1_5.cpu0.s
   .section .mdebug.abi32
   .previous
-  .file <span class="s2">&quot;ch7_1_5.bc&quot;</span>
+  .file <span class="s2">&quot;ch8_1_5.bc&quot;</span>
   .text
   .globl  main
   .align  2
@@ -908,7 +909,7 @@ reading now.</p>
       <div class="bottomnav">
       
         <p>
-        «&#160;&#160;<a href="globalvar.html">Global variables, structs and arrays, other type</a>
+        «&#160;&#160;<a href="othertype.html">Other data type</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="index.html">Contents</a>
         &#160;&#160;::&#160;&#160;

@@ -48,23 +48,24 @@ if it over 4 arguments. :num:`Figure #funccall-f1` is the Mips stack frame.
 
     Mips stack frame
     
-Run ``llc -march=mips`` for ch8_1.bc, you will get the following result. 
+Run ``llc -march=mips`` for ch9_1.bc, you will get the following result. 
 See comment **"//"**.
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_1.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_1.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch9_1.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch9_1.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
-  118-165-78-230:InputFiles Jonathan$ clang -c ch8_1.cpp -emit-llvm -o ch8_1.bc
+  118-165-78-230:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_1.cpp -emit-llvm -o ch9_1.bc
   118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=mips -relocation-model=pic -filetype=asm ch8_1.bc -o 
-  ch8_1.mips.s
-  118-165-78-230:InputFiles Jonathan$ cat ch8_1.mips.s 
+  bin/Debug/llc -march=mips -relocation-model=pic -filetype=asm ch9_1.bc -o 
+  ch9_1.mips.s
+  118-165-78-230:InputFiles Jonathan$ cat ch9_1.mips.s 
     .section .mdebug.abi32
     .previous
-    .file "ch8_1.bc"
+    .file "ch9_1.bc"
     .text
     .globl  _Z5sum_iiiiiii
     .align  2
@@ -162,7 +163,7 @@ See comment **"//"**.
 From the mips assembly code generated as above, we know it save the first 4 
 arguments to $a0..$a3 and last 2 arguments to 16($sp) and 20($sp). 
 :num:`Figure #funccall-f2` is the arguments location for example code 
-ch8_1.cpp. 
+ch9_1.cpp. 
 It load argument 5 from 48($sp) in sum_i() since the argument 5 is saved to 
 16($sp) in main(). 
 The stack size of sum_i() is 32, so 16+32($sp) is the location of incoming 
@@ -187,27 +188,27 @@ Load incoming arguments from stack frame
 
 From last section, to support function call, we need implementing the arguments 
 pass mechanism with stack frame. Before do that, let's run the old version of 
-code Chapter7_1/ with ch8_1.cpp and see what happens.
+code Chapter8_1/ with ch9_1.cpp and see what happens.
 
 .. code-block:: bash
 
   118-165-79-31:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  ch8_1.bc -o ch8_1.cpu0.s
+  ch9_1.bc -o ch9_1.cpu0.s
   Assertion failed: (InVals.size() == Ins.size() && "LowerFormalArguments didn't 
   emit the correct number of values!"), function LowerArguments, file /Users/
   Jonathan/llvm/test/src/lib/CodeGen/SelectionDAG/
   SelectionDAGBuilder.cpp, ...
   ...
   0.  Program arguments: /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_1.bc -o 
-  ch8_1.cpu0.s 
-  1.  Running pass 'Function Pass Manager' on module 'ch8_1.bc'.
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_1.bc -o 
+  ch9_1.cpu0.s 
+  1.  Running pass 'Function Pass Manager' on module 'ch9_1.bc'.
   2.  Running pass 'CPU0 DAG->DAG Pattern Instruction Selection' on function 
   '@_Z5sum_iiiiiii'
   Illegal instruction: 4
 
-Since Chapter7_1/ define the LowerFormalArguments() with empty, we get the error 
+Since Chapter8_1/ define the LowerFormalArguments() with empty, we get the error 
 message as above. 
 Before define LowerFormalArguments(), we have to choose how to pass arguments 
 in function call. We choose pass arguments all in stack frame. 
@@ -215,8 +216,8 @@ We don't reserve any dedicated register for arguments passing since cpu0 has
 only 16 registers while Mips has 32 registers. Cpu0CallingConv.td is defined 
 for cpu0 passing rule as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0CallingConv.td
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0CallingConv.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0CallingConv.td
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0CallingConv.td
     :start-after: CCIf<!strconcat("State.getTarget().getSubtarget<Cpu0Subtarget>().", F), A>;
 
 
@@ -234,8 +235,8 @@ pass arguments in stack frame.
 Function LowerFormalArguments() charge function incoming arguments creation. 
 We define it as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0ISelLowering.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0ISelLowering.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0ISelLowering.cpp
     :start-after: return CLI.Chain;
     :end-before: Return Value Calling Convention Implementation
 
@@ -248,7 +249,7 @@ LowerGlobalAddress() is called when ``llc`` meet the global variable access.
 LowerFormalArguments() work with the same way. 
 It is called when function is entered. 
 It get incoming arguments information by CCInfo(CallConv,..., ArgLocs, ...) 
-before enter **“for loop”**. In ch8_1.cpp, there are 6 arguments in sum_i(...) 
+before enter **“for loop”**. In ch9_1.cpp, there are 6 arguments in sum_i(...) 
 function call and we use the stack frame only for arguments passing without 
 any arguments pass in registers. 
 So ArgLocs.size() is 6, each argument information is in ArgLocs[i] and 
@@ -260,7 +261,7 @@ And then create IR DAG load node and put the load node into vector InVals by
 InVals.push_back(DAG.getLoad(ValVT, dl, Chain, FIN, 
 MachinePointerInfo::getFixedStack(LastFI), false, false, false, 0)). 
 Cpu0FI->setVarArgsFrameIndex(0) and Cpu0FI->setLastInArgFI(LastFI) are called 
-when before and after above work. In ch8_1.cpp example, LowerFormalArguments() 
+when before and after above work. In ch9_1.cpp example, LowerFormalArguments() 
 will be called twice. First time is for sum_i() which will create 6 load DAG 
 for 6 incoming arguments passing into this function. 
 Second time is for main() which didn't create any load DAG for no incoming 
@@ -271,17 +272,17 @@ define the loadRegFromStackSlot() to issue the machine instruction
 GetMemOperand(..., FI, ...) return the Memory location of the frame index 
 variable, which is the offset.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstrInfo.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstrInfo.cpp
     :start-after: MIB.addReg(SrcReg, getKillRegState(KillSrc));
     :end-before: MachineInstr*
 
 
-In addition to Calling Convention and LowerFormalArguments(), Chapter8_1/ add the 
+In addition to Calling Convention and LowerFormalArguments(), Chapter9_1/ add the 
 following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and 
 **jalr** (function call) definition and printing.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrFormats.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstrFormats.td
 .. code-block:: c++
 
   // Cpu0 Pseudo Instructions Format
@@ -291,7 +292,7 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
     let isPseudo = 1;
   }
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   def SDT_Cpu0JmpLink      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
@@ -340,7 +341,7 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
             (JSUB texternalsym:$dst)>;
   ...
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstPrinter.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstPrinter.cpp
 .. code-block:: c++
 
   static void printExpr(const MCExpr *Expr, raw_ostream &OS) {
@@ -352,7 +353,7 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
   ...
   }
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0MCInstLower.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0MCInstLower.cpp
 .. code-block:: c++
 
   MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
@@ -383,7 +384,7 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
     ...
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 .. code-block:: c++
 
   unsigned Cpu0MCCodeEmitter::
@@ -400,7 +401,7 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
   ...
   }
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0MachineFucntion.h
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0MachineFucntion.h
 .. code-block:: c++
 
   class Cpu0FunctionInfo : public MachineFunctionInfo {
@@ -466,7 +467,7 @@ node. They are distinguishable since both SWI and JSUB use "imm" operand while
 JALR use register operand. JSUB take the priority to match since we set the
 following code in Cpu0InstrInfo.td.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   def : Pat<(Cpu0JmpLink (i32 tglobaladdr:$dst)),
@@ -478,8 +479,8 @@ The code tells TableGen generate pattern match pattern to match the "imm" for
 "tglobaladdr" pattern first. If it fails then try to match "texternalsym" next.
 The function you declared is "tglobaladdr", the function which implicit used by
 llvm most are "texternalsym" such as "memcpy". The "memcpy" will be generated
-when define a long string. The ch8_1_2.cpp is an example to generate "memcpy"
-function call. It will be shown in next section of Chapter8_2 example code.
+when define a long string. The ch9_1_2.cpp is an example to generate "memcpy"
+function call. It will be shown in next section of Chapter9_2 example code.
 Even though SWI have no chance to match in C/C++ language. We define it for easy
 to implement assembly parser which introduced in Chapter 11. This
 SWI definition will save us to implement the assembly parser for this
@@ -543,23 +544,23 @@ generated information about JSUB and JALR pattern match information as follows,
   /*733*/     0, /*End of Scope*/
 
 
-After above changes, you can run Chapter8_1/ with ch8_1.cpp and see what happens 
+After above changes, you can run Chapter9_1/ with ch9_1.cpp and see what happens 
 in the following,
 
 .. code-block:: bash
 
   118-165-79-83:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  ch8_1.bc -o ch8_1.cpu0.s
+  ch9_1.bc -o ch9_1.cpu0.s
   Assertion failed: ((CLI.IsTailCall || InVals.size() == CLI.Ins.size()) && 
   "LowerCall didn't emit the correct number of values!"), function LowerCallTo, 
   file /Users/Jonathan/llvm/test/src/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.
   cpp, ...
   ...
   0.  Program arguments: /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_1.bc -o 
-  ch8_1.cpu0.s 
-  1.  Running pass 'Function Pass Manager' on module 'ch8_1.bc'.
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_1.bc -o 
+  ch9_1.cpu0.s 
+  1.  Running pass 'Function Pass Manager' on module 'ch9_1.bc'.
   2.  Running pass 'CPU0 DAG->DAG Pattern Instruction Selection' on function 
   '@main'
   Illegal instruction: 4
@@ -579,8 +580,8 @@ function last section.
 Now, we will finish **“store outgoing arguments”** in caller function. 
 LowerCall() is responsible to do this. The implementation as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0ISelLowering.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0ISelLowering.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_2/Cpu0ISelLowering.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_2/Cpu0ISelLowering.cpp
     :start-after: #include "Cpu0GenCallingConv.inc"
     :end-before: LowerFormalArguments
 
@@ -597,7 +598,7 @@ DAG.getCALLSEQ_START() and DAG.getCALLSEQ_END() are set before the
 CALLSEQ_END, and translate into pseudo machine instructions !ADJCALLSTACKDOWN, 
 !ADJCALLSTACKUP later according Cpu0InstrInfo.td definition as follows.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_2/Cpu0InstrInfo.td
 .. code-block:: c++
 
   def SDT_Cpu0CallSeqStart : SDCallSeqStart<[SDTCisVT<0, i32>]>;
@@ -627,7 +628,7 @@ CALLSEQ_END, and translate into pseudo machine instructions !ADJCALLSTACKDOWN,
 Like load incoming arguments, we need to implement storeRegToStackSlot() for 
 store outgoing arguments to stack frame offset.
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0InstrInfo.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_2/Cpu0InstrInfo.cpp
 .. code-block:: c++
     
   //- st SrcReg, MMO(FI)
@@ -649,18 +650,18 @@ store outgoing arguments to stack frame offset.
       .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
   }
 
-Now, let's run Chapter8_2/ with ch8_1.cpp to get result as follows (see comment 
+Now, let's run Chapter9_2/ with ch9_1.cpp to get result as follows (see comment 
 //),
 
 .. code-block:: bash
 
   118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_1.bc -o 
-  ch8_1.cpu0.s
-  118-165-78-230:InputFiles Jonathan$ cat ch8_1.cpu0.s 
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_1.bc -o 
+  ch9_1.cpu0.s
+  118-165-78-230:InputFiles Jonathan$ cat ch9_1.cpu0.s 
   	.section .mdebug.abi32
   	.previous
-  	.file	"ch8_1.bc"
+  	.file	"ch9_1.bc"
   	.text
   	.globl	_Z5sum_iiiiiii
   	.align	2
@@ -770,20 +771,20 @@ Now, let's run Chapter8_2/ with ch8_1.cpp to get result as follows (see comment
   	.4byte	100                     # 0x64
   	.size	gI, 4
 
-The last section mentioned the "JSUB texternalsym" pattern. Run Chapter8_2 with
-ch8_1_2.cpp to get the result as below. For long string, llvm call memcpy() to
+The last section mentioned the "JSUB texternalsym" pattern. Run Chapter9_2 with
+ch9_1_2.cpp to get the result as below. For long string, llvm call memcpy() to
 initialize string (char str[81] = "Hello world" in this case). For short string,
 the "call memcpy" is translated into "store with contant" in stages of
 optimization.
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_1_2.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_1_2.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch9_1_2.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch9_1_2.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
-  JonathantekiiMac:InputFiles Jonathan$ llvm-dis ch8_1_2.bc -o -
-  ; ModuleID = 'ch8_1_2.bc'
+  JonathantekiiMac:InputFiles Jonathan$ llvm-dis ch9_1_2.bc -o -
+  ; ModuleID = 'ch9_1_2.bc'
   ...
   @_ZZ4mainE3str = private unnamed_addr constant [81 x i8] c"Hello world\00\00\00\
   00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00
@@ -808,9 +809,9 @@ optimization.
   }
   
   JonathantekiiMac:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch8_1_2.cpp -emit-llvm -o ch8_1_2.bc
+  ch9_1_2.cpp -emit-llvm -o ch9_1_2.bc
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build
-  /bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch8_1_2.bc -o -
+  /bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch9_1_2.bc -o -
     .section .mdebug.abi32
     ...
     addiu $2, $zero, 81
@@ -846,7 +847,7 @@ follows,
 .. code-block:: bash
 
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build
-  /bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch8_1_2.bc 
+  /bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch9_1_2.bc 
   -debug -o -
   
   Initial selection DAG: BB#0 'main:entry'
@@ -874,29 +875,25 @@ follows,
 Fix issues
 -----------
 
-Run Chapter8_2/ with ch6_2.cpp to get the incorrect main return (return register 
+Run Chapter9_2/ with ch7_5.cpp to get the incorrect main return (return register 
 $2 is not 0) as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_5.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch7_5.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
-  118-165-78-31:InputFiles Jonathan$ clang -c ch6_2.cpp -emit-llvm -o ch6_2.bc
+  118-165-78-31:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch7_5.cpp -emit-llvm -o ch7_5.bc
   118-165-78-31:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch6_2.bc -o 
-  ch6_2.cpu0.static.s
-  118-165-78-31:InputFiles Jonathan$ cat ch6_2.cpu0.static.s 
+  bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_5.bc -o 
+  ch7_5.cpu0.static.s
+  118-165-78-31:InputFiles Jonathan$ cat ch7_5.cpu0.static.s 
     .section .mdebug.abi32
     .previous
-    .file "ch6_2.bc"
-    .text
-    .globl  main
-    .align  2
-    .type main,@function
-    .ent  main                    # @main
-  main:
+    .file "ch7_5.bc"
+    ...
     .cfi_startproc
     .frame  $sp,16,$lr
     .mask   0x00000000,0
@@ -921,8 +918,6 @@ $2 is not 0) as follows,
     addiu $sp, $sp, 16
     ret $lr
     .set  macro
-    .set  reorder
-    .end  main
   ...
 
 Summary the issues for the code generated as above and in last section as follows:
@@ -942,10 +937,10 @@ Fix the wrong offset in storing arguments to stack frame
 
 To fix the wrong offset in storing arguments, we modify the following code 
 in eliminateFrameIndex() as follows. 
-The code as below is modified in Chapter8_3/ to set the caller outgoing 
-arguments into spOffset($sp) (Chapter8_2/ set them to pOffset+stackSize($sp).
+The code as below is modified in Chapter9_3/ to set the caller outgoing 
+arguments into spOffset($sp) (Chapter9_2/ set them to pOffset+stackSize($sp).
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0RegisterInfo.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0RegisterInfo.cpp
 .. code-block:: c++
 
   void Cpu0RegisterInfo::
@@ -976,7 +971,7 @@ arguments into spOffset($sp) (Chapter8_2/ set them to pOffset+stackSize($sp).
     ...
   }
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0MachineFunction.h
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0MachineFunction.h
 .. code-block:: c++
 
   /// SRetReturnReg - Some subtargets require that sret lowering includes
@@ -996,16 +991,16 @@ arguments into spOffset($sp) (Chapter8_2/ set them to pOffset+stackSize($sp).
   ...
 
 
-Run Chapter8_3/ with ch8_1.cpp will get the following result. 
+Run Chapter9_3/ with ch9_1.cpp will get the following result. 
 It correct arguements offset im main() from (0+40)$sp, (8+40)$sp, ..., to 
 (0)$sp, (8)$sp, ..., where the stack size is 40 in main().
 
 .. code-block:: bash
 
   118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_1.bc -o 
-  ch8_1.cpu0.s
-  118-165-78-230:InputFiles Jonathan$ cat ch8_1.cpu0.s 
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_1.bc -o 
+  ch9_1.cpu0.s
+  118-165-78-230:InputFiles Jonathan$ cat ch9_1.cpu0.s 
     ...
     addiu $2, $zero, 6
     st  $2, 20($sp)		// Correct offset
@@ -1047,21 +1042,21 @@ To fix the !ADJSTACKDOWN and !ADJSTACKUP, we call Cpu0GenInstrInfo(Cpu0::
 ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP) in Cpu0InstrInfo() constructor 
 function and define eliminateCallFramePseudoInstr() as follows, 
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.cpp
 .. code-block:: c++
 
   Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
     : Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
   ...
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0FrameLowering.h
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0FrameLowering.h
 .. code-block:: c++
 
   void eliminateCallFramePseudoInstr(MachineFunction &MF,
                                      MachineBasicBlock &MBB,
                                      MachineBasicBlock::iterator I) const;
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0FrameLowering.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0FrameLowering.cpp
 .. code-block:: c++
 
   ...
@@ -1078,7 +1073,7 @@ function and define eliminateCallFramePseudoInstr() as follows,
 With above definition, eliminateCallFramePseudoInstr() will be called when 
 llvm meet pseudo instructions ADJCALLSTACKDOWN and ADJCALLSTACKUP. 
 We just discard these 2 pseudo instructions. 
-Run Chapter8_3/ with ch8_1.cpp will these two Pseudo hook instructions.
+Run Chapter9_3/ with ch9_1.cpp will these two Pseudo hook instructions.
 
 Handle $gp register in PIC addressing mode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1095,12 +1090,12 @@ variable address it access cannot be decided at link time.
 But, we can caculate the distance between the global variable address and 
 the start address of shared library function when it be loaded.
 
-Let's run Chapter8_3/ with ch8_2.cpp to get the following correct result. 
+Let's run Chapter9_3/ with ch9_2.cpp to get the following correct result. 
 We putting the comments in the result for explanation.
 
 .. code-block:: bash
 
-  118-165-78-230:InputFiles Jonathan$ cat ch8_1.cpu0.s
+  118-165-78-230:InputFiles Jonathan$ cat ch9_1.cpu0.s
   _Z5sum_iiiiiii:
   ...
       .cpload $t9 // assign $gp = $t9 by loader when loader load re-entry 
@@ -1173,11 +1168,11 @@ We reserve **“jalr”** as PIC mode for dynamic linking function to demonstrat
    cpu0 official design as a compiler book. 
 
 
-Now, after the following code added in Chapter8_3/, we can issue 
+Now, after the following code added in Chapter9_3/, we can issue 
 **“.cprestore”** in emitPrologue() and emit "ld $gp, ($gp save slot on stack)" 
 after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/CMakeLists.txt
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/CMakeLists.txt
 .. code-block:: c++
 
   add_llvm_target(Cpu0CodeGen
@@ -1185,7 +1180,7 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
     Cpu0EmitGPRestore.cpp
   ...
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0TargetMachine.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0TargetMachine.cpp
 .. code-block:: c++
 
   Cpu0elTargetMachine::
@@ -1208,12 +1203,12 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
     return true;
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0.h
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0.h
 .. code-block:: c++
 
     FunctionPass *createCpu0EmitGPRestorePass(Cpu0TargetMachine &TM);
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0FrameLowering.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0FrameLowering.cpp
 .. code-block:: c++
 
   void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
@@ -1231,7 +1226,7 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
     }
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.td
 .. code-block:: c++
 
   let neverHasSideEffects = 1 in
@@ -1239,7 +1234,7 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
                  ".cprestore\t$loc", []>;
   
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0ISelLowering.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   SDValue
@@ -1260,11 +1255,11 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
       ...
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0EmitGPRestore.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0EmitGPRestore.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0EmitGPRestore.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0EmitGPRestore.cpp
 
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0AsmPrinter.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0AsmPrinter.cpp
 .. code-block:: c++
 
   void Cpu0AsmPrinter::EmitInstrWithMacroNoAT(const MachineInstr *MI) {
@@ -1317,8 +1312,8 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
     OutStreamer.EmitInstruction(TmpInst0);
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0MCInstLower.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0MCInstLower.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0MCInstLower.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0MCInstLower.cpp
     :start-after: // Lower ".cprestore offset" to "st $gp, offset($sp)"
     :end-before: MCOperand Cpu0MCInstLower::LowerOperand
 
@@ -1332,14 +1327,14 @@ instructions.
 
   118-165-76-131:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=
-  obj ch8_1.bc -o ch8_1.cpu0.o
-  118-165-76-131:InputFiles Jonathan$ hexdump  ch8_2.cpu0.o
+  obj ch9_1.bc -o ch9_1.cpu0.o
+  118-165-76-131:InputFiles Jonathan$ hexdump  ch9_2.cpu0.o
   ...
   // .cprestore machine instruction “ 01 ad 00 18”
   00000d0 01 ad 00 18 09 20 00 00 01 2d 00 40 09 20 00 06
   ...
   
-  118-165-67-25:InputFiles Jonathan$ cat ch8_1.cpu0.s
+  118-165-67-25:InputFiles Jonathan$ cat ch9_1.cpu0.s
   ...
     .ent  _Z5sum_iiiiiii          # @_Z5sum_iiiiiii
   _Z5sum_iiiiiii:
@@ -1360,8 +1355,8 @@ Run ``llc -static`` will call jsub instruction instead of jalr as follows,
 
   118-165-76-131:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=
-  asm ch8_1.bc -o ch8_1.cpu0.s
-  118-165-76-131:InputFiles Jonathan$ cat ch8_1.cpu0.s
+  asm ch9_1.bc -o ch9_1.cpu0.s
+  118-165-76-131:InputFiles Jonathan$ cat ch9_1.cpu0.s
   ...
     jsub  _Z5sum_iiiiiii
   ...
@@ -1369,7 +1364,7 @@ Run ``llc -static`` will call jsub instruction instead of jalr as follows,
 Run with ``llc -filetype=obj``, you can find the Cx of **“jsub Cx”** is 0 since 
 the Cx is calculated by linker as below. 
 Mips has the same 0 in it's jal instruction. 
-The ch8_1_3.cpp and ch8_1_4.cpp are example code more for test. 
+The ch9_1_3.cpp and ch9_1_4.cpp are example code more for test. 
 
 .. code-block:: bash
 
@@ -1380,23 +1375,23 @@ The ch8_1_3.cpp and ch8_1_4.cpp are example code more for test.
 Correct the return of main()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The LowerReturn() modified in Chapter8_3/ as follows, 
+The LowerReturn() modified in Chapter9_3/ as follows, 
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0ISelLowering.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0ISelLowering.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0ISelLowering.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0ISelLowering.cpp
     :start-after: Return Value Calling Convention Implementation
     :end-before: Cpu0TargetLowering::isOffsetFoldingLegal
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.h
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.h
     :start-after: /// Expand Pseudo instructions into real backend instructions
     :end-before: };
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.cpp
     :start-after: // Cpu0InstrInfo::expandPostRAPseudo
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.td
 .. code-block:: c++
 
   // Return
@@ -1430,7 +1425,7 @@ Above code do the following:
 
 1. Declare a pseudo node by the following code,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.td
 .. code-block:: c++
 
   // Return
@@ -1443,7 +1438,7 @@ Above code do the following:
 
 
 2. Create Cpu0ISD::Ret node in LowerReturn() which is called when meet function
-   return as above code in Chapter8_3/Cpu0ISelLowering.cpp. More specific, it 
+   return as above code in Chapter9_3/Cpu0ISelLowering.cpp. More specific, it 
    create DAGs (Cpu0ISD::Ret (CopyToReg %X, %V0, %Y), %V0, Flag). Since the the 
    V0 register is assigned in CopyToReg and Cpu0ISD::Ret use V0, the CopyToReg
    with V0 register will live out and won't be removed in any later optimization
@@ -1451,7 +1446,7 @@ Above code do the following:
    Chain, DAG.getRegister(Cpu0::LR, MVT::i32));" instead of "return DAG.getNode
    (Cpu0ISD::Ret, dl, MVT::Other, &RetOps[0], RetOps.size());" the V0 register
    won't be live out, the previous DAG (CopyToReg %X, %V0, %Y) will be removed
-   in later optimization stage. Then the result is same with Chapter8_2
+   in later optimization stage. Then the result is same with Chapter9_2
    which the return value is error. 
 
 
@@ -1508,7 +1503,7 @@ Above code do the following:
 
 
 4. Expand the Cpu0::RetLR into instruction **ret $lr** in "Post-RA pseudo 
-   instruction expansion pass" stage by the code in Chapter8_3/Cpu0InstrInfo.cpp 
+   instruction expansion pass" stage by the code in Chapter9_3/Cpu0InstrInfo.cpp 
    as above. This stage is after the register allocation, so we can replace the
    V0 ($r2) by LR ($lr) without any side effect.
 
@@ -1516,7 +1511,7 @@ Above code do the following:
    TableGen from \*.td) generated by the following code at "Cpu0 Assembly 
    Printer" stage.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.td
 .. code-block:: c++
 
   class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
@@ -1543,7 +1538,7 @@ Pseudo-instructions" stage and step 5 is "Cpu0 Assembly Printer" stage.
 .. code-block:: bash
 
   118-165-79-200:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch6_2.bc 
+  bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_5.bc 
   -debug-pass=Structure -o -
   ...
   Machine Branch Probability Analysis
@@ -1583,17 +1578,17 @@ Summary to Table: Correct the return value in each stage.
   ===================================================  ======================================
 
   
-Run Chapter8_3/ to get the correct result (return register $2 is 0) as follows, 
+Run Chapter9_3/ to get the correct result (return register $2 is 0) as follows, 
 
 .. code-block:: bash
 
   118-165-78-31:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch6_2.bc -o 
-  ch6_2.cpu0.static.s
-  118-165-78-31:InputFiles Jonathan$ cat ch6_2.cpu0.static.s 
+  bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_5.bc -o 
+  ch7_5.cpu0.static.s
+  118-165-78-31:InputFiles Jonathan$ cat ch7_5.cpu0.static.s 
     .section .mdebug.abi32
     .previous
-    .file "ch6_2.bc"
+    .file "ch7_5.bc"
     .text
     .globl  main
     .align  2
@@ -1656,20 +1651,20 @@ Support features
 This section support features of struct type, variable number of arguments and 
 dynamic stack allocation.
 
-Run Chapter8_3 with ch8_2_1.cpp will get the error message as follows,
+Run Chapter9_3 with ch9_2_1.cpp will get the error message as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_2_1.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_2_1.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch9_2_1.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch9_2_1.cpp
     :start-after: /// start
 
 
 .. code-block:: bash
 
-  JonathantekiiMac:InputFiles Jonathan$ clang -c ch8_2_1.cpp -emit-llvm -o 
-  ch8_2_1.bc
+  JonathantekiiMac:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_2_1.cpp -emit-llvm -o ch9_2_1.bc
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  ch8_2_1.bc -o ch8_2_1.cpu0.s
+  ch9_2_1.bc -o ch9_2_1.cpu0.s
   ...
   Assertion failed: (InVals.size() == Ins.size() && "LowerFormalArguments didn't 
   emit the correct number of values!"), function LowerArguments, file /Users/
@@ -1677,40 +1672,40 @@ Run Chapter8_3 with ch8_2_1.cpp will get the error message as follows,
   line 6712.
   ...
 
-Run Chapter8_3/ with ch8_3.cpp to get the following error,
+Run Chapter9_3/ with ch9_3.cpp to get the following error,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_3.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_3.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch9_3.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch9_3.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
-  118-165-78-230:InputFiles Jonathan$ clang -target `llvm-config --host-target` -c 
-  ch8_3.cpp -emit-llvm -o ch8_3.bc
+  118-165-78-230:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_3.cpp -emit-llvm -o ch9_3.bc
   118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_3.bc -o 
-  ch8_3.cpu0.s
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_3.bc -o 
+  ch9_3.cpu0.s
   LLVM ERROR: Cannot select: 0x7f8b6902fd10: ch = vastart 0x7f8b6902fa10, 
   0x7f8b6902fb10, 0x7f8b6902fc10 [ORD=9] [ID=22]
     0x7f8b6902fb10: i32 = FrameIndex<5> [ORD=7] [ID=9]
   In function: _Z5sum_iiz
 
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_4.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_4.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch9_4.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch9_4.cpp
     :start-after: /// start
 
 
-Run Chapter8_3 with ch8_4.cpp will get the following error.
+Run Chapter9_3 with ch9_4.cpp will get the following error.
 
 .. code-block:: bash
 
-  118-165-72-242:InputFiles Jonathan$ clang -I/Applications/Xcode.app/Contents/
-  Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ 
-  -c ch8_4.cpp -emit-llvm -o ch8_4.bc
+  118-165-72-242:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -I/
+  Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/
+  SDKs/MacOSX10.8.sdk/usr/include/ -c ch9_4.cpp -emit-llvm -o ch9_4.bc
   118-165-72-242:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_4.bc -o 
-  ch8_4.cpu0.s
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_4.bc -o 
+  ch9_4.cpu0.s
   LLVM ERROR: Cannot select: 0x7ffd8b02ff10: i32,ch = dynamic_stackalloc 
   0x7ffd8b02f910:1, 0x7ffd8b02fe10, 0x7ffd8b02c010 [ORD=12] [ID=48]
     0x7ffd8b02fe10: i32 = and 0x7ffd8b02fc10, 0x7ffd8b02fd10 [ORD=12] [ID=47]
@@ -1730,10 +1725,10 @@ Run Chapter8_3 with ch8_4.cpp will get the following error.
 Structure type support
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Chapter8_4/ with the following code added to support the structure type in 
+Chapter9_4/ with the following code added to support the structure type in 
 function call. 
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0ISelLowering.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   // AddLiveIn - This helper function adds the specified physical register to the
@@ -1905,7 +1900,7 @@ function call.
 In addition to above code, we have defined the calling convention at early of 
 this chapter as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0CallingConv.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0CallingConv.td
 .. code-block:: c++
 
   def RetCC_Cpu0EABI : CallingConv<[
@@ -1917,15 +1912,15 @@ this chapter as follows,
 It meaning for the return value, we keep it in registers V0, V1, A0, A1 if the return 
 value didn't over 4 registers size; If it over 4 registers size, cpu0 will save 
 them with pointer.
-For explanation, let's run Chapter8_4/ with ch8_2_1.cpp and explain with this 
+For explanation, let's run Chapter9_4/ with ch9_2_1.cpp and explain with this 
 example.
 
 .. code-block:: bash
 
-  JonathantekiiMac:InputFiles Jonathan$ cat ch8_2_1.cpu0.s
+  JonathantekiiMac:InputFiles Jonathan$ cat ch9_2_1.cpu0.s
     .section .mdebug.abi32
     .previous
-    .file "ch8_2_1.bc"
+    .file "ch9_2_1.bc"
     .text
     .globl  _Z7getDatev
     .align  2
@@ -2283,7 +2278,7 @@ example.
 In LowerCall(), Flags.isByVal() will be true if the outgoing arguments over 4 
 registers size, then it will call WriteByValArg(..., getPointerTy(), ...) to 
 save those arguments to stack as offset. 
-For example code of ch8_2_1.cpp, Flags.isByVal() is true for copyDate(date1) 
+For example code of ch9_2_1.cpp, Flags.isByVal() is true for copyDate(date1) 
 outgoing arguments, since the date1 is type of Date which contains 6 integers 
 (year, month, day, hour, minute, second). 
 But Flags.isByVal() is false for copyTime(time1) since type Time is a struct 
@@ -2321,7 +2316,7 @@ Since the return value is "struct type" and over 4 registers size, it save
 pointer (struct address) to return register.
 List the code and their effect as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0ISelLowering.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   SDValue
@@ -2357,7 +2352,7 @@ List the code and their effect as follows,
     ld  $t9, %call24(_Z8copyDate4Date)($gp)
 
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0ISelLowering.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   SDValue
@@ -2420,7 +2415,7 @@ List the code and their effect as follows,
     .set  reorder
     .end  _Z8copyDate4Date
 
-The ch8_2_2.cpp include C++ class "Date" implementation. 
+The ch9_2_2.cpp include C++ class "Date" implementation. 
 It can be translated into cpu0 backend too since the front end (clang in this 
 example) translate them into C language form.
 You can also mark the "hasStructRetAttr() if" part from both of above functions, 
@@ -2472,20 +2467,20 @@ Until now, we support fixed number of arguments in formal function definition
 This section support variable number of arguments since C language support 
 this feature.
 
-Run Chapter8_4/ with ch8_3.cpp as well as clang option, 
-**clang -target `llvm-config --host-target`**, to get the following result,
+Run Chapter9_4/ with ch9_3.cpp as well as clang option, 
+**clang -target mips-unknown-linux-gnu**, to get the following result,
 
 .. code-block:: bash
 
-  118-165-76-131:InputFiles Jonathan$ clang -target `llvm-config --host-target` -c 
-  ch8_3.cpp -emit-llvm -o ch8_3.bc
+  118-165-76-131:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch9_3.cpp -emit-llvm -o ch9_3.bc
   118-165-76-131:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-  ch8_3.bc -o ch8_3.cpu0.s
-  118-165-76-131:InputFiles Jonathan$ cat ch8_3.cpu0.s
+  ch9_3.bc -o ch9_3.cpu0.s
+  118-165-76-131:InputFiles Jonathan$ cat ch9_3.cpu0.s
     .section .mdebug.abi32
     .previous
-    .file "ch8_3.bc"
+    .file "ch9_3.bc"
     .text
     .globl  _Z5sum_iiz
     .align  2
@@ -2582,7 +2577,7 @@ Run Chapter8_4/ with ch8_3.cpp as well as clang option,
     .size main, ($tmp4)-main
 
 
-The analysis of output ch8_3.cpu0.s as above in comment. 
+The analysis of output ch9_3.cpu0.s as above in comment. 
 As above code, in # BB#0, we get the first argument **“amount”** from 
 **“ld $2, 24($sp)”** since the stack size of the callee function 
 **“_Z5sum_iiz()”** is 24. And set argument pointer, arg_ptr, to 28($sp), 
@@ -2592,11 +2587,11 @@ In $BB0_2, it do sum += \*arg_ptr as well as arg_ptr+=4.
 In # BB#3, do i+=1.
 
 To support variable number of arguments, the following code needed to 
-add in Chapter8_4/. 
-The ch8_3_2.cpp is C++ template example code, it can be translated into cpu0 
+add in Chapter9_4/. 
+The ch9_3_2.cpp is C++ template example code, it can be translated into cpu0 
 backend code too.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0TargetLowering.h
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0TargetLowering.h
 .. code-block:: c++
 
     class Cpu0TargetLowering : public TargetLowering  {
@@ -2607,7 +2602,7 @@ backend code too.
       ...
     }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0TargetLowering.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0TargetLowering.cpp
 .. code-block:: c++
 
   Cpu0TargetLowering::
@@ -2676,8 +2671,8 @@ backend code too.
   }
 
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_3_2.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_3_2.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch9_3_2.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch9_3_2.cpp
     :start-after: /// start
 
 Mips qemu reference [#]_, you can download and run it with gcc to verify the 
@@ -2691,9 +2686,9 @@ Dynamic stack allocation support
 Even though C language very rare to use dynamic stack allocation, there are
 languages use it frequently. The following C example code use it.
 
-Chapter8_4 support dynamic stack allocation with the following code added.
+Chapter9_4 support dynamic stack allocation with the following code added.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0FrameLowering.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0FrameLowering.cpp
 .. code-block:: c++
 
   void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
@@ -2740,7 +2735,7 @@ Chapter8_4 support dynamic stack allocation with the following code added.
     ...
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0ISelLowering.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   Cpu0TargetLowering::
@@ -2754,7 +2749,7 @@ Chapter8_4 support dynamic stack allocation with the following code added.
     ...
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0RegisterInfo.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0RegisterInfo.cpp
 .. code-block:: c++
 
   // pure virtual method
@@ -2768,16 +2763,16 @@ Chapter8_4 support dynamic stack allocation with the following code added.
     ...
   }
 
-Run Chapter8_4 with ch8_4.cpp will get the following correct result.
+Run Chapter9_4 with ch9_4.cpp will get the following correct result.
 
 .. code-block:: bash
 
-  118-165-72-242:InputFiles Jonathan$ clang -I/Applications/Xcode.app/Contents/
-  Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ 
-  -c ch8_4.cpp -emit-llvm -o ch8_4.bc
-  118-165-72-242:InputFiles Jonathan$ llvm-dis ch8_4.bc -o ch8_4.ll
-  118-165-72-242:InputFiles Jonathan$ cat ch8_4.ll
-  ; ModuleID = 'ch8_4.bc'
+  118-165-72-242:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -I/
+  Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/
+  SDKs/MacOSX10.8.sdk/usr/include/ -c ch9_4.cpp -emit-llvm -o ch9_4.bc
+  118-165-72-242:InputFiles Jonathan$ llvm-dis ch9_4.bc -o ch9_4.ll
+  118-165-72-242:InputFiles Jonathan$ cat ch9_4.ll
+  ; ModuleID = 'ch9_4.bc'
   target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-
   f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:
   32:64-S128"
@@ -2796,9 +2791,9 @@ Run Chapter8_4 with ch8_4.cpp will get the following correct result.
   ...
 
   118-165-72-242:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_4.bc -o 
-  ch8_4.cpu0.s
-  118-165-72-242:InputFiles Jonathan$ cat ch8_4.cpu0.s 
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_4.bc -o 
+  ch9_4.cpu0.s
+  118-165-72-242:InputFiles Jonathan$ cat ch9_4.cpu0.s 
   ...
   _Z10weight_sumiiiiii:
   	.cfi_startproc
@@ -2944,7 +2939,7 @@ local variables have better performance compare to use the sp only.
   	st	$3, 4($sp)
   	
 Cpu0 use fp and sp to access the above and below areas of alloca() too. 
-As ch8_4.cpu0.s, it access local variable (above of alloca()) by fp offset
+As ch9_4.cpu0.s, it access local variable (above of alloca()) by fp offset
 and outgoing arguments (below of alloca()) by sp offset.
 
 

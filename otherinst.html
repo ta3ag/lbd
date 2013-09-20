@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Arithmetic, local pointer and logic lsupport &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    <title>Arithmetic and logic lsupport &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.2',
+        VERSION:     '3.3.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -36,7 +36,7 @@
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
-        <h2 class="heading"><span>Arithmetic, local pointer and logic lsupport</span></h2>
+        <h2 class="heading"><span>Arithmetic and logic lsupport</span></h2>
       </div>
       <div class="topnav">
       
@@ -52,8 +52,8 @@
       <div class="content">
         
         
-  <div class="section" id="arithmetic-local-pointer-and-logic-lsupport">
-<span id="sec-addingmoresupport"></span><h1>Arithmetic, local pointer and logic lsupport<a class="headerlink" href="#arithmetic-local-pointer-and-logic-lsupport" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="arithmetic-and-logic-lsupport">
+<span id="sec-addingmoresupport"></span><h1>Arithmetic and logic lsupport<a class="headerlink" href="#arithmetic-and-logic-lsupport" title="Permalink to this headline">¶</a></h1>
 <p>This chapter adds more cpu0 arithmetic instructions support first.
 The logic operation <strong>“not”</strong> support and translation in
 <a class="reference external" href="http://jonathan2251.github.com/lbd/otherinst.html#operator-not">section Operator “not” !</a>. The <a class="reference external" href="http://jonathan2251.github.com/lbd/otherinst.html#display-llvm-ir-nodes-with-graphviz">section Display llvm IR nodes with Graphviz</a>
@@ -332,7 +332,8 @@ sra, ... are for 1 virtual registers and 1 constant input operands.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-12:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_1.cpp -emit-llvm -o ch4_1.bc
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-12:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
+ch4_1.cpp -emit-llvm -o ch4_1.bc
 118-165-78-12:InputFiles Jonathan<span class="nv">$ </span>llvm-dis ch4_1.bc -o -
 ...
 ; Function Attrs: nounwind uwtable
@@ -1197,7 +1198,8 @@ llvm <strong>“Constant Propagation Optimization”</strong> useless in this.</
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-77-79:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_2_2.cpp -emit-llvm -o ch4_2_2.bc
+<div class="highlight-bash"><div class="highlight"><pre>118-165-77-79:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
+ch4_2_2.cpp -emit-llvm -o ch4_2_2.bc
 118-165-77-79:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
 debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
 ch4_2_2.bc -o -
@@ -1209,9 +1211,10 @@ mflo  <span class="nv">$2</span>
 </div>
 <p>To explain how work with <strong>“div”</strong>, let&#8217;s run Chapter8_4 with
 ch4_2_2.cpp as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-83-58:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_2_2.cpp -I/Applications/Xcode.app/
-Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/
-include/ -emit-llvm -o ch4_2_2.bc
+<div class="highlight-bash"><div class="highlight"><pre>118-165-83-58:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
+ch4_2_2.cpp -I/Applications/Xcode.app/Contents/Developer/Platforms/
+MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ -emit-llvm -o
+ch4_2_2.bc
 118-165-83-58:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/bin/
 Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm -debug ch4_2_2.bc -o -
 Args: /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0
@@ -1543,101 +1546,6 @@ to <strong>mfhi</strong>.</p>
 <p>The ch4_3.cpp is for <strong>/</strong> div operator test.</p>
 </div>
 </div>
-<div class="section" id="local-variable-pointer">
-<h3>Local variable pointer<a class="headerlink" href="#local-variable-pointer" title="Permalink to this headline">¶</a></h3>
-<p>To support pointer to local variable, add this code fragment in
-Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><pre>def mem_ea : Operand&lt;i32&gt; {
-  let PrintMethod = "printMemOperandEA";
-  let MIOperandInfo = (ops CPURegs, simm16);
-  let EncoderMethod = "getMemEncoding";
-}
-...
-class EffectiveAddress&lt;string instr_asm, RegisterClass RC, Operand Mem&gt; :
-  FMem&lt;0x09, (outs RC:$ra), (ins Mem:$addr),
-     instr_asm, [(set RC:$ra, addr:$addr)], IIAlu&gt;;
-...
-// FrameIndexes are legalized when they are operands from load/store
-// instructions. The same not happens for stack address copies, so an
-// add op with mem ComplexPattern is used and the stack address copy
-// can be matched. It's similar to Sparc LEA_ADDRi
-def LEA_ADDiu : EffectiveAddress&lt;"addiu\t$ra, $addr", CPURegs, mem_ea&gt; {
-  let isCodeGenOnly = 1;
-}</pre>
-</div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstPrinter.td</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0InstPrinter</span><span class="o">::</span>
-<span class="n">printMemOperandEA</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="kt">int</span> <span class="n">opNum</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">)</span> <span class="p">{</span>
-  <span class="c1">// when using stack locations for not load/store instructions</span>
-  <span class="c1">// print the same way as all normal 3 operand instructions.</span>
-  <span class="n">printOperand</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">opNum</span><span class="p">,</span> <span class="n">O</span><span class="p">);</span>
-  <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;, &quot;</span><span class="p">;</span>
-  <span class="n">printOperand</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">opNum</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">O</span><span class="p">);</span>
-  <span class="k">return</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>Run ch4_4.cpp with code Chapter4_1/ which support pointer to local variable,
-will get result as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">test_local_pointer</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
-  
-  <span class="kt">int</span><span class="o">*</span> <span class="n">p</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">b</span><span class="p">;</span>
-
-  <span class="k">return</span> <span class="o">*</span><span class="n">p</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_4.cpp -emit-llvm -o ch4_4.bc
-118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
-debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-  ch4_4.bc -o ch4_4.cpu0.s
-  118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>cat ch4_4.cpu0.s
-        .section .mdebug.abi32
-        .previous
-        .file <span class="s2">&quot;ch4_4.bc&quot;</span>
-        .text
-        .globl        _Z18test_local_pointerv
-        .align        2
-        .type _Z18test_local_pointerv,@function
-        .ent  _Z18test_local_pointerv <span class="c"># @_Z18test_local_pointerv</span>
-_Z18test_local_pointerv:
-        .cfi_startproc
-        .frame        <span class="nv">$fp</span>,16,<span class="nv">$lr</span>
-        .mask         0x00000800,-4
-        .set  noreorder
-        .set  nomacro
-<span class="c"># BB#0:                                 # %entry</span>
-        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
-<span class="nv">$tmp3</span>:
-        .cfi_def_cfa_offset 16
-        st    <span class="nv">$fp</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
-<span class="nv">$tmp4</span>:
-        .cfi_offset 11, -4
-        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
-<span class="nv">$tmp5</span>:
-        .cfi_def_cfa_register 11
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
-        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$2</span>, <span class="nv">$fp</span>, 8
-        st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
-        ld    <span class="nv">$fp</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
-        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
-        ret   <span class="nv">$lr</span>
-        .set  macro
-        .set  reorder
-        .end  _Z18test_local_pointerv
-<span class="nv">$tmp6</span>:
-        .size _Z18test_local_pointerv, <span class="o">(</span><span class="nv">$tmp6</span><span class="o">)</span>-_Z18test_local_pointerv
-        .cfi_endproc
-</pre></div>
-</div>
-</div>
 </div>
 <div class="section" id="logic">
 <h2>Logic<a class="headerlink" href="#logic" title="Permalink to this headline">¶</a></h2>
@@ -1672,16 +1580,6 @@ def XOR     : ArithLogicR&lt;0x1a, "xor", xor, IIAlu, CPURegs, 1&gt;;
 def : Pat&lt;(not CPURegs:$in),
 // 1: in == 0; 0: in != 0
           (XORi CPURegs:$in, 1)&gt;;
-
-// Sign Extend in Register.
-// Get the least 7bits from register $in and signed bit (the 31th bit) from the
-// 8th bit of register $in.
-def : Pat&lt;(sext_inreg CPURegs:$in, i8),
-          (OR (SHL (ANDi CPURegs:$in, 0x0080), 16), (ANDi CPURegs:$in, 0x007f))&gt;;
-// Get the least 15bits from register $in and signed bit (the 31th bit) from the
-// 16th bit of register $in.
-def : Pat&lt;(sext_inreg CPURegs:$in, i8),
-          (OR (SHL (ANDi CPURegs:$in, 0x8000), 16), (ANDi CPURegs:$in, 0x7fff))&gt;;
 
 // setcc patterns
 multiclass SeteqPats&lt;RegisterClass RC&gt; {
@@ -1737,6 +1635,18 @@ defm : SetlePats&lt;CPURegs&gt;;
 defm : SetgtPats&lt;CPURegs&gt;;
 defm : SetgePats&lt;CPURegs&gt;;</pre>
 </div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_2/Cpu0ISelLowering.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
+  <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">Cpu0TargetObjectFile</span><span class="p">()),</span>
+    <span class="n">Subtarget</span><span class="p">(</span><span class="o">&amp;</span><span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">())</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="c1">// Cpu0 doesn&#39;t have sext_inreg, replace them with shl/sra.</span>
+  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">SIGN_EXTEND_INREG</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i1</span> <span class="p">,</span> <span class="n">Expand</span><span class="p">);</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">test_andorxornot</span><span class="p">()</span>
 <span class="p">{</span>
@@ -1769,7 +1679,8 @@ defm : SetgePats&lt;CPURegs&gt;;</pre>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>114-43-204-152:InputFiles Jonathan<span class="nv">$ </span>clang -c ch4_5.cpp -emit-llvm -o ch4_5.bc
+<div class="highlight-bash"><div class="highlight"><pre>114-43-204-152:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
+ch4_5.cpp -emit-llvm -o ch4_5.bc
 114-43-204-152:InputFiles Jonathan<span class="nv">$ </span>llvm-dis ch4_5.bc -o -
 ...
 ; Function Attrs: nounwind uwtable

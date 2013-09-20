@@ -1072,8 +1072,11 @@ First step, compile it with clang and get output ch3.bc as follows,
 
 .. code-block:: bash
 
-  [Gamma@localhost InputFiles]$ clang -c ch3.cpp -emit-llvm -o ch3.bc
+  118-165-78-230:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch3.cpp -emit-llvm -o ch3.bc
 
+As above, compile C to .bc by ``clang -target mips-unknown-linux-gnu`` because
+Cpu0 borrow the ABI from Mips.
 Next step, transfer bitcode .bc to human readable text format as follows,
 
 .. code-block:: bash

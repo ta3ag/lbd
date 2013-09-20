@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.2',
+        VERSION:     '3.3.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -90,9 +90,9 @@ if it over 4 arguments. <a class="pageref" href="#funccall-f1">Figure  1</a> is 
 <a class="reference internal image-reference" href="_images/13.png"><img alt="_images/13.png" src="_images/13.png" style="width: 688.0px; height: 531.0px;" /></a>
 <p class="caption">Figure 1: Mips stack frame</p>
 </div>
-<p>Run <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=mips</span></tt> for ch8_1.bc, you will get the following result.
+<p>Run <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=mips</span></tt> for ch9_1.bc, you will get the following result.
 See comment <strong>&#8220;//&#8221;</strong>.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_1.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch9_1.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
 
 <span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">x1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x2</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x3</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x4</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x5</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x6</span><span class="p">)</span>
@@ -111,14 +111,15 @@ See comment <strong>&#8220;//&#8221;</strong>.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -c ch8_1.cpp -emit-llvm -o ch8_1.bc
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
+ch9_1.cpp -emit-llvm -o ch9_1.bc
 118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>mips -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o
-ch8_1.mips.s
-118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.mips.s
+bin/Debug/llc -march<span class="o">=</span>mips -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch9_1.bc -o
+ch9_1.mips.s
+118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch9_1.mips.s
   .section .mdebug.abi32
   .previous
-  .file <span class="s2">&quot;ch8_1.bc&quot;</span>
+  .file <span class="s2">&quot;ch9_1.bc&quot;</span>
   .text
   .globl  _Z5sum_iiiiiii
   .align  2
@@ -216,7 +217,7 @@ main:
 <p>From the mips assembly code generated as above, we know it save the first 4
 arguments to $a0..$a3 and last 2 arguments to 16($sp) and 20($sp).
 <a class="pageref" href="#funccall-f2">Figure  2</a> is the arguments location for example code
-ch8_1.cpp.
+ch9_1.cpp.
 It load argument 5 from 48($sp) in sum_i() since the argument 5 is saved to
 16($sp) in main().
 The stack size of sum_i() is 32, so 16+32($sp) is the location of incoming
@@ -233,32 +234,32 @@ argument 5.</p>
 <h2>Load incoming arguments from stack frame<a class="headerlink" href="#load-incoming-arguments-from-stack-frame" title="Permalink to this headline">¶</a></h2>
 <p>From last section, to support function call, we need implementing the arguments
 pass mechanism with stack frame. Before do that, let&#8217;s run the old version of
-code Chapter7_1/ with ch8_1.cpp and see what happens.</p>
+code Chapter8_1/ with ch9_1.cpp and see what happens.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-79-31:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch8_1.bc -o ch8_1.cpu0.s
+ch9_1.bc -o ch9_1.cpu0.s
 Assertion failed: <span class="o">(</span>InVals.size<span class="o">()</span> <span class="o">==</span> Ins.size<span class="o">()</span> <span class="o">&amp;&amp;</span> <span class="s2">&quot;LowerFormalArguments didn&#39;t</span>
 <span class="s2">emit the correct number of values!&quot;</span><span class="o">)</span>, <span class="k">function </span>LowerArguments, file /Users/
 Jonathan/llvm/test/src/lib/CodeGen/SelectionDAG/
 SelectionDAGBuilder.cpp, ...
 ...
 0.  Program arguments: /Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o
-ch8_1.cpu0.s
-1.  Running pass <span class="s1">&#39;Function Pass Manager&#39;</span> on module <span class="s1">&#39;ch8_1.bc&#39;</span>.
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch9_1.bc -o
+ch9_1.cpu0.s
+1.  Running pass <span class="s1">&#39;Function Pass Manager&#39;</span> on module <span class="s1">&#39;ch9_1.bc&#39;</span>.
 2.  Running pass <span class="s1">&#39;CPU0 DAG-&gt;DAG Pattern Instruction Selection&#39;</span> on <span class="k">function</span>
 <span class="s1">&#39;@_Z5sum_iiiiiii&#39;</span>
 Illegal instruction: 4
 </pre></div>
 </div>
-<p>Since Chapter7_1/ define the LowerFormalArguments() with empty, we get the error
+<p>Since Chapter8_1/ define the LowerFormalArguments() with empty, we get the error
 message as above.
 Before define LowerFormalArguments(), we have to choose how to pass arguments
 in function call. We choose pass arguments all in stack frame.
 We don&#8217;t reserve any dedicated register for arguments passing since cpu0 has
 only 16 registers while Mips has 32 registers. Cpu0CallingConv.td is defined
 for cpu0 passing rule as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0CallingConv.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0CallingConv.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">RetCC_Cpu0EABI</span> <span class="o">:</span> <span class="n">CallingConv</span><span class="o">&lt;</span><span class="p">[</span>
   <span class="c1">// i32 are returned in registers V0, V1</span>
   <span class="n">CCIfType</span><span class="o">&lt;</span><span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="n">CCAssignToReg</span><span class="o">&lt;</span><span class="p">[</span><span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">]</span><span class="o">&gt;&gt;</span>
@@ -306,7 +307,7 @@ system expand, and naming your Calling Convention. CC_Cpu0EABI as above, say it
 pass arguments in stack frame.</p>
 <p>Function LowerFormalArguments() charge function incoming arguments creation.
 We define it as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0ISelLowering.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 
 <span class="c1">/// LowerFormalArguments - transform physical registers into virtual registers</span>
@@ -385,7 +386,7 @@ LowerGlobalAddress() is called when <tt class="docutils literal"><span class="pr
 LowerFormalArguments() work with the same way.
 It is called when function is entered.
 It get incoming arguments information by CCInfo(CallConv,..., ArgLocs, ...)
-before enter <strong>“for loop”</strong>. In ch8_1.cpp, there are 6 arguments in sum_i(...)
+before enter <strong>“for loop”</strong>. In ch9_1.cpp, there are 6 arguments in sum_i(...)
 function call and we use the stack frame only for arguments passing without
 any arguments pass in registers.
 So ArgLocs.size() is 6, each argument information is in ArgLocs[i] and
@@ -397,7 +398,7 @@ And then create IR DAG load node and put the load node into vector InVals by
 InVals.push_back(DAG.getLoad(ValVT, dl, Chain, FIN,
 MachinePointerInfo::getFixedStack(LastFI), false, false, false, 0)).
 Cpu0FI-&gt;setVarArgsFrameIndex(0) and Cpu0FI-&gt;setLastInArgFI(LastFI) are called
-when before and after above work. In ch8_1.cpp example, LowerFormalArguments()
+when before and after above work. In ch9_1.cpp example, LowerFormalArguments()
 will be called twice. First time is for sum_i() which will create 6 load DAG
 for 6 incoming arguments passing into this function.
 Second time is for main() which didn&#8217;t create any load DAG for no incoming
@@ -407,7 +408,7 @@ define the loadRegFromStackSlot() to issue the machine instruction
 <strong>“ld $r, offset($sp)”</strong> to load incoming arguments from stack frame offset.
 GetMemOperand(..., FI, ...) return the Memory location of the frame index
 variable, which is the offset.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstrInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 
 <span class="k">static</span> <span class="n">MachineMemOperand</span><span class="o">*</span> <span class="n">GetMemOperand</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="kt">int</span> <span class="n">FI</span><span class="p">,</span>
@@ -439,10 +440,10 @@ variable, which is the offset.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>In addition to Calling Convention and LowerFormalArguments(), Chapter8_1/ add the
+<p>In addition to Calling Convention and LowerFormalArguments(), Chapter9_1/ add the
 following code for cpu0 instructions <strong>swi</strong> (Software Interrupt), <strong>jsub</strong> and
 <strong>jalr</strong> (function call) definition and printing.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrFormats.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstrFormats.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0 Pseudo Instructions Format</span>
 <span class="k">class</span> <span class="nc">Cpu0Pseudo</span><span class="o">&lt;</span><span class="n">dag</span> <span class="n">outs</span><span class="p">,</span> <span class="n">dag</span> <span class="n">ins</span><span class="p">,</span> <span class="n">string</span> <span class="n">asmstr</span><span class="p">,</span> <span class="n">list</span><span class="o">&lt;</span><span class="n">dag</span><span class="o">&gt;</span> <span class="n">pattern</span><span class="o">&gt;:</span>
       <span class="n">Cpu0Inst</span><span class="o">&lt;</span><span class="n">outs</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">asmstr</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">IIPseudo</span><span class="p">,</span> <span class="n">Pseudo</span><span class="o">&gt;</span> <span class="p">{</span>
@@ -451,7 +452,7 @@ following code for cpu0 instructions <strong>swi</strong> (Software Interrupt), 
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>def SDT_Cpu0JmpLink      : SDTypeProfile&lt;0, 1, [SDTCisVT&lt;0, iPTR&gt;]&gt;;
 ...
 // Call
@@ -498,7 +499,7 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
           (JSUB texternalsym:$dst)&gt;;
 ...</pre>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstPrinter.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstPrinter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="n">printExpr</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">...</span>
@@ -509,7 +510,7 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0MCInstLower.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0MCInstLower.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
                                               <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
                                               <span class="kt">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -539,7 +540,7 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
 <span class="n">getMachineOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
                   <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -555,7 +556,7 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0MachineFucntion.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0MachineFucntion.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Cpu0FunctionInfo</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MachineFunctionInfo</span> <span class="p">{</span>
   <span class="p">...</span>
     <span class="c1">/// VarArgsFrameIndex - FrameIndex for start of varargs area.</span>
@@ -618,7 +619,7 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
 node. They are distinguishable since both SWI and JSUB use &#8220;imm&#8221; operand while
 JALR use register operand. JSUB take the priority to match since we set the
 following code in Cpu0InstrInfo.td.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>def : Pat&lt;(Cpu0JmpLink (i32 tglobaladdr:$dst)),
           (JSUB tglobaladdr:$dst)&gt;;
 def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
@@ -628,8 +629,8 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
 &#8220;tglobaladdr&#8221; pattern first. If it fails then try to match &#8220;texternalsym&#8221; next.
 The function you declared is &#8220;tglobaladdr&#8221;, the function which implicit used by
 llvm most are &#8220;texternalsym&#8221; such as &#8220;memcpy&#8221;. The &#8220;memcpy&#8221; will be generated
-when define a long string. The ch8_1_2.cpp is an example to generate &#8220;memcpy&#8221;
-function call. It will be shown in next section of Chapter8_2 example code.
+when define a long string. The ch9_1_2.cpp is an example to generate &#8220;memcpy&#8221;
+function call. It will be shown in next section of Chapter9_2 example code.
 Even though SWI have no chance to match in C/C++ language. We define it for easy
 to implement assembly parser which introduced in Chapter 11. This
 SWI definition will save us to implement the assembly parser for this
@@ -690,20 +691,20 @@ generated information about JSUB and JALR pattern match information as follows,<
 <span class="cm">/*733*/</span>     <span class="mi">0</span><span class="p">,</span> <span class="cm">/*End of Scope*/</span>
 </pre></div>
 </div>
-<p>After above changes, you can run Chapter8_1/ with ch8_1.cpp and see what happens
+<p>After above changes, you can run Chapter9_1/ with ch9_1.cpp and see what happens
 in the following,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-79-83:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch8_1.bc -o ch8_1.cpu0.s
+ch9_1.bc -o ch9_1.cpu0.s
 Assertion failed: <span class="o">((</span>CLI.IsTailCall <span class="o">||</span> InVals.size<span class="o">()</span> <span class="o">==</span> CLI.Ins.size<span class="o">())</span> <span class="o">&amp;&amp;</span>
 <span class="s2">&quot;LowerCall didn&#39;t emit the correct number of values!&quot;</span><span class="o">)</span>, <span class="k">function </span>LowerCallTo,
 file /Users/Jonathan/llvm/test/src/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.
 cpp, ...
 ...
 0.  Program arguments: /Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o
-ch8_1.cpu0.s
-1.  Running pass <span class="s1">&#39;Function Pass Manager&#39;</span> on module <span class="s1">&#39;ch8_1.bc&#39;</span>.
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch9_1.bc -o
+ch9_1.cpu0.s
+1.  Running pass <span class="s1">&#39;Function Pass Manager&#39;</span> on module <span class="s1">&#39;ch9_1.bc&#39;</span>.
 2.  Running pass <span class="s1">&#39;CPU0 DAG-&gt;DAG Pattern Instruction Selection&#39;</span> on <span class="k">function</span>
 <span class="s1">&#39;@main&#39;</span>
 Illegal instruction: 4
@@ -721,7 +722,7 @@ We defined LowerFormalArguments() for <strong>“load incoming arguments”</str
 function last section.
 Now, we will finish <strong>“store outgoing arguments”</strong> in caller function.
 LowerCall() is responsible to do this. The implementation as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0ISelLowering.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_2/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">SDValue</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerCall</span><span class="p">(</span><span class="n">TargetLowering</span><span class="o">::</span><span class="n">CallLoweringInfo</span> <span class="o">&amp;</span><span class="n">CLI</span><span class="p">,</span>
                               <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -988,7 +989,7 @@ DAG.getCALLSEQ_START() and DAG.getCALLSEQ_END() are set before the
 <strong>“for loop”</strong> and after call subroutine, they insert CALLSEQ_START,
 CALLSEQ_END, and translate into pseudo machine instructions !ADJCALLSTACKDOWN,
 !ADJCALLSTACKUP later according Cpu0InstrInfo.td definition as follows.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0InstrInfo.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_2/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>def SDT_Cpu0CallSeqStart : SDCallSeqStart&lt;[SDTCisVT&lt;0, i32&gt;]&gt;;
 def SDT_Cpu0CallSeqEnd   : SDCallSeqEnd&lt;[SDTCisVT&lt;0, i32&gt;, SDTCisVT&lt;1, i32&gt;]&gt;;
 ...
@@ -1014,7 +1015,7 @@ def ADJCALLSTACKUP   : Cpu0Pseudo&lt;(outs), (ins uimm16:$amt1, uimm16:$amt2),
 </div>
 <p>Like load incoming arguments, we need to implement storeRegToStackSlot() for
 store outgoing arguments to stack frame offset.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_2/Cpu0InstrInfo.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_2/Cpu0InstrInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- st SrcReg, MMO(FI)</span>
 <span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
 <span class="n">storeRegToStackSlot</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span>
@@ -1035,15 +1036,15 @@ store outgoing arguments to stack frame offset.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Now, let&#8217;s run Chapter8_2/ with ch8_1.cpp to get result as follows (see comment
+<p>Now, let&#8217;s run Chapter9_2/ with ch9_1.cpp to get result as follows (see comment
 //),</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o
-ch8_1.cpu0.s
-118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.cpu0.s
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch9_1.bc -o
+ch9_1.cpu0.s
+118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch9_1.cpu0.s
       .section .mdebug.abi32
       .previous
-      .file   <span class="s2">&quot;ch8_1.bc&quot;</span>
+      .file   <span class="s2">&quot;ch9_1.bc&quot;</span>
       .text
       .globl  _Z5sum_iiiiiii
       .align  2
@@ -1154,12 +1155,12 @@ gI:
       .size   gI, 4
 </pre></div>
 </div>
-<p>The last section mentioned the &#8220;JSUB texternalsym&#8221; pattern. Run Chapter8_2 with
-ch8_1_2.cpp to get the result as below. For long string, llvm call memcpy() to
+<p>The last section mentioned the &#8220;JSUB texternalsym&#8221; pattern. Run Chapter9_2 with
+ch9_1_2.cpp to get the result as below. For long string, llvm call memcpy() to
 initialize string (char str[81] = &#8220;Hello world&#8221; in this case). For short string,
 the &#8220;call memcpy&#8221; is translated into &#8220;store with contant&#8221; in stages of
 optimization.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_1_2.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch9_1_2.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">char</span> <span class="n">str</span><span class="p">[</span><span class="mi">81</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Hello world&quot;</span><span class="p">;</span>
@@ -1169,8 +1170,8 @@ optimization.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>llvm-dis ch8_1_2.bc -o -
-; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch8_1_2.bc&#39;</span>
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>llvm-dis ch9_1_2.bc -o -
+; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch9_1_2.bc&#39;</span>
 ...
 @_ZZ4mainE3str <span class="o">=</span> private unnamed_addr constant <span class="o">[</span>81 x i8<span class="o">]</span> c<span class="s2">&quot;Hello world\00\00\00\</span>
 <span class="s2">00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00</span>
@@ -1195,9 +1196,9 @@ entry:
 <span class="o">}</span>
 
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
-ch8_1_2.cpp -emit-llvm -o ch8_1_2.bc
+ch9_1_2.cpp -emit-llvm -o ch9_1_2.bc
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build
-/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch8_1_2.bc -o -
+/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch9_1_2.bc -o -
   .section .mdebug.abi32
   ...
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 81
@@ -1231,7 +1232,7 @@ JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/ll
 Instruction Selection&#8221; stage and translate it into &#8220;store with contant&#8221; as
 follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build
-/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch8_1_2.bc
+/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch9_1_2.bc
 -debug -o -
 
 Initial selection DAG: BB#0 <span class="s1">&#39;main:entry&#39;</span>
@@ -1259,9 +1260,9 @@ SelectionDAG has 35 nodes:
 </div>
 <div class="section" id="fix-issues">
 <h2>Fix issues<a class="headerlink" href="#fix-issues" title="Permalink to this headline">¶</a></h2>
-<p>Run Chapter8_2/ with ch6_2.cpp to get the incorrect main return (return register
+<p>Run Chapter9_2/ with ch7_5.cpp to get the incorrect main return (return register
 $2 is not 0) as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch6_2.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch7_5.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">year</span><span class="p">;</span>
@@ -1272,29 +1273,25 @@ $2 is not 0) as follows,</p>
 <span class="n">Date</span> <span class="n">date</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
 <span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
 
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="kt">int</span> <span class="n">test_struct</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">day</span> <span class="o">=</span> <span class="n">date</span><span class="p">.</span><span class="n">day</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
 
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="n">day</span><span class="p">);</span> <span class="c1">// 12+2012=2024</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>clang -c ch6_2.cpp -emit-llvm -o ch6_2.bc
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
+ch7_5.cpp -emit-llvm -o ch7_5.bc
 118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch6_2.bc -o
-ch6_2.cpu0.static.s
-118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>cat ch6_2.cpu0.static.s
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch7_5.bc -o
+ch7_5.cpu0.static.s
+118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>cat ch7_5.cpu0.static.s
   .section .mdebug.abi32
   .previous
-  .file <span class="s2">&quot;ch6_2.bc&quot;</span>
-  .text
-  .globl  main
-  .align  2
-  .type main,@function
-  .ent  main                    <span class="c"># @main</span>
-main:
+  .file <span class="s2">&quot;ch7_5.bc&quot;</span>
+  ...
   .cfi_startproc
   .frame  <span class="nv">$sp</span>,16,<span class="nv">$lr</span>
   .mask   0x00000000,0
@@ -1319,8 +1316,6 @@ main:
   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
   ret <span class="nv">$lr</span>
   .set  macro
-  .set  reorder
-  .end  main
 ...
 </pre></div>
 </div>
@@ -1338,9 +1333,9 @@ assembly code in sum_i().</li>
 <h3>Fix the wrong offset in storing arguments to stack frame<a class="headerlink" href="#fix-the-wrong-offset-in-storing-arguments-to-stack-frame" title="Permalink to this headline">¶</a></h3>
 <p>To fix the wrong offset in storing arguments, we modify the following code
 in eliminateFrameIndex() as follows.
-The code as below is modified in Chapter8_3/ to set the caller outgoing
-arguments into spOffset($sp) (Chapter8_2/ set them to pOffset+stackSize($sp).</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0RegisterInfo.cpp</p>
+The code as below is modified in Chapter9_3/ to set the caller outgoing
+arguments into spOffset($sp) (Chapter9_2/ set them to pOffset+stackSize($sp).</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0RegisterInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
 <span class="n">eliminateFrameIndex</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">II</span><span class="p">,</span> <span class="kt">int</span> <span class="n">SPAdj</span><span class="p">,</span>
                     <span class="n">RegScavenger</span> <span class="o">*</span><span class="n">RS</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -1370,7 +1365,7 @@ arguments into spOffset($sp) (Chapter8_2/ set them to pOffset+stackSize($sp).</p
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0MachineFunction.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0MachineFunction.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// SRetReturnReg - Some subtargets require that sret lowering includes</span>
 <span class="c1">/// returning the value of the returned struct in a register. This field</span>
 <span class="c1">/// holds the virtual register into which the sret argument is passed.</span>
@@ -1388,13 +1383,13 @@ arguments into spOffset($sp) (Chapter8_2/ set them to pOffset+stackSize($sp).</p
 <span class="p">...</span>
 </pre></div>
 </div>
-<p>Run Chapter8_3/ with ch8_1.cpp will get the following result.
+<p>Run Chapter9_3/ with ch9_1.cpp will get the following result.
 It correct arguements offset im main() from (0+40)$sp, (8+40)$sp, ..., to
 (0)$sp, (8)$sp, ..., where the stack size is 40 in main().</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1.bc -o
-ch8_1.cpu0.s
-118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.cpu0.s
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch9_1.bc -o
+ch9_1.cpu0.s
+118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch9_1.cpu0.s
   ...
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 6
   st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             // Correct offset
@@ -1450,19 +1445,19 @@ Summary as Table: Callee incoming arguments and caller outgoing arguments.</p>
 <p>To fix the !ADJSTACKDOWN and !ADJSTACKUP, we call Cpu0GenInstrInfo(Cpu0::
 ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP) in Cpu0InstrInfo() constructor
 function and define eliminateCallFramePseudoInstr() as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">Cpu0InstrInfo</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">tm</span><span class="p">)</span>
   <span class="o">:</span> <span class="n">Cpu0GenInstrInfo</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADJCALLSTACKDOWN</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADJCALLSTACKUP</span><span class="p">),</span>
 <span class="p">...</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0FrameLowering.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0FrameLowering.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">eliminateCallFramePseudoInstr</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span>
                                    <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
                                    <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0FrameLowering.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0FrameLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
 <span class="c1">// Cpu0</span>
 <span class="c1">// This function eliminate ADJCALLSTACKDOWN,</span>
@@ -1478,7 +1473,7 @@ function and define eliminateCallFramePseudoInstr() as follows,</p>
 <p>With above definition, eliminateCallFramePseudoInstr() will be called when
 llvm meet pseudo instructions ADJCALLSTACKDOWN and ADJCALLSTACKUP.
 We just discard these 2 pseudo instructions.
-Run Chapter8_3/ with ch8_1.cpp will these two Pseudo hook instructions.</p>
+Run Chapter9_3/ with ch9_1.cpp will these two Pseudo hook instructions.</p>
 </div>
 <div class="section" id="handle-gp-register-in-pic-addressing-mode">
 <h3>Handle $gp register in PIC addressing mode<a class="headerlink" href="#handle-gp-register-in-pic-addressing-mode" title="Permalink to this headline">¶</a></h3>
@@ -1493,9 +1488,9 @@ Since share library can be loaded in different memory address, the global
 variable address it access cannot be decided at link time.
 But, we can caculate the distance between the global variable address and
 the start address of shared library function when it be loaded.</p>
-<p>Let&#8217;s run Chapter8_3/ with ch8_2.cpp to get the following correct result.
+<p>Let&#8217;s run Chapter9_3/ with ch9_2.cpp to get the following correct result.
 We putting the comments in the result for explanation.</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.cpu0.s
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch9_1.cpu0.s
 _Z5sum_iiiiiii:
 ...
     .cpload <span class="nv">$t9</span> // assign <span class="nv">$gp</span> <span class="o">=</span> <span class="nv">$t9</span> by loader when loader load re-entry
@@ -1565,17 +1560,17 @@ As we have depicted in section &#8220;pic mode&#8221; of chapter &#8220;Global v
 and arrays, other type&#8221;. This solution is popular in reality and deserve change
 cpu0 official design as a compiler book.</li>
 </ol>
-<p>Now, after the following code added in Chapter8_3/, we can issue
+<p>Now, after the following code added in Chapter9_3/, we can issue
 <strong>“.cprestore”</strong> in emitPrologue() and emit &#8220;ld $gp, ($gp save slot on stack)&#8221;
 after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/CMakeLists.txt</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">add_llvm_target</span><span class="p">(</span><span class="n">Cpu0CodeGen</span>
   <span class="p">...</span>
   <span class="n">Cpu0EmitGPRestore</span><span class="p">.</span><span class="n">cpp</span>
 <span class="p">...</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0TargetMachine.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0TargetMachine.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0elTargetMachine</span><span class="o">::</span>
 <span class="n">Cpu0elTargetMachine</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">TT</span><span class="p">,</span>
                     <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">FS</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetOptions</span> <span class="o">&amp;</span><span class="n">Options</span><span class="p">,</span>
@@ -1597,11 +1592,11 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.</p
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">FunctionPass</span> <span class="o">*</span><span class="n">createCpu0EmitGPRestorePass</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0FrameLowering.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0FrameLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0FrameLowering</span><span class="o">::</span><span class="n">emitPrologue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="kt">unsigned</span> <span class="n">RegSize</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
@@ -1618,12 +1613,12 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.</p
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>let neverHasSideEffects = 1 in
 def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
                ".cprestore\t$loc", []&gt;;</pre>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0ISelLowering.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">SDValue</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerCall</span><span class="p">(</span><span class="n">TargetLowering</span><span class="o">::</span><span class="n">CallLoweringInfo</span> <span class="o">&amp;</span><span class="n">CLI</span><span class="p">,</span>
                               <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -1643,7 +1638,7 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0EmitGPRestore.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0EmitGPRestore.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0EmitGPRestore.cpp - Emit GP Restore Instruction ---------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
@@ -1744,7 +1739,7 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0AsmPrinter.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0AsmPrinter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">EmitInstrWithMacroNoAT</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">MCInst</span> <span class="n">TmpInst</span><span class="p">;</span>
 
@@ -1796,7 +1791,7 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0MCInstLower.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0MCInstLower.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerCPRESTORE</span><span class="p">(</span><span class="n">int64_t</span> <span class="n">Offset</span><span class="p">,</span>
                                      <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;&amp;</span> <span class="n">MCInsts</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">assert</span><span class="p">(</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">32</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Offset</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">Offset</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
@@ -1831,14 +1826,14 @@ The added code of Cpu0MCInstLower.cpp as above take care the .cprestore machine
 instructions.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>
-obj ch8_1.bc -o ch8_1.cpu0.o
-118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>hexdump  ch8_2.cpu0.o
+obj ch9_1.bc -o ch9_1.cpu0.o
+118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>hexdump  ch9_2.cpu0.o
 ...
 // .cprestore machine instruction “ 01 ad 00 18”
 00000d0 01 ad 00 18 09 20 00 00 01 2d 00 40 09 20 00 06
 ...
 
-118-165-67-25:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.cpu0.s
+118-165-67-25:InputFiles Jonathan<span class="nv">$ </span>cat ch9_1.cpu0.s
 ...
   .ent  _Z5sum_iiiiiii          <span class="c"># @_Z5sum_iiiiiii</span>
 _Z5sum_iiiiiii:
@@ -1857,8 +1852,8 @@ _Z5sum_iiiiiii:
 <p>Run <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-static</span></tt> will call jsub instruction instead of jalr as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>
-asm ch8_1.bc -o ch8_1.cpu0.s
-118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1.cpu0.s
+asm ch9_1.bc -o ch9_1.cpu0.s
+118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch9_1.cpu0.s
 ...
   jsub  _Z5sum_iiiiiii
 ...
@@ -1867,7 +1862,7 @@ asm ch8_1.bc -o ch8_1.cpu0.s
 <p>Run with <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></tt>, you can find the Cx of <strong>“jsub Cx”</strong> is 0 since
 the Cx is calculated by linker as below.
 Mips has the same 0 in it&#8217;s jal instruction.
-The ch8_1_3.cpp and ch8_1_4.cpp are example code more for test.</p>
+The ch9_1_3.cpp and ch9_1_4.cpp are example code more for test.</p>
 <div class="highlight-bash"><div class="highlight"><pre>// jsub _Z5sum_iiiiiii translate into 2B 00 00 00
 00F0: 2B 00 00 00 01 2D 00 34 00 ED 00 3C 09 DD 00 40
 </pre></div>
@@ -1875,8 +1870,8 @@ The ch8_1_3.cpp and ch8_1_4.cpp are example code more for test.</p>
 </div>
 <div class="section" id="correct-the-return-of-main">
 <h3>Correct the return of main()<a class="headerlink" href="#correct-the-return-of-main" title="Permalink to this headline">¶</a></h3>
-<p>The LowerReturn() modified in Chapter8_3/ as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0ISelLowering.cpp</p>
+<p>The LowerReturn() modified in Chapter9_3/ as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="n">SDValue</span>
@@ -1925,7 +1920,7 @@ The ch8_1_3.cpp and ch8_1_4.cpp are example code more for test.</p>
 <span class="kt">bool</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.h</p>
 <div class="highlight-c++"><div class="highlight"><pre>  <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">expandPostRAPseudo</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
 
 <span class="k">private</span><span class="o">:</span>
@@ -1933,7 +1928,7 @@ The ch8_1_3.cpp and ch8_1_4.cpp are example code more for test.</p>
                    <span class="kt">unsigned</span> <span class="n">Opc</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// Expand Pseudo instructions into real backend instructions</span>
 <span class="kt">bool</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">expandPostRAPseudo</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span> <span class="o">=</span> <span class="o">*</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">();</span>
@@ -1957,7 +1952,7 @@ The ch8_1_3.cpp and ch8_1_4.cpp are example code more for test.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// Return
 def Cpu0Ret : SDNode&lt;"Cpu0ISD::Ret", SDTNone,
                      [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]&gt;;
@@ -1988,7 +1983,7 @@ def RET     : RetBase&lt;CPURegs&gt;;</pre>
 <ol class="arabic simple">
 <li>Declare a pseudo node by the following code,</li>
 </ol>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Return</span>
 <span class="n">def</span> <span class="n">Cpu0Ret</span> <span class="o">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s">&quot;Cpu0ISD::Ret&quot;</span><span class="p">,</span> <span class="n">SDTNone</span><span class="p">,</span>
                      <span class="p">[</span><span class="n">SDNPHasChain</span><span class="p">,</span> <span class="n">SDNPOptInGlue</span><span class="p">,</span> <span class="n">SDNPVariadic</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
@@ -2000,7 +1995,7 @@ def RET     : RetBase&lt;CPURegs&gt;;</pre>
 </div>
 <ol class="arabic simple" start="2">
 <li>Create Cpu0ISD::Ret node in LowerReturn() which is called when meet function
-return as above code in Chapter8_3/Cpu0ISelLowering.cpp. More specific, it
+return as above code in Chapter9_3/Cpu0ISelLowering.cpp. More specific, it
 create DAGs (Cpu0ISD::Ret (CopyToReg %X, %V0, %Y), %V0, Flag). Since the the
 V0 register is assigned in CopyToReg and Cpu0ISD::Ret use V0, the CopyToReg
 with V0 register will live out and won&#8217;t be removed in any later optimization
@@ -2008,7 +2003,7 @@ step. Remember, if use &#8220;return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
 Chain, DAG.getRegister(Cpu0::LR, MVT::i32));&#8221; instead of &#8220;return DAG.getNode
 (Cpu0ISD::Ret, dl, MVT::Other, &amp;RetOps[0], RetOps.size());&#8221; the V0 register
 won&#8217;t be live out, the previous DAG (CopyToReg %X, %V0, %Y) will be removed
-in later optimization stage. Then the result is same with Chapter8_2
+in later optimization stage. Then the result is same with Chapter9_2
 which the return value is error.</li>
 </ol>
 <div class="highlight-bash"><div class="highlight"><pre>Initial selection DAG: BB#0 <span class="s1">&#39;main:entry&#39;</span>
@@ -2062,14 +2057,14 @@ SelectionDAG has 28 nodes:
 </div>
 <ol class="arabic simple" start="4">
 <li>Expand the Cpu0::RetLR into instruction <strong>ret $lr</strong> in &#8220;Post-RA pseudo
-instruction expansion pass&#8221; stage by the code in Chapter8_3/Cpu0InstrInfo.cpp
+instruction expansion pass&#8221; stage by the code in Chapter9_3/Cpu0InstrInfo.cpp
 as above. This stage is after the register allocation, so we can replace the
 V0 ($r2) by LR ($lr) without any side effect.</li>
 <li>Print assembly or obj according the information (those *.inc generated by
 TableGen from *.td) generated by the following code at &#8220;Cpu0 Assembly
 Printer&#8221; stage.</li>
 </ol>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_3/Cpu0InstrInfo.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>class JumpFR&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
   FL&lt;op, (outs), (ins RC:$ra),
      !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch&gt; {
@@ -2091,7 +2086,7 @@ below. Step 2 as above is before &#8220;CPU0 DAG-&gt;DAG Pattern Instruction Sel
 stage, step 3 is in &#8220;Instruction selection&#8221; stage, step 4 is in &#8220;Expand ISel
 Pseudo-instructions&#8221; stage and step 5 is &#8220;Cpu0 Assembly Printer&#8221; stage.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-79-200:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch6_2.bc
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch7_5.bc
 -debug-pass<span class="o">=</span>Structure -o -
 ...
 Machine Branch Probability Analysis
@@ -2146,14 +2141,14 @@ Machine Branch Probability Analysis
 </tr>
 </tbody>
 </table>
-<p>Run Chapter8_3/ to get the correct result (return register $2 is 0) as follows,</p>
+<p>Run Chapter9_3/ to get the correct result (return register $2 is 0) as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch6_2.bc -o
-ch6_2.cpu0.static.s
-118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>cat ch6_2.cpu0.static.s
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch7_5.bc -o
+ch7_5.cpu0.static.s
+118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>cat ch7_5.cpu0.static.s
   .section .mdebug.abi32
   .previous
-  .file <span class="s2">&quot;ch6_2.bc&quot;</span>
+  .file <span class="s2">&quot;ch7_5.bc&quot;</span>
   .text
   .globl  main
   .align  2
@@ -2216,8 +2211,8 @@ a:
 <h2>Support features<a class="headerlink" href="#support-features" title="Permalink to this headline">¶</a></h2>
 <p>This section support features of struct type, variable number of arguments and
 dynamic stack allocation.</p>
-<p>Run Chapter8_3 with ch8_2_1.cpp will get the error message as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_2_1.cpp</p>
+<p>Run Chapter9_3 with ch9_2_1.cpp will get the error message as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch9_2_1.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">year</span><span class="p">;</span>
@@ -2275,11 +2270,11 @@ dynamic stack allocation.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>clang -c ch8_2_1.cpp -emit-llvm -o
-ch8_2_1.bc
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
+ch9_2_1.cpp -emit-llvm -o ch9_2_1.bc
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch8_2_1.bc -o ch8_2_1.cpu0.s
+ch9_2_1.bc -o ch9_2_1.cpu0.s
 ...
 Assertion failed: <span class="o">(</span>InVals.size<span class="o">()</span> <span class="o">==</span> Ins.size<span class="o">()</span> <span class="o">&amp;&amp;</span> <span class="s2">&quot;LowerFormalArguments didn&#39;t</span>
 <span class="s2">emit the correct number of values!&quot;</span><span class="o">)</span>, <span class="k">function </span>LowerArguments, file /Users/
@@ -2288,8 +2283,8 @@ line 6712.
 ...
 </pre></div>
 </div>
-<p>Run Chapter8_3/ with ch8_3.cpp to get the following error,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_3.cpp</p>
+<p>Run Chapter9_3/ with ch9_3.cpp to get the following error,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch9_3.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &lt;stdarg.h&gt;</span>
 
 <span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
@@ -2318,18 +2313,18 @@ line 6712.
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -target <span class="sb">`</span>llvm-config --host-target<span class="sb">`</span> -c
-ch8_3.cpp -emit-llvm -o ch8_3.bc
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
+ch9_3.cpp -emit-llvm -o ch9_3.bc
 118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_3.bc -o
-ch8_3.cpu0.s
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch9_3.bc -o
+ch9_3.cpu0.s
 LLVM ERROR: Cannot <span class="k">select</span>: 0x7f8b6902fd10: <span class="nv">ch</span> <span class="o">=</span> vastart 0x7f8b6902fa10,
 0x7f8b6902fb10, 0x7f8b6902fc10 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>9<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>22<span class="o">]</span>
   0x7f8b6902fb10: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;5&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>9<span class="o">]</span>
 In <span class="k">function</span>: _Z5sum_iiz
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_4.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch9_4.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &lt;alloca.h&gt;</span>
 
 <span class="kt">int</span> <span class="n">sum</span><span class="p">(</span><span class="kt">int</span> <span class="n">x1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x2</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x3</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x4</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x5</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x6</span><span class="p">)</span>
@@ -2348,21 +2343,21 @@ In <span class="k">function</span>: _Z5sum_iiz
   <span class="k">return</span> <span class="n">weight</span><span class="p">;</span> 
 <span class="p">}</span>
 
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="kt">int</span> <span class="n">test_alloc</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">weight_sum</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">weight_sum</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">);</span> <span class="c1">// 31</span>
   
   <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Run Chapter8_3 with ch8_4.cpp will get the following error.</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-72-242:InputFiles Jonathan<span class="nv">$ </span>clang -I/Applications/Xcode.app/Contents/
-Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/
--c ch8_4.cpp -emit-llvm -o ch8_4.bc
+<p>Run Chapter9_3 with ch9_4.cpp will get the following error.</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-72-242:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -I/
+Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/
+SDKs/MacOSX10.8.sdk/usr/include/ -c ch9_4.cpp -emit-llvm -o ch9_4.bc
 118-165-72-242:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_4.bc -o
-ch8_4.cpu0.s
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch9_4.bc -o
+ch9_4.cpu0.s
 LLVM ERROR: Cannot <span class="k">select</span>: 0x7ffd8b02ff10: i32,ch <span class="o">=</span> dynamic_stackalloc
 0x7ffd8b02f910:1, 0x7ffd8b02fe10, 0x7ffd8b02c010 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>12<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>48<span class="o">]</span>
   0x7ffd8b02fe10: <span class="nv">i32</span> <span class="o">=</span> and 0x7ffd8b02fc10, 0x7ffd8b02fd10 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>12<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>47<span class="o">]</span>
@@ -2381,9 +2376,9 @@ In <span class="k">function</span>: _Z5sum_iiiiiii
 </div>
 <div class="section" id="structure-type-support">
 <h3>Structure type support<a class="headerlink" href="#structure-type-support" title="Permalink to this headline">¶</a></h3>
-<p>Chapter8_4/ with the following code added to support the structure type in
+<p>Chapter9_4/ with the following code added to support the structure type in
 function call.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0ISelLowering.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// AddLiveIn - This helper function adds the specified physical register to the</span>
 <span class="c1">// MachineFunction as a live in value.  It also creates a corresponding</span>
 <span class="c1">// virtual register for it.</span>
@@ -2553,7 +2548,7 @@ function call.</p>
 </div>
 <p>In addition to above code, we have defined the calling convention at early of
 this chapter as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0CallingConv.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0CallingConv.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">RetCC_Cpu0EABI</span> <span class="o">:</span> <span class="n">CallingConv</span><span class="o">&lt;</span><span class="p">[</span>
   <span class="c1">// i32 are returned in registers V0, V1, A0, A1</span>
   <span class="n">CCIfType</span><span class="o">&lt;</span><span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="n">CCAssignToReg</span><span class="o">&lt;</span><span class="p">[</span><span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">A0</span><span class="p">,</span> <span class="n">A1</span><span class="p">]</span><span class="o">&gt;&gt;</span>
@@ -2563,12 +2558,12 @@ this chapter as follows,</p>
 <p>It meaning for the return value, we keep it in registers V0, V1, A0, A1 if the return
 value didn&#8217;t over 4 registers size; If it over 4 registers size, cpu0 will save
 them with pointer.
-For explanation, let&#8217;s run Chapter8_4/ with ch8_2_1.cpp and explain with this
+For explanation, let&#8217;s run Chapter9_4/ with ch9_2_1.cpp and explain with this
 example.</p>
-<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>cat ch8_2_1.cpu0.s
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>cat ch9_2_1.cpu0.s
   .section .mdebug.abi32
   .previous
-  .file <span class="s2">&quot;ch8_2_1.bc&quot;</span>
+  .file <span class="s2">&quot;ch9_2_1.bc&quot;</span>
   .text
   .globl  _Z7getDatev
   .align  2
@@ -2926,7 +2921,7 @@ gTime:
 <p>In LowerCall(), Flags.isByVal() will be true if the outgoing arguments over 4
 registers size, then it will call WriteByValArg(..., getPointerTy(), ...) to
 save those arguments to stack as offset.
-For example code of ch8_2_1.cpp, Flags.isByVal() is true for copyDate(date1)
+For example code of ch9_2_1.cpp, Flags.isByVal() is true for copyDate(date1)
 outgoing arguments, since the date1 is type of Date which contains 6 integers
 (year, month, day, hour, minute, second).
 But Flags.isByVal() is false for copyTime(time1) since type Time is a struct
@@ -2960,7 +2955,7 @@ virtual register back to return register.
 Since the return value is &#8220;struct type&#8221; and over 4 registers size, it save
 pointer (struct address) to return register.
 List the code and their effect as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0ISelLowering.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">SDValue</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerFormalArguments</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span>
                      <span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span>
@@ -2993,7 +2988,7 @@ st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</s
 ld  <span class="nv">$t9</span>, %call24<span class="o">(</span>_Z8copyDate4Date<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0ISelLowering.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">SDValue</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerReturn</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span>
                 <span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">isVarArg</span><span class="p">,</span>
@@ -3054,7 +3049,7 @@ _Z8copyDate4Date:
   .end  _Z8copyDate4Date
 </pre></div>
 </div>
-<p>The ch8_2_2.cpp include C++ class &#8220;Date&#8221; implementation.
+<p>The ch9_2_2.cpp include C++ class &#8220;Date&#8221; implementation.
 It can be translated into cpu0 backend too since the front end (clang in this
 example) translate them into C language form.
 You can also mark the &#8220;hasStructRetAttr() if&#8221; part from both of above functions,
@@ -3102,17 +3097,17 @@ _Z8copyDateP4Date:
 (Incoming Arguments).
 This section support variable number of arguments since C language support
 this feature.</p>
-<p>Run Chapter8_4/ with ch8_3.cpp as well as clang option,
-<strong>clang -target `llvm-config &#8211;host-target`</strong>, to get the following result,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>clang -target <span class="sb">`</span>llvm-config --host-target<span class="sb">`</span> -c
-ch8_3.cpp -emit-llvm -o ch8_3.bc
+<p>Run Chapter9_4/ with ch9_3.cpp as well as clang option,
+<strong>clang -target mips-unknown-linux-gnu</strong>, to get the following result,</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
+ch9_3.cpp -emit-llvm -o ch9_3.bc
 118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
-ch8_3.bc -o ch8_3.cpu0.s
-118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch8_3.cpu0.s
+ch9_3.bc -o ch9_3.cpu0.s
+118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>cat ch9_3.cpu0.s
   .section .mdebug.abi32
   .previous
-  .file <span class="s2">&quot;ch8_3.bc&quot;</span>
+  .file <span class="s2">&quot;ch9_3.bc&quot;</span>
   .text
   .globl  _Z5sum_iiz
   .align  2
@@ -3209,7 +3204,7 @@ main:
   .size main, <span class="o">(</span><span class="nv">$tmp4</span><span class="o">)</span>-main
 </pre></div>
 </div>
-<p>The analysis of output ch8_3.cpu0.s as above in comment.
+<p>The analysis of output ch9_3.cpu0.s as above in comment.
 As above code, in # BB#0, we get the first argument <strong>“amount”</strong> from
 <strong>“ld $2, 24($sp)”</strong> since the stack size of the callee function
 <strong>“_Z5sum_iiz()”</strong> is 24. And set argument pointer, arg_ptr, to 28($sp),
@@ -3218,10 +3213,10 @@ Next, check i &lt; amount in block $BB0_1. If  i &lt; amount, than enter into $B
 In $BB0_2, it do sum += *arg_ptr as well as arg_ptr+=4.
 In # BB#3, do i+=1.</p>
 <p>To support variable number of arguments, the following code needed to
-add in Chapter8_4/.
-The ch8_3_2.cpp is C++ template example code, it can be translated into cpu0
+add in Chapter9_4/.
+The ch9_3_2.cpp is C++ template example code, it can be translated into cpu0
 backend code too.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0TargetLowering.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0TargetLowering.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Cpu0TargetLowering</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TargetLowering</span>  <span class="p">{</span>
 <span class="p">...</span>
 <span class="k">private</span><span class="o">:</span>
@@ -3231,7 +3226,7 @@ backend code too.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0TargetLowering.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0TargetLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
 <span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
   <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">Cpu0TargetObjectFile</span><span class="p">()),</span>
@@ -3298,7 +3293,7 @@ backend code too.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_3_2.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch9_3_2.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &lt;stdarg.h&gt;</span>
 
 <span class="k">template</span><span class="o">&lt;</span><span class="k">class</span> <span class="nc">T</span><span class="o">&gt;</span>
@@ -3336,8 +3331,8 @@ result with printf() function. We will verify the code correction in chapter
 <h3>Dynamic stack allocation support<a class="headerlink" href="#dynamic-stack-allocation-support" title="Permalink to this headline">¶</a></h3>
 <p>Even though C language very rare to use dynamic stack allocation, there are
 languages use it frequently. The following C example code use it.</p>
-<p>Chapter8_4 support dynamic stack allocation with the following code added.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0FrameLowering.cpp</p>
+<p>Chapter9_4 support dynamic stack allocation with the following code added.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0FrameLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0FrameLowering</span><span class="o">::</span><span class="n">emitPrologue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="kt">unsigned</span> <span class="n">FP</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">;</span>
@@ -3383,7 +3378,7 @@ languages use it frequently. The following C example code use it.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0ISelLowering.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
 <span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
   <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">Cpu0TargetObjectFile</span><span class="p">()),</span>
@@ -3396,7 +3391,7 @@ languages use it frequently. The following C example code use it.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_4/Cpu0RegisterInfo.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0RegisterInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// pure virtual method</span>
 <span class="n">BitVector</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
 <span class="n">getReservedRegs</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -3409,13 +3404,13 @@ languages use it frequently. The following C example code use it.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>Run Chapter8_4 with ch8_4.cpp will get the following correct result.</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-72-242:InputFiles Jonathan<span class="nv">$ </span>clang -I/Applications/Xcode.app/Contents/
-Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/
--c ch8_4.cpp -emit-llvm -o ch8_4.bc
-118-165-72-242:InputFiles Jonathan<span class="nv">$ </span>llvm-dis ch8_4.bc -o ch8_4.ll
-118-165-72-242:InputFiles Jonathan<span class="nv">$ </span>cat ch8_4.ll
-; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch8_4.bc&#39;</span>
+<p>Run Chapter9_4 with ch9_4.cpp will get the following correct result.</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-72-242:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -I/
+Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/
+SDKs/MacOSX10.8.sdk/usr/include/ -c ch9_4.cpp -emit-llvm -o ch9_4.bc
+118-165-72-242:InputFiles Jonathan<span class="nv">$ </span>llvm-dis ch9_4.bc -o ch9_4.ll
+118-165-72-242:InputFiles Jonathan<span class="nv">$ </span>cat ch9_4.ll
+; <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;ch9_4.bc&#39;</span>
 target <span class="nv">datalayout</span> <span class="o">=</span> <span class="s2">&quot;e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-</span>
 <span class="s2">f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:</span>
 <span class="s2">32:64-S128&quot;</span>
@@ -3434,9 +3429,9 @@ define i32 @_Z5sum_iiiiiii<span class="o">(</span>i32 %x1, i32 %x2, i32 %x3, i32
 ...
 
 118-165-72-242:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_4.bc -o
-ch8_4.cpu0.s
-118-165-72-242:InputFiles Jonathan<span class="nv">$ </span>cat ch8_4.cpu0.s
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch9_4.bc -o
+ch9_4.cpu0.s
+118-165-72-242:InputFiles Jonathan<span class="nv">$ </span>cat ch9_4.cpu0.s
 ...
 _Z10weight_sumiiiiii:
       .cfi_startproc
@@ -3564,7 +3559,7 @@ st      <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$s
 </pre></div>
 </div>
 <p>Cpu0 use fp and sp to access the above and below areas of alloca() too.
-As ch8_4.cpu0.s, it access local variable (above of alloca()) by fp offset
+As ch9_4.cpu0.s, it access local variable (above of alloca()) by fp offset
 and outgoing arguments (below of alloca()) by sp offset.</p>
 </div>
 </div>

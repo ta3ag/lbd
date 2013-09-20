@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.2',
+        VERSION:     '3.3.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -91,8 +91,10 @@ project. They are:</p>
 </div>
 <div class="section" id="revision-history">
 <h2>Revision history<a class="headerlink" href="#revision-history" title="Permalink to this headline">¶</a></h2>
-<p>Version 3.3.2, Not release yet</p>
+<p>Version 3.3.4, Not release yet</p>
 <dl class="docutils">
+<dt>Version 3.3.3, Released September 20, 2013</dt>
+<dd>Add Chapter othertype</dd>
 <dt>Version 3.3.2, Released September 17, 2013</dt>
 <dd>Update example code.
 Fix bug sext_inreg.
@@ -265,7 +267,7 @@ continue to build the Cpu0 backend. Around 2300 lines of source code are added,
 most of which are common from one LLVM backends to another, regardless of the
 target architecture. By the end of this chapter, the Cpu0 LLVM backend will support
 three instructions to generate some initial assembly output.</p>
-<p><a class="reference internal" href="otherinst.html#sec-addingmoresupport"><em>Arithmetic, local pointer and logic lsupport</em></a>:</p>
+<p><a class="reference internal" href="otherinst.html#sec-addingmoresupport"><em>Arithmetic and logic lsupport</em></a>:</p>
 <p>Over ten C operators and their corresponding LLVM IR instructions are introduced in this
 chapter. Around 345 lines of source code, mostly in .td Target Description files, are
 added. With these 345 lines, the backend can now translate the <strong>+, -, *, /, &amp;, |, ^,
@@ -279,6 +281,9 @@ the Cpu0 backend can now generate big and little endian object files.</p>
 <p>Global variable, struct and array support, char and short int, are added in this chapter.
 About 300 lines of source code are added to do this. The Cpu0 supports PIC and static
 addressing mode, both of which area explained as their functionality is implemented.</p>
+<p>:ref:_sec-othertypesupport:</p>
+<p>In addition to type int, other data type like pointer, char, bool, long long,
+structure and array are added in this chapter.</p>
 <p><a class="reference internal" href="ctrlflow.html#sec-controlflow"><em>Control flow statements</em></a>:</p>
 <p>Support for the <strong>if, else, while, for, goto</strong> flow control statements are
 added in this chapter. Around 150 lines of source code added.</p>

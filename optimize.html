@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.2',
+        VERSION:     '3.3.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -74,8 +74,8 @@ backend optimization in this section.
 This algorithm is simple and effective as a perfect tutorial in optimization.
 You can understand how to add a optimization pass and design your complicate
 optimization algorithm on your backend in real project.</p>
-<p>Chapter11_1/ support this optimization algorithm include the added codes as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/CMakeLists.txt</p>
+<p>Chapter12_1/ support this optimization algorithm include the added codes as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter12_1/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">add_llvm_target</span><span class="p">(</span><span class="n">Cpu0CodeGen</span>
   <span class="p">...</span>
   <span class="n">Cpu0DelUselessJMP</span><span class="p">.</span><span class="n">cpp</span>
@@ -83,7 +83,7 @@ optimization algorithm on your backend in real project.</p>
   <span class="p">)</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0.h</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter12_1/Cpu0.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
   <span class="n">FunctionPass</span> <span class="o">*</span><span class="n">createCpu0DelJmpPass</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
 
@@ -103,7 +103,7 @@ optimization algorithm on your backend in real project.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0DelUselessJMP.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter12_1/Cpu0DelUselessJMP.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0DelUselessJMP.cpp - Cpu0 DelJmp -------------------------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
@@ -213,8 +213,8 @@ its Operand is the next basic block.
 By getMBB() in MachineOperand, you can get the MBB address.
 For the member function of MachineOperand, please check
 include/llvm/CodeGen/MachineOperand.h
-Let&#8217;s run Chapter11_1/ with ch11_1.cpp to explain it easier.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch11_1.cpp</p>
+Let&#8217;s run Chapter12_1/ with ch12_1.cpp to explain it easier.</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch12_1.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
@@ -237,12 +237,11 @@ Let&#8217;s run Chapter11_1/ with ch11_1.cpp to explain it easier.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>clang -c ch11_1.cpp -emit-llvm -o ch11_1.bc
-118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>clang -target <span class="sb">`</span>llvm-config --host-target<span class="sb">`</span>
--c ch11_1.cpp -emit-llvm -o ch11_1.bc
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu
+-c ch12_1.cpp -emit-llvm -o ch12_1.bc
 118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm -stats
-ch11_1.bc -o ch11_1.cpu0.s
+ch12_1.bc -o ch12_1.cpu0.s
 <span class="o">===</span>-------------------------------------------------------------------------<span class="o">===</span>
                           ... Statistics Collected ...
 <span class="o">===</span>-------------------------------------------------------------------------<span class="o">===</span>
@@ -252,7 +251,7 @@ ch11_1.bc -o ch11_1.cpu0.s
 
   .section .mdebug.abi32
   .previous
-  .file <span class="s2">&quot;ch11_1.bc&quot;</span>
+  .file <span class="s2">&quot;ch12_1.bc&quot;</span>
   .text
   .globl  main
   .align  2
@@ -323,7 +322,7 @@ because we set the &#8220;STATISTIC(NumDelJmp, &#8220;Number of useless jmp dele
 code. It delete 2 jmp instructions from block &#8220;# BB#0&#8221; and &#8220;$BB0_6&#8221;.
 You can check it by <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-enable-cpu0-del-useless-jmp=false</span></tt> option to see
 the difference from no optimization version.
-If you run with ch7_1_1.cpp, will find 10 jmp instructions are deleted in 100
+If you run with ch8_1_1.cpp, will find 10 jmp instructions are deleted in 100
 lines of assembly code, which meaning 10% enhance in speed and code size.</p>
 </div>
 <div class="section" id="cpu0-optimization-redesign-instruction-sets">
@@ -724,8 +723,8 @@ of $2 and fill the low 16 bits of $2 to 0x0000.</p>
 </div>
 <div class="section" id="cpu0-code-changes">
 <h3>Cpu0 code changes<a class="headerlink" href="#cpu0-code-changes" title="Permalink to this headline">¶</a></h3>
-<p>Chapter11_2/ include the changes for new instruction sets as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/AsmParser/Cpu0AsmParser.cpp</p>
+<p>Chapter12_2/ include the changes for new instruction sets as follows,</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter12_2/AsmParser/Cpu0AsmParser.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0AsmParser.cpp</span>
 <span class="p">...</span>
 <span class="kt">int</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">matchRegisterName</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">Name</span><span class="p">)</span> <span class="p">{</span>
@@ -735,7 +734,7 @@ of $2 and fill the low 16 bits of $2 to 0x0000.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/Disassembler/Cpu0Disassembler.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter12_2/Disassembler/Cpu0Disassembler.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Decoder tables for Cpu0 register</span>
 <span class="k">static</span> <span class="k">const</span> <span class="kt">unsigned</span> <span class="n">CPURegsTable</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
 <span class="c1">// Change SW to T0 which is a caller saved</span>
@@ -758,7 +757,7 @@ of $2 and fill the low 16 bits of $2 to 0x0000.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter12_2/MCTargetDesc/Cpu0AsmBackend.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">unsigned</span> <span class="n">adjustFixupValue</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Kind</span><span class="p">,</span> <span class="n">uint64_t</span> <span class="n">Value</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="c1">// Add/subtract and shift</span>
@@ -785,7 +784,7 @@ of $2 and fill the low 16 bits of $2 to 0x0000.</p>
 <span class="p">...</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0BaseInfo.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter12_2/MCTargetDesc/Cpu0BaseInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kr">inline</span> <span class="k">static</span> <span class="kt">unsigned</span> <span class="n">getCpu0RegisterNumbering</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">RegEnum</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">RegEnum</span><span class="p">)</span> <span class="p">{</span>
@@ -796,7 +795,7 @@ of $2 and fill the low 16 bits of $2 to 0x0000.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0FixupKinds.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter12_2/MCTargetDesc/Cpu0FixupKinds.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">enum</span> <span class="n">Fixups</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="c1">// PC relative branch fixup resulting in - R_CPU0_PC16.</span>
@@ -806,7 +805,7 @@ of $2 and fill the low 16 bits of $2 to 0x0000.</p>
 <span class="p">};</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter12_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
 <span class="n">getBranchTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
                        <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -825,7 +824,7 @@ of $2 and fill the low 16 bits of $2 to 0x0000.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0InstrInfo.cpp</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter12_2/Cpu0InstrInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0InstrInfo::copyPhysReg()</span>
 <span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
 <span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
@@ -864,7 +863,7 @@ of $2 and fill the low 16 bits of $2 to 0x0000.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0InstrInfo.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter12_2/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>def jmptarget    : Operand&lt;OtherVT&gt; {
   let EncoderMethod = "getJumpTargetOpValue";
   let OperandType = "OPERAND_PCREL";
@@ -1012,7 +1011,24 @@ defm : SetgtPats&lt;CPURegs, SLT, SLTu&gt;;
 defm : SetgePats&lt;CPURegs, SLT, SLTu&gt;;
 defm : SetgeImmPats&lt;CPURegs, SLTi, SLTiu&gt;;</pre>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/Cpu0RegisterInfo.td</p>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter12_2/Cpu0ISelDAGToDAG.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// Select instructions not customized! Used for</span>
+<span class="c1">/// expanded, promoted and normal instructions</span>
+<span class="n">SDNode</span><span class="o">*</span> <span class="n">Cpu0DAGToDAGISel</span><span class="o">::</span><span class="n">Select</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Node</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">case</span> <span class="n">ISD</span><span class="o">::</span><span class="nl">SUBE:</span>
+  <span class="k">case</span> <span class="n">ISD</span><span class="o">::</span><span class="nl">ADDE:</span> <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="n">SDNode</span> <span class="o">*</span><span class="n">StatusWord</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CMP</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span> <span class="n">Ops</span><span class="p">);</span>
+    <span class="n">SDValue</span> <span class="n">Constant1</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getTargetConstant</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">VT</span><span class="p">);</span>
+    <span class="n">SDNode</span> <span class="o">*</span><span class="n">Carry</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ANDi</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span>
+                                           <span class="n">SDValue</span><span class="p">(</span><span class="n">StatusWord</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">Constant1</span><span class="p">);</span>
+    <span class="p">...</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">LLVMBackendTutorialExampleCode/Chapter12_2/Cpu0RegisterInfo.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span> <span class="n">in</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="n">def</span> <span class="n">T0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">12</span><span class="p">,</span> <span class="s">&quot;t0&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
@@ -1030,7 +1046,7 @@ defm : SetgeImmPats&lt;CPURegs, SLTi, SLTiu&gt;;</pre>
 </pre></div>
 </div>
 <p>As modified from above, it remove the CMP instruction, SW register and
-related code from Chapter11_1/, and change from JEQ 24bits offset to BEQ 16 bits
+related code from Chapter12_1/, and change from JEQ 24bits offset to BEQ 16 bits
 offset.</p>
 </div>
 <div class="section" id="cpu0-verilog-language-changes">
@@ -1419,7 +1435,7 @@ endmodule
 </div>
 <div class="section" id="run-the-redesigned-cpu0">
 <h3>Run the redesigned Cpu0<a class="headerlink" href="#run-the-redesigned-cpu0" title="Permalink to this headline">¶</a></h3>
-<p>Run Chapter11_2/ with ch_run_backend.cpp to get result as below.
+<p>Run Chapter12_2/ with ch_run_backend.cpp to get result as below.
 It match the expect value as comment in ch_run_backend.cpp.</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;boot.cpp&quot;</span>
@@ -1432,8 +1448,9 @@ It match the expect value as comment in ch_run_backend.cpp.</p>
 <span class="kt">int</span> <span class="n">test_andorxornot</span><span class="p">();</span>
 <span class="kt">int</span> <span class="n">test_setxx</span><span class="p">();</span>
 <span class="kt">bool</span> <span class="n">test_load_bool</span><span class="p">();</span>
-<span class="kt">int</span> <span class="n">test_operators</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">);</span>
+<span class="kt">long</span> <span class="kt">long</span> <span class="n">test_longlong</span><span class="p">();</span>
 <span class="kt">int</span> <span class="n">test_control1</span><span class="p">();</span>
+<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...);</span>
 
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
@@ -1450,10 +1467,15 @@ It match the expect value as comment in ch_run_backend.cpp.</p>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
   <span class="n">a</span> <span class="o">=</span> <span class="n">test_setxx</span><span class="p">();</span> <span class="c1">// a = 3</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+  <span class="kt">long</span> <span class="kt">long</span> <span class="n">b</span> <span class="o">=</span> <span class="n">test_longlong</span><span class="p">();</span> <span class="c1">// 0x800000002</span>
+  <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)(</span><span class="n">b</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">));</span> <span class="c1">// 393307</span>
+  <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">b</span><span class="p">);</span> <span class="c1">// 16777222</span>
   <span class="n">a</span> <span class="o">=</span> <span class="n">test_control1</span><span class="p">();</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>	<span class="c1">// a = 51</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="mi">2147483647</span><span class="p">);</span> <span class="c1">// test mod % (mult) from itoa.cpp</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="o">-</span><span class="mi">2147483648</span><span class="p">);</span> <span class="c1">// test mod % (multu) from itoa.cpp</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>    <span class="c1">// a = 15</span>
 
   <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
 <span class="p">}</span>
@@ -1488,16 +1510,34 @@ It match the expect value as comment in ch_run_backend.cpp.</p>
   <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
 <span class="p">}</span>
 
+<span class="cp">#include &lt;stdarg.h&gt;</span>
+<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	
+  <span class="n">va_list</span> <span class="n">vl</span><span class="p">;</span>
+  <span class="n">va_start</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">amount</span><span class="p">);</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">amount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">va_arg</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
+    <span class="n">sum</span> <span class="o">+=</span> <span class="n">val</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">va_end</span><span class="p">(</span><span class="n">vl</span><span class="p">);</span>
+  
+  <span class="k">return</span> <span class="n">sum</span><span class="p">;</span> 
+<span class="p">}</span>
+
 <span class="cp">#include &quot;ch4_1.cpp&quot;</span>
 <span class="cp">#include &quot;ch4_3.cpp&quot;</span>
-<span class="cp">#include &quot;ch4_4.cpp&quot;</span>
 <span class="cp">#include &quot;ch4_5.cpp&quot;</span>
-<span class="cp">#include &quot;ch7_1_1.cpp&quot;</span>
+<span class="cp">#include &quot;ch7_1.cpp&quot;</span>
+<span class="cp">#include &quot;ch7_4.cpp&quot;</span>
+<span class="cp">#include &quot;ch8_1_1.cpp&quot;</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>clang -target <span class="sb">`</span>llvm-config --host-target<span class="sb">`</span>
--c ch_run_backend.cpp -emit-llvm -o ch_run_backend.bc
-118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+<div class="highlight-bash"><div class="highlight"><pre>118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>obj -stats
 ch_run_backend.bc -o ch_run_backend.cpu0.o
 <span class="o">===</span>-------------------------------------------------------------------------<span class="o">===</span>
@@ -1515,153 +1555,184 @@ bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk <span class="s
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../cpu0_verilog/redesign/
 JonathantekiiMac:redesign Jonathan<span class="nv">$ </span>iverilog -o cpu0s cpu0s.v
 JonathantekiiMac:redesign Jonathan<span class="nv">$ </span>./cpu0s
-WARNING: cpu0s.v:396: <span class="nv">$readmemh</span><span class="o">(</span>cpu0s.hex<span class="o">)</span>: Not enough words in the file <span class="k">for </span>the
-requested range <span class="o">[</span>0:28671<span class="o">]</span>.
 taskInterrupt<span class="o">(</span>001<span class="o">)</span>
+74
+253
+3
 1
-2
-1073741821
-0
-128
-146
+14
+3
+393307
+16777222
+51
+2147483647
+-2147483648
+15
 RET to PC &lt; 0, finished!
 </pre></div>
 </div>
-<p>Run with ch7_1_1.cpp, it reduce some branch from pair instructions &#8220;CMP, JXX&#8221;
+<p>Run with ch8_1_1.cpp, it reduce some branch from pair instructions &#8220;CMP, JXX&#8221;
 to 1 single instruction ether is BEQ or BNE, as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch7_1_1.bc -o
-ch7_1_1.cpu0.s
-118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>cat ch7_1_1.cpu0.s
-  .section .mdebug.abi32
-  .previous
-  .file <span class="s2">&quot;ch7_1_1.bc&quot;</span>
-  .text
-  .globl  main
-  .align  2
-  .type main,@function
-  .ent  main                    <span class="c"># @main</span>
-main:
-  .cfi_startproc
-  .frame  <span class="nv">$sp</span>,40,<span class="nv">$lr</span>
-  .mask   0x00000000,0
-  .set  noreorder
-  .set  nomacro
-<span class="c"># BB#0:</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -40
-<span class="nv">$tmp1</span>:
-  .cfi_def_cfa_offset 40
-  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
-  st  <span class="nv">$3</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  st  <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
-  st  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 2
-  st  <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 3
-  st  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 4
-  st  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 5
-  st  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 6
-  st  <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 7
-  st  <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 8
-  st  <span class="nv">$4</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  ld  <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  bne <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_2</span>
-<span class="c"># BB#1:</span>
-  ld  <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-  st  <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_2</span>:
-  ld  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  beq <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_4</span>
-<span class="c"># BB#3:</span>
-  ld  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-  st  <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_4</span>:
-  ld  <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  slti  <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-  bne <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_6</span>
-<span class="c"># BB#5:</span>
-  ld  <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-  st  <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_6</span>:
-  ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  slti  <span class="nv">$4</span>, <span class="nv">$4</span>, 0
-  bne <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_8</span>
-<span class="c"># BB#7:</span>
-  ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-  st  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_8</span>:
-  ld  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$5</span>, <span class="nv">$zero</span>, -1
-  slt <span class="nv">$4</span>, <span class="nv">$5</span>, <span class="nv">$4</span>
-  bne <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_10</span>
-<span class="c"># BB#9:</span>
-  ld  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-  st  <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_10</span>:
-  ld  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  slt <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-  bne <span class="nv">$3</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_12</span>
-<span class="c"># BB#11:</span>
-  ld  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$3</span>, <span class="nv">$3</span>, 1
-  st  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_12</span>:
-  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  slt <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-  bne <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_14</span>
-<span class="c"># BB#13:</span>
-  ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_14</span>:
-  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  slti  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-  bne <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_16</span>
-<span class="c"># BB#15:</span>
-  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_16</span>:
-  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  slt <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-  beq <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_18</span>
-<span class="c"># BB#17:</span>
-  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_18</span>:
-  ld  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  beq <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="nv">$BB0_20</span>
-<span class="c"># BB#19:</span>
-  ld  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-  st  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_20</span>:
-  ld  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 40
-  ret <span class="nv">$lr</span>
-  .set  macro
-  .set  reorder
-  .end  main
-<span class="nv">$tmp2</span>:
-  .size main, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-main
-  .cfi_endproc
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch8_1_1.bc -o
+ch8_1_1.cpu0.s
+118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1_1.cpu0.s
+        .section .mdebug.abi32
+        .previous
+        .file <span class="s2">&quot;ch8_1_1.bc&quot;</span>
+        .text
+        .globl        _Z13test_control1v
+        .align        2
+        .type _Z13test_control1v,@function
+        .ent  _Z13test_control1v      <span class="c"># @_Z13test_control1v</span>
+_Z13test_control1v:
+        .cfi_startproc
+        .frame        <span class="nv">$fp</span>,48,<span class="nv">$lr</span>
+        .mask         0x00000800,-4
+        .set  noreorder
+        .set  nomacro
+<span class="c"># BB#0:                                 # %entry</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -48
+<span class="nv">$tmp3</span>:
+        .cfi_def_cfa_offset 48
+        st    <span class="nv">$fp</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+<span class="nv">$tmp4</span>:
+        .cfi_offset 11, -4
+        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
+<span class="nv">$tmp5</span>:
+        .cfi_def_cfa_register 11
+        addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
+        st    <span class="nv">$3</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+        st    <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 2
+        st    <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 3
+        st    <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 4
+        st    <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 5
+        st    <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 6
+        st    <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 7
+        st    <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 8
+        st    <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 9
+        st    <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$4</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        bne   <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_2</span>
+<span class="c"># BB#1:                                 # %if.then</span>
+        ld    <span class="nv">$4</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+        st    <span class="nv">$4</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+<span class="nv">$BB0_2</span>:                                 <span class="c"># %if.end</span>
+        ld    <span class="nv">$4</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        beq   <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_4</span>
+<span class="c"># BB#3:                                 # %if.then2</span>
+        ld    <span class="nv">$4</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+        st    <span class="nv">$4</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+<span class="nv">$BB0_4</span>:                                 <span class="c"># %if.end4</span>
+        ld    <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        slti  <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+        bne   <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_6</span>
+<span class="c"># BB#5:                                 # %if.then6</span>
+        ld    <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+        st    <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+<span class="nv">$BB0_6</span>:                                 <span class="c"># %if.end8</span>
+        ld    <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        slti  <span class="nv">$4</span>, <span class="nv">$4</span>, 0
+        bne   <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_8</span>
+<span class="c"># BB#7:                                 # %if.then10</span>
+        ld    <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+        st    <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+<span class="nv">$BB0_8</span>:                                 <span class="c"># %if.end12</span>
+        ld    <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$5</span>, <span class="nv">$zero</span>, -1
+        slt   <span class="nv">$4</span>, <span class="nv">$5</span>, <span class="nv">$4</span>
+        bne   <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_10</span>
+<span class="c"># BB#9:                                 # %if.then14</span>
+        ld    <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+        st    <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+<span class="nv">$BB0_10</span>:                                <span class="c"># %if.end16</span>
+        ld    <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        slt   <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        bne   <span class="nv">$3</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_12</span>
+<span class="c"># BB#11:                                # %if.then18</span>
+        ld    <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$3</span>, <span class="nv">$3</span>, 1
+        st    <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+<span class="nv">$BB0_12</span>:                                <span class="c"># %if.end20</span>
+        ld    <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        slt   <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+        bne   <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_14</span>
+<span class="c"># BB#13:                                # %if.then22</span>
+        ld    <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+        st    <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+<span class="nv">$BB0_14</span>:                                <span class="c"># %if.end24</span>
+        ld    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        slti  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+        bne   <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_16</span>
+<span class="c"># BB#15:                                # %if.then26</span>
+        ld    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+        st    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+<span class="nv">$BB0_16</span>:                                <span class="c"># %if.end28</span>
+        ld    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        slt   <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        beq   <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_18</span>
+<span class="c"># BB#17:                                # %if.then30</span>
+        ld    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+<span class="nv">$BB0_18</span>:                                <span class="c"># %if.end32</span>
+        ld    <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        beq   <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="nv">$BB0_20</span>
+<span class="c"># BB#19:                                # %if.then34</span>
+        ld    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+<span class="nv">$BB0_20</span>:                                <span class="c"># %if.end36</span>
+        ld    <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        ld    <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+        ld    <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+        ld    <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+        ld    <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+        ld    <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+        ld    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+        ld    <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+        ld    <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
+        ld    <span class="nv">$fp</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 48
+        ret   <span class="nv">$lr</span>
+        .set  macro
+        .set  reorder
+        .end  _Z13test_control1v
+<span class="nv">$tmp6</span>:
+        .size _Z13test_control1v, <span class="o">(</span><span class="nv">$tmp6</span><span class="o">)</span>-_Z13test_control1v
+        .cfi_endproc
 </pre></div>
 </div>
-<p>The ch11_3.cpp is written in assembly for AsmParser test. You can check if it
+<p>The ch12_3.cpp is written in assembly for AsmParser test. You can check if it
 will generate the obj.</p>
 <table class="docutils footnote" frame="void" id="sra-note" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
