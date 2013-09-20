@@ -5,11 +5,6 @@ Global variables, structs and arrays, other type
 
 In the previous two chapters, we only access the local variables. 
 This chapter will deal global variable access translation. 
-After that, introducing the types of struct and array as well as  
-their corresponding llvm IR statement, and how the cpu0 
-translate these llvm IR statements in `section Array and struct support`_. 
-Finally, we deal the other types such as **"short int"** and **char** in the 
-last section.
 
 The global variable DAG translation is different from the previous DAG 
 translation we have now. 
