@@ -390,112 +390,112 @@ Run Chapter7_1 with ch7_4.cpp to get the result as follows,
   ch7_4.cpp -emit-llvm -o ch7_4.bc
   1-160-134-62:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_4.bc -o -
-	.section .mdebug.abi32
-	.previous
-	.file	"ch7_4.bc"
-	.text
-	.globl	_Z13test_longlongv
-	.align	2
-	.type	_Z13test_longlongv,@function
-	.ent	_Z13test_longlongv      # @_Z13test_longlongv
-_Z13test_longlongv:
-	.frame	$fp,72,$lr
-	.mask 	0x00000980,-4
-	.set	noreorder
-	.set	nomacro
-# BB#0:                                 # %entry
-	addiu	$sp, $sp, -72
-	st	$fp, 68($sp)            # 4-byte Folded Spill
-	st	$8, 64($sp)             # 4-byte Folded Spill
-	st	$7, 60($sp)             # 4-byte Folded Spill
-	addu	$fp, $sp, $zero
-	addiu	$2, $zero, 2
-	st	$2, 52($fp)
-	addiu	$2, $zero, 3
-	st	$2, 48($fp)
-	addiu	$2, $zero, 1
-	st	$2, 44($fp)
-	st	$2, 40($fp)
-	lui	$2, 768
-	ori	$2, $2, 4096
-	st	$2, 36($fp)
-	lui	$2, 512
-	ori	$2, $2, 4096
-	st	$2, 32($fp)
-	ld	$2, 44($fp)
-	ld	$3, 52($fp)
-	addu	$4, $3, $2
-	ld	$3, 48($fp)
-	ld	$5, 40($fp)
-	st	$4, 28($fp)
-	cmp	$sw, $4, $2
-	andi	$2, $sw, 1
-	addu	$2, $2, $5
-	addu	$2, $3, $2
-	st	$2, 24($fp)
-	ld	$2, 44($fp)
-	ld	$4, 52($fp)
-	subu	$t9, $4, $2
-	ld	$3, 48($fp)
-	ld	$5, 40($fp)
-	st	$t9, 20($fp)
-	cmp	$sw, $4, $2
-	andi	$2, $sw, 1
-	addu	$2, $2, $5
-	subu	$2, $3, $2
-	st	$2, 16($fp)
-	ld	$2, 44($fp)
-	ld	$3, 52($fp)
-	multu	$3, $2
-	mflo	$t9
-	mfhi	$4
-	ld	$5, 48($fp)
-	ld	$sw, 40($fp)
-	st	$t9, 12($fp)
-	mul	$3, $3, $sw
-	addu	$3, $4, $3
-	mul	$2, $5, $2
-	addu	$2, $3, $2
-	st	$2, 8($fp)
-	ld	$2, 32($fp)
-	ld	$3, 36($fp)
-	mult	$3, $2
-	mflo	$t9
-	mfhi	$4
-	st	$t9, 4($fp)
-	st	$4, 0($fp)
-	ld	$2, 20($fp)
-	ld	$3, 28($fp)
-	addu	$5, $3, $2
-	ld	$8, 12($fp)
-	addu	$7, $5, $8
-	addu	$3, $7, $t9
-	cmp	$sw, $3, $t9
-	andi	$t9, $sw, 1
-	addu	$4, $t9, $4
-	cmp	$sw, $7, $8
-	andi	$t9, $sw, 1
-	ld	$sw, 8($fp)
-	addu	$t9, $t9, $sw
-	cmp	$sw, $5, $2
-	andi	$2, $sw, 1
-	ld	$5, 16($fp)
-	addu	$2, $2, $5
-	ld	$5, 24($fp)
-	addu	$2, $5, $2
-	addu	$2, $2, $t9
-	addu	$2, $2, $4
-	addu	$sp, $fp, $zero
-	ld	$7, 60($sp)             # 4-byte Folded Reload
-	ld	$8, 64($sp)             # 4-byte Folded Reload
-	ld	$fp, 68($sp)            # 4-byte Folded Reload
-	addiu	$sp, $sp, 72
-	ret	$lr
-	.set	macro
-	.set	reorder
-	.end	_Z13test_longlongv
-$tmp3:
-	.size	_Z13test_longlongv, ($tmp3)-_Z13test_longlongv
+    .section .mdebug.abi32
+    .previous
+    .file "ch7_4.bc"
+    .text
+    .globl  _Z13test_longlongv
+    .align  2
+    .type _Z13test_longlongv,@function
+    .ent  _Z13test_longlongv      # @_Z13test_longlongv
+  _Z13test_longlongv:
+    .frame  $fp,72,$lr
+    .mask   0x00000980,-4
+    .set  noreorder
+    .set  nomacro
+  # BB#0:                                 # %entry
+    addiu $sp, $sp, -72
+    st  $fp, 68($sp)            # 4-byte Folded Spill
+    st  $8, 64($sp)             # 4-byte Folded Spill
+    st  $7, 60($sp)             # 4-byte Folded Spill
+    addu  $fp, $sp, $zero
+    addiu $2, $zero, 2
+    st  $2, 52($fp)
+    addiu $2, $zero, 3
+    st  $2, 48($fp)
+    addiu $2, $zero, 1
+    st  $2, 44($fp)
+    st  $2, 40($fp)
+    lui $2, 768
+    ori $2, $2, 4096
+    st  $2, 36($fp)
+    lui $2, 512
+    ori $2, $2, 4096
+    st  $2, 32($fp)
+    ld  $2, 44($fp)
+    ld  $3, 52($fp)
+    addu  $4, $3, $2
+    ld  $3, 48($fp)
+    ld  $5, 40($fp)
+    st  $4, 28($fp)
+    cmp $sw, $4, $2
+    andi  $2, $sw, 1
+    addu  $2, $2, $5
+    addu  $2, $3, $2
+    st  $2, 24($fp)
+    ld  $2, 44($fp)
+    ld  $4, 52($fp)
+    subu  $t9, $4, $2
+    ld  $3, 48($fp)
+    ld  $5, 40($fp)
+    st  $t9, 20($fp)
+    cmp $sw, $4, $2
+    andi  $2, $sw, 1
+    addu  $2, $2, $5
+    subu  $2, $3, $2
+    st  $2, 16($fp)
+    ld  $2, 44($fp)
+    ld  $3, 52($fp)
+    multu $3, $2
+    mflo  $t9
+    mfhi  $4
+    ld  $5, 48($fp)
+    ld  $sw, 40($fp)
+    st  $t9, 12($fp)
+    mul $3, $3, $sw
+    addu  $3, $4, $3
+    mul $2, $5, $2
+    addu  $2, $3, $2
+    st  $2, 8($fp)
+    ld  $2, 32($fp)
+    ld  $3, 36($fp)
+    mult  $3, $2
+    mflo  $t9
+    mfhi  $4
+    st  $t9, 4($fp)
+    st  $4, 0($fp)
+    ld  $2, 20($fp)
+    ld  $3, 28($fp)
+    addu  $5, $3, $2
+    ld  $8, 12($fp)
+    addu  $7, $5, $8
+    addu  $3, $7, $t9
+    cmp $sw, $3, $t9
+    andi  $t9, $sw, 1
+    addu  $4, $t9, $4
+    cmp $sw, $7, $8
+    andi  $t9, $sw, 1
+    ld  $sw, 8($fp)
+    addu  $t9, $t9, $sw
+    cmp $sw, $5, $2
+    andi  $2, $sw, 1
+    ld  $5, 16($fp)
+    addu  $2, $2, $5
+    ld  $5, 24($fp)
+    addu  $2, $5, $2
+    addu  $2, $2, $t9
+    addu  $2, $2, $4
+    addu  $sp, $fp, $zero
+    ld  $7, 60($sp)             # 4-byte Folded Reload
+    ld  $8, 64($sp)             # 4-byte Folded Reload
+    ld  $fp, 68($sp)            # 4-byte Folded Reload
+    addiu $sp, $sp, 72
+    ret $lr
+    .set  macro
+    .set  reorder
+    .end  _Z13test_longlongv
+  $tmp3:
+    .size _Z13test_longlongv, ($tmp3)-_Z13test_longlongv
 
 
 float and double
