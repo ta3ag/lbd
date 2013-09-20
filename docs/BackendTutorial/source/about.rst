@@ -54,7 +54,7 @@ Revision history
 
 Version 3.3.4, Not release yet
 
-Version 3.3.3, Not release yet
+Version 3.3.3, Released September 20, 2013
   Add Chapter othertype
 
 Version 3.3.2, Released September 17, 2013

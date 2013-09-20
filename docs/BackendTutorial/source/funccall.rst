@@ -188,7 +188,7 @@ Load incoming arguments from stack frame
 
 From last section, to support function call, we need implementing the arguments 
 pass mechanism with stack frame. Before do that, let's run the old version of 
-code Chapter7_1/ with ch9_1.cpp and see what happens.
+code Chapter8_1/ with ch9_1.cpp and see what happens.
 
 .. code-block:: bash
 
@@ -208,7 +208,7 @@ code Chapter7_1/ with ch9_1.cpp and see what happens.
   '@_Z5sum_iiiiiii'
   Illegal instruction: 4
 
-Since Chapter7_1/ define the LowerFormalArguments() with empty, we get the error 
+Since Chapter8_1/ define the LowerFormalArguments() with empty, we get the error 
 message as above. 
 Before define LowerFormalArguments(), we have to choose how to pass arguments 
 in function call. We choose pass arguments all in stack frame. 
@@ -893,12 +893,7 @@ $2 is not 0) as follows,
     .section .mdebug.abi32
     .previous
     .file "ch7_5.bc"
-    .text
-    .globl  main
-    .align  2
-    .type main,@function
-    .ent  main                    # @main
-  main:
+    ...
     .cfi_startproc
     .frame  $sp,16,$lr
     .mask   0x00000000,0
@@ -923,8 +918,6 @@ $2 is not 0) as follows,
     addiu $sp, $sp, 16
     ret $lr
     .set  macro
-    .set  reorder
-    .end  main
   ...
 
 Summary the issues for the code generated as above and in last section as follows:
