@@ -221,6 +221,58 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
   switch(Opcode) {
   default: break;
 
+  case ISD::SUBE:
+  case ISD::ADDE: {
+    SDValue InFlag = Node->getOperand(2), CmpLHS;
+    unsigned Opc = InFlag.getOpcode(); (void)Opc;
+    assert(((Opc == ISD::ADDC || Opc == ISD::ADDE) ||
+            (Opc == ISD::SUBC || Opc == ISD::SUBE)) &&
+           "(ADD|SUB)E flag operand must come from (ADD|SUB)C/E insn");
+
+    unsigned MOp;
+    if (Opcode == ISD::ADDE) {
+      CmpLHS = InFlag.getValue(0);
+      MOp = Cpu0::ADDu;
+    } else {
+      CmpLHS = InFlag.getOperand(0);
+      MOp = Cpu0::SUBu;
+    }
+
+    SDValue Ops[] = { CmpLHS, InFlag.getOperand(1) };
+
+    SDValue LHS = Node->getOperand(0);
+    SDValue RHS = Node->getOperand(1);
+
+    EVT VT = LHS.getValueType();
+    SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
+    SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
+    SDNode *Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
+                                           SDValue(StatusWord,0), Constant1);
+    SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, DL, VT,
+                                              SDValue(Carry,0), RHS);
+
+    return CurDAG->SelectNodeTo(Node, MOp, VT, MVT::Glue,
+                                LHS, SDValue(AddCarry,0));
+  }
+
+  /// Mul with two results
+  case ISD::SMUL_LOHI:
+  case ISD::UMUL_LOHI: {
+    if (NodeTy == MVT::i32)
+      MultOpc = (Opcode == ISD::UMUL_LOHI ? Cpu0::MULTu : Cpu0::MULT);
+
+    std::pair<SDNode*, SDNode*> LoHi = SelectMULT(Node, MultOpc, DL, NodeTy,
+                                                  true, true);
+
+    if (!SDValue(Node, 0).use_empty())
+      ReplaceUses(SDValue(Node, 0), SDValue(LoHi.first, 0));
+
+    if (!SDValue(Node, 1).use_empty())
+      ReplaceUses(SDValue(Node, 1), SDValue(LoHi.second, 0));
+
+    return NULL;
+  }
+
   case ISD::MULHS:
   case ISD::MULHU: {
     MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);

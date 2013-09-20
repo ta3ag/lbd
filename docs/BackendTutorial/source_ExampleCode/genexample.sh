@@ -2,7 +2,7 @@
 GEN_DIR=LLVMBackendTutorialExampleCode
 rm -rf Chapter3_1 Chapter3_2 Chapter3_2 Chapter3_4 
 rm -rf Chapter4_1 Chapter4_2 Chapter4_4 Chapter4_4_2 Chapter4_5 Chapter4_6_1 Chapter4_6_2 Chapter4_6_4 
-rm -rf Chapter5_1 Chapter6_1 Chapter6_2 Chapter6_3 Chapter7_1 
+rm -rf Chapter5_1 Chapter6_1 Chapter6_3 Chapter7_1 
 rm -rf Chapter8_1 Chapter8_2 Chapter8_3 Chapter8_4 Chapter8_4_2
 rm -rf Chapter9_1 Chapter10_1 Chapter10_2 Chapter11_1 Chapter11_2
 rm -rf ${GEN_DIR}
@@ -32,48 +32,45 @@ cp -rf Chapter5_1 ${GEN_DIR}/.
 patch -fp0 < 6-1.patch
 mv Chapter5_1 Chapter6_1
 cp -rf Chapter6_1 ${GEN_DIR}/.
-patch -fp0 < 6-2.patch
-mv Chapter6_1 Chapter6_2
-cp -rf Chapter6_2 ${GEN_DIR}/.
-patch -fp0 < 6-3.patch
-mv Chapter6_2 Chapter6_3
-cp -rf Chapter6_3 ${GEN_DIR}/.
 patch -fp0 < 7-1.patch
-mv Chapter6_3 Chapter7_1
+mv Chapter6_1 Chapter7_1
 cp -rf Chapter7_1 ${GEN_DIR}/.
 patch -fp0 < 8-1.patch
 mv Chapter7_1 Chapter8_1
 cp -rf Chapter8_1 ${GEN_DIR}/.
-patch -fp0 < 8-2.patch
-mv Chapter8_1 Chapter8_2
-cp -rf Chapter8_2 ${GEN_DIR}/.
-patch -fp0 < 8-3.patch
-mv Chapter8_2 Chapter8_3
-cp -rf Chapter8_3 ${GEN_DIR}/.
-patch -fp0 < 8-4.patch
-mv Chapter8_3 Chapter8_4
-cp -rf Chapter8_4 ${GEN_DIR}/.
-patch -fp0 < 8-4-2.patch
-mv Chapter8_4 Chapter8_4_2
-cp -rf Chapter8_4_2 ${GEN_DIR}/.
-rm -rf Chapter8_4_2
-cp -rf ${GEN_DIR}/Chapter8_4 .
 patch -fp0 < 9-1.patch
-mv Chapter8_4 Chapter9_1
+mv Chapter8_1 Chapter9_1
 cp -rf Chapter9_1 ${GEN_DIR}/.
+patch -fp0 < 9-2.patch
+mv Chapter9_1 Chapter9_2
+cp -rf Chapter9_2 ${GEN_DIR}/.
+patch -fp0 < 9-3.patch
+mv Chapter9_2 Chapter9_3
+cp -rf Chapter9_3 ${GEN_DIR}/.
+patch -fp0 < 9-4.patch
+mv Chapter9_3 Chapter9_4
+cp -rf Chapter9_4 ${GEN_DIR}/.
+patch -fp0 < 9-4-2.patch
+mv Chapter9_4 Chapter9_4_2
+cp -rf Chapter9_4_2 ${GEN_DIR}/.
+rm -rf Chapter9_4_2
+cp -rf ${GEN_DIR}/Chapter9_4 .
 patch -fp0 < 10-1.patch
-mv Chapter9_1 Chapter10_1
+mv Chapter9_4 Chapter10_1
 cp -rf Chapter10_1 ${GEN_DIR}/.
-patch -fp0 < 10-2.patch
-mv Chapter10_1 Chapter10_2
-cp -rf Chapter10_2 ${GEN_DIR}/.
 patch -fp0 < 11-1.patch
-mv Chapter10_2 Chapter11_1
+mv Chapter10_1 Chapter11_1
 cp -rf Chapter11_1 ${GEN_DIR}/.
 patch -fp0 < 11-2.patch
 mv Chapter11_1 Chapter11_2
 cp -rf Chapter11_2 ${GEN_DIR}/.
-rm -rf Chapter11_2
+patch -fp0 < 12-1.patch
+mv Chapter11_2 Chapter12_1
+cp -rf Chapter12_1 ${GEN_DIR}/.
+patch -fp0 < 12-2.patch
+mv Chapter12_1 Chapter12_2
+cp -rf Chapter12_2 ${GEN_DIR}/.
+rm -rf Chapter12_2
 cp -rf ${GEN_DIR}/Chapter2 .
 cp -rf InputFiles src_files_modify ${GEN_DIR}/.
 cp -rf 3.4_20130816_Chapter11_1 3.4_20130816_Chapter11_2 3.4_20130816_src_files_modify Cpu0_lld_20130816 llvm-objdump ${GEN_DIR}/.

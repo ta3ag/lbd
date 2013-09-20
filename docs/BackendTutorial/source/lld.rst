@@ -134,7 +134,7 @@ Next, update llvm 2013/08/16 source code to support Cpu0 as follows,
   [Gamma@localhost Target]$ mkdir Cpu0
   [Gamma@localhost Target]$ cd Cpu0/
   [Gamma@localhost Cpu0]$ cp -rf ~/test/lbd/docs/BackendTutorial/
-  LLVMBackendTutorialExampleCode/3.4_20130816_Chapter11_2/* . 
+  LLVMBackendTutorialExampleCode/3.4_20130816_Chapter12_2/* . 
   [Gamma@localhost Cpu0]$ ls
   AsmParser                 Cpu0InstrInfo.h           Cpu0SelectionDAGInfo.h
   CMakeLists.txt            Cpu0InstrInfo.td          Cpu0Subtarget.cpp

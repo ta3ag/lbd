@@ -1,7 +1,20 @@
+diff -Naur Chapter4_1/Cpu0ISelLowering.cpp Chapter4_2/Cpu0ISelLowering.cpp
+--- Chapter4_1/Cpu0ISelLowering.cpp	2013-09-20 13:59:49.000000000 +0800
++++ Chapter4_2/Cpu0ISelLowering.cpp	2013-09-20 13:59:49.000000000 +0800
+@@ -43,6 +43,9 @@
+   // Set up the register classes
+   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
+ 
++  // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
++  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
++
+   setOperationAction(ISD::SDIV, MVT::i32, Expand);
+   setOperationAction(ISD::SREM, MVT::i32, Expand);
+   setOperationAction(ISD::UDIV, MVT::i32, Expand);
 diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
---- Chapter4_1/Cpu0InstrInfo.td	2013-09-18 14:25:59.837525286 +0800
-+++ Chapter4_2/Cpu0InstrInfo.td	2013-09-18 14:25:59.833525286 +0800
-@@ -138,6 +138,16 @@
+--- Chapter4_1/Cpu0InstrInfo.td	2013-09-20 13:59:49.000000000 +0800
++++ Chapter4_2/Cpu0InstrInfo.td	2013-09-20 13:59:49.000000000 +0800
+@@ -132,6 +132,16 @@
    let isReMaterializable = 1;
  }
  
@@ -18,7 +31,7 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
  // Arithmetic and logical instructions with 2 register operands.
  class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
                    Operand Od, PatLeaf imm_type, RegisterClass RC> :
-@@ -285,15 +295,21 @@
+@@ -275,15 +285,21 @@
  /// Arithmetic Instructions (ALU Immediate)
  // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
  def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
@@ -40,7 +53,7 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
  
  /// Shift Instructions
  // sra is IR node for ashr llvm IR instruction of .bc
-@@ -352,3 +368,60 @@
+@@ -334,3 +350,60 @@
  def : Pat<(i32 imm:$imm),
            (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
  
@@ -101,22 +114,9 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +defm : SetlePats<CPURegs>;
 +defm : SetgtPats<CPURegs>;
 +defm : SetgePats<CPURegs>;
-diff -Naur Chapter4_1/Cpu0ISelLowering.cpp Chapter4_2/Cpu0ISelLowering.cpp
---- Chapter4_1/Cpu0ISelLowering.cpp	2013-09-18 14:25:59.837525286 +0800
-+++ Chapter4_2/Cpu0ISelLowering.cpp	2013-09-18 14:25:59.833525286 +0800
-@@ -43,6 +43,9 @@
-   // Set up the register classes
-   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
- 
-+  // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
-+  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
-+
-   setOperationAction(ISD::SDIV, MVT::i32, Expand);
-   setOperationAction(ISD::SREM, MVT::i32, Expand);
-   setOperationAction(ISD::UDIV, MVT::i32, Expand);
 diff -Naur Chapter4_1/Cpu0RegisterInfo.td Chapter4_2/Cpu0RegisterInfo.td
---- Chapter4_1/Cpu0RegisterInfo.td	2013-09-18 14:25:59.837525286 +0800
-+++ Chapter4_2/Cpu0RegisterInfo.td	2013-09-18 14:25:59.833525286 +0800
+--- Chapter4_1/Cpu0RegisterInfo.td	2013-09-20 13:59:49.000000000 +0800
++++ Chapter4_2/Cpu0RegisterInfo.td	2013-09-20 13:59:50.000000000 +0800
 @@ -75,3 +75,6 @@
  
  // Hi/Lo Registers

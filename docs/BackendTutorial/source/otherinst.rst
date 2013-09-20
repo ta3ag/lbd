@@ -1,7 +1,7 @@
 .. _sec-addingmoresupport:
 
-Arithmetic, local pointer and logic lsupport
-==============================================
+Arithmetic and logic lsupport
+===============================
 
 This chapter adds more cpu0 arithmetic instructions support first.
 The logic operation **“not”** support and translation in 
@@ -1436,101 +1436,6 @@ to **div**; and **"CopyFromReg 0x7fd25b410e18, Register %H, 0x7fd25b830910"**
 to **mfhi**.
 
 The ch4_3.cpp is for **/** div operator test.
-
-
-Local variable pointer
-~~~~~~~~~~~~~~~~~~~~~~~
-
-To support pointer to local variable, add this code fragment in 
-Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
-
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.td
-.. code-block:: c++
-
-  def mem_ea : Operand<i32> {
-    let PrintMethod = "printMemOperandEA";
-    let MIOperandInfo = (ops CPURegs, simm16);
-    let EncoderMethod = "getMemEncoding";
-  }
-  ...
-  class EffectiveAddress<string instr_asm, RegisterClass RC, Operand Mem> :
-    FMem<0x09, (outs RC:$ra), (ins Mem:$addr),
-       instr_asm, [(set RC:$ra, addr:$addr)], IIAlu>;
-  ...
-  // FrameIndexes are legalized when they are operands from load/store
-  // instructions. The same not happens for stack address copies, so an
-  // add op with mem ComplexPattern is used and the stack address copy
-  // can be matched. It's similar to Sparc LEA_ADDRi
-  def LEA_ADDiu : EffectiveAddress<"addiu\t$ra, $addr", CPURegs, mem_ea> {
-    let isCodeGenOnly = 1;
-  }
-  
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstPrinter.td
-.. code-block:: c++
-
-  void Cpu0InstPrinter::
-  printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &O) {
-    // when using stack locations for not load/store instructions
-    // print the same way as all normal 3 operand instructions.
-    printOperand(MI, opNum, O);
-    O << ", ";
-    printOperand(MI, opNum+1, O);
-    return;
-  }
-
-Run ch4_4.cpp with code Chapter4_1/ which support pointer to local variable, 
-will get result as follows,
-
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_4.cpp
-    :start-after: /// start
-
-.. code-block:: bash
-
-  118-165-66-82:InputFiles Jonathan$ clang -c ch4_4.cpp -emit-llvm -o ch4_4.bc
-  118-165-66-82:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_
-  debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
-    ch4_4.bc -o ch4_4.cpu0.s
-    118-165-66-82:InputFiles Jonathan$ cat ch4_4.cpu0.s 
-	  .section .mdebug.abi32
-	  .previous
-	  .file	"ch4_4.bc"
-	  .text
-	  .globl	_Z18test_local_pointerv
-	  .align	2
-	  .type	_Z18test_local_pointerv,@function
-	  .ent	_Z18test_local_pointerv # @_Z18test_local_pointerv
-  _Z18test_local_pointerv:
-	  .cfi_startproc
-	  .frame	$fp,16,$lr
-	  .mask 	0x00000800,-4
-	  .set	noreorder
-	  .set	nomacro
-  # BB#0:                                 # %entry
-	  addiu	$sp, $sp, -16
-  $tmp3:
-	  .cfi_def_cfa_offset 16
-	  st	$fp, 12($sp)            # 4-byte Folded Spill
-  $tmp4:
-	  .cfi_offset 11, -4
-	  addu	$fp, $sp, $zero
-  $tmp5:
-	  .cfi_def_cfa_register 11
-	  addiu	$2, $zero, 3
-	  st	$2, 8($fp)
-	  addiu	$2, $fp, 8
-	  st	$2, 0($fp)
-	  ld	$2, 8($fp)
-	  addu	$sp, $fp, $zero
-	  ld	$fp, 12($sp)            # 4-byte Folded Reload
-	  addiu	$sp, $sp, 16
-	  ret	$lr
-	  .set	macro
-	  .set	reorder
-	  .end	_Z18test_local_pointerv
-  $tmp6:
-	  .size	_Z18test_local_pointerv, ($tmp6)-_Z18test_local_pointerv
-	  .cfi_endproc
 
 
 Logic

@@ -128,4 +128,3 @@ printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &O) {
   printOperand(MI, opNum+1, O);
   return;
 }
-

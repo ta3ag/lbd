@@ -53,6 +53,7 @@ Revision history
 ----------------
 
 Version 3.3.2, Not release yet
+  Add Chapter othertype
 
 Version 3.3.2, Released September 17, 2013
   Update example code.
@@ -263,6 +264,11 @@ the Cpu0 backend can now generate big and little endian object files.
 Global variable, struct and array support, char and short int, are added in this chapter. 
 About 300 lines of source code are added to do this. The Cpu0 supports PIC and static 
 addressing mode, both of which area explained as their functionality is implemented.
+
+:ref:_sec-othertypesupport:
+
+In addition to type int, other data type like pointer, char, bool, long long, 
+structure and array are added in this chapter.
 
 :ref:`sec-controlflow`:
 

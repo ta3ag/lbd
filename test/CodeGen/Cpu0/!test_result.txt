@@ -2,10 +2,10 @@ test result:
 
 File                              Result v:pass x:fail        comment
 ------------------------------------------------------------------------------------------
-2008-06-05-Carry.ll                       x                   64 bits add not support in Cpu0
+2008-06-05-Carry.ll                       *                   64 bits add not support in Cpu0
 2008-07-03-SRet.ll                        v
 2008-07-15InternalConstant.ll             v
-addc.ll                                   x                   64 bits add not support in Cpu0
+addc.ll                                   *                   64 bits add not support in Cpu0
 addi.ll                                   v
 address-mode.ll                           v
 alloca.ll                                 v
@@ -21,6 +21,9 @@ divrem.ll                                 v
 divu.ll                                   v
 divu_reml.ll                              v
 double2int.ll                             v
+eh-dwraf-cfa.ll                           *
+eh-return32.ll                            *
+eh-return64.ll                            x
 eh.ll                                     x
 sext_inreg.ll                             v
 

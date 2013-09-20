@@ -1,0 +1,489 @@
+diff -Naur Chapter12_1/AsmParser/Cpu0AsmParser.cpp Chapter12_2/AsmParser/Cpu0AsmParser.cpp
+--- Chapter12_1/AsmParser/Cpu0AsmParser.cpp	2013-09-20 15:06:09.000000000 +0800
++++ Chapter12_2/AsmParser/Cpu0AsmParser.cpp	2013-09-20 15:06:09.000000000 +0800
+@@ -481,7 +481,7 @@
+       .Case("s2",  Cpu0::S2)
+       .Case("gp",  Cpu0::GP)
+       .Case("fp",  Cpu0::FP)
+-      .Case("sw",  Cpu0::SW)
++      .Case("t0",  Cpu0::T0)
+       .Case("sp",  Cpu0::SP)
+       .Case("lr",  Cpu0::LR)
+       .Case("pc",  Cpu0::PC)
+diff -Naur Chapter12_1/Cpu0ISelDAGToDAG.cpp Chapter12_2/Cpu0ISelDAGToDAG.cpp
+--- Chapter12_1/Cpu0ISelDAGToDAG.cpp	2013-09-20 15:06:09.000000000 +0800
++++ Chapter12_2/Cpu0ISelDAGToDAG.cpp	2013-09-20 15:07:12.000000000 +0800
+@@ -244,10 +244,7 @@
+     SDValue RHS = Node->getOperand(1);
+ 
+     EVT VT = LHS.getValueType();
+-    SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, dl, VT, Ops);
+-    SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
+-    SDNode *Carry = CurDAG->getMachineNode(Cpu0::ANDi, dl, VT, 
+-                                           SDValue(StatusWord,0), Constant1);
++    SDNode *Carry = CurDAG->getMachineNode(Cpu0::SLTu, dl, VT, Ops);
+     SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, dl, VT,
+                                               SDValue(Carry,0), RHS);
+ 
+diff -Naur Chapter12_1/Cpu0InstrInfo.cpp Chapter12_2/Cpu0InstrInfo.cpp
+--- Chapter12_1/Cpu0InstrInfo.cpp	2013-09-20 15:06:09.000000000 +0800
++++ Chapter12_2/Cpu0InstrInfo.cpp	2013-09-20 15:06:09.000000000 +0800
+@@ -44,18 +44,12 @@
+       Opc = Cpu0::MFHI, SrcReg = 0;
+     else if (SrcReg == Cpu0::LO)
+       Opc = Cpu0::MFLO, SrcReg = 0;
+-    else if (SrcReg == Cpu0::SW)	// add $ra, $ZERO, $SW
+-      Opc = Cpu0::ADD, ZeroReg = Cpu0::ZERO;
+   }
+   else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
+     if (DestReg == Cpu0::HI)
+       Opc = Cpu0::MTHI, DestReg = 0;
+     else if (DestReg == Cpu0::LO)
+       Opc = Cpu0::MTLO, DestReg = 0;
+-    // Only possibility in (DestReg==SW, SrcReg==CPU0Regs) is 
+-    //  cmp $SW, $ZERO, $rc
+-    else if (DestReg == Cpu0::SW)
+-      Opc = Cpu0::CMP, ZeroReg = Cpu0::ZERO;
+   }
+ 
+   assert(Opc && "Cannot copy registers");
+diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
+--- Chapter12_1/Cpu0InstrInfo.td	2013-09-20 15:06:09.000000000 +0800
++++ Chapter12_2/Cpu0InstrInfo.td	2013-09-20 15:06:09.000000000 +0800
+@@ -75,6 +75,12 @@
+   let DecoderMethod = "DecodeBranchTarget";
+ }
+ 
++def jmptarget    : Operand<OtherVT> {
++  let EncoderMethod = "getJumpTargetOpValue";
++  let OperandType = "OPERAND_PCREL";
++  let DecoderMethod = "DecodeJumpRelativeTarget";
++}
++
+ def calltarget  : Operand<iPTR> {
+   let EncoderMethod = "getJumpTargetOpValue";
+ }
+@@ -187,15 +193,12 @@
+   let isReMaterializable = 1;
+ }
+ 
+-class CmpInstr<bits<8> op, string instr_asm, 
+-               InstrItinClass itin, RegisterClass RC, RegisterClass RD, 
+-               bit isComm = 0>:
+-  FA<op, (outs RD:$rc), (ins RC:$ra, RC:$rb),
+-     !strconcat(instr_asm, "\t$rc, $ra, $rb"), [], itin> {
+-  let rc = 0;
++class ArithOverflowR<bits<8> op, string instr_asm,
++                    InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
++  FA<op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
++     !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], itin> {
+   let shamt = 0;
+   let isCommutable = isComm;
+-  let DecoderMethod = "DecodeCMPInstruction";
+ }
+ 
+ // Arithmetic and logical instructions with 2 register operands.
+@@ -279,27 +282,41 @@
+ }
+ 
+ // Conditional Branch
+-class CBranch<bits<8> op, string instr_asm, RegisterClass RC,
+-                   list<Register> UseRegs>:
+-  FJ<op, (outs), (ins RC:$ra, brtarget:$addr),
+-             !strconcat(instr_asm, "\t$ra, $addr"),
+-             [], IIBranch> {
++class CBranch<bits<8> op, string instr_asm, PatFrag cond_op, RegisterClass RC>:
++  FL<op, (outs), (ins RC:$ra, RC:$rb, brtarget:$imm16),
++             !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
++             [(brcond (i32 (cond_op RC:$ra, RC:$rb)), bb:$imm16)], IIBranch> {
+   let isBranch = 1;
+   let isTerminator = 1;
+-  let hasDelaySlot = 0;
+-  let neverHasSideEffects = 1;
+-  let DecoderMethod = "DecodeBranchTarget";
++  let hasDelaySlot = 1;
++  let Defs = [AT];
++}
++
++// SetCC
++class SetCC_R<bits<8> op, string instr_asm, PatFrag cond_op,
++              RegisterClass RC>:
++  FA<op, (outs CPURegs:$ra), (ins RC:$rb, RC:$rc),
++     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
++     [(set CPURegs:$ra, (cond_op RC:$rb, RC:$rc))],
++     IIAlu> {
++  let shamt = 0;
+ }
+ 
++class SetCC_I<bits<8> op, string instr_asm, PatFrag cond_op, Operand Od,
++              PatLeaf imm_type, RegisterClass RC>:
++  FL<op, (outs CPURegs:$ra), (ins RC:$rb, Od:$imm16),
++     !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
++     [(set CPURegs:$ra, (cond_op RC:$rb, imm_type:$imm16))],
++     IIAlu>;
++
+ // Unconditional branch, such as JMP
+ class UncondBranch<bits<8> op, string instr_asm>:
+-  FJ<op, (outs), (ins brtarget:$addr),
++  FJ<op, (outs), (ins jmptarget:$addr),
+              !strconcat(instr_asm, "\t$addr"), [(br bb:$addr)], IIBranch> {
+   let isBranch = 1;
+   let isTerminator = 1;
+   let isBarrier = 1;
+   let hasDelaySlot = 0;
+-  let DecoderMethod = "DecodeJumpRelativeTarget";
+ }
+ 
+ let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
+@@ -454,7 +471,6 @@
+ def LUi     : LoadUpper<0x0f, "lui", CPURegs, uimm16>;
+ 
+ /// Arithmetic Instructions (3-Operand, R-Type)
+-def CMP     : CmpInstr<0x10, "cmp", IIAlu, CPURegs, SR, 0>;
+ def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
+ def SUBu    : ArithLogicR<0x12, "subu", sub, IIAlu, CPURegs>;
+ def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
+@@ -476,13 +492,14 @@
+ def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
+ def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
+ 
++def SLTi    : SetCC_I<0x26, "slti", setlt, simm16, immSExt16, CPURegs>;
++def SLTiu   : SetCC_I<0x27, "sltiu", setult, simm16, immSExt16, CPURegs>;
++def SLT     : SetCC_R<0x28, "slt", setlt, CPURegs>;
++def SLTu    : SetCC_R<0x29, "sltu", setult, CPURegs>;
++
+ /// Jump and Branch Instructions
+-def JEQ     : CBranch<0x30, "jeq", SR, [SW]>;
+-def JNE     : CBranch<0x31, "jne", SR, [SW]>;
+-def JLT     : CBranch<0x32, "jlt", SR, [SW]>;
+-def JGT     : CBranch<0x33, "jgt", SR, [SW]>;
+-def JLE     : CBranch<0x34, "jle", SR, [SW]>;
+-def JGE     : CBranch<0x35, "jge", SR, [SW]>;
++def BEQ     : CBranch<0x30, "beq", seteq, CPURegs>;
++def BNE     : CBranch<0x31, "bne", setne, CPURegs>;
+ 
+ def JMP     : UncondBranch<0x36, "jmp">;
+ 
+@@ -570,91 +587,85 @@
+ def : Pat<(i32 (extloadi8  addr:$src)), (LBu addr:$src)>;
+ def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
+ 
++
+ // brcond patterns
+-multiclass BrcondPats<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
+-Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp, 
+-Instruction CMPOp, Register ZEROReg> {
+-def : Pat<(brcond (i32 (seteq RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setueq RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setne RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setune RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setlt RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setult RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setgt RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setugt RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setle RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JLEOp (CMPOp RC:$rhs, RC:$lhs), bb:$dst)>;
+-def : Pat<(brcond (i32 (setule RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JLEOp (CMPOp RC:$rhs, RC:$lhs), bb:$dst)>;
++multiclass BrcondPats<RegisterClass RC, Instruction BEQOp, Instruction BNEOp,
++                      Instruction SLTOp, Instruction SLTuOp, Instruction SLTiOp,
++                      Instruction SLTiuOp, Register ZEROReg> {
++def : Pat<(brcond (i32 (setne RC:$lhs, 0)), bb:$dst),
++              (BNEOp RC:$lhs, ZEROReg, bb:$dst)>;
++def : Pat<(brcond (i32 (seteq RC:$lhs, 0)), bb:$dst),
++              (BEQOp RC:$lhs, ZEROReg, bb:$dst)>;
++
+ def : Pat<(brcond (i32 (setge RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
++              (BEQ (SLTOp RC:$lhs, RC:$rhs), ZERO, bb:$dst)>;
+ def : Pat<(brcond (i32 (setuge RC:$lhs, RC:$rhs)), bb:$dst),
+-          (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
++              (BEQ (SLTuOp RC:$lhs, RC:$rhs), ZERO, bb:$dst)>;
++def : Pat<(brcond (i32 (setge RC:$lhs, immSExt16:$rhs)), bb:$dst),
++              (BEQ (SLTiOp RC:$lhs, immSExt16:$rhs), ZERO, bb:$dst)>;
++def : Pat<(brcond (i32 (setuge RC:$lhs, immSExt16:$rhs)), bb:$dst),
++              (BEQ (SLTiuOp RC:$lhs, immSExt16:$rhs), ZERO, bb:$dst)>;
++
++def : Pat<(brcond (i32 (setle RC:$lhs, RC:$rhs)), bb:$dst),
++              (BEQ (SLTOp RC:$rhs, RC:$lhs), ZERO, bb:$dst)>;
++def : Pat<(brcond (i32 (setule RC:$lhs, RC:$rhs)), bb:$dst),
++              (BEQ (SLTuOp RC:$rhs, RC:$lhs), ZERO, bb:$dst)>;
+ 
+ def : Pat<(brcond RC:$cond, bb:$dst),
+-          (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)>;
++              (BNEOp RC:$cond, ZEROReg, bb:$dst)>;
+ }
+ 
+-defm : BrcondPats<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
++defm : BrcondPats<CPURegs, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO>;
++
+ 
+ // setcc patterns
+-multiclass SeteqPats<RegisterClass RC> {
++multiclass SeteqPats<RegisterClass RC, Instruction SLTiuOp, Instruction XOROp,
++                     Instruction SLTuOp, Register ZEROReg> {
+ // a == b
+   def : Pat<(seteq RC:$lhs, RC:$rhs),
+-            (SHR (ANDi (CMP RC:$lhs, RC:$rhs), 2), 1)>;
++                (SLTiuOp (XOROp RC:$lhs, RC:$rhs), 1)>;
+ // a != b
+   def : Pat<(setne RC:$lhs, RC:$rhs),
+-            (XORi (SHR (ANDi (CMP RC:$lhs, RC:$rhs), 2), 1), 1)>;
+-}
+-
+-// a < b
+-multiclass SetltPats<RegisterClass RC> {
+-  def : Pat<(setlt RC:$lhs, RC:$rhs),
+-            (ANDi (CMP RC:$lhs, RC:$rhs), 1)>;
+-// if cpu0  `define N    `SW[31]  instead of `SW[0] // Negative flag, then need
+-// 2 more instructions as follows,
+-//          (XORi (ANDi (SHR (CMP RC:$lhs, RC:$rhs), (LUi 0x8000), 31), 1), 1)>;
+-  def : Pat<(setult RC:$lhs, RC:$rhs),
+-            (ANDi (CMP RC:$lhs, RC:$rhs), 1)>;
++                (SLTuOp ZEROReg, (XOROp RC:$lhs, RC:$rhs))>;
+ }
+ 
+ // a <= b
+-multiclass SetlePats<RegisterClass RC> {
++multiclass SetlePats<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
+   def : Pat<(setle RC:$lhs, RC:$rhs),
+ // a <= b is equal to (XORi (b < a), 1)
+-            (XORi (ANDi (CMP RC:$rhs, RC:$lhs), 1), 1)>;
++                (XORi (SLTOp RC:$rhs, RC:$lhs), 1)>;
+   def : Pat<(setule RC:$lhs, RC:$rhs),
+-            (XORi (ANDi (CMP RC:$rhs, RC:$lhs), 1), 1)>;
++                (XORi (SLTuOp RC:$rhs, RC:$lhs), 1)>;
+ }
+ 
+ // a > b
+-multiclass SetgtPats<RegisterClass RC> {
++multiclass SetgtPats<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
+   def : Pat<(setgt RC:$lhs, RC:$rhs),
+ // a > b is equal to b < a is equal to setlt(b, a)
+-            (ANDi (CMP RC:$rhs, RC:$lhs), 1)>;
++                (SLTOp RC:$rhs, RC:$lhs)>;
+   def : Pat<(setugt RC:$lhs, RC:$rhs),
+-            (ANDi (CMP RC:$rhs, RC:$lhs), 1)>;
++                (SLTuOp RC:$rhs, RC:$lhs)>;
+ }
+ 
+ // a >= b
+-multiclass SetgePats<RegisterClass RC> {
++multiclass SetgePats<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
+   def : Pat<(setge RC:$lhs, RC:$rhs),
+ // a >= b is equal to b <= a
+-            (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
++                (XORi (SLTOp RC:$lhs, RC:$rhs), 1)>;
+   def : Pat<(setuge RC:$lhs, RC:$rhs),
+-            (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
++                (XORi (SLTuOp RC:$lhs, RC:$rhs), 1)>;
+ }
+ 
+-defm : SeteqPats<CPURegs>;
+-defm : SetltPats<CPURegs>;
+-defm : SetlePats<CPURegs>;
+-defm : SetgtPats<CPURegs>;
+-defm : SetgePats<CPURegs>;
++multiclass SetgeImmPats<RegisterClass RC, Instruction SLTiOp,
++                        Instruction SLTiuOp> {
++  def : Pat<(setge RC:$lhs, immSExt16:$rhs),
++                (XORi (SLTiOp RC:$lhs, immSExt16:$rhs), 1)>;
++  def : Pat<(setuge RC:$lhs, immSExt16:$rhs),
++                (XORi (SLTiuOp RC:$lhs, immSExt16:$rhs), 1)>;
++}
++
++defm : SeteqPats<CPURegs, SLTiu, XOR, SLTu, ZERO>;
++defm : SetlePats<CPURegs, SLT, SLTu>;
++defm : SetgtPats<CPURegs, SLT, SLTu>;
++defm : SetgePats<CPURegs, SLT, SLTu>;
++defm : SetgeImmPats<CPURegs, SLTi, SLTiu>;
+diff -Naur Chapter12_1/Cpu0RegisterInfo.td Chapter12_2/Cpu0RegisterInfo.td
+--- Chapter12_1/Cpu0RegisterInfo.td	2013-09-20 15:06:09.000000000 +0800
++++ Chapter12_2/Cpu0RegisterInfo.td	2013-09-20 15:06:09.000000000 +0800
+@@ -41,7 +41,7 @@
+   def S2   : Cpu0GPRReg< 9, "9">,    DwarfRegNum<[9]>;
+   def GP   : Cpu0GPRReg< 10, "gp">,  DwarfRegNum<[10]>;
+   def FP   : Cpu0GPRReg< 11, "fp">,  DwarfRegNum<[11]>;
+-  def SW   : Cpu0GPRReg< 12, "sw">,   DwarfRegNum<[12]>;
++  def T0   : Cpu0GPRReg< 12, "t0">,   DwarfRegNum<[12]>;
+   def SP   : Cpu0GPRReg< 13, "sp">,   DwarfRegNum<[13]>;
+   def LR   : Cpu0GPRReg< 14, "lr">,   DwarfRegNum<[14]>;
+   def PC   : Cpu0GPRReg< 15, "pc">,   DwarfRegNum<[15]>;
+@@ -69,12 +69,9 @@
+   // Reserved
+   GP, FP, 
+   // Not preserved across procedure calls
+-  SW, 
++  T0, 
+   // Reserved
+   SP, LR, PC)>;
+ 
+ // Hi/Lo Registers
+ def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
+-
+-// Status Registers
+-def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
+diff -Naur Chapter12_1/Disassembler/Cpu0Disassembler.cpp Chapter12_2/Disassembler/Cpu0Disassembler.cpp
+--- Chapter12_1/Disassembler/Cpu0Disassembler.cpp	2013-09-20 15:06:09.000000000 +0800
++++ Chapter12_2/Disassembler/Cpu0Disassembler.cpp	2013-09-20 15:06:09.000000000 +0800
+@@ -55,7 +55,7 @@
+   Cpu0::ZERO, Cpu0::AT, Cpu0::V0, Cpu0::V1,
+   Cpu0::A0, Cpu0::A1, Cpu0::T9, Cpu0::S0, 
+   Cpu0::S1, Cpu0::S2, Cpu0::GP, Cpu0::FP, 
+-  Cpu0::SW, Cpu0::SP, Cpu0::LR, Cpu0::PC
++  Cpu0::T0, Cpu0::SP, Cpu0::LR, Cpu0::PC
+ };
+ 
+ static DecodeStatus DecodeCPURegsRegisterClass(MCInst &Inst,
+@@ -200,71 +200,13 @@
+   return MCDisassembler::Success;
+ }
+ 
+-/* CMP instruction define $rc and then $ra, $rb; The printOperand() print 
+-operand 1 and operand 2 (operand 0 is $rc and operand 1 is $ra), so we Create 
+-register $rc first and create $ra next, as follows,
+-
+-// Cpu0InstrInfo.td
+-class CmpInstr<bits<8> op, string instr_asm, 
+-                    InstrItinClass itin, RegisterClass RC, RegisterClass RD, bit isComm = 0>:
+-  FA<op, (outs RD:$rc), (ins RC:$ra, RC:$rb),
+-     !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
+-
+-// Cpu0AsmWriter.inc
+-void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) {
+-...
+-  case 3:
+-    // CMP, JEQ, JGE, JGT, JLE, JLT, JNE
+-    printOperand(MI, 1, O); 
+-    break;
+-...
+-  case 1:
+-    // CMP
+-    printOperand(MI, 2, O); 
+-    return;
+-    break;
+-*/
+-static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
+-                                       unsigned Insn,
+-                                       uint64_t Address,
+-                                       const void *Decoder) {
+-  int Reg_a = (int)fieldFromInstruction(Insn, 20, 4);
+-  int Reg_b = (int)fieldFromInstruction(Insn, 16, 4);
+-  int Reg_c = (int)fieldFromInstruction(Insn, 12, 4);
+-
+-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_c]));
+-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_a]));
+-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_b]));
+-  return MCDisassembler::Success;
+-}
+-
+-/* CBranch instruction define $ra and then imm24; The printOperand() print 
+-operand 1 (operand 0 is $ra and operand 1 is imm24), so we Create register 
+-operand first and create imm24 next, as follows,
+-
+-// Cpu0InstrInfo.td
+-class CBranch<bits<8> op, string instr_asm, RegisterClass RC,
+-                   list<Register> UseRegs>:
+-  FJ<op, (outs), (ins RC:$ra, brtarget:$addr),
+-             !strconcat(instr_asm, "\t$addr"),
+-             [(brcond RC:$ra, bb:$addr)], IIBranch> {
+-
+-// Cpu0AsmWriter.inc
+-void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) {
+-...
+-  case 3:
+-    // CMP, JEQ, JGE, JGT, JLE, JLT, JNE
+-    printOperand(MI, 1, O); 
+-    break;
+-*/
+ static DecodeStatus DecodeBranchTarget(MCInst &Inst,
+                                        unsigned Insn,
+                                        uint64_t Address,
+                                        const void *Decoder) {
+-  int BranchOffset = fieldFromInstruction(Insn, 0, 24);
+-  if (BranchOffset > 0x8fffff)
+-  	BranchOffset = -1*(0x1000000 - BranchOffset);
+-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[0]));
++  int BranchOffset = fieldFromInstruction(Insn, 0, 16);
++  if (BranchOffset > 0x8fff)
++  	BranchOffset = -1*(0x10000 - BranchOffset);
+   Inst.addOperand(MCOperand::CreateImm(BranchOffset));
+   return MCDisassembler::Success;
+ }
+diff -Naur Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter12_2/MCTargetDesc/Cpu0AsmBackend.cpp
+--- Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-09-20 15:06:09.000000000 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0AsmBackend.cpp	2013-09-20 15:06:09.000000000 +0800
+@@ -38,6 +38,7 @@
+   case Cpu0::fixup_Cpu0_LO16:
+   case Cpu0::fixup_Cpu0_GOT_LO16:
+     break;
++  case Cpu0::fixup_Cpu0_PC16:
+   case Cpu0::fixup_Cpu0_PC24:
+     // So far we are only using this type for branches.
+     // For branches we start 1 instruction after the branch
+@@ -142,6 +143,7 @@
+       { "fixup_Cpu0_LITERAL",      0,     16,   0 },
+       { "fixup_Cpu0_GOT_Global",   0,     16,   0 },
+       { "fixup_Cpu0_GOT_Local",    0,     16,   0 },
++      { "fixup_Cpu0_PC16",         0,     16,  MCFixupKindInfo::FKF_IsPCRel },
+       { "fixup_Cpu0_PC24",         0,     24,  MCFixupKindInfo::FKF_IsPCRel },
+       { "fixup_Cpu0_CALL24",       0,     24,   0 },
+       { "fixup_Cpu0_GPREL32",      0,     32,   0 },
+diff -Naur Chapter12_1/MCTargetDesc/Cpu0BaseInfo.h Chapter12_2/MCTargetDesc/Cpu0BaseInfo.h
+--- Chapter12_1/MCTargetDesc/Cpu0BaseInfo.h	2013-09-20 15:06:09.000000000 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0BaseInfo.h	2013-09-20 15:06:09.000000000 +0800
+@@ -139,7 +139,7 @@
+     return 10;
+   case Cpu0::FP:
+     return 11;
+-  case Cpu0::SW:
++  case Cpu0::T0:
+     return 12;
+   case Cpu0::SP:
+     return 13;
+diff -Naur Chapter12_1/MCTargetDesc/Cpu0FixupKinds.h Chapter12_2/MCTargetDesc/Cpu0FixupKinds.h
+--- Chapter12_1/MCTargetDesc/Cpu0FixupKinds.h	2013-09-20 15:06:09.000000000 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0FixupKinds.h	2013-09-20 15:06:09.000000000 +0800
+@@ -53,8 +53,12 @@
+     // Local symbol fixup resulting in - R_CPU0_GOT16.
+     fixup_Cpu0_GOT_Local,
+ 
++    // PC relative branch fixup resulting in - R_CPU0_PC16.
++    // cpu0 PC16, e.g. beq
++    fixup_Cpu0_PC16,
++    
+     // PC relative branch fixup resulting in - R_CPU0_PC24.
+-    // cpu0 PC24, e.g. jeq
++    // cpu0 PC24, e.g. jmp
+     fixup_Cpu0_PC24,
+ 
+     // resulting in - R_CPU0_CALL24.
+diff -Naur Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter12_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+--- Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-09-20 15:06:09.000000000 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-09-20 15:06:09.000000000 +0800
+@@ -158,7 +158,7 @@
+ 
+   const MCExpr *Expr = MO.getExpr();
+   Fixups.push_back(MCFixup::Create(0, Expr,
+-                                   MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
++                                   MCFixupKind(Cpu0::fixup_Cpu0_PC16)));
+   return 0;
+ }
+ 
+@@ -177,7 +177,7 @@
+   assert(MO.isExpr() && "getJumpTargetOpValue expects only expressions");
+ 
+   const MCExpr *Expr = MO.getExpr();
+-  if (Opcode == Cpu0::JSUB)
++  if (Opcode == Cpu0::JSUB || Opcode == Cpu0::JMP)
+     Fixups.push_back(MCFixup::Create(0, Expr,
+                                      MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
+   else if (Opcode == Cpu0::SWI)

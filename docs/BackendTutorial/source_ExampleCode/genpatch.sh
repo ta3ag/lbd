@@ -6,17 +6,16 @@ diff -Naur Chapter3_4/ Chapter4_1/ > 4-1.patch
 diff -Naur Chapter4_1/ Chapter4_2 > 4-2.patch
 diff -Naur Chapter4_2/ Chapter5_1 > 5-1.patch
 diff -Naur Chapter5_1/ Chapter6_1/ > 6-1.patch
-diff -Naur Chapter6_1/ Chapter6_2/ > 6-2.patch
-diff -Naur Chapter6_2/ Chapter6_3/ > 6-3.patch
-diff -Naur Chapter6_3/ Chapter7_1/ > 7-1.patch
+diff -Naur Chapter6_1/ Chapter7_1/ > 7-1.patch
 diff -Naur Chapter7_1/ Chapter8_1/ > 8-1.patch
-diff -Naur Chapter8_1/ Chapter8_2/ > 8-2.patch
-diff -Naur Chapter8_2/ Chapter8_3/ > 8-3.patch
-diff -Naur Chapter8_3/ Chapter8_4/ > 8-4.patch
-diff -Naur Chapter8_4/ Chapter8_4_2/ > 8-4-2.patch
-diff -Naur Chapter8_4/ Chapter9_1/ > 9-1.patch
-diff -Naur Chapter9_1/ Chapter10_1/ > 10-1.patch
-diff -Naur Chapter10_1/ Chapter10_2/ > 10-2.patch
-diff -Naur Chapter10_2/ Chapter11_1/ > 11-1.patch
+diff -Naur Chapter8_1/ Chapter9_1/ > 9-1.patch
+diff -Naur Chapter9_1/ Chapter9_2/ > 9-2.patch
+diff -Naur Chapter9_2/ Chapter9_3/ > 9-3.patch
+diff -Naur Chapter9_3/ Chapter9_4/ > 9-4.patch
+diff -Naur Chapter9_4/ Chapter9_4_2/ > 9-4-2.patch
+diff -Naur Chapter9_4/ Chapter10_1/ > 10-1.patch
+diff -Naur Chapter10_1/ Chapter11_1/ > 11-1.patch
 diff -Naur Chapter11_1/ Chapter11_2/ > 11-2.patch
+diff -Naur Chapter11_2/ Chapter12_1/ > 12-1.patch
+diff -Naur Chapter12_1/ Chapter12_2/ > 12-2.patch
 

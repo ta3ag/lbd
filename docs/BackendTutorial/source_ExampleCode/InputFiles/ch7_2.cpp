@@ -1,6 +1,6 @@
-// clang -c ch6_3.cpp -emit-llvm -o ch6_3.bc
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch6_3.bc -o ch6_3.cpu0.s
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch6_3.bc -o ch6_3.cpu0.static.s
+// clang -target mips-unknown-linux-gnu -c ch7_2.cpp -emit-llvm -o ch7_2.bc
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_2.bc -o -
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_2.bc -o -
 
 /// start
 struct Date
@@ -15,7 +15,7 @@ struct Date
 
 unsigned char b[4] = {'a', 'b', 'c', '\0'};
 
-int main()
+int test_char()
 {
   unsigned char a = b[1];
   char c = (char)b[1];

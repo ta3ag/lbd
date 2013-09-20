@@ -729,33 +729,33 @@ information since we add the relocation records information in ELF.h as follows,
 llvm-objdump -d
 ~~~~~~~~~~~~~~~~
 
-Run Chapter8_9/ and command ``llvm-objdump -d`` for dump file from elf to hex as 
-follows, 
+Run the last Chapter example code with command ``llvm-objdump -d`` for dump 
+file from elf to hex as follows, 
 
 .. code-block:: bash
 
-  JonathantekiiMac:InputFiles Jonathan$ clang -c ch7_1_1.cpp -emit-llvm -o 
-  ch7_1_1.bc
+  JonathantekiiMac:InputFiles Jonathan$ clang -c ch8_1_1.cpp -emit-llvm -o 
+  ch8_1_1.bc
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-  build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch7_1_1.bc 
-  -o ch7_1_1.cpu0.o
+  build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch8_1_1.bc 
+  -o ch8_1_1.cpu0.o
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-  build/bin/Debug/llvm-objdump -d ch7_1_1.cpu0.o
+  build/bin/Debug/llvm-objdump -d ch8_1_1.cpu0.o
   
-  ch7_1_1.cpu0.o: file format ELF32-unknown
+  ch8_1_1.cpu0.o: file format ELF32-unknown
   
   Disassembly of section .text:error: no disassembler for target cpu0-unknown-
   unknown
 
-To support llvm-objdump, the following code added to Chapter9_1/.
+To support llvm-objdump, the following code added to Chapter10_1/.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/CMakeLists.txt
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/CMakeLists.txt
 .. code-block:: c++
 
   tablegen(LLVM Cpu0GenDisassemblerTables.inc -gen-disassembler)
   ...
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/LLVMBuild.txt
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/LLVMBuild.txt
 .. code-block:: c++
 
   [common]
@@ -764,7 +764,7 @@ To support llvm-objdump, the following code added to Chapter9_1/.
   has_disassembler = 1
   ...
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   class CmpInstr<bits<8> op, string instr_asm, 
@@ -804,14 +804,14 @@ To support llvm-objdump, the following code added to Chapter9_1/.
   
   def JR      : JumpFR<0x2C, "ret", CPURegs>;
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/CMakeLists.txt
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/CMakeLists.txt
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/Disassembler/CMakeLists.txt
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter10_1/Disassembler/CMakeLists.txt
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/LLVMBuild.txt
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/LLVMBuild.txt
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/Disassembler/LLVMBuild.txt
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter10_1/Disassembler/LLVMBuild.txt
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/Cpu0Disassembler.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_1/Disassembler/Cpu0Disassembler.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter10_1/Disassembler/Cpu0Disassembler.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter10_1/Disassembler/Cpu0Disassembler.cpp
   
 
 As above code, it add directory Disassembler for handling the obj to assembly 
@@ -847,18 +847,18 @@ for decode in disassembler.
 The IR node Cpu0ISD::Ret is created in LowerReturn() which called at function 
 exit point.
 
-Now, run Chapter9_1/ with command ``llvm-objdump -d ch7_1_1.cpu0.o`` will get 
+Now, run Chapter10_1/ with command ``llvm-objdump -d ch8_1_1.cpu0.o`` will get 
 the following result.
 
 .. code-block:: bash
 
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
   build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj 
-  ch7_1_1.bc -o ch7_1_1.cpu0.o
+  ch8_1_1.bc -o ch8_1_1.cpu0.o
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-  build/bin/Debug/llvm-objdump -d ch7_1_1.cpu0.o
+  build/bin/Debug/llvm-objdump -d ch8_1_1.cpu0.o
   
-  ch7_1_1.cpu0.o:	file format ELF32-CPU0
+  ch8_1_1.cpu0.o:	file format ELF32-CPU0
   
   Disassembly of section .text:
   main:

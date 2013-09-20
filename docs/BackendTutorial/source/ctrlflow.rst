@@ -10,10 +10,10 @@ translate these control flow statements of llvm IR into cpu0 instructions.
 Control flow statement
 -----------------------
 
-Run ch7_1_1.cpp with clang will get result as follows,
+Run ch8_1_1.cpp with clang will get result as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_1_1.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch7_1_1.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_1_1.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_1_1.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -203,7 +203,7 @@ We want to translate them into cpu0 instructions DAG as follows,
 For the first addiu instruction as above which move Constant<c> into register, 
 we have defined it before by the following code,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
     // Small immediates
@@ -218,7 +218,7 @@ we have defined it before by the following code,
 For the last IR br, we translate unconditional branch (br BasicBlock_01) into 
 jmp BasicBlock_01 by the following pattern definition,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
     def brtarget    : Operand<OtherVT> {
@@ -246,7 +246,7 @@ one-to-one IR to machine instruction translation we have experienced until now.
 To solve this chained IR to machine instructions translation, we define the 
 following pattern,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
     // brcond patterns
@@ -293,8 +293,8 @@ is correct even an instruction is inserted between CMP and JNE as follows,
 The reserved registers setting by the following 
 function code we defined before,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0RegisterInfo.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0RegisterInfo.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0RegisterInfo.cpp
     :start-after: return CSR_O32_RegMask;
     :end-before: //- If eliminateFrameIndex() is empty
 
@@ -307,7 +307,7 @@ The copyPhysReg() is called when DestReg and SrcReg belong to different Register
 Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is 
 "cmp $SW, $ZERO, $rc".
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0RegisterInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0RegisterInfo.td
 .. code-block:: c++
 
   //===----------------------------------------------------------------------===//
@@ -328,7 +328,7 @@ Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
   def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
   
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.cpp
 .. code-block:: c++
 
   //- Called when DestReg and SrcReg belong to different Register Class.
@@ -353,13 +353,13 @@ Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
     }
 
 
-Chapter7_1/ include support for control flow statement. 
+Chapter8_1/ include support for control flow statement. 
 Run with it as well as the following ``llc`` option, you can get the obj file 
 and dump it's content by hexdump as follows,
 
 .. code-block:: bash
 
-    118-165-79-206:InputFiles Jonathan$ cat ch7_1_1.cpu0.s 
+    118-165-79-206:InputFiles Jonathan$ cat ch8_1_1.cpu0.s 
     ...
     ld  $4, 36($fp)
     cmp $sw, $4, $3
@@ -377,9 +377,9 @@ and dump it's content by hexdump as follows,
     
     118-165-79-206:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
     cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj 
-    ch7_1_1.bc -o ch7_1_1.cpu0.o
+    ch8_1_1.bc -o ch8_1_1.cpu0.o
 
-    118-165-79-206:InputFiles Jonathan$ hexdump ch7_1_1.cpu0.o 
+    118-165-79-206:InputFiles Jonathan$ hexdump ch8_1_1.cpu0.o 
         // jmp offset is 0x10=16 bytes which is correct
     0000080 ...................................... 10 43 00 00
     0000090 31 00 00 10 36 00 00 00 ..........................
@@ -424,12 +424,12 @@ one instruction (bne).
 
 Finally we list the code added for full support of control flow statement,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
     :start-after: EmitInstruction(Binary, Size, OS);
     :end-before: /// getMachineOpValue - Return binary encoding of operand
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0MCInstLower.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0MCInstLower.cpp
 .. code-block:: c++
 
     MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
@@ -470,7 +470,7 @@ Finally we list the code added for full support of control flow statement,
       ...
     }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.cpp
 .. code-block:: c++
 
     //- Called when DestReg and SrcReg belong to different Register Class.
@@ -494,7 +494,7 @@ Finally we list the code added for full support of control flow statement,
       ...
     }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelLowering.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
     Cpu0TargetLowering::
@@ -515,7 +515,7 @@ Finally we list the code added for full support of control flow statement,
       ...
     }
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrFormats.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrFormats.td
 .. code-block:: c++
 
 	//===----------------------------------------------------------------------===//
@@ -532,7 +532,7 @@ Finally we list the code added for full support of control flow statement,
 	  let Inst{23-0} = addr;
 	}
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
     // Cpu0InstrInfo.td
@@ -611,15 +611,15 @@ Finally we list the code added for full support of control flow statement,
     
     defm : BrcondPats<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
 
-The ch7_1_2.cpp is for **“nest if”** test. The ch7_1_3.cpp is the 
+The ch8_1_2.cpp is for **“nest if”** test. The ch8_1_3.cpp is the 
 **“for loop”** as well as **“while loop”**, **“continue”**, **“break”**, 
-**“goto”** test. The ch7_1_6.cpp is for **“goto”** test.
+**“goto”** test. The ch8_1_6.cpp is for **“goto”** test.
 You can run with them if you like to test more.
 
-Finally, Chapter7_1/ support the local array definition by add the LowerCall() 
+Finally, Chapter8_1/ support the local array definition by add the LowerCall() 
 empty function in Cpu0ISelLowering.cpp as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelLowering.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   // Cpu0ISelLowering.cpp
@@ -630,16 +630,16 @@ empty function in Cpu0ISelLowering.cpp as follows,
   }
 
 
-With this LowerCall(), it can translate ch7_1_4.cpp, ch7_1_4.bc to 
-ch7_1_4.cpu0.s as follows,
+With this LowerCall(), it can translate ch8_1_4.cpp, ch8_1_4.bc to 
+ch8_1_4.cpu0.s as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_1_4.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch7_1_4.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_1_4.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_1_4.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
-    ; ModuleID = 'ch7_1_4 .bc'
+    ; ModuleID = 'ch8_1_4 .bc'
     target datalayout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-
     f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128"
     target triple = "i386-apple-macosx10.8.0"
@@ -658,10 +658,10 @@ ch7_1_4.cpu0.s as follows,
       ret i32 0
     }
     
-    118-165-79-206:InputFiles Jonathan$ cat ch7_1_4.cpu0.s 
+    118-165-79-206:InputFiles Jonathan$ cat ch8_1_4.cpu0.s 
         .section .mdebug.abi32
         .previous
-        .file   "ch7_1_4.bc"
+        .file   "ch8_1_4.bc"
         .text
         .globl  main
         .align  2
@@ -712,25 +712,25 @@ ch7_1_4.cpu0.s as follows,
         .4byte  2                       # 0x2
         .size   $_ZZ4mainE1a, 12
 
-The ch7_1_5.cpp is for test C operators **==, !=, &&, ||**. No code need to 
+The ch8_1_5.cpp is for test C operators **==, !=, &&, ||**. No code need to 
 add since we have take care them before. 
 But it can be test only when the control flow statement support is ready, as 
 follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_1_5.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch7_1_5.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_1_5.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_1_5.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
-  118-165-78-230:InputFiles Jonathan$ clang -c ch7_1_5.cpp -emit-llvm -o ch7_1_5.bc
+  118-165-78-230:InputFiles Jonathan$ clang -c ch8_1_5.cpp -emit-llvm -o ch8_1_5.bc
   118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_1_5.bc -o 
-  ch7_1_5.cpu0.s
-  118-165-78-230:InputFiles Jonathan$ cat ch7_1_5.cpu0.s 
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_1_5.bc -o 
+  ch8_1_5.cpu0.s
+  118-165-78-230:InputFiles Jonathan$ cat ch8_1_5.cpu0.s 
     .section .mdebug.abi32
     .previous
-    .file "ch7_1_5.bc"
+    .file "ch8_1_5.bc"
     .text
     .globl  main
     .align  2
