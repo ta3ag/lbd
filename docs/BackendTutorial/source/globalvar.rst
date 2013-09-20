@@ -1407,5 +1407,3 @@ variables in small 16 addressable area".
 .. [#] http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf
 
 .. [#] http://llvm.org/docs/WritingAnLLVMBackend.html
-
-.. [#] http://llvm.org/docs/LangRef.html

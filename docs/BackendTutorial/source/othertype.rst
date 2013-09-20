@@ -313,65 +313,67 @@ Cpu0 borrow the Mips ABI which long is 32-bits and long long is 64-bits for C
 language type. To support long long, we add the following code to 
 Chapter7_1/.
 
+.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelDAGToDAG.cpp
+.. code-block:: c++
 
-/// Select instructions not customized! Used for
-/// expanded, promoted and normal instructions
-SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
-  unsigned Opcode = Node->getOpcode();
-  ...
-  switch(Opcode) {
-  default: break;
-
-  case ISD::SUBE:
-  case ISD::ADDE: {
-    SDValue InFlag = Node->getOperand(2), CmpLHS;
-    unsigned Opc = InFlag.getOpcode(); (void)Opc;
-    assert(((Opc == ISD::ADDC || Opc == ISD::ADDE) ||
-            (Opc == ISD::SUBC || Opc == ISD::SUBE)) &&
-           "(ADD|SUB)E flag operand must come from (ADD|SUB)C/E insn");
-
-    unsigned MOp;
-    if (Opcode == ISD::ADDE) {
-      CmpLHS = InFlag.getValue(0);
-      MOp = Cpu0::ADDu;
-    } else {
-      CmpLHS = InFlag.getOperand(0);
-      MOp = Cpu0::SUBu;
+  /// Select instructions not customized! Used for
+  /// expanded, promoted and normal instructions
+  SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
+    unsigned Opcode = Node->getOpcode();
+    ...
+    switch(Opcode) {
+    default: break;
+  
+    case ISD::SUBE:
+    case ISD::ADDE: {
+      SDValue InFlag = Node->getOperand(2), CmpLHS;
+      unsigned Opc = InFlag.getOpcode(); (void)Opc;
+      assert(((Opc == ISD::ADDC || Opc == ISD::ADDE) ||
+              (Opc == ISD::SUBC || Opc == ISD::SUBE)) &&
+             "(ADD|SUB)E flag operand must come from (ADD|SUB)C/E insn");
+  
+      unsigned MOp;
+      if (Opcode == ISD::ADDE) {
+        CmpLHS = InFlag.getValue(0);
+        MOp = Cpu0::ADDu;
+      } else {
+        CmpLHS = InFlag.getOperand(0);
+        MOp = Cpu0::SUBu;
+      }
+  
+      SDValue Ops[] = { CmpLHS, InFlag.getOperand(1) };
+  
+      SDValue LHS = Node->getOperand(0);
+      SDValue RHS = Node->getOperand(1);
+  
+      EVT VT = LHS.getValueType();
+      SDNode *Carry = CurDAG->getMachineNode(Cpu0::SLTu, dl, VT, Ops);
+      SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, dl, VT,
+                                                SDValue(Carry,0), RHS);
+  
+      return CurDAG->SelectNodeTo(Node, MOp, VT, MVT::Glue,
+                                  LHS, SDValue(AddCarry,0));
     }
-
-    SDValue Ops[] = { CmpLHS, InFlag.getOperand(1) };
-
-    SDValue LHS = Node->getOperand(0);
-    SDValue RHS = Node->getOperand(1);
-
-    EVT VT = LHS.getValueType();
-    SDNode *Carry = CurDAG->getMachineNode(Cpu0::SLTu, dl, VT, Ops);
-    SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, dl, VT,
-                                              SDValue(Carry,0), RHS);
-
-    return CurDAG->SelectNodeTo(Node, MOp, VT, MVT::Glue,
-                                LHS, SDValue(AddCarry,0));
+  
+    /// Mul with two results
+    case ISD::SMUL_LOHI:
+    case ISD::UMUL_LOHI: {
+      if (NodeTy == MVT::i32)
+        MultOpc = (Opcode == ISD::UMUL_LOHI ? Cpu0::MULTu : Cpu0::MULT);
+  
+      std::pair<SDNode*, SDNode*> LoHi = SelectMULT(Node, MultOpc, dl, NodeTy,
+                                                    true, true);
+  
+      if (!SDValue(Node, 0).use_empty())
+        ReplaceUses(SDValue(Node, 0), SDValue(LoHi.first, 0));
+  
+      if (!SDValue(Node, 1).use_empty())
+        ReplaceUses(SDValue(Node, 1), SDValue(LoHi.second, 0));
+  
+      return NULL;
+    }
+    ...
   }
-
-  /// Mul with two results
-  case ISD::SMUL_LOHI:
-  case ISD::UMUL_LOHI: {
-    if (NodeTy == MVT::i32)
-      MultOpc = (Opcode == ISD::UMUL_LOHI ? Cpu0::MULTu : Cpu0::MULT);
-
-    std::pair<SDNode*, SDNode*> LoHi = SelectMULT(Node, MultOpc, dl, NodeTy,
-                                                  true, true);
-
-    if (!SDValue(Node, 0).use_empty())
-      ReplaceUses(SDValue(Node, 0), SDValue(LoHi.first, 0));
-
-    if (!SDValue(Node, 1).use_empty())
-      ReplaceUses(SDValue(Node, 1), SDValue(LoHi.second, 0));
-
-    return NULL;
-  }
-  ...
-}
 
 
 Run Chapter7_1 with ch7_4.cpp to get the result as follows,
@@ -814,3 +816,5 @@ follows.
   addiu $2, $2, %lo(a)
   ld  $2, 4($2)
 
+
+.. [#] http://llvm.org/docs/LangRef.html
