@@ -1,7 +1,7 @@
 .. _sec-globalvars:
 
-Global variables, structs and arrays, other type
-=================================================
+Global variables
+==================
 
 In the previous two chapters, we only access the local variables. 
 This chapter will deal global variable access translation. 
@@ -996,7 +996,7 @@ an assembler operation generates more than one machine language instruction,
 reference Mips ABI [#]_.
 
 Following code will exspand .cpload into machine instructions as below. 
-"09a00000 1eaa0010 09aa0000 13aa6000" is the **.cpload** machine instructions 
+"0fa00000 09aa0000 13aa6000" is the **.cpload** machine instructions 
 displayed in comments of Cpu0MCInstLower.cpp.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MCInstLower.cpp
@@ -1014,8 +1014,7 @@ displayed in comments of Cpu0MCInstLower.cpp.
   ch6_1.cpu0.o:     file format elf32-big
 
   Contents of section .text:
-   0000 09a00000 1eaa0010 09aa0000 13aa6000  ..............`.
-   0010 09ddfff8 09200000 022d0004 022d0000  ..... ...-...-..
+   0000 0fa00000 09aa0000 13aa6000  ...
   ...
 
   118-165-76-131:InputFiles Jonathan$ gobjdump -tr ch6_1.cpu0.o 

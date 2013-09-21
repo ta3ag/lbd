@@ -52,7 +52,12 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.3.4, Not release yet
+Version 3.3.5, Not release yet.
+
+Version 3.3.4, Released September 21, 2013
+  Fix Chapter Global variables error for LUi instructions and the material move
+  to Chapter Other data type.
+  Update regression test items.
 
 Version 3.3.3, Released September 20, 2013
   Add Chapter othertype

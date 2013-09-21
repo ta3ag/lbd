@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Global variables, structs and arrays, other type &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
+    <title>Global variables &mdash; Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</title>
     
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.3',
+        VERSION:     '3.3.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -36,7 +36,7 @@
   <body>
       <div class="header"><h1 class="heading"><a href="index.html">
           <span>Tutorial: Creating an LLVM Backend for the Cpu0 Architecture</span></a></h1>
-        <h2 class="heading"><span>Global variables, structs and arrays, other type</span></h2>
+        <h2 class="heading"><span>Global variables</span></h2>
       </div>
       <div class="topnav">
       
@@ -52,8 +52,8 @@
       <div class="content">
         
         
-  <div class="section" id="global-variables-structs-and-arrays-other-type">
-<span id="sec-globalvars"></span><h1>Global variables, structs and arrays, other type<a class="headerlink" href="#global-variables-structs-and-arrays-other-type" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="global-variables">
+<span id="sec-globalvars"></span><h1>Global variables<a class="headerlink" href="#global-variables" title="Permalink to this headline">¶</a></h1>
 <p>In the previous two chapters, we only access the local variables.
 This chapter will deal global variable access translation.</p>
 <p>The global variable DAG translation is different from the previous DAG
@@ -1254,7 +1254,7 @@ causes the assembler to print a warning whenever
 an assembler operation generates more than one machine language instruction,
 reference Mips ABI <a class="footnote-reference" href="#id7" id="id3">[2]</a>.</p>
 <p>Following code will exspand .cpload into machine instructions as below.
-&#8220;09a00000 1eaa0010 09aa0000 13aa6000&#8221; is the <strong>.cpload</strong> machine instructions
+&#8220;0fa00000 09aa0000 13aa6000&#8221; is the <strong>.cpload</strong> machine instructions
 displayed in comments of Cpu0MCInstLower.cpp.</p>
 <p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MCInstLower.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
@@ -1302,8 +1302,7 @@ obj ch6_1.bc -o ch6_1.cpu0.o
 ch6_1.cpu0.o:     file format elf32-big
 
 Contents of section .text:
- 0000 09a00000 1eaa0010 09aa0000 13aa6000  ..............<span class="sb">`</span>.
- 0010 09ddfff8 09200000 022d0004 022d0000  ..... ...-...-..
+ 0000 0fa00000 09aa0000 13aa6000  ...
 ...
 
 118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>gobjdump -tr ch6_1.cpu0.o
