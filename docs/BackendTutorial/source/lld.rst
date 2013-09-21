@@ -280,32 +280,12 @@ backend as follows,
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/llvm-objdump/elf2hex.cpp
 
 .. rubric:: LLVMBackendTutorialExampleCode/llvm-objdump/llvm-objdump.cpp
-.. code-block:: c++
-  
-  static void DumpObject(const ObjectFile *o) {
-    outs() << '\n';
-    if (ConvertElf2Hex)
-      outs() << "/*";
-    outs() << o->getFileName()
-           << ":\tfile format " << o->getFileFormatName();
-    if (ConvertElf2Hex)
-      outs() << "*/";
-    ...
-    if (ConvertElf2Hex)
-      Elf2Hex(o);
-    ...
-  }
-  ...
-  int main(int argc, char **argv) {
-    ...
-    if (!Disassemble
-        ...
-        && !ConvertElf2Hex
-        ...) {
-      ...
-    }
-    ...
-  }
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/llvm-objdump/llvm-objdump.cpp
+    :start-after: // 1 llvm-objdump -elf2hex code update begin:
+    :end-before: // 1 llvm-objdump -elf2hex code udpate end:
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/llvm-objdump/llvm-objdump.cpp
+    :start-after: // 2 llvm-objdump -elf2hex code update begin:
+    :end-before: // 2 llvm-objdump -elf2hex code udpate end:
 
 
 Run
