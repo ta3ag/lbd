@@ -273,13 +273,13 @@ The code added on lld to support Cpu0 ELF as follows,
 ELF to Hex
 -----------
 
-Update llvm-objdump driver to support ELF to Hex for Cpu0 backend as follows,
+Add elf2hex.cpp and update llvm-objdump driver to support ELF to Hex for Cpu0 
+backend as follows,
+
+.. rubric:: LLVMBackendTutorialExampleCode/llvm-objdump/elf2hex.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/llvm-objdump/elf2hex.cpp
 
 .. rubric:: LLVMBackendTutorialExampleCode/llvm-objdump/llvm-objdump.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/llvm-objdump/llvm-objdump.cpp
-    :start-after: // Code added for cpu0 -elf2hex begin:
-    :end-before: // Code added for cpu0 -elf2hex end:
-
 .. code-block:: c++
   
   static void DumpObject(const ObjectFile *o) {
