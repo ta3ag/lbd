@@ -1,6 +1,5 @@
-; DISABLE: llc -march=mips < %s | FileCheck %s
-; RUN: false
-; XFAIL: *
+; RUN: llc -march=cpu0  -relocation-model=pic -cpu0-use-small-section=false  < %s | FileCheck %s
+; RUN: llc -march=cpu0  -relocation-model=pic -cpu0-use-small-section=true  < %s | FileCheck %s
 
 @p = external global i32
 @q = external global i32
@@ -10,13 +9,13 @@ define void @f0() nounwind {
 entry:
 ; CHECK: jalr
 ; CHECK-NOT: got({{.*}})($gp)
-; CHECK: lw $gp
+; CHECK: ld $gp
 ; CHECK: jalr
 ; CHECK-NOT: got({{.*}})($gp)
-; CHECK: lw $gp
+; CHECK: ld $gp
 ; CHECK: jalr
 ; CHECK-NOT: got({{.*}})($gp)
-; CHECK: lw $gp
+; CHECK: ld $gp
   tail call void (...)* @f1() nounwind
   %tmp = load i32* @p, align 4
   tail call void @f2(i32 %tmp) nounwind

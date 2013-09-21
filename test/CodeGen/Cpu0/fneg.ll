@@ -1,4 +1,4 @@
-; RUN: llc  < %s -march=mipsel -mcpu=mips32 | FileCheck %s 
+; RUN: llc  < %s -march=cpu0el | FileCheck %s 
 
 define float @foo0(i32 %a, float %d) nounwind readnone {
 entry:
@@ -11,7 +11,7 @@ define double @foo1(i32 %a, double %d) nounwind readnone {
 entry:
 ; CHECK:     foo1
 ; CHECK-NOT: neg.d
-; CHECK:     jr
+; CHECK:     ret
   %sub = fsub double -0.000000e+00, %d
   ret double %sub
 }

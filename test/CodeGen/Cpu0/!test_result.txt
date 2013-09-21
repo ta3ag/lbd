@@ -2,10 +2,10 @@ test result:
 
 File                              Result v:pass x:fail        comment
 ------------------------------------------------------------------------------------------
-2008-06-05-Carry.ll                       *                   64 bits add not support in Cpu0
+2008-06-05-Carry.ll                       v                   64 bits add not support in Cpu0
 2008-07-03-SRet.ll                        v
 2008-07-15InternalConstant.ll             v
-addc.ll                                   *                   64 bits add not support in Cpu0
+addc.ll                                   v                   64 bits add not support in Cpu0
 addi.ll                                   v
 address-mode.ll                           v
 alloca.ll                                 v
@@ -25,5 +25,13 @@ eh-dwraf-cfa.ll                           *
 eh-return32.ll                            *
 eh-return64.ll                            x
 eh.ll                                     x
+ex2.ll                                    v
+fastcc.ll                                 x                   Fast Call. No need in Cpu0
+fneg.ll                                   v                   No call to hard float point instruction. Use soft float function call instead. Cpu0 only supply soft float, keep this test case in case of Cpu0 hard float instructions support in future, even it is no need at this point.
+fp-spill-reload.ll                        v
+frame-address.ll                          x                   Cpu0 bug
+global-address.ll                         v
+global-pointer.ll                         v
+gprestore.ll                              v
 sext_inreg.ll                             v
 

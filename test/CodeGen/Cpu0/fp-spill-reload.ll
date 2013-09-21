@@ -3,8 +3,8 @@
 
 define void @foo0(i32* nocapture %b) nounwind {
 entry:
-; CHECK: sw  $fp
-; CHECK: lw  $fp
+; CHECK: st  $fp
+; CHECK: ld  $fp
   %0 = load i32* %b, align 4
   %arrayidx.1 = getelementptr inbounds i32* %b, i32 1
   %1 = load i32* %arrayidx.1, align 4

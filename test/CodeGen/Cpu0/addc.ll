@@ -1,5 +1,5 @@
-; RUN: llc  < %s -march=mipsel | FileCheck %s 
-; RUN: llc  < %s -march=mips   | FileCheck %s
+; RUN: llc  < %s -march=cpu0el | FileCheck %s 
+; RUN: llc  < %s -march=cpu0   | FileCheck %s
 
 define void @f(i64 %l, i64* nocapture %p) nounwind {
 entry:
