@@ -53,7 +53,7 @@ Revision history
 ----------------
 
 Version 3.3.5, Not release yet.
-   Split the elf2hex code from modiified llvm-objdump.cpp to elf2hex.cpp.
+   Split the elf2hex code from modiified llvm-objdump.cpp to elf2hex.h.
 
 Version 3.3.4, Released September 21, 2013
   Fix Chapter Global variables error for LUi instructions and the material move

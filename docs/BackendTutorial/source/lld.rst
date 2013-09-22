@@ -276,8 +276,8 @@ ELF to Hex
 Add elf2hex.cpp and update llvm-objdump driver to support ELF to Hex for Cpu0 
 backend as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/llvm-objdump/elf2hex.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/llvm-objdump/elf2hex.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/llvm-objdump/elf2hex.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/llvm-objdump/elf2hex.h
 
 .. rubric:: LLVMBackendTutorialExampleCode/llvm-objdump/llvm-objdump.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/llvm-objdump/llvm-objdump.cpp

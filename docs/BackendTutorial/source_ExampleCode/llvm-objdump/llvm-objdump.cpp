@@ -752,7 +752,7 @@ static void PrintUnwindInfo(const ObjectFile *o) {
 
 // 1 llvm-objdump -elf2hex code update begin:
 
-#include "elf2hex.cpp"
+#include "elf2hex.h"
 
 static void DumpObject(const ObjectFile *o) {
   outs() << '\n';
