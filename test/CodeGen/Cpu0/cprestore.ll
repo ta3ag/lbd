@@ -1,12 +1,10 @@
-; DISABLE: llc -march=mipsel < %s | FileCheck %s
+; DISABLE: llc -march=cpu0el < %s | FileCheck %s
 ; RUN: false
 ; XFAIL: *
 
+; CHECK: .set nomacro
+; CHECK: .cprestore
 ; CHECK: .set macro
-; CHECK: .set at
-; CHECK-NEXT: .cprestore
-; CHECK: .set noat
-; CHECK-NEXT: .set nomacro
 
 ;%struct.S = type { [16384 x i32] }
 %struct.S = type { i32 }

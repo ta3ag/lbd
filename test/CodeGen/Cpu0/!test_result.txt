@@ -33,5 +33,12 @@ frame-address.ll                          x                   Cpu0 bug
 global-address.ll                         v
 global-pointer.ll                         v
 gprestore.ll                              v
+helloworld.ll                             v                   But need to check the rolocation-mode=pic generated code is correct or not.
+hf16_1.ll                                 v
+i32k.ll                                   v
+i64arg.ll                                 v
+imm.ll                                    v
+indirectcall.ll                           v
+init-array.ll                             x                   Do know the purpose.
 sext_inreg.ll                             v
 

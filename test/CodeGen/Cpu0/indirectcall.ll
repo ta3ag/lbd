@@ -2,7 +2,7 @@
 
 define void @foo0(void (i32)* nocapture %f1) nounwind {
 entry:
-; CHECK: jalr $25
+; CHECK: jalr $t9
   tail call void %f1(i32 13) nounwind
   ret void
 }

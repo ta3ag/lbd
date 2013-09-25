@@ -1,5 +1,6 @@
-; RUN: llc -march=cpu0  -relocation-model=pic -cpu0-use-small-section=false  < %s | FileCheck %s
-; RUN: llc -march=cpu0  -relocation-model=pic -cpu0-use-small-section=true  < %s | FileCheck %s
+; RUN: llc -march=cpu0  -relocation-model=pic < %s | FileCheck %s
+
+; check gprestore and PIC function call
 
 @p = external global i32
 @q = external global i32
@@ -7,15 +8,19 @@
 
 define void @f0() nounwind {
 entry:
-; CHECK: jalr
+; CHECK: .cprestore [[FS:[0-9]+]]
+; CHECK:	ld	$t9, %call24(f1)($gp)
+; CHECK: jalr $t9
+; CHECK: ld $gp, [[FS]]($sp)
 ; CHECK-NOT: got({{.*}})($gp)
-; CHECK: ld $gp
-; CHECK: jalr
+; CHECK:	ld	$t9, %call24(f2)($gp)
+; CHECK: jalr $t9
+; CHECK: ld $gp, [[FS]]($sp)
 ; CHECK-NOT: got({{.*}})($gp)
-; CHECK: ld $gp
-; CHECK: jalr
+; CHECK:	ld	$t9, %call24(f3)($gp)
+; CHECK: jalr $t9
+; CHECK: ld $gp, [[FS]]($sp)
 ; CHECK-NOT: got({{.*}})($gp)
-; CHECK: ld $gp
   tail call void (...)* @f1() nounwind
   %tmp = load i32* @p, align 4
   tail call void @f2(i32 %tmp) nounwind

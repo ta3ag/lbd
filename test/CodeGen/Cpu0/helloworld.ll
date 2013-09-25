@@ -1,4 +1,4 @@
-; RUN: llc  -march=mipsel -mcpu=mips16 -relocation-model=pic -O3 < %s | FileCheck %s -check-prefix=C1
+; RUN: llc  -march=cpu0el -relocation-model=pic < %s | FileCheck %s -check-prefix=PIC
 ; RUN: llc  -march=mipsel -mcpu=mips16 -relocation-model=pic -O3 < %s | FileCheck %s -check-prefix=C2
 ; RUN: llc  -march=mipsel -mcpu=mips16 -relocation-model=pic -O3 < %s | FileCheck %s -check-prefix=PE
 ; RUN: llc  -march=mipsel -mcpu=mips16 -relocation-model=static -O3 < %s | FileCheck %s -check-prefix=ST1
@@ -7,6 +7,7 @@
 ; RUN: llc  -march=mipsel -mcpu=mips16 -relocation-model=pic -O3 < %s | FileCheck %s -check-prefix=SR
 ; RUN: llc  -march=mipsel -mcpu=mips32  -relocation-model=pic -O3 < %s | FileCheck %s -check-prefix=SR32
 
+; check got .str as well as save/restore $lr
 
 @.str = private unnamed_addr constant [13 x i8] c"hello world\0A\00", align 1
 
@@ -15,43 +16,19 @@ entry:
   %call = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([13 x i8]* @.str, i32 0, i32 0))
   ret i32 0
 
-; SR: 	.set	mips16                  # @main
-
-; SR32: .set nomips16
-; SR32: .ent main
-; SR-NOT:  .set noreorder
-; SR-NOT:  .set nomacro
-; SR-NOT:  .set noat
-; SR32:  .set noreorder
-; SR32:  .set nomacro
-; SR32:  .set noat
-; SR:	save 	$ra, $s0, $s1, [[FS:[0-9]+]]
-; PE:	li	$[[T1:[0-9]+]], %hi(_gp_disp)
-; PE: 	addiu	$[[T2:[0-9]+]], $pc, %lo(_gp_disp)
-; PE:	sll	$[[T3:[0-9]+]], $[[T1]], 16
-; C1:	lw	${{[0-9]+}}, %got($.str)(${{[0-9]+}})
-; C2:	lw	${{[0-9]+}}, %call16(printf)(${{[0-9]+}})
-; C1:	addiu	${{[0-9]+}}, %lo($.str)
-; C2:	move	$25, ${{[0-9]+}}
-; C1:	move 	$gp, ${{[0-9]+}}
-; C1:	jalrc 	${{[0-9]+}}
-; SR:	restore 	$ra, $s0, $s1, [[FS]]
-; PE:	li	$2, 0
-; PE:	jrc 	$ra
-
-; ST1:  li	${{[0-9]+}}, %hi($.str)
-; ST1:  sll     ${{[0-9]+}}, ${{[0-9]+}}, 16
-; ST1:	addiu	${{[0-9]+}}, %lo($.str)
-; ST2:  li	${{[0-9]+}}, %hi($.str)
-; ST2:  jal     printf
+; PIC: .ent main
+; PIC: .set noreorder
+; PIC: .cpload $t9
+; PIC: .set nomacro
+; PIC: st $lr, [[FS:[0-9]+]]($sp)
+; PIC: ld	$[[R0:[0-9]+]], %got($.str)($gp)
+; PIC: addiu	${{[0-9]+}}, $[[R0:[0-9]+]], %lo($.str)
+; PIC: ld	$t9, %call24(printf)($gp)
+; PIC: jalr $t9
+; PIC: ld $lr, [[FS]]($sp)
 }
 
-;  SR-NOT:  .set at
-;  SR-NOT:  .set macro
-;  SR-NOT:  .set reorder
-;  SR32:  .set at
-;  SR32:  .set macro
-;  SR32:  .set reorder
-; SR:   .end main
-; SR32:   .end main
+; PIC: .set macro
+; PIC: .set reorder
+; PIC: .end main
 declare i32 @printf(i8*, ...)
