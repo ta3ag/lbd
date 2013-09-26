@@ -1,6 +1,6 @@
 diff -Naur Chapter11_1/Cpu0InstrInfo.td Chapter11_2/Cpu0InstrInfo.td
---- Chapter11_1/Cpu0InstrInfo.td	2013-09-20 13:59:49.000000000 +0800
-+++ Chapter11_2/Cpu0InstrInfo.td	2013-09-20 13:59:49.000000000 +0800
+--- Chapter11_1/Cpu0InstrInfo.td	2013-09-26 13:52:23.311804136 +0800
++++ Chapter11_2/Cpu0InstrInfo.td	2013-09-26 13:52:23.315804136 +0800
 @@ -496,6 +496,7 @@
  
  def RET     : RetBase<CPURegs>;
@@ -10,8 +10,8 @@ diff -Naur Chapter11_1/Cpu0InstrInfo.td Chapter11_2/Cpu0InstrInfo.td
  
  /// Multiply and Divide Instructions.
 diff -Naur Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-09-20 13:59:49.000000000 +0800
-+++ Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-09-20 13:59:49.000000000 +0800
+--- Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-09-26 13:52:23.311804136 +0800
++++ Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-09-26 13:52:23.315804136 +0800
 @@ -163,19 +163,29 @@
  }
  

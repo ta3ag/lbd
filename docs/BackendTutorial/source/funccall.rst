@@ -872,6 +872,11 @@ follows,
     ...
 
 
+The "isTailCall = false;" set in LowerCall() of Cpu0ISelLowering.cpp meaning Cpu0 
+don't support tail call optimization at this moment. About tail call 
+optimization please reference [#]_.
+
+
 Fix issues
 -----------
 
@@ -2975,6 +2980,8 @@ more and more.
 .. [#] http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration
 
 .. [#] http://jonathan2251.github.com/lbd/globalvar.html#global-variable
+
+.. [#] http://http://en.wikipedia.org/wiki/Tail_call
 
 .. [#] http://developer.mips.com/clang-llvm/
 

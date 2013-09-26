@@ -1,19 +1,6 @@
-diff -Naur Chapter4_1/Cpu0ISelLowering.cpp Chapter4_2/Cpu0ISelLowering.cpp
---- Chapter4_1/Cpu0ISelLowering.cpp	2013-09-20 13:59:49.000000000 +0800
-+++ Chapter4_2/Cpu0ISelLowering.cpp	2013-09-20 13:59:49.000000000 +0800
-@@ -43,6 +43,9 @@
-   // Set up the register classes
-   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
- 
-+  // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
-+  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
-+
-   setOperationAction(ISD::SDIV, MVT::i32, Expand);
-   setOperationAction(ISD::SREM, MVT::i32, Expand);
-   setOperationAction(ISD::UDIV, MVT::i32, Expand);
 diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
---- Chapter4_1/Cpu0InstrInfo.td	2013-09-20 13:59:49.000000000 +0800
-+++ Chapter4_2/Cpu0InstrInfo.td	2013-09-20 13:59:49.000000000 +0800
+--- Chapter4_1/Cpu0InstrInfo.td	2013-09-26 13:52:23.335804136 +0800
++++ Chapter4_2/Cpu0InstrInfo.td	2013-09-26 13:52:23.319804136 +0800
 @@ -132,6 +132,16 @@
    let isReMaterializable = 1;
  }
@@ -114,9 +101,22 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +defm : SetlePats<CPURegs>;
 +defm : SetgtPats<CPURegs>;
 +defm : SetgePats<CPURegs>;
+diff -Naur Chapter4_1/Cpu0ISelLowering.cpp Chapter4_2/Cpu0ISelLowering.cpp
+--- Chapter4_1/Cpu0ISelLowering.cpp	2013-09-26 13:52:23.335804136 +0800
++++ Chapter4_2/Cpu0ISelLowering.cpp	2013-09-26 13:52:23.319804136 +0800
+@@ -43,6 +43,9 @@
+   // Set up the register classes
+   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
+ 
++  // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
++  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
++
+   setOperationAction(ISD::SDIV, MVT::i32, Expand);
+   setOperationAction(ISD::SREM, MVT::i32, Expand);
+   setOperationAction(ISD::UDIV, MVT::i32, Expand);
 diff -Naur Chapter4_1/Cpu0RegisterInfo.td Chapter4_2/Cpu0RegisterInfo.td
---- Chapter4_1/Cpu0RegisterInfo.td	2013-09-20 13:59:49.000000000 +0800
-+++ Chapter4_2/Cpu0RegisterInfo.td	2013-09-20 13:59:50.000000000 +0800
+--- Chapter4_1/Cpu0RegisterInfo.td	2013-09-26 13:52:23.335804136 +0800
++++ Chapter4_2/Cpu0RegisterInfo.td	2013-09-26 13:52:23.319804136 +0800
 @@ -75,3 +75,6 @@
  
  // Hi/Lo Registers
