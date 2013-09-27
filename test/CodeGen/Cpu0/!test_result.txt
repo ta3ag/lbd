@@ -2,10 +2,10 @@ test result:
 
 File                              Result v:pass x:fail        comment
 ------------------------------------------------------------------------------------------
-2008-06-05-Carry.ll                       v                   64 bits add not support in Cpu0
+2008-06-05-Carry.ll                       v
 2008-07-03-SRet.ll                        v
 2008-07-15InternalConstant.ll             v
-addc.ll                                   v                   64 bits add not support in Cpu0
+addc.ll                                   v
 addi.ll                                   v
 address-mode.ll                           v
 alloca.ll                                 v
