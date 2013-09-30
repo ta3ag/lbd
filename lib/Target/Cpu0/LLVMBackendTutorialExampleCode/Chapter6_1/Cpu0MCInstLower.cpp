@@ -95,7 +95,6 @@ static void CreateMCInst(MCInst& Inst, unsigned Opc, const MCOperand& Opnd0,
 void Cpu0MCInstLower::LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts) {
   MCOperand GPReg = MCOperand::CreateReg(Cpu0::GP);
   MCOperand T9Reg = MCOperand::CreateReg(Cpu0::T9);
-  MCOperand ZEROReg = MCOperand::CreateReg(Cpu0::ZERO);
   StringRef SymName("_gp_disp");
   const MCSymbol *Sym = Ctx->GetOrCreateSymbol(SymName);
   const MCSymbolRefExpr *MCSym;
@@ -107,7 +106,7 @@ void Cpu0MCInstLower::LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts) {
 
   MCInsts.resize(3);
 
-  CreateMCInst(MCInsts[0], Cpu0::LUi, GPReg, ZEROReg, SymHi);
+  CreateMCInst(MCInsts[0], Cpu0::LUi, GPReg, SymHi);
   CreateMCInst(MCInsts[1], Cpu0::ADDiu, GPReg, GPReg, SymLo);
   CreateMCInst(MCInsts[2], Cpu0::ADD, GPReg, GPReg, T9Reg);
 }

@@ -213,7 +213,9 @@ The cpu0 backend translate global variable as follows,
     .set  noreorder
     .cpload $t9
   ...
-    ld  $2, %got(gI)($gp)
+   	lui	$2, %got_hi(gI)
+	  addu	$2, $2, $gp
+	  ld	$2, %got_lo(gI)($2)
   ...
     .type gI,@object              # @gI
     .data
@@ -232,106 +234,92 @@ The cpu0 backend translate global variable as follows,
   
   Contents of section .text:
   // .cpload machine instruction
-   0000 09a00000 1eaa0010 09aa0000 13aa6000  ..............`.
+   0000 0fa00000 09aa0000 13aa6000 ........  ..............`.
    ...
    0020 002a0000 00220000 012d0000 09dd0008  .*..."...-......
    ...
   [Gamma@localhost InputFiles]$ Jonathan$ 
   
   [Gamma@localhost InputFiles]$ readelf -tr ch6_1.cpu0.o 
-  There are 10 section headers, starting at offset 0xd4:
-  
+  There are 8 section headers, starting at offset 0xac:
+
   Section Headers:
     [Nr] Name
-       Type            Addr     Off    Size   ES   Lk Inf Al
-       Flags
+         Type            Addr     Off    Size   ES   Lk Inf Al
+         Flags
     [ 0] 
-       NULL            00000000 000000 000000 00   0   0  0
-       [00000000]: 
+         NULL            00000000 000000 000000 00   0   0  0
+         [00000000]: 
     [ 1] .text
-       PROGBITS        00000000 000034 000034 00   0   0  4
-       [00000006]: ALLOC, EXEC
+         PROGBITS        00000000 000034 000044 00   0   0  4
+         [00000006]: ALLOC, EXEC
     [ 2] .rel.text
-       REL             00000000 000310 000018 08   8   1  4
-       [00000000]: 
+         REL             00000000 0002a4 000020 08   6   1  4
+         [00000000]: 
     [ 3] .data
-       PROGBITS        00000000 000068 000004 00   0   0  4
-       [00000003]: WRITE, ALLOC
+         PROGBITS        00000000 000078 000004 00   0   0  4
+         [00000003]: WRITE, ALLOC
     [ 4] .bss
-       NOBITS          00000000 00006c 000000 00   0   0  4
-       [00000003]: WRITE, ALLOC
-    [ 5] .eh_frame
-       PROGBITS        00000000 00006c 000028 00   0   0  4
-       [00000002]: ALLOC
-    [ 6] .rel.eh_frame
-       REL             00000000 000328 000008 08   8   5  4
-       [00000000]: 
-    [ 7] .shstrtab
-       STRTAB          00000000 000094 00003e 00   0   0  1
-       [00000000]: 
-    [ 8] .symtab
-       SYMTAB          00000000 000264 000090 10   9   6  4
-       [00000000]: 
-    [ 9] .strtab
-       STRTAB          00000000 0002f4 00001b 00   0   0  1
-       [00000000]: 
-  
-  Relocation section '.rel.text' at offset 0x310 contains 3 entries:
+         NOBITS          00000000 00007c 000004 00   0   0  4
+         [00000003]: WRITE, ALLOC
+    [ 5] .shstrtab
+         STRTAB          00000000 00007c 000030 00   0   0  1
+         [00000000]: 
+    [ 6] .symtab
+         SYMTAB          00000000 0001ec 000090 10   7   5  4
+         [00000000]: 
+    [ 7] .strtab
+         STRTAB          00000000 00027c 000025 00   0   0  1
+         [00000000]: 
+
+  Relocation section '.rel.text' at offset 0x2a4 contains 4 entries:
    Offset     Info    Type            Sym.Value  Sym. Name
   00000000  00000805 unrecognized: 5       00000000   _gp_disp
-  00000008  00000806 unrecognized: 6       00000000   _gp_disp
-  00000020  00000609 unrecognized: 9       00000000   gI
+  00000004  00000806 unrecognized: 6       00000000   _gp_disp
+  00000020  00000616 unrecognized: 16      00000000   gI
+  00000028  00000617 unrecognized: 17      00000000   gI
+
   
-  Relocation section '.rel.eh_frame' at offset 0x328 contains 1 entries:
-   Offset     Info    Type            Sym.Value  Sym. Name
-  0000001c  00000202 unrecognized: 2       00000000   .text
   [Gamma@localhost InputFiles]$ readelf -tr ch6_1.mips.o 
-  There are 10 section headers, starting at offset 0xd0:
-  
+  There are 9 section headers, starting at offset 0xc4:
+
   Section Headers:
     [Nr] Name
-       Type            Addr     Off    Size   ES   Lk Inf Al
-       Flags
+         Type            Addr     Off    Size   ES   Lk Inf Al
+         Flags
     [ 0] 
-       NULL            00000000 000000 000000 00   0   0  0
-       [00000000]: 
+         NULL            00000000 000000 000000 00   0   0  0
+         [00000000]: 
     [ 1] .text
-       PROGBITS        00000000 000034 000030 00   0   0  4
-       [00000006]: ALLOC, EXEC
+         PROGBITS        00000000 000034 000038 00   0   0  4
+         [00000006]: ALLOC, EXEC
     [ 2] .rel.text
-       REL             00000000 00030c 000018 08   8   1  4
-       [00000000]: 
+         REL             00000000 0002f4 000018 08   7   1  4
+         [00000000]: 
     [ 3] .data
-       PROGBITS        00000000 000064 000004 00   0   0  4
-       [00000003]: WRITE, ALLOC
+         PROGBITS        00000000 00006c 000004 00   0   0  4
+         [00000003]: WRITE, ALLOC
     [ 4] .bss
-       NOBITS          00000000 000068 000000 00   0   0  4
-       [00000003]: WRITE, ALLOC
-    [ 5] .eh_frame
-       PROGBITS        00000000 000068 000028 00   0   0  4
-       [00000002]: ALLOC
-    [ 6] .rel.eh_frame
-       REL             00000000 000324 000008 08   8   5  4
-       [00000000]: 
-    [ 7] .shstrtab
-       STRTAB          00000000 000090 00003e 00   0   0  1
-       [00000000]: 
-    [ 8] .symtab
-       SYMTAB          00000000 000260 000090 10   9   6  4
-       [00000000]: 
-    [ 9] .strtab
-       STRTAB          00000000 0002f0 00001b 00   0   0  1
-       [00000000]: 
-  
-  Relocation section '.rel.text' at offset 0x30c contains 3 entries:
+         NOBITS          00000000 000070 000004 00   0   0  4
+         [00000003]: WRITE, ALLOC
+    [ 5] .reginfo
+         MIPS_REGINFO    00000000 000070 000018 00   0   0  1
+         [00000002]: ALLOC
+    [ 6] .shstrtab
+         STRTAB          00000000 000088 000039 00   0   0  1
+         [00000000]: 
+    [ 7] .symtab
+         SYMTAB          00000000 00022c 0000a0 10   8   6  4
+         [00000000]: 
+    [ 8] .strtab
+         STRTAB          00000000 0002cc 000025 00   0   0  1
+         [00000000]: 
+
+  Relocation section '.rel.text' at offset 0x2f4 contains 3 entries:
    Offset     Info    Type            Sym.Value  Sym. Name
-  00000000  00000805 R_MIPS_HI16       00000000   _gp_disp
-  00000004  00000806 R_MIPS_LO16       00000000   _gp_disp
-  00000018  00000609 R_MIPS_GOT16      00000000   gI
-  
-  Relocation section '.rel.eh_frame' at offset 0x324 contains 1 entries:
-   Offset     Info    Type            Sym.Value  Sym. Name
-  0000001c  00000202 R_MIPS_32         00000000   .text
+  00000000  00000905 R_MIPS_HI16       00000000   _gp_disp
+  00000004  00000906 R_MIPS_LO16       00000000   _gp_disp
+  0000001c  00000709 R_MIPS_GOT16      00000000   gI
 
 
 As depicted in `section Handle $gp register in PIC addressing mode`_, it 
@@ -340,17 +328,16 @@ translate **“.cpload %reg”** into the following.
 .. code-block:: c++
 
   // Lower ".cpload $reg" to
-  //  "addiu $gp, $zero, %hi(_gp_disp)"
-  //  "shl   $gp, $gp, 16"
+  //  "lui   $gp, %hi(_gp_disp)"
   //  "addiu $gp, $gp, %lo(_gp_disp)"
   //  "addu  $gp, $gp, $t9"
 
 The _gp_disp value is determined by loader. So, it's undefined in obj. 
 You can find the Relocation Records for offset 0 and 8 of .text section 
 referred to _gp_disp value. 
-The offset 0 and 8 of .text section are instructions "addiu $gp, $zero, 
-%hi(_gp_disp)" and "addiu $gp, $gp, %lo(_gp_disp)" and their corresponding obj 
-encode are  09a00000 and  09aa0000. 
+The offset 0 and 4 of .text section are instructions "lui $gp, %hi(_gp_disp)"
+and "addiu $gp, $gp, %lo(_gp_disp)" which their corresponding obj 
+encode are 0fa00000 and  09aa0000. 
 The obj translate the %hi(_gp_disp) and %lo(_gp_disp) into 0 since when loader 
 load this obj into memory, loader will know the _gp_disp value at run time and 
 will update these two offset relocation records into the correct offset value. 
@@ -361,139 +348,6 @@ The instruction **“ld $2, %got(gI)($gp)”** is same since we don't know what 
 address of .data section variable will load to. 
 So, translate the address to 0 and made a relocation record on 0x00000020 of 
 .text section. Loader will change this address too.
-	
-Run with ch8_3_3.cpp will get the unknown result in _Z5sum_iiz and other symbol 
-reference as below. 
-Loader or linker will take care them according the relocation records compiler 
-generated.
-
-.. code-block:: bash
-
-  [Gamma@localhost InputFiles]$ /usr/local/llvm/test/cmake_debug_build/
-  bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch8_3_3.bc -o ch8_3__3.
-  cpu0.o
-  [Gamma@localhost InputFiles]$ readelf -tr ch8_3_3.cpu0.o 
-  There are 11 section headers, starting at offset 0x248:
-  
-  Section Headers:
-    [Nr] Name
-       Type            Addr     Off    Size   ES   Lk Inf Al
-       Flags
-    [ 0] 
-       NULL            00000000 000000 000000 00   0   0  0
-       [00000000]: 
-    [ 1] .text
-       PROGBITS        00000000 000034 000178 00   0   0  4
-       [00000006]: ALLOC, EXEC
-    [ 2] .rel.text
-       REL             00000000 000538 000058 08   9   1  4
-       [00000000]: 
-    [ 3] .data
-       PROGBITS        00000000 0001ac 000000 00   0   0  4
-       [00000003]: WRITE, ALLOC
-    [ 4] .bss
-       NOBITS          00000000 0001ac 000000 00   0   0  4
-       [00000003]: WRITE, ALLOC
-    [ 5] .rodata.str1.1
-       PROGBITS        00000000 0001ac 000008 01   0   0  1
-       [00000032]: ALLOC, MERGE, STRINGS
-    [ 6] .eh_frame
-       PROGBITS        00000000 0001b4 000044 00   0   0  4
-       [00000002]: ALLOC
-    [ 7] .rel.eh_frame
-       REL             00000000 000590 000010 08   9   6  4
-       [00000000]: 
-    [ 8] .shstrtab
-       STRTAB          00000000 0001f8 00004d 00   0   0  1
-       [00000000]: 
-    [ 9] .symtab
-       SYMTAB          00000000 000400 0000e0 10  10   8  4
-       [00000000]: 
-    [10] .strtab
-       STRTAB          00000000 0004e0 000055 00   0   0  1
-       [00000000]: 
-  
-  Relocation section '.rel.text' at offset 0x538 contains 11 entries:
-   Offset     Info    Type            Sym.Value  Sym. Name
-  00000000  00000c05 unrecognized: 5       00000000   _gp_disp
-  00000008  00000c06 unrecognized: 6       00000000   _gp_disp
-  0000001c  00000b09 unrecognized: 9       00000000   __stack_chk_guard
-  000000b8  00000b09 unrecognized: 9       00000000   __stack_chk_guard
-  000000dc  00000a0b unrecognized: b       00000000   __stack_chk_fail
-  000000e8  00000c05 unrecognized: 5       00000000   _gp_disp
-  000000f0  00000c06 unrecognized: 6       00000000   _gp_disp
-  00000140  0000080b unrecognized: b       00000000   _Z5sum_iiz
-  00000154  00000209 unrecognized: 9       00000000   $.str
-  00000158  00000206 unrecognized: 6       00000000   $.str
-  00000160  00000d0b unrecognized: b       00000000   printf
-  
-  Relocation section '.rel.eh_frame' at offset 0x590 contains 2 entries:
-   Offset     Info    Type            Sym.Value  Sym. Name
-  0000001c  00000302 unrecognized: 2       00000000   .text
-  00000034  00000302 unrecognized: 2       00000000   .text
-  [Gamma@localhost InputFiles]$ /usr/local/llvm/test/cmake_debug_build/
-  bin/llc -march=mips -relocation-model=pic -filetype=obj ch8_3_3.bc -o ch8_3__3.
-  mips.o
-  [Gamma@localhost InputFiles]$ readelf -tr ch8_3_3.mips.o 
-  There are 11 section headers, starting at offset 0x254:
-  
-  Section Headers:
-    [Nr] Name
-       Type            Addr     Off    Size   ES   Lk Inf Al
-       Flags
-    [ 0] 
-       NULL            00000000 000000 000000 00   0   0  0
-       [00000000]: 
-    [ 1] .text
-       PROGBITS        00000000 000034 000184 00   0   0  4
-       [00000006]: ALLOC, EXEC
-    [ 2] .rel.text
-       REL             00000000 000544 000058 08   9   1  4
-       [00000000]: 
-    [ 3] .data
-       PROGBITS        00000000 0001b8 000000 00   0   0  4
-       [00000003]: WRITE, ALLOC
-    [ 4] .bss
-       NOBITS          00000000 0001b8 000000 00   0   0  4
-       [00000003]: WRITE, ALLOC
-    [ 5] .rodata.str1.1
-       PROGBITS        00000000 0001b8 000008 01   0   0  1
-       [00000032]: ALLOC, MERGE, STRINGS
-    [ 6] .eh_frame
-       PROGBITS        00000000 0001c0 000044 00   0   0  4
-       [00000002]: ALLOC
-    [ 7] .rel.eh_frame
-       REL             00000000 00059c 000010 08   9   6  4
-       [00000000]: 
-    [ 8] .shstrtab
-       STRTAB          00000000 000204 00004d 00   0   0  1
-       [00000000]: 
-    [ 9] .symtab
-       SYMTAB          00000000 00040c 0000e0 10  10   8  4
-       [00000000]: 
-    [10] .strtab
-       STRTAB          00000000 0004ec 000055 00   0   0  1
-       [00000000]: 
-  
-  Relocation section '.rel.text' at offset 0x544 contains 11 entries:
-   Offset     Info    Type            Sym.Value  Sym. Name
-  00000000  00000c05 R_MIPS_HI16       00000000   _gp_disp
-  00000004  00000c06 R_MIPS_LO16       00000000   _gp_disp
-  00000024  00000b09 R_MIPS_GOT16      00000000   __stack_chk_guard
-  000000c8  00000b09 R_MIPS_GOT16      00000000   __stack_chk_guard
-  000000f0  00000a0b R_MIPS_CALL16     00000000   __stack_chk_fail
-  00000100  00000c05 R_MIPS_HI16       00000000   _gp_disp
-  00000104  00000c06 R_MIPS_LO16       00000000   _gp_disp
-  00000134  0000080b R_MIPS_CALL16     00000000   _Z5sum_iiz
-  00000154  00000209 R_MIPS_GOT16      00000000   $.str
-  00000158  00000206 R_MIPS_LO16       00000000   $.str
-  0000015c  00000d0b R_MIPS_CALL16     00000000   printf
-  
-  Relocation section '.rel.eh_frame' at offset 0x59c contains 2 entries:
-   Offset     Info    Type            Sym.Value  Sym. Name
-  0000001c  00000302 R_MIPS_32         00000000   .text
-  00000034  00000302 R_MIPS_32         00000000   .text
-  [Gamma@localhost InputFiles]$ 
 
 
 Cpu0 ELF related files
@@ -505,17 +359,6 @@ Most obj code translation are defined by Cpu0InstrInfo.td and
 Cpu0RegisterInfo.td. 
 With these td description, LLVM translate the instruction into obj format 
 automatically.
-
-
-lld
-----
-
-The lld is a project of LLVM linker. 
-It's under development and we cannot finish the installation by following the 
-web site direction. 
-Even with this, it's really make sense to develop a new linker according lld web 
-site information.
-Please visit the web site [#]_.
 
 
 llvm-objdump
@@ -531,84 +374,51 @@ Let's run gobjdump and llvm-objdump commands as follows to see the differences.
 .. code-block:: bash
 
   118-165-83-12:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch8_3_3.cpp -emit-llvm -I/Applications/Xcode.app/Contents/Developer/Platforms/
-  MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ -o ch9_3_3.bc
+  ch9_3.cpp -emit-llvm -o ch9_3.bc
   118-165-83-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch9_3_3.bc -o 
-  ch9_3_3.cpu0.o
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch9_3.bc -o 
+  ch9_3.cpu0.o
 
-  118-165-78-12:InputFiles Jonathan$ gobjdump -t -r ch9_3_3.cpu0.o
+  118-165-78-12:InputFiles Jonathan$ gobjdump -t -r ch9_3.cpu0.o
   
-  ch9_3_3.cpu0.o: file format elf32-big
-  
+  ch9_3.cpu0.o:     file format elf32-big
+
   SYMBOL TABLE:
-  00000000 l    df *ABS*	00000000 ch9_3_3.bc
-  00000000 l     O .rodata.str1.1	00000008 $.str
+  00000000 l    df *ABS*	00000000 ch9_3.bc
   00000000 l    d  .text	00000000 .text
   00000000 l    d  .data	00000000 .data
   00000000 l    d  .bss	00000000 .bss
-  00000000 l    d  .rodata.str1.1	00000000 .rodata.str1.1
-  00000000 l    d  .eh_frame	00000000 .eh_frame
-  00000000 g     F .text	000000d4 _Z5sum_iiz
-  000000d4 g     F .text	00000074 main
-  00000000         *UND*	00000000 __stack_chk_fail
-  00000000         *UND*	00000000 __stack_chk_guard
-  00000000         *UND*	00000000 printf
-  
-  
+  00000000 g     F .text	00000084 _Z5sum_iiz
+  00000084 g     F .text	00000080 main
+  00000000         *UND*	00000000 _gp_disp
+
+
   RELOCATION RECORDS FOR [.text]:
   OFFSET   TYPE              VALUE 
-  00000008 UNKNOWN           __stack_chk_guard
-  00000010 UNKNOWN           __stack_chk_guard
-  000000d0 UNKNOWN           __stack_chk_fail
-  00000118 UNKNOWN           _Z5sum_iiz
-  00000124 UNKNOWN           $.str
-  0000012c UNKNOWN           $.str
-  00000134 UNKNOWN           printf
-  
-  
-  RELOCATION RECORDS FOR [.eh_frame]:
-  OFFSET   TYPE              VALUE 
-  0000001c UNKNOWN           .text
-  00000034 UNKNOWN           .text
+  00000084 UNKNOWN           _gp_disp
+  00000088 UNKNOWN           _gp_disp
+  000000e0 UNKNOWN           _Z5sum_iiz
 
 
   118-165-83-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llvm-objdump -t -r ch9_3_3.cpu0.o
   
-  ch9_3_3.cpu0.o: file format ELF32-CPU0
-  
+  ch9_3.cpu0.o:	file format ELF32-CPU0
+
   RELOCATION RECORDS FOR [.text]:
-  0 R_CPU0_HI16 _gp_disp
-  8 R_CPU0_LO16 _gp_disp
-  28 R_CPU0_GOT16 __stack_chk_guard
-  188 R_CPU0_GOT16 __stack_chk_guard
-  224 R_CPU0_CALL24 __stack_chk_fail
-  236 R_CPU0_HI16 _gp_disp
-  244 R_CPU0_LO16 _gp_disp
-  324 R_CPU0_CALL24 _Z5sum_iiz
-  344 R_CPU0_GOT16 $.str
-  348 R_CPU0_LO16 $.str
-  356 R_CPU0_CALL24 printf
-  
-  RELOCATION RECORDS FOR [.eh_frame]:
-  28 R_CPU0_32 .text
-  52 R_CPU0_32 .text
-  
+  132 R_CPU0_HI16 _gp_disp
+  136 R_CPU0_LO16 _gp_disp
+  224 R_CPU0_CALL24 _Z5sum_iiz
+
   SYMBOL TABLE:
-  00000000 l    df *ABS*  00000000 ch9_3_3.bc
-  00000000 l       .rodata.str1.1 00000008 $.str
-  00000000 l    d  .text  00000000 .text
-  00000000 l    d  .data  00000000 .data
-  00000000 l    d  .bss 00000000 .bss
-  00000000 l    d  .rodata.str1.1 00000000 .rodata.str1.1
-  00000000 l    d  .eh_frame  00000000 .eh_frame
-  00000000 g     F .text  000000ec _Z5sum_iiz
-  000000ec g     F .text  00000094 main
-  00000000         *UND*  00000000 __stack_chk_fail
-  00000000         *UND*  00000000 __stack_chk_guard
-  00000000         *UND*  00000000 _gp_disp
-  00000000         *UND*  00000000 printf
+  00000000 l    df *ABS*	00000000 ch9_3.bc
+  00000000 l    d  .text	00000000 .text
+  00000000 l    d  .data	00000000 .data
+  00000000 l    d  .bss	00000000 .bss
+  00000000 g     F .text	00000084 _Z5sum_iiz
+  00000084 g     F .text	00000080 main
+  00000000         *UND*	00000000 _gp_disp
+
 
 The latter llvm-objdump can display the file format and relocation records 
 information since we add the relocation records information in ELF.h as follows, 
@@ -860,92 +670,119 @@ the following result.
   build/bin/Debug/llvm-objdump -d ch8_1_1.cpu0.o
   
   ch8_1_1.cpu0.o:	file format ELF32-CPU0
-  
+
   Disassembly of section .text:
-  main:
-         0:	09 dd ff d8                                  	addiu	$sp, $sp, -40
-         4:	09 30 00 00                                  	addiu	$3, $zero, 0
-         8:	02 3d 00 24                                  	st	$3, 36($sp)
-         c:	02 3d 00 20                                  	st	$3, 32($sp)
-        10:	09 20 00 01                                  	addiu	$2, $zero, 1
-        14:	02 2d 00 1c                                  	st	$2, 28($sp)
-        18:	09 40 00 02                                  	addiu	$4, $zero, 2
-        1c:	02 4d 00 18                                  	st	$4, 24($sp)
-        20:	09 40 00 03                                  	addiu	$4, $zero, 3
-        24:	02 4d 00 14                                  	st	$4, 20($sp)
-        28:	09 40 00 04                                  	addiu	$4, $zero, 4
-        2c:	02 4d 00 10                                  	st	$4, 16($sp)
-        30:	09 40 00 05                                  	addiu	$4, $zero, 5
-        34:	02 4d 00 0c                                  	st	$4, 12($sp)
-        38:	09 40 00 06                                  	addiu	$4, $zero, 6
-        3c:	02 4d 00 08                                  	st	$4, 8($sp)
-        40:	09 40 00 07                                  	addiu	$4, $zero, 7
-        44:	02 4d 00 04                                  	st	$4, 4($sp)
-        48:	09 40 00 08                                  	addiu	$4, $zero, 8
-        4c:	02 4d 00 00                                  	st	$4, 0($sp)
-        50:	01 4d 00 20                                  	ld	$4, 32($sp)
-        54:	28 40 00 0c                                  	bne	$4, $zero, 12
-        58:	01 4d 00 20                                  	ld	$4, 32($sp)
-        5c:	09 44 00 01                                  	addiu	$4, $4, 1
-        60:	02 4d 00 20                                  	st	$4, 32($sp)
-        64:	01 4d 00 1c                                  	ld	$4, 28($sp)
-        68:	27 40 00 0c                                  	beq	$4, $zero, 12
-        6c:	01 4d 00 1c                                  	ld	$4, 28($sp)
-        70:	09 44 00 01                                  	addiu	$4, $4, 1
-        74:	02 4d 00 1c                                  	st	$4, 28($sp)
-        78:	01 4d 00 18                                  	ld	$4, 24($sp)
-        7c:	0a 44 00 01                                  	slti	$4, $4, 1
-        80:	28 40 00 0c                                  	bne	$4, $zero, 12
-        84:	01 4d 00 18                                  	ld	$4, 24($sp)
-        88:	09 44 00 01                                  	addiu	$4, $4, 1
-        8c:	02 4d 00 18                                  	st	$4, 24($sp)
-        90:	01 4d 00 14                                  	ld	$4, 20($sp)
-        94:	0a 44 00 00                                  	slti	$4, $4, 0
-        98:	28 40 00 0c                                  	bne	$4, $zero, 12
-        9c:	01 4d 00 14                                  	ld	$4, 20($sp)
-        a0:	09 44 00 01                                  	addiu	$4, $4, 1
-        a4:	02 4d 00 14                                  	st	$4, 20($sp)
-        a8:	01 4d 00 10                                  	ld	$4, 16($sp)
-        ac:	09 50 ff ff                                  	addiu	$5, $zero, -1
-        b0:	20 45 40 00                                  	slt	$4, $5, $4
-        b4:	28 40 00 0c                                  	bne	$4, $zero, 12
-        b8:	01 4d 00 10                                  	ld	$4, 16($sp)
-        bc:	09 44 00 01                                  	addiu	$4, $4, 1
-        c0:	02 4d 00 10                                  	st	$4, 16($sp)
-        c4:	01 4d 00 0c                                  	ld	$4, 12($sp)
-        c8:	20 33 40 00                                  	slt	$3, $3, $4
-        cc:	28 30 00 0c                                  	bne	$3, $zero, 12
-        d0:	01 3d 00 0c                                  	ld	$3, 12($sp)
-        d4:	09 33 00 01                                  	addiu	$3, $3, 1
-        d8:	02 3d 00 0c                                  	st	$3, 12($sp)
-        dc:	01 3d 00 08                                  	ld	$3, 8($sp)
-        e0:	20 22 30 00                                  	slt	$2, $2, $3
-        e4:	28 20 00 0c                                  	bne	$2, $zero, 12
-        e8:	01 2d 00 08                                  	ld	$2, 8($sp)
-        ec:	09 22 00 01                                  	addiu	$2, $2, 1
-        f0:	02 2d 00 08                                  	st	$2, 8($sp)
-        f4:	01 2d 00 04                                  	ld	$2, 4($sp)
-        f8:	0a 22 00 01                                  	slti	$2, $2, 1
-        fc:	28 20 00 0c                                  	bne	$2, $zero, 12
-       100:	01 2d 00 04                                  	ld	$2, 4($sp)
-       104:	09 22 00 01                                  	addiu	$2, $2, 1
-       108:	02 2d 00 04                                  	st	$2, 4($sp)
-       10c:	01 2d 00 04                                  	ld	$2, 4($sp)
-       110:	01 3d 00 00                                  	ld	$3, 0($sp)
-       114:	20 23 20 00                                  	slt	$2, $3, $2
-       118:	27 20 00 0c                                  	beq	$2, $zero, 12
-       11c:	01 2d 00 00                                  	ld	$2, 0($sp)
-       120:	09 22 00 01                                  	addiu	$2, $2, 1
-       124:	02 2d 00 00                                  	st	$2, 0($sp)
-       128:	01 2d 00 1c                                  	ld	$2, 28($sp)
-       12c:	01 3d 00 20                                  	ld	$3, 32($sp)
-       130:	27 32 00 0c                                  	beq	$3, $2, 12
-       134:	01 2d 00 20                                  	ld	$2, 32($sp)
-       138:	09 22 00 01                                  	addiu	$2, $2, 1
-       13c:	02 2d 00 20                                  	st	$2, 32($sp)
-       140:	01 2d 00 20                                  	ld	$2, 32($sp)
-       144:	09 dd 00 28                                  	addiu	$sp, $sp, 40
-       148:	2c 00 00 00                                  	ret	$zero
+  _Z13test_control1v:
+         0:	09 dd ff d0                                  	addiu	$sp, $sp, -48
+         4:	02 bd 00 2c                                  	st	$fp, 44($sp)
+         8:	11 bd 00 00                                  	addu	$fp, $sp, $zero
+         c:	09 30 00 00                                  	addiu	$3, $zero, 0
+        10:	02 3b 00 28                                  	st	$3, 40($fp)
+        14:	09 20 00 01                                  	addiu	$2, $zero, 1
+        18:	02 2b 00 24                                  	st	$2, 36($fp)
+        1c:	09 40 00 02                                  	addiu	$4, $zero, 2
+        20:	02 4b 00 20                                  	st	$4, 32($fp)
+        24:	09 40 00 03                                  	addiu	$4, $zero, 3
+        28:	02 4b 00 1c                                  	st	$4, 28($fp)
+        2c:	09 40 00 04                                  	addiu	$4, $zero, 4
+        30:	02 4b 00 18                                  	st	$4, 24($fp)
+        34:	09 40 00 05                                  	addiu	$4, $zero, 5
+        38:	02 4b 00 14                                  	st	$4, 20($fp)
+        3c:	09 40 00 06                                  	addiu	$4, $zero, 6
+        40:	02 4b 00 10                                  	st	$4, 16($fp)
+        44:	09 40 00 07                                  	addiu	$4, $zero, 7
+        48:	02 4b 00 0c                                  	st	$4, 12($fp)
+        4c:	09 40 00 08                                  	addiu	$4, $zero, 8
+        50:	02 4b 00 08                                  	st	$4, 8($fp)
+        54:	09 40 00 09                                  	addiu	$4, $zero, 9
+        58:	02 4b 00 04                                  	st	$4, 4($fp)
+        5c:	01 4b 00 28                                  	ld	$4, 40($fp)
+        60:	10 43 00 00                                  	cmp	$zero, $4, $3
+        64:	31 00 00 0c                                  	jne	$zero, 12
+        68:	01 4b 00 28                                  	ld	$4, 40($fp)
+        6c:	09 44 00 01                                  	addiu	$4, $4, 1
+        70:	02 4b 00 28                                  	st	$4, 40($fp)
+        74:	01 4b 00 24                                  	ld	$4, 36($fp)
+        78:	10 43 00 00                                  	cmp	$zero, $4, $3
+        7c:	30 00 00 0c                                  	jeq	$zero, 12
+        80:	01 4b 00 24                                  	ld	$4, 36($fp)
+        84:	09 44 00 01                                  	addiu	$4, $4, 1
+        88:	02 4b 00 24                                  	st	$4, 36($fp)
+        8c:	01 4b 00 20                                  	ld	$4, 32($fp)
+        90:	10 42 00 00                                  	cmp	$zero, $4, $2
+        94:	32 00 00 0c                                  	jlt	$zero, 12
+        98:	01 4b 00 20                                  	ld	$4, 32($fp)
+        9c:	09 44 00 01                                  	addiu	$4, $4, 1
+        a0:	02 4b 00 20                                  	st	$4, 32($fp)
+        a4:	01 4b 00 1c                                  	ld	$4, 28($fp)
+        a8:	10 43 00 00                                  	cmp	$zero, $4, $3
+        ac:	32 00 00 0c                                  	jlt	$zero, 12
+        b0:	01 4b 00 1c                                  	ld	$4, 28($fp)
+        b4:	09 44 00 01                                  	addiu	$4, $4, 1
+        b8:	02 4b 00 1c                                  	st	$4, 28($fp)
+        bc:	09 40 ff ff                                  	addiu	$4, $zero, -1
+        c0:	01 5b 00 18                                  	ld	$5, 24($fp)
+        c4:	10 54 00 00                                  	cmp	$zero, $5, $4
+        c8:	33 00 00 0c                                  	jgt	$zero, 12
+        cc:	01 4b 00 18                                  	ld	$4, 24($fp)
+        d0:	09 44 00 01                                  	addiu	$4, $4, 1
+        d4:	02 4b 00 18                                  	st	$4, 24($fp)
+        d8:	01 4b 00 14                                  	ld	$4, 20($fp)
+        dc:	10 43 00 00                                  	cmp	$zero, $4, $3
+        e0:	33 00 00 0c                                  	jgt	$zero, 12
+        e4:	01 3b 00 14                                  	ld	$3, 20($fp)
+        e8:	09 33 00 01                                  	addiu	$3, $3, 1
+        ec:	02 3b 00 14                                  	st	$3, 20($fp)
+        f0:	01 3b 00 10                                  	ld	$3, 16($fp)
+        f4:	10 32 00 00                                  	cmp	$zero, $3, $2
+        f8:	33 00 00 0c                                  	jgt	$zero, 12
+        fc:	01 3b 00 10                                  	ld	$3, 16($fp)
+       100:	09 33 00 01                                  	addiu	$3, $3, 1
+       104:	02 3b 00 10                                  	st	$3, 16($fp)
+       108:	01 3b 00 0c                                  	ld	$3, 12($fp)
+       10c:	10 32 00 00                                  	cmp	$zero, $3, $2
+       110:	32 00 00 0c                                  	jlt	$zero, 12
+       114:	01 2b 00 0c                                  	ld	$2, 12($fp)
+       118:	09 22 00 01                                  	addiu	$2, $2, 1
+       11c:	02 2b 00 0c                                  	st	$2, 12($fp)
+       120:	01 2b 00 0c                                  	ld	$2, 12($fp)
+       124:	01 3b 00 08                                  	ld	$3, 8($fp)
+       128:	10 32 00 00                                  	cmp	$zero, $3, $2
+       12c:	35 00 00 0c                                  	jge	$zero, 12
+       130:	01 2b 00 08                                  	ld	$2, 8($fp)
+       134:	09 22 00 01                                  	addiu	$2, $2, 1
+       138:	02 2b 00 08                                  	st	$2, 8($fp)
+       13c:	01 2b 00 24                                  	ld	$2, 36($fp)
+       140:	01 3b 00 28                                  	ld	$3, 40($fp)
+       144:	10 32 00 00                                  	cmp	$zero, $3, $2
+       148:	30 00 00 0c                                  	jeq	$zero, 12
+       14c:	01 2b 00 04                                  	ld	$2, 4($fp)
+       150:	09 22 00 01                                  	addiu	$2, $2, 1
+       154:	02 2b 00 04                                  	st	$2, 4($fp)
+       158:	01 2b 00 24                                  	ld	$2, 36($fp)
+       15c:	01 3b 00 28                                  	ld	$3, 40($fp)
+       160:	11 23 20 00                                  	addu	$2, $3, $2
+       164:	01 3b 00 20                                  	ld	$3, 32($fp)
+       168:	11 22 30 00                                  	addu	$2, $2, $3
+       16c:	01 3b 00 1c                                  	ld	$3, 28($fp)
+       170:	11 22 30 00                                  	addu	$2, $2, $3
+       174:	01 3b 00 18                                  	ld	$3, 24($fp)
+       178:	11 22 30 00                                  	addu	$2, $2, $3
+       17c:	01 3b 00 14                                  	ld	$3, 20($fp)
+       180:	11 22 30 00                                  	addu	$2, $2, $3
+       184:	01 3b 00 10                                  	ld	$3, 16($fp)
+       188:	11 22 30 00                                  	addu	$2, $2, $3
+       18c:	01 3b 00 0c                                  	ld	$3, 12($fp)
+       190:	11 22 30 00                                  	addu	$2, $2, $3
+       194:	01 3b 00 08                                  	ld	$3, 8($fp)
+       198:	11 22 30 00                                  	addu	$2, $2, $3
+       19c:	01 3b 00 04                                  	ld	$3, 4($fp)
+       1a0:	11 22 30 00                                  	addu	$2, $2, $3
+       1a4:	11 db 00 00                                  	addu	$sp, $fp, $zero
+       1a8:	01 bd 00 2c                                  	ld	$fp, 44($sp)
+       1ac:	09 dd 00 30                                  	addiu	$sp, $sp, 48
+       1b0:	3c e0 00 00                                  	ret	$lr
+
 
 
 Dynamic link
@@ -983,58 +820,66 @@ Compile main.cpp to get the Cpu0 PIC assembly code as follows,
 	  .ent	main                    # @main
   main:
 	  .cfi_startproc
-	  .frame	$sp,40,$lr
-	  .mask 	0x00004080,-4
+	  .frame	$fp,40,$lr
+	  .mask 	0x00004880,-4
 	  .set	noreorder
 	  .cpload	$t9
 	  .set	nomacro
-  # BB#0:
+  # BB#0:                                 # %entry
 	  addiu	$sp, $sp, -40
-  $tmp2:
+  $tmp3:
 	  .cfi_def_cfa_offset 40
 	  st	$lr, 36($sp)            # 4-byte Folded Spill
-	  st	$7, 32($sp)             # 4-byte Folded Spill
-  $tmp3:
-	  .cfi_offset 14, -4
+	  st	$fp, 32($sp)            # 4-byte Folded Spill
+	  st	$7, 28($sp)             # 4-byte Folded Spill
   $tmp4:
-	  .cfi_offset 7, -8
+	  .cfi_offset 14, -4
+  $tmp5:
+	  .cfi_offset 11, -8
+  $tmp6:
+	  .cfi_offset 7, -12
+	  addu	$fp, $sp, $zero
+  $tmp7:
+	  .cfi_def_cfa_register 11
 	  .cprestore	8
 	  addiu	$2, $zero, 0
-	  st	$2, 28($sp)
+	  st	$2, 24($fp)
 	  addiu	$2, $zero, 2
 	  st	$2, 4($sp)
 	  addiu	$2, $zero, 1
 	  st	$2, 0($sp)
 	  ld	$7, %call24(_Z3fooii)($gp)
-	  add	$6, $zero, $7
-	  jalr	$6
-	  ld	$gp, 8($sp)
-	  st	$2, 24($sp)
+	  add	$t9, $zero, $7
+	  jalr	$t9
+	  ld	$gp, 8($fp)
+	  st	$2, 20($fp)
 	  addiu	$2, $zero, 4
 	  st	$2, 4($sp)
 	  addiu	$2, $zero, 3
 	  st	$2, 0($sp)
-	  add	$6, $zero, $7
-	  jalr	$6
-	  ld	$gp, 8($sp)
-	  ld	$3, 24($sp)
-	  add	$2, $3, $2
-	  st	$2, 24($sp)
-	  ld	$6, %call24(_Z3barv)($gp)
-	  jalr	$6
-	  ld	$gp, 8($sp)
-	  ld	$3, 24($sp)
-	  add	$2, $3, $2
-	  st	$2, 24($sp)
-	  ld	$7, 32($sp)             # 4-byte Folded Reload
+	  add	$t9, $zero, $7
+	  jalr	$t9
+	  ld	$gp, 8($fp)
+	  ld	$3, 20($fp)
+	  addu	$2, $3, $2
+	  st	$2, 20($fp)
+	  ld	$t9, %call24(_Z3barv)($gp)
+	  jalr	$t9
+	  ld	$gp, 8($fp)
+	  ld	$3, 20($fp)
+	  addu	$2, $3, $2
+	  st	$2, 20($fp)
+	  addu	$sp, $fp, $zero
+	  ld	$7, 28($sp)             # 4-byte Folded Reload
+	  ld	$fp, 32($sp)            # 4-byte Folded Reload
 	  ld	$lr, 36($sp)            # 4-byte Folded Reload
 	  addiu	$sp, $sp, 40
-	  ret	$2
+	  ret	$lr
 	  .set	macro
 	  .set	reorder
 	  .end	main
-  $tmp5:
-	  .size	main, ($tmp5)-main
+  $tmp8:
+	  .size	main, ($tmp8)-main
 	  .cfi_endproc
 
   118-165-77-200:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
@@ -1068,20 +913,20 @@ solved and the ELF file looks like the following,
   ...
   00400720 <_Z3barv@plt>:
     400720:	lui	$8,0x41
-    400724:	ld	$6,0x0acc($8)
+    400724:	ld	$t9,0x0acc($8)
     400738:	addiu	$9,$zero,0x18
-    40073c:	jr	$6
+    40073c:	jr	$t9
   
   00400730 <_Z3fooii@plt>:
     400730:	lui	$8,0x41
-    400734:	ld	$6,0x0ado($8)
+    400734:	ld	$t9,0x0ado($8)
     400738:	addiu	$9,$zero,0x08
-    40073c:	jr	$6
+    40073c:	jr	$t9
     ...
   004009f0 <.CPU0.stubs>:
-    4009F0: 8f998010  ld	$6,-32752(gp)
+    4009F0: 8f998010  ld	$t9,-32752(gp)
     4009F4: 03e07821 add	$8,$zero, lr
-    4009F8: 0320f809  jalr	$6
+    4009F8: 0320f809  jalr	$t9
 
 
 Principle
@@ -1114,23 +959,23 @@ After the ELF is loaded to memory, it looks like :num:`Figure #elf-f2`
   -32752(gp)                           point to dynamic_linker                           useless
   $8                                   the next instruction of _Z3fooii()                useless
   $9                                   .dynsym+0x08                                      useless
-  $6 (at the end of _Z3fooii@plt)      point to CPU0.stubs0                              point to _Z3fooii
-  $6 (at the end of CPU0.stubs)        point to dynamic_linker                           useless
+  $t9 (at the end of _Z3fooii@plt)      point to CPU0.stubs0                              point to _Z3fooii
+  $t9 (at the end of CPU0.stubs)        point to dynamic_linker                           useless
   ===================================  ================================================  ========================================
 
 Explains it as follows,
 
 1. As you can see, the first time of function call, a = foo(1,2), which is 
    implemented 
-   by instructions "ld $7, %call24(_Z3fooii@plt)($gp)", "add $6, $zero, $7" and 
-   "jalr $6". Remember, .dynsym+0x08 contains information (libfoobar.so, 
+   by instructions "ld $7, %call24(_Z3fooii@plt)($gp)", "add $t9, $zero, $7" and 
+   "jalr $t9". Remember, .dynsym+0x08 contains information (libfoobar.so, 
    offset, length) which is set by linker at link to dynamic shared library.
-   After "jalr $6", PC counter jump to "00400730 <_Z3fooii@plt>". 
+   After "jalr $t9", PC counter jump to "00400730 <_Z3fooii@plt>". 
 
 2. The memory 0x410ad0 contents is the address of CPU0.stubs when the program, 
    main(), is loaded. 
 
-3. After _Z3fooii@plt instructions executed, it jump to CPU0.stubs since $6 = the 
+3. After _Z3fooii@plt instructions executed, it jump to CPU0.stubs since $t9 = the 
    address of CPU0.stubs. Register $9 = the contents of address .dynsym+0x08 since
    it is set in step 1. 
 
@@ -1143,7 +988,7 @@ Explains it as follows,
    information, dynamic linker knows where can get _Z3fooii function body. 
    Dynamic linker loads _Z3fooii() function body to an available 
    address where from asking OS. After load _Z3fooii(), it call _Z3fooii() and
-   save and restore the registers $6, $8, $9 and caller saved registers just 
+   save and restore the registers $t9, $8, $9 and caller saved registers just 
    before and after call _Z3fooii().
 
 6. After _Z3fooii() return, dynamic linker set the contents of address 0x410ad0 
@@ -1171,7 +1016,7 @@ jump to _Z3fooii() directly from _Z3fooii@plt instructions.
 According Mips Application Binary Interface (ABI), $t9 is register alias 
 for $25 in Mips. The %t9 is the register 
 used in jalr $25 for long distance function pointer (far subroutine call). 
-Cpu0 use register $6 as the $t9 ($25) register of Mips.
+Cpu0 use register $t9($6) as the $t9 ($25) register of Mips.
 The jal %subroutine has 24 bits range of address offset relative to Program 
 Counter (PC) while jalr has 32 bits address range in register size of 32 bits. 
 One example of PIC mode is used in share library just like this example. 

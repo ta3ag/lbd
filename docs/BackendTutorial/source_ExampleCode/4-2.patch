@@ -1,6 +1,6 @@
 diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
---- Chapter4_1/Cpu0InstrInfo.td	2013-09-26 13:52:23.335804136 +0800
-+++ Chapter4_2/Cpu0InstrInfo.td	2013-09-26 13:52:23.319804136 +0800
+--- Chapter4_1/Cpu0InstrInfo.td	2013-09-30 13:02:21.397928383 +0800
++++ Chapter4_2/Cpu0InstrInfo.td	2013-09-30 13:02:21.393928383 +0800
 @@ -132,6 +132,16 @@
    let isReMaterializable = 1;
  }
@@ -102,8 +102,8 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +defm : SetgtPats<CPURegs>;
 +defm : SetgePats<CPURegs>;
 diff -Naur Chapter4_1/Cpu0ISelLowering.cpp Chapter4_2/Cpu0ISelLowering.cpp
---- Chapter4_1/Cpu0ISelLowering.cpp	2013-09-26 13:52:23.335804136 +0800
-+++ Chapter4_2/Cpu0ISelLowering.cpp	2013-09-26 13:52:23.319804136 +0800
+--- Chapter4_1/Cpu0ISelLowering.cpp	2013-09-30 13:02:21.397928383 +0800
++++ Chapter4_2/Cpu0ISelLowering.cpp	2013-09-30 13:02:21.393928383 +0800
 @@ -43,6 +43,9 @@
    // Set up the register classes
    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
@@ -115,8 +115,8 @@ diff -Naur Chapter4_1/Cpu0ISelLowering.cpp Chapter4_2/Cpu0ISelLowering.cpp
    setOperationAction(ISD::SREM, MVT::i32, Expand);
    setOperationAction(ISD::UDIV, MVT::i32, Expand);
 diff -Naur Chapter4_1/Cpu0RegisterInfo.td Chapter4_2/Cpu0RegisterInfo.td
---- Chapter4_1/Cpu0RegisterInfo.td	2013-09-26 13:52:23.335804136 +0800
-+++ Chapter4_2/Cpu0RegisterInfo.td	2013-09-26 13:52:23.319804136 +0800
+--- Chapter4_1/Cpu0RegisterInfo.td	2013-09-30 13:02:21.397928383 +0800
++++ Chapter4_2/Cpu0RegisterInfo.td	2013-09-30 13:02:21.393928383 +0800
 @@ -75,3 +75,6 @@
  
  // Hi/Lo Registers

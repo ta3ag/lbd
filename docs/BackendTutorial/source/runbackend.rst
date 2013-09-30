@@ -501,9 +501,6 @@ compile with option ``clang -target mips-unknown-linux-gnu`` and use the clang o
 your build instead of download from Xcode on iMac. The ~/llvm/release/
 cmake_debug_build/bin/Debug/ is my build clang from source code.
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_run_sum_i.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_run_sum_i.cpp
-    :start-after: /// start
 
 .. code-block:: bash
 
