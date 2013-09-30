@@ -734,7 +734,7 @@ previous chapter. List them again as follows,
   def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
 
 :num:`Figure #backendstructure-f9` show how the pattern match work in the IR node 
-**add** and instruction ADDiu defined in Cpu0InstrInfo.td. For the example 
+**add** and instruction ADDiu defined in Cpu0InstrInfo.td. This example 
 IR node "add %a, 5", will be translated to "addiu %r1, 5" since the IR 
 pattern[(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))] is set in ADDiu and the
 2nd operand is signed immediate which matched "%a, 5". In addition to pattern 
@@ -1024,7 +1024,7 @@ For our example, it will emit the instructions,
 
   addiu $sp, $sp, -8
 
-The  emitEpilogue will emit “addiu  $sp, $sp, 8”, 8 is the stack size.
+The  emitEpilogue will emit “addiu  $sp, $sp, 8”, where 8 is the stack size.
 
 Since Instruction Selection and Register Allocation occurs before 
 Prologue/Epilogue Code Insertion, eliminateFrameIndex() is called after machine 
@@ -1248,9 +1248,9 @@ pattern defined in Cpu0InstrInfo.td.
     :start-after: Arbitrary patterns that map
 
 
-At this point, we have translate the very simple main() function with return 0
+At this point, we have translated the very simple main() function with return 0
 single instruction. The Cpu0AnalyzeImmediate.cpp defined as above and the 
-Cpu0InstrInfo.td instructions add as below, takes care 
+Cpu0InstrInfo.td instructions add as below, which takes care 
 the 32 bits stack size adjustments.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0InstrInfo.td
@@ -1352,11 +1352,7 @@ the 32 bits stack size adjustments.
             (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
 
 The Cpu0AnalyzeImmediate.cpp written in recursive and a little complicate in 
-logic. You can skip these recursive code and think these code in last chapter 
-12.
-Since in Chapter 12 Optimization, it replace addiu and shl with lui single 
-instruction, you have chance to think this thing in details. Anyway, the 
-recursive
+logic. Anyway, the recursive
 skills is used in the front end compile book, you should fimiliar with it.
 Instead tracking the code, listing the stack size and the instructions 
 generated in Table: Cpu0 stack adjustment instructions before replace addiu and 

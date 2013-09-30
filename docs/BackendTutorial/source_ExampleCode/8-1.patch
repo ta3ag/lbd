@@ -83,7 +83,7 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
 +
  let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
      isBarrier=1, hasCtrlDep=1 in
-   def RET : FJ <0x2c, (outs), (ins CPURegs:$target),
+   def RET : FJ <0x3c, (outs), (ins CPURegs:$target),
 @@ -417,6 +457,41 @@
  def : Pat<(i32 (extloadi8  addr:$src)), (LBu addr:$src)>;
  def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;

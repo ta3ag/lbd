@@ -299,7 +299,7 @@ def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
 
 let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
     isBarrier=1, hasCtrlDep=1 in
-  def RET : FJ <0x2c, (outs), (ins CPURegs:$target),
+  def RET : FJ <0x3c, (outs), (ins CPURegs:$target),
                 "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch>;
 
 /// Multiply and Divide Instructions.
