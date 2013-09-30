@@ -6,7 +6,7 @@
 
 define i32 @main(i32 %argc, i8** nocapture %argv) nounwind {
 entry:
-; CHECK: lw $[[R0:[0-9]+]], %got(f2)
+; CHECK: ld $[[R0:[0-9]+]], %got(f2)
 ; CHECK: addiu $25, $[[R0]], %lo(f2)
   tail call fastcc void @f2()
   ret i32 0
@@ -14,8 +14,8 @@ entry:
 
 define void @caller(i32 %a0, i32 %a1) nounwind {
 entry:
-; CHECK: lw  $[[R1:[0-9]+]], %got(caller.sf1)
-; CHECK: lw  $25, %lo(caller.sf1)($[[R1]])
+; CHECK: ld  $[[R1:[0-9]+]], %got(caller.sf1)
+; CHECK: ld  $25, %lo(caller.sf1)($[[R1]])
   %tobool = icmp eq i32 %a1, 0
   br i1 %tobool, label %if.end, label %if.then
 

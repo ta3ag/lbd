@@ -39,6 +39,6 @@ i32k.ll                                   v
 i64arg.ll                                 v
 imm.ll                                    v
 indirectcall.ll                           v
-init-array.ll                             x                   Do know the purpose.
+init-array.ll                             x                   Don't know the purpose.
 sext_inreg.ll                             v
 
