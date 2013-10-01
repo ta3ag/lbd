@@ -234,7 +234,7 @@ The code added on lld to support Cpu0 ELF as follows,
   bool Resolver::checkUndefines(bool final) {
     ...
         if (_context.printRemainingUndefines()) {
-          if (undefAtom->name() == "_start") { // cschen debug
+          if (undefAtom->name() == "_gp_disp") { // cschen debug
             foundUndefines = false;
             continue;
           }
@@ -407,6 +407,9 @@ You should put start.ll as the first file in lld command as below.
   -3:   -3 right justif.
 
 They are same after the "Hello world!" of printf() function support.
+The LLVMBackendTutorialExampleCode/3.4_20130816_Chapter12_1/ work fine too.
+It's use Chapter12_1 cmp, jeq, ..., instructions instead of slt, beq, ..., 
+instructions of Chapter12_2.
 
 
 Summary
