@@ -329,13 +329,13 @@ You should put start.ll as the first file in lld command as below.
   [Gamma@localhost InputFiles]$ /usr/local/llvm/release/cmake_debug_build/bin/
   clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o 
   printf-stdarg.bc
-  printf-stdarg.c:223:19: warning: incomplete format specifier [-Wformat]
-    printf("%d %s(s)%", 0, "message");
-                    ^
-  1 warning generated.
   [Gamma@localhost InputFiles]$ /usr/local/llvm/release/cmake_debug_build/bin/
   clang -target mips-unknown-linux-gnu -c printf-stdarg-2.c -emit-llvm -o
   printf-stdarg-2.bc
+  printf-stdarg.c:102:19: warning: incomplete format specifier [-Wformat]
+    printf("%d %s(s)%", 0, "message");
+                    ^
+  1 warning generated.
   [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/llc 
   -march=cpu0 -relocation-model=static -filetype=obj start.ll -o start.cpu0.o
   [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/llc 
