@@ -297,7 +297,13 @@ printf-stdarg.c of printf() function supplied and add some test function for
 /demo/verification/debugpurpose on Cpu0 backend. 
 File printf-stdarg-1.c is file for testing the printf()
 function implemented on PC OS platform. Let's run printf-stdarg-2.c on Cpu0 and
-compare with the result of printf() function which implemented by PC OS as follows,
+compare with the result of printf() function which implemented by PC OS as 
+below.
+The start.ll is got from editing the function name of start.cpp generated output
+by ``clang -target mips-unknown-linux-gnu -c start.c -emit-llvm -o start.bc``
+and ``llvm-dis start.bc -o start.ll`` as below. The function _start() is the 
+first function run just before main() in ELF. 
+You should put start.ll as the first file in lld command as below.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-1.c
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-1.c
@@ -307,20 +313,40 @@ compare with the result of printf() function which implemented by PC OS as follo
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-2.c
     :start-after: /// start
 
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg.c
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg.c
+    :start-after: /// start
+
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/start.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/start.cpp
+    :start-after: /// start
+
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/start.ll
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/start.ll
+    
 .. code-block:: bash
 
   [Gamma@localhost InputFiles]$ /usr/local/llvm/release/cmake_debug_build/bin/
-  clang -target mips-unknown-linux-gnu -c printf-stdarg-2.c -emit-llvm -o
-  printf-stdarg-2.bc
-  printf-stdarg-2.c:75:19: warning: incomplete format specifier [-Wformat]
+  clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o 
+  printf-stdarg.bc
+  printf-stdarg.c:223:19: warning: incomplete format specifier [-Wformat]
     printf("%d %s(s)%", 0, "message");
                     ^
   1 warning generated.
+  [Gamma@localhost InputFiles]$ /usr/local/llvm/release/cmake_debug_build/bin/
+  clang -target mips-unknown-linux-gnu -c printf-stdarg-2.c -emit-llvm -o
+  printf-stdarg-2.bc
+  [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/llc 
+  -march=cpu0 -relocation-model=static -filetype=obj start.ll -o start.cpu0.o
+  [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/llc 
+  -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg.bc -o 
+  printf-stdarg.cpu0.o
   [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/llc
   -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg-2.bc -o
   printf-stdarg-2.cpu0.o
   [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/lld 
-  -flavor gnu -target cpu0-unknown-linux-gnu printf-stdarg-2.cpu0.o -o a.out
+  -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o printf-stdarg.cpu0.o 
+  printf-stdarg-2.cpu0.o -o a.out
   [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/
   llvm-objdump -elf2hex a.out > ../cpu0_verilog/redesign/cpu0s.hex
   [Gamma@localhost InputFiles]$ cd ../cpu0_verilog/redesign/

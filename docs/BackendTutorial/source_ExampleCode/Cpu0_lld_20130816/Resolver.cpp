@@ -343,7 +343,7 @@ bool Resolver::checkUndefines(bool final) {
       // Seems like this symbol is undefined. Warn that.
       foundUndefines = true;
       if (_context.printRemainingUndefines()) {
-        if (undefAtom->name() == "_start") { // cschen debug
+        if (undefAtom->name() == "_gp_disp") { // cschen debug
           foundUndefines = false;
           continue;
         }

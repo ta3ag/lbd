@@ -12,7 +12,7 @@
 // /Applications/Xcode.app/Contents/Developer/usr/bin/lldb -- /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -filetype=asm ch6_1.bc -o ch6_1.cpu0.s 
 
 /// start
-int gStart;
+int gStart = 3;
 int gI = 100;
 int fun()
 {

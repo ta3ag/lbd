@@ -58,6 +58,7 @@ Version 3.3.5, Not release yet.
   Fix bug for LowerCPLOAD().
   Update elf.rst.
   Fix typing error.
+  Update lld.rst.
 
 Version 3.3.4, Released September 21, 2013
   Fix Chapter Global variables error for LUi instructions and the material move

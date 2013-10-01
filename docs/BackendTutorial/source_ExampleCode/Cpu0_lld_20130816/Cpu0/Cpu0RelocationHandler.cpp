@@ -31,13 +31,25 @@ void relocLO16(uint8_t *location, uint64_t P, uint64_t S, uint64_t A) {
       (uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>(location);
 }
 
+/// \brief R_CPU0_HI16 - word64: (S + A) >> 16
+void relocGOTHI16(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
+//  uint32_t result = (uint32_t)((S + A) >> 16); // Don't know why ref.addend() = 9
+  uint32_t result = (uint32_t)(S >> 16);
+  *reinterpret_cast<llvm::support::ubig32_t *>(location) =
+      result |
+      (uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>(location);
+}
+
 /// \brief R_CPU0_PC24 - word32: S + A - P
 void relocPC24(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
 //  uint32_t result = (uint32_t)((S + A) - P);
   uint32_t result = (uint32_t)(S  - P);
+  uint32_t machinecode = (uint32_t) * 
+                         reinterpret_cast<llvm::support::ubig32_t *>(location);
+  uint32_t opcode = (machinecode & 0xff000000);
+  uint32_t offset = (machinecode & 0x00ffffff);
   *reinterpret_cast<llvm::support::ubig32_t *>(location) =
-      result +
-      (uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>(location);
+      ((result + offset) & 0x00ffffff | opcode);
 }
 
 /// \brief R_CPU0_32 - word32:  S + A
@@ -79,7 +91,13 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
   case R_CPU0_LO16:
     relocLO16(location, relocVAddress, targetVAddress, ref.addend());
     break;
+  case R_CPU0_GOT_HI16:
+    relocGOTHI16(location, relocVAddress, targetVAddress, ref.addend());
+    break;
   case R_CPU0_PC24:
+    relocPC24(location, relocVAddress, targetVAddress, ref.addend());
+    break;
+  case R_CPU0_CALL24:
     relocPC24(location, relocVAddress, targetVAddress, ref.addend());
     break;
   case R_CPU0_32:
