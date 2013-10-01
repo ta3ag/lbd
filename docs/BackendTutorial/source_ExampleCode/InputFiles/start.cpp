@@ -11,7 +11,7 @@ SYMBOL TABLE:
 ...
 00000000         *UND*	00000000 _start
 */
-// /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c start.c -emit-llvm -o start.bc
+// /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
 // /usr/local/llvm/release/cmake_debug_build/bin/llvm-dis start.bc -o start.ll
 
 /// start
@@ -27,10 +27,21 @@ void start() {
   asm("jmp -4"); // ERR_HANDLE: jmp ERR_HANDLE; (loop forever)
 
   // RESET_START:
-  #include "InitRegs.cpp"
+  asm("addiu $1,	$ZERO, 0");
+  asm("addiu $2,	$ZERO, 0");
+  asm("addiu $3,	$ZERO, 0");
+  asm("addiu $4,	$ZERO, 0");
+  asm("addiu $5,	$ZERO, 0");
+  asm("addiu $6,	$ZERO, 0");
+  asm("addiu $7,	$ZERO, 0");
+  asm("addiu $8,	$ZERO, 0");
+  asm("addiu $9,	$ZERO, 0");
+  asm("addiu $10, $ZERO, 0");
+  asm("addiu $11, $ZERO, 0");
+  asm("addiu $12, $ZERO, 0");
   
   asm("addiu $sp, $zero, 0x6ffc");
-  asm("addiu $3, $ZERO, 0x50"); // Assume main() entry point is address 0x50
   main();
-  asm("iret $3");
+  asm("addiu $14, $ZERO, -1");
+  asm("ret $14");
 }
