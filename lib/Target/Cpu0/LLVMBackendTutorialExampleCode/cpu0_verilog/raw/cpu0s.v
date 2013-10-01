@@ -369,7 +369,7 @@ module main;
   begin
     clock = 0;
     itype = `RESET;
-    #3000000 $finish;
+    #300000000 $finish;
   end
 
   always #10 clock=clock+1;

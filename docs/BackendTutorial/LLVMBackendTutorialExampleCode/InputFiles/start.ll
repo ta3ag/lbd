@@ -1,6 +1,6 @@
 ; ModuleID = 'start.bc'
-target datalayout = "E-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-
-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64"
+target datalayout = "E-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-
+f32:32:32-f64:64:64-v64:64:64-n32-S64"
 target triple = "mips-unknown-linux-gnu"
 
 define void @_start() #0 {
@@ -22,11 +22,10 @@ entry:
   call void asm sideeffect "addiu $$10, $$ZERO, 0", ""() #1, !srcloc !14
   call void asm sideeffect "addiu $$11, $$ZERO, 0", ""() #1, !srcloc !15
   call void asm sideeffect "addiu $$12, $$ZERO, 0", ""() #1, !srcloc !16
-  call void asm sideeffect "addiu $$14, $$ZERO, -1", ""() #1, !srcloc !17
-  call void asm sideeffect "addiu $$sp, $$zero, 0x6ffc", ""() #1, !srcloc !18
-  call void asm sideeffect "addiu $$3, $$ZERO, 0x50", ""() #1, !srcloc !19
+  call void asm sideeffect "addiu $$sp, $$zero, 0x6ffc", ""() #1, !srcloc !17
   %call = call i32 @main()
-  call void asm sideeffect "iret $$3", ""() #1, !srcloc !20
+  call void asm sideeffect "addiu $$14, $$ZERO, -1", ""() #1, !srcloc !18
+  call void asm sideeffect "ret $$14", ""() #1, !srcloc !19
   ret void
 }
 
@@ -37,24 +36,23 @@ attributes #0 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="true"
 "no-nans-fp-math"="false" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #1 = { nounwind }
 
-!0 = metadata !{i32 694}
-!1 = metadata !{i32 710}
-!2 = metadata !{i32 754}
-!3 = metadata !{i32 797}
-!4 = metadata !{i32 838}
-!5 = metadata !{i32 6020}
-!6 = metadata !{i32 6047}
-!7 = metadata !{i32 6074}
-!8 = metadata !{i32 6101}
-!9 = metadata !{i32 6128}
-!10 = metadata !{i32 6155}
-!11 = metadata !{i32 6182}
-!12 = metadata !{i32 6209}
-!13 = metadata !{i32 6236}
-!14 = metadata !{i32 6263}
-!15 = metadata !{i32 6291}
-!16 = metadata !{i32 6319}
-!17 = metadata !{i32 6347}
-!18 = metadata !{i32 949}
-!19 = metadata !{i32 984}
-!20 = metadata !{i32 1071}
+!0 = metadata !{i32 696}
+!1 = metadata !{i32 712}
+!2 = metadata !{i32 756}
+!3 = metadata !{i32 799}
+!4 = metadata !{i32 840}
+!5 = metadata !{i32 922}
+!6 = metadata !{i32 951}
+!7 = metadata !{i32 980}
+!8 = metadata !{i32 1009}
+!9 = metadata !{i32 1038}
+!10 = metadata !{i32 1067}
+!11 = metadata !{i32 1096}
+!12 = metadata !{i32 1125}
+!13 = metadata !{i32 1154}
+!14 = metadata !{i32 1183}
+!15 = metadata !{i32 1213}
+!16 = metadata !{i32 1243}
+!17 = metadata !{i32 1276}
+!18 = metadata !{i32 1321}
+!19 = metadata !{i32 1352}
