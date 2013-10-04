@@ -29,8 +29,8 @@ The binutils support other CPU ELF dump as a cross compiler tool chains.
 Linux platform has binutils already and no need to install it further.
 We use Linux binutils in this chapter just because iMac will display Chinese 
 text. 
-The iMac corresponding binutils have no problem except it use add g in 
-command, for example, use gobjdump instead of objdump, and display your area 
+The iMac corresponding binutils have no problem except it use add g in command. 
+For example, use gobjdump instead of objdump, and display with your area 
 language instead of pure English.
 
 The binutils tool we use is not a part of llvm tools, but it's a powerful tool 
@@ -48,7 +48,7 @@ demonstrate how to use binutils and gcc to analysis ELF through the example
 code in his book. 
 It's a Chinese book of “System Software” in concept and practice. 
 This book does the real analysis through binutils. 
-The “System Software”[#]_ written by Beck is a famous book in concept of 
+The “System Software” [#]_ written by Beck is a famous book in concept of 
 telling readers what is the compiler output, what is the linker output, 
 what is the loader output, and how they work together. 
 But it covers the concept only. 
@@ -78,13 +78,13 @@ As :num:`Figure #elf-f1`, the “Section header table” include sections .text,
 ..., .data which are sections layout for code, read only data, ..., and 
 read/write data. 
 “Program header table” include segments include run time code and data. 
-The definition of segments is run time layout for code and data, and sections 
+The definition of segments is run time layout for code and data while sections 
 is link time layout for code and data.
 
 ELF header and Section header table
 ------------------------------------
 
-Let's run Chapter7_7/ with ch6_1.cpp, and dump ELF header information by 
+Let's run Chapter9_4/ with ch6_1.cpp, and dump ELF header information by 
 ``readelf -h`` to see what information the ELF header contains.
 
 .. code-block:: bash
@@ -93,26 +93,25 @@ Let's run Chapter7_7/ with ch6_1.cpp, and dump ELF header information by
   bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.cpu0.o
   
   [Gamma@localhost InputFiles]$ readelf -h ch6_1.cpu0.o 
-  ELF Header:
-    Magic:   7f 45 4c 46 01 02 01 08 00 00 00 00 00 00 00 00 
+    Magic:   7f 45 4c 46 01 02 01 03 00 00 00 00 00 00 00 00 
     Class:                             ELF32
     Data:                              2's complement, big endian
     Version:                           1 (current)
-    OS/ABI:                            UNIX - IRIX
+    OS/ABI:                            UNIX - GNU
     ABI Version:                       0
     Type:                              REL (Relocatable file)
     Machine:                           <unknown>: 0xc9
     Version:                           0x1
     Entry point address:               0x0
     Start of program headers:          0 (bytes into file)
-    Start of section headers:          212 (bytes into file)
-    Flags:                             0x70000001
+    Start of section headers:          176 (bytes into file)
+    Flags:                             0x0
     Size of this header:               52 (bytes)
     Size of program headers:           0 (bytes)
     Number of program headers:         0
     Size of section headers:           40 (bytes)
-    Number of section headers:         10
-    Section header string table index: 7
+    Number of section headers:         8
+    Section header string table index: 5
   [Gamma@localhost InputFiles]$ 
 
   [Gamma@localhost InputFiles]$ /usr/local/llvm/test/cmake_debug_build/
@@ -120,25 +119,25 @@ Let's run Chapter7_7/ with ch6_1.cpp, and dump ELF header information by
   
   [Gamma@localhost InputFiles]$ readelf -h ch6_1.mips.o 
   ELF Header:
-    Magic:   7f 45 4c 46 01 02 01 08 00 00 00 00 00 00 00 00 
+    Magic:   7f 45 4c 46 01 02 01 03 00 00 00 00 00 00 00 00 
     Class:                             ELF32
     Data:                              2's complement, big endian
     Version:                           1 (current)
-    OS/ABI:                            UNIX - IRIX
+    OS/ABI:                            UNIX - GNU
     ABI Version:                       0
     Type:                              REL (Relocatable file)
     Machine:                           MIPS R3000
     Version:                           0x1
     Entry point address:               0x0
     Start of program headers:          0 (bytes into file)
-    Start of section headers:          212 (bytes into file)
-    Flags:                             0x70000001
+    Start of section headers:          200 (bytes into file)
+    Flags:                             0x50001007, noreorder, pic, cpic, o32, mips32
     Size of this header:               52 (bytes)
     Size of program headers:           0 (bytes)
     Number of program headers:         0
     Size of section headers:           40 (bytes)
-    Number of section headers:         11
-    Section header string table index: 8
+    Number of section headers:         9
+    Section header string table index: 6
   [Gamma@localhost InputFiles]$ 
 
 
@@ -202,21 +201,17 @@ The cpu0 backend translate global variable as follows,
     .previous
     .file "ch6_1.bc"
     .text
-    .globl  main
-    .align  2
-    .type main,@function
-    .ent  main                    # @main
-  main:
+    ...
     .cfi_startproc
     .frame  $sp,8,$lr
     .mask   0x00000000,0
     .set  noreorder
     .cpload $t9
-  ...
-   	lui	$2, %got_hi(gI)
-	  addu	$2, $2, $gp
-	  ld	$2, %got_lo(gI)($2)
-  ...
+    ...
+    lui $2, %got_hi(gI)
+    addu $2, $2, $gp
+    ld $2, %got_lo(gI)($2)
+    ...
     .type gI,@object              # @gI
     .data
     .globl  gI
@@ -241,7 +236,7 @@ The cpu0 backend translate global variable as follows,
   [Gamma@localhost InputFiles]$ Jonathan$ 
   
   [Gamma@localhost InputFiles]$ readelf -tr ch6_1.cpu0.o 
-  There are 8 section headers, starting at offset 0xac:
+  There are 8 section headers, starting at offset 0xb0:
 
   Section Headers:
     [Nr] Name
@@ -254,34 +249,34 @@ The cpu0 backend translate global variable as follows,
          PROGBITS        00000000 000034 000044 00   0   0  4
          [00000006]: ALLOC, EXEC
     [ 2] .rel.text
-         REL             00000000 0002a4 000020 08   6   1  4
+         REL             00000000 0002a8 000020 08   6   1  4
          [00000000]: 
     [ 3] .data
-         PROGBITS        00000000 000078 000004 00   0   0  4
+         PROGBITS        00000000 000078 000008 00   0   0  4
          [00000003]: WRITE, ALLOC
     [ 4] .bss
-         NOBITS          00000000 00007c 000004 00   0   0  4
+         NOBITS          00000000 000080 000000 00   0   0  4
          [00000003]: WRITE, ALLOC
     [ 5] .shstrtab
-         STRTAB          00000000 00007c 000030 00   0   0  1
+         STRTAB          00000000 000080 000030 00   0   0  1
          [00000000]: 
     [ 6] .symtab
-         SYMTAB          00000000 0001ec 000090 10   7   5  4
+         SYMTAB          00000000 0001f0 000090 10   7   5  4
          [00000000]: 
     [ 7] .strtab
-         STRTAB          00000000 00027c 000025 00   0   0  1
+         STRTAB          00000000 000280 000025 00   0   0  1
          [00000000]: 
 
-  Relocation section '.rel.text' at offset 0x2a4 contains 4 entries:
+  Relocation section '.rel.text' at offset 0x2a8 contains 4 entries:
    Offset     Info    Type            Sym.Value  Sym. Name
   00000000  00000805 unrecognized: 5       00000000   _gp_disp
   00000004  00000806 unrecognized: 6       00000000   _gp_disp
-  00000020  00000616 unrecognized: 16      00000000   gI
-  00000028  00000617 unrecognized: 17      00000000   gI
+  00000020  00000616 unrecognized: 16      00000004   gI
+  00000028  00000617 unrecognized: 17      00000004   gI
 
   
   [Gamma@localhost InputFiles]$ readelf -tr ch6_1.mips.o 
-  There are 9 section headers, starting at offset 0xc4:
+  There are 9 section headers, starting at offset 0xc8:
 
   Section Headers:
     [Nr] Name
@@ -294,32 +289,32 @@ The cpu0 backend translate global variable as follows,
          PROGBITS        00000000 000034 000038 00   0   0  4
          [00000006]: ALLOC, EXEC
     [ 2] .rel.text
-         REL             00000000 0002f4 000018 08   7   1  4
+         REL             00000000 0002f8 000018 08   7   1  4
          [00000000]: 
     [ 3] .data
-         PROGBITS        00000000 00006c 000004 00   0   0  4
+         PROGBITS        00000000 00006c 000008 00   0   0  4
          [00000003]: WRITE, ALLOC
     [ 4] .bss
-         NOBITS          00000000 000070 000004 00   0   0  4
+         NOBITS          00000000 000074 000000 00   0   0  4
          [00000003]: WRITE, ALLOC
     [ 5] .reginfo
-         MIPS_REGINFO    00000000 000070 000018 00   0   0  1
+         MIPS_REGINFO    00000000 000074 000018 00   0   0  1
          [00000002]: ALLOC
     [ 6] .shstrtab
-         STRTAB          00000000 000088 000039 00   0   0  1
+         STRTAB          00000000 00008c 000039 00   0   0  1
          [00000000]: 
     [ 7] .symtab
-         SYMTAB          00000000 00022c 0000a0 10   8   6  4
+         SYMTAB          00000000 000230 0000a0 10   8   6  4
          [00000000]: 
     [ 8] .strtab
-         STRTAB          00000000 0002cc 000025 00   0   0  1
+         STRTAB          00000000 0002d0 000025 00   0   0  1
          [00000000]: 
 
-  Relocation section '.rel.text' at offset 0x2f4 contains 3 entries:
+  Relocation section '.rel.text' at offset 0x2f8 contains 3 entries:
    Offset     Info    Type            Sym.Value  Sym. Name
   00000000  00000905 R_MIPS_HI16       00000000   _gp_disp
   00000004  00000906 R_MIPS_LO16       00000000   _gp_disp
-  0000001c  00000709 R_MIPS_GOT16      00000000   gI
+  0000001c  00000709 R_MIPS_GOT16      00000004   gI
 
 
 As depicted in `section Handle $gp register in PIC addressing mode`_, it 
@@ -333,7 +328,7 @@ translate **“.cpload %reg”** into the following.
   //  "addu  $gp, $gp, $t9"
 
 The _gp_disp value is determined by loader. So, it's undefined in obj. 
-You can find the Relocation Records for offset 0 and 8 of .text section 
+You can find the Relocation Records for offset 0 and 4 of .text section 
 referred to _gp_disp value. 
 The offset 0 and 4 of .text section are instructions "lui $gp, %hi(_gp_disp)"
 and "addiu $gp, $gp, %lo(_gp_disp)" which their corresponding obj 
@@ -341,13 +336,14 @@ encode are 0fa00000 and  09aa0000.
 The obj translate the %hi(_gp_disp) and %lo(_gp_disp) into 0 since when loader 
 load this obj into memory, loader will know the _gp_disp value at run time and 
 will update these two offset relocation records into the correct offset value. 
-You can check the cpu0 of %hi(_gp_disp) and %lo(_gp_disp) are correct by above 
-mips Relocation Records of R_MIPS_HI(_gp_disp) and  R_MIPS_LO(_gp_disp) even 
-though the cpu0 is not a CPU recognized by greadelf utilitly. 
+You can check if the cpu0 of %hi(_gp_disp) and %lo(_gp_disp) are correct by 
+above mips Relocation Records of R_MIPS_HI(_gp_disp) and  R_MIPS_LO(_gp_disp) 
+even though the cpu0 is not a CPU recognized by readelf utilitly. 
 The instruction **“ld $2, %got(gI)($gp)”** is same since we don't know what the 
 address of .data section variable will load to. 
 So, translate the address to 0 and made a relocation record on 0x00000020 of 
-.text section. Loader will change this address too.
+.text section. Linker or Loader will change this address when this program is 
+linked or loaded depend on the program is static link or dynamic link.
 
 
 Cpu0 ELF related files
@@ -357,7 +353,7 @@ Files Cpu0ELFObjectWrite.cpp and Cpu0MC*.cpp are the files take care the obj
 format. 
 Most obj code translation are defined by Cpu0InstrInfo.td and 
 Cpu0RegisterInfo.td. 
-With these td description, LLVM translate the instruction into obj format 
+With these td description, LLVM translate Cpu0 instruction into obj format 
 automatically.
 
 
@@ -1328,8 +1324,4 @@ interest or already know how to track it via lldb or gdb.
 .. [#] http://ccckmit.wikidot.com/lk:objfile
 
 .. [#] http://ccckmit.wikidot.com/lk:elf
-
-.. [#] http://lld.llvm.org/
-
-.. [#] http://developer.mips.com/clang-llvm/
 
