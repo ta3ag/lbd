@@ -89,8 +89,8 @@ template <class Derived> class GOTPLTPass : public Pass {
   /// \brief Handle a specific reference.
   void handleReference(const DefinedAtom &atom, const Reference &ref) {
     switch (ref.kind()) {
-#if 0
-    case R_CPU0_PLT32:
+#if 1
+    case R_CPU0_CALL24:
       static_cast<Derived *>(this)->handlePLT32(ref);
       break;
 #endif
