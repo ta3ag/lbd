@@ -31,9 +31,8 @@ void relocLO16(uint8_t *location, uint64_t P, uint64_t S, uint64_t A) {
       (uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>(location);
 }
 
-/// \brief R_CPU0_HI16 - word64: (S + A) >> 16
+/// \brief R_CPU0_GOT_HI16 - word64: S >> 16
 void relocGOTHI16(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
-//  uint32_t result = (uint32_t)((S + A) >> 16); // Don't know why ref.addend() = 9
   uint32_t result = (uint32_t)(S >> 16);
   *reinterpret_cast<llvm::support::ubig32_t *>(location) =
       result |
@@ -81,6 +80,14 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
   uint8_t *location = atomContent + ref.offsetInAtom();
   uint64_t targetVAddress = writer.addressOfAtom(ref.target());
   uint64_t relocVAddress = atom._virtualAddr + ref.offsetInAtom();
+//  auto gotAtomIter = _context.getTargetHandler<Cpu0ELFType>().targetLayout().findAbsoluteAtom("_GLOBAL_OFFSET_TABLE_");
+//  uint64_t globalOffsetTableAddress = writer.addressOfAtom(*gotAtomIter);
+  auto gotpltSection = _context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".got.plt");
+  uint64_t gotPltFileOffset;
+  if (gotpltSection)
+    gotPltFileOffset = gotpltSection->fileOffset();
+  else
+    gotPltFileOffset = 0;
 
   switch (ref.kind()) {
   case R_CPU0_NONE:
@@ -92,17 +99,34 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     relocLO16(location, relocVAddress, targetVAddress, ref.addend());
     break;
   case R_CPU0_GOT_HI16:
-    relocGOTHI16(location, relocVAddress, targetVAddress, ref.addend());
+    relocGOTHI16(location, gotPltFileOffset, targetVAddress, ref.addend());
     break;
   case R_CPU0_PC24:
     relocPC24(location, relocVAddress, targetVAddress, ref.addend());
     break;
+#if 1
   case R_CPU0_CALL24:
     relocPC24(location, relocVAddress, targetVAddress, ref.addend());
     break;
+#endif
   case R_CPU0_32:
     reloc32(location, relocVAddress, targetVAddress, ref.addend());
     break;
+
+  case LLD_R_CPU0_GOTRELINDEX: {
+    const DefinedAtom *target = cast<const DefinedAtom>(ref.target());
+    for (const Reference *r : *target) {
+      if (r->kind() == R_CPU0_JUMP_SLOT) {
+        uint32_t index;
+        if (!_context.getTargetHandler<Cpu0ELFType>().targetLayout()
+                .getPLTRelocationTable()->getRelocationIndex(*r, index))
+          llvm_unreachable("Relocation doesn't exist");
+        reloc32(location, 0, index, 0);
+        break;
+      }
+    }
+    break;
+  }
 
   case lld::Reference::kindLayoutAfter:
   case lld::Reference::kindLayoutBefore:

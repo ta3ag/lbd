@@ -40,9 +40,10 @@ const uint8_t cpu0Plt0AtomContent[16] = {
 
 // .plt values (other entries)
 const uint8_t cpu0PltAtomContent[16] = {
-  0xff, 0x25, 0x00, 0x00, 0x00, 0x00, // jmpq *gotatom(%rip)
-  0x68, 0x00, 0x00, 0x00, 0x00,       // pushq reloc-index
-  0xe9, 0x00, 0x00, 0x00, 0x00        // jmpq plt[-1]
+  0xff, 0x80, 0x00, 0x41, // lui $8, 41
+  0x01, 0x68, 0x00, 0x00, // ld $6, CPU0.Stub($8) 
+  0x09, 0x90, 0x00, 0x00, // addiu $9, $zero, reloc-index
+  0x3f, 0x00, 0x00, 0x00  // jr $6 // jump to Cpu0.
 };
 
 /// \brief Atoms that are used by Cpu0 dynamic linking
@@ -89,8 +90,8 @@ template <class Derived> class GOTPLTPass : public Pass {
   /// \brief Handle a specific reference.
   void handleReference(const DefinedAtom &atom, const Reference &ref) {
     switch (ref.kind()) {
-#if 0
-    case R_CPU0_PLT32:
+#if 1
+    case R_CPU0_CALL24:
       static_cast<Derived *>(this)->handlePLT32(ref);
       break;
 #endif
