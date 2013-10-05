@@ -113,6 +113,21 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     reloc32(location, relocVAddress, targetVAddress, ref.addend());
     break;
 
+  case LLD_R_CPU0_GOTRELINDEX: {
+    const DefinedAtom *target = cast<const DefinedAtom>(ref.target());
+    for (const Reference *r : *target) {
+      if (r->kind() == R_CPU0_JUMP_SLOT) {
+        uint32_t index;
+        if (!_context.getTargetHandler<Cpu0ELFType>().targetLayout()
+                .getPLTRelocationTable()->getRelocationIndex(*r, index))
+          llvm_unreachable("Relocation doesn't exist");
+        reloc32(location, 0, index, 0);
+        break;
+      }
+    }
+    break;
+  }
+
   case lld::Reference::kindLayoutAfter:
   case lld::Reference::kindLayoutBefore:
   case lld::Reference::kindInGroup:
