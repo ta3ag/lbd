@@ -408,9 +408,9 @@ The following table details the Cpu0 instruction set:
   Like Mips, the mathematic unsigned instructions except DIVU, such as ADDu and 
   SUBu, are no overflow exception instructions. 
   The ADDu and SUBu handle both signed and unsigned integers well. 
-  For example, (ADDu -1, -2) is -3, (ADDu 0xffffffff, 
-  0xfffffffe) is 0xfffffffd = (4G - 3). If you treat the result is negative then
-  it is -3. Otherwise, if you treat the result is positive then it's (+4G - 3).
+  For example, (ADDu 1, -2) is -3; (ADDu 0x01, 
+  0xfffffffe) is 0xfffffffd = (4G - 1). If you treat the result is negative then
+  it is -1. Otherwise, if you treat the result is positive then it's (+4G - 1).
   
 
 The Status Register
