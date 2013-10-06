@@ -22,7 +22,7 @@
 #include "llvm/ADT/StringSwitch.h"
 
 using namespace lld;
-#if 1
+
 using namespace lld::elf;
 
 namespace {
@@ -33,17 +33,18 @@ const uint8_t cpu0GotAtomContent[8] = { 0 };
 
 // .plt value (entry 0)
 const uint8_t cpu0Plt0AtomContent[16] = {
-  0xff, 0x35, 0x00, 0x00, 0x00, 0x00, // pushq GOT+8(%rip)
-  0xff, 0x25, 0x00, 0x00, 0x00, 0x00, // jmp *GOT+16(%rip)
-  0x90, 0x90, 0x90, 0x90              // nopnopnop
+  0x01, 0x6a, 0x00, 0x00, // ld $t9, dynamic_linker_offset($gp) 
+  0x13, 0x80, 0xe0, 0x00, // add $8, $zero, $lr
+  0x3e, 0xe6, 0x00, 0x00,  // jalr ($lr,)$6 // jump to dynamic_linker
+  0x00, 0x00, 0x00, 0x00  // nop
 };
 
 // .plt values (other entries)
 const uint8_t cpu0PltAtomContent[16] = {
-  0xff, 0x80, 0x00, 0x41, // lui $8, 41
-  0x01, 0x68, 0x00, 0x00, // ld $6, CPU0.Stub($8) 
+  0x0f, 0x80, 0x00, 0x00, // lui $8, 00
+  0x01, 0x68, 0x00, 0x00, // ld $t9, CPU0.Stub($8) 
   0x09, 0x90, 0x00, 0x00, // addiu $9, $zero, reloc-index
-  0x3f, 0x00, 0x00, 0x00  // jr $6 // jump to Cpu0.
+  0x3c, 0x60, 0x00, 0x00  // ret $t9 // jump to Cpu0.Stub
 };
 
 /// \brief Atoms that are used by Cpu0 dynamic linking
@@ -64,7 +65,7 @@ public:
 #endif
   }
   virtual ArrayRef<uint8_t> rawContent() const {
-    return ArrayRef<uint8_t>(cpu0Plt0AtomContent, 16);
+    return ArrayRef<uint8_t>(cpu0Plt0AtomContent, 12);
   }
 };
 
@@ -90,11 +91,11 @@ template <class Derived> class GOTPLTPass : public Pass {
   /// \brief Handle a specific reference.
   void handleReference(const DefinedAtom &atom, const Reference &ref) {
     switch (ref.kind()) {
-#if 1
+
     case R_CPU0_CALL24:
       static_cast<Derived *>(this)->handlePLT32(ref);
       break;
-#endif
+
     case R_CPU0_PC24:
       static_cast<Derived *>(this)->handlePC24(ref);
       break;
@@ -208,8 +209,8 @@ protected:
 
 public:
   GOTPLTPass(const ELFLinkingContext &ti)
-      : _file(ti), _null(nullptr), _PLT0(nullptr), _got0(nullptr),
-        _got1(nullptr) {}
+      : _file(ti), _null(nullptr), _PLT0(nullptr), _got0(nullptr)/*,
+        _got1(nullptr)*/ {}
 
   /// \brief Do the pass.
   ///
@@ -242,9 +243,9 @@ public:
     }
     if (_PLT0) {
       _got0->setOrdinal(ordinal++);
-      _got1->setOrdinal(ordinal++);
+//      _got1->setOrdinal(ordinal++);
       mf.addAtom(*_got0);
-      mf.addAtom(*_got1);
+//      mf.addAtom(*_got1);
     }
     for (auto &got : _gotVector) {
       got->setOrdinal(ordinal++);
@@ -274,7 +275,7 @@ protected:
   /// @{
   PLT0Atom *_PLT0;
   GOTAtom *_got0;
-  GOTAtom *_got1;
+//  GOTAtom *_got1;
   /// @}
 };
 
@@ -318,12 +319,13 @@ public:
     getNullGOT();
     _PLT0 = new (_file._alloc) Cpu0PLT0Atom(_file);
     _got0 = new (_file._alloc) Cpu0GOTAtom(_file, ".got.plt");
-    _got1 = new (_file._alloc) Cpu0GOTAtom(_file, ".got.plt");
-    _PLT0->addReference(R_CPU0_PC24, 2, _got0, -4);
-    _PLT0->addReference(R_CPU0_PC24, 8, _got1, -4);
+//    _got1 = new (_file._alloc) Cpu0GOTAtom(_file, ".got.plt");
+//    _PLT0->addReference(R_CPU0_PC24, 2, _got0, -4);
+    _PLT0->addReference(R_CPU0_GOT16, 4, _got0, -2);
+//    _PLT0->addReference(R_CPU0_PC24, 8, _got1, -4);
 #ifndef NDEBUG
     _got0->_name = "__got0";
-    _got1->_name = "__got1";
+//    _got1->_name = "__got1";
 #endif
     return _PLT0;
   }
@@ -335,12 +337,13 @@ public:
     auto ga = new (_file._alloc) Cpu0GOTAtom(_file, ".got.plt");
     ga->addReference(R_CPU0_JUMP_SLOT, 0, a, 0);
     auto pa = new (_file._alloc) Cpu0PLTAtom(_file, ".plt");
-    pa->addReference(R_CPU0_PC24, 2, ga, -4);
+//    pa->addReference(R_CPU0_PC24, 2, ga, -4);
+    pa->addReference(R_CPU0_GOT16, 4, ga, -2);
     pa->addReference(LLD_R_CPU0_GOTRELINDEX, 7, ga, 0);
-    pa->addReference(R_CPU0_PC24, 12, getPLT0(), -4);
+    pa->addReference(R_CPU0_PC24, 16, getPLT0(), -4);
     // Set the starting address of the got entry to the second instruction in
     // the plt entry.
-    ga->addReference(R_CPU0_32, 0, pa, 6);
+    ga->addReference(R_CPU0_32, 0, pa, 4);
 #ifndef NDEBUG
     ga->_name = "__got_";
     ga->_name += a->name();
@@ -419,7 +422,6 @@ void elf::Cpu0LinkingContext::addPasses(PassManager &pm) const {
   }
   ELFLinkingContext::addPasses(pm);
 }
-#endif
 
 #define LLD_CASE(name) .Case(#name, llvm::ELF::name)
 
