@@ -234,7 +234,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       end // Software Interrupt; SWI Cx; LR <= PC; PC <= Cx; INT<=1
       JSUB:  begin `LR=`PC;`PC=`PC + c24; end // JSUB Cx; LR<=PC; PC<=PC+Cx
       JALR:  begin Ra=`PC;`PC=Rb; end // JALR Ra,Rb; Ra<=PC; PC<=Rb
-      RET:   begin `PC=`LR; end               // RET; PC <= LR
+      RET:   begin `PC=Ra; end               // RET; PC <= Ra
       IRET:  begin 
         `PC=Ra;`I = 1'b0; `MODE = `EXE;
       end // Interrupt Return; IRET; PC <= LR; INT<=0
