@@ -34,16 +34,16 @@ const uint8_t cpu0GotAtomContent[8] = { 0 };
 // .plt value (entry 0)
 const uint8_t cpu0Plt0AtomContent[16] = {
   0x01, 0x6a, 0x00, 0x00, // ld $t9, dynamic_linker_offset($gp) 
-  0x13, 0x80, 0xe0, 0x00, // add $8, $zero, $lr
-  0x3e, 0xe6, 0x00, 0x00,  // jalr ($lr,)$6 // jump to dynamic_linker
+  0x13, 0x70, 0xe0, 0x00, // add $7, $zero, $lr
+  0x3e, 0xe6, 0x00, 0x00, // jalr ($lr,)$t9 // jump to dynamic_linker
   0x00, 0x00, 0x00, 0x00  // nop
 };
 
 // .plt values (other entries)
 const uint8_t cpu0PltAtomContent[16] = {
-  0x0f, 0x80, 0x00, 0x00, // lui $8, 00
-  0x01, 0x68, 0x00, 0x00, // ld $t9, CPU0.Stub($8) 
-  0x09, 0x90, 0x00, 0x00, // addiu $9, $zero, reloc-index
+  0x0f, 0xa0, 0x00, 0x00, // lui $gp, 00
+  0x01, 0x6a, 0x00, 0x00, // ld $t9, CPU0.Stub($gp) 
+  0x09, 0x80, 0x00, 0x00, // addiu $8, $zero, reloc-index (.dynsym_index)
   0x3c, 0x60, 0x00, 0x00  // ret $t9 // jump to Cpu0.Stub
 };
 
@@ -321,7 +321,7 @@ public:
     _got0 = new (_file._alloc) Cpu0GOTAtom(_file, ".got.plt");
 //    _got1 = new (_file._alloc) Cpu0GOTAtom(_file, ".got.plt");
 //    _PLT0->addReference(R_CPU0_PC24, 2, _got0, -4);
-    _PLT0->addReference(R_CPU0_GOT16, 4, _got0, -2);
+    _PLT0->addReference(R_CPU0_GOT16, 0, _got0, -2);
 //    _PLT0->addReference(R_CPU0_PC24, 8, _got1, -4);
 #ifndef NDEBUG
     _got0->_name = "__got0";
@@ -339,7 +339,8 @@ public:
     auto pa = new (_file._alloc) Cpu0PLTAtom(_file, ".plt");
 //    pa->addReference(R_CPU0_PC24, 2, ga, -4);
     pa->addReference(R_CPU0_GOT16, 4, ga, -2);
-    pa->addReference(LLD_R_CPU0_GOTRELINDEX, 7, ga, 0);
+//    pa->addReference(LLD_R_CPU0_GOTRELINDEX, 7, ga, 0);
+    pa->addReference(LLD_R_CPU0_GOTRELINDEX, 8, ga, -2);
     pa->addReference(R_CPU0_PC24, 16, getPLT0(), -4);
     // Set the starting address of the got entry to the second instruction in
     // the plt entry.
