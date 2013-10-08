@@ -15,6 +15,10 @@ static cl::opt<bool>
 ConvertElf2Hex("elf2hex", 
 cl::desc("Display the hex content of verilog cpu0 needed sections"));
 
+static cl::opt<bool>
+DumpSo("dumpso", 
+cl::desc("Dump shared library .so"));
+
 // Modified from PrintSectionHeaders()
 static uint64_t GetSectionHeaderStartAddress(const ObjectFile *o, 
   StringRef sectionName) {
@@ -126,6 +130,8 @@ static void GetSymbolTableStartAddress(const ObjectFile *o, StringRef sectionNam
 // Modified from DisassembleObject()
 static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
   , uint64_t& lastAddr) {
+  std::string Error;
+  raw_fd_ostream fd_so_func_offset("so_func_offset", Error);
 
   const Target *TheTarget = getTarget(Obj);
   // getTarget() will have already issued a diagnostic if necessary, so
@@ -326,6 +332,22 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
         // This symbol has the same address as the next symbol. Skip it.
         continue;
 
+      if (DumpSo) {
+        fd_so_func_offset << format("%08" PRIx64 "    ", Symbols[si].first);
+        std::string str = Symbols[si].second.str();
+        std::size_t idx = 0;
+        std::size_t strSize = 0;
+        for (idx = 0, strSize = str.size(); idx < strSize; idx++) {
+          fd_so_func_offset << hexdigit((str[idx] >> 4) & 0xF, true)
+                            << hexdigit(str[idx] & 0xF, true) << " ";
+        }
+        for (idx = strSize; idx < 48; idx++) {
+          fd_so_func_offset << format("%02" PRIx64 " ", 0);
+        }
+        fd_so_func_offset << "/* " << Symbols[si].second << " */";
+        fd_so_func_offset << "\n";
+      }
+
       outs() << '\n' << "/*" << Symbols[si].second << ":*/\n";
 
 #ifndef NDEBUG
@@ -387,19 +409,18 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
 }
 
 #define DYNSYM_LIB_OFFSET 9
-
+/*
 struct DynsymEntry {
   uint32_t DynstrFunOffset;
   uint32_t DynstrLibOffset;
-};
+};*/
 
 // Modified from PrintSectionContents()
 static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
   error_code ec;
   std::size_t addr, end;
   std::string Error;
-  raw_fd_ostream fd_dynsym("dynsym", Error);
-  raw_fd_ostream fd_dynstr("dynstr", Error);
+
   for (section_iterator si = o->begin_sections(),
                         se = o->end_sections();
                         si != se; si.increment(ec)) {
@@ -455,31 +476,35 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
         outs() << "*/" << "\n";
       }
     }
-    else if (Name == ".dynsym") {
-      for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
-        fd_dynsym << hexdigit((Contents[addr] >> 4) & 0xF, true)
-                   << hexdigit(Contents[addr] & 0xF, true) << " ";
-        fd_dynsym << hexdigit((Contents[addr+1] >> 4) & 0xF, true)
-                   << hexdigit(Contents[addr+1] & 0xF, true) << " ";
-        fd_dynsym << hexdigit((Contents[addr+2] >> 4) & 0xF, true)
-                   << hexdigit(Contents[addr+2] & 0xF, true) << " ";
-        fd_dynsym << hexdigit((Contents[addr+3] >> 4) & 0xF, true)
-                   << hexdigit(Contents[addr+3] & 0xF, true) << " ";
+    else if (!DumpSo) {
+      if (Name == ".dynsym") {
+        raw_fd_ostream fd_dynsym("dynsym", Error);
+        for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
+          fd_dynsym << hexdigit((Contents[addr] >> 4) & 0xF, true)
+                     << hexdigit(Contents[addr] & 0xF, true) << " ";
+          fd_dynsym << hexdigit((Contents[addr+1] >> 4) & 0xF, true)
+                     << hexdigit(Contents[addr+1] & 0xF, true) << " ";
+          fd_dynsym << hexdigit((Contents[addr+2] >> 4) & 0xF, true)
+                     << hexdigit(Contents[addr+2] & 0xF, true) << " ";
+          fd_dynsym << hexdigit((Contents[addr+3] >> 4) & 0xF, true)
+                     << hexdigit(Contents[addr+3] & 0xF, true) << " ";
 
-        fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET] >> 4) & 0xF, true)
-                   << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET] & 0xF, true) << " ";
-        fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET+1] >> 4) & 0xF, true)
-                   << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET+1] & 0xF, true) << " ";
-        fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET+2] >> 4) & 0xF, true)
-                   << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET+2] & 0xF, true) << " ";
-        fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET+3] >> 4) & 0xF, true)
-                   << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET+3] & 0xF, true) << " ";
+          fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET] >> 4) & 0xF, true)
+                     << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET] & 0xF, true) << " ";
+          fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET+1] >> 4) & 0xF, true)
+                     << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET+1] & 0xF, true) << " ";
+          fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET+2] >> 4) & 0xF, true)
+                     << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET+2] & 0xF, true) << " ";
+          fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET+3] >> 4) & 0xF, true)
+                     << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET+3] & 0xF, true) << " ";
+        }
       }
-    }
-    else if (Name == ".dynstr") {
-      for (std::size_t addr = 0, end = Contents.size(); addr < end; addr++) {
-        fd_dynstr << hexdigit((Contents[addr] >> 4) & 0xF, true)
-                   << hexdigit(Contents[addr] & 0xF, true) << " ";
+      else if (Name == ".dynstr") {
+        raw_fd_ostream fd_dynstr("dynstr", Error);
+        for (std::size_t addr = 0, end = Contents.size(); addr < end; addr++) {
+          fd_dynstr << hexdigit((Contents[addr] >> 4) & 0xF, true)
+                     << hexdigit(Contents[addr] & 0xF, true) << " ";
+        }
       }
     }
   }

@@ -12,18 +12,10 @@
 // /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c main.cpp -emit-llvm -o main.cpu0.bc
 // /home/Gamma/test/lld/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj main.cpu0.bc -o main.cpu0.o
 // /home/Gamma/test/lld/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o main.cpu0.o libfoobar.cpu0.so
-// /home/Gamma/test/lld/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
-// /home/Gamma/test/lld/cmake_debug_build/bin/llvm-objdump -elf2hex -dumpso libfoobar.cpu0.so > ../cpu0_verilog/raw/libso.hex
 
 /// start
-extern int foo(int x1, int x2);
-extern int bar();
 
-//#include <stdio.h>
-
-int gI = 100;
-
-int main()
+void dynamic_linker()
 {
   int b = gI;
   int a = foo(1, 2);
@@ -31,5 +23,5 @@ int main()
   a += foo(3, 4);
   a += bar();
   
-  return a;
+  return;
 }
