@@ -386,10 +386,20 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
   }
 }
 
+#define DYNSYM_LIB_OFFSET 9
+
+struct DynsymEntry {
+  uint32_t DynstrFunOffset;
+  uint32_t DynstrLibOffset;
+};
+
 // Modified from PrintSectionContents()
 static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
   error_code ec;
   std::size_t addr, end;
+  std::string Error;
+  raw_fd_ostream fd_dynsym("dynsym", Error);
+  raw_fd_ostream fd_dynstr("dynstr", Error);
   for (section_iterator si = o->begin_sections(),
                         se = o->end_sections();
                         si != se; si.increment(ec)) {
@@ -443,6 +453,33 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
             outs() << ".";
         }
         outs() << "*/" << "\n";
+      }
+    }
+    else if (Name == ".dynsym") {
+      for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
+        fd_dynsym << hexdigit((Contents[addr] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr] & 0xF, true) << " ";
+        fd_dynsym << hexdigit((Contents[addr+1] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr+1] & 0xF, true) << " ";
+        fd_dynsym << hexdigit((Contents[addr+2] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr+2] & 0xF, true) << " ";
+        fd_dynsym << hexdigit((Contents[addr+3] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr+3] & 0xF, true) << " ";
+
+        fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET] & 0xF, true) << " ";
+        fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET+1] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET+1] & 0xF, true) << " ";
+        fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET+2] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET+2] & 0xF, true) << " ";
+        fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET+3] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET+3] & 0xF, true) << " ";
+      }
+    }
+    else if (Name == ".dynstr") {
+      for (std::size_t addr = 0, end = Contents.size(); addr < end; addr++) {
+        fd_dynstr << hexdigit((Contents[addr] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr] & 0xF, true) << " ";
       }
     }
   }
