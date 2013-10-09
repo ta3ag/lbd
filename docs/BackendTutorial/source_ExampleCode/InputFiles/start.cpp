@@ -18,15 +18,15 @@ SYMBOL TABLE:
 
 extern int main();
 
-void start() {
+// The start address of reset
 // boot:
-  asm("boot:");
-  asm("jmp 12"); // RESET: jmp RESET_START;
-  asm("jmp 4");  // ERROR: jmp ERR_HANDLE;
-  asm("jmp 4");  // IRQ: jmp IRQ_HANDLE;
-  asm("jmp -4"); // ERR_HANDLE: jmp ERR_HANDLE; (loop forever)
+asm("boot:");
+asm("jmp _start"); // RESET: jmp RESET_START;
+asm("jmp 4");  // ERROR: jmp ERR_HANDLE;
+asm("jmp 4");  // IRQ: jmp IRQ_HANDLE;
+asm("jmp -4"); // ERR_HANDLE: jmp ERR_HANDLE; (loop forever)
 
-  // RESET_START:
+void start() {
   asm("addiu $1,	$ZERO, 0");
   asm("addiu $2,	$ZERO, 0");
   asm("addiu $3,	$ZERO, 0");
