@@ -2,12 +2,6 @@
 target datalayout = "E-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64"
 target triple = "mips-unknown-linux-gnu"
 
-module asm "boot:"
-module asm "jmp _start"
-module asm "jmp 4"
-module asm "jmp 4"
-module asm "jmp -4"
-
 define void @_start() #0 {
 entry:
   call void asm sideeffect "addiu $$1,\09$$ZERO, 0", ""() #1, !srcloc !0
@@ -34,18 +28,18 @@ declare i32 @main() #0
 attributes #0 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf"="true" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #1 = { nounwind }
 
-!0 = metadata !{i32 928}
-!1 = metadata !{i32 957}
-!2 = metadata !{i32 986}
-!3 = metadata !{i32 1015}
-!4 = metadata !{i32 1044}
-!5 = metadata !{i32 1073}
-!6 = metadata !{i32 1102}
-!7 = metadata !{i32 1131}
-!8 = metadata !{i32 1160}
-!9 = metadata !{i32 1189}
-!10 = metadata !{i32 1219}
-!11 = metadata !{i32 1249}
-!12 = metadata !{i32 1282}
-!13 = metadata !{i32 1327}
-!14 = metadata !{i32 1358}
+!0 = metadata !{i32 932}
+!1 = metadata !{i32 961}
+!2 = metadata !{i32 990}
+!3 = metadata !{i32 1019}
+!4 = metadata !{i32 1048}
+!5 = metadata !{i32 1077}
+!6 = metadata !{i32 1106}
+!7 = metadata !{i32 1135}
+!8 = metadata !{i32 1164}
+!9 = metadata !{i32 1193}
+!10 = metadata !{i32 1223}
+!11 = metadata !{i32 1253}
+!12 = metadata !{i32 1286}
+!13 = metadata !{i32 1331}
+!14 = metadata !{i32 1362}

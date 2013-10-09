@@ -29,13 +29,11 @@ namespace {
 using namespace llvm::ELF;
 
 // .plt value (entry 0)
-const uint8_t cpu0BootAtomContent[24] = {
-  0x36, 0x00, 0x00, 0x0c, // jmp _start
+const uint8_t cpu0BootAtomContent[16] = {
+  0x36, 0x00, 0x00, 0x00, // jmp _start
   0x36, 0x00, 0x00, 0x04, // jmp 4
   0x36, 0x00, 0x00, 0x04, // jmp 4
   0x36, 0xff, 0xff, 0xfc, // jmp -4
-  0x01, 0x6a, 0x00, 0x00, // ld $t9, _start($gp) 
-  0x3e, 0xe6, 0x00, 0x00  // jalr ($lr,)$t9 // jump to dynamic_linker
 };
 
 // .got values
@@ -66,7 +64,7 @@ public:
 #endif
   }
   virtual ArrayRef<uint8_t> rawContent() const {
-    return ArrayRef<uint8_t>(cpu0BootAtomContent, 24);
+    return ArrayRef<uint8_t>(cpu0BootAtomContent, 16);
   }
 };
 
@@ -252,8 +250,16 @@ public:
 
     // Add all created atoms to the link.
     uint64_t ordinal = 0;
-      _boot->addReference(R_CPU0_PC24, 0, _PLT0, 0);
 //      Atom *startAtom = mf.findAtom("_start");
+        MutableFile::DefinedAtomRange atomRange = mf.definedAtoms();
+//        DefinedAtom *atom;
+//        DefinedAtom::reference_iterator it;
+        auto it = atomRange.begin();
+        for (it = atomRange.begin(); it < atomRange.end(); it++) {
+          if ((*it)->name() == "_start")
+            break;
+        }
+      _boot->addReference(R_CPU0_PC24, 0, *it, 0);
       _boot->setOrdinal(ordinal++);
       mf.addAtom(*_boot);
     if (_PLT0) {
