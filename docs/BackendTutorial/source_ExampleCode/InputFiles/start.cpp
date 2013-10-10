@@ -17,10 +17,10 @@ SYMBOL TABLE:
 /// start
 
 extern int main();
-/*
+
 // The start address of reset
 // boot:
-asm("boot:");
+/*asm("boot:");
 asm("jmp _start"); // RESET: jmp RESET_START;
 asm("jmp 4");  // ERROR: jmp ERR_HANDLE;
 asm("jmp 4");  // IRQ: jmp IRQ_HANDLE;

@@ -362,7 +362,7 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
         if (DisAsm->getInstruction(Inst, Size, memoryObject,
                                    SectionAddr + Index,
                                    DebugOut, CommentStream)) {
-          outs() << format("/*%8" PRIx64 ":*/", /*SectionAddr + */Index);
+          outs() << format("/*%8" PRIx64 ":*/", /*SectionAddr + */lastAddr+Index);
           if (!NoShowRawInsn) {
             outs() << "\t";
             DumpBytes(StringRef(Bytes.data() + Index, Size));
@@ -379,6 +379,7 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
             Size = 1; // skip illegible bytes
         }
 
+        //  outs() << "Size = " << Size <<  "Index = " << Index <<  "lastAddr = " << lastAddr << "\n"; // debug
         // Print relocation for instruction.
         while (rel_cur != rel_end) {
           bool hidden = false;
@@ -403,8 +404,8 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
           ++rel_cur;
         }
       }
-      lastAddr = Index;
     }
+    lastAddr += Index;
   }
 }
 
@@ -513,7 +514,7 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
 static void Elf2Hex(const ObjectFile *o) {
   uint64_t startAddr = GetSectionHeaderStartAddress(o, "_start");
 //  outs() << format("_start address:%08" PRIx64 "\n", startAddr);
-  uint64_t lastAddr;
+  uint64_t lastAddr = 0;
   DisassembleObjectForHex(o, lastAddr);
 //  outs() << format("lastAddr:%08" PRIx64 "\n", lastAddr);
   PrintDataSections(o, lastAddr);

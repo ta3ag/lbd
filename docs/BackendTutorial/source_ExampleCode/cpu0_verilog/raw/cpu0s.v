@@ -308,10 +308,12 @@ endmodule
 module memory0(input clock, reset, en, rw, input [1:0] m_size, 
                 input [31:0] abus, dbus_in, output [31:0] dbus_out);
   reg [7:0] m [0:`MEMSIZE-1];
+`ifdef dynlinker
   reg [7:0] disk [0:`MEMSIZE-1];
   reg [7:0] dsym [0:192-1];
   reg [7:0] dstr [0:96-1];
   reg [7:0] so_func_offset[0:384-1];
+`endif
   reg [31:0] data;
 
   integer i;
@@ -327,10 +329,12 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
     end
     `endif
+`ifdef dynlinker
     $readmemh("libso.hex", disk);
     $readmemh("dynsym", dsym);
     $readmemh("dynstr", dstr);
     $readmemh("so_func_offset", so_func_offset);
+`endif
   end
 
   always @(clock or abus or en or rw or dbus_in) 
