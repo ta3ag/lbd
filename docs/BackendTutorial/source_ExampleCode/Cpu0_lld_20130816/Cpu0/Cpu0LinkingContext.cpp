@@ -28,15 +28,30 @@ using namespace lld::elf;
 namespace {
 using namespace llvm::ELF;
 
+// .plt value (entry 0)
+const uint8_t cpu0BootAtomContent[16] = {
+  0x36, 0xff, 0xff, 0xfc, // jmp _start
+  0x36, 0x00, 0x00, 0x04, // jmp 4
+  0x36, 0x00, 0x00, 0x04, // jmp 4
+  0x36, 0xff, 0xff, 0xfc // jmp -4
+};
+
 // .got values
 const uint8_t cpu0GotAtomContent[8] = { 0 };
 
 // .plt value (entry 0)
 const uint8_t cpu0Plt0AtomContent[16] = {
-  0x01, 0x6a, 0x00, 0x00, // ld $t9, dynamic_linker_offset($gp) 
+#if 0
+  0x01, 0x6a, 0xff, 0xfc, // ld $t9, dynamic_linker_offset($gp) 
   0x13, 0x70, 0xe0, 0x00, // add $7, $zero, $lr
   0x3e, 0xe6, 0x00, 0x00, // jalr ($lr,)$t9 // jump to dynamic_linker
   0x00, 0x00, 0x00, 0x00  // nop
+#else
+  0x13, 0x70, 0xe0, 0x00, // add $7, $zero, $lr
+  0x36, 0xff, 0xff, 0xfc, // jmp dynamic_linker
+  0x00, 0x00, 0x00, 0x00,  // nop
+  0x00, 0x00, 0x00, 0x00  // nop
+#endif
 };
 
 // .plt values (other entries)
@@ -45,6 +60,19 @@ const uint8_t cpu0PltAtomContent[16] = {
   0x01, 0x6a, 0x00, 0x00, // ld $t9, CPU0.Stub($gp) 
   0x09, 0x80, 0x00, 0x00, // addiu $8, $zero, reloc-index (.dynsym_index)
   0x3c, 0x60, 0x00, 0x00  // ret $t9 // jump to Cpu0.Stub
+};
+
+/// boot record
+class Cpu0BootAtom : public PLT0Atom {
+public:
+  Cpu0BootAtom(const File &f) : PLT0Atom(f) {
+#ifndef NDEBUG
+    _name = ".PLT0";
+#endif
+  }
+  virtual ArrayRef<uint8_t> rawContent() const {
+    return ArrayRef<uint8_t>(cpu0BootAtomContent, 16);
+  }
 };
 
 /// \brief Atoms that are used by Cpu0 dynamic linking
@@ -65,7 +93,7 @@ public:
 #endif
   }
   virtual ArrayRef<uint8_t> rawContent() const {
-    return ArrayRef<uint8_t>(cpu0Plt0AtomContent, 12);
+    return ArrayRef<uint8_t>(cpu0Plt0AtomContent, 16);
   }
 };
 
@@ -210,7 +238,7 @@ protected:
 public:
   GOTPLTPass(const ELFLinkingContext &ti)
       : _file(ti), _null(nullptr), _PLT0(nullptr), _got0(nullptr)/*,
-        _got1(nullptr)*/ {}
+        _got1(nullptr)*/ { _boot = new Cpu0BootAtom(_file); }
 
   /// \brief Do the pass.
   ///
@@ -229,7 +257,29 @@ public:
 
     // Add all created atoms to the link.
     uint64_t ordinal = 0;
+        MutableFile::DefinedAtomRange atomRange = mf.definedAtoms();
+        auto it = atomRange.begin();
+        for (it = atomRange.begin(); it < atomRange.end(); it++) {
+          if ((*it)->name() == "_start")
+            break;
+        }
+      _boot->addReference(R_CPU0_PC24, 0, *it, -3);
+      _boot->setOrdinal(ordinal++);
+      mf.addAtom(*_boot);
     if (_PLT0) {
+#if 1
+      MutableFile::DefinedAtomRange atomRange = mf.definedAtoms();
+      auto it = atomRange.begin();
+      bool find = false;
+      for (it = atomRange.begin(); it < atomRange.end(); it++) {
+        if ((*it)->name() == "_Z14dynamic_linkerv") {
+          find = true;
+          break;
+        }
+      }
+      assert(find && "Cannot find _Z14dynamic_linkerv()");
+      _PLT0->addReference(R_CPU0_PC24, 4, *it, -3);
+#endif
       _PLT0->setOrdinal(ordinal++);
       mf.addAtom(*_PLT0);
     }
@@ -266,6 +316,8 @@ protected:
   /// \brief the list of GOT/PLT atoms
   std::vector<GOTAtom *> _gotVector;
   std::vector<PLTAtom *> _pltVector;
+
+  PLT0Atom *_boot;
 
   /// \brief GOT entry that is always 0. Used for undefined weaks.
   GOTAtom *_null;
@@ -321,7 +373,9 @@ public:
     _got0 = new (_file._alloc) Cpu0GOTAtom(_file, ".got.plt");
 //    _got1 = new (_file._alloc) Cpu0GOTAtom(_file, ".got.plt");
 //    _PLT0->addReference(R_CPU0_PC24, 2, _got0, -4);
-    _PLT0->addReference(R_CPU0_GOT16, 0, _got0, -2);
+#if 0
+    _PLT0->addReference(R_CPU0_GOT16, 0, _got0, -2); // debug
+#endif
 //    _PLT0->addReference(R_CPU0_PC24, 8, _got1, -4);
 #ifndef NDEBUG
     _got0->_name = "__got0";
