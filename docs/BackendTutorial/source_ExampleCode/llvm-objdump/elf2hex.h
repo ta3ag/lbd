@@ -333,7 +333,11 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
         continue;
 
       if (DumpSo) {
-        fd_so_func_offset << format("%08" PRIx64 "    ", Symbols[si].first);
+//        fd_so_func_offset << format("%08" PRIx64 "    ", Symbols[si].first);
+        fd_so_func_offset << format("%02" PRIx64 " ", Symbols[si].first >> 24);
+        fd_so_func_offset << format("%02" PRIx64 " ", (Symbols[si].first >> 16) && 0xFF);
+        fd_so_func_offset << format("%02" PRIx64 " ", (Symbols[si].first >> 8) && 0xFF);
+        fd_so_func_offset << format("%02" PRIx64 "    ", Symbols[si].first);
         std::string str = Symbols[si].second.str();
         std::size_t idx = 0;
         std::size_t strSize = 0;
@@ -458,12 +462,14 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
           if (addr + i < end)
             outs() << hexdigit((Contents[addr + i] >> 4) & 0xF, true)
                    << hexdigit(Contents[addr + i] & 0xF, true) << " ";
-          else
-            outs() << "  ";
         }
         // save lastAddr
-        if ((BaseAddr + addr + 16) > end) 
-          lastAddr = BaseAddr + end;
+        if ((BaseAddr + addr + 16) > end) {
+          for (std::size_t i = end, j = ((end+3)/4)*4; i < j; ++i) {
+            outs() << "00 ";
+          }
+          lastAddr = BaseAddr + ((end+3)/4)*4;
+        }
         else
           lastAddr = BaseAddr + addr + 16;
         // Print ascii.

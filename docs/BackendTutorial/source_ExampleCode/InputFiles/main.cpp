@@ -17,8 +17,13 @@
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o printf-stdarg.cpu0.o dynamic_linker.cpu0.o main.cpu0.o libfoobar.cpu0.so
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llvm-objdump -elf2hex -dumpso libfoobar.cpu0.so > ../cpu0_verilog/raw/libso.hex
+// cp dynstr dynsym so_func_offset ../cpu0_verilog/raw/.
 
+// /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c dynamic_linker.cpp -emit-llvm -o dynamic_linker.cpu0.bc
+// /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
 // /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c foobar.cpp -emit-llvm -o foobar.cpu0.bc
+// /home/Gamma/test/lld/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj dynamic_linker.cpu0.bc -o dynamic_linker.cpu0.o
+// /home/Gamma/test/lld/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg.bc -o printf-stdarg.cpu0.o
 // /home/Gamma/test/lld/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj foobar.cpu0.bc -o foobar.cpu0.o
 // /home/Gamma/test/lld/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu -shared -o libfoobar.cpu0.so foobar.cpu0.o
 // /home/Gamma/test/lld/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj start.ll -o start.cpu0.o
@@ -32,10 +37,10 @@
 /// start
 #include "print.h"
 
-extern int printf(const char *format, ...);
+extern "C" int printf(const char *format, ...);
 
 // For memory IO
-int putchar(const char c)
+extern "C" int putchar(const char c)
 {
   char *p = (char*)OUT_MEM;
   *p = c;
@@ -52,11 +57,11 @@ int gI = 100;
 
 int main()
 {
-  int b = gI;
-  int a = foo(1, 2);
+  printf("gI = %d\n", gI); 
+//  int a = foo(1, 2);
 //  printf("foo(1, 2) = %d\n", a); 
-  a += foo(3, 4);
-  a += bar();
+/*  a += foo(3, 4);
+  a += bar();*/
   
-  return a;
+  return 0;
 }

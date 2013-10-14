@@ -1,5 +1,7 @@
 //`define TRACE
-//`define DYNLINKER
+`define DDEBUG
+`define DYNLINKER
+`define DYNLINKER_INFO_ADDR  'h70000
 
 `define MEMSIZE 'h80000
 `define MEMEMPTY 8'hFF
@@ -317,7 +319,74 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
 `endif
   reg [31:0] data;
 
-  integer i;
+  integer i, j, k, l, numDynEntry;
+
+`ifdef DYNLINKER
+  task setDynLinkerInfo; begin
+  // caculate number of dynamic entries
+    numDynEntry = 0;
+    j = 0;
+    for (i=0; i < 192 && j == 0; i=i+8) begin
+       if (dsym[i] == `MEMEMPTY && dsym[i+1] == `MEMEMPTY && 
+           dsym[i+2] == `MEMEMPTY && dsym[i+3] == `MEMEMPTY &&
+           dsym[i+4] == `MEMEMPTY && dsym[i+5] == `MEMEMPTY && 
+           dsym[i+6] == `MEMEMPTY && dsym[i+7] == `MEMEMPTY) begin
+         numDynEntry = i/8;
+         j = 1;
+         $display("numDynEntry = %8x", numDynEntry);
+       end
+    end
+  // save number of dynamic entries to memory address `DYNLINKER_INFO_ADDR
+    m[`DYNLINKER_INFO_ADDR] = numDynEntry[31:24];
+    m[`DYNLINKER_INFO_ADDR+1] = numDynEntry[23:16];
+    m[`DYNLINKER_INFO_ADDR+2] = numDynEntry[15:8];
+    m[`DYNLINKER_INFO_ADDR+3] = numDynEntry[7:0];
+    m[`DYNLINKER_INFO_ADDR+4] = 0;
+    m[`DYNLINKER_INFO_ADDR+5] = 0;
+    m[`DYNLINKER_INFO_ADDR+6] = 0;
+    m[`DYNLINKER_INFO_ADDR+7] = 0;
+  // copy section .dynsym of ELF to memory address `DYNLINKER_INFO_ADDR+8
+    i = `DYNLINKER_INFO_ADDR+8;
+    for (j=0; j < numDynEntry; j=j+8) begin
+      m[i] = dsym[j];
+      m[i+1] = dsym[j+1];
+      m[i+2] = dsym[j+2];
+      m[i+3] = dsym[j+3];
+      m[i+4] = dsym[j+4];
+      m[i+5] = dsym[j+5];
+      m[i+6] = dsym[j+6];
+      m[i+7] = dsym[j+7];
+      i = i + 8;
+    end
+  // copy section .text of shared library .so of ELF to memory address 
+  // `DYNLINKER_INFO_ADDR+numDynEntry*8
+    i = `DYNLINKER_INFO_ADDR+numDynEntry*8;
+    l = 0;
+    for (j=0; j < numDynEntry; j=j+1) begin
+      for (k=0; k < 52; k=k+1) begin
+        m[i] = so_func_offset[l];
+        i = i + 1;
+        l = l + 1;
+      end
+    end
+  // copy section .dynstr of ELF to memory address 
+  // `DYNLINKER_INFO_ADDR+numDynEntry*8+numDynEntry*52
+    i=`DYNLINKER_INFO_ADDR+numDynEntry*8+numDynEntry*52;
+    for (j=0; dstr[j] != `MEMEMPTY; j=j+1) begin
+      m[i] = dstr[j];
+      i = i + 1;
+    end
+    $display("In setDynLinkerInfo()");
+    `ifdef DDEBUG
+    for (i=`DYNLINKER_INFO_ADDR; i < `MEMSIZE; i=i+4) begin
+       if (m[i] != `MEMEMPTY || m[i+1] != `MEMEMPTY || 
+         m[i+2] != `MEMEMPTY || m[i+3] != `MEMEMPTY)
+         $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
+    end
+    `endif
+  end endtask
+`endif
+
   initial begin
   // erase memory
     for (i=0; i < `MEMSIZE; i=i+1) begin
@@ -326,15 +395,30 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
   // display memory contents
     $readmemh("cpu0s.hex", m);
     `ifdef TRACE
-    for (i=0; i < `MEMSIZE && (m[i] != `MEMEMPTY || m[i+1] != `MEMEMPTY || m[i+2] != `MEMEMPTY || m[i+3] != `MEMEMPTY); i=i+4) begin
+    for (i=0; i < `MEMSIZE && (m[i] != `MEMEMPTY || m[i+1] != `MEMEMPTY || 
+         m[i+2] != `MEMEMPTY || m[i+3] != `MEMEMPTY); i=i+4) begin
        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
     end
     `endif
 `ifdef DYNLINKER
+  // erase memory
+    for (i=0; i < `MEMSIZE; i=i+1) begin
+       disk[i] = `MEMEMPTY;
+    end
+    for (i=0; i < 192; i=i+1) begin
+       dsym[i] = `MEMEMPTY;
+    end
+    for (i=0; i < 96; i=i+1) begin
+       dstr[i] = `MEMEMPTY;
+    end
+    for (i=0; i <384; i=i+1) begin
+       so_func_offset[i] = `MEMEMPTY;
+    end
     $readmemh("libso.hex", disk);
     $readmemh("dynsym", dsym);
     $readmemh("dynstr", dstr);
     $readmemh("so_func_offset", so_func_offset);
+    setDynLinkerInfo();
 `endif
   end
 

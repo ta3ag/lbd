@@ -3,7 +3,7 @@
 
 /// start
 
-extern int printf(const char *format, ...);
+extern "C" int printf(const char *format, ...);
 
 volatile void dynamic_linker()
 {
