@@ -444,7 +444,27 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
       if (Contents.size() <= 0) {
         continue;
       }
-      // Fill /*address*/ 00 00 00 00 between lastAddr and BaseAddr
+      // Fill /*address*/ 00 00 00 00 between lastAddr( = the address of last
+      // end section + 1) and BaseAddr
+      uint64_t cellingLastAddr4 = ((lastAddr + 3) / 4) * 4;
+      assert((lastAddr < BaseAddr) && "lastAddr must < BaseAddr");
+      // Fill /*address*/ bytes is odd for 4 by 00 
+      outs() << format("/*%04" PRIx64 " */", lastAddr);
+      if (cellingLastAddr4 > BaseAddr) {
+        for (std::size_t i = lastAddr; i < BaseAddr; ++i) {
+          outs() << "00 ";
+        }
+        outs() << "\n";
+        lastAddr = BaseAddr;
+      }
+      else {
+        for (std::size_t i = lastAddr; i < cellingLastAddr4; ++i) {
+          outs() << "00 ";
+        }
+        outs() << "\n";
+        lastAddr = cellingLastAddr4;
+      }
+      // Fill /*address*/ 00 00 00 00 for 4 bytes (1 Cpu0 word size)
       for (addr = lastAddr, end = BaseAddr; addr < end; addr += 4) {
         outs() << format("/*%04" PRIx64 " */", addr);
         outs() << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) \
@@ -463,15 +483,6 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
             outs() << hexdigit((Contents[addr + i] >> 4) & 0xF, true)
                    << hexdigit(Contents[addr + i] & 0xF, true) << " ";
         }
-        // save lastAddr
-        if ((BaseAddr + addr + 16) > end) {
-          for (std::size_t i = end, j = ((end+3)/4)*4; i < j; ++i) {
-            outs() << "00 ";
-          }
-          lastAddr = BaseAddr + ((end+3)/4)*4;
-        }
-        else
-          lastAddr = BaseAddr + addr + 16;
         // Print ascii.
         outs() << "/*" << "  ";
         for (std::size_t i = 0; i < 16 && addr + i < end; ++i) {
@@ -482,6 +493,8 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
         }
         outs() << "*/" << "\n";
       }
+      // save the end address of this section to lastAddr
+      lastAddr = BaseAddr + Contents.size();
     }
     else if (!DumpSo) {
       if (Name == ".dynsym") {
