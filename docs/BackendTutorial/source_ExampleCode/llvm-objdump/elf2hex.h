@@ -333,11 +333,10 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
         continue;
 
       if (DumpSo) {
-//        fd_so_func_offset << format("%08" PRIx64 "    ", Symbols[si].first);
-        fd_so_func_offset << format("%02" PRIx64 " ", Symbols[si].first >> 24);
-        fd_so_func_offset << format("%02" PRIx64 " ", (Symbols[si].first >> 16) && 0xFF);
-        fd_so_func_offset << format("%02" PRIx64 " ", (Symbols[si].first >> 8) && 0xFF);
-        fd_so_func_offset << format("%02" PRIx64 "    ", Symbols[si].first);
+        fd_so_func_offset << format("%02" PRIx8 " ", (uint8_t)(Symbols[si].first >> 24));
+        fd_so_func_offset << format("%02" PRIx8 " ", (uint8_t)((Symbols[si].first >> 16) & 0xFF));
+        fd_so_func_offset << format("%02" PRIx8 " ", (uint8_t)((Symbols[si].first >> 8) & 0xFF));
+        fd_so_func_offset << format("%02" PRIx8 "    ", (uint8_t)((Symbols[si].first) & 0xFF));
         std::string str = Symbols[si].second.str();
         std::size_t idx = 0;
         std::size_t strSize = 0;
@@ -525,6 +524,16 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
           fd_dynstr << hexdigit((Contents[addr] >> 4) & 0xF, true)
                      << hexdigit(Contents[addr] & 0xF, true) << " ";
         }
+      }
+      if (Name == ".got.plt") {
+        uint64_t BaseAddr;
+        if (error(si->getAddress(BaseAddr))) 
+          assert(1 && "Cannot get BaseAddr of section .got.plt");
+        raw_fd_ostream fd_global_offset("global_offset", Error);
+        fd_global_offset << format("%02" PRIx64 " ", BaseAddr >> 24);
+        fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 16) & 0xFF);
+        fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 8) & 0xFF);
+        fd_global_offset << format("%02" PRIx64 "    ", BaseAddr & 0xFF);
       }
     }
   }

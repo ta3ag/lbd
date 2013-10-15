@@ -17,7 +17,7 @@
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o printf-stdarg.cpu0.o dynamic_linker.cpu0.o main.cpu0.o libfoobar.cpu0.so
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llvm-objdump -elf2hex -dumpso libfoobar.cpu0.so > ../cpu0_verilog/raw/libso.hex
-// cp dynstr dynsym so_func_offset ../cpu0_verilog/raw/.
+// cp dynstr dynsym so_func_offset global_offset ../cpu0_verilog/raw/.
 
 // /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c dynamic_linker.cpp -emit-llvm -o dynamic_linker.cpu0.bc
 // /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
@@ -57,8 +57,8 @@ int gI = 100;
 
 int main()
 {
-  printf("gI = %d\n", gI); 
-//  int a = foo(1, 2);
+//  printf("gI = %d\n", gI); 
+  int a = foo(1, 2);
 //  printf("foo(1, 2) = %d\n", a); 
 /*  a += foo(3, 4);
   a += bar();*/
