@@ -7,6 +7,7 @@
 `define MEMEMPTY 8'hFF
 `define NULL     8'h00
 `define IOADDR  'h80000
+`define GPADDR  'h7FFF0
 
 // Operand width
 `define INT32 2'b11     // 32 bits
@@ -69,6 +70,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
 
   reg [0:0] inInt = 0;
   reg [2:0] state, next_state; 
+  reg [2:0] st_taskInt, ns_taskInt; 
   parameter Reset=3'h0, Fetch=3'h1, Decode=3'h2, Execute=3'h3, WriteBack=3'h4;
   integer i;
 
@@ -317,6 +319,7 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
   reg [7:0] dstr [0:96-1];
   reg [7:0] so_func_offset[0:384-1];
 `endif
+  reg [7:0] globalAddr [0:3];
   reg [31:0] data;
 
   integer i, j, k, l, numDynEntry;
@@ -383,6 +386,8 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
          m[i+2] != `MEMEMPTY || m[i+3] != `MEMEMPTY)
          $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
     end
+       $display("global address %8x", {m[`GPADDR], m[`GPADDR+1], 
+                m[`GPADDR+2], m[`GPADDR+3]});
     `endif
   end endtask
 `endif
@@ -400,6 +405,15 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
     end
     `endif
+    $readmemh("global_offset", globalAddr);
+//    `ifdef TRACE
+       m[`GPADDR]   = globalAddr[0];
+       m[`GPADDR+1] = globalAddr[1];
+       m[`GPADDR+2] = globalAddr[2];
+       m[`GPADDR+3] = globalAddr[3];
+       $display("global address %8x", {m[`GPADDR], m[`GPADDR+1], 
+                m[`GPADDR+2], m[`GPADDR+3]});
+//    `endif
 `ifdef DYNLINKER
   // erase memory
     for (i=0; i < `MEMSIZE; i=i+1) begin

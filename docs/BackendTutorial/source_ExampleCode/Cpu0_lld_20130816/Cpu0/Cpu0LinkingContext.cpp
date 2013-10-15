@@ -56,10 +56,10 @@ const uint8_t cpu0Plt0AtomContent[16] = {
 
 // .plt values (other entries)
 const uint8_t cpu0PltAtomContent[16] = {
-  0x0f, 0xa0, 0x00, 0x00, // lui $gp, 00
   0x01, 0x6a, 0x00, 0x00, // ld $t9, CPU0.Stub($gp) 
   0x09, 0x80, 0x00, 0x00, // addiu $8, $zero, reloc-index (.dynsym_index)
-  0x3c, 0x60, 0x00, 0x00  // ret $t9 // jump to Cpu0.Stub
+  0x3c, 0x60, 0x00, 0x00, // ret $t9 // jump to Cpu0.Stub
+  0x00, 0x00, 0x00, 0x00  // nop
 };
 
 /// boot record
