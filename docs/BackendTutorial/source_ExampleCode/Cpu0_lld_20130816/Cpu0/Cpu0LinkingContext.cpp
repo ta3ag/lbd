@@ -49,7 +49,7 @@ const uint8_t cpu0Plt0AtomContent[16] = {
 #else
   0x13, 0x70, 0xe0, 0x00, // add $7, $zero, $lr
   0x36, 0xff, 0xff, 0xfc, // jmp dynamic_linker
-  0x00, 0x00, 0x00, 0x00,  // nop
+  0x00, 0x00, 0x00, 0x00, // nop
   0x00, 0x00, 0x00, 0x00  // nop
 #endif
 };
@@ -394,7 +394,7 @@ public:
 //    pa->addReference(R_CPU0_PC24, 2, ga, -4);
     pa->addReference(R_CPU0_GOT16, 4, ga, -2);
 //    pa->addReference(LLD_R_CPU0_GOTRELINDEX, 7, ga, 0);
-    pa->addReference(LLD_R_CPU0_GOTRELINDEX, 8, ga, -2);
+    pa->addReference(LLD_R_CPU0_GOTRELINDEX, 0, ga, -2);
     pa->addReference(R_CPU0_PC24, 16, getPLT0(), -4);
     // Set the starting address of the got entry to the second instruction in
     // the plt entry.

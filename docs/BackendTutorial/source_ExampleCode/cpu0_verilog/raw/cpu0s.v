@@ -3,11 +3,12 @@
 `define DYNLINKER
 `define DYNLINKER_INFO_ADDR  'h70000
 
-`define MEMSIZE 'h80000
-`define MEMEMPTY 8'hFF
-`define NULL     8'h00
-`define IOADDR  'h80000
-`define GPADDR  'h7FFF0
+`define MEMSIZE   'h80000
+`define MEMEMPTY   8'hFF
+`define NULL       8'h00
+`define IOADDR    'h80000
+`define FLASHADDR 'hA0000
+`define GPADDR    'h7FFF0
 
 // Operand width
 `define INT32 2'b11     // 32 bits
@@ -314,7 +315,7 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
                 input [31:0] abus, dbus_in, output [31:0] dbus_out);
   reg [7:0] m [0:`MEMSIZE-1];
 `ifdef DYNLINKER
-  reg [7:0] disk [0:`MEMSIZE-1];
+  reg [7:0] flash [0:`MEMSIZE-1];
   reg [7:0] dsym [0:192-1];
   reg [7:0] dstr [0:96-1];
   reg [7:0] so_func_offset[0:384-1];
@@ -350,7 +351,7 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
     m[`DYNLINKER_INFO_ADDR+7] = 0;
   // copy section .dynsym of ELF to memory address `DYNLINKER_INFO_ADDR+8
     i = `DYNLINKER_INFO_ADDR+8;
-    for (j=0; j < numDynEntry; j=j+8) begin
+    for (j=0; j < (8*numDynEntry); j=j+8) begin
       m[i] = dsym[j];
       m[i+1] = dsym[j+1];
       m[i+2] = dsym[j+2];
@@ -362,8 +363,8 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
       i = i + 8;
     end
   // copy section .text of shared library .so of ELF to memory address 
-  // `DYNLINKER_INFO_ADDR+numDynEntry*8
-    i = `DYNLINKER_INFO_ADDR+numDynEntry*8;
+  // `DYNLINKER_INFO_ADDR+8+numDynEntry*8
+    i = `DYNLINKER_INFO_ADDR+8+numDynEntry*8;
     l = 0;
     for (j=0; j < numDynEntry; j=j+1) begin
       for (k=0; k < 52; k=k+1) begin
@@ -372,9 +373,15 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
         l = l + 1;
       end
     end
+    i = `DYNLINKER_INFO_ADDR+8+numDynEntry*8;
+    for (j=0; j < (8*numDynEntry); j=j+8) begin
+       $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
+       $display("%8x: %8x", i+4, {m[i+4], m[i+5], m[i+6], m[i+7]});
+      i = i + 8;
+    end
   // copy section .dynstr of ELF to memory address 
   // `DYNLINKER_INFO_ADDR+numDynEntry*8+numDynEntry*52
-    i=`DYNLINKER_INFO_ADDR+numDynEntry*8+numDynEntry*52;
+    i=`DYNLINKER_INFO_ADDR+8+numDynEntry*8+numDynEntry*52;
     for (j=0; dstr[j] != `MEMEMPTY; j=j+1) begin
       m[i] = dstr[j];
       i = i + 1;
@@ -417,7 +424,7 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
 `ifdef DYNLINKER
   // erase memory
     for (i=0; i < `MEMSIZE; i=i+1) begin
-       disk[i] = `MEMEMPTY;
+       flash[i] = `MEMEMPTY;
     end
     for (i=0; i < 192; i=i+1) begin
        dsym[i] = `MEMEMPTY;
@@ -428,7 +435,7 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
     for (i=0; i <384; i=i+1) begin
        so_func_offset[i] = `MEMEMPTY;
     end
-    $readmemh("libso.hex", disk);
+    $readmemh("libso.hex", flash);
     $readmemh("dynsym", dsym);
     $readmemh("dynstr", dstr);
     $readmemh("so_func_offset", so_func_offset);
@@ -438,7 +445,7 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
 
   always @(clock or abus or en or rw or dbus_in) 
   begin
-    if (abus >=0 && abus <= `MEMSIZE-4) begin
+    if (abus >= 0 && abus <= `MEMSIZE-4) begin
       if (en == 1 && rw == 0) begin // r_w==0:write
         data = dbus_in;
         case (m_size)
@@ -456,7 +463,27 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
         endcase
       end else
         data = 32'hZZZZZZZZ;
-    end else
+`ifdef DYNLINKER
+    end else if (abus >= `FLASHADDR && abus <= `FLASHADDR+`MEMSIZE-4) begin
+      if (en == 1 && rw == 0) begin // r_w==0:write
+        data = dbus_in;
+        case (m_size)
+        `BYTE:  {flash[abus]} = dbus_in[7:0];
+        `INT16: {flash[abus], flash[abus+1] } = dbus_in[15:0];
+        `INT24: {flash[abus], flash[abus+1], flash[abus+2]} = dbus_in[24:0];
+        `INT32: {flash[abus], flash[abus+1], flash[abus+2], flash[abus+3]} = dbus_in;
+        endcase
+      end else if (en == 1 && rw == 1) begin// r_w==1:read
+        case (m_size)
+        `BYTE:  data = {8'h00  , 8'h00,   8'h00,   flash[abus]      };
+        `INT16: data = {8'h00  , 8'h00,   flash[abus], flash[abus+1]    };
+        `INT24: data = {8'h00  , flash[abus], flash[abus+1], flash[abus+2]  };
+        `INT32: data = {flash[abus], flash[abus+1], flash[abus+2], flash[abus+3]};
+        endcase
+      end else
+        data = 32'hZZZZZZZZ;
+`endif
+    end else 
       data = 32'hZZZZZZZZ;
   end
   assign dbus_out = data;

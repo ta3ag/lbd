@@ -7,7 +7,7 @@
 // /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c dynamic_linker.cpp -emit-llvm -o dynamic_linker.cpu0.bc
 // /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
 // /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c foobar.cpp -emit-llvm -o foobar.cpu0.bc
-// /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj dynamic_linker.cpu0.bc -o dynamic_linker.cpu0.o
+// /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj -cpu0-fix-global-base-register=true dynamic_linker.cpu0.bc -o dynamic_linker.cpu0.o
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg.bc -o printf-stdarg.cpu0.o
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj foobar.cpu0.bc -o foobar.cpu0.o
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu -shared -o libfoobar.cpu0.so foobar.cpu0.o
@@ -54,14 +54,16 @@ extern int bar();
 //#include <stdio.h>
 
 int gI = 100;
+extern int progCounter;
 
 int main()
 {
+  progCounter = 0;
 //  printf("gI = %d\n", gI); 
   int a = foo(1, 2);
-//  printf("foo(1, 2) = %d\n", a); 
-/*  a += foo(3, 4);
-  a += bar();*/
+  printf("foo(1, 2) = %d\n", a); 
+  a += foo(3, 4);
+  a += bar();
   
   return 0;
 }
