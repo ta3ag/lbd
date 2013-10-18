@@ -293,6 +293,7 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
     }
     StringRef name;
     if (error(i->getName(name))) break;
+    if (DumpSo && name == ".plt") continue;
     outs() << "/*" << "Disassembly of section ";
     if (!SegmentName.empty())
       outs() << SegmentName << ",";

@@ -14,6 +14,10 @@ void dynamic_linker()
 #if 0
   printf("dynamic_linker()\n");
 #else
+  asm("lui $at, 0x7");
+  asm("ori $at, $at, 0xFFD0");
+  asm("st $lr, 0($at)");
+  printf("*((int*)(0x7FFD0) = %08x\n", (unsigned int)(*(int*)(0x7FFD0)));
   static ProgAddr prog[10];
   int nextFreeAddr;
   int *src, *dest, *end;
@@ -31,8 +35,8 @@ void dynamic_linker()
   printf("dynsym_idx = %d\n", dynsym_idx);
   dynsym = *(int*)((DYNLINKER_INFO_ADDR+8)+(dynsym_idx*DYNENT_SIZE));
   dynstr = (char*)(DYNLINKER_INFO_ADDR+8+numDynEntry*8+numDynEntry*52+dynsym);
-  libOffset = *((int*)(DYNLINKER_INFO_ADDR+8+numDynEntry*8+dynsym*52));
-  nextFunLibOffset = *((int*)(DYNLINKER_INFO_ADDR+8+numDynEntry*8+(dynsym+1)*52));
+  libOffset = *((int*)(DYNLINKER_INFO_ADDR+8+numDynEntry*8+(dynsym-1)*52));
+  nextFunLibOffset = *((int*)(DYNLINKER_INFO_ADDR+8+numDynEntry*8+dynsym*52));
   printf("Number of numDynEntry = %d, dstr = %x, dynsym = %d, *dstr = %s\n", numDynEntry, (int)dynstr, dynsym, dynstr);
   printf("libOffset = %d, nextFunLibOffset = %d, progCounter = %d\n", 
          libOffset, nextFunLibOffset, progCounter);
@@ -45,19 +49,34 @@ void dynamic_linker()
 
   // Load program from (FLASHADDR+libOffset..FLASHADDR+nextFunLibOffset-1) to
   // (nextFreeAddr..nextFreeAddr+prog[progCounter].size-1)
-  end = (int*)(prog[progCounter].memAddr+prog[progCounter].size);
   src = (int*)(FLASHADDR+libOffset);
+  end = (int*)(src+prog[progCounter].size/4);
   printf("end = %x, src = %x, nextFreeAddr = %x\n", (unsigned int)end, (unsigned int)src, (unsigned int)nextFreeAddr);
-  for (dest = (int*)(prog[progCounter].memAddr); src < end; src++, dest++)
+  printf("*src = %x\n", (unsigned int)(*src));
+  for (dest = (int*)(prog[progCounter].memAddr); src < end; src++, dest++) {
     *dest = *src;
+    printf("*dest = %08x\n", (unsigned int)(*dest));
+  }
   progCounter++;
 
   printf("progCounter-1 = %x, prog[progCounter-1].memAddr = %x, *prog[progCounter-1].memAddr = %x\n", (unsigned int)(progCounter-1), (unsigned int)(prog[progCounter-1].memAddr), *(unsigned int*)(prog[progCounter-1].memAddr));
   // Change .got.plt for "ld	$t9, idx($gp)"
-  *((int*)(GPADDR+0x18+dynsym*0x10)) = prog[progCounter].memAddr;
-  memAddr = prog[progCounter].memAddr;
-  asm("ld $t9, 44($fp)"); // 36($fp) is address of variable memAddr
-  asm("addiu $sp, $sp, 104"); // 36($sp) is address for variable memAddr
+  *((int*)(gp+0x10+dynsym*0x10)) = prog[progCounter-1].memAddr;
+  *(int*)(0x7FFE0) = prog[progCounter-1].memAddr;
+  printf("*((int*)(gp+0x10+dynsym*0x10)) = %x, *(int*)(0x7FFE0) = %x\n", *((int*)(gp+0x10+dynsym*0x10)), (unsigned int)(*(int*)(0x7FFE0)));
+  printf("*((int*)(0x7FFD0) = %08x\n", (unsigned int)(*(int*)(0x7FFD0)));
+  // restore $lr. The next instruction of foo() of main.cpp for the main.cpp 
+  // call foo() first time example.
+  asm("lui $at, 0x7");
+  asm("ori $at, $at, 0xFFD0");
+  asm("ld $lr, 0($at)");
+  
+  // jmp to the dynamic linked function. It's foo() for the main.cpp call foo() 
+  // first time example.
+  asm("lui $at, 0x7");
+  asm("ori $at, $at, 0xFFE0");
+  asm("ld $t9, 0($at)");
+  asm("addiu $sp, $sp, 104"); // restore $sp from $fp
   asm("ret $t9");
 #endif
   return;

@@ -8,12 +8,12 @@
 // /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
 // /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c foobar.cpp -emit-llvm -o foobar.cpu0.bc
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj -cpu0-fix-global-base-register=true dynamic_linker.cpu0.bc -o dynamic_linker.cpu0.o
-// /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg.bc -o printf-stdarg.cpu0.o
-// /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj foobar.cpu0.bc -o foobar.cpu0.o
+// /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj -cpu0-fix-global-base-register=true printf-stdarg.bc -o printf-stdarg.cpu0.o
+// /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj -cpu0-fix-global-base-register=true foobar.cpu0.bc -o foobar.cpu0.o
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu -shared -o libfoobar.cpu0.so foobar.cpu0.o
-// /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj start.ll -o start.cpu0.o
+// /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj -cpu0-fix-global-base-register=true start.ll -o start.cpu0.o
 // /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c main.cpp -emit-llvm -o main.cpu0.bc
-// /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj main.cpu0.bc -o main.cpu0.o
+// /home/cschen/test/lld_20130816/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj -cpu0-fix-global-base-register=true main.cpu0.bc -o main.cpu0.o
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o printf-stdarg.cpu0.o dynamic_linker.cpu0.o main.cpu0.o libfoobar.cpu0.so
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
 // /home/cschen/test/lld_20130816/cmake_debug_build/bin/llvm-objdump -elf2hex -dumpso libfoobar.cpu0.so > ../cpu0_verilog/raw/libso.hex
@@ -62,8 +62,9 @@ int main()
 //  printf("gI = %d\n", gI); 
   int a = foo(1, 2);
   printf("foo(1, 2) = %d\n", a); 
-  a += foo(3, 4);
-  a += bar();
+  a = foo(3, 4);
+  printf("foo(3, 4) = %d\n", a); 
+//  a += bar();
   
   return 0;
 }

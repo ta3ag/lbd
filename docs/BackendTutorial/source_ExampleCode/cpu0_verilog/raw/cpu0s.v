@@ -1,4 +1,4 @@
-//`define TRACE
+`define TRACE
 `define DDEBUG
 `define DYNLINKER
 `define DYNLINKER_INFO_ADDR  'h70000
@@ -322,6 +322,7 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
 `endif
   reg [7:0] globalAddr [0:3];
   reg [31:0] data;
+  reg [31:0] fabus;
 
   integer i, j, k, l, numDynEntry;
 
@@ -435,7 +436,17 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
     for (i=0; i <384; i=i+1) begin
        so_func_offset[i] = `MEMEMPTY;
     end
+  // erase memory
+    for (i=0; i < `MEMSIZE; i=i+1) begin
+       flash[i] = `MEMEMPTY;
+    end
     $readmemh("libso.hex", flash);
+//    `ifdef TRACE
+    for (i=0; i < `MEMSIZE && (flash[i] != `MEMEMPTY || flash[i+1] != `MEMEMPTY || 
+         flash[i+2] != `MEMEMPTY || flash[i+3] != `MEMEMPTY); i=i+4) begin
+       $display("%8x: %8x", i, {flash[i], flash[i+1], flash[i+2], flash[i+3]});
+    end
+//    `endif
     $readmemh("dynsym", dsym);
     $readmemh("dynstr", dstr);
     $readmemh("so_func_offset", so_func_offset);
@@ -465,20 +476,21 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
         data = 32'hZZZZZZZZ;
 `ifdef DYNLINKER
     end else if (abus >= `FLASHADDR && abus <= `FLASHADDR+`MEMSIZE-4) begin
+      fabus = abus-`FLASHADDR;
       if (en == 1 && rw == 0) begin // r_w==0:write
         data = dbus_in;
         case (m_size)
-        `BYTE:  {flash[abus]} = dbus_in[7:0];
-        `INT16: {flash[abus], flash[abus+1] } = dbus_in[15:0];
-        `INT24: {flash[abus], flash[abus+1], flash[abus+2]} = dbus_in[24:0];
-        `INT32: {flash[abus], flash[abus+1], flash[abus+2], flash[abus+3]} = dbus_in;
+        `BYTE:  {flash[fabus]} = dbus_in[7:0];
+        `INT16: {flash[fabus], flash[fabus+1] } = dbus_in[15:0];
+        `INT24: {flash[fabus], flash[fabus+1], flash[fabus+2]} = dbus_in[24:0];
+        `INT32: {flash[fabus], flash[fabus+1], flash[fabus+2], flash[fabus+3]} = dbus_in;
         endcase
       end else if (en == 1 && rw == 1) begin// r_w==1:read
         case (m_size)
-        `BYTE:  data = {8'h00  , 8'h00,   8'h00,   flash[abus]      };
-        `INT16: data = {8'h00  , 8'h00,   flash[abus], flash[abus+1]    };
-        `INT24: data = {8'h00  , flash[abus], flash[abus+1], flash[abus+2]  };
-        `INT32: data = {flash[abus], flash[abus+1], flash[abus+2], flash[abus+3]};
+        `BYTE:  data = {8'h00  , 8'h00,   8'h00,   flash[fabus]      };
+        `INT16: data = {8'h00  , 8'h00,   flash[fabus], flash[fabus+1]    };
+        `INT24: data = {8'h00  , flash[fabus], flash[fabus+1], flash[fabus+2]  };
+        `INT32: data = {flash[fabus], flash[fabus+1], flash[fabus+2], flash[fabus+3]};
         endcase
       end else
         data = 32'hZZZZZZZZ;
