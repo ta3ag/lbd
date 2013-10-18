@@ -37,7 +37,7 @@ const uint8_t cpu0BootAtomContent[16] = {
 };
 
 // .got values
-const uint8_t cpu0GotAtomContent[8] = { 0 };
+const uint8_t cpu0GotAtomContent[16] = { 0 };
 
 // .plt value (entry 0)
 const uint8_t cpu0Plt0AtomContent[16] = {
@@ -56,10 +56,10 @@ const uint8_t cpu0Plt0AtomContent[16] = {
 
 // .plt values (other entries)
 const uint8_t cpu0PltAtomContent[16] = {
+  0x09, 0x80, 0x00, 0x00, // addiu $8, $zero, reloc-index (=.dynsym_index)
+  0x02, 0x8a, 0x00, 0x00, // st $8, $zero, reloc-index ($gp)
   0x01, 0x6a, 0x00, 0x00, // ld $t9, CPU0.Stub($gp) 
-  0x09, 0x80, 0x00, 0x00, // addiu $8, $zero, reloc-index (.dynsym_index)
-  0x3c, 0x60, 0x00, 0x00, // ret $t9 // jump to Cpu0.Stub
-  0x00, 0x00, 0x00, 0x00  // nop
+  0x3c, 0x60, 0x00, 0x00  // ret $t9 // jump to Cpu0.Stub
 };
 
 /// boot record
@@ -81,7 +81,7 @@ public:
   Cpu0GOTAtom(const File &f, StringRef secName) : GOTAtom(f, secName) {}
 
   virtual ArrayRef<uint8_t> rawContent() const {
-    return ArrayRef<uint8_t>(cpu0GotAtomContent, 8);
+    return ArrayRef<uint8_t>(cpu0GotAtomContent, 16);
   }
 };
 
@@ -391,11 +391,11 @@ public:
     auto ga = new (_file._alloc) Cpu0GOTAtom(_file, ".got.plt");
     ga->addReference(R_CPU0_JUMP_SLOT, 0, a, 0);
     auto pa = new (_file._alloc) Cpu0PLTAtom(_file, ".plt");
-//    pa->addReference(R_CPU0_PC24, 2, ga, -4);
-    pa->addReference(R_CPU0_GOT16, 4, ga, -2);
+    getPLT0();  // add _PLT0 and _got0
 //    pa->addReference(LLD_R_CPU0_GOTRELINDEX, 7, ga, 0);
+//    pa->addReference(R_CPU0_PC24, 2, ga, -4);
     pa->addReference(LLD_R_CPU0_GOTRELINDEX, 0, ga, -2);
-    pa->addReference(R_CPU0_PC24, 16, getPLT0(), -4);
+    pa->addReference(R_CPU0_GOT16, 8, ga, -2);
     // Set the starting address of the got entry to the second instruction in
     // the plt entry.
     ga->addReference(R_CPU0_32, 0, pa, 4);

@@ -75,8 +75,8 @@ public:
     case llvm::ELF::R_CPU0_RELGOT:
 #if 0
     case llvm::ELF::R_CPU0_RELATIVE:
-      return true;
 #endif
+      return true;
     default:
       return false;
     }

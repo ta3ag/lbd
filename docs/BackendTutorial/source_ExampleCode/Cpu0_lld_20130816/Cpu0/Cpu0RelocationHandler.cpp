@@ -125,8 +125,8 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
                 .getPLTRelocationTable()->getRelocationIndex(*r, index))
           llvm_unreachable("Relocation doesn't exist");
       // index: the entry number of PLT
-      // index*4: 1st entry is 0, 2nd is 4, 3rd is 8, ...
-        reloc32(location, 0, index*4, 0);
+      // index: 1st entry is 1, 2nd is 2, 3rd is 3, ...
+        reloc32(location, 0, index+1, 0);
         break;
       }
     }
