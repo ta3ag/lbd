@@ -9,6 +9,8 @@ extern "C" int printf(const char *format, ...);
 
 int progCounter; // program counter, init to 0 in main()
 
+ProgAddr prog[10];
+
 void dynamic_linker()
 {
 #if 0
@@ -18,7 +20,7 @@ void dynamic_linker()
   asm("ori $at, $at, 0xFFD0");
   asm("st $lr, 0($at)");
   printf("*((int*)(0x7FFD0) = %08x\n", (unsigned int)(*(int*)(0x7FFD0)));
-  static ProgAddr prog[10];
+//  static ProgAddr prog[10]; // has side effect (ProgAddr cannot be written in Virtual Box on iMac.
   int nextFreeAddr;
   int *src, *dest, *end;
   int numDynEntry = 0;
@@ -44,9 +46,12 @@ void dynamic_linker()
      nextFreeAddr = DYNPROGSTART;
   else
      nextFreeAddr = prog[progCounter-1].memAddr+prog[progCounter-1].size;
+  printf("libOffset = %d, nextFunLibOffset = %d, progCounter = %d\n", 
+         libOffset, nextFunLibOffset, progCounter);
   prog[progCounter].memAddr = nextFreeAddr;
   prog[progCounter].size = (nextFunLibOffset - libOffset);
 
+  printf("prog[progCounter].memAddr = %d, prog[progCounter].size = %d\n", prog[progCounter].memAddr, (unsigned int)(prog[progCounter].size));
   // Load program from (FLASHADDR+libOffset..FLASHADDR+nextFunLibOffset-1) to
   // (nextFreeAddr..nextFreeAddr+prog[progCounter].size-1)
   src = (int*)(FLASHADDR+libOffset);
@@ -71,12 +76,13 @@ void dynamic_linker()
   asm("ori $at, $at, 0xFFD0");
   asm("ld $lr, 0($at)");
   
+  asm("ld $fp, 96($sp)"); // restore $fp
+  asm("addiu $sp, $sp, 104"); // restore $sp
   // jmp to the dynamic linked function. It's foo() for the main.cpp call foo() 
   // first time example.
   asm("lui $at, 0x7");
   asm("ori $at, $at, 0xFFE0");
   asm("ld $t9, 0($at)");
-  asm("addiu $sp, $sp, 104"); // restore $sp from $fp
   asm("ret $t9");
 #endif
   return;

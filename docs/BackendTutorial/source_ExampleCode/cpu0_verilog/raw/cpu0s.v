@@ -1,4 +1,4 @@
-`define TRACE
+//`define TRACE
 `define DDEBUG
 `define DYNLINKER
 `define DYNLINKER_INFO_ADDR  'h70000
