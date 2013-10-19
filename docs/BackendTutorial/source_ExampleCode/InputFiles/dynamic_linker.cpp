@@ -16,10 +16,6 @@ void dynamic_linker()
 #if 0
   printf("dynamic_linker()\n");
 #else
-  asm("lui $at, 0x7");
-  asm("ori $at, $at, 0xFFD0");
-  asm("st $lr, 0($at)");
-  printf("*((int*)(0x7FFD0) = %08x\n", (unsigned int)(*(int*)(0x7FFD0)));
 //  static ProgAddr prog[10]; // has side effect (ProgAddr cannot be written in Virtual Box on iMac.
   int nextFreeAddr;
   int *src, *dest, *end;
@@ -69,20 +65,17 @@ void dynamic_linker()
   *((int*)(gp+0x10+dynsym*0x10)) = prog[progCounter-1].memAddr;
   *(int*)(0x7FFE0) = prog[progCounter-1].memAddr;
   printf("*((int*)(gp+0x10+dynsym*0x10)) = %x, *(int*)(0x7FFE0) = %x\n", *((int*)(gp+0x10+dynsym*0x10)), (unsigned int)(*(int*)(0x7FFE0)));
-  printf("*((int*)(0x7FFD0) = %08x\n", (unsigned int)(*(int*)(0x7FFD0)));
-  // restore $lr. The next instruction of foo() of main.cpp for the main.cpp 
+  // restore $lr. The next instruction of foo() of main.cpp for the main.cpp
   // call foo() first time example.
-  asm("lui $at, 0x7");
-  asm("ori $at, $at, 0xFFD0");
-  asm("ld $lr, 0($at)");
-  
-  asm("ld $fp, 96($sp)"); // restore $fp
-  asm("addiu $sp, $sp, 104"); // restore $sp
+  // The $lr, $fp and $sp saved in cpu0Plt0AtomContent of Cpu0LinkingContext.cpp.
+  asm("ld $lr, 4($gp)"); // restore $lr
+  asm("ld $fp, 8($gp)"); // restore $fp
+  asm("ld $sp, 12($gp)"); // restore $sp
   // jmp to the dynamic linked function. It's foo() for the main.cpp call foo() 
   // first time example.
-  asm("lui $at, 0x7");
-  asm("ori $at, $at, 0xFFE0");
-  asm("ld $t9, 0($at)");
+  asm("lui $t9, 0x7");
+  asm("ori $t9, $t9, 0xFFE0");
+  asm("ld $t9, 0($t9)");
   asm("ret $t9");
 #endif
   return;

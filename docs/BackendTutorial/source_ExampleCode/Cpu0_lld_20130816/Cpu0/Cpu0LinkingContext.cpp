@@ -47,17 +47,17 @@ const uint8_t cpu0Plt0AtomContent[16] = {
   0x3e, 0xe6, 0x00, 0x00, // jalr ($lr,)$t9 // jump to dynamic_linker
   0x00, 0x00, 0x00, 0x00  // nop
 #else
-  0x13, 0x70, 0xe0, 0x00, // add $7, $zero, $lr
-  0x36, 0xff, 0xff, 0xfc, // jmp dynamic_linker
-  0x00, 0x00, 0x00, 0x00, // nop
-  0x00, 0x00, 0x00, 0x00  // nop
+  0x02, 0xea, 0x00, 0x04, // st $lr, $zero, reloc-index ($gp)
+  0x02, 0xba, 0x00, 0x08, // st $fp, $zero, reloc-index ($gp)
+  0x02, 0xda, 0x00, 0x0c, // st $sp, $zero, reloc-index ($gp)
+  0x36, 0xff, 0xff, 0xfc // jmp dynamic_linker
 #endif
 };
 
 // .plt values (other entries)
 const uint8_t cpu0PltAtomContent[16] = {
-  0x09, 0x80, 0x00, 0x00, // addiu $8, $zero, reloc-index (=.dynsym_index)
-  0x02, 0x8a, 0x00, 0x00, // st $8, $zero, reloc-index ($gp)
+  0x09, 0x60, 0x00, 0x00, // addiu $t9, $zero, reloc-index (=.dynsym_index)
+  0x02, 0x6a, 0x00, 0x00, // st $t9, $zero, reloc-index ($gp)
   0x01, 0x6a, 0x00, 0x00, // ld $t9, CPU0.Stub($gp) 
   0x3c, 0x60, 0x00, 0x00  // ret $t9 // jump to Cpu0.Stub
 };
@@ -278,7 +278,7 @@ public:
         }
       }
       assert(find && "Cannot find _Z14dynamic_linkerv()");
-      _PLT0->addReference(R_CPU0_PC24, 4, *it, -3);
+      _PLT0->addReference(R_CPU0_PC24, 12, *it, -3);
 #endif
       _PLT0->setOrdinal(ordinal++);
       mf.addAtom(*_PLT0);
