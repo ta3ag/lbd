@@ -12,6 +12,7 @@ struct ProgAddr {
   int size;
 };
 
+extern void setGotPltSection();
 extern void dynamic_linker();
 
 #endif

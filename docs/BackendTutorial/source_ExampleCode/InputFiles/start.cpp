@@ -41,33 +41,15 @@ asm("jmp -4"); // ERR_HANDLE: jmp ERR_HANDLE; (loop forever)
   asm("addiu $11, $ZERO, 0"); \
   asm("addiu $12, $ZERO, 0");
 
-#if 0
-void getReg(int regNo, int *value)
-{
-  asm("addu $2, $ZERO, $gp");
-}
-
-void setGotPltSection()
-{
-  int numDynEntry = 0;
-  int gp = 0;
-  numDynEntry = *((int*)(DYNLINKER_INFO_ADDR));
-  getReg(10, &gp);
-  
-}
-#endif
-
 void start() {
   asm("lui   $1,  0x7");
   asm("ori   $1,  $1, 0xfff0");
   asm("ld    $gp, 0($1)"); // load $gp($10) value from 0x7fff0
-  asm("addiu $1,  $ZERO, 0x10");
-  asm("st    $1,  0x20($gp)"); // 0($gp) = 0x10 (= 2nd .PTL0)
-  asm("st    $1,  0x30($gp)"); // 0($gp) = 0x10 (= 2nd .PTL0)
   initRegs();
   
   asm("addiu $sp, $zero, 0x6ffc");
-//  setGotPltSection();
+  setGotPltSection();
+  initRegs();
   main();
   asm("addiu $14, $ZERO, -1");
   asm("ret $14");

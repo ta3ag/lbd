@@ -51,20 +51,17 @@ extern "C" int putchar(const char c)
 extern int foo(int x1, int x2);
 extern int bar();
 
-//#include <stdio.h>
-
-int gI = 100;
 extern int progCounter;
 
 int main()
 {
   progCounter = 0;
-//  printf("gI = %d\n", gI); 
   int a = foo(1, 2);
   printf("foo(1, 2) = %d\n", a); 
   a = foo(3, 4);
   printf("foo(3, 4) = %d\n", a); 
-//  a += bar();
+  a = bar();
+  printf("bar() = %d\n", a); 
   
   return 0;
 }
