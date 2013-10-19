@@ -1,6 +1,6 @@
 //`define TRACE
-`define DDEBUG
-`define DYNLINKER
+`define DYNDEBUG
+//`define DYNLINKER
 `define DYNLINKER_INFO_ADDR  'h70000
 
 `define MEMSIZE   'h80000
@@ -319,12 +319,13 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
   reg [7:0] dsym [0:192-1];
   reg [7:0] dstr [0:96-1];
   reg [7:0] so_func_offset[0:384-1];
-`endif
   reg [7:0] globalAddr [0:3];
-  reg [31:0] data;
   reg [31:0] fabus;
+  integer j, k, l, numDynEntry;
+`endif
+  reg [31:0] data;
 
-  integer i, j, k, l, numDynEntry;
+  integer i;
 
 `ifdef DYNLINKER
   task setDynLinkerInfo; begin
@@ -388,15 +389,15 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
       i = i + 1;
     end
     $display("In setDynLinkerInfo()");
-    `ifdef DDEBUG
+  `ifdef DYNDEBUG
     for (i=`DYNLINKER_INFO_ADDR; i < `MEMSIZE; i=i+4) begin
        if (m[i] != `MEMEMPTY || m[i+1] != `MEMEMPTY || 
          m[i+2] != `MEMEMPTY || m[i+3] != `MEMEMPTY)
          $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
     end
-       $display("global address %8x", {m[`GPADDR], m[`GPADDR+1], 
-                m[`GPADDR+2], m[`GPADDR+3]});
-    `endif
+    $display("global address %8x", {m[`GPADDR], m[`GPADDR+1], 
+             m[`GPADDR+2], m[`GPADDR+3]});
+  `endif
   end endtask
 `endif
 
@@ -413,15 +414,17 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
     end
     `endif
+`ifdef DYNLINKER
     $readmemh("global_offset", globalAddr);
-//    `ifdef TRACE
-       m[`GPADDR]   = globalAddr[0];
-       m[`GPADDR+1] = globalAddr[1];
-       m[`GPADDR+2] = globalAddr[2];
-       m[`GPADDR+3] = globalAddr[3];
-       $display("global address %8x", {m[`GPADDR], m[`GPADDR+1], 
-                m[`GPADDR+2], m[`GPADDR+3]});
-//    `endif
+    m[`GPADDR]   = globalAddr[0];
+    m[`GPADDR+1] = globalAddr[1];
+    m[`GPADDR+2] = globalAddr[2];
+    m[`GPADDR+3] = globalAddr[3];
+`ifdef DYNDEBUG
+    $display("global address %8x", {m[`GPADDR], m[`GPADDR+1], 
+             m[`GPADDR+2], m[`GPADDR+3]});
+`endif
+`endif
 `ifdef DYNLINKER
   // erase memory
     for (i=0; i < `MEMSIZE; i=i+1) begin
@@ -441,12 +444,12 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
        flash[i] = `MEMEMPTY;
     end
     $readmemh("libso.hex", flash);
-//    `ifdef TRACE
+`ifdef DYNDEBUG
     for (i=0; i < `MEMSIZE && (flash[i] != `MEMEMPTY || flash[i+1] != `MEMEMPTY || 
          flash[i+2] != `MEMEMPTY || flash[i+3] != `MEMEMPTY); i=i+4) begin
        $display("%8x: %8x", i, {flash[i], flash[i+1], flash[i+2], flash[i+3]});
     end
-//    `endif
+`endif
     $readmemh("dynsym", dsym);
     $readmemh("dynstr", dstr);
     $readmemh("so_func_offset", so_func_offset);

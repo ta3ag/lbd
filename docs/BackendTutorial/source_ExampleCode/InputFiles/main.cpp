@@ -35,6 +35,7 @@
 // cp dynstr dynsym so_func_offset global_offset ../cpu0_verilog/raw/.
 
 /// start
+#include "dynamic_linker.h"
 #include "print.h"
 
 extern "C" int printf(const char *format, ...);
@@ -51,11 +52,9 @@ extern "C" int putchar(const char c)
 extern int foo(int x1, int x2);
 extern int bar();
 
-extern int progCounter;
-
 int main()
 {
-  progCounter = 0;
+  setGotPltSection();
   int a = foo(1, 2);
   printf("foo(1, 2) = %d\n", a); 
   a = foo(3, 4);

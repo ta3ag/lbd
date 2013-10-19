@@ -16,13 +16,16 @@ ProgAddr prog[10];
 
 void setGotPltSection()
 {
+  progCounter = 0;
   int numDynEntry = 0;
   int gp = *(int*)GPADDR;
   numDynEntry = *((int*)(DYNLINKER_INFO_ADDR));
-  for (int i = 0; i < numDynEntry; i++) {
-    // the offset 0x20, 0x30 of section .got.plt. set to 0x10
-    *(int*)(gp+0x20+i*0x10) = PLT0ADDR;
-  } 
+  for (int i = 1; i < numDynEntry; i++) {
+    // Skip the first .got.plt entry which is for cpu0Plt0AtomContent.
+    // The offset 0x20, 0x30 of section .got.plt. which is for 
+    // cpu0PltAtomContent is set to 0x10
+    *(int*)(gp+0x10+i*0x10) = PLT0ADDR;
+  }
 }
 
 void dynamic_linker()

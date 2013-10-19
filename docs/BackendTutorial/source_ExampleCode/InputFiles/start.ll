@@ -19,56 +19,31 @@ entry:
   call void asm sideeffect "addiu $$11, $$ZERO, 0", ""() #1, !srcloc !12
   call void asm sideeffect "addiu $$12, $$ZERO, 0", ""() #1, !srcloc !13
   call void asm sideeffect "addiu $$sp, $$zero, 0x6ffc", ""() #1, !srcloc !14
-  call void @_Z16setGotPltSectionv()
-  call void asm sideeffect "addiu $$1,\09$$ZERO, 0", ""() #1, !srcloc !15
-  call void asm sideeffect "addiu $$2,\09$$ZERO, 0", ""() #1, !srcloc !16
-  call void asm sideeffect "addiu $$3,\09$$ZERO, 0", ""() #1, !srcloc !17
-  call void asm sideeffect "addiu $$4,\09$$ZERO, 0", ""() #1, !srcloc !18
-  call void asm sideeffect "addiu $$5,\09$$ZERO, 0", ""() #1, !srcloc !19
-  call void asm sideeffect "addiu $$6,\09$$ZERO, 0", ""() #1, !srcloc !20
-  call void asm sideeffect "addiu $$7,\09$$ZERO, 0", ""() #1, !srcloc !21
-  call void asm sideeffect "addiu $$8,\09$$ZERO, 0", ""() #1, !srcloc !22
-  call void asm sideeffect "addiu $$9,\09$$ZERO, 0", ""() #1, !srcloc !23
-  call void asm sideeffect "addiu $$11, $$ZERO, 0", ""() #1, !srcloc !24
-  call void asm sideeffect "addiu $$12, $$ZERO, 0", ""() #1, !srcloc !25
   %call = call i32 @main()
-  call void asm sideeffect "addiu $$14, $$ZERO, -1", ""() #1, !srcloc !26
-  call void asm sideeffect "ret $$14", ""() #1, !srcloc !27
+  call void asm sideeffect "addiu $$14, $$ZERO, -1", ""() #1, !srcloc !15
+  call void asm sideeffect "ret $$14", ""() #1, !srcloc !16
   ret void
 }
-
-declare void @_Z16setGotPltSectionv() #0
 
 declare i32 @main() #0
 
 attributes #0 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf"="true" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #1 = { nounwind }
 
-!0 = metadata !{i32 1324}
-!1 = metadata !{i32 1349}
-!2 = metadata !{i32 1381}
-!3 = metadata !{i32 -2147476782}
-!4 = metadata !{i32 -2147476751}
-!5 = metadata !{i32 -2147476720}
-!6 = metadata !{i32 -2147476689}
-!7 = metadata !{i32 -2147476658}
-!8 = metadata !{i32 -2147476627}
-!9 = metadata !{i32 -2147476596}
-!10 = metadata !{i32 -2147476565}
-!11 = metadata !{i32 -2147476534}
-!12 = metadata !{i32 -2147476503}
-!13 = metadata !{i32 -2147476471}
-!14 = metadata !{i32 1461}
-!15 = metadata !{i32 -2147476443}
-!16 = metadata !{i32 -2147476412}
-!17 = metadata !{i32 -2147476381}
-!18 = metadata !{i32 -2147476350}
-!19 = metadata !{i32 -2147476319}
-!20 = metadata !{i32 -2147476288}
-!21 = metadata !{i32 -2147476257}
-!22 = metadata !{i32 -2147476226}
-!23 = metadata !{i32 -2147476195}
-!24 = metadata !{i32 -2147476164}
-!25 = metadata !{i32 -2147476132}
-!26 = metadata !{i32 1542}
-!27 = metadata !{i32 1573}
+!0 = metadata !{i32 1295}
+!1 = metadata !{i32 1320}
+!2 = metadata !{i32 1352}
+!3 = metadata !{i32 -2147477202}
+!4 = metadata !{i32 -2147477171}
+!5 = metadata !{i32 -2147477140}
+!6 = metadata !{i32 -2147477109}
+!7 = metadata !{i32 -2147477078}
+!8 = metadata !{i32 -2147477047}
+!9 = metadata !{i32 -2147477016}
+!10 = metadata !{i32 -2147476985}
+!11 = metadata !{i32 -2147476954}
+!12 = metadata !{i32 -2147476923}
+!13 = metadata !{i32 -2147476891}
+!14 = metadata !{i32 1432}
+!15 = metadata !{i32 1477}
+!16 = metadata !{i32 1508}

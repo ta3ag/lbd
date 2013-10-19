@@ -16,8 +16,6 @@ SYMBOL TABLE:
 
 /// start
 
-#include "dynamic_linker.h"
-
 extern int main();
 // The start address of reset
 // boot:
@@ -48,8 +46,6 @@ void start() {
   initRegs();
   
   asm("addiu $sp, $zero, 0x6ffc");
-  setGotPltSection();
-  initRegs();
   main();
   asm("addiu $14, $ZERO, -1");
   asm("ret $14");
