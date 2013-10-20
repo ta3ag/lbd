@@ -9,6 +9,8 @@ int foo(int x1, int x2)
 
 int bar()
 {
-  return 5;
+  int a = foo(2, 2);
+
+  return a;
 }
 

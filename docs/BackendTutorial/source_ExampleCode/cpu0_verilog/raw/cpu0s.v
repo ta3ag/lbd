@@ -364,8 +364,8 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
       m[i+7] = dsym[j+7];
       i = i + 8;
     end
-  // copy section .text of shared library .so of ELF to memory address 
-  // `DYNLINKER_INFO_ADDR+8+numDynEntry*8
+  // copy the offset values of section .text of shared library .so of ELF to 
+  // memory address `DYNLINKER_INFO_ADDR+8+numDynEntry*8
     i = `DYNLINKER_INFO_ADDR+8+numDynEntry*8;
     l = 0;
     for (j=0; j < numDynEntry; j=j+1) begin
