@@ -41,17 +41,10 @@ const uint8_t cpu0GotAtomContent[16] = { 0 };
 
 // .plt value (entry 0)
 const uint8_t cpu0Plt0AtomContent[16] = {
-#if 0
-  0x01, 0x6a, 0xff, 0xfc, // ld $t9, dynamic_linker_offset($gp) 
-  0x13, 0x70, 0xe0, 0x00, // add $7, $zero, $lr
-  0x3e, 0xe6, 0x00, 0x00, // jalr ($lr,)$t9 // jump to dynamic_linker
-  0x00, 0x00, 0x00, 0x00  // nop
-#else
   0x02, 0xea, 0x00, 0x04, // st $lr, $zero, reloc-index ($gp)
   0x02, 0xba, 0x00, 0x08, // st $fp, $zero, reloc-index ($gp)
   0x02, 0xda, 0x00, 0x0c, // st $sp, $zero, reloc-index ($gp)
   0x36, 0xff, 0xff, 0xfc // jmp dynamic_linker
-#endif
 };
 
 // .plt values (other entries)
@@ -236,9 +229,10 @@ protected:
   }
 
 public:
-  GOTPLTPass(const ELFLinkingContext &ti)
+  GOTPLTPass(const ELFLinkingContext &ti, bool isExe)
       : _file(ti), _null(nullptr), _PLT0(nullptr), _got0(nullptr)/*,
-        _got1(nullptr)*/ { _boot = new Cpu0BootAtom(_file); }
+        _got1(nullptr)*/, _boot(new Cpu0BootAtom(_file)), _isStaticExe(isExe) 
+       { }
 
   /// \brief Do the pass.
   ///
@@ -257,17 +251,22 @@ public:
 
     // Add all created atoms to the link.
     uint64_t ordinal = 0;
-        MutableFile::DefinedAtomRange atomRange = mf.definedAtoms();
-        auto it = atomRange.begin();
-        for (it = atomRange.begin(); it < atomRange.end(); it++) {
-          if ((*it)->name() == "_start")
-            break;
+    if (_isStaticExe) {
+      MutableFile::DefinedAtomRange atomRange = mf.definedAtoms();
+      auto it = atomRange.begin();
+      bool find = false;
+      for (it = atomRange.begin(); it < atomRange.end(); it++) {
+        if ((*it)->name() == "_start") {
+        find = true;
+          break;
         }
+      }
+      assert(find && "not found _start\n");
       _boot->addReference(R_CPU0_PC24, 0, *it, -3);
       _boot->setOrdinal(ordinal++);
       mf.addAtom(*_boot);
+    }
     if (_PLT0) {
-#if 1
       MutableFile::DefinedAtomRange atomRange = mf.definedAtoms();
       auto it = atomRange.begin();
       bool find = false;
@@ -279,7 +278,6 @@ public:
       }
       assert(find && "Cannot find _Z14dynamic_linkerv()");
       _PLT0->addReference(R_CPU0_PC24, 12, *it, -3);
-#endif
       _PLT0->setOrdinal(ordinal++);
       mf.addAtom(*_PLT0);
     }
@@ -328,6 +326,7 @@ protected:
   PLT0Atom *_PLT0;
   GOTAtom *_got0;
 //  GOTAtom *_got1;
+  bool _isStaticExe;
   /// @}
 };
 
@@ -339,7 +338,8 @@ protected:
 /// TLS always assumes module 1 and attempts to remove indirection.
 class StaticGOTPLTPass LLVM_FINAL : public GOTPLTPass<StaticGOTPLTPass> {
 public:
-  StaticGOTPLTPass(const elf::Cpu0LinkingContext &ti) : GOTPLTPass(ti) {}
+  StaticGOTPLTPass(const elf::Cpu0LinkingContext &ti, bool isExe) : 
+  GOTPLTPass(ti, isExe) { }
 
   ErrorOr<void> handlePLT32(const Reference &ref) {
     // __tls_get_addr is handled elsewhere.
@@ -362,7 +362,8 @@ public:
 
 class DynamicGOTPLTPass LLVM_FINAL : public GOTPLTPass<DynamicGOTPLTPass> {
 public:
-  DynamicGOTPLTPass(const elf::Cpu0LinkingContext &ti) : GOTPLTPass(ti) {}
+  DynamicGOTPLTPass(const elf::Cpu0LinkingContext &ti, bool isExe) : 
+  GOTPLTPass(ti, isExe) { }
 
   const PLT0Atom *getPLT0() {
     if (_PLT0)
@@ -463,12 +464,12 @@ void elf::Cpu0LinkingContext::addPasses(PassManager &pm) const {
   switch (_outputFileType) {
   case llvm::ELF::ET_EXEC:
     if (_isStaticExecutable)
-      pm.add(std::unique_ptr<Pass>(new StaticGOTPLTPass(*this)));
+      pm.add(std::unique_ptr<Pass>(new StaticGOTPLTPass(*this, true)));
     else
-      pm.add(std::unique_ptr<Pass>(new DynamicGOTPLTPass(*this)));
+      pm.add(std::unique_ptr<Pass>(new DynamicGOTPLTPass(*this, true)));
     break;
   case llvm::ELF::ET_DYN:
-    pm.add(std::unique_ptr<Pass>(new DynamicGOTPLTPass(*this)));
+    pm.add(std::unique_ptr<Pass>(new DynamicGOTPLTPass(*this, false)));
     break;
   case llvm::ELF::ET_REL:
     break;

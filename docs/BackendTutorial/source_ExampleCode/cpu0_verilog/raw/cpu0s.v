@@ -1,6 +1,6 @@
 //`define TRACE
-`define DYNDEBUG
-//`define DYNLINKER
+//`define DYNDEBUG
+`define DYNLINKER
 `define DYNLINKER_INFO_ADDR  'h70000
 
 `define MEMSIZE   'h80000

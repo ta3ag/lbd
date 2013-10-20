@@ -30,20 +30,20 @@ declare i32 @main() #0
 attributes #0 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf"="true" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #1 = { nounwind }
 
-!0 = metadata !{i32 1295}
-!1 = metadata !{i32 1320}
-!2 = metadata !{i32 1352}
-!3 = metadata !{i32 -2147477202}
-!4 = metadata !{i32 -2147477171}
-!5 = metadata !{i32 -2147477140}
-!6 = metadata !{i32 -2147477109}
-!7 = metadata !{i32 -2147477078}
-!8 = metadata !{i32 -2147477047}
-!9 = metadata !{i32 -2147477016}
-!10 = metadata !{i32 -2147476985}
-!11 = metadata !{i32 -2147476954}
-!12 = metadata !{i32 -2147476923}
-!13 = metadata !{i32 -2147476891}
-!14 = metadata !{i32 1432}
-!15 = metadata !{i32 1477}
-!16 = metadata !{i32 1508}
+!0 = metadata !{i32 1313}
+!1 = metadata !{i32 1338}
+!2 = metadata !{i32 1370}
+!3 = metadata !{i32 -2147477184}
+!4 = metadata !{i32 -2147477153}
+!5 = metadata !{i32 -2147477122}
+!6 = metadata !{i32 -2147477091}
+!7 = metadata !{i32 -2147477060}
+!8 = metadata !{i32 -2147477029}
+!9 = metadata !{i32 -2147476998}
+!10 = metadata !{i32 -2147476967}
+!11 = metadata !{i32 -2147476936}
+!12 = metadata !{i32 -2147476905}
+!13 = metadata !{i32 -2147476873}
+!14 = metadata !{i32 1450}
+!15 = metadata !{i32 1495}
+!16 = metadata !{i32 1526}

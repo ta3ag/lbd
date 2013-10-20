@@ -40,6 +40,7 @@ asm("jmp -4"); // ERR_HANDLE: jmp ERR_HANDLE; (loop forever)
   asm("addiu $12, $ZERO, 0");
 
 void start() {
+//  asm("boot:");
   asm("lui   $1,  0x7");
   asm("ori   $1,  $1, 0xfff0");
   asm("ld    $gp, 0($1)"); // load $gp($10) value from 0x7fff0
