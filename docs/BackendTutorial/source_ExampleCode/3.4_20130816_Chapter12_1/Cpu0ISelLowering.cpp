@@ -531,6 +531,7 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   // Create nodes that load address of callee and copy it to T9
   if (IsPICCall) {
     if (GlobalOrExternal) {
+#if 0
       // Load callee address
       // %hi/%lo relocation
       SDVTList VTs = DAG.getVTList(MVT::i32);
@@ -545,7 +546,8 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 /*      Callee = DAG.getLoad(getPointerTy(), DL, DAG.getEntryNode(),
                                         Callee, MachinePointerInfo,
                                         false, false, false, 0);*/
-    #if 0
+#endif
+    #if 1
       // Load callee address
       Callee = DAG.getNode(Cpu0ISD::Wrapper, DL, getPointerTy(),
                            getGlobalReg(DAG, getPointerTy()), Callee);

@@ -9,7 +9,8 @@ int foo(int x1, int x2)
 
 int bar()
 {
-  int a = foo(2, 2);
+//  int a = foo(2, 2);
+  int a = 5;
 
   return a;
 }
