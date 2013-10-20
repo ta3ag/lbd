@@ -414,8 +414,9 @@ public:
   }
 
   ErrorOr<void> handlePLT32(const Reference &ref) {
-    // Turn this into a PC24 to the PLT entry.
-    const_cast<Reference &>(ref).setKind(R_CPU0_PC24);
+    // Turn this into a CALL24 to the PLT entry.
+    // const_cast<Reference &>(ref).setKind(R_CPU0_PC24);
+    const_cast<Reference &>(ref).setKind(R_CPU0_CALL24);
     // Handle IFUNC.
     if (const DefinedAtom *da = 
             dyn_cast_or_null<const DefinedAtom>(ref.target()))
