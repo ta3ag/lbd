@@ -106,6 +106,14 @@ public:
   llvm::BumpPtrAllocator _alloc;
 };
 
+#if 0
+struct PLTOffset {
+  StringRef name;
+};
+PLTOffset PltOffset[100];
+int PltSize = 0;
+#endif
+
 /// \brief Create GOT and PLT entries for relocations. Handles standard GOT/PLT
 /// along with IFUNC and TLS.
 template <class Derived> class GOTPLTPass : public Pass {
@@ -249,6 +257,17 @@ public:
       for (const auto &ref : *atom)
         handleReference(*atom, *ref);
 
+#if 0
+    if (!_isStaticExe) {
+      MutableFile::DefinedAtomRange atomRange = mf.definedAtoms();
+      auto it = atomRange.begin();
+      bool find = false;
+      for (it = atomRange.begin(); it < atomRange.end(); it++) {
+        PltOffset[PltSize] = (*it)->name();
+        PltOffset[PltSize] = (*it)->name();
+      }
+    }
+#endif
     // Add all created atoms to the link.
     uint64_t ordinal = 0;
     if (_isStaticExe) {
@@ -257,7 +276,7 @@ public:
       bool find = false;
       for (it = atomRange.begin(); it < atomRange.end(); it++) {
         if ((*it)->name() == "_start") {
-        find = true;
+          find = true;
           break;
         }
       }
@@ -415,15 +434,17 @@ public:
 
   ErrorOr<void> handlePLT32(const Reference &ref) {
     // Turn this into a CALL24 to the PLT entry.
-    // const_cast<Reference &>(ref).setKind(R_CPU0_PC24);
-    const_cast<Reference &>(ref).setKind(R_CPU0_CALL24);
+    // const_cast<Reference &>(ref).setKind(R_CPU0_CALL24);
     // Handle IFUNC.
     if (const DefinedAtom *da = 
             dyn_cast_or_null<const DefinedAtom>(ref.target()))
       if (da->contentType() == DefinedAtom::typeResolver)
         return handleIFUNC(ref);
-    if (isa<const SharedLibraryAtom>(ref.target()))
+    if (isa<const SharedLibraryAtom>(ref.target())) {
       const_cast<Reference &>(ref).setTarget(getPLTEntry(ref.target()));
+      // Turn this into a PC24 to the PLT entry.
+      const_cast<Reference &>(ref).setKind(R_CPU0_PC24);
+    }
     return error_code::success();
   }
 
