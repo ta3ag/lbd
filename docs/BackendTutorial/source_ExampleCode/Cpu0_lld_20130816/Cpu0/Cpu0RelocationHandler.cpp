@@ -73,9 +73,39 @@ int64_t Cpu0TargetRelocationHandler::relocAddend(const Reference &ref) const {
   return 0;
 }
 
+#if 0
+// Return dynsym entry number
+int Cpu0TargetRelocationHandler::getDynsymEntryIdx(uint64_t afAddr, uint32_t afunAddr[], int afunAddrSize) {
+  for (int i = 0; i < afunAddrSize; i++) {
+    if (afAddr == afunAddr[i]) {
+      return i;
+    }
+  }
+  return -1;
+}
+#endif
+
 ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     ELFWriter &writer, llvm::FileOutputBuffer &buf, const lld::AtomLayout &atom,
     const Reference &ref) const {
+  static bool firstTime = true;
+  static uint32_t funAddr[100];
+  static int funAddrSize = 0;
+  int idx = 0;
+  if (firstTime) {
+    auto dynsymSection = _context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".dynsym");
+    uint64_t dynsymFileOffset, dynsymSize;
+    if (dynsymSection) {
+      dynsymFileOffset = dynsymSection->fileOffset();
+      dynsymSize = dynsymSection->memSize();
+      uint8_t *atomContent = buf.getBufferStart() + dynsymFileOffset;
+      for (int i = 4; i < dynsymSize; i += 16) {
+        funAddr[funAddrSize] = *(uint32_t*)(atomContent + i);
+        funAddrSize++;
+      }
+    }
+    firstTime = false;
+  }
   uint8_t *atomContent = buf.getBufferStart() + atom._fileOffset;
   uint8_t *location = atomContent + ref.offsetInAtom();
   uint64_t targetVAddress = writer.addressOfAtom(ref.target());
@@ -109,7 +139,10 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
   case R_CPU0_CALL24:
   // have to change CALL24 to CALL16 since ld $t9, got($gp) where got is 16 bits 
   // offset at _GLOBAL_OFFSET_TABLE_ and $gp point to _GLOBAL_OFFSET_TABLE_.
-    reloc32(location, relocVAddress, targetVAddress, ref.addend());
+#if 0
+    idx = getDynsymEntryIdx(targetVAddress, funAddr, funAddrSize);
+#endif
+    reloc32(location, relocVAddress, idx*4, ref.addend());
     break;
 #endif
   case R_CPU0_32:
