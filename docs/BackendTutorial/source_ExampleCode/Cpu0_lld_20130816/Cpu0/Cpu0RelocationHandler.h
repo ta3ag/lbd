@@ -34,6 +34,7 @@ private:
   // Cached size of the TLS segment.
   mutable uint64_t _tlsSize;
   const Cpu0LinkingContext &_context;
+//  int getDynsymEntryIdx(uint64_t afAddr, uint32_t afunAddr[], int afunAddrSize);
 };
 
 } // end namespace elf

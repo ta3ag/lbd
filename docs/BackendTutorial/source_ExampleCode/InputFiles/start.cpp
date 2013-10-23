@@ -17,7 +17,6 @@ SYMBOL TABLE:
 /// start
 
 extern int main();
-
 // The start address of reset
 // boot:
 /*asm("boot:");
@@ -26,19 +25,26 @@ asm("jmp 4");  // ERROR: jmp ERR_HANDLE;
 asm("jmp 4");  // IRQ: jmp IRQ_HANDLE;
 asm("jmp -4"); // ERR_HANDLE: jmp ERR_HANDLE; (loop forever)
 */
-void start() {
-  asm("addiu $1,	$ZERO, 0");
-  asm("addiu $2,	$ZERO, 0");
-  asm("addiu $3,	$ZERO, 0");
-  asm("addiu $4,	$ZERO, 0");
-  asm("addiu $5,	$ZERO, 0");
-  asm("addiu $6,	$ZERO, 0");
-  asm("addiu $7,	$ZERO, 0");
-  asm("addiu $8,	$ZERO, 0");
-  asm("addiu $9,	$ZERO, 0");
-  asm("addiu $10, $ZERO, 0");
-  asm("addiu $11, $ZERO, 0");
+
+#define initRegs() \
+  asm("addiu $1,	$ZERO, 0"); \
+  asm("addiu $2,	$ZERO, 0"); \
+  asm("addiu $3,	$ZERO, 0"); \
+  asm("addiu $4,	$ZERO, 0"); \
+  asm("addiu $5,	$ZERO, 0"); \
+  asm("addiu $6,	$ZERO, 0"); \
+  asm("addiu $7,	$ZERO, 0"); \
+  asm("addiu $8,	$ZERO, 0"); \
+  asm("addiu $9,	$ZERO, 0"); \
+  asm("addiu $11, $ZERO, 0"); \
   asm("addiu $12, $ZERO, 0");
+
+void start() {
+//  asm("boot:");
+  asm("lui   $1,  0x7");
+  asm("ori   $1,  $1, 0xfff0");
+  asm("ld    $gp, 0($1)"); // load $gp($10) value from 0x7fff0
+  initRegs();
   
   asm("addiu $sp, $zero, 0x6ffc");
   main();

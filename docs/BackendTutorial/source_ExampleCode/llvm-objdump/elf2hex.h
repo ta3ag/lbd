@@ -293,6 +293,7 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
     }
     StringRef name;
     if (error(i->getName(name))) break;
+    if (DumpSo && name == ".plt") continue;
     outs() << "/*" << "Disassembly of section ";
     if (!SegmentName.empty())
       outs() << SegmentName << ",";
@@ -333,7 +334,10 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
         continue;
 
       if (DumpSo) {
-        fd_so_func_offset << format("%08" PRIx64 "    ", Symbols[si].first);
+        fd_so_func_offset << format("%02" PRIx8 " ", (uint8_t)(Symbols[si].first >> 24));
+        fd_so_func_offset << format("%02" PRIx8 " ", (uint8_t)((Symbols[si].first >> 16) & 0xFF));
+        fd_so_func_offset << format("%02" PRIx8 " ", (uint8_t)((Symbols[si].first >> 8) & 0xFF));
+        fd_so_func_offset << format("%02" PRIx8 "    ", (uint8_t)((Symbols[si].first) & 0xFF));
         std::string str = Symbols[si].second.str();
         std::size_t idx = 0;
         std::size_t strSize = 0;
@@ -440,7 +444,27 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
       if (Contents.size() <= 0) {
         continue;
       }
-      // Fill /*address*/ 00 00 00 00 between lastAddr and BaseAddr
+      // Fill /*address*/ 00 00 00 00 between lastAddr( = the address of last
+      // end section + 1) and BaseAddr
+      uint64_t cellingLastAddr4 = ((lastAddr + 3) / 4) * 4;
+      assert((lastAddr < BaseAddr) && "lastAddr must < BaseAddr");
+      // Fill /*address*/ bytes is odd for 4 by 00 
+      outs() << format("/*%04" PRIx64 " */", lastAddr);
+      if (cellingLastAddr4 > BaseAddr) {
+        for (std::size_t i = lastAddr; i < BaseAddr; ++i) {
+          outs() << "00 ";
+        }
+        outs() << "\n";
+        lastAddr = BaseAddr;
+      }
+      else {
+        for (std::size_t i = lastAddr; i < cellingLastAddr4; ++i) {
+          outs() << "00 ";
+        }
+        outs() << "\n";
+        lastAddr = cellingLastAddr4;
+      }
+      // Fill /*address*/ 00 00 00 00 for 4 bytes (1 Cpu0 word size)
       for (addr = lastAddr, end = BaseAddr; addr < end; addr += 4) {
         outs() << format("/*%04" PRIx64 " */", addr);
         outs() << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) \
@@ -458,14 +482,7 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
           if (addr + i < end)
             outs() << hexdigit((Contents[addr + i] >> 4) & 0xF, true)
                    << hexdigit(Contents[addr + i] & 0xF, true) << " ";
-          else
-            outs() << "  ";
         }
-        // save lastAddr
-        if ((BaseAddr + addr + 16) > end) 
-          lastAddr = BaseAddr + end;
-        else
-          lastAddr = BaseAddr + addr + 16;
         // Print ascii.
         outs() << "/*" << "  ";
         for (std::size_t i = 0; i < 16 && addr + i < end; ++i) {
@@ -476,6 +493,8 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
         }
         outs() << "*/" << "\n";
       }
+      // save the end address of this section to lastAddr
+      lastAddr = BaseAddr + Contents.size();
     }
     else if (!DumpSo) {
       if (Name == ".dynsym") {
@@ -506,6 +525,16 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
           fd_dynstr << hexdigit((Contents[addr] >> 4) & 0xF, true)
                      << hexdigit(Contents[addr] & 0xF, true) << " ";
         }
+      }
+      if (Name == ".got.plt") {
+        uint64_t BaseAddr;
+        if (error(si->getAddress(BaseAddr))) 
+          assert(1 && "Cannot get BaseAddr of section .got.plt");
+        raw_fd_ostream fd_global_offset("global_offset", Error);
+        fd_global_offset << format("%02" PRIx64 " ", BaseAddr >> 24);
+        fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 16) & 0xFF);
+        fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 8) & 0xFF);
+        fd_global_offset << format("%02" PRIx64 "    ", BaseAddr & 0xFF);
       }
     }
   }
