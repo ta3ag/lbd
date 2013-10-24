@@ -58,12 +58,12 @@ int main()
 {
   int a = 0;
   setGotPltSection();
-/*  a = foo(1, 2);
+  a = foo(1, 2);
   printf("foo(1, 2) = %d\n", a); 
-  a = foo(3, 4);
+/*  a = foo(3, 4);
   printf("foo(3, 4) = %d\n", a); */
   a = bar();
-  printf("bar() = %d\n", a); 
+  printf("bar() = %d\n", a);
   
   return 0;
 }

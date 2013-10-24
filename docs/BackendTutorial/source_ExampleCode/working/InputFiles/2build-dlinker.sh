@@ -1,6 +1,8 @@
 /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c dynamic_linker.cpp -emit-llvm -o dynamic_linker.cpu0.bc
+#/usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c gp_disp.c -emit-llvm -o gp_disp.cpu0.bc
 /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
 /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c foobar.cpp -emit-llvm -o foobar.cpu0.bc
+#/home/cschen/test/lld/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj gp_disp.cpu0.bc -o gp_disp.cpu0.o
 /home/cschen/test/lld/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj -cpu0-fix-global-base-register=true dynamic_linker.cpu0.bc -o dynamic_linker.cpu0.o
 /home/cschen/test/lld/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj -cpu0-fix-global-base-register=true printf-stdarg.bc -o printf-stdarg.cpu0.o
 /home/cschen/test/lld/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj -cpu0-fix-global-base-register=true foobar.cpu0.bc -o foobar.cpu0.o

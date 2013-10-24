@@ -1,5 +1,5 @@
 //`define TRACE
-//`define DYNDEBUG
+`define DYNDEBUG
 `define DYNLINKER
 `define DYNLINKER_INFO_ADDR  'h70000
 
@@ -239,7 +239,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
         `LR=`PC;`PC= c24; `I0 = 1'b1; `I = 1'b1;
       end // Software Interrupt; SWI Cx; LR <= PC; PC <= Cx; INT<=1
       JSUB:  begin `LR=`PC;`PC=`PC + c24; end // JSUB Cx; LR<=PC; PC<=PC+Cx
-      JALR:  begin Ra=`PC;`PC=Rb; end // JALR Ra,Rb; Ra<=PC; PC<=Rb
+      JALR:  begin R[a] =`PC;`PC=Rb; end // JALR Ra,Rb; Ra<=PC; PC<=Rb
       RET:   begin `PC=Ra; end               // RET; PC <= Ra
       IRET:  begin 
         `PC=Ra;`I = 1'b0; `MODE = `EXE;
@@ -301,6 +301,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       taskInterrupt(`IRQ);
       state = Fetch;
     end else begin
+      //`TR = 1;
       taskExecute();
       state = next_state;
     end

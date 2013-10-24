@@ -8,14 +8,6 @@
 #define DEBUG_DLINKER
 #define PLT0ADDR 0x10
 
-#define STOP \
-  asm("lui $t9, 0xffff"); \
-  asm("addiu $t9, $zero, 0xffff"); \
-  asm("ret $t9");
-
-#define DEBUG \
-  asm("ori $sw, $sw, 0x0004");
-
 extern "C" int printf(const char *format, ...);
 
 int got_plt_fill[0x20] = {
@@ -83,7 +75,7 @@ void dynamic_linker()
 
 #ifdef DEBUG_DLINKER
   printf("prog[progCounter].memAddr = %d, prog[progCounter].size = %d\n", 
-  prog[progCounter].memAddr, (unsigned int)(prog[progCounter].size));
+         prog[progCounter].memAddr, (unsigned int)(prog[progCounter].size));
 #endif
   // Load program from (FLASHADDR+libOffset..FLASHADDR+nextFunLibOffset-1) to
   // (nextFreeAddr..nextFreeAddr+prog[progCounter].size-1)
@@ -105,8 +97,8 @@ void dynamic_linker()
 #ifdef DEBUG_DLINKER
   printf("progCounter-1 = %x, prog[progCounter-1].memAddr = %x, \
          *prog[progCounter-1].memAddr = %x\n", 
-    (unsigned int)(progCounter-1), (unsigned int)(prog[progCounter-1].memAddr), 
-    *(unsigned int*)(prog[progCounter-1].memAddr));
+         (unsigned int)(progCounter-1), (unsigned int)(prog[progCounter-1].memAddr), 
+         *(unsigned int*)(prog[progCounter-1].memAddr));
 #endif
   // Change .got.plt for "ld	$t9, idx($gp)"
   *((int*)(gp+0x10+dynsym_idx*0x10)) = prog[progCounter-1].memAddr;
@@ -114,15 +106,19 @@ void dynamic_linker()
 #ifdef DEBUG_DLINKER
   printf("*((int*)(gp+0x10+dynsym_idx*0x10)) = %x, *(int*)(0x7FFE0) = %x\n", 
          *((int*)(gp+0x10+dynsym_idx*0x10)), (unsigned int)(*(int*)(0x7FFE0)));
+  printf("*((int*)(gp+0x04)) = %x, *((int*)(gp+0x08)) = %x, *((int*)(gp+0x0c)) = %x\n", 
+         *((int*)(gp+0x04)), *((int*)(gp+0x08)), *((int*)(gp+0x0c)));
 #endif
 //  STOP;
-  DEBUG;
+//  ENABLE_TRACE;
   // restore $lr. The next instruction of foo() of main.cpp for the main.cpp
   // call foo() first time example.
   // The $lr, $fp and $sp saved in cpu0Plt0AtomContent of Cpu0LinkingContext.cpp.
   asm("ld $lr, 4($gp)"); // restore $lr
+  ENABLE_TRACE;
   asm("ld $fp, 8($gp)"); // restore $fp
   asm("ld $sp, 12($gp)"); // restore $sp
+  DISABLE_TRACE;
   // jmp to the dynamic linked function. It's foo() for the main.cpp call foo() 
   // first time example.
   asm("lui $t9, 0x7");
