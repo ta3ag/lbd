@@ -217,7 +217,6 @@ void Cpu0AsmPrinter::EmitFunctionEntryLabel() {
   OutStreamer.EmitLabel(CurrentFnSym);
 }
 
-
 //	.frame	$sp,8,$pc
 //	.mask 	0x00000000,0
 //->	.set	noreorder
@@ -231,6 +230,8 @@ void Cpu0AsmPrinter::EmitFunctionBodyStart() {
   bool EmitCPLoad = (MF->getTarget().getRelocationModel() == Reloc::PIC_) &&
     Cpu0FI->globalBaseRegSet() &&
     Cpu0FI->globalBaseRegFixed();
+  if (Cpu0NoCpload)
+    EmitCPLoad = false;
 
   if (OutStreamer.hasRawTextSupport()) {
     SmallString<128> Str;

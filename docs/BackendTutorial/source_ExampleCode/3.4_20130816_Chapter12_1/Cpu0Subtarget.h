@@ -21,6 +21,8 @@
 #define GET_SUBTARGETINFO_HEADER
 #include "Cpu0GenSubtargetInfo.inc"
 
+extern bool Cpu0NoCpload;
+
 namespace llvm {
 class StringRef;
 

@@ -684,7 +684,6 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
     CCValAssign &VA = ArgLocs[i];
     EVT ValVT = VA.getValVT();
     ISD::ArgFlagsTy Flags = Ins[i].Flags;
-    bool IsRegLoc = VA.isRegLoc();
 
     if (Flags.isByVal()) {
       assert(Flags.getByValSize() &&
@@ -728,7 +727,6 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
 #endif
 
   if (isVarArg) {
-    unsigned NumOfRegs = 0;
     int FirstRegSlotOffset = 0; // offset of $a0's slot.
     unsigned RegSize = Cpu0::CPURegsRegClass.getSize();
     int RegSlotOffset = FirstRegSlotOffset + ArgLocs.size() * RegSize;

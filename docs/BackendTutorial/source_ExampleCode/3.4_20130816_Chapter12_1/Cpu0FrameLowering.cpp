@@ -325,7 +325,6 @@ void Cpu0FrameLowering::
 processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
                                      RegScavenger *RS) const {
   MachineRegisterInfo& MRI = MF.getRegInfo();
-  Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
   unsigned FP = Cpu0::FP;
 
   // Mark $fp as used if function has dedicated frame pointer.

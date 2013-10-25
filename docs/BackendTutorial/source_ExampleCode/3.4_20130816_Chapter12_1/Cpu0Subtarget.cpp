@@ -28,9 +28,15 @@ UseSmallSectionOpt("cpu0-use-small-section", cl::Hidden, cl::init(false),
                  "static. pic always not use small section."));
 
 static cl::opt<bool>
-FixGlobalBaseRegOpt("cpu0-fix-global-base-register", cl::Hidden, cl::init(false),
-                 cl::desc("Reserve $gp and fix to point to section .got.plt"
-                 ""));
+ReserveGPOpt("cpu0-reserve-gp", cl::Hidden, cl::init(false),
+                 cl::desc("Never allocate $gp to variable"));
+
+static cl::opt<bool>
+NoCploadOpt("cpu0-no-cpload", cl::Hidden, cl::init(false),
+                 cl::desc("No issue .cpload"));
+
+bool Cpu0ReserveGP;
+bool Cpu0NoCpload;
 
 extern bool FixGlobalBaseReg;
 
@@ -58,7 +64,9 @@ Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
 
   // Set UseSmallSection.
   UseSmallSection = UseSmallSectionOpt;
-  if (RM == Reloc::Static && !UseSmallSection && !FixGlobalBaseRegOpt)
+  Cpu0ReserveGP = ReserveGPOpt;
+  Cpu0NoCpload = NoCploadOpt;
+  if (RM == Reloc::Static && !UseSmallSection && !Cpu0ReserveGP)
     FixGlobalBaseReg = false;
   else
     FixGlobalBaseReg = true;
