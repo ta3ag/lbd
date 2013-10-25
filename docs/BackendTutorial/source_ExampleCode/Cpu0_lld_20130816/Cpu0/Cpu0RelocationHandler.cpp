@@ -9,9 +9,22 @@
 
 #include "Cpu0TargetHandler.h"
 #include "Cpu0LinkingContext.h"
+#include "llvm/Object/ObjectFile.h"
+#include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/system_error.h"
 
 using namespace lld;
 using namespace elf;
+using namespace llvm;
+using namespace object;
+
+static bool error(error_code ec) {
+  if (!ec) return false;
+
+  outs() << "Cpu0RelocationHandler.cpp : error reading file: " << ec.message() << ".\n";
+  outs().flush();
+  return true;
+}
 
 namespace {
 /// \brief R_CPU0_HI16 - word64: (S + A) >> 16
@@ -41,7 +54,6 @@ void relocGOT16(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
 
 /// \brief R_CPU0_PC24 - word32: S + A - P
 void relocPC24(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
-//  uint32_t result = (uint32_t)((S + A) - P);
   uint32_t result = (uint32_t)(S  - P);
   uint32_t machinecode = (uint32_t) * 
                          reinterpret_cast<llvm::support::ubig32_t *>(location);
@@ -51,13 +63,38 @@ void relocPC24(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
       (((result + offset) & 0x00ffffff) | opcode);
 }
 
+/// \brief R_CPU0_32 - word24:  S
+void reloc24(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
+  int32_t addr = (uint32_t)(S & 0x00ffffff);
+  uint32_t machinecode = (uint32_t) * 
+                         reinterpret_cast<llvm::support::ubig32_t *>(location);
+  uint32_t opcode = (machinecode & 0xff000000);
+  *reinterpret_cast<llvm::support::ubig32_t *>(location) =
+      (opcode | addr);
+  // TODO: Make sure that the result zero extends to the 64bit value.
+}
+
 /// \brief R_CPU0_32 - word32:  S
 void reloc32(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
+  int32_t result = (uint32_t)(S);
+  *reinterpret_cast<llvm::support::ubig32_t *>(location) =
+      result |
+      (uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>(location);
+  // TODO: Make sure that the result zero extends to the 64bit value.
+}
+
+void relocPlt(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
 //  int32_t result = (uint32_t)(S + A);
   int32_t result = (uint32_t)(S);
   *reinterpret_cast<llvm::support::ubig32_t *>(location) =
       result |
       (uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>(location);
+  result = (uint32_t)(S*0x10+0x10);
+  uint32_t tmp = (((uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>
+                 (location+8)) & 0xffffff00);
+  *reinterpret_cast<llvm::support::ubig32_t *>(location+8) =
+      (result |
+      tmp);
   // TODO: Make sure that the result zero extends to the 64bit value.
 }
 
@@ -73,16 +110,116 @@ int64_t Cpu0TargetRelocationHandler::relocAddend(const Reference &ref) const {
   return 0;
 }
 
-#if 0
+#if 1
 // Return dynsym entry number
-int Cpu0TargetRelocationHandler::getDynsymEntryIdx(uint64_t afAddr, uint32_t afunAddr[], int afunAddrSize) {
-  for (int i = 0; i < afunAddrSize; i++) {
-    if (afAddr == afunAddr[i]) {
+int cpu0GetDynsymEntryIdxByTargetAddr(uint64_t fAddr, 
+    uint32_t *funAddr, int funAddrSize) {
+  for (int i = 0; i < funAddrSize; i++) {
+    if (fAddr == funAddr[i]) {
       return i;
     }
   }
   return -1;
 }
+#if 0
+int cpu0GetDynsymEntryIdxByName(uint64_t fAddr, 
+    uint32_t *funAddr, int funAddrSize) {
+  for (int i = 0; i < funAddrSize; i++) {
+    if (fAddr == funAddr[i]) {
+      return i;
+    }
+  }
+  return -1;
+}
+#endif
+struct Cpu0SoPlt {
+  struct dynsym {
+    uint32_t stridx;
+  };
+  dynsym Dynsym[100];
+  int DynsymSize;
+  uint8_t Dynstr[1000];
+  int DynstrSize;
+  int create(ObjectFile *o) {
+    error_code ec;
+    for (section_iterator si = o->begin_sections(),
+                          se = o->end_sections();
+                          si != se; si.increment(ec)) {
+      if (ec) return 1;
+      StringRef Name;
+      StringRef Contents;
+      uint64_t BaseAddr;
+      if (error(si->getName(Name))) continue;
+      if (error(si->getContents(Contents))) continue;
+      if (error(si->getAddress(BaseAddr))) continue;
+      if (Name == ".dynsym") {
+        // Dump out the content as hex and printable ascii characters.
+        for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
+          Dynsym[DynsymSize].stridx = *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)(Contents.begin()+addr));
+        }
+      }
+      if (Name == ".dynstr") {
+        memcpy(Dynstr, Contents.begin(), Contents.size());
+        DynstrSize = Contents.size();
+      }
+    }
+
+    return 0;
+  }
+  // 0: fail to find index by name
+  // > 0: get the dynsym index
+  int getDynsymIdxByName(uint8_t *name) {
+    for (int idx = 1, i = 1; i < DynstrSize; idx++) {
+      if (strcmp((char*)name, (char*)Dynstr+i) == 0) {
+        return idx;
+      }
+      i = i + strlen((char*)(Dynstr+i)) + 1;
+    }
+    return 0;
+  }
+};
+
+Cpu0SoPlt cpu0SoPlt;
+
+struct Cpu0ExePlt {
+  struct dynsym {
+    uint32_t stridx;
+  };
+  dynsym Dynsym[100];
+  int DynsymSize;
+  uint8_t Dynstr[1000];
+  int DynstrSize;
+  int create(const Cpu0LinkingContext &context, llvm::FileOutputBuffer &buf) {
+    auto dynsymSection = context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".dynsym");
+    uint64_t dynsymFileOffset, dynsymSizeOfBytes;
+    if (dynsymSection) {
+      dynsymFileOffset = dynsymSection->fileOffset();
+      dynsymSizeOfBytes = dynsymSection->memSize();
+      uint8_t *atomContent = buf.getBufferStart() + dynsymFileOffset;
+      for (uint64_t i = 0; i < dynsymSizeOfBytes; i += 16) {
+        Dynsym[DynsymSize].stridx = *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)(atomContent + i));
+        DynsymSize++;
+      }
+    }
+    else
+      return 1;
+    auto dynstrSection = context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".dynstr");
+    uint64_t dynstrFileOffset, dynstrSize;
+    if (dynstrSection) {
+      dynstrFileOffset = dynstrSection->fileOffset();
+      dynstrSize = dynstrSection->memSize();
+      uint8_t *atomContent = buf.getBufferStart() + dynstrFileOffset;
+      memcpy(Dynstr, atomContent, dynstrSize);
+      DynstrSize = dynstrSize;
+    }
+    else
+      return 1;
+
+    return 0;
+  }
+};
+
+Cpu0ExePlt cpu0ExePlt;
 #endif
 
 ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
@@ -91,18 +228,75 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
   static bool firstTime = true;
   static uint32_t funAddr[100];
   static int funAddrSize = 0;
+  std::string soName("libfoobar.cpu0.so");
+  bool find = false;
   int idx = 0;
   if (firstTime) {
-    auto dynsymSection = _context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".dynsym");
-    uint64_t dynsymFileOffset, dynsymSize;
-    if (dynsymSection) {
-      dynsymFileOffset = dynsymSection->fileOffset();
-      dynsymSize = dynsymSection->memSize();
-      uint8_t *atomContent = buf.getBufferStart() + dynsymFileOffset;
-      for (int i = 4; i < dynsymSize; i += 16) {
-        funAddr[funAddrSize] = *(uint32_t*)(atomContent + i);
-        funAddrSize++;
+    if (_context.getOutputType() == llvm::ELF::ET_DYN) {
+      auto dynsymSection = _context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".dynsym");
+      uint64_t dynsymFileOffset, dynsymSize;
+      if (dynsymSection) {
+        dynsymFileOffset = dynsymSection->fileOffset();
+        dynsymSize = dynsymSection->memSize();
+        uint8_t *atomContent = buf.getBufferStart() + dynsymFileOffset;
+        for (uint64_t i = 4; i < dynsymSize; i += 16) {
+          funAddr[funAddrSize] = *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)(atomContent + i));
+          funAddrSize++;
+        }
       }
+    }
+    else if (_context.getOutputType() == llvm::ELF::ET_EXEC && !_context.isStaticExecutable()) {
+#if 0
+      auto dynamicSection = _context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".dynamic");
+      uint64_t dynamicFileOffset, dynamicSize;
+      uint32_t d_ptr;
+      if (dynamicSection) {
+        dynamicFileOffset = dynamicSection->fileOffset();
+        dynamicSize = dynamicSection->memSize();
+        uint8_t *atomContent = buf.getBufferStart() + dynamicFileOffset;
+        for (uint64_t i = 0; i < dynamicSize; i += 8) {
+          uint32_t d_tag =  *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)(atomContent + i));
+          if (d_tag == 1) {
+            d_ptr = *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)(atomContent + i + 4));
+            auto dynsymSection = _context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".dynsym");
+            uint64_t dynsymFileOffset, dynsymSize;
+            if (dynsymSection) {
+              dynsymFileOffset = dynsymSection->fileOffset();
+              dynsymSize = dynsymSection->memSize();
+              uint8_t *atomContent = buf.getBufferStart() + dynsymFileOffset + d_ptr;
+              for (uint8_t *p = atomContent; *p != '\0'; p++)
+                soName.push_back(*p);
+              find = true;
+            }
+          }
+        }
+      }
+      assert(find && "not find reference *.so name");
+#endif
+#if 1
+      auto dynsymSection = _context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".dynsym");
+      uint64_t dynsymFileOffset, dynsymSize;
+      if (dynsymSection) {
+        dynsymFileOffset = dynsymSection->fileOffset();
+        dynsymSize = dynsymSection->memSize();
+        uint8_t *atomContent = buf.getBufferStart() + dynsymFileOffset;
+        for (uint64_t i = 0; i < dynsymSize; i += 16) {
+          funAddr[funAddrSize] = *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)(atomContent + i));
+          funAddrSize++;
+        }
+      }
+#endif
+      // Attempt to open the binary.
+      OwningPtr<Binary> binary;
+      if (error_code ec = createBinary(soName, binary)) {
+        errs() << "Input file " << soName << " cannot open" << ec.message() << ".\n";
+        return make_error_code(llvm::errc::executable_format_error);
+      }
+      if (ObjectFile *o = dyn_cast<ObjectFile>(binary.get()))
+      // Create .so (share library Plt) to use for case LLD_R_CPU0_GOTRELINDEX.
+        cpu0SoPlt.create(o);
+      int success = cpu0ExePlt.create(_context, buf);
+      assert(success == 0 && "cpu0ExePlt.create() fail\n");
     }
     firstTime = false;
   }
@@ -130,21 +324,29 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     relocLO16(location, relocVAddress, targetVAddress, ref.addend());
     break;
   case R_CPU0_GOT16:
+#if 1
+    idx = cpu0GetDynsymEntryIdxByTargetAddr(targetVAddress, funAddr, funAddrSize);
+    relocGOT16(location, relocVAddress, 0x10+idx*0x10, ref.addend());
+#else
     relocGOT16(location, relocVAddress, (targetVAddress - gotPltFileOffset), ref.addend());
+#endif
     break;
   case R_CPU0_PC24:
     relocPC24(location, relocVAddress, targetVAddress, ref.addend());
     break;
 #if 1
-  case R_CPU0_CALL24:
+  case R_CPU0_CALL16:
   // have to change CALL24 to CALL16 since ld $t9, got($gp) where got is 16 bits 
   // offset at _GLOBAL_OFFSET_TABLE_ and $gp point to _GLOBAL_OFFSET_TABLE_.
-#if 0
-    idx = getDynsymEntryIdx(targetVAddress, funAddr, funAddrSize);
+#if 1
+    idx = cpu0GetDynsymEntryIdxByTargetAddr(targetVAddress, funAddr, funAddrSize);
 #endif
-    reloc32(location, relocVAddress, idx*4, ref.addend());
+    reloc32(location, relocVAddress, 0x10+idx*0x10, ref.addend());
     break;
 #endif
+  case R_CPU0_24:
+    reloc24(location, relocVAddress, targetVAddress, ref.addend());
+    break;
   case R_CPU0_32:
     reloc32(location, relocVAddress, targetVAddress, ref.addend());
     break;
@@ -159,7 +361,11 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
           llvm_unreachable("Relocation doesn't exist");
       // index: the entry number of PLT
       // index: 1st entry is 1, 2nd is 2, 3rd is 3, ...
-        reloc32(location, 0, index+1, 0);
+//        reloc32(location, 0, index+1, 0);
+        uint32_t stridx = cpu0ExePlt.Dynsym[index+1].stridx;
+        uint8_t* dynstr = cpu0ExePlt.Dynstr+stridx;
+        index = (uint32_t)cpu0SoPlt.getDynsymIdxByName(dynstr);
+        relocPlt(location, 0, index, 0);
         break;
       }
     }

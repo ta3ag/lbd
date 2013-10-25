@@ -7,6 +7,17 @@
 #define FLASHADDR            0xA0000
 #define GPADDR               0x7FFF0
 
+#define STOP \
+  asm("lui $t9, 0xffff"); \
+  asm("addiu $t9, $zero, 0xffff"); \
+  asm("ret $t9");
+
+#define ENABLE_TRACE \
+  asm("ori $sw, $sw, 0x0004");
+
+#define DISABLE_TRACE \
+  asm("andi $sw, $sw, 0xfffb");
+
 struct ProgAddr {
   int memAddr;
   int size;

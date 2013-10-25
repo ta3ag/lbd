@@ -44,7 +44,7 @@ const uint8_t cpu0Plt0AtomContent[16] = {
   0x02, 0xea, 0x00, 0x04, // st $lr, $zero, reloc-index ($gp)
   0x02, 0xba, 0x00, 0x08, // st $fp, $zero, reloc-index ($gp)
   0x02, 0xda, 0x00, 0x0c, // st $sp, $zero, reloc-index ($gp)
-  0x36, 0xff, 0xff, 0xfc // jmp dynamic_linker
+  0x36, 0xff, 0xff, 0xfc  // jmp dynamic_linker
 };
 
 // .plt values (other entries)
@@ -121,7 +121,7 @@ template <class Derived> class GOTPLTPass : public Pass {
   void handleReference(const DefinedAtom &atom, const Reference &ref) {
     switch (ref.kind()) {
 
-    case R_CPU0_CALL24:
+    case R_CPU0_CALL16:
       static_cast<Derived *>(this)->handlePLT32(ref);
       break;
 
@@ -345,6 +345,7 @@ protected:
   PLT0Atom *_PLT0;
   GOTAtom *_got0;
 //  GOTAtom *_got1;
+public:
   bool _isStaticExe;
   /// @}
 };
@@ -357,8 +358,8 @@ protected:
 /// TLS always assumes module 1 and attempts to remove indirection.
 class StaticGOTPLTPass LLVM_FINAL : public GOTPLTPass<StaticGOTPLTPass> {
 public:
-  StaticGOTPLTPass(const elf::Cpu0LinkingContext &ti, bool isExe) : 
-  GOTPLTPass(ti, isExe) { }
+  StaticGOTPLTPass(const elf::Cpu0LinkingContext &ti, bool isExe)
+      : GOTPLTPass(ti, isExe) { }
 
   ErrorOr<void> handlePLT32(const Reference &ref) {
     // __tls_get_addr is handled elsewhere.
@@ -381,8 +382,8 @@ public:
 
 class DynamicGOTPLTPass LLVM_FINAL : public GOTPLTPass<DynamicGOTPLTPass> {
 public:
-  DynamicGOTPLTPass(const elf::Cpu0LinkingContext &ti, bool isExe) : 
-  GOTPLTPass(ti, isExe) { }
+  DynamicGOTPLTPass(const elf::Cpu0LinkingContext &ti, bool isExe)
+      : GOTPLTPass(ti, isExe) { }
 
   const PLT0Atom *getPLT0() {
     if (_PLT0)
@@ -415,7 +416,9 @@ public:
 //    pa->addReference(LLD_R_CPU0_GOTRELINDEX, 7, ga, 0);
 //    pa->addReference(R_CPU0_PC24, 2, ga, -4);
     pa->addReference(LLD_R_CPU0_GOTRELINDEX, 0, ga, -2);
+#if 0
     pa->addReference(R_CPU0_GOT16, 8, ga, -2);
+#endif
     // Set the starting address of the got entry to the second instruction in
     // the plt entry.
     ga->addReference(R_CPU0_32, 0, pa, 4);
@@ -443,7 +446,11 @@ public:
     if (isa<const SharedLibraryAtom>(ref.target())) {
       const_cast<Reference &>(ref).setTarget(getPLTEntry(ref.target()));
       // Turn this into a PC24 to the PLT entry.
+    #if 1
       const_cast<Reference &>(ref).setKind(R_CPU0_PC24);
+    #else //debug
+      const_cast<Reference &>(ref).setKind(R_CPU0_CALL24);
+    #endif
     }
     return error_code::success();
   }
@@ -507,7 +514,7 @@ ErrorOr<Reference::Kind>
 elf::Cpu0LinkingContext::relocKindFromString(StringRef str) const {
   int32_t ret = llvm::StringSwitch<int32_t>(str)
   LLD_CASE(R_CPU0_NONE)
-  LLD_CASE(R_CPU0_16)
+  LLD_CASE(R_CPU0_24)
   LLD_CASE(R_CPU0_32)
   LLD_CASE(R_CPU0_HI16)
   LLD_CASE(R_CPU0_LO16)
@@ -515,7 +522,7 @@ elf::Cpu0LinkingContext::relocKindFromString(StringRef str) const {
   LLD_CASE(R_CPU0_LITERAL)
   LLD_CASE(R_CPU0_GOT16)
   LLD_CASE(R_CPU0_PC24)
-  LLD_CASE(R_CPU0_CALL24)
+  LLD_CASE(R_CPU0_CALL16)
     .Case("LLD_R_CPU0_GOTRELINDEX", LLD_R_CPU0_GOTRELINDEX)
     .Default(-1);
 
@@ -532,7 +539,7 @@ ErrorOr<std::string>
 elf::Cpu0LinkingContext::stringFromRelocKind(Reference::Kind kind) const {
   switch (kind) {
   LLD_CASE(R_CPU0_NONE)
-  LLD_CASE(R_CPU0_16)
+  LLD_CASE(R_CPU0_24)
   LLD_CASE(R_CPU0_32)
   LLD_CASE(R_CPU0_HI16)
   LLD_CASE(R_CPU0_LO16)
@@ -540,7 +547,7 @@ elf::Cpu0LinkingContext::stringFromRelocKind(Reference::Kind kind) const {
   LLD_CASE(R_CPU0_LITERAL)
   LLD_CASE(R_CPU0_GOT16)
   LLD_CASE(R_CPU0_PC24)
-  LLD_CASE(R_CPU0_CALL24)
+  LLD_CASE(R_CPU0_CALL16)
   case LLD_R_CPU0_GOTRELINDEX:
     return std::string("LLD_R_CPU0_GOTRELINDEX");
   }

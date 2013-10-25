@@ -1,13 +1,9 @@
 
 /// start
-int foo(int x1, int x2)
-{
-  int sum = x1 + x2;
-  
-  return sum; 
-}
 
-int foo1(int x1, int x2)
+#include "dynamic_linker.h"
+
+int foo(int x1, int x2)
 {
   int sum = x1 + x2;
   
@@ -16,9 +12,8 @@ int foo1(int x1, int x2)
 
 int bar()
 {
-  int a = foo(2, 2);
-  a = foo1(2, 2);
-//  int a = 5;
+  int a;
+  a = foo(2, 2);
 
   return a;
 }

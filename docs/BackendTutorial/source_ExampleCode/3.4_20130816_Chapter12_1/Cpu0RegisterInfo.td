@@ -68,9 +68,6 @@ def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
   S0, S1, S2, 
   // Reserved
   GP, FP, 
-  // Not preserved across procedure calls
-  SW, 
-  // Reserved
   SP, LR, PC)>;
 
 // Hi/Lo Registers

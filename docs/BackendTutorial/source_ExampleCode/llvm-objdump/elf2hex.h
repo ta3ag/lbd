@@ -11,6 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <stdio.h>
+
 static cl::opt<bool>
 ConvertElf2Hex("elf2hex", 
 cl::desc("Display the hex content of verilog cpu0 needed sections"));
@@ -131,7 +133,19 @@ static void GetSymbolTableStartAddress(const ObjectFile *o, StringRef sectionNam
 static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
   , uint64_t& lastAddr) {
   std::string Error;
-  raw_fd_ostream fd_so_func_offset("so_func_offset", Error);
+  bool firstTime = true;
+  FILE *fd_so_func_offset;
+  int num_dyn_entry = 0;
+  if (DumpSo) {
+    fd_so_func_offset = fopen("so_func_offset", "w");
+    if (fd_so_func_offset == NULL)
+      fclose(fd_so_func_offset);
+    assert(fd_so_func_offset != NULL && "fd_so_func_offset == NULL");
+  }
+/*
+  if (DumpSo) {
+    fd_so_func_offset = new raw_fd_ostream("so_func_offset", Error);
+  }*/
 
   const Target *TheTarget = getTarget(Obj);
   // getTarget() will have already issued a diagnostic if necessary, so
@@ -333,7 +347,12 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
         // This symbol has the same address as the next symbol. Skip it.
         continue;
 
-      if (DumpSo) {
+      if (DumpSo/* && Symbols[si].second != "__tls_get_addr"*/) {
+#if 0
+        if (firstTime) {
+          raw_fd_ostream fd_so_func_offset("so_func_offset", Error);
+          firstTime = false;
+        }
         fd_so_func_offset << format("%02" PRIx8 " ", (uint8_t)(Symbols[si].first >> 24));
         fd_so_func_offset << format("%02" PRIx8 " ", (uint8_t)((Symbols[si].first >> 16) & 0xFF));
         fd_so_func_offset << format("%02" PRIx8 " ", (uint8_t)((Symbols[si].first >> 8) & 0xFF));
@@ -350,6 +369,23 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
         }
         fd_so_func_offset << "/* " << Symbols[si].second << " */";
         fd_so_func_offset << "\n";
+#endif
+        fprintf(fd_so_func_offset, "%02x ", (uint8_t)(Symbols[si].first >> 24));
+        fprintf(fd_so_func_offset, "%02x ", (uint8_t)((Symbols[si].first >> 16) & 0xFF));
+        fprintf(fd_so_func_offset, "%02x ", (uint8_t)((Symbols[si].first >> 8) & 0xFF));
+        fprintf(fd_so_func_offset, "%02x    ", (uint8_t)((Symbols[si].first) & 0xFF));
+        std::string str = Symbols[si].second.str();
+        std::size_t idx = 0;
+        std::size_t strSize = 0;
+        for (idx = 0, strSize = str.size(); idx < strSize; idx++) {
+          fprintf(fd_so_func_offset, "%c%c ", hexdigit((str[idx] >> 4) & 0xF, true)
+                  , hexdigit(str[idx] & 0xF, true));
+        }
+        for (idx = strSize; idx < 48; idx++) {
+          fprintf(fd_so_func_offset, "%02x ", 0);
+        }
+        fprintf(fd_so_func_offset, "/* %s */\n", Symbols[si].second.begin());
+        num_dyn_entry++;
       }
 
       outs() << '\n' << "/*" << Symbols[si].second << ":*/\n";
@@ -410,6 +446,14 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
       }
     }
     lastAddr += Index;
+  }
+  if (DumpSo) {
+    FILE *fd_num_dyn_entry;
+    fd_num_dyn_entry = fopen("num_dyn_entry", "w");
+    if (fd_num_dyn_entry != NULL) {
+      fprintf(fd_num_dyn_entry, "%d\n", num_dyn_entry+1);
+    }
+    fclose(fd_num_dyn_entry);
   }
 }
 
@@ -496,9 +540,19 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
       // save the end address of this section to lastAddr
       lastAddr = BaseAddr + Contents.size();
     }
-    else if (!DumpSo) {
+    else if (DumpSo) {
       if (Name == ".dynsym") {
+        int num_dyn_entry = 0;
+        char tt[0x30];
+        FILE *fd_num_dyn_entry;
+        fd_num_dyn_entry = fopen("num_dyn_entry", "r");
+        if (fd_num_dyn_entry != NULL) {
+          fscanf(fd_num_dyn_entry, "%d", &num_dyn_entry);
+        }
+        fclose(fd_num_dyn_entry);
+#if 1
         raw_fd_ostream fd_dynsym("dynsym", Error);
+        int count = 0;
         for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
           fd_dynsym << hexdigit((Contents[addr] >> 4) & 0xF, true)
                      << hexdigit(Contents[addr] & 0xF, true) << " ";
@@ -517,15 +571,24 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
                      << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET+2] & 0xF, true) << " ";
           fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET+3] >> 4) & 0xF, true)
                      << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET+3] & 0xF, true) << " ";
+          count++;
         }
+        for (int i = count; i < num_dyn_entry; i++) {
+          fd_dynsym << "00 00 00 00 00 00 00 00 ";
+        }
+#endif
       }
       else if (Name == ".dynstr") {
+#if 1
         raw_fd_ostream fd_dynstr("dynstr", Error);
         for (std::size_t addr = 0, end = Contents.size(); addr < end; addr++) {
           fd_dynstr << hexdigit((Contents[addr] >> 4) & 0xF, true)
                      << hexdigit(Contents[addr] & 0xF, true) << " ";
         }
+#endif
       }
+    }
+    else if (!DumpSo) {
       if (Name == ".got.plt") {
         uint64_t BaseAddr;
         if (error(si->getAddress(BaseAddr))) 

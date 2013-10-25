@@ -52,6 +52,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   `define I0E  `SW[6]  // Software Interrupt Enable
   `define IE   `SW[5]  // Interrupt Enable
   `define M    `SW[4]  // Mode bit
+  `define TR   `SW[2] // Debug Trace
   `define Z    `SW[1] // Zero
   `define N    `SW[0] // Negative flag
   // Instruction Opcode 
@@ -238,7 +239,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
         `LR=`PC;`PC= c24; `I0 = 1'b1; `I = 1'b1;
       end // Software Interrupt; SWI Cx; LR <= PC; PC <= Cx; INT<=1
       JSUB:  begin `LR=`PC;`PC=`PC + c24; end // JSUB Cx; LR<=PC; PC<=PC+Cx
-      JALR:  begin Ra=`PC;`PC=Rb; end // JALR Ra,Rb; Ra<=PC; PC<=Rb
+      JALR:  begin R[a] =`PC;`PC=Rb; end // JALR Ra,Rb; Ra<=PC; PC<=Rb
       RET:   begin `PC=Ra; end               // RET; PC <= Ra
       IRET:  begin 
         `PC=Ra;`I = 1'b0; `MODE = `EXE;
@@ -256,36 +257,32 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
                                           // write memory complete
       endcase
       case (op)
-      `ifdef TRACE
       MULT, MULTu, DIV, DIVu, MTHI, MTLO :
-        $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
+        if (`TR)
+          $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
         LO, `SW);
-      `endif
       ST : begin
-      `ifdef TRACE
-        $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d  SW=%8x", $stime, pc0, ir, 
-        R[b], c16, R[a], `SW);
-      `endif
+        if (`TR)
+          $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d  SW=%8x", $stime, pc0, ir, 
+          R[b], c16, R[a], `SW);
         if (R[b]+c16 == `IOADDR) begin
           outw(R[a]);
         end
       end
       SB : begin
-      `ifdef TRACE
-        $display("%4dns %8x : %8x m[%-04d+%-04d]=%c  SW=%8x", $stime, pc0, ir, 
+        if (`TR)
+          $display("%4dns %8x : %8x m[%-04d+%-04d]=%c  SW=%8x", $stime, pc0, ir, 
         R[b], c16, R[a][7:0], `SW);
-      `endif
         if (R[b]+c16 == `IOADDR) begin
           outc(R[a][7:0]);
         end
       end
-      `ifdef TRACE
       default : 
-        $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a, 
-        R[a], R[a], `SW);
-      `endif
+        if (`TR)
+          $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a, 
+          R[a], R[a], `SW);
       endcase
-      if (op==RET && `PC < 0) begin
+      if (`PC < 0) begin
         $display("RET to PC < 0, finished!");
         $finish;
       end
@@ -304,6 +301,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       taskInterrupt(`IRQ);
       state = Fetch;
     end else begin
+      //`TR = 1;
       taskExecute();
       state = next_state;
     end
@@ -375,12 +373,14 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
         l = l + 1;
       end
     end
+  `ifdef DYNDEBUG
     i = `DYNLINKER_INFO_ADDR+8+numDynEntry*8;
     for (j=0; j < (8*numDynEntry); j=j+8) begin
        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
        $display("%8x: %8x", i+4, {m[i+4], m[i+5], m[i+6], m[i+7]});
       i = i + 8;
     end
+  `endif
   // copy section .dynstr of ELF to memory address 
   // `DYNLINKER_INFO_ADDR+numDynEntry*8+numDynEntry*52
     i=`DYNLINKER_INFO_ADDR+8+numDynEntry*8+numDynEntry*52;
@@ -388,8 +388,8 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
       m[i] = dstr[j];
       i = i + 1;
     end
-    $display("In setDynLinkerInfo()");
   `ifdef DYNDEBUG
+    $display("In setDynLinkerInfo()");
     for (i=`DYNLINKER_INFO_ADDR; i < `MEMSIZE; i=i+4) begin
        if (m[i] != `MEMEMPTY || m[i+1] != `MEMEMPTY || 
          m[i+2] != `MEMEMPTY || m[i+3] != `MEMEMPTY)
@@ -409,10 +409,10 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
   // display memory contents
     $readmemh("cpu0s.hex", m);
     `ifdef TRACE
-    for (i=0; i < `MEMSIZE && (m[i] != `MEMEMPTY || m[i+1] != `MEMEMPTY || 
+      for (i=0; i < `MEMSIZE && (m[i] != `MEMEMPTY || m[i+1] != `MEMEMPTY || 
          m[i+2] != `MEMEMPTY || m[i+3] != `MEMEMPTY); i=i+4) begin
-       $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
-    end
+        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
+      end
     `endif
 `ifdef DYNLINKER
     $readmemh("global_offset", globalAddr);

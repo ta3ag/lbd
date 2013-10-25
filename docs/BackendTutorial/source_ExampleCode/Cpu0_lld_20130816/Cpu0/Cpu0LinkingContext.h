@@ -85,6 +85,8 @@ public:
   virtual ErrorOr<Reference::Kind> relocKindFromString(StringRef str) const;
   virtual ErrorOr<std::string> stringFromRelocKind(Reference::Kind kind) const;
 
+  bool isStaticExecutable() const { return _isStaticExecutable; }
+
 };
 } // end namespace elf
 } // end namespace lld
