@@ -225,7 +225,7 @@ getMachineOpValue(const MCInst &MI, const MCOperand &MO,
     FixupKind = Cpu0::fixup_Cpu0_GPREL16;
     break;
   case MCSymbolRefExpr::VK_Cpu0_GOT_CALL:
-    FixupKind = Cpu0::fixup_Cpu0_CALL24;
+    FixupKind = Cpu0::fixup_Cpu0_CALL16;
     break;
   case MCSymbolRefExpr::VK_Cpu0_GOT16:
     FixupKind = Cpu0::fixup_Cpu0_GOT_Global;

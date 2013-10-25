@@ -54,7 +54,6 @@ void relocGOT16(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
 
 /// \brief R_CPU0_PC24 - word32: S + A - P
 void relocPC24(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
-//  uint32_t result = (uint32_t)((S + A) - P);
   uint32_t result = (uint32_t)(S  - P);
   uint32_t machinecode = (uint32_t) * 
                          reinterpret_cast<llvm::support::ubig32_t *>(location);
@@ -64,9 +63,19 @@ void relocPC24(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
       (((result + offset) & 0x00ffffff) | opcode);
 }
 
+/// \brief R_CPU0_32 - word24:  S
+void reloc24(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
+  int32_t addr = (uint32_t)(S & 0x00ffffff);
+  uint32_t machinecode = (uint32_t) * 
+                         reinterpret_cast<llvm::support::ubig32_t *>(location);
+  uint32_t opcode = (machinecode & 0xff000000);
+  *reinterpret_cast<llvm::support::ubig32_t *>(location) =
+      (opcode | addr);
+  // TODO: Make sure that the result zero extends to the 64bit value.
+}
+
 /// \brief R_CPU0_32 - word32:  S
 void reloc32(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
-//  int32_t result = (uint32_t)(S + A);
   int32_t result = (uint32_t)(S);
   *reinterpret_cast<llvm::support::ubig32_t *>(location) =
       result |
@@ -326,7 +335,7 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     relocPC24(location, relocVAddress, targetVAddress, ref.addend());
     break;
 #if 1
-  case R_CPU0_CALL24:
+  case R_CPU0_CALL16:
   // have to change CALL24 to CALL16 since ld $t9, got($gp) where got is 16 bits 
   // offset at _GLOBAL_OFFSET_TABLE_ and $gp point to _GLOBAL_OFFSET_TABLE_.
 #if 1
@@ -335,6 +344,9 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     reloc32(location, relocVAddress, 0x10+idx*0x10, ref.addend());
     break;
 #endif
+  case R_CPU0_24:
+    reloc24(location, relocVAddress, targetVAddress, ref.addend());
+    break;
   case R_CPU0_32:
     reloc32(location, relocVAddress, targetVAddress, ref.addend());
     break;

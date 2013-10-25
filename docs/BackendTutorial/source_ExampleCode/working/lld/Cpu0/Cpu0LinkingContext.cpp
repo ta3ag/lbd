@@ -121,7 +121,7 @@ template <class Derived> class GOTPLTPass : public Pass {
   void handleReference(const DefinedAtom &atom, const Reference &ref) {
     switch (ref.kind()) {
 
-    case R_CPU0_CALL24:
+    case R_CPU0_CALL16:
       static_cast<Derived *>(this)->handlePLT32(ref);
       break;
 
@@ -358,8 +358,8 @@ public:
 /// TLS always assumes module 1 and attempts to remove indirection.
 class StaticGOTPLTPass LLVM_FINAL : public GOTPLTPass<StaticGOTPLTPass> {
 public:
-  StaticGOTPLTPass(const elf::Cpu0LinkingContext &ti, bool isExe) : 
-  GOTPLTPass(ti, isExe) { }
+  StaticGOTPLTPass(const elf::Cpu0LinkingContext &ti, bool isExe)
+      : GOTPLTPass(ti, isExe) { }
 
   ErrorOr<void> handlePLT32(const Reference &ref) {
     // __tls_get_addr is handled elsewhere.
@@ -382,8 +382,8 @@ public:
 
 class DynamicGOTPLTPass LLVM_FINAL : public GOTPLTPass<DynamicGOTPLTPass> {
 public:
-  DynamicGOTPLTPass(const elf::Cpu0LinkingContext &ti, bool isExe) : 
-  GOTPLTPass(ti, isExe) { }
+  DynamicGOTPLTPass(const elf::Cpu0LinkingContext &ti, bool isExe)
+      : GOTPLTPass(ti, isExe) { }
 
   const PLT0Atom *getPLT0() {
     if (_PLT0)
@@ -514,7 +514,7 @@ ErrorOr<Reference::Kind>
 elf::Cpu0LinkingContext::relocKindFromString(StringRef str) const {
   int32_t ret = llvm::StringSwitch<int32_t>(str)
   LLD_CASE(R_CPU0_NONE)
-  LLD_CASE(R_CPU0_16)
+  LLD_CASE(R_CPU0_24)
   LLD_CASE(R_CPU0_32)
   LLD_CASE(R_CPU0_HI16)
   LLD_CASE(R_CPU0_LO16)
@@ -522,7 +522,7 @@ elf::Cpu0LinkingContext::relocKindFromString(StringRef str) const {
   LLD_CASE(R_CPU0_LITERAL)
   LLD_CASE(R_CPU0_GOT16)
   LLD_CASE(R_CPU0_PC24)
-  LLD_CASE(R_CPU0_CALL24)
+  LLD_CASE(R_CPU0_CALL16)
     .Case("LLD_R_CPU0_GOTRELINDEX", LLD_R_CPU0_GOTRELINDEX)
     .Default(-1);
 
@@ -539,7 +539,7 @@ ErrorOr<std::string>
 elf::Cpu0LinkingContext::stringFromRelocKind(Reference::Kind kind) const {
   switch (kind) {
   LLD_CASE(R_CPU0_NONE)
-  LLD_CASE(R_CPU0_16)
+  LLD_CASE(R_CPU0_24)
   LLD_CASE(R_CPU0_32)
   LLD_CASE(R_CPU0_HI16)
   LLD_CASE(R_CPU0_LO16)
@@ -547,7 +547,7 @@ elf::Cpu0LinkingContext::stringFromRelocKind(Reference::Kind kind) const {
   LLD_CASE(R_CPU0_LITERAL)
   LLD_CASE(R_CPU0_GOT16)
   LLD_CASE(R_CPU0_PC24)
-  LLD_CASE(R_CPU0_CALL24)
+  LLD_CASE(R_CPU0_CALL16)
   case LLD_R_CPU0_GOTRELINDEX:
     return std::string("LLD_R_CPU0_GOTRELINDEX");
   }

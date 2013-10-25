@@ -33,6 +33,21 @@ namespace elf {
 typedef llvm::object::ELFType<llvm::support::big, 4, false> Cpu0ELFType;
 class Cpu0LinkingContext;
 
+#if 0
+class Cpu0TargetLayout LLVM_FINAL
+    : public TargetLayout<Cpu0ELFType> {
+public:
+  Cpu0TargetLayout() { };
+  inline void finalize() {
+    auto gotpltSection = findOutputSection(".got.plt");
+    if (gotpltSection)
+      gotpltSection->setAddr(0x2000);
+    int tmp = 12;
+    TargetLayout<Cpu0ELFType>::finalize();
+  }
+};
+#endif
+
 class Cpu0TargetHandler LLVM_FINAL
     : public DefaultTargetHandler<Cpu0ELFType> {
 public:
@@ -49,24 +64,25 @@ public:
   virtual void addFiles(InputFiles &f);
 #if 0
   void finalizeSymbolValues() {
+//  void createDefaultSections() {
     if (_context.isDynamic()) {
-      auto gottextSection = _targetLayout.findOutputSection(".text");
-      if (gottextSection)
-        textSectionAddr = gottextSection->virtualAddr();
+#if 0
+      auto gotAtomIter =
+          _targetLayout.findAbsoluteAtom("_GLOBAL_OFFSET_TABLE_");
+      _gotSymAtom = (*gotAtomIter);
+#endif
+      auto gotpltSection = _targetLayout.findOutputSection(".got.plt");
+#if 1
+      if (gotpltSection)
+//        _gotSymAtom->_virtualAddr = gotpltSection->virtualAddr();
+//        _gotSymAtom->_virtualAddr = 0x2000;
+        gotpltSection->setAddr(0x2000);
+#if 0
       else
-        textSectionAddr = 0;
-      uint64_t sectionstartaddr = 0;
-      uint64_t startaddr = 0;
-      uint64_t sectionsize = 0;
-      bool isFirstSection = true;
-      for (auto si : gottextSection->sections()) {
-        if (isFirstSection) {
-          startaddr = si->virtualAddr();
-          isFirstSection = false;
-        }
-        sectionstartaddr = si->virtualAddr();
-        sectionsize = si->memSize();
-      }
+        _gotSymAtom->_virtualAddr = 0;
+#endif
+      int tmp = 12;
+#endif
     }
   }
 #endif
@@ -80,6 +96,10 @@ private:
 
   Cpu0TargetRelocationHandler _relocationHandler;
   TargetLayout<Cpu0ELFType> _targetLayout;
+#if 0
+//  Cpu0TargetLayout _targetLayout;
+  AtomLayout *_gotSymAtom;
+#endif
 };
 } // end namespace elf
 } // end namespace lld
