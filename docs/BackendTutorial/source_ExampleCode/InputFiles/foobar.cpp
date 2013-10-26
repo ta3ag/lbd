@@ -13,6 +13,7 @@ int foo(int x1, int x2)
 int bar()
 {
   int a;
+  ENABLE_TRACE;
   a = foo(2, 2);
 
   return a;

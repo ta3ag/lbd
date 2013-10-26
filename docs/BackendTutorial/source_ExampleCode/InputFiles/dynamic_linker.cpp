@@ -5,7 +5,7 @@
 
 #include "dynamic_linker.h"
 
-//#define DEBUG_DLINKER
+#define DEBUG_DLINKER
 #define PLT0ADDR 0x10
 
 extern "C" int printf(const char *format, ...);
@@ -18,10 +18,10 @@ int got_plt_fill[0x20] = {
 int progCounter; // program counter, init to 0 in main()
 
 ProgAddr prog[10];
-
 void setGotPltSection()
 {
   progCounter = 0;
+#if 0
   int numDynEntry = 0;
   int gp = *(int*)GPADDR;
   numDynEntry = *((int*)(DYNLINKER_INFO_ADDR));
@@ -32,6 +32,7 @@ void setGotPltSection()
     // cpu0PltAtomContent is set to 0x10
     *(int*)(gp+0x10+i*0x10) = PLT0ADDR;
   }
+#endif
 }
 
 void dynamic_linker()
@@ -56,10 +57,10 @@ void dynamic_linker()
 #ifdef DEBUG_DLINKER
   printf("numDynEntry = %d, dynsym_idx = %d\n", numDynEntry, dynsym_idx);
 #endif
-  dynsym = *(int*)((DYNLINKER_INFO_ADDR+8)+(dynsym_idx*DYNENT_SIZE));
-  dynstr = (char*)(DYNLINKER_INFO_ADDR+8+numDynEntry*8+numDynEntry*52+dynsym);
-  libOffset = *((int*)(DYNLINKER_INFO_ADDR+8+numDynEntry*8+(dynsym_idx-1)*52));
-  nextFunLibOffset = *((int*)(DYNLINKER_INFO_ADDR+8+numDynEntry*8+dynsym_idx*52));
+  dynsym = *(int*)((DYNLINKER_INFO_ADDR+4)+(dynsym_idx*DYNENT_SIZE));
+  dynstr = (char*)(DYNLINKER_INFO_ADDR+4+numDynEntry*4+numDynEntry*52+dynsym);
+  libOffset = *((int*)(DYNLINKER_INFO_ADDR+4+numDynEntry*4+(dynsym_idx-1)*52));
+  nextFunLibOffset = *((int*)(DYNLINKER_INFO_ADDR+4+numDynEntry*4+dynsym_idx*52));
 #ifdef DEBUG_DLINKER
   printf("dstr = %x, dynsym = %d, *dstr = %s\n", 
          (int)dynstr, dynsym, dynstr);
@@ -102,7 +103,7 @@ void dynamic_linker()
          *(unsigned int*)(prog[progCounter-1].memAddr));
 #endif
   // Change .got.plt for "ld	$t9, idx($gp)"
-  *((int*)(gp+0x10+dynsym_idx*0x10)) = prog[progCounter-1].memAddr;
+  *((int*)(gp+0x10+dynsym_idx*0x04)) = prog[progCounter-1].memAddr;
   *(int*)(0x7FFE0) = prog[progCounter-1].memAddr;
 #ifdef DEBUG_DLINKER
   printf("*((int*)(gp+0x10+dynsym_idx*0x10)) = %x, *(int*)(0x7FFE0) = %x\n", 

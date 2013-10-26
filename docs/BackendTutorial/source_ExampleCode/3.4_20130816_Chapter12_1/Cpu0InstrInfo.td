@@ -375,10 +375,33 @@ class MoveFromLOHI<bits<8> op, string instr_asm, RegisterClass RC,
   let neverHasSideEffects = 1;
 }
 
+// Move to Hi/Lo
 class MoveToLOHI<bits<8> op, string instr_asm, RegisterClass RC,
                  list<Register> DefRegs>:
   FL<op, (outs), (ins RC:$ra),
      !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
+  let rb = 0;
+  let imm16 = 0;
+  let Defs = DefRegs;
+  let neverHasSideEffects = 1;
+}
+
+// Move from SW
+class MoveFromSW<bits<8> op, string instr_asm, RegisterClass RC,
+                   list<Register> UseRegs>:
+  FL<op, (outs RC:$ra), (ins),
+     !strconcat(instr_asm, "\t$ra"), [], IIAlu> {
+  let rb = 0;
+  let imm16 = 0;
+  let Uses = UseRegs;
+  let neverHasSideEffects = 1;
+}
+
+// Move to SW
+class MoveToSW<bits<8> op, string instr_asm, RegisterClass RC,
+                 list<Register> DefRegs>:
+  FL<op, (outs), (ins RC:$ra),
+     !strconcat(instr_asm, "\t$ra"), [], IIAlu> {
   let rb = 0;
   let imm16 = 0;
   let Defs = DefRegs;
@@ -509,6 +532,8 @@ def MFHI    : MoveFromLOHI<0x46, "mfhi", CPURegs, [HI]>;
 def MFLO    : MoveFromLOHI<0x47, "mflo", CPURegs, [LO]>;
 def MTHI    : MoveToLOHI<0x48, "mthi", CPURegs, [HI]>;
 def MTLO    : MoveToLOHI<0x49, "mtlo", CPURegs, [LO]>;
+def MFSW    : MoveFromSW<0x50, "mfsw", CPURegs, [SW]>;
+def MTSW    : MoveToSW<0x51, "mtsw", CPURegs, [SW]>;
 
 /// No operation
 let addr=0 in

@@ -1,5 +1,5 @@
 //`define TRACE
-//`define DYNDEBUG
+`define DYNDEBUG
 `define DYNLINKER
 `define DYNLINKER_INFO_ADDR  'h70000
 
@@ -32,29 +32,29 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   reg [3:0] a, b, c;
   reg [4:0] c5;
   reg signed [31:0] c12, c16, uc16, c24, Ra, Rb, Rc, pc0; // pc0 : instruction pc
-  reg [31:0] URa, URb, URc, HI, LO;
+  reg [31:0] URa, URb, URc, HI, LO, SW;
 
   // register name
   `define PC   R[15]   // Program Counter
   `define LR   R[14]   // Link Register
   `define SP   R[13]   // Stack Pointer
-  `define SW   R[12]   // Status Word
+  `define T0   R[12]   // Status Word
   // SW Flage
-  `define C    `SW[29] // Carry
-  `define V    `SW[28] // Overflow
-  `define MODE `SW[25:23] // itype
-  `define I2   `SW[16] // Hardware Interrupt 1, IO1 interrupt, status, 1: in interrupt
-  `define I1   `SW[15] // Hardware Interrupt 0, timer interrupt, status, 1: in interrupt
-  `define I0   `SW[14] // Software interrupt, status, 1: in interrupt
-  `define I    `SW[13] // Interrupt, 1: in interrupt
-  `define I2E  `SW[8]  // Hardware Interrupt 1, IO1 interrupt, Enable
-  `define I1E  `SW[7]  // Hardware Interrupt 0, timer interrupt, Enable
-  `define I0E  `SW[6]  // Software Interrupt Enable
-  `define IE   `SW[5]  // Interrupt Enable
-  `define M    `SW[4]  // Mode bit
-  `define TR   `SW[2] // Debug Trace
-  `define Z    `SW[1] // Zero
-  `define N    `SW[0] // Negative flag
+  `define C    SW[29] // Carry
+  `define V    SW[28] // Overflow
+  `define MODE SW[25:23] // itype
+  `define I2   SW[16] // Hardware Interrupt 1, IO1 interrupt, status, 1: in interrupt
+  `define I1   SW[15] // Hardware Interrupt 0, timer interrupt, status, 1: in interrupt
+  `define I0   SW[14] // Software interrupt, status, 1: in interrupt
+  `define I    SW[13] // Interrupt, 1: in interrupt
+  `define I2E  SW[8]  // Hardware Interrupt 1, IO1 interrupt, Enable
+  `define I1E  SW[7]  // Hardware Interrupt 0, timer interrupt, Enable
+  `define I0E  SW[6]  // Software Interrupt Enable
+  `define IE   SW[5]  // Interrupt Enable
+  `define M    SW[4]  // Mode bit
+  `define TR   SW[2] // Debug Trace
+  `define Z    SW[1] // Zero
+  `define N    SW[0] // Negative flag
   // Instruction Opcode 
   parameter [7:0] LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,LH=8'h06,
   LHu=8'h07,SH=8'h08,ADDiu=8'h09,ANDi=8'h0C,ORi=8'h0D,
@@ -68,7 +68,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   JMP=8'h36,
   SWI=8'h3A,JSUB=8'h3B,RET=8'h3C,IRET=8'h3D,JALR=8'h3E,
   MULT=8'h41,MULTu=8'h42,DIV=8'h43,DIVu=8'h44,
-  MFHI=8'h46,MFLO=8'h47,MTHI=8'h48,MTLO=8'h49;
+  MFHI=8'h46,MFLO=8'h47,MTHI=8'h48,MTLO=8'h49,
+  MFSW=8'h50,MTSW=8'h51;
 
   reg [0:0] inInt = 0;
   reg [2:0] state, next_state; 
@@ -131,7 +132,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   if (inInt == 0) begin
     case (iMode)
       `RESET: begin 
-        `PC = 0; tick = 0; R[0] = 0; `SW = 0; `LR = -1;
+        `PC = 0; tick = 0; R[0] = 0; SW = 0; `LR = -1;
         `IE = 0; `I0E = 0; `I1E = 0; `I2E = 0; `I = 0; `I0 = 0; `I1 = 0; `I2 = 0;
       end
       `ABORT: begin `LR = `PC; `PC = 4; end
@@ -221,6 +222,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       MFHI:  regSet(a, HI);         // MFHI Ra; Ra<=HI
       MTLO:  LO = Ra;               // MTLO Ra; LO<=Ra
       MTHI:  HI = Ra;               // MTHI Ra; HI<=Ra
+      MFSW:  regSet(a, SW);         // MFSW Ra; Ra<=SW
+      MTSW:  SW = Ra;               // MTSW Ra; SW<=Ra
       MULT:  {HI, LO}=Ra*Rb;        // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
                                     // LO<=((Ra*Rb) and 0x00000000ffffffff);
                                     // with exception overflow
@@ -257,14 +260,14 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
                                           // write memory complete
       endcase
       case (op)
-      MULT, MULTu, DIV, DIVu, MTHI, MTLO :
+      MULT, MULTu, DIV, DIVu, MTHI, MTLO, MTSW :
         if (`TR)
           $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
-        LO, `SW);
+        LO, SW);
       ST : begin
         if (`TR)
           $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d  SW=%8x", $stime, pc0, ir, 
-          R[b], c16, R[a], `SW);
+          R[b], c16, R[a], SW);
         if (R[b]+c16 == `IOADDR) begin
           outw(R[a]);
         end
@@ -272,7 +275,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       SB : begin
         if (`TR)
           $display("%4dns %8x : %8x m[%-04d+%-04d]=%c  SW=%8x", $stime, pc0, ir, 
-        R[b], c16, R[a][7:0], `SW);
+        R[b], c16, R[a][7:0], SW);
         if (R[b]+c16 == `IOADDR) begin
           outc(R[a][7:0]);
         end
@@ -280,7 +283,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       default : 
         if (`TR)
           $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a, 
-          R[a], R[a], `SW);
+          R[a], R[a], SW);
       endcase
       if (`PC < 0) begin
         $display("RET to PC < 0, finished!");
@@ -318,10 +321,12 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
   reg [7:0] dstr [0:96-1];
   reg [7:0] so_func_offset[0:384-1];
   reg [7:0] globalAddr [0:3];
+  reg [31:0] gp;
   reg [31:0] fabus;
   integer j, k, l, numDynEntry;
 `endif
   reg [31:0] data;
+  reg [31:0] j32;
 
   integer i;
 
@@ -330,12 +335,10 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
   // caculate number of dynamic entries
     numDynEntry = 0;
     j = 0;
-    for (i=0; i < 192 && j == 0; i=i+8) begin
-       if (dsym[i] == `MEMEMPTY && dsym[i+1] == `MEMEMPTY && 
-           dsym[i+2] == `MEMEMPTY && dsym[i+3] == `MEMEMPTY &&
-           dsym[i+4] == `MEMEMPTY && dsym[i+5] == `MEMEMPTY && 
-           dsym[i+6] == `MEMEMPTY && dsym[i+7] == `MEMEMPTY) begin
-         numDynEntry = i/8;
+    for (i=0; i < 384 && j == 0; i=i+52) begin
+       if (so_func_offset[i] == `MEMEMPTY && so_func_offset[i+1] == `MEMEMPTY && 
+           so_func_offset[i+2] == `MEMEMPTY && so_func_offset[i+3] == `MEMEMPTY) begin
+         numDynEntry = i/52;
          j = 1;
          $display("numDynEntry = %8x", numDynEntry);
        end
@@ -345,26 +348,18 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
     m[`DYNLINKER_INFO_ADDR+1] = numDynEntry[23:16];
     m[`DYNLINKER_INFO_ADDR+2] = numDynEntry[15:8];
     m[`DYNLINKER_INFO_ADDR+3] = numDynEntry[7:0];
-    m[`DYNLINKER_INFO_ADDR+4] = 0;
-    m[`DYNLINKER_INFO_ADDR+5] = 0;
-    m[`DYNLINKER_INFO_ADDR+6] = 0;
-    m[`DYNLINKER_INFO_ADDR+7] = 0;
-  // copy section .dynsym of ELF to memory address `DYNLINKER_INFO_ADDR+8
-    i = `DYNLINKER_INFO_ADDR+8;
-    for (j=0; j < (8*numDynEntry); j=j+8) begin
+  // copy section .dynsym of ELF to memory address `DYNLINKER_INFO_ADDR+4
+    i = `DYNLINKER_INFO_ADDR+4;
+    for (j=0; j < (4*numDynEntry); j=j+4) begin
       m[i] = dsym[j];
       m[i+1] = dsym[j+1];
       m[i+2] = dsym[j+2];
       m[i+3] = dsym[j+3];
-      m[i+4] = dsym[j+4];
-      m[i+5] = dsym[j+5];
-      m[i+6] = dsym[j+6];
-      m[i+7] = dsym[j+7];
-      i = i + 8;
+      i = i + 4;
     end
   // copy the offset values of section .text of shared library .so of ELF to 
-  // memory address `DYNLINKER_INFO_ADDR+8+numDynEntry*8
-    i = `DYNLINKER_INFO_ADDR+8+numDynEntry*8;
+  // memory address `DYNLINKER_INFO_ADDR+4+numDynEntry*4
+    i = `DYNLINKER_INFO_ADDR+4+numDynEntry*4;
     l = 0;
     for (j=0; j < numDynEntry; j=j+1) begin
       for (k=0; k < 52; k=k+1) begin
@@ -374,16 +369,15 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
       end
     end
   `ifdef DYNDEBUG
-    i = `DYNLINKER_INFO_ADDR+8+numDynEntry*8;
+    i = `DYNLINKER_INFO_ADDR+4+numDynEntry*4;
     for (j=0; j < (8*numDynEntry); j=j+8) begin
        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
-       $display("%8x: %8x", i+4, {m[i+4], m[i+5], m[i+6], m[i+7]});
       i = i + 8;
     end
   `endif
   // copy section .dynstr of ELF to memory address 
-  // `DYNLINKER_INFO_ADDR+numDynEntry*8+numDynEntry*52
-    i=`DYNLINKER_INFO_ADDR+8+numDynEntry*8+numDynEntry*52;
+  // `DYNLINKER_INFO_ADDR+4+numDynEntry*4+numDynEntry*52
+    i=`DYNLINKER_INFO_ADDR+4+numDynEntry*4+numDynEntry*52;
     for (j=0; dstr[j] != `MEMEMPTY; j=j+1) begin
       m[i] = dstr[j];
       i = i + 1;
@@ -397,6 +391,84 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
     end
     $display("global address %8x", {m[`GPADDR], m[`GPADDR+1], 
              m[`GPADDR+2], m[`GPADDR+3]});
+    $display("gp = %8x", gp);
+// below code set mem as follows,
+// gp-numDynEntry*8'h10-16 -> -----------------------------------
+//                            | all 0                           | (16 bytes)
+// gp-numDynEntry*8'h10 ----> | 1st plt entry                   |
+//                            | 2nd plt entry                   |
+//                            | ...                             |
+// gp-1*8'h10 --------------> | the last plt entry              |
+// gp ----------------------> | all 0                           |
+// gp+1*4 ------------------> | 1st plt entry address      | (4 bytes)
+//                            | ...                        |
+// gp+numDynEntry*4 --------> | the last plt entry address |
+//                            ------------------------------
+// note: gp point to the _GLOBAL_OFFSET_TABLE_
+//   gp+1*4..gp+numDynEntry*4 set to 8'h10 plt0 which will jump to dynamic linker.
+//   After dynamic linker load function to memory, it will set gp+idx*4 to 
+//   function memory address. For example, if the function index is 2, then the 
+//   gp+2*4 is set to the memory address. Then the the caller call 
+//  "ld $t9, 2*4($gp)" and "ret $t9" will jump to this loaded function directly.
+
+
+    // set (gp-numDynEntry*8'h10-16..gp-numDynEntry*8'h10-1) to 0
+    for (j=16; j >= 1; j=j-1)
+      m[gp-numDynEntry*8'h10-j] = 8'h00;
+    // put plt in (gp-numDynEntry*8'h10..gp+1)
+    for (i=numDynEntry; i > 0; i=i-1) begin
+      j=(numDynEntry-i)+1;
+      k=j*4;
+      // (gp-numDynEntry*'8h10..gp-numDynEntry*'8h+15) set to plt entry
+      // addiu	$t9, $zero, dynsym_idx
+      m[gp-i*8'h10] = 8'h09;
+      m[gp-i*8'h10+1] = 8'h60;
+      m[gp-i*8'h10+2] = j[15:8];
+      m[gp-i*8'h10+3] = j[7:0];
+      // st	$t9, j($gp)
+      m[gp-i*8'h10+4] = 8'h02;
+      m[gp-i*8'h10+5] = 8'h6a;
+      m[gp-i*8'h10+6] = 0;
+      m[gp-i*8'h10+7] = 0;
+      // ld	$t9, (j*'8h04)($gp)
+      m[gp-i*8'h10+8] = 8'h01;
+      m[gp-i*8'h10+9] = 8'h6a;
+      m[gp-i*8'h10+10] = k[15:8];
+      m[gp-i*8'h10+11] = k[7:0];
+      // ret	$t9
+      m[gp-i*8'h10+12] = 8'h3c;
+      m[gp-i*8'h10+13] = 8'h60;
+      m[gp-i*8'h10+14] = 0;
+      m[gp-i*8'h10+15] = 0;
+    end
+    // show (gp-(numDynEntry+1)*8'h10..gp+1)
+    for (i=numDynEntry+1; i > 0; i=i-1) begin
+      for (j=0; j < 16; j=j+4)
+        $display("%8x: %8x", gp-i*8'h10+j, 
+                 {m[gp-i*8'h10+j], 
+                  m[gp+-i*8'h10+j+1], 
+                  m[gp-i*8'h10+j+2], 
+                  m[gp-i*8'h10+j+3]});
+    end
+    // .got.plt offset(0x00.0x03) has been set to 0 in elf already.
+    for (i=1; i <= numDynEntry; i=i+1) begin
+      // Set .got.plt offset(8'h10..numDynEntry*'8h10) point to plt entry as above.
+/*
+      j32 = gp-i*8'h10;
+      m[gp+i*4] = j32[31:24];
+      m[gp+i*4+1] = j32[23:16];
+      m[gp+i*4+2] = j32[15:8];
+      m[gp+i*4+3] = j32[7:0];
+*/
+      j32 = gp-i*8'h10;
+      m[gp+i*4] = 8'h00;
+      m[gp+i*4+1] = 8'h00;
+      m[gp+i*4+2] = 8'h20;
+      m[gp+i*4+3] = 8'h10;
+    end
+    // show (gp..gp+numDynEntry+3)
+    for (i=0; i <= numDynEntry; i=i+1)
+      $display("%8x: %8x", gp+i*4, {m[gp+i*4], m[gp+i*4+1], m[gp+i*4+2], m[gp+i*4+3]});
   `endif
   end endtask
 `endif
@@ -420,9 +492,14 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
     m[`GPADDR+1] = globalAddr[1];
     m[`GPADDR+2] = globalAddr[2];
     m[`GPADDR+3] = globalAddr[3];
+    gp[31:24] = globalAddr[0];
+    gp[23:16] = globalAddr[1];
+    gp[15:8] = globalAddr[2];
+    gp[7:0] = globalAddr[3];
 `ifdef DYNDEBUG
     $display("global address %8x", {m[`GPADDR], m[`GPADDR+1], 
              m[`GPADDR+2], m[`GPADDR+3]});
+    $display("gp = %8x", gp);
 `endif
 `endif
 `ifdef DYNLINKER
