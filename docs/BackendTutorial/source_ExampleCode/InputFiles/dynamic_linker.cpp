@@ -5,7 +5,7 @@
 
 #include "dynamic_linker.h"
 
-#define DEBUG_DLINKER
+//#define DEBUG_DLINKER
 #define PLT0ADDR 0x10
 
 extern "C" int printf(const char *format, ...);

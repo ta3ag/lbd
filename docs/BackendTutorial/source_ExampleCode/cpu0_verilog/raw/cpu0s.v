@@ -1,5 +1,5 @@
 //`define TRACE
-`define DYNDEBUG
+//`define DYNDEBUG
 `define DYNLINKER
 `define DYNLINKER_INFO_ADDR  'h70000
 
@@ -322,11 +322,15 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
   reg [7:0] so_func_offset[0:384-1];
   reg [7:0] globalAddr [0:3];
   reg [31:0] gp;
+  reg [31:0] gpPlt;
   reg [31:0] fabus;
-  integer j, k, l, numDynEntry;
+  integer j;
+  integer k;
+  integer l;
+  reg [31:0] j32;
+  integer numDynEntry;
 `endif
   reg [31:0] data;
-  reg [31:0] j32;
 
   integer i;
 
@@ -392,83 +396,93 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
     $display("global address %8x", {m[`GPADDR], m[`GPADDR+1], 
              m[`GPADDR+2], m[`GPADDR+3]});
     $display("gp = %8x", gp);
+  `endif
 // below code set mem as follows,
-// gp-numDynEntry*8'h10-16 -> -----------------------------------
-//                            | all 0                           | (16 bytes)
-// gp-numDynEntry*8'h10 ----> | 1st plt entry                   |
-//                            | 2nd plt entry                   |
-//                            | ...                             |
-// gp-1*8'h10 --------------> | the last plt entry              |
-// gp ----------------------> | all 0                           |
-// gp+1*4 ------------------> | 1st plt entry address      | (4 bytes)
-//                            | ...                        |
-// gp+numDynEntry*4 --------> | the last plt entry address |
-//                            ------------------------------
-// note: gp point to the _GLOBAL_OFFSET_TABLE_
+//                                 -----------------------------------
+// gp ---------------------------> | all 0                           |
+// gp+16 ------------------------> | 0                          |
+// gp+16+1*4 --------------------> | 1st plt entry address      | (4 bytes)
+//                                 | ...                        |
+// gp+16+(numDynEntry-1)*4 ------> | the last plt entry address |
+//                                 ------------------------------
+// gp ---------------------------> | all 0                           | (16 bytes)
+// gp+16+0*8'h10 ----------------> | 32'h10: pointer to plt0         |
+// gp+16+1*8'h10 ----------------> | 1st plt entry                   |
+// gp+16+2*8'h10 ----------------> | 2nd plt entry                   |
+//                                 | ...                             |
+// gp+16+(numDynEntry-1)*8'h10 --> | the last plt entry              |
+//                                 -----------------------------------
+// note: gp point to the _GLOBAL_OFFSET_TABLE_, 
+//       numDynEntry = actual number of functions + 1.
 //   gp+1*4..gp+numDynEntry*4 set to 8'h10 plt0 which will jump to dynamic linker.
 //   After dynamic linker load function to memory, it will set gp+idx*4 to 
 //   function memory address. For example, if the function index is 2, then the 
-//   gp+2*4 is set to the memory address. Then the the caller call 
+//   gp+2*4 is set to the memory address of this loaded function. 
+//   Then the the caller call 
 //  "ld $t9, 2*4($gp)" and "ret $t9" will jump to this loaded function directly.
 
-
-    // set (gp-numDynEntry*8'h10-16..gp-numDynEntry*8'h10-1) to 0
+    gpPlt = gp+16+numDynEntry*4;
+    // set (gpPlt-16..gpPlt-1) to 0
     for (j=16; j >= 1; j=j-1)
-      m[gp-numDynEntry*8'h10-j] = 8'h00;
-    // put plt in (gp-numDynEntry*8'h10..gp+1)
-    for (i=numDynEntry; i > 0; i=i-1) begin
-      j=(numDynEntry-i)+1;
-      k=j*4;
-      // (gp-numDynEntry*'8h10..gp-numDynEntry*'8h+15) set to plt entry
+      m[gpPlt+j] = 8'h00;
+    // put plt in (gpPlt..gpPlt+numDynEntry*8'h10+1)
+    for (i=1; i < numDynEntry; i=i+1) begin
+      j=i*4;
+      // (gp+'8h10..gp+numDynEntry*'8h10+15) set to plt entry
       // addiu	$t9, $zero, dynsym_idx
-      m[gp-i*8'h10] = 8'h09;
-      m[gp-i*8'h10+1] = 8'h60;
-      m[gp-i*8'h10+2] = j[15:8];
-      m[gp-i*8'h10+3] = j[7:0];
+      m[gpPlt+i*8'h10] = 8'h09;
+      m[gpPlt+i*8'h10+1] = 8'h60;
+      m[gpPlt+i*8'h10+2] = i[15:8];
+      m[gpPlt+i*8'h10+3] = i[7:0];
       // st	$t9, j($gp)
-      m[gp-i*8'h10+4] = 8'h02;
-      m[gp-i*8'h10+5] = 8'h6a;
-      m[gp-i*8'h10+6] = 0;
-      m[gp-i*8'h10+7] = 0;
-      // ld	$t9, (j*'8h04)($gp)
-      m[gp-i*8'h10+8] = 8'h01;
-      m[gp-i*8'h10+9] = 8'h6a;
-      m[gp-i*8'h10+10] = k[15:8];
-      m[gp-i*8'h10+11] = k[7:0];
+      m[gpPlt+i*8'h10+4] = 8'h02;
+      m[gpPlt+i*8'h10+5] = 8'h6a;
+      m[gpPlt+i*8'h10+6] = 0;
+      m[gpPlt+i*8'h10+7] = 0;
+      // ld	$t9, ('16h0010)($gp)
+      m[gpPlt+i*8'h10+8] = 8'h01;
+      m[gpPlt+i*8'h10+9] = 8'h6a;
+      m[gpPlt+i*8'h10+10] = 0;
+      m[gpPlt+i*8'h10+11] = 8'h10;
       // ret	$t9
-      m[gp-i*8'h10+12] = 8'h3c;
-      m[gp-i*8'h10+13] = 8'h60;
-      m[gp-i*8'h10+14] = 0;
-      m[gp-i*8'h10+15] = 0;
+      m[gpPlt+i*8'h10+12] = 8'h3c;
+      m[gpPlt+i*8'h10+13] = 8'h60;
+      m[gpPlt+i*8'h10+14] = 0;
+      m[gpPlt+i*8'h10+15] = 0;
     end
-    // show (gp-(numDynEntry+1)*8'h10..gp+1)
-    for (i=numDynEntry+1; i > 0; i=i-1) begin
-      for (j=0; j < 16; j=j+4)
-        $display("%8x: %8x", gp-i*8'h10+j, 
-                 {m[gp-i*8'h10+j], 
-                  m[gp+-i*8'h10+j+1], 
-                  m[gp-i*8'h10+j+2], 
-                  m[gp-i*8'h10+j+3]});
-    end
+
     // .got.plt offset(0x00.0x03) has been set to 0 in elf already.
-    for (i=1; i <= numDynEntry; i=i+1) begin
-      // Set .got.plt offset(8'h10..numDynEntry*'8h10) point to plt entry as above.
-/*
-      j32 = gp-i*8'h10;
-      m[gp+i*4] = j32[31:24];
-      m[gp+i*4+1] = j32[23:16];
-      m[gp+i*4+2] = j32[15:8];
-      m[gp+i*4+3] = j32[7:0];
-*/
-      j32 = gp-i*8'h10;
-      m[gp+i*4] = 8'h00;
-      m[gp+i*4+1] = 8'h00;
-      m[gp+i*4+2] = 8'h20;
-      m[gp+i*4+3] = 8'h10;
+    // Set .got.plt offset(8'h10..numDynEntry*'8h10) point to plt entry as above.
+  `ifdef DYNDEBUG
+         $display("numDynEntry = %8x", numDynEntry);
+  `endif
+//      j32=32'h1fc0; // m[32'h1fc]="something" will hang. Very tricky
+    m[gp+16] = 8'h0;
+    m[gp+16+1] = 8'h0;
+    m[gp+16+2] = 8'h0;
+    m[gp+16+3] = 8'h10;
+    j32=gpPlt+16;
+    for (i=1; i < numDynEntry; i=i+1) begin
+      m[gp+16+i*4] = j32[31:24];
+      m[gp+16+i*4+1] = j32[23:16];
+      m[gp+16+i*4+2] = j32[15:8];
+      m[gp+16+i*4+3] = j32[7:0];
+      j32=j32+16;
     end
-    // show (gp..gp+numDynEntry+3)
-    for (i=0; i <= numDynEntry; i=i+1)
-      $display("%8x: %8x", gp+i*4, {m[gp+i*4], m[gp+i*4+1], m[gp+i*4+2], m[gp+i*4+3]});
+  `ifdef DYNDEBUG
+    // show (gp..gp+numDynEntry*4-1)
+    for (i=0; i < numDynEntry; i=i+1) begin
+      $display("%8x: %8x", gp+16+i*4, {m[gp+16+i*4], m[gp+16+i*4+1], m[gp+16+i*4+2], m[gp+16+i*4+3]});
+    end
+    // show (gpPlt..gpPlt+(numDynEntry+1)*8'h10-1)
+    for (i=0; i < numDynEntry; i=i+1) begin
+      for (j=0; j < 16; j=j+4)
+        $display("%8x: %8x", gpPlt+i*8'h10+j, 
+                 {m[gpPlt+i*8'h10+j], 
+                  m[gpPlt+i*8'h10+j+1], 
+                  m[gpPlt+i*8'h10+j+2], 
+                  m[gpPlt+i*8'h10+j+3]});
+    end
   `endif
   end endtask
 `endif

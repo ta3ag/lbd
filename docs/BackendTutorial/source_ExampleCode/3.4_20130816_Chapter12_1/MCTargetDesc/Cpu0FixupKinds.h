@@ -51,9 +51,6 @@ namespace Cpu0 {
     // resulting in - R_CPU0_CALL16.
     fixup_Cpu0_CALL16,
 
-    // resulting in - R_CPU0_CALL16_DYN_IDX.
-    fixup_Cpu0_CALL16_DYN_IDX,
-
     // PC relative branch fixup resulting in - R_CPU0_PC24
     fixup_Cpu0_Branch_PCRel,
 

@@ -85,14 +85,10 @@ void reloc32(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
 
 void relocPlt(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
 //  int32_t result = (uint32_t)(S + A);
-  int32_t result = (uint32_t)(S);
+  int32_t result = (uint32_t)(S & 0xffff);
+  uint32_t tmp = (uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>
+                 (location) & 0xffff0000;
   *reinterpret_cast<llvm::support::ubig32_t *>(location) =
-      result |
-      (uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>(location);
-  result = (uint32_t)(S*0x10+0x10);
-  uint32_t tmp = (((uint32_t) * reinterpret_cast<llvm::support::ubig32_t *>
-                 (location+8)) & 0xffffff00);
-  *reinterpret_cast<llvm::support::ubig32_t *>(location+8) =
       (result |
       tmp);
   // TODO: Make sure that the result zero extends to the 64bit value.
@@ -326,7 +322,7 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
   case R_CPU0_GOT16:
 #if 1
     idx = cpu0GetDynsymEntryIdxByTargetAddr(targetVAddress, funAddr, funAddrSize);
-    relocGOT16(location, relocVAddress, 0x10+idx*0x10, ref.addend());
+    relocGOT16(location, relocVAddress, idx, ref.addend());
 #else
     relocGOT16(location, relocVAddress, (targetVAddress - gotPltFileOffset), ref.addend());
 #endif
@@ -336,12 +332,11 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     break;
 #if 1
   case R_CPU0_CALL16:
-  // have to change CALL24 to CALL16 since ld $t9, got($gp) where got is 16 bits 
   // offset at _GLOBAL_OFFSET_TABLE_ and $gp point to _GLOBAL_OFFSET_TABLE_.
 #if 1
     idx = cpu0GetDynsymEntryIdxByTargetAddr(targetVAddress, funAddr, funAddrSize);
 #endif
-    reloc32(location, relocVAddress, 0x10+idx*0x10, ref.addend());
+    reloc32(location, relocVAddress, idx*0x04+16, ref.addend());
     break;
 #endif
   case R_CPU0_24:
@@ -371,7 +366,32 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     }
     break;
   }
-
+#if 0
+  case LLD_R_CPU0_GOTREL_GPOFFSET: {
+#if 0
+    const DefinedAtom *target = cast<const DefinedAtom>(ref.target());
+    for (const Reference *r : *target) {
+      if (r->kind() == R_CPU0_JUMP_SLOT) {
+        uint32_t index;
+        if (!_context.getTargetHandler<Cpu0ELFType>().targetLayout()
+                .getPLTRelocationTable()->getRelocationIndex(*r, index))
+          llvm_unreachable("Relocation doesn't exist");
+      // index: the entry number of PLT
+      // index: 1st entry is 1, 2nd is 2, 3rd is 3, ...
+//        reloc32(location, 0, index+1, 0);
+        uint32_t stridx = cpu0ExePlt.Dynsym[index+1].stridx;
+        uint8_t* dynstr = cpu0ExePlt.Dynstr+stridx;
+        index = (uint32_t)cpu0SoPlt.getDynsymIdxByName(dynstr);
+        relocPlt(location, 0, 16+index*4, 0);
+        break;
+      }
+    }
+//#else
+//    relocPlt(location, 0, 16, 0);
+#endif
+    break;
+  }
+#endif
   // Runtime only relocations. Ignore here.
   case R_CPU0_JUMP_SLOT:
     break;

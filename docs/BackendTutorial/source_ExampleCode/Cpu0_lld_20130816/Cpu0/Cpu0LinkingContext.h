@@ -25,6 +25,7 @@ enum {
   /// \brief The 32 bit index of the relocation in the got this reference refers
   /// to.
   LLD_R_CPU0_GOTRELINDEX = 1024,
+  LLD_R_CPU0_GOTREL_GPOFFSET = 1025,
 };
 #endif
 

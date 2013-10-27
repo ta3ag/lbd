@@ -37,7 +37,6 @@ static unsigned adjustFixupValue(unsigned Kind, uint64_t Value) {
   case FK_Data_4:
   case Cpu0::fixup_Cpu0_32:
   case Cpu0::fixup_Cpu0_CALL16:
-  case Cpu0::fixup_Cpu0_CALL16_DYN_IDX:
   case Cpu0::fixup_Cpu0_LO16:
   case Cpu0::fixup_Cpu0_GOT_LO16:
     break;
@@ -143,7 +142,6 @@ public:
       { "fixup_Cpu0_GOT_Local",      0,     16,   0 },
       { "fixup_Cpu0_PC24",           0,     24,  MCFixupKindInfo::FKF_IsPCRel },
       { "fixup_Cpu0_CALL16",         0,     16,   0 },
-      { "fixup_Cpu0_CALL16_DYN_IDX", 0,     16,   0 },
       { "fixup_Cpu0_Branch_PCRel",   0,     16,  MCFixupKindInfo::FKF_IsPCRel },
       { "fixup_Cpu0_GOT_HI16",       0,     16,   0 },
       { "fixup_Cpu0_GOT_LO16",       0,     16,   0 }

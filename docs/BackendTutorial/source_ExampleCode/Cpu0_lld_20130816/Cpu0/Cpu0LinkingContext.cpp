@@ -51,7 +51,7 @@ const uint8_t cpu0Plt0AtomContent[16] = {
 const uint8_t cpu0PltAtomContent[16] = {
   0x09, 0x60, 0x00, 0x00, // addiu $t9, $zero, reloc-index (=.dynsym_index)
   0x02, 0x6a, 0x00, 0x00, // st $t9, $zero, reloc-index ($gp)
-  0x01, 0x6a, 0x00, 0x00, // ld $t9, CPU0.Stub($gp) 
+  0x01, 0x6a, 0x00, 0x10, // ld $t9, 0x10($gp) (0x10($gp) point to plt0
   0x3c, 0x60, 0x00, 0x00  // ret $t9 // jump to Cpu0.Stub
 };
 
@@ -417,7 +417,8 @@ public:
 //    pa->addReference(R_CPU0_PC24, 2, ga, -4);
     pa->addReference(LLD_R_CPU0_GOTRELINDEX, 0, ga, -2);
 #if 0
-    pa->addReference(R_CPU0_GOT16, 8, ga, -2);
+// Should change R_CPU0_CALL16_DYN_IDX to R_CPU0_GOTREL_GPOFFSET.
+    pa->addReference(LLD_R_CPU0_GOTREL_GPOFFSET, 8, ga, -2);
 #endif
     // Set the starting address of the got entry to the second instruction in
     // the plt entry.
@@ -524,6 +525,7 @@ elf::Cpu0LinkingContext::relocKindFromString(StringRef str) const {
   LLD_CASE(R_CPU0_PC24)
   LLD_CASE(R_CPU0_CALL16)
     .Case("LLD_R_CPU0_GOTRELINDEX", LLD_R_CPU0_GOTRELINDEX)
+    .Case("LLD_R_CPU0_GOTREL_GPOFFSET", LLD_R_CPU0_GOTREL_GPOFFSET)
     .Default(-1);
 
   if (ret == -1)
@@ -550,6 +552,8 @@ elf::Cpu0LinkingContext::stringFromRelocKind(Reference::Kind kind) const {
   LLD_CASE(R_CPU0_CALL16)
   case LLD_R_CPU0_GOTRELINDEX:
     return std::string("LLD_R_CPU0_GOTRELINDEX");
+  case LLD_R_CPU0_GOTREL_GPOFFSET:
+    return std::string("LLD_R_CPU0_GOTREL_GPOFFSET");
   }
 
   return make_error_code(yaml_reader_error::illegal_value);

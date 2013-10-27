@@ -919,7 +919,6 @@ enum {
   R_CPU0_GOT16             =  9,
   R_CPU0_PC24              = 10,
   R_CPU0_CALL16            = 11,
-  R_CPU0_CALL16_DYN_IDX    = 12,
   R_CPU0_GOT_HI16          = 22,
   R_CPU0_GOT_LO16          = 23,
   R_CPU0_RELGOT            = 36,
