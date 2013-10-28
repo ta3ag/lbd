@@ -59,7 +59,7 @@ int main()
 //  ENABLE_TRACE;
   int a = 0;
 
-  setGotPltSection();
+  dynamic_linker_init();
   a = foo(1, 2);
   printf("foo(1, 2) = %d\n", a);
   a = bar();
