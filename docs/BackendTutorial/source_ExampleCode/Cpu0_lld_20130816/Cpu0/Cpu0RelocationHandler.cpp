@@ -83,6 +83,7 @@ void reloc32(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
   // TODO: Make sure that the result zero extends to the 64bit value.
 }
 
+#ifdef DYNLINKER
 void relocPlt(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
 //  int32_t result = (uint32_t)(S + A);
   int32_t result = (uint32_t)(S & 0xffff);
@@ -93,6 +94,7 @@ void relocPlt(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
       tmp);
   // TODO: Make sure that the result zero extends to the 64bit value.
 }
+#endif // DYNLINKER
 
 } // end anon namespace
 
@@ -106,7 +108,7 @@ int64_t Cpu0TargetRelocationHandler::relocAddend(const Reference &ref) const {
   return 0;
 }
 
-#if 1
+#ifdef DYNLINKER
 struct Cpu0SoPlt {
   uint32_t funAddr[100];
   int funAddrSize = 0;
@@ -207,11 +209,12 @@ struct Cpu0ExePlt {
 };
 
 Cpu0ExePlt cpu0ExePlt;
-#endif
+#endif // DYNLINKER
 
 ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     ELFWriter &writer, llvm::FileOutputBuffer &buf, const lld::AtomLayout &atom,
     const Reference &ref) const {
+#ifdef DYNLINKER
   static bool firstTime = true;
   std::string soName("libfoobar.cpu0.so");
   bool find = false;
@@ -231,7 +234,6 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
       }
     }
     else if (_context.getOutputType() == llvm::ELF::ET_EXEC && !_context.isStaticExecutable()) {
-#if 1
       auto dynsymSection = _context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".dynsym");
       uint64_t dynsymFileOffset, dynsymSize;
       if (dynsymSection) {
@@ -243,7 +245,6 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
           cpu0SoPlt.funAddrSize++;
         }
       }
-#endif
       // Attempt to open the binary.
       OwningPtr<Binary> binary;
       if (error_code ec = createBinary(soName, binary)) {
@@ -258,6 +259,7 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     }
     firstTime = false;
   }
+#endif // DYNLINKER
   uint8_t *atomContent = buf.getBufferStart() + atom._fileOffset;
   uint8_t *location = atomContent + ref.offsetInAtom();
   uint64_t targetVAddress = writer.addressOfAtom(ref.target());
@@ -281,6 +283,7 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
   case R_CPU0_LO16:
     relocLO16(location, relocVAddress, targetVAddress, ref.addend());
     break;
+#if 0 // Not support yet
   case R_CPU0_GOT16:
 #if 1
     idx = cpu0SoPlt.getDynsymEntryIdxByTargetAddr(targetVAddress, cpu0SoPlt.funAddr, cpu0SoPlt.funAddrSize);
@@ -289,18 +292,17 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     relocGOT16(location, relocVAddress, (targetVAddress - gotPltFileOffset), ref.addend());
 #endif
     break;
+#endif
   case R_CPU0_PC24:
     relocPC24(location, relocVAddress, targetVAddress, ref.addend());
     break;
-#if 1
+#ifdef DYNLINKER
   case R_CPU0_CALL16:
   // offset at _GLOBAL_OFFSET_TABLE_ and $gp point to _GLOBAL_OFFSET_TABLE_.
-#if 1
     idx = cpu0SoPlt.getDynsymEntryIdxByTargetAddr(targetVAddress, cpu0SoPlt.funAddr, cpu0SoPlt.funAddrSize);
-#endif
     reloc32(location, relocVAddress, idx*0x04+16, ref.addend());
     break;
-#endif
+#endif // DYNLINKER
   case R_CPU0_24:
     reloc24(location, relocVAddress, targetVAddress, ref.addend());
     break;
@@ -308,6 +310,7 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     reloc32(location, relocVAddress, targetVAddress, ref.addend());
     break;
 
+#ifdef DYNLINKER
   case LLD_R_CPU0_GOTRELINDEX: {
     const DefinedAtom *target = cast<const DefinedAtom>(ref.target());
     for (const Reference *r : *target) {
@@ -328,6 +331,7 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     }
     break;
   }
+#endif // DYNLINKER
   // Runtime only relocations. Ignore here.
   case R_CPU0_JUMP_SLOT:
     break;

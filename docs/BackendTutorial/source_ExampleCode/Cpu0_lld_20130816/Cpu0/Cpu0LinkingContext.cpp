@@ -36,6 +36,7 @@ const uint8_t cpu0BootAtomContent[16] = {
   0x36, 0xff, 0xff, 0xfc // jmp -4
 };
 
+#ifdef DYNLINKER
 // .got values
 const uint8_t cpu0GotAtomContent[16] = { 0 };
 
@@ -54,6 +55,7 @@ const uint8_t cpu0PltAtomContent[16] = {
   0x01, 0x6a, 0x00, 0x10, // ld $t9, 0x10($gp) (0x10($gp) point to plt0
   0x3c, 0x60, 0x00, 0x00  // ret $t9 // jump to Cpu0.Stub
 };
+#endif // DYNLINKER
 
 /// boot record
 class Cpu0BootAtom : public PLT0Atom {
@@ -68,6 +70,7 @@ public:
   }
 };
 
+#ifdef DYNLINKER
 /// \brief Atoms that are used by Cpu0 dynamic linking
 class Cpu0GOTAtom : public GOTAtom {
 public:
@@ -98,6 +101,7 @@ public:
     return ArrayRef<uint8_t>(cpu0PltAtomContent, 16);
   }
 };
+#endif // DYNLINKER
 
 class ELFPassFile : public SimpleFile {
 public:
@@ -132,6 +136,7 @@ template <class Derived> class GOTPLTPass : public Pass {
   }
 
 protected:
+#ifdef DYNLINKER
   /// \brief get the PLT entry for a given IFUNC Atom.
   ///
   /// If the entry does not exist. Both the GOT and PLT entry is created.
@@ -155,6 +160,7 @@ protected:
     _pltVector.push_back(pa);
     return pa;
   }
+#endif // DYNLINKER
 
   /// \brief Redirect the call to the PLT stub for the target IFUNC.
   ///
@@ -162,11 +168,14 @@ protected:
   /// GOT entry and a RELGOT relocation to the original target resolver.
   ErrorOr<void> handleIFUNC(const Reference &ref) {
     auto target = dyn_cast_or_null<const DefinedAtom>(ref.target());
+#ifdef DYNLINKER
     if (target && target->contentType() == DefinedAtom::typeResolver)
       const_cast<Reference &>(ref).setTarget(getIFUNCPLTEntry(target));
+#endif // DYNLINKER
     return error_code::success();
   }
 
+#ifdef DYNLINKER
   /// \brief Create a GOT entry for the TP offset of a TLS atom.
   const GOTAtom *getGOTTPOFF(const Atom *atom) {
     auto got = _gotMap.find(atom);
@@ -227,6 +236,7 @@ protected:
     else if (const DefinedAtom *da = dyn_cast<const DefinedAtom>(ref.target()))
       const_cast<Reference &>(ref).setTarget(getGOT(da));
   }
+#endif // DYNLINKER
 
 public:
   GOTPLTPass(const ELFLinkingContext &ti, bool isExe)
@@ -266,6 +276,7 @@ public:
       _boot->setOrdinal(ordinal++);
       mf.addAtom(*_boot);
     }
+#ifdef DYNLINKER
     if (_PLT0) {
       MutableFile::DefinedAtomRange atomRange = mf.definedAtoms();
       auto it = atomRange.begin();
@@ -297,6 +308,7 @@ public:
       got->setOrdinal(ordinal++);
       mf.addAtom(*got);
     }
+#endif // DYNLINKER
   }
 
 protected:
@@ -358,6 +370,7 @@ public:
   ErrorOr<void> handlePC24(const Reference &ref) { return handleIFUNC(ref); }
 };
 
+#ifdef DYNLINKER
 class DynamicGOTPLTPass LLVM_FINAL : public GOTPLTPass<DynamicGOTPLTPass> {
 public:
   DynamicGOTPLTPass(const elf::Cpu0LinkingContext &ti, bool isExe)
@@ -454,6 +467,7 @@ public:
       const_cast<Reference &>(ref).setTarget(getSharedGOT(sla));
   }
 };
+#endif // DYNLINKER
 } // end anon namespace
 
 void elf::Cpu0LinkingContext::addPasses(PassManager &pm) const {
@@ -461,11 +475,13 @@ void elf::Cpu0LinkingContext::addPasses(PassManager &pm) const {
   case llvm::ELF::ET_EXEC:
     if (_isStaticExecutable)
       pm.add(std::unique_ptr<Pass>(new StaticGOTPLTPass(*this, true)));
+#ifdef DYNLINKER
     else
       pm.add(std::unique_ptr<Pass>(new DynamicGOTPLTPass(*this, true)));
     break;
   case llvm::ELF::ET_DYN:
     pm.add(std::unique_ptr<Pass>(new DynamicGOTPLTPass(*this, false)));
+#endif // DYNLINKER
     break;
   case llvm::ELF::ET_REL:
     break;

@@ -19,14 +19,12 @@
 
 namespace lld {
 namespace elf {
-#if 1
 /// \brief cpu0 internal references.
 enum {
   /// \brief The 32 bit index of the relocation in the got this reference refers
   /// to.
   LLD_R_CPU0_GOTRELINDEX = 1024,
 };
-#endif
 
 class Cpu0LinkingContext LLVM_FINAL : public ELFLinkingContext {
 public:

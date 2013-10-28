@@ -14,11 +14,6 @@
 using namespace lld;
 using namespace elf;
 
-#if 1
-Cpu0AtomAddress Cpu0AtomAddr[100];
-int Cpu0AtomAddrSize = 0;
-#endif
-
 uint64_t textSectionAddr;
 
 Cpu0TargetHandler::Cpu0TargetHandler(Cpu0LinkingContext &context)
