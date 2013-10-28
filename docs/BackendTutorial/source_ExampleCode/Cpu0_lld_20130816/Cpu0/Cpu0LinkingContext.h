@@ -25,7 +25,6 @@ enum {
   /// \brief The 32 bit index of the relocation in the got this reference refers
   /// to.
   LLD_R_CPU0_GOTRELINDEX = 1024,
-  LLD_R_CPU0_GOTREL_GPOFFSET = 1025,
 };
 #endif
 
@@ -49,7 +48,6 @@ public:
   virtual bool isDynamicRelocation(const DefinedAtom &,
                                    const Reference &r) const {
     switch (r.kind()){
-//    case llvm::ELF::R_CPU0_RELATIVE:
     case llvm::ELF::R_CPU0_GLOB_DAT:
       return true;
     default:
@@ -74,9 +72,6 @@ public:
   virtual bool isRelativeReloc(const Reference &r) const {
     switch (r.kind()) {
     case llvm::ELF::R_CPU0_RELGOT:
-#if 0
-    case llvm::ELF::R_CPU0_RELATIVE:
-#endif
       return true;
     default:
       return false;

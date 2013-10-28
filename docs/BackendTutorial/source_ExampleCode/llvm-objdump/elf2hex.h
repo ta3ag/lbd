@@ -142,10 +142,6 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
       fclose(fd_so_func_offset);
     assert(fd_so_func_offset != NULL && "fd_so_func_offset == NULL");
   }
-/*
-  if (DumpSo) {
-    fd_so_func_offset = new raw_fd_ostream("so_func_offset", Error);
-  }*/
 
   const Target *TheTarget = getTarget(Obj);
   // getTarget() will have already issued a diagnostic if necessary, so
@@ -436,11 +432,6 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
 }
 
 #define DYNSYM_LIB_OFFSET 9
-/*
-struct DynsymEntry {
-  uint32_t DynstrFunOffset;
-  uint32_t DynstrLibOffset;
-};*/
 
 // Modified from PrintSectionContents()
 static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
@@ -528,7 +519,6 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
           fscanf(fd_num_dyn_entry, "%d", &num_dyn_entry);
         }
         fclose(fd_num_dyn_entry);
-#if 1
         raw_fd_ostream fd_dynsym("dynsym", Error);
         int count = 0;
         for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
@@ -540,31 +530,18 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
                      << hexdigit(Contents[addr+2] & 0xF, true) << " ";
           fd_dynsym << hexdigit((Contents[addr+3] >> 4) & 0xF, true)
                      << hexdigit(Contents[addr+3] & 0xF, true) << " ";
-#if 0
-          fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET] >> 4) & 0xF, true)
-                     << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET] & 0xF, true) << " ";
-          fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET+1] >> 4) & 0xF, true)
-                     << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET+1] & 0xF, true) << " ";
-          fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET+2] >> 4) & 0xF, true)
-                     << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET+2] & 0xF, true) << " ";
-          fd_dynsym << hexdigit((Contents[addr+DYNSYM_LIB_OFFSET+3] >> 4) & 0xF, true)
-                     << hexdigit(Contents[addr+DYNSYM_LIB_OFFSET+3] & 0xF, true) << " ";
-#endif
           count++;
         }
         for (int i = count; i < num_dyn_entry; i++) {
           fd_dynsym << "00 00 00 00 ";
         }
-#endif
       }
       else if (Name == ".dynstr") {
-#if 1
         raw_fd_ostream fd_dynstr("dynstr", Error);
         for (std::size_t addr = 0, end = Contents.size(); addr < end; addr++) {
           fd_dynstr << hexdigit((Contents[addr] >> 4) & 0xF, true)
                      << hexdigit(Contents[addr] & 0xF, true) << " ";
         }
-#endif
       }
     }
     else if (!DumpSo) {

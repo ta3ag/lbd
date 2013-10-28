@@ -106,14 +106,6 @@ public:
   llvm::BumpPtrAllocator _alloc;
 };
 
-#if 0
-struct PLTOffset {
-  StringRef name;
-};
-PLTOffset PltOffset[100];
-int PltSize = 0;
-#endif
-
 /// \brief Create GOT and PLT entries for relocations. Handles standard GOT/PLT
 /// along with IFUNC and TLS.
 template <class Derived> class GOTPLTPass : public Pass {
@@ -257,17 +249,6 @@ public:
       for (const auto &ref : *atom)
         handleReference(*atom, *ref);
 
-#if 0
-    if (!_isStaticExe) {
-      MutableFile::DefinedAtomRange atomRange = mf.definedAtoms();
-      auto it = atomRange.begin();
-      bool find = false;
-      for (it = atomRange.begin(); it < atomRange.end(); it++) {
-        PltOffset[PltSize] = (*it)->name();
-        PltOffset[PltSize] = (*it)->name();
-      }
-    }
-#endif
     // Add all created atoms to the link.
     uint64_t ordinal = 0;
     if (_isStaticExe) {
@@ -275,12 +256,12 @@ public:
       auto it = atomRange.begin();
       bool find = false;
       for (it = atomRange.begin(); it < atomRange.end(); it++) {
-        if ((*it)->name() == "_start") {
+        if ((*it)->name() == "_Z5startv") {
           find = true;
           break;
         }
       }
-      assert(find && "not found _start\n");
+      assert(find && "not found _Z5startv\n");
       _boot->addReference(R_CPU0_PC24, 0, *it, -3);
       _boot->setOrdinal(ordinal++);
       mf.addAtom(*_boot);
@@ -310,9 +291,7 @@ public:
     }
     if (_PLT0) {
       _got0->setOrdinal(ordinal++);
-//      _got1->setOrdinal(ordinal++);
       mf.addAtom(*_got0);
-//      mf.addAtom(*_got1);
     }
     for (auto &got : _gotVector) {
       got->setOrdinal(ordinal++);
@@ -344,7 +323,6 @@ protected:
   /// @{
   PLT0Atom *_PLT0;
   GOTAtom *_got0;
-//  GOTAtom *_got1;
 public:
   bool _isStaticExe;
   /// @}
@@ -392,15 +370,11 @@ public:
     getNullGOT();
     _PLT0 = new (_file._alloc) Cpu0PLT0Atom(_file);
     _got0 = new (_file._alloc) Cpu0GOTAtom(_file, ".got.plt");
-//    _got1 = new (_file._alloc) Cpu0GOTAtom(_file, ".got.plt");
-//    _PLT0->addReference(R_CPU0_PC24, 2, _got0, -4);
 #if 0
     _PLT0->addReference(R_CPU0_GOT16, 0, _got0, -2); // debug
 #endif
-//    _PLT0->addReference(R_CPU0_PC24, 8, _got1, -4);
 #ifndef NDEBUG
     _got0->_name = "__got0";
-//    _got1->_name = "__got1";
 #endif
     return _PLT0;
   }
@@ -413,13 +387,7 @@ public:
     ga->addReference(R_CPU0_JUMP_SLOT, 0, a, 0);
     auto pa = new (_file._alloc) Cpu0PLTAtom(_file, ".plt");
     getPLT0();  // add _PLT0 and _got0
-//    pa->addReference(LLD_R_CPU0_GOTRELINDEX, 7, ga, 0);
-//    pa->addReference(R_CPU0_PC24, 2, ga, -4);
     pa->addReference(LLD_R_CPU0_GOTRELINDEX, 0, ga, -2);
-#if 0
-// Should change R_CPU0_CALL16_DYN_IDX to R_CPU0_GOTREL_GPOFFSET.
-    pa->addReference(LLD_R_CPU0_GOTREL_GPOFFSET, 8, ga, -2);
-#endif
     // Set the starting address of the got entry to the second instruction in
     // the plt entry.
     ga->addReference(R_CPU0_32, 0, pa, 4);
@@ -449,8 +417,6 @@ public:
       // Turn this into a PC24 to the PLT entry.
     #if 1
       const_cast<Reference &>(ref).setKind(R_CPU0_PC24);
-    #else //debug
-      const_cast<Reference &>(ref).setKind(R_CPU0_CALL24);
     #endif
     }
     return error_code::success();
@@ -525,7 +491,6 @@ elf::Cpu0LinkingContext::relocKindFromString(StringRef str) const {
   LLD_CASE(R_CPU0_PC24)
   LLD_CASE(R_CPU0_CALL16)
     .Case("LLD_R_CPU0_GOTRELINDEX", LLD_R_CPU0_GOTRELINDEX)
-    .Case("LLD_R_CPU0_GOTREL_GPOFFSET", LLD_R_CPU0_GOTREL_GPOFFSET)
     .Default(-1);
 
   if (ret == -1)
@@ -552,8 +517,6 @@ elf::Cpu0LinkingContext::stringFromRelocKind(Reference::Kind kind) const {
   LLD_CASE(R_CPU0_CALL16)
   case LLD_R_CPU0_GOTRELINDEX:
     return std::string("LLD_R_CPU0_GOTRELINDEX");
-  case LLD_R_CPU0_GOTREL_GPOFFSET:
-    return std::string("LLD_R_CPU0_GOTREL_GPOFFSET");
   }
 
   return make_error_code(yaml_reader_error::illegal_value);

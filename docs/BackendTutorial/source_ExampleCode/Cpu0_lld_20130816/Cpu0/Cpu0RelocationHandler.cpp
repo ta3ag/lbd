@@ -107,28 +107,9 @@ int64_t Cpu0TargetRelocationHandler::relocAddend(const Reference &ref) const {
 }
 
 #if 1
-// Return dynsym entry number
-int cpu0GetDynsymEntryIdxByTargetAddr(uint64_t fAddr, 
-    uint32_t *funAddr, int funAddrSize) {
-  for (int i = 0; i < funAddrSize; i++) {
-    if (fAddr == funAddr[i]) {
-      return i;
-    }
-  }
-  return -1;
-}
-#if 0
-int cpu0GetDynsymEntryIdxByName(uint64_t fAddr, 
-    uint32_t *funAddr, int funAddrSize) {
-  for (int i = 0; i < funAddrSize; i++) {
-    if (fAddr == funAddr[i]) {
-      return i;
-    }
-  }
-  return -1;
-}
-#endif
 struct Cpu0SoPlt {
+  uint32_t funAddr[100];
+  int funAddrSize = 0;
   struct dynsym {
     uint32_t stridx;
   };
@@ -161,6 +142,16 @@ struct Cpu0SoPlt {
     }
 
     return 0;
+  }
+  // Return dynsym entry number
+  int getDynsymEntryIdxByTargetAddr(uint64_t fAddr, 
+      uint32_t *funAddr, int funAddrSize) {
+    for (int i = 0; i < funAddrSize; i++) {
+      if (fAddr == funAddr[i]) {
+        return i;
+      }
+    }
+    return -1;
   }
   // 0: fail to find index by name
   // > 0: get the dynsym index
@@ -222,8 +213,6 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     ELFWriter &writer, llvm::FileOutputBuffer &buf, const lld::AtomLayout &atom,
     const Reference &ref) const {
   static bool firstTime = true;
-  static uint32_t funAddr[100];
-  static int funAddrSize = 0;
   std::string soName("libfoobar.cpu0.so");
   bool find = false;
   int idx = 0;
@@ -236,39 +225,12 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
         dynsymSize = dynsymSection->memSize();
         uint8_t *atomContent = buf.getBufferStart() + dynsymFileOffset;
         for (uint64_t i = 4; i < dynsymSize; i += 16) {
-          funAddr[funAddrSize] = *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)(atomContent + i));
-          funAddrSize++;
+          cpu0SoPlt.funAddr[cpu0SoPlt.funAddrSize] = *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)(atomContent + i));
+          cpu0SoPlt.funAddrSize++;
         }
       }
     }
     else if (_context.getOutputType() == llvm::ELF::ET_EXEC && !_context.isStaticExecutable()) {
-#if 0
-      auto dynamicSection = _context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".dynamic");
-      uint64_t dynamicFileOffset, dynamicSize;
-      uint32_t d_ptr;
-      if (dynamicSection) {
-        dynamicFileOffset = dynamicSection->fileOffset();
-        dynamicSize = dynamicSection->memSize();
-        uint8_t *atomContent = buf.getBufferStart() + dynamicFileOffset;
-        for (uint64_t i = 0; i < dynamicSize; i += 8) {
-          uint32_t d_tag =  *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)(atomContent + i));
-          if (d_tag == 1) {
-            d_ptr = *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)(atomContent + i + 4));
-            auto dynsymSection = _context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".dynsym");
-            uint64_t dynsymFileOffset, dynsymSize;
-            if (dynsymSection) {
-              dynsymFileOffset = dynsymSection->fileOffset();
-              dynsymSize = dynsymSection->memSize();
-              uint8_t *atomContent = buf.getBufferStart() + dynsymFileOffset + d_ptr;
-              for (uint8_t *p = atomContent; *p != '\0'; p++)
-                soName.push_back(*p);
-              find = true;
-            }
-          }
-        }
-      }
-      assert(find && "not find reference *.so name");
-#endif
 #if 1
       auto dynsymSection = _context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".dynsym");
       uint64_t dynsymFileOffset, dynsymSize;
@@ -277,8 +239,8 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
         dynsymSize = dynsymSection->memSize();
         uint8_t *atomContent = buf.getBufferStart() + dynsymFileOffset;
         for (uint64_t i = 0; i < dynsymSize; i += 16) {
-          funAddr[funAddrSize] = *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)(atomContent + i));
-          funAddrSize++;
+          cpu0SoPlt.funAddr[cpu0SoPlt.funAddrSize] = *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)(atomContent + i));
+          cpu0SoPlt.funAddrSize++;
         }
       }
 #endif
@@ -321,7 +283,7 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     break;
   case R_CPU0_GOT16:
 #if 1
-    idx = cpu0GetDynsymEntryIdxByTargetAddr(targetVAddress, funAddr, funAddrSize);
+    idx = cpu0SoPlt.getDynsymEntryIdxByTargetAddr(targetVAddress, cpu0SoPlt.funAddr, cpu0SoPlt.funAddrSize);
     relocGOT16(location, relocVAddress, idx, ref.addend());
 #else
     relocGOT16(location, relocVAddress, (targetVAddress - gotPltFileOffset), ref.addend());
@@ -334,7 +296,7 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
   case R_CPU0_CALL16:
   // offset at _GLOBAL_OFFSET_TABLE_ and $gp point to _GLOBAL_OFFSET_TABLE_.
 #if 1
-    idx = cpu0GetDynsymEntryIdxByTargetAddr(targetVAddress, funAddr, funAddrSize);
+    idx = cpu0SoPlt.getDynsymEntryIdxByTargetAddr(targetVAddress, cpu0SoPlt.funAddr, cpu0SoPlt.funAddrSize);
 #endif
     reloc32(location, relocVAddress, idx*0x04+16, ref.addend());
     break;
@@ -366,32 +328,6 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
     }
     break;
   }
-#if 0
-  case LLD_R_CPU0_GOTREL_GPOFFSET: {
-#if 0
-    const DefinedAtom *target = cast<const DefinedAtom>(ref.target());
-    for (const Reference *r : *target) {
-      if (r->kind() == R_CPU0_JUMP_SLOT) {
-        uint32_t index;
-        if (!_context.getTargetHandler<Cpu0ELFType>().targetLayout()
-                .getPLTRelocationTable()->getRelocationIndex(*r, index))
-          llvm_unreachable("Relocation doesn't exist");
-      // index: the entry number of PLT
-      // index: 1st entry is 1, 2nd is 2, 3rd is 3, ...
-//        reloc32(location, 0, index+1, 0);
-        uint32_t stridx = cpu0ExePlt.Dynsym[index+1].stridx;
-        uint8_t* dynstr = cpu0ExePlt.Dynstr+stridx;
-        index = (uint32_t)cpu0SoPlt.getDynsymIdxByName(dynstr);
-        relocPlt(location, 0, 16+index*4, 0);
-        break;
-      }
-    }
-//#else
-//    relocPlt(location, 0, 16, 0);
-#endif
-    break;
-  }
-#endif
   // Runtime only relocations. Ignore here.
   case R_CPU0_JUMP_SLOT:
     break;
