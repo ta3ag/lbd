@@ -103,12 +103,12 @@
       m[gpPlt+i*8'h10+3] = i[7:0];
       // st	$t9, j($gp)
       m[gpPlt+i*8'h10+4] = 8'h02;
-      m[gpPlt+i*8'h10+5] = 8'h6a;
+      m[gpPlt+i*8'h10+5] = 8'h6b;
       m[gpPlt+i*8'h10+6] = 0;
       m[gpPlt+i*8'h10+7] = 0;
       // ld	$t9, ('16h0010)($gp)
       m[gpPlt+i*8'h10+8] = 8'h01;
-      m[gpPlt+i*8'h10+9] = 8'h6a;
+      m[gpPlt+i*8'h10+9] = 8'h6b;
       m[gpPlt+i*8'h10+10] = 0;
       m[gpPlt+i*8'h10+11] = 8'h10;
       // ret	$t9
