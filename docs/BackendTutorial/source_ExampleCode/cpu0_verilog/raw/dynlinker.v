@@ -155,7 +155,23 @@
 `endif
 
 `ifdef DYNLINKER
-  task dynLoader; begin
+  task loadToFlash; begin
+  // erase memory
+    for (i=0; i < `MEMSIZE; i=i+1) begin
+       flash[i] = `MEMEMPTY;
+    end
+    $readmemh("libso.hex", flash);
+`ifdef DYNDEBUG
+    for (i=0; i < `MEMSIZE && (flash[i] != `MEMEMPTY || flash[i+1] != `MEMEMPTY || 
+         flash[i+2] != `MEMEMPTY || flash[i+3] != `MEMEMPTY); i=i+4) begin
+       $display("%8x: %8x", i, {flash[i], flash[i+1], flash[i+2], flash[i+3]});
+    end
+`endif
+  end endtask
+`endif
+
+`ifdef DYNLINKER
+  task createDynInfo; begin
     $readmemh("global_offset", globalAddr);
     m[`GPADDR]   = globalAddr[0];
     m[`GPADDR+1] = globalAddr[1];
@@ -185,17 +201,6 @@
     for (i=0; i <384; i=i+1) begin
        so_func_offset[i] = `MEMEMPTY;
     end
-  // erase memory
-    for (i=0; i < `MEMSIZE; i=i+1) begin
-       flash[i] = `MEMEMPTY;
-    end
-    $readmemh("libso.hex", flash);
-`ifdef DYNDEBUG
-    for (i=0; i < `MEMSIZE && (flash[i] != `MEMEMPTY || flash[i+1] != `MEMEMPTY || 
-         flash[i+2] != `MEMEMPTY || flash[i+3] != `MEMEMPTY); i=i+4) begin
-       $display("%8x: %8x", i, {flash[i], flash[i+1], flash[i+2], flash[i+3]});
-    end
-`endif
     $readmemh("dynsym", dsym);
     $readmemh("dynstr", dstr);
     $readmemh("so_func_offset", so_func_offset);

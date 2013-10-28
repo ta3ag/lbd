@@ -1,11 +1,12 @@
-//`define TRACE
-//`define DYNDEBUG
-`define DYNLINKER
+// TRACE: Display the memory contents of the loaded program and data
+//`define TRACE 
+`define DYNLINKER  // Dynamic Linker Support
+//`define DYNDEBUG   // Dynamic Linker Debug
 
 `define MEMSIZE   'h80000
 `define MEMEMPTY   8'hFF
 `define NULL       8'h00
-`define IOADDR    'h80000
+`define IOADDR    'h80000  // IO mapping address
 
 // Operand width
 `define INT32 2'b11     // 32 bits
@@ -35,7 +36,6 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   `define PC   R[15]   // Program Counter
   `define LR   R[14]   // Link Register
   `define SP   R[13]   // Stack Pointer
-  `define T0   R[12]   // Status Word
   // SW Flage
   `define C    SW[29] // Carry
   `define V    SW[28] // Overflow
@@ -49,9 +49,9 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   `define I0E  SW[6]  // Software Interrupt Enable
   `define IE   SW[5]  // Interrupt Enable
   `define M    SW[4]  // Mode bit
-  `define TR   SW[2] // Debug Trace
-  `define Z    SW[1] // Zero
-  `define N    SW[0] // Negative flag
+  `define TR   SW[2]  // Debug Trace
+  `define Z    SW[1]  // Zero
+  `define N    SW[0]  // Negative flag
   // Instruction Opcode 
   parameter [7:0] LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,LH=8'h06,
   LHu=8'h07,SH=8'h08,ADDiu=8'h09,ANDi=8'h0C,ORi=8'h0D,
@@ -109,6 +109,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
     LO = data2;
   end endtask
 
+  // output a word to Output port (equal to display the word to terminal)
   task outw(input [31:0] data); begin
     if (data[7:0] != 8'h00) begin
       $write("%c", data[7:0]);
@@ -121,6 +122,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
     end
   end endtask
 
+  // output a character (a byte)
   task outc(input [7:0] data); begin
       $write("%c", data[7:0]);
   end endtask
@@ -277,8 +279,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
           outc(R[a][7:0]);
         end
       end
-      default : 
-        if (`TR)
+      default :
+        if (`TR) // Display the written register content
           $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a, 
           R[a], R[a], SW);
       endcase
@@ -339,8 +341,9 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
     for (i=0; i < `MEMSIZE; i=i+1) begin
        m[i] = `MEMEMPTY;
     end
-  // display memory contents
+  // load program from file to memeory
     $readmemh("cpu0s.hex", m);
+  // display memory contents
     `ifdef TRACE
       for (i=0; i < `MEMSIZE && (m[i] != `MEMEMPTY || m[i+1] != `MEMEMPTY || 
          m[i+2] != `MEMEMPTY || m[i+3] != `MEMEMPTY); i=i+4) begin
@@ -348,7 +351,8 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
       end
     `endif
 `ifdef DYNLINKER
-  dynLoader();
+  loadToFlash();
+  createDynInfo();
 `endif
   end
 
