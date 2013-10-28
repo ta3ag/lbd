@@ -29,7 +29,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   reg [7:0] op;
   reg [3:0] a, b, c;
   reg [4:0] c5;
-  reg signed [31:0] c12, c16, uc16, c24, Ra, Rb, Rc, pc0; // pc0 : instruction pc
+  reg signed [31:0] c12, c16, uc16, c24, Ra, Rb, Rc, pc0; // pc0: instruction pc
   reg [31:0] URa, URb, URc, HI, LO, SW;
 
   // register name
@@ -40,8 +40,10 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   `define C    SW[29] // Carry
   `define V    SW[28] // Overflow
   `define MODE SW[25:23] // itype
-  `define I2   SW[16] // Hardware Interrupt 1, IO1 interrupt, status, 1: in interrupt
-  `define I1   SW[15] // Hardware Interrupt 0, timer interrupt, status, 1: in interrupt
+  `define I2   SW[16] // Hardware Interrupt 1, IO1 interrupt, status, 
+                      // 1: in interrupt
+  `define I1   SW[15] // Hardware Interrupt 0, timer interrupt, status, 
+                      // 1: in interrupt
   `define I0   SW[14] // Software interrupt, status, 1: in interrupt
   `define I    SW[13] // Interrupt, 1: in interrupt
   `define I2E  SW[8]  // Hardware Interrupt 1, IO1 interrupt, Enable
@@ -74,7 +76,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   parameter Reset=3'h0, Fetch=3'h1, Decode=3'h2, Execute=3'h3, WriteBack=3'h4;
   integer i;
 
-  task memReadStart(input [31:0] addr, input [1:0] size); begin // Read Memory Word
+  // Read Memory Word
+  task memReadStart(input [31:0] addr, input [1:0] size); begin 
     mar = addr;     // read(m[addr])
     m_rw = 1;     // Access Mode: read 
     m_en = 1;     // Enable read
@@ -88,7 +91,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   end endtask
 
   // Write memory -- addr: address to write, data: date to write
-  task memWriteStart(input [31:0] addr, input [31:0] data, input [1:0] size); begin 
+  task memWriteStart(input [31:0] addr, input [31:0] data, input [1:0] size); 
+  begin 
     mar = addr;    // write(m[addr], data)
     mdr = data;
     m_rw = 0;    // access mode: write
@@ -132,7 +136,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
     case (iMode)
       `RESET: begin 
         `PC = 0; tick = 0; R[0] = 0; SW = 0; `LR = -1;
-        `IE = 0; `I0E = 0; `I1E = 0; `I2E = 0; `I = 0; `I0 = 0; `I1 = 0; `I2 = 0;
+        `IE = 0; `I0E = 0; `I1E = 0; `I2E = 0; `I = 0; `I0 = 0; `I1 = 0; 
+        `I2 = 0;
       end
       `ABORT: begin `LR = `PC; `PC = 4; end
       `IRQ:   begin `LR = `PC; `PC = 8; end
@@ -175,12 +180,16 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       // load and store instructions
       LD:    memReadStart(Rb+c16, `INT32);      // LD Ra,[Rb+Cx]; Ra<=[Rb+Cx]
       ST:    memWriteStart(Rb+c16, Ra, `INT32); // ST Ra,[Rb+Cx]; Ra=>[Rb+Cx]
-      LB:    memReadStart(Rb+c16, `BYTE);     // LB Ra,[Rb+Cx]; Ra<=(byte)[Rb+Cx]
-      LBu:   memReadStart(Rb+c16, `BYTE);     // LBu Ra,[Rb+Cx]; Ra<=(byte)[Rb+Cx]
-      SB:    memWriteStart(Rb+c16, Ra, `BYTE);// SB Ra,[Rb+Cx]; Ra=>(byte)[Rb+Cx]
-      LH:    memReadStart(Rb+c16, `INT16);     // LH Ra,[Rb+Cx]; Ra<=(2bytes)[Rb+Cx]
-      LHu:   memReadStart(Rb+c16, `INT16);     // LHu Ra,[Rb+Cx]; Ra<=(2bytes)[Rb+Cx]
-      SH:    memWriteStart(Rb+c16, Ra, `INT16);// SH Ra,[Rb+Cx]; Ra=>(2bytes)[Rb+Cx]
+      // LB Ra,[Rb+Cx]; Ra<=(byte)[Rb+Cx]
+      LB:    memReadStart(Rb+c16, `BYTE);
+      // LBu Ra,[Rb+Cx]; Ra<=(byte)[Rb+Cx]
+      LBu:   memReadStart(Rb+c16, `BYTE);
+      // SB Ra,[Rb+Cx]; Ra=>(byte)[Rb+Cx]
+      SB:    memWriteStart(Rb+c16, Ra, `BYTE);
+      LH:    memReadStart(Rb+c16, `INT16); // LH Ra,[Rb+Cx]; Ra<=(2bytes)[Rb+Cx]
+      LHu:   memReadStart(Rb+c16, `INT16); // LHu Ra,[Rb+Cx]; Ra<=(2bytes)[Rb+Cx]
+      // SH Ra,[Rb+Cx]; Ra=>(2bytes)[Rb+Cx]
+      SH:    memWriteStart(Rb+c16, Ra, `INT16);
       // Mathematic 
       ADDiu: R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra<=Rb+Cx
       CMP:   begin `N=(Ra-Rb<0);`Z=(Ra-Rb==0); end // CMP Ra, Rb; SW=(Ra >=< Rb)
@@ -191,7 +200,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       SUB:   begin regSet(a, Rb-Rc); if (Rb < 0 && Rc > 0 && a >= 0) 
              `V = 1; else `V =0; end         // SUB Ra,Rb,Rc; Ra<=Rb-Rc
       MUL:   regSet(a, Rb*Rc);               // MUL Ra,Rb,Rc;     Ra<=Rb*Rc
-      DIVu:  regHILOSet(URa%URb, URa/URb);   // DIVu URa,URb; HI<=URa%URb; LO<=URa/URb
+      DIVu:  regHILOSet(URa%URb, URa/URb);   // DIVu URa,URb; HI<=URa%URb; 
+                                             // LO<=URa/URb
                                              // without exception overflow
       DIV:   begin regHILOSet(Ra%Rb, Ra/Rb); 
              if ((Ra < 0 && Rb < 0) || (Ra == 0)) `V = 1; 
@@ -205,14 +215,14 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       LUi:   regSet(a, uc16<<16);
       SHL:   regSet(a, Rb<<c5);     // Shift Left; SHL Ra,Rb,Cx; Ra<=(Rb << Cx)
       SRA:   regSet(a, (Rb&'h80000000)|(Rb>>c5)); 
-                                    // Shift Right with signed bit fill;
-                                    // SHR Ra,Rb,Cx; Ra<=(Rb&0x80000000)|(Rb>>Cx)
+                                // Shift Right with signed bit fill;
+                                // SHR Ra,Rb,Cx; Ra<=(Rb&0x80000000)|(Rb>>Cx)
       SHR:   regSet(a, Rb>>c5);     // Shift Right with 0 fill; 
                                     // SHR Ra,Rb,Cx; Ra<=(Rb >> Cx)
       SHLV:  regSet(a, Rb<<Rc);     // Shift Left; SHLV Ra,Rb,Rc; Ra<=(Rb << Rc)
       SRAV:  regSet(a, (Rb&'h80000000)|(Rb>>Rc)); 
-                                    // Shift Right with signed bit fill;
-                                    // SHRV Ra,Rb,Rc; Ra<=(Rb&0x80000000)|(Rb>>Rc)
+                                // Shift Right with signed bit fill;
+                                // SHRV Ra,Rb,Rc; Ra<=(Rb&0x80000000)|(Rb>>Rc)
       SHRV:  regSet(a, Rb>>Rc);     // Shift Right with 0 fill; 
                                     // SHRV Ra,Rb,Rc; Ra<=(Rb >> Rc)
       ROL:   regSet(a, (Rb<<c5)|(Rb>>(32-c5)));     // Rotate Left;
@@ -281,8 +291,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       end
       default :
         if (`TR) // Display the written register content
-          $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a, 
-          R[a], R[a], SW);
+          $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, 
+          a, R[a], R[a], SW);
       endcase
       if (`PC < 0) begin
         $display("RET to PC < 0, finished!");
@@ -298,7 +308,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       taskInterrupt(`RESET);
       `MODE = `RESET;
       state = Fetch;
-    end else if (inInt == 0 && (state == Fetch) && (`IE && `I) && ((`I0E && `I0) || (`I1E && `I1) || (`I2E && `I2)) ) begin
+    end else if (inInt == 0 && (state == Fetch) && (`IE && `I) && 
+                 ((`I0E && `I0) || (`I1E && `I1) || (`I2E && `I2)) ) begin
       `MODE = `IRQ;
       taskInterrupt(`IRQ);
       state = Fetch;
@@ -396,8 +407,8 @@ module main;
   cpu0 cpu(.clock(clock), .itype(itype), .pc(pc), .tick(tick), .ir(ir),
   .mar(mar), .mdr(mdr), .dbus(dbus), .m_en(m_en), .m_rw(m_rw), .m_size(m_size));
 
-  memory0 mem(.clock(clock), .reset(reset), .en(m_en), .rw(m_rw), .m_size(m_size), 
-  .abus(mar), .dbus_in(mdr), .dbus_out(dbus));
+  memory0 mem(.clock(clock), .reset(reset), .en(m_en), .rw(m_rw), 
+  .m_size(m_size), .abus(mar), .dbus_in(mdr), .dbus_out(dbus));
 
   initial
   begin

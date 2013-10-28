@@ -81,7 +81,8 @@
 //                                 -----------------------------------
 // note: gp point to the _GLOBAL_OFFSET_TABLE_, 
 //       numDynEntry = actual number of functions + 1.
-//   gp+1*4..gp+numDynEntry*4 set to 8'h10 plt0 which will jump to dynamic linker.
+//   gp+1*4..gp+numDynEntry*4 set to 8'h10 plt0 which will jump to dynamic 
+//   linker.
 //   After dynamic linker load function to memory, it will set gp+idx*4 to 
 //   function memory address. For example, if the function index is 2, then the 
 //   gp+2*4 is set to the memory address of this loaded function. 
@@ -118,8 +119,8 @@
       m[gpPlt+i*8'h10+15] = 0;
     end
 
-    // .got.plt offset(0x00.0x03) has been set to 0 in elf already.
-    // Set .got.plt offset(8'h10..numDynEntry*'8h10) point to plt entry as above.
+  // .got.plt offset(0x00.0x03) has been set to 0 in elf already.
+  // Set .got.plt offset(8'h10..numDynEntry*'8h10) point to plt entry as above.
   `ifdef DYNDEBUG
          $display("numDynEntry = %8x", numDynEntry);
   `endif
@@ -139,7 +140,8 @@
   `ifdef DYNDEBUG
     // show (gp..gp+numDynEntry*4-1)
     for (i=0; i < numDynEntry; i=i+1) begin
-      $display("%8x: %8x", gp+16+i*4, {m[gp+16+i*4], m[gp+16+i*4+1], m[gp+16+i*4+2], m[gp+16+i*4+3]});
+      $display("%8x: %8x", gp+16+i*4, {m[gp+16+i*4], m[gp+16+i*4+1], 
+               m[gp+16+i*4+2], m[gp+16+i*4+3]});
     end
     // show (gpPlt..gpPlt+(numDynEntry+1)*8'h10-1)
     for (i=0; i < numDynEntry; i=i+1) begin
@@ -162,8 +164,9 @@
     end
     $readmemh("libso.hex", flash);
 `ifdef DYNDEBUG
-    for (i=0; i < `MEMSIZE && (flash[i] != `MEMEMPTY || flash[i+1] != `MEMEMPTY || 
-         flash[i+2] != `MEMEMPTY || flash[i+3] != `MEMEMPTY); i=i+4) begin
+    for (i=0; i < `MEMSIZE && (flash[i] != `MEMEMPTY || 
+         flash[i+1] != `MEMEMPTY || flash[i+2] != `MEMEMPTY || 
+         flash[i+3] != `MEMEMPTY); i=i+4) begin
        $display("%8x: %8x", i, {flash[i], flash[i+1], flash[i+2], flash[i+3]});
     end
 `endif
