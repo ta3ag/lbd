@@ -129,17 +129,17 @@ inline static unsigned getCpu0RegisterNumbering(unsigned RegEnum)
     return 5;
   case Cpu0::T9:
     return 6;
-  case Cpu0::S0:
-    return 7;
-  case Cpu0::S1:
-    return 8;
-  case Cpu0::S2:
-    return 9;
-  case Cpu0::GP:
-    return 10;
-  case Cpu0::FP:
-    return 11;
   case Cpu0::T0:
+    return 7;
+  case Cpu0::S0:
+    return 8;
+  case Cpu0::S1:
+    return 9;
+  case Cpu0::S2:
+    return 10;
+  case Cpu0::GP:
+    return 11;
+  case Cpu0::FP:
     return 12;
   case Cpu0::SP:
     return 13;

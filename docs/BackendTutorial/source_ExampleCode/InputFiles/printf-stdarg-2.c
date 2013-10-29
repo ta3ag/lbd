@@ -1,23 +1,3 @@
-// /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
-// /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg-2.c -emit-llvm -o printf-stdarg-2.bc
-// /home/cschen/test/lld/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg-2.bc -o printf-stdarg-2.cpu0.o
-// /home/cschen/test/lld/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj start.ll -o start.cpu0.o
-// /home/cschen/test/lld/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg.bc -o printf-stdarg.cpu0.o
-// /home/cschen/test/lld/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o printf-stdarg.cpu0.o printf-stdarg-2.cpu0.o -o a.out
-// /home/cschen/test/lld/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
-
-// /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
-// /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg-2.c -emit-llvm -o printf-stdarg-2.bc
-// /home/Gamma/test/lld/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj start.ll -o start.cpu0.o
-// /home/Gamma/test/lld/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg.bc -o printf-stdarg.cpu0.o
-// /home/Gamma/test/lld/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg-2.bc -o printf-stdarg-2.cpu0.o
-// /home/Gamma/test/lld/cmake_debug_build/bin/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o printf-stdarg.cpu0.o printf-stdarg-2.cpu0.o -o a.out
-// /home/Gamma/test/lld/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
-// /home/Gamma/test/lld/cmake_debug_build/bin/llvm-objdump -elf2hex a.out > ../cpu0_verilog/redesign/cpu0s.hex
-
-// hexdump -s 0x0ef0 -n 368  -v -e '4/1 "%02x " "\n"' a.out
-
-// objdump -s -j .rodata a.out | tail -n +5| awk '{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6 " " $7 " " $8 " " $9 " " $10 " " $11 " " $12 " " $13 " " $14 " " $15 " " $16 " " $17 " " $18 " " $19 " " $20 "\t*/"}' >> ../cpu0_verilog/raw/cpu0s.hex
 
 /// start
 

@@ -1,0 +1,20 @@
+window_sizes 1800 979 310 1484 905 0
+diagrams
+  classdiagram_ref 128140 // Cpu0lld-main
+    1142 884 100 4 0 0
+  active  classdiagram_ref 134668 // GOTPLTPass
+    1187 884 100 4 0 0
+  classdiagram_ref 141196 // Cpu0lld-relation
+    1187 884 100 4 0 0
+end
+show_stereotypes
+selected classdiagram_ref 134668 // GOTPLTPass
+open
+  classview_ref 128140 // Cpu0
+  deploymentview_ref 128140 // Cpu0
+  classview_ref 128268 // Cpu0
+  deploymentview_ref 128396 // lld
+  class_ref 134668 // GOTPLTPass
+  deploymentview_ref 128268 // Cpu0
+end
+end

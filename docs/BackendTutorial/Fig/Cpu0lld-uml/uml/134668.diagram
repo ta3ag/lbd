@@ -1,0 +1,162 @@
+format 74
+
+classcanvas 128012 class_ref 134668 // GOTPLTPass
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 68 224 2005
+end
+classcanvas 128140 class_ref 134924 // StaticGOTPLTPass
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 21 664 2011
+end
+classcanvas 128396 class_ref 135052 // DynamicGOTPLTPass
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 189 630 2011
+end
+classcanvas 130060 class_ref 133900 // Cpu0BootAtom
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 252 108 2017
+end
+classcanvas 131084 class_ref 129804 // GOTAtom
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  hidden_operations
+    operation_ref 141964 // name
+  xyz 672 8 2017
+end
+classcanvas 131212 class_ref 134412 // ELFPassFile
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 249 418 2017
+end
+classcanvas 131340 class_ref 130188 // PLT0Atom
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 563 276 2022
+end
+classcanvas 131468 class_ref 130060 // PLTAtom
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  hidden_operations
+    operation_ref 143372 // name
+  xyz 674 266 2022
+end
+classcanvas 131724 class_ref 134028 // Cpu0GOTAtom
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 253 16 2000
+end
+classcanvas 131980 class_ref 134284 // Cpu0PLTAtom
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 250 309 2027
+end
+classcanvas 132108 class_ref 134156 // Cpu0PLT0Atom
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 247 208 2032
+end
+classcanvas 132748 class_ref 142092 // Cpu0BootAtomContent
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 392 14 2000
+end
+classcanvas 133132 class_ref 142220 // Cpu0GotAtomContent
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 389 123 2028
+end
+classcanvas 133388 class_ref 142348 // Cpu0Plt0AtomContent
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 395 210 2038
+end
+classcanvas 133516 class_ref 142476 // Cpu0PltAtomContent
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 394 320 2000
+end
+classcanvas 134028 class_ref 142604 // SimpleFile
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 380 446 2000
+end
+classcanvas 134156 class_ref 142732 // MutableFile
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 498 456 2000
+end
+note 134540 "void elf::Cpu0LinkingContext::addPasses(PassManager &pm) const {
+  switch (_outputFileType) {
+  case llvm::ELF::ET_EXEC:
+    if (_isStaticExecutable)
+      pm.add(std::unique_ptr<Pass>(new StaticGOTPLTPass(*this, true)));
+#ifdef DYNLINKER
+    else
+      pm.add(std::unique_ptr<Pass>(new DynamicGOTPLTPass(*this, true)));
+    break;
+  case llvm::ELF::ET_DYN:
+    pm.add(std::unique_ptr<Pass>(new DynamicGOTPLTPass(*this, false)));
+#endif // DYNLINKER
+    break;
+  case llvm::ELF::ET_REL:
+    break;
+  default:
+    llvm_unreachable(\"Unhandled output file type\");
+  }
+  ELFLinkingContext::addPasses(pm);
+}
+"
+  xyzwh 345 515 2000 465 329
+relationcanvas 128268 relation_ref 133900 // <realization>
+  from ref 128140 z 2012 label "<Derived->StaticGOTPLTPass>" xyz 13 548 2012 stereotype "<<bind>>" xyz 73 564 2012 to ref 128012
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 128524 relation_ref 134028 // <realization>
+  from ref 128396 z 2012 label "<Derived->DynamicGOTPLTPass>" xyz 105.5 531 2012 stereotype "<<bind>>" xyz 174.5 547 2012 to ref 128012
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 132236 relation_ref 148108 // <realization>
+  from ref 131724 z 2018 to ref 131084
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 132364 relation_ref 148236 // <realization>
+  from ref 130060 z 2023 to ref 131340
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 132492 relation_ref 148364 // <realization>
+  from ref 132108 z 2033 to ref 131340
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 132620 relation_ref 148492 // <realization>
+  from ref 131980 z 2028 to ref 131468
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 133004 relation_ref 148748 // <unidirectional association>
+  from ref 131724 z 2001 to ref 132748
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 133260 relation_ref 148876 // <unidirectional association>
+  from ref 130060 z 2029 to ref 133132
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 133644 relation_ref 149004 // <unidirectional association>
+  from ref 132108 z 2039 to ref 133388
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 133772 relation_ref 149132 // <unidirectional association>
+  from ref 131980 z 2028 to ref 133516
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 133900 relation_ref 149260 // <unidirectional association>
+  from ref 128012 z 2018 to ref 131212
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 134284 relation_ref 149388 // <realization>
+  from ref 131212 z 2018 to ref 134028
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 134412 relation_ref 149516 // <realization>
+  from ref 134028 z 2001 to ref 134156
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+end

@@ -16,15 +16,9 @@ SYMBOL TABLE:
 
 /// start
 
+#include "dynamic_linker.h"
+
 extern int main();
-// The start address of reset
-// boot:
-/*asm("boot:");
-asm("jmp _start"); // RESET: jmp RESET_START;
-asm("jmp 4");  // ERROR: jmp ERR_HANDLE;
-asm("jmp 4");  // IRQ: jmp IRQ_HANDLE;
-asm("jmp -4"); // ERR_HANDLE: jmp ERR_HANDLE; (loop forever)
-*/
 
 #define initRegs() \
   asm("addiu $1,	$ZERO, 0"); \
@@ -36,8 +30,8 @@ asm("jmp -4"); // ERR_HANDLE: jmp ERR_HANDLE; (loop forever)
   asm("addiu $7,	$ZERO, 0"); \
   asm("addiu $8,	$ZERO, 0"); \
   asm("addiu $9,	$ZERO, 0"); \
-  asm("addiu $11, $ZERO, 0"); \
-  asm("addiu $12, $ZERO, 0");
+  asm("addiu $10,	$ZERO, 0"); \
+  asm("addiu $fp, $ZERO, 0");
 
 void start() {
 //  asm("boot:");
@@ -45,9 +39,8 @@ void start() {
   asm("ori   $1,  $1, 0xfff0");
   asm("ld    $gp, 0($1)"); // load $gp($10) value from 0x7fff0
   initRegs();
-  
   asm("addiu $sp, $zero, 0x6ffc");
   main();
-  asm("addiu $14, $ZERO, -1");
-  asm("ret $14");
+  asm("addiu $lr, $ZERO, -1");
+  asm("ret $lr");
 }

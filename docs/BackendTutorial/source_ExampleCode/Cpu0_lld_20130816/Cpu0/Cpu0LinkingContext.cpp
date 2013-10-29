@@ -36,24 +36,26 @@ const uint8_t cpu0BootAtomContent[16] = {
   0x36, 0xff, 0xff, 0xfc // jmp -4
 };
 
+#ifdef DYNLINKER
 // .got values
 const uint8_t cpu0GotAtomContent[16] = { 0 };
 
 // .plt value (entry 0)
 const uint8_t cpu0Plt0AtomContent[16] = {
-  0x02, 0xea, 0x00, 0x04, // st $lr, $zero, reloc-index ($gp)
-  0x02, 0xba, 0x00, 0x08, // st $fp, $zero, reloc-index ($gp)
-  0x02, 0xda, 0x00, 0x0c, // st $sp, $zero, reloc-index ($gp)
+  0x02, 0xeb, 0x00, 0x04, // st $lr, $zero, reloc-index ($gp)
+  0x02, 0xcb, 0x00, 0x08, // st $fp, $zero, reloc-index ($gp)
+  0x02, 0xdb, 0x00, 0x0c, // st $sp, $zero, reloc-index ($gp)
   0x36, 0xff, 0xff, 0xfc  // jmp dynamic_linker
 };
 
 // .plt values (other entries)
 const uint8_t cpu0PltAtomContent[16] = {
   0x09, 0x60, 0x00, 0x00, // addiu $t9, $zero, reloc-index (=.dynsym_index)
-  0x02, 0x6a, 0x00, 0x00, // st $t9, $zero, reloc-index ($gp)
-  0x01, 0x6a, 0x00, 0x10, // ld $t9, 0x10($gp) (0x10($gp) point to plt0
+  0x02, 0x6b, 0x00, 0x00, // st $t9, $zero, reloc-index ($gp)
+  0x01, 0x6b, 0x00, 0x10, // ld $t9, 0x10($gp) (0x10($gp) point to plt0
   0x3c, 0x60, 0x00, 0x00  // ret $t9 // jump to Cpu0.Stub
 };
+#endif // DYNLINKER
 
 /// boot record
 class Cpu0BootAtom : public PLT0Atom {
@@ -68,6 +70,7 @@ public:
   }
 };
 
+#ifdef DYNLINKER
 /// \brief Atoms that are used by Cpu0 dynamic linking
 class Cpu0GOTAtom : public GOTAtom {
 public:
@@ -98,6 +101,7 @@ public:
     return ArrayRef<uint8_t>(cpu0PltAtomContent, 16);
   }
 };
+#endif // DYNLINKER
 
 class ELFPassFile : public SimpleFile {
 public:
@@ -105,14 +109,6 @@ public:
 
   llvm::BumpPtrAllocator _alloc;
 };
-
-#if 0
-struct PLTOffset {
-  StringRef name;
-};
-PLTOffset PltOffset[100];
-int PltSize = 0;
-#endif
 
 /// \brief Create GOT and PLT entries for relocations. Handles standard GOT/PLT
 /// along with IFUNC and TLS.
@@ -140,6 +136,7 @@ template <class Derived> class GOTPLTPass : public Pass {
   }
 
 protected:
+#ifdef DYNLINKER
   /// \brief get the PLT entry for a given IFUNC Atom.
   ///
   /// If the entry does not exist. Both the GOT and PLT entry is created.
@@ -163,6 +160,7 @@ protected:
     _pltVector.push_back(pa);
     return pa;
   }
+#endif // DYNLINKER
 
   /// \brief Redirect the call to the PLT stub for the target IFUNC.
   ///
@@ -170,11 +168,14 @@ protected:
   /// GOT entry and a RELGOT relocation to the original target resolver.
   ErrorOr<void> handleIFUNC(const Reference &ref) {
     auto target = dyn_cast_or_null<const DefinedAtom>(ref.target());
+#ifdef DYNLINKER
     if (target && target->contentType() == DefinedAtom::typeResolver)
       const_cast<Reference &>(ref).setTarget(getIFUNCPLTEntry(target));
+#endif // DYNLINKER
     return error_code::success();
   }
 
+#ifdef DYNLINKER
   /// \brief Create a GOT entry for the TP offset of a TLS atom.
   const GOTAtom *getGOTTPOFF(const Atom *atom) {
     auto got = _gotMap.find(atom);
@@ -235,6 +236,7 @@ protected:
     else if (const DefinedAtom *da = dyn_cast<const DefinedAtom>(ref.target()))
       const_cast<Reference &>(ref).setTarget(getGOT(da));
   }
+#endif // DYNLINKER
 
 public:
   GOTPLTPass(const ELFLinkingContext &ti, bool isExe)
@@ -257,17 +259,6 @@ public:
       for (const auto &ref : *atom)
         handleReference(*atom, *ref);
 
-#if 0
-    if (!_isStaticExe) {
-      MutableFile::DefinedAtomRange atomRange = mf.definedAtoms();
-      auto it = atomRange.begin();
-      bool find = false;
-      for (it = atomRange.begin(); it < atomRange.end(); it++) {
-        PltOffset[PltSize] = (*it)->name();
-        PltOffset[PltSize] = (*it)->name();
-      }
-    }
-#endif
     // Add all created atoms to the link.
     uint64_t ordinal = 0;
     if (_isStaticExe) {
@@ -275,16 +266,17 @@ public:
       auto it = atomRange.begin();
       bool find = false;
       for (it = atomRange.begin(); it < atomRange.end(); it++) {
-        if ((*it)->name() == "_start") {
+        if ((*it)->name() == "_Z5startv") {
           find = true;
           break;
         }
       }
-      assert(find && "not found _start\n");
+      assert(find && "not found _Z5startv\n");
       _boot->addReference(R_CPU0_PC24, 0, *it, -3);
       _boot->setOrdinal(ordinal++);
       mf.addAtom(*_boot);
     }
+#ifdef DYNLINKER
     if (_PLT0) {
       MutableFile::DefinedAtomRange atomRange = mf.definedAtoms();
       auto it = atomRange.begin();
@@ -310,14 +302,13 @@ public:
     }
     if (_PLT0) {
       _got0->setOrdinal(ordinal++);
-//      _got1->setOrdinal(ordinal++);
       mf.addAtom(*_got0);
-//      mf.addAtom(*_got1);
     }
     for (auto &got : _gotVector) {
       got->setOrdinal(ordinal++);
       mf.addAtom(*got);
     }
+#endif // DYNLINKER
   }
 
 protected:
@@ -344,7 +335,6 @@ protected:
   /// @{
   PLT0Atom *_PLT0;
   GOTAtom *_got0;
-//  GOTAtom *_got1;
 public:
   bool _isStaticExe;
   /// @}
@@ -380,6 +370,7 @@ public:
   ErrorOr<void> handlePC24(const Reference &ref) { return handleIFUNC(ref); }
 };
 
+#ifdef DYNLINKER
 class DynamicGOTPLTPass LLVM_FINAL : public GOTPLTPass<DynamicGOTPLTPass> {
 public:
   DynamicGOTPLTPass(const elf::Cpu0LinkingContext &ti, bool isExe)
@@ -392,15 +383,11 @@ public:
     getNullGOT();
     _PLT0 = new (_file._alloc) Cpu0PLT0Atom(_file);
     _got0 = new (_file._alloc) Cpu0GOTAtom(_file, ".got.plt");
-//    _got1 = new (_file._alloc) Cpu0GOTAtom(_file, ".got.plt");
-//    _PLT0->addReference(R_CPU0_PC24, 2, _got0, -4);
 #if 0
     _PLT0->addReference(R_CPU0_GOT16, 0, _got0, -2); // debug
 #endif
-//    _PLT0->addReference(R_CPU0_PC24, 8, _got1, -4);
 #ifndef NDEBUG
     _got0->_name = "__got0";
-//    _got1->_name = "__got1";
 #endif
     return _PLT0;
   }
@@ -413,13 +400,7 @@ public:
     ga->addReference(R_CPU0_JUMP_SLOT, 0, a, 0);
     auto pa = new (_file._alloc) Cpu0PLTAtom(_file, ".plt");
     getPLT0();  // add _PLT0 and _got0
-//    pa->addReference(LLD_R_CPU0_GOTRELINDEX, 7, ga, 0);
-//    pa->addReference(R_CPU0_PC24, 2, ga, -4);
     pa->addReference(LLD_R_CPU0_GOTRELINDEX, 0, ga, -2);
-#if 0
-// Should change R_CPU0_CALL16_DYN_IDX to R_CPU0_GOTREL_GPOFFSET.
-    pa->addReference(LLD_R_CPU0_GOTREL_GPOFFSET, 8, ga, -2);
-#endif
     // Set the starting address of the got entry to the second instruction in
     // the plt entry.
     ga->addReference(R_CPU0_32, 0, pa, 4);
@@ -449,8 +430,6 @@ public:
       // Turn this into a PC24 to the PLT entry.
     #if 1
       const_cast<Reference &>(ref).setKind(R_CPU0_PC24);
-    #else //debug
-      const_cast<Reference &>(ref).setKind(R_CPU0_CALL24);
     #endif
     }
     return error_code::success();
@@ -488,6 +467,7 @@ public:
       const_cast<Reference &>(ref).setTarget(getSharedGOT(sla));
   }
 };
+#endif // DYNLINKER
 } // end anon namespace
 
 void elf::Cpu0LinkingContext::addPasses(PassManager &pm) const {
@@ -495,11 +475,13 @@ void elf::Cpu0LinkingContext::addPasses(PassManager &pm) const {
   case llvm::ELF::ET_EXEC:
     if (_isStaticExecutable)
       pm.add(std::unique_ptr<Pass>(new StaticGOTPLTPass(*this, true)));
+#ifdef DYNLINKER
     else
       pm.add(std::unique_ptr<Pass>(new DynamicGOTPLTPass(*this, true)));
     break;
   case llvm::ELF::ET_DYN:
     pm.add(std::unique_ptr<Pass>(new DynamicGOTPLTPass(*this, false)));
+#endif // DYNLINKER
     break;
   case llvm::ELF::ET_REL:
     break;
@@ -525,7 +507,6 @@ elf::Cpu0LinkingContext::relocKindFromString(StringRef str) const {
   LLD_CASE(R_CPU0_PC24)
   LLD_CASE(R_CPU0_CALL16)
     .Case("LLD_R_CPU0_GOTRELINDEX", LLD_R_CPU0_GOTRELINDEX)
-    .Case("LLD_R_CPU0_GOTREL_GPOFFSET", LLD_R_CPU0_GOTREL_GPOFFSET)
     .Default(-1);
 
   if (ret == -1)
@@ -552,8 +533,6 @@ elf::Cpu0LinkingContext::stringFromRelocKind(Reference::Kind kind) const {
   LLD_CASE(R_CPU0_CALL16)
   case LLD_R_CPU0_GOTRELINDEX:
     return std::string("LLD_R_CPU0_GOTRELINDEX");
-  case LLD_R_CPU0_GOTREL_GPOFFSET:
-    return std::string("LLD_R_CPU0_GOTREL_GPOFFSET");
   }
 
   return make_error_code(yaml_reader_error::illegal_value);
