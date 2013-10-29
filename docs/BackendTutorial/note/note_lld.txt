@@ -1,6 +1,6 @@
 cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_FLAGS=-std=c++11 -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ../src
 
 git clone http://llvm.org/git/llvm.git src
-cd src
+cd src/tools
 
 git clone http://llvm.org/git/lld.git lld
