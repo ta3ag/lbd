@@ -3,6 +3,26 @@
 
 `ifdef DYNLINKER
   task setDynLinkerInfo; begin
+// below code set memory as follows,
+//                                                            (4 bytes) 
+//                                                        ---------------------------------------
+// DYNLINKER_INFO_ADDR ---------->                        | numDynEntry                         |
+//                                                        ---------------------------------------
+// DYNLINKER_INFO_ADDR+4 -------->                        | index of dynsym (0st row)           |
+//   above is the 1st word of section .dynsym of libfoobar.cpu0.so. 
+// DYNLINKER_INFO_ADDR+8 -------->                        | index of dynsym (1st row)           |
+//                                                        | ...                                 |
+// DYNLINKER_INFO_ADDR+(numDynEntry-1)*4 ---------------> | index of dynsym (the last row)      |
+//                                                        ---------------------------------------
+// DYNLINKER_INFO_ADDR+numDynEntry*4 -------------------> | 1st function (foo()) offset in lib  |
+// DYNLINKER_INFO_ADDR+numDynEntry*4+4 -----------------> | 1st function (foo()) name (48 bytes)|
+//                                                        | ...                                 |
+// DYNLINKER_INFO_ADDR+numDynEntry+(numDynEntry-1)*4 ---> | last function (foo()) offset in lib |
+// DYNLINKER_INFO_ADDR+numDynEntry+(numDynEntry-1)*4+4 -> | last function (foo()) name          |
+//                                                        ---------------------------------------
+// DYNLINKER_INFO_ADDR+4+numDynEntry*4+numDynEntry*52 --> | .dynstr of lib                      |
+//                                                        |   ...                               |
+//                                                        ---------------------------------------
   // caculate number of dynamic entries
     numDynEntry = 0;
     j = 0;
@@ -64,9 +84,9 @@
              m[`GPADDR+2], m[`GPADDR+3]});
     $display("gp = %8x", gp);
   `endif
-// below code set mem as follows,
+// below code set memory as follows,
 //                                 -----------------------------------
-// gp ---------------------------> | all 0                           |
+// gp ---------------------------> | all 0                           | (16 bytes)
 // gp+16 ------------------------> | 0                          |
 // gp+16+1*4 --------------------> | 1st plt entry address      | (4 bytes)
 //                                 | ...                        |
@@ -83,11 +103,11 @@
 //       numDynEntry = actual number of functions + 1.
 //   gp+1*4..gp+numDynEntry*4 set to 8'h10 plt0 which will jump to dynamic 
 //   linker.
-//   After dynamic linker load function to memory, it will set gp+idx*4 to 
+//   After dynamic linker load function to memory, it will set gp+index*4 to 
 //   function memory address. For example, if the function index is 2, then the 
 //   gp+2*4 is set to the memory address of this loaded function. 
 //   Then the the caller call 
-//  "ld $t9, 2*4($gp)" and "ret $t9" will jump to this loaded function directly.
+//   "ld $t9, 2*4($gp)" and "ret $t9" will jump to this loaded function directly.
 
     gpPlt = gp+16+numDynEntry*4;
     // set (gpPlt-16..gpPlt-1) to 0
@@ -191,10 +211,6 @@
 `endif
 `endif
 `ifdef DYNLINKER
-  // erase memory
-    for (i=0; i < `MEMSIZE; i=i+1) begin
-       flash[i] = `MEMEMPTY;
-    end
     for (i=0; i < 192; i=i+1) begin
        dsym[i] = `MEMEMPTY;
     end

@@ -314,7 +314,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       taskInterrupt(`IRQ);
       state = Fetch;
     end else begin
-      //`TR = 1; // Trace register content at beginning
+      // `TR = 1; // Trace register content at beginning
       taskExecute();
       state = next_state;
     end
@@ -352,7 +352,7 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
     for (i=0; i < `MEMSIZE; i=i+1) begin
        m[i] = `MEMEMPTY;
     end
-  // load program from file to memeory
+  // load program from file to memory
     $readmemh("cpu0s.hex", m);
   // display memory contents
     `ifdef TRACE
