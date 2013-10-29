@@ -1,0 +1,13 @@
+window_sizes 1800 945 366 1428 807 64
+diagrams
+  active  classdiagram_ref 128140 // Cpu0lld-main
+    1119 767 100 4 0 0
+  classdiagram_ref 128268 // Cpu0TargetHandler
+    1142 727 100 4 0 0
+end
+show_stereotypes
+selected 
+package_ref 129 // cpu0lld-uml
+open
+end
+end

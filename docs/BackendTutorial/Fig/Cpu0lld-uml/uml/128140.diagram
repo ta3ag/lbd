@@ -1,0 +1,112 @@
+format 74
+
+classcanvas 128012 class_ref 131212 // Cpu0LinkingContext
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 52 501 2000
+end
+classcanvas 128140 class_ref 130956 // ELFLinkingContext
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  hidden_attributes
+    attribute_ref 136588 // _outputELFType
+    attribute_ref 136716 // _triple
+    attribute_ref 136844 // _baseAddress
+    attribute_ref 136972 // _isStaticExecutable
+    attribute_ref 137100 // _noInhibitExec
+    attribute_ref 137228 // _mergeCommonStrings
+    attribute_ref 137356 // _runLayoutPass
+    attribute_ref 137484 // _useShlibUndefines
+    attribute_ref 137612 // _dynamicLinkerArg
+    attribute_ref 137740 // _noAllowDynamicLibraries
+    attribute_ref 137868 // _inputSearchPaths
+    attribute_ref 137996 // _alloc
+    attribute_ref 138124 // _elfReader
+    attribute_ref 138252 // _writer
+    attribute_ref 138380 // _linkerScriptReader
+    attribute_ref 138508 // _dynamicLinkerPath
+    attribute_ref 138636 // _initFunctions
+    attribute_ref 138764 // _finiFunctions
+    attribute_ref 138892 // _sysrootPath
+    attribute_ref 139020 // _soname
+    attribute_ref 139148 // _rpathList
+    attribute_ref 139276 // _rpathLinkList
+  hidden_operations
+    operation_ref 152844 // getPageSize
+    operation_ref 152972 // getOutputMagic
+    operation_ref 153356 // mergeCommonStrings
+    operation_ref 153484 // getBaseAddress
+    operation_ref 153612 // useShlibUndefines
+    operation_ref 153868 // validateImpl
+    operation_ref 154252 // create
+    operation_ref 154508 // getDefaultInterpreter
+    operation_ref 154636 // getInterpreter
+    operation_ref 156044 // setInterpreter
+    operation_ref 156428 // searchLibrary
+    operation_ref 156556 // entrySymbolName
+    operation_ref 156812 // addFiniFunction
+    operation_ref 156940 // initFunctions
+    operation_ref 157068 // finiFunctions
+    operation_ref 157580 // addRpath
+    operation_ref 157708 // getRpathList
+    operation_ref 157836 // addRpathLink
+    operation_ref 157964 // getRpathLinkList
+    operation_ref 158092 // ELFLinkingContext
+    operation_ref 158220 // ELFLinkingContext
+    operation_ref 158476 // createUndefinedSymbolFile
+  xyz 44 18 2006
+end
+classcanvas 128396 class_ref 131468 // TargetRelocationHandler
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 316 339 2005
+end
+classcanvas 128524 class_ref 131340 // Cpu0TargetRelocationHandler
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 296 557 2011
+end
+classcanvas 128908 class_ref 131596 // Cpu0TargetHandler
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 610 606 2017
+end
+classcanvas 129164 class_ref 132108 // TargetHandler
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 616 30 2012
+end
+classcanvas 129420 class_ref 131724 // DefaultTargetHandler
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 613 328 3005
+end
+relationcanvas 128268 relation_ref 129932 // <generalisation>
+  from ref 128012 z 2007 to ref 128140
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 128652 relation_ref 130060 // <realization>
+  from ref 128524 z 2012 label "<ELFT->Cpu0ELFType>" xyz 327 483 2012 stereotype "<<bind>>" xyz 367 499 2012 to ref 128396
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 128780 relation_ref 130188 // <unidirectional association>
+  from ref 128524 z 2012 to ref 128012
+  role_a_pos 198 586 3000 no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 129036 relation_ref 130572 // <directional composition>
+  from ref 128908 z 2018 to ref 128524
+  role_a_pos 494 605 3000 no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 129292 relation_ref 131468 // <unidirectional association>
+  from ref 129164 z 2013 to ref 128140
+  role_a_pos 246 209 3000 no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 129548 relation_ref 130700 // <realization>
+  from ref 129420 z 3006 label "<ELFT->ELFT>" xyz 642 286.5 3006 stereotype "<<bind>>" xyz 657 302.5 3006 to ref 129164
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 129676 relation_ref 130316 // <realization>
+  from ref 128908 z 3006 label "<ELFT->Cpu0ELFType>" xyz 613.5 565.5 3006 stereotype "<<bind>>" xyz 653.5 581.5 3006 to ref 129420
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+end
