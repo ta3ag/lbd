@@ -1,6 +1,6 @@
 format 74
 "Cpu0" // Cpu0::Cpu0
-  revision 1
+  revision 4
   modified_by 12 "cschen"
   // class settings
   //class diagram settings
@@ -26,8 +26,8 @@ format 74
   package_name_in_tab default show_context default show_opaque_action_definition default auto_label_position default write_flow_label_horizontally default draw_all_relations default shadow default
   show_infonote default drawing_language default show_stereotype_properties default
   
-  cpp_h_dir "/home/cschen/test/uml/r2/ELF/Cpu0/"
-  cpp_src_dir "/home/cschen/test/uml/r2/ELF/Cpu0/"
+  cpp_h_dir "/home/cschen/test/tmp/Cpu0lld-uml/Cpu0lld-src/ELF/Cpu0/"
+  cpp_src_dir "/home/cschen/test/tmp/Cpu0lld-uml/Cpu0lld-src/ELF/Cpu0/"
   classview 128396 "Cpu0"
     //class diagram settings
     draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
@@ -68,7 +68,7 @@ ${items}
       end
     end
 
-    class 132748 "Cpu0BootAtom"
+    class 133900 "Cpu0BootAtom"
       visibility package 
       cpp_decl "${comment}${template}class ${name}${inherit} {
 ${members}};
@@ -81,15 +81,15 @@ ${inlines}
       explicit_switch_type ""
       
       comment "/ boot record"
-      classrelation 131596 // <generalisation>
-	relation 131596 ---|>
+      classrelation 131980 // <generalisation>
+	relation 131980 ---|>
 	  a public
 	    cpp default "${type}"
-	    classrelation_ref 131596 // <generalisation>
+	    classrelation_ref 131980 // <generalisation>
 	  b parent class_ref 130188 // PLT0Atom
       end
 
-      operation 161036 "Cpu0BootAtom"
+      operation 167052 "Cpu0BootAtom"
 	cpp_inline public explicit_return_type ""
 	nparams 1
 	  param in name "f" explicit_type "File"
@@ -105,7 +105,7 @@ ${inlines}
 	
       end
 
-      operation 161164 "rawContent"
+      operation 167180 "rawContent"
 	const cpp_virtual cpp_inline public explicit_return_type "ArrayRef<uint8_t>"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} {
@@ -117,9 +117,38 @@ ${inlines}
 	
 	
       end
+
+      classrelation 148236 // <association>
+	relation 147980 ----
+	  a role_name "" private
+	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} * ${name}${value};
+"
+	    classrelation_ref 148236 // <association>
+	  b role_name "" private
+	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} * ${name}${value};
+"
+	    classrelation_ref 148364 // <association>
+      end
+
+      classrelation 148620 // <realization>
+	relation 148236 -_-|>
+	  a package
+	    cpp default "${type}"
+	    classrelation_ref 148620 // <realization>
+	  b parent class_ref 130188 // PLT0Atom
+      end
+
+      classrelation 149260 // <unidirectional association>
+	relation 148876 --->
+	  a role_name "" private
+	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} * ${name}${value};
+"
+	    classrelation_ref 149260 // <unidirectional association>
+	  b parent class_ref 142220 // Cpu0GotAtomContent
+      end
     end
 
-    class 132876 "Cpu0GOTAtom"
+    class 134028 "Cpu0GOTAtom"
       visibility package 
       cpp_decl "${comment}${template}class ${name}${inherit} {
 ${members}};
@@ -132,15 +161,15 @@ ${inlines}
       explicit_switch_type ""
       
       comment "/ \\brief Atoms that are used by Cpu0 dynamic linking"
-      classrelation 131724 // <generalisation>
-	relation 131724 ---|>
+      classrelation 132108 // <generalisation>
+	relation 132108 ---|>
 	  a public
 	    cpp default "${type}"
-	    classrelation_ref 131724 // <generalisation>
+	    classrelation_ref 132108 // <generalisation>
 	  b parent class_ref 129804 // GOTAtom
       end
 
-      operation 161292 "Cpu0GOTAtom"
+      operation 167308 "Cpu0GOTAtom"
 	cpp_inline public explicit_return_type ""
 	nparams 2
 	  param in name "f" explicit_type "File"
@@ -153,7 +182,7 @@ ${inlines}
 	
       end
 
-      operation 161420 "rawContent"
+      operation 167436 "rawContent"
 	const cpp_virtual cpp_inline public explicit_return_type "ArrayRef<uint8_t>"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} {
@@ -165,9 +194,34 @@ ${inlines}
 	
 	
       end
+
+      classrelation 148492 // <realization>
+	relation 148108 -_-|>
+	  a package
+	    cpp default "${type}"
+	    classrelation_ref 148492 // <realization>
+	  b parent class_ref 129804 // GOTAtom
+      end
+
+      classrelation 149004 // <generalisation>
+	relation 148620 ---|>
+	  a public
+	    cpp default "${type}"
+	    classrelation_ref 149004 // <generalisation>
+	  b parent class_ref 142092 // Cpu0BootAtomContent
+      end
+
+      classrelation 149132 // <unidirectional association>
+	relation 148748 --->
+	  a role_name "" private
+	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} * ${name}${value};
+"
+	    classrelation_ref 149132 // <unidirectional association>
+	  b parent class_ref 142092 // Cpu0BootAtomContent
+      end
     end
 
-    class 133004 "Cpu0PLT0Atom"
+    class 134156 "Cpu0PLT0Atom"
       visibility package 
       cpp_decl "${comment}${template}class ${name}${inherit} {
 ${members}};
@@ -179,15 +233,15 @@ ${inlines}
       idl_decl ""
       explicit_switch_type ""
       
-      classrelation 131852 // <generalisation>
-	relation 131852 ---|>
+      classrelation 132236 // <generalisation>
+	relation 132236 ---|>
 	  a public
 	    cpp default "${type}"
-	    classrelation_ref 131852 // <generalisation>
+	    classrelation_ref 132236 // <generalisation>
 	  b parent class_ref 130188 // PLT0Atom
       end
 
-      operation 161548 "Cpu0PLT0Atom"
+      operation 167564 "Cpu0PLT0Atom"
 	cpp_inline public explicit_return_type ""
 	nparams 1
 	  param in name "f" explicit_type "File"
@@ -203,7 +257,7 @@ ${inlines}
 	
       end
 
-      operation 161676 "rawContent"
+      operation 167692 "rawContent"
 	const cpp_virtual cpp_inline public explicit_return_type "ArrayRef<uint8_t>"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} {
@@ -215,9 +269,26 @@ ${inlines}
 	
 	
       end
+
+      classrelation 148748 // <realization>
+	relation 148364 -_-|>
+	  a package
+	    cpp default "${type}"
+	    classrelation_ref 148748 // <realization>
+	  b parent class_ref 130188 // PLT0Atom
+      end
+
+      classrelation 149388 // <unidirectional association>
+	relation 149004 --->
+	  a role_name "" private
+	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} * ${name}${value};
+"
+	    classrelation_ref 149388 // <unidirectional association>
+	  b parent class_ref 142348 // Cpu0Plt0AtomContent
+      end
     end
 
-    class 133132 "Cpu0PLTAtom"
+    class 134284 "Cpu0PLTAtom"
       visibility package 
       cpp_decl "${comment}${template}class ${name}${inherit} {
 ${members}};
@@ -229,15 +300,15 @@ ${inlines}
       idl_decl ""
       explicit_switch_type ""
       
-      classrelation 131980 // <generalisation>
-	relation 131980 ---|>
+      classrelation 132364 // <generalisation>
+	relation 132364 ---|>
 	  a public
 	    cpp default "${type}"
-	    classrelation_ref 131980 // <generalisation>
+	    classrelation_ref 132364 // <generalisation>
 	  b parent class_ref 130060 // PLTAtom
       end
 
-      operation 161804 "Cpu0PLTAtom"
+      operation 167820 "Cpu0PLTAtom"
 	cpp_inline public explicit_return_type ""
 	nparams 2
 	  param in name "f" explicit_type "File"
@@ -250,7 +321,7 @@ ${inlines}
 	
       end
 
-      operation 161932 "rawContent"
+      operation 167948 "rawContent"
 	const cpp_virtual cpp_inline public explicit_return_type "ArrayRef<uint8_t>"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} {
@@ -262,9 +333,26 @@ ${inlines}
 	
 	
       end
+
+      classrelation 148876 // <realization>
+	relation 148492 -_-|>
+	  a package
+	    cpp default "${type}"
+	    classrelation_ref 148876 // <realization>
+	  b parent class_ref 130060 // PLTAtom
+      end
+
+      classrelation 149516 // <unidirectional association>
+	relation 149132 --->
+	  a role_name "" private
+	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} * ${name}${value};
+"
+	    classrelation_ref 149516 // <unidirectional association>
+	  b parent class_ref 142476 // Cpu0PltAtomContent
+      end
     end
 
-    class 133260 "ELFPassFile"
+    class 134412 "ELFPassFile"
       visibility package 
       cpp_decl "${comment}${template}class ${name}${inherit} {
 ${members}};
@@ -276,15 +364,15 @@ ${inlines}
       idl_decl ""
       explicit_switch_type ""
       
-      classrelation 132108 // <generalisation>
-	relation 132108 ---|>
+      classrelation 132492 // <generalisation>
+	relation 132492 ---|>
 	  a public
 	    cpp default "${type}"
-	    classrelation_ref 132108 // <generalisation>
-	  b parent class_ref 133388 // typedef10
+	    classrelation_ref 132492 // <generalisation>
+	  b parent class_ref 134540 // typedef10
       end
 
-      operation 162060 "ELFPassFile"
+      operation 168076 "ELFPassFile"
 	cpp_inline public explicit_return_type ""
 	nparams 1
 	  param in name "eti" type class_ref 130956 // ELFLinkingContext
@@ -296,7 +384,7 @@ ${inlines}
 	
       end
 
-      attribute 139404 "_alloc"
+      attribute 145292 "_alloc"
 	public explicit_type "llvm::BumpPtrAllocator"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -305,9 +393,17 @@ ${inlines}
 	python_decl ""
 	idl_decl ""
       end
+
+      classrelation 149772 // <realization>
+	relation 149388 -_-|>
+	  a public
+	    cpp default "${type}"
+	    classrelation_ref 149772 // <realization>
+	  b parent class_ref 142604 // SimpleFile
+      end
     end
 
-    class 133388 "typedef10"
+    class 134540 "typedef10"
       visibility package stereotype "typedef" explicit_base_type "SimpleFile"
       cpp_decl "${comment}typedef ${type} ${name};
 "
@@ -319,7 +415,7 @@ ${inlines}
       
     end
 
-    class 133516 "GOTPLTPass"
+    class 134668 "GOTPLTPass"
       visibility package 
       nformals 1
       formal name "Derived" type "class" explicit_default_value ""
@@ -334,17 +430,18 @@ ${inlines}
       idl_decl ""
       explicit_switch_type ""
       
+      associated_diagram classdiagram_ref 134668 // GOTPLTPass
       comment "/ \\brief Create GOT and PLT entries for relocations. Handles standard GOT/PLT
 / along with IFUNC and TLS."
-      classrelation 132236 // <generalisation>
-	relation 132236 ---|>
+      classrelation 132620 // <generalisation>
+	relation 132620 ---|>
 	  a public
 	    cpp default "${type}"
-	    classrelation_ref 132236 // <generalisation>
-	  b parent class_ref 133644 // typedef11
+	    classrelation_ref 132620 // <generalisation>
+	  b parent class_ref 134796 // typedef11
       end
 
-      operation 162188 "handleReference"
+      operation 168204 "handleReference"
 	cpp_inline private explicit_return_type "void"
 	nparams 2
 	  param in name "atom" explicit_type "DefinedAtom"
@@ -377,7 +474,7 @@ ${inlines}
 	comment "/ \\brief Handle a specific reference."
       end
 
-      operation 162316 "getIFUNCPLTEntry"
+      operation 168332 "getIFUNCPLTEntry"
 	cpp_inline protected return_type class_ref 130060 // PLTAtom
 	nparams 1
 	  param in name "da" explicit_type "DefinedAtom"
@@ -411,7 +508,7 @@ ${inlines}
 / If the entry does not exist. Both the GOT and PLT entry is created."
       end
 
-      operation 162444 "handleIFUNC"
+      operation 168460 "handleIFUNC"
 	cpp_inline protected explicit_return_type "ErrorOr<void>"
 	nparams 1
 	  param in name "ref" explicit_type "Reference"
@@ -434,7 +531,7 @@ ${inlines}
 / GOT entry and a RELGOT relocation to the original target resolver."
       end
 
-      operation 162572 "getGOTTPOFF"
+      operation 168588 "getGOTTPOFF"
 	cpp_inline protected return_type class_ref 129804 // GOTAtom
 	nparams 1
 	  param in name "atom" explicit_type "Atom"
@@ -461,7 +558,7 @@ ${inlines}
 	comment "/ \\brief Create a GOT entry for the TP offset of a TLS atom."
       end
 
-      operation 162700 "handleGOTTPOFF"
+      operation 168716 "handleGOTTPOFF"
 	cpp_inline protected explicit_return_type "void"
 	nparams 1
 	  param in name "ref" explicit_type "Reference"
@@ -478,7 +575,7 @@ ${inlines}
 / the GOT."
       end
 
-      operation 162828 "getNullGOT"
+      operation 168844 "getNullGOT"
 	cpp_inline protected return_type class_ref 129804 // GOTAtom
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}const ${type} * ${name}${(}${)}${const}${volatile}${throw}${abstract} {
@@ -498,7 +595,7 @@ ${inlines}
 	comment "/ \\brief Create a GOT entry containing 0."
       end
 
-      operation 162956 "getGOT"
+      operation 168972 "getGOT"
 	cpp_inline protected return_type class_ref 129804 // GOTAtom
 	nparams 1
 	  param in name "da" explicit_type "DefinedAtom"
@@ -524,7 +621,7 @@ ${inlines}
 	
       end
 
-      operation 163084 "handleGOTPCREL"
+      operation 169100 "handleGOTPCREL"
 	cpp_inline protected explicit_return_type "void"
 	nparams 1
 	  param in name "ref" explicit_type "Reference"
@@ -544,7 +641,7 @@ ${inlines}
 / null GOT entry."
       end
 
-      operation 163212 "GOTPLTPass"
+      operation 169228 "GOTPLTPass"
 	cpp_inline public explicit_return_type ""
 	nparams 2
 	  param in name "ti" type class_ref 130956 // ELFLinkingContext
@@ -559,7 +656,7 @@ ${inlines}
 	
       end
 
-      operation 163340 "perform"
+      operation 169356 "perform"
 	cpp_virtual cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param inout name "mf" explicit_type "MutableFile"
@@ -636,92 +733,92 @@ ${inlines}
 / added to mf."
       end
 
-      classrelation 132364 // _file (<directional composition>)
-	relation 132364 *-->
+      classrelation 132748 // _file (<directional composition>)
+	relation 132748 *-->
 	  a role_name "_file" protected
 	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
-	    classrelation_ref 132364 // _file (<directional composition>)
-	  b parent class_ref 133260 // ELFPassFile
+	    classrelation_ref 132748 // _file (<directional composition>)
+	  b parent class_ref 134412 // ELFPassFile
       end
 
-      classrelation 132492 // _gotMap (<unidirectional association>)
-	relation 132492 --->
+      classrelation 132876 // _gotMap (<unidirectional association>)
+	relation 132876 --->
 	  stereotype "llvm::DenseMap"
 	  a role_name "_gotMap" protected
 	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${stereotype}<const Atom*,${type}*> ${name}${value};
 "
-	    classrelation_ref 132492 // _gotMap (<unidirectional association>)
+	    classrelation_ref 132876 // _gotMap (<unidirectional association>)
 	  b parent class_ref 129804 // GOTAtom
       end
 
-      classrelation 132620 // _pltMap (<unidirectional association>)
-	relation 132620 --->
+      classrelation 133004 // _pltMap (<unidirectional association>)
+	relation 133004 --->
 	  stereotype "llvm::DenseMap"
 	  a role_name "_pltMap" protected
 	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${stereotype}<const Atom*,${type}*> ${name}${value};
 "
-	    classrelation_ref 132620 // _pltMap (<unidirectional association>)
+	    classrelation_ref 133004 // _pltMap (<unidirectional association>)
 	  b parent class_ref 130060 // PLTAtom
       end
 
-      classrelation 132748 // _gotVector (<unidirectional association>)
-	relation 132748 --->
+      classrelation 133132 // _gotVector (<unidirectional association>)
+	relation 133132 --->
 	  stereotype "std::vector"
 	  a role_name "_gotVector" protected
 	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${stereotype}<${type}*> ${name}${value};
 "
-	    classrelation_ref 132748 // _gotVector (<unidirectional association>)
+	    classrelation_ref 133132 // _gotVector (<unidirectional association>)
 	  b parent class_ref 129804 // GOTAtom
       end
 
-      classrelation 132876 // _pltVector (<unidirectional association>)
-	relation 132876 --->
+      classrelation 133260 // _pltVector (<unidirectional association>)
+	relation 133260 --->
 	  stereotype "std::vector"
 	  a role_name "_pltVector" protected
 	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${stereotype}<${type}*> ${name}${value};
 "
-	    classrelation_ref 132876 // _pltVector (<unidirectional association>)
+	    classrelation_ref 133260 // _pltVector (<unidirectional association>)
 	  b parent class_ref 130060 // PLTAtom
       end
 
-      classrelation 133004 // _boot (<unidirectional association>)
-	relation 133004 --->
+      classrelation 133388 // _boot (<unidirectional association>)
+	relation 133388 --->
 	  a role_name "_boot" protected
 	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} * ${name}${value};
 "
-	    classrelation_ref 133004 // _boot (<unidirectional association>)
+	    classrelation_ref 133388 // _boot (<unidirectional association>)
 	  b parent class_ref 130188 // PLT0Atom
       end
 
-      classrelation 133132 // _null (<unidirectional association>)
-	relation 133132 --->
+      classrelation 133516 // _null (<unidirectional association>)
+	relation 133516 --->
 	  a role_name "_null" protected
 	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} * ${name}${value};
 "
-	    classrelation_ref 133132 // _null (<unidirectional association>)
+	    classrelation_ref 133516 // _null (<unidirectional association>)
 	  b parent class_ref 129804 // GOTAtom
       end
 
-      classrelation 133260 // _PLT0 (<unidirectional association>)
-	relation 133260 --->
+      classrelation 133644 // _PLT0 (<unidirectional association>)
+	relation 133644 --->
 	  a role_name "_PLT0" protected
 	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} * ${name}${value};
 "
-	    classrelation_ref 133260 // _PLT0 (<unidirectional association>)
+	    classrelation_ref 133644 // _PLT0 (<unidirectional association>)
 	  b parent class_ref 130188 // PLT0Atom
       end
 
-      classrelation 133388 // _got0 (<unidirectional association>)
-	relation 133388 --->
+      classrelation 133772 // _got0 (<unidirectional association>)
+	relation 133772 --->
 	  a role_name "_got0" protected
 	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} * ${name}${value};
 "
-	    classrelation_ref 133388 // _got0 (<unidirectional association>)
+	    classrelation_ref 133772 // _got0 (<unidirectional association>)
 	  b parent class_ref 129804 // GOTAtom
       end
 
-      attribute 139532 "_isStaticExe"
+      attribute 145420 "_isStaticExe"
 	public explicit_type "bool"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -730,9 +827,36 @@ ${inlines}
 	python_decl ""
 	idl_decl ""
       end
+
+      classrelation 140812 // <unidirectional association>
+	relation 140812 --->
+	  a role_name "" private
+	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} * ${name}${value};
+"
+	    classrelation_ref 140812 // <unidirectional association>
+	  b parent class_ref 133900 // Cpu0BootAtom
+      end
+
+      classrelation 140940 // <unidirectional association>
+	relation 140940 --->
+	  a role_name "" private
+	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} * ${name}${value};
+"
+	    classrelation_ref 140940 // <unidirectional association>
+	  b parent class_ref 134028 // Cpu0GOTAtom
+      end
+
+      classrelation 149644 // <unidirectional association>
+	relation 149260 --->
+	  a role_name "" private
+	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} * ${name}${value};
+"
+	    classrelation_ref 149644 // <unidirectional association>
+	  b parent class_ref 134412 // ELFPassFile
+      end
     end
 
-    class 133644 "typedef11"
+    class 134796 "typedef11"
       visibility package stereotype "typedef" explicit_base_type "Pass"
       cpp_decl "${comment}typedef ${type} ${name};
 "
@@ -744,11 +868,11 @@ ${inlines}
       
     end
 
-    class 133772 "StaticGOTPLTPass"
+    class 134924 "StaticGOTPLTPass"
       visibility package 
       nactuals 1
-      actual class class_ref 133516 // GOTPLTPass
-        rank 0 value class_ref 133772 // StaticGOTPLTPass
+      actual class class_ref 134668 // GOTPLTPass
+        rank 0 value class_ref 134924 // StaticGOTPLTPass
       cpp_decl "${comment}${template}class ${name}${inherit} {
 ${members}};
 ${inlines}
@@ -766,16 +890,16 @@ ${inlines}
 / entry, that entry is statically bound.
 /
 / TLS always assumes module 1 and attempts to remove indirection."
-      classrelation 133516 // <realization>
-	relation 133516 -_-|>
+      classrelation 133900 // <realization>
+	relation 133900 -_-|>
 	  stereotype "bind"
 	  a public
 	    cpp default "${type}"
-	    classrelation_ref 133516 // <realization>
-	  b parent class_ref 133516 // GOTPLTPass
+	    classrelation_ref 133900 // <realization>
+	  b parent class_ref 134668 // GOTPLTPass
       end
 
-      operation 163468 "StaticGOTPLTPass"
+      operation 169484 "StaticGOTPLTPass"
 	cpp_inline public explicit_return_type ""
 	nparams 2
 	  param in name "ti" type class_ref 131212 // Cpu0LinkingContext
@@ -788,7 +912,7 @@ ${inlines}
 	
       end
 
-      operation 163596 "handlePLT32"
+      operation 169612 "handlePLT32"
 	cpp_inline public explicit_return_type "ErrorOr<void>"
 	nparams 1
 	  param in name "ref" explicit_type "Reference"
@@ -814,7 +938,7 @@ ${inlines}
 	
       end
 
-      operation 163724 "handlePC24"
+      operation 169740 "handlePC24"
 	cpp_inline public explicit_return_type "ErrorOr<void>"
 	nparams 1
 	  param in name "ref" explicit_type "Reference"
@@ -827,11 +951,11 @@ ${inlines}
       end
     end
 
-    class 133900 "DynamicGOTPLTPass"
+    class 135052 "DynamicGOTPLTPass"
       visibility package 
       nactuals 1
-      actual class class_ref 133516 // GOTPLTPass
-        rank 0 value class_ref 133900 // DynamicGOTPLTPass
+      actual class class_ref 134668 // GOTPLTPass
+        rank 0 value class_ref 135052 // DynamicGOTPLTPass
       cpp_decl "${comment}${template}class ${name}${inherit} {
 ${members}};
 ${inlines}
@@ -842,16 +966,16 @@ ${inlines}
       idl_decl ""
       explicit_switch_type ""
       
-      classrelation 133644 // <realization>
-	relation 133644 -_-|>
+      classrelation 134028 // <realization>
+	relation 134028 -_-|>
 	  stereotype "bind"
 	  a public
 	    cpp default "${type}"
-	    classrelation_ref 133644 // <realization>
-	  b parent class_ref 133516 // GOTPLTPass
+	    classrelation_ref 134028 // <realization>
+	  b parent class_ref 134668 // GOTPLTPass
       end
 
-      operation 163852 "DynamicGOTPLTPass"
+      operation 169868 "DynamicGOTPLTPass"
 	cpp_inline public explicit_return_type ""
 	nparams 2
 	  param in name "ti" type class_ref 131212 // Cpu0LinkingContext
@@ -864,7 +988,7 @@ ${inlines}
 	
       end
 
-      operation 163980 "getPLT0"
+      operation 169996 "getPLT0"
 	cpp_inline public return_type class_ref 130188 // PLT0Atom
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}const ${type} * ${name}${(}${)}${const}${volatile}${throw}${abstract} {
@@ -889,7 +1013,7 @@ ${inlines}
 	
       end
 
-      operation 164108 "getPLTEntry"
+      operation 170124 "getPLTEntry"
 	cpp_inline public return_type class_ref 130060 // PLTAtom
 	nparams 1
 	  param in name "a" explicit_type "Atom"
@@ -924,7 +1048,7 @@ ${inlines}
 	
       end
 
-      operation 164236 "handlePLT32"
+      operation 170252 "handlePLT32"
 	cpp_inline public explicit_return_type "ErrorOr<void>"
 	nparams 1
 	  param in name "ref" explicit_type "Reference"
@@ -952,7 +1076,7 @@ ${inlines}
 	
       end
 
-      operation 164364 "handlePC24"
+      operation 170380 "handlePC24"
 	cpp_inline public explicit_return_type "ErrorOr<void>"
 	nparams 1
 	  param in name "ref" explicit_type "Reference"
@@ -968,7 +1092,7 @@ ${inlines}
 	
       end
 
-      operation 164492 "getSharedGOT"
+      operation 170508 "getSharedGOT"
 	cpp_inline public return_type class_ref 129804 // GOTAtom
 	nparams 1
 	  param in name "sla" explicit_type "SharedLibraryAtom"
@@ -994,7 +1118,7 @@ ${inlines}
 	
       end
 
-      operation 164620 "handleGOTPCREL"
+      operation 170636 "handleGOTPCREL"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param in name "ref" explicit_type "Reference"
@@ -1015,7 +1139,7 @@ ${inlines}
       end
     end
 
-    class 134028 "Cpu0SoPlt"
+    class 135180 "Cpu0SoPlt"
       visibility package stereotype "struct"
       cpp_decl "${comment}${template}struct ${name}${inherit} {
 ${members}};
@@ -1027,7 +1151,7 @@ ${inlines}
       idl_decl ""
       explicit_switch_type ""
       
-      attribute 139660 "funAddr"
+      attribute 145548 "funAddr"
 	public explicit_type "uint32_t"
 	multiplicity "[100]"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${multiplicity}${value};
@@ -1038,7 +1162,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 139788 "funAddrSize"
+      attribute 145676 "funAddrSize"
 	public explicit_type "int"
 	init_value "=  0"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${h_value};
@@ -1049,7 +1173,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      class 134156 "dynsym"
+      class 135308 "dynsym"
 	visibility package stereotype "struct"
 	cpp_decl "${comment}${template}struct ${name}${inherit} {
 ${members}};
@@ -1061,7 +1185,7 @@ ${inlines}
 	idl_decl ""
 	explicit_switch_type ""
 	
-	attribute 139916 "stridx"
+	attribute 145804 "stridx"
 	  public explicit_type "uint32_t"
 	  cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -1072,16 +1196,16 @@ ${inlines}
 	end
       end
 
-      classrelation 133772 // Dynsym (<directional composition>)
-	relation 133772 *-->
+      classrelation 134156 // Dynsym (<directional composition>)
+	relation 134156 *-->
 	  a role_name "Dynsym" multiplicity "[100]" public
 	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${multiplicity}${value};
 "
-	    classrelation_ref 133772 // Dynsym (<directional composition>)
-	  b parent class_ref 134156 // dynsym
+	    classrelation_ref 134156 // Dynsym (<directional composition>)
+	  b parent class_ref 135308 // dynsym
       end
 
-      attribute 140044 "DynsymSize"
+      attribute 145932 "DynsymSize"
 	public explicit_type "int"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -1091,7 +1215,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 140172 "Dynstr"
+      attribute 146060 "Dynstr"
 	public explicit_type "uint8_t"
 	multiplicity "[1000]"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${multiplicity}${value};
@@ -1102,7 +1226,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 140300 "DynstrSize"
+      attribute 146188 "DynstrSize"
 	public explicit_type "int"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -1112,7 +1236,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      operation 164748 "create"
+      operation 170764 "create"
 	cpp_inline public explicit_return_type "int"
 	nparams 1
 	  param inout name "o" explicit_type "ObjectFile"
@@ -1149,7 +1273,7 @@ ${inlines}
 	
       end
 
-      operation 164876 "getDynsymEntryIdxByTargetAddr"
+      operation 170892 "getDynsymEntryIdxByTargetAddr"
 	cpp_inline public explicit_return_type "int"
 	nparams 3
 	  param in name "fAddr" explicit_type "uint64_t"
@@ -1171,7 +1295,7 @@ ${inlines}
 	comment " Return dynsym entry number"
       end
 
-      operation 165004 "getDynsymIdxByName"
+      operation 171020 "getDynsymIdxByName"
 	cpp_inline public explicit_return_type "int"
 	nparams 1
 	  param inout name "name" explicit_type "uint8_t"
@@ -1194,7 +1318,7 @@ ${inlines}
       end
     end
 
-    class 134284 "Cpu0ExePlt"
+    class 135436 "Cpu0ExePlt"
       visibility package stereotype "struct"
       cpp_decl "${comment}${template}struct ${name}${inherit} {
 ${members}};
@@ -1206,7 +1330,7 @@ ${inlines}
       idl_decl ""
       explicit_switch_type ""
       
-      class 134412 "dynsym"
+      class 135564 "dynsym"
 	visibility package stereotype "struct"
 	cpp_decl "${comment}${template}struct ${name}${inherit} {
 ${members}};
@@ -1218,7 +1342,7 @@ ${inlines}
 	idl_decl ""
 	explicit_switch_type ""
 	
-	attribute 140428 "stridx"
+	attribute 146316 "stridx"
 	  public explicit_type "uint32_t"
 	  cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -1229,16 +1353,16 @@ ${inlines}
 	end
       end
 
-      classrelation 133900 // Dynsym (<directional composition>)
-	relation 133900 *-->
+      classrelation 134284 // Dynsym (<directional composition>)
+	relation 134284 *-->
 	  a role_name "Dynsym" multiplicity "[100]" public
 	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${multiplicity}${value};
 "
-	    classrelation_ref 133900 // Dynsym (<directional composition>)
-	  b parent class_ref 134412 // dynsym
+	    classrelation_ref 134284 // Dynsym (<directional composition>)
+	  b parent class_ref 135564 // dynsym
       end
 
-      attribute 140556 "DynsymSize"
+      attribute 146444 "DynsymSize"
 	public explicit_type "int"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -1248,7 +1372,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 140684 "Dynstr"
+      attribute 146572 "Dynstr"
 	public explicit_type "uint8_t"
 	multiplicity "[1000]"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${multiplicity}${value};
@@ -1259,7 +1383,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 140812 "DynstrSize"
+      attribute 146700 "DynstrSize"
 	public explicit_type "int"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -1269,7 +1393,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      operation 165132 "create"
+      operation 171148 "create"
 	cpp_inline public explicit_return_type "int"
 	nparams 2
 	  param in name "context" explicit_type "Cpu0LinkingContext"
@@ -1309,6 +1433,102 @@ ${inlines}
 	
       end
     end
+
+    classdiagram 134668 "GOTPLTPass"
+      draw_all_relations no hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+      size A4
+    end
+
+    class 142092 "Cpu0BootAtomContent"
+      visibility package 
+      cpp_decl "${comment}${template}class ${name}${inherit} {
+${members}};
+${inlines}
+"
+      java_decl ""
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+    end
+
+    class 142220 "Cpu0GotAtomContent"
+      visibility package 
+      cpp_decl "${comment}${template}class ${name}${inherit} {
+${members}};
+${inlines}
+"
+      java_decl ""
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+    end
+
+    class 142348 "Cpu0Plt0AtomContent"
+      visibility package 
+      cpp_decl "${comment}${template}class ${name}${inherit} {
+${members}};
+${inlines}
+"
+      java_decl ""
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+    end
+
+    class 142476 "Cpu0PltAtomContent"
+      visibility package 
+      cpp_decl "${comment}${template}class ${name}${inherit} {
+${members}};
+${inlines}
+"
+      java_decl ""
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+    end
+
+    class 142604 "SimpleFile"
+      visibility package 
+      cpp_decl "${comment}${template}class ${name}${inherit} {
+${members}};
+${inlines}
+"
+      java_decl ""
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      classrelation 149900 // <realization>
+	relation 149516 -_-|>
+	  a public
+	    cpp default "${type}"
+	    classrelation_ref 149900 // <realization>
+	  b parent class_ref 142732 // MutableFile
+      end
+    end
+
+    class 142732 "MutableFile"
+      visibility package 
+      cpp_decl "${comment}${template}class ${name}${inherit} {
+${members}};
+${inlines}
+"
+      java_decl ""
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+    end
   end
 
   deploymentview 128268 "Cpu0"
@@ -1338,7 +1558,7 @@ ${namespace_end}"
       end
     end
 
-    artifact 129292 "Cpu0BootAtom"
+    artifact 129676 "Cpu0BootAtom"
       stereotype "source"
       cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
 #define ${NAMESPACE}_${NAME}_H
@@ -1357,11 +1577,11 @@ ${namespace_start}
 ${members}
 ${namespace_end}"
       associated_classes
-	class_ref 132748 // Cpu0BootAtom
+	class_ref 133900 // Cpu0BootAtom
       end
     end
 
-    artifact 129420 "Cpu0GOTAtom"
+    artifact 129804 "Cpu0GOTAtom"
       stereotype "source"
       cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
 #define ${NAMESPACE}_${NAME}_H
@@ -1380,11 +1600,11 @@ ${namespace_start}
 ${members}
 ${namespace_end}"
       associated_classes
-	class_ref 132876 // Cpu0GOTAtom
+	class_ref 134028 // Cpu0GOTAtom
       end
     end
 
-    artifact 129548 "Cpu0PLT0Atom"
+    artifact 129932 "Cpu0PLT0Atom"
       stereotype "source"
       cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
 #define ${NAMESPACE}_${NAME}_H
@@ -1403,11 +1623,11 @@ ${namespace_start}
 ${members}
 ${namespace_end}"
       associated_classes
-	class_ref 133004 // Cpu0PLT0Atom
+	class_ref 134156 // Cpu0PLT0Atom
       end
     end
 
-    artifact 129676 "Cpu0PLTAtom"
+    artifact 130060 "Cpu0PLTAtom"
       stereotype "source"
       cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
 #define ${NAMESPACE}_${NAME}_H
@@ -1426,11 +1646,11 @@ ${namespace_start}
 ${members}
 ${namespace_end}"
       associated_classes
-	class_ref 133132 // Cpu0PLTAtom
+	class_ref 134284 // Cpu0PLTAtom
       end
     end
 
-    artifact 129804 "typedef10"
+    artifact 130188 "typedef10"
       stereotype "source"
       cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
 #define ${NAMESPACE}_${NAME}_H
@@ -1449,11 +1669,11 @@ ${namespace_start}
 ${members}
 ${namespace_end}"
       associated_classes
-	class_ref 133388 // typedef10
+	class_ref 134540 // typedef10
       end
     end
 
-    artifact 129932 "ELFPassFile"
+    artifact 130316 "ELFPassFile"
       stereotype "source"
       cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
 #define ${NAMESPACE}_${NAME}_H
@@ -1472,11 +1692,11 @@ ${namespace_start}
 ${members}
 ${namespace_end}"
       associated_classes
-	class_ref 133260 // ELFPassFile
+	class_ref 134412 // ELFPassFile
       end
     end
 
-    artifact 130060 "typedef11"
+    artifact 130444 "typedef11"
       stereotype "source"
       cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
 #define ${NAMESPACE}_${NAME}_H
@@ -1495,11 +1715,11 @@ ${namespace_start}
 ${members}
 ${namespace_end}"
       associated_classes
-	class_ref 133644 // typedef11
+	class_ref 134796 // typedef11
       end
     end
 
-    artifact 130188 "GOTPLTPass"
+    artifact 130572 "GOTPLTPass"
       stereotype "source"
       cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
 #define ${NAMESPACE}_${NAME}_H
@@ -1518,11 +1738,11 @@ ${namespace_start}
 ${members}
 ${namespace_end}"
       associated_classes
-	class_ref 133516 // GOTPLTPass
+	class_ref 134668 // GOTPLTPass
       end
     end
 
-    artifact 130316 "StaticGOTPLTPass"
+    artifact 130700 "StaticGOTPLTPass"
       stereotype "source"
       cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
 #define ${NAMESPACE}_${NAME}_H
@@ -1541,11 +1761,11 @@ ${namespace_start}
 ${members}
 ${namespace_end}"
       associated_classes
-	class_ref 133772 // StaticGOTPLTPass
+	class_ref 134924 // StaticGOTPLTPass
       end
     end
 
-    artifact 130444 "DynamicGOTPLTPass"
+    artifact 130828 "DynamicGOTPLTPass"
       stereotype "source"
       cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
 #define ${NAMESPACE}_${NAME}_H
@@ -1564,11 +1784,11 @@ ${namespace_start}
 ${members}
 ${namespace_end}"
       associated_classes
-	class_ref 133900 // DynamicGOTPLTPass
+	class_ref 135052 // DynamicGOTPLTPass
       end
     end
 
-    artifact 130572 "Cpu0SoPlt"
+    artifact 130956 "Cpu0SoPlt"
       stereotype "source"
       cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
 #define ${NAMESPACE}_${NAME}_H
@@ -1587,11 +1807,11 @@ ${namespace_start}
 ${members}
 ${namespace_end}"
       associated_classes
-	class_ref 134028 // Cpu0SoPlt
+	class_ref 135180 // Cpu0SoPlt
       end
     end
 
-    artifact 130700 "Cpu0ExePlt"
+    artifact 131084 "Cpu0ExePlt"
       stereotype "source"
       cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
 #define ${NAMESPACE}_${NAME}_H
@@ -1610,7 +1830,7 @@ ${namespace_start}
 ${members}
 ${namespace_end}"
       associated_classes
-	class_ref 134284 // Cpu0ExePlt
+	class_ref 135436 // Cpu0ExePlt
       end
     end
   end

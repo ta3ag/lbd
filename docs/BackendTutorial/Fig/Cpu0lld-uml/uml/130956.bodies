@@ -1,8 +1,8 @@
 class ELFLinkingContext
-!!!152716.cpp!!!	isLittleEndian() : bool
+!!!157580.cpp!!!	isLittleEndian() : bool
   // TODO: Do this properly. It is not defined purely by arch.
   return true;
-!!!153228.cpp!!!	getOutputMachine() : uint16_t
+!!!158092.cpp!!!	getOutputMachine() : uint16_t
   switch (getTriple().getArch()) {
   case llvm::Triple::x86:
     return llvm::ELF::EM_386;
@@ -17,7 +17,7 @@ class ELFLinkingContext
   default:
     llvm_unreachable("Unhandled arch");
   }
-!!!153868.cpp!!!	validateImpl(inout diagnostics : raw_ostream) : bool
+!!!158732.cpp!!!	validateImpl(inout diagnostics : raw_ostream) : bool
   if (_outputFileType == elf::ET_EXEC && _entrySymbolName.empty()) {
     _entrySymbolName = "_start";
   }
@@ -31,7 +31,7 @@ class ELFLinkingContext
   _linkerScriptReader.reset(new ReaderLinkerScript(*this));
   _writer = _outputYAML ? createWriterYAML(*this) : createWriterELF(*this);
   return false;
-!!!154252.cpp!!!	create(in triple : llvm::Triple) : std::unique_ptr<ELFLinkingContext>
+!!!159116.cpp!!!	create(in triple : llvm::Triple) : std::unique_ptr<ELFLinkingContext>
   switch (triple.getArch()) {
   case llvm::Triple::x86:
     return std::unique_ptr<ELFLinkingContext>(
@@ -51,7 +51,7 @@ class ELFLinkingContext
   default:
     return nullptr;
   }
-!!!154764.cpp!!!	isDynamic() : bool
+!!!159628.cpp!!!	isDynamic() : bool
   switch (_outputFileType) {
   case llvm::ELF::ET_EXEC:
     return !_isStaticExecutable;
@@ -59,10 +59,10 @@ class ELFLinkingContext
     return true;
   }
   return false;
-!!!154892.cpp!!!	isRelativeReloc(in r : Reference) : bool
+!!!159756.cpp!!!	isRelativeReloc(in r : Reference) : bool
   return false;
-!!!155148.cpp!!!	addPasses(inout pm : PassManager) : void
+!!!160012.cpp!!!	addPasses(inout pm : PassManager) : void
   if (_runLayoutPass)
     pm.add(std::unique_ptr<Pass>(new LayoutPass()));
-!!!158348.cpp!!!	writer() : Writer
+!!!163212.cpp!!!	writer() : Writer
  return *_writer;

@@ -1,6 +1,6 @@
 format 74
 "Cpu0" // Cpu0
-  revision 1
+  revision 4
   modified_by 12 "cschen"
   // class settings
   //class diagram settings
@@ -26,8 +26,8 @@ format 74
   package_name_in_tab default show_context default show_opaque_action_definition default auto_label_position default write_flow_label_horizontally default draw_all_relations default shadow default
   show_infonote default drawing_language default show_stereotype_properties default
   
-  cpp_h_dir "/home/cschen/test/uml/r2/ELF/Cpu0/"
-  cpp_src_dir "/home/cschen/test/uml/r2/ELF/Cpu0/"
+  cpp_h_dir "/home/cschen/test/tmp/Cpu0lld-uml/Cpu0lld-src/ELF/Cpu0/"
+  cpp_src_dir "/home/cschen/test/tmp/Cpu0lld-uml/Cpu0lld-src/ELF/Cpu0/"
   cpp_namespace "lld::elf"
   classview 128140 "Cpu0"
     //class diagram settings
@@ -1277,7 +1277,7 @@ ${inlines}
       comment "/ \\brief The target registers a set of handlers for overriding target specific
 / attributes for a DefinedAtom. The Reader uses this class to query for the
 / type of atom and its permissions"
-      operation 158604 "contentType"
+      operation 164492 "contentType"
 	const cpp_virtual cpp_inline public explicit_return_type "DefinedAtom::ContentType"
 	nparams 1
 	  param in name "atom" explicit_type "ELFDefinedAtom<ELFT>"
@@ -1291,7 +1291,7 @@ ${inlines}
 	
       end
 
-      operation 158732 "contentType"
+      operation 164620 "contentType"
 	const cpp_virtual cpp_inline public explicit_return_type "DefinedAtom::ContentType"
 	nparams 2
 	  param in name "shdr" explicit_type "Elf_Shdr"
@@ -1306,7 +1306,7 @@ ${inlines}
 	
       end
 
-      operation 158860 "contentPermissions"
+      operation 164748 "contentPermissions"
 	const cpp_virtual cpp_inline public explicit_return_type "DefinedAtom::ContentPermissions"
 	nparams 1
 	  param in name "atom" explicit_type "ELFDefinedAtom<ELFT>"
@@ -1320,7 +1320,7 @@ ${inlines}
 	
       end
 
-      operation 158988 "getType"
+      operation 164876 "getType"
 	const cpp_virtual cpp_inline public explicit_return_type "int64_t"
 	nparams 1
 	  param in name "sym" explicit_type "Elf_Sym"
@@ -1334,7 +1334,7 @@ ${inlines}
 	
       end
 
-      operation 159116 "~TargetAtomHandler"
+      operation 165004 "~TargetAtomHandler"
 	cpp_virtual cpp_inline public explicit_return_type ""
 	nparams 0
 	cpp_decl "    ${comment}${inline}${virtual}${name}${(}${)}${volatile}${throw} {};
@@ -2656,6 +2656,10 @@ ${inlines}
 	
 	
       end
+
+      classrelation 148364 // <association>
+	relation_ref 147980 // <association>
+      end
     end
 
     class 130316 "GLOBAL_OFFSET_TABLEAtom"
@@ -3729,7 +3733,7 @@ ${inlines}
       idl_decl ""
       explicit_switch_type ""
       
-      operation 159244 "applyRelocation"
+      operation 165132 "applyRelocation"
 	abstract const cpp_virtual public explicit_return_type "ErrorOr<void>"
 	nparams 4
 	  param inout name "" explicit_type "ELFWriter"
@@ -3744,7 +3748,7 @@ ${inlines}
 	
       end
 
-      operation 159372 "relocAddend"
+      operation 165260 "relocAddend"
 	const cpp_virtual cpp_inline public explicit_return_type "int64_t"
 	nparams 1
 	  param in name "" explicit_type "Reference"
@@ -3756,7 +3760,7 @@ ${inlines}
 	
       end
 
-      operation 159500 "~TargetRelocationHandler"
+      operation 165388 "~TargetRelocationHandler"
 	cpp_virtual cpp_inline public explicit_return_type ""
 	nparams 0
 	cpp_decl "    ${comment}${inline}${virtual}${name}${(}${)}${volatile}${throw} {};
@@ -3848,7 +3852,7 @@ ${inlines}
 	
       end
 
-      class 131852 "GOTFile"
+      class 131980 "GOTFile"
 	visibility package 
 	cpp_decl "${comment}${template}class ${name}${inherit} {
 ${members}};
@@ -3865,7 +3869,7 @@ ${inlines}
 	    a public
 	      cpp default "${type}"
 	      classrelation_ref 130444 // <generalisation>
-	    b parent class_ref 131980 // typedef7
+	    b parent class_ref 132108 // typedef7
 	end
 
 	operation 151180 "GOTFile"
@@ -3891,7 +3895,7 @@ ${inlines}
 	end
       end
 
-      class 131980 "typedef7"
+      class 132108 "typedef7"
 	visibility package stereotype "typedef" explicit_base_type "SimpleFile"
 	cpp_decl "${comment}typedef ${type} ${name};
 "
@@ -3922,6 +3926,30 @@ ${inlines}
 	python_decl ""
 	idl_decl ""
       end
+
+      classrelation 147468 // <composition>
+	relation 147468 *---
+	  a role_name "" private
+	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
+"
+	    classrelation_ref 147468 // <composition>
+	  b role_name "" private
+	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
+"
+	    classrelation_ref 147596 // <composition>
+      end
+
+      classrelation 147980 // <composition>
+	relation 147852 *---
+	  a role_name "" private
+	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
+"
+	    classrelation_ref 147980 // <composition>
+	  b role_name "" private
+	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
+"
+	    classrelation_ref 148108 // <composition>
+      end
     end
 
     class 131724 "DefaultTargetHandler"
@@ -3930,7 +3958,7 @@ ${inlines}
       formal name "ELFT" type "class" explicit_default_value ""
         explicit_extends ""
       nactuals 1
-      actual class class_ref 132108 // TargetHandler
+      actual class class_ref 133260 // TargetHandler
         rank 0 explicit_value "ELFT"
       cpp_decl "${comment}${template}class ${name}${inherit} {
 ${members}};
@@ -3942,16 +3970,16 @@ ${inlines}
       idl_decl ""
       explicit_switch_type ""
       
-      classrelation 130700 // <realization>
-	relation 130700 -_-|>
+      classrelation 130956 // <realization>
+	relation 130956 -_-|>
 	  stereotype "bind"
 	  a public
 	    cpp default "${type}"
-	    classrelation_ref 130700 // <realization>
-	  b parent class_ref 132108 // TargetHandler
+	    classrelation_ref 130956 // <realization>
+	  b parent class_ref 133260 // TargetHandler
       end
 
-      operation 151308 "DefaultTargetHandler"
+      operation 156172 "DefaultTargetHandler"
 	cpp_inline public explicit_return_type ""
 	nparams 1
 	  param inout name "context" type class_ref 130956 // ELFLinkingContext
@@ -3963,7 +3991,7 @@ ${inlines}
 	
       end
 
-      operation 151436 "doesOverrideHeader"
+      operation 156300 "doesOverrideHeader"
 	cpp_inline public explicit_return_type "bool"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} { return false; };
@@ -3974,7 +4002,7 @@ ${inlines}
 	
       end
 
-      operation 151564 "setHeaderInfo"
+      operation 156428 "setHeaderInfo"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param inout name "Header" explicit_type "Header<ELFT>"
@@ -3988,7 +4016,7 @@ ${inlines}
 	
       end
 
-      operation 151692 "targetAtomHandler"
+      operation 156556 "targetAtomHandler"
 	cpp_inline public explicit_return_type "TargetAtomHandler<ELFT>"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} & ${name}${(}${)}${const}${volatile}${throw}${abstract} {
@@ -4002,7 +4030,7 @@ ${inlines}
 	comment "/ TargetAtomHandler"
       end
 
-      operation 151820 "getRelocationHandler"
+      operation 156684 "getRelocationHandler"
 	const cpp_inline public explicit_return_type "TargetRelocationHandler<ELFT>"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}const ${type} & ${name}${(}${)}${const}${volatile}${throw}${abstract} {
@@ -4015,7 +4043,7 @@ ${inlines}
 	
       end
 
-      operation 151948 "createDefaultSections"
+      operation 156812 "createDefaultSections"
 	cpp_inline public explicit_return_type "void"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} {};
@@ -4027,7 +4055,7 @@ ${inlines}
 	comment "/ Create a set of Default target sections that a target might needj"
       end
 
-      operation 152076 "addSection"
+      operation 156940 "addSection"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param inout name "section" explicit_type "Section<ELFT>"
@@ -4040,7 +4068,7 @@ ${inlines}
 	comment "/ \\brief Add a section to the current Layout"
       end
 
-      operation 152204 "addFiles"
+      operation 157068 "addFiles"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param inout name "" explicit_type "InputFiles"
@@ -4053,7 +4081,7 @@ ${inlines}
 	comment "/ \\brief add new symbol file"
       end
 
-      operation 152332 "finalizeSymbolValues"
+      operation 157196 "finalizeSymbolValues"
 	cpp_inline public explicit_return_type "void"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} {};
@@ -4065,7 +4093,7 @@ ${inlines}
 	comment "/ \\brief Finalize the symbol values"
       end
 
-      operation 152460 "allocateCommons"
+      operation 157324 "allocateCommons"
 	cpp_inline public explicit_return_type "void"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} {};
@@ -4079,7 +4107,205 @@ ${inlines}
       end
     end
 
-    class 132108 "TargetHandler"
+    class 131852 "TargetLayout"
+      visibility package 
+      nformals 1
+      formal name "ELFT" type "class" explicit_default_value ""
+        explicit_extends ""
+      nactuals 1
+      actual class class_ref 132236 // DefaultLayout
+        rank 0 explicit_value ""
+      cpp_decl "${comment}${template}class ${name}${inherit} {
+${members}};
+${inlines}
+"
+      java_decl ""
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      comment "/ \\brief The target can override certain functions in the DefaultLayout
+/ class so that the order, the name of the section and the segment type could
+/ be changed in the final layout"
+      operation 166924 "TargetLayout"
+	cpp_inline public explicit_return_type ""
+	nparams 1
+	  param in name "context" type class_ref 130956 // ELFLinkingContext
+	cpp_decl "    ${comment}${inline}${name}${(}const ${t0} & ${p0}${v0}${)}${volatile}${throw} : DefaultLayout<ELFT>(context) {};
+"
+	
+	
+	
+	
+      end
+
+      classrelation 147852 // <realization>
+	relation 147724 -_-|>
+	  a public
+	    cpp default "${type}"
+	    classrelation_ref 147852 // <realization>
+	  b parent class_ref 132236 // DefaultLayout
+      end
+
+      classrelation 148108 // <composition>
+	relation_ref 147852 // <composition>
+      end
+    end
+
+    class 132236 "DefaultLayout"
+      visibility package 
+      nformals 1
+      formal name "ELFT" type "class" explicit_default_value ""
+        explicit_extends ""
+      cpp_decl "${comment}${template}class ${name}${inherit} {
+${members}};
+${inlines}
+"
+      java_decl ""
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      comment "/ \\brief The DefaultLayout class is used by the Writer to arrange
+/        sections and segments in the order determined by the target ELF
+/        format. The writer creates a single instance of the DefaultLayout
+/        class"
+      classrelation 147724 // <realization>
+	relation 147596 -_-|>
+	  a public
+	    cpp default "${type}"
+	    classrelation_ref 147724 // <realization>
+	  b parent class_ref 132364 // Layout
+      end
+    end
+
+    class 132364 "Layout"
+      abstract visibility package 
+      cpp_decl "${comment}${template}class ${name}${inherit} {
+${members}};
+${inlines}
+"
+      java_decl ""
+      php_decl ""
+      python_2_2 python_decl ""
+      idl_decl ""
+      explicit_switch_type ""
+      
+      comment "/ \\brief The ELFLayout is an abstract class for managing the final layout for
+/        the kind of binaries(Shared Libraries / Relocatables / Executables 0
+/        Each architecture (Hexagon, PowerPC, MIPS) would have a concrete
+/        subclass derived from Layout for generating each binary thats
+         needed by the lld linker"
+      operation 163468 "getSectionOrder"
+	abstract cpp_virtual public explicit_return_type "SectionOrder"
+	nparams 3
+	  param in name "name" explicit_type "StringRef"
+	  param in name "contentType" explicit_type "int32_t"
+	  param in name "contentPerm" explicit_type "int32_t"
+	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${t0} ${p0}${v0}, ${t1} ${p1}${v1}, ${t2} ${p2}${v2}${)}${const}${volatile}${throw}${abstract};
+"
+	
+	
+	
+	
+	comment "/ Return the order the section would appear in the output file"
+      end
+
+      operation 163596 "addAtom"
+	abstract cpp_virtual public explicit_return_type "ErrorOr<const lld::AtomLayout &>"
+	nparams 1
+	  param in name "atom" explicit_type "Atom"
+	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}const ${t0} * ${p0}${v0}${)}${const}${volatile}${throw}${abstract};
+"
+	
+	
+	
+	
+	comment "/ \\brief Append the Atom to the layout and create appropriate sections.
+/ \\returns A reference to the atom layout or an error. The atom layout will
+/ be updated as linking progresses."
+      end
+
+      operation 163724 "findAtomAddrByName"
+	abstract cpp_virtual public explicit_return_type "bool"
+	nparams 2
+	  param in name "name" explicit_type "StringRef"
+	  param inout name "addr" explicit_type "uint64_t"
+	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${t0} ${p0}${v0}, ${t1} & ${p1}${v1}${)}${const}${volatile}${throw}${abstract};
+"
+	
+	
+	
+	
+	comment "/ find the Atom Address in the current layout"
+      end
+
+      operation 163852 "assignSectionsToSegments"
+	abstract cpp_virtual public explicit_return_type "void"
+	nparams 0
+	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract};
+"
+	
+	
+	
+	
+	comment "/ associates a section to a segment"
+      end
+
+      operation 163980 "assignVirtualAddress"
+	abstract cpp_virtual public explicit_return_type "void"
+	nparams 0
+	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract};
+"
+	
+	
+	
+	
+	comment "/ associates a virtual address to the segment, section, and the atom"
+      end
+
+      operation 164108 "assignFileOffsets"
+	abstract cpp_virtual public explicit_return_type "void"
+	nparams 0
+	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract};
+"
+	
+	
+	
+	
+	comment "/ associates a file offset to the segment, section and the atom"
+      end
+
+      operation 164236 "Layout"
+	cpp_inline public explicit_return_type ""
+	nparams 0
+	cpp_decl "    ${comment}${inline}${name}${(}${)}${volatile}${throw} {};
+"
+	
+	
+	
+	
+      end
+
+      operation 164364 "~Layout"
+	cpp_virtual cpp_inline public explicit_return_type ""
+	nparams 0
+	cpp_decl "    ${comment}${inline}${virtual}${name}${(}${)}${volatile}${throw} { };
+"
+	
+	
+	
+	
+      end
+
+      classrelation 147596 // <composition>
+	relation_ref 147468 // <composition>
+      end
+    end
+
+    class 133260 "TargetHandler"
       abstract visibility package 
       nformals 1
       formal name "ELFT" type "class" explicit_default_value ""
@@ -4096,15 +4322,15 @@ ${inlines}
       
       comment "/ \\brief An interface to override functions that are provided by the
 / the default ELF Layout"
-      classrelation 131340 // <generalisation>
-	relation 131340 ---|>
+      classrelation 131596 // <generalisation>
+	relation 131596 ---|>
 	  a public
 	    cpp default "${type}"
-	    classrelation_ref 131340 // <generalisation>
-	  b parent class_ref 132236 // TargetHandlerBase
+	    classrelation_ref 131596 // <generalisation>
+	  b parent class_ref 133388 // TargetHandlerBase
       end
 
-      operation 159628 "TargetHandler"
+      operation 165516 "TargetHandler"
 	cpp_inline public explicit_return_type ""
 	nparams 1
 	  param inout name "targetInfo" type class_ref 130956 // ELFLinkingContext
@@ -4116,7 +4342,7 @@ ${inlines}
 	
       end
 
-      operation 159756 "doesOverrideHeader"
+      operation 165644 "doesOverrideHeader"
 	abstract cpp_virtual public explicit_return_type "bool"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract};
@@ -4130,7 +4356,7 @@ ${inlines}
 / that target"
       end
 
-      operation 159884 "setHeaderInfo"
+      operation 165772 "setHeaderInfo"
 	abstract cpp_virtual public explicit_return_type "void"
 	nparams 1
 	  param inout name "Header" explicit_type "Header<ELFT>"
@@ -4143,7 +4369,7 @@ ${inlines}
 	comment "/ Set the ELF Header information"
       end
 
-      operation 160012 "targetLayout"
+      operation 165900 "targetLayout"
 	abstract cpp_virtual public explicit_return_type "TargetLayout<ELFT>"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} & ${name}${(}${)}${const}${volatile}${throw}${abstract};
@@ -4155,7 +4381,7 @@ ${inlines}
 	comment "/ TargetLayout"
       end
 
-      operation 160140 "targetAtomHandler"
+      operation 166028 "targetAtomHandler"
 	abstract cpp_virtual public explicit_return_type "TargetAtomHandler<ELFT>"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} & ${name}${(}${)}${const}${volatile}${throw}${abstract};
@@ -4167,7 +4393,7 @@ ${inlines}
 	comment "/ TargetAtomHandler"
       end
 
-      operation 160268 "getRelocationHandler"
+      operation 166156 "getRelocationHandler"
 	abstract const cpp_virtual public explicit_return_type "TargetRelocationHandler<ELFT>"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}const ${type} & ${name}${(}${)}${const}${volatile}${throw}${abstract};
@@ -4178,7 +4404,7 @@ ${inlines}
 	
       end
 
-      operation 160396 "createDefaultSections"
+      operation 166284 "createDefaultSections"
 	abstract cpp_virtual public explicit_return_type "void"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract};
@@ -4190,7 +4416,7 @@ ${inlines}
 	comment "/ Create a set of Default target sections that a target might needj"
       end
 
-      operation 160524 "addSection"
+      operation 166412 "addSection"
 	abstract cpp_virtual public explicit_return_type "void"
 	nparams 1
 	  param inout name "section" explicit_type "Section<ELFT>"
@@ -4203,7 +4429,7 @@ ${inlines}
 	comment "/ \\brief Add a section to the current Layout"
       end
 
-      operation 160652 "addFiles"
+      operation 166540 "addFiles"
 	abstract cpp_virtual public explicit_return_type "void"
 	nparams 1
 	  param inout name "" explicit_type "InputFiles"
@@ -4216,7 +4442,7 @@ ${inlines}
 	comment "/ \\brief add new symbol file"
       end
 
-      operation 160780 "finalizeSymbolValues"
+      operation 166668 "finalizeSymbolValues"
 	abstract cpp_virtual public explicit_return_type "void"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract};
@@ -4228,7 +4454,7 @@ ${inlines}
 	comment "/ \\brief Finalize the symbol values"
       end
 
-      operation 160908 "allocateCommons"
+      operation 166796 "allocateCommons"
 	abstract cpp_virtual public explicit_return_type "void"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract};
@@ -4241,12 +4467,12 @@ ${inlines}
 / symbols over to small data, this would also be used"
       end
 
-      classrelation 131468 // _context (<unidirectional association>)
-	relation 131468 --->
+      classrelation 131724 // _context (<unidirectional association>)
+	relation 131724 --->
 	  a role_name "_context" const_relation protected
 	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} & ${name}${value};
 "
-	    classrelation_ref 131468 // _context (<unidirectional association>)
+	    classrelation_ref 131724 // _context (<unidirectional association>)
 	  b parent class_ref 130956 // ELFLinkingContext
       end
     end
@@ -4256,7 +4482,7 @@ ${inlines}
       size A4
     end
 
-    classdiagram 128268 "Cpu0TargetHandler"
+    classdiagram 141196 "Cpu0lld-relation"
       draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
       size A4
     end
@@ -4398,7 +4624,29 @@ ${namespace_end}"
       end
     end
 
-    artifact 128908 "DefaultTargetHandler"
+    artifact 128908 "DefaultLayout"
+      stereotype "source"
+      cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
+#define ${NAMESPACE}_${NAME}_H
+
+${comment}
+${includes}
+${declarations}
+${namespace_start}
+${definition}
+${namespace_end}
+#endif
+"
+      cpp_src "${comment}
+${includes}
+${namespace_start}
+${members}
+${namespace_end}"
+      associated_classes
+      end
+    end
+
+    artifact 129036 "DefaultTargetHandler"
       stereotype "source"
       cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
 #define ${NAMESPACE}_${NAME}_H
@@ -4421,7 +4669,30 @@ ${namespace_end}"
       end
     end
 
-    artifact 129164 "TargetHandler"
+    artifact 129292 "Layout"
+      stereotype "source"
+      cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
+#define ${NAMESPACE}_${NAME}_H
+
+${comment}
+${includes}
+${declarations}
+${namespace_start}
+${definition}
+${namespace_end}
+#endif
+"
+      cpp_src "${comment}
+${includes}
+${namespace_start}
+${members}
+${namespace_end}"
+      associated_classes
+	class_ref 132364 // Layout
+      end
+    end
+
+    artifact 129420 "TargetHandler"
       stereotype "source"
       cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
 #define ${NAMESPACE}_${NAME}_H
@@ -4442,7 +4713,30 @@ ${namespace_end}"
       associated_classes
 	class_ref 129164 // TargetAtomHandler
 	class_ref 131468 // TargetRelocationHandler
-	class_ref 132108 // TargetHandler
+	class_ref 133260 // TargetHandler
+      end
+    end
+
+    artifact 129548 "TargetLayout"
+      stereotype "source"
+      cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
+#define ${NAMESPACE}_${NAME}_H
+
+${comment}
+${includes}
+${declarations}
+${namespace_start}
+${definition}
+${namespace_end}
+#endif
+"
+      cpp_src "${comment}
+${includes}
+${namespace_start}
+${members}
+${namespace_end}"
+      associated_classes
+	class_ref 131852 // TargetLayout
       end
     end
   end

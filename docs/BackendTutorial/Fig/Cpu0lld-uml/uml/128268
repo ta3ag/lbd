@@ -26,8 +26,8 @@ format 74
   package_name_in_tab default show_context default show_opaque_action_definition default auto_label_position default write_flow_label_horizontally default draw_all_relations default shadow default
   show_infonote default drawing_language default show_stereotype_properties default
   
-  cpp_h_dir "/home/cschen/test/uml/r2/ELF/Cpu0/"
-  cpp_src_dir "/home/cschen/test/uml/r2/ELF/Cpu0/"
+  cpp_h_dir "/home/cschen/test/tmp/Cpu0lld-uml/Cpu0lld-src/ELF/Cpu0/"
+  cpp_src_dir "/home/cschen/test/tmp/Cpu0lld-uml/Cpu0lld-src/ELF/Cpu0/"
   cpp_namespace "lld"
   classview 128268 "Cpu0"
     //class diagram settings
@@ -57,15 +57,15 @@ ${inlines}
       idl_decl ""
       explicit_switch_type ""
       
-      classrelation 130828 // <generalisation>
-	relation 130828 ---|>
+      classrelation 131084 // <generalisation>
+	relation 131084 ---|>
 	  a public
 	    cpp default "${type}"
-	    classrelation_ref 130828 // <generalisation>
-	  b parent class_ref 132364 // typedef8
+	    classrelation_ref 131084 // <generalisation>
+	  b parent class_ref 133516 // typedef8
       end
 
-      class 132492 "OutputMagic"
+      class 133644 "OutputMagic"
 	visibility package 
 	cpp_decl "${comment}${template}class ${name}${inherit} {
 ${members}};
@@ -77,16 +77,16 @@ ${inlines}
 	idl_decl ""
 	explicit_switch_type ""
 	
-	classrelation 130956 // <generalisation>
-	  relation 130956 ---|>
+	classrelation 131212 // <generalisation>
+	  relation 131212 ---|>
 	    a private
 	      cpp default "${type}"
-	      classrelation_ref 130956 // <generalisation>
-	    b parent class_ref 132620 // typedef9
+	      classrelation_ref 131212 // <generalisation>
+	    b parent class_ref 133772 // typedef9
 	end
       end
 
-      class 132620 "typedef9"
+      class 133772 "typedef9"
 	visibility package stereotype "typedef" explicit_base_type "uint8_t"
 	cpp_decl "${comment}typedef ${type} ${name};
 "
@@ -98,7 +98,7 @@ ${inlines}
 	
       end
 
-      operation 152716 "isLittleEndian"
+      operation 157580 "isLittleEndian"
 	preserve_cpp_body_indent const cpp_virtual public explicit_return_type "bool"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract};
@@ -112,7 +112,7 @@ ${inlines}
 	
       end
 
-      operation 152844 "getPageSize"
+      operation 157708 "getPageSize"
 	const cpp_virtual cpp_inline public explicit_return_type "uint64_t"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} { return 0x1000; };
@@ -123,8 +123,8 @@ ${inlines}
 	
       end
 
-      operation 152972 "getOutputMagic"
-	const cpp_inline public return_type class_ref 132492 // OutputMagic
+      operation 157836 "getOutputMagic"
+	const cpp_inline public return_type class_ref 133644 // OutputMagic
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} { return _outputMagic; };
 "
@@ -134,7 +134,7 @@ ${inlines}
 	
       end
 
-      operation 153100 "getOutputELFType"
+      operation 157964 "getOutputELFType"
 	const cpp_inline public explicit_return_type "uint16_t"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} { return _outputELFType; };
@@ -145,7 +145,7 @@ ${inlines}
 	
       end
 
-      operation 153228 "getOutputMachine"
+      operation 158092 "getOutputMachine"
 	preserve_cpp_body_indent const public explicit_return_type "uint16_t"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract};
@@ -159,7 +159,7 @@ ${inlines}
 	
       end
 
-      operation 153356 "mergeCommonStrings"
+      operation 158220 "mergeCommonStrings"
 	const cpp_inline public explicit_return_type "bool"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} { return _mergeCommonStrings; };
@@ -170,7 +170,7 @@ ${inlines}
 	
       end
 
-      operation 153484 "getBaseAddress"
+      operation 158348 "getBaseAddress"
 	const cpp_virtual cpp_inline public explicit_return_type "uint64_t"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} { return _baseAddress; };
@@ -181,7 +181,7 @@ ${inlines}
 	
       end
 
-      operation 153612 "useShlibUndefines"
+      operation 158476 "useShlibUndefines"
 	const cpp_inline public explicit_return_type "bool"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} { return _useShlibUndefines; };
@@ -196,7 +196,7 @@ ${inlines}
 / in the shared library"
       end
 
-      operation 153740 "isDynamicRelocation"
+      operation 158604 "isDynamicRelocation"
 	const cpp_virtual cpp_inline public explicit_return_type "bool"
 	nparams 2
 	  param in name "" explicit_type "DefinedAtom"
@@ -218,7 +218,7 @@ ${inlines}
 / table."
       end
 
-      operation 153868 "validateImpl"
+      operation 158732 "validateImpl"
 	preserve_cpp_body_indent cpp_virtual public explicit_return_type "bool"
 	nparams 1
 	  param inout name "diagnostics" explicit_type "raw_ostream"
@@ -233,7 +233,7 @@ ${inlines}
 	
       end
 
-      operation 153996 "allowLinkWithDynamicLibraries"
+      operation 158860 "allowLinkWithDynamicLibraries"
 	const cpp_virtual cpp_inline public explicit_return_type "bool"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} {
@@ -252,7 +252,7 @@ ${inlines}
 / having NMAGIC/OMAGIC"
       end
 
-      operation 154124 "parseFile"
+      operation 158988 "parseFile"
 	const cpp_virtual public explicit_return_type "error_code"
 	nparams 2
 	  param inout name "input" explicit_type "LinkerInput"
@@ -268,7 +268,7 @@ ${inlines}
 	
       end
 
-      operation 154252 "create"
+      operation 159116 "create"
 	class_operation preserve_cpp_body_indent public explicit_return_type "std::unique_ptr<ELFLinkingContext>"
 	nparams 1
 	  param in name "triple" explicit_type "llvm::Triple"
@@ -283,7 +283,7 @@ ${inlines}
 	
       end
 
-      operation 154380 "isPLTRelocation"
+      operation 159244 "isPLTRelocation"
 	const cpp_virtual cpp_inline public explicit_return_type "bool"
 	nparams 2
 	  param in name "" explicit_type "DefinedAtom"
@@ -305,7 +305,7 @@ ${inlines}
 / table."
       end
 
-      operation 154508 "getDefaultInterpreter"
+      operation 159372 "getDefaultInterpreter"
 	const cpp_virtual cpp_inline public explicit_return_type "StringRef"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} {
@@ -319,7 +319,7 @@ ${inlines}
 	comment "/ \\brief The path to the dynamic interpreter"
       end
 
-      operation 154636 "getInterpreter"
+      operation 159500 "getInterpreter"
 	const cpp_virtual cpp_inline public explicit_return_type "StringRef"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} {
@@ -335,7 +335,7 @@ ${inlines}
 	comment "/ \\brief The dynamic linker path set by the --dynamic-linker option"
       end
 
-      operation 154764 "isDynamic"
+      operation 159628 "isDynamic"
 	preserve_cpp_body_indent const cpp_virtual public explicit_return_type "bool"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract};
@@ -350,7 +350,7 @@ ${inlines}
 	comment "/ \\brief Does the output have dynamic sections."
       end
 
-      operation 154892 "isRelativeReloc"
+      operation 159756 "isRelativeReloc"
 	preserve_cpp_body_indent const cpp_virtual public explicit_return_type "bool"
 	nparams 1
 	  param in name "r" explicit_type "Reference"
@@ -366,7 +366,7 @@ ${inlines}
 	comment "/ \\brief Is the relocation a relative relocation"
       end
 
-      operation 155020 "getTargetHandler"
+      operation 159884 "getTargetHandler"
 	stereotype "template"
 	const cpp_inline public explicit_return_type "lld::elf::TargetHandler<ELFT>"
 	nparams 0
@@ -382,7 +382,7 @@ ${inlines}
 	
       end
 
-      operation 155148 "addPasses"
+      operation 160012 "addPasses"
 	preserve_cpp_body_indent const cpp_virtual public explicit_return_type "void"
 	nparams 1
 	  param inout name "pm" explicit_type "PassManager"
@@ -397,7 +397,7 @@ ${inlines}
 	
       end
 
-      operation 155276 "setTriple"
+      operation 160140 "setTriple"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param in name "trip" explicit_type "llvm::Triple"
@@ -409,7 +409,7 @@ ${inlines}
 	
       end
 
-      operation 155404 "setNoInhibitExec"
+      operation 160268 "setNoInhibitExec"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param in name "v" explicit_type "bool"
@@ -421,7 +421,7 @@ ${inlines}
 	
       end
 
-      operation 155532 "setIsStaticExecutable"
+      operation 160396 "setIsStaticExecutable"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param in name "v" explicit_type "bool"
@@ -433,7 +433,7 @@ ${inlines}
 	
       end
 
-      operation 155660 "setMergeCommonStrings"
+      operation 160524 "setMergeCommonStrings"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param in name "v" explicit_type "bool"
@@ -445,7 +445,7 @@ ${inlines}
 	
       end
 
-      operation 155788 "setUseShlibUndefines"
+      operation 160652 "setUseShlibUndefines"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param in name "use" explicit_type "bool"
@@ -457,7 +457,7 @@ ${inlines}
 	
       end
 
-      operation 155916 "setOutputELFType"
+      operation 160780 "setOutputELFType"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param in name "type" explicit_type "uint32_t"
@@ -469,7 +469,7 @@ ${inlines}
 	
       end
 
-      operation 156044 "setInterpreter"
+      operation 160908 "setInterpreter"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param in name "dynamicLinker" explicit_type "StringRef"
@@ -485,10 +485,10 @@ ${inlines}
 	comment "/ \\brief Set the dynamic linker path"
       end
 
-      operation 156172 "setOutputMagic"
+      operation 161036 "setOutputMagic"
 	cpp_virtual cpp_inline public explicit_return_type "void"
 	nparams 1
-	  param in name "magic" type class_ref 132492 // OutputMagic
+	  param in name "magic" type class_ref 133644 // OutputMagic
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${t0} ${p0}${v0}${)}${const}${volatile}${throw}${abstract} { _outputMagic = magic; };
 "
 	
@@ -501,7 +501,7 @@ ${inlines}
 / or -N in the command line"
       end
 
-      operation 156300 "setNoAllowDynamicLibraries"
+      operation 161164 "setNoAllowDynamicLibraries"
 	cpp_virtual cpp_inline public explicit_return_type "void"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} { _noAllowDynamicLibraries = true; };
@@ -513,7 +513,7 @@ ${inlines}
 	comment "/ \\brief Disallow dynamic libraries during linking"
       end
 
-      operation 156428 "searchLibrary"
+      operation 161292 "searchLibrary"
 	const public explicit_return_type "llvm::ErrorOr<StringRef>"
 	nparams 2
 	  param in name "libName" explicit_type "StringRef"
@@ -530,7 +530,7 @@ ${inlines}
 	comment "/ Searches directories for a match on the input File"
       end
 
-      operation 156556 "entrySymbolName"
+      operation 161420 "entrySymbolName"
 	const cpp_virtual public explicit_return_type "StringRef"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract};
@@ -545,7 +545,7 @@ ${inlines}
 	comment "/ Get the entry symbol name"
       end
 
-      operation 156684 "addInitFunction"
+      operation 161548 "addInitFunction"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param in name "name" explicit_type "StringRef"
@@ -558,7 +558,7 @@ ${inlines}
 	comment "/ add to the list of initializer functions"
       end
 
-      operation 156812 "addFiniFunction"
+      operation 161676 "addFiniFunction"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param in name "name" explicit_type "StringRef"
@@ -571,7 +571,7 @@ ${inlines}
 	comment "/ add to the list of finalizer functions"
       end
 
-      operation 156940 "initFunctions"
+      operation 161804 "initFunctions"
 	const cpp_inline public explicit_return_type "range<const StringRef *>"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} {
@@ -586,7 +586,7 @@ ${inlines}
 / linker command line, using the -init option."
       end
 
-      operation 157068 "finiFunctions"
+      operation 161932 "finiFunctions"
 	const cpp_inline public explicit_return_type "range<const StringRef *>"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} { return _finiFunctions; };
@@ -599,7 +599,7 @@ ${inlines}
 / linker command line, using the -fini option."
       end
 
-      operation 157196 "setSharedObjectName"
+      operation 162060 "setSharedObjectName"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param in name "soname" explicit_type "StringRef"
@@ -613,7 +613,7 @@ ${inlines}
 	
       end
 
-      operation 157324 "sharedObjectName"
+      operation 162188 "sharedObjectName"
 	const cpp_inline public explicit_return_type "StringRef"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} { return _soname; };
@@ -624,7 +624,7 @@ ${inlines}
 	
       end
 
-      operation 157452 "setSysroot"
+      operation 162316 "setSysroot"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param in name "path" explicit_type "StringRef"
@@ -639,7 +639,7 @@ ${inlines}
 	comment "/ \\brief Set path to the system root"
       end
 
-      operation 157580 "addRpath"
+      operation 162444 "addRpath"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param in name "path" explicit_type "StringRef"
@@ -653,7 +653,7 @@ ${inlines}
 	
       end
 
-      operation 157708 "getRpathList"
+      operation 162572 "getRpathList"
 	const cpp_inline public explicit_return_type "range<const StringRef *>"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} {
@@ -666,7 +666,7 @@ ${inlines}
 	
       end
 
-      operation 157836 "addRpathLink"
+      operation 162700 "addRpathLink"
 	cpp_inline public explicit_return_type "void"
 	nparams 1
 	  param in name "path" explicit_type "StringRef"
@@ -680,7 +680,7 @@ ${inlines}
 	
       end
 
-      operation 157964 "getRpathLinkList"
+      operation 162828 "getRpathLinkList"
 	const cpp_inline public explicit_return_type "range<const StringRef *>"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract} {
@@ -693,7 +693,7 @@ ${inlines}
 	
       end
 
-      operation 158092 "ELFLinkingContext"
+      operation 162956 "ELFLinkingContext"
 	private explicit_return_type ""
 	nparams 0
 	cpp_decl "    ${comment}${inline}${name}${(}${)}${volatile}${throw};
@@ -707,7 +707,7 @@ ${inlines}
 	
       end
 
-      operation 158220 "ELFLinkingContext"
+      operation 163084 "ELFLinkingContext"
 	preserve_cpp_body_indent protected explicit_return_type ""
 	nparams 2
 	  param in name "triple" explicit_type "llvm::Triple"
@@ -730,7 +730,7 @@ ${inlines}
 	
       end
 
-      operation 158348 "writer"
+      operation 163212 "writer"
 	preserve_cpp_body_indent const cpp_virtual protected explicit_return_type "Writer"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} & ${name}${(}${)}${const}${volatile}${throw}${abstract};
@@ -744,7 +744,7 @@ ${inlines}
 	
       end
 
-      operation 158476 "createUndefinedSymbolFile"
+      operation 163340 "createUndefinedSymbolFile"
 	cpp_virtual protected explicit_return_type "std::unique_ptr<File>"
 	nparams 0
 	cpp_decl "    ${comment}${friend}${static}${inline}${virtual}${type} ${name}${(}${)}${const}${volatile}${throw}${abstract};
@@ -759,7 +759,7 @@ ${inlines}
 	comment "/ Method to create a internal file for an undefined symbol"
       end
 
-      attribute 136588 "_outputELFType"
+      attribute 142476 "_outputELFType"
 	protected explicit_type "uint16_t"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -770,7 +770,7 @@ ${inlines}
 	comment " e.g ET_EXEC"
       end
 
-      attribute 136716 "_triple"
+      attribute 142604 "_triple"
 	protected explicit_type "llvm::Triple"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -780,17 +780,17 @@ ${inlines}
 	idl_decl ""
       end
 
-      classrelation 131084 // _targetHandler (<directional composition>)
-	relation 131084 *-->
+      classrelation 131340 // _targetHandler (<directional composition>)
+	relation 131340 *-->
 	  stereotype "std::unique_ptr"
 	  a role_name "_targetHandler" protected
 	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${stereotype}<${type}> ${name}${value};
 "
-	    classrelation_ref 131084 // _targetHandler (<directional composition>)
-	  b parent class_ref 132236 // TargetHandlerBase
+	    classrelation_ref 131340 // _targetHandler (<directional composition>)
+	  b parent class_ref 133388 // TargetHandlerBase
       end
 
-      attribute 136844 "_baseAddress"
+      attribute 142732 "_baseAddress"
 	protected explicit_type "uint64_t"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -800,7 +800,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 136972 "_isStaticExecutable"
+      attribute 142860 "_isStaticExecutable"
 	protected explicit_type "bool"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -810,7 +810,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 137100 "_noInhibitExec"
+      attribute 142988 "_noInhibitExec"
 	protected explicit_type "bool"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -820,7 +820,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 137228 "_mergeCommonStrings"
+      attribute 143116 "_mergeCommonStrings"
 	protected explicit_type "bool"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -830,7 +830,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 137356 "_runLayoutPass"
+      attribute 143244 "_runLayoutPass"
 	protected explicit_type "bool"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -840,7 +840,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 137484 "_useShlibUndefines"
+      attribute 143372 "_useShlibUndefines"
 	protected explicit_type "bool"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -850,7 +850,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 137612 "_dynamicLinkerArg"
+      attribute 143500 "_dynamicLinkerArg"
 	protected explicit_type "bool"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -860,7 +860,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 137740 "_noAllowDynamicLibraries"
+      attribute 143628 "_noAllowDynamicLibraries"
 	protected explicit_type "bool"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -870,16 +870,16 @@ ${inlines}
 	idl_decl ""
       end
 
-      classrelation 131212 // _outputMagic (<directional composition>)
-	relation 131212 *-->
+      classrelation 131468 // _outputMagic (<directional composition>)
+	relation 131468 *-->
 	  a role_name "_outputMagic" protected
 	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
-	    classrelation_ref 131212 // _outputMagic (<directional composition>)
-	  b parent class_ref 132492 // OutputMagic
+	    classrelation_ref 131468 // _outputMagic (<directional composition>)
+	  b parent class_ref 133644 // OutputMagic
       end
 
-      attribute 137868 "_inputSearchPaths"
+      attribute 143756 "_inputSearchPaths"
 	protected explicit_type "StringRefVector"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -889,7 +889,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 137996 "_alloc"
+      attribute 143884 "_alloc"
 	protected explicit_type "llvm::BumpPtrAllocator"
 	cpp_mutable cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -899,7 +899,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 138124 "_elfReader"
+      attribute 144012 "_elfReader"
 	protected explicit_type "Reader"
 	stereotype "std::unique_ptr"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${stereotype}<${type}> ${name}${value};
@@ -910,7 +910,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 138252 "_writer"
+      attribute 144140 "_writer"
 	protected explicit_type "Writer"
 	stereotype "std::unique_ptr"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${stereotype}<${type}> ${name}${value};
@@ -921,7 +921,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 138380 "_linkerScriptReader"
+      attribute 144268 "_linkerScriptReader"
 	protected explicit_type "Reader"
 	stereotype "std::unique_ptr"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${stereotype}<${type}> ${name}${value};
@@ -932,7 +932,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 138508 "_dynamicLinkerPath"
+      attribute 144396 "_dynamicLinkerPath"
 	protected explicit_type "StringRef"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -942,7 +942,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 138636 "_initFunctions"
+      attribute 144524 "_initFunctions"
 	protected explicit_type "StringRefVector"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -952,7 +952,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 138764 "_finiFunctions"
+      attribute 144652 "_finiFunctions"
 	protected explicit_type "StringRefVector"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -962,7 +962,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 138892 "_sysrootPath"
+      attribute 144780 "_sysrootPath"
 	protected explicit_type "StringRef"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -972,7 +972,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 139020 "_soname"
+      attribute 144908 "_soname"
 	protected explicit_type "StringRef"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -982,7 +982,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 139148 "_rpathList"
+      attribute 145036 "_rpathList"
 	protected explicit_type "StringRefVector"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -992,7 +992,7 @@ ${inlines}
 	idl_decl ""
       end
 
-      attribute 139276 "_rpathLinkList"
+      attribute 145164 "_rpathLinkList"
 	protected explicit_type "StringRefVector"
 	cpp_decl "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
 "
@@ -1003,7 +1003,7 @@ ${inlines}
       end
     end
 
-    class 132236 "TargetHandlerBase"
+    class 133388 "TargetHandlerBase"
       visibility package 
       cpp_decl "${comment}${template}class ${name}${inherit} {
 ${members}};
@@ -1015,7 +1015,7 @@ ${inlines}
       idl_decl ""
       explicit_switch_type ""
       
-      operation 152588 "~TargetHandlerBase"
+      operation 157452 "~TargetHandlerBase"
 	cpp_virtual cpp_inline public explicit_return_type ""
 	nparams 0
 	cpp_decl "    ${comment}${inline}${virtual}${name}${(}${)}${volatile}${throw} {};
@@ -1027,7 +1027,7 @@ ${inlines}
       end
     end
 
-    class 132364 "typedef8"
+    class 133516 "typedef8"
       visibility package stereotype "typedef" explicit_base_type "LinkingContext"
       cpp_decl "${comment}typedef ${type} ${name};
 "
@@ -1044,7 +1044,7 @@ ${inlines}
     //deployment diagram settings
     package_name_in_tab default show_context default write_horizontally default auto_label_position default draw_all_relations default shadow default
     draw_component_as_icon default show_component_req_prov default show_component_rea default show_stereotype_properties default
-    artifact 129036 "ELFLinkingContext"
+    artifact 129164 "ELFLinkingContext"
       stereotype "source"
       cpp_h "#ifndef ${NAMESPACE}_${NAME}_H
 #define ${NAMESPACE}_${NAME}_H
@@ -1063,8 +1063,8 @@ ${namespace_start}
 ${members}
 ${namespace_end}"
       associated_classes
-	class_ref 132236 // TargetHandlerBase
-	class_ref 132364 // typedef8
+	class_ref 133388 // TargetHandlerBase
+	class_ref 133516 // typedef8
 	class_ref 130956 // ELFLinkingContext
       end
     end
