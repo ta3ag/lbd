@@ -1,4 +1,4 @@
-//===- lib/ReaderWriter/ELF/Cpu0/Cpu0LinkingContext.cpp -------------------===//
+//===- lib/ReaderWriter/ELF/Cpu0/Cpu0RelocationPass.cpp ---------------===//
 //
 //                             The LLVM Linker
 //
@@ -6,27 +6,30 @@
 // License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
+///
+/// \file
+/// \brief Defines the relocation processing pass for Cpu0. This includes
+///   GOT and PLT entries, TLS, and ifunc.
+///
+/// This also includes aditional behaivor that gnu-ld and gold implement but
+/// which is not specified anywhere.
+///
+//===----------------------------------------------------------------------===//
+
+#include "Cpu0RelocationPass.h"
+
+#include "lld/ReaderWriter/Simple.h"
+
+#include "llvm/ADT/DenseMap.h"
 
 #include "Atoms.h"
 #include "Cpu0LinkingContext.h"
 
-#include "lld/Core/File.h"
-#include "lld/Core/Instrumentation.h"
-#include "lld/Core/Parallel.h"
-#include "lld/Core/Pass.h"
-#include "lld/Core/PassManager.h"
-#include "lld/ReaderWriter/Simple.h"
-
-#include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/StringSwitch.h"
-
 using namespace lld;
-
 using namespace lld::elf;
+using namespace llvm::ELF;
 
 namespace {
-using namespace llvm::ELF;
 
 // .plt value (entry 0)
 const uint8_t cpu0BootAtomContent[16] = {
@@ -105,33 +108,25 @@ public:
 
 class ELFPassFile : public SimpleFile {
 public:
-  ELFPassFile(const ELFLinkingContext &eti) : SimpleFile(eti, "ELFPassFile") {}
+  ELFPassFile(const ELFLinkingContext &eti) : SimpleFile(eti, "ELFPassFile") {
+    setOrdinal(eti.getNextOrdinalAndIncrement());
+  }
 
   llvm::BumpPtrAllocator _alloc;
 };
 
-/// \brief Create GOT and PLT entries for relocations. Handles standard GOT/PLT
-/// along with IFUNC and TLS.
-template <class Derived> class GOTPLTPass : public Pass {
+/// \brief CRTP base for handling relocations.
+template <class Derived> class RelocationPass : public Pass {
   /// \brief Handle a specific reference.
   void handleReference(const DefinedAtom &atom, const Reference &ref) {
     switch (ref.kind()) {
-
     case R_CPU0_CALL16:
       static_cast<Derived *>(this)->handlePLT32(ref);
       break;
 
     case R_CPU0_PC24:
-      static_cast<Derived *>(this)->handlePC24(ref);
+      static_cast<Derived *>(this)->handlePlain(ref);
       break;
-#if 0
-    case R_CPU0_GOTTPOFF: // GOT Thread Pointer Offset
-      static_cast<Derived *>(this)->handleGOTTPOFF(ref);
-      break;
-    case R_CPU0_GOTPCREL:
-      static_cast<Derived *>(this)->handleGOTPCREL(ref);
-      break;
-#endif
     }
   }
 
@@ -165,7 +160,7 @@ protected:
   /// \brief Redirect the call to the PLT stub for the target IFUNC.
   ///
   /// This create a PLT and GOT entry for the IFUNC if one does not exist. The
-  /// GOT entry and a RELGOT relocation to the original target resolver.
+  /// GOT entry and a IRELATIVE relocation to the original target resolver.
   ErrorOr<void> handleIFUNC(const Reference &ref) {
     auto target = dyn_cast_or_null<const DefinedAtom>(ref.target());
 #ifdef DYNLINKER
@@ -191,13 +186,6 @@ protected:
       return g;
     }
     return got->second;
-  }
-
-  /// \brief Create a TLS_TPREL32 GOT entry and change the relocation to a PC24 to
-  /// the GOT.
-  void handleGOTTPOFF(const Reference &ref) {
-    const_cast<Reference &>(ref).setTarget(getGOTTPOFF(ref.target()));
-    const_cast<Reference &>(ref).setKind(R_CPU0_PC24);
   }
 
   /// \brief Create a GOT entry containing 0.
@@ -226,23 +214,12 @@ protected:
     }
     return got->second;
   }
-
-  /// \brief Handle a GOTPCREL relocation to an undefined weak atom by using a
-  /// null GOT entry.
-  void handleGOTPCREL(const Reference &ref) {
-    const_cast<Reference &>(ref).setKind(R_CPU0_PC24);
-    if (isa<UndefinedAtom>(ref.target()))
-      const_cast<Reference &>(ref).setTarget(getNullGOT());
-    else if (const DefinedAtom *da = dyn_cast<const DefinedAtom>(ref.target()))
-      const_cast<Reference &>(ref).setTarget(getGOT(da));
-  }
 #endif // DYNLINKER
 
 public:
-  GOTPLTPass(const ELFLinkingContext &ti, bool isExe)
-      : _file(ti), _null(nullptr), _PLT0(nullptr), _got0(nullptr)/*,
-        _got1(nullptr)*/, _boot(new Cpu0BootAtom(_file)), _isStaticExe(isExe) 
-       { }
+  RelocationPass(const ELFLinkingContext &ctx)
+      : _file(ctx), _ctx(ctx), _null(nullptr), _PLT0(nullptr), _got0(nullptr), 
+        _boot(new Cpu0BootAtom(_file)) {}
 
   /// \brief Do the pass.
   ///
@@ -252,17 +229,18 @@ public:
   ///
   /// After all references are handled, the atoms created during that are all
   /// added to mf.
-  virtual void perform(MutableFile &mf) {
+  virtual void perform(std::unique_ptr<MutableFile> &mf) {
     ScopedTask task(getDefaultDomain(), "Cpu0 GOT/PLT Pass");
     // Process all references.
-    for (const auto &atom : mf.defined())
+    for (const auto &atom : mf->defined())
       for (const auto &ref : *atom)
         handleReference(*atom, *ref);
 
     // Add all created atoms to the link.
     uint64_t ordinal = 0;
-    if (_isStaticExe) {
-      MutableFile::DefinedAtomRange atomRange = mf.definedAtoms();
+//    if (_isStaticExe) {
+    if (_ctx.getOutputELFType() == llvm::ELF::ET_EXEC) {
+      MutableFile::DefinedAtomRange atomRange = mf->definedAtoms();
       auto it = atomRange.begin();
       bool find = false;
       for (it = atomRange.begin(); it < atomRange.end(); it++) {
@@ -274,11 +252,11 @@ public:
       assert(find && "not found _Z5startv\n");
       _boot->addReference(R_CPU0_PC24, 0, *it, -3);
       _boot->setOrdinal(ordinal++);
-      mf.addAtom(*_boot);
+      mf->addAtom(*_boot);
     }
 #ifdef DYNLINKER
     if (_PLT0) {
-      MutableFile::DefinedAtomRange atomRange = mf.definedAtoms();
+      MutableFile::DefinedAtomRange atomRange = mf->definedAtoms();
       auto it = atomRange.begin();
       bool find = false;
       for (it = atomRange.begin(); it < atomRange.end(); it++) {
@@ -290,41 +268,53 @@ public:
       assert(find && "Cannot find _Z14dynamic_linkerv()");
       _PLT0->addReference(R_CPU0_PC24, 12, *it, -3);
       _PLT0->setOrdinal(ordinal++);
-      mf.addAtom(*_PLT0);
+      mf->addAtom(*_PLT0);
     }
     for (auto &plt : _pltVector) {
       plt->setOrdinal(ordinal++);
-      mf.addAtom(*plt);
+      mf->addAtom(*plt);
     }
     if (_null) {
       _null->setOrdinal(ordinal++);
-      mf.addAtom(*_null);
+      mf->addAtom(*_null);
     }
     if (_PLT0) {
       _got0->setOrdinal(ordinal++);
-      mf.addAtom(*_got0);
+      mf->addAtom(*_got0);
     }
     for (auto &got : _gotVector) {
       got->setOrdinal(ordinal++);
-      mf.addAtom(*got);
+      mf->addAtom(*got);
     }
+#if 0
+    for (auto obj : _objectVector) {
+      obj->setOrdinal(ordinal++);
+      mf->addAtom(*obj);
+    }
+#endif
 #endif // DYNLINKER
   }
 
 protected:
   /// \brief Owner of all the Atoms created by this pass.
   ELFPassFile _file;
+  const ELFLinkingContext &_ctx;
 
   /// \brief Map Atoms to their GOT entries.
   llvm::DenseMap<const Atom *, GOTAtom *> _gotMap;
 
   /// \brief Map Atoms to their PLT entries.
   llvm::DenseMap<const Atom *, PLTAtom *> _pltMap;
-
+#if 0
+  /// \brief Map Atoms to their Object entries.
+  llvm::DenseMap<const Atom *, ObjectAtom *> _objectMap;
+#endif
   /// \brief the list of GOT/PLT atoms
   std::vector<GOTAtom *> _gotVector;
   std::vector<PLTAtom *> _pltVector;
-
+#if 0
+  std::vector<ObjectAtom *> _objectVector;
+#endif
   PLT0Atom *_boot;
 
   /// \brief GOT entry that is always 0. Used for undefined weaks.
@@ -346,10 +336,13 @@ public:
 /// entry, that entry is statically bound.
 ///
 /// TLS always assumes module 1 and attempts to remove indirection.
-class StaticGOTPLTPass LLVM_FINAL : public GOTPLTPass<StaticGOTPLTPass> {
+class StaticRelocationPass LLVM_FINAL
+    : public RelocationPass<StaticRelocationPass> {
 public:
-  StaticGOTPLTPass(const elf::Cpu0LinkingContext &ti, bool isExe)
-      : GOTPLTPass(ti, isExe) { }
+  StaticRelocationPass(const elf::Cpu0LinkingContext &ctx)
+      : RelocationPass(ctx) {}
+
+  ErrorOr<void> handlePlain(const Reference &ref) { return handleIFUNC(ref); }
 
   ErrorOr<void> handlePLT32(const Reference &ref) {
     // __tls_get_addr is handled elsewhere.
@@ -367,14 +360,21 @@ public:
     return error_code::success();
   }
 
-  ErrorOr<void> handlePC24(const Reference &ref) { return handleIFUNC(ref); }
+  ErrorOr<void> handleGOT(const Reference &ref) {
+    if (isa<UndefinedAtom>(ref.target()))
+      const_cast<Reference &>(ref).setTarget(getNullGOT());
+    else if (const DefinedAtom *da = dyn_cast<const DefinedAtom>(ref.target()))
+      const_cast<Reference &>(ref).setTarget(getGOT(da));
+    return error_code::success();
+  }
 };
 
 #ifdef DYNLINKER
-class DynamicGOTPLTPass LLVM_FINAL : public GOTPLTPass<DynamicGOTPLTPass> {
+class DynamicRelocationPass LLVM_FINAL
+    : public RelocationPass<DynamicRelocationPass> {
 public:
-  DynamicGOTPLTPass(const elf::Cpu0LinkingContext &ti, bool isExe)
-      : GOTPLTPass(ti, isExe) { }
+  DynamicRelocationPass(const elf::Cpu0LinkingContext &ctx)
+      : RelocationPass(ctx) {}
 
   const PLT0Atom *getPLT0() {
     if (_PLT0)
@@ -416,12 +416,47 @@ public:
     _pltVector.push_back(pa);
     return pa;
   }
+#if 0
+  const ObjectAtom *getObjectEntry(const SharedLibraryAtom *a) {
+    auto obj = _objectMap.find(a);
+    if (obj != _objectMap.end())
+      return obj->second;
+
+    auto oa = new (_file._alloc) ObjectAtom(_file);
+    // This needs to point to the atom that we just created.
+    oa->addReference(R_CPU0_PC24, 0, oa, 0);
+
+    oa->_name = a->name();
+    oa->_size = a->size();
+
+    _objectMap[a] = oa;
+    _objectVector.push_back(oa);
+    return oa;
+  }
+#endif
+  ErrorOr<void> handlePlain(const Reference &ref) {
+    if (!ref.target())
+      return error_code::success();
+    if (auto sla = dyn_cast<SharedLibraryAtom>(ref.target())) {
+#if 0
+      if (sla->type() == SharedLibraryAtom::Type::Data)
+        const_cast<Reference &>(ref).setTarget(getObjectEntry(sla));
+      else 
+#endif
+      if (sla->type() == SharedLibraryAtom::Type::Code) {
+        const_cast<Reference &>(ref).setTarget(getPLTEntry(sla));
+        // When caller of execution file call shared library function
+        // Turn this into a PC24 to the PLT entry.
+        const_cast<Reference &>(ref).setKind(R_CPU0_PC24);
+      }
+    } else
+      return handleIFUNC(ref);
+    return error_code::success();
+  }
 
   ErrorOr<void> handlePLT32(const Reference &ref) {
-    // Turn this into a CALL24 to the PLT entry.
-    // const_cast<Reference &>(ref).setKind(R_CPU0_CALL24);
     // Handle IFUNC.
-    if (const DefinedAtom *da = 
+    if (const DefinedAtom *da =
             dyn_cast_or_null<const DefinedAtom>(ref.target()))
       if (da->contentType() == DefinedAtom::typeResolver)
         return handleIFUNC(ref);
@@ -433,12 +468,6 @@ public:
     #endif
     }
     return error_code::success();
-  }
-
-  ErrorOr<void> handlePC24(const Reference &ref) {
-    if (ref.target() && isa<SharedLibraryAtom>(ref.target()))
-      return handlePLT32(ref);
-    return handleIFUNC(ref);
   }
 
   const GOTAtom *getSharedGOT(const SharedLibraryAtom *sla) {
@@ -457,85 +486,36 @@ public:
     return got->second;
   }
 
-  void handleGOTPCREL(const Reference &ref) {
-    const_cast<Reference &>(ref).setKind(R_CPU0_PC24);
+  ErrorOr<void> handleGOT(const Reference &ref) {
     if (isa<UndefinedAtom>(ref.target()))
       const_cast<Reference &>(ref).setTarget(getNullGOT());
     else if (const DefinedAtom *da = dyn_cast<const DefinedAtom>(ref.target()))
       const_cast<Reference &>(ref).setTarget(getGOT(da));
     else if (const auto sla = dyn_cast<const SharedLibraryAtom>(ref.target()))
       const_cast<Reference &>(ref).setTarget(getSharedGOT(sla));
+    return error_code::success();
   }
 };
 #endif // DYNLINKER
 } // end anon namespace
 
-void elf::Cpu0LinkingContext::addPasses(PassManager &pm) const {
-  switch (_outputFileType) {
+std::unique_ptr<Pass>
+lld::elf::createCpu0RelocationPass(const Cpu0LinkingContext &ctx) {
+  switch (ctx.getOutputELFType()) {
   case llvm::ELF::ET_EXEC:
-    if (_isStaticExecutable)
-      pm.add(std::unique_ptr<Pass>(new StaticGOTPLTPass(*this, true)));
 #ifdef DYNLINKER
+    if (ctx.isDynamic())
+      return std::unique_ptr<Pass>(new DynamicRelocationPass(ctx));
     else
-      pm.add(std::unique_ptr<Pass>(new DynamicGOTPLTPass(*this, true)));
-    break;
-  case llvm::ELF::ET_DYN:
-    pm.add(std::unique_ptr<Pass>(new DynamicGOTPLTPass(*this, false)));
 #endif // DYNLINKER
-    break;
+      return std::unique_ptr<Pass>(new StaticRelocationPass(ctx));
+#ifdef DYNLINKER
+  case llvm::ELF::ET_DYN:
+    return std::unique_ptr<Pass>(new DynamicRelocationPass(ctx));
+#endif // DYNLINKER
   case llvm::ELF::ET_REL:
-    break;
+    return std::unique_ptr<Pass>();
   default:
     llvm_unreachable("Unhandled output file type");
   }
-  ELFLinkingContext::addPasses(pm);
-}
-
-#define LLD_CASE(name) .Case(#name, llvm::ELF::name)
-
-ErrorOr<Reference::Kind>
-elf::Cpu0LinkingContext::relocKindFromString(StringRef str) const {
-  int32_t ret = llvm::StringSwitch<int32_t>(str)
-  LLD_CASE(R_CPU0_NONE)
-  LLD_CASE(R_CPU0_24)
-  LLD_CASE(R_CPU0_32)
-  LLD_CASE(R_CPU0_HI16)
-  LLD_CASE(R_CPU0_LO16)
-  LLD_CASE(R_CPU0_GPREL16)
-  LLD_CASE(R_CPU0_LITERAL)
-  LLD_CASE(R_CPU0_GOT16)
-  LLD_CASE(R_CPU0_PC24)
-  LLD_CASE(R_CPU0_CALL16)
-  LLD_CASE(R_CPU0_JUMP_SLOT)
-    .Case("LLD_R_CPU0_GOTRELINDEX", LLD_R_CPU0_GOTRELINDEX)
-    .Default(-1);
-
-  if (ret == -1)
-    return make_error_code(yaml_reader_error::illegal_value);
-  return ret;
-}
-
-#undef LLD_CASE
-
-#define LLD_CASE(name) case llvm::ELF::name: return std::string(#name);
-
-ErrorOr<std::string>
-elf::Cpu0LinkingContext::stringFromRelocKind(Reference::Kind kind) const {
-  switch (kind) {
-  LLD_CASE(R_CPU0_NONE)
-  LLD_CASE(R_CPU0_24)
-  LLD_CASE(R_CPU0_32)
-  LLD_CASE(R_CPU0_HI16)
-  LLD_CASE(R_CPU0_LO16)
-  LLD_CASE(R_CPU0_GPREL16)
-  LLD_CASE(R_CPU0_LITERAL)
-  LLD_CASE(R_CPU0_GOT16)
-  LLD_CASE(R_CPU0_PC24)
-  LLD_CASE(R_CPU0_CALL16)
-  LLD_CASE(R_CPU0_JUMP_SLOT)
-  case LLD_R_CPU0_GOTRELINDEX:
-    return std::string("LLD_R_CPU0_GOTRELINDEX");
-  }
-
-  return make_error_code(yaml_reader_error::illegal_value);
 }
