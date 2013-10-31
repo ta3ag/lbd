@@ -21,7 +21,8 @@ using namespace object;
 static bool error(error_code ec) {
   if (!ec) return false;
 
-  outs() << "Cpu0RelocationHandler.cpp : error reading file: " << ec.message() << ".\n";
+  outs() << "Cpu0RelocationHandler.cpp : error reading file: " 
+         << ec.message() << ".\n";
   outs().flush();
   return true;
 }
@@ -29,7 +30,7 @@ static bool error(error_code ec) {
 namespace {
 /// \brief R_CPU0_HI16 - word64: (S + A) >> 16
 void relocHI16(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
-//  uint32_t result = (uint32_t)((S + A) >> 16); // Don't know why ref.addend() = 9
+ // Don't know why A, ref.addend(), = 9
   uint32_t result = (uint32_t)(S >> 16);
   *reinterpret_cast<llvm::support::ubig32_t *>(location) =
       result |
@@ -37,7 +38,7 @@ void relocHI16(uint8_t *location, uint64_t P, uint64_t S, int64_t A) {
 }
 
 void relocLO16(uint8_t *location, uint64_t P, uint64_t S, uint64_t A) {
-//  uint32_t result = (uint32_t)((S + A) & 0x0000ffff);
+ // Don't know why A, ref.addend(), = 9
   uint32_t result = (uint32_t)(S & 0x0000ffff);
   *reinterpret_cast<llvm::support::ubig32_t *>(location) =
       result |
@@ -133,8 +134,10 @@ struct Cpu0SoPlt {
       if (error(si->getAddress(BaseAddr))) continue;
       if (Name == ".dynsym") {
         // Dump out the content as hex and printable ascii characters.
-        for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
-          Dynsym[DynsymSize].stridx = *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)(Contents.begin()+addr));
+        for (std::size_t addr = 0, end = Contents.size(); addr < end; 
+             addr += 16) {
+          Dynsym[DynsymSize].stridx = *reinterpret_cast<llvm::support::ubig32_t*>
+              ((uint32_t*)(Contents.begin()+addr));
         }
       }
       if (Name == ".dynstr") {
@@ -149,6 +152,11 @@ struct Cpu0SoPlt {
   int getDynsymEntryIdxByTargetAddr(uint64_t fAddr, 
       uint32_t *funAddr, int funAddrSize) {
     for (int i = 0; i < funAddrSize; i++) {
+      // Below statement fix the issue that both __tls_get_addr and first 
+      // function has the same file offset 0 issue.
+      if (i < (funAddrSize-1) && funAddr[i] == funAddr[i+1])
+        continue;
+
       if (fAddr == funAddr[i]) {
         return i;
       }
@@ -179,20 +187,23 @@ struct Cpu0ExePlt {
   uint8_t Dynstr[1000];
   int DynstrSize;
   int create(const Cpu0LinkingContext &context, llvm::FileOutputBuffer &buf) {
-    auto dynsymSection = context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".dynsym");
+    auto dynsymSection = context.getTargetHandler<Cpu0ELFType>().targetLayout().
+                         findOutputSection(".dynsym");
     uint64_t dynsymFileOffset, dynsymSizeOfBytes;
     if (dynsymSection) {
       dynsymFileOffset = dynsymSection->fileOffset();
       dynsymSizeOfBytes = dynsymSection->memSize();
       uint8_t *atomContent = buf.getBufferStart() + dynsymFileOffset;
       for (uint64_t i = 0; i < dynsymSizeOfBytes; i += 16) {
-        Dynsym[DynsymSize].stridx = *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)(atomContent + i));
+        Dynsym[DynsymSize].stridx = *reinterpret_cast<llvm::support::ubig32_t*>
+                                    ((uint32_t*)(atomContent + i));
         DynsymSize++;
       }
     }
     else
       return 1;
-    auto dynstrSection = context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".dynstr");
+    auto dynstrSection = context.getTargetHandler<Cpu0ELFType>().targetLayout().
+                         findOutputSection(".dynstr");
     uint64_t dynstrFileOffset, dynstrSize;
     if (dynstrSection) {
       dynstrFileOffset = dynstrSection->fileOffset();
@@ -220,34 +231,41 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
   int idx = 0;
   if (firstTime) {
     if (_context.getOutputELFType() == llvm::ELF::ET_DYN) {
-      auto dynsymSection = _context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".dynsym");
+      auto dynsymSection = _context.getTargetHandler<Cpu0ELFType>().targetLayout().
+                           findOutputSection(".dynsym");
       uint64_t dynsymFileOffset, dynsymSize;
       if (dynsymSection) {
         dynsymFileOffset = dynsymSection->fileOffset();
         dynsymSize = dynsymSection->memSize();
         uint8_t *atomContent = buf.getBufferStart() + dynsymFileOffset;
         for (uint64_t i = 4; i < dynsymSize; i += 16) {
-          cpu0SoPlt.funAddr[cpu0SoPlt.funAddrSize] = *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)(atomContent + i));
+          cpu0SoPlt.funAddr[cpu0SoPlt.funAddrSize] = 
+            *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)
+            (atomContent + i));
           cpu0SoPlt.funAddrSize++;
         }
       }
     }
-    else if (_context.getOutputELFType() == llvm::ELF::ET_EXEC && !_context.isStaticExecutable()) {
-      auto dynsymSection = _context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".dynsym");
+    else if (_context.getOutputELFType() == llvm::ELF::ET_EXEC && 
+             !_context.isStaticExecutable()) {
+      auto dynsymSection = _context.getTargetHandler<Cpu0ELFType>().
+                           targetLayout().findOutputSection(".dynsym");
       uint64_t dynsymFileOffset, dynsymSize;
       if (dynsymSection) {
         dynsymFileOffset = dynsymSection->fileOffset();
         dynsymSize = dynsymSection->memSize();
         uint8_t *atomContent = buf.getBufferStart() + dynsymFileOffset;
         for (uint64_t i = 0; i < dynsymSize; i += 16) {
-          cpu0SoPlt.funAddr[cpu0SoPlt.funAddrSize] = *reinterpret_cast<llvm::support::ubig32_t*>((uint32_t*)(atomContent + i));
+          cpu0SoPlt.funAddr[cpu0SoPlt.funAddrSize] = *reinterpret_cast
+              <llvm::support::ubig32_t*>((uint32_t*)(atomContent + i));
           cpu0SoPlt.funAddrSize++;
         }
       }
       // Attempt to open the binary.
       OwningPtr<Binary> binary;
       if (error_code ec = createBinary(soName, binary)) {
-        errs() << "Input file " << soName << " cannot open" << ec.message() << ".\n";
+        errs() << "Input file " << soName << " cannot open"
+               << ec.message() << ".\n";
         return make_error_code(llvm::errc::executable_format_error);
       }
       if (ObjectFile *o = dyn_cast<ObjectFile>(binary.get()))
@@ -263,11 +281,13 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
   uint8_t *location = atomContent + ref.offsetInAtom();
   uint64_t targetVAddress = writer.addressOfAtom(ref.target());
   uint64_t relocVAddress = atom._virtualAddr + ref.offsetInAtom();
-#if 1 // For case R_CPU0_GOT16:
-//  auto gotAtomIter = _context.getTargetHandler<Cpu0ELFType>().targetLayout().findAbsoluteAtom("_GLOBAL_OFFSET_TABLE_");
+#if 0 // For case R_CPU0_GOT16:
+//  auto gotAtomIter = _context.getTargetHandler<Cpu0ELFType>().targetLayout().
+//                     findAbsoluteAtom("_GLOBAL_OFFSET_TABLE_");
 //  uint64_t globalOffsetTableAddress = writer.addressOfAtom(*gotAtomIter);
 // .got.plt start from _GLOBAL_OFFSET_TABLE_
-  auto gotpltSection = _context.getTargetHandler<Cpu0ELFType>().targetLayout().findOutputSection(".got.plt");
+  auto gotpltSection = _context.getTargetHandler<Cpu0ELFType>().targetLayout().
+                       findOutputSection(".got.plt");
   uint64_t gotPltFileOffset;
   if (gotpltSection)
     gotPltFileOffset = gotpltSection->fileOffset();
@@ -284,13 +304,15 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
   case R_CPU0_LO16:
     relocLO16(location, relocVAddress, targetVAddress, ref.addend());
     break;
-#if 1 // Not support yet
+#if 0 // Not support yet
   case R_CPU0_GOT16:
 #if 1
-    idx = cpu0SoPlt.getDynsymEntryIdxByTargetAddr(targetVAddress, cpu0SoPlt.funAddr, cpu0SoPlt.funAddrSize);
+    idx = cpu0SoPlt.getDynsymEntryIdxByTargetAddr(targetVAddress, 
+              cpu0SoPlt.funAddr, cpu0SoPlt.funAddrSize);
     relocGOT16(location, relocVAddress, idx, ref.addend());
 #else
-    relocGOT16(location, relocVAddress, (targetVAddress - gotPltFileOffset), ref.addend());
+    relocGOT16(location, relocVAddress, (targetVAddress - gotPltFileOffset), 
+               ref.addend());
 #endif
     break;
 #endif
@@ -300,7 +322,8 @@ ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
 #ifdef DYNLINKER
   case R_CPU0_CALL16:
   // offset at _GLOBAL_OFFSET_TABLE_ and $gp point to _GLOBAL_OFFSET_TABLE_.
-    idx = cpu0SoPlt.getDynsymEntryIdxByTargetAddr(targetVAddress, cpu0SoPlt.funAddr, cpu0SoPlt.funAddrSize);
+    idx = cpu0SoPlt.getDynsymEntryIdxByTargetAddr(targetVAddress, 
+              cpu0SoPlt.funAddr, cpu0SoPlt.funAddrSize);
     reloc32(location, relocVAddress, idx*0x04+16, ref.addend());
     break;
 #endif // DYNLINKER

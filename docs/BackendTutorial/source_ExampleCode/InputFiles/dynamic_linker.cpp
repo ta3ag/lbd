@@ -33,6 +33,7 @@ void dynamic_linker()
 {
 //  static ProgAddr prog[10]; // has side effect (ProgAddr cannot be written in 
 // Virtual Box on iMac).
+  int i = 0;
   int nextFreeAddr;
   int *src, *dest, *end;
   int numDynEntry = 0;
@@ -54,7 +55,11 @@ void dynamic_linker()
   dynsym = *(int*)((DYNLINKER_INFO_ADDR+4)+(dynsym_idx*DYNENT_SIZE));
   dynstr = (char*)(DYNLINKER_INFO_ADDR+4+numDynEntry*4+numDynEntry*52+dynsym);
   libOffset = *((int*)(DYNLINKER_INFO_ADDR+4+numDynEntry*4+(dynsym_idx-1)*52));
-  nextFunLibOffset = *((int*)(DYNLINKER_INFO_ADDR+4+numDynEntry*4+dynsym_idx*52));
+  for (i = dynsym_idx; i < numDynEntry; i++) {
+    nextFunLibOffset = *((int*)(DYNLINKER_INFO_ADDR+4+numDynEntry*4+i*52));
+    if (libOffset != nextFunLibOffset)
+      break;
+  }
 #ifdef DEBUG_DLINKER
   printf("dstr = %x, dynsym = %d, *dstr = %s\n", 
          (int)dynstr, dynsym, dynstr);
@@ -118,7 +123,8 @@ void dynamic_linker()
 #ifdef DEBUG_DLINKER
   DISABLE_TRACE;
 #endif
-  // jmp to the dynamic linked function. It's foo() for the main.cpp call foo() 
+  // jmp to the dynamic linked function. It's foo() for the 
+  // caller, ch_dynamic_linker.cpp, call foo() 
   // first time example.
   asm("lui $t9, 0x7");
   asm("ori $t9, $t9, 0xFFE0");

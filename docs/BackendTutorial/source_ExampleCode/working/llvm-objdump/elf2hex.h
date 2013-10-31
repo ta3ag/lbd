@@ -133,6 +133,7 @@ static void GetSymbolTableStartAddress(const ObjectFile *o, StringRef sectionNam
 static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
   , uint64_t& lastAddr) {
   std::string Error;
+  uint64_t soLastPrintAddr = 0;
   bool firstTime = true;
   FILE *fd_so_func_offset;
   int num_dyn_entry = 0;
@@ -339,21 +340,52 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
       // Make sure this symbol takes up space.
       else if (Symbols[si + 1].first != Start)
         End = Symbols[si + 1].first - 1;
-      else
+      else {
         // This symbol has the same address as the next symbol. Skip it.
-        continue;
+        if (DumpSo/* && Symbols[si].second != "__tls_get_addr"*/) {
+          fprintf(fd_so_func_offset, "%02x ", 
+                  (uint8_t)(Symbols[si].first >> 24));
+          fprintf(fd_so_func_offset, "%02x ", 
+                  (uint8_t)((Symbols[si].first >> 16) & 0xFF));
+          fprintf(fd_so_func_offset, "%02x ", 
+                  (uint8_t)((Symbols[si].first >> 8) & 0xFF));
+          fprintf(fd_so_func_offset, "%02x    ", 
+                  (uint8_t)((Symbols[si].first) & 0xFF));
+          std::string str = Symbols[si].second.str();
+          std::size_t idx = 0;
+          std::size_t strSize = 0;
+          for (idx = 0, strSize = str.size(); idx < strSize; idx++) {
+            fprintf(fd_so_func_offset, "%c%c ", 
+                    hexdigit((str[idx] >> 4) & 0xF, true),
+                    hexdigit(str[idx] & 0xF, true));
+          }
+          for (idx = strSize; idx < 48; idx++) {
+            fprintf(fd_so_func_offset, "%02x ", 0);
+          }
+          fprintf(fd_so_func_offset, "/* %s */\n", Symbols[si].second.begin());
+          num_dyn_entry++;
+        }
 
-      if (DumpSo && Symbols[si].second != "__tls_get_addr") {
+        outs() << '\n' << "/*" << Symbols[si].second << ":*/\n";
+        continue;
+      }
+
+      if (DumpSo) {
+        soLastPrintAddr = Symbols[si].first;
         fprintf(fd_so_func_offset, "%02x ", (uint8_t)(Symbols[si].first >> 24));
-        fprintf(fd_so_func_offset, "%02x ", (uint8_t)((Symbols[si].first >> 16) & 0xFF));
-        fprintf(fd_so_func_offset, "%02x ", (uint8_t)((Symbols[si].first >> 8) & 0xFF));
-        fprintf(fd_so_func_offset, "%02x    ", (uint8_t)((Symbols[si].first) & 0xFF));
+        fprintf(fd_so_func_offset, "%02x ", 
+                (uint8_t)((Symbols[si].first >> 16) & 0xFF));
+        fprintf(fd_so_func_offset, "%02x ", 
+                (uint8_t)((Symbols[si].first >> 8) & 0xFF));
+        fprintf(fd_so_func_offset, "%02x    ", 
+                (uint8_t)((Symbols[si].first) & 0xFF));
         std::string str = Symbols[si].second.str();
         std::size_t idx = 0;
         std::size_t strSize = 0;
         for (idx = 0, strSize = str.size(); idx < strSize; idx++) {
-          fprintf(fd_so_func_offset, "%c%c ", hexdigit((str[idx] >> 4) & 0xF, true)
-                  , hexdigit(str[idx] & 0xF, true));
+          fprintf(fd_so_func_offset, "%c%c ", 
+                  hexdigit((str[idx] >> 4) & 0xF, true), 
+                  hexdigit(str[idx] & 0xF, true));
         }
         for (idx = strSize; idx < 48; idx++) {
           fprintf(fd_so_func_offset, "%02x ", 0);
@@ -393,7 +425,8 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
             Size = 1; // skip illegible bytes
         }
 
-        //  outs() << "Size = " << Size <<  "Index = " << Index <<  "lastAddr = " << lastAddr << "\n"; // debug
+        //  outs() << "Size = " << Size <<  "Index = " << Index << "lastAddr = "
+        //         << lastAddr << "\n"; // debug
         // Print relocation for instruction.
         while (rel_cur != rel_end) {
           bool hidden = false;
@@ -418,8 +451,32 @@ static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
           ++rel_cur;
         }
       }
+      if (DumpSo)
+        soLastPrintAddr = End;
     }
     lastAddr += Index;
+  }
+  if (DumpSo) {
+// Fix the issue that __tls_get_addr appear as file offset 0.
+// Old lld version the __tls_get_addr appear at the last function name.
+    std::pair<uint64_t, StringRef> dummy(soLastPrintAddr, "dummy");
+    fprintf(fd_so_func_offset, "%02x ", (uint8_t)(dummy.first >> 24));
+    fprintf(fd_so_func_offset, "%02x ", (uint8_t)((dummy.first >> 16) & 0xFF));
+    fprintf(fd_so_func_offset, "%02x ", (uint8_t)((dummy.first >> 8) & 0xFF));
+    fprintf(fd_so_func_offset, "%02x    ", (uint8_t)((dummy.first) & 0xFF));
+    std::string str = dummy.second.str();
+    std::size_t idx = 0;
+    std::size_t strSize = 0;
+    for (idx = 0, strSize = str.size(); idx < strSize; idx++) {
+      fprintf(fd_so_func_offset, "%c%c ", hexdigit((str[idx] >> 4) & 0xF, true)
+              , hexdigit(str[idx] & 0xF, true));
+    }
+    for (idx = strSize; idx < 48; idx++) {
+      fprintf(fd_so_func_offset, "%02x ", 0);
+    }
+    fprintf(fd_so_func_offset, "/* %s */\n", dummy.second.begin());
+    num_dyn_entry++;
+    outs() << '\n' << "/*" << dummy.second << ":*/\n";
   }
   if (DumpSo) {
     FILE *fd_num_dyn_entry;
@@ -521,10 +578,7 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
         fclose(fd_num_dyn_entry);
         raw_fd_ostream fd_dynsym("dynsym", Error);
         int count = 0;
-        std::size_t addr = 0;
-        StringRef str = Contents.substr(1, strlen("__tls_get_addr"));
-        if (str == "__tls_get_addr") addr = addr + strlen("__tls_get_addr") + 1;
-        for (std::size_t end = Contents.size(); addr < end; addr += 16) {
+        for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
           fd_dynsym << hexdigit((Contents[addr] >> 4) & 0xF, true)
                      << hexdigit(Contents[addr] & 0xF, true) << " ";
           fd_dynsym << hexdigit((Contents[addr+1] >> 4) & 0xF, true)
@@ -541,10 +595,7 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
       }
       else if (Name == ".dynstr") {
         raw_fd_ostream fd_dynstr("dynstr", Error);
-        std::size_t addr = 0;
-        StringRef str = Contents.substr(1, strlen("__tls_get_addr"));
-        if (str == "__tls_get_addr") addr = addr + strlen("__tls_get_addr") + 1;
-        for (std::size_t end = Contents.size(); addr < end; addr++) {
+        for (std::size_t addr = 0, end = Contents.size(); addr < end; addr++) {
           fd_dynstr << hexdigit((Contents[addr] >> 4) & 0xF, true)
                      << hexdigit(Contents[addr] & 0xF, true) << " ";
         }
