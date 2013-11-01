@@ -19,8 +19,10 @@ extern "C" int putchar(const char c)
   return 0;
 }
 
+extern int la(int x1, int x2);
 extern int foo(int x1, int x2);
 extern int bar();
+extern int h(int x1, int x2);
 
 int main()
 {
@@ -28,10 +30,18 @@ int main()
   int a = 0;
 
   dynamic_linker_init();
+#if 0
+  a = la(1, 2);
+  printf("la(1, 2) = %d\n", a);
+#endif
+#if 1
   a = foo(1, 2);
   printf("foo(1, 2) = %d\n", a);
+#endif
+#if 1
   a = bar();
   printf("bar() = %d\n", a);
+#endif
   
   return 0;
 }

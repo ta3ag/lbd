@@ -275,7 +275,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
         LO, SW);
       ST : begin
         if (`TR)
-          $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d  SW=%8x", $stime, pc0, ir, 
+          $display("%4dns %8x : %8x m[%-04d+%-04d]=%8x  SW=%8x", $stime, pc0, ir, 
           R[b], c16, R[a], SW);
         if (R[b]+c16 == `IOADDR) begin
           outw(R[a]);

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #TOOLDIR=/home/Gamma/test/lld/cmake_debug_build/bin
-TOOLDIR=/home/cschen/test/lld_1030/cmake_debug_build/bin
+TOOLDIR=/home/Gamma/test/lld_1030/cmake_debug_build/bin
+#TOOLDIR=/home/cschen/test/lld_1030/cmake_debug_build/bin
 #TOOLDIR=/home/cschen/test/lld/cmake_debug_build/bin
 
 /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc

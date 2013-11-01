@@ -7,6 +7,7 @@
 
 //#define DEBUG_DLINKER
 #define PLT0ADDR 0x10
+#define REGADDR  0x7ff00
 
 extern "C" int printf(const char *format, ...);
 
@@ -31,6 +32,18 @@ void dynamic_linker_init()
 
 void dynamic_linker()
 {
+  asm("lui $at, 7");
+  asm("ori $at, $at, 0xff00");
+  asm("st $2, 0($at)");
+  asm("st $3, 4($at)");
+  asm("st $4, 8($at)");
+  asm("st $5, 12($at)");
+  asm("st $6, 16($at)");
+  asm("st $7, 20($at)");
+  asm("st $8, 24($at)");
+  asm("st $9, 28($at)");
+  asm("st $10, 32($at)");
+  asm("st $11, 36($at)");
 //  static ProgAddr prog[10]; // has side effect (ProgAddr cannot be written in 
 // Virtual Box on iMac).
   int i = 0;
@@ -111,6 +124,19 @@ void dynamic_linker()
          *((int*)(gp+0x04)), *((int*)(gp+0x08)), *((int*)(gp+0x0c)));
 #endif
   printf("run %s...\n", dynstr);
+  asm("lui $at, 7");
+  asm("ori $at, $at, 0xff00");
+  asm("ld $2, 0($at)");
+  asm("ld $3, 4($at)");
+  asm("ld $4, 8($at)");
+  asm("ld $5, 12($at)");
+  asm("ld $6, 16($at)");
+  asm("ld $7, 20($at)");
+  asm("ld $8, 24($at)");
+  asm("ld $9, 28($at)");
+  asm("ld $10, 32($at)");
+  asm("ld $11, 36($at)");
+
   // restore $lr. The next instruction of foo() of main.cpp for the main.cpp
   // call foo() first time example.
   // The $lr, $fp and $sp saved in cpu0Plt0AtomContent of Cpu0LinkingContext.cpp.
