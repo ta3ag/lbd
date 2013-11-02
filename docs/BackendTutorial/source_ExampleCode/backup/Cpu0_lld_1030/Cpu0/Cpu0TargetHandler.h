@@ -19,7 +19,7 @@
 
 #include "lld/Core/Atom.h"
 
-#define DLINKER
+#define DYNLINKER
 
 namespace lld {
 namespace elf {

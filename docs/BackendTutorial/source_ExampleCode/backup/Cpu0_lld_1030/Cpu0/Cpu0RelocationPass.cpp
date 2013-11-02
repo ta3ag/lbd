@@ -39,7 +39,7 @@ const uint8_t cpu0BootAtomContent[16] = {
   0x36, 0xff, 0xff, 0xfc // jmp -4
 };
 
-#ifdef DLINKER
+#ifdef DYNLINKER
 // .got values
 const uint8_t cpu0GotAtomContent[16] = { 0 };
 
@@ -58,7 +58,7 @@ const uint8_t cpu0PltAtomContent[16] = {
   0x01, 0x6b, 0x00, 0x10, // ld $t9, 0x10($gp) (0x10($gp) point to plt0
   0x3c, 0x60, 0x00, 0x00  // ret $t9 // jump to Cpu0.Stub
 };
-#endif // DLINKER
+#endif // DYNLINKER
 
 /// boot record
 class Cpu0BootAtom : public PLT0Atom {
@@ -73,7 +73,7 @@ public:
   }
 };
 
-#ifdef DLINKER
+#ifdef DYNLINKER
 /// \brief Atoms that are used by Cpu0 dynamic linking
 class Cpu0GOTAtom : public GOTAtom {
 public:
@@ -104,7 +104,7 @@ public:
     return ArrayRef<uint8_t>(cpu0PltAtomContent, 16);
   }
 };
-#endif // DLINKER
+#endif // DYNLINKER
 
 class ELFPassFile : public SimpleFile {
 public:
@@ -131,7 +131,7 @@ template <class Derived> class RelocationPass : public Pass {
   }
 
 protected:
-#ifdef DLINKER
+#ifdef DYNLINKER
   /// \brief get the PLT entry for a given IFUNC Atom.
   ///
   /// If the entry does not exist. Both the GOT and PLT entry is created.
@@ -155,7 +155,7 @@ protected:
     _pltVector.push_back(pa);
     return pa;
   }
-#endif // DLINKER
+#endif // DYNLINKER
 
   /// \brief Redirect the call to the PLT stub for the target IFUNC.
   ///
@@ -163,14 +163,14 @@ protected:
   /// GOT entry and a IRELATIVE relocation to the original target resolver.
   ErrorOr<void> handleIFUNC(const Reference &ref) {
     auto target = dyn_cast_or_null<const DefinedAtom>(ref.target());
-#ifdef DLINKER
+#ifdef DYNLINKER
     if (target && target->contentType() == DefinedAtom::typeResolver)
       const_cast<Reference &>(ref).setTarget(getIFUNCPLTEntry(target));
-#endif // DLINKER
+#endif // DYNLINKER
     return error_code::success();
   }
 
-#ifdef DLINKER
+#ifdef DYNLINKER
   /// \brief Create a GOT entry for the TP offset of a TLS atom.
   const GOTAtom *getGOTTPOFF(const Atom *atom) {
     auto got = _gotMap.find(atom);
@@ -214,7 +214,7 @@ protected:
     }
     return got->second;
   }
-#endif // DLINKER
+#endif // DYNLINKER
 
 public:
   RelocationPass(const ELFLinkingContext &ctx)
@@ -238,6 +238,7 @@ public:
 
     // Add all created atoms to the link.
     uint64_t ordinal = 0;
+//    if (_isStaticExe) {
     if (_ctx.getOutputELFType() == llvm::ELF::ET_EXEC) {
       MutableFile::DefinedAtomRange atomRange = mf->definedAtoms();
       auto it = atomRange.begin();
@@ -253,7 +254,7 @@ public:
       _boot->setOrdinal(ordinal++);
       mf->addAtom(*_boot);
     }
-#ifdef DLINKER
+#ifdef DYNLINKER
     if (_PLT0) {
       MutableFile::DefinedAtomRange atomRange = mf->definedAtoms();
       auto it = atomRange.begin();
@@ -285,7 +286,13 @@ public:
       got->setOrdinal(ordinal++);
       mf->addAtom(*got);
     }
-#endif // DLINKER
+#if 0
+    for (auto obj : _objectVector) {
+      obj->setOrdinal(ordinal++);
+      mf->addAtom(*obj);
+    }
+#endif
+#endif // DYNLINKER
   }
 
 protected:
@@ -298,9 +305,16 @@ protected:
 
   /// \brief Map Atoms to their PLT entries.
   llvm::DenseMap<const Atom *, PLTAtom *> _pltMap;
+#if 0
+  /// \brief Map Atoms to their Object entries.
+  llvm::DenseMap<const Atom *, ObjectAtom *> _objectMap;
+#endif
   /// \brief the list of GOT/PLT atoms
   std::vector<GOTAtom *> _gotVector;
   std::vector<PLTAtom *> _pltVector;
+#if 0
+  std::vector<ObjectAtom *> _objectVector;
+#endif
   PLT0Atom *_boot;
 
   /// \brief GOT entry that is always 0. Used for undefined weaks.
@@ -311,6 +325,8 @@ protected:
   /// @{
   PLT0Atom *_PLT0;
   GOTAtom *_got0;
+public:
+  bool _isStaticExe;
   /// @}
 };
 
@@ -353,7 +369,7 @@ public:
   }
 };
 
-#ifdef DLINKER
+#ifdef DYNLINKER
 class DynamicRelocationPass LLVM_FINAL
     : public RelocationPass<DynamicRelocationPass> {
 public:
@@ -367,6 +383,9 @@ public:
     getNullGOT();
     _PLT0 = new (_file._alloc) Cpu0PLT0Atom(_file);
     _got0 = new (_file._alloc) Cpu0GOTAtom(_file, ".got.plt");
+#if 0
+    _PLT0->addReference(R_CPU0_GOT16, 0, _got0, -2); // debug
+#endif
 #ifndef NDEBUG
     _got0->_name = "__got0";
 #endif
@@ -381,6 +400,7 @@ public:
     ga->addReference(R_CPU0_JUMP_SLOT, 0, a, 0);
     auto pa = new (_file._alloc) Cpu0PLTAtom(_file, ".plt");
     getPLT0();  // add _PLT0 and _got0
+    pa->addReference(LLD_R_CPU0_GOTRELINDEX, 0, ga, -2);
     // Set the starting address of the got entry to the second instruction in
     // the plt entry.
     ga->addReference(R_CPU0_32, 0, pa, 4);
@@ -396,10 +416,33 @@ public:
     _pltVector.push_back(pa);
     return pa;
   }
+#if 0
+  const ObjectAtom *getObjectEntry(const SharedLibraryAtom *a) {
+    auto obj = _objectMap.find(a);
+    if (obj != _objectMap.end())
+      return obj->second;
+
+    auto oa = new (_file._alloc) ObjectAtom(_file);
+    // This needs to point to the atom that we just created.
+    oa->addReference(R_CPU0_PC24, 0, oa, 0);
+
+    oa->_name = a->name();
+    oa->_size = a->size();
+
+    _objectMap[a] = oa;
+    _objectVector.push_back(oa);
+    return oa;
+  }
+#endif
   ErrorOr<void> handlePlain(const Reference &ref) {
     if (!ref.target())
       return error_code::success();
     if (auto sla = dyn_cast<SharedLibraryAtom>(ref.target())) {
+#if 0
+      if (sla->type() == SharedLibraryAtom::Type::Data)
+        const_cast<Reference &>(ref).setTarget(getObjectEntry(sla));
+      else 
+#endif
       if (sla->type() == SharedLibraryAtom::Type::Code) {
         const_cast<Reference &>(ref).setTarget(getPLTEntry(sla));
         // When caller of execution file call shared library function
@@ -453,23 +496,23 @@ public:
     return error_code::success();
   }
 };
-#endif // DLINKER
+#endif // DYNLINKER
 } // end anon namespace
 
 std::unique_ptr<Pass>
 lld::elf::createCpu0RelocationPass(const Cpu0LinkingContext &ctx) {
   switch (ctx.getOutputELFType()) {
   case llvm::ELF::ET_EXEC:
-#ifdef DLINKER
+#ifdef DYNLINKER
     if (ctx.isDynamic())
       return std::unique_ptr<Pass>(new DynamicRelocationPass(ctx));
     else
-#endif // DLINKER
+#endif // DYNLINKER
       return std::unique_ptr<Pass>(new StaticRelocationPass(ctx));
-#ifdef DLINKER
+#ifdef DYNLINKER
   case llvm::ELF::ET_DYN:
     return std::unique_ptr<Pass>(new DynamicRelocationPass(ctx));
-#endif // DLINKER
+#endif // DYNLINKER
   case llvm::ELF::ET_REL:
     return std::unique_ptr<Pass>();
   default:

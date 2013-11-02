@@ -34,7 +34,7 @@ int main()
   a = la(1, 2);
   printf("la(1, 2) = %d\n", a);
 #endif
-#if 0
+#if 1
   a = foo(1, 2);
   printf("foo(1, 2) = %d\n", a);
 #endif
