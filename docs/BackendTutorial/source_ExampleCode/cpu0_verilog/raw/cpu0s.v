@@ -1,7 +1,7 @@
 // TRACE: Display the memory contents of the loaded program and data
 //`define TRACE 
-`define DYNLINKER  // Dynamic Linker Support
-//`define DYNDEBUG   // Dynamic Linker Debug
+`define DLINKER  // Dynamic Linker Support
+//`define DEBUG_DLINKER   // Dynamic Linker Debug
 
 `define MEMSIZE   'h80000
 `define MEMEMPTY   8'hFF
@@ -325,7 +325,7 @@ endmodule
 module memory0(input clock, reset, en, rw, input [1:0] m_size, 
                 input [31:0] abus, dbus_in, output [31:0] dbus_out);
   reg [7:0] m [0:`MEMSIZE-1];
-`ifdef DYNLINKER
+`ifdef DLINKER
   reg [7:0] flash [0:`MEMSIZE-1];
   reg [7:0] dsym [0:192-1];
   reg [7:0] dstr [0:96-1];
@@ -344,7 +344,7 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
 
   integer i;
 
-`ifdef DYNLINKER
+`ifdef DLINKER
 `include "dynlinker.v"
 `endif
   initial begin
@@ -361,7 +361,7 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
         $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
       end
     `endif
-`ifdef DYNLINKER
+`ifdef DLINKER
   loadToFlash();
   createDynInfo();
 `endif
@@ -387,7 +387,7 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
         endcase
       end else
         data = 32'hZZZZZZZZ;
-  `ifdef DYNLINKER
+  `ifdef DLINKER
   `include "flashio.v"
   `endif
     end else 

@@ -1,26 +1,26 @@
-`define DYNLINKER_INFO_ADDR  'h70000
+`define DLINKER_INFO_ADDR  'h70000
 `define GPADDR    'h7FFF0
 
-`ifdef DYNLINKER
+`ifdef DLINKER
   task setDynLinkerInfo; begin
 // below code set memory as follows,
 //                                                            (4 bytes) 
 //                                                        ---------------------------------------
-// DYNLINKER_INFO_ADDR ---------->                        | numDynEntry                         |
+// DLINKER_INFO_ADDR ---------->                        | numDynEntry                         |
 //                                                        ---------------------------------------
-// DYNLINKER_INFO_ADDR+4 -------->                        | index of dynsym (0st row)           |
+// DLINKER_INFO_ADDR+4 -------->                        | index of dynsym (0st row)           |
 //   above is the 1st word of section .dynsym of libfoobar.cpu0.so. 
-// DYNLINKER_INFO_ADDR+8 -------->                        | index of dynsym (1st row)           |
+// DLINKER_INFO_ADDR+8 -------->                        | index of dynsym (1st row)           |
 //                                                        | ...                                 |
-// DYNLINKER_INFO_ADDR+(numDynEntry-1)*4 ---------------> | index of dynsym (the last row)      |
+// DLINKER_INFO_ADDR+(numDynEntry-1)*4 ---------------> | index of dynsym (the last row)      |
 //                                                        ---------------------------------------
-// DYNLINKER_INFO_ADDR+numDynEntry*4 -------------------> | 1st function (foo()) offset in lib  |
-// DYNLINKER_INFO_ADDR+numDynEntry*4+4 -----------------> | 1st function (foo()) name (48 bytes)|
+// DLINKER_INFO_ADDR+numDynEntry*4 -------------------> | 1st function (foo()) offset in lib  |
+// DLINKER_INFO_ADDR+numDynEntry*4+4 -----------------> | 1st function (foo()) name (48 bytes)|
 //                                                        | ...                                 |
-// DYNLINKER_INFO_ADDR+numDynEntry+(numDynEntry-1)*4 ---> | last function (foo()) offset in lib |
-// DYNLINKER_INFO_ADDR+numDynEntry+(numDynEntry-1)*4+4 -> | last function (foo()) name          |
+// DLINKER_INFO_ADDR+numDynEntry+(numDynEntry-1)*4 ---> | last function (foo()) offset in lib |
+// DLINKER_INFO_ADDR+numDynEntry+(numDynEntry-1)*4+4 -> | last function (foo()) name          |
 //                                                        ---------------------------------------
-// DYNLINKER_INFO_ADDR+4+numDynEntry*4+numDynEntry*52 --> | .dynstr of lib                      |
+// DLINKER_INFO_ADDR+4+numDynEntry*4+numDynEntry*52 --> | .dynstr of lib                      |
 //                                                        |   ...                               |
 //                                                        ---------------------------------------
   // caculate number of dynamic entries
@@ -34,13 +34,13 @@
          $display("numDynEntry = %8x", numDynEntry);
        end
     end
-  // save number of dynamic entries to memory address `DYNLINKER_INFO_ADDR
-    m[`DYNLINKER_INFO_ADDR] = numDynEntry[31:24];
-    m[`DYNLINKER_INFO_ADDR+1] = numDynEntry[23:16];
-    m[`DYNLINKER_INFO_ADDR+2] = numDynEntry[15:8];
-    m[`DYNLINKER_INFO_ADDR+3] = numDynEntry[7:0];
-  // copy section .dynsym of ELF to memory address `DYNLINKER_INFO_ADDR+4
-    i = `DYNLINKER_INFO_ADDR+4;
+  // save number of dynamic entries to memory address `DLINKER_INFO_ADDR
+    m[`DLINKER_INFO_ADDR] = numDynEntry[31:24];
+    m[`DLINKER_INFO_ADDR+1] = numDynEntry[23:16];
+    m[`DLINKER_INFO_ADDR+2] = numDynEntry[15:8];
+    m[`DLINKER_INFO_ADDR+3] = numDynEntry[7:0];
+  // copy section .dynsym of ELF to memory address `DLINKER_INFO_ADDR+4
+    i = `DLINKER_INFO_ADDR+4;
     for (j=0; j < (4*numDynEntry); j=j+4) begin
       m[i] = dsym[j];
       m[i+1] = dsym[j+1];
@@ -49,8 +49,8 @@
       i = i + 4;
     end
   // copy the offset values of section .text of shared library .so of ELF to 
-  // memory address `DYNLINKER_INFO_ADDR+4+numDynEntry*4
-    i = `DYNLINKER_INFO_ADDR+4+numDynEntry*4;
+  // memory address `DLINKER_INFO_ADDR+4+numDynEntry*4
+    i = `DLINKER_INFO_ADDR+4+numDynEntry*4;
     l = 0;
     for (j=0; j < numDynEntry; j=j+1) begin
       for (k=0; k < 52; k=k+1) begin
@@ -59,23 +59,23 @@
         l = l + 1;
       end
     end
-  `ifdef DYNDEBUG
-    i = `DYNLINKER_INFO_ADDR+4+numDynEntry*4;
+  `ifdef DEBUG_DLINKER
+    i = `DLINKER_INFO_ADDR+4+numDynEntry*4;
     for (j=0; j < (8*numDynEntry); j=j+8) begin
        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
       i = i + 8;
     end
   `endif
   // copy section .dynstr of ELF to memory address 
-  // `DYNLINKER_INFO_ADDR+4+numDynEntry*4+numDynEntry*52
-    i=`DYNLINKER_INFO_ADDR+4+numDynEntry*4+numDynEntry*52;
+  // `DLINKER_INFO_ADDR+4+numDynEntry*4+numDynEntry*52
+    i=`DLINKER_INFO_ADDR+4+numDynEntry*4+numDynEntry*52;
     for (j=0; dstr[j] != `MEMEMPTY; j=j+1) begin
       m[i] = dstr[j];
       i = i + 1;
     end
-  `ifdef DYNDEBUG
+  `ifdef DEBUG_DLINKER
     $display("In setDynLinkerInfo()");
-    for (i=`DYNLINKER_INFO_ADDR; i < `MEMSIZE; i=i+4) begin
+    for (i=`DLINKER_INFO_ADDR; i < `MEMSIZE; i=i+4) begin
        if (m[i] != `MEMEMPTY || m[i+1] != `MEMEMPTY || 
          m[i+2] != `MEMEMPTY || m[i+3] != `MEMEMPTY)
          $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
@@ -141,7 +141,7 @@
 
   // .got.plt offset(0x00.0x03) has been set to 0 in elf already.
   // Set .got.plt offset(8'h10..numDynEntry*'8h10) point to plt entry as above.
-  `ifdef DYNDEBUG
+  `ifdef DEBUG_DLINKER
          $display("numDynEntry = %8x", numDynEntry);
   `endif
 //      j32=32'h1fc0; // m[32'h1fc]="something" will hang. Very tricky
@@ -157,7 +157,7 @@
       m[gp+16+i*4+3] = j32[7:0];
       j32=j32+16;
     end
-  `ifdef DYNDEBUG
+  `ifdef DEBUG_DLINKER
     // show (gp..gp+numDynEntry*4-1)
     for (i=0; i < numDynEntry; i=i+1) begin
       $display("%8x: %8x", gp+16+i*4, {m[gp+16+i*4], m[gp+16+i*4+1], 
@@ -176,14 +176,14 @@
   end endtask
 `endif
 
-`ifdef DYNLINKER
+`ifdef DLINKER
   task loadToFlash; begin
   // erase memory
     for (i=0; i < `MEMSIZE; i=i+1) begin
        flash[i] = `MEMEMPTY;
     end
     $readmemh("libso.hex", flash);
-`ifdef DYNDEBUG
+`ifdef DEBUG_DLINKER
     for (i=0; i < `MEMSIZE && (flash[i] != `MEMEMPTY || 
          flash[i+1] != `MEMEMPTY || flash[i+2] != `MEMEMPTY || 
          flash[i+3] != `MEMEMPTY); i=i+4) begin
@@ -193,7 +193,7 @@
   end endtask
 `endif
 
-`ifdef DYNLINKER
+`ifdef DLINKER
   task createDynInfo; begin
     $readmemh("global_offset", globalAddr);
     m[`GPADDR]   = globalAddr[0];
@@ -204,13 +204,13 @@
     gp[23:16] = globalAddr[1];
     gp[15:8] = globalAddr[2];
     gp[7:0] = globalAddr[3];
-`ifdef DYNDEBUG
+`ifdef DEBUG_DLINKER
     $display("global address %8x", {m[`GPADDR], m[`GPADDR+1], 
              m[`GPADDR+2], m[`GPADDR+3]});
     $display("gp = %8x", gp);
 `endif
 `endif
-`ifdef DYNLINKER
+`ifdef DLINKER
     for (i=0; i < 192; i=i+1) begin
        dsym[i] = `MEMEMPTY;
     end

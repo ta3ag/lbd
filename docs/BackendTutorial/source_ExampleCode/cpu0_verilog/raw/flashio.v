@@ -1,6 +1,6 @@
 `define FLASHADDR 'hA0000
 
-`ifdef DYNLINKER
+`ifdef DLINKER
     end else if (abus >= `FLASHADDR && abus <= `FLASHADDR+`MEMSIZE-4) begin
       fabus = abus-`FLASHADDR;
       if (en == 1 && rw == 0) begin // r_w==0:write
