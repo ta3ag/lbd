@@ -25,9 +25,9 @@ LLD project is underdevelopment and can be compiled with c++11 standard (C++
 2011 year announced standard). Currently, we only know how to build lld with 
 llvm on Linux platform or Linux VM. Please let us know if you know how to build
 it on iMac with Xcode. So, if you got iMac only, please install VM (such as 
-Virtual Box). We porting lld Cpu0 at 2013/08/16, so please checkout the
+Virtual Box). We porting lld Cpu0 at 2013/10/30, so please checkout the
 commit id 99a43d3b8f5cf86b333055a56220c6965fd9ece4(llvm) and
-5d1737ac704352357fd28cfe3b2daf9aa308fb86(lld) which commited at 2013/08/30 as follows,
+5d1737ac704352357fd28cfe3b2daf9aa308fb86(lld) which commited at 2013/10/30 as follows,
 
 .. code-block:: bash
 
@@ -76,7 +76,7 @@ commit id 99a43d3b8f5cf86b333055a56220c6965fd9ece4(llvm) and
   HEAD is now at 014d684... [PECOFF] Handle "--" option explicitly
 
 
-Next, update llvm 2013/08/30 source code to support Cpu0 as follows,
+Next, update llvm 2013/10/30 source code to support Cpu0 as follows,
 
 .. code-block:: bash
 
@@ -152,7 +152,7 @@ Finally, update llvm-objdump to support convert ELF file to Hex file as follows,
   [Gamma@localhost llvm-objdump]$ cp -rf ~/test/lbd/docs/BackendTutorial/
   LLVMBackendTutorialExampleCode/llvm-objdump/* .
 
-Now, build llvm/lld 2013/08/16 with Cpu0 support as follows,
+Now, build llvm/lld with Cpu0 support as follows,
 
 
 .. code-block:: bash
@@ -170,8 +170,8 @@ Now, build llvm/lld 2013/08/16 with Cpu0 support as follows,
   -- Build files have been written to: /home/Gamma/test/lld/cmake_debug_build
 
 
-Cpu0 lld
----------
+Cpu0 lld souce code
+---------------------
 
 The code added on lld to support Cpu0 ELF as follows,
 
@@ -251,6 +251,11 @@ The code added on lld to support Cpu0 ELF as follows,
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp
 
 
+Above code in Cpu0 lld support both the static and dynamic link. 
+The "#ifdef DLINKER" is for dynamic link support. There are only just over 1 
+thousand of code in it. Half of the code size is support the dynamic linker.
+
+
 ELF to Hex
 -----------
 
@@ -269,8 +274,13 @@ backend as follows,
     :end-before: // 2 llvm-objdump -elf2hex code udpate end:
 
 
+Static linker 
+---------------
+
+Let's run the static linker first and explain it next.
+
 Run
------
+~~~~
 
 File printf-stdarg.c came from internet download which is GPL2 license. GPL2 
 is more restricted than LLVM license. File printf-stdarg-2.c is modified from 
@@ -280,11 +290,6 @@ File printf-stdarg-1.c is file for testing the printf()
 function implemented on PC OS platform. Let's run printf-stdarg-2.c on Cpu0 and
 compare with the result of printf() function which implemented by PC OS as 
 below.
-The start.ll is got from editing the function name of start.cpp generated output
-by ``clang -target mips-unknown-linux-gnu -c start.c -emit-llvm -o start.bc``
-and ``llvm-dis start.bc -o start.ll`` as below. The function _start() is the 
-first function run just before main() in ELF. 
-You should put start.ll as the first file in lld command as below.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-1.c
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-1.c
@@ -302,39 +307,40 @@ You should put start.ll as the first file in lld command as below.
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/start.cpp
     :start-after: /// start
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/start.ll
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/start.ll
-    
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/build-printf-stdarg-2.sh
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/build-printf-stdarg-2.sh
+
+Please change the cpu0_verilog/cpu0s.v to support static linker run by unmark 
+"`define DLINKER" and make sure it use Chapter12_2 instructions as follows,
+
+.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0s.v
+
+  `define CPU0_REDESIGN_INSTRUCTION
+  ...
+  //`define DLINKER  // Dynamic Linker Support
+
+
+The build-printf-stdarg-2.sh is for my PC setting. Please change this script to
+your lld installed directory and run static linker example code as follows,
+
 .. code-block:: bash
 
-  [Gamma@localhost InputFiles]$ /usr/local/llvm/release/cmake_debug_build/bin/
-  clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o 
-  printf-stdarg.bc
-  [Gamma@localhost InputFiles]$ /usr/local/llvm/release/cmake_debug_build/bin/
-  clang -target mips-unknown-linux-gnu -c printf-stdarg-2.c -emit-llvm -o
-  printf-stdarg-2.bc
+  [Gamma@localhost cpu0_verilog]$ pwd
+  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
+  [Gamma@localhost cpu0_verilog]$ bash clean.sh
+  [Gamma@localhost InputFiles]$ cd ../InputFiles/
+  [Gamma@localhost InputFiles]$ bash build-printf-stdarg-2.sh
   printf-stdarg.c:102:19: warning: incomplete format specifier [-Wformat]
     printf("%d %s(s)%", 0, "message");
                     ^
   1 warning generated.
-  [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/llc 
-  -march=cpu0 -relocation-model=static -filetype=obj start.ll -o start.cpu0.o
-  [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/llc 
-  -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg.bc -o 
-  printf-stdarg.cpu0.o
-  [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/llc
-  -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg-2.bc -o
-  printf-stdarg-2.cpu0.o
-  [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/lld 
-  -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o printf-stdarg.cpu0.o 
-  printf-stdarg-2.cpu0.o -o a.out
-  [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/
-  llvm-objdump -elf2hex a.out > ../cpu0_verilog/redesign/cpu0s.hex
-  [Gamma@localhost InputFiles]$ cd ../cpu0_verilog/redesign/
-  [Gamma@localhost redesign]$ iverilog -o cpu0s cpu0s.v 
-  [Gamma@localhost redesign]$ ls
-  cpu0s  cpu0s.hex  cpu0s.v
-  [Gamma@localhost redesign]$ ./cpu0s 
+  [Gamma@localhost InputFiles]$ cd ../cpu0_verilog/
+  [Gamma@localhost cpu0_verilog]$ pwd
+  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
+  [Gamma@localhost cpu0_verilog]$ iverilog -o cpu0s cpu0s.v 
+  [Gamma@localhost cpu0_verilog]$ ls
+  clean.sh cpu0s  cpu0s.hex  cpu0s.v dynlinker.v  flashio.v   readme
+  [Gamma@localhost cpu0_verilog]$ ./cpu0s 
   WARNING: cpu0s.v:317: $readmemh(cpu0s.hex): Not enough words in the file for 
   the requested range [0:65535].
   taskInterrupt(001)
@@ -359,6 +365,9 @@ You should put start.ll as the first file in lld command as below.
    3: 3    left justif.
    3:    3 right justif.
   -3: -003 zero padded
+
+Let's check the result with PC program printf-stdarg-1.c output as follows,
+
 
   [Gamma@localhost InputFiles]$ gcc printf-stdarg-1.c
   /usr/lib/gcc/x86_64-redhat-linux/4.7.2/../../../../lib64/crt1.o: In function 
@@ -388,7 +397,47 @@ You should put start.ll as the first file in lld command as below.
   -3:   -3 right justif.
 
 They are same after the "Hello world!" of printf() function support.
-The LLVMBackendTutorialExampleCode/3.4_20130816_Chapter12_1/ work fine too.
+The 3.4_1030_Chapter12_2 use slt instruction. You can verify the Chapter12_1 
+instructions is work fine too as follows,
+
+1. Unmark "#define CPU0_REDESIGN_INSTRUCTION" in Cpu0.h and change cpu0s.v to 
+use Chapter12_1 instructions as follows,
+
+.. rubric:: LLVMBackendTutorialExampleCode/3.4_1030_Chapter12_2/Cpu0.h
+
+//#define CPU0_REDESIGN_INSTRUCTION
+
+.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0s.v
+
+  //`define CPU0_REDESIGN_INSTRUCTION
+  ...
+  //`define DLINKER  // Dynamic Linker Support
+
+2. Replace with Chapter12_1 instruction by terminal command and re-build,
+
+  [Gamma@localhost Cpu0]$ pwd
+  /home/Gamma/test/lld/src/lib/Target/Cpu0
+  [Gamma@localhost Cpu0]$ ls raw/
+  Cpu0InstrInfo.td  Cpu0RegisterInfo.td
+  [Gamma@localhost Cpu0]$ cp raw/* .
+  [Gamma@localhost Cpu0]$ cd ../../../../cmake_debug_build/
+  [Gamma@localhost cmake_debug_build]$ pwd
+  /home/Gamma/test/lld/cmake_debug_build
+  [Gamma@localhost cmake_debug_build]$ make
+
+3. Re-build verilog and execution as follows,
+  [Gamma@localhost cpu0_verilog]$ pwd
+  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog[Gamma@localhost cpu0_verilog]$ bash clean.sh 
+  [Gamma@localhost cpu0_verilog]$ iverilog -o cpu0s cpu0s.v
+  ...
+  [Gamma@localhost InputFiles]$ pwd
+  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/InputFiles
+  [Gamma@localhost InputFiles]$ bash build-printf-stdarg-2.sh
+  printf-stdarg-2.c:85:19: warning: incomplete format specifier [-Wformat]
+    printf("%d %s(s)%", 0, "message");
+                    ^
+
+
 It's use Chapter12_1 cmp, jeq, ..., instructions instead of slt, beq, ..., 
 instructions of Chapter12_2.
 
