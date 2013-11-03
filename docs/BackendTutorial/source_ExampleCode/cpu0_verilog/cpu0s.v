@@ -59,7 +59,9 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   parameter [7:0] LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,LH=8'h06,
   LHu=8'h07,SH=8'h08,ADDiu=8'h09,ANDi=8'h0C,ORi=8'h0D,
   XORi=8'h0E,LUi=8'h0F,
+`ifndef CPU0_REDESIGN_INSTRUCTION
   CMP=8'h10,
+`endif
   ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,MUL=8'h17,
   AND=8'h18,OR=8'h19,XOR=8'h1A,
   ROL=8'h1B,ROR=8'h1C,SRA=8'h1D,SHL=8'h1E,SHR=8'h1F,
