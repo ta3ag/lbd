@@ -1,3 +1,4 @@
+`define CPU0_REDESIGN_INSTRUCTION
 // TRACE: Display the memory contents of the loaded program and data
 //`define TRACE 
 `define DLINKER  // Dynamic Linker Support
@@ -63,7 +64,12 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   AND=8'h18,OR=8'h19,XOR=8'h1A,
   ROL=8'h1B,ROR=8'h1C,SRA=8'h1D,SHL=8'h1E,SHR=8'h1F,
   SRAV=8'h20,SHLV=8'h21,SHRV=8'h22,
+`ifdef CPU0_REDESIGN_INSTRUCTION
+  SLTi=8'h26,SLTiu=8'h27, SLT=8'h28,SLTu=8'h29,
+  BEQ=8'h30,BNE=8'h31,
+`else
   JEQ=8'h30,JNE=8'h31,JLT=8'h32,JGT=8'h33,JLE=8'h34,JGE=8'h35,
+`endif
   JMP=8'h36,
   SWI=8'h3A,JSUB=8'h3B,RET=8'h3C,IRET=8'h3D,JALR=8'h3E,
   MULT=8'h41,MULTu=8'h42,DIV=8'h43,DIVu=8'h44,
@@ -192,7 +198,9 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       SH:    memWriteStart(Rb+c16, Ra, `INT16);
       // Mathematic 
       ADDiu: R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra<=Rb+Cx
+`ifndef CPU0_REDESIGN_INSTRUCTION
       CMP:   begin `N=(Ra-Rb<0);`Z=(Ra-Rb==0); end // CMP Ra, Rb; SW=(Ra >=< Rb)
+`endif
       ADDu:  regSet(a, Rb+Rc);               // ADDu Ra,Rb,Rc; Ra<=Rb+Rc
       ADD:   begin regSet(a, Rb+Rc); if (a < Rb) `V = 1; else `V =0; end
                                              // ADD Ra,Rb,Rc; Ra<=Rb+Rc
@@ -239,6 +247,16 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       MULTu: {HI, LO}=URa*URb;      // MULT URa,URb; HI<=((URa*URb)>>32); 
                                     // LO<=((URa*URb) and 0x00000000ffffffff);
                                     // without exception overflow
+`ifdef CPU0_REDESIGN_INSTRUCTION
+      // set
+      SLT:   if (Rb < Rc) R[a]=1; else R[a]=0;
+      SLTu:  if (Rb < Rc) R[a]=1; else R[a]=0;
+      SLTi:  if (Rb < c16) R[a]=1; else R[a]=0;
+      SLTiu: if (Rb < c16) R[a]=1; else R[a]=0;
+      // Branch Instructions
+      BEQ:   if (Ra==Rb) `PC=`PC+c16; 
+      BNE:   if (Ra!=Rb) `PC=`PC+c16;
+`else
       // Jump Instructions
       JEQ:   if (`Z) `PC=`PC+c24;            // JEQ Cx; if SW(=) PC  PC+Cx
       JNE:   if (!`Z) `PC=`PC+c24;           // JNE Cx; if SW(!=) PC PC+Cx
@@ -246,6 +264,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       JGT:   if (!`N&&!`Z) `PC=`PC+c24;      // JGT Cx; if SW(>) PC  PC+Cx
       JLE:   if (`N || `Z) `PC=`PC+c24;      // JLE Cx; if SW(<=) PC PC+Cx    
       JGE:   if (!`N || `Z) `PC=`PC+c24;     // JGE Cx; if SW(>=) PC PC+Cx
+`endif
       JMP:   `PC = `PC+c24;                  // JMP Cx; PC <= PC+Cx
       SWI:   begin 
         `LR=`PC;`PC= c24; `I0 = 1'b1; `I = 1'b1;
