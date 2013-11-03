@@ -18,7 +18,7 @@ ConvertElf2Hex("elf2hex",
 cl::desc("Display the hex content of verilog cpu0 needed sections"));
 
 static cl::opt<bool>
-DumpSo("cpu0dumpso", 
+DumpSo("dumpso", 
 cl::desc("Dump shared library .so"));
 
 static cl::opt<bool>
@@ -133,118 +133,36 @@ static void GetSymbolTableStartAddress(const ObjectFile *o, StringRef sectionNam
   }
 }
 
-class Cpu0DynFunIndex {
-private:
-  char soStrtab[20][100];
-  int soStrtabSize = 0;
+char dynStr[20][100];
+int dynStrSize = 0;
 
-  char exePltName[20][100];
-  int exePltNameSize = 0;
+char pltStr[20][100];
+int pltStrSize = 0;
 
-  int findPltName(const char* pltName);
-public:
-  void createPltName(const ObjectFile *o);
-  void createStrtab();
-  uint16_t correctDynFunIndex(const char* pltName);
-};
-
-int Cpu0DynFunIndex::findPltName(const char* pltName) {
-  for (int i = 0; i < exePltNameSize; i++)
-    if (strcmp(pltName, exePltName[i]) == 0)
+int findInPltStr(const char* str) {
+  for (int i = 0; i < pltStrSize; i++)
+    if (strcmp(str, pltStr[i]) == 0)
       return i;
   return -1;
 }
 
-void Cpu0DynFunIndex::createPltName(const ObjectFile *o) {
-  error_code ec;
-  std::string Error;
-
-  for (section_iterator si = o->begin_sections(),
-                        se = o->end_sections();
-                        si != se; si.increment(ec)) {
-    if (error(ec)) return;
-    StringRef Name;
-    StringRef Contents;
-    uint64_t BaseAddr;
-    bool BSS;
-    if (error(si->getName(Name))) continue;
-    if (error(si->getContents(Contents))) continue;
-    if (error(si->getAddress(BaseAddr))) continue;
-    if (error(si->isBSS(BSS))) continue;
-
-    if (Name == ".strtab") {
-      int num_dyn_entry = 0;
-      FILE *fd_num_dyn_entry;
-      fd_num_dyn_entry = fopen("num_dyn_entry", "r");
-      if (fd_num_dyn_entry != NULL) {
-        fscanf(fd_num_dyn_entry, "%d", &num_dyn_entry);
-      }
-      fclose(fd_num_dyn_entry);
-
-      for (std::size_t addr = 2+strlen(".PLT0"), end = Contents.size(); 
-           addr < end; ) {
-        if (Contents.substr(addr, strlen("__plt_")) != "__plt_")
-          break;
-        strcpy(exePltName[exePltNameSize], Contents.data()+addr);
-        addr = addr + strlen(exePltName[exePltNameSize]) + 1;
-        exePltNameSize++;
-      }
-      break;
-    }
-  }
-}
-
-void Cpu0DynFunIndex::createStrtab() {
-  FILE *fd_dynstrAscii;
-
-  fd_dynstrAscii = fopen("dynstrAscii", "r");
-  if (fd_dynstrAscii == NULL)
-    fclose(fd_dynstrAscii);
-  assert(fd_dynstrAscii != NULL && "fd_dynstr == NULL");
+int findStrNumFromStrArrayByStr(const char* array[100], const char* str) {
   int i = 0;
-  // function                  result on EOF or error                    
-  // --------                  ----------------------
-  // fgets()                   NULL
-  // fscanf()                  number of succesful conversions
-  //                             less than expected
-  // fgetc()                   EOF
-  // fread()                   number of elements read
-  //                             less than expected
-  int j = 0;
-  for (i=0; 1; i++) {
-    j=fscanf(fd_dynstrAscii, "%s", soStrtab[i]);
-    if (j != 1)
-      break;
-  }
-  soStrtabSize = i;
-  fclose(fd_dynstrAscii);
+  for (i=0; 1; i++)
+    if (strcmp(array[i], str) == 0)
+      return i;
+  return -1;
 }
-
-uint16_t Cpu0DynFunIndex::correctDynFunIndex(const char* pltName) {
-  int i = findPltName(pltName);
-  if (i != -1) {
-    int j = 0;
-    for (j=0; j < soStrtabSize; j++)
-      if (strcmp(soStrtab[j], (const char*)exePltName[i]+strlen("__plt_")) == 0)
-        break;
-    if (j == soStrtabSize) {
-      outs() << "cannot find " << exePltName[i] << "\n";
-      exit(1);
-    }
-    j++;
-    return (uint16_t)(j & 0xffff);
-  }
-  return (uint16_t)0;
-}
-
-Cpu0DynFunIndex cpu0DynFunIndex;
 
 // Modified from DisassembleObject()
-static void DisassembleObjectInHexFormat(const ObjectFile *Obj
-/*, bool InlineRelocs*/  , uint64_t& lastDumpAddr) {
+static void DisassembleObjectForHex(const ObjectFile *Obj/*, bool InlineRelocs*/
+  , uint64_t& lastAddr) {
   std::string Error;
   uint64_t soLastPrintAddr = 0;
+  bool firstTime = true;
   FILE *fd_so_func_offset;
+  FILE *fd_dynstr;
+  FILE *fd_dynstrAscii;
   int num_dyn_entry = 0;
   if (DumpSo) {
     fd_so_func_offset = fopen("so_func_offset", "w");
@@ -253,7 +171,26 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
     assert(fd_so_func_offset != NULL && "fd_so_func_offset == NULL");
   }
   if (LinkSo) {
-    cpu0DynFunIndex.createStrtab();
+    fd_dynstrAscii = fopen("dynstrAscii", "r");
+    if (fd_dynstrAscii == NULL)
+      fclose(fd_dynstrAscii);
+//    assert(fd_dynstrAscii != NULL && "fd_dynstr == NULL");
+    int i = 0;
+    // function                  result on EOF or error                    
+    // --------                  ----------------------
+    // fgets()                   NULL
+    // fscanf()                  number of succesful conversions
+    //                             less than expected
+    // fgetc()                   EOF
+    // fread()                   number of elements read
+    //                             less than expected
+    int j;
+    for (i=0; 1; i++) {
+      j=fscanf(fd_dynstrAscii, "%s", dynStr[i]);
+      if (j != 1)
+        break;
+    }
+    dynStrSize = i;
   }
 
   const Target *TheTarget = getTarget(Obj);
@@ -506,10 +443,26 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
       }
 
       outs() << '\n' << "/*" << Symbols[si].second << ":*/\n";
-      uint16_t funIndex = 0;
+      int num = 0;
+      int j = 0;
+      uint8_t correctDynsym[2];
+      bool needCorrectPlt = false;
       if (LinkSo) {
-      // correctDynFunIndex
-        funIndex = cpu0DynFunIndex.correctDynFunIndex(Symbols[si].second.data());
+        num = findInPltStr(Symbols[si].second.data());
+        if (num != -1) {
+/*          num = findStrNumFromStrArrayByStr((const char*[100])dynStr, 
+                  (const char*)(pltStr[num]+strlen("__plt_")));*/
+          for (j=0; j < dynStrSize; j++)
+            if (strcmp(dynStr[j], (const char*)pltStr[num]+strlen("__plt_")) == 0)
+              break;
+          if (j == dynStrSize) {
+            outs() << "cannot find " << pltStr[num] << "\n";
+            return;
+          }
+          correctDynsym[0] = (uint8_t)(j & 0xff);
+          correctDynsym[1] = (uint8_t)((j & 0xff00) >> 8);
+          needCorrectPlt = true;
+        }
       }
 
 #ifndef NDEBUG
@@ -521,18 +474,18 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
       for (Index = Start; Index < End; Index += Size) {
         MCInst Inst;
 
-        if (LinkSo && funIndex && Index == Start) {
-          outs() << format("/*%8" PRIx64 ":*/\t", /*SectionAddr + */lastDumpAddr+Index);
-          outs() << "09 60 " << format("%02" PRIx64, funIndex & 0xff00)
-                  << format(" %02" PRIx64, funIndex & 0x00ff);
-          outs() << "                                  /* addiu\t$t9, $zero, " 
-                 << funIndex << "($gp)*/\n";
+        if (LinkSo && needCorrectPlt && Index == Start) {
+          outs() << format("/*%8" PRIx64 ":*/ ", /*SectionAddr + */lastAddr+Index);
+          outs() << "09 60 " << format("%02" PRIx64, correctDynsym[1])
+                  << format(" %02" PRIx64, correctDynsym[0]);
+          outs() << "                                  /* addiu $t9, $zero, " 
+                 << ((correctDynsym[1] << 8) | correctDynsym[0]) << "*/\n";
         }
         else {
           if (DisAsm->getInstruction(Inst, Size, memoryObject,
                                      SectionAddr + Index,
                                      DebugOut, CommentStream)) {
-            outs() << format("/*%8" PRIx64 ":*/", /*SectionAddr + */lastDumpAddr+Index);
+            outs() << format("/*%8" PRIx64 ":*/", /*SectionAddr + */lastAddr+Index);
             if (!NoShowRawInsn) {
               outs() << "\t";
               DumpBytes(StringRef(Bytes.data() + Index, Size));
@@ -550,8 +503,8 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
           }
         }
 
-        //  outs() << "Size = " << Size <<  "Index = " << Index << "lastDumpAddr = "
-        //         << lastDumpAddr << "\n"; // debug
+        //  outs() << "Size = " << Size <<  "Index = " << Index << "lastAddr = "
+        //         << lastAddr << "\n"; // debug
         // Print relocation for instruction.
         while (rel_cur != rel_end) {
           bool hidden = false;
@@ -579,7 +532,7 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
       if (DumpSo)
         soLastPrintAddr = End;
     }
-    lastDumpAddr += Index;
+    lastAddr += Index;
   }
   if (DumpSo) {
 // Fix the issue that __tls_get_addr appear as file offset 0.
@@ -613,10 +566,51 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
   }
 }
 
+static void saveStrtabForPlt(const ObjectFile *o, uint64_t lastAddr) {
+  error_code ec;
+  std::size_t addr, end;
+  std::string Error;
+
+  for (section_iterator si = o->begin_sections(),
+                        se = o->end_sections();
+                        si != se; si.increment(ec)) {
+    if (error(ec)) return;
+    StringRef Name;
+    StringRef Contents;
+    uint64_t BaseAddr;
+    bool BSS;
+    if (error(si->getName(Name))) continue;
+    if (error(si->getContents(Contents))) continue;
+    if (error(si->getAddress(BaseAddr))) continue;
+    if (error(si->isBSS(BSS))) continue;
+
+    if (Name == ".strtab") {
+      int num_dyn_entry = 0;
+      FILE *fd_num_dyn_entry;
+      fd_num_dyn_entry = fopen("num_dyn_entry", "r");
+      if (fd_num_dyn_entry != NULL) {
+        fscanf(fd_num_dyn_entry, "%d", &num_dyn_entry);
+      }
+      fclose(fd_num_dyn_entry);
+
+      raw_fd_ostream fd_strtab("strtab", Error);
+      for (std::size_t addr = 2+strlen(".PLT0"), end = Contents.size(); 
+           addr < end; ) {
+        if (Contents.substr(addr, strlen("__plt_")) != "__plt_")
+          break;
+        strcpy(pltStr[pltStrSize], Contents.data()+addr);
+        addr = addr + strlen(pltStr[pltStrSize]) + 1;
+        pltStrSize++;
+      }
+      break;
+    }
+  }
+}
+
 #define DYNSYM_LIB_OFFSET 9
 
 // Modified from PrintSectionContents()
-static void PrintDataSections(const ObjectFile *o, uint64_t lastDumpAddr) {
+static void PrintDataSections(const ObjectFile *o, uint64_t lastAddr) {
   error_code ec;
   std::size_t addr, end;
   std::string Error;
@@ -639,28 +633,28 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastDumpAddr) {
       if (Contents.size() <= 0) {
         continue;
       }
-      // Fill /*address*/ 00 00 00 00 between lastDumpAddr( = the address of last
+      // Fill /*address*/ 00 00 00 00 between lastAddr( = the address of last
       // end section + 1) and BaseAddr
-      uint64_t cellingLastAddr4 = ((lastDumpAddr + 3) / 4) * 4;
-      assert((lastDumpAddr < BaseAddr) && "lastDumpAddr must < BaseAddr");
+      uint64_t cellingLastAddr4 = ((lastAddr + 3) / 4) * 4;
+      assert((lastAddr < BaseAddr) && "lastAddr must < BaseAddr");
       // Fill /*address*/ bytes is odd for 4 by 00 
-      outs() << format("/*%04" PRIx64 " */", lastDumpAddr);
+      outs() << format("/*%04" PRIx64 " */", lastAddr);
       if (cellingLastAddr4 > BaseAddr) {
-        for (std::size_t i = lastDumpAddr; i < BaseAddr; ++i) {
+        for (std::size_t i = lastAddr; i < BaseAddr; ++i) {
           outs() << "00 ";
         }
         outs() << "\n";
-        lastDumpAddr = BaseAddr;
+        lastAddr = BaseAddr;
       }
       else {
-        for (std::size_t i = lastDumpAddr; i < cellingLastAddr4; ++i) {
+        for (std::size_t i = lastAddr; i < cellingLastAddr4; ++i) {
           outs() << "00 ";
         }
         outs() << "\n";
-        lastDumpAddr = cellingLastAddr4;
+        lastAddr = cellingLastAddr4;
       }
       // Fill /*address*/ 00 00 00 00 for 4 bytes (1 Cpu0 word size)
-      for (addr = lastDumpAddr, end = BaseAddr; addr < end; addr += 4) {
+      for (addr = lastAddr, end = BaseAddr; addr < end; addr += 4) {
         outs() << format("/*%04" PRIx64 " */", addr);
         outs() << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) \
         << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) << '\n';
@@ -688,12 +682,13 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastDumpAddr) {
         }
         outs() << "*/" << "\n";
       }
-      // save the end address of this section to lastDumpAddr
-      lastDumpAddr = BaseAddr + Contents.size();
+      // save the end address of this section to lastAddr
+      lastAddr = BaseAddr + Contents.size();
     }
     else if (DumpSo) {
       if (Name == ".dynsym") {
         int num_dyn_entry = 0;
+        char tt[0x30];
         FILE *fd_num_dyn_entry;
         fd_num_dyn_entry = fopen("num_dyn_entry", "r");
         if (fd_num_dyn_entry != NULL) {
@@ -743,6 +738,38 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastDumpAddr) {
         fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 8) & 0xFF);
         fd_global_offset << format("%02" PRIx64 "    ", BaseAddr & 0xFF);
       }
+      else if (Name == ".strtab") {
+        int num_dyn_entry = 0;
+        FILE *fd_num_dyn_entry;
+        fd_num_dyn_entry = fopen("num_dyn_entry", "r");
+        if (fd_num_dyn_entry != NULL) {
+          fscanf(fd_num_dyn_entry, "%d", &num_dyn_entry);
+        }
+        fclose(fd_num_dyn_entry);
+
+        raw_fd_ostream fd_strtab("strtab", Error);
+
+        // Contents of section .strtab:
+        //  0000 002e504c 5430005f 5f706c74 5f5f5a32  ..PLT0.__plt__Z2
+        //  0010 6c616969 005f5f70 6c745f5f 5a33666f  laii.__plt__Z3fo
+        //  0020 6f696900 5f5f706c 745f5f5a 33626172  oii.__plt__Z3bar
+        //  0030 76005f5f 746c735f 6765745f 61646472  v.__tls_get_addr
+#if 0
+        int count = 0;
+        for (std::size_t addr = 1, end = Contents.size(); 
+             addr < end; addr++) {
+          if (addr < end - strlen("__plt_"))
+            if (Contents.substr(addr, strlen("__plt_")) == "__plt_")
+              addr += strlen("__plt_"); // skip "_plt_"
+          fd_strtab << hexdigit((Contents[addr] >> 4) & 0xF, true)
+                     << hexdigit(Contents[addr] & 0xF, true) << " ";
+          if (count == num_dyn_entry)
+            break;
+          if (Contents[addr] == '\0')
+            count++;
+        }
+#endif
+      }
     }
   }
 }
@@ -750,10 +777,10 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastDumpAddr) {
 static void Elf2Hex(const ObjectFile *o) {
   uint64_t startAddr = GetSectionHeaderStartAddress(o, "_start");
 //  outs() << format("_start address:%08" PRIx64 "\n", startAddr);
-  uint64_t lastDumpAddr = 0;
+  uint64_t lastAddr = 0;
   if (LinkSo)
-    cpu0DynFunIndex.createPltName(o);
-  DisassembleObjectInHexFormat(o, lastDumpAddr);
-//  outs() << format("lastDumpAddr:%08" PRIx64 "\n", lastDumpAddr);
-  PrintDataSections(o, lastDumpAddr);
+    saveStrtabForPlt(o, lastAddr);
+  DisassembleObjectForHex(o, lastAddr);
+//  outs() << format("lastAddr:%08" PRIx64 "\n", lastAddr);
+  PrintDataSections(o, lastAddr);
 }
