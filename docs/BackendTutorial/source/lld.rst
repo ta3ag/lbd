@@ -25,10 +25,9 @@ LLD project is underdevelopment and can be compiled with c++11 standard (C++
 2011 year announced standard). Currently, we only know how to build lld with 
 llvm on Linux platform or Linux VM. Please let us know if you know how to build
 it on iMac with Xcode. So, if you got iMac only, please install VM (such as 
-Virtual Box). We porting lld Cpu0 at 2013/08/16, so please checkout the last
-commit of 2013/08/15 of llvm and lld or the commit id are
-da44b4f68bcf2adcb74214670a266b43a1a6888f(llvm)
-014d684d27a0f520a30285051a5c8194c87e0194(lld) as follows,
+Virtual Box). We porting lld Cpu0 at 2013/08/16, so please checkout the
+commit id 99a43d3b8f5cf86b333055a56220c6965fd9ece4(llvm) and
+5d1737ac704352357fd28cfe3b2daf9aa308fb86(lld) which commited at 2013/08/30 as follows,
 
 .. code-block:: bash
 
@@ -42,27 +41,9 @@ da44b4f68bcf2adcb74214670a266b43a1a6888f(llvm)
   Receiving objects: 100% (780029/780029), 125.74 MiB | 243 KiB/s, done.
   Resolving deltas: 100% (637206/637206), done.
   [Gamma@localhost lld]$ cd src/
-  [Gamma@localhost src]$ git log
-  ...
-  Date:   Fri Aug 16 00:15:20 2013 +0000
 
-      InstCombine: Simplify if(x!=0 && x!=-1).
-      
-      When both constants are positive or both constants are negative,
-      InstCombine already simplifies comparisons like this, but when
-      it's exactly zero and -1, the operand sorting ends up reversed
-      and the pattern fails to match. Handle that special case.
-      
-      Follow up for rdar://14689217
-      
-      git-svn-id: https://llvm.org/svn/llvm-project/llvm/trunk@188512 91177308-0d3
-
-  commit da44b4f68bcf2adcb74214670a266b43a1a6888f
-  Author: Hans Wennborg <hans@hanshq.net>
-  Date:   Thu Aug 15 23:44:31 2013 +0000
-
-  [Gamma@localhost src]$ git checkout da44b4f68bcf2adcb74214670a266b43a1a6888f
-  Note: checking out 'da44b4f68bcf2adcb74214670a266b43a1a6888f'.
+  [Gamma@localhost src]$ git checkout 99a43d3b8f5cf86b333055a56220c6965fd9ece4
+  Note: checking out '99a43d3b8f5cf86b333055a56220c6965fd9ece4'.
 
   You are in 'detached HEAD' state. You can look around, make experimental
   changes and commit them, and you can discard any commits you make in this
@@ -79,19 +60,9 @@ da44b4f68bcf2adcb74214670a266b43a1a6888f(llvm)
   [Gamma@localhost tools]$ git clone http://llvm.org/git/lld.git lld
   ...
   Resolving deltas: 100% (6422/6422), done.
-  [Gamma@localhost tools]$ cd lld/[Gamma@localhost src]$ git log
-  ...
-  Date:   Wed Aug 21 22:57:10 2013 +0000
-
-      add InputGraph functionality
-      
-      git-svn-id: https://llvm.org/svn/llvm-project/lld/trunk@188958 91177308-0d34
-
-  commit 014d684d27a0f520a30285051a5c8194c87e0194
-  Author: Hans Wennborg <hans@hanshq.net>
-  Date:   Tue Aug 13 21:44:44 2013 +0000
-  [Gamma@localhost lld]$ git checkout 014d684d27a0f520a30285051a5c8194c87e0194
-  Note: checking out '014d684d27a0f520a30285051a5c8194c87e0194'.
+  [Gamma@localhost tools]$ cd lld/
+  [Gamma@localhost lld]$ git checkout 5d1737ac704352357fd28cfe3b2daf9aa308fb86
+  Note: checking out '5d1737ac704352357fd28cfe3b2daf9aa308fb86'.
 
   You are in 'detached HEAD' state. You can look around, make experimental
   changes and commit them, and you can discard any commits you make in this
@@ -105,14 +76,14 @@ da44b4f68bcf2adcb74214670a266b43a1a6888f(llvm)
   HEAD is now at 014d684... [PECOFF] Handle "--" option explicitly
 
 
-Next, update llvm 2013/08/16 source code to support Cpu0 as follows,
+Next, update llvm 2013/08/30 source code to support Cpu0 as follows,
 
 .. code-block:: bash
 
   [Gamma@localhost src]$ pwd
   /home/Gamma/test/lld/src
   [Gamma@localhost src]$ cp -rf ~/test/lbd/docs/BackendTutorial/
-  LLVMBackendTutorialExampleCode/3.4_20130816_src_files_modify/modify/src/* .
+  LLVMBackendTutorialExampleCode/3.4_1030_src_files_modify/modify/src/* .
   [Gamma@localhost src]$ grep -R "cpu0" include/
   include/llvm/ADT/Triple.h:#undef cpu0
   include/llvm/ADT/Triple.h:    cpu0,    // For Tutorial Backend Cpu0
@@ -134,7 +105,7 @@ Next, update llvm 2013/08/16 source code to support Cpu0 as follows,
   [Gamma@localhost Target]$ mkdir Cpu0
   [Gamma@localhost Target]$ cd Cpu0/
   [Gamma@localhost Cpu0]$ cp -rf ~/test/lbd/docs/BackendTutorial/
-  LLVMBackendTutorialExampleCode/3.4_20130816_Chapter12_2/* . 
+  LLVMBackendTutorialExampleCode/3.4_0830_Chapter12_2/* . 
   [Gamma@localhost Cpu0]$ ls
   AsmParser                 Cpu0InstrInfo.h           Cpu0SelectionDAGInfo.h
   CMakeLists.txt            Cpu0InstrInfo.td          Cpu0Subtarget.cpp
@@ -160,12 +131,15 @@ Next, copy lld Cpu0 architecture ELF support as follows,
   [Gamma@localhost ELF]$ pwd
   /home/Gamma/test/lld/src/tools/lld/lib/ReaderWriter/ELF
   [Gamma@localhost ELF]$ cp -rf ~/test/lbd/docs/BackendTutorial/
-  LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/CMakeLists.txt ~/test/lbd/
-  docs/BackendTutorial/LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/
-  ELFLinkingContext.cpp ~/test/lbd/docs/BackendTutorial/
-  LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Targets.h . 
-  [Gamma@localhost ELF]$ cp -rf ~/test/lbd/docs/BackendTutorial/
-  LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Resolver.cpp ../../Core/.
+  LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0 .
+  [Gamma@localhost ELF]$ cp -f ~/test/lbd/docs/BackendTutorial/
+  LLVMBackendTutorialExampleCode/Cpu0_lld_1030/CMakeLists.txt .
+  [Gamma@localhost ELF]$ cp -f ~/test/lbd/docs/BackendTutorial/
+  LLVMBackendTutorialExampleCode/Cpu0_lld_1030/ELFLinkingContext.cpp .
+  [Gamma@localhost ELF]$ cp -f ~/test/lbd/docs/BackendTutorial/
+  LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Targets.h .
+  [Gamma@localhost ELF]$ cp -f ~/test/lbd/docs/BackendTutorial/
+  LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Resolver.cpp ../../Core/.
 
 
 Finally, update llvm-objdump to support convert ELF file to Hex file as follows,
@@ -202,7 +176,7 @@ Cpu0 lld
 The code added on lld to support Cpu0 ELF as follows,
 
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/CMakeLists.txt
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/CMakeLists.txt
 .. code-block:: c++
 
   target_link_libraries(lldELF
@@ -211,7 +185,7 @@ The code added on lld to support Cpu0 ELF as follows,
     )
 
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/ELFLinkingContext.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/ELFLinkingContext.cpp
 .. code-block:: c++
 
   uint16_t ELFLinkingContext::getOutputMachine() const {
@@ -223,12 +197,12 @@ The code added on lld to support Cpu0 ELF as follows,
     }
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Targets.h
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Targets.h
 .. code-block:: c++
 
   #include "Cpu0/Cpu0Target.h"
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Resolver.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Resolver.cpp
 .. code-block:: c++
 
   bool Resolver::checkUndefines(bool final) {
@@ -243,31 +217,38 @@ The code added on lld to support Cpu0 ELF as follows,
     ...
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/CMakeLists.txt
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/CMakeLists.txt
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/CMakeLists.txt
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/CMakeLists.txt
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0LinkingContext.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0LinkingContext.h
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.h
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0LinkingContext.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0LinkingContext.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0RelocationHandler.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0RelocationHandler.h
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.h
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0RelocationHandler.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0RelocationHandler.cpp
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0LinkingContext.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0LinkingContext.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0Target.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0Target.h
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.h
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0Target.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0Target.h
 
 .. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0TargetHandler.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0TargetHandler.h
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0TargetHandler.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0TargetHandler.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp
 
 
 ELF to Hex
