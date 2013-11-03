@@ -11,6 +11,4 @@ ${TOOLDIR}/llc -march=cpu0 -relocation-model=static -filetype=obj start.ll -o st
 ${TOOLDIR}/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg.bc -o printf-stdarg.cpu0.o
 ${TOOLDIR}/llc -march=cpu0 -relocation-model=static -filetype=obj printf-stdarg-2.bc -o printf-stdarg-2.cpu0.o
 ${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o printf-stdarg.cpu0.o printf-stdarg-2.cpu0.o -o a.out
-${TOOLDIR}/llvm-objdump -elf2hex a.out > ../cpu0_verilog/raw/cpu0s.hex
-${TOOLDIR}/llvm-objdump -elf2hex a.out > ../cpu0_verilog/redesign/cpu0s.hex
-
+${TOOLDIR}/llvm-objdump -elf2hex a.out > ../cpu0_verilog/cpu0s.hex
