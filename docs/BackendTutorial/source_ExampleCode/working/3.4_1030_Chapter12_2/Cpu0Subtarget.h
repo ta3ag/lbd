@@ -49,8 +49,8 @@ protected:
   // IsLittle - The target is Little Endian
   bool IsLittle;
 
-  // IsCpu1 - The target is cpu1 which use instruction slt instead of cmp.
-  bool IsCpu1;
+  // Slt - The target use instruction slt instead of cmp.
+  bool Slt;
 
   // UseSmallSection - Small section is used.
   bool UseSmallSection;
@@ -74,7 +74,7 @@ public:
   void ParseSubtargetFeatures(StringRef CPU, StringRef FS);
 
   bool isLittle() const { return IsLittle; }
-  bool isCpu1() const { return IsCpu1; }
+  bool slt() const { return Slt; }
   bool useSmallSection() const { return UseSmallSection; }
 };
 } // End llvm namespace

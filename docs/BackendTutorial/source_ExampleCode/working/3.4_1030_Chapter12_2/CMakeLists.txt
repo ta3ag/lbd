@@ -1,44 +1,44 @@
 # CMakeLists.txt
-# Our td all in Cpu.td, CpuRegisterInfo.td and CpuInstrInfo.td included in 
-#  Cpu.td.
-set(LLVM_TARGET_DEFINITIONS Cpu.td)
+# Our td all in Cpu0.td, Cpu0RegisterInfo.td and Cpu0InstrInfo.td included in 
+#  Cpu0.td.
+set(LLVM_TARGET_DEFINITIONS Cpu0.td)
 
-# Generate CpuGenRegisterInfo.inc and CpuGenInstrInfo.inc which included by 
+# Generate Cpu0GenRegisterInfo.inc and Cpu0GenInstrInfo.inc which included by 
 #  your hand code C++ files. 
-# CpuGenRegisterInfo.inc came from CpuRegisterInfo.td, CpuGenInstrInfo.inc 
-#  came from CpuInstrInfo.td.
-tablegen(LLVM CpuGenRegisterInfo.inc -gen-register-info)
-tablegen(LLVM CpuGenInstrInfo.inc -gen-instr-info)
-tablegen(LLVM CpuGenDisassemblerTables.inc -gen-disassembler)
-tablegen(LLVM CpuGenCodeEmitter.inc -gen-emitter)
-tablegen(LLVM CpuGenMCCodeEmitter.inc -gen-emitter -mc-emitter)
+# Cpu0GenRegisterInfo.inc came from Cpu0RegisterInfo.td, Cpu0GenInstrInfo.inc 
+#  came from Cpu0InstrInfo.td.
+tablegen(LLVM Cpu0GenRegisterInfo.inc -gen-register-info)
+tablegen(LLVM Cpu0GenInstrInfo.inc -gen-instr-info)
+tablegen(LLVM Cpu0GenDisassemblerTables.inc -gen-disassembler)
+tablegen(LLVM Cpu0GenCodeEmitter.inc -gen-emitter)
+tablegen(LLVM Cpu0GenMCCodeEmitter.inc -gen-emitter -mc-emitter)
 
-tablegen(LLVM CpuGenAsmWriter.inc -gen-asm-writer)
-tablegen(LLVM CpuGenDAGISel.inc -gen-dag-isel)
-tablegen(LLVM CpuGenCallingConv.inc -gen-callingconv)
-tablegen(LLVM CpuGenSubtargetInfo.inc -gen-subtarget)
-tablegen(LLVM CpuGenAsmMatcher.inc -gen-asm-matcher)
+tablegen(LLVM Cpu0GenAsmWriter.inc -gen-asm-writer)
+tablegen(LLVM Cpu0GenDAGISel.inc -gen-dag-isel)
+tablegen(LLVM Cpu0GenCallingConv.inc -gen-callingconv)
+tablegen(LLVM Cpu0GenSubtargetInfo.inc -gen-subtarget)
+tablegen(LLVM Cpu0GenAsmMatcher.inc -gen-asm-matcher)
 
-# CpuCommonTableGen must be defined
-add_public_tablegen_target(CpuCommonTableGen)
+# Cpu0CommonTableGen must be defined
+add_public_tablegen_target(Cpu0CommonTableGen)
 
-# CpuCodeGen should match with LLVMBuild.txt CpuCodeGen
-add_llvm_target(CpuCodeGen
-  CpuAnalyzeImmediate.cpp
-  CpuAsmPrinter.cpp
-  CpuDelUselessJMP.cpp
-  CpuEmitGPRestore.cpp
-  CpuInstrInfo.cpp
-  CpuISelDAGToDAG.cpp
-  CpuISelLowering.cpp
-  CpuFrameLowering.cpp
-  CpuMCInstLower.cpp
-  CpuMachineFunction.cpp
-  CpuRegisterInfo.cpp
-  CpuSubtarget.cpp
-  CpuTargetMachine.cpp
-  CpuTargetObjectFile.cpp
-  CpuSelectionDAGInfo.cpp
+# Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen
+add_llvm_target(Cpu0CodeGen
+  Cpu0AnalyzeImmediate.cpp
+  Cpu0AsmPrinter.cpp
+  Cpu0DelUselessJMP.cpp
+  Cpu0EmitGPRestore.cpp
+  Cpu0InstrInfo.cpp
+  Cpu0ISelDAGToDAG.cpp
+  Cpu0ISelLowering.cpp
+  Cpu0FrameLowering.cpp
+  Cpu0MCInstLower.cpp
+  Cpu0MachineFunction.cpp
+  Cpu0RegisterInfo.cpp
+  Cpu0Subtarget.cpp
+  Cpu0TargetMachine.cpp
+  Cpu0TargetObjectFile.cpp
+  Cpu0SelectionDAGInfo.cpp
   )
 
 # Should match with "subdirectories =  MCTargetDesc TargetInfo" in LLVMBuild.txt

@@ -65,12 +65,11 @@ namespace {
 class Cpu0AsmBackend : public MCAsmBackend {
   Triple::OSType OSType;
   bool IsLittle; // Big or little endian
-  bool IsCpu1;  // cpu1 use instruction slt instead cmp
 
 public:
   Cpu0AsmBackend(const Target &T,  Triple::OSType _OSType,
-                 bool _isLittle, bool _isCpu1)
-    :MCAsmBackend(), OSType(_OSType), IsCpu1(_isCpu1) {}
+                 bool _isLittle)
+    :MCAsmBackend(), OSType(_OSType), IsLittle(_isLittle) {}
 
   MCObjectWriter *createObjectWriter(raw_ostream &OS) const {
   // Change Reason:
@@ -79,8 +78,6 @@ public:
   //  are moved.
     return createCpu0ELFObjectWriter(OS,
       MCELFObjectTargetWriter::getOSABI(OSType), IsLittle);
-  // Even though, the old function still work on LLVM version 3.2
-  //    return createCpu0ELFObjectWriter(OS, OSType, IsLittle);
   }
 
   /// ApplyFixup - Apply the \arg Value for given \arg Fixup into the provided
@@ -210,7 +207,7 @@ MCAsmBackend *llvm::createCpu0AsmBackendEL32(const Target &T,
                                              StringRef TT,
                                              StringRef CPU) {
   return new Cpu0AsmBackend(T, Triple(TT).getOS(),
-                            /*IsLittle*/true, /*IsCpu1*/false);
+                            /*IsLittle*/true);
 }
 
 MCAsmBackend *llvm::createCpu0AsmBackendEB32(const Target &T,
@@ -218,22 +215,6 @@ MCAsmBackend *llvm::createCpu0AsmBackendEB32(const Target &T,
                                              StringRef TT,
                                              StringRef CPU) {
   return new Cpu0AsmBackend(T, Triple(TT).getOS(),
-                            /*IsLittle*/false, /*IsCpu1*/false);
-}
-
-MCAsmBackend *llvm::createCpu1AsmBackendEL32(const Target &T,
-                                             const MCRegisterInfo &MRI,
-                                             StringRef TT,
-                                             StringRef CPU) {
-  return new Cpu0AsmBackend(T, Triple(TT).getOS(),
-                            /*IsLittle*/true, /*IsCpu1*/true);
-}
-
-MCAsmBackend *llvm::createCpu1AsmBackendEB32(const Target &T,
-                                             const MCRegisterInfo &MRI,
-                                             StringRef TT,
-                                             StringRef CPU) {
-  return new Cpu0AsmBackend(T, Triple(TT).getOS(),
-                            /*IsLittle*/false, /*IsCpu1*/true);
+                            /*IsLittle*/false);
 }
 

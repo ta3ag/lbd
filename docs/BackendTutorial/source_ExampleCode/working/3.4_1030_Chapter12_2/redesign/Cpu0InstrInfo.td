@@ -64,13 +64,16 @@ def Cpu0DivRemU   : SDNode<"Cpu0ISD::DivRemU", SDT_Cpu0DivRem,
 //===----------------------------------------------------------------------===//
 def RelocPIC    :     Predicate<"TM.getRelocationModel() == Reloc::PIC_">,
                       AssemblerPredicate<"FeatureCpu032">;
-def IsCpu1      :     Predicate<"Subtarget.isCpu1()">,
-                      AssemblerPredicate<"FeatureCpu132">;
+def Slt         :     Predicate<"Subtarget.slt()">,
+                      AssemblerPredicate<"Feature Slt instruction">;
+def NoSlt       :     Predicate<"!Subtarget.slt()">,
+                      AssemblerPredicate<"!Feature Slt instruction">;
 
 //===----------------------------------------------------------------------===//
 // Cpu0 Operand, Complex Patterns and Transformations Definitions.
 //===----------------------------------------------------------------------===//
 // Instruction operand types
+
 def brtarget24    : Operand<OtherVT> {
   let EncoderMethod = "getBranch24TargetOpValue";
   let OperandType = "OPERAND_PCREL";
@@ -81,6 +84,12 @@ def brtarget16    : Operand<OtherVT> {
   let EncoderMethod = "getBranch16TargetOpValue";
   let OperandType = "OPERAND_PCREL";
   let DecoderMethod = "DecodeBranch16Target";
+}
+
+def jmptarget    : Operand<OtherVT> {
+  let EncoderMethod = "getJumpTargetOpValue";
+  let OperandType = "OPERAND_PCREL";
+  let DecoderMethod = "DecodeJumpRelativeTarget";
 }
 
 def calltarget  : Operand<iPTR> {
@@ -336,7 +345,7 @@ class SetCC_I<bits<8> op, string instr_asm, PatFrag cond_op, Operand Od,
 
 // Unconditional branch, such as JMP
 class UncondBranch<bits<8> op, string instr_asm>:
-  FJ<op, (outs), (ins brtarget24:$addr),
+  FJ<op, (outs), (ins jmptarget:$addr),
              !strconcat(instr_asm, "\t$addr"), [(br bb:$addr)], IIBranch> {
   let isBranch = 1;
   let isTerminator = 1;
@@ -645,8 +654,7 @@ def : Pat<(i32 (extloadi8  addr:$src)), (LBu addr:$src)>;
 def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
 
 // brcond patterns
-let Predicates = [!IsCpu1] in {
-multiclass BrcondPats<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
+multiclass BrcondPatsCmp<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
 Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp, 
 Instruction CMPOp, Register ZEROReg> {
 def : Pat<(brcond (i32 (seteq RC:$lhs, RC:$rhs)), bb:$dst),
@@ -678,11 +686,11 @@ def : Pat<(brcond RC:$cond, bb:$dst),
           (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)>;
 }
 
-defm : BrcondPats<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
+let Predicates = [NoSlt] in {
+defm : BrcondPatsCmp<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
 }
 
-let Predicates = [IsCpu1] in {
-multiclass BrcondPats<RegisterClass RC, Instruction BEQOp, Instruction BNEOp,
+multiclass BrcondPatsSlt<RegisterClass RC, Instruction BEQOp, Instruction BNEOp,
                       Instruction SLTOp, Instruction SLTuOp, Instruction SLTiOp,
                       Instruction SLTiuOp, Register ZEROReg> {
 def : Pat<(brcond (i32 (setne RC:$lhs, 0)), bb:$dst),
@@ -708,13 +716,13 @@ def : Pat<(brcond RC:$cond, bb:$dst),
               (BNEOp RC:$cond, ZEROReg, bb:$dst)>;
 }
 
-defm : BrcondPats<CPURegs, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO>;
+let Predicates = [Slt] in {
+defm : BrcondPatsSlt<CPURegs, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO>;
 }
 
 
 // setcc patterns
-let Predicates = [!IsCpu1] in {
-multiclass SeteqPats<RegisterClass RC> {
+multiclass SeteqPatsCmp<RegisterClass RC> {
 // a == b
   def : Pat<(seteq RC:$lhs, RC:$rhs),
             (SHR (ANDi (CMP RC:$lhs, RC:$rhs), 2), 1)>;
@@ -724,7 +732,7 @@ multiclass SeteqPats<RegisterClass RC> {
 }
 
 // a < b
-multiclass SetltPats<RegisterClass RC> {
+multiclass SetltPatsCmp<RegisterClass RC> {
   def : Pat<(setlt RC:$lhs, RC:$rhs),
             (ANDi (CMP RC:$lhs, RC:$rhs), 1)>;
 // if cpu0  `define N    `SW[31]  instead of `SW[0] // Negative flag, then need
@@ -735,7 +743,7 @@ multiclass SetltPats<RegisterClass RC> {
 }
 
 // a <= b
-multiclass SetlePats<RegisterClass RC> {
+multiclass SetlePatsCmp<RegisterClass RC> {
   def : Pat<(setle RC:$lhs, RC:$rhs),
 // a <= b is equal to (XORi (b < a), 1)
             (XORi (ANDi (CMP RC:$rhs, RC:$lhs), 1), 1)>;
@@ -744,7 +752,7 @@ multiclass SetlePats<RegisterClass RC> {
 }
 
 // a > b
-multiclass SetgtPats<RegisterClass RC> {
+multiclass SetgtPatsCmp<RegisterClass RC> {
   def : Pat<(setgt RC:$lhs, RC:$rhs),
 // a > b is equal to b < a is equal to setlt(b, a)
             (ANDi (CMP RC:$rhs, RC:$lhs), 1)>;
@@ -753,7 +761,7 @@ multiclass SetgtPats<RegisterClass RC> {
 }
 
 // a >= b
-multiclass SetgePats<RegisterClass RC> {
+multiclass SetgePatsCmp<RegisterClass RC> {
   def : Pat<(setge RC:$lhs, RC:$rhs),
 // a >= b is equal to b <= a
             (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
@@ -761,15 +769,15 @@ multiclass SetgePats<RegisterClass RC> {
             (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
 }
 
-defm : SeteqPats<CPURegs>;
-defm : SetltPats<CPURegs>;
-defm : SetlePats<CPURegs>;
-defm : SetgtPats<CPURegs>;
-defm : SetgePats<CPURegs>;
+let Predicates = [NoSlt] in {
+defm : SeteqPatsCmp<CPURegs>;
+defm : SetltPatsCmp<CPURegs>;
+defm : SetlePatsCmp<CPURegs>;
+defm : SetgtPatsCmp<CPURegs>;
+defm : SetgePatsCmp<CPURegs>;
 }
 
-let Predicates = [IsCpu1] in {
-multiclass SeteqPats<RegisterClass RC, Instruction SLTiuOp, Instruction XOROp,
+multiclass SeteqPatsSlt<RegisterClass RC, Instruction SLTiuOp, Instruction XOROp,
                      Instruction SLTuOp, Register ZEROReg> {
 // a == b
   def : Pat<(seteq RC:$lhs, RC:$rhs),
@@ -780,7 +788,7 @@ multiclass SeteqPats<RegisterClass RC, Instruction SLTiuOp, Instruction XOROp,
 }
 
 // a <= b
-multiclass SetlePats<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
+multiclass SetlePatsSlt<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
   def : Pat<(setle RC:$lhs, RC:$rhs),
 // a <= b is equal to (XORi (b < a), 1)
                 (XORi (SLTOp RC:$rhs, RC:$lhs), 1)>;
@@ -789,7 +797,7 @@ multiclass SetlePats<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
 }
 
 // a > b
-multiclass SetgtPats<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
+multiclass SetgtPatsSlt<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
   def : Pat<(setgt RC:$lhs, RC:$rhs),
 // a > b is equal to b < a is equal to setlt(b, a)
                 (SLTOp RC:$rhs, RC:$lhs)>;
@@ -798,7 +806,7 @@ multiclass SetgtPats<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
 }
 
 // a >= b
-multiclass SetgePats<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
+multiclass SetgePatsSlt<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
   def : Pat<(setge RC:$lhs, RC:$rhs),
 // a >= b is equal to b <= a
                 (XORi (SLTOp RC:$lhs, RC:$rhs), 1)>;
@@ -806,7 +814,7 @@ multiclass SetgePats<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
                 (XORi (SLTuOp RC:$lhs, RC:$rhs), 1)>;
 }
 
-multiclass SetgeImmPats<RegisterClass RC, Instruction SLTiOp,
+multiclass SetgeImmPatsSlt<RegisterClass RC, Instruction SLTiOp,
                         Instruction SLTiuOp> {
   def : Pat<(setge RC:$lhs, immSExt16:$rhs),
                 (XORi (SLTiOp RC:$lhs, immSExt16:$rhs), 1)>;
@@ -814,10 +822,11 @@ multiclass SetgeImmPats<RegisterClass RC, Instruction SLTiOp,
                 (XORi (SLTiuOp RC:$lhs, immSExt16:$rhs), 1)>;
 }
 
-defm : SeteqPats<CPURegs, SLTiu, XOR, SLTu, ZERO>;
-defm : SetlePats<CPURegs, SLT, SLTu>;
-defm : SetgtPats<CPURegs, SLT, SLTu>;
-defm : SetgePats<CPURegs, SLT, SLTu>;
-defm : SetgeImmPats<CPURegs, SLTi, SLTiu>;
+let Predicates = [Slt] in {
+defm : SeteqPatsSlt<CPURegs, SLTiu, XOR, SLTu, ZERO>;
+defm : SetlePatsSlt<CPURegs, SLT, SLTu>;
+defm : SetgtPatsSlt<CPURegs, SLT, SLTu>;
+defm : SetgePatsSlt<CPURegs, SLT, SLTu>;
+defm : SetgeImmPatsSlt<CPURegs, SLTi, SLTiu>;
 }
 

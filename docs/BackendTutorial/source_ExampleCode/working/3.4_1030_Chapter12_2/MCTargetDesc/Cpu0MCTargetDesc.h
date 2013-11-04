@@ -44,15 +44,10 @@ MCAsmBackend *createCpu0AsmBackendEB32(const Target &T, const MCRegisterInfo &MR
                                        StringRef TT, StringRef CPU);
 MCAsmBackend *createCpu0AsmBackendEL32(const Target &T, const MCRegisterInfo &MRI,
                                        StringRef TT, StringRef CPU);
-MCAsmBackend *createCpu1AsmBackendEB32(const Target &T, const MCRegisterInfo &MRI,
-                                       StringRef TT, StringRef CPU);
-MCAsmBackend *createCpu1AsmBackendEL32(const Target &T, const MCRegisterInfo &MRI,
-                                       StringRef TT, StringRef CPU);
 
 MCObjectWriter *createCpu0ELFObjectWriter(raw_ostream &OS,
                                           uint8_t OSABI,
-                                          bool IsLittleEndian,
-                                          bool IsCpu1);
+                                          bool IsLittleEndian);
 } // End llvm namespace
 
 // Defines symbolic names for Cpu0 registers.  This defines a mapping from

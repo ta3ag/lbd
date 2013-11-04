@@ -144,78 +144,47 @@ extern "C" void LLVMInitializeCpu0TargetMC() {
   // Register the MC asm info.
   RegisterMCAsmInfoFn X(TheCpu0Target, createCpu0MCAsmInfo);
   RegisterMCAsmInfoFn Y(TheCpu0elTarget, createCpu0MCAsmInfo);
-  RegisterMCAsmInfoFn X(TheCpu1Target, createCpu0MCAsmInfo);
-  RegisterMCAsmInfoFn Y(TheCpu1elTarget, createCpu0MCAsmInfo);
 
   // Register the MC codegen info.
   TargetRegistry::RegisterMCCodeGenInfo(TheCpu0Target,
                                         createCpu0MCCodeGenInfo);
   TargetRegistry::RegisterMCCodeGenInfo(TheCpu0elTarget,
                                         createCpu0MCCodeGenInfo);
-  TargetRegistry::RegisterMCCodeGenInfo(TheCpu1Target,
-                                        createCpu0MCCodeGenInfo);
-  TargetRegistry::RegisterMCCodeGenInfo(TheCpu1elTarget,
-                                        createCpu0MCCodeGenInfo);
   // Register the MC instruction info.
   TargetRegistry::RegisterMCInstrInfo(TheCpu0Target, createCpu0MCInstrInfo);
   TargetRegistry::RegisterMCInstrInfo(TheCpu0elTarget, createCpu0MCInstrInfo);
-  TargetRegistry::RegisterMCInstrInfo(TheCpu1Target, createCpu0MCInstrInfo);
-  TargetRegistry::RegisterMCInstrInfo(TheCpu1elTarget, createCpu0MCInstrInfo);
 
   // Register the MC register info.
   TargetRegistry::RegisterMCRegInfo(TheCpu0Target, createCpu0MCRegisterInfo);
   TargetRegistry::RegisterMCRegInfo(TheCpu0elTarget, createCpu0MCRegisterInfo);
-  TargetRegistry::RegisterMCRegInfo(TheCpu1Target, createCpu0MCRegisterInfo);
-  TargetRegistry::RegisterMCRegInfo(TheCpu1elTarget, createCpu0MCRegisterInfo);
-
 
   // Register the MC Code Emitter
   TargetRegistry::RegisterMCCodeEmitter(TheCpu0Target,
                                         createCpu0MCCodeEmitterEB);
   TargetRegistry::RegisterMCCodeEmitter(TheCpu0elTarget,
                                         createCpu0MCCodeEmitterEL);
-  TargetRegistry::RegisterMCCodeEmitter(TheCpu1Target,
-                                        createCpu0MCCodeEmitterEB);
-  TargetRegistry::RegisterMCCodeEmitter(TheCpu1elTarget,
-                                        createCpu0MCCodeEmitterEL);
 
   // Register the object streamer.
   TargetRegistry::RegisterMCObjectStreamer(TheCpu0Target, createMCStreamer);
   TargetRegistry::RegisterMCObjectStreamer(TheCpu0elTarget, createMCStreamer);
-  TargetRegistry::RegisterMCObjectStreamer(TheCpu1Target, createMCStreamer);
-  TargetRegistry::RegisterMCObjectStreamer(TheCpu1elTarget, createMCStreamer);
 
   // Register the asm streamer.
   TargetRegistry::RegisterAsmStreamer(TheCpu0Target, createMCAsmStreamer);
   TargetRegistry::RegisterAsmStreamer(TheCpu0elTarget, createMCAsmStreamer);
-  TargetRegistry::RegisterAsmStreamer(TheCpu1Target, createMCAsmStreamer);
-  TargetRegistry::RegisterAsmStreamer(TheCpu1elTarget, createMCAsmStreamer);
 
   // Register the asm backend.
   TargetRegistry::RegisterMCAsmBackend(TheCpu0Target,
                                        createCpu0AsmBackendEB32);
   TargetRegistry::RegisterMCAsmBackend(TheCpu0elTarget,
                                        createCpu0AsmBackendEL32);
-  TargetRegistry::RegisterMCAsmBackend(TheCpu1Target,
-                                       createCpu1AsmBackendEB32);
-  TargetRegistry::RegisterMCAsmBackend(TheCpu1elTarget,
-                                       createCpu1AsmBackendEL32);
   // Register the MC subtarget info.
   TargetRegistry::RegisterMCSubtargetInfo(TheCpu0Target,
                                           createCpu0MCSubtargetInfo);
   TargetRegistry::RegisterMCSubtargetInfo(TheCpu0elTarget,
                                           createCpu0MCSubtargetInfo);
-  TargetRegistry::RegisterMCSubtargetInfo(TheCpu1Target,
-                                          createCpu0MCSubtargetInfo);
-  TargetRegistry::RegisterMCSubtargetInfo(TheCpu1elTarget,
-                                          createCpu0MCSubtargetInfo);
   // Register the MCInstPrinter.
   TargetRegistry::RegisterMCInstPrinter(TheCpu0Target,
                                         createCpu0MCInstPrinter);
   TargetRegistry::RegisterMCInstPrinter(TheCpu0elTarget,
-                                        createCpu0MCInstPrinter);
-  TargetRegistry::RegisterMCInstPrinter(TheCpu1Target,
-                                        createCpu0MCInstPrinter);
-  TargetRegistry::RegisterMCInstPrinter(TheCpu1elTarget,
                                         createCpu0MCInstPrinter);
 }

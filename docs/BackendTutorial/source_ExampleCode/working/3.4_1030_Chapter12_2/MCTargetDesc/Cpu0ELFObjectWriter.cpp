@@ -224,8 +224,7 @@ void Cpu0ELFObjectWriter::sortRelocs(const MCAssembler &Asm,
 
 MCObjectWriter *llvm::createCpu0ELFObjectWriter(raw_ostream &OS,
                                                 uint8_t OSABI,
-                                                bool IsLittleEndian,
-                                                bool IsCpu1) {
+                                                bool IsLittleEndian) {
   MCELFObjectTargetWriter *MOTW = new Cpu0ELFObjectWriter(OSABI);
-  return createELFObjectWriter(MOTW, OS, IsLittleEndian, IsCpu1);
+  return createELFObjectWriter(MOTW, OS, IsLittleEndian);
 }

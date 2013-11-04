@@ -25,12 +25,6 @@ Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
     TM(tm),
     RI(*TM.getSubtargetImpl(), *this) {}
 
-/// getTargetMachine - Return a reference to the TargetMachine, casted
-/// to the target-specific type.
-const Cpu0TargetMachine &getTargetMachine() {
-  return static_cast<const Cpu0TargetMachine &>(TM);
-}
-
 const Cpu0RegisterInfo &Cpu0InstrInfo::getRegisterInfo() const {
   return RI;
 }
@@ -43,7 +37,6 @@ copyPhysReg(MachineBasicBlock &MBB,
             bool KillSrc) const {
   unsigned Opc = 0, ZeroReg = 0;
 
-  const Cpu0TargetMachine &TM = getTargetMachine();
   const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
   if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
     if (Cpu0::CPURegsRegClass.contains(SrcReg))
@@ -52,7 +45,7 @@ copyPhysReg(MachineBasicBlock &MBB,
       Opc = Cpu0::MFHI, SrcReg = 0;
     else if (SrcReg == Cpu0::LO)
       Opc = Cpu0::MFLO, SrcReg = 0;
-    if (!Subtarget.IsCpu1()) {
+    if (!Subtarget.slt()) {
       if (SrcReg == Cpu0::SW)
         Opc = Cpu0::MFSW, SrcReg = 0;
     }
@@ -62,7 +55,7 @@ copyPhysReg(MachineBasicBlock &MBB,
       Opc = Cpu0::MTHI, DestReg = 0;
     else if (DestReg == Cpu0::LO)
       Opc = Cpu0::MTLO, DestReg = 0;
-    if (!Subtarget.IsCpu1()) {
+    if (!Subtarget.slt()) {
       // Only possibility in (DestReg==SW, SrcReg==CPU0Regs) is 
       //  cmp $SW, $ZERO, $rc
       if (DestReg == Cpu0::SW)

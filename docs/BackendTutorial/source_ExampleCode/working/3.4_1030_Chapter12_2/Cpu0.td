@@ -35,9 +35,6 @@ def Cpu0InstrInfo : InstrInfo;
 def FeatureCpu032      : SubtargetFeature<"cpu032", "Cpu0ArchVersion", "Cpu032",
                                 "Cpu032 ISA Support">;
 
-def FeatureCpu132      : SubtargetFeature<"cpu132", "Cpu1ArchVersion", "Cpu132",
-                                "Cpu132 ISA Support">;
-
 //===----------------------------------------------------------------------===//
 // Cpu0 processors supported.
 //===----------------------------------------------------------------------===//
@@ -46,7 +43,6 @@ class Proc<string Name, list<SubtargetFeature> Features>
  : Processor<Name, Cpu0GenericItineraries, Features>;
 
 def : Proc<"cpu032", [FeatureCpu032]>;
-def : Proc<"cpu132", [FeatureCpu132]>;
 
 def Cpu0AsmWriter : AsmWriter {
   string AsmWriterClassName  = "InstPrinter";

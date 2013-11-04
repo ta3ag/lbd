@@ -66,7 +66,11 @@ static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder);
-static DecodeStatus DecodeBranchTarget(MCInst &Inst,
+static DecodeStatus DecodeBranch16Target(MCInst &Inst,
+                                       unsigned Insn,
+                                       uint64_t Address,
+                                       const void *Decoder);
+static DecodeStatus DecodeBranch24Target(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder);
