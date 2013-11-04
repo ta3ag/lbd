@@ -63,11 +63,11 @@ def Cpu0DivRemU   : SDNode<"Cpu0ISD::DivRemU", SDT_Cpu0DivRem,
 // Cpu0 Instruction Predicate Definitions.
 //===----------------------------------------------------------------------===//
 def RelocPIC    :     Predicate<"TM.getRelocationModel() == Reloc::PIC_">,
-                      AssemblerPredicate<"FeatureCpu032">;
-def Slt         :     Predicate<"Subtarget.slt()">,
-                      AssemblerPredicate<"FeatureSlt">;
-def NoSlt       :     Predicate<"!Subtarget.slt()">,
-                      AssemblerPredicate<"!FeatureSlt">;
+                      AssemblerPredicate<"FeatureCpu032I">;
+def HasCpu032II :     Predicate<"Subtarget.hasCpu032II()">,
+                      AssemblerPredicate<"FeatureCpu032II">;
+def NotCpu032II :     Predicate<"!Subtarget.hasCpu032II()">,
+                      AssemblerPredicate<"!FeatureCpu032II">;
 
 //===----------------------------------------------------------------------===//
 // Cpu0 Operand, Complex Patterns and Transformations Definitions.
@@ -686,7 +686,7 @@ def : Pat<(brcond RC:$cond, bb:$dst),
           (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)>;
 }
 
-let Predicates = [NoSlt] in {
+let Predicates = [NotCpu032II] in {
 defm : BrcondPatsCmp<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
 }
 
@@ -716,7 +716,7 @@ def : Pat<(brcond RC:$cond, bb:$dst),
               (BNEOp RC:$cond, ZEROReg, bb:$dst)>;
 }
 
-let Predicates = [Slt] in {
+let Predicates = [HasCpu032II] in {
 defm : BrcondPatsSlt<CPURegs, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO>;
 }
 
@@ -769,7 +769,7 @@ multiclass SetgePatsCmp<RegisterClass RC> {
             (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
 }
 
-let Predicates = [NoSlt] in {
+let Predicates = [NotCpu032II] in {
 defm : SeteqPatsCmp<CPURegs>;
 defm : SetltPatsCmp<CPURegs>;
 defm : SetlePatsCmp<CPURegs>;
@@ -822,7 +822,7 @@ multiclass SetgeImmPatsSlt<RegisterClass RC, Instruction SLTiOp,
                 (XORi (SLTiuOp RC:$lhs, immSExt16:$rhs), 1)>;
 }
 
-let Predicates = [Slt] in {
+let Predicates = [HasCpu032II] in {
 defm : SeteqPatsSlt<CPURegs, SLTiu, XOR, SLTu, ZERO>;
 defm : SetlePatsSlt<CPURegs, SLT, SLTu>;
 defm : SetgtPatsSlt<CPURegs, SLT, SLTu>;

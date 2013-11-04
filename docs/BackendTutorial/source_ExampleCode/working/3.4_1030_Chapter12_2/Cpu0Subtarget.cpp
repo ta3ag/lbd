@@ -54,7 +54,7 @@ Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
 {
   std::string CPUName = CPU;
   if (CPUName.empty())
-    CPUName = "cpu032";
+    CPUName = "cpu032I";
 
   // Parse features string.
   ParseSubtargetFeatures(CPUName, FS);
@@ -66,7 +66,10 @@ Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
   if (Cpu0ABI == UnknownABI)
     Cpu0ABI = O32;
 
-  Slt = sltOpt;
+  if (CPUName == "cpu032II")
+    Slt = true;
+  else
+    Slt = false;
   // Set UseSmallSection.
   UseSmallSection = UseSmallSectionOpt;
   Cpu0ReserveGP = ReserveGPOpt;

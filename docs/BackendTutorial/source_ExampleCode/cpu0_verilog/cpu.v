@@ -62,7 +62,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   SRAV=8'h20,SHLV=8'h21,SHRV=8'h22,
 `ifdef CPU0_REDESIGN_INSTRUCTION
   SLTi=8'h26,SLTiu=8'h27, SLT=8'h28,SLTu=8'h29,
-  BEQ=8'h30,BNE=8'h31,
+  BEQ=8'h37,BNE=8'h38,
 `else
   JEQ=8'h30,JNE=8'h31,JLT=8'h32,JGT=8'h33,JLE=8'h34,JGE=8'h35,
 `endif
