@@ -1,4 +1,4 @@
-//===- CpuInstrInfo.td - Target Description for Cpu Target -*- tablegen -*-=//
+//===- Cpu0InstrInfo.td - Target Description for Cpu0 Target -*- tablegen -*-=//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,7 +7,7 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file contains the Cpu implementation of the TargetInstrInfo class.
+// This file contains the Cpu0 implementation of the TargetInstrInfo class.
 //
 //===----------------------------------------------------------------------===//
 
@@ -15,58 +15,58 @@
 // Instruction format superclass
 //===----------------------------------------------------------------------===//
 
-include "CpuInstrFormats.td"
+include "Cpu0InstrFormats.td"
 
 //===----------------------------------------------------------------------===//
-// Cpu profiles and nodes
+// Cpu0 profiles and nodes
 //===----------------------------------------------------------------------===//
 
-def SDT_CpuRet          : SDTypeProfile<0, 1, [SDTCisInt<0>]>;
-def SDT_CpuDivRem       : SDTypeProfile<0, 2,
+def SDT_Cpu0Ret          : SDTypeProfile<0, 1, [SDTCisInt<0>]>;
+def SDT_Cpu0DivRem       : SDTypeProfile<0, 2,
                                          [SDTCisInt<0>,
                                           SDTCisSameAs<0, 1>]>;
 
-def SDT_CpuJmpLink      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
+def SDT_Cpu0JmpLink      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
 
-def SDT_CpuCallSeqStart : SDCallSeqStart<[SDTCisVT<0, i32>]>;
-def SDT_CpuCallSeqEnd   : SDCallSeqEnd<[SDTCisVT<0, i32>, SDTCisVT<1, i32>]>;
+def SDT_Cpu0CallSeqStart : SDCallSeqStart<[SDTCisVT<0, i32>]>;
+def SDT_Cpu0CallSeqEnd   : SDCallSeqEnd<[SDTCisVT<0, i32>, SDTCisVT<1, i32>]>;
 
 // Call
-def CpuJmpLink : SDNode<"CpuISD::JmpLink",SDT_CpuJmpLink,
+def Cpu0JmpLink : SDNode<"Cpu0ISD::JmpLink",SDT_Cpu0JmpLink,
                          [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue,
                           SDNPVariadic]>;
 
 // Hi and Lo nodes are used to handle global addresses. Used on
-// CpuISelLowering to lower stuff like GlobalAddress, ExternalSymbol
-// static model. (nothing to do with Cpu Registers Hi and Lo)
-def CpuHi    : SDNode<"CpuISD::Hi", SDTIntUnaryOp>;
-def CpuLo    : SDNode<"CpuISD::Lo", SDTIntUnaryOp>;
-def CpuGPRel : SDNode<"CpuISD::GPRel", SDTIntUnaryOp>;
+// Cpu0ISelLowering to lower stuff like GlobalAddress, ExternalSymbol
+// static model. (nothing to do with Cpu0 Registers Hi and Lo)
+def Cpu0Hi    : SDNode<"Cpu0ISD::Hi", SDTIntUnaryOp>;
+def Cpu0Lo    : SDNode<"Cpu0ISD::Lo", SDTIntUnaryOp>;
+def Cpu0GPRel : SDNode<"Cpu0ISD::GPRel", SDTIntUnaryOp>;
 
 // Return
-def CpuRet : SDNode<"CpuISD::Ret", SDTNone,
+def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDTNone,
                      [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
 // These are target-independent nodes, but have target-specific formats.
-def callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_CpuCallSeqStart,
+def callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_Cpu0CallSeqStart,
                            [SDNPHasChain, SDNPOutGlue]>;
-def callseq_end   : SDNode<"ISD::CALLSEQ_END", SDT_CpuCallSeqEnd,
+def callseq_end   : SDNode<"ISD::CALLSEQ_END", SDT_Cpu0CallSeqEnd,
                            [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]>;
 
 // DivRem(u) nodes
-def CpuDivRem    : SDNode<"CpuISD::DivRem", SDT_CpuDivRem,
+def Cpu0DivRem    : SDNode<"Cpu0ISD::DivRem", SDT_Cpu0DivRem,
                            [SDNPOutGlue]>;
-def CpuDivRemU   : SDNode<"CpuISD::DivRemU", SDT_CpuDivRem,
+def Cpu0DivRemU   : SDNode<"Cpu0ISD::DivRemU", SDT_Cpu0DivRem,
                            [SDNPOutGlue]>;
 
 //===----------------------------------------------------------------------===//
-// Cpu Instruction Predicate Definitions.
+// Cpu0 Instruction Predicate Definitions.
 //===----------------------------------------------------------------------===//
 def RelocPIC    :     Predicate<"TM.getRelocationModel() == Reloc::PIC_">,
-                      AssemblerPredicate<"FeatureCpu32">;
+                      AssemblerPredicate<"FeatureCpu032">;
 
 //===----------------------------------------------------------------------===//
-// Cpu Operand, Complex Patterns and Transformations Definitions.
+// Cpu0 Operand, Complex Patterns and Transformations Definitions.
 //===----------------------------------------------------------------------===//
 // Instruction operand types
 def brtarget    : Operand<OtherVT> {
@@ -91,7 +91,7 @@ def uimm16      : Operand<i32> {
   let PrintMethod = "printUnsignedImm";
 }
 
-def CpuMemAsmOperand : AsmOperandClass {
+def Cpu0MemAsmOperand : AsmOperandClass {
   let Name = "Mem";
   let ParserMethod = "parseMemOperand";
 }
@@ -101,7 +101,7 @@ def mem : Operand<i32> {
   let PrintMethod = "printMemOperand";
   let MIOperandInfo = (ops CPURegs, simm16);
   let EncoderMethod = "getMemEncoding";
-  let ParserMatchClass = CpuMemAsmOperand;
+  let ParserMatchClass = Cpu0MemAsmOperand;
 }
 
 def mem_ea : Operand<i32> {
@@ -144,7 +144,7 @@ def immLow16Zero : PatLeaf<(imm), [{
 // shamt field must fit in 5 bits.
 def immZExt5 : ImmLeaf<i32, [{return Imm == (Imm & 0x1f);}]>;
 
-// Cpu Address Mode! SDNode frameindex could possibily be a match
+// Cpu0 Address Mode! SDNode frameindex could possibily be a match
 // since load and store instructions from stack used it.
 def addr : ComplexPattern<iPTR, 2, "SelectAddr", [frameindex], [SDNPWantParent]>;
 
@@ -323,7 +323,7 @@ class RetBase<RegisterClass RC>: JumpFR<0x3c, "ret", RC> {
 let isCall=1, hasDelaySlot=0 in {
   class JumpLink<bits<8> op, string instr_asm>:
     FJ<op, (outs), (ins calltarget:$target, variable_ops),
-       !strconcat(instr_asm, "\t$target"), [(CpuJmpLink imm:$target)],
+       !strconcat(instr_asm, "\t$target"), [(Cpu0JmpLink imm:$target)],
        IIBranch> {
        let DecoderMethod = "DecodeJumpAbsoluteTarget";
        }
@@ -331,7 +331,7 @@ let isCall=1, hasDelaySlot=0 in {
   class JumpLinkReg<bits<8> op, string instr_asm,
                     RegisterClass RC>:
     FA<op, (outs), (ins RC:$rb, variable_ops),
-       !strconcat(instr_asm, "\t$rb"), [(CpuJmpLink RC:$rb)], IIBranch> {
+       !strconcat(instr_asm, "\t$rb"), [(Cpu0JmpLink RC:$rb)], IIBranch> {
     let rc = 0;
     let ra = 14;
     let shamt = 0;
@@ -418,10 +418,10 @@ class EffectiveAddress<string instr_asm, RegisterClass RC, Operand Mem> :
 
 // As stack alignment is always done with addiu, we need a 16-bit immediate
 let Defs = [SP], Uses = [SP] in {
-def ADJCALLSTACKDOWN : CpuPseudo<(outs), (ins uimm16:$amt),
+def ADJCALLSTACKDOWN : Cpu0Pseudo<(outs), (ins uimm16:$amt),
                                   "!ADJCALLSTACKDOWN $amt",
                                   [(callseq_start timm:$amt)]>;
-def ADJCALLSTACKUP   : CpuPseudo<(outs), (ins uimm16:$amt1, uimm16:$amt2),
+def ADJCALLSTACKUP   : Cpu0Pseudo<(outs), (ins uimm16:$amt1, uimm16:$amt2),
                                   "!ADJCALLSTACKUP $amt1",
                                   [(callseq_end timm:$amt1, timm:$amt2)]>;
 }
@@ -431,7 +431,7 @@ def ADJCALLSTACKUP   : CpuPseudo<(outs), (ins uimm16:$amt1, uimm16:$amt2),
 // are used, we have the same behavior, but get also a bunch of warnings
 // from the assembler.
 let neverHasSideEffects = 1 in
-def CPRESTORE : CpuPseudo<(outs), (ins i32imm:$loc, CPURegs:$gp),
+def CPRESTORE : Cpu0Pseudo<(outs), (ins i32imm:$loc, CPURegs:$gp),
                            ".cprestore\t$loc", []>;
 
 //===----------------------------------------------------------------------===//
@@ -439,22 +439,22 @@ def CPRESTORE : CpuPseudo<(outs), (ins i32imm:$loc, CPURegs:$gp),
 //===----------------------------------------------------------------------===//
 
 class LoadImm32< string instr_asm, Operand Od, RegisterClass RC> :
-  CpuAsmPseudoInst<(outs RC:$ra), (ins Od:$imm32),
+  Cpu0AsmPseudoInst<(outs RC:$ra), (ins Od:$imm32),
                      !strconcat(instr_asm, "\t$ra, $imm32")> ;
 def LoadImm32Reg : LoadImm32<"li", shamt, CPURegs>;
 
 class LoadAddress<string instr_asm, Operand MemOpnd, RegisterClass RC> :
-  CpuAsmPseudoInst<(outs RC:$ra), (ins MemOpnd:$addr),
+  Cpu0AsmPseudoInst<(outs RC:$ra), (ins MemOpnd:$addr),
                      !strconcat(instr_asm, "\t$ra, $addr")> ;
 def LoadAddr32Reg : LoadAddress<"la", mem, CPURegs>;
 
 class LoadAddressImm<string instr_asm, Operand Od, RegisterClass RC> :
-  CpuAsmPseudoInst<(outs RC:$ra), (ins Od:$imm32),
+  Cpu0AsmPseudoInst<(outs RC:$ra), (ins Od:$imm32),
                      !strconcat(instr_asm, "\t$ra, $imm32")> ;
 def LoadAddr32Imm : LoadAddressImm<"la", shamt, CPURegs>;
 
 //===----------------------------------------------------------------------===//
-// Cpu Instructions
+// Cpu0 Instructions
 //===----------------------------------------------------------------------===//
 
 /// Load and Store Instructions
@@ -515,7 +515,7 @@ def JSUB    : JumpLink<0x3b, "jsub">;
 def JR      : JumpFR<0x3c, "ret", CPURegs>;
 
 let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
-  def RetLR : CpuPseudo<(outs), (ins), "", [(CpuRet)]>;
+  def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
 
 def RET     : RetBase<CPURegs>;
 
@@ -525,8 +525,8 @@ def JALR    : JumpLinkReg<0x3e, "jalr", CPURegs>;
 /// Multiply and Divide Instructions.
 def MULT    : Mult32<0x41, "mult", IIImul>;
 def MULTu   : Mult32<0x42, "multu", IIImul>;
-def SDIV    : Div32<CpuDivRem, 0x43, "div", IIIdiv>;
-def UDIV    : Div32<CpuDivRemU, 0x44, "divu", IIIdiv>;
+def SDIV    : Div32<Cpu0DivRem, 0x43, "div", IIIdiv>;
+def UDIV    : Div32<Cpu0DivRemU, 0x44, "divu", IIIdiv>;
 
 def MFHI    : MoveFromLOHI<0x46, "mfhi", CPURegs, [HI]>;
 def MFLO    : MoveFromLOHI<0x47, "mflo", CPURegs, [LO]>;
@@ -571,20 +571,20 @@ def : Pat<(addc CPURegs:$lhs, CPURegs:$rhs),
 def : Pat<(addc  CPURegs:$src, immSExt16:$imm),
           (ADDiu CPURegs:$src, imm:$imm)>;
 
-def : Pat<(CpuJmpLink (i32 tglobaladdr:$dst)),
+def : Pat<(Cpu0JmpLink (i32 tglobaladdr:$dst)),
           (JSUB tglobaladdr:$dst)>;
-def : Pat<(CpuJmpLink (i32 texternalsym:$dst)),
+def : Pat<(Cpu0JmpLink (i32 texternalsym:$dst)),
           (JSUB texternalsym:$dst)>;
 
 // hi/lo relocs
-def : Pat<(CpuHi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>;
-def : Pat<(CpuHi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
+def : Pat<(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>;
+def : Pat<(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
 
-def : Pat<(add CPURegs:$hi, (CpuLo tglobaladdr:$lo)),
+def : Pat<(add CPURegs:$hi, (Cpu0Lo tglobaladdr:$lo)),
           (ADDiu CPURegs:$hi, tglobaladdr:$lo)>;
 
 // gp_rel relocs
-def : Pat<(add CPURegs:$gp, (CpuGPRel tglobaladdr:$in)),
+def : Pat<(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
           (ADDiu CPURegs:$gp, tglobaladdr:$in)>;
 
 def : Pat<(not CPURegs:$in),
@@ -644,7 +644,7 @@ multiclass SeteqPats<RegisterClass RC> {
 multiclass SetltPats<RegisterClass RC> {
   def : Pat<(setlt RC:$lhs, RC:$rhs),
             (ANDi (CMP RC:$lhs, RC:$rhs), 1)>;
-// if cpu  `define N    `SW[31]  instead of `SW[0] // Negative flag, then need
+// if cpu0  `define N    `SW[31]  instead of `SW[0] // Negative flag, then need
 // 2 more instructions as follows,
 //          (XORi (ANDi (SHR (CMP RC:$lhs, RC:$rhs), (LUi 0x8000), 31), 1), 1)>;
   def : Pat<(setult RC:$lhs, RC:$rhs),

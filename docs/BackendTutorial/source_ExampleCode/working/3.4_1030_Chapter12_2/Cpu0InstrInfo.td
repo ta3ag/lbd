@@ -71,16 +71,16 @@ def IsCpu1      :     Predicate<"Subtarget.isCpu1()">,
 // Cpu0 Operand, Complex Patterns and Transformations Definitions.
 //===----------------------------------------------------------------------===//
 // Instruction operand types
-def brtarget24    : Operand<OtherVT> {
-  let EncoderMethod = "getBranch24TargetOpValue";
+def brtarget    : Operand<OtherVT> {
+  let EncoderMethod = "getBranchTargetOpValue";
   let OperandType = "OPERAND_PCREL";
-  let DecoderMethod = "DecodeBranch24Target";
+  let DecoderMethod = "DecodeBranchTarget";
 }
 
-def brtarget16    : Operand<OtherVT> {
-  let EncoderMethod = "getBranch16TargetOpValue";
+def jmptarget    : Operand<OtherVT> {
+  let EncoderMethod = "getJumpTargetOpValue";
   let OperandType = "OPERAND_PCREL";
-  let DecoderMethod = "DecodeBranch16Target";
+  let DecoderMethod = "DecodeJumpRelativeTarget";
 }
 
 def calltarget  : Operand<iPTR> {
@@ -203,17 +203,6 @@ class ArithOverflowR<bits<8> op, string instr_asm,
   let isCommutable = isComm;
 }
 
-class CmpInstr<bits<8> op, string instr_asm, 
-               InstrItinClass itin, RegisterClass RC, RegisterClass RD, 
-               bit isComm = 0>:
-  FA<op, (outs RD:$rc), (ins RC:$ra, RC:$rb),
-     !strconcat(instr_asm, "\t$rc, $ra, $rb"), [], itin> {
-  let rc = 0;
-  let shamt = 0;
-  let isCommutable = isComm;
-  let DecoderMethod = "DecodeCMPInstruction";
-}
-
 // Arithmetic and logical instructions with 2 register operands.
 class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
                   Operand Od, PatLeaf imm_type, RegisterClass RC> :
@@ -294,21 +283,9 @@ multiclass StoreM32<bits<8> op, string instr_asm, PatFrag OpNode,
   def #NAME# : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
 }
 
-// Conditional Branch, e.g. JEQ brtarget24
-class CBranch24<bits<8> op, string instr_asm, RegisterClass RC,
-                   list<Register> UseRegs>:
-  FJ<op, (outs), (ins RC:$ra, brtarget24:$addr),
-             !strconcat(instr_asm, "\t$ra, $addr"),
-             [], IIBranch> {
-  let isBranch = 1;
-  let isTerminator = 1;
-  let hasDelaySlot = 0;
-  let neverHasSideEffects = 1;
-}
-
-// Conditional Branch, e.g. BEQ $r1, $r2, brtarget16
-class CBranch16<bits<8> op, string instr_asm, PatFrag cond_op, RegisterClass RC>:
-  FL<op, (outs), (ins RC:$ra, RC:$rb, brtarget16:$imm16),
+// Conditional Branch
+class CBranch<bits<8> op, string instr_asm, PatFrag cond_op, RegisterClass RC>:
+  FL<op, (outs), (ins RC:$ra, RC:$rb, brtarget:$imm16),
              !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
              [(brcond (i32 (cond_op RC:$ra, RC:$rb)), bb:$imm16)], IIBranch> {
   let isBranch = 1;
@@ -336,7 +313,7 @@ class SetCC_I<bits<8> op, string instr_asm, PatFrag cond_op, Operand Od,
 
 // Unconditional branch, such as JMP
 class UncondBranch<bits<8> op, string instr_asm>:
-  FJ<op, (outs), (ins brtarget24:$addr),
+  FJ<op, (outs), (ins jmptarget:$addr),
              !strconcat(instr_asm, "\t$addr"), [(br bb:$addr)], IIBranch> {
   let isBranch = 1;
   let isTerminator = 1;
@@ -519,7 +496,6 @@ def XORi    : ArithLogicI<0x0e, "xori", xor, uimm16, immZExt16, CPURegs>;
 def LUi     : LoadUpper<0x0f, "lui", CPURegs, uimm16>;
 
 /// Arithmetic Instructions (3-Operand, R-Type)
-def CMP     : CmpInstr<0x10, "cmp", IIAlu, CPURegs, SR, 0>;
 def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
 def SUBu    : ArithLogicR<0x12, "subu", sub, IIAlu, CPURegs>;
 def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
@@ -547,14 +523,8 @@ def SLT     : SetCC_R<0x28, "slt", setlt, CPURegs>;
 def SLTu    : SetCC_R<0x29, "sltu", setult, CPURegs>;
 
 /// Jump and Branch Instructions
-def JEQ     : CBranch24<0x30, "jeq", SR, [SW]>;
-def JNE     : CBranch24<0x31, "jne", SR, [SW]>;
-def JLT     : CBranch24<0x32, "jlt", SR, [SW]>;
-def JGT     : CBranch24<0x33, "jgt", SR, [SW]>;
-def JLE     : CBranch24<0x34, "jle", SR, [SW]>;
-def JGE     : CBranch24<0x35, "jge", SR, [SW]>;
-def BEQ     : CBranch16<0x37, "beq", seteq, CPURegs>;
-def BNE     : CBranch16<0x38, "bne", setne, CPURegs>;
+def BEQ     : CBranch<0x30, "beq", seteq, CPURegs>;
+def BNE     : CBranch<0x31, "bne", setne, CPURegs>;
 
 def JMP     : UncondBranch<0x36, "jmp">;
 
@@ -645,43 +615,6 @@ def : Pat<(i32 (extloadi8  addr:$src)), (LBu addr:$src)>;
 def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
 
 // brcond patterns
-let Predicates = [!IsCpu1] in {
-multiclass BrcondPats<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
-Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp, 
-Instruction CMPOp, Register ZEROReg> {
-def : Pat<(brcond (i32 (seteq RC:$lhs, RC:$rhs)), bb:$dst),
-          (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setueq RC:$lhs, RC:$rhs)), bb:$dst),
-          (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setne RC:$lhs, RC:$rhs)), bb:$dst),
-          (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setune RC:$lhs, RC:$rhs)), bb:$dst),
-          (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setlt RC:$lhs, RC:$rhs)), bb:$dst),
-          (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setult RC:$lhs, RC:$rhs)), bb:$dst),
-          (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setgt RC:$lhs, RC:$rhs)), bb:$dst),
-          (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setugt RC:$lhs, RC:$rhs)), bb:$dst),
-          (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setle RC:$lhs, RC:$rhs)), bb:$dst),
-          (JLEOp (CMPOp RC:$rhs, RC:$lhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setule RC:$lhs, RC:$rhs)), bb:$dst),
-          (JLEOp (CMPOp RC:$rhs, RC:$lhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setge RC:$lhs, RC:$rhs)), bb:$dst),
-          (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-def : Pat<(brcond (i32 (setuge RC:$lhs, RC:$rhs)), bb:$dst),
-          (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-
-def : Pat<(brcond RC:$cond, bb:$dst),
-          (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)>;
-}
-
-defm : BrcondPats<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
-}
-
-let Predicates = [IsCpu1] in {
 multiclass BrcondPats<RegisterClass RC, Instruction BEQOp, Instruction BNEOp,
                       Instruction SLTOp, Instruction SLTuOp, Instruction SLTiOp,
                       Instruction SLTiuOp, Register ZEROReg> {
@@ -709,66 +642,9 @@ def : Pat<(brcond RC:$cond, bb:$dst),
 }
 
 defm : BrcondPats<CPURegs, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO>;
-}
 
 
 // setcc patterns
-let Predicates = [!IsCpu1] in {
-multiclass SeteqPats<RegisterClass RC> {
-// a == b
-  def : Pat<(seteq RC:$lhs, RC:$rhs),
-            (SHR (ANDi (CMP RC:$lhs, RC:$rhs), 2), 1)>;
-// a != b
-  def : Pat<(setne RC:$lhs, RC:$rhs),
-            (XORi (SHR (ANDi (CMP RC:$lhs, RC:$rhs), 2), 1), 1)>;
-}
-
-// a < b
-multiclass SetltPats<RegisterClass RC> {
-  def : Pat<(setlt RC:$lhs, RC:$rhs),
-            (ANDi (CMP RC:$lhs, RC:$rhs), 1)>;
-// if cpu0  `define N    `SW[31]  instead of `SW[0] // Negative flag, then need
-// 2 more instructions as follows,
-//          (XORi (ANDi (SHR (CMP RC:$lhs, RC:$rhs), (LUi 0x8000), 31), 1), 1)>;
-  def : Pat<(setult RC:$lhs, RC:$rhs),
-            (ANDi (CMP RC:$lhs, RC:$rhs), 1)>;
-}
-
-// a <= b
-multiclass SetlePats<RegisterClass RC> {
-  def : Pat<(setle RC:$lhs, RC:$rhs),
-// a <= b is equal to (XORi (b < a), 1)
-            (XORi (ANDi (CMP RC:$rhs, RC:$lhs), 1), 1)>;
-  def : Pat<(setule RC:$lhs, RC:$rhs),
-            (XORi (ANDi (CMP RC:$rhs, RC:$lhs), 1), 1)>;
-}
-
-// a > b
-multiclass SetgtPats<RegisterClass RC> {
-  def : Pat<(setgt RC:$lhs, RC:$rhs),
-// a > b is equal to b < a is equal to setlt(b, a)
-            (ANDi (CMP RC:$rhs, RC:$lhs), 1)>;
-  def : Pat<(setugt RC:$lhs, RC:$rhs),
-            (ANDi (CMP RC:$rhs, RC:$lhs), 1)>;
-}
-
-// a >= b
-multiclass SetgePats<RegisterClass RC> {
-  def : Pat<(setge RC:$lhs, RC:$rhs),
-// a >= b is equal to b <= a
-            (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
-  def : Pat<(setuge RC:$lhs, RC:$rhs),
-            (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
-}
-
-defm : SeteqPats<CPURegs>;
-defm : SetltPats<CPURegs>;
-defm : SetlePats<CPURegs>;
-defm : SetgtPats<CPURegs>;
-defm : SetgePats<CPURegs>;
-}
-
-let Predicates = [IsCpu1] in {
 multiclass SeteqPats<RegisterClass RC, Instruction SLTiuOp, Instruction XOROp,
                      Instruction SLTuOp, Register ZEROReg> {
 // a == b
@@ -819,5 +695,4 @@ defm : SetlePats<CPURegs, SLT, SLTu>;
 defm : SetgtPats<CPURegs, SLT, SLTu>;
 defm : SetgePats<CPURegs, SLT, SLTu>;
 defm : SetgeImmPats<CPURegs, SLTi, SLTiu>;
-}
 
