@@ -65,9 +65,9 @@ def Cpu0DivRemU   : SDNode<"Cpu0ISD::DivRemU", SDT_Cpu0DivRem,
 def RelocPIC    :     Predicate<"TM.getRelocationModel() == Reloc::PIC_">,
                       AssemblerPredicate<"FeatureCpu032">;
 def Slt         :     Predicate<"Subtarget.slt()">,
-                      AssemblerPredicate<"Feature Slt instruction">;
+                      AssemblerPredicate<"FeatureSlt">;
 def NoSlt       :     Predicate<"!Subtarget.slt()">,
-                      AssemblerPredicate<"!Feature Slt instruction">;
+                      AssemblerPredicate<"!FeatureSlt">;
 
 //===----------------------------------------------------------------------===//
 // Cpu0 Operand, Complex Patterns and Transformations Definitions.

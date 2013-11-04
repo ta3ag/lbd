@@ -35,6 +35,9 @@ def Cpu0InstrInfo : InstrInfo;
 def FeatureCpu032      : SubtargetFeature<"cpu032", "Cpu0ArchVersion", "Cpu032",
                                 "Cpu032 ISA Support">;
 
+def FeatureSlt         : SubtargetFeature<"cpu032", "Cpu0ArchVersion", "Cpu032",
+                                "Cpu032 use instruction slt">;
+
 //===----------------------------------------------------------------------===//
 // Cpu0 processors supported.
 //===----------------------------------------------------------------------===//
