@@ -247,7 +247,7 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
     const Cpu0TargetMachine &TM = getTargetMachine();
     const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
     SDNode *Carry;
-    if (Subtarget.slt())
+    if (Subtarget.hasCpu032II())
       Carry = CurDAG->getMachineNode(Cpu0::SLTu, DL, VT, Ops);
     else {
       SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);

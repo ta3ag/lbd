@@ -50,9 +50,6 @@ protected:
   // IsLittle - The target is Little Endian
   bool IsLittle;
 
-  // Slt - The target use instruction slt instead of cmp.
-  bool Slt;
-
   // UseSmallSection - Small section is used.
   bool UseSmallSection;
 
@@ -77,7 +74,6 @@ public:
   bool hasCpu032I() const { return Cpu0ArchVersion >= Cpu032I; }
   bool hasCpu032II() const { return Cpu0ArchVersion == Cpu032II; }
   bool isLittle() const { return IsLittle; }
-  bool slt() const { return Slt; }
   bool useSmallSection() const { return UseSmallSection; }
 };
 } // End llvm namespace

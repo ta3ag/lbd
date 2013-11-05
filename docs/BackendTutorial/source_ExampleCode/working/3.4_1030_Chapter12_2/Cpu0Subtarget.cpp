@@ -35,10 +35,6 @@ static cl::opt<bool>
 NoCploadOpt("cpu0-no-cpload", cl::Hidden, cl::init(false),
                  cl::desc("No issue .cpload"));
 
-static cl::opt<bool>
-sltOpt("cpu0-use-slt", cl::Hidden, cl::init(false),
-                 cl::desc("Use instruction slt instead of cmp"));
-
 bool Cpu0ReserveGP;
 bool Cpu0NoCpload;
 
@@ -66,10 +62,6 @@ Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
   if (Cpu0ABI == UnknownABI)
     Cpu0ABI = O32;
 
-  if (CPUName == "cpu032II")
-    Slt = true;
-  else
-    Slt = false;
   // Set UseSmallSection.
   UseSmallSection = UseSmallSectionOpt;
   Cpu0ReserveGP = ReserveGPOpt;
