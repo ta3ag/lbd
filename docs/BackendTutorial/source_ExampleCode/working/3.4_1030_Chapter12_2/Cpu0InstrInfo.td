@@ -62,11 +62,12 @@ def Cpu0DivRemU   : SDNode<"Cpu0ISD::DivRemU", SDT_Cpu0DivRem,
 //===----------------------------------------------------------------------===//
 // Cpu0 Instruction Predicate Definitions.
 //===----------------------------------------------------------------------===//
-def RelocPIC    :     Predicate<"TM.getRelocationModel() == Reloc::PIC_">,
+def RelocPIC    :     Predicate<"TM.getRelocationModel() == Reloc::PIC_">;
+//def RelocPIC    :     Predicate<"TM.getRelocationModel() == Reloc::PIC_">,
+//                      AssemblerPredicate<"FeatureCpu032I">;
+def NotCpu032II :     Predicate<"!Subtarget.hasCpu032II()">,
                       AssemblerPredicate<"FeatureCpu032I">;
 def HasCpu032II :     Predicate<"Subtarget.hasCpu032II()">,
-                      AssemblerPredicate<"FeatureCpu032II">;
-def NotCpu032II :     Predicate<"!Subtarget.hasCpu032II()">,
                       AssemblerPredicate<"!FeatureCpu032II">;
 
 //===----------------------------------------------------------------------===//
