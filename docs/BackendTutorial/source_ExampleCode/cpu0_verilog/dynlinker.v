@@ -31,7 +31,9 @@
            so_func_offset[i+2] == `MEMEMPTY && so_func_offset[i+3] == `MEMEMPTY) begin
          numDynEntry = i/52;
          j = 1;
+       `ifdef DEBUG_DLINKER
          $display("numDynEntry = %8x", numDynEntry);
+       `endif
        end
     end
   // save number of dynamic entries to memory address `DLINKER_INFO_ADDR
