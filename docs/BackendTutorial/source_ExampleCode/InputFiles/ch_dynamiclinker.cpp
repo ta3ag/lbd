@@ -29,7 +29,6 @@ int main()
 //  ENABLE_TRACE;
   int a = 0;
 
-  dynamic_linker_init();
 #if 0
   a = la(1, 2);
   printf("la(1, 2) = %d\n", a);

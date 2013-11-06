@@ -642,7 +642,7 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastDumpAddr) {
       // Fill /*address*/ 00 00 00 00 between lastDumpAddr( = the address of last
       // end section + 1) and BaseAddr
       uint64_t cellingLastAddr4 = ((lastDumpAddr + 3) / 4) * 4;
-      assert((lastDumpAddr < BaseAddr) && "lastDumpAddr must < BaseAddr");
+      assert((lastDumpAddr <= BaseAddr) && "lastDumpAddr must <= BaseAddr");
       // Fill /*address*/ bytes is odd for 4 by 00 
       outs() << format("/*%04" PRIx64 " */", lastDumpAddr);
       if (cellingLastAddr4 > BaseAddr) {
@@ -687,6 +687,53 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastDumpAddr) {
             outs() << ".";
         }
         outs() << "*/" << "\n";
+      }
+      // save the end address of this section to lastDumpAddr
+      lastDumpAddr = BaseAddr + Contents.size();
+    }
+    else if (Name == ".bss" || Name == ".sbss") {
+      if (Contents.size() <= 0) {
+        continue;
+      }
+      // Fill /*address*/ 00 00 00 00 between lastDumpAddr( = the address of last
+      // end section + 1) and BaseAddr
+      uint64_t cellingLastAddr4 = ((lastDumpAddr + 3) / 4) * 4;
+      assert((lastDumpAddr <= BaseAddr) && "lastDumpAddr must <= BaseAddr");
+      // Fill /*address*/ bytes is odd for 4 by 00 
+      outs() << format("/*%04" PRIx64 " */", lastDumpAddr);
+      if (cellingLastAddr4 > BaseAddr) {
+        for (std::size_t i = lastDumpAddr; i < BaseAddr; ++i) {
+          outs() << "00 ";
+        }
+        outs() << "\n";
+        lastDumpAddr = BaseAddr;
+      }
+      else {
+        for (std::size_t i = lastDumpAddr; i < cellingLastAddr4; ++i) {
+          outs() << "00 ";
+        }
+        outs() << "\n";
+        lastDumpAddr = cellingLastAddr4;
+      }
+      // Fill /*address*/ 00 00 00 00 for 4 bytes (1 Cpu0 word size)
+      for (addr = lastDumpAddr, end = BaseAddr; addr < end; addr += 4) {
+        outs() << format("/*%04" PRIx64 " */", addr);
+        outs() << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) \
+        << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) << '\n';
+      }
+
+      outs() << "/*Contents of section " << Name << ":*/\n";
+      // Dump out the content as hex and printable ascii characters.
+      for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
+        outs() << format("/*%04" PRIx64 " */", BaseAddr + addr);
+        // Dump line of hex.
+        for (std::size_t i = 0; i < 16; ++i) {
+          if (i != 0 && i % 4 == 0)
+            outs() << ' ';
+          if (addr + i < end)
+            outs() << "00 ";
+        }
+        outs() << "\n";
       }
       // save the end address of this section to lastDumpAddr
       lastDumpAddr = BaseAddr + Contents.size();

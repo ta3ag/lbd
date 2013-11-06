@@ -51,13 +51,9 @@ int got_plt_fill[0x80] = {
 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 
-int progCounter; // program counter, init to 0 in main()
+int progCounter = 0; // program counter, init to 0 in main()
 
 ProgAddr prog[10];
-void dynamic_linker_init()
-{
-  progCounter = 0;
-}
 
 void dynamic_linker()
 {
