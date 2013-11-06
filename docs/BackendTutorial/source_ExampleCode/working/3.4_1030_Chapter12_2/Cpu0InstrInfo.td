@@ -63,12 +63,40 @@ def Cpu0DivRemU   : SDNode<"Cpu0ISD::DivRemU", SDT_Cpu0DivRem,
 // Cpu0 Instruction Predicate Definitions.
 //===----------------------------------------------------------------------===//
 def RelocPIC    :     Predicate<"TM.getRelocationModel() == Reloc::PIC_">;
-//def RelocPIC    :     Predicate<"TM.getRelocationModel() == Reloc::PIC_">,
-//                      AssemblerPredicate<"FeatureCpu032I">;
 def NotCpu032II :     Predicate<"!Subtarget.hasCpu032II()">,
                       AssemblerPredicate<"FeatureCpu032I">;
 def HasCpu032II :     Predicate<"Subtarget.hasCpu032II()">,
-                      AssemblerPredicate<"!FeatureCpu032II">;
+                      AssemblerPredicate<"!FeatureCpu032III">;
+// !FeatureCpu032III is for disassembler in "llvm-objdump -d"
+
+/*
+In Cpu0GenSubtargetInfo.inc,
+namespace llvm {
+namespace Cpu0 {
+enum {
+  FeatureCpu032I =  1ULL << 0,
+  FeatureCpu032II =  1ULL << 1,
+  FeatureCpu032III =  1ULL << 2
+};
+}
+} // End llvm namespace 
+
+static bool checkDecoderPredicate(unsigned Idx, uint64_t Bits) {
+  switch (Idx) {
+  default: llvm_unreachable("Invalid index!");
+  case 0:
+    return ((Bits & Cpu0::FeatureCpu032I)); // came from "FeatureCpu032I"
+  case 1:
+    return (!(Bits & Cpu0::FeatureCpu032III)); // came from !FeatureCpu032III"
+  }
+}
+
+To let disassembler work, the function 
+checkDecoderPredicate(unsigned Idx, uint64_t Bits) must return true(=1).
+As above code, the argument Bits always is 1. Set !FeatureCpu032III" to do 
+disassembler for expectation.
+*/
+
 
 //===----------------------------------------------------------------------===//
 // Cpu0 Operand, Complex Patterns and Transformations Definitions.

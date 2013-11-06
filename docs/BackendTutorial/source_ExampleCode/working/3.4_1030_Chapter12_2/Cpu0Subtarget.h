@@ -38,7 +38,8 @@ public:
 protected:
   enum Cpu0ArchEnum {
     Cpu032I,
-    Cpu032II
+    Cpu032II,
+    Cpu032III
   };
 
   // Cpu0 architecture version
