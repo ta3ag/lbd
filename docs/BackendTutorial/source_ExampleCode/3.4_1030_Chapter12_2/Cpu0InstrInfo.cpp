@@ -37,6 +37,7 @@ copyPhysReg(MachineBasicBlock &MBB,
             bool KillSrc) const {
   unsigned Opc = 0, ZeroReg = 0;
 
+  const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
   if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
     if (Cpu0::CPURegsRegClass.contains(SrcReg))
       Opc = Cpu0::ADD, ZeroReg = Cpu0::ZERO;
@@ -44,22 +45,22 @@ copyPhysReg(MachineBasicBlock &MBB,
       Opc = Cpu0::MFHI, SrcReg = 0;
     else if (SrcReg == Cpu0::LO)
       Opc = Cpu0::MFLO, SrcReg = 0;
-#ifndef CPU0_REDESIGN_INSTRUCTION
-    else if (SrcReg == Cpu0::SW)
-      Opc = Cpu0::MFSW, SrcReg = 0;
-#endif // CPU0_REDESIGN_INSTRUCTION
+    if (!Subtarget.hasCpu032II()) {
+      if (SrcReg == Cpu0::SW)
+        Opc = Cpu0::MFSW, SrcReg = 0;
+    }
   }
   else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
     if (DestReg == Cpu0::HI)
       Opc = Cpu0::MTHI, DestReg = 0;
     else if (DestReg == Cpu0::LO)
       Opc = Cpu0::MTLO, DestReg = 0;
-#ifndef CPU0_REDESIGN_INSTRUCTION
-    // Only possibility in (DestReg==SW, SrcReg==CPU0Regs) is 
-    //  cmp $SW, $ZERO, $rc
-    else if (DestReg == Cpu0::SW)
-      Opc = Cpu0::MTSW, DestReg = 0;
-#endif // CPU0_REDESIGN_INSTRUCTION
+    if (!Subtarget.hasCpu032II()) {
+      // Only possibility in (DestReg==SW, SrcReg==CPU0Regs) is 
+      //  cmp $SW, $ZERO, $rc
+      if (DestReg == Cpu0::SW)
+        Opc = Cpu0::MTSW, DestReg = 0;
+    }
   }
 
   assert(Opc && "Cannot copy registers");

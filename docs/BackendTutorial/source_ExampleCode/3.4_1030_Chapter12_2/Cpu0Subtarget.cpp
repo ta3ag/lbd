@@ -50,7 +50,7 @@ Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
 {
   std::string CPUName = CPU;
   if (CPUName.empty())
-    CPUName = "cpu032";
+    CPUName = "cpu032I";
 
   // Parse features string.
   ParseSubtargetFeatures(CPUName, FS);

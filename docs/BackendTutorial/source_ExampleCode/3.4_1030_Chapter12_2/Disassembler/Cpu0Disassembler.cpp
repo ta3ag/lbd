@@ -66,7 +66,11 @@ static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder);
-static DecodeStatus DecodeBranchTarget(MCInst &Inst,
+static DecodeStatus DecodeBranch16Target(MCInst &Inst,
+                                       unsigned Insn,
+                                       uint64_t Address,
+                                       const void *Decoder);
+static DecodeStatus DecodeBranch24Target(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder);
@@ -200,8 +204,7 @@ static DecodeStatus DecodeMem(MCInst &Inst,
   return MCDisassembler::Success;
 }
 
-#ifdef CPU0_REDESIGN_INSTRUCTION
-static DecodeStatus DecodeBranchTarget(MCInst &Inst,
+static DecodeStatus DecodeBranch16Target(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder) {
@@ -211,7 +214,7 @@ static DecodeStatus DecodeBranchTarget(MCInst &Inst,
   Inst.addOperand(MCOperand::CreateImm(BranchOffset));
   return MCDisassembler::Success;
 }
-#else 
+
 /* CMP instruction define $rc and then $ra, $rb; The printOperand() print 
 operand 1 and operand 2 (operand 0 is $rc and operand 1 is $ra), so we Create 
 register $rc first and create $ra next, as follows,
@@ -269,7 +272,7 @@ void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) {
     printOperand(MI, 1, O); 
     break;
 */
-static DecodeStatus DecodeBranchTarget(MCInst &Inst,
+static DecodeStatus DecodeBranch24Target(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder) {
@@ -280,7 +283,6 @@ static DecodeStatus DecodeBranchTarget(MCInst &Inst,
   Inst.addOperand(MCOperand::CreateImm(BranchOffset));
   return MCDisassembler::Success;
 }
-#endif // CPU0_REDESIGN_INSTRUCTION
 
 static DecodeStatus DecodeJumpRelativeTarget(MCInst &Inst,
                                      unsigned Insn,

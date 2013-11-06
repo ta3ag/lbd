@@ -41,9 +41,7 @@ static unsigned adjustFixupValue(unsigned Kind, uint64_t Value) {
   case Cpu0::fixup_Cpu0_LO16:
   case Cpu0::fixup_Cpu0_GOT_LO16:
     break;
-#ifdef CPU0_REDESIGN_INSTRUCTION
   case Cpu0::fixup_Cpu0_PC16:
-#endif // CPU0_REDESIGN_INSTRUCTION
   case Cpu0::fixup_Cpu0_PC24:
     // So far we are only using this type for branches and jump.
     // For branches we start 1 instruction after the branch
@@ -80,8 +78,6 @@ public:
   //  are moved.
     return createCpu0ELFObjectWriter(OS,
       MCELFObjectTargetWriter::getOSABI(OSType), IsLittle);
-  // Even though, the old function still work on LLVM version 3.2
-  //    return createCpu0ELFObjectWriter(OS, OSType, IsLittle);
   }
 
   /// ApplyFixup - Apply the \arg Value for given \arg Fixup into the provided
@@ -144,9 +140,7 @@ public:
       { "fixup_Cpu0_GPREL16",        0,     16,   0 },
       { "fixup_Cpu0_GOT_Global",     0,     16,   0 },
       { "fixup_Cpu0_GOT_Local",      0,     16,   0 },
-#ifdef CPU0_REDESIGN_INSTRUCTION
       { "fixup_Cpu0_PC16",           0,     16,  MCFixupKindInfo::FKF_IsPCRel },
-#endif // CPU0_REDESIGN_INSTRUCTION
       { "fixup_Cpu0_PC24",           0,     24,  MCFixupKindInfo::FKF_IsPCRel },
       { "fixup_Cpu0_CALL16",         0,     16,   0 },
       { "fixup_Cpu0_Branch_PCRel",   0,     16,  MCFixupKindInfo::FKF_IsPCRel },

@@ -32,8 +32,14 @@ def Cpu0InstrInfo : InstrInfo;
 // Cpu0 Subtarget features                                                    //
 //===----------------------------------------------------------------------===//
 
-def FeatureCpu032      : SubtargetFeature<"cpu032", "Cpu0ArchVersion", "Cpu032",
-                                "Cpu032 ISA Support">;
+def FeatureCpu032I     : SubtargetFeature<"cpu032I", "Cpu0ArchVersion", 
+        "Cpu032I", "Cpu032I ISA Support">;
+
+def FeatureCpu032II    : SubtargetFeature<"cpu032II", "Cpu0ArchVersion",                      
+         "Cpu032II", "Cpu032II ISA Support (use instruction slt)">;
+
+def FeatureCpu032III   : SubtargetFeature<"cpu032III", "Cpu0ArchVersion",                      
+         "Cpu032III", "Cpu032III ISA Support (use instruction slt)">;
 
 //===----------------------------------------------------------------------===//
 // Cpu0 processors supported.
@@ -42,7 +48,9 @@ def FeatureCpu032      : SubtargetFeature<"cpu032", "Cpu0ArchVersion", "Cpu032",
 class Proc<string Name, list<SubtargetFeature> Features>
  : Processor<Name, Cpu0GenericItineraries, Features>;
 
-def : Proc<"cpu032", [FeatureCpu032]>;
+def : Proc<"cpu032I",  [FeatureCpu032I]>;
+def : Proc<"cpu032II", [FeatureCpu032II]>;
+def : Proc<"cpu032III", [FeatureCpu032III]>;
 
 def Cpu0AsmWriter : AsmWriter {
   string AsmWriterClassName  = "InstPrinter";

@@ -18,8 +18,6 @@
 #include "MCTargetDesc/Cpu0MCTargetDesc.h"
 #include "llvm/Target/TargetMachine.h"
 
-#define CPU0_REDESIGN_INSTRUCTION
-
 namespace llvm {
   class Cpu0TargetMachine;
   class FunctionPass;

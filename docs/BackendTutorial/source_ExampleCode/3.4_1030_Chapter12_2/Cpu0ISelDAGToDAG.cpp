@@ -244,14 +244,17 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
     SDValue RHS = Node->getOperand(1);
 
     EVT VT = LHS.getValueType();
-#ifdef CPU0_REDESIGN_INSTRUCTION
-    SDNode *Carry = CurDAG->getMachineNode(Cpu0::SLTu, DL, VT, Ops);
-#else
-    SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
-    SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
-    SDNode *Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
-                                           SDValue(StatusWord,0), Constant1);
-#endif // CPU0_REDESIGN_INSTRUCTION
+    const Cpu0TargetMachine &TM = getTargetMachine();
+    const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
+    SDNode *Carry;
+    if (Subtarget.hasCpu032II())
+      Carry = CurDAG->getMachineNode(Cpu0::SLTu, DL, VT, Ops);
+    else {
+      SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
+      SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
+      Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
+                                             SDValue(StatusWord,0), Constant1);
+    }
     SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, DL, VT,
                                               SDValue(Carry,0), RHS);
 
