@@ -368,7 +368,7 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
        m[i] = `MEMEMPTY;
     end
   // load program from file to memory
-    $readmemh("cpu0s.hex", m);
+    $readmemh("cpu0.hex", m);
   // display memory contents
     `ifdef TRACE
       for (i=0; i < `MEMSIZE && (m[i] != `MEMEMPTY || m[i+1] != `MEMEMPTY || 
