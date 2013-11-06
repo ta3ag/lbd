@@ -244,8 +244,8 @@ The code added on lld to support Cpu0 ELF as follows,
 .. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0Target.h
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0Target.h
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0TargetHandler.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_20130816/Cpu0/Cpu0TargetHandler.h
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.h
 
 .. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp
@@ -253,7 +253,7 @@ The code added on lld to support Cpu0 ELF as follows,
 
 Above code in Cpu0 lld support both the static and dynamic link. 
 The "#ifdef DLINKER" is for dynamic link support. There are only just over 1 
-thousand of code in it. Half of the code size is support the dynamic linker.
+thousand of code in it. Half of the code size is for the dynamic linker.
 
 
 ELF to Hex
@@ -310,15 +310,15 @@ below.
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/build-printf-stdarg-2.sh
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/build-printf-stdarg-2.sh
 
-Please change the cpu0_verilog/cpu0s.v to support static linker run by unmark 
-"`define DLINKER" and make sure it use Chapter12_2 instructions as follows,
+The cpu0_verilog/cpu0Is.v support cmp instruction and static linker as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0s.v
+.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0Is.v
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0Is.v
 
-  `define CPU0_REDESIGN_INSTRUCTION
-  ...
-  //`define DLINKER  // Dynamic Linker Support
+The cpu0_verilog/cpu0IIs.v support slt instruction and static linker as follows,
 
+.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0IIs.v
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0IIs.v
 
 The build-printf-stdarg-2.sh is for my PC setting. Please change this script to
 your lld installed directory and run static linker example code as follows,
@@ -337,10 +337,11 @@ your lld installed directory and run static linker example code as follows,
   [Gamma@localhost InputFiles]$ cd ../cpu0_verilog/
   [Gamma@localhost cpu0_verilog]$ pwd
   /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
-  [Gamma@localhost cpu0_verilog]$ iverilog -o cpu0s cpu0s.v 
+  [Gamma@localhost cpu0_verilog]$ iverilog -o cpu0Is cpu0Is.v 
   [Gamma@localhost cpu0_verilog]$ ls
-  clean.sh cpu0s  cpu0s.hex  cpu0s.v dynlinker.v  flashio.v   readme
-  [Gamma@localhost cpu0_verilog]$ ./cpu0s 
+  clean.sh  cpu0Id.v  cpu0IId.v  cpu0IIs.v  cpu0Is  cpu0Is.v  cpu0.v  dynlinker.v  
+  flashio.v
+  [Gamma@localhost cpu0_verilog]$ ./cpu0Is 
   WARNING: cpu0s.v:317: $readmemh(cpu0s.hex): Not enough words in the file for 
   the requested range [0:65535].
   taskInterrupt(001)
@@ -358,7 +359,7 @@ your lld installed directory and run static linker example code as follows,
   hex 00 = 00
   signed -3 = unsigned 4294967293 = hex fffffffd
   0 message(s)
-  0 message(s) with %
+  0 message(s) with \%
   justif: "left      "
   justif: "     right"
    3: 0003 zero padded
@@ -368,6 +369,7 @@ your lld installed directory and run static linker example code as follows,
 
 Let's check the result with PC program printf-stdarg-1.c output as follows,
 
+.. code-block:: bash
 
   [Gamma@localhost InputFiles]$ gcc printf-stdarg-1.c
   /usr/lib/gcc/x86_64-redhat-linux/4.7.2/../../../../lib64/crt1.o: In function 
@@ -386,7 +388,7 @@ Let's check the result with PC program printf-stdarg-1.c output as follows,
   hex 00 = 00
   signed -3 = unsigned 4294967293 = hex fffffffd
   0 message(s)
-  0 message(s) with %
+  0 message(s) with \%
   justif: "left      "
   justif: "     right"
    3: 0003 zero padded
@@ -397,49 +399,117 @@ Let's check the result with PC program printf-stdarg-1.c output as follows,
   -3:   -3 right justif.
 
 They are same after the "Hello world!" of printf() function support.
-The 3.4_1030_Chapter12_2 use slt instruction. You can verify the Chapter12_1 
-instructions is work fine too as follows,
+The cpu0I use slt instruction. You can verify the cmp 
+instructions is work fine too by change cpu to cpu032II as follows,
 
-1. Unmark "#define CPU0_REDESIGN_INSTRUCTION" in Cpu0.h and change cpu0s.v to 
-use Chapter12_1 instructions as follows,
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/build-printf-stdarg-2.sh
 
-.. rubric:: LLVMBackendTutorialExampleCode/3.4_1030_Chapter12_2/Cpu0.h
+.. code-block:: bash
 
-//#define CPU0_REDESIGN_INSTRUCTION
-
-.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0s.v
-
-  //`define CPU0_REDESIGN_INSTRUCTION
   ...
-  //`define DLINKER  // Dynamic Linker Support
+  cpu=cpu032II
+  ...
 
-2. Replace with Chapter12_1 instruction by terminal command and re-build,
+.. code-block:: bash
 
-  [Gamma@localhost Cpu0]$ pwd
-  /home/Gamma/test/lld/src/lib/Target/Cpu0
-  [Gamma@localhost Cpu0]$ ls raw/
-  Cpu0InstrInfo.td  Cpu0RegisterInfo.td
-  [Gamma@localhost Cpu0]$ cp raw/* .
-  [Gamma@localhost Cpu0]$ cd ../../../../cmake_debug_build/
-  [Gamma@localhost cmake_debug_build]$ pwd
-  /home/Gamma/test/lld/cmake_debug_build
-  [Gamma@localhost cmake_debug_build]$ make
-
-3. Re-build verilog and execution as follows,
   [Gamma@localhost cpu0_verilog]$ pwd
-  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog[Gamma@localhost cpu0_verilog]$ bash clean.sh 
-  [Gamma@localhost cpu0_verilog]$ iverilog -o cpu0s cpu0s.v
-  ...
-  [Gamma@localhost InputFiles]$ pwd
-  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/InputFiles
+  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
+  [Gamma@localhost cpu0_verilog]$ bash clean.sh
+  [Gamma@localhost InputFiles]$ cd ../InputFiles/
   [Gamma@localhost InputFiles]$ bash build-printf-stdarg-2.sh
-  printf-stdarg-2.c:85:19: warning: incomplete format specifier [-Wformat]
-    printf("%d %s(s)%", 0, "message");
+  printf-stdarg.c:102:19: warning: incomplete format specifier [-Wformat]
+    printf("%d %s(s)\%", 0, "message");
                     ^
+  1 warning generated.
+  [Gamma@localhost InputFiles]$ cd ../cpu0_verilog/
+  [Gamma@localhost cpu0_verilog]$ pwd
+  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
+  [Gamma@localhost cpu0_verilog]$ iverilog -o cpu0IIs cpu0IIs.v 
+  [Gamma@localhost cpu0_verilog]$ ls
+  clean.sh  cpu0Id.v  cpu0IId.v  cpu0IIs  cpu0IIs.v  cpu0Is.v  cpu0.v  dynlinker.v  
+  flashio.v
+  [Gamma@localhost cpu0_verilog]$ ./cpu0IIs 
+
+The cpu032II will use Chapter12_2 slt, beq, ..., instructions instead of 
+instructions of Chapter12_1 cmp, jeq, ...
 
 
-It's use Chapter12_1 cmp, jeq, ..., instructions instead of slt, beq, ..., 
-instructions of Chapter12_2.
+Dynamic linker 
+---------------
+
+Except the lld code with #ifdef DLINKER. The following code in Verilog exist to 
+support dynamic linker.
+
+.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/dynlinker.v
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/dynlinker.v
+
+.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/flashio.v
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/flashio.v
+
+.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0Id.v
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0Id.v
+
+.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0IId.v
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0IId.v
+
+The following code ch_dynamiclinker.cpp and foobar.cpp is the example for 
+dynamic linker demostration. The dynamic_linker.cpp is what our implementaion
+to execute the dynamic linker function on Cpu0 Verilog machine.
+
+
+Run
+~~~~
+
+.. code-block:: bash
+
+  [Gamma@localhost cpu0_verilog]$ pwd
+  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
+  [Gamma@localhost cpu0_verilog]$ bash clean.sh
+  [Gamma@localhost InputFiles]$ cd ../InputFiles/
+  [Gamma@localhost InputFiles]$ bash build-dlinker.sh
+  [Gamma@localhost InputFiles]$ cd ../cpu0_verilog/
+  [Gamma@localhost cpu0_verilog]$ pwd
+  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
+  [Gamma@localhost cpu0_verilog]$ iverilog -o cpu0Id cpu0Id.v 
+  [Gamma@localhost cpu0_verilog]$ ls
+  clean.sh  cpu0Id  cpu0Id.v  cpu0IId.v  cpu0IIs.v  cpu0Is.v  cpu0.v  dynlinker.v  
+  flashio.v
+  [Gamma@localhost cpu0_verilog]$ ./cpu0Id 
+  WARNING: ./cpu0.v:371: $readmemh(cpu0.hex): Not enough words in the file for the requested range [0:524287].
+  WARNING: ./dynlinker.v:185: $readmemh(libso.hex): Not enough words in the file for the requested range [0:524287].
+  WARNING: ./dynlinker.v:223: $readmemh(dynsym): Not enough words in the file for the requested range [0:191].
+  WARNING: ./dynlinker.v:224: $readmemh(dynstr): Not enough words in the file for the requested range [0:95].
+  WARNING: ./dynlinker.v:225: $readmemh(so_func_offset): Not enough words in the file for the requested range [0:383].
+  numDynEntry = 00000005
+  taskInterrupt(001)
+  loading _Z3fooii...
+  run _Z3fooii...
+  foo(1, 2) = 3
+  loading _Z3barv...
+  run _Z3barv...
+  loading _Z2laii...
+  run _Z2laii...
+  bar() = 11
+  RET to PC < 0, finished!
+
+Same as static linker, the cpu0IId.v use slt instruction instead of cmp. 
+It can be run as follows,
+
+.. code-block:: bash
+
+  [Gamma@localhost cpu0_verilog]$ pwd
+  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
+  [Gamma@localhost cpu0_verilog]$ bash clean.sh
+  [Gamma@localhost InputFiles]$ cd ../InputFiles/
+  [Gamma@localhost InputFiles]$ bash build-dlinker.sh
+  [Gamma@localhost InputFiles]$ cd ../cpu0_verilog/
+  [Gamma@localhost cpu0_verilog]$ pwd
+  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
+  [Gamma@localhost cpu0_verilog]$ iverilog -o cpu0IId cpu0IId.v 
+  [Gamma@localhost cpu0_verilog]$ ls
+  clean.sh  cpu0Id.v  cpu0IId  cpu0IId.v  cpu0IIs.v  cpu0Is.v  cpu0.v  dynlinker.v  
+  flashio.v
+  [Gamma@localhost cpu0_verilog]$ ./cpu0IId 
 
 
 Summary
@@ -456,7 +526,7 @@ If you like to pay money to buy the FPGA development hardware, we believe the
 code can run on FPGA CPU without problem even though we didn't do it.
 System program toolchain can be designed just like we show you at this point. 
 School knowledge of system program, compiler, linker, loader, computer 
-architecture and CPU design can be translate into a real work and see how it be 
+architecture and CPU design can be translated into a real work and see how it be 
 run. Now, these school books knowledge is not limited on paper. 
 We program it, design it and run it on real world.
 
