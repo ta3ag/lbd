@@ -856,12 +856,15 @@ offset.
 Cpu0 Verilog language changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/redesign/cpu0s.v
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/redesign/cpu0s.v
+.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0IIs.v
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0IIs.v
+
+In addition to cpu0IIs.v, the "`ifdef CPU0II" in cpu0.v is added for extended
+slt, beq, bne instructions.
 
 
-Run the redesigned Cpu0
-~~~~~~~~~~~~~~~~~~~~~~~~
+Run the Cpu0II
+~~~~~~~~~~~~~~~~
 
 Run Chapter12_2/ with ch_run_backend.cpp to get result as below. 
 It match the expect value as comment in ch_run_backend.cpp.
@@ -885,11 +888,11 @@ It match the expect value as comment in ch_run_backend.cpp.
   118-165-77-203:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk '{print "/* " $1 
   " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t*/"}' > 
-  ../cpu0_verilog/redesign/cpu0s.hex
+  ../cpu0_verilog/redesign/cpu0.hex
   
-  JonathantekiiMac:InputFiles Jonathan$ cd ../cpu0_verilog/redesign/
-  JonathantekiiMac:redesign Jonathan$ iverilog -o cpu0s cpu0s.v 
-  JonathantekiiMac:redesign Jonathan$ ./cpu0s
+  JonathantekiiMac:InputFiles Jonathan$ cd ../cpu0_verilog/
+  JonathantekiiMac:redesign Jonathan$ iverilog -o cpu0IIs cpu0IIs.v 
+  JonathantekiiMac:redesign Jonathan$ ./cpu0IIs
   taskInterrupt(001)
   74
   253

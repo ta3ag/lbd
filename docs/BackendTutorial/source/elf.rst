@@ -844,7 +844,7 @@ Compile main.cpp to get the Cpu0 PIC assembly code as follows,
 	  st	$2, 4($sp)
 	  addiu	$2, $zero, 1
 	  st	$2, 0($sp)
-	  ld	$7, %call24(_Z3fooii)($gp)
+	  ld	$7, %call16(_Z3fooii)($gp)
 	  add	$t9, $zero, $7
 	  jalr	$t9
 	  ld	$gp, 8($fp)
@@ -859,7 +859,7 @@ Compile main.cpp to get the Cpu0 PIC assembly code as follows,
 	  ld	$3, 20($fp)
 	  addu	$2, $3, $2
 	  st	$2, 20($fp)
-	  ld	$t9, %call24(_Z3barv)($gp)
+	  ld	$t9, %call16(_Z3barv)($gp)
 	  jalr	$t9
 	  ld	$gp, 8($fp)
 	  ld	$3, 20($fp)

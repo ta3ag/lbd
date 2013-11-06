@@ -359,13 +359,14 @@ Verilog of CPU0
 
 Verilog language is an IEEE standard in IC design. There are a lot of book and 
 documents for this language. Web site [#]_ has a pdf [#]_ in this. 
-Example code LLVMBackendTutorialExampleCode/cpu0s_verilog/raw/cpu0s.v is the 
+Example code LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0.v is the 
 cpu0 design in Verilog. In Appendix A, we have downloaded and installed Icarus 
-Verilog tool both on iMac and Linux. The cpu0s.v is a simple design with only 
-280 lines of code. Alough it has not the pipeline features, we can assume the 
+Verilog tool both on iMac and Linux. The cpu0.v and cpu0Is.v is a simple design 
+with only few hundreds lines of code. 
+Alough it has not the pipeline features, we can assume the 
 cpu0 backend code run on the pipeline machine because the pipeline version  
 use the same machine instructions. Verilog is C like language in syntex and 
-this book is a compiler book, so we list the cpu0s.v as well as the building 
+this book is a compiler book, so we list the cpu0.v as well as the building 
 command directly as below. We expect 
 readers can understand the Verilog code just with a little patient and no need 
 further explanation. There are two type of I/O. One is memory mapped I/O, the 
@@ -380,15 +381,18 @@ cx($rb) is 0x7000 (28672), CPU0 display the content as follows,
             $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);
 
 
-.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/raw/cpu0s.v
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/raw/cpu0s.v
+.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0.v
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0.v
+
+.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0Is.v
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0Is.v
 
 
 .. code-block:: bash
 
   JonathantekiiMac:raw Jonathan$ pwd
   /Users/Jonathan/test/2/lbd/LLVMBackendTutorialExampleCode/cpu0_verilog/raw
-  JonathantekiiMac:raw Jonathan$ iverilog -o cpu0s cpu0s.v 
+  JonathantekiiMac:raw Jonathan$ iverilog -o cpu0Is cpu0Is.v 
 
 
 Run program on CPU0 machine
@@ -396,7 +400,7 @@ Run program on CPU0 machine
 
 Now let's compile ch_run_backend.cpp as below. Since code size grows up from low to high 
 address and stack grows up from high to low address. We set $sp at 0x6ffc because 
-cpu0s.v use 0x7000 bytes of memory.
+cpu0.v use 0x7000 bytes of memory.
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/InitRegs.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/InitRegs.cpp
@@ -426,9 +430,9 @@ cpu0s.v use 0x7000 bytes of memory.
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
   build/bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk '{print "/* " 
   $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t*/"}'
-   > ../cpu0_verilog/raw/cpu0s.hex
+   > ../cpu0_verilog/raw/cpu0.hex
   
-  118-165-81-39:raw Jonathan$ cat cpu0s.hex 
+  118-165-81-39:raw Jonathan$ cat cpu0.hex 
   ...
   /* 4c: */ 2b 00 00 20 /* jsub 0    */
   /* 50: */ 01 2d 00 04 /* st $2, 4($sp)    */
@@ -494,9 +498,8 @@ possibility.
 
 Let's run the Chapter11_2/ with ``llvm-objdump -d`` for input files 
 ch_run_backend.cpp to generate the hex file 
-and input to cpu0s Verilog simulator to get the output result as below. You can
-unmark the $display() in cpu0s.v to trace the memory binary code and destination
-register change at every instruction execution. Remind ch_run_backend.cpp have to
+and input to cpu0Is Verilog simulator to get the output result as below. 
+Remind ch_run_backend.cpp have to
 compile with option ``clang -target mips-unknown-linux-gnu`` and use the clang of
 your build instead of download from Xcode on iMac. The ~/llvm/release/
 cmake_debug_build/bin/Debug/ is my build clang from source code.
@@ -512,10 +515,10 @@ cmake_debug_build/bin/Debug/ is my build clang from source code.
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
   build/bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk '{print "/* " 
   $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t*/"}'
-   > ../cpu0_verilog/raw/cpu0s.hex
+   > ../cpu0_verilog/raw/cpu0.hex
    
-  JonathantekiiMac:raw Jonathan$ ./cpu0s
-  WARNING: cpu0s.v:386: $readmemh(cpu0s.hex): Not enough words in the file for the 
+  JonathantekiiMac:raw Jonathan$ ./cpu0Is
+  WARNING: cpu0Is.v:386: $readmemh(cpu0.hex): Not enough words in the file for the 
   taskInterrupt(001)
   74
   253
@@ -576,13 +579,27 @@ assumption that the stack size of print1_integer() is 8.
        ................                                   ret $lr
 
 
-Unmark the $display() in cpu0s.v to trace the memory binary code and destination
-register change at every instruction execution as follows,
+You can trace the memory binary code and destination
+register change at every instruction execution by the following change and
+get the result as below,
+
+.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0Is.v
+
+.. code-block:: c++
+
+  `define TRACE 
+
+.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0.v
+
+.. code-block:: c++
+
+      ...
+      `TR = 1; // Trace register content at beginning
 
 .. code-block:: bash
 
-  JonathantekiiMac:raw Jonathan$ ./cpu0s
-  WARNING: cpu0s.v:386: $readmemh(cpu0s.hex): Not enough words in the file for the 
+  JonathantekiiMac:raw Jonathan$ ./cpu0Is
+  WARNING: cpu0.v:386: $readmemh(cpu0.hex): Not enough words in the file for the 
   requested range [0:28671].
   00000000: 2600000c
   00000004: 26000004
@@ -598,7 +615,7 @@ register change at every instruction execution as follows,
   RET to PC < 0, finished!
 
 
-As above result, cpu0s.v dump the memory first after read input cpu0s.hex. 
+As above result, cpu0.v dump the memory first after read input cpu0.hex. 
 Next, it run instructions from address 0 and print each destination 
 register value in the fourth column. 
 The first column is the nano seconds of timing. The second 
