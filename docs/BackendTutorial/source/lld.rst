@@ -7,9 +7,9 @@ This chapter add Cpu0 backend in lld. With this lld Cpu0 for ELF linker support,
 the program with global variables can be allocated in ELF file format layout. 
 Meaning the relocation records of global variable can be solved. In addition, 
 llvm-objdump driver is modified for support generate Hex file from ELF.
-With these two tools supported, the program with global variables exist in section
-.data and .rodata can be accessed and transfered to Hex file which feed to 
-Verilog Cpu0 machine and run on your PC/Laptop.
+With these two tools supported, the program with global variables exist in 
+section.data and .rodata can be accessed and transfered to Hex file which feed 
+to Verilog Cpu0 machine and run on your PC/Laptop.
 
 LLD web site [#]_. LLD install requirement on Linux [#]_. 
 In spite of the requirement, we
@@ -27,7 +27,8 @@ llvm on Linux platform or Linux VM. Please let us know if you know how to build
 it on iMac with Xcode. So, if you got iMac only, please install VM (such as 
 Virtual Box). We porting lld Cpu0 at 2013/10/30, so please checkout the
 commit id 99a43d3b8f5cf86b333055a56220c6965fd9ece4(llvm) and
-5d1737ac704352357fd28cfe3b2daf9aa308fb86(lld) which commited at 2013/10/30 as follows,
+5d1737ac704352357fd28cfe3b2daf9aa308fb86(lld) which commited at 2013/10/30 as 
+follows,
 
 .. code-block:: bash
 
@@ -629,11 +630,16 @@ Run
   clean.sh  cpu0Id  cpu0Id.v  cpu0IId.v  cpu0IIs.v  cpu0Is.v  cpu0.v  dynlinker.v  
   flashio.v
   [Gamma@localhost cpu0_verilog]$ ./cpu0Id 
-  WARNING: ./cpu0.v:371: $readmemh(cpu0.hex): Not enough words in the file for the requested range [0:524287].
-  WARNING: ./dynlinker.v:185: $readmemh(libso.hex): Not enough words in the file for the requested range [0:524287].
-  WARNING: ./dynlinker.v:223: $readmemh(dynsym): Not enough words in the file for the requested range [0:191].
-  WARNING: ./dynlinker.v:224: $readmemh(dynstr): Not enough words in the file for the requested range [0:95].
-  WARNING: ./dynlinker.v:225: $readmemh(so_func_offset): Not enough words in the file for the requested range [0:383].
+  WARNING: ./cpu0.v:371: $readmemh(cpu0.hex): Not enough words in the file for 
+  the requested range [0:524287].
+  WARNING: ./dynlinker.v:185: $readmemh(libso.hex): Not enough words in the 
+  file for the requested range [0:524287].
+  WARNING: ./dynlinker.v:223: $readmemh(dynsym): Not enough words in the file 
+  for the requested range [0:191].
+  WARNING: ./dynlinker.v:224: $readmemh(dynstr): Not enough words in the file 
+  for the requested range [0:95].
+  WARNING: ./dynlinker.v:225: $readmemh(so_func_offset): Not enough words in 
+  the file for the requested range [0:383].
   numDynEntry = 00000005
   taskInterrupt(001)
   loading _Z3fooii...
