@@ -259,7 +259,7 @@ thousand of code in it. Half of the code size is for the dynamic linker.
 ELF to Hex
 -----------
 
-Add elf2hex.cpp and update llvm-objdump driver to support ELF to Hex for Cpu0 
+Add elf2hex.h and update llvm-objdump driver to support ELF to Hex for Cpu0 
 backend as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/llvm-objdump/elf2hex.h
@@ -272,6 +272,9 @@ backend as follows,
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/llvm-objdump/llvm-objdump.cpp
     :start-after: // 2 llvm-objdump -elf2hex code update begin:
     :end-before: // 2 llvm-objdump -elf2hex code udpate end:
+
+The "if (DumpSo)" and "if (LinkSo)" included code are for dynamic linker support.
+Others are used in both static and dynamic link execution file dump.
 
 
 Static linker 
@@ -503,7 +506,38 @@ depicted by the following code.
 
 
 According chapter ELF, the linker stands for resolve the relocation records.
-The Cpu0TargetRelocationHandler::applyRelocation() will be called through 
+The following code give the chance to let lld system call our relocation 
+function at proper time.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
+.. code-block:: c++
+
+  std::unique_ptr<Pass>
+  lld::elf::createCpu0RelocationPass(const Cpu0LinkingContext &ctx) {
+    switch (ctx.getOutputELFType()) {
+    case llvm::ELF::ET_EXEC:
+  #ifdef DLINKER
+      if (ctx.isDynamic())
+        return std::unique_ptr<Pass>(new DynamicRelocationPass(ctx));
+      else
+  #endif // DLINKER
+        return std::unique_ptr<Pass>(new StaticRelocationPass(ctx));
+  #ifdef DLINKER
+    case llvm::ELF::ET_DYN:
+      return std::unique_ptr<Pass>(new DynamicRelocationPass(ctx));
+  #endif // DLINKER
+    case llvm::ELF::ET_REL:
+      return std::unique_ptr<Pass>();
+    default:
+      llvm_unreachable("Unhandled output file type");
+    }
+  }
+
+The "#ifdef DLINKER" part is for dynamic linker will used in next section.
+For static linker, a StaticRelocationPass object is created and return.
+
+Now the following code of Cpu0TargetRelocationHandler::applyRelocation() 
+will be called through 
 Cpu0TargetHandler by lld ELF driver when it meet each relocation record.
 
 .. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp
@@ -612,24 +646,21 @@ Run
   bar() = 11
   RET to PC < 0, finished!
 
-Same as static linker, the cpu0IId.v use slt instruction instead of cmp. 
-It can be run as follows,
 
-.. code-block:: bash
+The "#ifdef DEBUG_DLINKER" part of code in dynamic_linker.cpp is for debugging
+purpose (since we coding it and take time to debug). After skip these debug
+code, the dynamic_linker.cpp is short and not difficult to read.
 
-  [Gamma@localhost cpu0_verilog]$ pwd
-  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
-  [Gamma@localhost cpu0_verilog]$ bash clean.sh
-  [Gamma@localhost InputFiles]$ cd ../InputFiles/
-  [Gamma@localhost InputFiles]$ bash build-dlinker.sh
-  [Gamma@localhost InputFiles]$ cd ../cpu0_verilog/
-  [Gamma@localhost cpu0_verilog]$ pwd
-  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
-  [Gamma@localhost cpu0_verilog]$ iverilog -o cpu0IId cpu0IId.v 
-  [Gamma@localhost cpu0_verilog]$ ls
-  clean.sh  cpu0Id.v  cpu0IId  cpu0IId.v  cpu0IIs.v  cpu0Is.v  cpu0.v  dynlinker.v  
-  flashio.v
-  [Gamma@localhost cpu0_verilog]$ ./cpu0IId 
+The run result is under expectation. The main() call foo() function first.
+Function foo() is loaded by dynamic linker (dynamic_linker.cpp) from memory
+address FLASHADDR (defined in dynamic_linker.h) to memory.
+The flashio.v implement the simulation read from flash address.
+After loaded foo() body from flash, dynamic_linker.cpp jump to this loaded
+address by "ret \$t9" instruction.
+
+Same as static linker, you can generate slt instruction instead of cmp by
+change from cpu=cpu0I to cpu0=cpu0II in build-dlinker.sh and run it again to
+get the same result.
 
 
 Cpu0 lld dynamic linker structure
