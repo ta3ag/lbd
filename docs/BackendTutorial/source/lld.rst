@@ -561,6 +561,9 @@ The following code ch_dynamiclinker.cpp and foobar.cpp is the example for
 dynamic linker demostration. File dynamic_linker.cpp is what our implementaion
 to execute the dynamic linker function on Cpu0 Verilog machine.
 
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/dynamic_linker.h
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/dynamic_linker.h
+
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/dynamic_linker.cpp
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/dynamic_linker.cpp
     :start-after: /// start
