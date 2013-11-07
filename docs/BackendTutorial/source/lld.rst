@@ -565,12 +565,12 @@ to execute the dynamic linker function on Cpu0 Verilog machine.
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/dynamic_linker.cpp
     :start-after: /// start
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_dynamic_linker.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_dynamic_linker.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_dynamiclinker.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_dynamiclinker.cpp
     :start-after: /// start
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_foobar.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_foobar.cpp
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/foobar.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/foobar.cpp
     :start-after: /// start
 
 
