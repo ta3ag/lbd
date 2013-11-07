@@ -423,10 +423,12 @@ instructions is work fine too by change cpu to cpu032II as follows,
   1 warning generated.
   [Gamma@localhost cpu0_verilog]$ ./cpu0IIs 
 
-The verilog machine cpu032II has include cpu0I all instructions (cmp, jeq, ... 
+The verilog machine cpu032II include cpu0I all instructions (cmp, jeq, ... 
 are included also) and add Chapter12_2 slt, beq, ..., instructions.
 Run build-printf-stdarg-2.sh with cpu=cpu032II will generate slt, beq and bne 
-instructions instead cmp, jeq, ... instructions.
+instructions instead cmp, jeq, ... instructions. Since cpu0IIs include both
+slt, cmp, ... instructions, the slt and cmp both code generated can be run on
+it without any problem.
 
 
 Cpu0 lld structure
@@ -434,18 +436,21 @@ Cpu0 lld structure
 
 .. _lld-f1: 
 .. figure:: ../Fig/lld/1.png
+  :scale: 100 %
   :align: center
 
   Cpu0 lld class relation ship
 
 .. _lld-f2: 
 .. figure:: ../Fig/lld/2.png
+  :scale: 80 %
   :align: center
 
   Cpu0 lld ELFLinkingContext and DefaultLayout member functions
 
 .. _lld-f3: 
 .. figure:: ../Fig/lld/3.png
+  :scale: 100 %
   :align: center
 
   Cpu0 lld RelocationPass
@@ -518,6 +523,8 @@ Cpu0TargetHandler by lld ELF driver when it meet each relocation record.
       relocLO16(location, relocVAddress, targetVAddress, ref.addend());
       break;
     ...
+    }
+    return error_code::success();
   }
 
 .. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.h
@@ -551,8 +558,20 @@ support dynamic linker.
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0IId.v
 
 The following code ch_dynamiclinker.cpp and foobar.cpp is the example for 
-dynamic linker demostration. The dynamic_linker.cpp is what our implementaion
+dynamic linker demostration. File dynamic_linker.cpp is what our implementaion
 to execute the dynamic linker function on Cpu0 Verilog machine.
+
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/dynamic_linker.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/dynamic_linker.cpp
+    :start-after: /// start
+
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_dynamic_linker.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_dynamic_linker.cpp
+    :start-after: /// start
+
+.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_foobar.cpp
+.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_foobar.cpp
+    :start-after: /// start
 
 
 Run
@@ -568,7 +587,7 @@ Run
   [Gamma@localhost InputFiles]$ cd ../cpu0_verilog/
   [Gamma@localhost cpu0_verilog]$ pwd
   /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
-  [Gamma@localhost cpu0_verilog]$ iverilog -o cpu0Id cpu0Id.v 
+  [Gamma@localhost cpu0_verilog]$ iverilog -o cpu0IId cpu0IId.v 
   [Gamma@localhost cpu0_verilog]$ ls
   clean.sh  cpu0Id  cpu0Id.v  cpu0IId.v  cpu0IIs.v  cpu0Is.v  cpu0.v  dynlinker.v  
   flashio.v

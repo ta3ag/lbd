@@ -5,24 +5,24 @@
   task setDynLinkerInfo; begin
 // below code set memory as follows,
 //                                                            (4 bytes) 
-//                                                        ---------------------------------------
+//                                                      ---------------------------------------
 // DLINKER_INFO_ADDR ---------->                        | numDynEntry                         |
-//                                                        ---------------------------------------
+//                                                      ---------------------------------------
 // DLINKER_INFO_ADDR+4 -------->                        | index of dynsym (0st row)           |
 //   above is the 1st word of section .dynsym of libfoobar.cpu0.so. 
 // DLINKER_INFO_ADDR+8 -------->                        | index of dynsym (1st row)           |
-//                                                        | ...                                 |
+//                                                      | ...                                 |
 // DLINKER_INFO_ADDR+(numDynEntry-1)*4 ---------------> | index of dynsym (the last row)      |
-//                                                        ---------------------------------------
+//                                                      ---------------------------------------
 // DLINKER_INFO_ADDR+numDynEntry*4 -------------------> | 1st function (foo()) offset in lib  |
 // DLINKER_INFO_ADDR+numDynEntry*4+4 -----------------> | 1st function (foo()) name (48 bytes)|
-//                                                        | ...                                 |
+//                                                      | ...                                 |
 // DLINKER_INFO_ADDR+numDynEntry+(numDynEntry-1)*4 ---> | last function (foo()) offset in lib |
 // DLINKER_INFO_ADDR+numDynEntry+(numDynEntry-1)*4+4 -> | last function (foo()) name          |
-//                                                        ---------------------------------------
+//                                                      ---------------------------------------
 // DLINKER_INFO_ADDR+4+numDynEntry*4+numDynEntry*52 --> | .dynstr of lib                      |
-//                                                        |   ...                               |
-//                                                        ---------------------------------------
+//                                                      |   ...                               |
+//                                                      ---------------------------------------
   // caculate number of dynamic entries
     numDynEntry = 0;
     j = 0;
@@ -185,13 +185,13 @@
        flash[i] = `MEMEMPTY;
     end
     $readmemh("libso.hex", flash);
-`ifdef DEBUG_DLINKER
+  `ifdef DEBUG_DLINKER
     for (i=0; i < `MEMSIZE && (flash[i] != `MEMEMPTY || 
          flash[i+1] != `MEMEMPTY || flash[i+2] != `MEMEMPTY || 
          flash[i+3] != `MEMEMPTY); i=i+4) begin
        $display("%8x: %8x", i, {flash[i], flash[i+1], flash[i+2], flash[i+3]});
     end
-`endif
+  `endif
   end endtask
 `endif
 
@@ -206,11 +206,11 @@
     gp[23:16] = globalAddr[1];
     gp[15:8] = globalAddr[2];
     gp[7:0] = globalAddr[3];
-`ifdef DEBUG_DLINKER
+  `ifdef DEBUG_DLINKER
     $display("global address %8x", {m[`GPADDR], m[`GPADDR+1], 
              m[`GPADDR+2], m[`GPADDR+3]});
     $display("gp = %8x", gp);
-`endif
+  `endif
 `endif
 `ifdef DLINKER
     for (i=0; i < 192; i=i+1) begin
