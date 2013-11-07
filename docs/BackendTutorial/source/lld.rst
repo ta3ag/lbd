@@ -84,7 +84,7 @@ Next, update llvm 2013/10/30 source code to support Cpu0 as follows,
   [Gamma@localhost src]$ pwd
   /home/Gamma/test/lld/src
   [Gamma@localhost src]$ cp -rf ~/test/lbd/docs/BackendTutorial/
-  LLVMBackendTutorialExampleCode/3.4_1030_src_files_modify/modify/src/* .
+  lbdex/3.4_1030_src_files_modify/modify/src/* .
   [Gamma@localhost src]$ grep -R "cpu0" include/
   include/llvm/ADT/Triple.h:#undef cpu0
   include/llvm/ADT/Triple.h:    cpu0,    // For Tutorial Backend Cpu0
@@ -106,7 +106,7 @@ Next, update llvm 2013/10/30 source code to support Cpu0 as follows,
   [Gamma@localhost Target]$ mkdir Cpu0
   [Gamma@localhost Target]$ cd Cpu0/
   [Gamma@localhost Cpu0]$ cp -rf ~/test/lbd/docs/BackendTutorial/
-  LLVMBackendTutorialExampleCode/3.4_0830_Chapter12_2/* . 
+  lbdex/3.4_0830_Chapter12_2/* . 
   [Gamma@localhost Cpu0]$ ls
   AsmParser                 Cpu0InstrInfo.h           Cpu0SelectionDAGInfo.h
   CMakeLists.txt            Cpu0InstrInfo.td          Cpu0Subtarget.cpp
@@ -132,15 +132,15 @@ Next, copy lld Cpu0 architecture ELF support as follows,
   [Gamma@localhost ELF]$ pwd
   /home/Gamma/test/lld/src/tools/lld/lib/ReaderWriter/ELF
   [Gamma@localhost ELF]$ cp -rf ~/test/lbd/docs/BackendTutorial/
-  LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0 .
+  lbdex/Cpu0_lld_1030/Cpu0 .
   [Gamma@localhost ELF]$ cp -f ~/test/lbd/docs/BackendTutorial/
-  LLVMBackendTutorialExampleCode/Cpu0_lld_1030/CMakeLists.txt .
+  lbdex/Cpu0_lld_1030/CMakeLists.txt .
   [Gamma@localhost ELF]$ cp -f ~/test/lbd/docs/BackendTutorial/
-  LLVMBackendTutorialExampleCode/Cpu0_lld_1030/ELFLinkingContext.cpp .
+  lbdex/Cpu0_lld_1030/ELFLinkingContext.cpp .
   [Gamma@localhost ELF]$ cp -f ~/test/lbd/docs/BackendTutorial/
-  LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Targets.h .
+  lbdex/Cpu0_lld_1030/Targets.h .
   [Gamma@localhost ELF]$ cp -f ~/test/lbd/docs/BackendTutorial/
-  LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Resolver.cpp ../../Core/.
+  lbdex/Cpu0_lld_1030/Resolver.cpp ../../Core/.
 
 
 Finally, update llvm-objdump to support convert ELF file to Hex file as follows,
@@ -151,7 +151,7 @@ Finally, update llvm-objdump to support convert ELF file to Hex file as follows,
   [Gamma@localhost llvm-objdump]$ pwd
   /home/Gamma/test/lld/src/tools/llvm-objdump
   [Gamma@localhost llvm-objdump]$ cp -rf ~/test/lbd/docs/BackendTutorial/
-  LLVMBackendTutorialExampleCode/llvm-objdump/* .
+  lbdex/llvm-objdump/* .
 
 Now, build llvm/lld with Cpu0 support as follows,
 
@@ -177,7 +177,7 @@ Cpu0 lld souce code
 The code added on lld to support Cpu0 ELF as follows,
 
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/CMakeLists.txt
+.. rubric:: lbdex/Cpu0_lld_1030/CMakeLists.txt
 .. code-block:: c++
 
   target_link_libraries(lldELF
@@ -186,7 +186,7 @@ The code added on lld to support Cpu0 ELF as follows,
     )
 
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/ELFLinkingContext.cpp
+.. rubric:: lbdex/Cpu0_lld_1030/ELFLinkingContext.cpp
 .. code-block:: c++
 
   uint16_t ELFLinkingContext::getOutputMachine() const {
@@ -198,12 +198,12 @@ The code added on lld to support Cpu0 ELF as follows,
     }
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Targets.h
+.. rubric:: lbdex/Cpu0_lld_1030/Targets.h
 .. code-block:: c++
 
   #include "Cpu0/Cpu0Target.h"
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Resolver.cpp
+.. rubric:: lbdex/Cpu0_lld_1030/Resolver.cpp
 .. code-block:: c++
 
   bool Resolver::checkUndefines(bool final) {
@@ -218,38 +218,38 @@ The code added on lld to support Cpu0 ELF as follows,
     ...
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/CMakeLists.txt
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/CMakeLists.txt
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/CMakeLists.txt
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.h
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.h
+.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.h
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.h
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.h
+.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.h
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.h
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.h
+.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.h
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0Target.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0Target.h
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0Target.h
+.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0Target.h
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.h
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.h
+.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.h
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp
 
 
 Above code in Cpu0 lld support both the static and dynamic link. 
@@ -263,14 +263,14 @@ ELF to Hex
 Add elf2hex.h and update llvm-objdump driver to support ELF to Hex for Cpu0 
 backend as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/llvm-objdump/elf2hex.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/llvm-objdump/elf2hex.h
+.. rubric:: lbdex/llvm-objdump/elf2hex.h
+.. literalinclude:: ../lbdex/llvm-objdump/elf2hex.h
 
-.. rubric:: LLVMBackendTutorialExampleCode/llvm-objdump/llvm-objdump.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/llvm-objdump/llvm-objdump.cpp
+.. rubric:: lbdex/llvm-objdump/llvm-objdump.cpp
+.. literalinclude:: ../lbdex/llvm-objdump/llvm-objdump.cpp
     :start-after: // 1 llvm-objdump -elf2hex code update begin:
     :end-before: // 1 llvm-objdump -elf2hex code udpate end:
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/llvm-objdump/llvm-objdump.cpp
+.. literalinclude:: ../lbdex/llvm-objdump/llvm-objdump.cpp
     :start-after: // 2 llvm-objdump -elf2hex code update begin:
     :end-before: // 2 llvm-objdump -elf2hex code udpate end:
 
@@ -295,34 +295,34 @@ function implemented on PC OS platform. Let's run printf-stdarg-2.c on Cpu0 and
 compare with the result of printf() function which implemented by PC OS as 
 below.
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-1.c
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-1.c
+.. rubric:: lbdex/InputFiles/printf-stdarg-1.c
+.. literalinclude:: ../lbdex/InputFiles/printf-stdarg-1.c
     :start-after: /// start
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-2.c
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg-2.c
+.. rubric:: lbdex/InputFiles/printf-stdarg-2.c
+.. literalinclude:: ../lbdex/InputFiles/printf-stdarg-2.c
     :start-after: /// start
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg.c
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/printf-stdarg.c
+.. rubric:: lbdex/InputFiles/printf-stdarg.c
+.. literalinclude:: ../lbdex/InputFiles/printf-stdarg.c
     :start-after: /// start
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/start.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/start.cpp
+.. rubric:: lbdex/InputFiles/start.cpp
+.. literalinclude:: ../lbdex/InputFiles/start.cpp
     :start-after: /// start
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/build-printf-stdarg-2.sh
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/build-printf-stdarg-2.sh
+.. rubric:: lbdex/InputFiles/build-printf-stdarg-2.sh
+.. literalinclude:: ../lbdex/InputFiles/build-printf-stdarg-2.sh
 
 The cpu0_verilog/cpu0Is.v support cmp instruction and static linker as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0Is.v
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0Is.v
+.. rubric:: lbdex/cpu0_verilog/cpu0Is.v
+.. literalinclude:: ../lbdex/cpu0_verilog/cpu0Is.v
 
 The cpu0_verilog/cpu0IIs.v support slt instruction and static linker as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0IIs.v
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0IIs.v
+.. rubric:: lbdex/cpu0_verilog/cpu0IIs.v
+.. literalinclude:: ../lbdex/cpu0_verilog/cpu0IIs.v
 
 The build-printf-stdarg-2.sh is for my PC setting. Please change this script to
 your lld installed directory and run static linker example code as follows,
@@ -406,7 +406,7 @@ They are same after the "Hello world!" of printf() function support.
 The cpu0I use cmp instruction. You can verify the slt 
 instructions is work fine too by change cpu to cpu032II as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/build-printf-stdarg-2.sh
+.. rubric:: lbdex/InputFiles/build-printf-stdarg-2.sh
 
 .. code-block:: bash
 
@@ -464,7 +464,7 @@ The Cpu0LinkingContext include the context information for those obj files you
 want to link.
 When do linking, the following code will create Cpu0LinkingContext.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/ELFLinkingContext.cpp
+.. rubric:: lbdex/Cpu0_lld_1030/ELFLinkingContext.cpp
 .. code-block:: c++
 
   std::unique_ptr<ELFLinkingContext>
@@ -483,7 +483,7 @@ While Cpu0LinkingContext is created by lld ELF driver as above, the following
 code in Cpu0LinkingContext constructor will create Cpu0TargetHandler and passing
 the Cpu0LinkingContext object pointer to Cpu0TargeHandler.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.h
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.h
 .. code-block:: c++
 
   class Cpu0LinkingContext LLVM_FINAL : public ELFLinkingContext {
@@ -498,7 +498,7 @@ Finally, the Cpu0TargeHandler constructor will create other related objects
 and set up the relation reference object pointers as :num:`Figure #lld-f1`
 depicted by the following code.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp
 .. code-block:: c++
 
   Cpu0TargetHandler::Cpu0TargetHandler(Cpu0LinkingContext &context)
@@ -510,7 +510,7 @@ According chapter ELF, the linker stands for resolve the relocation records.
 The following code give the chance to let lld system call our relocation 
 function at proper time.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
 .. code-block:: c++
 
   std::unique_ptr<Pass>
@@ -541,7 +541,7 @@ Now the following code of Cpu0TargetRelocationHandler::applyRelocation()
 will be called through 
 Cpu0TargetHandler by lld ELF driver when it meet each relocation record.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp
 .. code-block:: c++
 
   ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
@@ -562,7 +562,7 @@ Cpu0TargetHandler by lld ELF driver when it meet each relocation record.
     return error_code::success();
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.h
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.h
 .. code-block:: c++
 
   class Cpu0TargetHandler LLVM_FINAL
@@ -580,35 +580,35 @@ Dynamic linker
 Except the lld code with #ifdef DLINKER. The following code in Verilog exist to 
 support dynamic linker.
 
-.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/dynlinker.v
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/dynlinker.v
+.. rubric:: lbdex/cpu0_verilog/dynlinker.v
+.. literalinclude:: ../lbdex/cpu0_verilog/dynlinker.v
 
-.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/flashio.v
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/flashio.v
+.. rubric:: lbdex/cpu0_verilog/flashio.v
+.. literalinclude:: ../lbdex/cpu0_verilog/flashio.v
 
-.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0Id.v
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0Id.v
+.. rubric:: lbdex/cpu0_verilog/cpu0Id.v
+.. literalinclude:: ../lbdex/cpu0_verilog/cpu0Id.v
 
-.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0IId.v
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0IId.v
+.. rubric:: lbdex/cpu0_verilog/cpu0IId.v
+.. literalinclude:: ../lbdex/cpu0_verilog/cpu0IId.v
 
 The following code ch_dynamiclinker.cpp and foobar.cpp is the example for 
 dynamic linker demostration. File dynamic_linker.cpp is what our implementaion
 to execute the dynamic linker function on Cpu0 Verilog machine.
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/dynamic_linker.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/dynamic_linker.h
+.. rubric:: lbdex/InputFiles/dynamic_linker.h
+.. literalinclude:: ../lbdex/InputFiles/dynamic_linker.h
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/dynamic_linker.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/dynamic_linker.cpp
+.. rubric:: lbdex/InputFiles/dynamic_linker.cpp
+.. literalinclude:: ../lbdex/InputFiles/dynamic_linker.cpp
     :start-after: /// start
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_dynamiclinker.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_dynamiclinker.cpp
+.. rubric:: lbdex/InputFiles/ch_dynamiclinker.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch_dynamiclinker.cpp
     :start-after: /// start
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/foobar.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/foobar.cpp
+.. rubric:: lbdex/InputFiles/foobar.cpp
+.. literalinclude:: ../lbdex/InputFiles/foobar.cpp
     :start-after: /// start
 
 

@@ -52,13 +52,20 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.3.5, Not release yet.
+Version 3.3.6, Not release yet.
+
+Version 3.3.5, Released November 7, 2013
   Split the elf2hex code from modiified llvm-objdump.cpp to elf2hex.h.
   Fix bug for tail call setting in LowerCall().
   Fix bug for LowerCPLOAD().
   Update elf.rst.
   Fix typing error.
-  Update lld.rst.
+  Add dynamic linker support.
+  Merge cpu0 Chapter12_1 and Chapter12_2 code into one, and identify each of 
+  them by -mcpu=cpu0I and -mcpu=cpu0II.
+  cpu0II.
+  Update lld.rst for static linker.
+  Change the name of example code from LLVMBackendTutorialExampleCode to lbdex.
 
 Version 3.3.4, Released September 21, 2013
   Fix Chapter Global variables error for LUi instructions and the material move

@@ -51,8 +51,8 @@ if it over 4 arguments. :num:`Figure #funccall-f1` is the Mips stack frame.
 Run ``llc -march=mips`` for ch9_1.bc, you will get the following result. 
 See comment **"//"**.
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch9_1.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch9_1.cpp
+.. rubric:: lbdex/InputFiles/ch9_1.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch9_1.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -216,8 +216,8 @@ We don't reserve any dedicated register for arguments passing since cpu0 has
 only 16 registers while Mips has 32 registers. Cpu0CallingConv.td is defined 
 for cpu0 passing rule as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0CallingConv.td
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0CallingConv.td
+.. rubric:: lbdex/Chapter9_1/Cpu0CallingConv.td
+.. literalinclude:: ../lbdex/Chapter9_1/Cpu0CallingConv.td
     :start-after: CCIf<!strconcat("State.getTarget().getSubtarget<Cpu0Subtarget>().", F), A>;
 
 
@@ -235,8 +235,8 @@ pass arguments in stack frame.
 Function LowerFormalArguments() charge function incoming arguments creation. 
 We define it as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter9_1/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Chapter9_1/Cpu0ISelLowering.cpp
     :start-after: return CLI.Chain;
     :end-before: Return Value Calling Convention Implementation
 
@@ -272,8 +272,8 @@ define the loadRegFromStackSlot() to issue the machine instruction
 GetMemOperand(..., FI, ...) return the Memory location of the frame index 
 variable, which is the offset.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstrInfo.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstrInfo.cpp
+.. rubric:: lbdex/Chapter9_1/Cpu0InstrInfo.cpp
+.. literalinclude:: ../lbdex/Chapter9_1/Cpu0InstrInfo.cpp
     :start-after: MIB.addReg(SrcReg, getKillRegState(KillSrc));
     :end-before: MachineInstr*
 
@@ -282,7 +282,7 @@ In addition to Calling Convention and LowerFormalArguments(), Chapter9_1/ add th
 following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and 
 **jalr** (function call) definition and printing.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstrFormats.td
+.. rubric:: lbdex/Chapter9_1/Cpu0InstrFormats.td
 .. code-block:: c++
 
   // Cpu0 Pseudo Instructions Format
@@ -292,7 +292,7 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
     let isPseudo = 1;
   }
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter9_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   def SDT_Cpu0JmpLink      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
@@ -341,7 +341,7 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
             (JSUB texternalsym:$dst)>;
   ...
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstPrinter.cpp
+.. rubric:: lbdex/Chapter9_1/Cpu0InstPrinter.cpp
 .. code-block:: c++
 
   static void printExpr(const MCExpr *Expr, raw_ostream &OS) {
@@ -353,7 +353,7 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
   ...
   }
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0MCInstLower.cpp
+.. rubric:: lbdex/Chapter9_1/Cpu0MCInstLower.cpp
 .. code-block:: c++
 
   MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
@@ -384,7 +384,7 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
     ...
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. rubric:: lbdex/Chapter9_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 .. code-block:: c++
 
   unsigned Cpu0MCCodeEmitter::
@@ -401,7 +401,7 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
   ...
   }
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0MachineFucntion.h
+.. rubric:: lbdex/Chapter9_1/Cpu0MachineFucntion.h
 .. code-block:: c++
 
   class Cpu0FunctionInfo : public MachineFunctionInfo {
@@ -467,7 +467,7 @@ node. They are distinguishable since both SWI and JSUB use "imm" operand while
 JALR use register operand. JSUB take the priority to match since we set the
 following code in Cpu0InstrInfo.td.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter9_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   def : Pat<(Cpu0JmpLink (i32 tglobaladdr:$dst)),
@@ -580,8 +580,8 @@ function last section.
 Now, we will finish **“store outgoing arguments”** in caller function. 
 LowerCall() is responsible to do this. The implementation as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_2/Cpu0ISelLowering.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_2/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter9_2/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Chapter9_2/Cpu0ISelLowering.cpp
     :start-after: #include "Cpu0GenCallingConv.inc"
     :end-before: LowerFormalArguments
 
@@ -598,7 +598,7 @@ DAG.getCALLSEQ_START() and DAG.getCALLSEQ_END() are set before the
 CALLSEQ_END, and translate into pseudo machine instructions !ADJCALLSTACKDOWN, 
 !ADJCALLSTACKUP later according Cpu0InstrInfo.td definition as follows.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_2/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter9_2/Cpu0InstrInfo.td
 .. code-block:: c++
 
   def SDT_Cpu0CallSeqStart : SDCallSeqStart<[SDTCisVT<0, i32>]>;
@@ -628,7 +628,7 @@ CALLSEQ_END, and translate into pseudo machine instructions !ADJCALLSTACKDOWN,
 Like load incoming arguments, we need to implement storeRegToStackSlot() for 
 store outgoing arguments to stack frame offset.
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_2/Cpu0InstrInfo.cpp
+.. rubric:: lbdex/Chapter9_2/Cpu0InstrInfo.cpp
 .. code-block:: c++
     
   //- st SrcReg, MMO(FI)
@@ -777,8 +777,8 @@ initialize string (char str[81] = "Hello world" in this case). For short string,
 the "call memcpy" is translated into "store with contant" in stages of
 optimization.
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch9_1_2.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch9_1_2.cpp
+.. rubric:: lbdex/InputFiles/ch9_1_2.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch9_1_2.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -883,8 +883,8 @@ Fix issues
 Run Chapter9_2/ with ch7_5.cpp to get the incorrect main return (return register 
 $2 is not 0) as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_5.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch7_5.cpp
+.. rubric:: lbdex/InputFiles/ch7_5.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch7_5.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -945,7 +945,7 @@ in eliminateFrameIndex() as follows.
 The code as below is modified in Chapter9_3/ to set the caller outgoing 
 arguments into spOffset($sp) (Chapter9_2/ set them to pOffset+stackSize($sp).
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0RegisterInfo.cpp
+.. rubric:: lbdex/Chapter9_3/Cpu0RegisterInfo.cpp
 .. code-block:: c++
 
   void Cpu0RegisterInfo::
@@ -976,7 +976,7 @@ arguments into spOffset($sp) (Chapter9_2/ set them to pOffset+stackSize($sp).
     ...
   }
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0MachineFunction.h
+.. rubric:: lbdex/Chapter9_3/Cpu0MachineFunction.h
 .. code-block:: c++
 
   /// SRetReturnReg - Some subtargets require that sret lowering includes
@@ -1047,21 +1047,21 @@ To fix the !ADJSTACKDOWN and !ADJSTACKUP, we call Cpu0GenInstrInfo(Cpu0::
 ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP) in Cpu0InstrInfo() constructor 
 function and define eliminateCallFramePseudoInstr() as follows, 
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.cpp
+.. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.cpp
 .. code-block:: c++
 
   Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
     : Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
   ...
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0FrameLowering.h
+.. rubric:: lbdex/Chapter9_3/Cpu0FrameLowering.h
 .. code-block:: c++
 
   void eliminateCallFramePseudoInstr(MachineFunction &MF,
                                      MachineBasicBlock &MBB,
                                      MachineBasicBlock::iterator I) const;
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0FrameLowering.cpp
+.. rubric:: lbdex/Chapter9_3/Cpu0FrameLowering.cpp
 .. code-block:: c++
 
   ...
@@ -1177,7 +1177,7 @@ Now, after the following code added in Chapter9_3/, we can issue
 **“.cprestore”** in emitPrologue() and emit "ld $gp, ($gp save slot on stack)" 
 after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/CMakeLists.txt
+.. rubric:: lbdex/Chapter9_3/CMakeLists.txt
 .. code-block:: c++
 
   add_llvm_target(Cpu0CodeGen
@@ -1185,7 +1185,7 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
     Cpu0EmitGPRestore.cpp
   ...
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0TargetMachine.cpp
+.. rubric:: lbdex/Chapter9_3/Cpu0TargetMachine.cpp
 .. code-block:: c++
 
   Cpu0elTargetMachine::
@@ -1208,12 +1208,12 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
     return true;
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0.h
+.. rubric:: lbdex/Chapter9_3/Cpu0.h
 .. code-block:: c++
 
     FunctionPass *createCpu0EmitGPRestorePass(Cpu0TargetMachine &TM);
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0FrameLowering.cpp
+.. rubric:: lbdex/Chapter9_3/Cpu0FrameLowering.cpp
 .. code-block:: c++
 
   void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
@@ -1231,7 +1231,7 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
     }
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.td
 .. code-block:: c++
 
   let neverHasSideEffects = 1 in
@@ -1239,7 +1239,7 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
                  ".cprestore\t$loc", []>;
   
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter9_3/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   SDValue
@@ -1260,11 +1260,11 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
       ...
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0EmitGPRestore.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0EmitGPRestore.cpp
+.. rubric:: lbdex/Chapter9_3/Cpu0EmitGPRestore.cpp
+.. literalinclude:: ../lbdex/Chapter9_3/Cpu0EmitGPRestore.cpp
 
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0AsmPrinter.cpp
+.. rubric:: lbdex/Chapter9_3/Cpu0AsmPrinter.cpp
 .. code-block:: c++
 
   void Cpu0AsmPrinter::EmitInstrWithMacroNoAT(const MachineInstr *MI) {
@@ -1317,8 +1317,8 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
     OutStreamer.EmitInstruction(TmpInst0);
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0MCInstLower.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0MCInstLower.cpp
+.. rubric:: lbdex/Chapter9_3/Cpu0MCInstLower.cpp
+.. literalinclude:: ../lbdex/Chapter9_3/Cpu0MCInstLower.cpp
     :start-after: // Lower ".cprestore offset" to "st $gp, offset($sp)"
     :end-before: MCOperand Cpu0MCInstLower::LowerOperand
 
@@ -1382,21 +1382,21 @@ Correct the return of main()
 
 The LowerReturn() modified in Chapter9_3/ as follows, 
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0ISelLowering.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter9_3/Cpu0ISelLowering.cpp
+.. literalinclude:: ../lbdex/Chapter9_3/Cpu0ISelLowering.cpp
     :start-after: Return Value Calling Convention Implementation
     :end-before: Cpu0TargetLowering::isOffsetFoldingLegal
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.h
+.. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.h
+.. literalinclude:: ../lbdex/Chapter9_3/Cpu0InstrInfo.h
     :start-after: /// Expand Pseudo instructions into real backend instructions
     :end-before: };
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.cpp
+.. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.cpp
+.. literalinclude:: ../lbdex/Chapter9_3/Cpu0InstrInfo.cpp
     :start-after: // Cpu0InstrInfo::expandPostRAPseudo
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.td
 .. code-block:: c++
 
   // Return
@@ -1430,7 +1430,7 @@ Above code do the following:
 
 1. Declare a pseudo node by the following code,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.td
 .. code-block:: c++
 
   // Return
@@ -1516,7 +1516,7 @@ Above code do the following:
    TableGen from \*.td) generated by the following code at "Cpu0 Assembly 
    Printer" stage.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_3/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.td
 .. code-block:: c++
 
   class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
@@ -1658,8 +1658,8 @@ dynamic stack allocation.
 
 Run Chapter9_3 with ch9_2_1.cpp will get the error message as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch9_2_1.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch9_2_1.cpp
+.. rubric:: lbdex/InputFiles/ch9_2_1.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch9_2_1.cpp
     :start-after: /// start
 
 
@@ -1679,8 +1679,8 @@ Run Chapter9_3 with ch9_2_1.cpp will get the error message as follows,
 
 Run Chapter9_3/ with ch9_3.cpp to get the following error,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch9_3.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch9_3.cpp
+.. rubric:: lbdex/InputFiles/ch9_3.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch9_3.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -1696,8 +1696,8 @@ Run Chapter9_3/ with ch9_3.cpp to get the following error,
   In function: _Z5sum_iiz
 
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch9_4.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch9_4.cpp
+.. rubric:: lbdex/InputFiles/ch9_4.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch9_4.cpp
     :start-after: /// start
 
 
@@ -1733,7 +1733,7 @@ Structure type support
 Chapter9_4/ with the following code added to support the structure type in 
 function call. 
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter9_4/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   // AddLiveIn - This helper function adds the specified physical register to the
@@ -1905,7 +1905,7 @@ function call.
 In addition to above code, we have defined the calling convention at early of 
 this chapter as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0CallingConv.td
+.. rubric:: lbdex/Chapter9_4/Cpu0CallingConv.td
 .. code-block:: c++
 
   def RetCC_Cpu0EABI : CallingConv<[
@@ -2321,7 +2321,7 @@ Since the return value is "struct type" and over 4 registers size, it save
 pointer (struct address) to return register.
 List the code and their effect as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter9_4/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   SDValue
@@ -2357,7 +2357,7 @@ List the code and their effect as follows,
     ld  $t9, %call24(_Z8copyDate4Date)($gp)
 
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter9_4/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   SDValue
@@ -2596,7 +2596,7 @@ add in Chapter9_4/.
 The ch9_3_2.cpp is C++ template example code, it can be translated into cpu0 
 backend code too.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0TargetLowering.h
+.. rubric:: lbdex/Chapter9_4/Cpu0TargetLowering.h
 .. code-block:: c++
 
     class Cpu0TargetLowering : public TargetLowering  {
@@ -2607,7 +2607,7 @@ backend code too.
       ...
     }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0TargetLowering.cpp
+.. rubric:: lbdex/Chapter9_4/Cpu0TargetLowering.cpp
 .. code-block:: c++
 
   Cpu0TargetLowering::
@@ -2676,8 +2676,8 @@ backend code too.
   }
 
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch9_3_2.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch9_3_2.cpp
+.. rubric:: lbdex/InputFiles/ch9_3_2.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch9_3_2.cpp
     :start-after: /// start
 
 Mips qemu reference [#]_, you can download and run it with gcc to verify the 
@@ -2693,7 +2693,7 @@ languages use it frequently. The following C example code use it.
 
 Chapter9_4 support dynamic stack allocation with the following code added.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0FrameLowering.cpp
+.. rubric:: lbdex/Chapter9_4/Cpu0FrameLowering.cpp
 .. code-block:: c++
 
   void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
@@ -2740,7 +2740,7 @@ Chapter9_4 support dynamic stack allocation with the following code added.
     ...
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter9_4/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   Cpu0TargetLowering::
@@ -2754,7 +2754,7 @@ Chapter9_4 support dynamic stack allocation with the following code added.
     ...
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter9_4/Cpu0RegisterInfo.cpp
+.. rubric:: lbdex/Chapter9_4/Cpu0RegisterInfo.cpp
 .. code-block:: c++
 
   // pure virtual method

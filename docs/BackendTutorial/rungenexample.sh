@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
-rm -rf LLVMBackendTutorialExampleCode.tar.gz LLVMBackendTutorialExampleCode
+rm -rf lbdex.tar.gz lbdex
 CURR_DIR=$(pwd)
 echo ${CURR_DIR}
 cd source_ExampleCode 
 sh ./genexample.sh 
-tar -zcvf LLVMBackendTutorialExampleCode.tar.gz LLVMBackendTutorialExampleCode 
-mv -f LLVMBackendTutorialExampleCode.tar.gz ${CURR_DIR}/. 
-rm -rf ../../../lib/Target/Cpu0/LLVMBackendTutorialExampleCode
-cp -rf LLVMBackendTutorialExampleCode ../.
-mv -f LLVMBackendTutorialExampleCode ../../../lib/Target/Cpu0/.
+tar -zcvf lbdex.tar.gz lbdex 
+mv -f lbdex.tar.gz ${CURR_DIR}/. 
+cp -rf lbdex ../.
 cd ${CURR_DIR}
 

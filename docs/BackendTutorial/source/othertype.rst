@@ -14,7 +14,7 @@ Local variable pointer
 To support pointer to local variable, add this code fragment in 
 Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter7_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   def mem_ea : Operand<i32> {
@@ -35,7 +35,7 @@ Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
     let isCodeGenOnly = 1;
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstPrinter.td
+.. rubric:: lbdex/Chapter7_1/Cpu0InstPrinter.td
 .. code-block:: c++
 
   void Cpu0InstPrinter::
@@ -51,8 +51,8 @@ Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
 Run ch7_1.cpp with code Chapter7_1/ which support pointer to local variable, 
 will get result as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_1.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch7_1.cpp
+.. rubric:: lbdex/InputFiles/ch7_1.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch7_1.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -110,7 +110,7 @@ char, short int and bool
 To support signed/unsigned char and short int, we add the following code to 
 Chapter7_1/.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter7_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   def sextloadi16_a   : AlignedLoad<sextloadi16>;
@@ -128,8 +128,8 @@ Chapter7_1/.
 
 Run Chapter7_1/ with ch7_2.cpp will get the following result.
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_2.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch7_2.cpp
+.. rubric:: lbdex/InputFiles/ch7_2.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch7_2.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -208,7 +208,7 @@ Run Chapter7_1/ with ch7_2.cpp will get the following result.
 
 To support load bool type, the following code added.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter7_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   Cpu0TargetLowering::
@@ -255,8 +255,8 @@ test fragment as below.
       BooleanVectorContents = Ty;
     }
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_3.ll
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch7_3.ll
+.. rubric:: lbdex/InputFiles/ch7_3.ll
+.. literalinclude:: ../lbdex/InputFiles/ch7_3.ll
     :start-after: /// start
 
 .. code-block:: bash
@@ -293,7 +293,7 @@ test fragment as below.
     .size verify_load_bool, ($tmp2)-verify_load_bool
     .cfi_endproc
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
+.. rubric:: lbdex/InputFiles/ch_run_backend.cpp
 .. code-block:: c++
 
   ...
@@ -315,7 +315,7 @@ Cpu0 borrow the Mips ABI which long is 32-bits and long long is 64-bits for C
 language type. To support long long, we add the following code to 
 Chapter7_1/.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelDAGToDAG.cpp
+.. rubric:: lbdex/Chapter7_1/Cpu0ISelDAGToDAG.cpp
 .. code-block:: c++
 
   /// Select instructions not customized! Used for
@@ -383,8 +383,8 @@ Chapter7_1/.
 
 Run Chapter7_1 with ch7_4.cpp to get the result as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_4.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch7_4.cpp
+.. rubric:: lbdex/InputFiles/ch7_4.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch7_4.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -517,8 +517,8 @@ LLVM use getelementptr to represent the array and struct type in C.
 Please reference section getelementptr of [#]_. 
 For ch7_5.cpp, the llvm IR as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch7_5.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch7_5.cpp
+.. rubric:: lbdex/InputFiles/ch7_5.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch7_5.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -741,7 +741,7 @@ mechanism as below.
     return false;
   }
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter7_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   bool
@@ -752,7 +752,7 @@ mechanism as below.
 
 Beyond that, we need to add the following code fragment to Cpu0ISelDAGToDAG.cpp,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelDAGToDAG.cpp
+.. rubric:: lbdex/Chapter7_1/Cpu0ISelDAGToDAG.cpp
 .. code-block:: c++
 
   //  Cpu0ISelDAGToDAG.cpp
@@ -784,7 +784,7 @@ Recall we have translated DAG list for date.day
 (add (add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)), 
 Constant<8>) by the following code in Cpu0ISelLowering.cpp.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   // Cpu0ISelLowering.cpp

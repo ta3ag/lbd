@@ -120,8 +120,8 @@ Backend Target Registration Structure
 
 Now, let's examine Cpu0MCTargetDesc.cpp.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. literalinclude:: ../lbdex/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: return createELFStreamer(Ctx, MAB, _OS, _Emitter, RelaxAll, NoExecStack);
 
 Cpu0MCTargetDesc.cpp do the target registration as mentioned in 

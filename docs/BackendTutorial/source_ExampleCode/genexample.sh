@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-GEN_DIR=LLVMBackendTutorialExampleCode
+GEN_DIR=lbdex
 rm -rf Chapter3_1 Chapter3_2 Chapter3_2 Chapter3_4 
 rm -rf Chapter4_1 Chapter4_2 Chapter4_4 Chapter4_4_2 Chapter4_5 Chapter4_6_1 Chapter4_6_2 Chapter4_6_4 
 rm -rf Chapter5_1 Chapter6_1 Chapter6_3 Chapter7_1 

@@ -22,8 +22,8 @@ AsmParser support
 
 Run Chapter10_1/ with ch11_1.cpp will get the following error message.
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch11_1.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch11_1.cpp
+.. rubric:: lbdex/InputFiles/ch11_1.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch11_1.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -42,14 +42,14 @@ translate hand code assembly into obj.
 Directory AsmParser handle the assembly to obj translation.
 The Chapter11_1/ include AsmParser implementation as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
+.. rubric:: lbdex/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
+.. literalinclude:: ../lbdex/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_1/AsmParser/CMakeLists.txt
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter11_1/AsmParser/CMakeLists.txt
+.. rubric:: lbdex/Chapter11_1/AsmParser/CMakeLists.txt
+.. literalinclude:: ../lbdex/Chapter11_1/AsmParser/CMakeLists.txt
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_1/AsmParser/LLVMBuild.txt
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter11_1/AsmParser/LLVMBuild.txt
+.. rubric:: lbdex/Chapter11_1/AsmParser/LLVMBuild.txt
+.. literalinclude:: ../lbdex/Chapter11_1/AsmParser/LLVMBuild.txt
 
 
 The Cpu0AsmParser.cpp contains one thousand of code which do the assembly 
@@ -57,14 +57,14 @@ language parsing. You can understand it with a little patient only.
 To let directory AsmParser be built, modify CMakeLists.txt and LLVMBuild.txt as 
 follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_1/CMakeLists.txt
+.. rubric:: lbdex/Chapter11_1/CMakeLists.txt
 .. code-block:: c++
 
   tablegen(LLVM Cpu0GenAsmMatcher.inc -gen-asm-matcher)
   ...
   add_subdirectory(AsmParser)
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_1/LLVMBuild.txt
+.. rubric:: lbdex/Chapter11_1/LLVMBuild.txt
 .. code-block:: c++
 
   subdirectories = AsmParser ...
@@ -74,7 +74,7 @@ follows,
   
 The other files change as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. rubric:: lbdex/Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 .. code-block:: c++
 
   unsigned Cpu0MCCodeEmitter::
@@ -97,7 +97,7 @@ The other files change as follows,
     ...
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0.td
+.. rubric:: lbdex/Chapter11_1/Cpu0.td
 .. code-block:: c++
 
   def Cpu0AsmParser : AsmParser {
@@ -118,7 +118,7 @@ The other files change as follows,
     let AssemblyParserVariants = [Cpu0AsmParserVariant];
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0InstrFormats.td
+.. rubric:: lbdex/Chapter11_1/Cpu0InstrFormats.td
 .. code-block:: c++
 
   // Pseudo-instructions for alternate assembly syntax (never used by codegen).
@@ -130,7 +130,7 @@ The other files change as follows,
     let Pattern = [];
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter11_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   // Cpu0InstrInfo.td
@@ -229,7 +229,7 @@ the following structure and functions in Cpu0GenAsmMatcher.inc.
 Above 3 Pseudo Instruction definitions in Cpu0InstrInfo.td such as 
 LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
+.. rubric:: lbdex/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
 .. code-block:: c++
   
   bool Cpu0AsmParser::needsExpansion(MCInst &Inst) {
@@ -281,8 +281,8 @@ Finally, remind the CPURegs as below must
 follow the order of register number because AsmParser use this when do register 
 number encode.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0RegisterInfo.td
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0RegisterInfo.td
+.. rubric:: lbdex/Chapter11_1/Cpu0RegisterInfo.td
+.. literalinclude:: ../lbdex/Chapter11_1/Cpu0RegisterInfo.td
     :start-after: //  Registers
     :end-before: // Hi/Lo Registers
 
@@ -359,7 +359,7 @@ Verilog of CPU0
 
 Verilog language is an IEEE standard in IC design. There are a lot of book and 
 documents for this language. Web site [#]_ has a pdf [#]_ in this. 
-Example code LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0.v is the 
+Example code lbdex/cpu0_verilog/cpu0.v is the 
 cpu0 design in Verilog. In Appendix A, we have downloaded and installed Icarus 
 Verilog tool both on iMac and Linux. The cpu0.v and cpu0Is.v is a simple design 
 with only few hundreds lines of code. 
@@ -381,17 +381,17 @@ cx($rb) is 0x7000 (28672), CPU0 display the content as follows,
             $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);
 
 
-.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0.v
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0.v
+.. rubric:: lbdex/cpu0_verilog/cpu0.v
+.. literalinclude:: ../lbdex/cpu0_verilog/cpu0.v
 
-.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0Is.v
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0Is.v
+.. rubric:: lbdex/cpu0_verilog/cpu0Is.v
+.. literalinclude:: ../lbdex/cpu0_verilog/cpu0Is.v
 
 
 .. code-block:: bash
 
   JonathantekiiMac:raw Jonathan$ pwd
-  /Users/Jonathan/test/2/lbd/LLVMBackendTutorialExampleCode/cpu0_verilog/raw
+  /Users/Jonathan/test/2/lbd/lbdex/cpu0_verilog/raw
   JonathantekiiMac:raw Jonathan$ iverilog -o cpu0Is cpu0Is.v 
 
 
@@ -402,26 +402,26 @@ Now let's compile ch_run_backend.cpp as below. Since code size grows up from low
 address and stack grows up from high to low address. We set $sp at 0x6ffc because 
 cpu0.v use 0x7000 bytes of memory.
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/InitRegs.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/InitRegs.cpp
+.. rubric:: lbdex/InputFiles/InitRegs.cpp
+.. literalinclude:: ../lbdex/InputFiles/InitRegs.cpp
     :start-after: /// start
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/print.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/print.h
+.. rubric:: lbdex/InputFiles/print.h
+.. literalinclude:: ../lbdex/InputFiles/print.h
     :start-after: /// start
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/print.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/print.cpp
+.. rubric:: lbdex/InputFiles/print.cpp
+.. literalinclude:: ../lbdex/InputFiles/print.cpp
     :start-after: /// start
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
+.. rubric:: lbdex/InputFiles/ch_run_backend.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch_run_backend.cpp
     :start-after: /// start
 
 .. code-block:: bash
 
   JonathantekiiMac:InputFiles Jonathan$ pwd
-  /Users/Jonathan/test/2/lbd/LLVMBackendTutorialExampleCode/InputFiles
+  /Users/Jonathan/test/2/lbd/lbdex/InputFiles
   JonathantekiiMac:InputFiles Jonathan$ clang -c ch_run_backend.cpp -emit-llvm -o 
   ch_run_backend.bc
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
@@ -446,7 +446,7 @@ load time for PIC address mode.
 Since our backend didn't implement the linker and loader, we change the  
 **"jsub #offset"** encode in Chapter11_2/ as follow,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. rubric:: lbdex/Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 .. code-block:: c++
 
   unsigned Cpu0MCCodeEmitter::
@@ -478,7 +478,7 @@ data/function access. In other word,
 keep the global variable access as close as possible to reduce cache miss 
 possibility.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp
+.. rubric:: lbdex/Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp
 .. code-block:: c++
 
     const MCFixupKindInfo &getFixupKindInfo(MCFixupKind Kind) const {
@@ -583,13 +583,13 @@ You can trace the memory binary code and destination
 register change at every instruction execution by the following change and
 get the result as below,
 
-.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0Is.v
+.. rubric:: lbdex/cpu0_verilog/cpu0Is.v
 
 .. code-block:: c++
 
   `define TRACE 
 
-.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0.v
+.. rubric:: lbdex/cpu0_verilog/cpu0.v
 
 .. code-block:: c++
 

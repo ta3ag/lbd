@@ -24,7 +24,7 @@ Arithmetic
 Appending the following code to Cpu0InstrInfo.td and Cpu0Schedule.td in 
 Chapter4_1/ to support operators **+, -, \*, <<,** and **>>**.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   def shamt     : Operand<i32>;
@@ -87,7 +87,7 @@ Chapter4_1/ to support operators **+, -, \*, <<,** and **>>**.
   def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
 
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0Schedule.td
+.. rubric:: lbdex/Chapter4_1/Cpu0Schedule.td
 .. code-block:: c++
 
   ...
@@ -222,8 +222,8 @@ sra, ... are for 1 virtual registers and 1 constant input operands.
 
 Now, let's build Chapter4_1/ and run with input file ch4_1.cpp as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_1.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_1.cpp
+.. rubric:: lbdex/InputFiles/ch4_1.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch4_1.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -515,8 +515,8 @@ The DAG of %
 Example input code ch4_2.cpp which contains the C operator **“%”** and it's 
 corresponding llvm IR, as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_2.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_2.cpp
+.. rubric:: lbdex/InputFiles/ch4_2.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch4_2.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -621,7 +621,7 @@ Arm solution
 To run with ARM solution, change Cpu0InstrInfo.td and Cpu0ISelDAGToDAG.cpp from 
 Chapter4_1/ as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   /// Multiply and Divide Instructions.
@@ -630,7 +630,7 @@ Chapter4_1/ as follows,
   //def MULT    : Mult32<0x41, "mult", IIImul>;
   //def MULTu   : Mult32<0x42, "multu", IIImul>;
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0ISelDAGToDAG.cpp
+.. rubric:: lbdex/Chapter4_1/Cpu0ISelDAGToDAG.cpp
 .. code-block:: c++
 
   #if 0
@@ -764,7 +764,7 @@ Cpu0RegisterInfo.td, Cpu0InstrInfo.td and Cpu0ISelDAGToDAG.cpp.
 And list the related DAG nodes mulhs and mulhu which are used in Chapter4_1/ 
 from TargetSelectionDAG.td.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0RegisterInfo.td
+.. rubric:: lbdex/Chapter4_1/Cpu0RegisterInfo.td
 .. code-block:: c++
 
   // Hi/Lo registers
@@ -784,7 +784,7 @@ from TargetSelectionDAG.td.
   ...
   ]>;
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   // Mul, Div
@@ -819,7 +819,7 @@ from TargetSelectionDAG.td.
   def MFHI    : MoveFromLOHI<0x46, "mfhi", CPURegs, [HI]>;
   def MFLO    : MoveFromLOHI<0x47, "mflo", CPURegs, [LO]>;
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0ISelDAGToDAG.cpp
+.. rubric:: lbdex/Chapter4_1/Cpu0ISelDAGToDAG.cpp
 .. code-block:: c++
 
   /// Select multiply instructions.
@@ -962,17 +962,17 @@ With this solution, the **“c = a / b”** can be got by **“div a, b”** and
 Chapter4_1/ support operator **“%”** and **“/”**. 
 The code added in Chapter4_1/ as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.cpp
+.. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.cpp
+.. literalinclude:: ../lbdex/Chapter4_1/Cpu0InstrInfo.cpp
   :start-after: // Cpu0InstrInfo::copyPhysReg()
   :end-before: MachineInstr*
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.h
+.. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.h
+.. literalinclude:: ../lbdex/Chapter4_1/Cpu0InstrInfo.h
   :start-after: virtual const Cpu0RegisterInfo &getRegisterInfo() const;
   :end-before: public:
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   def SDT_Cpu0DivRem     : SDTypeProfile<0, 2,
@@ -1013,7 +1013,7 @@ The code added in Chapter4_1/ as follows,
   def MTHI    : MoveToLOHI<0x48, "mthi", CPURegs, [HI]>;
   def MTLO    : MoveToLOHI<0x49, "mtlo", CPURegs, [LO]>;
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter4_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   Cpu0TargetLowering::
@@ -1083,7 +1083,7 @@ The code added in Chapter4_1/ as follows,
   return SDValue();
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0ISelLowering.h
+.. rubric:: lbdex/Chapter4_1/Cpu0ISelLowering.h
 .. code-block:: c++
 
   namespace llvm {
@@ -1111,12 +1111,12 @@ llvm do **“Constant Propagation Optimization”** on this.
 The ch4_2_2.cpp can get the **“div”** for **“%”** result since it make the 
 llvm **“Constant Propagation Optimization”** useless in this. 
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_2_1.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_2_1.cpp
+.. rubric:: lbdex/InputFiles/ch4_2_1.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch4_2_1.cpp
     :start-after: /// start
   
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_2_2.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_2_2.cpp
+.. rubric:: lbdex/InputFiles/ch4_2_2.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch4_2_2.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -1449,7 +1449,7 @@ They are trivial and easy. Listing the added code with comment and table for
 these operators IR, DAG and instructions as below. You check them with the
 run result of bc and asm instructions for ch4_5.cpp as below.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_2/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter4_2/Cpu0InstrInfo.td
 .. code-block:: c++
 
   class CmpInstr<bits<8> op, string instr_asm, 
@@ -1533,7 +1533,7 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   defm : SetgtPats<CPURegs>;
   defm : SetgePats<CPURegs>;
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter4_2/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter4_2/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   Cpu0TargetLowering::
@@ -1546,8 +1546,8 @@ run result of bc and asm instructions for ch4_5.cpp as below.
     ...
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp
+.. rubric:: lbdex/InputFiles/ch4_5.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch4_5.cpp
     :start-after: /// start
 
 .. code-block:: bash
