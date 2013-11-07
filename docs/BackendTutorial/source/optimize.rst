@@ -859,8 +859,8 @@ Cpu0 Verilog language changes
 .. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0IIs.v
 .. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/cpu0IIs.v
 
-In addition to cpu0IIs.v, the "`ifdef CPU0II" in cpu0.v is added for extended
-slt, beq, bne instructions.
+In addition to cpu0IIs.v, the "\`ifdef CPU0II" in cpu0.v is added for extended
+instructions, slt, beq and bne.
 
 
 Run the Cpu0II

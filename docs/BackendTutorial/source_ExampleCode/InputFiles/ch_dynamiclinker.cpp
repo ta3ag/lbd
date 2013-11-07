@@ -22,7 +22,6 @@ extern "C" int putchar(const char c)
 extern int la(int x1, int x2);
 extern int foo(int x1, int x2);
 extern int bar();
-extern int h(int x1, int x2);
 
 int main()
 {

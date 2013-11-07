@@ -330,20 +330,20 @@ your lld installed directory and run static linker example code as follows,
   [Gamma@localhost cpu0_verilog]$ bash clean.sh
   [Gamma@localhost InputFiles]$ cd ../InputFiles/
   [Gamma@localhost InputFiles]$ bash build-printf-stdarg-2.sh
-  printf-stdarg.c:102:19: warning: incomplete format specifier [-Wformat]
+  printf-stdarg-2.c:85:19: warning: incomplete format specifier [-Wformat]
     printf("%d %s(s)%", 0, "message");
                     ^
   1 warning generated.
   [Gamma@localhost InputFiles]$ cd ../cpu0_verilog/
   [Gamma@localhost cpu0_verilog]$ pwd
   /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
-  [Gamma@localhost cpu0_verilog]$ iverilog -o cpu0Is cpu0Is.v 
+  [Gamma@localhost cpu0_verilog]$ iverilog -o cpu0IIs cpu0IIs.v 
   [Gamma@localhost cpu0_verilog]$ ls
-  clean.sh  cpu0Id.v  cpu0IId.v  cpu0IIs.v  cpu0Is  cpu0Is.v  cpu0.v  dynlinker.v  
+  clean.sh  cpu0Id.v  cpu0IId.v  cpu0IIs  cpu0IIs.v  cpu0Is.v  cpu0.v  dynlinker.v  
   flashio.v
-  [Gamma@localhost cpu0_verilog]$ ./cpu0Is 
-  WARNING: cpu0s.v:317: $readmemh(cpu0s.hex): Not enough words in the file for 
-  the requested range [0:65535].
+  [Gamma@localhost cpu0_verilog]$ ./cpu0IIs 
+  WARNING: cpu0.v:365: $readmemh(cpu0s.hex): Not enough words in the file for 
+  the requested range [0:524287].
   taskInterrupt(001)
   global variable gI = 100
   time1 = 1 10 12
@@ -399,7 +399,7 @@ Let's check the result with PC program printf-stdarg-1.c output as follows,
   -3:   -3 right justif.
 
 They are same after the "Hello world!" of printf() function support.
-The cpu0I use slt instruction. You can verify the cmp 
+The cpu0I use cmp instruction. You can verify the slt 
 instructions is work fine too by change cpu to cpu032II as follows,
 
 .. rubric:: LLVMBackendTutorialExampleCode/InputFiles/build-printf-stdarg-2.sh
@@ -421,17 +421,115 @@ instructions is work fine too by change cpu to cpu032II as follows,
     printf("%d %s(s)\%", 0, "message");
                     ^
   1 warning generated.
-  [Gamma@localhost InputFiles]$ cd ../cpu0_verilog/
-  [Gamma@localhost cpu0_verilog]$ pwd
-  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
-  [Gamma@localhost cpu0_verilog]$ iverilog -o cpu0IIs cpu0IIs.v 
-  [Gamma@localhost cpu0_verilog]$ ls
-  clean.sh  cpu0Id.v  cpu0IId.v  cpu0IIs  cpu0IIs.v  cpu0Is.v  cpu0.v  dynlinker.v  
-  flashio.v
   [Gamma@localhost cpu0_verilog]$ ./cpu0IIs 
 
-The cpu032II will use Chapter12_2 slt, beq, ..., instructions instead of 
-instructions of Chapter12_1 cmp, jeq, ...
+The verilog machine cpu032II has include cpu0I all instructions (cmp, jeq, ... 
+are included also) and add Chapter12_2 slt, beq, ..., instructions.
+Run build-printf-stdarg-2.sh with cpu=cpu032II will generate slt, beq and bne 
+instructions instead cmp, jeq, ... instructions.
+
+
+Cpu0 lld structure
+~~~~~~~~~~~~~~~~~~~~~
+
+.. _lld-f1: 
+.. figure:: ../Fig/lld/1.png
+  :align: center
+
+  Cpu0 lld class relation ship
+
+.. _lld-f2: 
+.. figure:: ../Fig/lld/2.png
+  :align: center
+
+  Cpu0 lld ELFLinkingContext and DefaultLayout member functions
+
+.. _lld-f3: 
+.. figure:: ../Fig/lld/3.png
+  :align: center
+
+  Cpu0 lld RelocationPass
+
+
+The Cpu0LinkingContext include the context information for those obj files you
+want to link.
+When do linking, the following code will create Cpu0LinkingContext.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/ELFLinkingContext.cpp
+.. code-block:: c++
+
+  std::unique_ptr<ELFLinkingContext>
+  ELFLinkingContext::create(llvm::Triple triple) {
+    switch (triple.getArch()) {
+    ...
+    case llvm::Triple::cpu0:
+      return std::unique_ptr<ELFLinkingContext>(
+          new lld::elf::Cpu0LinkingContext(triple));
+    default:
+      return nullptr;
+    }
+  }
+
+While Cpu0LinkingContext is created by lld ELF driver as above, the following
+code in Cpu0LinkingContext constructor will create Cpu0TargetHandler and passing
+the Cpu0LinkingContext object pointer to Cpu0TargeHandler.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.h
+.. code-block:: c++
+
+  class Cpu0LinkingContext LLVM_FINAL : public ELFLinkingContext {
+  public:
+    Cpu0LinkingContext(llvm::Triple triple)
+        : ELFLinkingContext(triple, std::unique_ptr<TargetHandlerBase>(
+                                    new Cpu0TargetHandler(*this))) {}
+    ...
+  }
+
+Finally, the Cpu0TargeHandler constructor will create other related objects
+and set up the relation reference object pointers as :num:`Figure #lld-f1`
+depicted by the following code.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp
+.. code-block:: c++
+
+  Cpu0TargetHandler::Cpu0TargetHandler(Cpu0LinkingContext &context)
+      : DefaultTargetHandler(context), _gotFile(new GOTFile(context)),
+        _relocationHandler(context), _targetLayout(context) {}
+
+
+According chapter ELF, the linker stands for resolve the relocation records.
+The Cpu0TargetRelocationHandler::applyRelocation() will be called through 
+Cpu0TargetHandler by lld ELF driver when it meet each relocation record.
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp
+.. code-block:: c++
+
+  ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
+      ELFWriter &writer, llvm::FileOutputBuffer &buf, const lld::AtomLayout &atom,
+      const Reference &ref) const {
+
+    switch (ref.kind()) {
+    case R_CPU0_NONE:
+      break;
+    case R_CPU0_HI16:
+      relocHI16(location, relocVAddress, targetVAddress, ref.addend());
+      break;
+    case R_CPU0_LO16:
+      relocLO16(location, relocVAddress, targetVAddress, ref.addend());
+      break;
+    ...
+  }
+
+.. rubric:: LLVMBackendTutorialExampleCode/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.h
+.. code-block:: c++
+
+  class Cpu0TargetHandler LLVM_FINAL
+      : public DefaultTargetHandler<Cpu0ELFType> {
+  public:
+    ..
+    virtual const Cpu0TargetRelocationHandler &getRelocationHandler() const {
+      return _relocationHandler;
+    }
 
 
 Dynamic linker 
@@ -510,6 +608,11 @@ It can be run as follows,
   clean.sh  cpu0Id.v  cpu0IId  cpu0IId.v  cpu0IIs.v  cpu0Is.v  cpu0.v  dynlinker.v  
   flashio.v
   [Gamma@localhost cpu0_verilog]$ ./cpu0IId 
+
+
+Cpu0 lld dynamic linker structure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 
 Summary
