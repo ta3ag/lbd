@@ -77,7 +77,7 @@ classcanvas 129420 class_ref 132748 // Layout
 end
 classcanvas 129548 class_ref 132236 // TargetLayout
   draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
-  xyz 631 742 2005
+  xyz 628 739 2005
 end
 classcanvas 129676 class_ref 132620 // DefaultLayout
   draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
@@ -130,7 +130,7 @@ relationcanvas 128268 relation_ref 129932 // <generalisation>
   no_multiplicity_a no_multiplicity_b
 end
 relationcanvas 128780 relation_ref 130316 // <realization>
-  from ref 128524 z 3006 label "<ELFT->Cpu0ELFType>" xyz 376.5 633.5 3006 stereotype "<<bind>>" xyz 416.5 649.5 3006 to ref 128652
+  from ref 128524 z 3006 label "<ELFT->Cpu0ELFType>" xyz 376 633 3006 stereotype "<<bind>>" xyz 416 649 3006 to ref 128652
   no_role_a no_role_b
   no_multiplicity_a no_multiplicity_b
 end
@@ -165,7 +165,7 @@ relationcanvas 130188 relation_ref 134540 // <unidirectional association>
   no_multiplicity_a no_multiplicity_b
 end
 relationcanvas 130316 relation_ref 132236 // <realization>
-  from ref 128652 z 3012 label "<ELFT->ELFT>" xyz 403 335.5 3012 stereotype "<<bind>>" xyz 416 350.5 3012 to ref 130060
+  from ref 128652 z 3012 label "<ELFT->ELFT>" xyz 403 335 3012 stereotype "<<bind>>" xyz 416 350 3012 to ref 130060
   no_role_a no_role_b
   no_multiplicity_a no_multiplicity_b
 end
@@ -175,7 +175,12 @@ relationcanvas 130572 relation_ref 132108 // <realization>
   no_multiplicity_a no_multiplicity_b
 end
 relationcanvas 130700 relation_ref 134668 // <realization>
-  from ref 129548 z 3006 label "<ELFT->ELFT>" xyz 634 670.5 3006 stereotype "<<bind>>" xyz 649 686.5 3006 to ref 130444
+  from ref 129548 z 3006 label "<ELFT->ELFT>" xyz 633 668.5 3006 stereotype "<<bind>>" xyz 648 684.5 3006 to ref 130444
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 130828 relation_ref 157324 // <directional composition>
+  from ref 128524 z 2006 to ref 129548
   no_role_a no_role_b
   no_multiplicity_a no_multiplicity_b
 end

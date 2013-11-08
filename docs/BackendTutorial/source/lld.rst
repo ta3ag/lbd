@@ -443,7 +443,7 @@ Cpu0 lld structure
   :scale: 100 %
   :align: center
 
-  Cpu0 lld class relation ship
+  Cpu0 lld class relationship
 
 .. _lld-f2: 
 .. figure:: ../Fig/lld/2.png
@@ -463,6 +463,16 @@ Cpu0 lld structure
 The Cpu0LinkingContext include the context information for those obj files you
 want to link.
 When do linking, the following code will create Cpu0LinkingContext.
+
+.. rubric:: lbdex/Cpu0_lld_1030/ELFLinkingContext.h
+.. code-block:: c++
+
+  class ELFLinkingContext : public LinkingContext {
+  public:
+    ...
+    static std::unique_ptr<ELFLinkingContext> create(llvm::Triple);
+    ...
+  }
 
 .. rubric:: lbdex/Cpu0_lld_1030/ELFLinkingContext.cpp
 .. code-block:: c++
@@ -572,6 +582,25 @@ Cpu0TargetHandler by lld ELF driver when it meet each relocation record.
     virtual const Cpu0TargetRelocationHandler &getRelocationHandler() const {
       return _relocationHandler;
     }
+
+
+Summary as :num:`Figure #lld-f4`. 
+
+.. _lld-f4: 
+.. figure:: ../Fig/lld/4.png
+  :scale: 100 %
+  :align: center
+
+  Cpu0 lld related objects created sequence
+
+Remind, static std::unique_ptr<ELFLinkingContext> 
+ELFLinkingContext::create(llvm::Triple) is called without an object of 
+class ELFLinkingContext instance (because the static keyword).
+The Cpu0LinkingContext constructor will create it's ELFLinkingContext part.
+The std::unique_ptr came from c++11 standard.
+The unique_ptr objects automatically delete the object they manage (using a 
+deleter) as soon as they themselves are destroyed. Just like the Singlelten 
+pattern in Design Pattern book or Smart Pointers in Effective C++ book.
 
 
 Dynamic linker 

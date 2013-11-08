@@ -1,6 +1,6 @@
 format 74
 "Cpu0" // Cpu0
-  revision 7
+  revision 8
   modified_by 12 "cschen"
   // class settings
   //class diagram settings
@@ -2951,6 +2951,15 @@ ${inlines}
 "
 	    classrelation_ref 130828 // _targetLayout (<directional composition>)
 	  b parent class_ref 131596 // Cpu0ELFType
+      end
+
+      classrelation 157324 // <directional composition>
+	relation 157324 *-->
+	  a role_name "" private
+	    cpp default "    ${comment}${static}${mutable}${volatile}${const}${type} ${name}${value};
+"
+	    classrelation_ref 157324 // <directional composition>
+	  b parent class_ref 132236 // TargetLayout
       end
     end
 
