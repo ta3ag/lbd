@@ -61,7 +61,7 @@ llvm-objdump driver is modified for support generate Hex file from ELF.
 With these two tools supported, the program with global variables exist in
 section.data and .rodata can be accessed and transfered to Hex file which feed
 to Verilog Cpu0 machine and run on your PC/Laptop.</p>
-<p>LLD web site <a class="footnote-reference" href="#id4" id="id1">[1]</a>. LLD install requirement on Linux <a class="footnote-reference" href="#id5" id="id2">[2]</a>.
+<p>LLD web site <a class="footnote-reference" href="#id7" id="id1">[1]</a>. LLD install requirement on Linux <a class="footnote-reference" href="#id8" id="id2">[2]</a>.
 In spite of the requirement, we
 only can build with gcc4.7 above (clang will fail) on Linux.
 If you run with Virtual Machine (VM), please keep your phisical memory size
@@ -257,14 +257,14 @@ lbdex/llvm-objdump/* .
 </pre></div>
 </div>
 <p class="rubric">lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0LinkingContext.h ---------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                             The LLVM Linker</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0LinkingContext.h ---------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                             The LLVM Linker</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef LLD_READER_WRITER_ELF_CPU0_LINKER_CONTEXT_H</span>
 <span class="cp">#define LLD_READER_WRITER_ELF_CPU0_LINKER_CONTEXT_H</span>
@@ -351,14 +351,14 @@ lbdex/llvm-objdump/* .
 </pre></div>
 </div>
 <p class="rubric">lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0LinkingContext.cpp -------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                             The LLVM Linker</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0LinkingContext.cpp -------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                             The LLVM Linker</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0LinkingContext.h&quot;</span>
 
@@ -515,15 +515,15 @@ lbdex/llvm-objdump/* .
 </pre></div>
 </div>
 <p class="rubric">lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0RelocationHandler.h</span>
-<span class="cp">//------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                             The LLVM Linker</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0RelocationHandler.h</span>
+<span class="c1">//------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                             The LLVM Linker</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef Cpu0_RELOCATION_HANDLER_H</span>
 <span class="cp">#define Cpu0_RELOCATION_HANDLER_H</span>
@@ -560,14 +560,14 @@ lbdex/llvm-objdump/* .
 </pre></div>
 </div>
 <p class="rubric">lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0RelocationHandler.cpp ------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                             The LLVM Linker</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0RelocationHandler.cpp ------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                             The LLVM Linker</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0TargetHandler.h&quot;</span>
 <span class="cp">#include &quot;Cpu0LinkingContext.h&quot;</span>
@@ -805,20 +805,20 @@ lbdex/llvm-objdump/* .
 </pre></div>
 </div>
 <p class="rubric">lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0RelocationPass.h -----------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                             The LLVM Linker</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">///</span>
-<span class="cp">/// \file</span>
-<span class="cp">/// \brief Declares the relocation processing pass for cpu0. This includes</span>
-<span class="cp">///   GOT and PLT entries, TLS, COPY, and ifunc.</span>
-<span class="cp">///</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0RelocationPass.h -----------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                             The LLVM Linker</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">///</span>
+<span class="c1">/// \file</span>
+<span class="c1">/// \brief Declares the relocation processing pass for cpu0. This includes</span>
+<span class="c1">///   GOT and PLT entries, TLS, COPY, and ifunc.</span>
+<span class="c1">///</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef LLD_READER_WRITER_ELF_CPU0_RELOCATION_PASS_H</span>
 <span class="cp">#define LLD_READER_WRITER_ELF_CPU0_RELOCATION_PASS_H</span>
@@ -840,23 +840,23 @@ lbdex/llvm-objdump/* .
 </pre></div>
 </div>
 <p class="rubric">lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0RelocationPass.cpp ---------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                             The LLVM Linker</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">///</span>
-<span class="cp">/// \file</span>
-<span class="cp">/// \brief Defines the relocation processing pass for Cpu0. This includes</span>
-<span class="cp">///   GOT and PLT entries, TLS, and ifunc.</span>
-<span class="cp">///</span>
-<span class="cp">/// This also includes aditional behaivor that gnu-ld and gold implement but</span>
-<span class="cp">/// which is not specified anywhere.</span>
-<span class="cp">///</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0RelocationPass.cpp ---------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                             The LLVM Linker</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">///</span>
+<span class="c1">/// \file</span>
+<span class="c1">/// \brief Defines the relocation processing pass for Cpu0. This includes</span>
+<span class="c1">///   GOT and PLT entries, TLS, and ifunc.</span>
+<span class="c1">///</span>
+<span class="c1">/// This also includes aditional behaivor that gnu-ld and gold implement but</span>
+<span class="c1">/// which is not specified anywhere.</span>
+<span class="c1">///</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0RelocationPass.h&quot;</span>
 
@@ -1261,10 +1261,10 @@ lbdex/llvm-objdump/* .
         <span class="k">return</span> <span class="n">handleIFUNC</span><span class="p">(</span><span class="n">ref</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">isa</span><span class="o">&lt;</span><span class="k">const</span> <span class="n">SharedLibraryAtom</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ref</span><span class="p">.</span><span class="n">target</span><span class="p">()))</span> <span class="p">{</span>
       <span class="k">const_cast</span><span class="o">&lt;</span><span class="n">Reference</span> <span class="o">&amp;&gt;</span><span class="p">(</span><span class="n">ref</span><span class="p">).</span><span class="n">setTarget</span><span class="p">(</span><span class="n">getPLTEntry</span><span class="p">(</span><span class="n">ref</span><span class="p">.</span><span class="n">target</span><span class="p">()));</span>
-<span class="cp">      // Turn this into a PC24 to the PLT entry.</span>
-<span class="cp">    #if 1</span>
+      <span class="c1">// Turn this into a PC24 to the PLT entry.</span>
+    <span class="cp">#if 1</span>
       <span class="k">const_cast</span><span class="o">&lt;</span><span class="n">Reference</span> <span class="o">&amp;&gt;</span><span class="p">(</span><span class="n">ref</span><span class="p">).</span><span class="n">setKind</span><span class="p">(</span><span class="n">R_CPU0_PC24</span><span class="p">);</span>
-<span class="cp">    #endif</span>
+    <span class="cp">#endif</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">error_code</span><span class="o">::</span><span class="n">success</span><span class="p">();</span>
   <span class="p">}</span>
@@ -1321,14 +1321,14 @@ lbdex/llvm-objdump/* .
 </pre></div>
 </div>
 <p class="rubric">lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0LinkingContext.cpp -------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                             The LLVM Linker</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0LinkingContext.cpp -------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                             The LLVM Linker</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0LinkingContext.h&quot;</span>
 
@@ -1485,27 +1485,27 @@ lbdex/llvm-objdump/* .
 </pre></div>
 </div>
 <p class="rubric">lbdex/Cpu0_lld_1030/Cpu0/Cpu0Target.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0Target.h -------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                             The LLVM Linker</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0Target.h -------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                             The LLVM Linker</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0LinkingContext.h&quot;</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0TargetHandler.h ------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                             The LLVM Linker</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0TargetHandler.h ------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                             The LLVM Linker</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef LLD_READER_WRITER_ELF_Cpu0_TARGET_HANDLER_H</span>
 <span class="cp">#define LLD_READER_WRITER_ELF_Cpu0_TARGET_HANDLER_H</span>
@@ -1559,14 +1559,14 @@ lbdex/llvm-objdump/* .
 </pre></div>
 </div>
 <p class="rubric">lbdex/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0TargetHandler.cpp ----------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                             The LLVM Linker</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0TargetHandler.cpp ----------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                             The LLVM Linker</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Atoms.h&quot;</span>
 <span class="cp">#include &quot;Cpu0TargetHandler.h&quot;</span>
@@ -1601,18 +1601,18 @@ thousand of code in it. Half of the code size is for the dynamic linker.</p>
 <p>Add elf2hex.h and update llvm-objdump driver to support ELF to Hex for Cpu0
 backend as follows,</p>
 <p class="rubric">lbdex/llvm-objdump/elf2hex.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===---------------------------- elf2hex.cpp -----------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This program is a utility that works with llvm-objdump.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===---------------------------- elf2hex.cpp -----------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This program is a utility that works with llvm-objdump.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &lt;stdio.h&gt;</span>
 
@@ -2529,8 +2529,8 @@ below.</p>
 <span class="cm">#define putchar(c) outbyte(c)</span>
 <span class="cm">*/</span>
 
-<span class="cp">// gcc printf-stdarg-1.c</span>
-<span class="cp">// ./a.out</span>
+<span class="c1">// gcc printf-stdarg-1.c</span>
+<span class="c1">// ./a.out</span>
 
 <span class="cp">#include &lt;stdio.h&gt;</span>
 
@@ -2777,7 +2777,7 @@ below.</p>
 	<span class="k">return</span> <span class="n">pc</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="cp">/* the following should be enough for 32 bit int */</span>
+<span class="cm">/* the following should be enough for 32 bit int */</span>
 <span class="cp">#define PRINT_BUF_LEN 12</span>
 
 <span class="k">static</span> <span class="kt">int</span> <span class="n">printi</span><span class="p">(</span><span class="kt">char</span> <span class="o">**</span><span class="n">out</span><span class="p">,</span> <span class="kt">int</span> <span class="n">i</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">,</span> <span class="kt">int</span> <span class="n">sg</span><span class="p">,</span> <span class="kt">int</span> <span class="n">width</span><span class="p">,</span> <span class="kt">int</span> <span class="n">pad</span><span class="p">,</span> <span class="kt">int</span> <span class="n">letbase</span><span class="p">)</span>
@@ -3143,20 +3143,29 @@ it without any problem.</p>
 <div class="section" id="cpu0-lld-structure">
 <h3>Cpu0 lld structure<a class="headerlink" href="#cpu0-lld-structure" title="Permalink to this headline">¶</a></h3>
 <div class="figure align-center" id="lld-f1">
-<a class="reference internal image-reference" href="_images/16.png"><img alt="_images/16.png" src="_images/16.png" style="width: 757.0px; height: 830.0px;" /></a>
-<p class="caption">Figure 1: Cpu0 lld class relation ship</p>
+<a class="reference internal image-reference" href="_images/16.png"><img alt="_images/16.png" src="_images/16.png" /></a>
+<p class="caption">Figure 1: Cpu0 lld class relationship</p>
 </div>
 <div class="figure align-center" id="lld-f2">
-<a class="reference internal image-reference" href="_images/25.png"><img alt="_images/25.png" src="_images/25.png" style="width: 459.2px; height: 699.2px;" /></a>
+<a class="reference internal image-reference" href="_images/25.png"><img alt="_images/25.png" src="_images/25.png" /></a>
 <p class="caption">Figure 2: Cpu0 lld ELFLinkingContext and DefaultLayout member functions</p>
 </div>
 <div class="figure align-center" id="lld-f3">
-<a class="reference internal image-reference" href="_images/34.png"><img alt="_images/34.png" src="_images/34.png" style="width: 833.0px; height: 726.0px;" /></a>
+<a class="reference internal image-reference" href="_images/34.png"><img alt="_images/34.png" src="_images/34.png" /></a>
 <p class="caption">Figure 3: Cpu0 lld RelocationPass</p>
 </div>
-<p>The Cpu0LinkingContext include the context information for those obj files you
-want to link.
+<p>The Cpu0LinkingContext include the context information for those input obj
+files and output elf file you want to link.
 When do linking, the following code will create Cpu0LinkingContext.</p>
+<p class="rubric">lbdex/Cpu0_lld_1030/ELFLinkingContext.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">ELFLinkingContext</span> <span class="o">:</span> <span class="k">public</span> <span class="n">LinkingContext</span> <span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+  <span class="p">...</span>
+  <span class="k">static</span> <span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ELFLinkingContext</span><span class="o">&gt;</span> <span class="n">create</span><span class="p">(</span><span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span><span class="p">);</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/Cpu0_lld_1030/ELFLinkingContext.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ELFLinkingContext</span><span class="o">&gt;</span>
 <span class="n">ELFLinkingContext</span><span class="o">::</span><span class="n">create</span><span class="p">(</span><span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span> <span class="n">triple</span><span class="p">)</span> <span class="p">{</span>
@@ -3253,6 +3262,47 @@ Cpu0TargetHandler by lld ELF driver when it meet each relocation record.</p>
     <span class="k">return</span> <span class="n">_relocationHandler</span><span class="p">;</span>
   <span class="p">}</span>
 </pre></div>
+</div>
+<p>Summary as <a class="pageref" href="#lld-f4">Figure  4</a>.</p>
+<div class="figure align-center" id="lld-f4">
+<a class="reference internal image-reference" href="_images/44.png"><img alt="_images/44.png" src="_images/44.png" /></a>
+<p class="caption">Figure 4: Cpu0 lld related objects created sequence</p>
+</div>
+<p>Remind, static std::unique_ptr&lt;ELFLinkingContext&gt;
+ELFLinkingContext::create(llvm::Triple) is called without an object of
+class ELFLinkingContext instance (because the static keyword).
+The Cpu0LinkingContext constructor will create it&#8217;s ELFLinkingContext part.
+The std::unique_ptr came from c++11 standard.
+The unique_ptr objects automatically delete the object they manage (using a
+deleter) as soon as they themselves are destroyed. Just like the Singlelten
+pattern in Design Pattern book or Smart Pointers in Effective C++ book. <a class="footnote-reference" href="#id9" id="id3">[3]</a></p>
+<div class="figure align-center" id="lld-f5">
+<a class="reference internal image-reference" href="_images/54.png"><img alt="_images/54.png" src="_images/54.png" /></a>
+<p class="caption">Figure 5: Cpu0LinkingContext get Cpu0TargetHandler through &amp;getTargetHandler()</p>
+</div>
+<p>As <a class="pageref" href="#lld-f1">Figure  1</a> depicted, the Cpu0TargetHandler include the members or
+pointers which can access to other object. The way to access Cpu0TargetHandler
+object from Cpu0LinkingContext or Cpu0RelocationHandler rely on
+LinkingContext::getTargetHandler() function. As <a class="pageref" href="#lld-f5">Figure  5</a> depicted,
+the unique_ptr point to Cpu0TargetHandler will be saved in LinkingContext
+contructor function.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>std::unique_ptr::get() <a class="footnote-reference" href="#id10" id="id4">[4]</a></p>
+<p>pointer get() const noexcept;</p>
+<p class="last">Get pointer
+Returns the stored pointer.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>std::move() <a class="footnote-reference" href="#id11" id="id5">[5]</a></p>
+<dl class="last docutils">
+<dt>for example:</dt>
+<dd><p class="first">std::string bar = &#8220;bar-string&#8221;;
+std::move(bar);</p>
+<p class="last">bar is null after std::move(bar);</p>
+</dd>
+</dl>
 </div>
 </div>
 </div>
@@ -3586,7 +3636,7 @@ to execute the dynamic linker function on Cpu0 Verilog machine.</p>
 <p class="rubric">lbdex/InputFiles/dynamic_linker.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;dynamic_linker.h&quot;</span>
 
-<span class="cp">//#define DEBUG_DLINKER</span>
+<span class="c1">//#define DEBUG_DLINKER</span>
 <span class="cp">#define PLT0ADDR 0x10</span>
 <span class="cp">#define REGADDR  0x7ff00</span>
 
@@ -3814,8 +3864,8 @@ to execute the dynamic linker function on Cpu0 Verilog machine.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="section" id="id3">
-<h3>Run<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id6">
+<h3>Run<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost cpu0_verilog<span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
 /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
 <span class="o">[</span>Gamma@localhost cpu0_verilog<span class="o">]</span><span class="nv">$ </span>bash clean.sh
@@ -3885,16 +3935,34 @@ School knowledge of system program, compiler, linker, loader, computer
 architecture and CPU design can be translated into a real work and see how it be
 run. Now, these school books knowledge is not limited on paper.
 We program it, design it and run it on real world.</p>
-<table class="docutils footnote" frame="void" id="id4" rules="none">
+<table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://lld.llvm.org/">http://lld.llvm.org/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id5" rules="none">
+<table class="docutils footnote" frame="void" id="id8" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://lld.llvm.org/getting_started.html#on-unix-like-systems">http://lld.llvm.org/getting_started.html#on-unix-like-systems</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id9" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/">http://www.cplusplus.com/reference/memory/unique_ptr/</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id10" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/get/">http://www.cplusplus.com/reference/memory/unique_ptr/get/</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id11" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/utility/move/">http://www.cplusplus.com/reference/utility/move/</a></td></tr>
 </tbody>
 </table>
 </div>

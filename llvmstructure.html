@@ -1488,14 +1488,14 @@ and use the RegisterTarget template to register the target.
 For example, the file TargetInfo/Cpu0TargetInfo.cpp register TheCpu0Target for
 big endian and TheCpu0elTarget for little endian, as follows.</p>
 <p class="rubric">lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0TargetInfo.cpp - Cpu0 Target Implementation -------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetInfo.cpp - Cpu0 Target Implementation -------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0.h&quot;</span>
 <span class="cp">#include &quot;llvm/IR/Module.h&quot;</span>
@@ -1516,18 +1516,18 @@ big endian and TheCpu0elTarget for little endian, as follows.</p>
 <p>Files Cpu0TargetMachine.cpp and MCTargetDesc/Cpu0MCTargetDesc.cpp just define
 the empty initialize function since we register nothing in them for this moment.</p>
 <p class="rubric">lbdex/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0MCTargetDesc.h - Cpu0 Target Descriptions -----------*- C++ -*-===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This file provides Cpu0 specific target descriptions.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCTargetDesc.h - Cpu0 Target Descriptions -----------*- C++ -*-===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file provides Cpu0 specific target descriptions.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0MCTARGETDESC_H</span>
 <span class="cp">#define CPU0MCTARGETDESC_H</span>
@@ -1539,12 +1539,12 @@ the empty initialize function since we register nothing in them for this moment.
 <span class="k">extern</span> <span class="n">Target</span> <span class="n">TheCpu0elTarget</span><span class="p">;</span>
 <span class="p">}</span> <span class="c1">// End llvm namespace</span>
 
-<span class="cp">// Defines symbolic names for Cpu0 registers.  This defines a mapping from</span>
-<span class="cp">// register name to register number.</span>
+<span class="c1">// Defines symbolic names for Cpu0 registers.  This defines a mapping from</span>
+<span class="c1">// register name to register number.</span>
 <span class="cp">#define GET_REGINFO_ENUM</span>
 <span class="cp">#include &quot;Cpu0GenRegisterInfo.inc&quot;</span>
 
-<span class="cp">// Defines symbolic names for the Cpu0 instructions.</span>
+<span class="c1">// Defines symbolic names for the Cpu0 instructions.</span>
 <span class="cp">#define GET_INSTRINFO_ENUM</span>
 <span class="cp">#include &quot;Cpu0GenInstrInfo.inc&quot;</span>
 
@@ -1554,18 +1554,18 @@ the empty initialize function since we register nothing in them for this moment.
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0MCTargetDesc.cpp - Cpu0 Target Descriptions -------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This file provides Cpu0 specific target descriptions.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCTargetDesc.cpp - Cpu0 Target Descriptions -------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file provides Cpu0 specific target descriptions.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0MCTargetDesc.h&quot;</span>
 <span class="cp">#include &quot;llvm/MC/MachineLocation.h&quot;</span>
@@ -1659,14 +1659,14 @@ the following code from file TargetInfo/Cpu0TargetInfo.cpp what in
 &#8220;section Target Registration&#8221; <a class="footnote-reference" href="#asadasd" id="id13">[11]</a> we made.
 List them as follows again,</p>
 <p class="rubric">lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0TargetInfo.cpp - Cpu0 Target Implementation -------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetInfo.cpp - Cpu0 Target Implementation -------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0.h&quot;</span>
 <span class="cp">#include &quot;llvm/IR/Module.h&quot;</span>
