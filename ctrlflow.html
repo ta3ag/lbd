@@ -60,7 +60,7 @@ translate these control flow statements of llvm IR into cpu0 instructions.</p>
 <div class="section" id="control-flow-statement">
 <h2>Control flow statement<a class="headerlink" href="#control-flow-statement" title="Permalink to this headline">¶</a></h2>
 <p>Run ch8_1_1.cpp with clang will get result as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_1_1.cpp</p>
+<p class="rubric">lbdex/InputFiles/ch8_1_1.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">test_control1</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
@@ -289,7 +289,7 @@ jmp BasicBlock_01
 </div>
 <p>For the first addiu instruction as above which move Constant&lt;c&gt; into register,
 we have defined it before by the following code,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter8_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// Small immediates
 def : Pat&lt;(i32 immSExt16:$in),
           (ADDiu ZERO, imm:$in)&gt;;
@@ -301,7 +301,7 @@ def : Pat&lt;(i32 imm:$imm),
 </div>
 <p>For the last IR br, we translate unconditional branch (br BasicBlock_01) into
 jmp BasicBlock_01 by the following pattern definition,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter8_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>def brtarget    : Operand&lt;OtherVT&gt; {
   let EncoderMethod = "getBranchTargetOpValue";
   let OperandType = "OPERAND_PCREL";
@@ -326,7 +326,7 @@ The other two cpu0 instructions translation is more complicate than simple
 one-to-one IR to machine instruction translation we have experienced until now.
 To solve this chained IR to machine instructions translation, we define the
 following pattern,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter8_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// brcond patterns
 multiclass BrcondPats&lt;RegisterClass RC, Instruction JEQOp, Instruction JNEOp,
   Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp,
@@ -362,7 +362,7 @@ jne BasicBlock_02</pre>
 </div>
 <p>The reserved registers setting by the following
 function code we defined before,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0RegisterInfo.cpp</p>
+<p class="rubric">lbdex/Chapter8_1/Cpu0RegisterInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 
 <span class="c1">// pure virtual method</span>
@@ -393,7 +393,7 @@ allocated to the register used by other instruction.
 The copyPhysReg() is called when DestReg and SrcReg belong to different Register
 Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
 &#8220;cmp $SW, $ZERO, $rc&#8221;.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0RegisterInfo.td</p>
+<p class="rubric">lbdex/Chapter8_1/Cpu0RegisterInfo.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">// Register Classes</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
@@ -412,7 +412,7 @@ Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
 <span class="n">def</span> <span class="n">SR</span>   <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="n">SW</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.cpp</p>
+<p class="rubric">lbdex/Chapter8_1/Cpu0InstrInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- Called when DestReg and SrcReg belong to different Register Class.</span>
 <span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
 <span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
@@ -498,7 +498,7 @@ instruction in average.
 Cpu0 take 2 instructions for conditional branch, (jne(cmp...)), while Mips use
 one instruction (bne).</p>
 <p>Finally we list the code added for full support of control flow statement,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
+<p class="rubric">lbdex/Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 
 <span class="c1">/// getBranchTargetOpValue - Return binary encoding of the branch</span>
@@ -518,7 +518,7 @@ one instruction (bne).</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0MCInstLower.cpp</p>
+<p class="rubric">lbdex/Chapter8_1/Cpu0MCInstLower.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
                                               <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
                                               <span class="kt">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -558,7 +558,7 @@ one instruction (bne).</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.cpp</p>
+<p class="rubric">lbdex/Chapter8_1/Cpu0InstrInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- Called when DestReg and SrcReg belong to different Register Class.</span>
 <span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
 <span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
@@ -581,7 +581,7 @@ one instruction (bne).</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0ISelLowering.cpp</p>
+<p class="rubric">lbdex/Chapter8_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
 <span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
   <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">Cpu0TargetObjectFile</span><span class="p">()),</span>
@@ -601,7 +601,7 @@ one instruction (bne).</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrFormats.td</p>
+<p class="rubric">lbdex/Chapter8_1/Cpu0InstrFormats.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">// Format J instruction class in Cpu0 : &lt;|opcode|address|&gt;</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
@@ -617,7 +617,7 @@ one instruction (bne).</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter8_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// Cpu0InstrInfo.td
 // Instruction operand types
 def brtarget    : Operand&lt;OtherVT&gt; {
@@ -700,7 +700,7 @@ defm : BrcondPats&lt;CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO&gt;;</pre>
 You can run with them if you like to test more.</p>
 <p>Finally, Chapter8_1/ support the local array definition by add the LowerCall()
 empty function in Cpu0ISelLowering.cpp as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0ISelLowering.cpp</p>
+<p class="rubric">lbdex/Chapter8_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0ISelLowering.cpp</span>
 <span class="n">SDValue</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerCall</span><span class="p">(</span><span class="n">TargetLowering</span><span class="o">::</span><span class="n">CallLoweringInfo</span> <span class="o">&amp;</span><span class="n">CLI</span><span class="p">,</span>
@@ -711,7 +711,7 @@ empty function in Cpu0ISelLowering.cpp as follows,</p>
 </div>
 <p>With this LowerCall(), it can translate ch8_1_4.cpp, ch8_1_4.bc to
 ch8_1_4.cpu0.s as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_1_4.cpp</p>
+<p class="rubric">lbdex/InputFiles/ch8_1_4.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">};</span>
@@ -798,7 +798,7 @@ main:
 add since we have take care them before.
 But it can be test only when the control flow statement support is ready, as
 follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch8_1_5.cpp</p>
+<p class="rubric">lbdex/InputFiles/ch8_1_5.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>

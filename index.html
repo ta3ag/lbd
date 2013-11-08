@@ -162,7 +162,6 @@
 <li class="toctree-l2"><a class="reference internal" href="elf.html#elf-header-and-section-header-table">ELF header and Section header table</a></li>
 <li class="toctree-l2"><a class="reference internal" href="elf.html#relocation-record">Relocation Record</a></li>
 <li class="toctree-l2"><a class="reference internal" href="elf.html#cpu0-elf-related-files">Cpu0 ELF related files</a></li>
-<li class="toctree-l2"><a class="reference internal" href="elf.html#lld">lld</a></li>
 <li class="toctree-l2"><a class="reference internal" href="elf.html#llvm-objdump">llvm-objdump</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="elf.html#llvm-objdump-t-r">llvm-objdump -t -r</a></li>
 <li class="toctree-l3"><a class="reference internal" href="elf.html#llvm-objdump-d">llvm-objdump -d</a></li>
@@ -188,16 +187,25 @@
 <li class="toctree-l3"><a class="reference internal" href="optimize.html#cpu0-new-instruction-sets-table">Cpu0 new instruction sets table</a></li>
 <li class="toctree-l3"><a class="reference internal" href="optimize.html#cpu0-code-changes">Cpu0 code changes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="optimize.html#cpu0-verilog-language-changes">Cpu0 Verilog language changes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="optimize.html#run-the-redesigned-cpu0">Run the redesigned Cpu0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optimize.html#run-the-cpu0ii">Run the Cpu0II</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="lld.html">LLD for Cpu0</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="lld.html#install-lld">Install lld</a></li>
-<li class="toctree-l2"><a class="reference internal" href="lld.html#cpu0-lld">Cpu0 lld</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lld.html#cpu0-lld-souce-code">Cpu0 lld souce code</a></li>
 <li class="toctree-l2"><a class="reference internal" href="lld.html#elf-to-hex">ELF to Hex</a></li>
-<li class="toctree-l2"><a class="reference internal" href="lld.html#run">Run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lld.html#static-linker">Static linker</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="lld.html#run">Run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lld.html#cpu0-lld-structure">Cpu0 lld structure</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="lld.html#dynamic-linker">Dynamic linker</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="lld.html#id3">Run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lld.html#cpu0-lld-dynamic-linker-structure">Cpu0 lld dynamic linker structure</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="lld.html#summary">Summary</a></li>
 </ul>
 </li>
@@ -228,7 +236,7 @@
 <div class="section" id="book-example-code">
 <h2>Book example code<a class="headerlink" href="#book-example-code" title="Permalink to this headline">¶</a></h2>
 <p>The example code is available in:</p>
-<p><a class="reference external" href="http://jonathan2251.github.com/lbd/LLVMBackendTutorialExampleCode.tar.gz">http://jonathan2251.github.com/lbd/LLVMBackendTutorialExampleCode.tar.gz</a></p>
+<p><a class="reference external" href="http://jonathan2251.github.com/lbd/lbdex.tar.gz">http://jonathan2251.github.com/lbd/lbdex.tar.gz</a></p>
 </div>
 <div class="section" id="alternate-formats">
 <h2>Alternate formats<a class="headerlink" href="#alternate-formats" title="Permalink to this headline">¶</a></h2>

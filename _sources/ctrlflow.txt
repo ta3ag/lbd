@@ -12,8 +12,8 @@ Control flow statement
 
 Run ch8_1_1.cpp with clang will get result as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_1_1.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_1_1.cpp
+.. rubric:: lbdex/InputFiles/ch8_1_1.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch8_1_1.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -203,7 +203,7 @@ We want to translate them into cpu0 instructions DAG as follows,
 For the first addiu instruction as above which move Constant<c> into register, 
 we have defined it before by the following code,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter8_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
     // Small immediates
@@ -218,7 +218,7 @@ we have defined it before by the following code,
 For the last IR br, we translate unconditional branch (br BasicBlock_01) into 
 jmp BasicBlock_01 by the following pattern definition,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter8_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
     def brtarget    : Operand<OtherVT> {
@@ -246,7 +246,7 @@ one-to-one IR to machine instruction translation we have experienced until now.
 To solve this chained IR to machine instructions translation, we define the 
 following pattern,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter8_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
     // brcond patterns
@@ -293,8 +293,8 @@ is correct even an instruction is inserted between CMP and JNE as follows,
 The reserved registers setting by the following 
 function code we defined before,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0RegisterInfo.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0RegisterInfo.cpp
+.. rubric:: lbdex/Chapter8_1/Cpu0RegisterInfo.cpp
+.. literalinclude:: ../lbdex/Chapter8_1/Cpu0RegisterInfo.cpp
     :start-after: return CSR_O32_RegMask;
     :end-before: //- If eliminateFrameIndex() is empty
 
@@ -307,7 +307,7 @@ The copyPhysReg() is called when DestReg and SrcReg belong to different Register
 Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is 
 "cmp $SW, $ZERO, $rc".
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0RegisterInfo.td
+.. rubric:: lbdex/Chapter8_1/Cpu0RegisterInfo.td
 .. code-block:: c++
 
   //===----------------------------------------------------------------------===//
@@ -328,7 +328,7 @@ Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
   def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
   
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.cpp
+.. rubric:: lbdex/Chapter8_1/Cpu0InstrInfo.cpp
 .. code-block:: c++
 
   //- Called when DestReg and SrcReg belong to different Register Class.
@@ -424,12 +424,12 @@ one instruction (bne).
 
 Finally we list the code added for full support of control flow statement,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. rubric:: lbdex/Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. literalinclude:: ../lbdex/Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
     :start-after: EmitInstruction(Binary, Size, OS);
     :end-before: /// getMachineOpValue - Return binary encoding of operand
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0MCInstLower.cpp
+.. rubric:: lbdex/Chapter8_1/Cpu0MCInstLower.cpp
 .. code-block:: c++
 
     MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
@@ -470,7 +470,7 @@ Finally we list the code added for full support of control flow statement,
       ...
     }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.cpp
+.. rubric:: lbdex/Chapter8_1/Cpu0InstrInfo.cpp
 .. code-block:: c++
 
     //- Called when DestReg and SrcReg belong to different Register Class.
@@ -494,7 +494,7 @@ Finally we list the code added for full support of control flow statement,
       ...
     }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter8_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
     Cpu0TargetLowering::
@@ -515,7 +515,7 @@ Finally we list the code added for full support of control flow statement,
       ...
     }
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrFormats.td
+.. rubric:: lbdex/Chapter8_1/Cpu0InstrFormats.td
 .. code-block:: c++
 
 	//===----------------------------------------------------------------------===//
@@ -532,7 +532,7 @@ Finally we list the code added for full support of control flow statement,
 	  let Inst{23-0} = addr;
 	}
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter8_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
     // Cpu0InstrInfo.td
@@ -619,7 +619,7 @@ You can run with them if you like to test more.
 Finally, Chapter8_1/ support the local array definition by add the LowerCall() 
 empty function in Cpu0ISelLowering.cpp as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter8_1/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter8_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   // Cpu0ISelLowering.cpp
@@ -633,8 +633,8 @@ empty function in Cpu0ISelLowering.cpp as follows,
 With this LowerCall(), it can translate ch8_1_4.cpp, ch8_1_4.bc to 
 ch8_1_4.cpu0.s as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_1_4.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_1_4.cpp
+.. rubric:: lbdex/InputFiles/ch8_1_4.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch8_1_4.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -717,8 +717,8 @@ add since we have take care them before.
 But it can be test only when the control flow statement support is ready, as 
 follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch8_1_5.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch8_1_5.cpp
+.. rubric:: lbdex/InputFiles/ch8_1_5.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch8_1_5.cpp
     :start-after: /// start
 
 .. code-block:: bash

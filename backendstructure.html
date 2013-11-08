@@ -113,19 +113,19 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="p">};</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetMachine.h - Define TargetMachine for Cpu0 -----*- C++ -*-===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file declares the Cpu0 specific subclass of TargetMachine.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_1/Cpu0TargetMachine.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0TargetMachine.h - Define TargetMachine for Cpu0 -----*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file declares the Cpu0 specific subclass of TargetMachine.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0TARGETMACHINE_H</span>
 <span class="cp">#define CPU0TARGETMACHINE_H</span>
@@ -208,19 +208,19 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetMachine.cpp - Define TargetMachine for Cpu0 -------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// Implements the info about Cpu0 target spec.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_1/Cpu0TargetMachine.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0TargetMachine.cpp - Define TargetMachine for Cpu0 -------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// Implements the info about Cpu0 target spec.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0TargetMachine.h&quot;</span>
 <span class="cp">#include &quot;Cpu0.h&quot;</span>
@@ -318,7 +318,7 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0CallingConv.td</p>
+<p class="rubric">lbdex/Chapter3_1/Cpu0CallingConv.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0CallingConv.td - Calling Conventions for Cpu0 --*- tablegen -*-===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
@@ -338,19 +338,19 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
                                    <span class="p">(</span><span class="n">sequence</span> <span class="s">&quot;S%u&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0FrameLowering.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0FrameLowering.h - Define frame lowering for Cpu0 ----*- C++ -*-===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_1/Cpu0FrameLowering.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0FrameLowering.h - Define frame lowering for Cpu0 ----*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 <span class="cp">#ifndef CPU0_FRAMEINFO_H</span>
 <span class="cp">#define CPU0_FRAMEINFO_H</span>
 
@@ -383,19 +383,19 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0FrameLowering.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0FrameLowering.cpp - Cpu0 Frame Information --------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file contains the Cpu0 implementation of TargetFrameLowering class.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_1/Cpu0FrameLowering.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0FrameLowering.cpp - Cpu0 Frame Information --------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains the Cpu0 implementation of TargetFrameLowering class.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0FrameLowering.h&quot;</span>
 <span class="cp">#include &quot;Cpu0InstrInfo.h&quot;</span>
@@ -484,19 +484,19 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0InstrInfo.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0InstrInfo.h - Cpu0 Instruction Information ----------*- C++ -*-===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file contains the Cpu0 implementation of the TargetInstrInfo class.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_1/Cpu0InstrInfo.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0InstrInfo.h - Cpu0 Instruction Information ----------*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains the Cpu0 implementation of the TargetInstrInfo class.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0INSTRUCTIONINFO_H</span>
 <span class="cp">#define CPU0INSTRUCTIONINFO_H</span>
@@ -530,19 +530,19 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0InstrInfo.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0InstrInfo.cpp - Cpu0 Instruction Information ------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file contains the Cpu0 implementation of the TargetInstrInfo class.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_1/Cpu0InstrInfo.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0InstrInfo.cpp - Cpu0 Instruction Information ------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains the Cpu0 implementation of the TargetInstrInfo class.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0InstrInfo.h&quot;</span>
 <span class="cp">#include &quot;Cpu0TargetMachine.h&quot;</span>
@@ -561,20 +561,20 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0ISelLowering.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0ISelLowering.h - Cpu0 DAG Lowering Interface --------*- C++ -*-===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file defines the interfaces that Cpu0 uses to lower LLVM code into a</span>
-<span class="c1">// selection DAG.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_1/Cpu0ISelLowering.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0ISelLowering.h - Cpu0 DAG Lowering Interface --------*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file defines the interfaces that Cpu0 uses to lower LLVM code into a</span>
+<span class="cp">// selection DAG.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef Cpu0ISELLOWERING_H</span>
 <span class="cp">#define Cpu0ISELLOWERING_H</span>
@@ -626,20 +626,20 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="cp">#endif </span><span class="c1">// Cpu0ISELLOWERING_H</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0ISelLowering.cpp - Cpu0 DAG Lowering Implementation -----------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file defines the interfaces that Cpu0 uses to lower LLVM code into a</span>
-<span class="c1">// selection DAG.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_1/Cpu0ISelLowering.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0ISelLowering.cpp - Cpu0 DAG Lowering Implementation -----------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file defines the interfaces that Cpu0 uses to lower LLVM code into a</span>
+<span class="cp">// selection DAG.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#define DEBUG_TYPE &quot;cpu0-lower&quot;</span>
 <span class="cp">#include &quot;Cpu0ISelLowering.h&quot;</span>
@@ -701,19 +701,19 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0MachineFunction.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MachineFunctionInfo.h - Private data used for Cpu0 ----*- C++ -*-=//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file declares the Cpu0 specific subclass of MachineFunctionInfo.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_1/Cpu0MachineFunction.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0MachineFunctionInfo.h - Private data used for Cpu0 ----*- C++ -*-=//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file declares the Cpu0 specific subclass of MachineFunctionInfo.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0_MACHINE_FUNCTION_INFO_H</span>
 <span class="cp">#define CPU0_MACHINE_FUNCTION_INFO_H</span>
@@ -744,19 +744,19 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="cp">#endif </span><span class="c1">// CPU0_MACHINE_FUNCTION_INFO_H</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0SelectionDAGInfo.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0SelectionDAGInfo.h - Cpu0 SelectionDAG Info ---------*- C++ -*-===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file defines the Cpu0 subclass for TargetSelectionDAGInfo.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_1/Cpu0SelectionDAGInfo.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0SelectionDAGInfo.h - Cpu0 SelectionDAG Info ---------*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file defines the Cpu0 subclass for TargetSelectionDAGInfo.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0SELECTIONDAGINFO_H</span>
 <span class="cp">#define CPU0SELECTIONDAGINFO_H</span>
@@ -778,19 +778,19 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0SelectionDAGInfo.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0SelectionDAGInfo.cpp - Cpu0 SelectionDAG Info -----------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file implements the Cpu0SelectionDAGInfo class.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_1/Cpu0SelectionDAGInfo.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0SelectionDAGInfo.cpp - Cpu0 SelectionDAG Info -----------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file implements the Cpu0SelectionDAGInfo class.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#define DEBUG_TYPE &quot;cpu0-selectiondag-info&quot;</span>
 <span class="cp">#include &quot;Cpu0TargetMachine.h&quot;</span>
@@ -804,7 +804,7 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0Subtarget.h</p>
+<p class="rubric">lbdex/Chapter3_1/Cpu0Subtarget.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#define GET_SUBTARGETINFO_HEADER</span>
 <span class="cp">#include &quot;Cpu0GenSubtargetInfo.inc&quot;</span>
 <span class="p">...</span>
@@ -818,19 +818,19 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0Subtarget.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0Subtarget.cpp - Cpu0 Subtarget Information --------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file implements the Cpu0 specific subclass of TargetSubtargetInfo.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_1/Cpu0Subtarget.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0Subtarget.cpp - Cpu0 Subtarget Information --------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file implements the Cpu0 specific subclass of TargetSubtargetInfo.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0Subtarget.h&quot;</span>
 <span class="cp">#include &quot;Cpu0.h&quot;</span>
@@ -865,19 +865,19 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0RegisterInfo.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0RegisterInfo.h - Cpu0 Register Information Impl -----*- C++ -*-===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file contains the Cpu0 implementation of the TargetRegisterInfo class.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_1/Cpu0RegisterInfo.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0RegisterInfo.h - Cpu0 Register Information Impl -----*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains the Cpu0 implementation of the TargetRegisterInfo class.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0REGISTERINFO_H</span>
 <span class="cp">#define CPU0REGISTERINFO_H</span>
@@ -926,19 +926,19 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0RegisterInfo.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0RegisterInfo.cpp - CPU0 Register Information -== --------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file contains the CPU0 implementation of the TargetRegisterInfo class.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_1/Cpu0RegisterInfo.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0RegisterInfo.cpp - CPU0 Register Information -== --------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains the CPU0 implementation of the TargetRegisterInfo class.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#define DEBUG_TYPE &quot;cpu0-reg-info&quot;</span>
 
@@ -1027,19 +1027,19 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetMachine.h - Define TargetMachine for Cpu0 -----*- C++ -*-===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file declares the Cpu0 specific subclass of TargetMachine.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_1/Cpu0TargetMachine.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0TargetMachine.h - Define TargetMachine for Cpu0 -----*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file declares the Cpu0 specific subclass of TargetMachine.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0TARGETMACHINE_H</span>
 <span class="cp">#define CPU0TARGETMACHINE_H</span>
@@ -1122,19 +1122,19 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/Cpu0TargetMachine.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetMachine.cpp - Define TargetMachine for Cpu0 -------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// Implements the info about Cpu0 target spec.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_1/Cpu0TargetMachine.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0TargetMachine.cpp - Define TargetMachine for Cpu0 -------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// Implements the info about Cpu0 target spec.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0TargetMachine.h&quot;</span>
 <span class="cp">#include &quot;Cpu0.h&quot;</span>
@@ -1215,7 +1215,7 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 </pre></div>
 </div>
 <p class="rubric">cmake_debug_build/lib/Target/Cpu0/Cpu0GenInstInfo.inc</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td</span>
 <span class="cp">#ifdef GET_INSTRINFO_HEADER</span>
 <span class="cp">#undef GET_INSTRINFO_HEADER</span>
 <span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
@@ -1284,7 +1284,7 @@ Following is the code fragment from Cpu0GenInstrInfo.inc.
 Code between “#if def  GET_INSTRINFO_HEADER” and “#endif // GET_INSTRINFO_HEADER”
 will be extracted by Cpu0InstrInfo.h.</p>
 <p class="rubric">cmake_debug_build/lib/Target/Cpu0/Cpu0GenInstInfo.inc</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//- Cpu0GenInstInfo.inc which generate from Cpu0InstrInfo.td</span>
 <span class="cp">#ifdef GET_INSTRINFO_HEADER</span>
 <span class="cp">#undef GET_INSTRINFO_HEADER</span>
 <span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
@@ -1302,7 +1302,7 @@ and .cpp), Cpu0FrameLowering (Cpu0FrameLowering.h and .cpp), Cpu0TargetLowering
 (Cpu0ISelLowering.h and .cpp) and Cpu0SelectionDAGInfo ( Cpu0SelectionDAGInfo.h
 and .cpp).
 CMakeLists.txt  modified with those new added *.cpp as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_1/CMakeLists.txt</p>
+<p class="rubric">lbdex/Chapter3_1/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp"># Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen</span>
 <span class="n">add_llvm_target</span><span class="p">(</span><span class="n">Cpu0CodeGen</span>
   <span class="n">Cpu0ISelLowering</span><span class="p">.</span><span class="n">cpp</span>
@@ -1317,7 +1317,7 @@ CMakeLists.txt  modified with those new added *.cpp as follows,</p>
 </div>
 <p>Please take a look for Chapter3_1 code.
 After that, building Chapter3_1 by make as chapter 2 (of course, you should remove old
-src/lib/Target/Cpu0 and replace with src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/Chapter3_1/).
+src/lib/Target/Cpu0 and replace with src/lib/Target/Cpu0/lbdex/Chapter3_1/).
 You can remove cmake_debug_build/lib/Target/Cpu0/*.inc before do “make” to ensure your code
 rebuild completely.
 By remove *.inc, all files those have included .inc will be rebuild, then your
@@ -1328,9 +1328,9 @@ Command as follows,</p>
 </div>
 <p>Now, let&#8217;s build Chapter3_1 as the following command,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-75-57:ExampleCode Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
-/Users/Jonathan/llvm/test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode
-118-165-75-57:LLVMBackendTutorialExampleCode Jonathan<span class="nv">$ </span>sh removecpu0.sh
-118-165-75-57:LLVMBackendTutorialExampleCode Jonathan<span class="nv">$ </span>cp -rf Chapter3_1/
+/Users/Jonathan/llvm/test/src/lib/Target/Cpu0/lbdex
+118-165-75-57:lbdex Jonathan<span class="nv">$ </span>sh removecpu0.sh
+118-165-75-57:lbdex Jonathan<span class="nv">$ </span>cp -rf Chapter3_1/
 * ../.
 
 118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
@@ -1348,7 +1348,7 @@ Let&#8217;s add it in next section.</p>
 <p>Chapter3_2/cpu0 contains the Cpu0AsmPrinter definition. First, we add definitions in
 Cpu0.td to support AssemblyWriter.
 Cpu0.td is added with the following fragment,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0.td</p>
+<p class="rubric">lbdex/Chapter3_2/Cpu0.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Without this will have error: &#39;cpu032&#39; is not a recognized processor for </span>
 <span class="c1">//  this target (ignoring processor)</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
@@ -1397,15 +1397,15 @@ call the auto-generated functions as shown in last section.</p>
 Cpu0BaseInfo.h,
 Cpu0FixupKinds.h and Cpu0MCAsmInfo (Cpu0MCAsmInfo.h, Cpu0MCAsmInfo.cpp) in
 sub-directory MCTargetDesc as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0MCInstLower.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCInstLower.h - Lower MachineInstr to MCInst -------*- C++ -*--===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_2/Cpu0MCInstLower.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0MCInstLower.h - Lower MachineInstr to MCInst -------*- C++ -*--===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0MCINSTLOWER_H</span>
 <span class="cp">#define CPU0MCINSTLOWER_H</span>
@@ -1443,20 +1443,20 @@ sub-directory MCTargetDesc as follows,</p>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0MCInstLower.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCInstLower.cpp - Convert Cpu0 MachineInstr to MCInst ---------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file contains code to lower Cpu0 MachineInstrs to their corresponding</span>
-<span class="c1">// MCInst records.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_2/Cpu0MCInstLower.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0MCInstLower.cpp - Convert Cpu0 MachineInstr to MCInst ---------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains code to lower Cpu0 MachineInstrs to their corresponding</span>
+<span class="cp">// MCInst records.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0MCInstLower.h&quot;</span>
 <span class="cp">#include &quot;Cpu0AsmPrinter.h&quot;</span>
@@ -1544,20 +1544,20 @@ sub-directory MCTargetDesc as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0BaseInfo.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0BaseInfo.h - Top level definitions for CPU0 MC ------*- C++ -*-===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file contains small standalone helper functions and enum definitions for</span>
-<span class="c1">// the Cpu0 target useful for the compiler back-end and the MC libraries.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_2/MCTargetDesc/Cpu0BaseInfo.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0BaseInfo.h - Top level definitions for CPU0 MC ------*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains small standalone helper functions and enum definitions for</span>
+<span class="cp">// the Cpu0 target useful for the compiler back-end and the MC libraries.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 <span class="cp">#ifndef CPU0BASEINFO_H</span>
 <span class="cp">#define CPU0BASEINFO_H</span>
 
@@ -1644,15 +1644,15 @@ sub-directory MCTargetDesc as follows,</p>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0FixupKinds.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0FixupKinds.h - Cpu0 Specific Fixup Entries ----------*- C++ -*-===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_2/MCTargetDesc/Cpu0FixupKinds.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0FixupKinds.h - Cpu0 Specific Fixup Entries ----------*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef LLVM_CPU0_CPU0FIXUPKINDS_H</span>
 <span class="cp">#define LLVM_CPU0_CPU0FIXUPKINDS_H</span>
@@ -1684,19 +1684,19 @@ sub-directory MCTargetDesc as follows,</p>
 <span class="cp">#endif </span><span class="c1">// LLVM_CPU0_CPU0FIXUPKINDS_H</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCAsmInfo.h - Cpu0 Asm Info ------------------------*- C++ -*--===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file contains the declaration of the Cpu0MCAsmInfo class.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0MCAsmInfo.h - Cpu0 Asm Info ------------------------*- C++ -*--===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains the declaration of the Cpu0MCAsmInfo class.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0TARGETASMINFO_H</span>
 <span class="cp">#define CPU0TARGETASMINFO_H</span>
@@ -1718,19 +1718,19 @@ sub-directory MCTargetDesc as follows,</p>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCAsmInfo.cpp - Cpu0 Asm Properties ---------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file contains the declarations of the Cpu0MCAsmInfo properties.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0MCAsmInfo.cpp - Cpu0 Asm Properties ---------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains the declarations of the Cpu0MCAsmInfo properties.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0MCAsmInfo.h&quot;</span>
 <span class="cp">#include &quot;llvm/ADT/Triple.h&quot;</span>
@@ -1764,7 +1764,7 @@ sub-directory MCTargetDesc as follows,</p>
 </div>
 <p>Finally, add code in Cpu0MCTargetDesc.cpp to register Cpu0InstPrinter as
 follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/MCTargetDesc/Cpu0MCTargetDesc.cpp</p>
+<p class="rubric">lbdex/MCTargetDesc/Cpu0MCTargetDesc.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">ParseCpu0Triple</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">Cpu0ArchFeature</span><span class="p">;</span>
   <span class="n">size_t</span> <span class="n">DashPosition</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
@@ -1880,19 +1880,19 @@ follows,</p>
 <p>Now, it&#8217;s time to work with AsmPrinter. According section
 &#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id6" id="id2">[2]</a>, we can register our AsmPrinter when we need it
 as the following function of LLVMInitializeCpu0AsmPrinter(),</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0AsmPrinter.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0AsmPrinter.h - Cpu0 LLVM Assembly Printer ----------*- C++ -*--===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// Cpu0 Assembly printer class.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_2/Cpu0AsmPrinter.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0AsmPrinter.h - Cpu0 LLVM Assembly Printer ----------*- C++ -*--===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// Cpu0 Assembly printer class.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0ASMPRINTER_H</span>
 <span class="cp">#define CPU0ASMPRINTER_H</span>
@@ -1950,20 +1950,20 @@ as the following function of LLVMInitializeCpu0AsmPrinter(),</p>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0AsmPrinter.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0AsmPrinter.cpp - Cpu0 LLVM Assembly Printer -------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file contains a printer that converts from our internal representation</span>
-<span class="c1">// of machine-dependent LLVM code to GAS-format CPU0 assembly language.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_2/Cpu0AsmPrinter.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0AsmPrinter.cpp - Cpu0 LLVM Assembly Printer -------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file contains a printer that converts from our internal representation</span>
+<span class="cp">// of machine-dependent LLVM code to GAS-format CPU0 assembly language.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#define DEBUG_TYPE &quot;cpu0-asm-printer&quot;</span>
 <span class="cp">#include &quot;Cpu0AsmPrinter.h&quot;</span>
@@ -2211,7 +2211,7 @@ as the following function of LLVMInitializeCpu0AsmPrinter(),</p>
 <p>Beyond add these new .cpp files to CMakeLists.txt, please remember to add
 subdirectory InstPrinter, enable asmprinter, add libraries AsmPrinter and
 Cpu0AsmPrinter to LLVMBuild.txt as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/CMakeLists.txt</p>
+<p class="rubric">lbdex/Chapter3_2/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenCodeEmitter</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">emitter</span><span class="p">)</span>
 <span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenMCCodeEmitter</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">emitter</span> <span class="o">-</span><span class="n">mc</span><span class="o">-</span><span class="n">emitter</span><span class="p">)</span>
 
@@ -2228,7 +2228,7 @@ Cpu0AsmPrinter to LLVMBuild.txt as follows,</p>
 <span class="p">...</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/LLVMBuild.txt</p>
+<p class="rubric">lbdex/Chapter3_2/LLVMBuild.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  LLVMBuild.txt</span>
 <span class="p">[</span><span class="n">common</span><span class="p">]</span>
 <span class="n">subdirectories</span> <span class="o">=</span> <span class="n">InstPrinter</span> <span class="n">MCTargetDesc</span> <span class="n">TargetInfo</span>
@@ -2530,7 +2530,7 @@ For example, (+ ri, rj), (- ri, 1) are lists for IR DAG; (ADD ri, rj),
 (SUBI ri, 1) are lists for machine instruction DAG.</p>
 <p>Now, let&#8217;s recall the ADDiu instruction defined on Cpu0InstrInfo.td in the
 previous chapter. List them again as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrFormats.td</p>
+<p class="rubric">lbdex/Chapter3_2/Cpu0InstrFormats.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 
 <span class="c1">//===----------------------------------------------------------------------===//</span>
@@ -2554,7 +2554,7 @@ previous chapter. List them again as follows,</p>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter3_2/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// Arithmetic and logical instructions with 2 register operands.
 class ArithLogicI&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
                   Operand Od, PatLeaf imm_type, RegisterClass RC&gt; :
@@ -2567,7 +2567,7 @@ class ArithLogicI&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
 def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;</pre>
 </div>
 <p><a class="pageref" href="#backendstructure-f9">Figure  9</a> show how the pattern match work in the IR node
-<strong>add</strong> and instruction ADDiu defined in Cpu0InstrInfo.td. For the example
+<strong>add</strong> and instruction ADDiu defined in Cpu0InstrInfo.td. This example
 IR node &#8220;add %a, 5&#8221;, will be translated to &#8220;addiu %r1, 5&#8221; since the IR
 pattern[(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))] is set in ADDiu and the
 2nd operand is signed immediate which matched &#8220;%a, 5&#8221;. In addition to pattern
@@ -2647,7 +2647,7 @@ ret i32 0
 <strong>add</strong> for sp (stack point) register adjust.
 So, the definitions in Cpu0InstrInfo.td as follows is enough.
 IR DAG is defined in file  include/llvm/Target/TargetSelectionDAG.td.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_2/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter3_2/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>//===----------------------------------------------------------------------===//
 
 /// Load and Store Instructions
@@ -2661,7 +2661,7 @@ def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;
 
 let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
     isBarrier=1, hasCtrlDep=1 in
-  def RET : FJ &lt;0x2c, (outs), (ins CPURegs:$target),
+  def RET : FJ &lt;0x3c, (outs), (ins CPURegs:$target),
                 "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch&gt;;
 
 //===----------------------------------------------------------------------===//
@@ -2669,7 +2669,7 @@ let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
 </div>
 <p>Add class Cpu0DAGToDAGISel (Cpu0ISelDAGToDAG.cpp) to CMakeLists.txt, and add
 following fragment to Cpu0TargetMachine.cpp,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/CMakeLists.txt</p>
+<p class="rubric">lbdex/Chapter3_3/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">add_llvm_target</span><span class="p">(...</span>
   <span class="p">...</span>
   <span class="n">Cpu0ISelDAGToDAG</span><span class="p">.</span><span class="n">cpp</span>
@@ -2679,7 +2679,7 @@ following fragment to Cpu0TargetMachine.cpp,</p>
 </div>
 <p>The following code in Cpu0TargetMachine.cpp will create a pass in instruction
 selection stage.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0TargetMachine.cpp</p>
+<p class="rubric">lbdex/Chapter3_3/Cpu0TargetMachine.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre>  <span class="p">}</span>
   <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">addInstSelector</span><span class="p">();</span>
 </pre></div>
@@ -2690,19 +2690,19 @@ selection stage.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0ISelDAGToDAG.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0ISelDAGToDAG.cpp - A Dag to Dag Inst Selector for Cpu0 --------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file defines an instruction selector for the CPU0 target.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_3/Cpu0ISelDAGToDAG.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0ISelDAGToDAG.cpp - A Dag to Dag Inst Selector for Cpu0 --------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file defines an instruction selector for the CPU0 target.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#define DEBUG_TYPE &quot;cpu0-isel&quot;</span>
 <span class="cp">#include &quot;Cpu0.h&quot;</span>
@@ -2760,8 +2760,8 @@ selection stage.</p>
   <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">runOnMachineFunction</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">);</span>
 
 <span class="k">private</span><span class="o">:</span>
-  <span class="c1">// Include the pieces autogenerated from the target description.</span>
-  <span class="cp">#include &quot;Cpu0GenDAGISel.inc&quot;</span>
+<span class="cp">  // Include the pieces autogenerated from the target description.</span>
+<span class="cp">  #include &quot;Cpu0GenDAGISel.inc&quot;</span>
 
   <span class="c1">/// getTargetMachine - Return a reference to the TargetMachine, casted</span>
   <span class="c1">/// to the target-specific type.</span>
@@ -2878,7 +2878,7 @@ selection stage.</p>
 </div>
 <p>This version adding the following code in Cpu0InstInfo.cpp to enable debug
 information which called by llvm at proper time.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrInfo.h</p>
+<p class="rubric">lbdex/Chapter3_3/Cpu0InstrInfo.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Cpu0InstrInfo</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Cpu0GenInstrInfo</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="k">virtual</span> <span class="n">MachineInstr</span><span class="o">*</span> <span class="n">emitFrameIndexDebugValue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span>
@@ -2888,7 +2888,7 @@ information which called by llvm at proper time.</p>
 <span class="p">};</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_3/Cpu0InstrInfo.cpp</p>
+<p class="rubric">lbdex/Chapter3_3/Cpu0InstrInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;llvm/CodeGen/MachineInstrBuilder.h&quot;</span>
 </pre></div>
 </div>
@@ -3020,7 +3020,7 @@ register) for local variables since we don&#8217;t use fp (frame pointer registe
 For our example, it will emit the instructions,</p>
 <div class="highlight-c++"><pre>addiu $sp, $sp, -8</pre>
 </div>
-<p>The  emitEpilogue will emit “addiu  $sp, $sp, 8”, 8 is the stack size.</p>
+<p>The  emitEpilogue will emit “addiu  $sp, $sp, 8”, where 8 is the stack size.</p>
 <p>Since Instruction Selection and Register Allocation occurs before
 Prologue/Epilogue Code Insertion, eliminateFrameIndex() is called after machine
 instruction and real register allocated.
@@ -3051,12 +3051,12 @@ bottom) as follows,</p>
 </pre></div>
 </div>
 <p>The Prologue and Epilogue functions as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0FrameLowering.h</p>
+<p class="rubric">lbdex/Chapter3_4/Cpu0FrameLowering.h</p>
 <div class="highlight-c++"><div class="highlight"><pre>  <span class="kt">void</span> <span class="n">emitPrologue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
   <span class="kt">void</span> <span class="n">emitEpilogue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span> <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0FrameLowering.cpp</p>
+<p class="rubric">lbdex/Chapter3_4/Cpu0FrameLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="n">expandLargeImm</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Reg</span><span class="p">,</span> <span class="n">int64_t</span> <span class="n">Imm</span><span class="p">,</span> 
                            <span class="k">const</span> <span class="n">Cpu0InstrInfo</span> <span class="o">&amp;</span><span class="n">TII</span><span class="p">,</span> <span class="n">MachineBasicBlock</span><span class="o">&amp;</span> <span class="n">MBB</span><span class="p">,</span>
                            <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">II</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">)</span> <span class="p">{</span>
@@ -3226,15 +3226,15 @@ bottom) as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0AnalyzeImmediate.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0AnalyzeImmediate.h - Analyze Immediates ------------*- C++ -*--===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_4/Cpu0AnalyzeImmediate.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0AnalyzeImmediate.h - Analyze Immediates ------------*- C++ -*--===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 <span class="cp">#ifndef CPU0_ANALYZE_IMMEDIATE_H</span>
 <span class="cp">#define CPU0_ANALYZE_IMMEDIATE_H</span>
 
@@ -3292,15 +3292,15 @@ bottom) as follows,</p>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0AnalyzeImmediate.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0AnalyzeImmediate.cpp - Analyze Immediates ---------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter3_4/Cpu0AnalyzeImmediate.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0AnalyzeImmediate.cpp - Analyze Immediates ---------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 <span class="cp">#include &quot;Cpu0AnalyzeImmediate.h&quot;</span>
 <span class="cp">#include &quot;Cpu0.h&quot;</span>
 <span class="cp">#include &quot;llvm/Support/MathExtras.h&quot;</span>
@@ -3441,7 +3441,7 @@ bottom) as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0RegisterInfo.cpp</p>
+<p class="rubric">lbdex/Chapter3_4/Cpu0RegisterInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 
 <span class="c1">//- If eliminateFrameIndex() is empty, it will hang on run. </span>
@@ -3520,7 +3520,7 @@ bottom) as follows,</p>
 <span class="c1">// pure virtual method</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/CMakeLists.txt</p>
+<p class="rubric">lbdex/Chapter3_4/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">add_llvm_target</span><span class="p">(...</span>
   <span class="p">...</span>
   <span class="n">Cpu0AnalyzeImmediate</span><span class="p">.</span><span class="n">cpp</span>
@@ -3692,7 +3692,7 @@ finally.
 Since store use <strong>constant 0</strong> (<strong>store i32 0, i32* %1</strong> in this example), the
 constant 0 will be translated into <strong>&#8220;addiu $2, $zero, 0&#8221;</strong> via the following
 pattern defined in Cpu0InstrInfo.td.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter3_4/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>//===----------------------------------------------------------------------===//
 
 // Small immediates
@@ -3710,11 +3710,11 @@ def : Pat&lt;(i32 imm:$imm),
 
 </pre>
 </div>
-<p>At this point, we have translate the very simple main() function with return 0
+<p>At this point, we have translated the very simple main() function with return 0
 single instruction. The Cpu0AnalyzeImmediate.cpp defined as above and the
-Cpu0InstrInfo.td instructions add as below, takes care
+Cpu0InstrInfo.td instructions add as below, which takes care
 the 32 bits stack size adjustments.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter3_4/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter3_4/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>def shamt       : Operand&lt;i32&gt;;
 
 // Unsigned Operand
@@ -3811,11 +3811,7 @@ def : Pat&lt;(i32 imm:$imm),
           (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))&gt;;</pre>
 </div>
 <p>The Cpu0AnalyzeImmediate.cpp written in recursive and a little complicate in
-logic. You can skip these recursive code and think these code in last chapter
-12.
-Since in Chapter 12 Optimization, it replace addiu and shl with lui single
-instruction, you have chance to think this thing in details. Anyway, the
-recursive
+logic. Anyway, the recursive
 skills is used in the front end compile book, you should fimiliar with it.
 Instead tracking the code, listing the stack size and the instructions
 generated in Table: Cpu0 stack adjustment instructions before replace addiu and

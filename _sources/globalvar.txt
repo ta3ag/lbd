@@ -19,8 +19,8 @@ Global variable
 Chapter6_1/ support the global variable, let's compile ch6_1.cpp with this version 
 first, and explain the code changes after that.
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch6_1.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch6_1.cpp
+.. rubric:: lbdex/InputFiles/ch6_1.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch6_1.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -301,7 +301,7 @@ to specify **UseSmallSectionOpt** to false.
 The default of **UseSmallSectionOpt** is false if without specify it further. 
 About the **cl::opt** command line variable, you can refer to [#]_ further.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0Subtarget.h
+.. rubric:: lbdex/Chapter6_1/Cpu0Subtarget.h
 .. code-block:: c++
 
   class Cpu0Subtarget : public Cpu0GenSubtargetInfo {
@@ -312,7 +312,7 @@ About the **cl::opt** command line variable, you can refer to [#]_ further.
     bool useSmallSection() const { return UseSmallSection; }
   };
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0Subtarget.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0Subtarget.cpp
 .. code-block:: c++
 
   static cl::opt<bool>
@@ -323,13 +323,13 @@ About the **cl::opt** command line variable, you can refer to [#]_ further.
 Next add file Cpu0TargetObjectFile.h, Cpu0TargetObjectFile.cpp and the 
 following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.h
+.. rubric:: lbdex/Chapter6_1/Cpu0TargetObjectFile.h
+.. literalinclude:: ../lbdex/Chapter6_1/Cpu0TargetObjectFile.h
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0TargetObjectFile.cpp
+.. literalinclude:: ../lbdex/Chapter6_1/Cpu0TargetObjectFile.cpp
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0RegisterInfo.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0RegisterInfo.cpp
 .. code-block:: c++
 
   // pure virtual method
@@ -343,7 +343,7 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
     ...
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   #include "Cpu0MachineFunction.h"
@@ -509,7 +509,7 @@ opcode is equal to ISD::GlobalAddress.
 
 Finally, add the following code in Cpu0InstrInfo.td.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter6_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   // Hi and Lo nodes are used to handle global addresses. Used on
@@ -600,7 +600,7 @@ The code fragment of LowerGlobalAddress() as the following corresponding option
 (add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>) in 
 stage "Legalized selection DAG" as below.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
     //  Cpu0ISelLowering.cpp
@@ -664,7 +664,7 @@ Finally, the pattern defined in Cpu0InstrInfo.td as the following will translate
 DAG (add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>) into Cpu0 
 instructions as below.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter6_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   // Hi and Lo nodes are used to handle global addresses. Used on
@@ -733,7 +733,7 @@ The code fragment of LowerGlobalAddress() as the following corresponding option
 (add GLOBAL_OFFSET_TABLE Cpu0ISD::GPRel<gI offset>) in 
 stage "Legalized selection DAG" as below.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
     //  Cpu0ISelLowering.cpp
@@ -789,7 +789,7 @@ DAG (add GLOBAL_OFFSET_TABLE Cpu0ISD::GPRel<gI offset>) into Cpu0
 instruction as below. The following code in Cpu0ISelDAGToDAG.cpp make the 
 GLOBAL_OFFSET_TABLE translate into $gp as below.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelDAGToDAG.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0ISelDAGToDAG.cpp
 .. code-block:: c++
 
   /// getGlobalBaseReg - Output the instructions required to put the
@@ -815,7 +815,7 @@ GLOBAL_OFFSET_TABLE translate into $gp as below.
     ...
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter6_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
   //  Cpu0InstrInfo.td
@@ -848,7 +848,7 @@ In this mode, we reserve $gp to a specfic fixed address of both linker and
 loader agree to. So, the $gp cannot be allocated as a general purpose for 
 variables. The following code tells llvm never allocate $gp for variables.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0Subtarget.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0Subtarget.cpp
 .. code-block:: c++
 
   Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
@@ -866,7 +866,7 @@ variables. The following code tells llvm never allocate $gp for variables.
       FixGlobalBaseReg = true;
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0RegisterInfo.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0RegisterInfo.cpp
 .. code-block:: c++
 
   // pure virtual method
@@ -919,7 +919,7 @@ generate the following instructions.
 The following code fragment of Cpu0AsmPrinter.cpp will emit **.cpload** asm 
 pseudo instruction at function entry point as below.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MachineFunction.h
+.. rubric:: lbdex/Chapter6_1/Cpu0MachineFunction.h
 .. code-block:: c++
 
   
@@ -949,10 +949,10 @@ pseudo instruction at function entry point as below.
   
   #endif // CPU0_MACHINE_FUNCTION_INFO_H
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MachineFunction.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MachineFunction.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0MachineFunction.cpp
+.. literalinclude:: ../lbdex/Chapter6_1/Cpu0MachineFunction.cpp
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0AsmPrinter.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0AsmPrinter.cpp
 .. code-block:: c++
 
   /// EmitFunctionBodyStart - Targets can override this to emit stuff before
@@ -999,8 +999,8 @@ Following code will exspand .cpload into machine instructions as below.
 "0fa00000 09aa0000 13aa6000" is the **.cpload** machine instructions 
 displayed in comments of Cpu0MCInstLower.cpp.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MCInstLower.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MCInstLower.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0MCInstLower.cpp
+.. literalinclude:: ../lbdex/Chapter6_1/Cpu0MCInstLower.cpp
     :start-after: return MCOperand::CreateExpr(AddExpr);
     :end-before: MCOperand Cpu0MCInstLower::LowerOperand
 
@@ -1062,7 +1062,7 @@ The code fragment of LowerGlobalAddress() as the following corresponding option
 (load EntryToken, (Cpu0ISD::Wrapper Register %GP, TargetGlobalAddress<i32* @gI> 0)) 
 in stage "Legalized selection DAG" as below.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   SDValue Cpu0TargetLowering::getAddrGlobal(SDValue Op, SelectionDAG &DAG,
@@ -1083,7 +1083,7 @@ in stage "Legalized selection DAG" as below.
     ...
   }
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelDAGToDAG.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0ISelDAGToDAG.cpp
 .. code-block:: c++
 
   /// ComplexPattern used on Cpu0InstrInfo
@@ -1180,7 +1180,7 @@ The code fragment of LowerGlobalAddress() as the following corresponding option
 TargetGlobalAddress<i32* @gI> 0)) 
 in stage "Legalized selection DAG" as below.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
 
@@ -1274,7 +1274,7 @@ Above code is for global address DAG translation.
 Next, add the following code to Cpu0MCInstLower.cpp, Cpu0InstPrinter.cpp and 
 Cpu0ISelLowering.cpp for global variable printing operand function.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MCInstLower.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0MCInstLower.cpp
 .. code-block:: c++
 
   MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
@@ -1319,7 +1319,7 @@ Cpu0ISelLowering.cpp for global variable printing operand function.
     ...
    }
     
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp
+.. rubric:: lbdex/Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp
 .. code-block:: c++
 
   static void printExpr(const MCExpr *Expr, raw_ostream &OS) {
@@ -1339,7 +1339,7 @@ Cpu0ISelLowering.cpp for global variable printing operand function.
 
 The following function is for llc -debug DAG node name printing.
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter6_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {

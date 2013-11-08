@@ -261,13 +261,13 @@ The details of installing Cpu0 backend example code as follows,
   118-165-78-111:test Jonathan$ tar -zxvf llvm-3.3.src.tar.gz 
   118-165-78-111:test Jonathan$ mv llvm-3.3.src src
   118-165-78-111:test Jonathan$ cp /Users/Jonathan/Downloads/
-  LLVMBackendTutorialExampleCode.tar.gz .
-  118-165-78-111:test Jonathan$ tar -zxvf LLVMBackendTutorialExampleCode.tar.gz
+  lbdex.tar.gz .
+  118-165-78-111:test Jonathan$ tar -zxvf lbdex.tar.gz
   118-165-78-111:test Jonathan$ mkdir src/lib/Target/Cpu0
-  118-165-78-111:test Jonathan$ mv LLVMBackendTutorialExampleCode 
+  118-165-78-111:test Jonathan$ mv lbdex 
   src/lib/Target/Cpu0/.
   118-165-78-111:test Jonathan$ cp -rf src/lib/Target/Cpu0/
-  LLVMBackendTutorialExampleCode/src_files_modify/modify/src/* src/.
+  lbdex/src_files_modify/modify/src/* src/.
   118-165-78-111:test Jonathan$ grep -R "Cpu0" src/include
   ...
   src/include/llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
@@ -288,14 +288,14 @@ Next, please copy Cpu0 chapter 2 example code according the following commands,
 
 .. code-block:: bash
   
-  118-165-80-55:test Jonathan$ cd src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/
-  118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ pwd
-  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode
-  118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ sh removecpu0.sh 
-  118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ ls ..
-  LLVMBackendTutorialExampleCode
-  118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ cp -rf Chapter2/* ../.
-  118-165-80-55:LLVMBackendTutorialExampleCode Jonathan$ cd ..
+  118-165-80-55:test Jonathan$ cd src/lib/Target/Cpu0/lbdex/
+  118-165-80-55:lbdex Jonathan$ pwd
+  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/lbdex
+  118-165-80-55:lbdex Jonathan$ sh removecpu0.sh 
+  118-165-80-55:lbdex Jonathan$ ls ..
+  lbdex
+  118-165-80-55:lbdex Jonathan$ cp -rf Chapter2/* ../.
+  118-165-80-55:lbdex Jonathan$ cd ..
   118-165-80-55:Cpu0 Jonathan$ ls
   CMakeLists.txt		Cpu0InstrInfo.td	Cpu0TargetMachine.cpp	TargetInfo
   Cpu0.h			Cpu0RegisterInfo.td	ExampleCode		readme
@@ -361,7 +361,7 @@ debug as follows,
 .. code-block:: bash
 
   118-165-65-128:InputFiles Jonathan$ pwd
-  /Users/Jonathan/LLVMBackendTutorialExampleCode/InputFiles
+  /Users/Jonathan/lbdex/InputFiles
   118-165-65-128:InputFiles Jonathan$ clang -c ch3.cpp -emit-llvm -o ch3.bc
   118-165-65-128:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/bin/Debug/llc -march=mips -relocation-model=pic -filetype=asm 
@@ -641,7 +641,7 @@ get Cpu0 example code as well as the llvm 3.3.
 2) Make dir Cpu0 in src/lib/Target and download example code.
 
 3) Update my modified files to support cpu0 by command, ``cp -rf /usr/local/llvm/
-test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/``
+test/src/lib/Target/Cpu0/lbdex/``
 ``src_files_modify/modify/src .``.
 
 4) Check step 3 is effective by command 
@@ -649,7 +649,7 @@ test/src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/``
 grep.
 
 5) Enter src/lib/Target/Cpu0/ and copy example code 
-LLVMBackendTutorialExampleCode/2/Cpu0 to the directory by commands 
+lbdex/2/Cpu0 to the directory by commands 
 ``cd src/lib/Target/Cpu0/`` and 
 ``cp -rf LLVMBackendTutorialExample/Chapter2/* ../.``.
 
@@ -667,24 +667,24 @@ command ``make`` in cpu0 example code build.
   [Gamma@localhost test]$ tar -zxvf llvm-3.3.src.tar.gz 
   [Gamma@localhost test]$ mv llvm-3.3.src src
   [Gamma@localhost test]$ cp /Users/Jonathan/Downloads/
-  LLVMBackendTutorialExampleCode.tar.gz .
-  [Gamma@localhost test]$ tar -zxvf LLVMBackendTutorialExampleCode.tar.gz
+  lbdex.tar.gz .
+  [Gamma@localhost test]$ tar -zxvf lbdex.tar.gz
   ...
   [Gamma@localhost test]$ mkdir src/lib/Target/Cpu0
-  118-165-78-111:test Jonathan$ mv LLVMBackendTutorialExampleCode src/lib/Target/Cpu0/.
-  [Gamma@localhost test]$ cp -rf LLVMBackendTutorialExampleCode/src_files_modify/
+  118-165-78-111:test Jonathan$ mv lbdex src/lib/Target/Cpu0/.
+  [Gamma@localhost test]$ cp -rf lbdex/src_files_modify/
   modify/src/* src/.
   [Gamma@localhost test]$ grep -R "cpu0" src/include
   src/include//llvm/ADT/Triple.h:    cpu0,    // For Tutorial Backend Cpu0
   src/include//llvm/MC/MCExpr.h:    VK_Cpu0_GPREL,
   src/include//llvm/MC/MCExpr.h:    VK_Cpu0_GOT_CALL,
   ...
-  [Gamma@localhost test]$ cd src/lib/Target/Cpu0/LLVMBackendTutorialExampleCode/
-  [Gamma@localhost LLVMBackendTutorialExampleCode]$ sh removecpu0.sh
-  [Gamma@localhost LLVMBackendTutorialExampleCode]$ ls ../
-  LLVMBackendTutorialExampleCode
-  [Gamma@localhost LLVMBackendTutorialExampleCode]$ cp -rf Chapter2/* ../.
-  [Gamma@localhost LLVMBackendTutorialExampleCode]$ ls ..
+  [Gamma@localhost test]$ cd src/lib/Target/Cpu0/lbdex/
+  [Gamma@localhost lbdex]$ sh removecpu0.sh
+  [Gamma@localhost lbdex]$ ls ../
+  lbdex
+  [Gamma@localhost lbdex]$ cp -rf Chapter2/* ../.
+  [Gamma@localhost lbdex]$ ls ..
   CMakeLists.txt		Cpu0InstrInfo.td	Cpu0TargetMachine.cpp	TargetInfo
   Cpu0.h			Cpu0RegisterInfo.td	ExampleCode		readme
   Cpu0.td			Cpu0Schedule.td		LLVMBuild.txt
@@ -770,7 +770,7 @@ Then do make as follows,
 
   [Gamma@localhost InputFiles]$ pwd
   /usr/local/llvm/test/src/lib/Target/Cpu0/ExampleCode/
-  LLVMBackendTutorialExampleCode/InputFiles
+  lbdex/InputFiles
   [Gamma@localhost InputFiles]$ clang -c ch3.cpp -emit-llvm -o ch3.bc
   [Gamma@localhost InputFiles]$ gdb -args /usr/local/llvm/test/
   cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=obj 

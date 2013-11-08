@@ -403,6 +403,15 @@ The following table details the Cpu0 instruction set:
     - MTLO Ra
     - LO <= Ra
 
+.. note:: **Cpu0 unsigned instructions**
+
+  Like Mips, the mathematic unsigned instructions except DIVU, such as ADDu and 
+  SUBu, are no overflow exception instructions. 
+  The ADDu and SUBu handle both signed and unsigned integers well. 
+  For example, (ADDu 1, -2) is -3; (ADDu 0x01, 
+  0xfffffffe) is 0xfffffffd = (4G - 1). If you treat the result is negative then
+  it is -1. Otherwise, if you treat the result is positive then it's (+4G - 1).
+  
 
 The Status Register
 +++++++++++++++++++
@@ -671,8 +680,8 @@ Every backend has a .td which defines some target information, including what ot
 files are used by the backend.  These files have a similar syntax to C++. For Cpu0, the 
 target description file is called Cpu0.td, which is shown below:
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter2/Cpu0.td
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/Cpu0.td
+.. rubric:: lbdex/Chapter2/Cpu0.td
+.. literalinclude:: ../lbdex/Chapter2/Cpu0.td
 
 Cpu0.td includes a few other .td files.  Cpu0RegisterInfo.td (shown below) describes the 
 Cpu0's set of registers.  In this file, we see that registers have been given names, i.e.
@@ -683,8 +692,8 @@ instructions can only write to specific registers.  In this case, there is only 
 of general purpose registers for Cpu0, and some registers that are reserved so that they 
 are not modified by instructions during execution.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter2/Cpu0RegisterInfo.td
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/Cpu0RegisterInfo.td
+.. rubric:: lbdex/Chapter2/Cpu0RegisterInfo.td
+.. literalinclude:: ../lbdex/Chapter2/Cpu0RegisterInfo.td
 
 
 In C++, classes typically provide a structure to lay out some data and functions, 
@@ -737,14 +746,14 @@ The Cpu0RegisterInfo.td also defines that ``CPURegs`` is an instance of the clas
 
 The cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrInfo.td
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter2/Cpu0InstrInfo.td
+.. literalinclude:: ../lbdex/Chapter2/Cpu0InstrInfo.td
 
 
 The Cpu0InstrFormats.td is included by Cpu0InstInfo.td as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrFormats.td
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/Cpu0InstrFormats.td
+.. rubric:: lbdex/Chapter2/Cpu0InstrFormats.td
+.. literalinclude:: ../lbdex/Chapter2/Cpu0InstrFormats.td
 
 
 ADDiu is class ArithLogicI inherited from FL, can expand and get member value 
@@ -903,11 +912,11 @@ Write cmake file
 Target/Cpu0 directory has two files CMakeLists.txt and LLVMBuild.txt, 
 contents as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter2/CMakeLists.txt
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/CMakeLists.txt
+.. rubric:: lbdex/Chapter2/CMakeLists.txt
+.. literalinclude:: ../lbdex/Chapter2/CMakeLists.txt
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter2/LLVMBuild.txt
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/LLVMBuild.txt
+.. rubric:: lbdex/Chapter2/LLVMBuild.txt
+.. literalinclude:: ../lbdex/Chapter2/LLVMBuild.txt
 
 
 CMakeLists.txt is the make information for cmake, # is comment.
@@ -942,18 +951,18 @@ and use the RegisterTarget template to register the target.
 For example, the file TargetInfo/Cpu0TargetInfo.cpp register TheCpu0Target for 
 big endian and TheCpu0elTarget for little endian, as follows.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
+.. rubric:: lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
+.. literalinclude:: ../lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
 
 
 Files Cpu0TargetMachine.cpp and MCTargetDesc/Cpu0MCTargetDesc.cpp just define 
 the empty initialize function since we register nothing in them for this moment.
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h
+.. rubric:: lbdex/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h
+.. literalinclude:: ../lbdex/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. rubric:: lbdex/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. literalinclude:: ../lbdex/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp
 
 
 Please see "Target Registration" [#target-reg]_ for reference.
@@ -979,7 +988,7 @@ command,
 
 .. code-block:: bash
 
-  cp -rf LLVMBackendTutorialExampleCode/src_files_modified/src_files_modified/src/
+  cp -rf lbdex/src_files_modified/src_files_modified/src/
   * yourllvm/workingcopy/sourcedir/.
   
   118-165-78-230:test Jonathan$ pwd
@@ -1034,18 +1043,18 @@ the following code from file TargetInfo/Cpu0TargetInfo.cpp what in
 "section Target Registration" [#asadasd]_ we made. 
 List them as follows again,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
+.. rubric:: lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
+.. literalinclude:: ../lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
 
 
-Let's build LLVMBackendTutorialExampleCode/Chapter2 code as follows,
+Let's build lbdex/Chapter2 code as follows,
 
 .. code-block:: bash
 
   118-165-75-57:ExampleCode Jonathan$ pwd
   /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/ExampleCode
   118-165-75-57:ExampleCode Jonathan$ sh removecpu0.sh 
-  118-165-75-57:ExampleCode Jonathan$ cp -rf LLVMBackendTutorialExampleCode/Chapter2/
+  118-165-75-57:ExampleCode Jonathan$ cp -rf lbdex/Chapter2/
   * ../.
 
   118-165-75-57:cmake_debug_build Jonathan$ pwd
@@ -1063,8 +1072,8 @@ Let's build LLVMBackendTutorialExampleCode/Chapter2 code as follows,
 
 Now try to do ``llc`` command to compile input file ch3.cpp as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch3.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch3.cpp
+.. rubric:: lbdex/InputFiles/ch3.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch3.cpp
     :start-after: /// start
 
 

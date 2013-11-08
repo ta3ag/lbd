@@ -61,7 +61,7 @@ This chapter introduce other type such as pointer, char, long long which are not
 <h2>Local variable pointer<a class="headerlink" href="#local-variable-pointer" title="Permalink to this headline">¶</a></h2>
 <p>To support pointer to local variable, add this code fragment in
 Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter7_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>def mem_ea : Operand&lt;i32&gt; {
   let PrintMethod = "printMemOperandEA";
   let MIOperandInfo = (ops CPURegs, simm16);
@@ -80,7 +80,7 @@ def LEA_ADDiu : EffectiveAddress&lt;"addiu\t$ra, $addr", CPURegs, mem_ea&gt; {
   let isCodeGenOnly = 1;
 }</pre>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstPrinter.td</p>
+<p class="rubric">lbdex/Chapter7_1/Cpu0InstPrinter.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0InstPrinter</span><span class="o">::</span>
 <span class="n">printMemOperandEA</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="kt">int</span> <span class="n">opNum</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">)</span> <span class="p">{</span>
   <span class="c1">// when using stack locations for not load/store instructions</span>
@@ -94,7 +94,7 @@ def LEA_ADDiu : EffectiveAddress&lt;"addiu\t$ra, $addr", CPURegs, mem_ea&gt; {
 </div>
 <p>Run ch7_1.cpp with code Chapter7_1/ which support pointer to local variable,
 will get result as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch7_1.cpp</p>
+<p class="rubric">lbdex/InputFiles/ch7_1.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">test_local_pointer</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
@@ -157,7 +157,7 @@ _Z18test_local_pointerv:
 <h2>char, short int and bool<a class="headerlink" href="#char-short-int-and-bool" title="Permalink to this headline">¶</a></h2>
 <p>To support signed/unsigned char and short int, we add the following code to
 Chapter7_1/.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter7_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">sextloadi16_a</span>   <span class="o">:</span> <span class="n">AlignedLoad</span><span class="o">&lt;</span><span class="n">sextloadi16</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="n">def</span> <span class="n">zextloadi16_a</span>   <span class="o">:</span> <span class="n">AlignedLoad</span><span class="o">&lt;</span><span class="n">zextloadi16</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="n">def</span> <span class="n">extloadi16_a</span>    <span class="o">:</span> <span class="n">AlignedLoad</span><span class="o">&lt;</span><span class="n">extloadi16</span><span class="o">&gt;</span><span class="p">;</span>
@@ -173,7 +173,7 @@ Chapter7_1/.</p>
 </pre></div>
 </div>
 <p>Run Chapter7_1/ with ch7_2.cpp will get the following result.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch7_2.cpp</p>
+<p class="rubric">lbdex/InputFiles/ch7_2.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
 <span class="p">{</span>
   <span class="kt">short</span> <span class="n">year</span><span class="p">;</span>
@@ -271,7 +271,7 @@ b:
 </pre></div>
 </div>
 <p>To support load bool type, the following code added.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelLowering.cpp</p>
+<p class="rubric">lbdex/Chapter7_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
 <span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
   <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">Cpu0TargetObjectFile</span><span class="p">()),</span>
@@ -315,7 +315,7 @@ test fragment as below.</p>
   <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch7_3.ll</p>
+<p class="rubric">lbdex/InputFiles/ch7_3.ll</p>
 <div class="highlight-c++"><pre>define zeroext i1 @verify_load_bool() #0 {
 entry:
   %retval = alloca i1, align 1
@@ -358,7 +358,7 @@ verify_load_bool:
   .cfi_endproc
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp</p>
+<p class="rubric">lbdex/InputFiles/ch_run_backend.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
 <span class="kt">bool</span> <span class="n">test_load_bool</span><span class="p">()</span>
 <span class="p">{</span>
@@ -377,7 +377,7 @@ verify_load_bool:
 <p>Cpu0 borrow the Mips ABI which long is 32-bits and long long is 64-bits for C
 language type. To support long long, we add the following code to
 Chapter7_1/.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelDAGToDAG.cpp</p>
+<p class="rubric">lbdex/Chapter7_1/Cpu0ISelDAGToDAG.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// Select instructions not customized! Used for</span>
 <span class="c1">/// expanded, promoted and normal instructions</span>
 <span class="n">SDNode</span><span class="o">*</span> <span class="n">Cpu0DAGToDAGISel</span><span class="o">::</span><span class="n">Select</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Node</span><span class="p">)</span> <span class="p">{</span>
@@ -442,7 +442,7 @@ Chapter7_1/.</p>
 </pre></div>
 </div>
 <p>Run Chapter7_1 with ch7_4.cpp to get the result as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch7_4.cpp</p>
+<p class="rubric">lbdex/InputFiles/ch7_4.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">long</span> <span class="kt">long</span> <span class="n">test_longlong</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">long</span> <span class="kt">long</span> <span class="n">a</span> <span class="o">=</span> <span class="mh">0x300000002</span><span class="p">;</span>
@@ -584,7 +584,7 @@ call.</p>
 <p>LLVM use getelementptr to represent the array and struct type in C.
 Please reference section getelementptr of <a class="footnote-reference" href="#id2" id="id1">[1]</a>.
 For ch7_5.cpp, the llvm IR as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch7_5.cpp</p>
+<p class="rubric">lbdex/InputFiles/ch7_5.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">year</span><span class="p">;</span>
@@ -815,7 +815,7 @@ mechanism as below.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelLowering.cpp</p>
+<p class="rubric">lbdex/Chapter7_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">bool</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">isOffsetFoldingLegal</span><span class="p">(</span><span class="k">const</span> <span class="n">GlobalAddressSDNode</span> <span class="o">*</span><span class="n">GA</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="c1">// The Cpu0 target isn&#39;t yet aware of offsets.</span>
@@ -824,7 +824,7 @@ mechanism as below.</p>
 </pre></div>
 </div>
 <p>Beyond that, we need to add the following code fragment to Cpu0ISelDAGToDAG.cpp,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter7_1/Cpu0ISelDAGToDAG.cpp</p>
+<p class="rubric">lbdex/Chapter7_1/Cpu0ISelDAGToDAG.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0ISelDAGToDAG.cpp</span>
 <span class="c1">/// ComplexPattern used on Cpu0InstrInfo</span>
 <span class="c1">/// Used on Cpu0 Load/Store instructions</span>
@@ -854,7 +854,7 @@ mechanism as below.</p>
 (add GlobalAddress&lt;[3 x i32]* &#64;a&gt; 0, Constant&lt;8&gt;) into
 (add (add Cpu0ISD::Hi (Cpu0II::MO_ABS_HI), Cpu0ISD::Lo(Cpu0II::MO_ABS_LO)),
 Constant&lt;8&gt;) by the following code in Cpu0ISelLowering.cpp.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0ISelLowering.cpp</span>
 <span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerGlobalAddress</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span>
                                     <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>

@@ -62,14 +62,14 @@ and later in the Tool Interface Standard, it was quickly accepted among
 different vendors of Unixsystems.
 In 1999 it was chosen as the standard binary file format for Unix and
 Unix-like systems on x86 by the x86open project.
-Please reference <a class="footnote-reference" href="#id8" id="id1">[1]</a>.</p>
+Please reference <a class="footnote-reference" href="#id7" id="id1">[1]</a>.</p>
 <p>The binary encode of cpu0 instruction set in obj has been checked in the
 previous chapters.
 But we didn&#8217;t dig into the ELF file format like elf header and relocation
 record at that time.
 This chapter will use the binutils which has been installed in
 &#8220;sub-section Install other tools on iMac&#8221; of Appendix A: “Installing LLVM”
-<a class="footnote-reference" href="#id9" id="id2">[2]</a> to analysis cpu0 ELF file.
+<a class="footnote-reference" href="#id8" id="id2">[2]</a> to analysis cpu0 ELF file.
 You will learn the objdump, readelf, ..., tools and understand the ELF file
 format itself through using these tools to analyze the cpu0 generated obj in
 this chapter.
@@ -79,8 +79,8 @@ The binutils support other CPU ELF dump as a cross compiler tool chains.
 Linux platform has binutils already and no need to install it further.
 We use Linux binutils in this chapter just because iMac will display Chinese
 text.
-The iMac corresponding binutils have no problem except it use add g in
-command, for example, use gobjdump instead of objdump, and display your area
+The iMac corresponding binutils have no problem except it use add g in command.
+For example, use gobjdump instead of objdump, and display with your area
 language instead of pure English.</p>
 <p>The binutils tool we use is not a part of llvm tools, but it&#8217;s a powerful tool
 in ELF analysis.
@@ -96,13 +96,13 @@ demonstrate how to use binutils and gcc to analysis ELF through the example
 code in his book.
 It&#8217;s a Chinese book of “System Software” in concept and practice.
 This book does the real analysis through binutils.
-The “System Software”<a class="footnote-reference" href="#id10" id="id3">[3]</a> written by Beck is a famous book in concept of
+The “System Software” <a class="footnote-reference" href="#id9" id="id3">[3]</a> written by Beck is a famous book in concept of
 telling readers what is the compiler output, what is the linker output,
 what is the loader output, and how they work together.
 But it covers the concept only.
 You can reference it to understand how the <strong>“Relocation Record”</strong> works if you
 need to refresh or learning this knowledge for this chapter.</p>
-<p><a class="footnote-reference" href="#id11" id="id4">[4]</a>, <a class="footnote-reference" href="#id12" id="id5">[5]</a>, <a class="footnote-reference" href="#id13" id="id6">[6]</a> are the Chinese documents available from the cpu0 author on
+<p><a class="footnote-reference" href="#id10" id="id4">[4]</a>, <a class="footnote-reference" href="#id11" id="id5">[5]</a>, <a class="footnote-reference" href="#id12" id="id6">[6]</a> are the Chinese documents available from the cpu0 author on
 web site.</p>
 <div class="section" id="elf-format">
 <h2>ELF format<a class="headerlink" href="#elf-format" title="Permalink to this headline">¶</a></h2>
@@ -116,37 +116,36 @@ So, there are two views in it as <a class="pageref" href="#elf-f1">Figure  1</a>
 ..., .data which are sections layout for code, read only data, ..., and
 read/write data.
 “Program header table” include segments include run time code and data.
-The definition of segments is run time layout for code and data, and sections
+The definition of segments is run time layout for code and data while sections
 is link time layout for code and data.</p>
 </div>
 <div class="section" id="elf-header-and-section-header-table">
 <h2>ELF header and Section header table<a class="headerlink" href="#elf-header-and-section-header-table" title="Permalink to this headline">¶</a></h2>
-<p>Let&#8217;s run Chapter7_7/ with ch6_1.cpp, and dump ELF header information by
+<p>Let&#8217;s run Chapter9_4/ with ch6_1.cpp, and dump ELF header information by
 <tt class="docutils literal"><span class="pre">readelf</span> <span class="pre">-h</span></tt> to see what information the ELF header contains.</p>
 <div class="highlight-bash"><pre>[Gamma@localhost InputFiles]$ /usr/local/llvm/test/cmake_debug_build/
 bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.cpu0.o
 
 [Gamma@localhost InputFiles]$ readelf -h ch6_1.cpu0.o
-ELF Header:
-  Magic:   7f 45 4c 46 01 02 01 08 00 00 00 00 00 00 00 00
+  Magic:   7f 45 4c 46 01 02 01 03 00 00 00 00 00 00 00 00
   Class:                             ELF32
   Data:                              2's complement, big endian
   Version:                           1 (current)
-  OS/ABI:                            UNIX - IRIX
+  OS/ABI:                            UNIX - GNU
   ABI Version:                       0
   Type:                              REL (Relocatable file)
   Machine:                           &lt;unknown&gt;: 0xc9
   Version:                           0x1
   Entry point address:               0x0
   Start of program headers:          0 (bytes into file)
-  Start of section headers:          212 (bytes into file)
-  Flags:                             0x70000001
+  Start of section headers:          176 (bytes into file)
+  Flags:                             0x0
   Size of this header:               52 (bytes)
   Size of program headers:           0 (bytes)
   Number of program headers:         0
   Size of section headers:           40 (bytes)
-  Number of section headers:         10
-  Section header string table index: 7
+  Number of section headers:         8
+  Section header string table index: 5
 [Gamma@localhost InputFiles]$
 
 [Gamma@localhost InputFiles]$ /usr/local/llvm/test/cmake_debug_build/
@@ -154,25 +153,25 @@ bin/llc -march=mips -relocation-model=pic -filetype=obj ch6_1.bc -o ch6_1.mips.o
 
 [Gamma@localhost InputFiles]$ readelf -h ch6_1.mips.o
 ELF Header:
-  Magic:   7f 45 4c 46 01 02 01 08 00 00 00 00 00 00 00 00
+  Magic:   7f 45 4c 46 01 02 01 03 00 00 00 00 00 00 00 00
   Class:                             ELF32
   Data:                              2's complement, big endian
   Version:                           1 (current)
-  OS/ABI:                            UNIX - IRIX
+  OS/ABI:                            UNIX - GNU
   ABI Version:                       0
   Type:                              REL (Relocatable file)
   Machine:                           MIPS R3000
   Version:                           0x1
   Entry point address:               0x0
   Start of program headers:          0 (bytes into file)
-  Start of section headers:          212 (bytes into file)
-  Flags:                             0x70000001
+  Start of section headers:          200 (bytes into file)
+  Flags:                             0x50001007, noreorder, pic, cpic, o32, mips32
   Size of this header:               52 (bytes)
   Size of program headers:           0 (bytes)
   Number of program headers:         0
   Size of section headers:           40 (bytes)
-  Number of section headers:         11
-  Section header string table index: 8
+  Number of section headers:         9
+  Section header string table index: 6
 [Gamma@localhost InputFiles]$</pre>
 </div>
 <p>As above ELF header display, it contains information of magic number, version,
@@ -223,19 +222,17 @@ bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch6_1.bc -o ch6_1.cpu0.s
   .previous
   .file "ch6_1.bc"
   .text
-  .globl  main
-  .align  2
-  .type main,@function
-  .ent  main                    # @main
-main:
+  ...
   .cfi_startproc
   .frame  $sp,8,$lr
   .mask   0x00000000,0
   .set  noreorder
   .cpload $t9
-...
-  ld  $2, %got(gI)($gp)
-...
+  ...
+  lui $2, %got_hi(gI)
+  addu $2, $2, $gp
+  ld $2, %got_lo(gI)($2)
+  ...
   .type gI,@object              # @gI
   .data
   .globl  gI
@@ -253,262 +250,118 @@ ch6_1.cpu0.o:     file format elf32-big
 
 Contents of section .text:
 // .cpload machine instruction
- 0000 09a00000 1eaa0010 09aa0000 13aa6000  ..............`.
+ 0000 0fa00000 09aa0000 13aa6000 ........  ..............`.
  ...
  0020 002a0000 00220000 012d0000 09dd0008  .*..."...-......
  ...
 [Gamma@localhost InputFiles]$ Jonathan$
 
 [Gamma@localhost InputFiles]$ readelf -tr ch6_1.cpu0.o
-There are 10 section headers, starting at offset 0xd4:
+There are 8 section headers, starting at offset 0xb0:
 
 Section Headers:
   [Nr] Name
-     Type            Addr     Off    Size   ES   Lk Inf Al
-     Flags
+       Type            Addr     Off    Size   ES   Lk Inf Al
+       Flags
   [ 0]
-     NULL            00000000 000000 000000 00   0   0  0
-     [00000000]:
+       NULL            00000000 000000 000000 00   0   0  0
+       [00000000]:
   [ 1] .text
-     PROGBITS        00000000 000034 000034 00   0   0  4
-     [00000006]: ALLOC, EXEC
+       PROGBITS        00000000 000034 000044 00   0   0  4
+       [00000006]: ALLOC, EXEC
   [ 2] .rel.text
-     REL             00000000 000310 000018 08   8   1  4
-     [00000000]:
+       REL             00000000 0002a8 000020 08   6   1  4
+       [00000000]:
   [ 3] .data
-     PROGBITS        00000000 000068 000004 00   0   0  4
-     [00000003]: WRITE, ALLOC
+       PROGBITS        00000000 000078 000008 00   0   0  4
+       [00000003]: WRITE, ALLOC
   [ 4] .bss
-     NOBITS          00000000 00006c 000000 00   0   0  4
-     [00000003]: WRITE, ALLOC
-  [ 5] .eh_frame
-     PROGBITS        00000000 00006c 000028 00   0   0  4
-     [00000002]: ALLOC
-  [ 6] .rel.eh_frame
-     REL             00000000 000328 000008 08   8   5  4
-     [00000000]:
-  [ 7] .shstrtab
-     STRTAB          00000000 000094 00003e 00   0   0  1
-     [00000000]:
-  [ 8] .symtab
-     SYMTAB          00000000 000264 000090 10   9   6  4
-     [00000000]:
-  [ 9] .strtab
-     STRTAB          00000000 0002f4 00001b 00   0   0  1
-     [00000000]:
+       NOBITS          00000000 000080 000000 00   0   0  4
+       [00000003]: WRITE, ALLOC
+  [ 5] .shstrtab
+       STRTAB          00000000 000080 000030 00   0   0  1
+       [00000000]:
+  [ 6] .symtab
+       SYMTAB          00000000 0001f0 000090 10   7   5  4
+       [00000000]:
+  [ 7] .strtab
+       STRTAB          00000000 000280 000025 00   0   0  1
+       [00000000]:
 
-Relocation section '.rel.text' at offset 0x310 contains 3 entries:
+Relocation section '.rel.text' at offset 0x2a8 contains 4 entries:
  Offset     Info    Type            Sym.Value  Sym. Name
 00000000  00000805 unrecognized: 5       00000000   _gp_disp
-00000008  00000806 unrecognized: 6       00000000   _gp_disp
-00000020  00000609 unrecognized: 9       00000000   gI
+00000004  00000806 unrecognized: 6       00000000   _gp_disp
+00000020  00000616 unrecognized: 16      00000004   gI
+00000028  00000617 unrecognized: 17      00000004   gI
 
-Relocation section '.rel.eh_frame' at offset 0x328 contains 1 entries:
- Offset     Info    Type            Sym.Value  Sym. Name
-0000001c  00000202 unrecognized: 2       00000000   .text
+
 [Gamma@localhost InputFiles]$ readelf -tr ch6_1.mips.o
-There are 10 section headers, starting at offset 0xd0:
+There are 9 section headers, starting at offset 0xc8:
 
 Section Headers:
   [Nr] Name
-     Type            Addr     Off    Size   ES   Lk Inf Al
-     Flags
+       Type            Addr     Off    Size   ES   Lk Inf Al
+       Flags
   [ 0]
-     NULL            00000000 000000 000000 00   0   0  0
-     [00000000]:
+       NULL            00000000 000000 000000 00   0   0  0
+       [00000000]:
   [ 1] .text
-     PROGBITS        00000000 000034 000030 00   0   0  4
-     [00000006]: ALLOC, EXEC
+       PROGBITS        00000000 000034 000038 00   0   0  4
+       [00000006]: ALLOC, EXEC
   [ 2] .rel.text
-     REL             00000000 00030c 000018 08   8   1  4
-     [00000000]:
+       REL             00000000 0002f8 000018 08   7   1  4
+       [00000000]:
   [ 3] .data
-     PROGBITS        00000000 000064 000004 00   0   0  4
-     [00000003]: WRITE, ALLOC
+       PROGBITS        00000000 00006c 000008 00   0   0  4
+       [00000003]: WRITE, ALLOC
   [ 4] .bss
-     NOBITS          00000000 000068 000000 00   0   0  4
-     [00000003]: WRITE, ALLOC
-  [ 5] .eh_frame
-     PROGBITS        00000000 000068 000028 00   0   0  4
-     [00000002]: ALLOC
-  [ 6] .rel.eh_frame
-     REL             00000000 000324 000008 08   8   5  4
-     [00000000]:
-  [ 7] .shstrtab
-     STRTAB          00000000 000090 00003e 00   0   0  1
-     [00000000]:
-  [ 8] .symtab
-     SYMTAB          00000000 000260 000090 10   9   6  4
-     [00000000]:
-  [ 9] .strtab
-     STRTAB          00000000 0002f0 00001b 00   0   0  1
-     [00000000]:
+       NOBITS          00000000 000074 000000 00   0   0  4
+       [00000003]: WRITE, ALLOC
+  [ 5] .reginfo
+       MIPS_REGINFO    00000000 000074 000018 00   0   0  1
+       [00000002]: ALLOC
+  [ 6] .shstrtab
+       STRTAB          00000000 00008c 000039 00   0   0  1
+       [00000000]:
+  [ 7] .symtab
+       SYMTAB          00000000 000230 0000a0 10   8   6  4
+       [00000000]:
+  [ 8] .strtab
+       STRTAB          00000000 0002d0 000025 00   0   0  1
+       [00000000]:
 
-Relocation section '.rel.text' at offset 0x30c contains 3 entries:
+Relocation section '.rel.text' at offset 0x2f8 contains 3 entries:
  Offset     Info    Type            Sym.Value  Sym. Name
-00000000  00000805 R_MIPS_HI16       00000000   _gp_disp
-00000004  00000806 R_MIPS_LO16       00000000   _gp_disp
-00000018  00000609 R_MIPS_GOT16      00000000   gI
-
-Relocation section '.rel.eh_frame' at offset 0x324 contains 1 entries:
- Offset     Info    Type            Sym.Value  Sym. Name
-0000001c  00000202 R_MIPS_32         00000000   .text</pre>
+00000000  00000905 R_MIPS_HI16       00000000   _gp_disp
+00000004  00000906 R_MIPS_LO16       00000000   _gp_disp
+0000001c  00000709 R_MIPS_GOT16      00000004   gI</pre>
 </div>
 <p>As depicted in <a class="reference external" href="http://jonathan2251.github.com/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode">section Handle $gp register in PIC addressing mode</a>, it
 translate <strong>“.cpload %reg”</strong> into the following.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Lower &quot;.cpload $reg&quot; to</span>
-<span class="c1">//  &quot;addiu $gp, $zero, %hi(_gp_disp)&quot;</span>
-<span class="c1">//  &quot;shl   $gp, $gp, 16&quot;</span>
+<span class="c1">//  &quot;lui   $gp, %hi(_gp_disp)&quot;</span>
 <span class="c1">//  &quot;addiu $gp, $gp, %lo(_gp_disp)&quot;</span>
 <span class="c1">//  &quot;addu  $gp, $gp, $t9&quot;</span>
 </pre></div>
 </div>
 <p>The _gp_disp value is determined by loader. So, it&#8217;s undefined in obj.
-You can find the Relocation Records for offset 0 and 8 of .text section
+You can find the Relocation Records for offset 0 and 4 of .text section
 referred to _gp_disp value.
-The offset 0 and 8 of .text section are instructions &#8220;addiu $gp, $zero,
-%hi(_gp_disp)&#8221; and &#8220;addiu $gp, $gp, %lo(_gp_disp)&#8221; and their corresponding obj
-encode are  09a00000 and  09aa0000.
+The offset 0 and 4 of .text section are instructions &#8220;lui $gp, %hi(_gp_disp)&#8221;
+and &#8220;addiu $gp, $gp, %lo(_gp_disp)&#8221; which their corresponding obj
+encode are 0fa00000 and  09aa0000.
 The obj translate the %hi(_gp_disp) and %lo(_gp_disp) into 0 since when loader
 load this obj into memory, loader will know the _gp_disp value at run time and
 will update these two offset relocation records into the correct offset value.
-You can check the cpu0 of %hi(_gp_disp) and %lo(_gp_disp) are correct by above
-mips Relocation Records of R_MIPS_HI(_gp_disp) and  R_MIPS_LO(_gp_disp) even
-though the cpu0 is not a CPU recognized by greadelf utilitly.
+You can check if the cpu0 of %hi(_gp_disp) and %lo(_gp_disp) are correct by
+above mips Relocation Records of R_MIPS_HI(_gp_disp) and  R_MIPS_LO(_gp_disp)
+even though the cpu0 is not a CPU recognized by readelf utilitly.
 The instruction <strong>“ld $2, %got(gI)($gp)”</strong> is same since we don&#8217;t know what the
 address of .data section variable will load to.
 So, translate the address to 0 and made a relocation record on 0x00000020 of
-.text section. Loader will change this address too.</p>
-<p>Run with ch8_3_3.cpp will get the unknown result in _Z5sum_iiz and other symbol
-reference as below.
-Loader or linker will take care them according the relocation records compiler
-generated.</p>
-<div class="highlight-bash"><pre>[Gamma@localhost InputFiles]$ /usr/local/llvm/test/cmake_debug_build/
-bin/llc -march=cpu0 -relocation-model=pic -filetype=obj ch8_3_3.bc -o ch8_3__3.
-cpu0.o
-[Gamma@localhost InputFiles]$ readelf -tr ch8_3_3.cpu0.o
-There are 11 section headers, starting at offset 0x248:
-
-Section Headers:
-  [Nr] Name
-     Type            Addr     Off    Size   ES   Lk Inf Al
-     Flags
-  [ 0]
-     NULL            00000000 000000 000000 00   0   0  0
-     [00000000]:
-  [ 1] .text
-     PROGBITS        00000000 000034 000178 00   0   0  4
-     [00000006]: ALLOC, EXEC
-  [ 2] .rel.text
-     REL             00000000 000538 000058 08   9   1  4
-     [00000000]:
-  [ 3] .data
-     PROGBITS        00000000 0001ac 000000 00   0   0  4
-     [00000003]: WRITE, ALLOC
-  [ 4] .bss
-     NOBITS          00000000 0001ac 000000 00   0   0  4
-     [00000003]: WRITE, ALLOC
-  [ 5] .rodata.str1.1
-     PROGBITS        00000000 0001ac 000008 01   0   0  1
-     [00000032]: ALLOC, MERGE, STRINGS
-  [ 6] .eh_frame
-     PROGBITS        00000000 0001b4 000044 00   0   0  4
-     [00000002]: ALLOC
-  [ 7] .rel.eh_frame
-     REL             00000000 000590 000010 08   9   6  4
-     [00000000]:
-  [ 8] .shstrtab
-     STRTAB          00000000 0001f8 00004d 00   0   0  1
-     [00000000]:
-  [ 9] .symtab
-     SYMTAB          00000000 000400 0000e0 10  10   8  4
-     [00000000]:
-  [10] .strtab
-     STRTAB          00000000 0004e0 000055 00   0   0  1
-     [00000000]:
-
-Relocation section '.rel.text' at offset 0x538 contains 11 entries:
- Offset     Info    Type            Sym.Value  Sym. Name
-00000000  00000c05 unrecognized: 5       00000000   _gp_disp
-00000008  00000c06 unrecognized: 6       00000000   _gp_disp
-0000001c  00000b09 unrecognized: 9       00000000   __stack_chk_guard
-000000b8  00000b09 unrecognized: 9       00000000   __stack_chk_guard
-000000dc  00000a0b unrecognized: b       00000000   __stack_chk_fail
-000000e8  00000c05 unrecognized: 5       00000000   _gp_disp
-000000f0  00000c06 unrecognized: 6       00000000   _gp_disp
-00000140  0000080b unrecognized: b       00000000   _Z5sum_iiz
-00000154  00000209 unrecognized: 9       00000000   $.str
-00000158  00000206 unrecognized: 6       00000000   $.str
-00000160  00000d0b unrecognized: b       00000000   printf
-
-Relocation section '.rel.eh_frame' at offset 0x590 contains 2 entries:
- Offset     Info    Type            Sym.Value  Sym. Name
-0000001c  00000302 unrecognized: 2       00000000   .text
-00000034  00000302 unrecognized: 2       00000000   .text
-[Gamma@localhost InputFiles]$ /usr/local/llvm/test/cmake_debug_build/
-bin/llc -march=mips -relocation-model=pic -filetype=obj ch8_3_3.bc -o ch8_3__3.
-mips.o
-[Gamma@localhost InputFiles]$ readelf -tr ch8_3_3.mips.o
-There are 11 section headers, starting at offset 0x254:
-
-Section Headers:
-  [Nr] Name
-     Type            Addr     Off    Size   ES   Lk Inf Al
-     Flags
-  [ 0]
-     NULL            00000000 000000 000000 00   0   0  0
-     [00000000]:
-  [ 1] .text
-     PROGBITS        00000000 000034 000184 00   0   0  4
-     [00000006]: ALLOC, EXEC
-  [ 2] .rel.text
-     REL             00000000 000544 000058 08   9   1  4
-     [00000000]:
-  [ 3] .data
-     PROGBITS        00000000 0001b8 000000 00   0   0  4
-     [00000003]: WRITE, ALLOC
-  [ 4] .bss
-     NOBITS          00000000 0001b8 000000 00   0   0  4
-     [00000003]: WRITE, ALLOC
-  [ 5] .rodata.str1.1
-     PROGBITS        00000000 0001b8 000008 01   0   0  1
-     [00000032]: ALLOC, MERGE, STRINGS
-  [ 6] .eh_frame
-     PROGBITS        00000000 0001c0 000044 00   0   0  4
-     [00000002]: ALLOC
-  [ 7] .rel.eh_frame
-     REL             00000000 00059c 000010 08   9   6  4
-     [00000000]:
-  [ 8] .shstrtab
-     STRTAB          00000000 000204 00004d 00   0   0  1
-     [00000000]:
-  [ 9] .symtab
-     SYMTAB          00000000 00040c 0000e0 10  10   8  4
-     [00000000]:
-  [10] .strtab
-     STRTAB          00000000 0004ec 000055 00   0   0  1
-     [00000000]:
-
-Relocation section '.rel.text' at offset 0x544 contains 11 entries:
- Offset     Info    Type            Sym.Value  Sym. Name
-00000000  00000c05 R_MIPS_HI16       00000000   _gp_disp
-00000004  00000c06 R_MIPS_LO16       00000000   _gp_disp
-00000024  00000b09 R_MIPS_GOT16      00000000   __stack_chk_guard
-000000c8  00000b09 R_MIPS_GOT16      00000000   __stack_chk_guard
-000000f0  00000a0b R_MIPS_CALL16     00000000   __stack_chk_fail
-00000100  00000c05 R_MIPS_HI16       00000000   _gp_disp
-00000104  00000c06 R_MIPS_LO16       00000000   _gp_disp
-00000134  0000080b R_MIPS_CALL16     00000000   _Z5sum_iiz
-00000154  00000209 R_MIPS_GOT16      00000000   $.str
-00000158  00000206 R_MIPS_LO16       00000000   $.str
-0000015c  00000d0b R_MIPS_CALL16     00000000   printf
-
-Relocation section '.rel.eh_frame' at offset 0x59c contains 2 entries:
- Offset     Info    Type            Sym.Value  Sym. Name
-0000001c  00000302 R_MIPS_32         00000000   .text
-00000034  00000302 R_MIPS_32         00000000   .text
-[Gamma@localhost InputFiles]$</pre>
-</div>
+.text section. Linker or Loader will change this address when this program is
+linked or loaded depend on the program is static link or dynamic link.</p>
 </div>
 <div class="section" id="cpu0-elf-related-files">
 <h2>Cpu0 ELF related files<a class="headerlink" href="#cpu0-elf-related-files" title="Permalink to this headline">¶</a></h2>
@@ -516,17 +369,8 @@ Relocation section '.rel.eh_frame' at offset 0x59c contains 2 entries:
 format.
 Most obj code translation are defined by Cpu0InstrInfo.td and
 Cpu0RegisterInfo.td.
-With these td description, LLVM translate the instruction into obj format
+With these td description, LLVM translate Cpu0 instruction into obj format
 automatically.</p>
-</div>
-<div class="section" id="lld">
-<h2>lld<a class="headerlink" href="#lld" title="Permalink to this headline">¶</a></h2>
-<p>The lld is a project of LLVM linker.
-It&#8217;s under development and we cannot finish the installation by following the
-web site direction.
-Even with this, it&#8217;s really make sense to develop a new linker according lld web
-site information.
-Please visit the web site <a class="footnote-reference" href="#id14" id="id7">[7]</a>.</p>
 </div>
 <div class="section" id="llvm-objdump">
 <h2>llvm-objdump<a class="headerlink" href="#llvm-objdump" title="Permalink to this headline">¶</a></h2>
@@ -536,84 +380,50 @@ Please visit the web site <a class="footnote-reference" href="#id14" id="id7">[7
 like <tt class="docutils literal"><span class="pre">readelf</span> <span class="pre">-tr</span></tt>. LLVM tool llvm-objdump is the same tool as objdump.
 Let&#8217;s run gobjdump and llvm-objdump commands as follows to see the differences.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-83-12:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
-ch8_3_3.cpp -emit-llvm -I/Applications/Xcode.app/Contents/Developer/Platforms/
-MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ -o ch9_3_3.bc
+ch9_3.cpp -emit-llvm -o ch9_3.bc
 118-165-83-10:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch9_3_3.bc -o
-ch9_3_3.cpu0.o
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch9_3.bc -o
+ch9_3.cpu0.o
 
-118-165-78-12:InputFiles Jonathan<span class="nv">$ </span>gobjdump -t -r ch9_3_3.cpu0.o
+118-165-78-12:InputFiles Jonathan<span class="nv">$ </span>gobjdump -t -r ch9_3.cpu0.o
 
-ch9_3_3.cpu0.o: file format elf32-big
+ch9_3.cpu0.o:     file format elf32-big
 
 SYMBOL TABLE:
-00000000 l    df *ABS*        00000000 ch9_3_3.bc
-00000000 l     O .rodata.str1.1       00000008 <span class="nv">$.</span>str
+00000000 l    df *ABS*        00000000 ch9_3.bc
 00000000 l    d  .text        00000000 .text
 00000000 l    d  .data        00000000 .data
 00000000 l    d  .bss 00000000 .bss
-00000000 l    d  .rodata.str1.1       00000000 .rodata.str1.1
-00000000 l    d  .eh_frame    00000000 .eh_frame
-00000000 g     F .text        000000d4 _Z5sum_iiz
-000000d4 g     F .text        00000074 main
-00000000         *UND*        00000000 __stack_chk_fail
-00000000         *UND*        00000000 __stack_chk_guard
-00000000         *UND*        00000000 <span class="nb">printf</span>
+00000000 g     F .text        00000084 _Z5sum_iiz
+00000084 g     F .text        00000080 main
+00000000         *UND*        00000000 _gp_disp
 
 
 RELOCATION RECORDS FOR <span class="o">[</span>.text<span class="o">]</span>:
 OFFSET   TYPE              VALUE
-00000008 UNKNOWN           __stack_chk_guard
-00000010 UNKNOWN           __stack_chk_guard
-000000d0 UNKNOWN           __stack_chk_fail
-00000118 UNKNOWN           _Z5sum_iiz
-00000124 UNKNOWN           <span class="nv">$.</span>str
-0000012c UNKNOWN           <span class="nv">$.</span>str
-00000134 UNKNOWN           <span class="nb">printf</span>
-
-
-RELOCATION RECORDS FOR <span class="o">[</span>.eh_frame<span class="o">]</span>:
-OFFSET   TYPE              VALUE
-0000001c UNKNOWN           .text
-00000034 UNKNOWN           .text
+00000084 UNKNOWN           _gp_disp
+00000088 UNKNOWN           _gp_disp
+000000e0 UNKNOWN           _Z5sum_iiz
 
 
 118-165-83-10:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llvm-objdump -t -r ch9_3_3.cpu0.o
 
-ch9_3_3.cpu0.o: file format ELF32-CPU0
+ch9_3.cpu0.o: file format ELF32-CPU0
 
 RELOCATION RECORDS FOR <span class="o">[</span>.text<span class="o">]</span>:
-0 R_CPU0_HI16 _gp_disp
-8 R_CPU0_LO16 _gp_disp
-28 R_CPU0_GOT16 __stack_chk_guard
-188 R_CPU0_GOT16 __stack_chk_guard
-224 R_CPU0_CALL24 __stack_chk_fail
-236 R_CPU0_HI16 _gp_disp
-244 R_CPU0_LO16 _gp_disp
-324 R_CPU0_CALL24 _Z5sum_iiz
-344 R_CPU0_GOT16 <span class="nv">$.</span>str
-348 R_CPU0_LO16 <span class="nv">$.</span>str
-356 R_CPU0_CALL24 <span class="nb">printf</span>
-
-RELOCATION RECORDS FOR <span class="o">[</span>.eh_frame<span class="o">]</span>:
-28 R_CPU0_32 .text
-52 R_CPU0_32 .text
+132 R_CPU0_HI16 _gp_disp
+136 R_CPU0_LO16 _gp_disp
+224 R_CPU0_CALL24 _Z5sum_iiz
 
 SYMBOL TABLE:
-00000000 l    df *ABS*  00000000 ch9_3_3.bc
-00000000 l       .rodata.str1.1 00000008 <span class="nv">$.</span>str
-00000000 l    d  .text  00000000 .text
-00000000 l    d  .data  00000000 .data
+00000000 l    df *ABS*        00000000 ch9_3.bc
+00000000 l    d  .text        00000000 .text
+00000000 l    d  .data        00000000 .data
 00000000 l    d  .bss 00000000 .bss
-00000000 l    d  .rodata.str1.1 00000000 .rodata.str1.1
-00000000 l    d  .eh_frame  00000000 .eh_frame
-00000000 g     F .text  000000ec _Z5sum_iiz
-000000ec g     F .text  00000094 main
-00000000         *UND*  00000000 __stack_chk_fail
-00000000         *UND*  00000000 __stack_chk_guard
-00000000         *UND*  00000000 _gp_disp
-00000000         *UND*  00000000 <span class="nb">printf</span>
+00000000 g     F .text        00000084 _Z5sum_iiz
+00000084 g     F .text        00000080 main
+00000000         *UND*        00000000 _gp_disp
 </pre></div>
 </div>
 <p>The latter llvm-objdump can display the file format and relocation records
@@ -750,12 +560,12 @@ unknown
 </pre></div>
 </div>
 <p>To support llvm-objdump, the following code added to Chapter10_1/.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/CMakeLists.txt</p>
+<p class="rubric">lbdex/Chapter10_1/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenDisassemblerTables</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">disassembler</span><span class="p">)</span>
 <span class="p">...</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/LLVMBuild.txt</p>
+<p class="rubric">lbdex/Chapter10_1/LLVMBuild.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">[</span><span class="n">common</span><span class="p">]</span>
 <span class="n">subdirectories</span> <span class="o">=</span> <span class="n">Disassembler</span> <span class="p">...</span>
 <span class="p">...</span>
@@ -763,7 +573,7 @@ unknown
 <span class="p">...</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter10_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>class CmpInstr&lt;bits&lt;8&gt; op, string instr_asm,
          InstrItinClass itin, RegisterClass RC, RegisterClass RD,
          bit isComm = 0&gt;:
@@ -801,7 +611,7 @@ let isCall=1, hasDelaySlot=0 in {
 
 def JR      : JumpFR&lt;0x2C, "ret", CPURegs&gt;;</pre>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/Disassembler/CMakeLists.txt</p>
+<p class="rubric">lbdex/Chapter10_1/Disassembler/CMakeLists.txt</p>
 <div class="highlight-c++"><pre>include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
 
 add_llvm_library(LLVMCpu0Disassembler
@@ -819,7 +629,7 @@ endif()
 add_dependencies(LLVMCpu0Disassembler Cpu0CommonTableGen)
 </pre>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/Disassembler/LLVMBuild.txt</p>
+<p class="rubric">lbdex/Chapter10_1/Disassembler/LLVMBuild.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">;</span><span class="o">===-</span> <span class="p">.</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">Target</span><span class="o">/</span><span class="n">Cpu0</span><span class="o">/</span><span class="n">Disassembler</span><span class="o">/</span><span class="n">LLVMBuild</span><span class="p">.</span><span class="n">txt</span> <span class="o">--------------*-</span> <span class="n">Conf</span> <span class="o">-*--===</span><span class="p">;</span>
 <span class="p">;</span>
 <span class="p">;</span>                     <span class="n">The</span> <span class="n">LLVM</span> <span class="n">Compiler</span> <span class="n">Infrastructure</span>
@@ -845,19 +655,19 @@ add_dependencies(LLVMCpu0Disassembler Cpu0CommonTableGen)
 <span class="n">add_to_library_groups</span> <span class="o">=</span> <span class="n">Cpu0</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter10_1/Disassembler/Cpu0Disassembler.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- Cpu0Disassembler.cpp - Disassembler for Cpu0 -------------*- C++ -*-===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// This file is part of the Cpu0 Disassembler.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter10_1/Disassembler/Cpu0Disassembler.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===- Cpu0Disassembler.cpp - Disassembler for Cpu0 -------------*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">// This file is part of the Cpu0 Disassembler.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0.h&quot;</span>
 <span class="cp">#include &quot;Cpu0Subtarget.h&quot;</span>
@@ -1190,90 +1000,116 @@ build/bin/Debug/llvm-objdump -d ch8_1_1.cpu0.o
 ch8_1_1.cpu0.o:       file format ELF32-CPU0
 
 Disassembly of section .text:
-main:
-       0:     09 dd ff d8                                     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -40
-       4:     09 30 00 00                                     addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
-       8:     02 3d 00 24                                     st      <span class="nv">$3</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-       c:     02 3d 00 20                                     st      <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      10:     09 20 00 01                                     addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
-      14:     02 2d 00 1c                                     st      <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      18:     09 40 00 02                                     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 2
-      1c:     02 4d 00 18                                     st      <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      20:     09 40 00 03                                     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 3
-      24:     02 4d 00 14                                     st      <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      28:     09 40 00 04                                     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 4
-      2c:     02 4d 00 10                                     st      <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      30:     09 40 00 05                                     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 5
-      34:     02 4d 00 0c                                     st      <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      38:     09 40 00 06                                     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 6
-      3c:     02 4d 00 08                                     st      <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      40:     09 40 00 07                                     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 7
-      44:     02 4d 00 04                                     st      <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      48:     09 40 00 08                                     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 8
-      4c:     02 4d 00 00                                     st      <span class="nv">$4</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      50:     01 4d 00 20                                     ld      <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      54:     28 40 00 0c                                     bne     <span class="nv">$4</span>, <span class="nv">$zero</span>, 12
-      58:     01 4d 00 20                                     ld      <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      5c:     09 44 00 01                                     addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-      60:     02 4d 00 20                                     st      <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      64:     01 4d 00 1c                                     ld      <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      68:     27 40 00 0c                                     beq     <span class="nv">$4</span>, <span class="nv">$zero</span>, 12
-      6c:     01 4d 00 1c                                     ld      <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      70:     09 44 00 01                                     addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-      74:     02 4d 00 1c                                     st      <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      78:     01 4d 00 18                                     ld      <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      7c:     0a 44 00 01                                     slti    <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-      80:     28 40 00 0c                                     bne     <span class="nv">$4</span>, <span class="nv">$zero</span>, 12
-      84:     01 4d 00 18                                     ld      <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      88:     09 44 00 01                                     addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-      8c:     02 4d 00 18                                     st      <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      90:     01 4d 00 14                                     ld      <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      94:     0a 44 00 00                                     slti    <span class="nv">$4</span>, <span class="nv">$4</span>, 0
-      98:     28 40 00 0c                                     bne     <span class="nv">$4</span>, <span class="nv">$zero</span>, 12
-      9c:     01 4d 00 14                                     ld      <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      a0:     09 44 00 01                                     addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-      a4:     02 4d 00 14                                     st      <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      a8:     01 4d 00 10                                     ld      <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      ac:     09 50 ff ff                                     addiu   <span class="nv">$5</span>, <span class="nv">$zero</span>, -1
-      b0:     20 45 40 00                                     slt     <span class="nv">$4</span>, <span class="nv">$5</span>, <span class="nv">$4</span>
-      b4:     28 40 00 0c                                     bne     <span class="nv">$4</span>, <span class="nv">$zero</span>, 12
-      b8:     01 4d 00 10                                     ld      <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      bc:     09 44 00 01                                     addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-      c0:     02 4d 00 10                                     st      <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      c4:     01 4d 00 0c                                     ld      <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      c8:     20 33 40 00                                     slt     <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-      cc:     28 30 00 0c                                     bne     <span class="nv">$3</span>, <span class="nv">$zero</span>, 12
-      d0:     01 3d 00 0c                                     ld      <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      d4:     09 33 00 01                                     addiu   <span class="nv">$3</span>, <span class="nv">$3</span>, 1
-      d8:     02 3d 00 0c                                     st      <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      dc:     01 3d 00 08                                     ld      <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      e0:     20 22 30 00                                     slt     <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-      e4:     28 20 00 0c                                     bne     <span class="nv">$2</span>, <span class="nv">$zero</span>, 12
-      e8:     01 2d 00 08                                     ld      <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      ec:     09 22 00 01                                     addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-      f0:     02 2d 00 08                                     st      <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      f4:     01 2d 00 04                                     ld      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-      f8:     0a 22 00 01                                     slti    <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-      <span class="nb">fc</span>:     28 20 00 0c                                     bne     <span class="nv">$2</span>, <span class="nv">$zero</span>, 12
-     100:     01 2d 00 04                                     ld      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     104:     09 22 00 01                                     addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-     108:     02 2d 00 04                                     st      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     10c:     01 2d 00 04                                     ld      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     110:     01 3d 00 00                                     ld      <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     114:     20 23 20 00                                     slt     <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-     118:     27 20 00 0c                                     beq     <span class="nv">$2</span>, <span class="nv">$zero</span>, 12
-     11c:     01 2d 00 00                                     ld      <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     120:     09 22 00 01                                     addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-     124:     02 2d 00 00                                     st      <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     128:     01 2d 00 1c                                     ld      <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     12c:     01 3d 00 20                                     ld      <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     130:     27 32 00 0c                                     beq     <span class="nv">$3</span>, <span class="nv">$2</span>, 12
-     134:     01 2d 00 20                                     ld      <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     138:     09 22 00 01                                     addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-     13c:     02 2d 00 20                                     st      <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     140:     01 2d 00 20                                     ld      <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     144:     09 dd 00 28                                     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 40
-     148:     2c 00 00 00                                     ret     <span class="nv">$zero</span>
+_Z13test_control1v:
+       0:     09 dd ff d0                                     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -48
+       4:     02 bd 00 2c                                     st      <span class="nv">$fp</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+       8:     11 bd 00 00                                     addu    <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
+       c:     09 30 00 00                                     addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
+      10:     02 3b 00 28                                     st      <span class="nv">$3</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      14:     09 20 00 01                                     addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+      18:     02 2b 00 24                                     st      <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      1c:     09 40 00 02                                     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 2
+      20:     02 4b 00 20                                     st      <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      24:     09 40 00 03                                     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 3
+      28:     02 4b 00 1c                                     st      <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      2c:     09 40 00 04                                     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 4
+      30:     02 4b 00 18                                     st      <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      34:     09 40 00 05                                     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 5
+      38:     02 4b 00 14                                     st      <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      3c:     09 40 00 06                                     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 6
+      40:     02 4b 00 10                                     st      <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      44:     09 40 00 07                                     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 7
+      48:     02 4b 00 0c                                     st      <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      4c:     09 40 00 08                                     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 8
+      50:     02 4b 00 08                                     st      <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      54:     09 40 00 09                                     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 9
+      58:     02 4b 00 04                                     st      <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      5c:     01 4b 00 28                                     ld      <span class="nv">$4</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      60:     10 43 00 00                                     cmp     <span class="nv">$zero</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+      64:     31 00 00 0c                                     jne     <span class="nv">$zero</span>, 12
+      68:     01 4b 00 28                                     ld      <span class="nv">$4</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      6c:     09 44 00 01                                     addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+      70:     02 4b 00 28                                     st      <span class="nv">$4</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      74:     01 4b 00 24                                     ld      <span class="nv">$4</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      78:     10 43 00 00                                     cmp     <span class="nv">$zero</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+      7c:     30 00 00 0c                                     jeq     <span class="nv">$zero</span>, 12
+      80:     01 4b 00 24                                     ld      <span class="nv">$4</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      84:     09 44 00 01                                     addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+      88:     02 4b 00 24                                     st      <span class="nv">$4</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      8c:     01 4b 00 20                                     ld      <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      90:     10 42 00 00                                     cmp     <span class="nv">$zero</span>, <span class="nv">$4</span>, <span class="nv">$2</span>
+      94:     32 00 00 0c                                     jlt     <span class="nv">$zero</span>, 12
+      98:     01 4b 00 20                                     ld      <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      9c:     09 44 00 01                                     addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+      a0:     02 4b 00 20                                     st      <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      a4:     01 4b 00 1c                                     ld      <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      a8:     10 43 00 00                                     cmp     <span class="nv">$zero</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+      ac:     32 00 00 0c                                     jlt     <span class="nv">$zero</span>, 12
+      b0:     01 4b 00 1c                                     ld      <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      b4:     09 44 00 01                                     addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+      b8:     02 4b 00 1c                                     st      <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      bc:     09 40 ff ff                                     addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, -1
+      c0:     01 5b 00 18                                     ld      <span class="nv">$5</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      c4:     10 54 00 00                                     cmp     <span class="nv">$zero</span>, <span class="nv">$5</span>, <span class="nv">$4</span>
+      c8:     33 00 00 0c                                     jgt     <span class="nv">$zero</span>, 12
+      cc:     01 4b 00 18                                     ld      <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      d0:     09 44 00 01                                     addiu   <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+      d4:     02 4b 00 18                                     st      <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      d8:     01 4b 00 14                                     ld      <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      dc:     10 43 00 00                                     cmp     <span class="nv">$zero</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+      e0:     33 00 00 0c                                     jgt     <span class="nv">$zero</span>, 12
+      e4:     01 3b 00 14                                     ld      <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      e8:     09 33 00 01                                     addiu   <span class="nv">$3</span>, <span class="nv">$3</span>, 1
+      ec:     02 3b 00 14                                     st      <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      f0:     01 3b 00 10                                     ld      <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+      f4:     10 32 00 00                                     cmp     <span class="nv">$zero</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+      f8:     33 00 00 0c                                     jgt     <span class="nv">$zero</span>, 12
+      <span class="nb">fc</span>:     01 3b 00 10                                     ld      <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     100:     09 33 00 01                                     addiu   <span class="nv">$3</span>, <span class="nv">$3</span>, 1
+     104:     02 3b 00 10                                     st      <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     108:     01 3b 00 0c                                     ld      <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     10c:     10 32 00 00                                     cmp     <span class="nv">$zero</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+     110:     32 00 00 0c                                     jlt     <span class="nv">$zero</span>, 12
+     114:     01 2b 00 0c                                     ld      <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     118:     09 22 00 01                                     addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+     11c:     02 2b 00 0c                                     st      <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     120:     01 2b 00 0c                                     ld      <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     124:     01 3b 00 08                                     ld      <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     128:     10 32 00 00                                     cmp     <span class="nv">$zero</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+     12c:     35 00 00 0c                                     jge     <span class="nv">$zero</span>, 12
+     130:     01 2b 00 08                                     ld      <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     134:     09 22 00 01                                     addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+     138:     02 2b 00 08                                     st      <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     13c:     01 2b 00 24                                     ld      <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     140:     01 3b 00 28                                     ld      <span class="nv">$3</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     144:     10 32 00 00                                     cmp     <span class="nv">$zero</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+     148:     30 00 00 0c                                     jeq     <span class="nv">$zero</span>, 12
+     14c:     01 2b 00 04                                     ld      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     150:     09 22 00 01                                     addiu   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+     154:     02 2b 00 04                                     st      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     158:     01 2b 00 24                                     ld      <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     15c:     01 3b 00 28                                     ld      <span class="nv">$3</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     160:     11 23 20 00                                     addu    <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+     164:     01 3b 00 20                                     ld      <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     168:     11 22 30 00                                     addu    <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+     16c:     01 3b 00 1c                                     ld      <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     170:     11 22 30 00                                     addu    <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+     174:     01 3b 00 18                                     ld      <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     178:     11 22 30 00                                     addu    <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+     17c:     01 3b 00 14                                     ld      <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     180:     11 22 30 00                                     addu    <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+     184:     01 3b 00 10                                     ld      <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     188:     11 22 30 00                                     addu    <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+     18c:     01 3b 00 0c                                     ld      <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     190:     11 22 30 00                                     addu    <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+     194:     01 3b 00 08                                     ld      <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     198:     11 22 30 00                                     addu    <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+     19c:     01 3b 00 04                                     ld      <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+     1a0:     11 22 30 00                                     addu    <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+     1a4:     11 db 00 00                                     addu    <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
+     1a8:     01 bd 00 2c                                     ld      <span class="nv">$fp</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+     1ac:     09 dd 00 30                                     addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 48
+     1b0:     3c e0 00 00                                     ret     <span class="nv">$lr</span>
 </pre></div>
 </div>
 </div>
@@ -1290,17 +1126,19 @@ implementation.</p>
 <p>In this section, it shows what&#8217;s the code that comipler generate to support
 dynamic link. And what&#8217;s the code generated by linker for dyanmic link.</p>
 <p>Compile main.cpp to get the Cpu0 PIC assembly code as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/main.cpp</p>
+<p class="rubric">lbdex/InputFiles/main.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">extern</span> <span class="kt">int</span> <span class="n">foo</span><span class="p">(</span><span class="kt">int</span> <span class="n">x1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x2</span><span class="p">);</span>
 <span class="k">extern</span> <span class="kt">int</span> <span class="n">bar</span><span class="p">();</span>
 
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">foo</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
-  <span class="n">a</span> <span class="o">+=</span> <span class="n">foo</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
-  <span class="n">a</span> <span class="o">+=</span> <span class="n">bar</span><span class="p">();</span>
+<span class="c1">//  ENABLE_TRACE;</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="n">a</span> <span class="o">=</span> <span class="n">foo</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">bar</span><span class="p">();</span>
   
-  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1316,58 +1154,66 @@ bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o
         .ent  main                    <span class="c"># @main</span>
 main:
         .cfi_startproc
-        .frame        <span class="nv">$sp</span>,40,<span class="nv">$lr</span>
-        .mask         0x00004080,-4
+        .frame        <span class="nv">$fp</span>,40,<span class="nv">$lr</span>
+        .mask         0x00004880,-4
         .set  noreorder
         .cpload       <span class="nv">$t9</span>
         .set  nomacro
-<span class="c"># BB#0:</span>
+<span class="c"># BB#0:                                 # %entry</span>
         addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -40
-<span class="nv">$tmp2</span>:
+<span class="nv">$tmp3</span>:
         .cfi_def_cfa_offset 40
         st    <span class="nv">$lr</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
-        st    <span class="nv">$7</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             <span class="c"># 4-byte Folded Spill</span>
-<span class="nv">$tmp3</span>:
-        .cfi_offset 14, -4
+        st    <span class="nv">$fp</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+        st    <span class="nv">$7</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             <span class="c"># 4-byte Folded Spill</span>
 <span class="nv">$tmp4</span>:
-        .cfi_offset 7, -8
+        .cfi_offset 14, -4
+<span class="nv">$tmp5</span>:
+        .cfi_offset 11, -8
+<span class="nv">$tmp6</span>:
+        .cfi_offset 7, -12
+        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
+<span class="nv">$tmp7</span>:
+        .cfi_def_cfa_register 11
         .cprestore    8
         addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-        st    <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
         st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
         addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
         st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-        ld    <span class="nv">$7</span>, %call24<span class="o">(</span>_Z3fooii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
-        add   <span class="nv">$6</span>, <span class="nv">$zero</span>, <span class="nv">$7</span>
-        jalr  <span class="nv">$6</span>
-        ld    <span class="nv">$gp</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+        ld    <span class="nv">$7</span>, %call16<span class="o">(</span>_Z3fooii<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
+        add   <span class="nv">$t9</span>, <span class="nv">$zero</span>, <span class="nv">$7</span>
+        jalr  <span class="nv">$t9</span>
+        ld    <span class="nv">$gp</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 4
         st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
         addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
         st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-        add   <span class="nv">$6</span>, <span class="nv">$zero</span>, <span class="nv">$7</span>
-        jalr  <span class="nv">$6</span>
-        ld    <span class="nv">$gp</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-        add   <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-        ld    <span class="nv">$6</span>, %call24<span class="o">(</span>_Z3barv<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
-        jalr  <span class="nv">$6</span>
-        ld    <span class="nv">$gp</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-        add   <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-        ld    <span class="nv">$7</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             <span class="c"># 4-byte Folded Reload</span>
+        add   <span class="nv">$t9</span>, <span class="nv">$zero</span>, <span class="nv">$7</span>
+        jalr  <span class="nv">$t9</span>
+        ld    <span class="nv">$gp</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        st    <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$t9</span>, %call16<span class="o">(</span>_Z3barv<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
+        jalr  <span class="nv">$t9</span>
+        ld    <span class="nv">$gp</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        st    <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
+        ld    <span class="nv">$7</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             <span class="c"># 4-byte Folded Reload</span>
+        ld    <span class="nv">$fp</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
         ld    <span class="nv">$lr</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
         addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 40
-        ret   <span class="nv">$2</span>
+        ret   <span class="nv">$lr</span>
         .set  macro
         .set  reorder
         .end  main
-<span class="nv">$tmp5</span>:
-        .size main, <span class="o">(</span><span class="nv">$tmp5</span><span class="o">)</span>-main
+<span class="nv">$tmp8</span>:
+        .size main, <span class="o">(</span><span class="nv">$tmp8</span><span class="o">)</span>-main
         .cfi_endproc
 
 118-165-77-200:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
@@ -1399,20 +1245,20 @@ Disassembly of section .plt:
 ...
 00400720 &lt;_Z3barv@plt&gt;:
   400720:     lui     <span class="nv">$8</span>,0x41
-  400724:     ld      <span class="nv">$6</span>,0x0acc<span class="o">(</span><span class="nv">$8</span><span class="o">)</span>
+  400724:     ld      <span class="nv">$t9</span>,0x0acc<span class="o">(</span><span class="nv">$8</span><span class="o">)</span>
   400738:     addiu   <span class="nv">$9</span>,<span class="nv">$zero</span>,0x18
-  40073c:     jr      <span class="nv">$6</span>
+  40073c:     jr      <span class="nv">$t9</span>
 
 00400730 &lt;_Z3fooii@plt&gt;:
   400730:     lui     <span class="nv">$8</span>,0x41
-  400734:     ld      <span class="nv">$6</span>,0x0ado<span class="o">(</span><span class="nv">$8</span><span class="o">)</span>
+  400734:     ld      <span class="nv">$t9</span>,0x0ado<span class="o">(</span><span class="nv">$8</span><span class="o">)</span>
   400738:     addiu   <span class="nv">$9</span>,<span class="nv">$zero</span>,0x08
-  40073c:     jr      <span class="nv">$6</span>
+  40073c:     jr      <span class="nv">$t9</span>
   ...
 004009f0 &lt;.CPU0.stubs&gt;:
-  4009F0: 8f998010  ld        <span class="nv">$6</span>,-32752<span class="o">(</span>gp<span class="o">)</span>
+  4009F0: 8f998010  ld        <span class="nv">$t9</span>,-32752<span class="o">(</span>gp<span class="o">)</span>
   4009F4: 03e07821 add        <span class="nv">$8</span>,<span class="nv">$zero</span>, lr
-  4009F8: 0320f809  jalr      <span class="nv">$6</span>
+  4009F8: 0320f809  jalr      <span class="nv">$t9</span>
 </pre></div>
 </div>
 </div>
@@ -1462,11 +1308,11 @@ saved in ELF file in link time.</p>
 <td>.dynsym+0x08</td>
 <td>useless</td>
 </tr>
-<tr class="row-odd"><td>$6 (at the end of <a class="reference external" href="mailto:_Z3fooii&#37;&#52;&#48;plt">_Z3fooii<span>&#64;</span>plt</a>)</td>
+<tr class="row-odd"><td>$t9 (at the end of <a class="reference external" href="mailto:_Z3fooii&#37;&#52;&#48;plt">_Z3fooii<span>&#64;</span>plt</a>)</td>
 <td>point to CPU0.stubs0</td>
 <td>point to _Z3fooii</td>
 </tr>
-<tr class="row-even"><td>$6 (at the end of CPU0.stubs)</td>
+<tr class="row-even"><td>$t9 (at the end of CPU0.stubs)</td>
 <td>point to dynamic_linker</td>
 <td>useless</td>
 </tr>
@@ -1476,13 +1322,13 @@ saved in ELF file in link time.</p>
 <ol class="arabic simple">
 <li>As you can see, the first time of function call, a = foo(1,2), which is
 implemented
-by instructions &#8220;ld $7, %call24(<a class="reference external" href="mailto:_Z3fooii&#37;&#52;&#48;plt">_Z3fooii<span>&#64;</span>plt</a>)($gp)&#8221;, &#8220;add $6, $zero, $7&#8221; and
-&#8220;jalr $6&#8221;. Remember, .dynsym+0x08 contains information (libfoobar.so,
+by instructions &#8220;ld $7, %call24(<a class="reference external" href="mailto:_Z3fooii&#37;&#52;&#48;plt">_Z3fooii<span>&#64;</span>plt</a>)($gp)&#8221;, &#8220;add $t9, $zero, $7&#8221; and
+&#8220;jalr $t9&#8221;. Remember, .dynsym+0x08 contains information (libfoobar.so,
 offset, length) which is set by linker at link to dynamic shared library.
-After &#8220;jalr $6&#8221;, PC counter jump to &#8220;00400730 &lt;<a class="reference external" href="mailto:_Z3fooii&#37;&#52;&#48;plt">_Z3fooii<span>&#64;</span>plt</a>&gt;&#8221;.</li>
+After &#8220;jalr $t9&#8221;, PC counter jump to &#8220;00400730 &lt;<a class="reference external" href="mailto:_Z3fooii&#37;&#52;&#48;plt">_Z3fooii<span>&#64;</span>plt</a>&gt;&#8221;.</li>
 <li>The memory 0x410ad0 contents is the address of CPU0.stubs when the program,
 main(), is loaded.</li>
-<li>After <a class="reference external" href="mailto:_Z3fooii&#37;&#52;&#48;plt">_Z3fooii<span>&#64;</span>plt</a> instructions executed, it jump to CPU0.stubs since $6 = the
+<li>After <a class="reference external" href="mailto:_Z3fooii&#37;&#52;&#48;plt">_Z3fooii<span>&#64;</span>plt</a> instructions executed, it jump to CPU0.stubs since $t9 = the
 address of CPU0.stubs. Register $9 = the contents of address .dynsym+0x08 since
 it is set in step 1.</li>
 <li>After CPU0.stubs is executed, register $8 = 0x004008a4 which point to the
@@ -1493,7 +1339,7 @@ address include information (libfoobar.so, offset, length). With this
 information, dynamic linker knows where can get _Z3fooii function body.
 Dynamic linker loads _Z3fooii() function body to an available
 address where from asking OS. After load _Z3fooii(), it call _Z3fooii() and
-save and restore the registers $6, $8, $9 and caller saved registers just
+save and restore the registers $t9, $8, $9 and caller saved registers just
 before and after call _Z3fooii().</li>
 <li>After _Z3fooii() return, dynamic linker set the contents of address 0x410ad0
 to the entry address of _Z3fooii in memory.</li>
@@ -1512,7 +1358,7 @@ jump to _Z3fooii() directly from <a class="reference external" href="mailto:_Z3f
 <p>According Mips Application Binary Interface (ABI), $t9 is register alias
 for $25 in Mips. The %t9 is the register
 used in jalr $25 for long distance function pointer (far subroutine call).
-Cpu0 use register $6 as the $t9 ($25) register of Mips.
+Cpu0 use register $t9($6) as the $t9 ($25) register of Mips.
 The jal %subroutine has 24 bits range of address offset relative to Program
 Counter (PC) while jalr has 32 bits address range in register size of 32 bits.
 One example of PIC mode is used in share library just like this example.
@@ -1621,7 +1467,7 @@ Disassembly of section __TEXT.__unwind_info:
 Current executable <span class="nb">set </span>to <span class="s1">&#39;a.out&#39;</span> <span class="o">(</span>x86_64<span class="o">)</span>.
 <span class="o">(</span>lldb<span class="o">)</span> run main
 Process 702 launched: <span class="s1">&#39;/Users/Jonathan/test/lbd/docs/BackendTutorial/</span>
-<span class="s1">LLVMBackendTutorialExampleCode/InputFiles/a.out&#39;</span> <span class="o">(</span>x86_64<span class="o">)</span>
+<span class="s1">lbdex/InputFiles/a.out&#39;</span> <span class="o">(</span>x86_64<span class="o">)</span>
 Process 702 exited with <span class="nv">status</span> <span class="o">=</span> 15 <span class="o">(</span>0x0000000f<span class="o">)</span>
 <span class="o">(</span>lldb<span class="o">)</span> b main
 Breakpoint 1: <span class="nv">where</span> <span class="o">=</span> a.out<span class="sb">`</span>main + 25 at main.cpp:7, <span class="nv">address</span> <span class="o">=</span> 0x0000000100000f09
@@ -1632,7 +1478,7 @@ Enter your stop hook <span class="nb">command</span><span class="o">(</span>s<sp
 Stop hook <span class="c">#1 added.</span>
 <span class="o">(</span>lldb<span class="o">)</span> run
 Process 705 launched: <span class="s1">&#39;/Users/Jonathan/test/lbd/docs/BackendTutorial/</span>
-<span class="s1">LLVMBackendTutorialExampleCode/InputFiles/a.out&#39;</span> <span class="o">(</span>x86_64<span class="o">)</span>
+<span class="s1">lbdex/InputFiles/a.out&#39;</span> <span class="o">(</span>x86_64<span class="o">)</span>
 dyld<span class="sb">`</span>_dyld_start:
 -&gt; 0x7fff5fc01028:  popq   %rdi
    0x7fff5fc01029:  pushq  <span class="nv">$0</span>
@@ -1802,52 +1648,40 @@ libfoobar.so<span class="sb">`</span>foo<span class="o">(</span>int, int<span cl
 <span class="o">(</span>lldb<span class="o">)</span>
 </pre></div>
 </div>
-<table class="docutils footnote" frame="void" id="id8" rules="none">
+<table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/Executable_and_Linkable_Format">http://en.wikipedia.org/wiki/Executable_and_Linkable_Format</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id9" rules="none">
+<table class="docutils footnote" frame="void" id="id8" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#install-other-tools-on-imac">http://jonathan2251.github.com/lbd/install.html#install-other-tools-on-imac</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id10" rules="none">
+<table class="docutils footnote" frame="void" id="id9" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td>Leland Beck, System Software: An Introduction to Systems Programming.</td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id11" rules="none">
+<table class="docutils footnote" frame="void" id="id10" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://ccckmit.wikidot.com/lk:aout">http://ccckmit.wikidot.com/lk:aout</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id12" rules="none">
+<table class="docutils footnote" frame="void" id="id11" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://ccckmit.wikidot.com/lk:objfile">http://ccckmit.wikidot.com/lk:objfile</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id13" rules="none">
+<table class="docutils footnote" frame="void" id="id12" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id6">[6]</a></td><td><a class="reference external" href="http://ccckmit.wikidot.com/lk:elf">http://ccckmit.wikidot.com/lk:elf</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id14" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id7">[7]</a></td><td><a class="reference external" href="http://lld.llvm.org/">http://lld.llvm.org/</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id15" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[8]</td><td><a class="reference external" href="http://developer.mips.com/clang-llvm/">http://developer.mips.com/clang-llvm/</a></td></tr>
 </tbody>
 </table>
 </div>

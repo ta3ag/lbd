@@ -65,8 +65,8 @@ Machine DAG translation directly according the input file IR DAG.</p>
 <h2>Global variable<a class="headerlink" href="#global-variable" title="Permalink to this headline">¶</a></h2>
 <p>Chapter6_1/ support the global variable, let&#8217;s compile ch6_1.cpp with this version
 first, and explain the code changes after that.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch6_1.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">gStart</span><span class="p">;</span>
+<p class="rubric">lbdex/InputFiles/ch6_1.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">gStart</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
 <span class="kt">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
 <span class="kt">int</span> <span class="n">fun</span><span class="p">()</span>
 <span class="p">{</span>
@@ -424,7 +424,7 @@ After that, user can run llc with option <tt class="docutils literal"><span clas
 to specify <strong>UseSmallSectionOpt</strong> to false.
 The default of <strong>UseSmallSectionOpt</strong> is false if without specify it further.
 About the <strong>cl::opt</strong> command line variable, you can refer to <a class="footnote-reference" href="#id6" id="id1">[1]</a> further.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0Subtarget.h</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0Subtarget.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Cpu0Subtarget</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Cpu0GenSubtargetInfo</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="c1">// UseSmallSection - Small section is used.</span>
@@ -434,7 +434,7 @@ About the <strong>cl::opt</strong> command line variable, you can refer to <a cl
 <span class="p">};</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0Subtarget.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0Subtarget.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="n">cl</span><span class="o">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span>
 <span class="n">UseSmallSectionOpt</span><span class="p">(</span><span class="s">&quot;cpu0-use-small-section&quot;</span><span class="p">,</span> <span class="n">cl</span><span class="o">::</span><span class="n">Hidden</span><span class="p">,</span> <span class="n">cl</span><span class="o">::</span><span class="n">init</span><span class="p">(</span><span class="kc">false</span><span class="p">),</span>
                  <span class="n">cl</span><span class="o">::</span><span class="n">desc</span><span class="p">(</span><span class="s">&quot;Use small section. Only work with -relocation-model=&quot;</span>
@@ -443,15 +443,15 @@ About the <strong>cl::opt</strong> command line variable, you can refer to <a cl
 </div>
 <p>Next add file Cpu0TargetObjectFile.h, Cpu0TargetObjectFile.cpp and the
 following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- llvm/Target/Cpu0TargetObjectFile.h - Cpu0 Object Info ---*- C++ -*-===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter6_1/Cpu0TargetObjectFile.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- llvm/Target/Cpu0TargetObjectFile.h - Cpu0 Object Info ---*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef LLVM_TARGET_CPU0_TARGETOBJECTFILE_H</span>
 <span class="cp">#define LLVM_TARGET_CPU0_TARGETOBJECTFILE_H</span>
@@ -487,15 +487,15 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.</p>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0TargetObjectFile.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetObjectFile.cpp - Cpu0 Object Files ----------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter6_1/Cpu0TargetObjectFile.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0TargetObjectFile.cpp - Cpu0 Object Files ----------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0TargetObjectFile.h&quot;</span>
 <span class="cp">#include &quot;Cpu0Subtarget.h&quot;</span>
@@ -594,7 +594,7 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0RegisterInfo.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0RegisterInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// pure virtual method</span>
 <span class="n">BitVector</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
 <span class="n">getReservedRegs</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -607,7 +607,7 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;Cpu0MachineFunction.h&quot;</span>
 <span class="p">...</span>
 <span class="cp">#include &quot;Cpu0TargetObjectFile.h&quot;</span>
@@ -770,7 +770,7 @@ trigger llvm calling Cpu0TargetLowering::LowerOperation() in stage
 The global address access can be identified by check if the DAG node of
 opcode is equal to ISD::GlobalAddress.</p>
 <p>Finally, add the following code in Cpu0InstrInfo.td.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// Hi and Lo nodes are used to handle global addresses. Used on
 // Cpu0ISelLowering to lower stuff like GlobalAddress, ExternalSymbol
 // static model. (nothing to do with Cpu0 Registers Hi and Lo)
@@ -852,7 +852,7 @@ time, then this relocation record will be solved by loader at loading time.</p>
 (GlobalAddress&lt;i32* &#64;gI&gt; 0) into
 (add Cpu0ISD::Hi&lt;gI offset Hi16&gt; Cpu0ISD::Lo&lt;gI offset Lo16&gt;) in
 stage &#8220;Legalized selection DAG&#8221; as below.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0ISelLowering.cpp</span>
 <span class="p">...</span>
     <span class="c1">// %hi/%lo relocation</span>
@@ -911,7 +911,7 @@ SelectionDAG has 16 nodes:
 <p>Finally, the pattern defined in Cpu0InstrInfo.td as the following will translate
 DAG (add Cpu0ISD::Hi&lt;gI offset Hi16&gt; Cpu0ISD::Lo&lt;gI offset Lo16&gt;) into Cpu0
 instructions as below.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// Hi and Lo nodes are used to handle global addresses. Used on
 // Cpu0ISelLowering to lower stuff like GlobalAddress, ExternalSymbol
 // static model. (nothing to do with Cpu0 Registers Hi and Lo)
@@ -970,7 +970,7 @@ gI:
 (GlobalAddress&lt;i32* &#64;gI&gt; 0) into
 (add GLOBAL_OFFSET_TABLE Cpu0ISD::GPRel&lt;gI offset&gt;) in
 stage &#8220;Legalized selection DAG&#8221; as below.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//  Cpu0ISelLowering.cpp</span>
   <span class="p">...</span>
   <span class="c1">// %gp_rel relocation</span>
@@ -1022,7 +1022,7 @@ SelectionDAG has 15 nodes:
 DAG (add GLOBAL_OFFSET_TABLE Cpu0ISD::GPRel&lt;gI offset&gt;) into Cpu0
 instruction as below. The following code in Cpu0ISelDAGToDAG.cpp make the
 GLOBAL_OFFSET_TABLE translate into $gp as below.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelDAGToDAG.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0ISelDAGToDAG.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// getGlobalBaseReg - Output the instructions required to put the</span>
 <span class="c1">/// GOT address into a register.</span>
 <span class="n">SDNode</span> <span class="o">*</span><span class="n">Cpu0DAGToDAGISel</span><span class="o">::</span><span class="n">getGlobalBaseReg</span><span class="p">()</span> <span class="p">{</span>
@@ -1047,7 +1047,7 @@ GLOBAL_OFFSET_TABLE translate into $gp as below.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>//  Cpu0InstrInfo.td
 def Cpu0GPRel : SDNode&lt;"Cpu0ISD::GPRel", SDTIntUnaryOp&gt;;
 ...
@@ -1073,7 +1073,7 @@ is static mode.</p>
 <p>In this mode, we reserve $gp to a specfic fixed address of both linker and
 loader agree to. So, the $gp cannot be allocated as a general purpose for
 variables. The following code tells llvm never allocate $gp for variables.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0Subtarget.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0Subtarget.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0Subtarget</span><span class="o">::</span><span class="n">Cpu0Subtarget</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">CPU</span><span class="p">,</span>
                              <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">FS</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">little</span><span class="p">,</span>
                              <span class="n">Reloc</span><span class="o">::</span><span class="n">Model</span> <span class="n">_RM</span><span class="p">)</span> <span class="o">:</span>
@@ -1090,7 +1090,7 @@ variables. The following code tells llvm never allocate $gp for variables.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0RegisterInfo.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0RegisterInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// pure virtual method</span>
 <span class="n">BitVector</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
 <span class="n">getReservedRegs</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -1138,7 +1138,7 @@ gI:
 </div>
 <p>The following code fragment of Cpu0AsmPrinter.cpp will emit <strong>.cpload</strong> asm
 pseudo instruction at function entry point as below.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MachineFunction.h</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0MachineFunction.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MachineFunction.h - Private data used for Cpu0 ----*- C++ -*-=//</span>
 <span class="p">...</span>
 <span class="k">class</span> <span class="nc">Cpu0FunctionInfo</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MachineFunctionInfo</span> <span class="p">{</span>
@@ -1166,15 +1166,15 @@ pseudo instruction at function entry point as below.</p>
 <span class="cp">#endif </span><span class="c1">// CPU0_MACHINE_FUNCTION_INFO_H</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MachineFunction.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MachineFunctionInfo.cpp - Private data used for Cpu0 ----------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter6_1/Cpu0MachineFunction.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0MachineFunctionInfo.cpp - Private data used for Cpu0 ----------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0MachineFunction.h&quot;</span>
 <span class="cp">#include &quot;Cpu0InstrInfo.h&quot;</span>
@@ -1213,7 +1213,7 @@ pseudo instruction at function entry point as below.</p>
 <span class="kt">void</span> <span class="n">Cpu0FunctionInfo</span><span class="o">::</span><span class="n">anchor</span><span class="p">()</span> <span class="p">{</span> <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0AsmPrinter.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0AsmPrinter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// EmitFunctionBodyStart - Targets can override this to emit stuff before</span>
 <span class="c1">/// the first basic block in the function.</span>
 <span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">EmitFunctionBodyStart</span><span class="p">()</span> <span class="p">{</span>
@@ -1256,7 +1256,7 @@ reference Mips ABI <a class="footnote-reference" href="#id7" id="id3">[2]</a>.</
 <p>Following code will exspand .cpload into machine instructions as below.
 &#8220;0fa00000 09aa0000 13aa6000&#8221; is the <strong>.cpload</strong> machine instructions
 displayed in comments of Cpu0MCInstLower.cpp.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MCInstLower.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0MCInstLower.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 
 <span class="k">static</span> <span class="kt">void</span> <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInst</span><span class="o">&amp;</span> <span class="n">Inst</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">Opc</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCOperand</span><span class="o">&amp;</span> <span class="n">Opnd0</span><span class="p">,</span>
@@ -1276,7 +1276,6 @@ displayed in comments of Cpu0MCInstLower.cpp.</p>
 <span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerCPLOAD</span><span class="p">(</span><span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;&amp;</span> <span class="n">MCInsts</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">MCOperand</span> <span class="n">GPReg</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">GP</span><span class="p">);</span>
   <span class="n">MCOperand</span> <span class="n">T9Reg</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">T9</span><span class="p">);</span>
-  <span class="n">MCOperand</span> <span class="n">ZEROReg</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">);</span>
   <span class="n">StringRef</span> <span class="n">SymName</span><span class="p">(</span><span class="s">&quot;_gp_disp&quot;</span><span class="p">);</span>
   <span class="k">const</span> <span class="n">MCSymbol</span> <span class="o">*</span><span class="n">Sym</span> <span class="o">=</span> <span class="n">Ctx</span><span class="o">-&gt;</span><span class="n">GetOrCreateSymbol</span><span class="p">(</span><span class="n">SymName</span><span class="p">);</span>
   <span class="k">const</span> <span class="n">MCSymbolRefExpr</span> <span class="o">*</span><span class="n">MCSym</span><span class="p">;</span>
@@ -1288,7 +1287,7 @@ displayed in comments of Cpu0MCInstLower.cpp.</p>
 
   <span class="n">MCInsts</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
 
-  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">ZEROReg</span><span class="p">,</span> <span class="n">SymHi</span><span class="p">);</span>
+  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">SymHi</span><span class="p">);</span>
   <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">SymLo</span><span class="p">);</span>
   <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">T9Reg</span><span class="p">);</span>
 <span class="p">}</span>
@@ -1347,7 +1346,7 @@ Don&#8217;t worry, if you don&#8217;t quite understand it at this point.</p>
 <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=pic</span></tt> will translate DAG (GlobalAddress&lt;i32* &#64;gI&gt; 0) into
 (load EntryToken, (Cpu0ISD::Wrapper Register %GP, TargetGlobalAddress&lt;i32* &#64;gI&gt; 0))
 in stage &#8220;Legalized selection DAG&#8221; as below.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">getAddrGlobal</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span>
                                           <span class="kt">unsigned</span> <span class="n">Flag</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="n">DebugLoc</span> <span class="n">DL</span> <span class="o">=</span> <span class="n">Op</span><span class="p">.</span><span class="n">getDebugLoc</span><span class="p">();</span>
@@ -1367,7 +1366,7 @@ in stage &#8220;Legalized selection DAG&#8221; as below.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelDAGToDAG.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0ISelDAGToDAG.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// ComplexPattern used on Cpu0InstrInfo</span>
 <span class="c1">/// Used on Cpu0 Load/Store instructions</span>
 <span class="kt">bool</span> <span class="n">Cpu0DAGToDAGISel</span><span class="o">::</span>
@@ -1456,7 +1455,7 @@ be solved in link stage if we want to link this function by static link.</p>
 (load EntryToken, (Cpu0ISD::Wrapper (add Cpu0ISD::Hi&lt;gI offset Hi16&gt;, Register %GP),
 TargetGlobalAddress&lt;i32* &#64;gI&gt; 0))
 in stage &#8220;Legalized selection DAG&#8221; as below.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">getAddrGlobalLargeGOT</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span>
                                                   <span class="kt">unsigned</span> <span class="n">HiFlag</span><span class="p">,</span>
                                                   <span class="kt">unsigned</span> <span class="n">LoFlag</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -1543,7 +1542,7 @@ instructions as below.</p>
 <p>Above code is for global address DAG translation.
 Next, add the following code to Cpu0MCInstLower.cpp, Cpu0InstPrinter.cpp and
 Cpu0ISelLowering.cpp for global variable printing operand function.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0MCInstLower.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0MCInstLower.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
                                               <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
                                               <span class="kt">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -1587,7 +1586,7 @@ Cpu0ISelLowering.cpp for global variable printing operand function.</p>
  <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="n">printExpr</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
@@ -1605,7 +1604,7 @@ Cpu0ISelLowering.cpp for global variable printing operand function.</p>
 </pre></div>
 </div>
 <p>The following function is for llc -debug DAG node name printing.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter6_1/Cpu0ISelLowering.cpp</p>
+<p class="rubric">lbdex/Chapter6_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">getTargetNodeName</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Opcode</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">Opcode</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">case</span> <span class="n">Cpu0ISD</span><span class="o">::</span><span class="nl">JmpLink:</span>           <span class="k">return</span> <span class="s">&quot;Cpu0ISD::JmpLink&quot;</span><span class="p">;</span>

@@ -34,7 +34,7 @@ Book example code
 
 The example code is available in: 
 
-http://jonathan2251.github.com/lbd/LLVMBackendTutorialExampleCode.tar.gz
+http://jonathan2251.github.com/lbd/lbdex.tar.gz
 
 
 Alternate formats

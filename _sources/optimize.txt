@@ -28,7 +28,7 @@ optimization algorithm on your backend in real project.
 
 Chapter12_1/ support this optimization algorithm include the added codes as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter12_1/CMakeLists.txt
+.. rubric:: lbdex/Chapter12_1/CMakeLists.txt
 .. code-block:: c++
 
   add_llvm_target(Cpu0CodeGen
@@ -37,7 +37,7 @@ Chapter12_1/ support this optimization algorithm include the added codes as foll
     ...
     )
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter12_1/Cpu0.h
+.. rubric:: lbdex/Chapter12_1/Cpu0.h
 .. code-block:: c++
 
   ...
@@ -58,8 +58,8 @@ Chapter12_1/ support this optimization algorithm include the added codes as foll
     return true;
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter12_1/Cpu0DelUselessJMP.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/Chapter12_1/Cpu0DelUselessJMP.cpp
+.. rubric:: lbdex/Chapter12_1/Cpu0DelUselessJMP.cpp
+.. literalinclude:: ../lbdex/Chapter12_1/Cpu0DelUselessJMP.cpp
 
 
 As above code, except Cpu0DelUselessJMP.cpp, other files changed for register 
@@ -72,8 +72,8 @@ For the member function of MachineOperand, please check
 include/llvm/CodeGen/MachineOperand.h
 Let's run Chapter12_1/ with ch12_1.cpp to explain it easier.
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch12_1.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch12_1.cpp
+.. rubric:: lbdex/InputFiles/ch12_1.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch12_1.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -514,7 +514,7 @@ Cpu0 code changes
 
 Chapter12_2/ include the changes for new instruction sets as follows,
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter12_2/AsmParser/Cpu0AsmParser.cpp
+.. rubric:: lbdex/Chapter12_2/AsmParser/Cpu0AsmParser.cpp
 .. code-block:: c++
 
   // Cpu0AsmParser.cpp
@@ -525,7 +525,7 @@ Chapter12_2/ include the changes for new instruction sets as follows,
     ...
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter12_2/Disassembler/Cpu0Disassembler.cpp
+.. rubric:: lbdex/Chapter12_2/Disassembler/Cpu0Disassembler.cpp
 .. code-block:: c++
 
   // Decoder tables for Cpu0 register
@@ -549,7 +549,7 @@ Chapter12_2/ include the changes for new instruction sets as follows,
     return MCDisassembler::Success;
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter12_2/MCTargetDesc/Cpu0AsmBackend.cpp
+.. rubric:: lbdex/Chapter12_2/MCTargetDesc/Cpu0AsmBackend.cpp
 .. code-block:: c++
 
   static unsigned adjustFixupValue(unsigned Kind, uint64_t Value) {
@@ -577,7 +577,7 @@ Chapter12_2/ include the changes for new instruction sets as follows,
         { "fixup_Cpu0_PC16",         0,     16,  MCFixupKindInfo::FKF_IsPCRel },
   ...
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter12_2/MCTargetDesc/Cpu0BaseInfo.cpp
+.. rubric:: lbdex/Chapter12_2/MCTargetDesc/Cpu0BaseInfo.cpp
 .. code-block:: c++
 
   inline static unsigned getCpu0RegisterNumbering(unsigned RegEnum)
@@ -589,7 +589,7 @@ Chapter12_2/ include the changes for new instruction sets as follows,
     }
   }
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter12_2/MCTargetDesc/Cpu0FixupKinds.cpp
+.. rubric:: lbdex/Chapter12_2/MCTargetDesc/Cpu0FixupKinds.cpp
 .. code-block:: c++
 
     enum Fixups {
@@ -600,7 +600,7 @@ Chapter12_2/ include the changes for new instruction sets as follows,
       ...
     };
   
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter12_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. rubric:: lbdex/Chapter12_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 .. code-block:: c++
 
   unsigned Cpu0MCCodeEmitter::
@@ -620,7 +620,7 @@ Chapter12_2/ include the changes for new instruction sets as follows,
     ...
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter12_2/Cpu0InstrInfo.cpp
+.. rubric:: lbdex/Chapter12_2/Cpu0InstrInfo.cpp
 .. code-block:: c++
 
   // Cpu0InstrInfo::copyPhysReg()
@@ -660,7 +660,7 @@ Chapter12_2/ include the changes for new instruction sets as follows,
       MIB.addReg(SrcReg, getKillRegState(KillSrc));
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter12_2/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter12_2/Cpu0InstrInfo.td
 .. code-block:: c++
 
   def jmptarget    : Operand<OtherVT> {
@@ -811,7 +811,7 @@ Chapter12_2/ include the changes for new instruction sets as follows,
   defm : SetgeImmPats<CPURegs, SLTi, SLTiu>;
 
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter12_2/Cpu0ISelDAGToDAG.cpp
+.. rubric:: lbdex/Chapter12_2/Cpu0ISelDAGToDAG.cpp
 .. code-block:: c++
 
   /// Select instructions not customized! Used for
@@ -829,7 +829,7 @@ Chapter12_2/ include the changes for new instruction sets as follows,
     ...
   }
 
-.. rubric:: LLVMBackendTutorialExampleCode/Chapter12_2/Cpu0RegisterInfo.td
+.. rubric:: lbdex/Chapter12_2/Cpu0RegisterInfo.td
 .. code-block:: c++
 
   let Namespace = "Cpu0" in {
@@ -856,18 +856,21 @@ offset.
 Cpu0 Verilog language changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. rubric:: LLVMBackendTutorialExampleCode/cpu0_verilog/redesign/cpu0s.v
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/cpu0_verilog/redesign/cpu0s.v
+.. rubric:: lbdex/cpu0_verilog/cpu0IIs.v
+.. literalinclude:: ../lbdex/cpu0_verilog/cpu0IIs.v
+
+In addition to cpu0IIs.v, the "\`ifdef CPU0II" in cpu0.v is added for extended
+instructions, slt, beq and bne.
 
 
-Run the redesigned Cpu0
-~~~~~~~~~~~~~~~~~~~~~~~~
+Run the Cpu0II
+~~~~~~~~~~~~~~~~
 
 Run Chapter12_2/ with ch_run_backend.cpp to get result as below. 
 It match the expect value as comment in ch_run_backend.cpp.
 
-.. rubric:: LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
-.. literalinclude:: ../LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp
+.. rubric:: lbdex/InputFiles/ch_run_backend.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch_run_backend.cpp
     :start-after: /// start
 
 .. code-block:: bash
@@ -885,11 +888,11 @@ It match the expect value as comment in ch_run_backend.cpp.
   118-165-77-203:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk '{print "/* " $1 
   " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t*/"}' > 
-  ../cpu0_verilog/redesign/cpu0s.hex
+  ../cpu0_verilog/redesign/cpu0.hex
   
-  JonathantekiiMac:InputFiles Jonathan$ cd ../cpu0_verilog/redesign/
-  JonathantekiiMac:redesign Jonathan$ iverilog -o cpu0s cpu0s.v 
-  JonathantekiiMac:redesign Jonathan$ ./cpu0s
+  JonathantekiiMac:InputFiles Jonathan$ cd ../cpu0_verilog/
+  JonathantekiiMac:redesign Jonathan$ iverilog -o cpu0IIs cpu0IIs.v 
+  JonathantekiiMac:redesign Jonathan$ ./cpu0IIs
   taskInterrupt(001)
   74
   253

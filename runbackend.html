@@ -69,7 +69,7 @@ result.</p>
 <div class="section" id="asmparser-support">
 <h2>AsmParser support<a class="headerlink" href="#asmparser-support" title="Permalink to this headline">¶</a></h2>
 <p>Run Chapter10_1/ with ch11_1.cpp will get the following error message.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch11_1.cpp</p>
+<p class="rubric">lbdex/InputFiles/ch11_1.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld	$2, 8($sp)&quot;</span><span class="p">);</span>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;st	$0, 4($sp)&quot;</span><span class="p">);</span>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $3,	$ZERO, 0&quot;</span><span class="p">);</span>
@@ -121,15 +121,15 @@ The cpu0 can translate LLVM IR into assembly and obj directly, but it cannot
 translate hand code assembly into obj.
 Directory AsmParser handle the assembly to obj translation.
 The Chapter11_1/ include AsmParser implementation as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/AsmParser/Cpu0AsmParser.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0AsmParser.cpp - Parse Cpu0 assembly to MCInst instructions ----===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<p class="rubric">lbdex/Chapter11_1/AsmParser/Cpu0AsmParser.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0AsmParser.cpp - Parse Cpu0 assembly to MCInst instructions ----===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;MCTargetDesc/Cpu0MCTargetDesc.h&quot;</span>
 <span class="cp">#include &quot;Cpu0RegisterInfo.h&quot;</span>
@@ -1149,7 +1149,7 @@ The Chapter11_1/ include AsmParser implementation as follows,</p>
 <span class="cp">#include &quot;Cpu0GenAsmMatcher.inc&quot;</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/AsmParser/CMakeLists.txt</p>
+<p class="rubric">lbdex/Chapter11_1/AsmParser/CMakeLists.txt</p>
 <div class="highlight-c++"><pre>include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
 add_llvm_library(LLVMCpu0AsmParser
   Cpu0AsmParser.cpp
@@ -1158,7 +1158,7 @@ add_llvm_library(LLVMCpu0AsmParser
 add_dependencies(LLVMCpu0AsmParser Cpu0CommonTableGen)
 </pre>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/AsmParser/LLVMBuild.txt</p>
+<p class="rubric">lbdex/Chapter11_1/AsmParser/LLVMBuild.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">;</span><span class="o">===-</span> <span class="p">.</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">Target</span><span class="o">/</span><span class="n">Mips</span><span class="o">/</span><span class="n">AsmParser</span><span class="o">/</span><span class="n">LLVMBuild</span><span class="p">.</span><span class="n">txt</span> <span class="o">----------------*-</span> <span class="n">Conf</span> <span class="o">-*--===</span><span class="p">;</span>
 <span class="p">;</span>
 <span class="p">;</span>                     <span class="n">The</span> <span class="n">LLVM</span> <span class="n">Compiler</span> <span class="n">Infrastructure</span>
@@ -1188,20 +1188,20 @@ add_dependencies(LLVMCpu0AsmParser Cpu0CommonTableGen)
 language parsing. You can understand it with a little patient only.
 To let directory AsmParser be built, modify CMakeLists.txt and LLVMBuild.txt as
 follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/CMakeLists.txt</p>
+<p class="rubric">lbdex/Chapter11_1/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenAsmMatcher</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="k">asm</span><span class="o">-</span><span class="n">matcher</span><span class="p">)</span>
 <span class="p">...</span>
 <span class="n">add_subdirectory</span><span class="p">(</span><span class="n">AsmParser</span><span class="p">)</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/LLVMBuild.txt</p>
+<p class="rubric">lbdex/Chapter11_1/LLVMBuild.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">subdirectories</span> <span class="o">=</span> <span class="n">AsmParser</span> <span class="p">...</span>
 <span class="p">...</span>
 <span class="n">has_asmparser</span> <span class="o">=</span> <span class="mi">1</span>
 </pre></div>
 </div>
 <p>The other files change as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
+<p class="rubric">lbdex/Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
 <span class="n">getBranchTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
              <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -1223,7 +1223,7 @@ follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0.td</p>
+<p class="rubric">lbdex/Chapter11_1/Cpu0.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">Cpu0AsmParser</span> <span class="o">:</span> <span class="n">AsmParser</span> <span class="p">{</span>
   <span class="n">let</span> <span class="n">ShouldEmitMatchRegisterName</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
@@ -1243,7 +1243,7 @@ follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0InstrFormats.td</p>
+<p class="rubric">lbdex/Chapter11_1/Cpu0InstrFormats.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Pseudo-instructions for alternate assembly syntax (never used by codegen).</span>
 <span class="c1">// These are aliases that require C++ handling to convert to the target</span>
 <span class="c1">// instruction, while InstAliases can be handled directly by tblgen.</span>
@@ -1254,7 +1254,7 @@ follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter11_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// Cpu0InstrInfo.td
 def Cpu0MemAsmOperand : AsmOperandClass {
   let Name = "Mem";
@@ -1346,7 +1346,7 @@ the following structure and functions in Cpu0GenAsmMatcher.inc.</p>
 </div>
 <p>Above 3 Pseudo Instruction definitions in Cpu0InstrInfo.td such as
 LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/AsmParser/Cpu0AsmParser.cpp</p>
+<p class="rubric">lbdex/Chapter11_1/AsmParser/Cpu0AsmParser.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">needsExpansion</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">)</span> <span class="p">{</span>
 
   <span class="k">switch</span><span class="p">(</span><span class="n">Inst</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
@@ -1395,7 +1395,7 @@ LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,</p>
 <p>Finally, remind the CPURegs as below must
 follow the order of register number because AsmParser use this when do register
 number encode.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_1/Cpu0RegisterInfo.td</p>
+<p class="rubric">lbdex/Chapter11_1/Cpu0RegisterInfo.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">// The register string, such as &quot;9&quot; or &quot;gp&quot; will show on &quot;llvm-objdump -d&quot;</span>
 <span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span> <span class="n">in</span> <span class="p">{</span>
@@ -1512,13 +1512,14 @@ programing than implicit representation.</p>
 <h2>Verilog of CPU0<a class="headerlink" href="#verilog-of-cpu0" title="Permalink to this headline">¶</a></h2>
 <p>Verilog language is an IEEE standard in IC design. There are a lot of book and
 documents for this language. Web site <a class="footnote-reference" href="#id3" id="id1">[1]</a> has a pdf <a class="footnote-reference" href="#id4" id="id2">[2]</a> in this.
-Example code LLVMBackendTutorialExampleCode/cpu0s_verilog/raw/cpu0s.v is the
+Example code lbdex/cpu0_verilog/cpu0.v is the
 cpu0 design in Verilog. In Appendix A, we have downloaded and installed Icarus
-Verilog tool both on iMac and Linux. The cpu0s.v is a simple design with only
-280 lines of code. Alough it has not the pipeline features, we can assume the
+Verilog tool both on iMac and Linux. The cpu0.v and cpu0Is.v is a simple design
+with only few hundreds lines of code.
+Alough it has not the pipeline features, we can assume the
 cpu0 backend code run on the pipeline machine because the pipeline version
 use the same machine instructions. Verilog is C like language in syntex and
-this book is a compiler book, so we list the cpu0s.v as well as the building
+this book is a compiler book, so we list the cpu0.v as well as the building
 command directly as below. We expect
 readers can understand the Verilog code just with a little patient and no need
 further explanation. There are two type of I/O. One is memory mapped I/O, the
@@ -1529,13 +1530,11 @@ cx($rb) is 0x7000 (28672), CPU0 display the content as follows,</p>
   if (R[b]+c16 == 28672)
     $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);</pre>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/cpu0_verilog/raw/cpu0s.v</p>
-<div class="highlight-c++"><pre>//`define TRACE
-
-`define MEMSIZE 'h80000
-`define MEMEMPTY 8'hFF
-`define NULL     8'h00
-`define IOADDR  'h80000
+<p class="rubric">lbdex/cpu0_verilog/cpu0.v</p>
+<div class="highlight-c++"><pre>`define MEMSIZE   'h80000
+`define MEMEMPTY   8'hFF
+`define NULL       8'h00
+`define IOADDR    'h80000  // IO mapping address
 
 // Operand width
 `define INT32 2'b11     // 32 bits
@@ -1558,29 +1557,31 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   reg [7:0] op;
   reg [3:0] a, b, c;
   reg [4:0] c5;
-  reg signed [31:0] c12, c16, uc16, c24, Ra, Rb, Rc, pc0; // pc0 : instruction pc
-  reg [31:0] URa, URb, URc, HI, LO;
+  reg signed [31:0] c12, c16, uc16, c24, Ra, Rb, Rc, pc0; // pc0: instruction pc
+  reg [31:0] URa, URb, URc, HI, LO, SW;
 
   // register name
   `define PC   R[15]   // Program Counter
   `define LR   R[14]   // Link Register
   `define SP   R[13]   // Stack Pointer
-  `define SW   R[12]   // Status Word
   // SW Flage
-  `define C    `SW[29] // Carry
-  `define V    `SW[28] // Overflow
-  `define MODE `SW[25:23] // itype
-  `define I2   `SW[16] // Hardware Interrupt 1, IO1 interrupt, status, 1: in interrupt
-  `define I1   `SW[15] // Hardware Interrupt 0, timer interrupt, status, 1: in interrupt
-  `define I0   `SW[14] // Software interrupt, status, 1: in interrupt
-  `define I    `SW[13] // Interrupt, 1: in interrupt
-  `define I2E  `SW[8]  // Hardware Interrupt 1, IO1 interrupt, Enable
-  `define I1E  `SW[7]  // Hardware Interrupt 0, timer interrupt, Enable
-  `define I0E  `SW[6]  // Software Interrupt Enable
-  `define IE   `SW[5]  // Interrupt Enable
-  `define M    `SW[4]  // Mode bit
-  `define Z    `SW[1] // Zero
-  `define N    `SW[0] // Negative flag
+  `define C    SW[29] // Carry
+  `define V    SW[28] // Overflow
+  `define MODE SW[25:23] // itype
+  `define I2   SW[16] // Hardware Interrupt 1, IO1 interrupt, status, 
+                      // 1: in interrupt
+  `define I1   SW[15] // Hardware Interrupt 0, timer interrupt, status, 
+                      // 1: in interrupt
+  `define I0   SW[14] // Software interrupt, status, 1: in interrupt
+  `define I    SW[13] // Interrupt, 1: in interrupt
+  `define I2E  SW[8]  // Hardware Interrupt 1, IO1 interrupt, Enable
+  `define I1E  SW[7]  // Hardware Interrupt 0, timer interrupt, Enable
+  `define I0E  SW[6]  // Software Interrupt Enable
+  `define IE   SW[5]  // Interrupt Enable
+  `define M    SW[4]  // Mode bit
+  `define TR   SW[2]  // Debug Trace
+  `define Z    SW[1]  // Zero
+  `define N    SW[0]  // Negative flag
   // Instruction Opcode 
   parameter [7:0] LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,LH=8'h06,
   LHu=8'h07,SH=8'h08,ADDiu=8'h09,ANDi=8'h0C,ORi=8'h0D,
@@ -1590,18 +1591,25 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   AND=8'h18,OR=8'h19,XOR=8'h1A,
   ROL=8'h1B,ROR=8'h1C,SRA=8'h1D,SHL=8'h1E,SHR=8'h1F,
   SRAV=8'h20,SHLV=8'h21,SHRV=8'h22,
+`ifdef CPU0II
+  SLTi=8'h26,SLTiu=8'h27, SLT=8'h28,SLTu=8'h29,
+  BEQ=8'h37,BNE=8'h38,
+`endif
   JEQ=8'h30,JNE=8'h31,JLT=8'h32,JGT=8'h33,JLE=8'h34,JGE=8'h35,
   JMP=8'h36,
   SWI=8'h3A,JSUB=8'h3B,RET=8'h3C,IRET=8'h3D,JALR=8'h3E,
   MULT=8'h41,MULTu=8'h42,DIV=8'h43,DIVu=8'h44,
-  MFHI=8'h46,MFLO=8'h47,MTHI=8'h48,MTLO=8'h49;
+  MFHI=8'h46,MFLO=8'h47,MTHI=8'h48,MTLO=8'h49,
+  MFSW=8'h50,MTSW=8'h51;
 
   reg [0:0] inInt = 0;
   reg [2:0] state, next_state; 
+  reg [2:0] st_taskInt, ns_taskInt; 
   parameter Reset=3'h0, Fetch=3'h1, Decode=3'h2, Execute=3'h3, WriteBack=3'h4;
   integer i;
 
-  task memReadStart(input [31:0] addr, input [1:0] size); begin // Read Memory Word
+  // Read Memory Word
+  task memReadStart(input [31:0] addr, input [1:0] size); begin 
     mar = addr;     // read(m[addr])
     m_rw = 1;     // Access Mode: read 
     m_en = 1;     // Enable read
@@ -1615,7 +1623,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   end endtask
 
   // Write memory -- addr: address to write, data: date to write
-  task memWriteStart(input [31:0] addr, input [31:0] data, input [1:0] size); begin 
+  task memWriteStart(input [31:0] addr, input [31:0] data, input [1:0] size); 
+  begin 
     mar = addr;    // write(m[addr], data)
     mdr = data;
     m_rw = 0;    // access mode: write
@@ -1636,6 +1645,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
     LO = data2;
   end endtask
 
+  // output a word to Output port (equal to display the word to terminal)
   task outw(input [31:0] data); begin
     if (data[7:0] != 8'h00) begin
       $write("%c", data[7:0]);
@@ -1648,6 +1658,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
     end
   end endtask
 
+  // output a character (a byte)
   task outc(input [7:0] data); begin
       $write("%c", data[7:0]);
   end endtask
@@ -1656,8 +1667,9 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   if (inInt == 0) begin
     case (iMode)
       `RESET: begin 
-        `PC = 0; tick = 0; R[0] = 0; `SW = 0; `LR = -1;
-        `IE = 0; `I0E = 0; `I1E = 0; `I2E = 0; `I = 0; `I0 = 0; `I1 = 0; `I2 = 0;
+        `PC = 0; tick = 0; R[0] = 0; SW = 0; `LR = -1;
+        `IE = 0; `I0E = 0; `I1E = 0; `I2E = 0; `I = 0; `I0 = 0; `I1 = 0; 
+        `I2 = 0;
       end
       `ABORT: begin `LR = `PC; `PC = 4; end
       `IRQ:   begin `LR = `PC; `PC = 8; end
@@ -1700,12 +1712,16 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       // load and store instructions
       LD:    memReadStart(Rb+c16, `INT32);      // LD Ra,[Rb+Cx]; Ra&lt;=[Rb+Cx]
       ST:    memWriteStart(Rb+c16, Ra, `INT32); // ST Ra,[Rb+Cx]; Ra=&gt;[Rb+Cx]
-      LB:    memReadStart(Rb+c16, `BYTE);     // LB Ra,[Rb+Cx]; Ra&lt;=(byte)[Rb+Cx]
-      LBu:   memReadStart(Rb+c16, `BYTE);     // LBu Ra,[Rb+Cx]; Ra&lt;=(byte)[Rb+Cx]
-      SB:    memWriteStart(Rb+c16, Ra, `BYTE);// SB Ra,[Rb+Cx]; Ra=&gt;(byte)[Rb+Cx]
-      LH:    memReadStart(Rb+c16, `INT16);     // LH Ra,[Rb+Cx]; Ra&lt;=(2bytes)[Rb+Cx]
-      LHu:   memReadStart(Rb+c16, `INT16);     // LHu Ra,[Rb+Cx]; Ra&lt;=(2bytes)[Rb+Cx]
-      SH:    memWriteStart(Rb+c16, Ra, `INT16);// SH Ra,[Rb+Cx]; Ra=&gt;(2bytes)[Rb+Cx]
+      // LB Ra,[Rb+Cx]; Ra&lt;=(byte)[Rb+Cx]
+      LB:    memReadStart(Rb+c16, `BYTE);
+      // LBu Ra,[Rb+Cx]; Ra&lt;=(byte)[Rb+Cx]
+      LBu:   memReadStart(Rb+c16, `BYTE);
+      // SB Ra,[Rb+Cx]; Ra=&gt;(byte)[Rb+Cx]
+      SB:    memWriteStart(Rb+c16, Ra, `BYTE);
+      LH:    memReadStart(Rb+c16, `INT16); // LH Ra,[Rb+Cx]; Ra&lt;=(2bytes)[Rb+Cx]
+      LHu:   memReadStart(Rb+c16, `INT16); // LHu Ra,[Rb+Cx]; Ra&lt;=(2bytes)[Rb+Cx]
+      // SH Ra,[Rb+Cx]; Ra=&gt;(2bytes)[Rb+Cx]
+      SH:    memWriteStart(Rb+c16, Ra, `INT16);
       // Mathematic 
       ADDiu: R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra&lt;=Rb+Cx
       CMP:   begin `N=(Ra-Rb&lt;0);`Z=(Ra-Rb==0); end // CMP Ra, Rb; SW=(Ra &gt;=&lt; Rb)
@@ -1716,7 +1732,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       SUB:   begin regSet(a, Rb-Rc); if (Rb &lt; 0 &amp;&amp; Rc &gt; 0 &amp;&amp; a &gt;= 0) 
              `V = 1; else `V =0; end         // SUB Ra,Rb,Rc; Ra&lt;=Rb-Rc
       MUL:   regSet(a, Rb*Rc);               // MUL Ra,Rb,Rc;     Ra&lt;=Rb*Rc
-      DIVu:  regHILOSet(URa%URb, URa/URb);   // DIVu URa,URb; HI&lt;=URa%URb; LO&lt;=URa/URb
+      DIVu:  regHILOSet(URa%URb, URa/URb);   // DIVu URa,URb; HI&lt;=URa%URb; 
+                                             // LO&lt;=URa/URb
                                              // without exception overflow
       DIV:   begin regHILOSet(Ra%Rb, Ra/Rb); 
              if ((Ra &lt; 0 &amp;&amp; Rb &lt; 0) || (Ra == 0)) `V = 1; 
@@ -1730,14 +1747,14 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       LUi:   regSet(a, uc16&lt;&lt;16);
       SHL:   regSet(a, Rb&lt;&lt;c5);     // Shift Left; SHL Ra,Rb,Cx; Ra&lt;=(Rb &lt;&lt; Cx)
       SRA:   regSet(a, (Rb&amp;'h80000000)|(Rb&gt;&gt;c5)); 
-                                    // Shift Right with signed bit fill;
-                                    // SHR Ra,Rb,Cx; Ra&lt;=(Rb&amp;0x80000000)|(Rb&gt;&gt;Cx)
+                                // Shift Right with signed bit fill;
+                                // SHR Ra,Rb,Cx; Ra&lt;=(Rb&amp;0x80000000)|(Rb&gt;&gt;Cx)
       SHR:   regSet(a, Rb&gt;&gt;c5);     // Shift Right with 0 fill; 
                                     // SHR Ra,Rb,Cx; Ra&lt;=(Rb &gt;&gt; Cx)
       SHLV:  regSet(a, Rb&lt;&lt;Rc);     // Shift Left; SHLV Ra,Rb,Rc; Ra&lt;=(Rb &lt;&lt; Rc)
       SRAV:  regSet(a, (Rb&amp;'h80000000)|(Rb&gt;&gt;Rc)); 
-                                    // Shift Right with signed bit fill;
-                                    // SHRV Ra,Rb,Rc; Ra&lt;=(Rb&amp;0x80000000)|(Rb&gt;&gt;Rc)
+                                // Shift Right with signed bit fill;
+                                // SHRV Ra,Rb,Rc; Ra&lt;=(Rb&amp;0x80000000)|(Rb&gt;&gt;Rc)
       SHRV:  regSet(a, Rb&gt;&gt;Rc);     // Shift Right with 0 fill; 
                                     // SHRV Ra,Rb,Rc; Ra&lt;=(Rb &gt;&gt; Rc)
       ROL:   regSet(a, (Rb&lt;&lt;c5)|(Rb&gt;&gt;(32-c5)));     // Rotate Left;
@@ -1746,12 +1763,24 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       MFHI:  regSet(a, HI);         // MFHI Ra; Ra&lt;=HI
       MTLO:  LO = Ra;               // MTLO Ra; LO&lt;=Ra
       MTHI:  HI = Ra;               // MTHI Ra; HI&lt;=Ra
+      MFSW:  regSet(a, SW);         // MFSW Ra; Ra&lt;=SW
+      MTSW:  SW = Ra;               // MTSW Ra; SW&lt;=Ra
       MULT:  {HI, LO}=Ra*Rb;        // MULT Ra,Rb; HI&lt;=((Ra*Rb)&gt;&gt;32); 
                                     // LO&lt;=((Ra*Rb) and 0x00000000ffffffff);
                                     // with exception overflow
       MULTu: {HI, LO}=URa*URb;      // MULT URa,URb; HI&lt;=((URa*URb)&gt;&gt;32); 
                                     // LO&lt;=((URa*URb) and 0x00000000ffffffff);
                                     // without exception overflow
+`ifdef CPU0II
+      // set
+      SLT:   if (Rb &lt; Rc) R[a]=1; else R[a]=0;
+      SLTu:  if (Rb &lt; Rc) R[a]=1; else R[a]=0;
+      SLTi:  if (Rb &lt; c16) R[a]=1; else R[a]=0;
+      SLTiu: if (Rb &lt; c16) R[a]=1; else R[a]=0;
+      // Branch Instructions
+      BEQ:   if (Ra==Rb) `PC=`PC+c16; 
+      BNE:   if (Ra!=Rb) `PC=`PC+c16;
+`endif
       // Jump Instructions
       JEQ:   if (`Z) `PC=`PC+c24;            // JEQ Cx; if SW(=) PC  PC+Cx
       JNE:   if (!`Z) `PC=`PC+c24;           // JNE Cx; if SW(!=) PC PC+Cx
@@ -1764,8 +1793,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
         `LR=`PC;`PC= c24; `I0 = 1'b1; `I = 1'b1;
       end // Software Interrupt; SWI Cx; LR &lt;= PC; PC &lt;= Cx; INT&lt;=1
       JSUB:  begin `LR=`PC;`PC=`PC + c24; end // JSUB Cx; LR&lt;=PC; PC&lt;=PC+Cx
-      JALR:  begin `LR=`PC;`PC=Ra; end // JALR Ra,Rb; Ra&lt;=PC; PC&lt;=Rb
-      RET:   begin `PC=`LR; end               // RET; PC &lt;= LR
+      JALR:  begin R[a] =`PC;`PC=Rb; end // JALR Ra,Rb; Ra&lt;=PC; PC&lt;=Rb
+      RET:   begin `PC=Ra; end               // RET; PC &lt;= Ra
       IRET:  begin 
         `PC=Ra;`I = 1'b0; `MODE = `EXE;
       end // Interrupt Return; IRET; PC &lt;= LR; INT&lt;=0
@@ -1782,36 +1811,32 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
                                           // write memory complete
       endcase
       case (op)
-      `ifdef TRACE
-      MULT, MULTu, DIV, DIVu, MTHI, MTLO :
-        $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
-        LO, `SW);
-      `endif
+      MULT, MULTu, DIV, DIVu, MTHI, MTLO, MTSW :
+        if (`TR)
+          $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
+        LO, SW);
       ST : begin
-      `ifdef TRACE
-        $display("%4dns %8x : %8x m[%-04d+%-04d]=%-d  SW=%8x", $stime, pc0, ir, 
-        R[b], c16, R[a], `SW);
-      `endif
+        if (`TR)
+          $display("%4dns %8x : %8x m[%-04d+%-04d]=%8x  SW=%8x", $stime, pc0, ir, 
+          R[b], c16, R[a], SW);
         if (R[b]+c16 == `IOADDR) begin
           outw(R[a]);
         end
       end
       SB : begin
-      `ifdef TRACE
-        $display("%4dns %8x : %8x m[%-04d+%-04d]=%c  SW=%8x", $stime, pc0, ir, 
-        R[b], c16, R[a][7:0], `SW);
-      `endif
+        if (`TR)
+          $display("%4dns %8x : %8x m[%-04d+%-04d]=%c  SW=%8x", $stime, pc0, ir, 
+        R[b], c16, R[a][7:0], SW);
         if (R[b]+c16 == `IOADDR) begin
           outc(R[a][7:0]);
         end
       end
-      `ifdef TRACE
-      default : 
-        $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, a, 
-        R[a], R[a], `SW);
-      `endif
+      default :
+        if (`TR) // Display the written register content
+          $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, 
+          a, R[a], R[a], SW);
       endcase
-      if (op==RET &amp;&amp; `PC &lt; 0) begin
+      if (`PC &lt; 0) begin
         $display("RET to PC &lt; 0, finished!");
         $finish;
       end
@@ -1825,11 +1850,13 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       taskInterrupt(`RESET);
       `MODE = `RESET;
       state = Fetch;
-    end else if (inInt == 0 &amp;&amp; (state == Fetch) &amp;&amp; (`IE &amp;&amp; `I) &amp;&amp; ((`I0E &amp;&amp; `I0) || (`I1E &amp;&amp; `I1) || (`I2E &amp;&amp; `I2)) ) begin
+    end else if (inInt == 0 &amp;&amp; (state == Fetch) &amp;&amp; (`IE &amp;&amp; `I) &amp;&amp; 
+                 ((`I0E &amp;&amp; `I0) || (`I1E &amp;&amp; `I1) || (`I2E &amp;&amp; `I2)) ) begin
       `MODE = `IRQ;
       taskInterrupt(`IRQ);
       state = Fetch;
     end else begin
+      // `TR = 1; // Trace register content at beginning
       taskExecute();
       state = next_state;
     end
@@ -1840,26 +1867,51 @@ endmodule
 module memory0(input clock, reset, en, rw, input [1:0] m_size, 
                 input [31:0] abus, dbus_in, output [31:0] dbus_out);
   reg [7:0] m [0:`MEMSIZE-1];
+`ifdef DLINKER
+  reg [7:0] flash [0:`MEMSIZE-1];
+  reg [7:0] dsym [0:192-1];
+  reg [7:0] dstr [0:96-1];
+  reg [7:0] so_func_offset[0:384-1];
+  reg [7:0] globalAddr [0:3];
+  reg [31:0] gp;
+  reg [31:0] gpPlt;
+  reg [31:0] fabus;
+  integer j;
+  integer k;
+  integer l;
+  reg [31:0] j32;
+  integer numDynEntry;
+`endif
   reg [31:0] data;
 
   integer i;
+
+`ifdef DLINKER
+`include "dynlinker.v"
+`endif
   initial begin
   // erase memory
     for (i=0; i &lt; `MEMSIZE; i=i+1) begin
        m[i] = `MEMEMPTY;
     end
+  // load program from file to memory
+    $readmemh("cpu0.hex", m);
   // display memory contents
-    $readmemh("cpu0s.hex", m);
     `ifdef TRACE
-    for (i=0; i &lt; `MEMSIZE &amp;&amp; (m[i] != `MEMEMPTY || m[i+1] != `MEMEMPTY || m[i+2] != `MEMEMPTY || m[i+3] != `MEMEMPTY); i=i+4) begin
-       $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
-    end
+      for (i=0; i &lt; `MEMSIZE &amp;&amp; (m[i] != `MEMEMPTY || m[i+1] != `MEMEMPTY || 
+         m[i+2] != `MEMEMPTY || m[i+3] != `MEMEMPTY); i=i+4) begin
+        $display("%8x: %8x", i, {m[i], m[i+1], m[i+2], m[i+3]});
+      end
     `endif
+`ifdef DLINKER
+  loadToFlash();
+  createDynInfo();
+`endif
   end
 
   always @(clock or abus or en or rw or dbus_in) 
   begin
-    if (abus &gt;=0 &amp;&amp; abus &lt;= `MEMSIZE-4) begin
+    if (abus &gt;= 0 &amp;&amp; abus &lt;= `MEMSIZE-4) begin
       if (en == 1 &amp;&amp; rw == 0) begin // r_w==0:write
         data = dbus_in;
         case (m_size)
@@ -1877,7 +1929,10 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
         endcase
       end else
         data = 32'hZZZZZZZZ;
-    end else
+  `ifdef DLINKER
+  `include "flashio.v"
+  `endif
+    end else 
       data = 32'hZZZZZZZZ;
   end
   assign dbus_out = data;
@@ -1894,14 +1949,14 @@ module main;
   cpu0 cpu(.clock(clock), .itype(itype), .pc(pc), .tick(tick), .ir(ir),
   .mar(mar), .mdr(mdr), .dbus(dbus), .m_en(m_en), .m_rw(m_rw), .m_size(m_size));
 
-  memory0 mem(.clock(clock), .reset(reset), .en(m_en), .rw(m_rw), .m_size(m_size), 
-  .abus(mar), .dbus_in(mdr), .dbus_out(dbus));
+  memory0 mem(.clock(clock), .reset(reset), .en(m_en), .rw(m_rw), 
+  .m_size(m_size), .abus(mar), .dbus_in(mdr), .dbus_out(dbus));
 
   initial
   begin
     clock = 0;
     itype = `RESET;
-    #3000000 $finish;
+    #300000000 $finish;
   end
 
   always #10 clock=clock+1;
@@ -1909,9 +1964,17 @@ module main;
 endmodule
 </pre>
 </div>
+<p class="rubric">lbdex/cpu0_verilog/cpu0Is.v</p>
+<div class="highlight-c++"><pre>// TRACE: Display the memory contents of the loaded program and data
+//`define TRACE 
+
+`include "cpu0.v"
+
+</pre>
+</div>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:raw Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
-/Users/Jonathan/test/2/lbd/LLVMBackendTutorialExampleCode/cpu0_verilog/raw
-JonathantekiiMac:raw Jonathan<span class="nv">$ </span>iverilog -o cpu0s cpu0s.v
+/Users/Jonathan/test/2/lbd/lbdex/cpu0_verilog/raw
+JonathantekiiMac:raw Jonathan<span class="nv">$ </span>iverilog -o cpu0Is cpu0Is.v
 </pre></div>
 </div>
 </div>
@@ -1919,8 +1982,8 @@ JonathantekiiMac:raw Jonathan<span class="nv">$ </span>iverilog -o cpu0s cpu0s.v
 <h2>Run program on CPU0 machine<a class="headerlink" href="#run-program-on-cpu0-machine" title="Permalink to this headline">¶</a></h2>
 <p>Now let&#8217;s compile ch_run_backend.cpp as below. Since code size grows up from low to high
 address and stack grows up from high to low address. We set $sp at 0x6ffc because
-cpu0s.v use 0x7000 bytes of memory.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/InitRegs.cpp</p>
+cpu0.v use 0x7000 bytes of memory.</p>
+<p class="rubric">lbdex/InputFiles/InitRegs.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $1,	$ZERO, 0&quot;</span><span class="p">);</span>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $2,	$ZERO, 0&quot;</span><span class="p">);</span>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $3,	$ZERO, 0&quot;</span><span class="p">);</span>
@@ -1931,12 +1994,12 @@ cpu0s.v use 0x7000 bytes of memory.</p>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $8,	$ZERO, 0&quot;</span><span class="p">);</span>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $9,	$ZERO, 0&quot;</span><span class="p">);</span>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $10, $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $11, $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $12, $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $14, $ZERO, -1&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $gp, $ZERO, 0&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $fp, $ZERO, 0&quot;</span><span class="p">);</span>
+<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $lr, $ZERO, -1&quot;</span><span class="p">);</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/print.h</p>
+<p class="rubric">lbdex/InputFiles/print.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#ifndef _PRINT_H_</span>
 <span class="cp">#define _PRINT_H_</span>
 
@@ -1949,7 +2012,7 @@ cpu0s.v use 0x7000 bytes of memory.</p>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/print.cpp</p>
+<p class="rubric">lbdex/InputFiles/print.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;print.h&quot;</span>
 <span class="cp">#include &quot;itoa.cpp&quot;</span>
 
@@ -1985,7 +2048,7 @@ cpu0s.v use 0x7000 bytes of memory.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch_run_backend.cpp</p>
+<p class="rubric">lbdex/InputFiles/ch_run_backend.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;boot.cpp&quot;</span>
 
 <span class="cp">#include &quot;print.h&quot;</span>
@@ -2086,7 +2149,7 @@ cpu0s.v use 0x7000 bytes of memory.</p>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
-/Users/Jonathan/test/2/lbd/LLVMBackendTutorialExampleCode/InputFiles
+/Users/Jonathan/test/2/lbd/lbdex/InputFiles
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>clang -c ch_run_backend.cpp -emit-llvm -o
 ch_run_backend.bc
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
@@ -2095,9 +2158,9 @@ ch_run_backend.bc -o ch_run_backend.cpu0.o
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
 build/bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk <span class="s1">&#39;{print &quot;/* &quot;</span>
 <span class="s1">$1 &quot; */\t&quot; $2 &quot; &quot; $3 &quot; &quot; $4 &quot; &quot; $5 &quot;\t/* &quot; $6&quot;\t&quot; $7&quot; &quot; $8&quot; &quot; $9&quot; &quot; $10 &quot;\t*/&quot;}&#39;</span>
- &gt; ../cpu0_verilog/raw/cpu0s.hex
+ &gt; ../cpu0_verilog/raw/cpu0.hex
 
-118-165-81-39:raw Jonathan<span class="nv">$ </span>cat cpu0s.hex
+118-165-81-39:raw Jonathan<span class="nv">$ </span>cat cpu0.hex
 ...
 /* 4c: */ 2b 00 00 20 /* jsub 0    */
 /* 50: */ 01 2d 00 04 /* st <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>    */
@@ -2110,7 +2173,7 @@ address is decided at link time for static address mode or at
 load time for PIC address mode.
 Since our backend didn&#8217;t implement the linker and loader, we change the
 <strong>&#8220;jsub #offset&#8221;</strong> encode in Chapter11_2/ as follow,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
+<p class="rubric">lbdex/Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
 <span class="n">getJumpTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
            <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -2140,7 +2203,7 @@ Records. A good linker will reorder the sections for optimization in
 data/function access. In other word,
 keep the global variable access as close as possible to reduce cache miss
 possibility.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp</p>
+<p class="rubric">lbdex/Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">const</span> <span class="n">MCFixupKindInfo</span> <span class="o">&amp;</span><span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">MCFixupKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="k">const</span> <span class="k">static</span> <span class="n">MCFixupKindInfo</span> <span class="n">Infos</span><span class="p">[</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">NumTargetFixupKinds</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="c1">// This table *must* be in same the order of fixup_* kinds in</span>
@@ -2159,50 +2222,11 @@ possibility.</p>
 </div>
 <p>Let&#8217;s run the Chapter11_2/ with <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></tt> for input files
 ch_run_backend.cpp to generate the hex file
-and input to cpu0s Verilog simulator to get the output result as below. You can
-unmark the $display() in cpu0s.v to trace the memory binary code and destination
-register change at every instruction execution. Remind ch_run_backend.cpp have to
+and input to cpu0Is Verilog simulator to get the output result as below.
+Remind ch_run_backend.cpp have to
 compile with option <tt class="docutils literal"><span class="pre">clang</span> <span class="pre">-target</span> <span class="pre">mips-unknown-linux-gnu</span></tt> and use the clang of
 your build instead of download from Xcode on iMac. The ~/llvm/release/
 cmake_debug_build/bin/Debug/ is my build clang from source code.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch_run_sum_i.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;boot.cpp&quot;</span>
-
-<span class="cp">#include &quot;print.h&quot;</span>
-
-<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...);</span>
-
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>    <span class="c1">// a = 15</span>
-
-  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="cp">#include &quot;print.cpp&quot;</span>
-
-<span class="cp">#include &lt;stdarg.h&gt;</span>
-<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-	
-  <span class="n">va_list</span> <span class="n">vl</span><span class="p">;</span>
-  <span class="n">va_start</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">amount</span><span class="p">);</span>
-  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">amount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="n">val</span> <span class="o">=</span> <span class="n">va_arg</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
-    <span class="n">sum</span> <span class="o">+=</span> <span class="n">val</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="n">va_end</span><span class="p">(</span><span class="n">vl</span><span class="p">);</span>
-  
-  <span class="k">return</span> <span class="n">sum</span><span class="p">;</span> 
-<span class="p">}</span>
-</pre></div>
-</div>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
 ch_run_backend.cpp -emit-llvm -o ch_run_backend.bc
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
@@ -2211,10 +2235,10 @@ ch_run_backend.bc -o ch_run_backend.cpu0.o
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
 build/bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk <span class="s1">&#39;{print &quot;/* &quot;</span>
 <span class="s1">$1 &quot; */\t&quot; $2 &quot; &quot; $3 &quot; &quot; $4 &quot; &quot; $5 &quot;\t/* &quot; $6&quot;\t&quot; $7&quot; &quot; $8&quot; &quot; $9&quot; &quot; $10 &quot;\t*/&quot;}&#39;</span>
- &gt; ../cpu0_verilog/raw/cpu0s.hex
+ &gt; ../cpu0_verilog/raw/cpu0.hex
 
-JonathantekiiMac:raw Jonathan<span class="nv">$ </span>./cpu0s
-WARNING: cpu0s.v:386: <span class="nv">$readmemh</span><span class="o">(</span>cpu0s.hex<span class="o">)</span>: Not enough words in the file <span class="k">for </span>the
+JonathantekiiMac:raw Jonathan<span class="nv">$ </span>./cpu0Is
+WARNING: cpu0Is.v:386: <span class="nv">$readmemh</span><span class="o">(</span>cpu0.hex<span class="o">)</span>: Not enough words in the file <span class="k">for </span>the
 taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 74
 253
@@ -2272,10 +2296,18 @@ _Z14print1_integeri:
      ................                                   ret <span class="nv">$lr</span>
 </pre></div>
 </div>
-<p>Unmark the $display() in cpu0s.v to trace the memory binary code and destination
-register change at every instruction execution as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:raw Jonathan<span class="nv">$ </span>./cpu0s
-WARNING: cpu0s.v:386: <span class="nv">$readmemh</span><span class="o">(</span>cpu0s.hex<span class="o">)</span>: Not enough words in the file <span class="k">for </span>the
+<p>You can trace the memory binary code and destination
+register change at every instruction execution by the following change and
+get the result as below,</p>
+<p class="rubric">lbdex/cpu0_verilog/cpu0Is.v</p>
+<div class="highlight-c++"><pre>`define TRACE</pre>
+</div>
+<p class="rubric">lbdex/cpu0_verilog/cpu0.v</p>
+<div class="highlight-c++"><pre>...
+`TR = 1; // Trace register content at beginning</pre>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:raw Jonathan<span class="nv">$ </span>./cpu0Is
+WARNING: cpu0.v:386: <span class="nv">$readmemh</span><span class="o">(</span>cpu0.hex<span class="o">)</span>: Not enough words in the file <span class="k">for </span>the
 requested range <span class="o">[</span>0:28671<span class="o">]</span>.
 00000000: 2600000c
 00000004: 26000004
@@ -2291,7 +2323,7 @@ taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 RET to PC &lt; 0, finished!
 </pre></div>
 </div>
-<p>As above result, cpu0s.v dump the memory first after read input cpu0s.hex.
+<p>As above result, cpu0.v dump the memory first after read input cpu0.hex.
 Next, it run instructions from address 0 and print each destination
 register value in the fourth column.
 The first column is the nano seconds of timing. The second

@@ -71,7 +71,7 @@ Finally, <a class="reference external" href="http://jonathan2251.github.com/lbd/
 <h3><strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong><a class="headerlink" href="#and" title="Permalink to this headline">¶</a></h3>
 <p>Appending the following code to Cpu0InstrInfo.td and Cpu0Schedule.td in
 Chapter4_1/ to support operators <strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong>.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter4_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>def shamt     : Operand&lt;i32&gt;;
 ...
 // shamt field must fit in 5 bits.
@@ -131,7 +131,7 @@ def SRAV    : shift_rotate_reg&lt;0x20, 0x00, "srav", sra, CPURegs&gt;;
 def SHLV    : shift_rotate_reg&lt;0x21, 0x00, "shlv", shl, CPURegs&gt;;
 def SHRV    : shift_rotate_reg&lt;0x22, 0x00, "shrv", srl, CPURegs&gt;;</pre>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0Schedule.td</p>
+<p class="rubric">lbdex/Chapter4_1/Cpu0Schedule.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
 <span class="n">def</span> <span class="n">IMULDIV</span> <span class="o">:</span> <span class="n">FuncUnit</span><span class="p">;</span>
 <span class="p">...</span>
@@ -306,7 +306,7 @@ integer.</p>
 <p>The srav, shlv and shrv are for two virtual registers instructions while the
 sra, ... are for 1 virtual registers and 1 constant input operands.</p>
 <p>Now, let&#8217;s build Chapter4_1/ and run with input file ch4_1.cpp as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch4_1.cpp</p>
+<p class="rubric">lbdex/InputFiles/ch4_1.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">test_math</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
@@ -569,7 +569,7 @@ Writing <span class="s1">&#39;/tmp/llvm_84ibpm/dag.main.dot&#39;</span>...  <spa
 </div>
 <p>It will show the /tmp/llvm_84ibpm/dag.main.dot as <a class="pageref" href="#otherinst-f1">Figure  1</a>.</p>
 <div class="figure align-center" id="otherinst-f1">
-<a class="reference internal image-reference" href="_images/17.png"><img alt="_images/17.png" src="_images/17.png" style="width: 687.0px; height: 851.0px;" /></a>
+<a class="reference internal image-reference" href="_images/18.png"><img alt="_images/18.png" src="_images/18.png" style="width: 687.0px; height: 851.0px;" /></a>
 <p class="caption">Figure 1: llc option -view-dag-combine1-dags graphic view</p>
 </div>
 <p>From <a class="pageref" href="#otherinst-f1">Figure  1</a>, we can see the -view-dag-combine1-dags option is for
@@ -596,7 +596,7 @@ match instruction in target description file .td.</p>
 <h4>The DAG of %<a class="headerlink" href="#the-dag-of" title="Permalink to this headline">¶</a></h4>
 <p>Example input code ch4_2.cpp which contains the C operator <strong>“%”</strong> and it&#8217;s
 corresponding llvm IR, as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch4_2.cpp</p>
+<p class="rubric">lbdex/InputFiles/ch4_2.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">test_mod</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
@@ -671,7 +671,7 @@ LLVM ERROR: Cannot <span class="k">select</span>: 0x7fa73a02ea10: <span class="n
 </pre></div>
 </div>
 <div class="figure align-center" id="otherinst-f2">
-<a class="reference internal image-reference" href="_images/26.png"><img alt="_images/26.png" src="_images/26.png" style="width: 580.0px; height: 629.0px;" /></a>
+<a class="reference internal image-reference" href="_images/27.png"><img alt="_images/27.png" src="_images/27.png" style="width: 580.0px; height: 629.0px;" /></a>
 <p class="caption">Figure 2: ch4_2.bc DAG</p>
 </div>
 <p>LLVM replace srem divide operation with multiply operation in DAG optimization
@@ -690,7 +690,7 @@ The final result (sub 12, 12) is 0 which match the statement (11+1)%12.</p>
 <h4>Arm solution<a class="headerlink" href="#arm-solution" title="Permalink to this headline">¶</a></h4>
 <p>To run with ARM solution, change Cpu0InstrInfo.td and Cpu0ISelDAGToDAG.cpp from
 Chapter4_1/ as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter4_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// Multiply and Divide Instructions.</span>
 <span class="n">def</span> <span class="n">SMMUL</span>   <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x41</span><span class="p">,</span> <span class="s">&quot;smmul&quot;</span><span class="p">,</span> <span class="n">mulhs</span><span class="p">,</span> <span class="n">IIImul</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="n">def</span> <span class="n">UMMUL</span>   <span class="o">:</span> <span class="n">ArithLogicR</span><span class="o">&lt;</span><span class="mh">0x42</span><span class="p">,</span> <span class="s">&quot;ummul&quot;</span><span class="p">,</span> <span class="n">mulhu</span><span class="p">,</span> <span class="n">IIImul</span><span class="p">,</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="mi">1</span><span class="o">&gt;</span><span class="p">;</span>
@@ -698,7 +698,7 @@ Chapter4_1/ as follows,</p>
 <span class="c1">//def MULTu   : Mult32&lt;0x42, &quot;multu&quot;, IIImul&gt;;</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0ISelDAGToDAG.cpp</p>
+<p class="rubric">lbdex/Chapter4_1/Cpu0ISelDAGToDAG.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#if 0</span><span class="c"></span>
 <span class="c">/// Select multiply instructions.</span>
 <span class="c">std::pair&lt;SDNode*, SDNode*&gt;</span>
@@ -743,7 +743,7 @@ Chapter4_1/ as follows,</p>
 to get <a class="pageref" href="#otherinst-f3">Figure  3</a>.
 Similarly, SMMUL get the high word of multiply result.</p>
 <div class="figure align-center" id="otherinst-f3">
-<a class="reference internal image-reference" href="_images/35.png"><img alt="_images/35.png" src="_images/35.png" style="width: 687.0px; height: 702.0px;" /></a>
+<a class="reference internal image-reference" href="_images/36.png"><img alt="_images/36.png" src="_images/36.png" style="width: 687.0px; height: 702.0px;" /></a>
 <p class="caption">Figure 3: Translate ch4_2.bc into cpu0 backend DAG</p>
 </div>
 <p>Follows is the result of run above changes with ch4_2.bc.</p>
@@ -817,7 +817,7 @@ For Mips style implementation, we add the following code in
 Cpu0RegisterInfo.td, Cpu0InstrInfo.td and Cpu0ISelDAGToDAG.cpp.
 And list the related DAG nodes mulhs and mulhu which are used in Chapter4_1/
 from TargetSelectionDAG.td.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0RegisterInfo.td</p>
+<p class="rubric">lbdex/Chapter4_1/Cpu0RegisterInfo.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Hi/Lo registers</span>
 <span class="n">def</span> <span class="n">HI</span>  <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;HI&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">18</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="n">def</span> <span class="n">LO</span>  <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;LO&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">19</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
@@ -836,7 +836,7 @@ from TargetSelectionDAG.td.</p>
 <span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter4_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// Mul, Div
 class Mult&lt;bits&lt;8&gt; op, string instr_asm, InstrItinClass itin,
      RegisterClass RC, list&lt;Register&gt; DefRegs&gt;:
@@ -869,7 +869,7 @@ def MULTu   : Mult32&lt;0x42, "multu", IIImul&gt;;
 def MFHI    : MoveFromLOHI&lt;0x46, "mfhi", CPURegs, [HI]&gt;;
 def MFLO    : MoveFromLOHI&lt;0x47, "mflo", CPURegs, [LO]&gt;;</pre>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0ISelDAGToDAG.cpp</p>
+<p class="rubric">lbdex/Chapter4_1/Cpu0ISelDAGToDAG.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// Select multiply instructions.</span>
 <span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="n">SDNode</span><span class="o">*</span><span class="p">,</span> <span class="n">SDNode</span><span class="o">*&gt;</span>
 <span class="n">Cpu0DAGToDAGISel</span><span class="o">::</span><span class="n">SelectMULT</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">Opc</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">dl</span><span class="p">,</span> <span class="n">EVT</span> <span class="n">Ty</span><span class="p">,</span>
@@ -997,7 +997,7 @@ With this solution, the <strong>“c = a / b”</strong> can be got by <strong>�
 <strong>“mflo c”</strong>; the <strong>“c = a % b”</strong> can be got by <strong>“div a, b”</strong> and <strong>“mfhi c”</strong>.</p>
 <p>Chapter4_1/ support operator <strong>“%”</strong> and <strong>“/”</strong>.
 The code added in Chapter4_1/ as follows,</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.cpp</p>
+<p class="rubric">lbdex/Chapter4_1/Cpu0InstrInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
 <span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
             <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
@@ -1035,14 +1035,14 @@ The code added in Chapter4_1/ as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.h</p>
+<p class="rubric">lbdex/Chapter4_1/Cpu0InstrInfo.h</p>
 <div class="highlight-c++"><div class="highlight"><pre>  <span class="k">virtual</span> <span class="kt">void</span> <span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
                            <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
                            <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
                            <span class="kt">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter4_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>def SDT_Cpu0DivRem     : SDTypeProfile&lt;0, 2,
            [SDTCisInt&lt;0&gt;,
           SDTCisSameAs&lt;0, 1&gt;]&gt;;
@@ -1081,7 +1081,7 @@ def UDIV    : Div32&lt;Cpu0DivRemU, 0x44, "divu", IIIdiv&gt;;
 def MTHI    : MoveToLOHI&lt;0x48, "mthi", CPURegs, [HI]&gt;;
 def MTLO    : MoveToLOHI&lt;0x49, "mtlo", CPURegs, [LO]&gt;;</pre>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0ISelLowering.cpp</p>
+<p class="rubric">lbdex/Chapter4_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
 <span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
 <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">TargetLoweringObjectFileELF</span><span class="p">()),</span>
@@ -1150,7 +1150,7 @@ def MTLO    : MoveToLOHI&lt;0x49, "mtlo", CPURegs, [LO]&gt;;</pre>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_1/Cpu0ISelLowering.h</p>
+<p class="rubric">lbdex/Chapter4_1/Cpu0ISelLowering.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
 <span class="k">namespace</span> <span class="n">Cpu0ISD</span> <span class="p">{</span>
 <span class="k">enum</span> <span class="n">NodeType</span> <span class="p">{</span>
@@ -1175,7 +1175,7 @@ It still use <strong>&#8220;multiplication&#8221;</strong> instead of <strong>&#
 llvm do <strong>“Constant Propagation Optimization”</strong> on this.
 The ch4_2_2.cpp can get the <strong>“div”</strong> for <strong>“%”</strong> result since it make the
 llvm <strong>“Constant Propagation Optimization”</strong> useless in this.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch4_2_1.cpp</p>
+<p class="rubric">lbdex/InputFiles/ch4_2_1.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">test_mod</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
@@ -1187,7 +1187,7 @@ llvm <strong>“Constant Propagation Optimization”</strong> useless in this.</
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch4_2_2.cpp</p>
+<p class="rubric">lbdex/InputFiles/ch4_2_2.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">test_mod</span><span class="p">(</span><span class="kt">int</span> <span class="n">c</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
@@ -1553,7 +1553,7 @@ to <strong>mfhi</strong>.</p>
 They are trivial and easy. Listing the added code with comment and table for
 these operators IR, DAG and instructions as below. You check them with the
 run result of bc and asm instructions for ch4_5.cpp as below.</p>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_2/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter4_2/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>class CmpInstr&lt;bits&lt;8&gt; op, string instr_asm,
                InstrItinClass itin, RegisterClass RC, RegisterClass RD,
                bit isComm = 0&gt;:
@@ -1635,7 +1635,7 @@ defm : SetlePats&lt;CPURegs&gt;;
 defm : SetgtPats&lt;CPURegs&gt;;
 defm : SetgePats&lt;CPURegs&gt;;</pre>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/Chapter4_2/Cpu0ISelLowering.cpp</p>
+<p class="rubric">lbdex/Chapter4_2/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
 <span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
   <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">Cpu0TargetObjectFile</span><span class="p">()),</span>
@@ -1647,7 +1647,7 @@ defm : SetgePats&lt;CPURegs&gt;;</pre>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">LLVMBackendTutorialExampleCode/InputFiles/ch4_5.cpp</p>
+<p class="rubric">lbdex/InputFiles/ch4_5.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">test_andorxornot</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
