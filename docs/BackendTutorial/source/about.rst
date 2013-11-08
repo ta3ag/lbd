@@ -54,7 +54,7 @@ Revision history
 
 Version 3.3.6, Not release yet.
 
-Version 3.3.5, Released November 7, 2013
+Version 3.3.5, Released November 8, 2013
   Split the elf2hex code from modiified llvm-objdump.cpp to elf2hex.h.
   Fix bug for tail call setting in LowerCall().
   Fix bug for LowerCPLOAD().
