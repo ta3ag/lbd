@@ -175,7 +175,7 @@ relationcanvas 130572 relation_ref 132108 // <realization>
   no_multiplicity_a no_multiplicity_b
 end
 relationcanvas 130700 relation_ref 134668 // <realization>
-  from ref 129548 z 3006 label "<ELFT->ELFT>" xyz 633 668.5 3006 stereotype "<<bind>>" xyz 648 684.5 3006 to ref 130444
+  from ref 129548 z 3006 label "<ELFT->ELFT>" xyz 633 668 3006 stereotype "<<bind>>" xyz 648 684 3006 to ref 130444
   no_role_a no_role_b
   no_multiplicity_a no_multiplicity_b
 end

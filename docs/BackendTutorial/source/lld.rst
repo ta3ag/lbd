@@ -459,9 +459,8 @@ Cpu0 lld structure
 
   Cpu0 lld RelocationPass
 
-
-The Cpu0LinkingContext include the context information for those obj files you
-want to link.
+The Cpu0LinkingContext include the context information for those input obj 
+files and output elf file you want to link.
 When do linking, the following code will create Cpu0LinkingContext.
 
 .. rubric:: lbdex/Cpu0_lld_1030/ELFLinkingContext.h
@@ -601,6 +600,21 @@ The std::unique_ptr came from c++11 standard.
 The unique_ptr objects automatically delete the object they manage (using a 
 deleter) as soon as they themselves are destroyed. Just like the Singlelten 
 pattern in Design Pattern book or Smart Pointers in Effective C++ book.
+
+.. _lld-f5: 
+.. figure:: ../Fig/lld/5.png
+  :scale: 100 %
+  :align: center
+
+  Cpu0LinkingContext get Cpu0TargetHandler through &getTargetHandler()
+
+
+As :num:`Figure #lld-f1` depicted, the Cpu0TargetHandler include the members or 
+pointers which can access to other object. The way to access Cpu0TargetHandler
+object from Cpu0LinkingContext or Cpu0RelocationHandler rely on 
+LinkingContext::getTargetHandler() function. As :num:`Figure #lld-f5` depicted, 
+the unique_ptr point to Cpu0TargetHandler will be saved in LinkingContext 
+contructor function.
 
 
 Dynamic linker 
