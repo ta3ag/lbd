@@ -32,7 +32,7 @@ Table of Contents
 Book example code
 -----------------
 
-The example code is available in: 
+The example code lbdex.tar.gz is available in: 
 
 https://www.dropbox.com/sh/2pkh1fewlq2zag9/r9n4gnqPm7/
 
