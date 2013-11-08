@@ -599,7 +599,7 @@ The Cpu0LinkingContext constructor will create it's ELFLinkingContext part.
 The std::unique_ptr came from c++11 standard.
 The unique_ptr objects automatically delete the object they manage (using a 
 deleter) as soon as they themselves are destroyed. Just like the Singlelten 
-pattern in Design Pattern book or Smart Pointers in Effective C++ book.
+pattern in Design Pattern book or Smart Pointers in Effective C++ book. [#]_
 
 .. _lld-f5: 
 .. figure:: ../Fig/lld/5.png
@@ -615,6 +615,22 @@ object from Cpu0LinkingContext or Cpu0RelocationHandler rely on
 LinkingContext::getTargetHandler() function. As :num:`Figure #lld-f5` depicted, 
 the unique_ptr point to Cpu0TargetHandler will be saved in LinkingContext 
 contructor function.
+
+.. note:: std::unique_ptr::get() [#]_
+
+  pointer get() const noexcept;
+
+  Get pointer
+  Returns the stored pointer. 
+
+
+.. note:: std::move() [#]_
+
+  for example:
+    std::string bar = "bar-string";
+    std::move(bar);
+
+    bar is null after std::move(bar);
 
 
 Dynamic linker 
@@ -739,4 +755,11 @@ We program it, design it and run it on real world.
 .. [#] http://lld.llvm.org/
 
 .. [#] http://lld.llvm.org/getting_started.html#on-unix-like-systems
+
+.. [#] http://www.cplusplus.com/reference/memory/unique_ptr/
+
+.. [#] http://www.cplusplus.com/reference/memory/unique_ptr/get/
+
+.. [#] http://www.cplusplus.com/reference/utility/move/
+
 

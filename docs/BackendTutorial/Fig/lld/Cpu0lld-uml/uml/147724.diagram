@@ -120,7 +120,7 @@ end
 note 129164 "  template <typename ELFT>
   lld::elf::TargetHandler<ELFT> &getTargetHandler() const {
     assert(_targetHandler && \"Got null TargetHandler!\");
-    return static_cast<lld::elf::TargetHandler<ELFT> &>(*_targetHandler.get()); <------------ (Suppose c++11 feature)
+    return static_cast<lld::elf::TargetHandler<ELFT> &>(*_targetHandler.get()); <-- (member function of std::unique_ptr)
   }
 "
   xyzwh 8 167 2000 397 149
@@ -145,7 +145,7 @@ relationcanvas 128268 relation_ref 129932 // <generalisation>
   no_multiplicity_a no_multiplicity_b
 end
 relationcanvas 128652 relation_ref 130316 // <realization>
-  from ref 128396 z 3006 label "<ELFT->Cpu0ELFType>" xyz 620.5 514.5 3006 stereotype "<<bind>>" xyz 660.5 530.5 3006 to ref 128524
+  from ref 128396 z 3006 label "<ELFT->Cpu0ELFType>" xyz 620 514 3006 stereotype "<<bind>>" xyz 660 530 3006 to ref 128524
   no_role_a no_role_b
   no_multiplicity_a no_multiplicity_b
 end
@@ -166,7 +166,7 @@ relationcanvas 129804 relation_ref 134412 // <generalisation>
   no_multiplicity_a no_multiplicity_b
 end
 relationcanvas 129932 relation_ref 132620 // <directional composition>
-  from ref 128012 z 3018 stereotype "<<:unique_ptr>>" xyz 534 154.5 3018 to ref 129676
+  from ref 128012 z 3018 stereotype "<<:unique_ptr>>" xyz 534 154 3018 to ref 129676
   role_a_pos 537 104 3000 no_role_b
   no_multiplicity_a no_multiplicity_b
 end
