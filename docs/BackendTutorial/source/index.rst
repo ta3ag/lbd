@@ -34,7 +34,7 @@ Book example code
 
 The example code is available in: 
 
-http://jonathan2251.github.com/lbd/lbdex.tar.gz
+https://www.dropbox.com/sh/2pkh1fewlq2zag9/r9n4gnqPm7/lbdex.tar.gz
 
 
 Alternate formats
