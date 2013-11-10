@@ -12,10 +12,8 @@ diff -Naur Chapter8_1/ Chapter9_1/ > 9-1.patch
 diff -Naur Chapter9_1/ Chapter9_2/ > 9-2.patch
 diff -Naur Chapter9_2/ Chapter9_3/ > 9-3.patch
 diff -Naur Chapter9_3/ Chapter9_4/ > 9-4.patch
-diff -Naur Chapter9_4/ Chapter9_4_2/ > 9-4-2.patch
 diff -Naur Chapter9_4/ Chapter10_1/ > 10-1.patch
 diff -Naur Chapter10_1/ Chapter11_1/ > 11-1.patch
-diff -Naur Chapter11_1/ Chapter11_2/ > 11-2.patch
-diff -Naur Chapter11_2/ Chapter12_1/ > 12-1.patch
+diff -Naur Chapter11_1/ Chapter12_1/ > 12-1.patch
 diff -Naur Chapter12_1/ Chapter12_2/ > 12-2.patch
 

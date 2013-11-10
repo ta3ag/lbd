@@ -76,4 +76,3 @@ def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
 
 // Status Registers
 def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
-

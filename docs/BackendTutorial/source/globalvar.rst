@@ -319,7 +319,21 @@ About the **cl::opt** command line variable, you can refer to [#]_ further.
   UseSmallSectionOpt("cpu0-use-small-section", cl::Hidden, cl::init(false),
                    cl::desc("Use small section. Only work with -relocation-model="
                    "static. pic always not use small section."));
-    
+  
+  static cl::opt<bool>
+  ReserveGPOpt("cpu0-reserve-gp", cl::Hidden, cl::init(false),
+                   cl::desc("Never allocate $gp to variable"));
+  
+  static cl::opt<bool>
+  NoCploadOpt("cpu0-no-cpload", cl::Hidden, cl::init(false),
+                   cl::desc("No issue .cpload"));
+  
+  bool Cpu0ReserveGP;
+  bool Cpu0NoCpload;
+  
+  extern bool FixGlobalBaseReg;
+
+The ReserveGPOpt and NoCploadOpt are used in Cpu0 linker at later Chapter.
 Next add file Cpu0TargetObjectFile.h, Cpu0TargetObjectFile.cpp and the 
 following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
 
@@ -860,7 +874,9 @@ variables. The following code tells llvm never allocate $gp for variables.
     ...
     // Set UseSmallSection.
     UseSmallSection = UseSmallSectionOpt;
-    if (RM == Reloc::Static && !UseSmallSection)
+    Cpu0ReserveGP = ReserveGPOpt;
+    Cpu0NoCpload = NoCploadOpt;
+    if (RM == Reloc::Static && !UseSmallSection && !Cpu0ReserveGP)
       FixGlobalBaseReg = false;
     else
       FixGlobalBaseReg = true;

@@ -56,8 +56,6 @@ copyPhysReg(MachineBasicBlock &MBB,
     else if (DestReg == Cpu0::LO)
       Opc = Cpu0::MTLO, DestReg = 0;
     if (!Subtarget.hasCpu032II()) {
-      // Only possibility in (DestReg==SW, SrcReg==CPU0Regs) is 
-      //  cmp $SW, $ZERO, $rc
       if (DestReg == Cpu0::SW)
         Opc = Cpu0::MTSW, DestReg = 0;
     }

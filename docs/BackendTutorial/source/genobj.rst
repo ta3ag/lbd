@@ -14,7 +14,7 @@ Translate into obj file
 ------------------------
 
 Currently, we only support translate llvm IR code into assembly code. 
-If you try to run Chapter4_1/ to translate obj code will get the error message as 
+If you try to run Chapter4_2/ to translate obj code will get the error message as 
 follows,
 
 .. code-block:: bash
@@ -117,6 +117,31 @@ objdump from B0 to B3 as 0xd8ffdd09.
 
 Backend Target Registration Structure
 --------------------------------------
+
+To support elf obj generated, the following code changed  and added to 
+Chapter5_1.
+
+.. rubric:: lbdex/Chapter5_1/MCTargetDesc/CMakeLists.txt
+
+add_llvm_library(LLVMCpu0Desc
+  Cpu0AsmBackend.cpp
+  ...
+  Cpu0MCCodeEmitter.cpp
+  ...
+  Cpu0ELFObjectWriter.cpp
+  )
+
+.. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp
+.. literalinclude:: ../lbdex/Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp
+
+.. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. literalinclude:: ../lbdex/Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+
+.. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
+.. literalinclude:: ../lbdex/Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
+
+.. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. literalinclude:: ../lbdex/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
 
 Now, let's examine Cpu0MCTargetDesc.cpp.
 
@@ -253,7 +278,7 @@ They share a lot of code with instruction/register td description.
 :num:`Figure #genobj-f5`, instancing two objects Cpu0MCCodeEmitter, one is for 
 big endian and the other is for little endian. 
 They take care the obj format generated. 
-So, it's not defined in Chapter4_6_2/ which support assembly code only.
+So, it's not defined in Chapter4_2/ which support assembly code only.
 
 :num:`Figure #genobj-f6`, MCELFStreamer take care the obj format also. 
 :num:`Figure #genobj-f5` Cpu0MCCodeEmitter take care code emitter while 
@@ -282,7 +307,7 @@ Cpu0.td information.
 :num:`Figure #genobj-f9`, instancing Cpu0InstPrinter to take care printing 
 function for instructions. 
 Like :num:`Figure #genobj-f1` to :num:`Figure #genobj-f4`, it has been defined 
-in Chapter4_6_2/ code for assembly file generated support.
+in Chapter4_2/ code for assembly file generated support.
 
 
 

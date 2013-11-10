@@ -1114,7 +1114,6 @@ Now, compile ch3.bc into ch3.cpu0.s, we get the error message as follows,
   ch3.cpu0.s
   Assertion failed: (target.get() && "Could not allocate target machine!"), 
   function main, file /Users/Jonathan/llvm/test/src/tools/llc/llc.cpp, 
-  line 271.
   ...
 
 Currently we just define target td files (Cpu0.td, Cpu0RegisterInfo.td, ...). 
@@ -1122,44 +1121,6 @@ According to LLVM structure, we need to define our target machine and include
 those td related files. 
 The error message say we didn't define our target machine.
 
-
-.. commenting out this subsection
-
-  this subsection was originally between Stages of Cpu0 pipeline and LLVM Structure
-  
-  Replace ldi instruction by addiu instruction
-  ++++++++++++++++++++++++++++++++++++++++++++
-  
-  We have recognized the ldi instruction is a bad design and replace it with mips 
-  instruction addiu. 
-  The reason we replace ldi with addiu is that ldi use only one register even 
-  though ldi is L type format and has two registers, as :ref:`llvmstructure_f4`. 
-  Mips addiu which allow programmer to do load constant to register like ldi, 
-  and add constant to a register. So, it's powerful and fully contains the ldi 
-  ability. 
-  These two instructions format as :ref:`llvmstructure_f4` and :ref:`llvmstructure_f5`.
-  
-  .. _llvmstructure_f4: 
-  .. figure:: ../Fig/llvmstructure/4.png
-    :align: center
-  
-    Cpu0 ldi instruction
-
-  .. _llvmstructure_f5: 
-  .. figure:: ../Fig/llvmstructure/5.png
-    :align: center
-  
-    Mips addiu instruction format
-
-  From :ref:`llvmstructure_f4` and :ref:`llvmstructure_f5`, you can find ldi $Ra, 
-  5 can be replaced by addiu $Ra, $zero, 5. 
-  And more, addiu can do addiu $Ra, $Rb, 5 which add $Rb and 5 then save to $Ra, 
-  but ldi cannot. 
-  As a cpu design, it's common to redesign CPU instruction when find a better 
-  solution during design the compiler backend for that CPU. 
-  So, we add addiu instruction to cpu0. 
-  The cpu0 is my brother's work, I will find time to talk with him.
-.. end subsection
 
 
 .. [#cpu0-chinese] Original Cpu0 architecture and ISA details (Chinese). http://ccckmit.wikidot.com/ocs:cpu0

@@ -346,7 +346,7 @@ class CBranch24<bits<8> op, string instr_asm, RegisterClass RC,
   let isTerminator = 1;
   let hasDelaySlot = 0;
   let neverHasSideEffects = 1;
-//  let Predicates = [NotCpu032II];
+//  let Predicates = [HasCpu032II]; // same effect as Requires
 }
 
 // Conditional Branch, e.g. BEQ $r1, $r2, brtarget16
@@ -359,7 +359,6 @@ class CBranch16<bits<8> op, string instr_asm, PatFrag cond_op, RegisterClass RC>
   let isTerminator = 1;
   let hasDelaySlot = 1;
   let Defs = [AT];
-//  let Predicates = [HasCpu032II];
 }
 
 // SetCC
@@ -370,7 +369,6 @@ class SetCC_R<bits<8> op, string instr_asm, PatFrag cond_op,
      [(set CPURegs:$ra, (cond_op RC:$rb, RC:$rc))],
      IIAlu>, Requires<[HasCpu032II]> {
   let shamt = 0;
-//  let Predicates = [HasCpu032II];
 }
 
 class SetCC_I<bits<8> op, string instr_asm, PatFrag cond_op, Operand Od,
@@ -379,7 +377,6 @@ class SetCC_I<bits<8> op, string instr_asm, PatFrag cond_op, Operand Od,
      !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
      [(set CPURegs:$ra, (cond_op RC:$rb, imm_type:$imm16))],
      IIAlu>, Requires<[HasCpu032II]> {
-//  let Predicates = [HasCpu032II]; // same effect as Requires
 }
 
 // Unconditional branch, such as JMP
@@ -589,27 +586,21 @@ def SRAV    : shift_rotate_reg<0x20, 0x00, "srav", sra, CPURegs>;
 def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
 def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
 
-//let Predicates = [HasCpu032II] in {
 def SLTi    : SetCC_I<0x26, "slti", setlt, simm16, immSExt16, CPURegs>;
 def SLTiu   : SetCC_I<0x27, "sltiu", setult, simm16, immSExt16, CPURegs>;
 def SLT     : SetCC_R<0x28, "slt", setlt, CPURegs>;
 def SLTu    : SetCC_R<0x29, "sltu", setult, CPURegs>;
-//}
 
 /// Jump and Branch Instructions
-//let Predicates = [NotCpu032II] in {
 def JEQ     : CBranch24<0x30, "jeq", SR, [SW]>;
 def JNE     : CBranch24<0x31, "jne", SR, [SW]>;
 def JLT     : CBranch24<0x32, "jlt", SR, [SW]>;
 def JGT     : CBranch24<0x33, "jgt", SR, [SW]>;
 def JLE     : CBranch24<0x34, "jle", SR, [SW]>;
 def JGE     : CBranch24<0x35, "jge", SR, [SW]>;
-//}
 
-//let Predicates = [HasCpu032II] in {
 def BEQ     : CBranch16<0x37, "beq", seteq, CPURegs>;
 def BNE     : CBranch16<0x38, "bne", setne, CPURegs>;
-//}
 
 def JMP     : UncondBranch<0x36, "jmp">;
 

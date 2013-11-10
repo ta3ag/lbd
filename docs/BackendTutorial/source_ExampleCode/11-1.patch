@@ -1,6 +1,6 @@
 diff -Naur Chapter10_1/AsmParser/CMakeLists.txt Chapter11_1/AsmParser/CMakeLists.txt
 --- Chapter10_1/AsmParser/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter11_1/AsmParser/CMakeLists.txt	2013-09-30 13:02:21.389928383 +0800
++++ Chapter11_1/AsmParser/CMakeLists.txt	2013-11-10 08:34:49.000000000 +0800
 @@ -0,0 +1,6 @@
 +include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
 +add_llvm_library(LLVMCpu0AsmParser
@@ -10,8 +10,8 @@ diff -Naur Chapter10_1/AsmParser/CMakeLists.txt Chapter11_1/AsmParser/CMakeLists
 +add_dependencies(LLVMCpu0AsmParser Cpu0CommonTableGen)
 diff -Naur Chapter10_1/AsmParser/Cpu0AsmParser.cpp Chapter11_1/AsmParser/Cpu0AsmParser.cpp
 --- Chapter10_1/AsmParser/Cpu0AsmParser.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter11_1/AsmParser/Cpu0AsmParser.cpp	2013-09-30 13:02:21.389928383 +0800
-@@ -0,0 +1,1026 @@
++++ Chapter11_1/AsmParser/Cpu0AsmParser.cpp	2013-11-10 09:12:20.000000000 +0800
+@@ -0,0 +1,1029 @@
 +//===-- Cpu0AsmParser.cpp - Parse Cpu0 assembly to MCInst instructions ----===//
 +//
 +//                     The LLVM Compiler Infrastructure
@@ -490,15 +490,18 @@ diff -Naur Chapter10_1/AsmParser/Cpu0AsmParser.cpp Chapter11_1/AsmParser/Cpu0Asm
 +      .Case("a0",  Cpu0::A0)
 +      .Case("a1",  Cpu0::A1)
 +      .Case("t9",  Cpu0::T9)
++      .Case("t0",  Cpu0::T0)
 +      .Case("s0",  Cpu0::S0)
 +      .Case("s1",  Cpu0::S1)
 +      .Case("s2",  Cpu0::S2)
 +      .Case("gp",  Cpu0::GP)
 +      .Case("fp",  Cpu0::FP)
-+      .Case("sw",  Cpu0::SW)
 +      .Case("sp",  Cpu0::SP)
 +      .Case("lr",  Cpu0::LR)
 +      .Case("pc",  Cpu0::PC)
++      .Case("hi",  Cpu0::HI)
++      .Case("lo",  Cpu0::LO)
++      .Case("sw",  Cpu0::SW)
 +      .Default(-1);
 +
 +  if (CC != -1)
@@ -800,7 +803,7 @@ diff -Naur Chapter10_1/AsmParser/Cpu0AsmParser.cpp Chapter11_1/AsmParser/Cpu0Asm
 +    .Case("hi",          MCSymbolRefExpr::VK_Cpu0_ABS_HI)
 +    .Case("lo",          MCSymbolRefExpr::VK_Cpu0_ABS_LO)
 +    .Case("gp_rel",      MCSymbolRefExpr::VK_Cpu0_GPREL)
-+    .Case("call24",      MCSymbolRefExpr::VK_Cpu0_GOT_CALL)
++    .Case("call16",      MCSymbolRefExpr::VK_Cpu0_GOT_CALL)
 +    .Case("got",         MCSymbolRefExpr::VK_Cpu0_GOT)
 +    .Case("tlsgd",       MCSymbolRefExpr::VK_Cpu0_TLSGD)
 +    .Case("tlsldm",      MCSymbolRefExpr::VK_Cpu0_TLSLDM)
@@ -1040,7 +1043,7 @@ diff -Naur Chapter10_1/AsmParser/Cpu0AsmParser.cpp Chapter11_1/AsmParser/Cpu0Asm
 +
 diff -Naur Chapter10_1/AsmParser/LLVMBuild.txt Chapter11_1/AsmParser/LLVMBuild.txt
 --- Chapter10_1/AsmParser/LLVMBuild.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter11_1/AsmParser/LLVMBuild.txt	2013-09-30 13:02:21.389928383 +0800
++++ Chapter11_1/AsmParser/LLVMBuild.txt	2013-11-10 08:34:49.000000000 +0800
 @@ -0,0 +1,23 @@
 +;===- ./lib/Target/Mips/AsmParser/LLVMBuild.txt ----------------*- Conf -*--===;
 +;
@@ -1066,8 +1069,8 @@ diff -Naur Chapter10_1/AsmParser/LLVMBuild.txt Chapter11_1/AsmParser/LLVMBuild.t
 +required_libraries = MC MCParser Support MipsDesc MipsInfo
 +add_to_library_groups = Cpu0
 diff -Naur Chapter10_1/CMakeLists.txt Chapter11_1/CMakeLists.txt
---- Chapter10_1/CMakeLists.txt	2013-09-30 13:02:21.389928383 +0800
-+++ Chapter11_1/CMakeLists.txt	2013-09-30 13:02:21.385928383 +0800
+--- Chapter10_1/CMakeLists.txt	2013-11-10 08:34:49.000000000 +0800
++++ Chapter11_1/CMakeLists.txt	2013-11-10 08:34:49.000000000 +0800
 @@ -17,6 +17,7 @@
  tablegen(LLVM Cpu0GenDAGISel.inc -gen-dag-isel)
  tablegen(LLVM Cpu0GenCallingConv.inc -gen-callingconv)
@@ -1081,9 +1084,38 @@ diff -Naur Chapter10_1/CMakeLists.txt Chapter11_1/CMakeLists.txt
  add_subdirectory(TargetInfo)
  add_subdirectory(MCTargetDesc)
 +add_subdirectory(AsmParser)
+diff -Naur Chapter10_1/Cpu0.td Chapter11_1/Cpu0.td
+--- Chapter10_1/Cpu0.td	2013-11-10 08:34:49.000000000 +0800
++++ Chapter11_1/Cpu0.td	2013-11-10 08:34:49.000000000 +0800
+@@ -49,6 +49,17 @@
+   bit isMCAsmWriter = 1;
+ }
+ 
++def Cpu0AsmParser : AsmParser {
++  let ShouldEmitMatchRegisterName = 0;
++}
++
++def Cpu0AsmParserVariant : AsmParserVariant {
++  int Variant = 0;
++
++  // Recognize hard coded registers.
++  string RegisterPrefix = "$";
++}
++
+ // Will generate Cpu0GenAsmWrite.inc included by Cpu0InstPrinter.cpp, contents 
+ //  as follows,
+ // void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) {...}
+@@ -56,5 +67,7 @@
+ def Cpu0 : Target {
+ // def Cpu0InstrInfo : InstrInfo as before.
+   let InstructionSet = Cpu0InstrInfo;
++  let AssemblyParsers = [Cpu0AsmParser];
+   let AssemblyWriters = [Cpu0AsmWriter];
++  let AssemblyParserVariants = [Cpu0AsmParserVariant];
+ }
 diff -Naur Chapter10_1/Cpu0FrameLowering.cpp Chapter11_1/Cpu0FrameLowering.cpp
---- Chapter10_1/Cpu0FrameLowering.cpp	2013-09-30 13:02:21.389928383 +0800
-+++ Chapter11_1/Cpu0FrameLowering.cpp	2013-09-30 13:02:21.389928383 +0800
+--- Chapter10_1/Cpu0FrameLowering.cpp	2013-11-10 08:34:49.000000000 +0800
++++ Chapter11_1/Cpu0FrameLowering.cpp	2013-11-10 08:34:49.000000000 +0800
 @@ -15,6 +15,7 @@
  #include "Cpu0AnalyzeImmediate.h"
  #include "Cpu0InstrInfo.h"
@@ -1098,8 +1130,8 @@ diff -Naur Chapter10_1/Cpu0FrameLowering.cpp Chapter11_1/Cpu0FrameLowering.cpp
  
 -
 diff -Naur Chapter10_1/Cpu0InstrFormats.td Chapter11_1/Cpu0InstrFormats.td
---- Chapter10_1/Cpu0InstrFormats.td	2013-09-30 13:02:21.389928383 +0800
-+++ Chapter11_1/Cpu0InstrFormats.td	2013-09-30 13:02:21.389928383 +0800
+--- Chapter10_1/Cpu0InstrFormats.td	2013-11-10 08:34:49.000000000 +0800
++++ Chapter11_1/Cpu0InstrFormats.td	2013-11-10 08:34:49.000000000 +0800
 @@ -76,6 +76,15 @@
    let isPseudo = 1;
  }
@@ -1117,9 +1149,9 @@ diff -Naur Chapter10_1/Cpu0InstrFormats.td Chapter11_1/Cpu0InstrFormats.td
  // Format A instruction class in Cpu0 : <|opcode|ra|rb|rc|cx|>
  //===----------------------------------------------------------------------===//
 diff -Naur Chapter10_1/Cpu0InstrInfo.td Chapter11_1/Cpu0InstrInfo.td
---- Chapter10_1/Cpu0InstrInfo.td	2013-09-30 13:02:21.389928383 +0800
-+++ Chapter11_1/Cpu0InstrInfo.td	2013-09-30 13:02:21.385928383 +0800
-@@ -91,11 +91,17 @@
+--- Chapter10_1/Cpu0InstrInfo.td	2013-11-10 08:34:49.000000000 +0800
++++ Chapter11_1/Cpu0InstrInfo.td	2013-11-10 08:34:49.000000000 +0800
+@@ -98,11 +98,17 @@
    let PrintMethod = "printUnsignedImm";
  }
  
@@ -1137,16 +1169,7 @@ diff -Naur Chapter10_1/Cpu0InstrInfo.td Chapter11_1/Cpu0InstrInfo.td
  }
  
  def mem_ea : Operand<i32> {
-@@ -276,7 +282,7 @@
- class CBranch<bits<8> op, string instr_asm, RegisterClass RC,
-                    list<Register> UseRegs>:
-   FJ<op, (outs), (ins RC:$ra, brtarget:$addr),
--             !strconcat(instr_asm, "\t$addr"),
-+             !strconcat(instr_asm, "\t$ra, $addr"),
-              [], IIBranch> {
-   let isBranch = 1;
-   let isTerminator = 1;
-@@ -406,11 +412,26 @@
+@@ -433,11 +439,26 @@
                             ".cprestore\t$loc", []>;
  
  //===----------------------------------------------------------------------===//
@@ -1175,38 +1198,9 @@ diff -Naur Chapter10_1/Cpu0InstrInfo.td Chapter11_1/Cpu0InstrInfo.td
  //===----------------------------------------------------------------------===//
  
  /// Load and Store Instructions
-diff -Naur Chapter10_1/Cpu0.td Chapter11_1/Cpu0.td
---- Chapter10_1/Cpu0.td	2013-09-30 13:02:21.389928383 +0800
-+++ Chapter11_1/Cpu0.td	2013-09-30 13:02:21.385928383 +0800
-@@ -49,6 +49,17 @@
-   bit isMCAsmWriter = 1;
- }
- 
-+def Cpu0AsmParser : AsmParser {
-+  let ShouldEmitMatchRegisterName = 0;
-+}
-+
-+def Cpu0AsmParserVariant : AsmParserVariant {
-+  int Variant = 0;
-+
-+  // Recognize hard coded registers.
-+  string RegisterPrefix = "$";
-+}
-+
- // Will generate Cpu0GenAsmWrite.inc included by Cpu0InstPrinter.cpp, contents 
- //  as follows,
- // void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) {...}
-@@ -56,5 +67,7 @@
- def Cpu0 : Target {
- // def Cpu0InstrInfo : InstrInfo as before.
-   let InstructionSet = Cpu0InstrInfo;
-+  let AssemblyParsers = [Cpu0AsmParser];
-   let AssemblyWriters = [Cpu0AsmWriter];
-+  let AssemblyParserVariants = [Cpu0AsmParserVariant];
- }
 diff -Naur Chapter10_1/LLVMBuild.txt Chapter11_1/LLVMBuild.txt
---- Chapter10_1/LLVMBuild.txt	2013-09-30 13:02:21.389928383 +0800
-+++ Chapter11_1/LLVMBuild.txt	2013-09-30 13:02:21.389928383 +0800
+--- Chapter10_1/LLVMBuild.txt	2013-11-10 08:34:49.000000000 +0800
++++ Chapter11_1/LLVMBuild.txt	2013-11-10 08:34:49.000000000 +0800
 @@ -18,7 +18,7 @@
  # Following comments extracted from http://llvm.org/docs/LLVMBuild.html
  
@@ -1225,16 +1219,3 @@ diff -Naur Chapter10_1/LLVMBuild.txt Chapter11_1/LLVMBuild.txt
  has_asmprinter = 1
  has_disassembler = 1
  #has_jit = 1
-diff -Naur Chapter10_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter10_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-09-30 13:02:21.389928383 +0800
-+++ Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-09-30 13:02:21.385928383 +0800
-@@ -151,6 +151,9 @@
-                        SmallVectorImpl<MCFixup> &Fixups) const {
- 
-   const MCOperand &MO = MI.getOperand(OpNo);
-+
-+  // If the destination is an immediate, we have nothing to do.
-+  if (MO.isImm()) return MO.getImm();
-   assert(MO.isExpr() && "getBranchTargetOpValue expects only expressions");
- 
-   const MCExpr *Expr = MO.getExpr();

@@ -40,9 +40,6 @@ class Cpu0MCCodeEmitter : public MCCodeEmitter {
 
   Cpu0MCCodeEmitter(const Cpu0MCCodeEmitter &) LLVM_DELETED_FUNCTION;
   void operator=(const Cpu0MCCodeEmitter &) LLVM_DELETED_FUNCTION;
-  // Even though, the old function still work on LLVM version 3.2
-  //  Cpu0MCCodeEmitter(const Cpu0MCCodeEmitter &); // DO NOT IMPLEMENT
-  //  void operator=(const Cpu0MCCodeEmitter &); // DO NOT IMPLEMENT
 
   const MCInstrInfo &MCII;
   const MCSubtargetInfo &STI;

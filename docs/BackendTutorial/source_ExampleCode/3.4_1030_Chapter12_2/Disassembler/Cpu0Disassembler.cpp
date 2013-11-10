@@ -204,17 +204,6 @@ static DecodeStatus DecodeMem(MCInst &Inst,
   return MCDisassembler::Success;
 }
 
-static DecodeStatus DecodeBranch16Target(MCInst &Inst,
-                                       unsigned Insn,
-                                       uint64_t Address,
-                                       const void *Decoder) {
-  int BranchOffset = fieldFromInstruction(Insn, 0, 16);
-  if (BranchOffset > 0x8fff)
-  	BranchOffset = -1*(0x10000 - BranchOffset);
-  Inst.addOperand(MCOperand::CreateImm(BranchOffset));
-  return MCDisassembler::Success;
-}
-
 /* CMP instruction define $rc and then $ra, $rb; The printOperand() print 
 operand 1 and operand 2 (operand 0 is $rc and operand 1 is $ra), so we Create 
 register $rc first and create $ra next, as follows,
@@ -250,6 +239,17 @@ static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
   Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_c]));
   Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_a]));
   Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_b]));
+  return MCDisassembler::Success;
+}
+
+static DecodeStatus DecodeBranch16Target(MCInst &Inst,
+                                       unsigned Insn,
+                                       uint64_t Address,
+                                       const void *Decoder) {
+  int BranchOffset = fieldFromInstruction(Insn, 0, 16);
+  if (BranchOffset > 0x8fff)
+  	BranchOffset = -1*(0x10000 - BranchOffset);
+  Inst.addOperand(MCOperand::CreateImm(BranchOffset));
   return MCDisassembler::Success;
 }
 
