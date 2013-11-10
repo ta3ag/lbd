@@ -54,6 +54,7 @@ Revision history
 
 Version 3.3.7, Not release yet.
   lld.rst documentation.
+  Add cpu032I and cpu032II in `llc -mcpu`.
 
 Version 3.3.6, Released November 8, 2013
   Move example code from github to dropbox since the name is not work for 
