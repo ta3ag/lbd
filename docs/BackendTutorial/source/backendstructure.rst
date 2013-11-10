@@ -94,6 +94,10 @@ The Cpu0TargetMachine contents and it's own class as follows,
   } 
   
 
+.. rubric:: lbdex/Chapter3_1/Cpu0.td
+  ...
+  include "Cpu0CallingConv.td"
+
 .. rubric:: lbdex/Chapter3_1/Cpu0CallingConv.td
 .. literalinclude:: ../lbdex/Chapter3_1/Cpu0CallingConv.td
 
@@ -125,7 +129,6 @@ The Cpu0TargetMachine contents and it's own class as follows,
 .. literalinclude:: ../lbdex/Chapter3_1/Cpu0SelectionDAGInfo.cpp
 
 .. rubric:: lbdex/Chapter3_1/Cpu0Subtarget.h
-
 .. code-block:: c++
 
   #define GET_SUBTARGETINFO_HEADER
@@ -261,6 +264,10 @@ and .cpp).
 CMakeLists.txt  modified with those new added \*.cpp as follows,
 
 .. rubric:: lbdex/Chapter3_1/CMakeLists.txt
+.. literalinclude:: ../lbdex/Chapter3_1/CMakeLists.txt
+    :start-after: tablegen(LLVM Cpu0GenInstrInfo.inc -gen-instr-info)
+    :end-before: tablegen(LLVM Cpu0GenSubtargetInfo.inc -gen-subtarget)
+
 .. literalinclude:: ../lbdex/Chapter3_1/CMakeLists.txt
     :start-after: add_public_tablegen_target
     :end-before: Should match with

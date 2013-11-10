@@ -35,18 +35,19 @@ static unsigned adjustFixupValue(unsigned Kind, uint64_t Value) {
     return 0;
   case FK_GPRel_4:
   case FK_Data_4:
+  case Cpu0::fixup_Cpu0_CALL16:
   case Cpu0::fixup_Cpu0_LO16:
   case Cpu0::fixup_Cpu0_GOT_LO16:
     break;
   case Cpu0::fixup_Cpu0_PC16:
   case Cpu0::fixup_Cpu0_PC24:
-    // So far we are only using this type for branches.
+    // So far we are only using this type for branches and jump.
     // For branches we start 1 instruction after the branch
     // so the displacement will be one instruction size less.
     Value -= 4;
     break;
   case Cpu0::fixup_Cpu0_24:
-    // So far we are only using this type for jumps.
+    // So far we are only using this type for instruction SWI.
     break;
   case Cpu0::fixup_Cpu0_HI16:
   case Cpu0::fixup_Cpu0_GOT_Local:
@@ -76,8 +77,6 @@ public:
   //  are moved.
     return createCpu0ELFObjectWriter(OS,
       MCELFObjectTargetWriter::getOSABI(OSType), IsLittle);
-  // Even though, the old function still work on LLVM version 3.2
-  //    return createCpu0ELFObjectWriter(OS, OSType, IsLittle);
   }
 
   /// ApplyFixup - Apply the \arg Value for given \arg Fixup into the provided
@@ -99,8 +98,8 @@ public:
     unsigned FullSize;
 
     switch ((unsigned)Kind) {
-    case Cpu0::fixup_Cpu0_16:
-      FullSize = 2;
+    case Cpu0::fixup_Cpu0_24:
+      FullSize = 3;
       break;
     default:
       FullSize = 4;
@@ -132,34 +131,19 @@ public:
       // This table *must* be in same the order of fixup_* kinds in
       // Cpu0FixupKinds.h.
       //
-      // name                    offset  bits  flags
-      { "fixup_Cpu0_16",           0,     16,   0 },
-      { "fixup_Cpu0_32",           0,     32,   0 },
-      { "fixup_Cpu0_REL32",        0,     32,   0 },
-      { "fixup_Cpu0_24",           0,     24,   0 },
-      { "fixup_Cpu0_HI16",         0,     16,   0 },
-      { "fixup_Cpu0_LO16",         0,     16,   0 },
-      { "fixup_Cpu0_GPREL16",      0,     16,   0 },
-      { "fixup_Cpu0_LITERAL",      0,     16,   0 },
-      { "fixup_Cpu0_GOT_Global",   0,     16,   0 },
-      { "fixup_Cpu0_GOT_Local",    0,     16,   0 },
-      { "fixup_Cpu0_PC16",         0,     16,  MCFixupKindInfo::FKF_IsPCRel },
-      { "fixup_Cpu0_PC24",         0,     24,  MCFixupKindInfo::FKF_IsPCRel },
-      { "fixup_Cpu0_CALL24",       0,     24,   0 },
-      { "fixup_Cpu0_GPREL32",      0,     32,   0 },
-      { "fixup_Cpu0_SHIFT5",       6,      5,   0 },
-      { "fixup_Cpu0_SHIFT6",       6,      5,   0 },
-      { "fixup_Cpu0_64",           0,     64,   0 },
-      { "fixup_Cpu0_TLSGD",        0,     16,   0 },
-      { "fixup_Cpu0_GOTTPREL",     0,     16,   0 },
-      { "fixup_Cpu0_TPREL_HI",     0,     16,   0 },
-      { "fixup_Cpu0_TPREL_LO",     0,     16,   0 },
-      { "fixup_Cpu0_TLSLDM",       0,     16,   0 },
-      { "fixup_Cpu0_DTPREL_HI",    0,     16,   0 },
-      { "fixup_Cpu0_DTPREL_LO",    0,     16,   0 },
-      { "fixup_Cpu0_Branch_PCRel", 0,     16,  MCFixupKindInfo::FKF_IsPCRel },
-      { "fixup_Cpu0_GOT_HI16",     0,     16,   0 },
-      { "fixup_Cpu0_GOT_LO16",     0,     16,   0 }
+      // name                        offset  bits  flags
+      { "fixup_Cpu0_24",             0,     24,   0 },
+      { "fixup_Cpu0_32",             0,     32,   0 },
+      { "fixup_Cpu0_HI16",           0,     16,   0 },
+      { "fixup_Cpu0_LO16",           0,     16,   0 },
+      { "fixup_Cpu0_GPREL16",        0,     16,   0 },
+      { "fixup_Cpu0_GOT_Global",     0,     16,   0 },
+      { "fixup_Cpu0_GOT_Local",      0,     16,   0 },
+      { "fixup_Cpu0_PC16",           0,     16,  MCFixupKindInfo::FKF_IsPCRel },
+      { "fixup_Cpu0_PC24",           0,     24,  MCFixupKindInfo::FKF_IsPCRel },
+      { "fixup_Cpu0_CALL16",         0,     16,   0 },
+      { "fixup_Cpu0_GOT_HI16",       0,     16,   0 },
+      { "fixup_Cpu0_GOT_LO16",       0,     16,   0 }
     };
 
     if (Kind < FirstTargetFixupKind)

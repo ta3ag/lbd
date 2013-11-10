@@ -231,6 +231,8 @@ void Cpu0AsmPrinter::EmitFunctionBodyStart() {
   bool EmitCPLoad = (MF->getTarget().getRelocationModel() == Reloc::PIC_) &&
     Cpu0FI->globalBaseRegSet() &&
     Cpu0FI->globalBaseRegFixed();
+  if (Cpu0NoCpload)
+    EmitCPLoad = false;
 
   if (OutStreamer.hasRawTextSupport()) {
     SmallString<128> Str;

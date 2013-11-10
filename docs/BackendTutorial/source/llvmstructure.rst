@@ -402,6 +402,18 @@ The following table details the Cpu0 instruction set:
     - Move GPR to LO
     - MTLO Ra
     - LO <= Ra
+  * - L
+    - MFSW
+    - 50
+    - Move SW to GPR
+    - MFSW Ra
+    - Ra <= SW
+  * - L
+    - MTSW
+    - 51
+    - Move GPR to SW
+    - MTSW Ra
+    - SW <= Ra
 
 .. note:: **Cpu0 unsigned instructions**
 
