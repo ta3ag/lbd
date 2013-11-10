@@ -12,7 +12,6 @@
 //===----------------------------------------------------------------------===//
 //
 #define DEBUG_TYPE "mccodeemitter"
-#include "Cpu0.h"
 #include "MCTargetDesc/Cpu0BaseInfo.h"
 #include "MCTargetDesc/Cpu0FixupKinds.h"
 #include "MCTargetDesc/Cpu0MCTargetDesc.h"
@@ -84,7 +83,7 @@ public:
   // requires relocation, record the relocation and return zero.
   unsigned getBranch24TargetOpValue(const MCInst &MI, unsigned OpNo,
                                   SmallVectorImpl<MCFixup> &Fixups) const;
-
+                                  
   // getJumpTargetOpValue - Return binary encoding of the jump
   // target operand, such as SWI #interrupt_addr and JSUB #function_addr. 
   // If the machine operand requires relocation,
