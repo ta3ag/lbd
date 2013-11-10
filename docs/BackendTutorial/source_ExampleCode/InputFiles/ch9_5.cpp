@@ -1,5 +1,7 @@
-// clang -target mips-unknown-linux-gnu -c ch8_5.cpp -emit-llvm -o ch8_5.bc
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_5.bc -o -
+// clang -target mips-unknown-linux-gnu -c ch9_5.cpp -emit-llvm -o ch9_5.bc
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_5.bc -o -
+
+// Test soft float function call for type double
 
 /// start
 int test_over64bits()

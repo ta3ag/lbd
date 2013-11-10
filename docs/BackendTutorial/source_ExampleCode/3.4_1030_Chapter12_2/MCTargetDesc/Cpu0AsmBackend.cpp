@@ -12,7 +12,6 @@
 //===----------------------------------------------------------------------===//
 //
 
-#include "Cpu0.h"
 #include "Cpu0FixupKinds.h"
 #include "MCTargetDesc/Cpu0MCTargetDesc.h"
 #include "llvm/MC/MCAsmBackend.h"
@@ -143,7 +142,6 @@ public:
       { "fixup_Cpu0_PC16",           0,     16,  MCFixupKindInfo::FKF_IsPCRel },
       { "fixup_Cpu0_PC24",           0,     24,  MCFixupKindInfo::FKF_IsPCRel },
       { "fixup_Cpu0_CALL16",         0,     16,   0 },
-      { "fixup_Cpu0_Branch_PCRel",   0,     16,  MCFixupKindInfo::FKF_IsPCRel },
       { "fixup_Cpu0_GOT_HI16",       0,     16,   0 },
       { "fixup_Cpu0_GOT_LO16",       0,     16,   0 }
     };
