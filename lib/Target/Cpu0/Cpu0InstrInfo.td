@@ -69,8 +69,7 @@ def HasCpu032II :     Predicate<"Subtarget.hasCpu032II()">,
                       AssemblerPredicate<"!FeatureCpu032III">;
 // !FeatureCpu032III is for disassembler in "llvm-objdump -d"
 
-/*
-In Cpu0GenSubtargetInfo.inc,
+/* In Cpu0GenSubtargetInfo.inc,
 namespace llvm {
 namespace Cpu0 {
 enum {
@@ -94,9 +93,7 @@ static bool checkDecoderPredicate(unsigned Idx, uint64_t Bits) {
 To let disassembler work, the function 
 checkDecoderPredicate(unsigned Idx, uint64_t Bits) must return true(=1).
 As above code, the argument Bits always is 1. Set !FeatureCpu032III" to do 
-disassembler for expectation.
-*/
-
+disassembler for expectation. */
 
 //===----------------------------------------------------------------------===//
 // Cpu0 Operand, Complex Patterns and Transformations Definitions.
@@ -126,7 +123,7 @@ def jmptarget    : Operand<OtherVT> {
 
 def calltarget  : Operand<iPTR> {
   let EncoderMethod = "getJumpTargetOpValue";
-}
+} // def jmptarget
 
 // Signed Operand
 def simm16      : Operand<i32> {
@@ -143,7 +140,7 @@ def uimm16      : Operand<i32> {
 def Cpu0MemAsmOperand : AsmOperandClass {
   let Name = "Mem";
   let ParserMethod = "parseMemOperand";
-}
+} // def Cpu0MemAsmOperand
 
 // Address operand
 def mem : Operand<i32> {
@@ -167,7 +164,7 @@ def LO16 : SDNodeXForm<imm, [{
 // Transformation Function - get the higher 16 bits.
 def HI16 : SDNodeXForm<imm, [{
   return getImm(N, (N->getZExtValue() >> 16) & 0xffff);
-}]>;
+}]>; // def HI16
 
 // Node immediate fits as 16-bit sign extended on target immediate.
 // e.g. addi, andi
@@ -254,7 +251,7 @@ class CmpInstr<bits<8> op, string instr_asm,
   let isCommutable = isComm;
   let DecoderMethod = "DecodeCMPInstruction";
   let Predicates = [NotCpu032II];
-}
+} // class CmpInstr
 
 // Arithmetic and logical instructions with 2 register operands.
 class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
@@ -296,7 +293,7 @@ class LoadUpper<bits<8> op, string instr_asm, RegisterClass RC, Operand Imm>:
   let rb = 0;
   let neverHasSideEffects = 1;
   let isReMaterializable = 1;
-}
+} // class LoadUpper
 
 class FMem<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern,
           InstrItinClass itin>: FL<op, outs, ins, asmstr, pattern, itin> {
@@ -640,7 +637,7 @@ let addr=0 in
 // can be matched. It's similar to Sparc LEA_ADDRi
 def LEA_ADDiu : EffectiveAddress<"addiu\t$ra, $addr", CPURegs, mem_ea> {
   let isCodeGenOnly = 1;
-}
+} // def LEA_ADDiu
 
 //===----------------------------------------------------------------------===//
 //  Arbitrary patterns that map to one or more instructions

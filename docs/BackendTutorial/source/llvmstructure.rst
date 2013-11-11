@@ -693,7 +693,11 @@ files are used by the backend.  These files have a similar syntax to C++. For Cp
 target description file is called Cpu0.td, which is shown below:
 
 .. rubric:: lbdex/Chapter2/Cpu0.td
-.. literalinclude:: ../lbdex/Chapter2/Cpu0.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
+    :end-before: include "Cpu0CallingConv.td"
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
+    :start-after: include "Cpu0CallingConv.td"
+    :end-before: // Without this will have error: 'cpu032I'
 
 Cpu0.td includes a few other .td files.  Cpu0RegisterInfo.td (shown below) describes the 
 Cpu0's set of registers.  In this file, we see that registers have been given names, i.e.
@@ -705,7 +709,13 @@ of general purpose registers for Cpu0, and some registers that are reserved so t
 are not modified by instructions during execution.
 
 .. rubric:: lbdex/Chapter2/Cpu0RegisterInfo.td
-.. literalinclude:: ../lbdex/Chapter2/Cpu0RegisterInfo.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.td
+    :end-before: // Hi/Lo registers number and name
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.td
+    :start-after: def LO   : Register<"lo">, DwarfRegNum<[19]>;
+    :end-before: // Hi/Lo Registers class
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.td
+    :start-after: def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
 
 
 In C++, classes typically provide a structure to lay out some data and functions, 
@@ -759,7 +769,59 @@ The Cpu0RegisterInfo.td also defines that ``CPURegs`` is an instance of the clas
 The cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
 
 .. rubric:: lbdex/Chapter2/Cpu0InstrInfo.td
-.. literalinclude:: ../lbdex/Chapter2/Cpu0InstrInfo.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :end-before: def SDT_Cpu0DivRem       : SDTypeProfile<0, 2
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def Cpu0GPRel : SDNode<"Cpu0ISD::GPRel", SDTIntUnaryOp>;
+    :end-before: // These are target-independent nodes, but have target-specific formats.
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: disassembler for expectation. */
+    :end-before: // Instruction operand types
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: } // def jmptarget
+    :end-before: def shamt
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: } // def Cpu0MemAsmOperand
+    :end-before: let ParserMatchClass = Cpu0MemAsmOperand;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: let ParserMatchClass = Cpu0MemAsmOperand;
+    :end-before: def mem_ea : Operand<i32> {
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: }]>; // def HI16
+    :end-before: // Node immediate fits as 16-bit zero extended on target immediate.
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def immZExt5 : ImmLeaf<i32, [{return Imm == (Imm & 0x1f);}]>;
+    :end-before: def sextloadi16_a   : AlignedLoad<sextloadi16>;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def extloadi16_a    : AlignedLoad<extloadi16>;
+    :end-before: def truncstorei16_a : AlignedStore<truncstorei16>;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def truncstorei16_a : AlignedStore<truncstorei16>;
+    :end-before: // Instructions specific format
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def store_a         : AlignedStore<store>;
+    :end-before: // Arithmetic and logical instructions with 3 register operands.
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: } // class CmpInstr
+    :end-before: // Shifts
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: } // class LoadUpper
+    :end-before: // Conditional Branch, e.g. JEQ brtarget24
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def LoadAddr32Imm : LoadAddressImm<"la", shamt, CPURegs>;
+    :end-before: defm LB     : LoadM32<0x03, "lb",  sextloadi8>;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: defm SH     : StoreM32<0x08, "sh", truncstorei16_a>;
+    :end-before: def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs>;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: defm SH     : StoreM32<0x08, "sh", truncstorei16_a>;
+    :end-before: def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs>;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
+    :end-before: def IRET    : JumpFR<0x3d, "iret", CPURegs>;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: } // def LEA_ADDiu
+    :end-before: def : Pat<(i32 immZExt16:$in),
 
 
 The Cpu0InstrFormats.td is included by Cpu0InstInfo.td as follows,
@@ -920,8 +982,8 @@ We will use it in DAG transformations later.
 File Cpu0Schedule.td include the function units and pipeline stages information
 as follows,
 
-.. rubric:: lbdex/Chapter2/Cpu0Schedult.td
-.. literalinclude:: ../lbdex/Chapter2/Cpu0Schedult.td
+.. rubric:: lbdex/Chapter2/Cpu0Schedule.td
+.. literalinclude:: ../lbdex/Chapter2/Cpu0Schedule.td
 
 
 Write cmake file
