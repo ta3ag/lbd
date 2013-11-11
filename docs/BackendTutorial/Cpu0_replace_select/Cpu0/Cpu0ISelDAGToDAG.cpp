@@ -34,6 +34,7 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
+#include "Cpu0ReplaceSelect.cpp"
 using namespace llvm;
 
 //===----------------------------------------------------------------------===//
@@ -55,10 +56,14 @@ class Cpu0DAGToDAGISel : public SelectionDAGISel {
   /// make the right decision when generating code for different targets.
   const Cpu0Subtarget &Subtarget;
 
+  ReplaceSelect *_replaceSelect;
+
 public:
   explicit Cpu0DAGToDAGISel(Cpu0TargetMachine &tm) :
   SelectionDAGISel(tm),
-  TM(tm), Subtarget(tm.getSubtarget<Cpu0Subtarget>()) {}
+  TM(tm), Subtarget(tm.getSubtarget<Cpu0Subtarget>()) {
+    _replaceSelect = new ReplaceSelect(TM);
+  }
 
   // Pass Name
   virtual const char *getPassName() const {
@@ -100,6 +105,7 @@ private:
 }
 
 bool Cpu0DAGToDAGISel::runOnMachineFunction(MachineFunction &MF) {
+//  _replaceSelect->runOnMachineFunction(MF);
   bool Ret = SelectionDAGISel::runOnMachineFunction(MF);
 
   return Ret;
@@ -228,27 +234,31 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
   case ISD::SELECT: {
     assert("Got ISD::SELECT");
     return NULL;
-  }
+  }*/
   case ISD::SELECT_CC: {
+    DebugLoc DL = Node->getDebugLoc();
     assert((Opcode == ISD::SELECT_CC) && "Got ISD::SELECT_CC");
     DEBUG(outs() << "Got ISD::SELECT_CC\n");
-    SDValue Chain = Op.getOperand(1);
-    SDValue Dest = Op.getOperand(2);
+    SDValue Chain = Node->getOperand(1);
+    SDValue Dest = Node->getOperand(2);
 //    SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::J, dl, VT, Ops);
     // insert new blocks after the current block
-    const BasicBlock *LLVM_BB = BB->getBasicBlock();
-    MachineBasicBlock *loopMBB = MF->CreateMachineBasicBlock(LLVM_BB);
-    MachineBasicBlock *exitMBB = MF->CreateMachineBasicBlock(LLVM_BB);
-    MachineFunction::iterator It = BB;
+//    const BasicBlock *LLVM_BB = BB->getBasicBlock();
+    MachineBasicBlock* LLVM_BB = MF->CreateMachineBasicBlock();
+    MachineBasicBlock *ifMBB = MF->CreateMachineBasicBlock();
+    MachineBasicBlock *elseMBB = MF->CreateMachineBasicBlock();
+    MF->push_back(ifMBB);
+    MF->push_back(elseMBB);
+/*    MachineFunction::iterator It = BB;
     ++It;
     MF->insert(It, loopMBB);
-    MF->insert(It, exitMBB);
+    MF->insert(It, exitMBB);*/
 
-  return DAG.getNode(ISD::BRCOND, DL, Op.getValueType(), Chain, BrCode,
+  return DAG.getNode(ISD::BRCOND, DL, Node->getValueType(), Chain, BrCode,
                      Dest, CondRes);
 
     return NULL;
-  }*/
+  }
   case ISD::SUBE:
   case ISD::ADDE: {
     SDValue InFlag = Node->getOperand(2), CmpLHS;

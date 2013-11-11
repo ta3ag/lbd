@@ -49,8 +49,13 @@ namespace {
     bool runOnMachineBasicBlock(MachineBasicBlock &MBB);
     bool runOnMachineFunction(MachineFunction &F) {
       bool Changed = false;
-      if (EnableReplaceSelect) {
-        for (MachineFunction::iterator FI = F.begin(), FE = F.end();
+      MachineFunction::iterator FI = F.begin();
+      MachineFunction::iterator FE = F.end();
+      if (FI == FE) {
+        MachineBasicBlock* pMBB1 = F.CreateMachineBasicBlock();
+      }
+      else if (EnableReplaceSelect) {
+        for (;
              FI != FE; ++FI) {
           // In STL style, F.end() is the dummy BasicBlock() like '\0' in 
           //  C string. 
