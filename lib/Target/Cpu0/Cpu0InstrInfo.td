@@ -601,7 +601,7 @@ def BNE     : CBranch16<0x38, "bne", setne, CPURegs>;
 
 def JMP     : UncondBranch<0x36, "jmp">;
 
-/// Jump and Branch Instructions
+/// Jump & link and Return Instructions
 def SWI     : JumpLink<0x3a, "swi">;
 def JSUB    : JumpLink<0x3b, "jsub">;
 def JR      : JumpFR<0x3c, "ret", CPURegs>;

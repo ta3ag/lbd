@@ -1,6 +1,6 @@
 diff -Naur Chapter3_3/CMakeLists.txt Chapter3_4/CMakeLists.txt
---- Chapter3_3/CMakeLists.txt	2013-11-11 17:15:26.253375892 +0800
-+++ Chapter3_4/CMakeLists.txt	2013-11-11 17:15:26.261375892 +0800
+--- Chapter3_3/CMakeLists.txt	2013-11-11 19:50:20.000000000 +0800
++++ Chapter3_4/CMakeLists.txt	2013-11-11 19:50:20.000000000 +0800
 @@ -23,6 +23,7 @@
  
  # Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen
@@ -11,7 +11,7 @@ diff -Naur Chapter3_3/CMakeLists.txt Chapter3_4/CMakeLists.txt
    Cpu0ISelDAGToDAG.cpp
 diff -Naur Chapter3_3/Cpu0AnalyzeImmediate.cpp Chapter3_4/Cpu0AnalyzeImmediate.cpp
 --- Chapter3_3/Cpu0AnalyzeImmediate.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_4/Cpu0AnalyzeImmediate.cpp	2013-11-11 17:15:26.265375892 +0800
++++ Chapter3_4/Cpu0AnalyzeImmediate.cpp	2013-11-11 19:50:20.000000000 +0800
 @@ -0,0 +1,146 @@
 +//===-- Cpu0AnalyzeImmediate.cpp - Analyze Immediates ---------------------===//
 +//
@@ -161,7 +161,7 @@ diff -Naur Chapter3_3/Cpu0AnalyzeImmediate.cpp Chapter3_4/Cpu0AnalyzeImmediate.c
 +}
 diff -Naur Chapter3_3/Cpu0AnalyzeImmediate.h Chapter3_4/Cpu0AnalyzeImmediate.h
 --- Chapter3_3/Cpu0AnalyzeImmediate.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_4/Cpu0AnalyzeImmediate.h	2013-11-11 17:15:26.265375892 +0800
++++ Chapter3_4/Cpu0AnalyzeImmediate.h	2013-11-11 19:50:20.000000000 +0800
 @@ -0,0 +1,63 @@
 +//===-- Cpu0AnalyzeImmediate.h - Analyze Immediates ------------*- C++ -*--===//
 +//
@@ -227,8 +227,8 @@ diff -Naur Chapter3_3/Cpu0AnalyzeImmediate.h Chapter3_4/Cpu0AnalyzeImmediate.h
 +
 +#endif
 diff -Naur Chapter3_3/Cpu0FrameLowering.cpp Chapter3_4/Cpu0FrameLowering.cpp
---- Chapter3_3/Cpu0FrameLowering.cpp	2013-11-11 17:15:26.257375892 +0800
-+++ Chapter3_4/Cpu0FrameLowering.cpp	2013-11-11 17:15:26.265375892 +0800
+--- Chapter3_3/Cpu0FrameLowering.cpp	2013-11-11 19:50:20.000000000 +0800
++++ Chapter3_4/Cpu0FrameLowering.cpp	2013-11-11 19:50:20.000000000 +0800
 @@ -12,6 +12,7 @@
  //===----------------------------------------------------------------------===//
  
@@ -413,8 +413,8 @@ diff -Naur Chapter3_3/Cpu0FrameLowering.cpp Chapter3_4/Cpu0FrameLowering.cpp
  
  
 diff -Naur Chapter3_3/Cpu0FrameLowering.h Chapter3_4/Cpu0FrameLowering.h
---- Chapter3_3/Cpu0FrameLowering.h	2013-11-11 17:15:26.253375892 +0800
-+++ Chapter3_4/Cpu0FrameLowering.h	2013-11-11 17:15:26.261375892 +0800
+--- Chapter3_3/Cpu0FrameLowering.h	2013-11-11 19:50:20.000000000 +0800
++++ Chapter3_4/Cpu0FrameLowering.h	2013-11-11 19:50:20.000000000 +0800
 @@ -35,6 +35,8 @@
    void emitPrologue(MachineFunction &MF) const;
    void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const;
@@ -424,9 +424,71 @@ diff -Naur Chapter3_3/Cpu0FrameLowering.h Chapter3_4/Cpu0FrameLowering.h
  };
  
  } // End llvm namespace
+diff -Naur Chapter3_3/Cpu0InstrFormats.td Chapter3_4/Cpu0InstrFormats.td
+--- Chapter3_3/Cpu0InstrFormats.td	2013-11-11 19:50:20.000000000 +0800
++++ Chapter3_4/Cpu0InstrFormats.td	2013-11-11 20:53:30.000000000 +0800
+@@ -69,6 +69,13 @@
+   field bits<32> SoftFail = 0;
+ }
+ 
++// Cpu0 Pseudo Instructions Format
++class Cpu0Pseudo<dag outs, dag ins, string asmstr, list<dag> pattern>:
++      Cpu0Inst<outs, ins, asmstr, pattern, IIPseudo, Pseudo> {
++  let isCodeGenOnly = 1;
++  let isPseudo = 1;
++}
++
+ //===----------------------------------------------------------------------===//
+ // Format A instruction class in Cpu0 : <|opcode|ra|rb|rc|cx|>
+ //===----------------------------------------------------------------------===//
+diff -Naur Chapter3_3/Cpu0InstrInfo.cpp Chapter3_4/Cpu0InstrInfo.cpp
+--- Chapter3_3/Cpu0InstrInfo.cpp	2013-11-11 19:50:20.000000000 +0800
++++ Chapter3_4/Cpu0InstrInfo.cpp	2013-11-11 20:57:55.000000000 +0800
+@@ -37,3 +37,25 @@
+   return &*MIB;
+ }
+ 
++// Cpu0InstrInfo::expandPostRAPseudo
++/// Expand Pseudo instructions into real backend instructions
++bool Cpu0InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
++  MachineBasicBlock &MBB = *MI->getParent();
++
++  switch(MI->getDesc().getOpcode()) {
++  default:
++    return false;
++  case Cpu0::RetLR:
++    ExpandRetLR(MBB, MI, Cpu0::RET);
++    break;
++  }
++
++  MBB.erase(MI);
++  return true;
++}
++
++void Cpu0InstrInfo::ExpandRetLR(MachineBasicBlock &MBB,
++                                MachineBasicBlock::iterator I,
++                                unsigned Opc) const {
++  BuildMI(MBB, I, I->getDebugLoc(), get(Opc)).addReg(Cpu0::LR);
++}
+diff -Naur Chapter3_3/Cpu0InstrInfo.h Chapter3_4/Cpu0InstrInfo.h
+--- Chapter3_3/Cpu0InstrInfo.h	2013-11-11 19:50:20.000000000 +0800
++++ Chapter3_4/Cpu0InstrInfo.h	2013-11-11 21:02:11.000000000 +0800
+@@ -41,6 +41,12 @@
+                                                  int FrameIx, uint64_t Offset,
+                                                  const MDNode *MDPtr,
+                                                  DebugLoc DL) const;
++  /// Expand Pseudo instructions into real backend instructions
++  virtual bool expandPostRAPseudo(MachineBasicBlock::iterator MI) const;
++
++private:
++  void ExpandRetLR(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
++                   unsigned Opc) const;
+ };
+ }
+ 
 diff -Naur Chapter3_3/Cpu0InstrInfo.td Chapter3_4/Cpu0InstrInfo.td
---- Chapter3_3/Cpu0InstrInfo.td	2013-11-11 17:15:26.253375892 +0800
-+++ Chapter3_4/Cpu0InstrInfo.td	2013-11-11 17:15:26.261375892 +0800
+--- Chapter3_3/Cpu0InstrInfo.td	2013-11-11 19:50:20.000000000 +0800
++++ Chapter3_4/Cpu0InstrInfo.td	2013-11-11 20:51:49.000000000 +0800
 @@ -36,6 +36,13 @@
    let DecoderMethod= "DecodeSimm16";
  }
@@ -532,7 +594,7 @@ diff -Naur Chapter3_3/Cpu0InstrInfo.td Chapter3_4/Cpu0InstrInfo.td
  class FMem<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern,
            InstrItinClass itin>: FL<op, outs, ins, asmstr, pattern, itin> {
    bits<20> addr;
-@@ -138,6 +211,14 @@
+@@ -155,6 +228,17 @@
  /// Arithmetic Instructions (ALU Immediate)
  // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
  def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
@@ -544,10 +606,13 @@ diff -Naur Chapter3_3/Cpu0InstrInfo.td Chapter3_4/Cpu0InstrInfo.td
 +
 +/// Shift Instructions
 +def SHL     : shift_rotate_imm32<0x1e, 0x00, "shl", shl>;
++
++let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
++  def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
  
- let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
-     isBarrier=1, hasCtrlDep=1 in
-@@ -151,3 +232,12 @@
+ def RET     : RetBase<CPURegs>;
+ 
+@@ -165,3 +249,12 @@
  // Small immediates
  def : Pat<(i32 immSExt16:$in),
            (ADDiu ZERO, imm:$in)>;
@@ -561,8 +626,8 @@ diff -Naur Chapter3_3/Cpu0InstrInfo.td Chapter3_4/Cpu0InstrInfo.td
 +          (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
 +
 diff -Naur Chapter3_3/Cpu0RegisterInfo.cpp Chapter3_4/Cpu0RegisterInfo.cpp
---- Chapter3_3/Cpu0RegisterInfo.cpp	2013-11-11 17:15:26.257375892 +0800
-+++ Chapter3_4/Cpu0RegisterInfo.cpp	2013-11-11 17:15:26.265375892 +0800
+--- Chapter3_3/Cpu0RegisterInfo.cpp	2013-11-11 19:50:20.000000000 +0800
++++ Chapter3_4/Cpu0RegisterInfo.cpp	2013-11-11 19:50:20.000000000 +0800
 @@ -80,6 +80,7 @@
    return Reserved;
  }
