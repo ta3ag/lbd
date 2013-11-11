@@ -1,90 +1,6 @@
-diff -Naur Chapter7_1/Cpu0ISelLowering.cpp Chapter8_1/Cpu0ISelLowering.cpp
---- Chapter7_1/Cpu0ISelLowering.cpp	2013-11-09 22:57:11.000000000 +0800
-+++ Chapter8_1/Cpu0ISelLowering.cpp	2013-11-09 22:57:11.000000000 +0800
-@@ -132,8 +132,15 @@
-   setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
-   setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
- 
-+  // Used by legalize types to correctly generate the setcc result.
-+  // Without this, every float setcc comes with a AND/OR with the result,
-+  // we don't want this, since the fpcmp result goes to a flag register,
-+  // which is used implicitly by brcond and select operations.
-+  AddPromotedToType(ISD::SETCC, MVT::i1, MVT::i32);
-+
-   // Cpu0 Custom Operations
-   setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
-+  setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
- 
-   // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
-   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
-@@ -143,6 +150,9 @@
-   setOperationAction(ISD::UDIV, MVT::i32, Expand);
-   setOperationAction(ISD::UREM, MVT::i32, Expand);
- 
-+  // Operations not directly supported by Cpu0.
-+  setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
-+
-   setTargetDAGCombine(ISD::SDIVREM);
-   setTargetDAGCombine(ISD::UDIVREM);
- 
-@@ -212,6 +222,7 @@
- {
-   switch (Op.getOpcode())
-   {
-+    case ISD::BRCOND:             return LowerBRCOND(Op, DAG);
-     case ISD::GlobalAddress:      return LowerGlobalAddress(Op, DAG);
-   }
-   return SDValue();
-@@ -224,6 +235,11 @@
- //===----------------------------------------------------------------------===//
- //  Misc Lower Operation implementation
- //===----------------------------------------------------------------------===//
-+SDValue Cpu0TargetLowering::
-+LowerBRCOND(SDValue Op, SelectionDAG &DAG) const
-+{
-+  return Op;
-+}
- 
- SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
-                                                SelectionDAG &DAG) const {
-@@ -266,6 +282,12 @@
- 
- #include "Cpu0GenCallingConv.inc"
- 
-+SDValue
-+Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
-+                              SmallVectorImpl<SDValue> &InVals) const {
-+  return CLI.Chain;
-+}
-+
- /// LowerFormalArguments - transform physical registers into virtual registers
- /// and generate load operations for arguments places on the stack.
- SDValue
-diff -Naur Chapter7_1/Cpu0ISelLowering.h Chapter8_1/Cpu0ISelLowering.h
---- Chapter7_1/Cpu0ISelLowering.h	2013-11-09 22:57:11.000000000 +0800
-+++ Chapter8_1/Cpu0ISelLowering.h	2013-11-09 22:57:11.000000000 +0800
-@@ -87,6 +87,7 @@
-     const Cpu0Subtarget *Subtarget;
- 
-     // Lower Operand specifics
-+    SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
-     SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
- 
- 	//- must be exist without function all
-@@ -97,6 +98,10 @@
-                            DebugLoc dl, SelectionDAG &DAG,
-                            SmallVectorImpl<SDValue> &InVals) const;
- 
-+    virtual SDValue
-+      LowerCall(TargetLowering::CallLoweringInfo &CLI,
-+                SmallVectorImpl<SDValue> &InVals) const;
-+
- 	//- must be exist without function all
-     virtual SDValue
-       LowerReturn(SDValue Chain,
 diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
---- Chapter7_1/Cpu0InstrInfo.td	2013-11-09 22:57:11.000000000 +0800
-+++ Chapter8_1/Cpu0InstrInfo.td	2013-11-09 22:57:11.000000000 +0800
+--- Chapter7_1/Cpu0InstrInfo.td	2013-11-11 17:15:26.265375892 +0800
++++ Chapter8_1/Cpu0InstrInfo.td	2013-11-11 17:15:26.253375892 +0800
 @@ -51,6 +51,20 @@
  //===----------------------------------------------------------------------===//
  // Cpu0 Operand, Complex Patterns and Transformations Definitions.
@@ -195,9 +111,93 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
  // setcc patterns
  multiclass SeteqPatsCmp<RegisterClass RC> {
  // a == b
+diff -Naur Chapter7_1/Cpu0ISelLowering.cpp Chapter8_1/Cpu0ISelLowering.cpp
+--- Chapter7_1/Cpu0ISelLowering.cpp	2013-11-11 17:15:26.265375892 +0800
++++ Chapter8_1/Cpu0ISelLowering.cpp	2013-11-11 17:15:26.253375892 +0800
+@@ -132,8 +132,15 @@
+   setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
+   setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
+ 
++  // Used by legalize types to correctly generate the setcc result.
++  // Without this, every float setcc comes with a AND/OR with the result,
++  // we don't want this, since the fpcmp result goes to a flag register,
++  // which is used implicitly by brcond and select operations.
++  AddPromotedToType(ISD::SETCC, MVT::i1, MVT::i32);
++
+   // Cpu0 Custom Operations
+   setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
++  setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
+ 
+   // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
+   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
+@@ -143,6 +150,9 @@
+   setOperationAction(ISD::UDIV, MVT::i32, Expand);
+   setOperationAction(ISD::UREM, MVT::i32, Expand);
+ 
++  // Operations not directly supported by Cpu0.
++  setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
++
+   setTargetDAGCombine(ISD::SDIVREM);
+   setTargetDAGCombine(ISD::UDIVREM);
+ 
+@@ -212,6 +222,7 @@
+ {
+   switch (Op.getOpcode())
+   {
++    case ISD::BRCOND:             return LowerBRCOND(Op, DAG);
+     case ISD::GlobalAddress:      return LowerGlobalAddress(Op, DAG);
+   }
+   return SDValue();
+@@ -224,6 +235,11 @@
+ //===----------------------------------------------------------------------===//
+ //  Misc Lower Operation implementation
+ //===----------------------------------------------------------------------===//
++SDValue Cpu0TargetLowering::
++LowerBRCOND(SDValue Op, SelectionDAG &DAG) const
++{
++  return Op;
++}
+ 
+ SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
+                                                SelectionDAG &DAG) const {
+@@ -266,6 +282,12 @@
+ 
+ #include "Cpu0GenCallingConv.inc"
+ 
++SDValue
++Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
++                              SmallVectorImpl<SDValue> &InVals) const {
++  return CLI.Chain;
++}
++
+ /// LowerFormalArguments - transform physical registers into virtual registers
+ /// and generate load operations for arguments places on the stack.
+ SDValue
+diff -Naur Chapter7_1/Cpu0ISelLowering.h Chapter8_1/Cpu0ISelLowering.h
+--- Chapter7_1/Cpu0ISelLowering.h	2013-11-11 17:15:26.265375892 +0800
++++ Chapter8_1/Cpu0ISelLowering.h	2013-11-11 17:15:26.253375892 +0800
+@@ -87,6 +87,7 @@
+     const Cpu0Subtarget *Subtarget;
+ 
+     // Lower Operand specifics
++    SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
+     SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
+ 
+ 	//- must be exist without function all
+@@ -97,6 +98,10 @@
+                            DebugLoc dl, SelectionDAG &DAG,
+                            SmallVectorImpl<SDValue> &InVals) const;
+ 
++    virtual SDValue
++      LowerCall(TargetLowering::CallLoweringInfo &CLI,
++                SmallVectorImpl<SDValue> &InVals) const;
++
+ 	//- must be exist without function all
+     virtual SDValue
+       LowerReturn(SDValue Chain,
 diff -Naur Chapter7_1/Cpu0MCInstLower.cpp Chapter8_1/Cpu0MCInstLower.cpp
---- Chapter7_1/Cpu0MCInstLower.cpp	2013-11-09 22:57:11.000000000 +0800
-+++ Chapter8_1/Cpu0MCInstLower.cpp	2013-11-09 22:57:11.000000000 +0800
+--- Chapter7_1/Cpu0MCInstLower.cpp	2013-11-11 17:15:26.265375892 +0800
++++ Chapter8_1/Cpu0MCInstLower.cpp	2013-11-11 17:15:26.253375892 +0800
 @@ -42,6 +42,8 @@
  
    switch(MO.getTargetFlags()) {
@@ -238,8 +238,8 @@ diff -Naur Chapter7_1/Cpu0MCInstLower.cpp Chapter8_1/Cpu0MCInstLower.cpp
    case MachineOperand::MO_RegisterMask:
      break;
 diff -Naur Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp Chapter8_1/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-09 22:57:11.000000000 +0800
-+++ Chapter8_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-09 22:57:11.000000000 +0800
+--- Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-11 17:15:26.265375892 +0800
++++ Chapter8_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-11 17:15:26.253375892 +0800
 @@ -58,6 +58,7 @@
    case MCSymbolRefExpr::VK_None:           break;
  // Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static
@@ -248,28 +248,9 @@ diff -Naur Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp Chapter8_1/InstPrinter/Cpu
    case MCSymbolRefExpr::VK_Cpu0_GOT16:     OS << "%got(";    break;
    case MCSymbolRefExpr::VK_Cpu0_GOT:       OS << "%got(";    break;
    case MCSymbolRefExpr::VK_Cpu0_ABS_HI:    OS << "%hi(";     break;
-diff -Naur Chapter7_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter8_1/MCTargetDesc/Cpu0AsmBackend.cpp
---- Chapter7_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-11-09 22:57:11.000000000 +0800
-+++ Chapter8_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-11-09 22:57:11.000000000 +0800
-@@ -39,13 +39,13 @@
-   case Cpu0::fixup_Cpu0_GOT_LO16:
-     break;
-   case Cpu0::fixup_Cpu0_PC24:
--    // So far we are only using this type for branches.
-+    // So far we are only using this type for branches and jump.
-     // For branches we start 1 instruction after the branch
-     // so the displacement will be one instruction size less.
-     Value -= 4;
-     break;
-   case Cpu0::fixup_Cpu0_24:
--    // So far we are only using this type for jumps.
-+    // So far we are only using this type for instruction SWI.
-     break;
-   case Cpu0::fixup_Cpu0_HI16:
-   case Cpu0::fixup_Cpu0_GOT_Local:
 diff -Naur Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-09 22:57:11.000000000 +0800
-+++ Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-09 23:00:48.000000000 +0800
+--- Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-11 17:15:26.265375892 +0800
++++ Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-11 17:15:26.253375892 +0800
 @@ -66,10 +66,25 @@
  
    void EncodeInstruction(const MCInst &MI, raw_ostream &OS,

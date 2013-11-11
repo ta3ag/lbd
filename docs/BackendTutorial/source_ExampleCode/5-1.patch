@@ -1,21 +1,6 @@
-diff -Naur Chapter4_2/Cpu0InstrInfo.td Chapter5_1/Cpu0InstrInfo.td
---- Chapter4_2/Cpu0InstrInfo.td	2013-11-09 21:51:38.000000000 +0800
-+++ Chapter5_1/Cpu0InstrInfo.td	2013-11-09 21:51:38.000000000 +0800
-@@ -37,6 +37,11 @@
-                            [SDNPOutGlue]>;
- 
- //===----------------------------------------------------------------------===//
-+// Cpu0 Instruction Predicate Definitions.
-+//===----------------------------------------------------------------------===//
-+def RelocPIC    :     Predicate<"TM.getRelocationModel() == Reloc::PIC_">;
-+
-+//===----------------------------------------------------------------------===//
- // Cpu0 Operand, Complex Patterns and Transformations Definitions.
- //===----------------------------------------------------------------------===//
- 
 diff -Naur Chapter4_2/MCTargetDesc/CMakeLists.txt Chapter5_1/MCTargetDesc/CMakeLists.txt
---- Chapter4_2/MCTargetDesc/CMakeLists.txt	2013-11-09 21:51:38.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/CMakeLists.txt	2013-11-09 21:51:38.000000000 +0800
+--- Chapter4_2/MCTargetDesc/CMakeLists.txt	2013-11-11 17:15:26.257375892 +0800
++++ Chapter5_1/MCTargetDesc/CMakeLists.txt	2013-11-11 17:15:26.249375892 +0800
 @@ -1,7 +1,10 @@
  # MCTargetDesc/CMakeLists.txt
  add_llvm_library(LLVMCpu0Desc
@@ -29,7 +14,7 @@ diff -Naur Chapter4_2/MCTargetDesc/CMakeLists.txt Chapter5_1/MCTargetDesc/CMakeL
  add_dependencies(LLVMCpu0Desc Cpu0CommonTableGen)
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0AsmBackend.cpp Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp
 --- Chapter4_2/MCTargetDesc/Cpu0AsmBackend.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-11-09 22:08:19.000000000 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-11-11 17:15:26.249375892 +0800
 @@ -0,0 +1,208 @@
 +//===-- Cpu0ASMBackend.cpp - Cpu0 Asm Backend  ----------------------------===//
 +//
@@ -71,13 +56,13 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0AsmBackend.cpp Chapter5_1/MCTargetDesc/Cp
 +  case Cpu0::fixup_Cpu0_LO16:
 +    break;
 +  case Cpu0::fixup_Cpu0_PC24:
-+    // So far we are only using this type for branches.
++    // So far we are only using this type for branches and jump.
 +    // For branches we start 1 instruction after the branch
 +    // so the displacement will be one instruction size less.
 +    Value -= 4;
 +    break;
 +  case Cpu0::fixup_Cpu0_24:
-+    // So far we are only using this type for jumps.
++    // So far we are only using this type for instruction SWI.
 +    break;
 +  case Cpu0::fixup_Cpu0_HI16:
 +  case Cpu0::fixup_Cpu0_GOT_Local:
@@ -240,8 +225,8 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0AsmBackend.cpp Chapter5_1/MCTargetDesc/Cp
 +}
 +
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h
---- Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h	2013-11-09 21:51:38.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h	2013-11-09 21:51:38.000000000 +0800
+--- Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h	2013-11-11 17:15:26.257375892 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h	2013-11-11 17:15:26.249375892 +0800
 @@ -27,6 +27,61 @@
  ///
  namespace Cpu0II {
@@ -340,7 +325,7 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h Chapter5_1/MCTargetDesc/Cpu0Ba
  #endif
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
 --- Chapter4_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-11-09 21:51:38.000000000 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-11-11 17:15:26.249375892 +0800
 @@ -0,0 +1,226 @@
 +//===-- Cpu0ELFObjectWriter.cpp - Cpu0 ELF Writer -------------------------===//
 +//
@@ -569,8 +554,8 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter5_1/MCTargetDe
 +  return createELFObjectWriter(MOTW, OS, IsLittleEndian);
 +}
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0FixupKinds.h Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h
---- Chapter4_2/MCTargetDesc/Cpu0FixupKinds.h	2013-11-09 21:51:38.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h	2013-11-09 21:51:38.000000000 +0800
+--- Chapter4_2/MCTargetDesc/Cpu0FixupKinds.h	2013-11-11 17:15:26.257375892 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h	2013-11-11 17:15:26.249375892 +0800
 @@ -23,8 +23,36 @@
    // in Cpu0AsmBackend.cpp.
    //
@@ -617,7 +602,7 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0FixupKinds.h Chapter5_1/MCTargetDesc/Cpu0
 -
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 --- Chapter4_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-09 21:51:38.000000000 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-11 17:15:26.249375892 +0800
 @@ -0,0 +1,175 @@
 +//===-- Cpu0MCCodeEmitter.cpp - Convert Cpu0 Code to Machine Code ---------===//
 +//
@@ -795,8 +780,8 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter5_1/MCTargetDesc
 +#include "Cpu0GenMCCodeEmitter.inc"
 +
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
---- Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-09 21:51:38.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-09 21:51:38.000000000 +0800
+--- Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-11 17:15:26.257375892 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-11 17:15:26.249375892 +0800
 @@ -115,6 +115,17 @@
    return new Cpu0InstPrinter(MAI, MII, MRI);
  }
@@ -838,8 +823,8 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp Chapter5_1/MCTargetDesc/
    TargetRegistry::RegisterMCSubtargetInfo(TheCpu0Target,
                                            createCpu0MCSubtargetInfo);
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.h Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h
---- Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.h	2013-11-09 21:51:38.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h	2013-11-09 21:51:38.000000000 +0800
+--- Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.h	2013-11-11 17:15:26.257375892 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h	2013-11-11 17:15:26.249375892 +0800
 @@ -22,6 +22,7 @@
  class MCContext;
  class MCInstrInfo;

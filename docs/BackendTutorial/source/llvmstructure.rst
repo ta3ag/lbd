@@ -351,9 +351,9 @@ The following table details the Cpu0 instruction set:
   * - J
     - JALR
     - 3E
-    - Jump to subroutine
-    - JR Rb
-    - LR <= PC; PC <= Rb
+    - Indirect jump
+    - JALR Rb
+    - LR <= PC; PC <= Rb [#call-note]_
   * - L
     - MULT
     - 41
@@ -917,6 +917,12 @@ Please notify the Pattern =
 **“add”**. 
 We will use it in DAG transformations later. 
 
+File Cpu0Schedule.td include the function units and pipeline stages information
+as follows,
+
+.. rubric:: lbdex/Chapter2/Cpu0Schedult.td
+.. literalinclude:: ../lbdex/Chapter2/Cpu0Schedult.td
+
 
 Write cmake file
 ----------------
@@ -1142,6 +1148,8 @@ The error message say we didn't define our target machine.
 .. [#cond-note] Conditions include the following comparisons: >, >=, ==, !=, <=, <. SW is actually set by the subtraction of the two register operands, and the flags indicate which conditions are present.
 
 .. [#sra-note] Rb '>> Cx, Rb '>> Rc: Shift with signed bit remain. It's equal to ((Rb&'h80000000)|Rb>>Cx) or ((Rb&'h80000000)|Rb>>Rc).
+
+.. [#call-note] jsub cx is direct call for 24 bits value of cx while jalr $rb is indirect call for 32 bits value of register $rb.
 
 .. [#aosa-book] Chris Lattner, **LLVM**. Published in The Architecture of Open Source Applications. http://www.aosabook.org/en/llvm.html
 
