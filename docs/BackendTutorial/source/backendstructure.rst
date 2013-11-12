@@ -28,7 +28,7 @@ Cpu0TargetMachine class contains it's own instruction class, frame/stack class,
 DAG (Directed-Acyclic-Graph) class, and register class. 
 The Cpu0TargetMachine contents and it's own class as follows,
 
-.. rubric:: include/llvm/Target/Cpu0TargetMachine.h
+.. rubric:: include/llvm/Target/TargetMachine.h
 .. code-block:: c++
 
   //- TargetMachine.h 
@@ -69,10 +69,14 @@ The Cpu0TargetMachine contents and it's own class as follows,
 
 
 .. rubric:: lbdex/Chapter3_1/Cpu0TargetMachine.h
-.. literalinclude:: ../lbdex/Chapter3_1/Cpu0TargetMachine.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.h
 
 .. rubric:: lbdex/Chapter3_1/Cpu0TargetMachine.cpp
-.. literalinclude:: ../lbdex/Chapter3_1/Cpu0TargetMachine.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+    :end-before: virtual bool addInstSelector();
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+    :start-after: virtual bool addPreEmitPass();
+    :end-before: // Install an instruction selector pass using
   
 .. rubric:: include/llvm/Target/TargetInstInfo.h
 .. code-block:: c++
@@ -95,29 +99,87 @@ The Cpu0TargetMachine contents and it's own class as follows,
   
 
 .. rubric:: lbdex/Chapter3_1/Cpu0.td
-  ...
-  include "Cpu0CallingConv.td"
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
+    :start-after: include "Cpu0InstrInfo.td"
+    :end-before: def Cpu0InstrInfo : InstrInfo;
 
 .. rubric:: lbdex/Chapter3_1/Cpu0CallingConv.td
-.. literalinclude:: ../lbdex/Chapter3_1/Cpu0CallingConv.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0CallingConv.td
+    :end-before: def RetCC_Cpu0EABI : CallingConv<[
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0CallingConv.td
+    :start-after: ]>; // def RetCC_Cpu0
 
 .. rubric:: lbdex/Chapter3_1/Cpu0FrameLowering.h
-.. literalinclude:: ../lbdex/Chapter3_1/Cpu0FrameLowering.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.h
+    :end-before: void eliminateCallFramePseudoInstr(
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.h
+    :start-after: RegScavenger *RS) const;
 
 .. rubric:: lbdex/Chapter3_1/Cpu0FrameLowering.cpp
-.. literalinclude:: ../lbdex/Chapter3_1/Cpu0FrameLowering.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
+    :end-before: #include "Cpu0AnalyzeImmediate.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
+    :start-after: #include "Cpu0AnalyzeImmediate.h"
+    :end-before: #include "MCTargetDesc/Cpu0BaseInfo.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
+    :start-after: #include "MCTargetDesc/Cpu0BaseInfo.h"
+    :end-before: // Build an instruction sequence to load an immediate 
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
+    :start-after: } //static void expandLargeImm
+    :end-before: MachineBasicBlock &MBB   = MF.front();
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
+    :start-after: } // if (Cpu0FI->needGPSaveRestore())
+    :end-before: MachineBasicBlock::iterator MBBI = MBB.getLastNonDebugInstr();
+.. code-block:: c++
+
+    }
 
 .. rubric:: lbdex/Chapter3_1/Cpu0InstrInfo.h
-.. literalinclude:: ../lbdex/Chapter3_1/Cpu0InstrInfo.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.h
+    :end-before: virtual void copyPhysReg(MachineBasicBlock &MBB,
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.h
+    :start-after: unsigned Opc) const;
 
 .. rubric:: lbdex/Chapter3_1/Cpu0InstrInfo.cpp
-.. literalinclude:: ../lbdex/Chapter3_1/Cpu0InstrInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+    :end-before: #include "Cpu0MachineFunction.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+    :start-after: #include "llvm/CodeGen/MachineInstrBuilder.h"
+    :end-before: Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+    :start-after: Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
+    :end-before: // Cpu0InstrInfo::copyPhysReg()
 
 .. rubric:: lbdex/Chapter3_1/Cpu0ISelLowering.h
-.. literalinclude:: ../lbdex/Chapter3_1/Cpu0ISelLowering.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+    :end-before: // Jump and link (call)
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+    :start-after: ThreadPointer,
+    :end-before:  // DivRem(u)
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+    :start-after: Sync
+    :end-before: virtual MVT getShiftAmountTy(EVT LHSTy) const { return MVT::i32; }
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+    :start-after: unsigned HiFlag, unsigned LoFlag) const;
+    :end-before: // Lower Operand helpers
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+    :start-after: SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG) const;
+    :end-before: // LowerFormalArguments: incoming arguments
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+    :start-after: // LowerCall: outgoing arguments
+    :end-before: virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+    :start-after: virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
 
 .. rubric:: lbdex/Chapter3_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../lbdex/Chapter3_1/Cpu0ISelLowering.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :end-before: #include "Cpu0MachineFunction.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #include "Cpu0MachineFunction.h"
+    :end-before: 
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: 
+    :end-before: 
 
 .. rubric:: lbdex/Chapter3_1/Cpu0MachineFunction.h
 .. literalinclude:: ../lbdex/Chapter3_1/Cpu0MachineFunction.h

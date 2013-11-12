@@ -384,7 +384,7 @@ class UncondBranch<bits<8> op, string instr_asm>:
   let isTerminator = 1;
   let isBarrier = 1;
   let hasDelaySlot = 0;
-}
+} // class UncondBranch
 
 let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
     isIndirectBranch = 1 in

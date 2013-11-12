@@ -126,7 +126,7 @@ static MCStreamer *createMCStreamer(const Target &T, StringRef TT,
   Triple TheTriple(TT);
 
   return createELFStreamer(Ctx, MAB, _OS, _Emitter, RelaxAll, NoExecStack);
-}
+} // static MCStreamer *createMCStreamer
 
 extern "C" void LLVMInitializeCpu0TargetMC() {
   // Register the MC asm info.

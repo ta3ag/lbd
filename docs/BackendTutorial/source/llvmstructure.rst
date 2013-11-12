@@ -698,6 +698,11 @@ target description file is called Cpu0.td, which is shown below:
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
     :start-after: include "Cpu0CallingConv.td"
     :end-before: // Without this will have error: 'cpu032I'
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
+    :start-after: // const char *Cpu0InstPrinter::getRegisterName(unsigned RegNo) {...}
+    :end-before: let AssemblyParsers = [Cpu0AsmParser];
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
+    :start-after: let AssemblyParserVariants = [Cpu0AsmParserVariant];
 
 Cpu0.td includes a few other .td files.  Cpu0RegisterInfo.td (shown below) describes the 
 Cpu0's set of registers.  In this file, we see that registers have been given names, i.e.
@@ -808,11 +813,11 @@ The cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
     :start-after: } // class LoadUpper
     :end-before: // Conditional Branch, e.g. JEQ brtarget24
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: } // class UncondBranch
+    :end-before: // Jump and Link (Call)
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
     :start-after: def LoadAddr32Imm : LoadAddressImm<"la", shamt, CPURegs>;
     :end-before: defm LB     : LoadM32<0x03, "lb",  sextloadi8>;
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
-    :start-after: defm SH     : StoreM32<0x08, "sh", truncstorei16_a>;
-    :end-before: def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs>;
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
     :start-after: defm SH     : StoreM32<0x08, "sh", truncstorei16_a>;
     :end-before: def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs>;
@@ -823,15 +828,17 @@ The cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
     :start-after: } // def LEA_ADDiu
     :end-before: def : Pat<(i32 immZExt16:$in),
 
-
 The Cpu0InstrFormats.td is included by Cpu0InstInfo.td as follows,
 
 .. rubric:: lbdex/Chapter2/Cpu0InstrFormats.td
-.. literalinclude:: ../lbdex/Chapter2/Cpu0InstrFormats.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrFormats.td
+    :end-before: // Cpu0 Pseudo Instructions Format
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrFormats.td
+    :start-after: } // class Cpu0AsmPseudoInst
 
 
-ADDiu is class ArithLogicI inherited from FL, can expand and get member value 
-as follows,
+ADDiu is class ArithLogicI inherited from FL, can be expanded and get member 
+value as follows,
 
 .. code-block:: c++
 
@@ -983,7 +990,16 @@ File Cpu0Schedule.td include the function units and pipeline stages information
 as follows,
 
 .. rubric:: lbdex/Chapter2/Cpu0Schedule.td
-.. literalinclude:: ../lbdex/Chapter2/Cpu0Schedule.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Schedule.td
+    :end-before: def IMULDIV : FuncUnit;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Schedule.td
+    :start-after: def IMULDIV : FuncUnit;
+    :end-before: def IIHiLo
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Schedule.td
+    :start-after: def IIIdiv
+    :end-before: InstrItinData<IIHiLo
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Schedule.td
+    :start-after: InstrItinData<IIIdiv
 
 
 Write cmake file
@@ -993,10 +1009,42 @@ Target/Cpu0 directory has two files CMakeLists.txt and LLVMBuild.txt,
 contents as follows,
 
 .. rubric:: lbdex/Chapter2/CMakeLists.txt
-.. literalinclude:: ../lbdex/Chapter2/CMakeLists.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+    :end-before: tablegen(LLVM Cpu0GenDisassemblerTables.inc -gen-disassembler)
+.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+    :start-after: tablegen(LLVM Cpu0GenCallingConv.inc -gen-callingconv)
+    :end-before: tablegen(LLVM Cpu0GenAsmMatcher.inc -gen-asm-matcher)
+.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+    :start-after: tablegen(LLVM Cpu0GenAsmMatcher.inc -gen-asm-matcher)
+    :end-before: Cpu0AnalyzeImmediate.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+    :start-after: Cpu0Subtarget.cpp
+    :end-before: Cpu0TargetObjectFile.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+    :start-after: Cpu0SelectionDAGInfo.cpp
+    :end-before: add_subdirectory(InstPrinter)
+.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+    :start-after: add_subdirectory(Disassembler)
+    :end-before: add_subdirectory(AsmParser)
+
 
 .. rubric:: lbdex/Chapter2/LLVMBuild.txt
-.. literalinclude:: ../lbdex/Chapter2/LLVMBuild.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+    :end-before: AsmParser
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+    :start-after: InstPrinter
+    :end-before: has_asmparser = 1
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+    :start-after: has_disassembler = 1
+    :end-before: AsmPrinter
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+    :start-after: AsmPrinter
+    :end-before: Cpu0AsmPrinter
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+    :start-after: Cpu0AsmPrinter
+    :end-before: Target
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+    :start-after: # end of required_libraries
 
 
 CMakeLists.txt is the make information for cmake, # is comment.
@@ -1032,17 +1080,57 @@ For example, the file TargetInfo/Cpu0TargetInfo.cpp register TheCpu0Target for
 big endian and TheCpu0elTarget for little endian, as follows.
 
 .. rubric:: lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
-.. literalinclude:: ../lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/TargetInfo/Cpu0TargetInfo.cpp
 
 
 Files Cpu0TargetMachine.cpp and MCTargetDesc/Cpu0MCTargetDesc.cpp just define 
 the empty initialize function since we register nothing in them for this moment.
 
 .. rubric:: lbdex/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h
-.. literalinclude:: ../lbdex/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
+    :end-before: #include "llvm/Support/DataTypes.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
+    :start-after: namespace llvm {
+    :end-before: class MCAsmBackend;
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
+    :start-after: class StringRef;
+    :end-before: class raw_ostream;
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
+    :start-after: class raw_ostream;
+    :end-before: MCCodeEmitter *createCpu0MCCodeEmitterEB
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
+    :start-after: bool IsLittleEndian);
 
 .. rubric:: lbdex/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp
-.. literalinclude:: ../lbdex/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+    :end-before: #include "Cpu0MCAsmInfo.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+    :start-after: #include "Cpu0MCAsmInfo.h"
+    :end-before: #include "InstPrinter/Cpu0InstPrinter.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+    :start-after: #include "InstPrinter/Cpu0InstPrinter.h"
+    :end-before: static std::string ParseCpu0Triple
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+    :start-after: } // static MCStreamer *createMCStreamer
+    :end-before: // Register the MC asm info.
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+    :start-after: createCpu0MCInstPrinter);
+
+
+.. rubric:: lbdex/Chapter2/MCTargetDesc/CMakeLists.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/CMakeLists.txt
+    :end-before: Cpu0AsmBackend.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/CMakeLists.txt
+    :start-after: Cpu0MCCodeEmitter.cpp
+    :end-before: Cpu0ELFObjectWriter.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/CMakeLists.txt
+    :start-after: Cpu0ELFObjectWriter.cpp
+
+.. rubric:: lbdex/Chapter2/MCTargetDesc/LLVMBuild.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/LLVMBuild.txt
+    :end-before: Cpu0AsmPrinter
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/LLVMBuild.txt
+    :start-after: Cpu0AsmPrinter
 
 
 Please see "Target Registration" [#target-reg]_ for reference.
@@ -1119,22 +1207,17 @@ After build, you can type command ``llc –version`` to find the cpu0 backend,
   ...
 
 The ``llc -version`` can display **“cpu0”** and **“cpu0el”** message, because 
-the following code from file TargetInfo/Cpu0TargetInfo.cpp what in 
+the code from file TargetInfo/Cpu0TargetInfo.cpp what in 
 "section Target Registration" [#asadasd]_ we made. 
-List them as follows again,
-
-.. rubric:: lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
-.. literalinclude:: ../lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
-
 
 Let's build lbdex/Chapter2 code as follows,
 
 .. code-block:: bash
 
-  118-165-75-57:ExampleCode Jonathan$ pwd
-  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/ExampleCode
-  118-165-75-57:ExampleCode Jonathan$ sh removecpu0.sh 
-  118-165-75-57:ExampleCode Jonathan$ cp -rf lbdex/Chapter2/
+  118-165-75-57:lbdex Jonathan$ pwd
+  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/lbdex
+  118-165-75-57:lbdex Jonathan$ sh removecpu0.sh 
+  118-165-75-57:lbdex Jonathan$ cp -rf lbdex/Chapter2/
   * ../.
 
   118-165-75-57:cmake_debug_build Jonathan$ pwd
