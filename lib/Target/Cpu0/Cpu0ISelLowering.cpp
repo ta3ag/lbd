@@ -112,7 +112,7 @@ const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
   case Cpu0ISD::Wrapper:           return "Cpu0ISD::Wrapper";
   default:                         return NULL;
   }
-}
+} // const char *Cpu0TargetLowering::getTargetNodeName
 
 Cpu0TargetLowering::
 Cpu0TargetLowering(Cpu0TargetMachine &TM)
@@ -647,7 +647,7 @@ static void ReadByValArg(MachineFunction &MF, SDValue Chain, DebugLoc dl,
                                  false, false, 0);
     OutChains.push_back(Store);
   }
-}
+} // static void ReadByValArg
 
 /// LowerFormalArguments - transform physical registers into virtual registers
 /// and generate load operations for arguments places on the stack.
@@ -751,7 +751,7 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
     OutChains.push_back(Chain);
     Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
                         &OutChains[0], OutChains.size());
-  }
+  } // if (!OutChains.empty())
   return Chain;
 }
 

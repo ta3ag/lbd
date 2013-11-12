@@ -68,6 +68,12 @@ The Cpu0TargetMachine contents and it's own class as follows,
   }; 
 
 
+.. rubric:: lbdex/Chapter3_1/Cpu0TargetObjectFile.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetObjectFile.h
+    :end-before: const MCSection *SmallDataSection;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetObjectFile.h
+    :start-after: // TODO: Classify globals as cpu0 wishes.
+
 .. rubric:: lbdex/Chapter3_1/Cpu0TargetMachine.h
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.h
 
@@ -176,13 +182,50 @@ The Cpu0TargetMachine contents and it's own class as follows,
     :end-before: #include "Cpu0MachineFunction.h"
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
     :start-after: #include "Cpu0MachineFunction.h"
-    :end-before: 
+    :end-before: #include "MCTargetDesc/Cpu0BaseInfo.h"
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: 
-    :end-before: 
+    :start-after: #include "MCTargetDesc/Cpu0BaseInfo.h"
+    :end-before: #include "llvm/Support/CommandLine.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #include "llvm/Support/CommandLine.h"
+    :end-before: SDValue Cpu0TargetLowering::getGlobalReg
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: } // const char *Cpu0TargetLowering::getTargetNodeName
+    :end-before: // Set up the register classes
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: MachinePointerInfo(SV), false, false, 0);
+    :end-before: //===---------------
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: } // static void ReadByValArg
+    :end-before: MachineFunction &MF = DAG.getMachineFunction();
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: } // if (!OutChains.empty())
+    :end-before: // CCValAssign - represent the assignment of
+
+.. code-block:: c++
+
+    }
 
 .. rubric:: lbdex/Chapter3_1/Cpu0MachineFunction.h
-.. literalinclude:: ../lbdex/Chapter3_1/Cpu0MachineFunction.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+    :end-before: virtual void anchor();
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+    :start-after: virtual void anchor();
+    :end-before: /// SRetReturnReg
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+    :start-after: mutable int DynAllocFI;
+    :end-before: bool EmitNOAT;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+    :start-after: bool EmitNOAT;
+    :end-before: SRetReturnReg(0),
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+    :start-after: EmitNOAT(false),
+    :end-before: bool isInArgFI(int FI)
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+    :start-after: void setVarArgsFrameIndex
+    :end-before: bool getEmitNOAT
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.h
+    :start-after: void setEmitNOAT
 
 .. rubric:: lbdex/Chapter3_1/Cpu0SelectionDAGInfo.h
 .. literalinclude:: ../lbdex/Chapter3_1/Cpu0SelectionDAGInfo.h
