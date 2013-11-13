@@ -23,7 +23,7 @@ include "Cpu0InstrFormats.td"
 
 def SDT_Cpu0Ret          : SDTypeProfile<0, 1, [SDTCisInt<0>]>;
 
-// Return. def Cpu0Ret
+// Return
 def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDTNone,
                      [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
@@ -144,7 +144,7 @@ class RetBase<RegisterClass RC>: JumpFR<0x3c, "ret", RC> {
 //===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
-// Cpu0I Instructions
+// Cpu0 Instructions
 //===----------------------------------------------------------------------===//
 
 /// Load and Store Instructions

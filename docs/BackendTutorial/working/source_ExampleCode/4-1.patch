@@ -1,6 +1,6 @@
-diff -Naur Chapter3_4/Cpu0ISelDAGToDAG.cpp Chapter4_1/Cpu0ISelDAGToDAG.cpp
---- Chapter3_4/Cpu0ISelDAGToDAG.cpp	2013-11-11 21:11:19.000000000 +0800
-+++ Chapter4_1/Cpu0ISelDAGToDAG.cpp	2013-11-11 21:11:19.000000000 +0800
+diff -Naur Chapter3_5/Cpu0ISelDAGToDAG.cpp Chapter4_1/Cpu0ISelDAGToDAG.cpp
+--- Chapter3_5/Cpu0ISelDAGToDAG.cpp	2013-11-13 22:28:57.000000000 +0800
++++ Chapter4_1/Cpu0ISelDAGToDAG.cpp	2013-11-13 22:28:57.000000000 +0800
 @@ -84,6 +84,9 @@
  
    SDNode *getGlobalBaseReg();
@@ -63,9 +63,9 @@ diff -Naur Chapter3_4/Cpu0ISelDAGToDAG.cpp Chapter4_1/Cpu0ISelDAGToDAG.cpp
    case ISD::Constant: {
      const ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Node);
      unsigned Size = CN->getValueSizeInBits(0);
-diff -Naur Chapter3_4/Cpu0ISelLowering.cpp Chapter4_1/Cpu0ISelLowering.cpp
---- Chapter3_4/Cpu0ISelLowering.cpp	2013-11-11 21:11:19.000000000 +0800
-+++ Chapter4_1/Cpu0ISelLowering.cpp	2013-11-11 21:11:19.000000000 +0800
+diff -Naur Chapter3_5/Cpu0ISelLowering.cpp Chapter4_1/Cpu0ISelLowering.cpp
+--- Chapter3_5/Cpu0ISelLowering.cpp	2013-11-13 22:28:57.000000000 +0800
++++ Chapter4_1/Cpu0ISelLowering.cpp	2013-11-13 22:28:57.000000000 +0800
 @@ -43,6 +43,14 @@
    // Set up the register classes
    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
@@ -140,9 +140,9 @@ diff -Naur Chapter3_4/Cpu0ISelLowering.cpp Chapter4_1/Cpu0ISelLowering.cpp
  #include "Cpu0GenCallingConv.inc"
  
  /// LowerFormalArguments - transform physical registers into virtual registers
-diff -Naur Chapter3_4/Cpu0ISelLowering.h Chapter4_1/Cpu0ISelLowering.h
---- Chapter3_4/Cpu0ISelLowering.h	2013-11-11 21:11:19.000000000 +0800
-+++ Chapter4_1/Cpu0ISelLowering.h	2013-11-11 21:11:19.000000000 +0800
+diff -Naur Chapter3_5/Cpu0ISelLowering.h Chapter4_1/Cpu0ISelLowering.h
+--- Chapter3_5/Cpu0ISelLowering.h	2013-11-13 22:28:57.000000000 +0800
++++ Chapter4_1/Cpu0ISelLowering.h	2013-11-13 22:28:57.000000000 +0800
 @@ -25,7 +25,10 @@
      enum NodeType {
        // Start the numbering from where ISD NodeType finishes.
@@ -164,9 +164,9 @@ diff -Naur Chapter3_4/Cpu0ISelLowering.h Chapter4_1/Cpu0ISelLowering.h
    private:
      // Subtarget Info
      const Cpu0Subtarget *Subtarget;
-diff -Naur Chapter3_4/Cpu0InstrInfo.cpp Chapter4_1/Cpu0InstrInfo.cpp
---- Chapter3_4/Cpu0InstrInfo.cpp	2013-11-11 21:11:19.000000000 +0800
-+++ Chapter4_1/Cpu0InstrInfo.cpp	2013-11-11 21:11:19.000000000 +0800
+diff -Naur Chapter3_5/Cpu0InstrInfo.cpp Chapter4_1/Cpu0InstrInfo.cpp
+--- Chapter3_5/Cpu0InstrInfo.cpp	2013-11-13 22:28:57.000000000 +0800
++++ Chapter4_1/Cpu0InstrInfo.cpp	2013-11-13 22:28:57.000000000 +0800
 @@ -28,6 +28,43 @@
    return RI;
  }
@@ -211,9 +211,9 @@ diff -Naur Chapter3_4/Cpu0InstrInfo.cpp Chapter4_1/Cpu0InstrInfo.cpp
  MachineInstr*
  Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
                                          uint64_t Offset, const MDNode *MDPtr,
-diff -Naur Chapter3_4/Cpu0InstrInfo.h Chapter4_1/Cpu0InstrInfo.h
---- Chapter3_4/Cpu0InstrInfo.h	2013-11-11 21:11:19.000000000 +0800
-+++ Chapter4_1/Cpu0InstrInfo.h	2013-11-11 21:11:19.000000000 +0800
+diff -Naur Chapter3_5/Cpu0InstrInfo.h Chapter4_1/Cpu0InstrInfo.h
+--- Chapter3_5/Cpu0InstrInfo.h	2013-11-13 22:28:57.000000000 +0800
++++ Chapter4_1/Cpu0InstrInfo.h	2013-11-13 22:28:57.000000000 +0800
 @@ -36,6 +36,11 @@
    ///
    virtual const Cpu0RegisterInfo &getRegisterInfo() const;
@@ -226,29 +226,10 @@ diff -Naur Chapter3_4/Cpu0InstrInfo.h Chapter4_1/Cpu0InstrInfo.h
  public:
    virtual MachineInstr* emitFrameIndexDebugValue(MachineFunction &MF,
                                                   int FrameIx, uint64_t Offset,
-diff -Naur Chapter3_4/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
---- Chapter3_4/Cpu0InstrInfo.td	2013-11-11 21:11:19.000000000 +0800
-+++ Chapter4_1/Cpu0InstrInfo.td	2013-11-11 21:18:43.000000000 +0800
-@@ -22,10 +22,18 @@
- //===----------------------------------------------------------------------===//
- 
- def SDT_Cpu0Ret          : SDTypeProfile<0, 1, [SDTCisInt<0>]>;
-+def SDT_Cpu0DivRem       : SDTypeProfile<0, 2,
-+                                         [SDTCisInt<0>,
-+                                          SDTCisSameAs<0, 1>]>;
- 
- // Return. def Cpu0Ret
- def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDTNone,
-                      [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
-+// DivRem(u) nodes
-+def Cpu0DivRem    : SDNode<"Cpu0ISD::DivRem", SDT_Cpu0DivRem,
-+                           [SDNPOutGlue]>;
-+def Cpu0DivRemU   : SDNode<"Cpu0ISD::DivRemU", SDT_Cpu0DivRem,
-+                           [SDNPOutGlue]>;
- 
- //===----------------------------------------------------------------------===//
- // Cpu0 Operand, Complex Patterns and Transformations Definitions.
-@@ -148,6 +156,14 @@
+diff -Naur Chapter3_5/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
+--- Chapter3_5/Cpu0InstrInfo.td	2013-11-13 22:28:57.000000000 +0800
++++ Chapter4_1/Cpu0InstrInfo.td	2013-11-13 22:28:57.000000000 +0800
+@@ -148,6 +148,14 @@
                           SDNode OpNode>:
    shift_rotate_imm<op, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs>;
  
@@ -263,7 +244,7 @@ diff -Naur Chapter3_4/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
  // Load Upper Imediate
  class LoadUpper<bits<8> op, string instr_asm, RegisterClass RC, Operand Imm>:
    FL<op, (outs RC:$ra), (ins Imm:$imm16),
-@@ -212,6 +228,53 @@
+@@ -212,6 +220,53 @@
    let hasExtraSrcRegAllocReq = 1;
  }
  
@@ -317,7 +298,7 @@ diff -Naur Chapter3_4/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
  //===----------------------------------------------------------------------===//
  // Instruction definition
  //===----------------------------------------------------------------------===//
-@@ -233,15 +296,43 @@
+@@ -233,15 +288,43 @@
  
  /// Arithmetic Instructions (3-Operand, R-Type)
  def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
@@ -361,9 +342,9 @@ diff -Naur Chapter3_4/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
  //===----------------------------------------------------------------------===//
  //  Arbitrary patterns that map to one or more instructions
  //===----------------------------------------------------------------------===//
-diff -Naur Chapter3_4/Cpu0RegisterInfo.td Chapter4_1/Cpu0RegisterInfo.td
---- Chapter3_4/Cpu0RegisterInfo.td	2013-11-11 21:11:19.000000000 +0800
-+++ Chapter4_1/Cpu0RegisterInfo.td	2013-11-11 21:11:19.000000000 +0800
+diff -Naur Chapter3_5/Cpu0RegisterInfo.td Chapter4_1/Cpu0RegisterInfo.td
+--- Chapter3_5/Cpu0RegisterInfo.td	2013-11-13 22:28:57.000000000 +0800
++++ Chapter4_1/Cpu0RegisterInfo.td	2013-11-13 22:28:57.000000000 +0800
 @@ -48,6 +48,9 @@
  //  def MAR  : Register< 16, "mar">,  DwarfRegNum<[16]>;
  //  def MDR  : Register< 17, "mdr">,  DwarfRegNum<[17]>;
@@ -374,27 +355,10 @@ diff -Naur Chapter3_4/Cpu0RegisterInfo.td Chapter4_1/Cpu0RegisterInfo.td
    def SW   : Register<"sw">, DwarfRegNum<[20]>;
  }
  
-@@ -68,5 +71,8 @@
-   GP, FP, 
-   SP, LR, PC)>;
- 
-+// Hi/Lo Registers
-+def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
-+
- // Status Registers
- def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
-diff -Naur Chapter3_4/Cpu0Schedule.td Chapter4_1/Cpu0Schedule.td
---- Chapter3_4/Cpu0Schedule.td	2013-11-11 21:11:19.000000000 +0800
-+++ Chapter4_1/Cpu0Schedule.td	2013-11-11 21:11:19.000000000 +0800
-@@ -11,6 +11,7 @@
- // Functional units across Cpu0 chips sets. Based on GCC/Cpu0 backend files.
- //===----------------------------------------------------------------------===//
- def ALU     : FuncUnit;
-+def IMULDIV : FuncUnit;
- 
- //===----------------------------------------------------------------------===//
- // Instruction Itinerary classes used for Cpu0
-@@ -19,6 +20,9 @@
+diff -Naur Chapter3_5/Cpu0Schedule.td Chapter4_1/Cpu0Schedule.td
+--- Chapter3_5/Cpu0Schedule.td	2013-11-13 22:28:57.000000000 +0800
++++ Chapter4_1/Cpu0Schedule.td	2013-11-13 22:28:57.000000000 +0800
+@@ -20,6 +20,9 @@
  def IILoad             : InstrItinClass;
  def IIStore            : InstrItinClass;
  def IIBranch           : InstrItinClass;
@@ -404,32 +368,17 @@ diff -Naur Chapter3_4/Cpu0Schedule.td Chapter4_1/Cpu0Schedule.td
  
  def IIPseudo           : InstrItinClass;
  
-@@ -26,9 +30,12 @@
- // Cpu0 Generic instruction itineraries.
- //===----------------------------------------------------------------------===//
- // http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html
--def Cpu0GenericItineraries : ProcessorItineraries<[ALU], [], [
-+def Cpu0GenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
-   InstrItinData<IIAlu              , [InstrStage<1,  [ALU]>]>,
-   InstrItinData<IILoad             , [InstrStage<3,  [ALU]>]>,
-   InstrItinData<IIStore            , [InstrStage<1,  [ALU]>]>,
--  InstrItinData<IIBranch           , [InstrStage<1,  [ALU]>]>
-+  InstrItinData<IIBranch           , [InstrStage<1,  [ALU]>]>,
-+  InstrItinData<IIHiLo             , [InstrStage<1,  [IMULDIV]>]>,
-+  InstrItinData<IIImul             , [InstrStage<17, [IMULDIV]>]>,
-+  InstrItinData<IIIdiv             , [InstrStage<38, [IMULDIV]>]>
- ]>;
-diff -Naur Chapter3_4/InstPrinter/Cpu0InstPrinter.cpp Chapter4_1/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter3_4/InstPrinter/Cpu0InstPrinter.cpp	2013-11-11 21:11:19.000000000 +0800
-+++ Chapter4_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-11 21:11:19.000000000 +0800
+diff -Naur Chapter3_5/InstPrinter/Cpu0InstPrinter.cpp Chapter4_1/InstPrinter/Cpu0InstPrinter.cpp
+--- Chapter3_5/InstPrinter/Cpu0InstPrinter.cpp	2013-11-13 22:28:57.000000000 +0800
++++ Chapter4_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-13 22:28:57.000000000 +0800
 @@ -109,4 +109,3 @@
    printOperand(MI, opNum, O);
    O << ")";
  }
 -
-diff -Naur Chapter3_4/InstPrinter/Cpu0InstPrinter.h Chapter4_1/InstPrinter/Cpu0InstPrinter.h
---- Chapter3_4/InstPrinter/Cpu0InstPrinter.h	2013-11-11 21:11:19.000000000 +0800
-+++ Chapter4_1/InstPrinter/Cpu0InstPrinter.h	2013-11-11 21:11:19.000000000 +0800
+diff -Naur Chapter3_5/InstPrinter/Cpu0InstPrinter.h Chapter4_1/InstPrinter/Cpu0InstPrinter.h
+--- Chapter3_5/InstPrinter/Cpu0InstPrinter.h	2013-11-13 22:28:57.000000000 +0800
++++ Chapter4_1/InstPrinter/Cpu0InstPrinter.h	2013-11-13 22:28:57.000000000 +0800
 @@ -39,6 +39,7 @@
    void printOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
    void printUnsignedImm(const MCInst *MI, int opNum, raw_ostream &O);
@@ -438,9 +387,9 @@ diff -Naur Chapter3_4/InstPrinter/Cpu0InstPrinter.h Chapter4_1/InstPrinter/Cpu0I
  };
  } // end namespace llvm
  
-diff -Naur Chapter3_4/MCTargetDesc/Cpu0BaseInfo.h Chapter4_1/MCTargetDesc/Cpu0BaseInfo.h
---- Chapter3_4/MCTargetDesc/Cpu0BaseInfo.h	2013-11-11 21:11:19.000000000 +0800
-+++ Chapter4_1/MCTargetDesc/Cpu0BaseInfo.h	2013-11-11 21:11:19.000000000 +0800
+diff -Naur Chapter3_5/MCTargetDesc/Cpu0BaseInfo.h Chapter4_1/MCTargetDesc/Cpu0BaseInfo.h
+--- Chapter3_5/MCTargetDesc/Cpu0BaseInfo.h	2013-11-13 22:28:57.000000000 +0800
++++ Chapter4_1/MCTargetDesc/Cpu0BaseInfo.h	2013-11-13 22:28:57.000000000 +0800
 @@ -88,6 +88,10 @@
      return 14;
    case Cpu0::PC:

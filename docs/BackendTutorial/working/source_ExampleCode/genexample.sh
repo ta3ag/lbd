@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 GEN_DIR=lbdex
-rm -rf Chapter3_1 Chapter3_2 Chapter3_2 Chapter3_4 
+rm -rf Chapter3_1 Chapter3_2 Chapter3_2 Chapter3_4 Chapter3_5
 rm -rf Chapter4_1 Chapter4_2 
 rm -rf Chapter5_1 Chapter6_1 Chapter7_1 Chapter8_1
 rm -rf Chapter9_1 Chapter9_2 Chapter9_3 Chapter9_4
@@ -20,8 +20,11 @@ cp -rf Chapter3_3 ${GEN_DIR}/.
 patch -fp0 < 3-4.patch
 mv Chapter3_3 Chapter3_4
 cp -rf Chapter3_4 ${GEN_DIR}/.
+patch -fp0 < 3-5.patch
+mv Chapter3_4 Chapter3_5
+cp -rf Chapter3_5 ${GEN_DIR}/.
 patch -fp0 < 4-1.patch
-mv Chapter3_4 Chapter4_1
+mv Chapter3_5 Chapter4_1
 cp -rf Chapter4_1 ${GEN_DIR}/.
 patch -fp0 < 4-2.patch
 mv Chapter4_1 Chapter4_2

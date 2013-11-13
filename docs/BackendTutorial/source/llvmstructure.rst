@@ -1033,7 +1033,7 @@ contents as follows,
     :end-before: AsmParser
 .. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
     :start-after: InstPrinter
-    :end-before: has_asmparser = 1
+    :end-before: # Whether this target defines an assembly parser, 
 .. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
     :start-after: has_disassembler = 1
     :end-before: AsmPrinter
@@ -1042,9 +1042,6 @@ contents as follows,
     :end-before: Cpu0AsmPrinter
 .. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
     :start-after: Cpu0AsmPrinter
-    :end-before: Target
-.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
-    :start-after: # end of required_libraries
 
 
 CMakeLists.txt is the make information for cmake, # is comment.
@@ -1079,12 +1076,33 @@ and use the RegisterTarget template to register the target.
 For example, the file TargetInfo/Cpu0TargetInfo.cpp register TheCpu0Target for 
 big endian and TheCpu0elTarget for little endian, as follows.
 
+.. rubric:: lbdex/Chapter2/Cpu0.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.h
+    :end-before: FunctionPass *createCpu0EmitGPRestorePass(Cpu0TargetMachine &TM);
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.h
+    :start-after: FunctionPass *createCpu0DelJmpPass(Cpu0TargetMachine &TM);
+
 .. rubric:: lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/TargetInfo/Cpu0TargetInfo.cpp
 
+.. rubric:: lbdex/Chapter2/TargetInfo/CMakeLists.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/TargetInfo/CMakeLists.txt
+
+.. rubric:: lbdex/Chapter2/TargetInfo/LLVMBuild.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/TargetInfo/LLVMBuild.txt
 
 Files Cpu0TargetMachine.cpp and MCTargetDesc/Cpu0MCTargetDesc.cpp just define 
 the empty initialize function since we register nothing in them for this moment.
+
+.. rubric:: lbdex/Chapter2/Cpu0TargetMachine.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+    :end-before: #include "Cpu0TargetMachine.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+    :start-after: #include "llvm/CodeGen/Passes.h"
+    :end-before: // Register the target.
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+    :start-after: RegisterTargetMachine<Cpu0elTargetMachine> Y(TheCpu0elTarget);
+    :end-before: // DataLayout --> Big-endian, 32-bit pointer/ABI/alignment
 
 .. rubric:: lbdex/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h

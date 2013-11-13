@@ -1193,12 +1193,77 @@ The new error message for Chapter3_3 as follows,
   bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
   ch3.cpu0.s
   ...
+  LLVM ERROR: Cannot select: 0x7f80f182d310: ch = <<Unknown Target Node #190>> 
+  0x7f80f182d110, 0x7f80f182d210 [ID=6]
+    0x7f80f182d210: i32 = Register %LR [ID=4]
+
+Handle return register lr 
+-----------------------------
+
+.. rubric:: lbdex/Chapter3_4/Cpu0InstrFormats.td
+.. code-block:: c++
+
+  // Cpu0 Pseudo Instructions Format
+  class Cpu0Pseudo<dag outs, dag ins, string asmstr, list<dag> pattern>:
+        Cpu0Inst<outs, ins, asmstr, pattern, IIPseudo, Pseudo> {
+    let isCodeGenOnly = 1;
+    let isPseudo = 1;
+  }
+
+.. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.td
+.. code-block:: c++
+
+  let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
+    def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
+
+.. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.h
+.. code-block:: c++
+
+    /// Expand Pseudo instructions into real backend instructions
+    virtual bool expandPostRAPseudo(MachineBasicBlock::iterator MI) const;
+  
+  private:
+    void ExpandRetLR(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
+                     unsigned Opc) const;
+
+.. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.cpp
+.. code-block:: c++
+
+  // Cpu0InstrInfo::expandPostRAPseudo
+  /// Expand Pseudo instructions into real backend instructions
+  bool Cpu0InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
+    MachineBasicBlock &MBB = *MI->getParent();
+  
+    switch(MI->getDesc().getOpcode()) {
+    default:
+      return false;
+    case Cpu0::RetLR:
+      ExpandRetLR(MBB, MI, Cpu0::RET);
+      break;
+    }
+  
+    MBB.erase(MI);
+    return true;
+  }
+  
+  void Cpu0InstrInfo::ExpandRetLR(MachineBasicBlock &MBB,
+                                  MachineBasicBlock::iterator I,
+                                  unsigned Opc) const {
+    BuildMI(MBB, I, I->getDebugLoc(), get(Opc)).addReg(Cpu0::LR);
+  }
+
+Build Chapter3_4, run it, we find the error message in Chapter3_3 is gone. 
+The new error message for Chapter3_4 as follows,
+
+  118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
+  ch3.cpu0.s
+  ...
   Target didn't implement TargetInstrInfo::storeRegToStackSlot!
   1.  Running pass 'Function Pass Manager' on module 'ch3.bc'.
   2.  Running pass 'Prologue/Epilogue Insertion & Frame Finalization' on function 
   '@main'
   ...
-
 
 Add Prologue/Epilogue functions
 -------------------------------
@@ -1351,12 +1416,12 @@ bottom) as follows,
 
 The Prologue and Epilogue functions as follows,
 
-.. rubric:: lbdex/Chapter3_4/Cpu0FrameLowering.h
+.. rubric:: lbdex/Chapter3_5/Cpu0FrameLowering.h
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.h
     :start-after: // lbd document - mark - explicit Cpu0FrameLowering
     :end-before: bool hasFP(const MachineFunction &MF) const;
 
-.. rubric:: lbdex/Chapter3_4/Cpu0FrameLowering.cpp
+.. rubric:: lbdex/Chapter3_5/Cpu0FrameLowering.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
     :start-after: } //static void expandLargeImm
     :end-before: // lbd document - mark - Cpu0::SP
@@ -1379,18 +1444,18 @@ The Prologue and Epilogue functions as follows,
     :start-after: // lbd document - mark - emitEpilogue() if (hasFP(MF))
     :end-before: bool Cpu0FrameLowering::spillCalleeSavedRegisters
 
-.. rubric:: lbdex/Chapter3_4/Cpu0AnalyzeImmediate.h
+.. rubric:: lbdex/Chapter3_5/Cpu0AnalyzeImmediate.h
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AnalyzeImmediate.h
 
-.. rubric:: lbdex/Chapter3_4/Cpu0AnalyzeImmediate.cpp
+.. rubric:: lbdex/Chapter3_5/Cpu0AnalyzeImmediate.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AnalyzeImmediate.cpp
 
-.. rubric:: lbdex/Chapter3_4/Cpu0RegisterInfo.cpp
+.. rubric:: lbdex/Chapter3_5/Cpu0RegisterInfo.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: // lbd document - mark - getReservedRegs
     :end-before: unsigned Cpu0RegisterInfo::
 
-.. rubric:: lbdex/Chapter3_4/CMakeLists.txt
+.. rubric:: lbdex/Chapter3_5/CMakeLists.txt
 .. code-block:: c++
 
   add_llvm_target(...
@@ -1400,7 +1465,7 @@ The Prologue and Epilogue functions as follows,
     )
 
 
-After add these Prologue and Epilogue functions, and build with Chapter3_4/Cpu0. 
+After add these Prologue and Epilogue functions, and build with Chapter3_5/Cpu0. 
 Now we are ready to compile our example code ch3.bc into cpu0 assembly code. 
 Following is the command and output file ch3.cpu0.s,
 
@@ -1554,9 +1619,20 @@ constant 0 will be translated into **"addiu $2, $zero, 0"** via the following
 pattern defined in Cpu0InstrInfo.td.
 
 
-.. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.td
-.. literalinclude:: ../lbdex/Chapter3_4/Cpu0InstrInfo.td
-    :start-after: Arbitrary patterns that map
+.. rubric:: lbdex/Chapter3_5/Cpu0InstrInfo.td
+.. code-block:: c++
+
+  // Small immediates
+  def : Pat<(i32 immSExt16:$in),
+            (ADDiu ZERO, imm:$in)>;
+  def : Pat<(i32 immZExt16:$in),
+            (ORi ZERO, imm:$in)>;
+  def : Pat<(i32 immLow16Zero:$in),
+            (LUi (HI16 imm:$in))>;
+  
+  // Arbitrary immediates
+  def : Pat<(i32 imm:$imm),
+            (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
 
 
 At this point, we have translated the very simple main() function with return 0
@@ -1564,7 +1640,7 @@ single instruction. The Cpu0AnalyzeImmediate.cpp defined as above and the
 Cpu0InstrInfo.td instructions add as below, which takes care 
 the 32 bits stack size adjustments.
 
-.. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter3_5/Cpu0InstrInfo.td
 .. code-block:: c++
 
   def shamt       : Operand<i32>;
