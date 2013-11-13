@@ -28,9 +28,8 @@ Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
 
 const Cpu0RegisterInfo &Cpu0InstrInfo::getRegisterInfo() const {
   return RI;
-}
+} // lbd document - mark - getRegisterInfo()
 
-// Cpu0InstrInfo::copyPhysReg()
 void Cpu0InstrInfo::
 copyPhysReg(MachineBasicBlock &MBB,
             MachineBasicBlock::iterator I, DebugLoc DL,
@@ -49,17 +48,17 @@ copyPhysReg(MachineBasicBlock &MBB,
     if (!Subtarget.hasCpu032II()) {
       if (SrcReg == Cpu0::SW)
         Opc = Cpu0::MFSW, SrcReg = 0;
-    }
+    } // lbd document - mark - if (!Subtarget.hasCpu032II()) 1
   }
   else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
     if (DestReg == Cpu0::HI)
       Opc = Cpu0::MTHI, DestReg = 0;
     else if (DestReg == Cpu0::LO)
       Opc = Cpu0::MTLO, DestReg = 0;
-    if (!Subtarget.hasCpu032II()) {
+    if (!Subtarget.hasCpu032II()) { // lbd document - mark - 2
       if (DestReg == Cpu0::SW)
         Opc = Cpu0::MTSW, DestReg = 0;
-    }
+    } // lbd document - mark - if (!Subtarget.hasCpu032II()) 2
   }
 
   assert(Opc && "Cannot copy registers");
@@ -74,7 +73,7 @@ copyPhysReg(MachineBasicBlock &MBB,
 
   if (SrcReg)
     MIB.addReg(SrcReg, getKillRegState(KillSrc));
-}
+} // lbd document - mark - copyPhysReg
 
 static MachineMemOperand* GetMemOperand(MachineBasicBlock &MBB, int FI,
                                         unsigned Flag) {
@@ -103,7 +102,7 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   assert(Opc && "Register class not handled!");
   BuildMI(MBB, I, DL, get(Opc)).addReg(SrcReg, getKillRegState(isKill))
     .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
-}
+} // lbd document - mark - storeRegToStackSlot
 
 void Cpu0InstrInfo::
 loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
@@ -121,7 +120,7 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   assert(Opc && "Register class not handled!");
   BuildMI(MBB, I, DL, get(Opc), DestReg).addFrameIndex(FI).addImm(0)
     .addMemOperand(MMO);
-}
+} // lbd document - mark - loadRegFromStackSlot
 
 MachineInstr*
 Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
@@ -130,7 +129,7 @@ Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
   MachineInstrBuilder MIB = BuildMI(MF, DL, get(Cpu0::DBG_VALUE))
     .addFrameIndex(FrameIx).addImm(0).addImm(Offset).addMetadata(MDPtr);
   return &*MIB;
-}
+} // lbd document - mark - emitFrameIndexDebugValue
 
 // Cpu0InstrInfo::expandPostRAPseudo
 /// Expand Pseudo instructions into real backend instructions

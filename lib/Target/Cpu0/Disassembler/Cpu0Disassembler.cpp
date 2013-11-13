@@ -66,10 +66,12 @@ static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder);
+// lbd document - mark - declare DecodeCMPInstruction
 static DecodeStatus DecodeBranch16Target(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder);
+// lbd document - mark - declare DecodeBranch16Target
 static DecodeStatus DecodeBranch24Target(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
@@ -240,7 +242,7 @@ static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
   Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_a]));
   Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_b]));
   return MCDisassembler::Success;
-}
+} // lbd document - mark - DecodeCMPInstruction
 
 static DecodeStatus DecodeBranch16Target(MCInst &Inst,
                                        unsigned Insn,
@@ -251,7 +253,7 @@ static DecodeStatus DecodeBranch16Target(MCInst &Inst,
   	BranchOffset = -1*(0x10000 - BranchOffset);
   Inst.addOperand(MCOperand::CreateImm(BranchOffset));
   return MCDisassembler::Success;
-}
+} // lbd document - mark - DecodeBranch16Target
 
 /* CBranch instruction define $ra and then imm24; The printOperand() print 
 operand 1 (operand 0 is $ra and operand 1 is imm24), so we Create register 

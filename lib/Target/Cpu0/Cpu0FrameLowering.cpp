@@ -133,14 +133,17 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   MachineBasicBlock::iterator MBBI = MBB.begin();
   DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
   unsigned SP = Cpu0::SP;
+ // lbd document - mark - Cpu0::SP
   unsigned FP = Cpu0::FP;
   unsigned ZERO = Cpu0::ZERO;
   unsigned ADDu = Cpu0::ADDu;
+ // lbd document - mark - Cpu0::ADDu
   unsigned ADDiu = Cpu0::ADDiu;
   // First, compute final stack size.
   unsigned StackAlign = getStackAlignment();
   unsigned RegSize = 4;
-  unsigned LocalVarAreaOffset = Cpu0FI->needGPSaveRestore() ?
+  unsigned LocalVarAreaOffset = 
+    Cpu0FI->needGPSaveRestore() ?
     (MFI->getObjectOffset(Cpu0FI->getGPFI()) + RegSize) :
     Cpu0FI->getMaxCallFrameSize();
   uint64_t StackSize =  RoundUpToAlignment(LocalVarAreaOffset, StackAlign) +
@@ -230,9 +233,11 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
     *static_cast<const Cpu0InstrInfo*>(MF.getTarget().getInstrInfo());
   DebugLoc dl = MBBI->getDebugLoc();
   unsigned SP = Cpu0::SP;
+ // lbd document - mark - emitEpilogue() Cpu0::SP
   unsigned FP = Cpu0::FP;
   unsigned ZERO = Cpu0::ZERO;
   unsigned ADDu = Cpu0::ADDu;
+ // lbd document - mark - emitEpilogue() Cpu0::ADDiu
   unsigned ADDiu = Cpu0::ADDiu;
 
   // if framepointer enabled, restore the stack pointer.
@@ -245,7 +250,7 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
 
     // Insert instruction "move $sp, $fp" at this location.
     BuildMI(MBB, I, dl, TII.get(ADDu), SP).addReg(FP).addReg(ZERO);
-  }
+  } // lbd document - mark - emitEpilogue() if (hasFP(MF))
 
   // Get the number of bytes from FrameInfo
   uint64_t StackSize = MFI->getStackSize();
@@ -262,8 +267,8 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
   }
 }
 
-bool Cpu0FrameLowering::
-spillCalleeSavedRegisters(MachineBasicBlock &MBB,
+bool Cpu0FrameLowering::spillCalleeSavedRegisters(
+                          MachineBasicBlock &MBB,
                           MachineBasicBlock::iterator MI,
                           const std::vector<CalleeSavedInfo> &CSI,
                           const TargetRegisterInfo *TRI) const {

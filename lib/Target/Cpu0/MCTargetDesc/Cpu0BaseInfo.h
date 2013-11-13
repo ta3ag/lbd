@@ -84,7 +84,7 @@ namespace Cpu0II {
     /// MO_GOT_HI16/LO16 - Relocations used for large GOTs.
     MO_GOT_HI16,
     MO_GOT_LO16
-  };
+  }; // enum TOF {
 
   enum {
     //===------------------------------------------------------------------===//
@@ -183,7 +183,7 @@ Cpu0GetSymAndOffset(const MCFixup &Fixup) {
     return std::make_pair((const MCSymbolRefExpr*)0, (int64_t)0);
 
   return std::make_pair(cast<MCSymbolRefExpr>(Expr), 0);
-}
+} // Cpu0GetSymAndOffset
 }
 
 #endif

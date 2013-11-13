@@ -43,13 +43,13 @@ Directory AsmParser handle the assembly to obj translation.
 The Chapter11_1/ include AsmParser implementation as follows,
 
 .. rubric:: lbdex/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
-.. literalinclude:: ../lbdex/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/Cpu0AsmParser.cpp
 
 .. rubric:: lbdex/Chapter11_1/AsmParser/CMakeLists.txt
-.. literalinclude:: ../lbdex/Chapter11_1/AsmParser/CMakeLists.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/CMakeLists.txt
 
 .. rubric:: lbdex/Chapter11_1/AsmParser/LLVMBuild.txt
-.. literalinclude:: ../lbdex/Chapter11_1/AsmParser/LLVMBuild.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/LLVMBuild.txt
 
 
 The Cpu0AsmParser.cpp contains one thousand of code which do the assembly 
@@ -282,9 +282,9 @@ follow the order of register number because AsmParser use this when do register
 number encode.
 
 .. rubric:: lbdex/Chapter11_1/Cpu0RegisterInfo.td
-.. literalinclude:: ../lbdex/Chapter11_1/Cpu0RegisterInfo.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.td
     :start-after: //  Registers
-    :end-before: // Hi/Lo Registers
+    :end-before: // Hi/Lo Registers class
 
 
 Run Chapter11_1/ with ch11_1.cpp to get the correct result as follows,

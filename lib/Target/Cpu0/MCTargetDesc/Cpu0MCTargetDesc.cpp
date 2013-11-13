@@ -10,7 +10,7 @@
 // This file provides Cpu0 specific target descriptions.
 //
 //===----------------------------------------------------------------------===//
-
+// #include
 #include "Cpu0MCAsmInfo.h"
 #include "Cpu0MCTargetDesc.h"
 #include "InstPrinter/Cpu0InstPrinter.h"
@@ -115,7 +115,7 @@ static MCInstPrinter *createCpu0MCInstPrinter(const Target &T,
                                               const MCRegisterInfo &MRI,
                                               const MCSubtargetInfo &STI) {
   return new Cpu0InstPrinter(MAI, MII, MRI);
-}
+} // lbd document - mark - createCpu0MCInstPrinter
 
 static MCStreamer *createMCStreamer(const Target &T, StringRef TT,
                                     MCContext &Ctx, MCAsmBackend &MAB,
@@ -171,4 +171,5 @@ extern "C" void LLVMInitializeCpu0TargetMC() {
                                         createCpu0MCInstPrinter);
   TargetRegistry::RegisterMCInstPrinter(TheCpu0elTarget,
                                         createCpu0MCInstPrinter);
+  // lbd document - mark - RegisterMCInstPrinter
 }

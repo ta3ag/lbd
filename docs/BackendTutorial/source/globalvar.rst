@@ -338,10 +338,10 @@ Next add file Cpu0TargetObjectFile.h, Cpu0TargetObjectFile.cpp and the
 following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
 
 .. rubric:: lbdex/Chapter6_1/Cpu0TargetObjectFile.h
-.. literalinclude:: ../lbdex/Chapter6_1/Cpu0TargetObjectFile.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetObjectFile.h
 
 .. rubric:: lbdex/Chapter6_1/Cpu0TargetObjectFile.cpp
-.. literalinclude:: ../lbdex/Chapter6_1/Cpu0TargetObjectFile.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetObjectFile.cpp
 
 .. rubric:: lbdex/Chapter6_1/Cpu0RegisterInfo.cpp
 .. code-block:: c++
@@ -966,7 +966,7 @@ pseudo instruction at function entry point as below.
   #endif // CPU0_MACHINE_FUNCTION_INFO_H
 
 .. rubric:: lbdex/Chapter6_1/Cpu0MachineFunction.cpp
-.. literalinclude:: ../lbdex/Chapter6_1/Cpu0MachineFunction.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MachineFunction.cpp
 
 .. rubric:: lbdex/Chapter6_1/Cpu0AsmPrinter.cpp
 .. code-block:: c++
@@ -1016,8 +1016,8 @@ Following code will exspand .cpload into machine instructions as below.
 displayed in comments of Cpu0MCInstLower.cpp.
 
 .. rubric:: lbdex/Chapter6_1/Cpu0MCInstLower.cpp
-.. literalinclude:: ../lbdex/Chapter6_1/Cpu0MCInstLower.cpp
-    :start-after: return MCOperand::CreateExpr(AddExpr);
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+    :start-after: // lbd document - mark - LowerSymbolOperand
     :end-before: MCOperand Cpu0MCInstLower::LowerOperand
 
 .. code-block:: bash

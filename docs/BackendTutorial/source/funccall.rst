@@ -217,7 +217,7 @@ only 16 registers while Mips has 32 registers. Cpu0CallingConv.td is defined
 for cpu0 passing rule as follows,
 
 .. rubric:: lbdex/Chapter9_1/Cpu0CallingConv.td
-.. literalinclude:: ../lbdex/Chapter9_1/Cpu0CallingConv.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0CallingConv.td
     :start-after: CCIf<!strconcat("State.getTarget().getSubtarget<Cpu0Subtarget>().", F), A>;
 
 
@@ -236,10 +236,72 @@ Function LowerFormalArguments() charge function incoming arguments creation.
 We define it as follows,
 
 .. rubric:: lbdex/Chapter9_1/Cpu0ISelLowering.cpp
-.. literalinclude:: ../lbdex/Chapter9_1/Cpu0ISelLowering.cpp
-    :start-after: return CLI.Chain;
-    :end-before: Return Value Calling Convention Implementation
+.. code-block:: c++
 
+  /// LowerFormalArguments - transform physical registers into virtual registers
+  /// and generate load operations for arguments places on the stack.
+  SDValue
+  Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
+                                           CallingConv::ID CallConv,
+                                           bool isVarArg,
+                                        const SmallVectorImpl<ISD::InputArg> &Ins,
+                                           DebugLoc dl, SelectionDAG &DAG,
+                                           SmallVectorImpl<SDValue> &InVals)
+                                            const {
+    MachineFunction &MF = DAG.getMachineFunction();
+    MachineFrameInfo *MFI = MF.getFrameInfo();
+    Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
+
+    Cpu0FI->setVarArgsFrameIndex(0);
+
+    // Used with vargs to acumulate store chains.
+    std::vector<SDValue> OutChains;
+
+    // Assign locations to all of the incoming arguments.
+    SmallVector<CCValAssign, 16> ArgLocs;
+    CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+                   getTargetMachine(), ArgLocs, *DAG.getContext());
+                           
+    CCInfo.AnalyzeFormalArguments(Ins, CC_Cpu0);
+
+    Function::const_arg_iterator FuncArg =
+      DAG.getMachineFunction().getFunction()->arg_begin();
+    int LastFI = 0;// Cpu0FI->LastInArgFI is 0 at the entry of this function.
+
+    for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i, ++FuncArg) {
+      CCValAssign &VA = ArgLocs[i];
+      EVT ValVT = VA.getValVT();
+      ISD::ArgFlagsTy Flags = Ins[i].Flags;
+      bool IsRegLoc = VA.isRegLoc();
+
+      if (Flags.isByVal()) {
+        assert(Flags.getByValSize() &&
+               "ByVal args of size 0 should have been ignored by front-end."); 
+        continue;
+      }
+      // sanity check
+      assert(VA.isMemLoc());
+
+      // The stack pointer offset is relative to the caller stack frame.
+      LastFI = MFI->CreateFixedObject(ValVT.getSizeInBits()/8,
+                                      VA.getLocMemOffset(), true);
+
+      // Create load nodes to retrieve arguments from the stack
+      SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
+      InVals.push_back(DAG.getLoad(ValVT, dl, Chain, FIN,
+                                   MachinePointerInfo::getFixedStack(LastFI),
+                                   false, false, false, 0));
+    }
+    Cpu0FI->setLastInArgFI(LastFI);
+    // All stores are grouped in one node to allow the matching between
+    // the size of Ins and InVals. This only happens when on varg functions
+    if (!OutChains.empty()) {
+      OutChains.push_back(Chain);
+      Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
+                          &OutChains[0], OutChains.size());
+    }
+    return Chain;
+  }
 
 Refresh "section Global variable" [#]_, we handled global 
 variable translation by create the IR DAG in LowerGlobalAddress() first, and 
@@ -273,10 +335,12 @@ GetMemOperand(..., FI, ...) return the Memory location of the frame index
 variable, which is the offset.
 
 .. rubric:: lbdex/Chapter9_1/Cpu0InstrInfo.cpp
-.. literalinclude:: ../lbdex/Chapter9_1/Cpu0InstrInfo.cpp
-    :start-after: MIB.addReg(SrcReg, getKillRegState(KillSrc));
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+    :start-after: // lbd document - mark - copyPhysReg
+    :end-before: //- st SrcReg, MMO(FI)
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+    :start-after: // lbd document - mark - storeRegToStackSlot
     :end-before: MachineInstr*
-
 
 In addition to Calling Convention and LowerFormalArguments(), Chapter9_1/ add the 
 following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and 
@@ -581,9 +645,15 @@ Now, we will finish **“store outgoing arguments”** in caller function.
 LowerCall() is responsible to do this. The implementation as follows,
 
 .. rubric:: lbdex/Chapter9_2/Cpu0ISelLowering.cpp
-.. literalinclude:: ../lbdex/Chapter9_2/Cpu0ISelLowering.cpp
-    :start-after: #include "Cpu0GenCallingConv.inc"
-    :end-before: LowerFormalArguments
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: // lbd document - mark - WriteByValArg
+    :end-before: if (Cpu0FI->needGPSaveRestore())
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: MFI->setObjectOffset(Cpu0FI->getGPFI(), NextStackOffset);
+    :end-before: WriteByValArg(ByValChain, Chain, dl, RegsToPass, MemOpChains, LastFI,
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: Subtarget->isLittle());
+    :end-before: //===----------------------------------------------------------------------===//
 
 
 Just like load incoming arguments from stack frame, we call 
@@ -1261,7 +1331,7 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
   }
   
 .. rubric:: lbdex/Chapter9_3/Cpu0EmitGPRestore.cpp
-.. literalinclude:: ../lbdex/Chapter9_3/Cpu0EmitGPRestore.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0EmitGPRestore.cpp
 
   
 .. rubric:: lbdex/Chapter9_3/Cpu0AsmPrinter.cpp
@@ -1318,8 +1388,8 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
   }
   
 .. rubric:: lbdex/Chapter9_3/Cpu0MCInstLower.cpp
-.. literalinclude:: ../lbdex/Chapter9_3/Cpu0MCInstLower.cpp
-    :start-after: // Lower ".cprestore offset" to "st $gp, offset($sp)"
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+    :start-after: // lbd document - mark - LowerCPLOAD
     :end-before: MCOperand Cpu0MCInstLower::LowerOperand
 
 
@@ -1383,18 +1453,21 @@ Correct the return of main()
 The LowerReturn() modified in Chapter9_3/ as follows, 
 
 .. rubric:: lbdex/Chapter9_3/Cpu0ISelLowering.cpp
-.. literalinclude:: ../lbdex/Chapter9_3/Cpu0ISelLowering.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
     :start-after: Return Value Calling Convention Implementation
-    :end-before: Cpu0TargetLowering::isOffsetFoldingLegal
+    :end-before: // structure return begin
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: // structure return end
+    :end-before: // lbd document - mark - isOffsetFoldingLegal
 
 .. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.h
-.. literalinclude:: ../lbdex/Chapter9_3/Cpu0InstrInfo.h
-    :start-after: /// Expand Pseudo instructions into real backend instructions
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.h
+    :start-after: // lbd document - mark - emitFrameIndexDebugValue
     :end-before: };
 
 .. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.cpp
-.. literalinclude:: ../lbdex/Chapter9_3/Cpu0InstrInfo.cpp
-    :start-after: // Cpu0InstrInfo::expandPostRAPseudo
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+    :start-after: // lbd document - mark - emitFrameIndexDebugValue
 
 .. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.td
 .. code-block:: c++

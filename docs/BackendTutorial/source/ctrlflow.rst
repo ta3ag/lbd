@@ -294,10 +294,27 @@ The reserved registers setting by the following
 function code we defined before,
 
 .. rubric:: lbdex/Chapter8_1/Cpu0RegisterInfo.cpp
-.. literalinclude:: ../lbdex/Chapter8_1/Cpu0RegisterInfo.cpp
-    :start-after: return CSR_O32_RegMask;
-    :end-before: //- If eliminateFrameIndex() is empty
+.. code-block:: c++
 
+  // pure virtual method
+  BitVector Cpu0RegisterInfo::
+  getReservedRegs(const MachineFunction &MF) const {
+    static const uint16_t ReservedCPURegs[] = {
+      Cpu0::ZERO, Cpu0::AT, Cpu0::SP, Cpu0::LR, Cpu0::PC
+    };
+    BitVector Reserved(getNumRegs());
+    typedef TargetRegisterClass::iterator RegIter;
+
+    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
+      Reserved.set(ReservedCPURegs[I]);
+
+    const Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
+    // Reserve GP if globalBaseRegFixed()
+    if (Cpu0FI->globalBaseRegFixed())
+      Reserved.set(Cpu0::GP);
+
+    return Reserved;
+  }
 
 Although the following definition in Cpu0RegisterInfo.td has no real effect in 
 Reserved Registers, you should comment the Reserved Registers in it for 
@@ -425,8 +442,11 @@ one instruction (bne).
 Finally we list the code added for full support of control flow statement,
 
 .. rubric:: lbdex/Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
-.. literalinclude:: ../lbdex/Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
-    :start-after: EmitInstruction(Binary, Size, OS);
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+    :start-after: // lbd document - mark - declare getBranch16TargetOpValue
+    :end-before: // getMachineOpValue - Return binary encoding of operand. 
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+    :start-after: // lbd document - mark - getBranch16TargetOpValue
     :end-before: /// getMachineOpValue - Return binary encoding of operand
 
 .. rubric:: lbdex/Chapter8_1/Cpu0MCInstLower.cpp

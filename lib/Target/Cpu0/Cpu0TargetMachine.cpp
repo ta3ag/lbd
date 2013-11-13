@@ -80,7 +80,7 @@ public:
 
   const Cpu0Subtarget &getCpu0Subtarget() const {
     return *getCpu0TargetMachine().getSubtargetImpl();
-  }
+  } // lbd document - mark - getCpu0Subtarget()
   virtual bool addInstSelector();
   virtual bool addPreRegAlloc();
   virtual bool addPreEmitPass();
@@ -96,7 +96,7 @@ TargetPassConfig *Cpu0TargetMachine::createPassConfig(PassManagerBase &PM) {
 bool Cpu0PassConfig::addInstSelector() {
   addPass(createCpu0ISelDag(getCpu0TargetMachine()));
   return false;
-}
+} // lbd document - mark - addInstSelector()
 
 bool Cpu0PassConfig::addPreRegAlloc() {
   // $gp is a caller-saved register.

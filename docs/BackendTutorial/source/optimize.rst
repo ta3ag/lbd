@@ -59,7 +59,7 @@ Chapter12_1/ support this optimization algorithm include the added codes as foll
   }
 
 .. rubric:: lbdex/Chapter12_1/Cpu0DelUselessJMP.cpp
-.. literalinclude:: ../lbdex/Chapter12_1/Cpu0DelUselessJMP.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0DelUselessJMP.cpp
 
 
 As above code, except Cpu0DelUselessJMP.cpp, other files changed for register 

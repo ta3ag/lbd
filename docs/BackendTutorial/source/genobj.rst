@@ -132,23 +132,37 @@ add_llvm_library(LLVMCpu0Desc
   )
 
 .. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp
-.. literalinclude:: ../lbdex/Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
 
-.. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
-.. literalinclude:: ../lbdex/Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
 
 .. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
-.. literalinclude:: ../lbdex/Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0ELFObjectWriter.cpp
+
+.. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+  :end-before: // getBranch16TargetOpValue - Return binary encoding of the branch
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+  :start-after: // lbd document - mark - unsigned getJumpTargetOpValue
+  :end-before: /// getBranch16TargetOpValue - Return binary encoding of the branch
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+  :start-after: // lbd document - mark - getJumpTargetOpValue
+  :end-before: Cpu0::Fixups FixupKind = Cpu0::Fixups(0);
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp
+  :start-after: Fixups.push_back(MCFixup::Create(0, MO.getExpr(), MCFixupKind(FixupKind)));
 
 .. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
-.. literalinclude:: ../lbdex/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+  :start-after: // lbd document - mark - createCpu0MCInstPrinter
+  :end-before: // Register the MC asm info.
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+  :start-after: TargetRegistry::RegisterMCRegInfo(TheCpu0elTarget, createCpu0MCRegisterInfo);
+  :end-before: // Register the MC subtarget info.
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+  :start-after: // lbd document - mark - RegisterMCInstPrinter
 
 Now, let's examine Cpu0MCTargetDesc.cpp.
-
-.. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
-.. literalinclude:: ../lbdex/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
-    :start-after: return createELFStreamer(Ctx, MAB, _OS, _Emitter, RelaxAll, NoExecStack);
-
 Cpu0MCTargetDesc.cpp do the target registration as mentioned in 
 "section Target Registration" [#]_ of the last chapter. 
 Drawing the register function and those class it registered in 

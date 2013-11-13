@@ -930,14 +930,29 @@ Chapter4_1/ support operator **“%”** and **“/”**.
 The code added in Chapter4_1/ as follows,
 
 .. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.cpp
-.. literalinclude:: ../lbdex/Chapter4_1/Cpu0InstrInfo.cpp
-  :start-after: // Cpu0InstrInfo::copyPhysReg()
-  :end-before: MachineInstr*
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+  :start-after: // lbd document - mark - getRegisterInfo()
+  :end-before: const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+  :start-after: const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
+  :end-before: if (!Subtarget.hasCpu032II()) {
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+  :start-after: if (!Subtarget.hasCpu032II()) {
+  :end-before: // lbd document - mark - if (!Subtarget.hasCpu032II()) 1
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+  :start-after: // lbd document - mark - if (!Subtarget.hasCpu032II()) 1
+  :end-before:  // lbd document - mark - 2
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+  :start-after:  // lbd document - mark - 2
+  :end-before: // lbd document - mark - if (!Subtarget.hasCpu032II()) 2
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+  :start-after:  // lbd document - mark - if (!Subtarget.hasCpu032II()) 2
+  :end-before: static MachineMemOperand* GetMemOperand
 
 .. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.h
-.. literalinclude:: ../lbdex/Chapter4_1/Cpu0InstrInfo.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.h
   :start-after: virtual const Cpu0RegisterInfo &getRegisterInfo() const;
-  :end-before: public:
+  :end-before: virtual void storeRegToStackSlot
 
 .. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.td
 .. code-block:: c++

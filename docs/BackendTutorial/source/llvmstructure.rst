@@ -1090,7 +1090,7 @@ the empty initialize function since we register nothing in them for this moment.
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
     :end-before: #include "llvm/Support/DataTypes.h"
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
-    :start-after: namespace llvm {
+    :start-after: #include "llvm/Support/DataTypes.h"
     :end-before: class MCAsmBackend;
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
     :start-after: class StringRef;
@@ -1114,7 +1114,7 @@ the empty initialize function since we register nothing in them for this moment.
     :start-after: } // static MCStreamer *createMCStreamer
     :end-before: // Register the MC asm info.
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
-    :start-after: createCpu0MCInstPrinter);
+    :start-after: // lbd document - mark - RegisterMCInstPrinter
 
 
 .. rubric:: lbdex/Chapter2/MCTargetDesc/CMakeLists.txt
