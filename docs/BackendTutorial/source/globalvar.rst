@@ -100,11 +100,9 @@ Let's run Chapter6_1/ with ch6_1.cpp via three different options
       0x7ffd5902cc10: <multiple use>
     0x7ffd5902d110: i32,ch = load 0x7ffd5902cf10, 0x7ffd5902fe10, 
     0x7ffd5902cc10<LD4[@gI]> [ORD=3] [ID=9]
-    ...
-  
-  	addiu	$2, $zero, %hi(gI)
-  	shl	$2, $2, 16
-  	addiu	$2, $2, %lo(gI)
+    ...  
+    lui $2, %hi(gI)
+    addiu $2, $2, %lo(gI)
   	ld	$2, 0($2)
   	...
   	.type	gStart,@object          # @gStart
@@ -565,9 +563,8 @@ Option cpu0-use-small-section=false will generate the following instructions.
 .. code-block:: bash
 
     ...
-  	addiu	$2, $zero, %hi(gI)
-  	shl	$2, $2, 16
-  	addiu	$2, $2, %lo(gI)
+    lui $2, %hi(gI)
+    addiu $2, $2, %lo(gI)
   	ld	$2, 0($2)
   	...
   	.type	gStart,@object          # @gStart

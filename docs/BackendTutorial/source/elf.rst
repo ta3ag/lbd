@@ -612,10 +612,10 @@ To support llvm-objdump, the following code added to Chapter10_1/.
   def JR      : JumpFR<0x2C, "ret", CPURegs>;
   
 .. rubric:: lbdex/Chapter10_1/Disassembler/CMakeLists.txt
-.. literalinclude:: ../lbdex/Chapter10_1/Disassembler/CMakeLists.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/Disassembler/CMakeLists.txt
   
 .. rubric:: lbdex/Chapter10_1/Disassembler/LLVMBuild.txt
-.. literalinclude:: ../lbdex/Chapter10_1/Disassembler/LLVMBuild.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/Disassembler/LLVMBuild.txt
 
 .. rubric:: lbdex/Chapter10_1/Disassembler/Cpu0Disassembler.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Disassembler/Cpu0Disassembler.cpp

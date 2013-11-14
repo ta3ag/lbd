@@ -1,6 +1,6 @@
 // clang -target mips-unknown-linux-gnu -c ch9_3_2.cpp -emit-llvm -o ch9_3_2.bc
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_3_2.bc -o ch9_3_2.cpu0.s
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=mips -relocation-model=pic -filetype=asm ch8_3_2.bc -o ch9_3_2.mips.s
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_3_2.bc -o ch9_3_2.cpu0.s
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=mips -relocation-model=pic -filetype=asm ch9_3_2.bc -o ch9_3_2.mips.s
 
 /// start
 #include <stdarg.h>

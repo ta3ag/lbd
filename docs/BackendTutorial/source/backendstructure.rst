@@ -228,10 +228,10 @@ The Cpu0TargetMachine contents and it's own class as follows,
     :start-after: void setEmitNOAT
 
 .. rubric:: lbdex/Chapter3_1/Cpu0SelectionDAGInfo.h
-.. literalinclude:: ../lbdex/Chapter3_1/Cpu0SelectionDAGInfo.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SelectionDAGInfo.h
 
 .. rubric:: lbdex/Chapter3_1/Cpu0SelectionDAGInfo.cpp
-.. literalinclude:: ../lbdex/Chapter3_1/Cpu0SelectionDAGInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0SelectionDAGInfo.cpp
 
 .. rubric:: lbdex/Chapter3_1/Cpu0Subtarget.h
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.h
@@ -273,7 +273,7 @@ The Cpu0TargetMachine contents and it's own class as follows,
     :start-after: MI.getOperand(i+1).ChangeToImmediate(Offset);
 
 .. rubric:: lbdex/Chapter3_1/Cpu0TargetMachine.h
-.. literalinclude:: ../lbdex/Chapter3_1/Cpu0TargetMachine.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.h
 
 .. rubric:: lbdex/Chapter3_1/Cpu0TargetMachine.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
@@ -960,9 +960,26 @@ Now, let's recall the ADDiu instruction defined on Cpu0InstrInfo.td in the
 previous chapter. List them again as follows,
 
 .. rubric:: lbdex/Chapter3_2/Cpu0InstrFormats.td
-.. literalinclude:: ../lbdex/Chapter3_2/Cpu0InstrFormats.td
-    :start-after: let Inst{11-0}  = shamt;
-    :end-before: // Format J instruction class in Cpu0
+.. code-block:: c++
+
+  //===----------------------------------------------------------------------===//
+  // Format L instruction class in Cpu0 : <|opcode|ra|rb|cx|>
+  //===----------------------------------------------------------------------===//
+  
+  class FL<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern,
+           InstrItinClass itin>: Cpu0Inst<outs, ins, asmstr, pattern, itin, FrmL>
+  {
+    bits<4>  ra;
+    bits<4>  rb;
+    bits<16> imm16;
+  
+    let Opcode = op;
+  
+    let Inst{23-20} = ra;
+    let Inst{19-16} = rb;
+    let Inst{15-0}  = imm16;
+  }
+
 
 .. rubric:: lbdex/Chapter3_2/Cpu0InstrInfo.td
 .. code-block:: c++
@@ -1194,7 +1211,7 @@ The new error message for Chapter3_3 as follows,
   ch3.cpu0.s
   ...
   LLVM ERROR: Cannot select: 0x7f80f182d310: ch = <<Unknown Target Node #190>> 
-  0x7f80f182d110, 0x7f80f182d210 [ID=6]
+  ...
     0x7f80f182d210: i32 = Register %LR [ID=4]
 
 Handle return register lr 
@@ -1219,20 +1236,17 @@ Handle return register lr
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
     :start-after: // lbd document - mark - emitFrameIndexDebugValue
 
-The handle lr code in Cpu0InstrInfo.td do things as below.
+To handle IR ret, these code in Cpu0InstrInfo.td do things as below.
 
-1. Declare a pseudo node by the following code,
+1. Declare a pseudo node to take care the IR Cpu0ISD::Ret by the following code,
 
 .. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.td
-.. code-block:: c++
-
-  // Return
-  def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDTNone,
-                       [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
-  ...
-  let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
-      isBarrier=1, hasCtrlDep=1, addr=0 in
-    def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def Cpu0GPRel
+    :end-before: // These are target-independent nodes
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def JR
+    :end-before: def RET
 
 2. After instruction selection, the Cpu0::Ret is replaced by Cpu0::RetLR 
    as below. This effect came from "def RetLR" as step 1.
@@ -1271,36 +1285,24 @@ The handle lr code in Cpu0InstrInfo.td do things as below.
    Printer" stage.
 
 .. rubric:: lbdex/Chapter2/Cpu0InstrInfo.td
-.. code-block:: c++
-
-  class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
-    FL<op, (outs), (ins RC:$ra),
-       !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch> {
-    let rb = 0;
-    let imm16 = 0;
-  }
-  // Return instruction
-  class RetBase<RegisterClass RC>: JumpFR<0x3c, "ret", RC> {
-    let isReturn = 1;
-    let isCodeGenOnly = 1;
-    let hasCtrlDep = 1;
-    let hasExtraSrcRegAllocReq = 1;
-  }
-  ...
-  def RET     : RetBase<CPURegs>;
-
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: // lbd document - mark - class UncondBranch
+    :end-before: // Jump and Link (Call)
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def RetLR
+    :end-before: def IRET
 
 .. table:: Handle return register lr
 
-  ===================================================  ======================================
+  ===================================================  ========================================
   Stage                                                Function   
-  ===================================================  ======================================
-  Write Code                                           Declare a pseudo node Cpu0::Ret
-  Before CPU0 DAG->DAG Pattern Instruction Selection   Create Cpu0ISD::Ret DAG
+  ===================================================  ========================================
+  Write Code                                           Declare a pseudo node Cpu0::RetLR
+  -                                                    for IR Cpu0::Ret;
   Instruction selection                                Cpu0::Ret is replaced by Cpu0::RetLR
   Post-RA pseudo instruction expansion pass            Cpu0::RetLR -> ret $lr
   Cpu0 Assembly Printer                                Print according "def RET"
-  ===================================================  ======================================
+  ===================================================  ========================================
 
 Build Chapter3_4, run it, we find the error message in Chapter3_3 is gone. 
 The new error message for Chapter3_4 as follows,

@@ -863,26 +863,20 @@ the $rb and imm16 to 0.
     .previous
     .file "ch4_2.bc"
     .text
-    .globl  main
+    .globl  _Z8test_modv
     .align  2
-    .type main,@function
-    .ent  main                    # @main
-  main:
-    .cfi_startproc
+    .type _Z8test_modv,@function
+    .ent  _Z8test_modv            # @_Z8test_modv
+  _Z8test_modv:
     .frame  $sp,8,$lr
     .mask   0x00000000,0
     .set  noreorder
     .set  nomacro
   # BB#0:
     addiu $sp, $sp, -8
-  $tmp1:
-    .cfi_def_cfa_offset 8
-    addiu $2, $zero, 0
-    st  $2, 4($sp)
     addiu $2, $zero, 11
-    st  $2, 0($sp)
-    addiu $2, $zero, 10922
-    shl $2, $2, 16
+    st  $2, 4($sp)
+    lui $2, 10922
     ori $3, $2, 43691
     addiu $2, $zero, 12
     mult  $2, $3
@@ -891,17 +885,15 @@ the $rb and imm16 to 0.
     sra $3, $3, 1
     addu  $3, $3, $4
     mul $3, $3, $2
-    sub $2, $2, $3
-    st  $2, 0($sp)
+    subu  $2, $2, $3
+    st  $2, 4($sp)
     addiu $sp, $sp, 8
     ret $lr
     .set  macro
     .set  reorder
-    .end  main
-  $tmp2:
-    .size main, ($tmp2)-main
-    .cfi_endproc
-
+    .end  _Z8test_modv
+  $tmp1:
+    .size _Z8test_modv, ($tmp1)-_Z8test_modv
 
 
 Full support %, and /

@@ -53,24 +53,18 @@ Run it will get the obj files as follows,
   ch4_1.cpu0.o:     file format elf32-big 
   
   Contents of section .text: 
-   0000 09ddffd8 09200005 022b0024 09200002  ..... ...+.$. ..
-   0010 022b0020 09200000 022b001c 022b0018  .+. . ...+...+..
-   0020 022b0010 0930fffb 023b000c 022b0008  .+...0...;...+..
-   0030 022b0004 012b0020 013b0024 11232000  .+...+. .;.$.# .
-   0040 022b001c 012b0020 013b0024 12232000  .+...+. .;.$.# .
-   0050 022b0018 012b0020 013b0024 17232000  .+...+. .;.$.# .
-   0060 022b0018 012b0024 1e220002 022b0014  .+...+.$."...+..
-   0070 012b000c 1e220002 022b0008 012b0024  .+..."...+...+.$
-   0080 1d220002 022b0010 012b000c 1f220002  ."...+...+..."..
-   0090 022b0004 09200001 013b0024 21323000  .+... ...;.$!20.
-   00a0 023b0014 013b000c 21223000 022b0008  .;...;..!"0..+..
-   00b0 0f208000 013b0024 22223000 022b0010  . ...;.$""0..+..
-   00c0 012b0024 013b0020 20232000 022b0004  .+.$.;.  # ..+..
-   00d0 09dd0028 2c00000e                    ...(,...        
-  Contents of section .eh_frame:
-   0000 00000010 00000000 017a5200 017c0e01  .........zR..|..
-   0010 1b0c0d00 00000010 00000018 00000000  ................
-   0020 000000d8 00440e28                    .....D.(                    
+   0000 09ddffc8 09200005 022d0034 09200002  ..... ...-.4. ..
+   0010 022d0030 0920fffb 022d002c 012d0030  .-.0. ...-.,.-.0
+   0020 013d0034 11232000 022d0028 012d0030  .=.4.# ..-.(.-.0
+   0030 013d0034 12232000 022d0024 012d0030  .=.4.# ..-.$.-.0
+   0040 013d0034 17232000 022d0020 012d0034  .=.4.# ..-. .-.4
+   0050 1e220002 022d001c 012d002c 1e220001  ."...-...-.,."..
+   0060 022d000c 012d0034 1d220002 022d0018  .-...-.4."...-..
+   0070 012d002c 1f22001e 022d0008 09200001  .-.,."...-... ..
+   0080 013d0034 21323000 023d0014 013d0030  .=.4!20..=...=.0
+   0090 21223000 022d0004 09200080 013d0034  !"0..-... ...=.4
+   00a0 22223000 022d0010 012d0034 013d0030  ""0..-...-.4.=.0
+   00b0 20232000 022d0000 09dd0038 3ce00000   # ..-.....8<...     
    
   [Gamma@localhost InputFiles]$ /usr/local/llvm/test/
   cmake_debug_build/bin/llc -march=cpu0el -relocation-model=pic -filetype=obj 
@@ -80,39 +74,33 @@ Run it will get the obj files as follows,
   ch4_1.cpu0el.o:     file format elf32-little 
   
   Contents of section .text: 
-   0000 d8ffdd09 05002009 24002b02 02002009  ...... .$.+... .
-   0010 20002b02 00002009 1c002b02 18002b02   .+... ...+...+.
-   0020 10002b02 fbff3009 0c003b02 08002b02  ..+...0...;...+.
-   0030 04002b02 20002b01 24003b01 00202311  ..+. .+.$.;.. #.
-   0040 1c002b02 20002b01 24003b01 00202312  ..+. .+.$.;.. #.
-   0050 18002b02 20002b01 24003b01 00202317  ..+. .+.$.;.. #.
-   0060 18002b02 24002b01 0200221e 14002b02  ..+.$.+..."...+.
-   0070 0c002b01 0200221e 08002b02 24002b01  ..+..."...+.$.+.
-   0080 0200221d 10002b02 0c002b01 0200221f  .."...+...+...".
-   0090 04002b02 01002009 24003b01 00303221  ..+... .$.;..02!
-   00a0 14003b02 0c003b01 00302221 08002b02  ..;...;..0"!..+.
-   00b0 0080200f 24003b01 00302222 10002b02  .. .$.;..0""..+.
-   00c0 24002b01 20003b01 00202320 04002b02  $.+. .;.. # ..+.
-   00d0 2800dd09 0e00002c                    (......,        
-  Contents of section .eh_frame:
-   0000 10000000 00000000 017a5200 017c0e01  .........zR..|..
-   0010 1b0c0d00 10000000 18000000 00000000  ................
-   0020 d8000000 00440e28                    .....D.(        
+   0000 c8ffdd09 05002009 34002d02 02002009  ...... .4.-... .
+   0010 30002d02 fbff2009 2c002d02 30002d01  0.-... .,.-.0.-.
+   0020 34003d01 00202311 28002d02 30002d01  4.=.. #.(.-.0.-.
+   0030 34003d01 00202312 24002d02 30002d01  4.=.. #.$.-.0.-.
+   0040 34003d01 00202317 20002d02 34002d01  4.=.. #. .-.4.-.
+   0050 0200221e 1c002d02 2c002d01 0100221e  .."...-.,.-...".
+   0060 0c002d02 34002d01 0200221d 18002d02  ..-.4.-..."...-.
+   0070 2c002d01 1e00221f 08002d02 01002009  ,.-..."...-... .
+   0080 34003d01 00303221 14003d02 30003d01  4.=..02!..=.0.=.
+   0090 00302221 04002d02 80002009 34003d01  .0"!..-... .4.=.
+   00a0 00302222 10002d02 34002d01 30003d01  .0""..-.4.-.0.=.
+   00b0 00202320 00002d02 3800dd09 0000e03c  . # ..-.8......<      
          
 
-The first instruction is **“addiu  $sp, -40”** and it's corresponding obj is 
-0x09ddffd8. 
+The first instruction is **“addiu  $sp, -56”** and it's corresponding obj is 
+0x09ddffc8. 
 The addiu opcode is 0x09, 8 bits, $sp register number is 13(0xd), 4bits, and 
-the immediate is 16 bits -40(=0xffd8), so it's correct. 
-The third instruction **“st  $2, 36($fp)”** and it's corresponding obj 
-is 0x022b0024. The **st** opcode is **0x02**, $2 is 0x2, $fp is 0xb and 
-immediate is 36(0x0024). 
+the immediate is 16 bits -56(=0xffc8), so it's correct. 
+The third instruction **“st  $2, 52($fp)”** and it's corresponding obj 
+is 0x022b0034. The **st** opcode is **0x02**, $2 is 0x2, $fp is 0xb and 
+immediate is 52(0x0034). 
 Thanks to cpu0 instruction format which opcode, register operand and 
 offset(imediate value) size are multiple of 4 bits. 
 Base on the 4 bits multiple, the obj format is easy to check by eyes. 
-The big endian (B0, B1, B2, B3) = (09, dd, ff, d8), objdump from B0 to B3 as 
-0x09ddffd8 and the little endian is (B3, B2, B1, B0) = (09, dd, ff, d8), 
-objdump from B0 to B3 as 0xd8ffdd09. 
+The big endian (B0, B1, B2, B3) = (09, dd, ff, c8), objdump from B0 to B3 as 
+0x09ddffc8 and the little endian is (B3, B2, B1, B0) = (09, dd, ff, c8), 
+objdump from B0 to B3 as 0xc8ffdd09. 
 
 
 Backend Target Registration Structure
