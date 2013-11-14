@@ -113,7 +113,7 @@ The Cpu0TargetMachine contents and it's own class as follows,
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0CallingConv.td
     :end-before: def RetCC_Cpu0EABI : CallingConv<[
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0CallingConv.td
-    :start-after: ]>; // def RetCC_Cpu0
+    :start-after: // lbd document - mark - def RetCC_Cpu0
 
 .. rubric:: lbdex/Chapter3_1/Cpu0FrameLowering.h
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.h
@@ -131,10 +131,10 @@ The Cpu0TargetMachine contents and it's own class as follows,
     :start-after: #include "MCTargetDesc/Cpu0BaseInfo.h"
     :end-before: // Build an instruction sequence to load an immediate 
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
-    :start-after: } //static void expandLargeImm
+    :start-after: // lbd document - mark - expandLargeImm
     :end-before: MachineBasicBlock &MBB   = MF.front();
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
-    :start-after: } // if (Cpu0FI->needGPSaveRestore())
+    :start-after: // lbd document - mark - if (Cpu0FI->needGPSaveRestore())
     :end-before: MachineBasicBlock::iterator MBBI = MBB.getLastNonDebugInstr();
 .. code-block:: c++
 
@@ -587,13 +587,13 @@ as the following function of LLVMInitializeCpu0AsmPrinter(),
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
     :end-before: void Cpu0AsmPrinter::EmitInstrWithMacroNoAT
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
-    :start-after: } // void Cpu0AsmPrinter::EmitInstrWithMacroNoAT
+    :start-after: // lbd document - mark - EmitInstrWithMacroNoAT
     :end-before: unsigned Opc = MI->getOpcode();
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
     :start-after: unsigned Opc = MI->getOpcode();
     :end-before: SmallVector<MCInst, 4> MCInsts;
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
-    :start-after: } // switch (Opc)
+    :start-after: // lbd document - mark - switch (Opc)
     :end-before: bool EmitCPLoad
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
     :start-after: EmitCPLoad = false;
@@ -1201,56 +1201,106 @@ Handle return register lr
 -----------------------------
 
 .. rubric:: lbdex/Chapter3_4/Cpu0InstrFormats.td
-.. code-block:: c++
-
-  // Cpu0 Pseudo Instructions Format
-  class Cpu0Pseudo<dag outs, dag ins, string asmstr, list<dag> pattern>:
-        Cpu0Inst<outs, ins, asmstr, pattern, IIPseudo, Pseudo> {
-    let isCodeGenOnly = 1;
-    let isPseudo = 1;
-  }
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrFormats.td
+    :start-after: // lbd document - mark - class Cpu0Inst
+    :end-before: // Pseudo-instructions for alternate assembly syntax
 
 .. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.td
-.. code-block:: c++
-
-  let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
-    def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def JR
+    :end-before: def RET
 
 .. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.h
-.. code-block:: c++
-
-    /// Expand Pseudo instructions into real backend instructions
-    virtual bool expandPostRAPseudo(MachineBasicBlock::iterator MI) const;
-  
-  private:
-    void ExpandRetLR(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
-                     unsigned Opc) const;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.h
+    :start-after: // lbd document - mark - emitFrameIndexDebugValue
+    :end-before: };
 
 .. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+    :start-after: // lbd document - mark - emitFrameIndexDebugValue
+
+The handle lr code in Cpu0InstrInfo.td do things as below.
+
+1. Declare a pseudo node by the following code,
+
+.. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.td
 .. code-block:: c++
 
-  // Cpu0InstrInfo::expandPostRAPseudo
-  /// Expand Pseudo instructions into real backend instructions
-  bool Cpu0InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
-    MachineBasicBlock &MBB = *MI->getParent();
-  
-    switch(MI->getDesc().getOpcode()) {
-    default:
-      return false;
-    case Cpu0::RetLR:
-      ExpandRetLR(MBB, MI, Cpu0::RET);
-      break;
-    }
-  
-    MBB.erase(MI);
-    return true;
+  // Return
+  def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDTNone,
+                       [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
+  ...
+  let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
+      isBarrier=1, hasCtrlDep=1, addr=0 in
+    def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
+
+2. After instruction selection, the Cpu0::Ret is replaced by Cpu0::RetLR 
+   as below. This effect came from "def RetLR" as step 1.
+
+.. code-block:: bash
+
+  ===== Instruction selection begins: BB#0 'entry'
+  Selecting: 0x1ea4050: ch = Cpu0ISD::Ret 0x1ea3f50, 0x1ea3e50, 
+  0x1ea3f50:1 [ID=27]
+
+  ISEL: Starting pattern match on root node: 0x1ea4050: ch = Cpu0ISD::Ret 
+  0x1ea3f50, 0x1ea3e50, 0x1ea3f50:1 [ID=27]
+
+    Morphed node: 0x1ea4050: ch = RetLR 0x1ea3e50, 0x1ea3f50, 0x1ea3f50:1
+  ...
+  ISEL: Match complete!
+  => 0x1ea4050: ch = RetLR 0x1ea3e50, 0x1ea3f50, 0x1ea3f50:1
+  ...
+  ===== Instruction selection ends:
+  Selected selection DAG: BB#0 'main:entry'
+  SelectionDAG has 28 nodes:
+  ...
+      0x1ea3e50: <multiple use>
+      0x1ea3f50: <multiple use>
+      0x1ea3f50: <multiple use>
+    0x1ea4050: ch = RetLR 0x1ea3e50, 0x1ea3f50, 0x1ea3f50:1
+
+
+3. Expand the Cpu0::RetLR into instruction **ret $lr** in "Post-RA pseudo 
+   instruction expansion pass" stage by the code in Chapter3_4/Cpu0InstrInfo.cpp 
+   as above. This stage is after the register allocation, so we can replace the
+   V0 ($r2) by LR ($lr) without any side effect.
+
+4. Print assembly or obj according the information (those \*.inc generated by 
+   TableGen from \*.td) generated by the following code at "Cpu0 Assembly 
+   Printer" stage.
+
+.. rubric:: lbdex/Chapter2/Cpu0InstrInfo.td
+.. code-block:: c++
+
+  class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
+    FL<op, (outs), (ins RC:$ra),
+       !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch> {
+    let rb = 0;
+    let imm16 = 0;
   }
-  
-  void Cpu0InstrInfo::ExpandRetLR(MachineBasicBlock &MBB,
-                                  MachineBasicBlock::iterator I,
-                                  unsigned Opc) const {
-    BuildMI(MBB, I, I->getDebugLoc(), get(Opc)).addReg(Cpu0::LR);
+  // Return instruction
+  class RetBase<RegisterClass RC>: JumpFR<0x3c, "ret", RC> {
+    let isReturn = 1;
+    let isCodeGenOnly = 1;
+    let hasCtrlDep = 1;
+    let hasExtraSrcRegAllocReq = 1;
   }
+  ...
+  def RET     : RetBase<CPURegs>;
+
+
+.. table:: Handle return register lr
+
+  ===================================================  ======================================
+  Stage                                                Function   
+  ===================================================  ======================================
+  Write Code                                           Declare a pseudo node Cpu0::Ret
+  Before CPU0 DAG->DAG Pattern Instruction Selection   Create Cpu0ISD::Ret DAG
+  Instruction selection                                Cpu0::Ret is replaced by Cpu0::RetLR
+  Post-RA pseudo instruction expansion pass            Cpu0::RetLR -> ret $lr
+  Cpu0 Assembly Printer                                Print according "def RET"
+  ===================================================  ======================================
 
 Build Chapter3_4, run it, we find the error message in Chapter3_3 is gone. 
 The new error message for Chapter3_4 as follows,
@@ -1346,7 +1396,7 @@ machine instructions as follows,
     .previous
     .file "ch3.bc"
     .text
-    .globl  main
+    .globl  main//static void expandLargeImm\\n
     .align  2
     .type main,@function
     .ent  main                    # @main
@@ -1423,7 +1473,7 @@ The Prologue and Epilogue functions as follows,
 
 .. rubric:: lbdex/Chapter3_5/Cpu0FrameLowering.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
-    :start-after: } //static void expandLargeImm
+    :start-after: // lbd document - mark - expandLargeImm
     :end-before: // lbd document - mark - Cpu0::SP
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
     :start-after: // lbd document - mark - Cpu0::ADDu
@@ -1435,7 +1485,7 @@ The Prologue and Epilogue functions as follows,
     :start-after: (MFI->getObjectOffset(Cpu0FI->getGPFI()) + RegSize) :
     :end-before: // if framepointer enabled, set it to point to the stack pointer.
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
-    :start-after: } // if (Cpu0FI->needGPSaveRestore())
+    :start-after: // lbd document - mark - if (Cpu0FI->needGPSaveRestore())
     :end-before: // lbd document - mark - emitEpilogue() Cpu0::SP
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
     :start-after: // lbd document - mark - emitEpilogue() Cpu0::ADDiu

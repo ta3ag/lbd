@@ -1,6 +1,205 @@
+diff -Naur Chapter3_5/Cpu0InstrInfo.cpp Chapter4_1/Cpu0InstrInfo.cpp
+--- Chapter3_5/Cpu0InstrInfo.cpp	2013-11-14 09:05:40.471652964 +0800
++++ Chapter4_1/Cpu0InstrInfo.cpp	2013-11-14 09:05:40.487652964 +0800
+@@ -28,6 +28,43 @@
+   return RI;
+ }
+ 
++// Cpu0InstrInfo::copyPhysReg()
++void Cpu0InstrInfo::
++copyPhysReg(MachineBasicBlock &MBB,
++            MachineBasicBlock::iterator I, DebugLoc DL,
++            unsigned DestReg, unsigned SrcReg,
++            bool KillSrc) const {
++  unsigned Opc = 0, ZeroReg = 0;
++
++  if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
++    if (Cpu0::CPURegsRegClass.contains(SrcReg))
++      Opc = Cpu0::ADD, ZeroReg = Cpu0::ZERO;
++    else if (SrcReg == Cpu0::HI)
++      Opc = Cpu0::MFHI, SrcReg = 0;
++    else if (SrcReg == Cpu0::LO)
++      Opc = Cpu0::MFLO, SrcReg = 0;
++  }
++  else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
++    if (DestReg == Cpu0::HI)
++      Opc = Cpu0::MTHI, DestReg = 0;
++    else if (DestReg == Cpu0::LO)
++      Opc = Cpu0::MTLO, DestReg = 0;
++  }
++
++  assert(Opc && "Cannot copy registers");
++
++  MachineInstrBuilder MIB = BuildMI(MBB, I, DL, get(Opc));
++
++  if (DestReg)
++    MIB.addReg(DestReg, RegState::Define);
++
++  if (ZeroReg)
++    MIB.addReg(ZeroReg);
++
++  if (SrcReg)
++    MIB.addReg(SrcReg, getKillRegState(KillSrc));
++}
++
+ MachineInstr*
+ Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
+                                         uint64_t Offset, const MDNode *MDPtr,
+diff -Naur Chapter3_5/Cpu0InstrInfo.h Chapter4_1/Cpu0InstrInfo.h
+--- Chapter3_5/Cpu0InstrInfo.h	2013-11-14 09:05:40.471652964 +0800
++++ Chapter4_1/Cpu0InstrInfo.h	2013-11-14 09:05:40.487652964 +0800
+@@ -36,6 +36,11 @@
+   ///
+   virtual const Cpu0RegisterInfo &getRegisterInfo() const;
+ 
++  virtual void copyPhysReg(MachineBasicBlock &MBB,
++                           MachineBasicBlock::iterator MI, DebugLoc DL,
++                           unsigned DestReg, unsigned SrcReg,
++                           bool KillSrc) const;
++
+ public:
+   virtual MachineInstr* emitFrameIndexDebugValue(MachineFunction &MF,
+                                                  int FrameIx, uint64_t Offset,
+diff -Naur Chapter3_5/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
+--- Chapter3_5/Cpu0InstrInfo.td	2013-11-14 09:05:40.471652964 +0800
++++ Chapter4_1/Cpu0InstrInfo.td	2013-11-14 09:05:40.487652964 +0800
+@@ -22,11 +22,20 @@
+ //===----------------------------------------------------------------------===//
+ 
+ def SDT_Cpu0Ret          : SDTypeProfile<0, 1, [SDTCisInt<0>]>;
++def SDT_Cpu0DivRem       : SDTypeProfile<0, 2,
++                                         [SDTCisInt<0>,
++                                          SDTCisSameAs<0, 1>]>;
+ 
+ // Return
+ def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDTNone,
+                      [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
+ 
++// DivRem(u) nodes
++def Cpu0DivRem    : SDNode<"Cpu0ISD::DivRem", SDT_Cpu0DivRem,
++                           [SDNPOutGlue]>;
++def Cpu0DivRemU   : SDNode<"Cpu0ISD::DivRemU", SDT_Cpu0DivRem,
++                           [SDNPOutGlue]>;
++
+ //===----------------------------------------------------------------------===//
+ // Cpu0 Operand, Complex Patterns and Transformations Definitions.
+ //===----------------------------------------------------------------------===//
+@@ -148,6 +157,14 @@
+                          SDNode OpNode>:
+   shift_rotate_imm<op, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs>;
+ 
++class shift_rotate_reg<bits<8> op, bits<4> isRotate, string instr_asm,
++                       SDNode OpNode, RegisterClass RC>:
++  FA<op, (outs RC:$ra), (ins CPURegs:$rb, RC:$rc),
++     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
++     [(set RC:$ra, (OpNode RC:$rb, CPURegs:$rc))], IIAlu> {
++  let shamt = 0;
++}
++
+ // Load Upper Imediate
+ class LoadUpper<bits<8> op, string instr_asm, RegisterClass RC, Operand Imm>:
+   FL<op, (outs RC:$ra), (ins Imm:$imm16),
+@@ -212,6 +229,53 @@
+   let hasExtraSrcRegAllocReq = 1;
+ }
+ 
++// Mul, Div
++class Mult<bits<8> op, string instr_asm, InstrItinClass itin,
++           RegisterClass RC, list<Register> DefRegs>:
++  FL<op, (outs), (ins RC:$ra, RC:$rb),
++     !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
++  let imm16 = 0;
++  let isCommutable = 1;
++  let Defs = DefRegs;
++  let neverHasSideEffects = 1;
++}
++
++class Mult32<bits<8> op, string instr_asm, InstrItinClass itin>:
++  Mult<op, instr_asm, itin, CPURegs, [HI, LO]>;
++
++class Div<SDNode opNode, bits<8> op, string instr_asm, InstrItinClass itin,
++          RegisterClass RC, list<Register> DefRegs>:
++  FL<op, (outs), (ins RC:$ra, RC:$rb),
++     !strconcat(instr_asm, "\t$ra, $rb"),
++     [(opNode RC:$ra, RC:$rb)], itin> {
++  let imm16 = 0;
++  let Defs = DefRegs;
++}
++
++class Div32<SDNode opNode, bits<8> op, string instr_asm, InstrItinClass itin>:
++  Div<opNode, op, instr_asm, itin, CPURegs, [HI, LO]>;
++
++// Move from Hi/Lo
++class MoveFromLOHI<bits<8> op, string instr_asm, RegisterClass RC,
++                   list<Register> UseRegs>:
++  FL<op, (outs RC:$ra), (ins),
++     !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
++  let rb = 0;
++  let imm16 = 0;
++  let Uses = UseRegs;
++  let neverHasSideEffects = 1;
++}
++
++class MoveToLOHI<bits<8> op, string instr_asm, RegisterClass RC,
++                 list<Register> DefRegs>:
++  FL<op, (outs), (ins RC:$ra),
++     !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
++  let rb = 0;
++  let imm16 = 0;
++  let Defs = DefRegs;
++  let neverHasSideEffects = 1;
++}
++
+ //===----------------------------------------------------------------------===//
+ // Instruction definition
+ //===----------------------------------------------------------------------===//
+@@ -233,15 +297,43 @@
+ 
+ /// Arithmetic Instructions (3-Operand, R-Type)
+ def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
++def SUBu    : ArithLogicR<0x12, "subu", sub, IIAlu, CPURegs>;
++def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
++def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
++def MUL     : ArithLogicR<0x17, "mul", mul, IIImul, CPURegs, 1>;
+ 
+ /// Shift Instructions
++// sra is IR node for ashr llvm IR instruction of .bc
++def ROL     : shift_rotate_imm32<0x1b, 0x01, "rol", rotl>;
++def ROR     : shift_rotate_imm32<0x1c, 0x01, "ror", rotr>;
++def SRA     : shift_rotate_imm32<0x1d, 0x00, "sra", sra>;
+ def SHL     : shift_rotate_imm32<0x1e, 0x00, "shl", shl>;
++// srl is IR node for lshr llvm IR instruction of .bc
++def SHR     : shift_rotate_imm32<0x1f, 0x00, "shr", srl>;
++def SRAV    : shift_rotate_reg<0x20, 0x00, "srav", sra, CPURegs>;
++def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
++def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
+ 
+ let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
+   def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
+ 
+ def RET     : RetBase<CPURegs>;
+ 
++/// Multiply and Divide Instructions.
++def MULT    : Mult32<0x41, "mult", IIImul>;
++def MULTu   : Mult32<0x42, "multu", IIImul>;
++def SDIV    : Div32<Cpu0DivRem, 0x43, "div", IIIdiv>;
++def UDIV    : Div32<Cpu0DivRemU, 0x44, "divu", IIIdiv>;
++
++def MFHI    : MoveFromLOHI<0x46, "mfhi", CPURegs, [HI]>;
++def MFLO    : MoveFromLOHI<0x47, "mflo", CPURegs, [LO]>;
++def MTHI    : MoveToLOHI<0x48, "mthi", CPURegs, [HI]>;
++def MTLO    : MoveToLOHI<0x49, "mtlo", CPURegs, [LO]>;
++
++/// No operation
++let addr=0 in
++  def NOP   : FJ<0, (outs), (ins), "nop", [], IIAlu>;
++
+ //===----------------------------------------------------------------------===//
+ //  Arbitrary patterns that map to one or more instructions
+ //===----------------------------------------------------------------------===//
 diff -Naur Chapter3_5/Cpu0ISelDAGToDAG.cpp Chapter4_1/Cpu0ISelDAGToDAG.cpp
---- Chapter3_5/Cpu0ISelDAGToDAG.cpp	2013-11-13 22:28:57.000000000 +0800
-+++ Chapter4_1/Cpu0ISelDAGToDAG.cpp	2013-11-13 22:28:57.000000000 +0800
+--- Chapter3_5/Cpu0ISelDAGToDAG.cpp	2013-11-14 09:05:40.471652964 +0800
++++ Chapter4_1/Cpu0ISelDAGToDAG.cpp	2013-11-14 09:05:40.487652964 +0800
 @@ -84,6 +84,9 @@
  
    SDNode *getGlobalBaseReg();
@@ -64,8 +263,8 @@ diff -Naur Chapter3_5/Cpu0ISelDAGToDAG.cpp Chapter4_1/Cpu0ISelDAGToDAG.cpp
      const ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Node);
      unsigned Size = CN->getValueSizeInBits(0);
 diff -Naur Chapter3_5/Cpu0ISelLowering.cpp Chapter4_1/Cpu0ISelLowering.cpp
---- Chapter3_5/Cpu0ISelLowering.cpp	2013-11-13 22:28:57.000000000 +0800
-+++ Chapter4_1/Cpu0ISelLowering.cpp	2013-11-13 22:28:57.000000000 +0800
+--- Chapter3_5/Cpu0ISelLowering.cpp	2013-11-14 09:05:40.471652964 +0800
++++ Chapter4_1/Cpu0ISelLowering.cpp	2013-11-14 09:05:40.487652964 +0800
 @@ -43,6 +43,14 @@
    // Set up the register classes
    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
@@ -141,8 +340,8 @@ diff -Naur Chapter3_5/Cpu0ISelLowering.cpp Chapter4_1/Cpu0ISelLowering.cpp
  
  /// LowerFormalArguments - transform physical registers into virtual registers
 diff -Naur Chapter3_5/Cpu0ISelLowering.h Chapter4_1/Cpu0ISelLowering.h
---- Chapter3_5/Cpu0ISelLowering.h	2013-11-13 22:28:57.000000000 +0800
-+++ Chapter4_1/Cpu0ISelLowering.h	2013-11-13 22:28:57.000000000 +0800
+--- Chapter3_5/Cpu0ISelLowering.h	2013-11-14 09:05:40.471652964 +0800
++++ Chapter4_1/Cpu0ISelLowering.h	2013-11-14 09:05:40.487652964 +0800
 @@ -25,7 +25,10 @@
      enum NodeType {
        // Start the numbering from where ISD NodeType finishes.
@@ -164,221 +363,61 @@ diff -Naur Chapter3_5/Cpu0ISelLowering.h Chapter4_1/Cpu0ISelLowering.h
    private:
      // Subtarget Info
      const Cpu0Subtarget *Subtarget;
-diff -Naur Chapter3_5/Cpu0InstrInfo.cpp Chapter4_1/Cpu0InstrInfo.cpp
---- Chapter3_5/Cpu0InstrInfo.cpp	2013-11-13 22:28:57.000000000 +0800
-+++ Chapter4_1/Cpu0InstrInfo.cpp	2013-11-13 22:28:57.000000000 +0800
-@@ -28,6 +28,43 @@
-   return RI;
- }
- 
-+// Cpu0InstrInfo::copyPhysReg()
-+void Cpu0InstrInfo::
-+copyPhysReg(MachineBasicBlock &MBB,
-+            MachineBasicBlock::iterator I, DebugLoc DL,
-+            unsigned DestReg, unsigned SrcReg,
-+            bool KillSrc) const {
-+  unsigned Opc = 0, ZeroReg = 0;
-+
-+  if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
-+    if (Cpu0::CPURegsRegClass.contains(SrcReg))
-+      Opc = Cpu0::ADD, ZeroReg = Cpu0::ZERO;
-+    else if (SrcReg == Cpu0::HI)
-+      Opc = Cpu0::MFHI, SrcReg = 0;
-+    else if (SrcReg == Cpu0::LO)
-+      Opc = Cpu0::MFLO, SrcReg = 0;
-+  }
-+  else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
-+    if (DestReg == Cpu0::HI)
-+      Opc = Cpu0::MTHI, DestReg = 0;
-+    else if (DestReg == Cpu0::LO)
-+      Opc = Cpu0::MTLO, DestReg = 0;
-+  }
-+
-+  assert(Opc && "Cannot copy registers");
-+
-+  MachineInstrBuilder MIB = BuildMI(MBB, I, DL, get(Opc));
-+
-+  if (DestReg)
-+    MIB.addReg(DestReg, RegState::Define);
-+
-+  if (ZeroReg)
-+    MIB.addReg(ZeroReg);
-+
-+  if (SrcReg)
-+    MIB.addReg(SrcReg, getKillRegState(KillSrc));
-+}
-+
- MachineInstr*
- Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
-                                         uint64_t Offset, const MDNode *MDPtr,
-diff -Naur Chapter3_5/Cpu0InstrInfo.h Chapter4_1/Cpu0InstrInfo.h
---- Chapter3_5/Cpu0InstrInfo.h	2013-11-13 22:28:57.000000000 +0800
-+++ Chapter4_1/Cpu0InstrInfo.h	2013-11-13 22:28:57.000000000 +0800
-@@ -36,6 +36,11 @@
-   ///
-   virtual const Cpu0RegisterInfo &getRegisterInfo() const;
- 
-+  virtual void copyPhysReg(MachineBasicBlock &MBB,
-+                           MachineBasicBlock::iterator MI, DebugLoc DL,
-+                           unsigned DestReg, unsigned SrcReg,
-+                           bool KillSrc) const;
-+
- public:
-   virtual MachineInstr* emitFrameIndexDebugValue(MachineFunction &MF,
-                                                  int FrameIx, uint64_t Offset,
-diff -Naur Chapter3_5/Cpu0InstrInfo.td Chapter4_1/Cpu0InstrInfo.td
---- Chapter3_5/Cpu0InstrInfo.td	2013-11-13 22:28:57.000000000 +0800
-+++ Chapter4_1/Cpu0InstrInfo.td	2013-11-13 22:28:57.000000000 +0800
-@@ -148,6 +148,14 @@
-                          SDNode OpNode>:
-   shift_rotate_imm<op, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs>;
- 
-+class shift_rotate_reg<bits<8> op, bits<4> isRotate, string instr_asm,
-+                       SDNode OpNode, RegisterClass RC>:
-+  FA<op, (outs RC:$ra), (ins CPURegs:$rb, RC:$rc),
-+     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
-+     [(set RC:$ra, (OpNode RC:$rb, CPURegs:$rc))], IIAlu> {
-+  let shamt = 0;
-+}
-+
- // Load Upper Imediate
- class LoadUpper<bits<8> op, string instr_asm, RegisterClass RC, Operand Imm>:
-   FL<op, (outs RC:$ra), (ins Imm:$imm16),
-@@ -212,6 +220,53 @@
-   let hasExtraSrcRegAllocReq = 1;
- }
- 
-+// Mul, Div
-+class Mult<bits<8> op, string instr_asm, InstrItinClass itin,
-+           RegisterClass RC, list<Register> DefRegs>:
-+  FL<op, (outs), (ins RC:$ra, RC:$rb),
-+     !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
-+  let imm16 = 0;
-+  let isCommutable = 1;
-+  let Defs = DefRegs;
-+  let neverHasSideEffects = 1;
-+}
-+
-+class Mult32<bits<8> op, string instr_asm, InstrItinClass itin>:
-+  Mult<op, instr_asm, itin, CPURegs, [HI, LO]>;
-+
-+class Div<SDNode opNode, bits<8> op, string instr_asm, InstrItinClass itin,
-+          RegisterClass RC, list<Register> DefRegs>:
-+  FL<op, (outs), (ins RC:$ra, RC:$rb),
-+     !strconcat(instr_asm, "\t$ra, $rb"),
-+     [(opNode RC:$ra, RC:$rb)], itin> {
-+  let imm16 = 0;
-+  let Defs = DefRegs;
-+}
-+
-+class Div32<SDNode opNode, bits<8> op, string instr_asm, InstrItinClass itin>:
-+  Div<opNode, op, instr_asm, itin, CPURegs, [HI, LO]>;
-+
-+// Move from Hi/Lo
-+class MoveFromLOHI<bits<8> op, string instr_asm, RegisterClass RC,
-+                   list<Register> UseRegs>:
-+  FL<op, (outs RC:$ra), (ins),
-+     !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
-+  let rb = 0;
-+  let imm16 = 0;
-+  let Uses = UseRegs;
-+  let neverHasSideEffects = 1;
-+}
-+
-+class MoveToLOHI<bits<8> op, string instr_asm, RegisterClass RC,
-+                 list<Register> DefRegs>:
-+  FL<op, (outs), (ins RC:$ra),
-+     !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
-+  let rb = 0;
-+  let imm16 = 0;
-+  let Defs = DefRegs;
-+  let neverHasSideEffects = 1;
-+}
-+
- //===----------------------------------------------------------------------===//
- // Instruction definition
- //===----------------------------------------------------------------------===//
-@@ -233,15 +288,43 @@
- 
- /// Arithmetic Instructions (3-Operand, R-Type)
- def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
-+def SUBu    : ArithLogicR<0x12, "subu", sub, IIAlu, CPURegs>;
-+def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
-+def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
-+def MUL     : ArithLogicR<0x17, "mul", mul, IIImul, CPURegs, 1>;
- 
- /// Shift Instructions
-+// sra is IR node for ashr llvm IR instruction of .bc
-+def ROL     : shift_rotate_imm32<0x1b, 0x01, "rol", rotl>;
-+def ROR     : shift_rotate_imm32<0x1c, 0x01, "ror", rotr>;
-+def SRA     : shift_rotate_imm32<0x1d, 0x00, "sra", sra>;
- def SHL     : shift_rotate_imm32<0x1e, 0x00, "shl", shl>;
-+// srl is IR node for lshr llvm IR instruction of .bc
-+def SHR     : shift_rotate_imm32<0x1f, 0x00, "shr", srl>;
-+def SRAV    : shift_rotate_reg<0x20, 0x00, "srav", sra, CPURegs>;
-+def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
-+def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
- 
- let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
-   def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
- 
- def RET     : RetBase<CPURegs>;
- 
-+/// Multiply and Divide Instructions.
-+def MULT    : Mult32<0x41, "mult", IIImul>;
-+def MULTu   : Mult32<0x42, "multu", IIImul>;
-+def SDIV    : Div32<Cpu0DivRem, 0x43, "div", IIIdiv>;
-+def UDIV    : Div32<Cpu0DivRemU, 0x44, "divu", IIIdiv>;
-+
-+def MFHI    : MoveFromLOHI<0x46, "mfhi", CPURegs, [HI]>;
-+def MFLO    : MoveFromLOHI<0x47, "mflo", CPURegs, [LO]>;
-+def MTHI    : MoveToLOHI<0x48, "mthi", CPURegs, [HI]>;
-+def MTLO    : MoveToLOHI<0x49, "mtlo", CPURegs, [LO]>;
-+
-+/// No operation
-+let addr=0 in
-+  def NOP   : FJ<0, (outs), (ins), "nop", [], IIAlu>;
-+
- //===----------------------------------------------------------------------===//
- //  Arbitrary patterns that map to one or more instructions
- //===----------------------------------------------------------------------===//
 diff -Naur Chapter3_5/Cpu0RegisterInfo.td Chapter4_1/Cpu0RegisterInfo.td
---- Chapter3_5/Cpu0RegisterInfo.td	2013-11-13 22:28:57.000000000 +0800
-+++ Chapter4_1/Cpu0RegisterInfo.td	2013-11-13 22:28:57.000000000 +0800
+--- Chapter3_5/Cpu0RegisterInfo.td	2013-11-14 09:05:40.471652964 +0800
++++ Chapter4_1/Cpu0RegisterInfo.td	2013-11-14 09:05:40.487652964 +0800
 @@ -48,6 +48,9 @@
  //  def MAR  : Register< 16, "mar">,  DwarfRegNum<[16]>;
  //  def MDR  : Register< 17, "mdr">,  DwarfRegNum<[17]>;
  
-+  // Hi/Lo registers
++  // Hi/Lo registers number and name
 +  def HI   : Register<"hi">, DwarfRegNum<[18]>;
 +  def LO   : Register<"lo">, DwarfRegNum<[19]>;
    def SW   : Register<"sw">, DwarfRegNum<[20]>;
  }
  
+@@ -68,5 +71,8 @@
+   GP, FP, 
+   SP, LR, PC)>;
+ 
++// Hi/Lo Registers class
++def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
++
+ // Status Registers class
+ def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
 diff -Naur Chapter3_5/Cpu0Schedule.td Chapter4_1/Cpu0Schedule.td
---- Chapter3_5/Cpu0Schedule.td	2013-11-13 22:28:57.000000000 +0800
-+++ Chapter4_1/Cpu0Schedule.td	2013-11-13 22:28:57.000000000 +0800
-@@ -20,6 +20,9 @@
+--- Chapter3_5/Cpu0Schedule.td	2013-11-14 09:05:40.471652964 +0800
++++ Chapter4_1/Cpu0Schedule.td	2013-11-14 09:12:12.255660319 +0800
+@@ -19,6 +19,9 @@
+ def IIAlu              : InstrItinClass;
  def IILoad             : InstrItinClass;
  def IIStore            : InstrItinClass;
- def IIBranch           : InstrItinClass;
 +def IIHiLo             : InstrItinClass;
 +def IIImul             : InstrItinClass;
 +def IIIdiv             : InstrItinClass;
+ def IIBranch           : InstrItinClass;
  
  def IIPseudo           : InstrItinClass;
- 
+@@ -31,5 +34,8 @@
+   InstrItinData<IIAlu              , [InstrStage<1,  [ALU]>]>,
+   InstrItinData<IILoad             , [InstrStage<3,  [ALU]>]>,
+   InstrItinData<IIStore            , [InstrStage<1,  [ALU]>]>,
++  InstrItinData<IIHiLo             , [InstrStage<1,  [IMULDIV]>]>,
++  InstrItinData<IIImul             , [InstrStage<17, [IMULDIV]>]>,
++  InstrItinData<IIIdiv             , [InstrStage<38, [IMULDIV]>]>,
+   InstrItinData<IIBranch           , [InstrStage<1,  [ALU]>]>
+ ]>;
 diff -Naur Chapter3_5/InstPrinter/Cpu0InstPrinter.cpp Chapter4_1/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter3_5/InstPrinter/Cpu0InstPrinter.cpp	2013-11-13 22:28:57.000000000 +0800
-+++ Chapter4_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-13 22:28:57.000000000 +0800
+--- Chapter3_5/InstPrinter/Cpu0InstPrinter.cpp	2013-11-14 09:05:40.471652964 +0800
++++ Chapter4_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-14 09:05:40.487652964 +0800
 @@ -109,4 +109,3 @@
    printOperand(MI, opNum, O);
    O << ")";
  }
 -
 diff -Naur Chapter3_5/InstPrinter/Cpu0InstPrinter.h Chapter4_1/InstPrinter/Cpu0InstPrinter.h
---- Chapter3_5/InstPrinter/Cpu0InstPrinter.h	2013-11-13 22:28:57.000000000 +0800
-+++ Chapter4_1/InstPrinter/Cpu0InstPrinter.h	2013-11-13 22:28:57.000000000 +0800
+--- Chapter3_5/InstPrinter/Cpu0InstPrinter.h	2013-11-14 09:05:40.471652964 +0800
++++ Chapter4_1/InstPrinter/Cpu0InstPrinter.h	2013-11-14 09:05:40.487652964 +0800
 @@ -39,6 +39,7 @@
    void printOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
    void printUnsignedImm(const MCInst *MI, int opNum, raw_ostream &O);
@@ -388,8 +427,8 @@ diff -Naur Chapter3_5/InstPrinter/Cpu0InstPrinter.h Chapter4_1/InstPrinter/Cpu0I
  } // end namespace llvm
  
 diff -Naur Chapter3_5/MCTargetDesc/Cpu0BaseInfo.h Chapter4_1/MCTargetDesc/Cpu0BaseInfo.h
---- Chapter3_5/MCTargetDesc/Cpu0BaseInfo.h	2013-11-13 22:28:57.000000000 +0800
-+++ Chapter4_1/MCTargetDesc/Cpu0BaseInfo.h	2013-11-13 22:28:57.000000000 +0800
+--- Chapter3_5/MCTargetDesc/Cpu0BaseInfo.h	2013-11-14 09:05:40.471652964 +0800
++++ Chapter4_1/MCTargetDesc/Cpu0BaseInfo.h	2013-11-14 09:05:40.487652964 +0800
 @@ -88,6 +88,10 @@
      return 14;
    case Cpu0::PC:

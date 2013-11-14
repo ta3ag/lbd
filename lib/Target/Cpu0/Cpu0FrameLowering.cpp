@@ -122,7 +122,7 @@ static void expandLargeImm(unsigned Reg, int64_t Imm,
       .addImm(SignExtend64<16>(Inst->ImmOpnd));
 
   BuildMI(MBB, II, DL, TII.get(ADDu), Reg).addReg(Reg).addReg(ATReg);
-} //static void expandLargeImm
+} // lbd document - mark - expandLargeImm
 
 void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   MachineBasicBlock &MBB   = MF.front();
@@ -221,7 +221,7 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
     unsigned Offset = MFI->getObjectOffset(Cpu0FI->getGPFI());
     BuildMI(MBB, MBBI, dl, TII.get(Cpu0::CPRESTORE)).addImm(Offset)
       .addReg(Cpu0::GP);
-  } // if (Cpu0FI->needGPSaveRestore())
+  } // lbd document - mark - if (Cpu0FI->needGPSaveRestore())
 }
 
 void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,

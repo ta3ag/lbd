@@ -42,7 +42,7 @@ def CC_Cpu0 : CallingConv<[
 
 def RetCC_Cpu0 : CallingConv<[
   CCDelegateTo<RetCC_Cpu0EABI>
-]>; // def RetCC_Cpu0
+]>; // lbd document - mark - def RetCC_Cpu0
 
 def CSR_O32 : CalleeSavedRegs<(add LR, FP,
                                    (sequence "S%u", 2, 0))>;

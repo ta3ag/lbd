@@ -1,9 +1,9 @@
 diff -Naur Chapter3_3/Cpu0InstrFormats.td Chapter3_4/Cpu0InstrFormats.td
---- Chapter3_3/Cpu0InstrFormats.td	2013-11-13 22:28:56.000000000 +0800
-+++ Chapter3_4/Cpu0InstrFormats.td	2013-11-13 22:28:57.000000000 +0800
+--- Chapter3_3/Cpu0InstrFormats.td	2013-11-14 11:08:47.619791647 +0800
++++ Chapter3_4/Cpu0InstrFormats.td	2013-11-14 11:15:53.595799644 +0800
 @@ -69,6 +69,13 @@
    field bits<32> SoftFail = 0;
- }
+ } // lbd document - mark - class Cpu0Inst
  
 +// Cpu0 Pseudo Instructions Format
 +class Cpu0Pseudo<dag outs, dag ins, string asmstr, list<dag> pattern>:
@@ -16,8 +16,8 @@ diff -Naur Chapter3_3/Cpu0InstrFormats.td Chapter3_4/Cpu0InstrFormats.td
  // Format A instruction class in Cpu0 : <|opcode|ra|rb|rc|cx|>
  //===----------------------------------------------------------------------===//
 diff -Naur Chapter3_3/Cpu0InstrInfo.cpp Chapter3_4/Cpu0InstrInfo.cpp
---- Chapter3_3/Cpu0InstrInfo.cpp	2013-11-13 22:28:56.000000000 +0800
-+++ Chapter3_4/Cpu0InstrInfo.cpp	2013-11-13 22:28:57.000000000 +0800
+--- Chapter3_3/Cpu0InstrInfo.cpp	2013-11-14 11:08:47.619791647 +0800
++++ Chapter3_4/Cpu0InstrInfo.cpp	2013-11-14 11:08:47.627791647 +0800
 @@ -37,3 +37,25 @@
    return &*MIB;
  }
@@ -45,8 +45,8 @@ diff -Naur Chapter3_3/Cpu0InstrInfo.cpp Chapter3_4/Cpu0InstrInfo.cpp
 +  BuildMI(MBB, I, I->getDebugLoc(), get(Opc)).addReg(Cpu0::LR);
 +}
 diff -Naur Chapter3_3/Cpu0InstrInfo.h Chapter3_4/Cpu0InstrInfo.h
---- Chapter3_3/Cpu0InstrInfo.h	2013-11-13 22:28:56.000000000 +0800
-+++ Chapter3_4/Cpu0InstrInfo.h	2013-11-13 22:28:57.000000000 +0800
+--- Chapter3_3/Cpu0InstrInfo.h	2013-11-14 11:08:47.619791647 +0800
++++ Chapter3_4/Cpu0InstrInfo.h	2013-11-14 11:08:47.627791647 +0800
 @@ -41,6 +41,12 @@
                                                   int FrameIx, uint64_t Offset,
                                                   const MDNode *MDPtr,
@@ -61,8 +61,8 @@ diff -Naur Chapter3_3/Cpu0InstrInfo.h Chapter3_4/Cpu0InstrInfo.h
  }
  
 diff -Naur Chapter3_3/Cpu0InstrInfo.td Chapter3_4/Cpu0InstrInfo.td
---- Chapter3_3/Cpu0InstrInfo.td	2013-11-13 22:28:56.000000000 +0800
-+++ Chapter3_4/Cpu0InstrInfo.td	2013-11-13 22:58:09.000000000 +0800
+--- Chapter3_3/Cpu0InstrInfo.td	2013-11-14 11:08:47.619791647 +0800
++++ Chapter3_4/Cpu0InstrInfo.td	2013-11-14 11:08:47.623791647 +0800
 @@ -156,6 +156,9 @@
  // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
  def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;

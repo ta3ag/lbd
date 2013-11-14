@@ -1599,7 +1599,7 @@ Above code do the following:
     let imm16 = 0;
   }
   // Return instruction
-  class RetBase<RegisterClass RC>: JumpFR<0x2C, "ret", RC> {
+  class RetBase<RegisterClass RC>: JumpFR<0x3c, "ret", RC> {
     let isReturn = 1;
     let isCodeGenOnly = 1;
     let hasCtrlDep = 1;

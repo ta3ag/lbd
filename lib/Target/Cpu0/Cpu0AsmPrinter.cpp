@@ -51,7 +51,7 @@ void Cpu0AsmPrinter::EmitInstrWithMacroNoAT(const MachineInstr *MI) {
   if (Cpu0FI->getEmitNOAT())
     OutStreamer.EmitRawText(StringRef("\t.set\tnoat"));
   OutStreamer.EmitRawText(StringRef("\t.set\tnomacro"));
-} // void Cpu0AsmPrinter::EmitInstrWithMacroNoAT
+} // lbd document - mark - EmitInstrWithMacroNoAT
 
 bool Cpu0AsmPrinter::runOnMachineFunction(MachineFunction &MF) {
   Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
@@ -98,7 +98,7 @@ void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
   }
   default:
     break;
-  } // switch (Opc)
+  } // lbd document - mark - switch (Opc)
 
   MCInstLowering.Lower(MI, TmpInst0);
   OutStreamer.EmitInstruction(TmpInst0);

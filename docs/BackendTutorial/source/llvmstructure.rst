@@ -783,16 +783,16 @@ The cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
     :start-after: disassembler for expectation. */
     :end-before: // Instruction operand types
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
-    :start-after: } // def jmptarget
+    :start-after: // lbd document - mark - def calltarget
     :end-before: def shamt
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
-    :start-after: } // def Cpu0MemAsmOperand
+    :start-after: // lbd document - mark - def Cpu0MemAsmOperand
     :end-before: let ParserMatchClass = Cpu0MemAsmOperand;
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
     :start-after: let ParserMatchClass = Cpu0MemAsmOperand;
     :end-before: def mem_ea : Operand<i32> {
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
-    :start-after: }]>; // def HI16
+    :start-after: // lbd document - mark - def HI16
     :end-before: // Node immediate fits as 16-bit zero extended on target immediate.
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
     :start-after: def immZExt5 : ImmLeaf<i32, [{return Imm == (Imm & 0x1f);}]>;
@@ -807,13 +807,13 @@ The cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
     :start-after: def store_a         : AlignedStore<store>;
     :end-before: // Arithmetic and logical instructions with 3 register operands.
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
-    :start-after: } // class CmpInstr
+    :start-after: // lbd document - mark - class CmpInstr
     :end-before: // Shifts
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
-    :start-after: } // class LoadUpper
+    :start-after: // lbd document - mark - class LoadUpper
     :end-before: // Conditional Branch, e.g. JEQ brtarget24
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
-    :start-after: } // class UncondBranch
+    :start-after: // lbd document - mark - class UncondBranch
     :end-before: // Jump and Link (Call)
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
     :start-after: def LoadAddr32Imm : LoadAddressImm<"la", shamt, CPURegs>;
@@ -825,7 +825,7 @@ The cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
     :start-after: def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
     :end-before: def IRET    : JumpFR<0x3d, "iret", CPURegs>;
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
-    :start-after: } // def LEA_ADDiu
+    :start-after: // lbd document - mark - def LEA_ADDiu
     :end-before: def : Pat<(i32 immZExt16:$in),
 
 The Cpu0InstrFormats.td is included by Cpu0InstInfo.td as follows,
@@ -834,7 +834,7 @@ The Cpu0InstrFormats.td is included by Cpu0InstInfo.td as follows,
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrFormats.td
     :end-before: // Cpu0 Pseudo Instructions Format
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrFormats.td
-    :start-after: } // class Cpu0AsmPseudoInst
+    :start-after: // lbd document - mark - class Cpu0AsmPseudoInst
 
 
 ADDiu is class ArithLogicI inherited from FL, can be expanded and get member 

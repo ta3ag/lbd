@@ -1,6 +1,6 @@
 diff -Naur Chapter12_1/Cpu0InstrInfo.cpp Chapter12_2/Cpu0InstrInfo.cpp
---- Chapter12_1/Cpu0InstrInfo.cpp	2013-11-11 17:15:26.261375892 +0800
-+++ Chapter12_2/Cpu0InstrInfo.cpp	2013-11-11 17:15:26.265375892 +0800
+--- Chapter12_1/Cpu0InstrInfo.cpp	2013-11-14 09:51:52.471705004 +0800
++++ Chapter12_2/Cpu0InstrInfo.cpp	2013-11-14 09:51:52.475705004 +0800
 @@ -37,6 +37,7 @@
              bool KillSrc) const {
    unsigned Opc = 0, ZeroReg = 0;
@@ -35,8 +35,8 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.cpp Chapter12_2/Cpu0InstrInfo.cpp
  
    assert(Opc && "Cannot copy registers");
 diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
---- Chapter12_1/Cpu0InstrInfo.td	2013-11-11 17:15:26.261375892 +0800
-+++ Chapter12_2/Cpu0InstrInfo.td	2013-11-11 17:15:26.265375892 +0800
+--- Chapter12_1/Cpu0InstrInfo.td	2013-11-14 09:51:52.471705004 +0800
++++ Chapter12_2/Cpu0InstrInfo.td	2013-11-14 09:51:52.475705004 +0800
 @@ -63,11 +63,53 @@
  // Cpu0 Instruction Predicate Definitions.
  //===----------------------------------------------------------------------===//
@@ -166,7 +166,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
  class MoveToLOHI<bits<8> op, string instr_asm, RegisterClass RC,
                   list<Register> DefRegs>:
    FL<op, (outs), (ins RC:$ra),
-@@ -503,6 +586,11 @@
+@@ -507,6 +590,11 @@
  def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
  def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
  
@@ -178,7 +178,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
  /// Jump and Branch Instructions
  def JEQ     : CBranch24<0x30, "jeq", SR, [SW]>;
  def JNE     : CBranch24<0x31, "jne", SR, [SW]>;
-@@ -511,6 +599,9 @@
+@@ -515,6 +603,9 @@
  def JLE     : CBranch24<0x34, "jle", SR, [SW]>;
  def JGE     : CBranch24<0x35, "jge", SR, [SW]>;
  
@@ -187,8 +187,8 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
 +
  def JMP     : UncondBranch<0x36, "jmp">;
  
- /// Jump and Branch Instructions
-@@ -600,6 +691,7 @@
+ /// Jump & link and Return Instructions
+@@ -604,6 +695,7 @@
  def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
  
  // brcond patterns
@@ -196,7 +196,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
  multiclass BrcondPatsCmp<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
  Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp, 
  Instruction CMPOp, Register ZEROReg> {
-@@ -632,9 +724,44 @@
+@@ -636,9 +728,44 @@
            (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)>;
  }
  
@@ -241,7 +241,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
  multiclass SeteqPatsCmp<RegisterClass RC> {
  // a == b
    def : Pat<(seteq RC:$lhs, RC:$rhs),
-@@ -682,8 +809,64 @@
+@@ -686,8 +813,64 @@
              (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
  }
  
@@ -307,8 +307,8 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
 +defm : SetgeImmPatsSlt<CPURegs, SLTi, SLTiu>;
 +}
 diff -Naur Chapter12_1/Cpu0ISelDAGToDAG.cpp Chapter12_2/Cpu0ISelDAGToDAG.cpp
---- Chapter12_1/Cpu0ISelDAGToDAG.cpp	2013-11-11 17:15:26.261375892 +0800
-+++ Chapter12_2/Cpu0ISelDAGToDAG.cpp	2013-11-11 17:15:26.265375892 +0800
+--- Chapter12_1/Cpu0ISelDAGToDAG.cpp	2013-11-14 09:51:52.471705004 +0800
++++ Chapter12_2/Cpu0ISelDAGToDAG.cpp	2013-11-14 09:51:52.475705004 +0800
 @@ -244,10 +244,17 @@
      SDValue RHS = Node->getOperand(1);
  
@@ -332,8 +332,8 @@ diff -Naur Chapter12_1/Cpu0ISelDAGToDAG.cpp Chapter12_2/Cpu0ISelDAGToDAG.cpp
                                                SDValue(Carry,0), RHS);
  
 diff -Naur Chapter12_1/Cpu0Subtarget.h Chapter12_2/Cpu0Subtarget.h
---- Chapter12_1/Cpu0Subtarget.h	2013-11-11 17:15:26.261375892 +0800
-+++ Chapter12_2/Cpu0Subtarget.h	2013-11-11 17:15:26.265375892 +0800
+--- Chapter12_1/Cpu0Subtarget.h	2013-11-14 09:51:52.471705004 +0800
++++ Chapter12_2/Cpu0Subtarget.h	2013-11-14 09:51:52.475705004 +0800
 @@ -37,7 +37,9 @@
  
  protected:
@@ -355,8 +355,8 @@ diff -Naur Chapter12_1/Cpu0Subtarget.h Chapter12_2/Cpu0Subtarget.h
    bool useSmallSection() const { return UseSmallSection; }
  };
 diff -Naur Chapter12_1/Cpu0.td Chapter12_2/Cpu0.td
---- Chapter12_1/Cpu0.td	2013-11-11 17:15:26.261375892 +0800
-+++ Chapter12_2/Cpu0.td	2013-11-11 17:15:26.265375892 +0800
+--- Chapter12_1/Cpu0.td	2013-11-14 09:51:52.471705004 +0800
++++ Chapter12_2/Cpu0.td	2013-11-14 09:51:52.475705004 +0800
 @@ -35,6 +35,12 @@
  def FeatureCpu032I     : SubtargetFeature<"cpu032I", "Cpu0ArchVersion", 
          "Cpu032I", "Cpu032I ISA Support">;
@@ -382,22 +382,23 @@ diff -Naur Chapter12_1/Cpu0.td Chapter12_2/Cpu0.td
  def Cpu0AsmWriter : AsmWriter {
    string AsmWriterClassName  = "InstPrinter";
 diff -Naur Chapter12_1/Disassembler/Cpu0Disassembler.cpp Chapter12_2/Disassembler/Cpu0Disassembler.cpp
---- Chapter12_1/Disassembler/Cpu0Disassembler.cpp	2013-11-11 17:15:26.261375892 +0800
-+++ Chapter12_2/Disassembler/Cpu0Disassembler.cpp	2013-11-11 17:15:26.265375892 +0800
-@@ -66,6 +66,10 @@
-                                        unsigned Insn,
+--- Chapter12_1/Disassembler/Cpu0Disassembler.cpp	2013-11-14 09:51:52.471705004 +0800
++++ Chapter12_2/Disassembler/Cpu0Disassembler.cpp	2013-11-14 09:53:01.083706293 +0800
+@@ -67,6 +67,11 @@
                                         uint64_t Address,
                                         const void *Decoder);
+ // lbd document - mark - declare DecodeCMPInstruction
 +static DecodeStatus DecodeBranch16Target(MCInst &Inst,
 +                                       unsigned Insn,
 +                                       uint64_t Address,
 +                                       const void *Decoder);
++// lbd document - mark - declare DecodeBranch16Target
  static DecodeStatus DecodeBranch24Target(MCInst &Inst,
                                         unsigned Insn,
                                         uint64_t Address,
-@@ -238,6 +242,17 @@
+@@ -239,6 +244,17 @@
    return MCDisassembler::Success;
- }
+ } // lbd document - mark - DecodeCMPInstruction
  
 +static DecodeStatus DecodeBranch16Target(MCInst &Inst,
 +                                       unsigned Insn,
@@ -408,14 +409,14 @@ diff -Naur Chapter12_1/Disassembler/Cpu0Disassembler.cpp Chapter12_2/Disassemble
 +  	BranchOffset = -1*(0x10000 - BranchOffset);
 +  Inst.addOperand(MCOperand::CreateImm(BranchOffset));
 +  return MCDisassembler::Success;
-+}
++} // lbd document - mark - DecodeBranch16Target
 +
  /* CBranch instruction define $ra and then imm24; The printOperand() print 
  operand 1 (operand 0 is $ra and operand 1 is imm24), so we Create register 
  operand first and create imm24 next, as follows,
 diff -Naur Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter12_2/MCTargetDesc/Cpu0AsmBackend.cpp
---- Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-11-11 17:15:26.261375892 +0800
-+++ Chapter12_2/MCTargetDesc/Cpu0AsmBackend.cpp	2013-11-11 17:15:26.265375892 +0800
+--- Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-11-14 09:51:52.471705004 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0AsmBackend.cpp	2013-11-14 09:51:52.475705004 +0800
 @@ -39,6 +39,7 @@
    case Cpu0::fixup_Cpu0_LO16:
    case Cpu0::fixup_Cpu0_GOT_LO16:
@@ -433,8 +434,8 @@ diff -Naur Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter12_2/MCTargetDesc/
        { "fixup_Cpu0_CALL16",         0,     16,   0 },
        { "fixup_Cpu0_GOT_HI16",       0,     16,   0 },
 diff -Naur Chapter12_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter12_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp
---- Chapter12_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-11-11 17:15:26.261375892 +0800
-+++ Chapter12_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-11-11 17:15:26.265375892 +0800
+--- Chapter12_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-11-14 09:51:52.471705004 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-11-14 09:51:52.475705004 +0800
 @@ -120,6 +120,9 @@
    case Cpu0::fixup_Cpu0_GOT_Local:
      Type = ELF::R_CPU0_GOT16;
@@ -446,8 +447,8 @@ diff -Naur Chapter12_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter12_2/MCTarget
      Type = ELF::R_CPU0_PC24;
      break;
 diff -Naur Chapter12_1/MCTargetDesc/Cpu0FixupKinds.h Chapter12_2/MCTargetDesc/Cpu0FixupKinds.h
---- Chapter12_1/MCTargetDesc/Cpu0FixupKinds.h	2013-11-11 17:15:26.261375892 +0800
-+++ Chapter12_2/MCTargetDesc/Cpu0FixupKinds.h	2013-11-11 17:15:26.265375892 +0800
+--- Chapter12_1/MCTargetDesc/Cpu0FixupKinds.h	2013-11-14 09:51:52.471705004 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0FixupKinds.h	2013-11-14 09:51:52.475705004 +0800
 @@ -44,6 +44,10 @@
      // Local symbol fixup resulting in - R_CPU0_GOT16.
      fixup_Cpu0_GOT_Local,
@@ -460,8 +461,8 @@ diff -Naur Chapter12_1/MCTargetDesc/Cpu0FixupKinds.h Chapter12_2/MCTargetDesc/Cp
      // cpu0 PC24, e.g. jeq, jmp
      fixup_Cpu0_PC24,
 diff -Naur Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter12_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-11 17:15:26.261375892 +0800
-+++ Chapter12_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-11 17:15:26.265375892 +0800
+--- Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-14 09:51:52.471705004 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-14 09:51:52.475705004 +0800
 @@ -72,6 +72,12 @@
    uint64_t getBinaryCodeForInstr(const MCInst &MI,
                                   SmallVectorImpl<MCFixup> &Fixups) const;
@@ -502,8 +503,8 @@ diff -Naur Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter12_2/MCTargetDe
  /// target operand. If the machine operand requires relocation,
  /// record the relocation and return zero.
 diff -Naur Chapter12_1/MCTargetDesc/Cpu0MCTargetDesc.cpp Chapter12_2/MCTargetDesc/Cpu0MCTargetDesc.cpp
---- Chapter12_1/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-11 17:15:26.261375892 +0800
-+++ Chapter12_2/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-11 17:15:26.265375892 +0800
+--- Chapter12_1/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-14 09:51:52.471705004 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-14 09:51:52.475705004 +0800
 @@ -53,6 +53,8 @@
    if (TheTriple == "cpu0" || TheTriple == "cpu0el") {
      if (CPU.empty() || CPU == "cpu032I") {

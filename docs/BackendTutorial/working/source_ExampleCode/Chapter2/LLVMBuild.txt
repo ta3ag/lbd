@@ -50,6 +50,8 @@ required_libraries =
                      SelectionDAG 
                      Support 
                      Target
+# end of required_libraries
+
 # All LLVMBuild.txt in Target/Cpu0 and subdirectory use 'add_to_library_groups 
 #  = Cpu0'
 add_to_library_groups = Cpu0

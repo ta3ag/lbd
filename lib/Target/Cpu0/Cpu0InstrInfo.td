@@ -123,7 +123,7 @@ def jmptarget    : Operand<OtherVT> {
 
 def calltarget  : Operand<iPTR> {
   let EncoderMethod = "getJumpTargetOpValue";
-} // def jmptarget
+} // lbd document - mark - def calltarget
 
 // Signed Operand
 def simm16      : Operand<i32> {
@@ -140,7 +140,7 @@ def uimm16      : Operand<i32> {
 def Cpu0MemAsmOperand : AsmOperandClass {
   let Name = "Mem";
   let ParserMethod = "parseMemOperand";
-} // def Cpu0MemAsmOperand
+} // lbd document - mark - def Cpu0MemAsmOperand
 
 // Address operand
 def mem : Operand<i32> {
@@ -164,7 +164,7 @@ def LO16 : SDNodeXForm<imm, [{
 // Transformation Function - get the higher 16 bits.
 def HI16 : SDNodeXForm<imm, [{
   return getImm(N, (N->getZExtValue() >> 16) & 0xffff);
-}]>; // def HI16
+}]>; // lbd document - mark - def HI16
 
 // Node immediate fits as 16-bit sign extended on target immediate.
 // e.g. addi, andi
@@ -251,7 +251,7 @@ class CmpInstr<bits<8> op, string instr_asm,
   let isCommutable = isComm;
   let DecoderMethod = "DecodeCMPInstruction";
   let Predicates = [NotCpu032II];
-} // class CmpInstr
+} // lbd document - mark - class CmpInstr
 
 // Arithmetic and logical instructions with 2 register operands.
 class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
@@ -293,7 +293,7 @@ class LoadUpper<bits<8> op, string instr_asm, RegisterClass RC, Operand Imm>:
   let rb = 0;
   let neverHasSideEffects = 1;
   let isReMaterializable = 1;
-} // class LoadUpper
+} // lbd document - mark - class LoadUpper
 
 class FMem<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern,
           InstrItinClass itin>: FL<op, outs, ins, asmstr, pattern, itin> {
@@ -384,7 +384,7 @@ class UncondBranch<bits<8> op, string instr_asm>:
   let isTerminator = 1;
   let isBarrier = 1;
   let hasDelaySlot = 0;
-} // class UncondBranch
+} // lbd document - mark - class UncondBranch
 
 let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
     isIndirectBranch = 1 in
@@ -637,7 +637,7 @@ let addr=0 in
 // can be matched. It's similar to Sparc LEA_ADDRi
 def LEA_ADDiu : EffectiveAddress<"addiu\t$ra, $addr", CPURegs, mem_ea> {
   let isCodeGenOnly = 1;
-} // def LEA_ADDiu
+} // lbd document - mark - def LEA_ADDiu
 
 //===----------------------------------------------------------------------===//
 //  Arbitrary patterns that map to one or more instructions
