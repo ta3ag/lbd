@@ -60,7 +60,7 @@ diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
 +// can be matched. It's similar to Sparc LEA_ADDRi
 +def LEA_ADDiu : EffectiveAddress<"addiu\t$ra, $addr", CPURegs, mem_ea> {
 +  let isCodeGenOnly = 1;
-+}
++} // lbd document - mark - def LEA_ADDiu
 +
  //===----------------------------------------------------------------------===//
  //  Arbitrary patterns that map to one or more instructions

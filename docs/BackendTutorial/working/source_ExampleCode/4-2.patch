@@ -33,7 +33,7 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +  let rc = 0;
 +  let shamt = 0;
 +  let isCommutable = isComm;
-+}
++} // lbd document - mark - class CmpInstr
 +
  // Arithmetic and logical instructions with 2 register operands.
  class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,

@@ -46,7 +46,7 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
 +  let isTerminator = 1;
 +  let isBarrier = 1;
 +  let hasDelaySlot = 0;
-+}
++} // lbd document - mark - class UncondBranch
 +
  let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
      isIndirectBranch = 1 in

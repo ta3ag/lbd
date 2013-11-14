@@ -1,6 +1,6 @@
 diff -Naur Chapter3_4/CMakeLists.txt Chapter3_5/CMakeLists.txt
---- Chapter3_4/CMakeLists.txt	2013-11-14 18:35:31.060294844 +0800
-+++ Chapter3_5/CMakeLists.txt	2013-11-14 18:35:31.040294844 +0800
+--- Chapter3_4/CMakeLists.txt	2013-11-14 19:03:05.692325908 +0800
++++ Chapter3_5/CMakeLists.txt	2013-11-14 19:03:05.672325907 +0800
 @@ -23,6 +23,7 @@
  
  # Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen
@@ -11,7 +11,7 @@ diff -Naur Chapter3_4/CMakeLists.txt Chapter3_5/CMakeLists.txt
    Cpu0ISelDAGToDAG.cpp
 diff -Naur Chapter3_4/Cpu0AnalyzeImmediate.cpp Chapter3_5/Cpu0AnalyzeImmediate.cpp
 --- Chapter3_4/Cpu0AnalyzeImmediate.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_5/Cpu0AnalyzeImmediate.cpp	2013-11-14 18:35:31.040294844 +0800
++++ Chapter3_5/Cpu0AnalyzeImmediate.cpp	2013-11-14 19:03:05.672325907 +0800
 @@ -0,0 +1,146 @@
 +//===-- Cpu0AnalyzeImmediate.cpp - Analyze Immediates ---------------------===//
 +//
@@ -161,7 +161,7 @@ diff -Naur Chapter3_4/Cpu0AnalyzeImmediate.cpp Chapter3_5/Cpu0AnalyzeImmediate.c
 +}
 diff -Naur Chapter3_4/Cpu0AnalyzeImmediate.h Chapter3_5/Cpu0AnalyzeImmediate.h
 --- Chapter3_4/Cpu0AnalyzeImmediate.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_5/Cpu0AnalyzeImmediate.h	2013-11-14 18:35:31.040294844 +0800
++++ Chapter3_5/Cpu0AnalyzeImmediate.h	2013-11-14 19:03:05.672325907 +0800
 @@ -0,0 +1,63 @@
 +//===-- Cpu0AnalyzeImmediate.h - Analyze Immediates ------------*- C++ -*--===//
 +//
@@ -227,8 +227,8 @@ diff -Naur Chapter3_4/Cpu0AnalyzeImmediate.h Chapter3_5/Cpu0AnalyzeImmediate.h
 +
 +#endif
 diff -Naur Chapter3_4/Cpu0FrameLowering.cpp Chapter3_5/Cpu0FrameLowering.cpp
---- Chapter3_4/Cpu0FrameLowering.cpp	2013-11-14 18:35:31.060294844 +0800
-+++ Chapter3_5/Cpu0FrameLowering.cpp	2013-11-14 18:35:31.040294844 +0800
+--- Chapter3_4/Cpu0FrameLowering.cpp	2013-11-14 19:03:05.692325908 +0800
++++ Chapter3_5/Cpu0FrameLowering.cpp	2013-11-14 19:03:05.672325907 +0800
 @@ -12,6 +12,7 @@
  //===----------------------------------------------------------------------===//
  
@@ -415,8 +415,8 @@ diff -Naur Chapter3_4/Cpu0FrameLowering.cpp Chapter3_5/Cpu0FrameLowering.cpp
  
  
 diff -Naur Chapter3_4/Cpu0FrameLowering.h Chapter3_5/Cpu0FrameLowering.h
---- Chapter3_4/Cpu0FrameLowering.h	2013-11-14 18:35:31.060294844 +0800
-+++ Chapter3_5/Cpu0FrameLowering.h	2013-11-14 18:35:31.040294844 +0800
+--- Chapter3_4/Cpu0FrameLowering.h	2013-11-14 19:03:05.692325908 +0800
++++ Chapter3_5/Cpu0FrameLowering.h	2013-11-14 19:03:05.672325907 +0800
 @@ -35,6 +35,8 @@
    void emitPrologue(MachineFunction &MF) const;
    void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const;
@@ -427,8 +427,8 @@ diff -Naur Chapter3_4/Cpu0FrameLowering.h Chapter3_5/Cpu0FrameLowering.h
  
  } // End llvm namespace
 diff -Naur Chapter3_4/Cpu0InstrInfo.td Chapter3_5/Cpu0InstrInfo.td
---- Chapter3_4/Cpu0InstrInfo.td	2013-11-14 18:35:31.060294844 +0800
-+++ Chapter3_5/Cpu0InstrInfo.td	2013-11-14 18:35:31.040294844 +0800
+--- Chapter3_4/Cpu0InstrInfo.td	2013-11-14 19:03:05.692325908 +0800
++++ Chapter3_5/Cpu0InstrInfo.td	2013-11-14 19:05:10.644328252 +0800
 @@ -36,6 +36,13 @@
    let DecoderMethod= "DecodeSimm16";
  }
@@ -455,7 +455,7 @@ diff -Naur Chapter3_4/Cpu0InstrInfo.td Chapter3_5/Cpu0InstrInfo.td
 +// Transformation Function - get the higher 16 bits.
 +def HI16 : SDNodeXForm<imm, [{
 +  return getImm(N, (N->getZExtValue() >> 16) & 0xffff);
-+}]>;
++}]>; // lbd document - mark - def HI16
 +
  // Node immediate fits as 16-bit sign extended on target immediate.
  // e.g. addi, andi
@@ -529,7 +529,7 @@ diff -Naur Chapter3_4/Cpu0InstrInfo.td Chapter3_5/Cpu0InstrInfo.td
 +  let rb = 0;
 +  let neverHasSideEffects = 1;
 +  let isReMaterializable = 1;
-+}
++} // lbd document - mark - class LoadUpper
 +
  class FMem<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern,
            InstrItinClass itin>: FL<op, outs, ins, asmstr, pattern, itin> {
@@ -563,8 +563,8 @@ diff -Naur Chapter3_4/Cpu0InstrInfo.td Chapter3_5/Cpu0InstrInfo.td
 +          (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
 +
 diff -Naur Chapter3_4/Cpu0RegisterInfo.cpp Chapter3_5/Cpu0RegisterInfo.cpp
---- Chapter3_4/Cpu0RegisterInfo.cpp	2013-11-14 18:35:31.060294844 +0800
-+++ Chapter3_5/Cpu0RegisterInfo.cpp	2013-11-14 18:35:31.040294844 +0800
+--- Chapter3_4/Cpu0RegisterInfo.cpp	2013-11-14 19:03:05.692325908 +0800
++++ Chapter3_5/Cpu0RegisterInfo.cpp	2013-11-14 19:03:05.672325907 +0800
 @@ -80,6 +80,7 @@
    return Reserved;
  } // lbd document - mark - getReservedRegs

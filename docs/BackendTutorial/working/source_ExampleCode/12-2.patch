@@ -108,7 +108,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
    let isCommutable = isComm;
    let DecoderMethod = "DecodeCMPInstruction";
 +  let Predicates = [NotCpu032II];
- }
+ } // lbd document - mark - class CmpInstr
  
  // Arithmetic and logical instructions with 2 register operands.
 @@ -290,11 +338,42 @@
