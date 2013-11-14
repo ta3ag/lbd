@@ -39,13 +39,13 @@ MCCodeEmitter *createCpu0MCCodeEmitterEL(const MCInstrInfo &MCII,
                                          const MCRegisterInfo &MRI,
                                          const MCSubtargetInfo &STI,
                                          MCContext &Ctx);
-// createCpu0MCCodeEmitterEL
+// lbd document - mark - createCpu0MCCodeEmitterEL
 
 MCAsmBackend *createCpu0AsmBackendEB32(const Target &T, StringRef TT,
                                        StringRef CPU);
 MCAsmBackend *createCpu0AsmBackendEL32(const Target &T, StringRef TT,
                                        StringRef CPU);
-// createCpu0AsmBackendEL32
+// lbd document - mark - createCpu0AsmBackendEL32
 
 MCObjectWriter *createCpu0ELFObjectWriter(raw_ostream &OS,
                                           uint8_t OSABI,

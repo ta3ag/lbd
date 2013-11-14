@@ -76,7 +76,7 @@ MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
   case MachineOperand::MO_ExternalSymbol:
     Symbol = AsmPrinter.GetExternalSymbolSymbol(MO.getSymbolName());
     Offset += MO.getOffset();
-    break; // case MachineOperand::MO_ExternalSymbol:
+    break; // lbd document - mark - case MachineOperand::MO_ExternalSymbol:
 
   default:
     llvm_unreachable("<unknown operand type>");

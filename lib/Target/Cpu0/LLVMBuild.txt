@@ -51,7 +51,7 @@ parent = Cpu0
 #  dependencies for this component. When tools are built, the build system will 
 #  include the transitive closure of all required_libraries for the components 
 #  the tool needs.
-required_libraries = 
+required_libraries =
                      AsmPrinter 
                      CodeGen Core MC 
                      Cpu0AsmPrinter 

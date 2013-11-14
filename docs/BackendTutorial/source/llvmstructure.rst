@@ -1129,7 +1129,7 @@ the empty initialize function since we register nothing in them for this moment.
     :start-after: #include "InstPrinter/Cpu0InstPrinter.h"
     :end-before: static std::string ParseCpu0Triple
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
-    :start-after: } // static MCStreamer *createMCStreamer
+    :start-after: // lbd document - mark - createMCStreamer
     :end-before: // Register the MC asm info.
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: // lbd document - mark - RegisterMCInstPrinter

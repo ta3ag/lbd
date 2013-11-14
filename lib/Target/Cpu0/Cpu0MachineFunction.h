@@ -60,7 +60,7 @@ public:
     EmitNOAT(false), 
     MaxCallFrameSize(0)
     {}
-  
+
   bool isInArgFI(int FI) const {
     return FI <= InArgFIRange.first && FI >= InArgFIRange.second;
   }

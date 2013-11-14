@@ -1,7 +1,7 @@
 diff -Naur Chapter9_1/Cpu0InstrInfo.cpp Chapter9_2/Cpu0InstrInfo.cpp
---- Chapter9_1/Cpu0InstrInfo.cpp	2013-11-14 09:21:02.091670266 +0800
-+++ Chapter9_2/Cpu0InstrInfo.cpp	2013-11-14 09:21:02.087670266 +0800
-@@ -80,6 +80,25 @@
+--- Chapter9_1/Cpu0InstrInfo.cpp	2013-11-14 18:35:31.056294844 +0800
++++ Chapter9_2/Cpu0InstrInfo.cpp	2013-11-14 18:35:31.056294844 +0800
+@@ -79,6 +79,25 @@
                                   MFI.getObjectSize(FI), Align);
  }
  
@@ -22,25 +22,18 @@ diff -Naur Chapter9_1/Cpu0InstrInfo.cpp Chapter9_2/Cpu0InstrInfo.cpp
 +  assert(Opc && "Register class not handled!");
 +  BuildMI(MBB, I, DL, get(Opc)).addReg(SrcReg, getKillRegState(isKill))
 +    .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
-+}
++} // lbd document - mark - storeRegToStackSlot
 +
  void Cpu0InstrInfo::
  loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                       unsigned DestReg, int FI,
 diff -Naur Chapter9_1/Cpu0InstrInfo.h Chapter9_2/Cpu0InstrInfo.h
---- Chapter9_1/Cpu0InstrInfo.h	2013-11-14 09:21:02.091670266 +0800
-+++ Chapter9_2/Cpu0InstrInfo.h	2013-11-14 09:21:02.087670266 +0800
-@@ -36,12 +36,18 @@
-   ///
-   virtual const Cpu0RegisterInfo &getRegisterInfo() const;
- 
-+public:
-   virtual void copyPhysReg(MachineBasicBlock &MBB,
-                            MachineBasicBlock::iterator MI, DebugLoc DL,
+--- Chapter9_1/Cpu0InstrInfo.h	2013-11-14 18:35:31.056294844 +0800
++++ Chapter9_2/Cpu0InstrInfo.h	2013-11-14 18:35:31.056294844 +0800
+@@ -41,6 +41,12 @@
                             unsigned DestReg, unsigned SrcReg,
                             bool KillSrc) const;
  
--public:
 +  virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
 +                                   MachineBasicBlock::iterator MBBI,
 +                                   unsigned SrcReg, bool isKill, int FrameIndex,
@@ -51,8 +44,8 @@ diff -Naur Chapter9_1/Cpu0InstrInfo.h Chapter9_2/Cpu0InstrInfo.h
                                      MachineBasicBlock::iterator MBBI,
                                      unsigned DestReg, int FrameIndex,
 diff -Naur Chapter9_1/Cpu0InstrInfo.td Chapter9_2/Cpu0InstrInfo.td
---- Chapter9_1/Cpu0InstrInfo.td	2013-11-14 09:21:02.087670266 +0800
-+++ Chapter9_2/Cpu0InstrInfo.td	2013-11-14 09:22:31.095671937 +0800
+--- Chapter9_1/Cpu0InstrInfo.td	2013-11-14 18:35:31.056294844 +0800
++++ Chapter9_2/Cpu0InstrInfo.td	2013-11-14 18:35:31.052294844 +0800
 @@ -28,6 +28,9 @@
  
  def SDT_Cpu0JmpLink      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
@@ -98,8 +91,8 @@ diff -Naur Chapter9_1/Cpu0InstrInfo.td Chapter9_2/Cpu0InstrInfo.td
  //===----------------------------------------------------------------------===//
  
 diff -Naur Chapter9_1/Cpu0ISelLowering.cpp Chapter9_2/Cpu0ISelLowering.cpp
---- Chapter9_1/Cpu0ISelLowering.cpp	2013-11-14 09:21:02.087670266 +0800
-+++ Chapter9_2/Cpu0ISelLowering.cpp	2013-11-14 09:21:02.087670266 +0800
+--- Chapter9_1/Cpu0ISelLowering.cpp	2013-11-14 18:35:31.056294844 +0800
++++ Chapter9_2/Cpu0ISelLowering.cpp	2013-11-14 18:35:31.052294844 +0800
 @@ -285,7 +285,257 @@
  SDValue
  Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
@@ -365,8 +358,8 @@ diff -Naur Chapter9_1/Cpu0ISelLowering.cpp Chapter9_2/Cpu0ISelLowering.cpp
  }
 +
 diff -Naur Chapter9_1/Cpu0ISelLowering.h Chapter9_2/Cpu0ISelLowering.h
---- Chapter9_1/Cpu0ISelLowering.h	2013-11-14 09:21:02.087670266 +0800
-+++ Chapter9_2/Cpu0ISelLowering.h	2013-11-14 09:21:02.087670266 +0800
+--- Chapter9_1/Cpu0ISelLowering.h	2013-11-14 18:35:31.056294844 +0800
++++ Chapter9_2/Cpu0ISelLowering.h	2013-11-14 18:35:31.052294844 +0800
 @@ -85,6 +85,13 @@
    private:
      // Subtarget Info

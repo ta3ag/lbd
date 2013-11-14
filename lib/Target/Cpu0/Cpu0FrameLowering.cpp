@@ -237,7 +237,7 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
   unsigned FP = Cpu0::FP;
   unsigned ZERO = Cpu0::ZERO;
   unsigned ADDu = Cpu0::ADDu;
- // lbd document - mark - emitEpilogue() Cpu0::ADDiu
+ // lbd document - mark - emitEpilogue() Cpu0::ADDu
   unsigned ADDiu = Cpu0::ADDiu;
 
   // if framepointer enabled, restore the stack pointer.

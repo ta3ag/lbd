@@ -190,7 +190,7 @@ The Cpu0TargetMachine contents and it's own class as follows,
     :start-after: #include "llvm/Support/CommandLine.h"
     :end-before: SDValue Cpu0TargetLowering::getGlobalReg
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: } // const char *Cpu0TargetLowering::getTargetNodeName
+    :start-after: // lbd document - mark - getTargetNodeName
     :end-before: // Set up the register classes
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
     :start-after: MachinePointerInfo(SV), false, false, 0);
@@ -505,7 +505,7 @@ sub-directory MCTargetDesc as follows,
     :start-after: case Cpu0II::MO_GOT_LO16:
     :end-before: case MachineOperand::MO_GlobalAddress:
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
-    :start-after: break; // case MachineOperand::MO_ExternalSymbol:
+    :start-after: // lbd document - mark - case MachineOperand::MO_ExternalSymbol:
     :end-before: static void CreateMCInst
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
     :start-after: // lbd document - mark - LowerCPRESTORE
@@ -552,7 +552,7 @@ follows,
     :start-after: class MCRegisterInfo;
     :end-before: MCCodeEmitter *createCpu0MCCodeEmitterEB
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
-    :start-after: // createCpu0MCCodeEmitterEL
+    :start-after: // lbd document - mark - createCpu0MCCodeEmitterEL
     :end-before: MCObjectWriter *createCpu0ELFObjectWriter
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
     :start-after: bool IsLittleEndian);
@@ -571,7 +571,7 @@ follows,
     :start-after: Cpu0ArchFeature = "+cpu032II";
     :end-before: static MCStreamer *createMCStreamer
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
-    :start-after: } // static MCStreamer *createMCStreamer
+    :start-after: // lbd document - mark - createMCStreamer
     :end-before: // Register the MC Code Emitter
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: createCpu0AsmBackendEL32
@@ -1488,7 +1488,7 @@ The Prologue and Epilogue functions as follows,
     :start-after: // lbd document - mark - if (Cpu0FI->needGPSaveRestore())
     :end-before: // lbd document - mark - emitEpilogue() Cpu0::SP
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
-    :start-after: // lbd document - mark - emitEpilogue() Cpu0::ADDiu
+    :start-after: // lbd document - mark - emitEpilogue() Cpu0::ADDu
     :end-before: // if framepointer enabled, restore the stack pointer.
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
     :start-after: // lbd document - mark - emitEpilogue() if (hasFP(MF))

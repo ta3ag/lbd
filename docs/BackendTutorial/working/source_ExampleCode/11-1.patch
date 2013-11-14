@@ -1,6 +1,6 @@
 diff -Naur Chapter10_1/AsmParser/CMakeLists.txt Chapter11_1/AsmParser/CMakeLists.txt
 --- Chapter10_1/AsmParser/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter11_1/AsmParser/CMakeLists.txt	2013-11-14 09:53:24.079706724 +0800
++++ Chapter11_1/AsmParser/CMakeLists.txt	2013-11-14 18:35:31.044294844 +0800
 @@ -0,0 +1,6 @@
 +include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
 +add_llvm_library(LLVMCpu0AsmParser
@@ -10,7 +10,7 @@ diff -Naur Chapter10_1/AsmParser/CMakeLists.txt Chapter11_1/AsmParser/CMakeLists
 +add_dependencies(LLVMCpu0AsmParser Cpu0CommonTableGen)
 diff -Naur Chapter10_1/AsmParser/Cpu0AsmParser.cpp Chapter11_1/AsmParser/Cpu0AsmParser.cpp
 --- Chapter10_1/AsmParser/Cpu0AsmParser.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter11_1/AsmParser/Cpu0AsmParser.cpp	2013-11-14 09:53:24.079706724 +0800
++++ Chapter11_1/AsmParser/Cpu0AsmParser.cpp	2013-11-14 18:35:31.044294844 +0800
 @@ -0,0 +1,1029 @@
 +//===-- Cpu0AsmParser.cpp - Parse Cpu0 assembly to MCInst instructions ----===//
 +//
@@ -1043,7 +1043,7 @@ diff -Naur Chapter10_1/AsmParser/Cpu0AsmParser.cpp Chapter11_1/AsmParser/Cpu0Asm
 +
 diff -Naur Chapter10_1/AsmParser/LLVMBuild.txt Chapter11_1/AsmParser/LLVMBuild.txt
 --- Chapter10_1/AsmParser/LLVMBuild.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter11_1/AsmParser/LLVMBuild.txt	2013-11-14 09:53:24.079706724 +0800
++++ Chapter11_1/AsmParser/LLVMBuild.txt	2013-11-14 18:35:31.044294844 +0800
 @@ -0,0 +1,23 @@
 +;===- ./lib/Target/Mips/AsmParser/LLVMBuild.txt ----------------*- Conf -*--===;
 +;
@@ -1069,8 +1069,8 @@ diff -Naur Chapter10_1/AsmParser/LLVMBuild.txt Chapter11_1/AsmParser/LLVMBuild.t
 +required_libraries = MC MCParser Support MipsDesc MipsInfo
 +add_to_library_groups = Cpu0
 diff -Naur Chapter10_1/CMakeLists.txt Chapter11_1/CMakeLists.txt
---- Chapter10_1/CMakeLists.txt	2013-11-14 09:53:24.079706724 +0800
-+++ Chapter11_1/CMakeLists.txt	2013-11-14 09:53:24.079706724 +0800
+--- Chapter10_1/CMakeLists.txt	2013-11-14 18:35:31.048294844 +0800
++++ Chapter11_1/CMakeLists.txt	2013-11-14 18:35:31.044294844 +0800
 @@ -17,6 +17,7 @@
  tablegen(LLVM Cpu0GenDAGISel.inc -gen-dag-isel)
  tablegen(LLVM Cpu0GenCallingConv.inc -gen-callingconv)
@@ -1085,8 +1085,8 @@ diff -Naur Chapter10_1/CMakeLists.txt Chapter11_1/CMakeLists.txt
  add_subdirectory(MCTargetDesc)
 +add_subdirectory(AsmParser)
 diff -Naur Chapter10_1/Cpu0FrameLowering.cpp Chapter11_1/Cpu0FrameLowering.cpp
---- Chapter10_1/Cpu0FrameLowering.cpp	2013-11-14 09:53:24.083706724 +0800
-+++ Chapter11_1/Cpu0FrameLowering.cpp	2013-11-14 09:53:24.079706724 +0800
+--- Chapter10_1/Cpu0FrameLowering.cpp	2013-11-14 18:35:31.048294844 +0800
++++ Chapter11_1/Cpu0FrameLowering.cpp	2013-11-14 18:35:31.044294844 +0800
 @@ -15,6 +15,7 @@
  #include "Cpu0AnalyzeImmediate.h"
  #include "Cpu0InstrInfo.h"
@@ -1095,14 +1095,14 @@ diff -Naur Chapter10_1/Cpu0FrameLowering.cpp Chapter11_1/Cpu0FrameLowering.cpp
  #include "llvm/IR/Function.h"
  #include "llvm/CodeGen/MachineFrameInfo.h"
  #include "llvm/CodeGen/MachineFunction.h"
-@@ -349,4 +350,3 @@
+@@ -353,4 +354,3 @@
    }
  }
  
 -
 diff -Naur Chapter10_1/Cpu0InstrFormats.td Chapter11_1/Cpu0InstrFormats.td
---- Chapter10_1/Cpu0InstrFormats.td	2013-11-14 09:53:24.083706724 +0800
-+++ Chapter11_1/Cpu0InstrFormats.td	2013-11-14 09:53:24.079706724 +0800
+--- Chapter10_1/Cpu0InstrFormats.td	2013-11-14 18:35:31.048294844 +0800
++++ Chapter11_1/Cpu0InstrFormats.td	2013-11-14 18:35:31.044294844 +0800
 @@ -76,6 +76,15 @@
    let isPseudo = 1;
  }
@@ -1114,14 +1114,14 @@ diff -Naur Chapter10_1/Cpu0InstrFormats.td Chapter11_1/Cpu0InstrFormats.td
 +  Cpu0Inst<outs, ins, asmstr, [], IIPseudo, Pseudo> {
 +  let isPseudo = 1;
 +  let Pattern = [];
-+}
++} // lbd document - mark - class Cpu0AsmPseudoInst
 +
  //===----------------------------------------------------------------------===//
  // Format A instruction class in Cpu0 : <|opcode|ra|rb|rc|cx|>
  //===----------------------------------------------------------------------===//
 diff -Naur Chapter10_1/Cpu0InstrInfo.td Chapter11_1/Cpu0InstrInfo.td
---- Chapter10_1/Cpu0InstrInfo.td	2013-11-14 09:53:24.083706724 +0800
-+++ Chapter11_1/Cpu0InstrInfo.td	2013-11-14 09:53:24.079706724 +0800
+--- Chapter10_1/Cpu0InstrInfo.td	2013-11-14 18:35:31.048294844 +0800
++++ Chapter11_1/Cpu0InstrInfo.td	2013-11-14 18:35:31.044294844 +0800
 @@ -98,11 +98,17 @@
    let PrintMethod = "printUnsignedImm";
  }
@@ -1167,8 +1167,8 @@ diff -Naur Chapter10_1/Cpu0InstrInfo.td Chapter11_1/Cpu0InstrInfo.td
  //===----------------------------------------------------------------------===//
  
 diff -Naur Chapter10_1/Cpu0.td Chapter11_1/Cpu0.td
---- Chapter10_1/Cpu0.td	2013-11-14 09:53:24.083706724 +0800
-+++ Chapter11_1/Cpu0.td	2013-11-14 09:55:44.943709370 +0800
+--- Chapter10_1/Cpu0.td	2013-11-14 18:35:31.048294844 +0800
++++ Chapter11_1/Cpu0.td	2013-11-14 18:35:31.044294844 +0800
 @@ -49,6 +49,17 @@
    bit isMCAsmWriter = 1;
  }
@@ -1196,8 +1196,8 @@ diff -Naur Chapter10_1/Cpu0.td Chapter11_1/Cpu0.td
 +  let AssemblyParserVariants = [Cpu0AsmParserVariant];
  }
 diff -Naur Chapter10_1/LLVMBuild.txt Chapter11_1/LLVMBuild.txt
---- Chapter10_1/LLVMBuild.txt	2013-11-14 09:53:24.083706724 +0800
-+++ Chapter11_1/LLVMBuild.txt	2013-11-14 09:53:24.079706724 +0800
+--- Chapter10_1/LLVMBuild.txt	2013-11-14 18:35:31.048294844 +0800
++++ Chapter11_1/LLVMBuild.txt	2013-11-14 18:35:31.044294844 +0800
 @@ -19,6 +19,7 @@
  
  [common]

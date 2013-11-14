@@ -153,5 +153,3 @@ void Cpu0InstrInfo::ExpandRetLR(MachineBasicBlock &MBB,
                                 unsigned Opc) const {
   BuildMI(MBB, I, I->getDebugLoc(), get(Opc)).addReg(Cpu0::LR);
 }
-
-

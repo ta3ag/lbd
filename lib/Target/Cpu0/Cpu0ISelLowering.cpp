@@ -112,7 +112,7 @@ const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
   case Cpu0ISD::Wrapper:           return "Cpu0ISD::Wrapper";
   default:                         return NULL;
   }
-} // const char *Cpu0TargetLowering::getTargetNodeName
+} // lbd document - mark - getTargetNodeName
 
 Cpu0TargetLowering::
 Cpu0TargetLowering(Cpu0TargetMachine &TM)
@@ -712,10 +712,9 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
                                  false, false, false, 0));
   }
 
-#if 1	// structure argument passing
-  // Without this, it will use $3 instead of $2 as return register.
-  // The cpu0 ABIs for returning structs by value requires that we copy
-  // the sret argument into $v0 for the return. Save the argument into
+#if 1 // Incomming. Without this, it will use $3 instead of $2 as return 
+  // register. The cpu0 ABIs for returning structs by value requires that we 
+  // copy the sret argument into $v0 for the return. Save the argument into
   // a virtual register so that we can access it from the return points.
   if (DAG.getMachineFunction().getFunction()->hasStructRetAttr()) {
     unsigned Reg = Cpu0FI->getSRetReturnReg();
@@ -792,13 +791,12 @@ Cpu0TargetLowering::LowerReturn(SDValue Chain,
     Flag = Chain.getValue(1);
     RetOps.push_back(DAG.getRegister(VA.getLocReg(), VA.getLocVT()));
   }
- 
-#if 1	// structure return begin
-  // Without this, it will use $3 instead of $2 as return register.
-  // The cpu0 ABIs for returning structs by value requires that we copy
-  // the sret argument into $v0 for the return. We saved the argument into
-  // a virtual register in the entry block, so now we copy the value out
-  // and into $v0.
+
+#if 1 // structure return begin. Without this, it will use $3 instead of $2 
+  // as return register. The cpu0 ABIs for returning structs by value requires 
+  // that we copy the sret argument into $v0 for the return. We saved the 
+  // argument into a virtual register in the entry block, so now we copy the 
+  // value out and into $v0.
   if (DAG.getMachineFunction().getFunction()->hasStructRetAttr()) {
     MachineFunction &MF      = DAG.getMachineFunction();
     Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
@@ -824,8 +822,7 @@ Cpu0TargetLowering::LowerReturn(SDValue Chain,
   return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other, &RetOps[0], RetOps.size());
 }
 
-// lbd document - mark - isOffsetFoldingLegal
-bool
+bool // lbd document - mark - isOffsetFoldingLegal
 Cpu0TargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
   // The Cpu0 target isn't yet aware of offsets.
   return false;

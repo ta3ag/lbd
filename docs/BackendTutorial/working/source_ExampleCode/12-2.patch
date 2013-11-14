@@ -1,6 +1,6 @@
 diff -Naur Chapter12_1/Cpu0InstrInfo.cpp Chapter12_2/Cpu0InstrInfo.cpp
---- Chapter12_1/Cpu0InstrInfo.cpp	2013-11-14 09:51:52.471705004 +0800
-+++ Chapter12_2/Cpu0InstrInfo.cpp	2013-11-14 09:51:52.475705004 +0800
+--- Chapter12_1/Cpu0InstrInfo.cpp	2013-11-14 18:35:31.060294844 +0800
++++ Chapter12_2/Cpu0InstrInfo.cpp	2013-11-14 18:35:31.060294844 +0800
 @@ -37,6 +37,7 @@
              bool KillSrc) const {
    unsigned Opc = 0, ZeroReg = 0;
@@ -18,7 +18,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.cpp Chapter12_2/Cpu0InstrInfo.cpp
 +    if (!Subtarget.hasCpu032II()) {
 +      if (SrcReg == Cpu0::SW)
 +        Opc = Cpu0::MFSW, SrcReg = 0;
-+    }
++    } // lbd document - mark - if (!Subtarget.hasCpu032II()) 1
    }
    else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
      if (DestReg == Cpu0::HI)
@@ -27,17 +27,17 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.cpp Chapter12_2/Cpu0InstrInfo.cpp
        Opc = Cpu0::MTLO, DestReg = 0;
 -    if (DestReg == Cpu0::SW)
 -      Opc = Cpu0::MTSW, DestReg = 0;
-+    if (!Subtarget.hasCpu032II()) {
++    if (!Subtarget.hasCpu032II()) { // lbd document - mark - 2
 +      if (DestReg == Cpu0::SW)
 +        Opc = Cpu0::MTSW, DestReg = 0;
-+    }
++    } // lbd document - mark - if (!Subtarget.hasCpu032II()) 2
    }
  
    assert(Opc && "Cannot copy registers");
 diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
---- Chapter12_1/Cpu0InstrInfo.td	2013-11-14 09:51:52.471705004 +0800
-+++ Chapter12_2/Cpu0InstrInfo.td	2013-11-14 09:51:52.475705004 +0800
-@@ -63,11 +63,53 @@
+--- Chapter12_1/Cpu0InstrInfo.td	2013-11-14 18:35:31.060294844 +0800
++++ Chapter12_2/Cpu0InstrInfo.td	2013-11-14 18:35:31.060294844 +0800
+@@ -63,11 +63,50 @@
  // Cpu0 Instruction Predicate Definitions.
  //===----------------------------------------------------------------------===//
  def RelocPIC    :     Predicate<"TM.getRelocationModel() == Reloc::PIC_">;
@@ -47,8 +47,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
 +                      AssemblerPredicate<"!FeatureCpu032III">;
 +// !FeatureCpu032III is for disassembler in "llvm-objdump -d"
 +
-+/*
-+In Cpu0GenSubtargetInfo.inc,
++/* In Cpu0GenSubtargetInfo.inc,
 +namespace llvm {
 +namespace Cpu0 {
 +enum {
@@ -72,9 +71,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
 +To let disassembler work, the function 
 +checkDecoderPredicate(unsigned Idx, uint64_t Bits) must return true(=1).
 +As above code, the argument Bits always is 1. Set !FeatureCpu032III" to do 
-+disassembler for expectation.
-+*/
-+
++disassembler for expectation. */
  
  //===----------------------------------------------------------------------===//
  // Cpu0 Operand, Complex Patterns and Transformations Definitions.
@@ -91,7 +88,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
  // JEQ, JNE, ...
  def brtarget24    : Operand<OtherVT> {
    let EncoderMethod = "getBranch24TargetOpValue";
-@@ -194,6 +236,14 @@
+@@ -194,6 +233,14 @@
    let isReMaterializable = 1;
  }
  
@@ -106,7 +103,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
  class CmpInstr<bits<8> op, string instr_asm, 
                 InstrItinClass itin, RegisterClass RC, RegisterClass RD, 
                 bit isComm = 0>:
-@@ -203,6 +253,7 @@
+@@ -203,6 +250,7 @@
    let shamt = 0;
    let isCommutable = isComm;
    let DecoderMethod = "DecodeCMPInstruction";
@@ -114,7 +111,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
  }
  
  // Arithmetic and logical instructions with 2 register operands.
-@@ -290,11 +341,42 @@
+@@ -290,11 +338,42 @@
                     list<Register> UseRegs>:
    FJ<op, (outs), (ins RC:$ra, brtarget24:$addr),
               !strconcat(instr_asm, "\t$ra, $addr"),
@@ -158,7 +155,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
  }
  
  // Unconditional branch, such as JMP
-@@ -380,6 +462,7 @@
+@@ -380,6 +459,7 @@
    let neverHasSideEffects = 1;
  }
  
@@ -166,7 +163,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
  class MoveToLOHI<bits<8> op, string instr_asm, RegisterClass RC,
                   list<Register> DefRegs>:
    FL<op, (outs), (ins RC:$ra),
-@@ -507,6 +590,11 @@
+@@ -507,6 +587,11 @@
  def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
  def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
  
@@ -178,7 +175,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
  /// Jump and Branch Instructions
  def JEQ     : CBranch24<0x30, "jeq", SR, [SW]>;
  def JNE     : CBranch24<0x31, "jne", SR, [SW]>;
-@@ -515,6 +603,9 @@
+@@ -515,6 +600,9 @@
  def JLE     : CBranch24<0x34, "jle", SR, [SW]>;
  def JGE     : CBranch24<0x35, "jge", SR, [SW]>;
  
@@ -188,7 +185,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
  def JMP     : UncondBranch<0x36, "jmp">;
  
  /// Jump & link and Return Instructions
-@@ -604,6 +695,7 @@
+@@ -604,6 +692,7 @@
  def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
  
  // brcond patterns
@@ -196,7 +193,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
  multiclass BrcondPatsCmp<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
  Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp, 
  Instruction CMPOp, Register ZEROReg> {
-@@ -636,9 +728,44 @@
+@@ -636,9 +725,44 @@
            (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)>;
  }
  
@@ -241,7 +238,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
  multiclass SeteqPatsCmp<RegisterClass RC> {
  // a == b
    def : Pat<(seteq RC:$lhs, RC:$rhs),
-@@ -686,8 +813,64 @@
+@@ -686,8 +810,64 @@
              (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
  }
  
@@ -307,8 +304,8 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
 +defm : SetgeImmPatsSlt<CPURegs, SLTi, SLTiu>;
 +}
 diff -Naur Chapter12_1/Cpu0ISelDAGToDAG.cpp Chapter12_2/Cpu0ISelDAGToDAG.cpp
---- Chapter12_1/Cpu0ISelDAGToDAG.cpp	2013-11-14 09:51:52.471705004 +0800
-+++ Chapter12_2/Cpu0ISelDAGToDAG.cpp	2013-11-14 09:51:52.475705004 +0800
+--- Chapter12_1/Cpu0ISelDAGToDAG.cpp	2013-11-14 18:35:31.060294844 +0800
++++ Chapter12_2/Cpu0ISelDAGToDAG.cpp	2013-11-14 18:35:31.060294844 +0800
 @@ -244,10 +244,17 @@
      SDValue RHS = Node->getOperand(1);
  
@@ -332,31 +329,29 @@ diff -Naur Chapter12_1/Cpu0ISelDAGToDAG.cpp Chapter12_2/Cpu0ISelDAGToDAG.cpp
                                                SDValue(Carry,0), RHS);
  
 diff -Naur Chapter12_1/Cpu0Subtarget.h Chapter12_2/Cpu0Subtarget.h
---- Chapter12_1/Cpu0Subtarget.h	2013-11-14 09:51:52.471705004 +0800
-+++ Chapter12_2/Cpu0Subtarget.h	2013-11-14 09:51:52.475705004 +0800
-@@ -37,7 +37,9 @@
- 
+--- Chapter12_1/Cpu0Subtarget.h	2013-11-14 18:35:31.060294844 +0800
++++ Chapter12_2/Cpu0Subtarget.h	2013-11-14 18:35:31.060294844 +0800
+@@ -38,6 +38,8 @@
  protected:
    enum Cpu0ArchEnum {
--    Cpu032I
-+    Cpu032I,
-+    Cpu032II,
+     Cpu032I
++    , Cpu032II,
 +    Cpu032III
    };
  
    // Cpu0 architecture version
-@@ -70,6 +72,8 @@
-   /// subtarget options.  Definition of function is auto generated by tblgen.
+@@ -71,6 +73,8 @@
    void ParseSubtargetFeatures(StringRef CPU, StringRef FS);
  
+   bool isLittle() const { return IsLittle; }
 +  bool hasCpu032I() const { return Cpu0ArchVersion >= Cpu032I; }
 +  bool hasCpu032II() const { return Cpu0ArchVersion == Cpu032II; }
-   bool isLittle() const { return IsLittle; }
    bool useSmallSection() const { return UseSmallSection; }
  };
+ } // End llvm namespace
 diff -Naur Chapter12_1/Cpu0.td Chapter12_2/Cpu0.td
---- Chapter12_1/Cpu0.td	2013-11-14 09:51:52.471705004 +0800
-+++ Chapter12_2/Cpu0.td	2013-11-14 09:51:52.475705004 +0800
+--- Chapter12_1/Cpu0.td	2013-11-14 18:35:31.060294844 +0800
++++ Chapter12_2/Cpu0.td	2013-11-14 18:35:31.060294844 +0800
 @@ -35,6 +35,12 @@
  def FeatureCpu032I     : SubtargetFeature<"cpu032I", "Cpu0ArchVersion", 
          "Cpu032I", "Cpu032I ISA Support">;
@@ -382,8 +377,8 @@ diff -Naur Chapter12_1/Cpu0.td Chapter12_2/Cpu0.td
  def Cpu0AsmWriter : AsmWriter {
    string AsmWriterClassName  = "InstPrinter";
 diff -Naur Chapter12_1/Disassembler/Cpu0Disassembler.cpp Chapter12_2/Disassembler/Cpu0Disassembler.cpp
---- Chapter12_1/Disassembler/Cpu0Disassembler.cpp	2013-11-14 09:51:52.471705004 +0800
-+++ Chapter12_2/Disassembler/Cpu0Disassembler.cpp	2013-11-14 09:53:01.083706293 +0800
+--- Chapter12_1/Disassembler/Cpu0Disassembler.cpp	2013-11-14 18:35:31.060294844 +0800
++++ Chapter12_2/Disassembler/Cpu0Disassembler.cpp	2013-11-14 18:35:31.060294844 +0800
 @@ -67,6 +67,11 @@
                                         uint64_t Address,
                                         const void *Decoder);
@@ -415,8 +410,8 @@ diff -Naur Chapter12_1/Disassembler/Cpu0Disassembler.cpp Chapter12_2/Disassemble
  operand 1 (operand 0 is $ra and operand 1 is imm24), so we Create register 
  operand first and create imm24 next, as follows,
 diff -Naur Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter12_2/MCTargetDesc/Cpu0AsmBackend.cpp
---- Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-11-14 09:51:52.471705004 +0800
-+++ Chapter12_2/MCTargetDesc/Cpu0AsmBackend.cpp	2013-11-14 09:51:52.475705004 +0800
+--- Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-11-14 18:35:31.060294844 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0AsmBackend.cpp	2013-11-14 18:35:31.060294844 +0800
 @@ -39,6 +39,7 @@
    case Cpu0::fixup_Cpu0_LO16:
    case Cpu0::fixup_Cpu0_GOT_LO16:
@@ -434,8 +429,8 @@ diff -Naur Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter12_2/MCTargetDesc/
        { "fixup_Cpu0_CALL16",         0,     16,   0 },
        { "fixup_Cpu0_GOT_HI16",       0,     16,   0 },
 diff -Naur Chapter12_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter12_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp
---- Chapter12_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-11-14 09:51:52.471705004 +0800
-+++ Chapter12_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-11-14 09:51:52.475705004 +0800
+--- Chapter12_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-11-14 18:35:31.060294844 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-11-14 18:35:31.060294844 +0800
 @@ -120,6 +120,9 @@
    case Cpu0::fixup_Cpu0_GOT_Local:
      Type = ELF::R_CPU0_GOT16;
@@ -447,8 +442,8 @@ diff -Naur Chapter12_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter12_2/MCTarget
      Type = ELF::R_CPU0_PC24;
      break;
 diff -Naur Chapter12_1/MCTargetDesc/Cpu0FixupKinds.h Chapter12_2/MCTargetDesc/Cpu0FixupKinds.h
---- Chapter12_1/MCTargetDesc/Cpu0FixupKinds.h	2013-11-14 09:51:52.471705004 +0800
-+++ Chapter12_2/MCTargetDesc/Cpu0FixupKinds.h	2013-11-14 09:51:52.475705004 +0800
+--- Chapter12_1/MCTargetDesc/Cpu0FixupKinds.h	2013-11-14 18:35:31.060294844 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0FixupKinds.h	2013-11-14 18:35:31.060294844 +0800
 @@ -44,6 +44,10 @@
      // Local symbol fixup resulting in - R_CPU0_GOT16.
      fixup_Cpu0_GOT_Local,
@@ -461,9 +456,9 @@ diff -Naur Chapter12_1/MCTargetDesc/Cpu0FixupKinds.h Chapter12_2/MCTargetDesc/Cp
      // cpu0 PC24, e.g. jeq, jmp
      fixup_Cpu0_PC24,
 diff -Naur Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter12_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-14 09:51:52.471705004 +0800
-+++ Chapter12_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-14 09:51:52.475705004 +0800
-@@ -72,6 +72,12 @@
+--- Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-14 18:35:31.060294844 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-14 18:35:31.060294844 +0800
+@@ -72,6 +72,13 @@
    uint64_t getBinaryCodeForInstr(const MCInst &MI,
                                   SmallVectorImpl<MCFixup> &Fixups) const;
  
@@ -472,11 +467,12 @@ diff -Naur Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter12_2/MCTargetDe
 +  // requires relocation, record the relocation and return zero.
 +  unsigned getBranch16TargetOpValue(const MCInst &MI, unsigned OpNo,
 +                                  SmallVectorImpl<MCFixup> &Fixups) const;
++  // lbd document - mark - declare getBranch16TargetOpValue
 +
    // getBranch24TargetOpValue - Return binary encoding of the branch
    // target operand, such as JMP #BB01, JEQ, JSUB. If the machine operand
    // requires relocation, record the relocation and return zero.
-@@ -140,6 +146,25 @@
+@@ -141,6 +148,25 @@
    EmitInstruction(Binary, Size, OS);
  }
  
@@ -497,14 +493,14 @@ diff -Naur Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter12_2/MCTargetDe
 +  Fixups.push_back(MCFixup::Create(0, Expr,
 +                                   MCFixupKind(Cpu0::fixup_Cpu0_PC16)));
 +  return 0;
-+}
++} // lbd document - mark - getBranch16TargetOpValue
 +
  /// getBranch24TargetOpValue - Return binary encoding of the branch
  /// target operand. If the machine operand requires relocation,
  /// record the relocation and return zero.
 diff -Naur Chapter12_1/MCTargetDesc/Cpu0MCTargetDesc.cpp Chapter12_2/MCTargetDesc/Cpu0MCTargetDesc.cpp
---- Chapter12_1/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-14 09:51:52.471705004 +0800
-+++ Chapter12_2/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-14 09:51:52.475705004 +0800
+--- Chapter12_1/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-14 18:35:31.060294844 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-14 18:35:31.060294844 +0800
 @@ -53,6 +53,8 @@
    if (TheTriple == "cpu0" || TheTriple == "cpu0el") {
      if (CPU.empty() || CPU == "cpu032I") {
