@@ -43,7 +43,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   `define I0E  SW[10]  // Software Interrupt Enable
   `define IE   SW[9]  // Interrupt Enable
   `define M    SW[8:6]  // Mode bits, itype
-  `define TR   SW[5]  // Debug Trace
+  `define D    SW[5]  // Debug Trace
   `define V    SW[3]  // Overflow
   `define C    SW[2]  // Carry
   `define Z    SW[1]  // Zero
@@ -278,11 +278,11 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       endcase
       case (op)
       MULT, MULTu, DIV, DIVu, MTHI, MTLO, MTSW :
-        if (`TR)
+        if (`D)
           $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
         LO, SW);
       ST : begin
-        if (`TR)
+        if (`D)
           $display("%4dns %8x : %8x m[%-04d+%-04d]=%8x  SW=%8x", $stime, pc0, ir, 
           R[b], c16, R[a], SW);
         if (R[b]+c16 == `IOADDR) begin
@@ -290,7 +290,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
         end
       end
       SB : begin
-        if (`TR)
+        if (`D)
           $display("%4dns %8x : %8x m[%-04d+%-04d]=%c  SW=%8x", $stime, pc0, ir, 
         R[b], c16, R[a][7:0], SW);
         if (R[b]+c16 == `IOADDR) begin
@@ -298,7 +298,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
         end
       end
       default :
-        if (`TR) // Display the written register content
+        if (`D) // Display the written register content
           $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, 
           a, R[a], R[a], SW);
       endcase
@@ -322,7 +322,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       taskInterrupt(`IRQ);
       state = Fetch;
     end else begin
-      // `TR = 1; // Trace register content at beginning
+      // `D = 1; // Trace register content at beginning
       taskExecute();
       state = next_state;
     end
