@@ -124,9 +124,20 @@ add_llvm_library(LLVMCpu0Desc
 
 .. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
+  :start-after: namespace Cpu0II {
+  :end-before: enum {
 
 .. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0ELFObjectWriter.cpp
+
+.. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
+  :end-before: // PC relative branch fixup resulting in - R_CPU0_PC16.
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
+  :start-after:  fixup_Cpu0_PC16,
+  :end-before: // resulting in - R_CPU0_CALL16.
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
+  :start-after:  fixup_Cpu0_CALL16,
 
 .. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCCodeEmitter.cpp

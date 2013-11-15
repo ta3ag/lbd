@@ -741,7 +741,9 @@ from TargetSelectionDAG.td.
   // Hi/Lo Registers
   def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
 
-  // Cpu0Schedule.td
+.. rubric:: lbdex/Chapter4_1/Cpu0Schedule.td
+.. code-block:: c++
+
   ...
   def IIHiLo       : InstrItinClass;
   ...
@@ -789,6 +791,9 @@ from TargetSelectionDAG.td.
 .. rubric:: lbdex/Chapter4_1/Cpu0ISelDAGToDAG.cpp
 .. code-block:: c++
 
+    std::pair<SDNode*, SDNode*> SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl,
+                                           EVT Ty, bool HasLo, bool HasHi);
+    ...
   /// Select multiply instructions.
   std::pair<SDNode*, SDNode*>
   Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
@@ -929,14 +934,8 @@ The code added in Chapter4_1/ as follows,
   :start-after: const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
   :end-before: if (!Subtarget.hasCpu032II()) {
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
-  :start-after: if (!Subtarget.hasCpu032II()) {
-  :end-before: // lbd document - mark - if (!Subtarget.hasCpu032II()) 1
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
   :start-after: // lbd document - mark - if (!Subtarget.hasCpu032II()) 1
   :end-before:  // lbd document - mark - 2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
-  :start-after:  // lbd document - mark - 2
-  :end-before: // lbd document - mark - if (!Subtarget.hasCpu032II()) 2
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
   :start-after:  // lbd document - mark - if (!Subtarget.hasCpu032II()) 2
   :end-before: static MachineMemOperand* GetMemOperand
@@ -1132,6 +1131,9 @@ The code added in Chapter4_1/ as follows,
   };
   }
   ...
+      virtual SDValue PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI) const;
+  ...
+
 
 IR instruction **sdiv** stand for signed div while **udiv** is for unsigned div.
 
@@ -1543,7 +1545,7 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   /// Arithmetic Instructions (ALU Immediate)
   ...
   def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs>;
-  def ORi     : ArithLogicI<0x0d, "ori", or, uimm16, immZExt16, CPURegs>;
+  ...
   def XORi    : ArithLogicI<0x0e, "xori", xor, uimm16, immZExt16, CPURegs>;
   
   /// Arithmetic Instructions (3-Operand, R-Type)

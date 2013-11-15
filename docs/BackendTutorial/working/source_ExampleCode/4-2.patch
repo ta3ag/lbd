@@ -1,6 +1,19 @@
+diff -Naur Chapter4_1/Cpu0ISelLowering.cpp Chapter4_2/Cpu0ISelLowering.cpp
+--- Chapter4_1/Cpu0ISelLowering.cpp	2013-11-15 23:24:09.000000000 +0800
++++ Chapter4_2/Cpu0ISelLowering.cpp	2013-11-15 23:24:09.000000000 +0800
+@@ -43,6 +43,9 @@
+   // Set up the register classes
+   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
+ 
++  // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
++  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
++
+   setOperationAction(ISD::SDIV, MVT::i32, Expand);
+   setOperationAction(ISD::SREM, MVT::i32, Expand);
+   setOperationAction(ISD::UDIV, MVT::i32, Expand);
 diff -Naur Chapter4_1/Cpu0InstrInfo.cpp Chapter4_2/Cpu0InstrInfo.cpp
---- Chapter4_1/Cpu0InstrInfo.cpp	2013-11-15 14:49:44.048873954 +0800
-+++ Chapter4_2/Cpu0InstrInfo.cpp	2013-11-15 14:49:44.048873954 +0800
+--- Chapter4_1/Cpu0InstrInfo.cpp	2013-11-15 23:24:09.000000000 +0800
++++ Chapter4_2/Cpu0InstrInfo.cpp	2013-11-15 23:24:09.000000000 +0800
 @@ -42,12 +42,16 @@
        Opc = Cpu0::MFHI, SrcReg = 0;
      else if (SrcReg == Cpu0::LO)
@@ -19,8 +32,8 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.cpp Chapter4_2/Cpu0InstrInfo.cpp
  
    assert(Opc && "Cannot copy registers");
 diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
---- Chapter4_1/Cpu0InstrInfo.td	2013-11-15 14:49:44.048873954 +0800
-+++ Chapter4_2/Cpu0InstrInfo.td	2013-11-15 14:49:44.048873954 +0800
+--- Chapter4_1/Cpu0InstrInfo.td	2013-11-15 23:24:09.000000000 +0800
++++ Chapter4_2/Cpu0InstrInfo.td	2013-11-15 23:24:09.000000000 +0800
 @@ -132,6 +132,16 @@
    let isReMaterializable = 1;
  }
@@ -159,16 +172,3 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +defm : SetlePatsCmp<CPURegs>;
 +defm : SetgtPatsCmp<CPURegs>;
 +defm : SetgePatsCmp<CPURegs>;
-diff -Naur Chapter4_1/Cpu0ISelLowering.cpp Chapter4_2/Cpu0ISelLowering.cpp
---- Chapter4_1/Cpu0ISelLowering.cpp	2013-11-15 14:49:44.048873954 +0800
-+++ Chapter4_2/Cpu0ISelLowering.cpp	2013-11-15 14:49:44.048873954 +0800
-@@ -43,6 +43,9 @@
-   // Set up the register classes
-   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
- 
-+  // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
-+  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
-+
-   setOperationAction(ISD::SDIV, MVT::i32, Expand);
-   setOperationAction(ISD::SREM, MVT::i32, Expand);
-   setOperationAction(ISD::UDIV, MVT::i32, Expand);

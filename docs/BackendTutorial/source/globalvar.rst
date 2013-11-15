@@ -302,6 +302,8 @@ About the **cl::opt** command line variable, you can refer to [#]_ further.
 .. rubric:: lbdex/Chapter6_1/Cpu0Subtarget.h
 .. code-block:: c++
 
+  extern bool Cpu0NoCpload;
+  ...
   class Cpu0Subtarget : public Cpu0GenSubtargetInfo {
     ...
     // UseSmallSection - Small section is used.
