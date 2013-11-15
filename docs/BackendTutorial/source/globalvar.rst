@@ -1008,7 +1008,8 @@ causes the assembler to print a warning whenever
 an assembler operation generates more than one machine language instruction, 
 reference Mips ABI [#]_.
 
-Following code will exspand .cpload into machine instructions as below. 
+Following code will exspand .cpload and .cprestore into machine instructions 
+as below. 
 "0fa00000 09aa0000 13aa6000" is the **.cpload** machine instructions 
 displayed in comments of Cpu0MCInstLower.cpp.
 
@@ -1288,38 +1289,17 @@ Next, add the following code to Cpu0MCInstLower.cpp, Cpu0InstPrinter.cpp and
 Cpu0ISelLowering.cpp for global variable printing operand function.
 
 .. rubric:: lbdex/Chapter6_1/Cpu0MCInstLower.cpp
-.. code-block:: c++
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+    :start-after: // lbd document - mark - Initialize
+    :end-before:  case Cpu0II::MO_GOT_CALL:
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+    :start-after: case Cpu0II::MO_GOT_CALL:
+    :end-before:  case MachineOperand::MO_MachineBasicBlock:
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
+    :start-after: // lbd document - mark - case MachineOperand::MO_ExternalSymbol:
+    :end-before: static void CreateMCInst
 
-  MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
-                                                MachineOperandType MOTy,
-                                                unsigned Offset) const {
-    MCSymbolRefExpr::VariantKind Kind;
-    const MCSymbol *Symbol;
-    
-    switch(MO.getTargetFlags()) {
-    default:                   llvm_unreachable("Invalid target flag!"); 
-  // Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static 
-  //  -cpu0-use-small-section=false (global var in .sdata) 
-    case Cpu0II::MO_GPREL:     Kind = MCSymbolRefExpr::VK_Cpu0_GPREL; break; 
-    
-    case Cpu0II::MO_GOT16:     Kind = MCSymbolRefExpr::VK_Cpu0_GOT16; break; 
-    case Cpu0II::MO_GOT:       Kind = MCSymbolRefExpr::VK_Cpu0_GOT; break; 
-  // ABS_HI and ABS_LO is for llc -march=cpu0 -relocation-model=static 
-  //  (global var in .data) 
-    case Cpu0II::MO_ABS_HI:    Kind = MCSymbolRefExpr::VK_Cpu0_ABS_HI; break; 
-    case Cpu0II::MO_ABS_LO:    Kind = MCSymbolRefExpr::VK_Cpu0_ABS_LO; break;
-    }
-    
-    switch (MOTy) {
-    case MachineOperand::MO_GlobalAddress:
-      Symbol = Mang->getSymbol(MO.getGlobal());
-      break;
-    
-    default:
-      llvm_unreachable("<unknown operand type>");
-    }
-    ...
-  }
+.. code-block:: c++
     
   MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand& MO,
                                             unsigned offset) const {

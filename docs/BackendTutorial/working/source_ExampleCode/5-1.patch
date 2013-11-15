@@ -1,6 +1,6 @@
 diff -Naur Chapter4_2/MCTargetDesc/CMakeLists.txt Chapter5_1/MCTargetDesc/CMakeLists.txt
---- Chapter4_2/MCTargetDesc/CMakeLists.txt	2013-11-14 18:35:31.056294844 +0800
-+++ Chapter5_1/MCTargetDesc/CMakeLists.txt	2013-11-14 18:35:31.044294844 +0800
+--- Chapter4_2/MCTargetDesc/CMakeLists.txt	2013-11-15 14:49:44.048873954 +0800
++++ Chapter5_1/MCTargetDesc/CMakeLists.txt	2013-11-15 14:49:44.040873954 +0800
 @@ -1,7 +1,10 @@
  # MCTargetDesc/CMakeLists.txt
  add_llvm_library(LLVMCpu0Desc
@@ -14,7 +14,7 @@ diff -Naur Chapter4_2/MCTargetDesc/CMakeLists.txt Chapter5_1/MCTargetDesc/CMakeL
  add_dependencies(LLVMCpu0Desc Cpu0CommonTableGen)
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0AsmBackend.cpp Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp
 --- Chapter4_2/MCTargetDesc/Cpu0AsmBackend.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-11-14 18:35:31.044294844 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-11-15 14:49:44.040873954 +0800
 @@ -0,0 +1,208 @@
 +//===-- Cpu0ASMBackend.cpp - Cpu0 Asm Backend  ----------------------------===//
 +//
@@ -225,9 +225,17 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0AsmBackend.cpp Chapter5_1/MCTargetDesc/Cp
 +}
 +
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h
---- Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h	2013-11-14 18:35:31.056294844 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h	2013-11-14 18:35:31.044294844 +0800
-@@ -27,6 +27,61 @@
+--- Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h	2013-11-15 15:36:52.540873616 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h	2013-11-15 14:49:44.040873954 +0800
+@@ -14,6 +14,7 @@
+ #ifndef CPU0BASEINFO_H
+ #define CPU0BASEINFO_H
+ 
++#include "Cpu0FixupKinds.h"
+ #include "Cpu0MCTargetDesc.h"
+ #include "llvm/MC/MCExpr.h"
+ #include "llvm/Support/DataTypes.h"
+@@ -26,6 +27,61 @@
  ///
  namespace Cpu0II {
    /// Target Operand Flag enum.
@@ -289,7 +297,7 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h Chapter5_1/MCTargetDesc/Cpu0Ba
    enum {
      //===------------------------------------------------------------------===//
      // Instruction encodings.  These are the standard/most common forms for
-@@ -98,6 +153,33 @@
+@@ -97,6 +153,33 @@
    }
  }
  
@@ -325,7 +333,7 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h Chapter5_1/MCTargetDesc/Cpu0Ba
  #endif
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
 --- Chapter4_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-11-14 18:35:31.044294844 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-11-15 14:49:44.040873954 +0800
 @@ -0,0 +1,226 @@
 +//===-- Cpu0ELFObjectWriter.cpp - Cpu0 ELF Writer -------------------------===//
 +//
@@ -554,14 +562,34 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter5_1/MCTargetDe
 +  return createELFObjectWriter(MOTW, OS, IsLittleEndian);
 +}
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0FixupKinds.h Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h
---- Chapter4_2/MCTargetDesc/Cpu0FixupKinds.h	2013-11-14 18:35:31.056294844 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h	2013-11-14 18:35:31.044294844 +0800
-@@ -23,8 +23,36 @@
-   // in Cpu0AsmBackend.cpp.
-   //
-   enum Fixups {
--    // Branch fixups resulting in R_CPU0_16.
--    fixup_Cpu0_16 = FirstTargetFixupKind,
+--- Chapter4_2/MCTargetDesc/Cpu0FixupKinds.h	1970-01-01 08:00:00.000000000 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h	2013-11-15 14:49:44.040873954 +0800
+@@ -0,0 +1,65 @@
++//===-- Cpu0FixupKinds.h - Cpu0 Specific Fixup Entries ----------*- C++ -*-===//
++//
++//                     The LLVM Compiler Infrastructure
++//
++// This file is distributed under the University of Illinois Open Source
++// License. See LICENSE.TXT for details.
++//
++//===----------------------------------------------------------------------===//
++
++#ifndef LLVM_CPU0_CPU0FIXUPKINDS_H
++#define LLVM_CPU0_CPU0FIXUPKINDS_H
++
++#include "llvm/MC/MCFixup.h"
++
++namespace llvm {
++namespace Cpu0 {
++  // Although most of the current fixup types reflect a unique relocation
++  // one can have multiple fixup types for a given relocation and thus need
++  // to be uniquely named.
++  //
++  // This table *must* be in the save order of
++  // MCFixupKindInfo Infos[Cpu0::NumTargetFixupKinds]
++  // in Cpu0AsmBackend.cpp.
++  //
++  enum Fixups {
 +    // Jump 24 bit fixup resulting in - R_CPU0_24.
 +    fixup_Cpu0_24 = FirstTargetFixupKind,
 +
@@ -592,17 +620,19 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0FixupKinds.h Chapter5_1/MCTargetDesc/Cpu0
 +
 +    // resulting in - R_CPU0_GOT_LO16
 +    fixup_Cpu0_GOT_LO16,
- 
-     // Marker
-     LastTargetFixupKind,
-@@ -35,4 +63,3 @@
- 
- 
- #endif // LLVM_CPU0_CPU0FIXUPKINDS_H
--
++
++    // Marker
++    LastTargetFixupKind,
++    NumTargetFixupKinds = LastTargetFixupKind - FirstTargetFixupKind
++  };
++} // namespace Cpu0
++} // namespace llvm
++
++
++#endif // LLVM_CPU0_CPU0FIXUPKINDS_H
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 --- Chapter4_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-14 18:35:31.044294844 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-15 14:49:44.040873954 +0800
 @@ -0,0 +1,175 @@
 +//===-- Cpu0MCCodeEmitter.cpp - Convert Cpu0 Code to Machine Code ---------===//
 +//
@@ -780,8 +810,8 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter5_1/MCTargetDesc
 +#include "Cpu0GenMCCodeEmitter.inc"
 +
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
---- Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-14 18:35:31.056294844 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-14 18:35:31.044294844 +0800
+--- Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-15 14:49:44.048873954 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-15 14:49:44.040873954 +0800
 @@ -115,6 +115,17 @@
    return new Cpu0InstPrinter(MAI, MII, MRI);
  } // lbd document - mark - createCpu0MCInstPrinter
@@ -823,8 +853,8 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp Chapter5_1/MCTargetDesc/
    TargetRegistry::RegisterMCSubtargetInfo(TheCpu0Target,
                                            createCpu0MCSubtargetInfo);
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.h Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h
---- Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.h	2013-11-14 18:35:31.056294844 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h	2013-11-14 18:35:31.044294844 +0800
+--- Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.h	2013-11-15 14:49:44.048873954 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h	2013-11-15 14:49:44.040873954 +0800
 @@ -22,6 +22,7 @@
  class MCContext;
  class MCInstrInfo;

@@ -83,10 +83,14 @@ The Cpu0TargetMachine contents and it's own class as follows,
 
 .. rubric:: lbdex/Chapter3_1/Cpu0TargetMachine.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+    :start-after: // Implements the info about Cpu0 target spec.
+    :end-before: #include "llvm/Support/TargetRegistry.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+    :start-after: using namespace llvm;
     :end-before: virtual bool addInstSelector();
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
     :start-after: virtual bool addPreEmitPass();
-    :end-before: // Install an instruction selector pass using
+    :end-before: // Install an instruction selector pass
   
 .. rubric:: include/llvm/Target/TargetInstInfo.h
 .. code-block:: c++
@@ -158,7 +162,7 @@ The Cpu0TargetMachine contents and it's own class as follows,
     :end-before: Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
     :start-after: Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
-    :end-before: // Cpu0InstrInfo::copyPhysReg()
+    :end-before: void Cpu0InstrInfo::
 
 .. rubric:: lbdex/Chapter3_1/Cpu0ISelLowering.h
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
@@ -245,7 +249,7 @@ The Cpu0TargetMachine contents and it's own class as follows,
     :end-before: , Cpu032II,
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.h
     :start-after: Cpu032III
-    :end-before: // Relocation Model
+    :end-before: // UseSmallSection - Small section is used.
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.h
     :start-after: bool UseSmallSection;
     :end-before: bool hasCpu032I()
@@ -275,16 +279,6 @@ The Cpu0TargetMachine contents and it's own class as follows,
     :end-before: MachineInstr &MI = *II;
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: MI.getOperand(i+1).ChangeToImmediate(Offset);
-
-.. rubric:: lbdex/Chapter3_1/Cpu0TargetMachine.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.h
-
-.. rubric:: lbdex/Chapter3_1/Cpu0TargetMachine.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
-    :end-before: virtual bool addInstSelector();
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
-    :start-after: virtual bool addPreEmitPass();
-    :end-before: // Install an instruction selector pass
 
 .. rubric:: cmake_debug_build/lib/Target/Cpu0/Cpu0GenInstInfo.inc
 .. code-block:: c++
@@ -393,12 +387,10 @@ CMakeLists.txt  modified with those new added \*.cpp as follows,
 
 .. rubric:: lbdex/Chapter3_1/CMakeLists.txt
 .. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
-    :end-before: tablegen(LLVM Cpu0GenDisassemblerTables.inc -gen-disassembler)
+    :start-after: tablegen(LLVM Cpu0GenInstrInfo.inc -gen-instr-info)
+    :end-before: tablegen(LLVM Cpu0GenSubtargetInfo.inc -gen-subtarget)
 .. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
-    :start-after: tablegen(LLVM Cpu0GenAsmWriter.inc -gen-asm-writer)
-    :end-before: tablegen(LLVM Cpu0GenAsmMatcher.inc -gen-asm-matcher)
-.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
-    :start-after: tablegen(LLVM Cpu0GenAsmMatcher.inc -gen-asm-matcher)
+    :start-after: # Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen
     :end-before: Cpu0AnalyzeImmediate.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
     :start-after: Cpu0EmitGPRestore.cpp
@@ -408,22 +400,18 @@ CMakeLists.txt  modified with those new added \*.cpp as follows,
     :end-before: Cpu0MCInstLower.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
     :start-after: Cpu0MachineFunction.cpp
-    :end-before: Cpu0TargetObjectFile.cpp
+    :end-before: Cpu0TargetMachine.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
-    :start-after: Cpu0TargetObjectFile.cpp
-    :end-before: add_subdirectory(InstPrinter)
-.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
-    :start-after: add_subdirectory(Disassembler)
-    :end-before: add_subdirectory(AsmParser)
-
+    :start-after: Cpu0TargetMachine.cpp
+    :end-before: # Should match with "subdirectories =  MCTargetDesc TargetInfo" in LLVMBuild.txt
 
 Please take a look for Chapter3_1 code. 
 After that, building Chapter3_1 by make as chapter 2 (of course, you should remove old 
-src/lib/Target/Cpu0 and replace with src/lib/Target/Cpu0/lbdex/Chapter3_1/). 
+src/lib/Target/Cpu0 and replace them with src/lib/Target/Cpu0/lbdex/Chapter3_1/). 
 You can remove cmake_debug_build/lib/Target/Cpu0/\*.inc before do “make” to ensure your code 
 rebuild completely. 
 By remove \*.inc, all files those have included .inc will be rebuild, then your 
-Target library will regenerate. 
+Target library will be regenerated. 
 Command as follows,
 
 .. code-block:: bash
@@ -471,16 +459,36 @@ Cpu0.td is added with the following fragment,
     :end-before: def Cpu0AsmParser : AsmParser {
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
     :start-after: } // def Cpu0AsmParserVariant
-    :end-before: let AssemblyParsers = [Cpu0AsmParser];
+    :end-before: // def Cpu0InstrInfo : InstrInfo as before.
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
     :start-after: let AssemblyParsers = [Cpu0AsmParser];
     :end-before: let AssemblyParserVariants = [Cpu0AsmParserVariant];
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
-    :start-after: et AssemblyParserVariants = [Cpu0AsmParserVariant];
+    :start-after: let AssemblyParserVariants = [Cpu0AsmParserVariant];
 
 
 As comments indicate, it will generate Cpu0GenAsmWrite.inc which is included 
-by Cpu0InstPrinter.cpp. 
+by Cpu0InstPrinter.cpp as follows,
+
+.. rubric:: lbdex/Chapter3_2/InstPrinter/Cpu0InstPrinter.h
+.. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/Cpu0InstPrinter.h
+    :end-before: void printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &O);
+.. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/Cpu0InstPrinter.h
+    :start-after: void printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &O);
+ 
+.. rubric:: lbdex/Chapter3_2/InstPrinter/Cpu0InstPrinter.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
+    :end-before: // Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static
+.. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/Cpu0InstPrinter.cpp
+    :start-after: case MCSymbolRefExpr::VK_Cpu0_GOT_LO16:  OS << "%got_lo("; break;
+    :end-before: // lbd document - mark - printMemOperandEA
+
+.. rubric:: lbdex/Chapter3_2/InstPrinter/CMakeLists.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/CMakeLists.txt
+
+.. rubric:: lbdex/Chapter3_2/InstPrinter/LLVMBuild.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/LLVMBuild.txt
+
 Cpu0GenAsmWrite.inc has the implementation of 
 Cpu0InstPrinter::printInstruction() and Cpu0InstPrinter::getRegisterName(). 
 Both of these functions can be auto-generated from the information we defined 
@@ -489,7 +497,7 @@ To let these two functions work in our code, the only thing need to do is add a
 class Cpu0InstPrinter and include them as did in Chapter3_1.
 
 File Chapter3_1/Cpu0/InstPrinter/Cpu0InstPrinter.cpp include Cpu0GenAsmWrite.inc and 
-call the auto-generated functions as shown in last section.
+call the auto-generated functions from TableGen.
 
 Next, add Cpu0MCInstLower (Cpu0MCInstLower.h, Cpu0MCInstLower.cpp), as well as 
 Cpu0BaseInfo.h, 
@@ -504,13 +512,7 @@ sub-directory MCTargetDesc as follows,
 
 .. rubric:: lbdex/Chapter3_2/Cpu0MCInstLower.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
-    :end-before: case Cpu0II::MO_NO_FLAG:
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
-    :start-after: case Cpu0II::MO_GOT_LO16:
-    :end-before: case MachineOperand::MO_GlobalAddress:
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
-    :start-after: // lbd document - mark - case MachineOperand::MO_ExternalSymbol:
-    :end-before: static void CreateMCInst
+    :end-before: MCOperand Cpu0MCInstLower::LowerSymbolOperand
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.cpp
     :start-after: // lbd document - mark - LowerCPRESTORE
     :end-before: case MachineOperand::MO_MachineBasicBlock:
@@ -519,6 +521,9 @@ sub-directory MCTargetDesc as follows,
 
 .. rubric:: lbdex/Chapter3_2/MCTargetDesc/Cpu0BaseInfo.h
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
+    :end-before: #include "Cpu0FixupKinds.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
+    :start-after: #include "Cpu0FixupKinds.h"
     :end-before: enum TOF {
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
     :start-after: }; // enum TOF {
@@ -528,12 +533,6 @@ sub-directory MCTargetDesc as follows,
     :end-before: inline static std::pair
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
     :start-after: } // Cpu0GetSymAndOffset
-
-.. rubric:: lbdex/Chapter3_2/MCTargetDesc/Cpu0FixupKinds.h
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
-    :end-before: // Pure upper 32 bit fixup resulting in - R_CPU0_32.
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
-    :start-after: fixup_Cpu0_GOT_LO16,
 
 .. rubric:: lbdex/Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.h
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCAsmInfo.h
@@ -554,20 +553,21 @@ follows,
     :end-before: class MCRegisterInfo;
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
     :start-after: class MCRegisterInfo;
-    :end-before: MCCodeEmitter *createCpu0MCCodeEmitterEB
+    :end-before: class Target;
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
+    :start-after: class Target;
+    :end-before: extern Target TheCpu0Target;
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
     :start-after: // lbd document - mark - createCpu0MCCodeEmitterEL
-    :end-before: MCObjectWriter *createCpu0ELFObjectWriter
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
-    :start-after: bool IsLittleEndian);
+    :end-before: // lbd document - mark - createCpu0AsmBackendEL32
 
 .. rubric:: lbdex/Chapter3_2/MCTargetDesc/Cpu0MCTargetDesc.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: // #include
     :end-before: #include "Cpu0MCTargetDesc.h"
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
-    :start-after: #include "Cpu0MCAsmInfo.h"
-    :end-before: #include "InstPrinter/Cpu0InstPrinter.h"
+    :start-after: #include "Cpu0MCTargetDesc.h"
+    :end-before: #include "llvm/MC/MachineLocation.h"
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: using namespace llvm;
     :end-before: } else if (CPU == "cpu032II") {
@@ -579,6 +579,16 @@ follows,
     :end-before: // Register the MC Code Emitter
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: createCpu0AsmBackendEL32
+
+.. rubric:: lbdex/Chapter3_2/MCTargetDesc/CMakeLists.txt
+.. code-block:: c++
+
+    Cpu0MCAsmInfo.cpp
+
+.. rubric:: lbdex/Chapter3_2/MCTargetDesc/LLVMBuild.txt
+.. code-block:: c++
+
+                       Cpu0AsmPrinter 
 
 Now, it's time to work with AsmPrinter. According section 
 "section Target Registration" [#]_, we can register our AsmPrinter when we need it 
@@ -611,6 +621,51 @@ as the following function of LLVMInitializeCpu0AsmPrinter(),
 
 The dynamic register mechanism is a good idea, right.
 
+Add the following code to Cpu0ISelLowering.cpp.
+
+.. rubric:: lbdex/Chapter3_2/Cpu0ISelLowering.cpp
+.. code-block:: c++
+
+  Cpu0TargetLowering::
+  Cpu0TargetLowering(Cpu0TargetMachine &TM)
+    : TargetLowering(TM, new Cpu0TargetObjectFile()),
+      Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
+
+    // Set up the register classes
+    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
+
+  //- Set .align 2
+  // It will emit .align 2 later
+    setMinFunctionAlignment(2);
+
+  // must, computeRegisterProperties - Once all of the register classes are 
+  //  added, this allows us to compute derived properties we expose.
+    computeRegisterProperties();
+  }
+
+Add the following code to Cpu0MachineFunction.h since the Cpu0AsmPrinter.cpp
+will call getEmitNOAT().
+
+.. rubric:: lbdex/Chapter3_2/Cpu0MachineFunction.h
+.. code-block:: c++
+
+  class Cpu0FunctionInfo : public MachineFunctionInfo {
+    ...
+    bool EmitNOAT;
+
+  public:
+    Cpu0FunctionInfo(MachineFunction& MF)
+    : ...
+      EmitNOAT(false), 
+      ...
+      {}
+
+    ...
+    bool getEmitNOAT() const { return EmitNOAT; }
+    void setEmitNOAT() { EmitNOAT = true; }
+  };
+
+
 Beyond add these new .cpp files to CMakeLists.txt, please remember to add 
 subdirectory InstPrinter, enable asmprinter, add libraries AsmPrinter and 
 Cpu0AsmPrinter to LLVMBuild.txt as follows,
@@ -640,8 +695,7 @@ Cpu0AsmPrinter to LLVMBuild.txt as follows,
   [common] 
   subdirectories = 
     InstPrinter 
-    MCTargetDesc 
-    TargetInfo 
+    ...
   
   [component_0] 
   ...

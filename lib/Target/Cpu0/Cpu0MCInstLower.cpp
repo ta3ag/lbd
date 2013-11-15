@@ -32,7 +32,7 @@ Cpu0MCInstLower::Cpu0MCInstLower(Cpu0AsmPrinter &asmprinter)
 void Cpu0MCInstLower::Initialize(Mangler *M, MCContext* C) {
   Mang = M;
   Ctx = C;
-}
+} // lbd document - mark - Initialize
 
 MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
                                               MachineOperandType MOTy,

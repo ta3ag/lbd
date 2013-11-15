@@ -1,6 +1,6 @@
 diff -Naur Chapter3_1/CMakeLists.txt Chapter3_2/CMakeLists.txt
---- Chapter3_1/CMakeLists.txt	2013-11-14 18:35:31.052294844 +0800
-+++ Chapter3_2/CMakeLists.txt	2013-11-14 18:35:31.048294844 +0800
+--- Chapter3_1/CMakeLists.txt	2013-11-15 14:49:44.048873954 +0800
++++ Chapter3_2/CMakeLists.txt	2013-11-15 14:49:44.044873954 +0800
 @@ -9,6 +9,11 @@
  #  came from Cpu0InstrInfo.td.
  tablegen(LLVM Cpu0GenRegisterInfo.inc -gen-register-info)
@@ -17,10 +17,9 @@ diff -Naur Chapter3_1/CMakeLists.txt Chapter3_2/CMakeLists.txt
  
  # Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen
  add_llvm_target(Cpu0CodeGen
--  Cpu0ISelLowering.cpp
 +  Cpu0AsmPrinter.cpp
    Cpu0InstrInfo.cpp
-+  Cpu0ISelLowering.cpp
+   Cpu0ISelLowering.cpp
    Cpu0FrameLowering.cpp
 +  Cpu0MCInstLower.cpp
    Cpu0RegisterInfo.cpp
@@ -35,7 +34,7 @@ diff -Naur Chapter3_1/CMakeLists.txt Chapter3_2/CMakeLists.txt
  add_subdirectory(MCTargetDesc)
 diff -Naur Chapter3_1/Cpu0AsmPrinter.cpp Chapter3_2/Cpu0AsmPrinter.cpp
 --- Chapter3_1/Cpu0AsmPrinter.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_2/Cpu0AsmPrinter.cpp	2013-11-14 18:35:31.048294844 +0800
++++ Chapter3_2/Cpu0AsmPrinter.cpp	2013-11-15 14:49:44.044873954 +0800
 @@ -0,0 +1,254 @@
 +//===-- Cpu0AsmPrinter.cpp - Cpu0 LLVM Assembly Printer -------------------===//
 +//
@@ -293,7 +292,7 @@ diff -Naur Chapter3_1/Cpu0AsmPrinter.cpp Chapter3_2/Cpu0AsmPrinter.cpp
 +}
 diff -Naur Chapter3_1/Cpu0AsmPrinter.h Chapter3_2/Cpu0AsmPrinter.h
 --- Chapter3_1/Cpu0AsmPrinter.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_2/Cpu0AsmPrinter.h	2013-11-14 18:35:31.052294844 +0800
++++ Chapter3_2/Cpu0AsmPrinter.h	2013-11-15 14:49:44.044873954 +0800
 @@ -0,0 +1,68 @@
 +//===-- Cpu0AsmPrinter.h - Cpu0 LLVM Assembly Printer ----------*- C++ -*--===//
 +//
@@ -364,8 +363,8 @@ diff -Naur Chapter3_1/Cpu0AsmPrinter.h Chapter3_2/Cpu0AsmPrinter.h
 +#endif
 +
 diff -Naur Chapter3_1/Cpu0ISelLowering.cpp Chapter3_2/Cpu0ISelLowering.cpp
---- Chapter3_1/Cpu0ISelLowering.cpp	2013-11-14 18:35:31.052294844 +0800
-+++ Chapter3_2/Cpu0ISelLowering.cpp	2013-11-14 18:35:31.048294844 +0800
+--- Chapter3_1/Cpu0ISelLowering.cpp	2013-11-15 14:49:44.048873954 +0800
++++ Chapter3_2/Cpu0ISelLowering.cpp	2013-11-15 14:49:44.044873954 +0800
 @@ -39,6 +39,17 @@
  Cpu0TargetLowering(Cpu0TargetMachine &TM)
    : TargetLowering(TM, new Cpu0TargetObjectFile()),
@@ -385,8 +384,8 @@ diff -Naur Chapter3_1/Cpu0ISelLowering.cpp Chapter3_2/Cpu0ISelLowering.cpp
  
  #include "Cpu0GenCallingConv.inc"
 diff -Naur Chapter3_1/Cpu0MachineFunction.h Chapter3_2/Cpu0MachineFunction.h
---- Chapter3_1/Cpu0MachineFunction.h	2013-11-14 18:35:31.052294844 +0800
-+++ Chapter3_2/Cpu0MachineFunction.h	2013-11-14 18:35:31.048294844 +0800
+--- Chapter3_1/Cpu0MachineFunction.h	2013-11-15 14:49:44.048873954 +0800
++++ Chapter3_2/Cpu0MachineFunction.h	2013-11-15 14:49:44.044873954 +0800
 @@ -25,15 +25,19 @@
  class Cpu0FunctionInfo : public MachineFunctionInfo {
    MachineFunction& MF;
@@ -409,8 +408,8 @@ diff -Naur Chapter3_1/Cpu0MachineFunction.h Chapter3_2/Cpu0MachineFunction.h
  } // end of namespace llvm
 diff -Naur Chapter3_1/Cpu0MCInstLower.cpp Chapter3_2/Cpu0MCInstLower.cpp
 --- Chapter3_1/Cpu0MCInstLower.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_2/Cpu0MCInstLower.cpp	2013-11-14 18:35:31.048294844 +0800
-@@ -0,0 +1,99 @@
++++ Chapter3_2/Cpu0MCInstLower.cpp	2013-11-15 14:49:44.044873954 +0800
+@@ -0,0 +1,67 @@
 +//===-- Cpu0MCInstLower.cpp - Convert Cpu0 MachineInstr to MCInst ---------===//
 +//
 +//                     The LLVM Compiler Infrastructure
@@ -445,39 +444,7 @@ diff -Naur Chapter3_1/Cpu0MCInstLower.cpp Chapter3_2/Cpu0MCInstLower.cpp
 +void Cpu0MCInstLower::Initialize(Mangler *M, MCContext* C) {
 +  Mang = M;
 +  Ctx = C;
-+}
-+
-+MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
-+                                              MachineOperandType MOTy,
-+                                              unsigned Offset) const {
-+  MCSymbolRefExpr::VariantKind Kind;
-+  const MCSymbol *Symbol;
-+
-+  switch(MO.getTargetFlags()) {
-+  default:                   llvm_unreachable("Invalid target flag!");
-+  }
-+
-+  switch (MOTy) {
-+  case MachineOperand::MO_GlobalAddress:
-+    Symbol = Mang->getSymbol(MO.getGlobal());
-+    break;
-+
-+  default:
-+    llvm_unreachable("<unknown operand type>");
-+  }
-+
-+  const MCSymbolRefExpr *MCSym = MCSymbolRefExpr::Create(Symbol, Kind, *Ctx);
-+
-+  if (!Offset)
-+    return MCOperand::CreateExpr(MCSym);
-+
-+  // Assume offset is never negative.
-+  assert(Offset > 0);
-+
-+  const MCConstantExpr *OffsetExpr =  MCConstantExpr::Create(Offset, *Ctx);
-+  const MCBinaryExpr *AddExpr = MCBinaryExpr::CreateAdd(MCSym, OffsetExpr, *Ctx);
-+  return MCOperand::CreateExpr(AddExpr);
-+} // lbd document - mark - LowerSymbolOperand
++} // lbd document - mark - Initialize
 +
 +MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand& MO,
 +                                        unsigned offset) const {
@@ -512,8 +479,8 @@ diff -Naur Chapter3_1/Cpu0MCInstLower.cpp Chapter3_2/Cpu0MCInstLower.cpp
 +
 diff -Naur Chapter3_1/Cpu0MCInstLower.h Chapter3_2/Cpu0MCInstLower.h
 --- Chapter3_1/Cpu0MCInstLower.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_2/Cpu0MCInstLower.h	2013-11-14 18:35:31.048294844 +0800
-@@ -0,0 +1,43 @@
++++ Chapter3_2/Cpu0MCInstLower.h	2013-11-15 14:49:44.044873954 +0800
+@@ -0,0 +1,41 @@
 +//===-- Cpu0MCInstLower.h - Lower MachineInstr to MCInst -------*- C++ -*--===//
 +//
 +//                     The LLVM Compiler Infrastructure
@@ -550,16 +517,14 @@ diff -Naur Chapter3_1/Cpu0MCInstLower.h Chapter3_2/Cpu0MCInstLower.h
 +  void Initialize(Mangler *mang, MCContext* C);
 +  void Lower(const MachineInstr *MI, MCInst &OutMI) const;
 +private:
-+  MCOperand LowerSymbolOperand(const MachineOperand &MO,
-+                               MachineOperandType MOTy, unsigned Offset) const;
 +  MCOperand LowerOperand(const MachineOperand& MO, unsigned offset = 0) const;
 +};
 +}
 +
 +#endif
 diff -Naur Chapter3_1/Cpu0.td Chapter3_2/Cpu0.td
---- Chapter3_1/Cpu0.td	2013-11-14 18:35:31.052294844 +0800
-+++ Chapter3_2/Cpu0.td	2013-11-14 18:35:31.052294844 +0800
+--- Chapter3_1/Cpu0.td	2013-11-15 14:49:44.048873954 +0800
++++ Chapter3_2/Cpu0.td	2013-11-15 14:49:44.044873954 +0800
 @@ -26,7 +26,35 @@
  
  def Cpu0InstrInfo : InstrInfo;
@@ -598,7 +563,7 @@ diff -Naur Chapter3_1/Cpu0.td Chapter3_2/Cpu0.td
  }
 diff -Naur Chapter3_1/InstPrinter/CMakeLists.txt Chapter3_2/InstPrinter/CMakeLists.txt
 --- Chapter3_1/InstPrinter/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_2/InstPrinter/CMakeLists.txt	2013-11-14 18:35:31.048294844 +0800
++++ Chapter3_2/InstPrinter/CMakeLists.txt	2013-11-15 14:49:44.044873954 +0800
 @@ -0,0 +1,7 @@
 +include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
 +
@@ -609,7 +574,7 @@ diff -Naur Chapter3_1/InstPrinter/CMakeLists.txt Chapter3_2/InstPrinter/CMakeLis
 +add_dependencies(LLVMCpu0AsmPrinter Cpu0CommonTableGen)
 diff -Naur Chapter3_1/InstPrinter/Cpu0InstPrinter.cpp Chapter3_2/InstPrinter/Cpu0InstPrinter.cpp
 --- Chapter3_1/InstPrinter/Cpu0InstPrinter.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_2/InstPrinter/Cpu0InstPrinter.cpp	2013-11-14 18:35:31.048294844 +0800
++++ Chapter3_2/InstPrinter/Cpu0InstPrinter.cpp	2013-11-15 14:49:44.044873954 +0800
 @@ -0,0 +1,112 @@
 +//===-- Cpu0InstPrinter.cpp - Convert Cpu0 MCInst to assembly syntax ------===//
 +//
@@ -725,7 +690,7 @@ diff -Naur Chapter3_1/InstPrinter/Cpu0InstPrinter.cpp Chapter3_2/InstPrinter/Cpu
 +
 diff -Naur Chapter3_1/InstPrinter/Cpu0InstPrinter.h Chapter3_2/InstPrinter/Cpu0InstPrinter.h
 --- Chapter3_1/InstPrinter/Cpu0InstPrinter.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_2/InstPrinter/Cpu0InstPrinter.h	2013-11-14 18:35:31.048294844 +0800
++++ Chapter3_2/InstPrinter/Cpu0InstPrinter.h	2013-11-15 14:49:44.044873954 +0800
 @@ -0,0 +1,45 @@
 +//=== Cpu0InstPrinter.h - Convert Cpu0 MCInst to assembly syntax -*- C++ -*-==//
 +//
@@ -774,7 +739,7 @@ diff -Naur Chapter3_1/InstPrinter/Cpu0InstPrinter.h Chapter3_2/InstPrinter/Cpu0I
 +#endif
 diff -Naur Chapter3_1/InstPrinter/LLVMBuild.txt Chapter3_2/InstPrinter/LLVMBuild.txt
 --- Chapter3_1/InstPrinter/LLVMBuild.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_2/InstPrinter/LLVMBuild.txt	2013-11-14 18:35:31.048294844 +0800
++++ Chapter3_2/InstPrinter/LLVMBuild.txt	2013-11-15 14:49:44.044873954 +0800
 @@ -0,0 +1,23 @@
 +;===- ./lib/Target/Cpu0/InstPrinter/LLVMBuild.txt --------------*- Conf -*--===;
 +;
@@ -800,8 +765,8 @@ diff -Naur Chapter3_1/InstPrinter/LLVMBuild.txt Chapter3_2/InstPrinter/LLVMBuild
 +required_libraries = MC Support
 +add_to_library_groups = Cpu0
 diff -Naur Chapter3_1/LLVMBuild.txt Chapter3_2/LLVMBuild.txt
---- Chapter3_1/LLVMBuild.txt	2013-11-14 18:35:31.052294844 +0800
-+++ Chapter3_2/LLVMBuild.txt	2013-11-14 18:35:31.052294844 +0800
+--- Chapter3_1/LLVMBuild.txt	2013-11-15 14:49:44.048873954 +0800
++++ Chapter3_2/LLVMBuild.txt	2013-11-15 14:49:44.044873954 +0800
 @@ -19,6 +19,7 @@
  
  [common]
@@ -831,8 +796,8 @@ diff -Naur Chapter3_1/LLVMBuild.txt Chapter3_2/LLVMBuild.txt
                       Cpu0Info 
                       SelectionDAG 
 diff -Naur Chapter3_1/MCTargetDesc/CMakeLists.txt Chapter3_2/MCTargetDesc/CMakeLists.txt
---- Chapter3_1/MCTargetDesc/CMakeLists.txt	2013-11-14 18:35:31.052294844 +0800
-+++ Chapter3_2/MCTargetDesc/CMakeLists.txt	2013-11-14 18:35:31.048294844 +0800
+--- Chapter3_1/MCTargetDesc/CMakeLists.txt	2013-11-15 14:49:44.048873954 +0800
++++ Chapter3_2/MCTargetDesc/CMakeLists.txt	2013-11-15 14:49:44.044873954 +0800
 @@ -1,5 +1,6 @@
  # MCTargetDesc/CMakeLists.txt
  add_llvm_library(LLVMCpu0Desc
@@ -842,8 +807,8 @@ diff -Naur Chapter3_1/MCTargetDesc/CMakeLists.txt Chapter3_2/MCTargetDesc/CMakeL
  
 diff -Naur Chapter3_1/MCTargetDesc/Cpu0BaseInfo.h Chapter3_2/MCTargetDesc/Cpu0BaseInfo.h
 --- Chapter3_1/MCTargetDesc/Cpu0BaseInfo.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_2/MCTargetDesc/Cpu0BaseInfo.h	2013-11-14 18:35:31.048294844 +0800
-@@ -0,0 +1,99 @@
++++ Chapter3_2/MCTargetDesc/Cpu0BaseInfo.h	2013-11-15 15:33:38.932873639 +0800
+@@ -0,0 +1,98 @@
 +//===-- Cpu0BaseInfo.h - Top level definitions for CPU0 MC ------*- C++ -*-===//
 +//
 +//                     The LLVM Compiler Infrastructure
@@ -860,7 +825,6 @@ diff -Naur Chapter3_1/MCTargetDesc/Cpu0BaseInfo.h Chapter3_2/MCTargetDesc/Cpu0Ba
 +#ifndef CPU0BASEINFO_H
 +#define CPU0BASEINFO_H
 +
-+#include "Cpu0FixupKinds.h"
 +#include "Cpu0MCTargetDesc.h"
 +#include "llvm/MC/MCExpr.h"
 +#include "llvm/Support/DataTypes.h"
@@ -943,51 +907,9 @@ diff -Naur Chapter3_1/MCTargetDesc/Cpu0BaseInfo.h Chapter3_2/MCTargetDesc/Cpu0Ba
 +}
 +
 +#endif
-diff -Naur Chapter3_1/MCTargetDesc/Cpu0FixupKinds.h Chapter3_2/MCTargetDesc/Cpu0FixupKinds.h
---- Chapter3_1/MCTargetDesc/Cpu0FixupKinds.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_2/MCTargetDesc/Cpu0FixupKinds.h	2013-11-14 18:35:31.052294844 +0800
-@@ -0,0 +1,38 @@
-+//===-- Cpu0FixupKinds.h - Cpu0 Specific Fixup Entries ----------*- C++ -*-===//
-+//
-+//                     The LLVM Compiler Infrastructure
-+//
-+// This file is distributed under the University of Illinois Open Source
-+// License. See LICENSE.TXT for details.
-+//
-+//===----------------------------------------------------------------------===//
-+
-+#ifndef LLVM_CPU0_CPU0FIXUPKINDS_H
-+#define LLVM_CPU0_CPU0FIXUPKINDS_H
-+
-+#include "llvm/MC/MCFixup.h"
-+
-+namespace llvm {
-+namespace Cpu0 {
-+  // Although most of the current fixup types reflect a unique relocation
-+  // one can have multiple fixup types for a given relocation and thus need
-+  // to be uniquely named.
-+  //
-+  // This table *must* be in the save order of
-+  // MCFixupKindInfo Infos[Cpu0::NumTargetFixupKinds]
-+  // in Cpu0AsmBackend.cpp.
-+  //
-+  enum Fixups {
-+    // Branch fixups resulting in R_CPU0_16.
-+    fixup_Cpu0_16 = FirstTargetFixupKind,
-+
-+    // Marker
-+    LastTargetFixupKind,
-+    NumTargetFixupKinds = LastTargetFixupKind - FirstTargetFixupKind
-+  };
-+} // namespace Cpu0
-+} // namespace llvm
-+
-+
-+#endif // LLVM_CPU0_CPU0FIXUPKINDS_H
-+
 diff -Naur Chapter3_1/MCTargetDesc/Cpu0MCAsmInfo.cpp Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.cpp
 --- Chapter3_1/MCTargetDesc/Cpu0MCAsmInfo.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.cpp	2013-11-14 18:35:31.052294844 +0800
++++ Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.cpp	2013-11-15 14:49:44.044873954 +0800
 @@ -0,0 +1,41 @@
 +//===-- Cpu0MCAsmInfo.cpp - Cpu0 Asm Properties ---------------------------===//
 +//
@@ -1032,7 +954,7 @@ diff -Naur Chapter3_1/MCTargetDesc/Cpu0MCAsmInfo.cpp Chapter3_2/MCTargetDesc/Cpu
 +}
 diff -Naur Chapter3_1/MCTargetDesc/Cpu0MCAsmInfo.h Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.h
 --- Chapter3_1/MCTargetDesc/Cpu0MCAsmInfo.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.h	2013-11-14 18:35:31.048294844 +0800
++++ Chapter3_2/MCTargetDesc/Cpu0MCAsmInfo.h	2013-11-15 14:49:44.044873954 +0800
 @@ -0,0 +1,31 @@
 +//===-- Cpu0MCAsmInfo.h - Cpu0 Asm Info ------------------------*- C++ -*--===//
 +//
@@ -1066,8 +988,8 @@ diff -Naur Chapter3_1/MCTargetDesc/Cpu0MCAsmInfo.h Chapter3_2/MCTargetDesc/Cpu0M
 +
 +#endif
 diff -Naur Chapter3_1/MCTargetDesc/Cpu0MCTargetDesc.cpp Chapter3_2/MCTargetDesc/Cpu0MCTargetDesc.cpp
---- Chapter3_1/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-14 18:35:31.052294844 +0800
-+++ Chapter3_2/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-14 18:35:31.052294844 +0800
+--- Chapter3_1/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-15 14:49:44.048873954 +0800
++++ Chapter3_2/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-15 14:49:44.044873954 +0800
 @@ -11,7 +11,9 @@
  //
  //===----------------------------------------------------------------------===//
@@ -1194,8 +1116,8 @@ diff -Naur Chapter3_1/MCTargetDesc/Cpu0MCTargetDesc.cpp Chapter3_2/MCTargetDesc/
 +  // lbd document - mark - RegisterMCInstPrinter
  }
 diff -Naur Chapter3_1/MCTargetDesc/Cpu0MCTargetDesc.h Chapter3_2/MCTargetDesc/Cpu0MCTargetDesc.h
---- Chapter3_1/MCTargetDesc/Cpu0MCTargetDesc.h	2013-11-14 18:35:31.052294844 +0800
-+++ Chapter3_2/MCTargetDesc/Cpu0MCTargetDesc.h	2013-11-14 18:35:31.052294844 +0800
+--- Chapter3_1/MCTargetDesc/Cpu0MCTargetDesc.h	2013-11-15 14:49:44.048873954 +0800
++++ Chapter3_2/MCTargetDesc/Cpu0MCTargetDesc.h	2013-11-15 14:49:44.044873954 +0800
 @@ -14,11 +14,27 @@
  #ifndef CPU0MCTARGETDESC_H
  #define CPU0MCTARGETDESC_H
@@ -1225,8 +1147,8 @@ diff -Naur Chapter3_1/MCTargetDesc/Cpu0MCTargetDesc.h Chapter3_2/MCTargetDesc/Cp
  
  // Defines symbolic names for Cpu0 registers.  This defines a mapping from
 diff -Naur Chapter3_1/MCTargetDesc/LLVMBuild.txt Chapter3_2/MCTargetDesc/LLVMBuild.txt
---- Chapter3_1/MCTargetDesc/LLVMBuild.txt	2013-11-14 18:35:31.052294844 +0800
-+++ Chapter3_2/MCTargetDesc/LLVMBuild.txt	2013-11-14 18:35:31.052294844 +0800
+--- Chapter3_1/MCTargetDesc/LLVMBuild.txt	2013-11-15 14:49:44.048873954 +0800
++++ Chapter3_2/MCTargetDesc/LLVMBuild.txt	2013-11-15 14:49:44.044873954 +0800
 @@ -20,6 +20,7 @@
  name = Cpu0Desc
  parent = Cpu0

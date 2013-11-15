@@ -1,6 +1,6 @@
 diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
---- Chapter7_1/Cpu0InstrInfo.td	2013-11-14 18:35:31.060294844 +0800
-+++ Chapter8_1/Cpu0InstrInfo.td	2013-11-14 18:35:31.044294844 +0800
+--- Chapter7_1/Cpu0InstrInfo.td	2013-11-15 14:20:47.336874161 +0800
++++ Chapter8_1/Cpu0InstrInfo.td	2013-11-15 14:20:47.320874161 +0800
 @@ -51,6 +51,20 @@
  //===----------------------------------------------------------------------===//
  // Cpu0 Operand, Complex Patterns and Transformations Definitions.
@@ -111,8 +111,8 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
  multiclass SeteqPatsCmp<RegisterClass RC> {
  // a == b
 diff -Naur Chapter7_1/Cpu0ISelLowering.cpp Chapter8_1/Cpu0ISelLowering.cpp
---- Chapter7_1/Cpu0ISelLowering.cpp	2013-11-14 18:35:31.060294844 +0800
-+++ Chapter8_1/Cpu0ISelLowering.cpp	2013-11-14 18:35:31.044294844 +0800
+--- Chapter7_1/Cpu0ISelLowering.cpp	2013-11-15 14:20:47.336874161 +0800
++++ Chapter8_1/Cpu0ISelLowering.cpp	2013-11-15 14:20:47.320874161 +0800
 @@ -132,8 +132,15 @@
    setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
    setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
@@ -173,8 +173,8 @@ diff -Naur Chapter7_1/Cpu0ISelLowering.cpp Chapter8_1/Cpu0ISelLowering.cpp
  /// and generate load operations for arguments places on the stack.
  SDValue
 diff -Naur Chapter7_1/Cpu0ISelLowering.h Chapter8_1/Cpu0ISelLowering.h
---- Chapter7_1/Cpu0ISelLowering.h	2013-11-14 18:35:31.060294844 +0800
-+++ Chapter8_1/Cpu0ISelLowering.h	2013-11-14 18:35:31.044294844 +0800
+--- Chapter7_1/Cpu0ISelLowering.h	2013-11-15 14:20:47.336874161 +0800
++++ Chapter8_1/Cpu0ISelLowering.h	2013-11-15 14:20:47.320874161 +0800
 @@ -87,6 +87,7 @@
      const Cpu0Subtarget *Subtarget;
  
@@ -196,18 +196,9 @@ diff -Naur Chapter7_1/Cpu0ISelLowering.h Chapter8_1/Cpu0ISelLowering.h
      virtual SDValue
        LowerReturn(SDValue Chain,
 diff -Naur Chapter7_1/Cpu0MCInstLower.cpp Chapter8_1/Cpu0MCInstLower.cpp
---- Chapter7_1/Cpu0MCInstLower.cpp	2013-11-14 18:35:31.060294844 +0800
-+++ Chapter8_1/Cpu0MCInstLower.cpp	2013-11-14 18:35:31.044294844 +0800
-@@ -42,6 +42,8 @@
- 
-   switch(MO.getTargetFlags()) {
-   default:                   llvm_unreachable("Invalid target flag!");
-+  case Cpu0II::MO_NO_FLAG:   Kind = MCSymbolRefExpr::VK_None; break;
-+
- // Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static -cpu0-islinux-
- //  format=false (global var in .sdata).
-   case Cpu0II::MO_GPREL:     Kind = MCSymbolRefExpr::VK_Cpu0_GPREL; break;
-@@ -61,6 +63,15 @@
+--- Chapter7_1/Cpu0MCInstLower.cpp	2013-11-15 14:36:35.000000000 +0800
++++ Chapter8_1/Cpu0MCInstLower.cpp	2013-11-15 14:20:47.320874161 +0800
+@@ -63,6 +63,15 @@
      Symbol = Mang->getSymbol(MO.getGlobal());
      break;
  
@@ -223,7 +214,7 @@ diff -Naur Chapter7_1/Cpu0MCInstLower.cpp Chapter8_1/Cpu0MCInstLower.cpp
    default:
      llvm_unreachable("<unknown operand type>");
    }
-@@ -123,7 +134,9 @@
+@@ -125,7 +134,9 @@
      return MCOperand::CreateReg(MO.getReg());
    case MachineOperand::MO_Immediate:
      return MCOperand::CreateImm(MO.getImm() + offset);
@@ -234,8 +225,8 @@ diff -Naur Chapter7_1/Cpu0MCInstLower.cpp Chapter8_1/Cpu0MCInstLower.cpp
    case MachineOperand::MO_RegisterMask:
      break;
 diff -Naur Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp Chapter8_1/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-14 18:35:31.060294844 +0800
-+++ Chapter8_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-14 18:35:31.044294844 +0800
+--- Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-15 14:20:47.336874161 +0800
++++ Chapter8_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-15 14:20:47.320874161 +0800
 @@ -58,6 +58,7 @@
    case MCSymbolRefExpr::VK_None:           break;
  // Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static
@@ -245,8 +236,8 @@ diff -Naur Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp Chapter8_1/InstPrinter/Cpu
    case MCSymbolRefExpr::VK_Cpu0_GOT:       OS << "%got(";    break;
    case MCSymbolRefExpr::VK_Cpu0_ABS_HI:    OS << "%hi(";     break;
 diff -Naur Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-14 18:35:31.060294844 +0800
-+++ Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-14 18:35:31.044294844 +0800
+--- Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-15 14:20:47.336874161 +0800
++++ Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-15 14:20:47.324874161 +0800
 @@ -66,12 +66,28 @@
  
    void EncodeInstruction(const MCInst &MI, raw_ostream &OS,
