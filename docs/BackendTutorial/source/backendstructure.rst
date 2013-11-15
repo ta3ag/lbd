@@ -74,6 +74,10 @@ The Cpu0TargetMachine contents and it's own class as follows,
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetObjectFile.h
     :start-after: // TODO: Classify globals as cpu0 wishes.
 
+.. rubric:: lbdex/Chapter3_1/Cpu0TargetObjectFile.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetObjectFile.cpp
+    :end-before: // A address must be loaded from a small section
+
 .. rubric:: lbdex/Chapter3_1/Cpu0TargetMachine.h
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.h
 
