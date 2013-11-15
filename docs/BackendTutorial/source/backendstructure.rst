@@ -1248,7 +1248,6 @@ information which called by llvm at proper time.
                                                    int FrameIx, uint64_t Offset,
                                                    const MDNode *MDPtr,
                                                    DebugLoc DL) const;
-  };
 
 .. rubric:: lbdex/Chapter3_3/Cpu0InstrInfo.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
@@ -1526,14 +1525,23 @@ bottom) as follows,
 
 The Prologue and Epilogue functions as follows,
 
-.. rubric:: lbdex/Chapter3_5/Cpu0FrameLowering.h
+.. rubric:: lbdex/Chapter3_1/Cpu0FrameLowering.h
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.h
     :start-after: // lbd document - mark - explicit Cpu0FrameLowering
     :end-before: bool hasFP(const MachineFunction &MF) const;
 
+.. rubric:: lbdex/Chapter3_5/Cpu0FrameLowering.h
+.. code-block:: c++
+
+    void processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
+                                              RegScavenger *RS) const;
+
 .. rubric:: lbdex/Chapter3_5/Cpu0FrameLowering.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
-    :start-after: // lbd document - mark - expandLargeImm
+    :start-after:  #include "Cpu0MachineFunction.h"
+    :end-before: #include "llvm/IR/Function.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
+    :start-after:  // lbd document - mark - hasFP
     :end-before: // lbd document - mark - Cpu0::SP
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
     :start-after: // lbd document - mark - Cpu0::ADDu
@@ -1564,6 +1572,104 @@ The Prologue and Epilogue functions as follows,
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.cpp
     :start-after: // lbd document - mark - getReservedRegs
     :end-before: unsigned Cpu0RegisterInfo::
+
+Add these instructions to Cpu0InstrInfo.td which used in Prologue and Epilogue 
+functions.
+
+.. rubric:: lbdex/Chapter3_5/Cpu0InstrInfo.td
+.. code-block:: c++
+
+  def shamt       : Operand<i32>;
+
+  // Unsigned Operand
+  def uimm16      : Operand<i32> {
+    let PrintMethod = "printUnsignedImm";
+  }
+  ...
+  // Transformation Function - get the lower 16 bits.
+  def LO16 : SDNodeXForm<imm, [{
+    return getImm(N, N->getZExtValue() & 0xffff);
+  }]>;
+
+  // Transformation Function - get the higher 16 bits.
+  def HI16 : SDNodeXForm<imm, [{
+    return getImm(N, (N->getZExtValue() >> 16) & 0xffff);
+  }]>; // lbd document - mark - def HI16
+  ...
+  // Node immediate fits as 16-bit zero extended on target immediate.
+  // The LO16 param means that only the lower 16 bits of the node
+  // immediate are caught.
+  // e.g. addiu, sltiu
+  def immZExt16  : PatLeaf<(imm), [{
+    if (N->getValueType(0) == MVT::i32)
+      return (uint32_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
+    else
+      return (uint64_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
+  }], LO16>;
+
+  // Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
+  def immLow16Zero : PatLeaf<(imm), [{
+    int64_t Val = N->getSExtValue();
+    return isInt<32>(Val) && !(Val & 0xffff);
+  }]>;
+
+  // shamt field must fit in 5 bits.
+  def immZExt5 : ImmLeaf<i32, [{return Imm == (Imm & 0x1f);}]>;
+  ...
+  // Arithmetic and logical instructions with 3 register operands.
+  class ArithLogicR<bits<8> op, string instr_asm, SDNode OpNode,
+                    InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
+    FA<op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
+       !strconcat(instr_asm, "\t$ra, $rb, $rc"),
+       [(set RC:$ra, (OpNode RC:$rb, RC:$rc))], itin> {
+    let shamt = 0;
+    let isCommutable = isComm;	// e.g. add rb rc =  add rc rb
+    let isReMaterializable = 1;
+  }
+  ...
+  // Shifts
+  class shift_rotate_imm<bits<8> op, bits<4> isRotate, string instr_asm,
+                         SDNode OpNode, PatFrag PF, Operand ImmOpnd,
+                         RegisterClass RC>:
+    FA<op, (outs RC:$ra), (ins RC:$rb, ImmOpnd:$shamt),
+       !strconcat(instr_asm, "\t$ra, $rb, $shamt"),
+       [(set RC:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu> {
+    let rc = 0;
+    let shamt = shamt;
+  }
+
+  // 32-bit shift instructions.
+  class shift_rotate_imm32<bits<8> op, bits<4> isRotate, string instr_asm,
+                           SDNode OpNode>:
+    shift_rotate_imm<op, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs>;
+
+  // Load Upper Imediate
+  class LoadUpper<bits<8> op, string instr_asm, RegisterClass RC, Operand Imm>:
+    FL<op, (outs RC:$ra), (ins Imm:$imm16),
+       !strconcat(instr_asm, "\t$ra, $imm16"), [], IIAlu> {
+    let rb = 0;
+    let neverHasSideEffects = 1;
+    let isReMaterializable = 1;
+  } // lbd document - mark - class LoadUpper
+  ...
+  def ORi     : ArithLogicI<0x0d, "ori", or, uimm16, immZExt16, CPURegs>;
+  def LUi     : LoadUpper<0x0f, "lui", CPURegs, uimm16>;
+
+  /// Arithmetic Instructions (3-Operand, R-Type)
+  def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
+
+  /// Shift Instructions
+  def SHL     : shift_rotate_imm32<0x1e, 0x00, "shl", shl>;
+  ...
+  def : Pat<(i32 immZExt16:$in),
+            (ORi ZERO, imm:$in)>;
+  def : Pat<(i32 immLow16Zero:$in),
+            (LUi (HI16 imm:$in))>;
+
+  // Arbitrary immediates
+  def : Pat<(i32 imm:$imm),
+            (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
+
 
 .. rubric:: lbdex/Chapter3_5/CMakeLists.txt
 .. code-block:: c++

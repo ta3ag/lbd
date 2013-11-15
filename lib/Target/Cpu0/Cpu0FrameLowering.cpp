@@ -90,7 +90,7 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &MF) const {
   const MachineFrameInfo *MFI = MF.getFrameInfo();
   return MF.getTarget().Options.DisableFramePointerElim(MF) ||
       MFI->hasVarSizedObjects() || MFI->isFrameAddressTaken();
-}
+} // lbd document - mark - hasFP
 
 // Build an instruction sequence to load an immediate that is too large to fit
 // in 16-bit and add the result to Reg.

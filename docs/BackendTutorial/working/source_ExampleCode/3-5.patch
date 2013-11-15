@@ -239,7 +239,7 @@ diff -Naur Chapter3_4/Cpu0FrameLowering.cpp Chapter3_5/Cpu0FrameLowering.cpp
  #include "llvm/IR/Function.h"
 @@ -90,11 +91,176 @@
        MFI->hasVarSizedObjects() || MFI->isFrameAddressTaken();
- }
+ } // lbd document - mark - hasFP
  
 +// Build an instruction sequence to load an immediate that is too large to fit
 +// in 16-bit and add the result to Reg.
