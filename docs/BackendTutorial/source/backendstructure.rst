@@ -1196,14 +1196,14 @@ selection stage.
 
 .. rubric:: lbdex/Chapter3_3/Cpu0TargetMachine.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
-    :start-after: virtual bool addPreRegAlloc();
+    :start-after: // lbd document - mark - getCpu0Subtarget()
     :end-before: virtual bool addPreRegAlloc();
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
     :start-after: virtual bool addPreEmitPass();
     :end-before: TargetPassConfig *Cpu0TargetMachine::createPassConfig
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
-    :start-after: // lbd document - mark - addInstSelector()
-    :end-before: // Implemented by targets that want to run passes immediately
+    :start-after: // lbd document - mark - createPassConfig
+    :end-before: bool Cpu0PassConfig::addPreRegAlloc() {
 
 .. rubric:: lbdex/Chapter3_3/Cpu0ISelDAGToDAG.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
@@ -1298,7 +1298,7 @@ To handle IR ret, these code in Cpu0InstrInfo.td do things as below.
 
 1. Declare a pseudo node to take care the IR Cpu0ISD::Ret by the following code,
 
-.. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter3_3/Cpu0InstrInfo.td
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
     :start-after: def Cpu0GPRel
     :end-before: // These are target-independent nodes

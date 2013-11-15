@@ -21,7 +21,7 @@
 #include "Cpu0GenSubtargetInfo.inc"
 
 using namespace llvm;
-
+ 
 static cl::opt<bool> UseSmallSectionOpt
                 ("cpu0-use-small-section", cl::Hidden, cl::init(false),
                  cl::desc("Use small section. Only work when -relocation-model="

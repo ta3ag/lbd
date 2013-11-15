@@ -89,7 +89,7 @@ public:
 
 TargetPassConfig *Cpu0TargetMachine::createPassConfig(PassManagerBase &PM) {
   return new Cpu0PassConfig(this, PM);
-}
+} // lbd document - mark - createPassConfig
 
 // Install an instruction selector pass using
 // the ISelDag to gen Cpu0 code.
