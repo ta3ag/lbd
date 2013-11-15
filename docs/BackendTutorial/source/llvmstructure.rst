@@ -65,6 +65,7 @@ The registers are used for the following purposes:
   MDR           Memory Data Register (MDR)
   HI            High part of MULT result
   LO            Low part of MULT result
+  SW            Status Word Register
   ============  ===========
 
 The Cpu0 Instruction Set
