@@ -35,7 +35,12 @@ Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
     let isCodeGenOnly = 1;
   }
   
-.. rubric:: lbdex/Chapter7_1/Cpu0InstPrinter.td
+.. rubric:: lbdex/Chapter7_1/Cpu0InstPrinter.h
+.. code-block:: c++
+
+    void printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &O);
+
+.. rubric:: lbdex/Chapter7_1/Cpu0InstPrinter.cpp
 .. code-block:: c++
 
   void Cpu0InstPrinter::
@@ -702,6 +707,11 @@ mechanism as below.
     return false;
   }
     
+.. rubric:: lbdex/Chapter7_1/Cpu0ISelLowering.h
+.. code-block:: c++
+
+      virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
+
 .. rubric:: lbdex/Chapter7_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 

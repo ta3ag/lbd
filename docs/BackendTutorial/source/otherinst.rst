@@ -18,47 +18,48 @@ Finally, `section Operator mod, %`_ take care the C operator %.
 Arithmetic
 -----------
 
-**+, -, \*, <<,** and **>>**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The code added in Chapter4_1/ to support arithmetic instructions as follows,
 
-Appending the following code to Cpu0InstrInfo.td and Cpu0Schedule.td in 
-Chapter4_1/ to support operators **+, -, \*, <<,** and **>>**.
+.. rubric:: lbdex/Chapter4_1/MCTargetDesc/Cpu0BaseInfo.h
+.. code-block:: c++
+
+  case Cpu0::HI:
+    return 18;
+  case Cpu0::LO:
+    return 19;
+
+.. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+  :start-after: // lbd document - mark - getRegisterInfo()
+  :end-before: const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+  :start-after: const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
+  :end-before: if (!Subtarget.hasCpu032II()) {
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+  :start-after: // lbd document - mark - if (!Subtarget.hasCpu032II()) 1
+  :end-before:  // lbd document - mark - 2
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+  :start-after:  // lbd document - mark - if (!Subtarget.hasCpu032II()) 2
+  :end-before: static MachineMemOperand* GetMemOperand
+
+.. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.h
+  :start-after: virtual const Cpu0RegisterInfo &getRegisterInfo() const;
+  :end-before: virtual void storeRegToStackSlot
 
 .. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
-  def shamt     : Operand<i32>;
+  def SDT_Cpu0DivRem     : SDTypeProfile<0, 2,
+             [SDTCisInt<0>,
+            SDTCisSameAs<0, 1>]>;
   ...
-  // shamt field must fit in 5 bits.
-  def immZExt5 : ImmLeaf<i32, [{return Imm == (Imm & 0x1f);}]>;
+  // DivRem(u) nodes
+  def Cpu0DivRem  : SDNode<"Cpu0ISD::DivRem", SDT_Cpu0DivRem,
+         [SDNPOutGlue]>;
+  def Cpu0DivRemU : SDNode<"Cpu0ISD::DivRemU", SDT_Cpu0DivRem,
+         [SDNPOutGlue]>;
   ...
-  // Arithmetic and logical instructions with 3 register operands.
-  class ArithLogicR<bits<8> op, string instr_asm, SDNode OpNode,
-      InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
-  FA<op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
-   !strconcat(instr_asm, "\t$ra, $rb, $rc"),
-   [(set RC:$ra, (OpNode RC:$rb, RC:$rc))], itin> {
-  let shamt = 0;
-  let isCommutable = isComm;  // e.g. add rb rc =  add rc rb
-  let isReMaterializable = 1;
-  }
-  ...
-  // Shifts
-  class shift_rotate_imm<bits<8> op, bits<4> isRotate, string instr_asm,
-         SDNode OpNode, PatFrag PF, Operand ImmOpnd,
-         RegisterClass RC>:
-  FA<op, (outs RC:$ra), (ins RC:$rb, ImmOpnd:$shamt),
-   !strconcat(instr_asm, "\t$ra, $rb, $shamt"),
-   [(set RC:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu> {
-  let rc = isRotate;
-  let shamt = shamt;
-  }
-  
-  // 32-bit shift instructions.
-  class shift_rotate_imm32<bits<8> func, bits<4> isRotate, string instr_asm,
-         SDNode OpNode>:
-  shift_rotate_imm<func, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs>;
-
   class shift_rotate_reg<bits<8> op, bits<4> isRotate, string instr_asm,
                          SDNode OpNode, RegisterClass RC>:
     FA<op, (outs RC:$ra), (ins CPURegs:$rb, RC:$rc),
@@ -67,42 +68,265 @@ Chapter4_1/ to support operators **+, -, \*, <<,** and **>>**.
     let shamt = 0;
   }
   ...
-  /// Arithmetic Instructions (3-Operand, R-Type)
+  // Mul, Div
+  class Mult<bits<8> op, string instr_asm, InstrItinClass itin,
+             RegisterClass RC, list<Register> DefRegs>:
+    FL<op, (outs), (ins RC:$ra, RC:$rb),
+       !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
+    let imm16 = 0;
+    let isCommutable = 1;
+    let Defs = DefRegs;
+    let neverHasSideEffects = 1;
+  }
+  
+  class Mult32<bits<8> op, string instr_asm, InstrItinClass itin>:
+    Mult<op, instr_asm, itin, CPURegs, [HI, LO]>;
+  
+  class Div<SDNode opNode, bits<8> op, string instr_asm, InstrItinClass itin,
+            RegisterClass RC, list<Register> DefRegs>:
+    FL<op, (outs), (ins RC:$ra, RC:$rb),
+       !strconcat(instr_asm, "\t$ra, $rb"),
+       [(opNode RC:$ra, RC:$rb)], itin> {
+    let imm16 = 0;
+    let Defs = DefRegs;
+  }
+  
+  class Div32<SDNode opNode, bits<8> op, string instr_asm, InstrItinClass itin>:
+    Div<opNode, op, instr_asm, itin, CPURegs, [HI, LO]>;
+  ...
+  // Move from Hi/Lo
+  class MoveFromLOHI<bits<8> op, string instr_asm, RegisterClass RC,
+                     list<Register> UseRegs>:
+    FL<op, (outs RC:$ra), (ins),
+       !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
+    let rb = 0;
+    let imm16 = 0;
+    let Uses = UseRegs;
+    let neverHasSideEffects = 1;
+  }
+
+  class MoveToLOHI<bits<8> op, string instr_asm, RegisterClass RC,
+       list<Register> DefRegs>:
+  FL<op, (outs), (ins RC:$ra),
+   !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
+  let rb = 0;
+  let imm16 = 0;
+  let Defs = DefRegs;
+  let neverHasSideEffects = 1;
+  }
   ...
   def SUBu    : ArithLogicR<0x12, "subu", sub, IIAlu, CPURegs>;
   def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
   def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
   def MUL     : ArithLogicR<0x17, "mul", mul, IIImul, CPURegs, 1>;
-
+  
   /// Shift Instructions
   // sra is IR node for ashr llvm IR instruction of .bc
   def ROL     : shift_rotate_imm32<0x1b, 0x01, "rol", rotl>;
   def ROR     : shift_rotate_imm32<0x1c, 0x01, "ror", rotr>;
   def SRA     : shift_rotate_imm32<0x1d, 0x00, "sra", sra>;
-  def SHL     : shift_rotate_imm32<0x1e, 0x00, "shl", shl>;
+  ...
   // srl is IR node for lshr llvm IR instruction of .bc
   def SHR     : shift_rotate_imm32<0x1f, 0x00, "shr", srl>;
   def SRAV    : shift_rotate_reg<0x20, 0x00, "srav", sra, CPURegs>;
   def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
   def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
+  
+  /// Multiply and Divide Instructions.
+  def MULT    : Mult32<0x41, "mult", IIImul>;
+  def MULTu   : Mult32<0x42, "multu", IIImul>;
+  def SDIV    : Div32<Cpu0DivRem, 0x43, "div", IIIdiv>;
+  def UDIV    : Div32<Cpu0DivRemU, 0x44, "divu", IIIdiv>;
+  
+  def MFHI    : MoveFromLOHI<0x46, "mfhi", CPURegs, [HI]>;
+  def MFLO    : MoveFromLOHI<0x47, "mflo", CPURegs, [LO]>;
+  def MTHI    : MoveToLOHI<0x48, "mthi", CPURegs, [HI]>;
+  def MTLO    : MoveToLOHI<0x49, "mtlo", CPURegs, [LO]>;
+  
+  /// No operation
+  let addr=0 in
+    def NOP   : FJ<0, (outs), (ins), "nop", [], IIAlu>;
+
+
+.. rubric:: lbdex/Chapter4_1/Cpu0ISelDAGToDAG.cpp
+.. code-block:: c++
+
+    std::pair<SDNode*, SDNode*> SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl,
+                                           EVT Ty, bool HasLo, bool HasHi);
+    ...
+  /// Select multiply instructions.
+  std::pair<SDNode*, SDNode*>
+  Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
+                bool HasLo, bool HasHi) {
+  SDNode *Lo = 0, *Hi = 0;
+  SDNode *Mul = CurDAG->getMachineNode(Opc, dl, MVT::Glue, N->getOperand(0),
+                      N->getOperand(1));
+  SDValue InFlag = SDValue(Mul, 0);
+  
+  if (HasLo) {
+    Lo = CurDAG->getMachineNode(Cpu0::MFLO, dl,
+                  Ty, MVT::Glue, InFlag);
+    InFlag = SDValue(Lo, 1);
+  }
+  if (HasHi)
+    Hi = CurDAG->getMachineNode(Cpu0::MFHI, dl,
+                  Ty, InFlag);
+  
+  return std::make_pair(Lo, Hi);
+  }
+  
+  /// Select instructions not customized! Used for
+  /// expanded, promoted and normal instructions
+  SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
+  unsigned Opcode = Node->getOpcode();
+  DebugLoc dl = Node->getDebugLoc();
+  ...
+  EVT NodeTy = Node->getValueType(0);
+  unsigned MultOpc;
+  switch(Opcode) {
+  default: break;
+  
+  case ISD::MULHS:
+  case ISD::MULHU: {
+    MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
+    return SelectMULT(Node, MultOpc, dl, NodeTy, false, true).second;
+  }
+  ...
+  }
+
+.. rubric:: lbdex/Chapter4_1/Cpu0ISelLowering.cpp
+.. code-block:: c++
+
+  Cpu0TargetLowering::
+  Cpu0TargetLowering(Cpu0TargetMachine &TM)
+  : TargetLowering(TM, new TargetLoweringObjectFileELF()),
+  Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
+    ...
+    setOperationAction(ISD::SDIV, MVT::i32, Expand);
+    setOperationAction(ISD::SREM, MVT::i32, Expand);
+    setOperationAction(ISD::UDIV, MVT::i32, Expand);
+    setOperationAction(ISD::UREM, MVT::i32, Expand);
+    
+    setTargetDAGCombine(ISD::SDIVREM);
+    setTargetDAGCombine(ISD::UDIVREM);
+    ...
+  }
+  ...
+  static SDValue PerformDivRemCombine(SDNode *N, SelectionDAG& DAG,
+          TargetLowering::DAGCombinerInfo &DCI,
+          const Cpu0Subtarget* Subtarget) {
+    if (DCI.isBeforeLegalizeOps())
+      return SDValue();
+    
+    EVT Ty = N->getValueType(0);
+    unsigned LO = Cpu0::LO;
+    unsigned HI = Cpu0::HI;
+    unsigned opc = N->getOpcode() == ISD::SDIVREM ? Cpu0ISD::DivRem :
+                Cpu0ISD::DivRemU;
+    DebugLoc dl = N->getDebugLoc();
+    
+    SDValue DivRem = DAG.getNode(opc, dl, MVT::Glue,
+             N->getOperand(0), N->getOperand(1));
+    SDValue InChain = DAG.getEntryNode();
+    SDValue InGlue = DivRem;
+    
+    // insert MFLO
+    if (N->hasAnyUseOfValue(0)) {
+      SDValue CopyFromLo = DAG.getCopyFromReg(InChain, dl, LO, Ty,
+                InGlue);
+      DAG.ReplaceAllUsesOfValueWith(SDValue(N, 0), CopyFromLo);
+      InChain = CopyFromLo.getValue(1);
+      InGlue = CopyFromLo.getValue(2);
+    }
+    
+    // insert MFHI
+    if (N->hasAnyUseOfValue(1)) {
+      SDValue CopyFromHi = DAG.getCopyFromReg(InChain, dl,
+                HI, Ty, InGlue);
+      DAG.ReplaceAllUsesOfValueWith(SDValue(N, 1), CopyFromHi);
+    }
+    
+    return SDValue();
+  }
+  
+  SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI)
+    const {
+      SelectionDAG &DAG = DCI.DAG;
+      unsigned opc = N->getOpcode();
+      
+      switch (opc) {
+      default: break;
+      case ISD::SDIVREM:
+      case ISD::UDIVREM:
+      return PerformDivRemCombine(N, DAG, DCI, Subtarget);
+    }
+    
+    return SDValue();
+  }
+  
+.. rubric:: lbdex/Chapter4_1/Cpu0ISelLowering.h
+.. code-block:: c++
+
+  namespace llvm {
+    namespace Cpu0ISD {
+      enum NodeType {
+        ...
+        // DivRem(u)
+        DivRem,
+        DivRemU
+      };
+  }
+  ...
+      virtual SDValue PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI) const;
+  ...
+
+.. rubric:: lbdex/Chapter4_1/Cpu0RegisterInfo.td
+.. code-block:: c++
+
+  // Hi/Lo registers
+  def HI  : Register<"HI">, DwarfRegNum<[18]>;
+  def LO  : Register<"LO">, DwarfRegNum<[19]>;
+  ...
+  // Hi/Lo Registers
+  def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
+
+.. rubric:: lbdex/Chapter4_1/Cpu0Schedule.td
+.. code-block:: c++
+
+  ...
+  def IIHiLo       : InstrItinClass;
+  ...
+  def Cpu0GenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
+  ...
+  InstrItinData<IIHiLo       , [InstrStage<1,  [IMULDIV]>]>,
+  ...
+  ]>;
 
 
 .. rubric:: lbdex/Chapter4_1/Cpu0Schedule.td
 .. code-block:: c++
 
   ...
-  def IMULDIV : FuncUnit;
-  ...
+  def IIHiLo             : InstrItinClass;
   def IIImul       : InstrItinClass;
   def IIIdiv       : InstrItinClass;
   ...
   // http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html 
   def Cpu0GenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
-  ...
-  InstrItinData<IIImul       , [InstrStage<17, [IMULDIV]>]>,
-  InstrItinData<IIIdiv       , [InstrStage<38, [IMULDIV]>]>
+    ...
+    InstrItinData<IIHiLo             , [InstrStage<1,  [IMULDIV]>]>,
+    InstrItinData<IIImul       , [InstrStage<17, [IMULDIV]>]>,
+    InstrItinData<IIIdiv       , [InstrStage<38, [IMULDIV]>]>
   ]>;
 
+
+**+, -, \*, <<,** and **>>**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ADDu, ADD, SUBu, SUB and MUL defined in Chapter4_1/Cpu0InstrInfo.td are for
+operators **+, -, \***.
+SHL (defined before) and SHLV are for **<<**.
+SRA, SRAV, SHR and SHRV are for **>>**.
 
 In RISC CPU like Mips, the multiply/divide function unit and add/sub/logic unit 
 are designed from two different hardware circuits, and more, their data path is 
@@ -490,17 +714,17 @@ corresponding llvm IR, as follows,
 
   ...
   define i32 @main() nounwind ssp {
-  entry:
-  %retval = alloca i32, align 4
-  %b = alloca i32, align 4
-  store i32 0, i32* %retval
-  store i32 11, i32* %b, align 4
-  %0 = load i32* %b, align 4
-  %add = add nsw i32 %0, 1
-  %rem = srem i32 %add, 12
-  store i32 %rem, i32* %b, align 4
-  %1 = load i32* %b, align 4
-  ret i32 %1
+    entry:
+    %retval = alloca i32, align 4
+    %b = alloca i32, align 4
+    store i32 0, i32* %retval
+    store i32 11, i32* %b, align 4
+    %0 = load i32* %b, align 4
+    %add = add nsw i32 %0, 1
+    %rem = srem i32 %add, 12
+    store i32 %rem, i32* %b, align 4
+    %1 = load i32* %b, align 4
+    ret i32 %1
   }
 
 
@@ -726,113 +950,13 @@ We choose it as the implementation of this book to add instructions as less as
 possible. This approach is better for Cpu0 to keep it as a tutorial architecture 
 for school teaching purpose material, and apply Cpu0 as an engineer learning 
 materials in compiler, system program and verilog CPU hardware design.
-For Mips style implementation, we add the following code in 
-Cpu0RegisterInfo.td, Cpu0InstrInfo.td and Cpu0ISelDAGToDAG.cpp. 
-And list the related DAG nodes mulhs and mulhu which are used in Chapter4_1/ 
-from TargetSelectionDAG.td.
+The MULT, MULTu, MFHI, MFLO, MTHI, MTLO added in Chapter4_1/Cpu0InstrInfo.td; 
+HI, LO register in Chapter4_1/Cpu0RegisterInfo.td and Chapter4_1/MCTargetDesc/
+Cpu0BaseInfo.h; IIHiLo, IIImul in Chapter4_1/Cpu0Schedule.td; SelectMULT() in
+Chapter4_1/Cpu0ISelDAGToDAG.cpp are for Mips style implementation.
 
-.. rubric:: lbdex/Chapter4_1/Cpu0RegisterInfo.td
-.. code-block:: c++
-
-  // Hi/Lo registers
-  def HI  : Register<"HI">, DwarfRegNum<[18]>;
-  def LO  : Register<"LO">, DwarfRegNum<[19]>;
-  ...
-  // Hi/Lo Registers
-  def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
-
-.. rubric:: lbdex/Chapter4_1/Cpu0Schedule.td
-.. code-block:: c++
-
-  ...
-  def IIHiLo       : InstrItinClass;
-  ...
-  def Cpu0GenericItineraries : ProcessorItineraries<[ALU, IMULDIV], [], [
-  ...
-  InstrItinData<IIHiLo       , [InstrStage<1,  [IMULDIV]>]>,
-  ...
-  ]>;
-
-.. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.td
-.. code-block:: c++
-
-  // Mul, Div
-  class Mult<bits<8> op, string instr_asm, InstrItinClass itin,
-       RegisterClass RC, list<Register> DefRegs>:
-  FL<op, (outs), (ins RC:$ra, RC:$rb),
-    !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
-  let imm16 = 0;
-  let isCommutable = 1;
-  let Defs = DefRegs;
-  let neverHasSideEffects = 1;
-  }
-  
-  class Mult32<bits<8> op, string instr_asm, InstrItinClass itin>:
-  Mult<op, instr_asm, itin, CPURegs, [HI, LO]>;
-  
-  // Move from Hi/Lo
-  class MoveFromLOHI<bits<8> op, string instr_asm, RegisterClass RC,
-           list<Register> UseRegs>:
-  FL<op, (outs RC:$ra), (ins),
-     !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
-  let rb = 0;
-  let imm16 = 0;
-  let Uses = UseRegs;
-  let neverHasSideEffects = 1;
-  }
-  ...
-  /// Multiply and Divide Instructions.
-  def MULT    : Mult32<0x41, "mult", IIImul>;
-  def MULTu   : Mult32<0x42, "multu", IIImul>;
-    
-  def MFHI    : MoveFromLOHI<0x46, "mfhi", CPURegs, [HI]>;
-  def MFLO    : MoveFromLOHI<0x47, "mflo", CPURegs, [LO]>;
-  
-.. rubric:: lbdex/Chapter4_1/Cpu0ISelDAGToDAG.cpp
-.. code-block:: c++
-
-    std::pair<SDNode*, SDNode*> SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl,
-                                           EVT Ty, bool HasLo, bool HasHi);
-    ...
-  /// Select multiply instructions.
-  std::pair<SDNode*, SDNode*>
-  Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
-                bool HasLo, bool HasHi) {
-  SDNode *Lo = 0, *Hi = 0;
-  SDNode *Mul = CurDAG->getMachineNode(Opc, dl, MVT::Glue, N->getOperand(0),
-                      N->getOperand(1));
-  SDValue InFlag = SDValue(Mul, 0);
-  
-  if (HasLo) {
-    Lo = CurDAG->getMachineNode(Cpu0::MFLO, dl,
-                  Ty, MVT::Glue, InFlag);
-    InFlag = SDValue(Lo, 1);
-  }
-  if (HasHi)
-    Hi = CurDAG->getMachineNode(Cpu0::MFHI, dl,
-                  Ty, InFlag);
-  
-  return std::make_pair(Lo, Hi);
-  }
-  
-  /// Select instructions not customized! Used for
-  /// expanded, promoted and normal instructions
-  SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
-  unsigned Opcode = Node->getOpcode();
-  DebugLoc dl = Node->getDebugLoc();
-  ...
-  EVT NodeTy = Node->getValueType(0);
-  unsigned MultOpc;
-  switch(Opcode) {
-  default: break;
-  
-  case ISD::MULHS:
-  case ISD::MULHU: {
-    MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
-    return SelectMULT(Node, MultOpc, dl, NodeTy, false, true).second;
-  }
-  ...
-  }
+The related DAG nodes mulhs and mulhu which are used in Chapter4_1/ 
+came from TargetSelectionDAG.td as follows,
   
 .. rubric:: include/llvm/Target/TargetSelectionDAG.td
 .. code-block:: c++
@@ -840,12 +964,11 @@ from TargetSelectionDAG.td.
   def mulhs    : SDNode<"ISD::MULHS"     , SDTIntBinOp, [SDNPCommutative]>;
   def mulhu    : SDNode<"ISD::MULHU"     , SDTIntBinOp, [SDNPCommutative]>;
 
-
   
 Except the custom type, llvm IR operations of expand and promote type will call 
 Cpu0DAGToDAGISel::Select() during instruction selection of DAG translation. 
-In Select(), it return the HI part of multiplication result to HI register, 
-for IR operations of mulhs or mulhu. 
+In SelectMULT() which called by Select(), it return the HI part of 
+multiplication result to HI register, for IR operations of mulhs or mulhu. 
 After that, MFHI instruction move the HI register to cpu0 field "a" register, 
 $ra. 
 MFHI instruction is FL format and only use cpu0 field "a" register, we set 
@@ -910,229 +1033,24 @@ divider, **“(b+1)%12”** in our example.
 If programmer use variable as the divider like **“(b+1)%a”**, then what will 
 happen in our code. 
 The answer is our code will has error to take care this. 
-In `section Support arithmetic instructions`_, we use **“div a, b”** 
-to hold the quotient part in register. 
-The multiplication operator **“*”** need 64 bits of register to hold the result 
-for two 32 bits of operands multiplication. 
-We modify cpu0 to use the pair of registers LO and HI which just like Mips to 
-solve this issue in last section. 
-Now, it's time to modify cpu0 for integer **“divide”** operator again. 
-We use LO and HI registers to hold the **"quotient"** and **"remainder"** and 
+
+Cpu0 just like Mips use LO and HI registers to hold the **"quotient"** and 
+**"remainder"**. And 
 use instructions **“mflo”** and **“mfhi”** to get the result from LO or HI 
 registers. 
 With this solution, the **“c = a / b”** can be got by **“div a, b”** and 
 **“mflo c”**; the **“c = a % b”** can be got by **“div a, b”** and **“mfhi c”**.
  
-Chapter4_1/ support operator **“%”** and **“/”**. 
-The code added in Chapter4_1/ as follows,
+To support operators **“%”** and **“/”**, the following code added in Chapter4_1.
 
-.. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
-  :start-after: // lbd document - mark - getRegisterInfo()
-  :end-before: const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
-  :start-after: const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
-  :end-before: if (!Subtarget.hasCpu032II()) {
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
-  :start-after: // lbd document - mark - if (!Subtarget.hasCpu032II()) 1
-  :end-before:  // lbd document - mark - 2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
-  :start-after:  // lbd document - mark - if (!Subtarget.hasCpu032II()) 2
-  :end-before: static MachineMemOperand* GetMemOperand
+1. SDIV, UDIV and it's reference class, nodes in Cpu0InstrInfo.td.
 
-.. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.h
-  :start-after: virtual const Cpu0RegisterInfo &getRegisterInfo() const;
-  :end-before: virtual void storeRegToStackSlot
+2. The copyPhysReg() declared and defined in Cpu0InstrInfo.h and 
+   Cpu0InstrInfo.cpp.
 
-.. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.td
-.. code-block:: c++
-
-  def SDT_Cpu0DivRem     : SDTypeProfile<0, 2,
-             [SDTCisInt<0>,
-            SDTCisSameAs<0, 1>]>;
-  ...
-  // DivRem(u) nodes
-  def Cpu0DivRem  : SDNode<"Cpu0ISD::DivRem", SDT_Cpu0DivRem,
-         [SDNPOutGlue]>;
-  def Cpu0DivRemU : SDNode<"Cpu0ISD::DivRemU", SDT_Cpu0DivRem,
-         [SDNPOutGlue]>;
-  ...
-  class shift_rotate_reg<bits<8> op, bits<4> isRotate, string instr_asm,
-                         SDNode OpNode, RegisterClass RC>:
-    FA<op, (outs RC:$ra), (ins CPURegs:$rb, RC:$rc),
-       !strconcat(instr_asm, "\t$ra, $rb, $rc"),
-       [(set RC:$ra, (OpNode RC:$rb, CPURegs:$rc))], IIAlu> {
-    let shamt = 0;
-  }
-  ...
-  // Mul, Div
-  class Mult<bits<8> op, string instr_asm, InstrItinClass itin,
-             RegisterClass RC, list<Register> DefRegs>:
-    FL<op, (outs), (ins RC:$ra, RC:$rb),
-       !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
-    let imm16 = 0;
-    let isCommutable = 1;
-    let Defs = DefRegs;
-    let neverHasSideEffects = 1;
-  }
-  
-  class Mult32<bits<8> op, string instr_asm, InstrItinClass itin>:
-    Mult<op, instr_asm, itin, CPURegs, [HI, LO]>;
-  
-  class Div<SDNode opNode, bits<8> op, string instr_asm, InstrItinClass itin,
-            RegisterClass RC, list<Register> DefRegs>:
-    FL<op, (outs), (ins RC:$ra, RC:$rb),
-       !strconcat(instr_asm, "\t$ra, $rb"),
-       [(opNode RC:$ra, RC:$rb)], itin> {
-    let imm16 = 0;
-    let Defs = DefRegs;
-  }
-  
-  class Div32<SDNode opNode, bits<8> op, string instr_asm, InstrItinClass itin>:
-    Div<opNode, op, instr_asm, itin, CPURegs, [HI, LO]>;
-  ...
-  // Move from Hi/Lo
-  class MoveFromLOHI<bits<8> op, string instr_asm, RegisterClass RC,
-                     list<Register> UseRegs>:
-    FL<op, (outs RC:$ra), (ins),
-       !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
-    let rb = 0;
-    let imm16 = 0;
-    let Uses = UseRegs;
-    let neverHasSideEffects = 1;
-  }
-
-  class MoveToLOHI<bits<8> op, string instr_asm, RegisterClass RC,
-       list<Register> DefRegs>:
-  FL<op, (outs), (ins RC:$ra),
-   !strconcat(instr_asm, "\t$ra"), [], IIHiLo> {
-  let rb = 0;
-  let imm16 = 0;
-  let Defs = DefRegs;
-  let neverHasSideEffects = 1;
-  }
-  ...
-  def SUBu    : ArithLogicR<0x12, "subu", sub, IIAlu, CPURegs>;
-  def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
-  def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
-  def MUL     : ArithLogicR<0x17, "mul", mul, IIImul, CPURegs, 1>;
-  
-  /// Shift Instructions
-  // sra is IR node for ashr llvm IR instruction of .bc
-  def ROL     : shift_rotate_imm32<0x1b, 0x01, "rol", rotl>;
-  def ROR     : shift_rotate_imm32<0x1c, 0x01, "ror", rotr>;
-  def SRA     : shift_rotate_imm32<0x1d, 0x00, "sra", sra>;
-  ...
-  // srl is IR node for lshr llvm IR instruction of .bc
-  def SHR     : shift_rotate_imm32<0x1f, 0x00, "shr", srl>;
-  def SRAV    : shift_rotate_reg<0x20, 0x00, "srav", sra, CPURegs>;
-  def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
-  def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
-  
-  /// Multiply and Divide Instructions.
-  def MULT    : Mult32<0x41, "mult", IIImul>;
-  def MULTu   : Mult32<0x42, "multu", IIImul>;
-  def SDIV    : Div32<Cpu0DivRem, 0x43, "div", IIIdiv>;
-  def UDIV    : Div32<Cpu0DivRemU, 0x44, "divu", IIIdiv>;
-  
-  def MFHI    : MoveFromLOHI<0x46, "mfhi", CPURegs, [HI]>;
-  def MFLO    : MoveFromLOHI<0x47, "mflo", CPURegs, [LO]>;
-  def MTHI    : MoveToLOHI<0x48, "mthi", CPURegs, [HI]>;
-  def MTLO    : MoveToLOHI<0x49, "mtlo", CPURegs, [LO]>;
-  
-  /// No operation
-  let addr=0 in
-    def NOP   : FJ<0, (outs), (ins), "nop", [], IIAlu>;
-
-  
-.. rubric:: lbdex/Chapter4_1/Cpu0ISelLowering.cpp
-.. code-block:: c++
-
-  Cpu0TargetLowering::
-  Cpu0TargetLowering(Cpu0TargetMachine &TM)
-  : TargetLowering(TM, new TargetLoweringObjectFileELF()),
-  Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
-  ...
-  setOperationAction(ISD::SDIV, MVT::i32, Expand);
-  setOperationAction(ISD::SREM, MVT::i32, Expand);
-  setOperationAction(ISD::UDIV, MVT::i32, Expand);
-  setOperationAction(ISD::UREM, MVT::i32, Expand);
-  
-  setTargetDAGCombine(ISD::SDIVREM);
-  setTargetDAGCombine(ISD::UDIVREM);
-  ...
-  }
-  ...
-  static SDValue PerformDivRemCombine(SDNode *N, SelectionDAG& DAG,
-          TargetLowering::DAGCombinerInfo &DCI,
-          const Cpu0Subtarget* Subtarget) {
-  if (DCI.isBeforeLegalizeOps())
-  return SDValue();
-  
-  EVT Ty = N->getValueType(0);
-  unsigned LO = Cpu0::LO;
-  unsigned HI = Cpu0::HI;
-  unsigned opc = N->getOpcode() == ISD::SDIVREM ? Cpu0ISD::DivRem :
-              Cpu0ISD::DivRemU;
-  DebugLoc dl = N->getDebugLoc();
-  
-  SDValue DivRem = DAG.getNode(opc, dl, MVT::Glue,
-           N->getOperand(0), N->getOperand(1));
-  SDValue InChain = DAG.getEntryNode();
-  SDValue InGlue = DivRem;
-  
-  // insert MFLO
-  if (N->hasAnyUseOfValue(0)) {
-  SDValue CopyFromLo = DAG.getCopyFromReg(InChain, dl, LO, Ty,
-            InGlue);
-  DAG.ReplaceAllUsesOfValueWith(SDValue(N, 0), CopyFromLo);
-  InChain = CopyFromLo.getValue(1);
-  InGlue = CopyFromLo.getValue(2);
-  }
-  
-  // insert MFHI
-  if (N->hasAnyUseOfValue(1)) {
-  SDValue CopyFromHi = DAG.getCopyFromReg(InChain, dl,
-            HI, Ty, InGlue);
-  DAG.ReplaceAllUsesOfValueWith(SDValue(N, 1), CopyFromHi);
-  }
-  
-  return SDValue();
-  }
-  
-  SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI)
-  const {
-  SelectionDAG &DAG = DCI.DAG;
-  unsigned opc = N->getOpcode();
-  
-  switch (opc) {
-  default: break;
-  case ISD::SDIVREM:
-  case ISD::UDIVREM:
-  return PerformDivRemCombine(N, DAG, DCI, Subtarget);
-  }
-  
-  return SDValue();
-  }
-  
-.. rubric:: lbdex/Chapter4_1/Cpu0ISelLowering.h
-.. code-block:: c++
-
-  namespace llvm {
-  namespace Cpu0ISD {
-  enum NodeType {
-    // Start the numbering from where ISD NodeType finishes.
-    FIRST_NUMBER = ISD::BUILTIN_OP_END,
-    Ret,
-    // DivRem(u)
-    DivRem,
-    DivRemU
-  };
-  }
-  ...
-      virtual SDValue PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI) const;
-  ...
+3. The setOperationAction(ISD::SDIV, MVT::i32, Expand), ..., 
+   setTargetDAGCombine(ISD::SDIVREM) in constructore of Cpu0ISelLowering.cpp;  
+   PerformDivRemCombine() and PerformDAGCombine() in Cpu0ISelLowering.cpp.
 
 
 IR instruction **sdiv** stand for signed div while **udiv** is for unsigned div.

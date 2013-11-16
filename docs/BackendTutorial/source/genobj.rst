@@ -110,25 +110,85 @@ To support elf obj generated, the following code changed  and added to
 Chapter5_1.
 
 .. rubric:: lbdex/Chapter5_1/MCTargetDesc/CMakeLists.txt
+.. code-block:: c++
 
-add_llvm_library(LLVMCpu0Desc
-  Cpu0AsmBackend.cpp
-  ...
-  Cpu0MCCodeEmitter.cpp
-  ...
-  Cpu0ELFObjectWriter.cpp
-  )
+  add_llvm_library(LLVMCpu0Desc
+    Cpu0AsmBackend.cpp
+    ...
+    Cpu0MCCodeEmitter.cpp
+    ...
+    Cpu0ELFObjectWriter.cpp
+    )
 
 .. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
+  :end-before: case Cpu0::fixup_Cpu0_CALL16:
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
+  :start-after: case Cpu0::fixup_Cpu0_CALL16:
+  :end-before: case Cpu0::fixup_Cpu0_GOT_LO16:
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
+  :start-after: case Cpu0::fixup_Cpu0_PC16:
+  :end-before: case Cpu0::fixup_Cpu0_GOT_HI16:
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
+  :start-after: case Cpu0::fixup_Cpu0_GOT_HI16:
+  :end-before: { "fixup_Cpu0_PC16",           0,     16,  MCFixupKindInfo::FKF_IsPCRel },
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
+  :start-after: { "fixup_Cpu0_PC16",           0,     16,  MCFixupKindInfo::FKF_IsPCRel },
+  :end-before: { "fixup_Cpu0_CALL16",         0,     16,   0 },
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0AsmBackend.cpp
+  :start-after: { "fixup_Cpu0_CALL16",         0,     16,   0 },
 
 .. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
+  :start-after: #define CPU0BASEINFO_H
+  :end-before: #include "Cpu0MCTargetDesc.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
   :start-after: namespace Cpu0II {
-  :end-before: enum {
+  :end-before:  /// MO_GOT_HI16/LO16 - Relocations used for large GOTs.
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
+  :start-after: MO_GOT_LO16,
+  :end-before:  enum {
+.. code-block:: c++
+
+  inline static std::pair<const MCSymbolRefExpr*, int64_t>
+  Cpu0GetSymAndOffset(const MCFixup &Fixup) {
+    MCFixupKind FixupKind = Fixup.getKind();
+
+    if ((FixupKind < FirstTargetFixupKind) ||
+        (FixupKind >= MCFixupKind(Cpu0::LastTargetFixupKind)))
+      return std::make_pair((const MCSymbolRefExpr*)0, (int64_t)0);
+
+    const MCExpr *Expr = Fixup.getValue();
+    MCExpr::ExprKind Kind = Expr->getKind();
+
+    if (Kind == MCExpr::Binary) {
+      const MCBinaryExpr *BE = static_cast<const MCBinaryExpr*>(Expr);
+      const MCExpr *LHS = BE->getLHS();
+      const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(BE->getRHS());
+
+      if ((LHS->getKind() != MCExpr::SymbolRef) || !CE)
+        return std::make_pair((const MCSymbolRefExpr*)0, (int64_t)0);
+
+      return std::make_pair(cast<MCSymbolRefExpr>(LHS), CE->getValue());
+    }
+
+    if (Kind != MCExpr::SymbolRef)
+      return std::make_pair((const MCSymbolRefExpr*)0, (int64_t)0);
+
+    return std::make_pair(cast<MCSymbolRefExpr>(Expr), 0);
+  } // Cpu0GetSymAndOffset
 
 .. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0ELFObjectWriter.cpp
+  :end-before: case Cpu0::fixup_Cpu0_CALL16:
+.. code-block:: c++
+
+    case Cpu0::fixup_Cpu0_GOT_Global:
+    case Cpu0::fixup_Cpu0_GOT_Local:
+      Type = ELF::R_CPU0_GOT16;
+
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0ELFObjectWriter.cpp
+  :start-after: Type = ELF::R_CPU0_GOT16;
 
 .. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0FixupKinds.h
@@ -160,6 +220,18 @@ add_llvm_library(LLVMCpu0Desc
   :end-before: // Register the MC subtarget info.
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
   :start-after: // lbd document - mark - RegisterMCInstPrinter
+
+.. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
+  :start-after: class MCObjectWriter;
+  :end-before: class MCSubtargetInfo;
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
+  :start-after: extern Target TheCpu0elTarget;
+  :end-before: MCAsmBackend *createCpu0AsmBackendEB32
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
+  :start-after: // lbd document - mark - createCpu0AsmBackendEL32
+  :end-before: // Defines symbolic names for Cpu0 registers.
+
 
 Now, let's examine Cpu0MCTargetDesc.cpp.
 Cpu0MCTargetDesc.cpp do the target registration as mentioned in 

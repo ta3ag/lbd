@@ -315,6 +315,8 @@ About the **cl::opt** command line variable, you can refer to [#]_ further.
 .. rubric:: lbdex/Chapter6_1/Cpu0Subtarget.cpp
 .. code-block:: c++
 
+  #include "llvm/Support/CommandLine.h"
+  ...
   static cl::opt<bool>
   UseSmallSectionOpt("cpu0-use-small-section", cl::Hidden, cl::init(false),
                    cl::desc("Use small section. Only work with -relocation-model="
