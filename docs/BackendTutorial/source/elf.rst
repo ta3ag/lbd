@@ -554,7 +554,8 @@ file from elf to hex as follows,
   Disassembly of section .text:error: no disassembler for target cpu0-unknown-
   unknown
 
-To support llvm-objdump, the following code added to Chapter10_1/.
+To support llvm-objdump, the following code added to Chapter10_1/ 
+(the DecoderMethod for brtarget24 has been added in previous chapter).
 
 .. rubric:: lbdex/Chapter10_1/CMakeLists.txt
 .. code-block:: c++
@@ -571,6 +572,14 @@ To support llvm-objdump, the following code added to Chapter10_1/.
   has_disassembler = 1
   ...
   
+.. rubric:: lbdex/Chapter8_1/Cpu0InstrInfo.td
+.. code-block:: c++
+
+  def brtarget24    : Operand<OtherVT> {
+    ...
+    let DecoderMethod = "DecodeBranch24Target";
+  }
+  
 .. rubric:: lbdex/Chapter10_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
@@ -582,16 +591,7 @@ To support llvm-objdump, the following code added to Chapter10_1/.
     ...
     let DecoderMethod = "DecodeCMPInstruction";
   }
-  
-  class CBranch<bits<8> op, string instr_asm, RegisterClass RC,
-             list<Register> UseRegs>:
-    FJ<op, (outs), (ins RC:$ra, brtarget:$addr),
-         !strconcat(instr_asm, "\t$addr"),
-         [], IIBranch> {
-    ...
-    let DecoderMethod = "DecodeBranchTarget";
-  }
-  
+  ...
   let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
     isIndirectBranch = 1 in
   class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:

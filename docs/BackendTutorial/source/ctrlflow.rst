@@ -203,7 +203,7 @@ We want to translate them into cpu0 instructions DAG as follows,
 For the first addiu instruction as above which move Constant<c> into register, 
 we have defined it before by the following code,
 
-.. rubric:: lbdex/Chapter8_1/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter3_5/Cpu0InstrInfo.td
 .. code-block:: c++
 
     // Small immediates
@@ -212,8 +212,7 @@ we have defined it before by the following code,
     
     // Arbitrary immediates
     def : Pat<(i32 imm:$imm),
-              (OR (SHL (ADDiu ZERO, (HI16 imm:$imm)), 16), 
-              (ADDiu ZERO, (LO16 imm:$imm)))>;
+          (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
 
 For the last IR br, we translate unconditional branch (br BasicBlock_01) into 
 jmp BasicBlock_01 by the following pattern definition,
@@ -221,10 +220,10 @@ jmp BasicBlock_01 by the following pattern definition,
 .. rubric:: lbdex/Chapter8_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
-    def brtarget    : Operand<OtherVT> {
+    def brtarget24    : Operand<OtherVT> {
       let EncoderMethod = "getBranchTargetOpValue";
       let OperandType = "OPERAND_PCREL";
-      let DecoderMethod = "DecodeBranchTarget";
+      let DecoderMethod = "DecodeBranch24Target";
     }
     ...
     // Unconditional branch
@@ -321,10 +320,9 @@ Reserved Registers, you should comment the Reserved Registers in it for
 readability. Setting SW into another register class to prevent the SW register 
 allocated to the register used by other instruction. 
 The copyPhysReg() is called when DestReg and SrcReg belong to different Register 
-Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is 
-"cmp $SW, $ZERO, $rc".
+Class. 
 
-.. rubric:: lbdex/Chapter8_1/Cpu0RegisterInfo.td
+.. rubric:: lbdex/Chapter2/Cpu0RegisterInfo.td
 .. code-block:: c++
 
   //===----------------------------------------------------------------------===//
@@ -332,20 +330,23 @@ Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
   //===----------------------------------------------------------------------===//
   
   def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
+    // Reserved
+    ZERO, AT, 
     // Return Values and Arguments
     V0, V1, A0, A1, 
     // Not preserved across procedure calls
-    T9, 
+    T9, T0,
     // Callee save
     S0, S1, S2, 
     // Reserved
-    ZERO, AT, GP, FP, SP, LR, PC)>;
+    GP, FP, 
+    SP, LR, PC)>;
   ...
   // Status Registers
   def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
   
 
-.. rubric:: lbdex/Chapter8_1/Cpu0InstrInfo.cpp
+.. rubric:: lbdex/Chapter4_2/Cpu0InstrInfo.cpp
 .. code-block:: c++
 
   //- Called when DestReg and SrcReg belong to different Register Class.
@@ -358,15 +359,13 @@ Class. As comment, the only possibility in (DestReg==SW, SrcReg==CPU0Regs) is
   
     if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
       ...
-      else if (SrcReg == Cpu0::SW)  // add $ra, $ZERO, $SW
-        Opc = Cpu0::ADD, ZeroReg = Cpu0::ZERO;
+      if (SrcReg == Cpu0::SW)
+        Opc = Cpu0::MFSW, SrcReg = 0;
     }
     else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
     ...
-      // Only possibility in (DestReg==SW, SrcReg==CPU0Regs) is 
-      //  cmp $SW, $ZERO, $rc
-      else if (DestReg == Cpu0::SW)
-        Opc = Cpu0::CMP, ZeroReg = Cpu0::ZERO;
+      if (DestReg == Cpu0::SW)
+        Opc = Cpu0::MTSW, DestReg = 0
     }
 
 
