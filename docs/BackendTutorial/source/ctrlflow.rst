@@ -563,7 +563,7 @@ Finally we list the code added for full support of control flow statement,
     }
     ...
     /// Conditional Branch
-	class CBranch<bits<8> op, string instr_asm, RegisterClass RC,
+	class CBranch24<bits<8> op, string instr_asm, RegisterClass RC,
 					   list<Register> UseRegs>:
 	  FJ<op, (outs), (ins RC:$ra, brtarget:$addr),
 				 !strconcat(instr_asm, "\t$addr"),
