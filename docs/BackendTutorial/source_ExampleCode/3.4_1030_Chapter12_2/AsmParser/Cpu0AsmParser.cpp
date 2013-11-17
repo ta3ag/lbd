@@ -117,7 +117,7 @@ class Cpu0AsmParser : public MCTargetAsmParser {
 public:
   Cpu0AsmParser(MCSubtargetInfo &sti, MCAsmParser &parser,
                 const MCInstrInfo &MII)
-      : MCTargetAsmParser(), STI(sti), Parser(parser) {
+    : MCTargetAsmParser(), STI(sti), Parser(parser) {
     // Initialize the set of available features.
     setAvailableFeatures(ComputeAvailableFeatures(STI.getFeatureBits()));
   }
@@ -486,6 +486,9 @@ int Cpu0AsmParser::matchRegisterName(StringRef Name) {
       .Case("sp",  Cpu0::SP)
       .Case("lr",  Cpu0::LR)
       .Case("pc",  Cpu0::PC)
+      .Case("hi",  Cpu0::HI)
+      .Case("lo",  Cpu0::LO)
+      .Case("sw",  Cpu0::SW)
       .Default(-1);
 
   if (CC != -1)
@@ -787,7 +790,7 @@ MCSymbolRefExpr::VariantKind Cpu0AsmParser::getVariantKind(StringRef Symbol) {
     .Case("hi",          MCSymbolRefExpr::VK_Cpu0_ABS_HI)
     .Case("lo",          MCSymbolRefExpr::VK_Cpu0_ABS_LO)
     .Case("gp_rel",      MCSymbolRefExpr::VK_Cpu0_GPREL)
-    .Case("call24",      MCSymbolRefExpr::VK_Cpu0_GOT_CALL)
+    .Case("call16",      MCSymbolRefExpr::VK_Cpu0_GOT_CALL)
     .Case("got",         MCSymbolRefExpr::VK_Cpu0_GOT)
     .Case("tlsgd",       MCSymbolRefExpr::VK_Cpu0_TLSGD)
     .Case("tlsldm",      MCSymbolRefExpr::VK_Cpu0_TLSLDM)

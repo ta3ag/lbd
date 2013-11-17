@@ -1,6 +1,6 @@
 diff -Naur Chapter9_4/CMakeLists.txt Chapter10_1/CMakeLists.txt
---- Chapter9_4/CMakeLists.txt	2013-11-11 17:15:26.253375892 +0800
-+++ Chapter10_1/CMakeLists.txt	2013-11-11 17:15:26.253375892 +0800
+--- Chapter9_4/CMakeLists.txt	2013-11-17 22:39:45.000000000 +0800
++++ Chapter10_1/CMakeLists.txt	2013-11-17 22:39:45.000000000 +0800
 @@ -9,7 +9,7 @@
  #  came from Cpu0InstrInfo.td.
  tablegen(LLVM Cpu0GenRegisterInfo.inc -gen-register-info)
@@ -18,14 +18,14 @@ diff -Naur Chapter9_4/CMakeLists.txt Chapter10_1/CMakeLists.txt
  add_subdirectory(TargetInfo)
  add_subdirectory(MCTargetDesc)
 diff -Naur Chapter9_4/Cpu0InstrInfo.td Chapter10_1/Cpu0InstrInfo.td
---- Chapter9_4/Cpu0InstrInfo.td	2013-11-11 17:15:26.253375892 +0800
-+++ Chapter10_1/Cpu0InstrInfo.td	2013-11-11 17:15:26.253375892 +0800
+--- Chapter9_4/Cpu0InstrInfo.td	2013-11-17 22:39:45.000000000 +0800
++++ Chapter10_1/Cpu0InstrInfo.td	2013-11-17 22:39:45.000000000 +0800
 @@ -196,6 +196,7 @@
    let rc = 0;
    let shamt = 0;
    let isCommutable = isComm;
 +  let DecoderMethod = "DecodeCMPInstruction";
- }
+ } // lbd document - mark - class CmpInstr
  
  // Arithmetic and logical instructions with 2 register operands.
 @@ -323,6 +324,7 @@
@@ -37,7 +37,7 @@ diff -Naur Chapter9_4/Cpu0InstrInfo.td Chapter10_1/Cpu0InstrInfo.td
  
    class JumpLinkReg<bits<8> op, string instr_asm,
 @@ -493,6 +495,7 @@
- /// Jump and Branch Instructions
+ /// Jump & link and Return Instructions
  def SWI     : JumpLink<0x3a, "swi">;
  def JSUB    : JumpLink<0x3b, "jsub">;
 +def JR      : JumpFR<0x3c, "ret", CPURegs>;
@@ -46,7 +46,7 @@ diff -Naur Chapter9_4/Cpu0InstrInfo.td Chapter10_1/Cpu0InstrInfo.td
    def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
 diff -Naur Chapter9_4/Disassembler/CMakeLists.txt Chapter10_1/Disassembler/CMakeLists.txt
 --- Chapter9_4/Disassembler/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter10_1/Disassembler/CMakeLists.txt	2013-11-11 17:15:26.253375892 +0800
++++ Chapter10_1/Disassembler/CMakeLists.txt	2013-11-17 22:39:45.000000000 +0800
 @@ -0,0 +1,15 @@
 +include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
 +
@@ -65,8 +65,8 @@ diff -Naur Chapter9_4/Disassembler/CMakeLists.txt Chapter10_1/Disassembler/CMake
 +add_dependencies(LLVMCpu0Disassembler Cpu0CommonTableGen)
 diff -Naur Chapter9_4/Disassembler/Cpu0Disassembler.cpp Chapter10_1/Disassembler/Cpu0Disassembler.cpp
 --- Chapter9_4/Disassembler/Cpu0Disassembler.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter10_1/Disassembler/Cpu0Disassembler.cpp	2013-11-11 17:15:26.253375892 +0800
-@@ -0,0 +1,301 @@
++++ Chapter10_1/Disassembler/Cpu0Disassembler.cpp	2013-11-17 22:39:45.000000000 +0800
+@@ -0,0 +1,302 @@
 +//===- Cpu0Disassembler.cpp - Disassembler for Cpu0 -------------*- C++ -*-===//
 +//
 +//                     The LLVM Compiler Infrastructure
@@ -135,6 +135,7 @@ diff -Naur Chapter9_4/Disassembler/Cpu0Disassembler.cpp Chapter10_1/Disassembler
 +                                       unsigned Insn,
 +                                       uint64_t Address,
 +                                       const void *Decoder);
++// lbd document - mark - declare DecodeCMPInstruction
 +static DecodeStatus DecodeBranch24Target(MCInst &Inst,
 +                                       unsigned Insn,
 +                                       uint64_t Address,
@@ -305,7 +306,7 @@ diff -Naur Chapter9_4/Disassembler/Cpu0Disassembler.cpp Chapter10_1/Disassembler
 +  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_a]));
 +  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_b]));
 +  return MCDisassembler::Success;
-+}
++} // lbd document - mark - DecodeCMPInstruction
 +
 +/* CBranch instruction define $ra and then imm24; The printOperand() print 
 +operand 1 (operand 0 is $ra and operand 1 is imm24), so we Create register 
@@ -370,7 +371,7 @@ diff -Naur Chapter9_4/Disassembler/Cpu0Disassembler.cpp Chapter10_1/Disassembler
 +
 diff -Naur Chapter9_4/Disassembler/LLVMBuild.txt Chapter10_1/Disassembler/LLVMBuild.txt
 --- Chapter9_4/Disassembler/LLVMBuild.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter10_1/Disassembler/LLVMBuild.txt	2013-11-11 17:15:26.253375892 +0800
++++ Chapter10_1/Disassembler/LLVMBuild.txt	2013-11-17 22:39:45.000000000 +0800
 @@ -0,0 +1,23 @@
 +;===- ./lib/Target/Cpu0/Disassembler/LLVMBuild.txt --------------*- Conf -*--===;
 +;
@@ -396,23 +397,21 @@ diff -Naur Chapter9_4/Disassembler/LLVMBuild.txt Chapter10_1/Disassembler/LLVMBu
 +required_libraries = MC Support Cpu0Info
 +add_to_library_groups = Cpu0
 diff -Naur Chapter9_4/LLVMBuild.txt Chapter10_1/LLVMBuild.txt
---- Chapter9_4/LLVMBuild.txt	2013-11-11 17:15:26.253375892 +0800
-+++ Chapter10_1/LLVMBuild.txt	2013-11-11 17:15:26.253375892 +0800
-@@ -18,7 +18,7 @@
- # Following comments extracted from http://llvm.org/docs/LLVMBuild.html
+--- Chapter9_4/LLVMBuild.txt	2013-11-17 22:39:45.000000000 +0800
++++ Chapter10_1/LLVMBuild.txt	2013-11-17 22:39:45.000000000 +0800
+@@ -19,6 +19,7 @@
  
  [common]
--subdirectories = InstPrinter MCTargetDesc TargetInfo
-+subdirectories = Disassembler InstPrinter MCTargetDesc TargetInfo
+ subdirectories = 
++  Disassembler 
+   InstPrinter 
+   MCTargetDesc TargetInfo
  
- [component_0]
- # TargetGroup components are an extension of LibraryGroups, specifically for 
-@@ -33,7 +33,7 @@
+@@ -34,6 +35,7 @@
+ # Whether this target defines an assembly parser, assembly printer, disassembler
  #  , and supports JIT compilation. They are optional.
- #has_asmparser = 1
  has_asmprinter = 1
--#has_disassembler = 1
 +has_disassembler = 1
- #has_jit = 1
  
  [component_1]
+ # component_1 is a Library type and name is Cpu0CodeGen. After build it will 

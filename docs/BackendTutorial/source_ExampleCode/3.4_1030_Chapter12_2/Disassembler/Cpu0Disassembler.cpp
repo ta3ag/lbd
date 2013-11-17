@@ -66,10 +66,12 @@ static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder);
+// lbd document - mark - declare DecodeCMPInstruction
 static DecodeStatus DecodeBranch16Target(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder);
+// lbd document - mark - declare DecodeBranch16Target
 static DecodeStatus DecodeBranch24Target(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
@@ -236,11 +238,11 @@ static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
   int Reg_b = (int)fieldFromInstruction(Insn, 16, 4);
   int Reg_c = (int)fieldFromInstruction(Insn, 12, 4);
 
-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_c]));
+  Inst.addOperand(MCOperand::CreateReg(Cpu0::SW));
   Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_a]));
   Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_b]));
   return MCDisassembler::Success;
-}
+} // lbd document - mark - DecodeCMPInstruction
 
 static DecodeStatus DecodeBranch16Target(MCInst &Inst,
                                        unsigned Insn,
@@ -251,7 +253,7 @@ static DecodeStatus DecodeBranch16Target(MCInst &Inst,
   	BranchOffset = -1*(0x10000 - BranchOffset);
   Inst.addOperand(MCOperand::CreateImm(BranchOffset));
   return MCDisassembler::Success;
-}
+} // lbd document - mark - DecodeBranch16Target
 
 /* CBranch instruction define $ra and then imm24; The printOperand() print 
 operand 1 (operand 0 is $ra and operand 1 is imm24), so we Create register 
@@ -279,7 +281,7 @@ static DecodeStatus DecodeBranch24Target(MCInst &Inst,
   int BranchOffset = fieldFromInstruction(Insn, 0, 24);
   if (BranchOffset > 0x8fffff)
   	BranchOffset = -1*(0x1000000 - BranchOffset);
-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[0]));
+  Inst.addOperand(MCOperand::CreateReg(Cpu0::SW));
   Inst.addOperand(MCOperand::CreateImm(BranchOffset));
   return MCDisassembler::Success;
 }

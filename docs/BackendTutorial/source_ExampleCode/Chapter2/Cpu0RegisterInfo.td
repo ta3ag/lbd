@@ -68,5 +68,5 @@ def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
   GP, FP, 
   SP, LR, PC)>;
 
-// Status Registers
+// Status Registers class
 def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;

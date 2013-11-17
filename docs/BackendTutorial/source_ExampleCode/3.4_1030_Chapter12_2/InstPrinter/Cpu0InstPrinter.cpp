@@ -119,7 +119,7 @@ printMemOperand(const MCInst *MI, int opNum, raw_ostream &O) {
   O << ")";
 }
 
-void Cpu0InstPrinter::
+void Cpu0InstPrinter:: // lbd document - mark - printMemOperandEA
 printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &O) {
   // when using stack locations for not load/store instructions
   // print the same way as all normal 3 operand instructions.

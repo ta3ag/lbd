@@ -66,7 +66,7 @@ def Cpu0AsmParserVariant : AsmParserVariant {
 
   // Recognize hard coded registers.
   string RegisterPrefix = "$";
-}
+} // def Cpu0AsmParserVariant
 
 // Will generate Cpu0GenAsmWrite.inc included by Cpu0InstPrinter.cpp, contents 
 //  as follows,

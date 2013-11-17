@@ -52,7 +52,9 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.3.7, Not release yet.
+Version 3.3.8, Not release yet.
+
+Version 3.3.7, Released November 17, 2013
   lld.rst documentation.
   Add cpu032I and cpu032II in `llc -mcpu`.
   Reference only for Chapter12_2.

@@ -24,8 +24,8 @@ include "Cpu0InstrFormats.td"
 def SDT_Cpu0Ret          : SDTypeProfile<0, 1, [SDTCisInt<0>]>;
 
 // Return
-def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDT_Cpu0Ret, [SDNPHasChain,
-                     SDNPOptInGlue]>;
+def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDTNone,
+                     [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
 //===----------------------------------------------------------------------===//
 // Cpu0 Operand, Complex Patterns and Transformations Definitions.
@@ -122,12 +122,29 @@ multiclass StoreM32<bits<8> op, string instr_asm, PatFrag OpNode,
   def #NAME# : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
 }
 
+let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
+    isIndirectBranch = 1 in
+class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
+  FL<op, (outs), (ins RC:$ra),
+     !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch> {
+  let rb = 0;
+  let imm16 = 0;
+}
+
+// Return instruction
+class RetBase<RegisterClass RC>: JumpFR<0x3c, "ret", RC> {
+  let isReturn = 1;
+  let isCodeGenOnly = 1;
+  let hasCtrlDep = 1;
+  let hasExtraSrcRegAllocReq = 1;
+}
+
 //===----------------------------------------------------------------------===//
 // Instruction definition
 //===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
-// Cpu0I Instructions
+// Cpu0 Instructions
 //===----------------------------------------------------------------------===//
 
 /// Load and Store Instructions
@@ -139,10 +156,7 @@ defm ST     : StoreM32<0x02, "st",  store_a>;
 // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
 def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
 
-let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
-    isBarrier=1, hasCtrlDep=1 in
-  def RET : FJ <0x3c, (outs), (ins CPURegs:$target),
-                "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch>;
+def RET     : RetBase<CPURegs>;
 
 //===----------------------------------------------------------------------===//
 //  Arbitrary patterns that map to one or more instructions

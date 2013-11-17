@@ -77,6 +77,7 @@ public:
   // requires relocation, record the relocation and return zero.
   unsigned getBranch16TargetOpValue(const MCInst &MI, unsigned OpNo,
                                   SmallVectorImpl<MCFixup> &Fixups) const;
+  // lbd document - mark - declare getBranch16TargetOpValue
 
   // getBranch24TargetOpValue - Return binary encoding of the branch
   // target operand, such as JMP #BB01, JEQ, JSUB. If the machine operand
@@ -90,9 +91,10 @@ public:
   // record the relocation and return zero.
    unsigned getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
                                  SmallVectorImpl<MCFixup> &Fixups) const;
+  // lbd document - mark - unsigned getJumpTargetOpValue
 
-   // getMachineOpValue - Return binary encoding of operand. If the machin
-   // operand requires relocation, record the relocation and return zero.
+  // getMachineOpValue - Return binary encoding of operand. If the machin
+  // operand requires relocation, record the relocation and return zero.
   unsigned getMachineOpValue(const MCInst &MI,const MCOperand &MO,
                              SmallVectorImpl<MCFixup> &Fixups) const;
 
@@ -163,7 +165,7 @@ getBranch16TargetOpValue(const MCInst &MI, unsigned OpNo,
   Fixups.push_back(MCFixup::Create(0, Expr,
                                    MCFixupKind(Cpu0::fixup_Cpu0_PC16)));
   return 0;
-}
+} // lbd document - mark - getBranch16TargetOpValue
 
 /// getBranch24TargetOpValue - Return binary encoding of the branch
 /// target operand. If the machine operand requires relocation,
@@ -208,7 +210,7 @@ getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
   else
     llvm_unreachable("unexpect opcode in getJumpAbsoluteTargetOpValue()");
   return 0;
-}
+} // lbd document - mark - getJumpTargetOpValue
 
 /// getMachineOpValue - Return binary encoding of operand. If the machine
 /// operand requires relocation, record the relocation and return zero.

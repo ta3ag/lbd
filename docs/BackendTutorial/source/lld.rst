@@ -427,7 +427,7 @@ instructions is work fine too by change cpu to cpu032II as follows,
   1 warning generated.
   [Gamma@localhost cpu0_verilog]$ ./cpu0IIs 
 
-The verilog machine cpu032II include cpu0I all instructions (cmp, jeq, ... 
+The verilog machine cpu032IIs include cpu0I all instructions (cmp, jeq, ... 
 are included also) and add Chapter12_2 slt, beq, ..., instructions.
 Run build-printf-stdarg-2.sh with cpu=cpu032II will generate slt, beq and bne 
 instructions instead cmp, jeq, ... instructions. Since cpu0IIs include both
