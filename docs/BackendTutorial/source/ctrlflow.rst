@@ -220,12 +220,6 @@ jmp BasicBlock_01 by the following pattern definition,
 .. rubric:: lbdex/Chapter8_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
-    def brtarget24    : Operand<OtherVT> {
-      let EncoderMethod = "getBranchTargetOpValue";
-      let OperandType = "OPERAND_PCREL";
-      let DecoderMethod = "DecodeBranch24Target";
-    }
-    ...
     // Unconditional branch
     class UncondBranch<bits<8> op, string instr_asm>:
       BranchBase<op, (outs), (ins brtarget:$imm24),
@@ -371,7 +365,7 @@ Class.
 
 Chapter8_1/ include support for control flow statement. 
 Run with it as well as the following ``llc`` option, you can get the obj file 
-and dump it's content by hexdump as follows,
+and dump it's content by gobjdump or hexdump as follows,
 
 .. code-block:: bash
 
@@ -448,6 +442,49 @@ Finally we list the code added for full support of control flow statement,
     :start-after: // lbd document - mark - getBranch16TargetOpValue
     :end-before: /// getMachineOpValue - Return binary encoding of operand
 
+.. rubric:: lbdex/Chapter8_1/Cpu0ISelLowering.cpp
+.. code-block:: c++
+
+    Cpu0TargetLowering::
+    Cpu0TargetLowering(Cpu0TargetMachine &TM)
+      : TargetLowering(TM, new Cpu0TargetObjectFile()),
+        Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
+      ...
+      // Used by legalize types to correctly generate the setcc result.
+      // Without this, every float setcc comes with a AND/OR with the result,
+      // we don't want this, since the fpcmp result goes to a flag register,
+      // which is used implicitly by brcond and select operations.
+      AddPromotedToType(ISD::SETCC, MVT::i1, MVT::i32);
+      ...
+      setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
+      ...
+      // Operations not directly supported by Cpu0.
+      setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
+      ...
+    }
+    ...
+    SDValue Cpu0TargetLowering::
+    LowerOperation(SDValue Op, SelectionDAG &DAG) const
+    {
+      switch (Op.getOpcode())
+      {
+        case ISD::BRCOND:             return LowerBRCOND(Op, DAG);
+        ...
+      }
+      ...
+    }
+    ...
+    SDValue Cpu0TargetLowering::
+    LowerBRCOND(SDValue Op, SelectionDAG &DAG) const
+    {
+      return Op;
+    }
+
+.. rubric:: lbdex/Chapter8_1/Cpu0ISelLowering.h
+.. code-block:: c++
+
+      SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
+
 .. rubric:: lbdex/Chapter8_1/Cpu0MCInstLower.cpp
 .. code-block:: c++
 
@@ -455,13 +492,8 @@ Finally we list the code added for full support of control flow statement,
                                                   MachineOperandType MOTy,
                                                   unsigned Offset) const {
       ...
-      switch(MO.getTargetFlags()) {
-      default:                   llvm_unreachable("Invalid target flag!");
-      case Cpu0II::MO_NO_FLAG:   Kind = MCSymbolRefExpr::VK_None; break;
-      ...
-      }
-      ...
       switch (MOTy) {
+      ...
       case MachineOperand::MO_MachineBasicBlock:
         Symbol = MO.getMBB()->getSymbol();
         break;
@@ -478,62 +510,15 @@ Finally we list the code added for full support of control flow statement,
       MachineOperandType MOTy = MO.getType();
     
       switch (MOTy) {
-      default: llvm_unreachable("unknown operand type");
-      case MachineOperand::MO_Register:
       ...
       case MachineOperand::MO_MachineBasicBlock:
-      case MachineOperand::MO_GlobalAddress:
+      ...
       case MachineOperand::MO_BlockAddress:
       ...
       }
       ...
     }
 
-.. rubric:: lbdex/Chapter8_1/Cpu0InstrInfo.cpp
-.. code-block:: c++
-
-    //- Called when DestReg and SrcReg belong to different Register Class.
-    void Cpu0InstrInfo::
-    copyPhysReg(MachineBasicBlock &MBB,
-                MachineBasicBlock::iterator I, DebugLoc DL,
-                unsigned DestReg, unsigned SrcReg,
-                bool KillSrc) const {
-      if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
-        ...
-      else if (SrcReg == Cpu0::SW)  // add $ra, $ZERO, $SW
-        Opc = Cpu0::ADD, ZeroReg = Cpu0::ZERO;
-      }
-      else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
-        ...
-        // Only possibility in (DestReg==SW, SrcReg==CPU0Regs) is 
-        //  cmp $SW, $ZERO, $rc
-        else if (DestReg == Cpu0::SW)
-          Opc = Cpu0::CMP, ZeroReg = Cpu0::ZERO;
-      }
-      ...
-    }
-
-.. rubric:: lbdex/Chapter8_1/Cpu0ISelLowering.cpp
-.. code-block:: c++
-
-    Cpu0TargetLowering::
-    Cpu0TargetLowering(Cpu0TargetMachine &TM)
-      : TargetLowering(TM, new Cpu0TargetObjectFile()),
-        Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
-      ...
-      // Used by legalize types to correctly generate the setcc result.
-      // Without this, every float setcc comes with a AND/OR with the result,
-      // we don't want this, since the fpcmp result goes to a flag register,
-      // which is used implicitly by brcond and select operations.
-      AddPromotedToType(ISD::SETCC, MVT::i1, MVT::i32);
-      ...
-      setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
-      
-      // Operations not directly supported by Cpu0.
-      setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
-      ...
-    }
-    
 .. rubric:: lbdex/Chapter8_1/Cpu0InstrFormats.td
 .. code-block:: c++
 
@@ -554,20 +539,26 @@ Finally we list the code added for full support of control flow statement,
 .. rubric:: lbdex/Chapter8_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
-    // Cpu0InstrInfo.td
-    // Instruction operand types
-    def brtarget    : Operand<OtherVT> {
-      let EncoderMethod = "getBranchTargetOpValue";
-      let OperandType = "OPERAND_PCREL";
-      let DecoderMethod = "DecodeBranchTarget";
-    }
-    ...
+  // Cpu0InstrInfo.td
+  // Instruction operand types
+  def brtarget24    : Operand<OtherVT> {
+    let EncoderMethod = "getBranchTargetOpValue";
+    let OperandType = "OPERAND_PCREL";
+    let DecoderMethod = "DecodeBranchTarget";
+  }
+  // JMP
+  def jmptarget    : Operand<OtherVT> {
+    let EncoderMethod = "getJumpTargetOpValue";
+    let OperandType = "OPERAND_PCREL";
+    let DecoderMethod = "DecodeJumpRelativeTarget";
+  }
+  ...
     /// Conditional Branch
 	class CBranch24<bits<8> op, string instr_asm, RegisterClass RC,
 					   list<Register> UseRegs>:
 	  FJ<op, (outs), (ins RC:$ra, brtarget:$addr),
 				 !strconcat(instr_asm, "\t$addr"),
-				 [(brcond RC:$ra, bb:$addr)], IIBranch> {
+				 [], IIBranch> {
 	  let isBranch = 1;
 	  let isTerminator = 1;
 	  let hasDelaySlot = 0;
@@ -582,7 +573,6 @@ Finally we list the code added for full support of control flow statement,
 	  let isTerminator = 1;
 	  let isBarrier = 1;
 	  let hasDelaySlot = 0;
-	  let DecoderMethod = "DecodeJumpRelativeTarget";
 	}
     ...
     /// Jump and Branch Instructions
@@ -635,22 +625,11 @@ The ch8_1_2.cpp is for **“nest if”** test. The ch8_1_3.cpp is the
 **“goto”** test. The ch8_1_6.cpp is for **“goto”** test.
 You can run with them if you like to test more.
 
-Finally, Chapter8_1/ support the local array definition by add the LowerCall() 
-empty function in Cpu0ISelLowering.cpp as follows,
 
-.. rubric:: lbdex/Chapter8_1/Cpu0ISelLowering.cpp
-.. code-block:: c++
-
-  // Cpu0ISelLowering.cpp
-  SDValue
-  Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
-                  SmallVectorImpl<SDValue> &InVals) const {
-    return CLI.Chain;
-  }
-
-
-With this LowerCall(), it can translate ch8_1_4.cpp, ch8_1_4.bc to 
-ch8_1_4.cpu0.s as follows,
+The ch8_1_4.cpp is for test C operators **==, !=, &&, ||**. No code need to 
+add since we have take care them before. 
+But it can be test only when the control flow statement support is ready, as 
+follows,
 
 .. rubric:: lbdex/InputFiles/ch8_1_4.cpp
 .. literalinclude:: ../lbdex/InputFiles/ch8_1_4.cpp
@@ -658,99 +637,15 @@ ch8_1_4.cpu0.s as follows,
 
 .. code-block:: bash
 
-    ; ModuleID = 'ch8_1_4 .bc'
-    target datalayout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-
-    f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:128:128-n8:16:32-S128"
-    target triple = "i386-apple-macosx10.8.0"
-    
-    @_ZZ4mainE1a = private unnamed_addr constant [3 x i32] [i32 0, i32 1, i32 2], 
-    align 4
-    
-    define i32 @main() nounwind ssp {
-    entry:
-      %retval = alloca i32, align 4
-      %a = alloca [3 x i32], align 4
-      store i32 0, i32* %retval
-      %0 = bitcast [3 x i32]* %a to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* %0, i8* bitcast ([3 x i32]* 
-        @_ZZ4mainE1a to i8*), i32 12, i32 4, i1 false)
-      ret i32 0
-    }
-    
-    118-165-79-206:InputFiles Jonathan$ cat ch8_1_4.cpu0.s 
-        .section .mdebug.abi32
-        .previous
-        .file   "ch8_1_4.bc"
-        .text
-        .globl  main
-        .align  2
-        .type   main,@function
-        .ent    main                    # @main
-    main:
-        .frame  $sp,24,$lr
-        .mask   0x00000000,0
-        .set    noreorder
-        .cpload $t9
-        .set    nomacro
-    # BB#0:                                 # %entry
-        addiu   $sp, $sp, -24
-        ld  $2, %got(__stack_chk_guard)($gp)
-        ld  $3, 0($2)
-        st  $3, 20($sp)
-        addiu   $3, $zero, 0
-        st  $3, 16($sp)
-        ld  $3, %got($_ZZ4mainE1a)($gp)
-        addiu   $3, $3, %lo($_ZZ4mainE1a)
-        ld  $4, 8($3)
-        st  $4, 12($sp)
-        ld  $4, 4($3)
-        st  $4, 8($sp)
-        ld  $3, 0($3)
-        st  $3, 4($sp)
-        ld  $2, 0($2)
-        ld  $3, 20($sp)
-        cmp $2, $3
-        jne $BB0_2
-        jmp $BB0_1
-    $BB0_1:                                 # %SP_return
-        addiu   $sp, $sp, 24
-        ret $lr
-    $BB0_2:                                 # %CallStackCheckFailBlk
-        .set    macro
-        .set    reorder
-        .end    main
-    $tmp1:
-        .size   main, ($tmp1)-main
-    
-        .type   $_ZZ4mainE1a,@object    # @_ZZ4mainE1a
-        .section    .rodata,"a",@progbits
-        .align  2
-    $_ZZ4mainE1a:
-        .4byte  0                       # 0x0
-        .4byte  1                       # 0x1
-        .4byte  2                       # 0x2
-        .size   $_ZZ4mainE1a, 12
-
-The ch8_1_5.cpp is for test C operators **==, !=, &&, ||**. No code need to 
-add since we have take care them before. 
-But it can be test only when the control flow statement support is ready, as 
-follows,
-
-.. rubric:: lbdex/InputFiles/ch8_1_5.cpp
-.. literalinclude:: ../lbdex/InputFiles/ch8_1_5.cpp
-    :start-after: /// start
-
-.. code-block:: bash
-
   118-165-78-230:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch8_1_5.cpp -emit-llvm -o ch8_1_5.bc
+  ch8_1_4.cpp -emit-llvm -o ch8_1_4.bc
   118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_1_5.bc -o 
-  ch8_1_5.cpu0.s
-  118-165-78-230:InputFiles Jonathan$ cat ch8_1_5.cpu0.s 
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_1_4.bc -o 
+  ch8_1_4.cpu0.s
+  118-165-78-230:InputFiles Jonathan$ cat ch8_1_4.cpu0.s 
     .section .mdebug.abi32
     .previous
-    .file "ch8_1_5.bc"
+    .file "ch8_1_4.bc"
     .text
     .globl  main
     .align  2

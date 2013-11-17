@@ -35,12 +35,7 @@ Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
     let isCodeGenOnly = 1;
   }
   
-.. rubric:: lbdex/Chapter7_1/Cpu0InstPrinter.h
-.. code-block:: c++
-
-    void printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &O);
-
-.. rubric:: lbdex/Chapter7_1/Cpu0InstPrinter.cpp
+.. rubric:: lbdex/Chapter7_1/Cpu0InstPrinter.td
 .. code-block:: c++
 
   void Cpu0InstPrinter::
@@ -707,11 +702,6 @@ mechanism as below.
     return false;
   }
     
-.. rubric:: lbdex/Chapter7_1/Cpu0ISelLowering.h
-.. code-block:: c++
-
-      virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
-
 .. rubric:: lbdex/Chapter7_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
@@ -800,6 +790,75 @@ follows.
   shl $2, $2, 16
   addiu $2, $2, %lo(a)
   ld  $2, 4($2)
+
+The ch7_5_2.cpp is for local variable initialization test. The result as 
+follows,
+
+.. rubric:: lbdex/InputFiles/ch7_5.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch7_5.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+
+  118-165-79-206:InputFiles Jonathan$ llvm-dis ch7_5_2.bc -o -
+  ...
+  define i32 @main() nounwind ssp {
+  entry:
+    %retval = alloca i32, align 4
+    %a = alloca [3 x i32], align 4
+    store i32 0, i32* %retval
+    %0 = bitcast [3 x i32]* %a to i8*
+    call void @llvm.memcpy.p0i8.p0i8.i32(i8* %0, i8* bitcast ([3 x i32]* 
+      @_ZZ4mainE1a to i8*), i32 12, i32 4, i1 false)
+    ret i32 0
+  }
+  ; Function Attrs: nounwind
+  declare void @llvm.memcpy.p0i8.p0i8.i32(i8* nocapture, i8* nocapture, i32, i32, i1) #1
+
+  118-165-79-206:InputFiles Jonathan$ /usr/local/llvm/test/cmake_debug_build/
+  bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_5_2.bc -o -
+	  .section .mdebug.abi32
+	  .previous
+	  .file	"ch7_5_2.bc"
+	  .text
+	  .globl	main
+	  .align	2
+	  .type	main,@function
+	  .ent	main                    # @main
+  main:
+	  .frame	$fp,16,$lr
+	  .mask 	0x00000000,0
+	  .set	noreorder
+	  .cpload	$t9
+	  .set	nomacro
+  # BB#0:                                 # %entry
+	  addiu	$sp, $sp, -16
+	  addiu	$2, $zero, 0
+	  st	$2, 12($fp)
+	  ld	$2, %got($_ZZ4mainE1a)($gp)
+	  addiu	$2, $2, %lo($_ZZ4mainE1a)
+	  ld	$3, 8($2)
+	  st	$3, 8($fp)
+	  ld	$3, 4($2)
+	  st	$3, 4($fp)
+	  ld	$2, 0($2)
+	  st	$2, 0($fp)
+	  addiu	$sp, $sp, 16
+	  ret	$lr
+	  .set	macro
+	  .set	reorder
+	  .end	main
+  $tmp1:
+	  .size	main, ($tmp1)-main
+
+	  .type	$_ZZ4mainE1a,@object    # @_ZZ4mainE1a
+	  .section	.rodata,"a",@progbits
+	  .align	2
+  $_ZZ4mainE1a:
+	  .4byte	0                       # 0x0
+	  .4byte	1                       # 0x1
+	  .4byte	2                       # 0x2
+	  .size	$_ZZ4mainE1a, 12
 
 
 .. [#] http://llvm.org/docs/LangRef.html
