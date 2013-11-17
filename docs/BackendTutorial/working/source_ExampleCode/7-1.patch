@@ -1,6 +1,134 @@
+diff -Naur Chapter6_1/Cpu0ISelDAGToDAG.cpp Chapter7_1/Cpu0ISelDAGToDAG.cpp
+--- Chapter6_1/Cpu0ISelDAGToDAG.cpp	2013-11-17 22:01:14.000000000 +0800
++++ Chapter7_1/Cpu0ISelDAGToDAG.cpp	2013-11-17 22:01:14.000000000 +0800
+@@ -152,6 +152,23 @@
+         Addr.getOpcode() == ISD::TargetGlobalAddress))
+       return false;
+   }
++  
++  // Addresses of the form FI+const or FI|const
++  if (CurDAG->isBaseWithConstantOffset(Addr)) {
++    ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Addr.getOperand(1));
++    if (isInt<16>(CN->getSExtValue())) {
++
++      // If the first operand is a FI, get the TargetFI Node
++      if (FrameIndexSDNode *FIN = dyn_cast<FrameIndexSDNode>
++                                  (Addr.getOperand(0)))
++        Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), ValTy);
++      else
++        Base = Addr.getOperand(0);
++
++      Offset = CurDAG->getTargetConstant(CN->getZExtValue(), ValTy);
++      return true;
++    }
++  } // lbd document - mark - if (CurDAG->isBaseWithConstantOffset(Addr))
+ 
+   Base   = Addr;
+   Offset = CurDAG->getTargetConstant(0, ValTy);
+@@ -204,6 +221,58 @@
+   switch(Opcode) {
+   default: break;
+ 
++  case ISD::SUBE:
++  case ISD::ADDE: {
++    SDValue InFlag = Node->getOperand(2), CmpLHS;
++    unsigned Opc = InFlag.getOpcode(); (void)Opc;
++    assert(((Opc == ISD::ADDC || Opc == ISD::ADDE) ||
++            (Opc == ISD::SUBC || Opc == ISD::SUBE)) &&
++           "(ADD|SUB)E flag operand must come from (ADD|SUB)C/E insn");
++
++    unsigned MOp;
++    if (Opcode == ISD::ADDE) {
++      CmpLHS = InFlag.getValue(0);
++      MOp = Cpu0::ADDu;
++    } else {
++      CmpLHS = InFlag.getOperand(0);
++      MOp = Cpu0::SUBu;
++    }
++
++    SDValue Ops[] = { CmpLHS, InFlag.getOperand(1) };
++
++    SDValue LHS = Node->getOperand(0);
++    SDValue RHS = Node->getOperand(1);
++
++    EVT VT = LHS.getValueType();
++    SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, dl, VT, Ops);
++    SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
++    SDNode *Carry = CurDAG->getMachineNode(Cpu0::ANDi, dl, VT, 
++                                           SDValue(StatusWord,0), Constant1);
++    SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, dl, VT,
++                                              SDValue(Carry,0), RHS);
++
++    return CurDAG->SelectNodeTo(Node, MOp, VT, MVT::Glue,
++                                LHS, SDValue(AddCarry,0));
++  }
++
++  /// Mul with two results
++  case ISD::SMUL_LOHI:
++  case ISD::UMUL_LOHI: {
++    if (NodeTy == MVT::i32)
++      MultOpc = (Opcode == ISD::UMUL_LOHI ? Cpu0::MULTu : Cpu0::MULT);
++
++    std::pair<SDNode*, SDNode*> LoHi = SelectMULT(Node, MultOpc, dl, NodeTy,
++                                                  true, true);
++
++    if (!SDValue(Node, 0).use_empty())
++      ReplaceUses(SDValue(Node, 0), SDValue(LoHi.first, 0));
++
++    if (!SDValue(Node, 1).use_empty())
++      ReplaceUses(SDValue(Node, 1), SDValue(LoHi.second, 0));
++
++    return NULL;
++  }
++
+   case ISD::MULHS:
+   case ISD::MULHU: {
+     MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
+diff -Naur Chapter6_1/Cpu0ISelLowering.cpp Chapter7_1/Cpu0ISelLowering.cpp
+--- Chapter6_1/Cpu0ISelLowering.cpp	2013-11-17 22:01:14.000000000 +0800
++++ Chapter7_1/Cpu0ISelLowering.cpp	2013-11-17 22:01:14.000000000 +0800
+@@ -122,6 +122,16 @@
+   // Set up the register classes
+   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
+ 
++  // Cpu0 does not have i1 type, so use i32 for
++  // setcc operations results (slt, sgt, ...).
++  setBooleanContents(ZeroOrOneBooleanContent);
++  setBooleanVectorContents(ZeroOrNegativeOneBooleanContent);
++
++  // Load extented operations for i1 types must be promoted
++  setLoadExtAction(ISD::EXTLOAD,  MVT::i1,  Promote);
++  setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
++  setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
++
+   // Cpu0 Custom Operations
+   setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
+ 
+@@ -283,3 +293,9 @@
+     return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
+                        Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
+ }
++
++bool // lbd document - mark - isOffsetFoldingLegal
++Cpu0TargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
++  // The Cpu0 target isn't yet aware of offsets.
++  return false;
++}
+diff -Naur Chapter6_1/Cpu0ISelLowering.h Chapter7_1/Cpu0ISelLowering.h
+--- Chapter6_1/Cpu0ISelLowering.h	2013-11-17 22:01:14.000000000 +0800
++++ Chapter7_1/Cpu0ISelLowering.h	2013-11-17 22:01:14.000000000 +0800
+@@ -105,6 +105,8 @@
+                   const SmallVectorImpl<ISD::OutputArg> &Outs,
+                   const SmallVectorImpl<SDValue> &OutVals,
+                   DebugLoc dl, SelectionDAG &DAG) const;
++
++    virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
+   };
+ }
+ 
 diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
---- Chapter6_1/Cpu0InstrInfo.td	2013-11-17 16:58:21.413353962 +0800
-+++ Chapter7_1/Cpu0InstrInfo.td	2013-11-17 16:58:21.386353963 +0800
+--- Chapter6_1/Cpu0InstrInfo.td	2013-11-17 22:01:14.000000000 +0800
++++ Chapter7_1/Cpu0InstrInfo.td	2013-11-17 22:01:14.000000000 +0800
 @@ -71,6 +71,12 @@
    let EncoderMethod = "getMemEncoding";
  }
@@ -91,137 +219,9 @@ diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
  // setcc patterns
  multiclass SeteqPatsCmp<RegisterClass RC> {
  // a == b
-diff -Naur Chapter6_1/Cpu0ISelDAGToDAG.cpp Chapter7_1/Cpu0ISelDAGToDAG.cpp
---- Chapter6_1/Cpu0ISelDAGToDAG.cpp	2013-11-17 16:58:21.412353962 +0800
-+++ Chapter7_1/Cpu0ISelDAGToDAG.cpp	2013-11-17 16:58:21.385353963 +0800
-@@ -152,6 +152,23 @@
-         Addr.getOpcode() == ISD::TargetGlobalAddress))
-       return false;
-   }
-+  
-+  // Addresses of the form FI+const or FI|const
-+  if (CurDAG->isBaseWithConstantOffset(Addr)) {
-+    ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Addr.getOperand(1));
-+    if (isInt<16>(CN->getSExtValue())) {
-+
-+      // If the first operand is a FI, get the TargetFI Node
-+      if (FrameIndexSDNode *FIN = dyn_cast<FrameIndexSDNode>
-+                                  (Addr.getOperand(0)))
-+        Base = CurDAG->getTargetFrameIndex(FIN->getIndex(), ValTy);
-+      else
-+        Base = Addr.getOperand(0);
-+
-+      Offset = CurDAG->getTargetConstant(CN->getZExtValue(), ValTy);
-+      return true;
-+    }
-+  } // lbd document - mark - if (CurDAG->isBaseWithConstantOffset(Addr))
- 
-   Base   = Addr;
-   Offset = CurDAG->getTargetConstant(0, ValTy);
-@@ -204,6 +221,58 @@
-   switch(Opcode) {
-   default: break;
- 
-+  case ISD::SUBE:
-+  case ISD::ADDE: {
-+    SDValue InFlag = Node->getOperand(2), CmpLHS;
-+    unsigned Opc = InFlag.getOpcode(); (void)Opc;
-+    assert(((Opc == ISD::ADDC || Opc == ISD::ADDE) ||
-+            (Opc == ISD::SUBC || Opc == ISD::SUBE)) &&
-+           "(ADD|SUB)E flag operand must come from (ADD|SUB)C/E insn");
-+
-+    unsigned MOp;
-+    if (Opcode == ISD::ADDE) {
-+      CmpLHS = InFlag.getValue(0);
-+      MOp = Cpu0::ADDu;
-+    } else {
-+      CmpLHS = InFlag.getOperand(0);
-+      MOp = Cpu0::SUBu;
-+    }
-+
-+    SDValue Ops[] = { CmpLHS, InFlag.getOperand(1) };
-+
-+    SDValue LHS = Node->getOperand(0);
-+    SDValue RHS = Node->getOperand(1);
-+
-+    EVT VT = LHS.getValueType();
-+    SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, dl, VT, Ops);
-+    SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
-+    SDNode *Carry = CurDAG->getMachineNode(Cpu0::ANDi, dl, VT, 
-+                                           SDValue(StatusWord,0), Constant1);
-+    SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, dl, VT,
-+                                              SDValue(Carry,0), RHS);
-+
-+    return CurDAG->SelectNodeTo(Node, MOp, VT, MVT::Glue,
-+                                LHS, SDValue(AddCarry,0));
-+  }
-+
-+  /// Mul with two results
-+  case ISD::SMUL_LOHI:
-+  case ISD::UMUL_LOHI: {
-+    if (NodeTy == MVT::i32)
-+      MultOpc = (Opcode == ISD::UMUL_LOHI ? Cpu0::MULTu : Cpu0::MULT);
-+
-+    std::pair<SDNode*, SDNode*> LoHi = SelectMULT(Node, MultOpc, dl, NodeTy,
-+                                                  true, true);
-+
-+    if (!SDValue(Node, 0).use_empty())
-+      ReplaceUses(SDValue(Node, 0), SDValue(LoHi.first, 0));
-+
-+    if (!SDValue(Node, 1).use_empty())
-+      ReplaceUses(SDValue(Node, 1), SDValue(LoHi.second, 0));
-+
-+    return NULL;
-+  }
-+
-   case ISD::MULHS:
-   case ISD::MULHU: {
-     MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
-diff -Naur Chapter6_1/Cpu0ISelLowering.cpp Chapter7_1/Cpu0ISelLowering.cpp
---- Chapter6_1/Cpu0ISelLowering.cpp	2013-11-17 16:58:21.411353962 +0800
-+++ Chapter7_1/Cpu0ISelLowering.cpp	2013-11-17 16:58:21.384353962 +0800
-@@ -122,6 +122,16 @@
-   // Set up the register classes
-   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
- 
-+  // Cpu0 does not have i1 type, so use i32 for
-+  // setcc operations results (slt, sgt, ...).
-+  setBooleanContents(ZeroOrOneBooleanContent);
-+  setBooleanVectorContents(ZeroOrNegativeOneBooleanContent);
-+
-+  // Load extented operations for i1 types must be promoted
-+  setLoadExtAction(ISD::EXTLOAD,  MVT::i1,  Promote);
-+  setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
-+  setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
-+
-   // Cpu0 Custom Operations
-   setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
- 
-@@ -283,3 +293,9 @@
-     return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
-                        Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
- }
-+
-+bool // lbd document - mark - isOffsetFoldingLegal
-+Cpu0TargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
-+  // The Mips target isn't yet aware of offsets.
-+  return false;
-+}
-diff -Naur Chapter6_1/Cpu0ISelLowering.h Chapter7_1/Cpu0ISelLowering.h
---- Chapter6_1/Cpu0ISelLowering.h	2013-11-17 16:58:21.413353962 +0800
-+++ Chapter7_1/Cpu0ISelLowering.h	2013-11-17 16:58:21.386353963 +0800
-@@ -105,6 +105,8 @@
-                   const SmallVectorImpl<ISD::OutputArg> &Outs,
-                   const SmallVectorImpl<SDValue> &OutVals,
-                   DebugLoc dl, SelectionDAG &DAG) const;
-+
-+    virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
-   };
- }
- 
 diff -Naur Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-17 16:58:21.411353962 +0800
-+++ Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-17 16:58:21.384353962 +0800
+--- Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-17 22:01:14.000000000 +0800
++++ Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-17 22:01:14.000000000 +0800
 @@ -118,3 +118,12 @@
    O << ")";
  }
@@ -236,8 +236,8 @@ diff -Naur Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp Chapter7_1/InstPrinter/Cpu
 +  return;
 +}
 diff -Naur Chapter6_1/InstPrinter/Cpu0InstPrinter.h Chapter7_1/InstPrinter/Cpu0InstPrinter.h
---- Chapter6_1/InstPrinter/Cpu0InstPrinter.h	2013-11-17 16:58:21.411353962 +0800
-+++ Chapter7_1/InstPrinter/Cpu0InstPrinter.h	2013-11-17 16:58:21.384353962 +0800
+--- Chapter6_1/InstPrinter/Cpu0InstPrinter.h	2013-11-17 22:01:14.000000000 +0800
++++ Chapter7_1/InstPrinter/Cpu0InstPrinter.h	2013-11-17 22:01:14.000000000 +0800
 @@ -39,6 +39,7 @@
    void printOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
    void printUnsignedImm(const MCInst *MI, int opNum, raw_ostream &O);

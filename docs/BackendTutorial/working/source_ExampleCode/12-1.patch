@@ -1,6 +1,6 @@
 diff -Naur Chapter11_1/CMakeLists.txt Chapter12_1/CMakeLists.txt
---- Chapter11_1/CMakeLists.txt	2013-11-15 23:24:09.000000000 +0800
-+++ Chapter12_1/CMakeLists.txt	2013-11-15 23:24:09.000000000 +0800
+--- Chapter11_1/CMakeLists.txt	2013-11-17 22:39:45.000000000 +0800
++++ Chapter12_1/CMakeLists.txt	2013-11-17 22:39:45.000000000 +0800
 @@ -26,6 +26,7 @@
  add_llvm_target(Cpu0CodeGen
    Cpu0AnalyzeImmediate.cpp
@@ -10,8 +10,8 @@ diff -Naur Chapter11_1/CMakeLists.txt Chapter12_1/CMakeLists.txt
    Cpu0InstrInfo.cpp
    Cpu0ISelDAGToDAG.cpp
 diff -Naur Chapter11_1/Cpu0.h Chapter12_1/Cpu0.h
---- Chapter11_1/Cpu0.h	2013-11-15 23:24:09.000000000 +0800
-+++ Chapter12_1/Cpu0.h	2013-11-15 23:24:09.000000000 +0800
+--- Chapter11_1/Cpu0.h	2013-11-17 22:39:45.000000000 +0800
++++ Chapter12_1/Cpu0.h	2013-11-17 22:39:45.000000000 +0800
 @@ -24,6 +24,7 @@
  
    FunctionPass *createCpu0ISelDag(Cpu0TargetMachine &TM);
@@ -22,7 +22,7 @@ diff -Naur Chapter11_1/Cpu0.h Chapter12_1/Cpu0.h
  
 diff -Naur Chapter11_1/Cpu0DelUselessJMP.cpp Chapter12_1/Cpu0DelUselessJMP.cpp
 --- Chapter11_1/Cpu0DelUselessJMP.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter12_1/Cpu0DelUselessJMP.cpp	2013-11-15 23:24:09.000000000 +0800
++++ Chapter12_1/Cpu0DelUselessJMP.cpp	2013-11-17 22:39:45.000000000 +0800
 @@ -0,0 +1,99 @@
 +//===-- Cpu0DelUselessJMP.cpp - Cpu0 DelJmp -------------------------------===//
 +//
@@ -124,8 +124,8 @@ diff -Naur Chapter11_1/Cpu0DelUselessJMP.cpp Chapter12_1/Cpu0DelUselessJMP.cpp
 +  return new DelJmp(tm);
 +}
 diff -Naur Chapter11_1/Cpu0TargetMachine.cpp Chapter12_1/Cpu0TargetMachine.cpp
---- Chapter11_1/Cpu0TargetMachine.cpp	2013-11-15 23:24:09.000000000 +0800
-+++ Chapter12_1/Cpu0TargetMachine.cpp	2013-11-15 23:24:09.000000000 +0800
+--- Chapter11_1/Cpu0TargetMachine.cpp	2013-11-17 22:51:43.000000000 +0800
++++ Chapter12_1/Cpu0TargetMachine.cpp	2013-11-17 22:39:45.000000000 +0800
 @@ -83,6 +83,7 @@
    } // lbd document - mark - getCpu0Subtarget()
    virtual bool addInstSelector();
@@ -134,14 +134,7 @@ diff -Naur Chapter11_1/Cpu0TargetMachine.cpp Chapter12_1/Cpu0TargetMachine.cpp
  };
  } // namespace
  
-@@ -98,9 +99,17 @@
- } // lbd document - mark - addInstSelector()
- 
- bool Cpu0PassConfig::addPreRegAlloc() {
--  // Do not restore $gp if target is Cpu064.
--  // In N32/64, $gp is a callee-saved register.
-+  // $gp is a caller-saved register.
- 
+@@ -103,3 +104,12 @@
    addPass(createCpu0EmitGPRestorePass(getCpu0TargetMachine()));
    return true;
  }

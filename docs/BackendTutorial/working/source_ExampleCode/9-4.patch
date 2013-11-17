@@ -1,6 +1,6 @@
 diff -Naur Chapter9_3/Cpu0CallingConv.td Chapter9_4/Cpu0CallingConv.td
---- Chapter9_3/Cpu0CallingConv.td	2013-11-15 23:24:09.000000000 +0800
-+++ Chapter9_4/Cpu0CallingConv.td	2013-11-15 23:24:09.000000000 +0800
+--- Chapter9_3/Cpu0CallingConv.td	2013-11-17 22:39:45.000000000 +0800
++++ Chapter9_4/Cpu0CallingConv.td	2013-11-17 22:39:45.000000000 +0800
 @@ -14,8 +14,8 @@
    CCIf<!strconcat("State.getTarget().getSubtarget<Cpu0Subtarget>().", F), A>;
  
@@ -13,8 +13,8 @@ diff -Naur Chapter9_3/Cpu0CallingConv.td Chapter9_4/Cpu0CallingConv.td
  
  //===----------------------------------------------------------------------===//
 diff -Naur Chapter9_3/Cpu0FrameLowering.cpp Chapter9_4/Cpu0FrameLowering.cpp
---- Chapter9_3/Cpu0FrameLowering.cpp	2013-11-15 23:24:09.000000000 +0800
-+++ Chapter9_4/Cpu0FrameLowering.cpp	2013-11-15 23:24:09.000000000 +0800
+--- Chapter9_3/Cpu0FrameLowering.cpp	2013-11-17 22:39:45.000000000 +0800
++++ Chapter9_4/Cpu0FrameLowering.cpp	2013-11-17 22:39:45.000000000 +0800
 @@ -133,6 +133,10 @@
    DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
    unsigned SP = Cpu0::SP;
@@ -131,8 +131,8 @@ diff -Naur Chapter9_3/Cpu0FrameLowering.cpp Chapter9_4/Cpu0FrameLowering.cpp
    // FIXME: remove this code if register allocator can correctly mark
    //        $fp and $ra used or unused.
 diff -Naur Chapter9_3/Cpu0FrameLowering.h Chapter9_4/Cpu0FrameLowering.h
---- Chapter9_3/Cpu0FrameLowering.h	2013-11-15 23:24:09.000000000 +0800
-+++ Chapter9_4/Cpu0FrameLowering.h	2013-11-15 23:24:09.000000000 +0800
+--- Chapter9_3/Cpu0FrameLowering.h	2013-11-17 22:39:45.000000000 +0800
++++ Chapter9_4/Cpu0FrameLowering.h	2013-11-17 22:39:45.000000000 +0800
 @@ -38,6 +38,10 @@
    void eliminateCallFramePseudoInstr(MachineFunction &MF,
                                       MachineBasicBlock &MBB,
@@ -145,8 +145,8 @@ diff -Naur Chapter9_3/Cpu0FrameLowering.h Chapter9_4/Cpu0FrameLowering.h
                                              RegScavenger *RS) const;
  };
 diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
---- Chapter9_3/Cpu0ISelLowering.cpp	2013-11-15 23:24:09.000000000 +0800
-+++ Chapter9_4/Cpu0ISelLowering.cpp	2013-11-15 23:24:09.000000000 +0800
+--- Chapter9_3/Cpu0ISelLowering.cpp	2013-11-17 22:39:45.000000000 +0800
++++ Chapter9_4/Cpu0ISelLowering.cpp	2013-11-17 22:39:45.000000000 +0800
 @@ -141,6 +141,7 @@
    // Cpu0 Custom Operations
    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
@@ -330,10 +330,11 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
      // sanity check
      assert(VA.isMemLoc());
  
-@@ -596,6 +712,38 @@
+@@ -595,6 +711,38 @@
+                                  MachinePointerInfo::getFixedStack(LastFI),
                                   false, false, false, 0));
    }
- 
++
 +#if 1 // Incomming. Without this, it will use $3 instead of $2 as return 
 +  // register. The cpu0 ABIs for returning structs by value requires that we 
 +  // copy the sret argument into $v0 for the return. Save the argument into
@@ -365,11 +366,10 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
 +    LastFI = MFI->CreateFixedObject(RegSize, FirstVaArgOffset, true);
 +    Cpu0FI->setVarArgsFrameIndex(LastFI);
 +  }
-+
    Cpu0FI->setLastInArgFI(LastFI);
    // All stores are grouped in one node to allow the matching between
    // the size of Ins and InVals. This only happens when on varg functions
-@@ -643,7 +791,27 @@
+@@ -642,7 +790,27 @@
      Flag = Chain.getValue(1);
      RetOps.push_back(DAG.getRegister(VA.getLocReg(), VA.getLocVT()));
    }
@@ -399,8 +399,8 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
  
    // Add the flag if we have it.
 diff -Naur Chapter9_3/Cpu0ISelLowering.h Chapter9_4/Cpu0ISelLowering.h
---- Chapter9_3/Cpu0ISelLowering.h	2013-11-15 23:24:09.000000000 +0800
-+++ Chapter9_4/Cpu0ISelLowering.h	2013-11-15 23:24:09.000000000 +0800
+--- Chapter9_3/Cpu0ISelLowering.h	2013-11-17 22:39:45.000000000 +0800
++++ Chapter9_4/Cpu0ISelLowering.h	2013-11-17 22:39:45.000000000 +0800
 @@ -96,6 +96,7 @@
      // Lower Operand specifics
      SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
@@ -410,8 +410,8 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.h Chapter9_4/Cpu0ISelLowering.h
  	//- must be exist without function all
      virtual SDValue
 diff -Naur Chapter9_3/Cpu0RegisterInfo.cpp Chapter9_4/Cpu0RegisterInfo.cpp
---- Chapter9_3/Cpu0RegisterInfo.cpp	2013-11-15 23:24:09.000000000 +0800
-+++ Chapter9_4/Cpu0RegisterInfo.cpp	2013-11-15 23:24:09.000000000 +0800
+--- Chapter9_3/Cpu0RegisterInfo.cpp	2013-11-17 22:39:45.000000000 +0800
++++ Chapter9_4/Cpu0RegisterInfo.cpp	2013-11-17 22:39:45.000000000 +0800
 @@ -77,6 +77,11 @@
    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
      Reserved.set(ReservedCPURegs[I]);

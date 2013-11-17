@@ -1,6 +1,6 @@
 diff -Naur Chapter9_1/Cpu0ISelLowering.cpp Chapter9_2/Cpu0ISelLowering.cpp
---- Chapter9_1/Cpu0ISelLowering.cpp	2013-11-15 23:24:09.000000000 +0800
-+++ Chapter9_2/Cpu0ISelLowering.cpp	2013-11-15 23:24:09.000000000 +0800
+--- Chapter9_1/Cpu0ISelLowering.cpp	2013-11-17 22:01:14.000000000 +0800
++++ Chapter9_2/Cpu0ISelLowering.cpp	2013-11-17 22:01:14.000000000 +0800
 @@ -285,7 +285,257 @@
  SDValue
  Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
@@ -261,13 +261,13 @@ diff -Naur Chapter9_1/Cpu0ISelLowering.cpp Chapter9_2/Cpu0ISelLowering.cpp
  
  /// LowerFormalArguments - transform physical registers into virtual registers
 @@ -373,3 +623,4 @@
-   // The Mips target isn't yet aware of offsets.
+   // The Cpu0 target isn't yet aware of offsets.
    return false;
  }
 +
 diff -Naur Chapter9_1/Cpu0ISelLowering.h Chapter9_2/Cpu0ISelLowering.h
---- Chapter9_1/Cpu0ISelLowering.h	2013-11-15 23:24:09.000000000 +0800
-+++ Chapter9_2/Cpu0ISelLowering.h	2013-11-15 23:24:09.000000000 +0800
+--- Chapter9_1/Cpu0ISelLowering.h	2013-11-17 22:01:14.000000000 +0800
++++ Chapter9_2/Cpu0ISelLowering.h	2013-11-17 22:01:14.000000000 +0800
 @@ -85,6 +85,13 @@
    private:
      // Subtarget Info
@@ -283,8 +283,8 @@ diff -Naur Chapter9_1/Cpu0ISelLowering.h Chapter9_2/Cpu0ISelLowering.h
      // Lower Operand specifics
      SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
 diff -Naur Chapter9_1/Cpu0InstrInfo.cpp Chapter9_2/Cpu0InstrInfo.cpp
---- Chapter9_1/Cpu0InstrInfo.cpp	2013-11-15 23:24:09.000000000 +0800
-+++ Chapter9_2/Cpu0InstrInfo.cpp	2013-11-15 23:24:09.000000000 +0800
+--- Chapter9_1/Cpu0InstrInfo.cpp	2013-11-17 22:01:14.000000000 +0800
++++ Chapter9_2/Cpu0InstrInfo.cpp	2013-11-17 22:01:14.000000000 +0800
 @@ -79,6 +79,25 @@
                                   MFI.getObjectSize(FI), Align);
  }
@@ -312,8 +312,8 @@ diff -Naur Chapter9_1/Cpu0InstrInfo.cpp Chapter9_2/Cpu0InstrInfo.cpp
  loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                       unsigned DestReg, int FI,
 diff -Naur Chapter9_1/Cpu0InstrInfo.h Chapter9_2/Cpu0InstrInfo.h
---- Chapter9_1/Cpu0InstrInfo.h	2013-11-15 23:24:09.000000000 +0800
-+++ Chapter9_2/Cpu0InstrInfo.h	2013-11-15 23:24:09.000000000 +0800
+--- Chapter9_1/Cpu0InstrInfo.h	2013-11-17 22:01:14.000000000 +0800
++++ Chapter9_2/Cpu0InstrInfo.h	2013-11-17 22:01:14.000000000 +0800
 @@ -41,6 +41,12 @@
                             unsigned DestReg, unsigned SrcReg,
                             bool KillSrc) const;
@@ -328,8 +328,8 @@ diff -Naur Chapter9_1/Cpu0InstrInfo.h Chapter9_2/Cpu0InstrInfo.h
                                      MachineBasicBlock::iterator MBBI,
                                      unsigned DestReg, int FrameIndex,
 diff -Naur Chapter9_1/Cpu0InstrInfo.td Chapter9_2/Cpu0InstrInfo.td
---- Chapter9_1/Cpu0InstrInfo.td	2013-11-15 23:24:09.000000000 +0800
-+++ Chapter9_2/Cpu0InstrInfo.td	2013-11-15 23:24:09.000000000 +0800
+--- Chapter9_1/Cpu0InstrInfo.td	2013-11-17 22:01:14.000000000 +0800
++++ Chapter9_2/Cpu0InstrInfo.td	2013-11-17 22:01:14.000000000 +0800
 @@ -28,6 +28,9 @@
  
  def SDT_Cpu0JmpLink      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
