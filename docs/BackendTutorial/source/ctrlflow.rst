@@ -622,7 +622,7 @@ Finally we list the code added for full support of control flow statement,
 
 The ch8_1_2.cpp is for **“nest if”** test. The ch8_1_3.cpp is the 
 **“for loop”** as well as **“while loop”**, **“continue”**, **“break”**, 
-**“goto”** test. The ch8_1_6.cpp is for **“goto”** test.
+**“goto”** test. The ch8_1_5.cpp is for **“goto”** test.
 You can run with them if you like to test more.
 
 

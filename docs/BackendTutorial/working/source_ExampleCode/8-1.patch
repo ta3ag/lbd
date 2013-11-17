@@ -1,6 +1,6 @@
 diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
---- Chapter7_1/Cpu0InstrInfo.td	2013-11-16 17:30:34.048863816 +0800
-+++ Chapter8_1/Cpu0InstrInfo.td	2013-11-16 17:30:34.083863818 +0800
+--- Chapter7_1/Cpu0InstrInfo.td	2013-11-17 16:58:21.386353963 +0800
++++ Chapter8_1/Cpu0InstrInfo.td	2013-11-17 16:58:21.423353962 +0800
 @@ -51,6 +51,20 @@
  //===----------------------------------------------------------------------===//
  // Cpu0 Operand, Complex Patterns and Transformations Definitions.
@@ -111,8 +111,8 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
  multiclass SeteqPatsCmp<RegisterClass RC> {
  // a == b
 diff -Naur Chapter7_1/Cpu0ISelLowering.cpp Chapter8_1/Cpu0ISelLowering.cpp
---- Chapter7_1/Cpu0ISelLowering.cpp	2013-11-16 17:30:34.046863816 +0800
-+++ Chapter8_1/Cpu0ISelLowering.cpp	2013-11-16 17:30:34.082863818 +0800
+--- Chapter7_1/Cpu0ISelLowering.cpp	2013-11-17 16:58:21.384353962 +0800
++++ Chapter8_1/Cpu0ISelLowering.cpp	2013-11-17 16:58:21.421353962 +0800
 @@ -132,8 +132,15 @@
    setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
    setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
@@ -159,22 +159,9 @@ diff -Naur Chapter7_1/Cpu0ISelLowering.cpp Chapter8_1/Cpu0ISelLowering.cpp
  
  SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
                                                 SelectionDAG &DAG) const {
-@@ -266,6 +282,12 @@
- 
- #include "Cpu0GenCallingConv.inc"
- 
-+SDValue
-+Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
-+                              SmallVectorImpl<SDValue> &InVals) const {
-+  return CLI.Chain;
-+}
-+
- /// LowerFormalArguments - transform physical registers into virtual registers
- /// and generate load operations for arguments places on the stack.
- SDValue
 diff -Naur Chapter7_1/Cpu0ISelLowering.h Chapter8_1/Cpu0ISelLowering.h
---- Chapter7_1/Cpu0ISelLowering.h	2013-11-16 17:30:34.048863816 +0800
-+++ Chapter8_1/Cpu0ISelLowering.h	2013-11-16 17:30:34.083863818 +0800
+--- Chapter7_1/Cpu0ISelLowering.h	2013-11-17 16:58:21.386353963 +0800
++++ Chapter8_1/Cpu0ISelLowering.h	2013-11-17 16:58:21.423353962 +0800
 @@ -87,6 +87,7 @@
      const Cpu0Subtarget *Subtarget;
  
@@ -183,21 +170,9 @@ diff -Naur Chapter7_1/Cpu0ISelLowering.h Chapter8_1/Cpu0ISelLowering.h
      SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
  
  	//- must be exist without function all
-@@ -98,6 +99,11 @@
-                            SmallVectorImpl<SDValue> &InVals) const;
-   // LowerFormalArguments: incoming arguments
- 
-+    virtual SDValue
-+      LowerCall(TargetLowering::CallLoweringInfo &CLI,
-+                SmallVectorImpl<SDValue> &InVals) const;
-+  // LowerCall: outgoing arguments
-+
- 	//- must be exist without function all
-     virtual SDValue
-       LowerReturn(SDValue Chain,
 diff -Naur Chapter7_1/Cpu0MCInstLower.cpp Chapter8_1/Cpu0MCInstLower.cpp
---- Chapter7_1/Cpu0MCInstLower.cpp	2013-11-16 17:30:34.048863816 +0800
-+++ Chapter8_1/Cpu0MCInstLower.cpp	2013-11-16 17:30:34.084863818 +0800
+--- Chapter7_1/Cpu0MCInstLower.cpp	2013-11-17 16:58:21.386353963 +0800
++++ Chapter8_1/Cpu0MCInstLower.cpp	2013-11-17 16:58:21.423353962 +0800
 @@ -63,6 +63,15 @@
      Symbol = Mang->getSymbol(MO.getGlobal());
      break;
@@ -225,14 +200,12 @@ diff -Naur Chapter7_1/Cpu0MCInstLower.cpp Chapter8_1/Cpu0MCInstLower.cpp
    case MachineOperand::MO_RegisterMask:
      break;
 diff -Naur Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-16 17:34:09.891870302 +0800
-+++ Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-16 17:30:34.084863818 +0800
-@@ -71,8 +71,23 @@
+--- Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-17 16:58:21.387353963 +0800
++++ Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-17 16:58:21.423353962 +0800
+@@ -71,6 +71,21 @@
    // binary encoding for an instruction.
    uint64_t getBinaryCodeForInstr(const MCInst &MI,
                                   SmallVectorImpl<MCFixup> &Fixups) const;
--   // getMachineOpValue - Return binary encoding of operand. If the machin
--   // operand requires relocation, record the relocation and return zero.
 +
 +  // getBranch24TargetOpValue - Return binary encoding of the branch
 +  // target operand, such as JMP #BB01, JEQ, JSUB. If the machine operand
@@ -248,11 +221,9 @@ diff -Naur Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter8_1/MCTargetDesc
 +                                 SmallVectorImpl<MCFixup> &Fixups) const;
 +  // lbd document - mark - unsigned getJumpTargetOpValue
 +
-+  // getMachineOpValue - Return binary encoding of operand. If the machin
-+  // operand requires relocation, record the relocation and return zero.
+   // getMachineOpValue - Return binary encoding of operand. If the machin
+   // operand requires relocation, record the relocation and return zero.
    unsigned getMachineOpValue(const MCInst &MI,const MCOperand &MO,
-                              SmallVectorImpl<MCFixup> &Fixups) const;
- 
 @@ -126,6 +141,48 @@
    EmitInstruction(Binary, Size, OS);
  }

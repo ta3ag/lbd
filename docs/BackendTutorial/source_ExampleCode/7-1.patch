@@ -1,6 +1,6 @@
 diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
---- Chapter6_1/Cpu0InstrInfo.td	2013-11-17 16:58:21.413353962 +0800
-+++ Chapter7_1/Cpu0InstrInfo.td	2013-11-17 16:58:21.386353963 +0800
+--- Chapter6_1/Cpu0InstrInfo.td	2013-11-11 17:15:26.245375892 +0800
++++ Chapter7_1/Cpu0InstrInfo.td	2013-11-11 17:15:26.265375892 +0800
 @@ -71,6 +71,12 @@
    let EncoderMethod = "getMemEncoding";
  }
@@ -26,7 +26,7 @@ diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
  def store_a         : AlignedStore<store>;
  
  //===----------------------------------------------------------------------===//
-@@ -320,6 +330,10 @@
+@@ -303,6 +313,10 @@
    let neverHasSideEffects = 1;
  }
  
@@ -37,7 +37,7 @@ diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
  //===----------------------------------------------------------------------===//
  // Instruction definition
  //===----------------------------------------------------------------------===//
-@@ -332,6 +346,12 @@
+@@ -315,6 +329,12 @@
  ///  aligned
  defm LD     : LoadM32<0x01,  "ld",  load_a>;
  defm ST     : StoreM32<0x02, "st",  store_a>;
@@ -50,7 +50,7 @@ diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
  
  /// Arithmetic Instructions (ALU Immediate)
  // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
-@@ -386,6 +406,14 @@
+@@ -369,6 +389,14 @@
  let addr=0 in
    def NOP   : FJ<0, (outs), (ins), "nop", [], IIAlu>;
  
@@ -60,12 +60,12 @@ diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
 +// can be matched. It's similar to Sparc LEA_ADDRi
 +def LEA_ADDiu : EffectiveAddress<"addiu\t$ra, $addr", CPURegs, mem_ea> {
 +  let isCodeGenOnly = 1;
-+} // lbd document - mark - def LEA_ADDiu
++}
 +
  //===----------------------------------------------------------------------===//
  //  Arbitrary patterns that map to one or more instructions
  //===----------------------------------------------------------------------===//
-@@ -402,6 +430,14 @@
+@@ -385,6 +413,14 @@
  def : Pat<(i32 imm:$imm),
            (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
  
@@ -80,7 +80,7 @@ diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
  // hi/lo relocs
  def : Pat<(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>;
  def : Pat<(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
-@@ -417,6 +453,10 @@
+@@ -400,6 +436,10 @@
  // 1: in == 0; 0: in != 0
            (XORi CPURegs:$in, 1)>;
  
@@ -92,8 +92,8 @@ diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
  multiclass SeteqPatsCmp<RegisterClass RC> {
  // a == b
 diff -Naur Chapter6_1/Cpu0ISelDAGToDAG.cpp Chapter7_1/Cpu0ISelDAGToDAG.cpp
---- Chapter6_1/Cpu0ISelDAGToDAG.cpp	2013-11-17 16:58:21.412353962 +0800
-+++ Chapter7_1/Cpu0ISelDAGToDAG.cpp	2013-11-17 16:58:21.385353963 +0800
+--- Chapter6_1/Cpu0ISelDAGToDAG.cpp	2013-11-11 17:15:26.249375892 +0800
++++ Chapter7_1/Cpu0ISelDAGToDAG.cpp	2013-11-11 17:15:26.265375892 +0800
 @@ -152,6 +152,23 @@
          Addr.getOpcode() == ISD::TargetGlobalAddress))
        return false;
@@ -114,7 +114,7 @@ diff -Naur Chapter6_1/Cpu0ISelDAGToDAG.cpp Chapter7_1/Cpu0ISelDAGToDAG.cpp
 +      Offset = CurDAG->getTargetConstant(CN->getZExtValue(), ValTy);
 +      return true;
 +    }
-+  } // lbd document - mark - if (CurDAG->isBaseWithConstantOffset(Addr))
++  }
  
    Base   = Addr;
    Offset = CurDAG->getTargetConstant(0, ValTy);
@@ -178,8 +178,8 @@ diff -Naur Chapter6_1/Cpu0ISelDAGToDAG.cpp Chapter7_1/Cpu0ISelDAGToDAG.cpp
    case ISD::MULHU: {
      MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
 diff -Naur Chapter6_1/Cpu0ISelLowering.cpp Chapter7_1/Cpu0ISelLowering.cpp
---- Chapter6_1/Cpu0ISelLowering.cpp	2013-11-17 16:58:21.411353962 +0800
-+++ Chapter7_1/Cpu0ISelLowering.cpp	2013-11-17 16:58:21.384353962 +0800
+--- Chapter6_1/Cpu0ISelLowering.cpp	2013-11-11 17:15:26.245375892 +0800
++++ Chapter7_1/Cpu0ISelLowering.cpp	2013-11-11 17:15:26.265375892 +0800
 @@ -122,6 +122,16 @@
    // Set up the register classes
    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
@@ -202,15 +202,15 @@ diff -Naur Chapter6_1/Cpu0ISelLowering.cpp Chapter7_1/Cpu0ISelLowering.cpp
                         Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
  }
 +
-+bool // lbd document - mark - isOffsetFoldingLegal
++bool
 +Cpu0TargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
 +  // The Mips target isn't yet aware of offsets.
 +  return false;
 +}
 diff -Naur Chapter6_1/Cpu0ISelLowering.h Chapter7_1/Cpu0ISelLowering.h
---- Chapter6_1/Cpu0ISelLowering.h	2013-11-17 16:58:21.413353962 +0800
-+++ Chapter7_1/Cpu0ISelLowering.h	2013-11-17 16:58:21.386353963 +0800
-@@ -105,6 +105,8 @@
+--- Chapter6_1/Cpu0ISelLowering.h	2013-11-11 17:15:26.245375892 +0800
++++ Chapter7_1/Cpu0ISelLowering.h	2013-11-11 17:15:26.265375892 +0800
+@@ -104,6 +104,8 @@
                    const SmallVectorImpl<ISD::OutputArg> &Outs,
                    const SmallVectorImpl<SDValue> &OutVals,
                    DebugLoc dl, SelectionDAG &DAG) const;
@@ -220,13 +220,14 @@ diff -Naur Chapter6_1/Cpu0ISelLowering.h Chapter7_1/Cpu0ISelLowering.h
  }
  
 diff -Naur Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-17 16:58:21.411353962 +0800
-+++ Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-17 16:58:21.384353962 +0800
-@@ -118,3 +118,12 @@
+--- Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-11 17:15:26.245375892 +0800
++++ Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp	2013-11-11 17:15:26.265375892 +0800
+@@ -117,3 +117,13 @@
+   printOperand(MI, opNum, O);
    O << ")";
  }
- 
-+void Cpu0InstPrinter:: // lbd document - mark - printMemOperandEA
++
++void Cpu0InstPrinter::
 +printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &O) {
 +  // when using stack locations for not load/store instructions
 +  // print the same way as all normal 3 operand instructions.
@@ -235,14 +236,3 @@ diff -Naur Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp Chapter7_1/InstPrinter/Cpu
 +  printOperand(MI, opNum+1, O);
 +  return;
 +}
-diff -Naur Chapter6_1/InstPrinter/Cpu0InstPrinter.h Chapter7_1/InstPrinter/Cpu0InstPrinter.h
---- Chapter6_1/InstPrinter/Cpu0InstPrinter.h	2013-11-17 16:58:21.411353962 +0800
-+++ Chapter7_1/InstPrinter/Cpu0InstPrinter.h	2013-11-17 16:58:21.384353962 +0800
-@@ -39,6 +39,7 @@
-   void printOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
-   void printUnsignedImm(const MCInst *MI, int opNum, raw_ostream &O);
-   void printMemOperand(const MCInst *MI, int opNum, raw_ostream &O);
-+  void printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &O);
- };
- } // end namespace llvm
- 
