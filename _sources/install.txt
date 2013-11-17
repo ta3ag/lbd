@@ -5,8 +5,8 @@ Appendix A: Getting Started: Installing LLVM and the Cpu0 example code
 
 This book is in the process of merging into llvm trunk but not finished 
 yet. 
-The merged llvm trunk version on my git hub is LLVM 3.3 relased.
-My Cpu0 example code is also based on llvm 3.3.
+The merged llvm trunk version on my git hub is LLVM 3.3 released.
+The Cpu0 example code based on llvm 3.3.
 
 In this chapter, we will run through how to set up LLVM using if you are using 
 Mac OS X or Linux.  When discussing Mac OS X, we are using Apple's Xcode IDE 
@@ -242,8 +242,8 @@ LLVM.xcodeproj by cmake graphic UI.
 We can create LLVM.xcodeproj by ``cmake`` command on terminal also. 
 This book is on the process of merging into llvm trunk but not finished 
 yet.
-The merged llvm trunk version on my git hub is LLVM 3.3 released version.
-My Cpu0 example code is also based on llvm 3.3.
+The merged llvm trunk version on lbd git hub is LLVM 3.3 released version.
+The lbd of Cpu0 example code is also based on llvm 3.3.
 So, please install the llvm 3.3 debug version as the llvm release 3.3 
 installation, but without clang since the clang will waste time in build the
 Cpu0 backend tutorial code.
@@ -504,8 +504,8 @@ the section "SelectionDAG Instruction Selection Process" of
 the section "Viewing graphs while debugging code" of 
 [#]_.
 TextWrangler is for edit file with line number display and dump binary file 
-like the obj file, \*.o, that will be generated in chapter of Other 
-instructions. 
+like the obj file, \*.o, that will be generated in chapter of Generating object 
+files if you havn't gobjdump available. 
 You can download from App Store. 
 To dump binary file, first, open the binary file, next, select menu 
 **“File – Hex Front Document”** as :num:`Figure #install-f14`. 
@@ -625,8 +625,8 @@ Install cpu0 debug build on Linux
 
 This book is on the process of merging into llvm trunk but not finished 
 yet.
-The merged llvm trunk version on my git hub is LLVM 3.3 released version.
-My Cpu0 example code is also based on llvm 3.3.
+The merged llvm trunk version on lbd git hub is LLVM 3.3 released version.
+The Cpu0 example code is also based on llvm 3.3.
 So, please install the llvm 3.3 debug version as the llvm release 3.3 
 installation, but without clang since the clang will waste time in build the
 Cpu0 backend tutorial code.
@@ -651,7 +651,7 @@ grep.
 5) Enter src/lib/Target/Cpu0/ and copy example code 
 lbdex/2/Cpu0 to the directory by commands 
 ``cd src/lib/Target/Cpu0/`` and 
-``cp -rf LLVMBackendTutorialExample/Chapter2/* ../.``.
+``cp -rf lbdex/Chapter2/* ../.``.
 
 6) Remove clang from /usr/local/llvm/test/src/tools/clang, and mkdir 
 test/cmake_debug_build. Without this you will waste extra time for 

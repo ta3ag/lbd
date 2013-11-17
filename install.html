@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.6',
+        VERSION:     '3.3.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -56,8 +56,8 @@
 <span id="sec-appendix-installing"></span><h1>Appendix A: Getting Started: Installing LLVM and the Cpu0 example code<a class="headerlink" href="#appendix-a-getting-started-installing-llvm-and-the-cpu0-example-code" title="Permalink to this headline">¶</a></h1>
 <p>This book is in the process of merging into llvm trunk but not finished
 yet.
-The merged llvm trunk version on my git hub is LLVM 3.3 relased.
-My Cpu0 example code is also based on llvm 3.3.</p>
+The merged llvm trunk version on my git hub is LLVM 3.3 released.
+The Cpu0 example code based on llvm 3.3.</p>
 <p>In this chapter, we will run through how to set up LLVM using if you are using
 Mac OS X or Linux.  When discussing Mac OS X, we are using Apple&#8217;s Xcode IDE
 (version 4.5.1) running on Mac OS X Mountain Lion (version 10.8) to modify and
@@ -252,8 +252,8 @@ LLVM.xcodeproj by cmake graphic UI.
 We can create LLVM.xcodeproj by <tt class="docutils literal"><span class="pre">cmake</span></tt> command on terminal also.
 This book is on the process of merging into llvm trunk but not finished
 yet.
-The merged llvm trunk version on my git hub is LLVM 3.3 released version.
-My Cpu0 example code is also based on llvm 3.3.
+The merged llvm trunk version on lbd git hub is LLVM 3.3 released version.
+The lbd of Cpu0 example code is also based on llvm 3.3.
 So, please install the llvm 3.3 debug version as the llvm release 3.3
 installation, but without clang since the clang will waste time in build the
 Cpu0 backend tutorial code.
@@ -477,8 +477,8 @@ the section &#8220;SelectionDAG Instruction Selection Process&#8221; of
 the section &#8220;Viewing graphs while debugging code&#8221; of
 <a class="footnote-reference" href="#id27" id="id13">[12]</a>.
 TextWrangler is for edit file with line number display and dump binary file
-like the obj file, *.o, that will be generated in chapter of Other
-instructions.
+like the obj file, *.o, that will be generated in chapter of Generating object
+files if you havn&#8217;t gobjdump available.
 You can download from App Store.
 To dump binary file, first, open the binary file, next, select menu
 <strong>“File – Hex Front Document”</strong> as <a class="pageref" href="#install-f14">Figure  13</a>.
@@ -584,8 +584,8 @@ chain/bin:/home/Gamma/.local/bin:/home/Gamma/bin:/usr/local/sphinx/bin:/usr/
 <h3>Install cpu0 debug build on Linux<a class="headerlink" href="#install-cpu0-debug-build-on-linux" title="Permalink to this headline">¶</a></h3>
 <p>This book is on the process of merging into llvm trunk but not finished
 yet.
-The merged llvm trunk version on my git hub is LLVM 3.3 released version.
-My Cpu0 example code is also based on llvm 3.3.
+The merged llvm trunk version on lbd git hub is LLVM 3.3 released version.
+The Cpu0 example code is also based on llvm 3.3.
 So, please install the llvm 3.3 debug version as the llvm release 3.3
 installation, but without clang since the clang will waste time in build the
 Cpu0 backend tutorial code.
@@ -606,7 +606,7 @@ grep.</p>
 <p>5) Enter src/lib/Target/Cpu0/ and copy example code
 lbdex/2/Cpu0 to the directory by commands
 <tt class="docutils literal"><span class="pre">cd</span> <span class="pre">src/lib/Target/Cpu0/</span></tt> and
-<tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">LLVMBackendTutorialExample/Chapter2/*</span> <span class="pre">../.</span></tt>.</p>
+<tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">lbdex/Chapter2/*</span> <span class="pre">../.</span></tt>.</p>
 <p>6) Remove clang from /usr/local/llvm/test/src/tools/clang, and mkdir
 test/cmake_debug_build. Without this you will waste extra time for
 command <tt class="docutils literal"><span class="pre">make</span></tt> in cpu0 example code build.</p>

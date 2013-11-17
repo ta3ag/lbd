@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.6',
+        VERSION:     '3.3.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -67,43 +67,27 @@ translation.
 Finally, <a class="reference external" href="http://jonathan2251.github.com/lbd/otherinst.html#operator-mod">section Operator mod, %</a> take care the C operator %.</p>
 <div class="section" id="arithmetic">
 <h2>Arithmetic<a class="headerlink" href="#arithmetic" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="and">
-<h3><strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong><a class="headerlink" href="#and" title="Permalink to this headline">¶</a></h3>
-<p>Appending the following code to Cpu0InstrInfo.td and Cpu0Schedule.td in
-Chapter4_1/ to support operators <strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong>.</p>
+<p>The code added in Chapter4_1/ to support arithmetic instructions as follows,</p>
+<p class="rubric">lbdex/Chapter4_1/MCTargetDesc/Cpu0BaseInfo.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">HI:</span>
+  <span class="k">return</span> <span class="mi">18</span><span class="p">;</span>
+<span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">LO:</span>
+  <span class="k">return</span> <span class="mi">19</span><span class="p">;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter4_1/Cpu0InstrInfo.cpp</p>
+<p class="rubric">lbdex/Chapter4_1/Cpu0InstrInfo.h</p>
 <p class="rubric">lbdex/Chapter4_1/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><pre>def shamt     : Operand&lt;i32&gt;;
+<div class="highlight-c++"><pre>def SDT_Cpu0DivRem     : SDTypeProfile&lt;0, 2,
+           [SDTCisInt&lt;0&gt;,
+          SDTCisSameAs&lt;0, 1&gt;]&gt;;
 ...
-// shamt field must fit in 5 bits.
-def immZExt5 : ImmLeaf&lt;i32, [{return Imm == (Imm &amp; 0x1f);}]&gt;;
+// DivRem(u) nodes
+def Cpu0DivRem  : SDNode&lt;"Cpu0ISD::DivRem", SDT_Cpu0DivRem,
+       [SDNPOutGlue]&gt;;
+def Cpu0DivRemU : SDNode&lt;"Cpu0ISD::DivRemU", SDT_Cpu0DivRem,
+       [SDNPOutGlue]&gt;;
 ...
-// Arithmetic and logical instructions with 3 register operands.
-class ArithLogicR&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
-    InstrItinClass itin, RegisterClass RC, bit isComm = 0&gt;:
-FA&lt;op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
- !strconcat(instr_asm, "\t$ra, $rb, $rc"),
- [(set RC:$ra, (OpNode RC:$rb, RC:$rc))], itin&gt; {
-let shamt = 0;
-let isCommutable = isComm;  // e.g. add rb rc =  add rc rb
-let isReMaterializable = 1;
-}
-...
-// Shifts
-class shift_rotate_imm&lt;bits&lt;8&gt; op, bits&lt;4&gt; isRotate, string instr_asm,
-       SDNode OpNode, PatFrag PF, Operand ImmOpnd,
-       RegisterClass RC&gt;:
-FA&lt;op, (outs RC:$ra), (ins RC:$rb, ImmOpnd:$shamt),
- !strconcat(instr_asm, "\t$ra, $rb, $shamt"),
- [(set RC:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu&gt; {
-let rc = isRotate;
-let shamt = shamt;
-}
-
-// 32-bit shift instructions.
-class shift_rotate_imm32&lt;bits&lt;8&gt; func, bits&lt;4&gt; isRotate, string instr_asm,
-       SDNode OpNode&gt;:
-shift_rotate_imm&lt;func, isRotate, instr_asm, OpNode, immZExt5, shamt, CPURegs&gt;;
-
 class shift_rotate_reg&lt;bits&lt;8&gt; op, bits&lt;4&gt; isRotate, string instr_asm,
                        SDNode OpNode, RegisterClass RC&gt;:
   FA&lt;op, (outs RC:$ra), (ins CPURegs:$rb, RC:$rc),
@@ -112,7 +96,52 @@ class shift_rotate_reg&lt;bits&lt;8&gt; op, bits&lt;4&gt; isRotate, string instr
   let shamt = 0;
 }
 ...
-/// Arithmetic Instructions (3-Operand, R-Type)
+// Mul, Div
+class Mult&lt;bits&lt;8&gt; op, string instr_asm, InstrItinClass itin,
+           RegisterClass RC, list&lt;Register&gt; DefRegs&gt;:
+  FL&lt;op, (outs), (ins RC:$ra, RC:$rb),
+     !strconcat(instr_asm, "\t$ra, $rb"), [], itin&gt; {
+  let imm16 = 0;
+  let isCommutable = 1;
+  let Defs = DefRegs;
+  let neverHasSideEffects = 1;
+}
+
+class Mult32&lt;bits&lt;8&gt; op, string instr_asm, InstrItinClass itin&gt;:
+  Mult&lt;op, instr_asm, itin, CPURegs, [HI, LO]&gt;;
+
+class Div&lt;SDNode opNode, bits&lt;8&gt; op, string instr_asm, InstrItinClass itin,
+          RegisterClass RC, list&lt;Register&gt; DefRegs&gt;:
+  FL&lt;op, (outs), (ins RC:$ra, RC:$rb),
+     !strconcat(instr_asm, "\t$ra, $rb"),
+     [(opNode RC:$ra, RC:$rb)], itin&gt; {
+  let imm16 = 0;
+  let Defs = DefRegs;
+}
+
+class Div32&lt;SDNode opNode, bits&lt;8&gt; op, string instr_asm, InstrItinClass itin&gt;:
+  Div&lt;opNode, op, instr_asm, itin, CPURegs, [HI, LO]&gt;;
+...
+// Move from Hi/Lo
+class MoveFromLOHI&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
+                   list&lt;Register&gt; UseRegs&gt;:
+  FL&lt;op, (outs RC:$ra), (ins),
+     !strconcat(instr_asm, "\t$ra"), [], IIHiLo&gt; {
+  let rb = 0;
+  let imm16 = 0;
+  let Uses = UseRegs;
+  let neverHasSideEffects = 1;
+}
+
+class MoveToLOHI&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
+     list&lt;Register&gt; DefRegs&gt;:
+FL&lt;op, (outs), (ins RC:$ra),
+ !strconcat(instr_asm, "\t$ra"), [], IIHiLo&gt; {
+let rb = 0;
+let imm16 = 0;
+let Defs = DefRegs;
+let neverHasSideEffects = 1;
+}
 ...
 def SUBu    : ArithLogicR&lt;0x12, "subu", sub, IIAlu, CPURegs&gt;;
 def ADD     : ArithLogicR&lt;0x13, "add", add, IIAlu, CPURegs, 1&gt;;
@@ -124,28 +153,198 @@ def MUL     : ArithLogicR&lt;0x17, "mul", mul, IIImul, CPURegs, 1&gt;;
 def ROL     : shift_rotate_imm32&lt;0x1b, 0x01, "rol", rotl&gt;;
 def ROR     : shift_rotate_imm32&lt;0x1c, 0x01, "ror", rotr&gt;;
 def SRA     : shift_rotate_imm32&lt;0x1d, 0x00, "sra", sra&gt;;
-def SHL     : shift_rotate_imm32&lt;0x1e, 0x00, "shl", shl&gt;;
+...
 // srl is IR node for lshr llvm IR instruction of .bc
 def SHR     : shift_rotate_imm32&lt;0x1f, 0x00, "shr", srl&gt;;
 def SRAV    : shift_rotate_reg&lt;0x20, 0x00, "srav", sra, CPURegs&gt;;
 def SHLV    : shift_rotate_reg&lt;0x21, 0x00, "shlv", shl, CPURegs&gt;;
-def SHRV    : shift_rotate_reg&lt;0x22, 0x00, "shrv", srl, CPURegs&gt;;</pre>
+def SHRV    : shift_rotate_reg&lt;0x22, 0x00, "shrv", srl, CPURegs&gt;;
+
+/// Multiply and Divide Instructions.
+def MULT    : Mult32&lt;0x41, "mult", IIImul&gt;;
+def MULTu   : Mult32&lt;0x42, "multu", IIImul&gt;;
+def SDIV    : Div32&lt;Cpu0DivRem, 0x43, "div", IIIdiv&gt;;
+def UDIV    : Div32&lt;Cpu0DivRemU, 0x44, "divu", IIIdiv&gt;;
+
+def MFHI    : MoveFromLOHI&lt;0x46, "mfhi", CPURegs, [HI]&gt;;
+def MFLO    : MoveFromLOHI&lt;0x47, "mflo", CPURegs, [LO]&gt;;
+def MTHI    : MoveToLOHI&lt;0x48, "mthi", CPURegs, [HI]&gt;;
+def MTLO    : MoveToLOHI&lt;0x49, "mtlo", CPURegs, [LO]&gt;;
+
+/// No operation
+let addr=0 in
+  def NOP   : FJ&lt;0, (outs), (ins), "nop", [], IIAlu&gt;;</pre>
+</div>
+<p class="rubric">lbdex/Chapter4_1/Cpu0ISelDAGToDAG.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="n">SDNode</span><span class="o">*</span><span class="p">,</span> <span class="n">SDNode</span><span class="o">*&gt;</span> <span class="n">SelectMULT</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">Opc</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">dl</span><span class="p">,</span>
+                                         <span class="n">EVT</span> <span class="n">Ty</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">HasLo</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">HasHi</span><span class="p">);</span>
+  <span class="p">...</span>
+<span class="c1">/// Select multiply instructions.</span>
+<span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="n">SDNode</span><span class="o">*</span><span class="p">,</span> <span class="n">SDNode</span><span class="o">*&gt;</span>
+<span class="n">Cpu0DAGToDAGISel</span><span class="o">::</span><span class="n">SelectMULT</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">Opc</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">dl</span><span class="p">,</span> <span class="n">EVT</span> <span class="n">Ty</span><span class="p">,</span>
+              <span class="kt">bool</span> <span class="n">HasLo</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">HasHi</span><span class="p">)</span> <span class="p">{</span>
+<span class="n">SDNode</span> <span class="o">*</span><span class="n">Lo</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">Hi</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="n">SDNode</span> <span class="o">*</span><span class="n">Mul</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Opc</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Glue</span><span class="p">,</span> <span class="n">N</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                    <span class="n">N</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+<span class="n">SDValue</span> <span class="n">InFlag</span> <span class="o">=</span> <span class="n">SDValue</span><span class="p">(</span><span class="n">Mul</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="n">HasLo</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">Lo</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">MFLO</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span>
+                <span class="n">Ty</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Glue</span><span class="p">,</span> <span class="n">InFlag</span><span class="p">);</span>
+  <span class="n">InFlag</span> <span class="o">=</span> <span class="n">SDValue</span><span class="p">(</span><span class="n">Lo</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">HasHi</span><span class="p">)</span>
+  <span class="n">Hi</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">MFHI</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span>
+                <span class="n">Ty</span><span class="p">,</span> <span class="n">InFlag</span><span class="p">);</span>
+
+<span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">(</span><span class="n">Lo</span><span class="p">,</span> <span class="n">Hi</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">/// Select instructions not customized! Used for</span>
+<span class="c1">/// expanded, promoted and normal instructions</span>
+<span class="n">SDNode</span><span class="o">*</span> <span class="n">Cpu0DAGToDAGISel</span><span class="o">::</span><span class="n">Select</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Node</span><span class="p">)</span> <span class="p">{</span>
+<span class="kt">unsigned</span> <span class="n">Opcode</span> <span class="o">=</span> <span class="n">Node</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">();</span>
+<span class="n">DebugLoc</span> <span class="n">dl</span> <span class="o">=</span> <span class="n">Node</span><span class="o">-&gt;</span><span class="n">getDebugLoc</span><span class="p">();</span>
+<span class="p">...</span>
+<span class="n">EVT</span> <span class="n">NodeTy</span> <span class="o">=</span> <span class="n">Node</span><span class="o">-&gt;</span><span class="n">getValueType</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="kt">unsigned</span> <span class="n">MultOpc</span><span class="p">;</span>
+<span class="k">switch</span><span class="p">(</span><span class="n">Opcode</span><span class="p">)</span> <span class="p">{</span>
+<span class="k">default</span><span class="o">:</span> <span class="k">break</span><span class="p">;</span>
+
+<span class="k">case</span> <span class="n">ISD</span><span class="o">::</span><span class="nl">MULHS:</span>
+<span class="k">case</span> <span class="n">ISD</span><span class="o">::</span><span class="nl">MULHU:</span> <span class="p">{</span>
+  <span class="n">MultOpc</span> <span class="o">=</span> <span class="p">(</span><span class="n">Opcode</span> <span class="o">==</span> <span class="n">ISD</span><span class="o">::</span><span class="n">MULHU</span> <span class="o">?</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MULTu</span> <span class="o">:</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MULT</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">SelectMULT</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="n">MultOpc</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">NodeTy</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">true</span><span class="p">).</span><span class="n">second</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter4_1/Cpu0ISelLowering.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
+<span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">TargetLoweringObjectFileELF</span><span class="p">()),</span>
+<span class="n">Subtarget</span><span class="p">(</span><span class="o">&amp;</span><span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">())</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">SDIV</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">Expand</span><span class="p">);</span>
+  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">SREM</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">Expand</span><span class="p">);</span>
+  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">UDIV</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">Expand</span><span class="p">);</span>
+  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">UREM</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">Expand</span><span class="p">);</span>
+
+  <span class="n">setTargetDAGCombine</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">SDIVREM</span><span class="p">);</span>
+  <span class="n">setTargetDAGCombine</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">UDIVREM</span><span class="p">);</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="k">static</span> <span class="n">SDValue</span> <span class="n">PerformDivRemCombine</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="n">SelectionDAG</span><span class="o">&amp;</span> <span class="n">DAG</span><span class="p">,</span>
+        <span class="n">TargetLowering</span><span class="o">::</span><span class="n">DAGCombinerInfo</span> <span class="o">&amp;</span><span class="n">DCI</span><span class="p">,</span>
+        <span class="k">const</span> <span class="n">Cpu0Subtarget</span><span class="o">*</span> <span class="n">Subtarget</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">DCI</span><span class="p">.</span><span class="n">isBeforeLegalizeOps</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">SDValue</span><span class="p">();</span>
+
+  <span class="n">EVT</span> <span class="n">Ty</span> <span class="o">=</span> <span class="n">N</span><span class="o">-&gt;</span><span class="n">getValueType</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="kt">unsigned</span> <span class="n">LO</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LO</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="n">HI</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">HI</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="n">opc</span> <span class="o">=</span> <span class="n">N</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">()</span> <span class="o">==</span> <span class="n">ISD</span><span class="o">::</span><span class="n">SDIVREM</span> <span class="o">?</span> <span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">DivRem</span> <span class="o">:</span>
+              <span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">DivRemU</span><span class="p">;</span>
+  <span class="n">DebugLoc</span> <span class="n">dl</span> <span class="o">=</span> <span class="n">N</span><span class="o">-&gt;</span><span class="n">getDebugLoc</span><span class="p">();</span>
+
+  <span class="n">SDValue</span> <span class="n">DivRem</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">opc</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Glue</span><span class="p">,</span>
+           <span class="n">N</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">N</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+  <span class="n">SDValue</span> <span class="n">InChain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getEntryNode</span><span class="p">();</span>
+  <span class="n">SDValue</span> <span class="n">InGlue</span> <span class="o">=</span> <span class="n">DivRem</span><span class="p">;</span>
+
+  <span class="c1">// insert MFLO</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">N</span><span class="o">-&gt;</span><span class="n">hasAnyUseOfValue</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">SDValue</span> <span class="n">CopyFromLo</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyFromReg</span><span class="p">(</span><span class="n">InChain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">LO</span><span class="p">,</span> <span class="n">Ty</span><span class="p">,</span>
+              <span class="n">InGlue</span><span class="p">);</span>
+    <span class="n">DAG</span><span class="p">.</span><span class="n">ReplaceAllUsesOfValueWith</span><span class="p">(</span><span class="n">SDValue</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">CopyFromLo</span><span class="p">);</span>
+    <span class="n">InChain</span> <span class="o">=</span> <span class="n">CopyFromLo</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="n">InGlue</span> <span class="o">=</span> <span class="n">CopyFromLo</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="c1">// insert MFHI</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">N</span><span class="o">-&gt;</span><span class="n">hasAnyUseOfValue</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">SDValue</span> <span class="n">CopyFromHi</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyFromReg</span><span class="p">(</span><span class="n">InChain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span>
+              <span class="n">HI</span><span class="p">,</span> <span class="n">Ty</span><span class="p">,</span> <span class="n">InGlue</span><span class="p">);</span>
+    <span class="n">DAG</span><span class="p">.</span><span class="n">ReplaceAllUsesOfValueWith</span><span class="p">(</span><span class="n">SDValue</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">CopyFromHi</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="n">SDValue</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">PerformDAGCombine</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="n">DAGCombinerInfo</span> <span class="o">&amp;</span><span class="n">DCI</span><span class="p">)</span>
+  <span class="k">const</span> <span class="p">{</span>
+    <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span> <span class="o">=</span> <span class="n">DCI</span><span class="p">.</span><span class="n">DAG</span><span class="p">;</span>
+    <span class="kt">unsigned</span> <span class="n">opc</span> <span class="o">=</span> <span class="n">N</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">();</span>
+
+    <span class="k">switch</span> <span class="p">(</span><span class="n">opc</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">default</span><span class="o">:</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">ISD</span><span class="o">::</span><span class="nl">SDIVREM:</span>
+    <span class="k">case</span> <span class="n">ISD</span><span class="o">::</span><span class="nl">UDIVREM:</span>
+    <span class="k">return</span> <span class="n">PerformDivRemCombine</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">DAG</span><span class="p">,</span> <span class="n">DCI</span><span class="p">,</span> <span class="n">Subtarget</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="n">SDValue</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter4_1/Cpu0ISelLowering.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+  <span class="k">namespace</span> <span class="n">Cpu0ISD</span> <span class="p">{</span>
+    <span class="k">enum</span> <span class="n">NodeType</span> <span class="p">{</span>
+      <span class="p">...</span>
+      <span class="c1">// DivRem(u)</span>
+      <span class="n">DivRem</span><span class="p">,</span>
+      <span class="n">DivRemU</span>
+    <span class="p">};</span>
+<span class="p">}</span>
+<span class="p">...</span>
+    <span class="k">virtual</span> <span class="n">SDValue</span> <span class="n">PerformDAGCombine</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="n">DAGCombinerInfo</span> <span class="o">&amp;</span><span class="n">DCI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+<span class="p">...</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter4_1/Cpu0RegisterInfo.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Hi/Lo registers</span>
+<span class="n">def</span> <span class="n">HI</span>  <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;HI&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">18</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">LO</span>  <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;LO&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">19</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">...</span>
+<span class="c1">// Hi/Lo Registers</span>
+<span class="n">def</span> <span class="n">HILO</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="n">HI</span><span class="p">,</span> <span class="n">LO</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
 </div>
 <p class="rubric">lbdex/Chapter4_1/Cpu0Schedule.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
-<span class="n">def</span> <span class="n">IMULDIV</span> <span class="o">:</span> <span class="n">FuncUnit</span><span class="p">;</span>
+<span class="n">def</span> <span class="n">IIHiLo</span>       <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
 <span class="p">...</span>
+<span class="n">def</span> <span class="n">Cpu0GenericItineraries</span> <span class="o">:</span> <span class="n">ProcessorItineraries</span><span class="o">&lt;</span><span class="p">[</span><span class="n">ALU</span><span class="p">,</span> <span class="n">IMULDIV</span><span class="p">],</span> <span class="p">[],</span> <span class="p">[</span>
+<span class="p">...</span>
+<span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">IIHiLo</span>       <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span>  <span class="p">[</span><span class="n">IMULDIV</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="p">...</span>
+<span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter4_1/Cpu0Schedule.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
+<span class="n">def</span> <span class="n">IIHiLo</span>             <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
 <span class="n">def</span> <span class="n">IIImul</span>       <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
 <span class="n">def</span> <span class="n">IIIdiv</span>       <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
 <span class="p">...</span>
 <span class="c1">// http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html</span>
 <span class="n">def</span> <span class="n">Cpu0GenericItineraries</span> <span class="o">:</span> <span class="n">ProcessorItineraries</span><span class="o">&lt;</span><span class="p">[</span><span class="n">ALU</span><span class="p">,</span> <span class="n">IMULDIV</span><span class="p">],</span> <span class="p">[],</span> <span class="p">[</span>
-<span class="p">...</span>
-<span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">IIImul</span>       <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">17</span><span class="p">,</span> <span class="p">[</span><span class="n">IMULDIV</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span><span class="p">,</span>
-<span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">IIIdiv</span>       <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">38</span><span class="p">,</span> <span class="p">[</span><span class="n">IMULDIV</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span>
+  <span class="p">...</span>
+  <span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">IIHiLo</span>             <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span>  <span class="p">[</span><span class="n">IMULDIV</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">IIImul</span>       <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">17</span><span class="p">,</span> <span class="p">[</span><span class="n">IMULDIV</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">IIIdiv</span>       <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">38</span><span class="p">,</span> <span class="p">[</span><span class="n">IMULDIV</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span>
 <span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
+<div class="section" id="and">
+<h3><strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong><a class="headerlink" href="#and" title="Permalink to this headline">¶</a></h3>
+<p>The ADDu, ADD, SUBu, SUB and MUL defined in Chapter4_1/Cpu0InstrInfo.td are for
+operators <strong>+, -, *</strong>.
+SHL (defined before) and SHLV are for <strong>&lt;&lt;</strong>.
+SRA, SRAV, SHR and SHRV are for <strong>&gt;&gt;</strong>.</p>
 <p>In RISC CPU like Mips, the multiply/divide function unit and add/sub/logic unit
 are designed from two different hardware circuits, and more, their data path is
 separate. We think the cpu0 is the same even though no explanation in it&#8217;s web
@@ -419,105 +618,73 @@ entry:
 
 118-165-78-12:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch4_1.bc -o -
-        .section .mdebug.abi32
-        .previous
-        .file <span class="s2">&quot;ch4_1.bc&quot;</span>
-        .text
-        .globl        _Z9test_mathv
-        .align        2
-        .type _Z9test_mathv,@function
-        .ent  _Z9test_mathv           <span class="c"># @_Z9test_mathv</span>
+  .section .mdebug.abi32
+  .previous
+  .file <span class="s2">&quot;ch4_1.bc&quot;</span>
+  .text
+  .globl  _Z9test_mathv
+  .align  2
+  .type _Z9test_mathv,@function
+  .ent  _Z9test_mathv           <span class="c"># @_Z9test_mathv</span>
 _Z9test_mathv:
-        .cfi_startproc
-        .frame        <span class="nv">$fp</span>,64,<span class="nv">$lr</span>
-        .mask         0x00000800,-4
-        .set  noreorder
-        .set  nomacro
+  .frame  <span class="nv">$fp</span>,56,<span class="nv">$lr</span>
+  .mask   0x00000000,0
+  .set  noreorder
+  .set  nomacro
 <span class="c"># BB#0:                                 # %entry</span>
-        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -64
-<span class="nv">$tmp3</span>:
-        .cfi_def_cfa_offset 64
-        st    <span class="nv">$fp</span>, 60<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
-<span class="nv">$tmp4</span>:
-        .cfi_offset 11, -4
-        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
-<span class="nv">$tmp5</span>:
-        .cfi_def_cfa_register 11
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
-        st    <span class="nv">$2</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
-        st    <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, -5
-        st    <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        st    <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        subu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        st    <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        mul   <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        st    <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        shl   <span class="nv">$2</span>, <span class="nv">$2</span>, 2
-        st    <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        shl   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-        st    <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        sra   <span class="nv">$2</span>, <span class="nv">$2</span>, 2
-        st    <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        shr   <span class="nv">$2</span>, <span class="nv">$2</span>, 30
-        st    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
-        ld    <span class="nv">$3</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        shlv  <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-        st    <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        shlv  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 128
-        ld    <span class="nv">$3</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        shrv  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-        st    <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 56<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        srav  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$4</span>, 44<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-        ld    <span class="nv">$4</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-        ld    <span class="nv">$4</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-        ld    <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-        ld    <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-        ld    <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-        ld    <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-        ld    <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-        ld    <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-        addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
-        ld    <span class="nv">$fp</span>, 60<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
-        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 64
-        ret   <span class="nv">$lr</span>
-        .set  macro
-        .set  reorder
-        .end  _Z9test_mathv
-<span class="nv">$tmp6</span>:
-        .size _Z9test_mathv, <span class="o">(</span><span class="nv">$tmp6</span><span class="o">)</span>-_Z9test_mathv
-        .cfi_endproc
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -56
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
+  st  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
+  st  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, -5
+  st  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  st  <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  subu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  st  <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  mul <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  st  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  shl <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+  st  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  shl <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  sra <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+  st  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  shr <span class="nv">$2</span>, <span class="nv">$2</span>, 30
+  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+  ld  <span class="nv">$3</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  shlv  <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+  st  <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 48<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  shlv  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 128
+  ld  <span class="nv">$3</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  shrv  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+  st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 48<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  srav  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 56
+  ret <span class="nv">$lr</span>
+  .set  macro
+  .set  reorder
+  .end  _Z9test_mathv
+<span class="nv">$tmp1</span>:
+  .size _Z9test_mathv, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-_Z9test_mathv
 </pre></div>
 </div>
 </div>
@@ -610,17 +777,17 @@ corresponding llvm IR, as follows,</p>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>...
 define i32 @main<span class="o">()</span> nounwind ssp <span class="o">{</span>
-entry:
-%retval <span class="o">=</span> alloca i32, align 4
-%b <span class="o">=</span> alloca i32, align 4
-store i32 0, i32* %retval
-store i32 11, i32* %b, align 4
-%0 <span class="o">=</span> load i32* %b, align 4
-%add <span class="o">=</span> add nsw i32 %0, 1
-%rem <span class="o">=</span> srem i32 %add, 12
-store i32 %rem, i32* %b, align 4
-%1 <span class="o">=</span> load i32* %b, align 4
-ret i32 %1
+  entry:
+  %retval <span class="o">=</span> alloca i32, align 4
+  %b <span class="o">=</span> alloca i32, align 4
+  store i32 0, i32* %retval
+  store i32 11, i32* %b, align 4
+  %0 <span class="o">=</span> load i32* %b, align 4
+  %add <span class="o">=</span> add nsw i32 %0, 1
+  %rem <span class="o">=</span> srem i32 %add, 12
+  store i32 %rem, i32* %b, align 4
+  %1 <span class="o">=</span> load i32* %b, align 4
+  ret i32 %1
 <span class="o">}</span>
 </pre></div>
 </div>
@@ -813,104 +980,12 @@ We choose it as the implementation of this book to add instructions as less as
 possible. This approach is better for Cpu0 to keep it as a tutorial architecture
 for school teaching purpose material, and apply Cpu0 as an engineer learning
 materials in compiler, system program and verilog CPU hardware design.
-For Mips style implementation, we add the following code in
-Cpu0RegisterInfo.td, Cpu0InstrInfo.td and Cpu0ISelDAGToDAG.cpp.
-And list the related DAG nodes mulhs and mulhu which are used in Chapter4_1/
-from TargetSelectionDAG.td.</p>
-<p class="rubric">lbdex/Chapter4_1/Cpu0RegisterInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Hi/Lo registers</span>
-<span class="n">def</span> <span class="n">HI</span>  <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;HI&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">18</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="n">def</span> <span class="n">LO</span>  <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;LO&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">19</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="p">...</span>
-<span class="c1">// Hi/Lo Registers</span>
-<span class="n">def</span> <span class="n">HILO</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="n">HI</span><span class="p">,</span> <span class="n">LO</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
-
-<span class="c1">// Cpu0Schedule.td</span>
-<span class="p">...</span>
-<span class="n">def</span> <span class="n">IIHiLo</span>       <span class="o">:</span> <span class="n">InstrItinClass</span><span class="p">;</span>
-<span class="p">...</span>
-<span class="n">def</span> <span class="n">Cpu0GenericItineraries</span> <span class="o">:</span> <span class="n">ProcessorItineraries</span><span class="o">&lt;</span><span class="p">[</span><span class="n">ALU</span><span class="p">,</span> <span class="n">IMULDIV</span><span class="p">],</span> <span class="p">[],</span> <span class="p">[</span>
-<span class="p">...</span>
-<span class="n">InstrItinData</span><span class="o">&lt;</span><span class="n">IIHiLo</span>       <span class="p">,</span> <span class="p">[</span><span class="n">InstrStage</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span>  <span class="p">[</span><span class="n">IMULDIV</span><span class="p">]</span><span class="o">&gt;</span><span class="p">]</span><span class="o">&gt;</span><span class="p">,</span>
-<span class="p">...</span>
-<span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-</pre></div>
-</div>
-<p class="rubric">lbdex/Chapter4_1/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><pre>// Mul, Div
-class Mult&lt;bits&lt;8&gt; op, string instr_asm, InstrItinClass itin,
-     RegisterClass RC, list&lt;Register&gt; DefRegs&gt;:
-FL&lt;op, (outs), (ins RC:$ra, RC:$rb),
-  !strconcat(instr_asm, "\t$ra, $rb"), [], itin&gt; {
-let imm16 = 0;
-let isCommutable = 1;
-let Defs = DefRegs;
-let neverHasSideEffects = 1;
-}
-
-class Mult32&lt;bits&lt;8&gt; op, string instr_asm, InstrItinClass itin&gt;:
-Mult&lt;op, instr_asm, itin, CPURegs, [HI, LO]&gt;;
-
-// Move from Hi/Lo
-class MoveFromLOHI&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
-         list&lt;Register&gt; UseRegs&gt;:
-FL&lt;op, (outs RC:$ra), (ins),
-   !strconcat(instr_asm, "\t$ra"), [], IIHiLo&gt; {
-let rb = 0;
-let imm16 = 0;
-let Uses = UseRegs;
-let neverHasSideEffects = 1;
-}
-...
-/// Multiply and Divide Instructions.
-def MULT    : Mult32&lt;0x41, "mult", IIImul&gt;;
-def MULTu   : Mult32&lt;0x42, "multu", IIImul&gt;;
-
-def MFHI    : MoveFromLOHI&lt;0x46, "mfhi", CPURegs, [HI]&gt;;
-def MFLO    : MoveFromLOHI&lt;0x47, "mflo", CPURegs, [LO]&gt;;</pre>
-</div>
-<p class="rubric">lbdex/Chapter4_1/Cpu0ISelDAGToDAG.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// Select multiply instructions.</span>
-<span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="n">SDNode</span><span class="o">*</span><span class="p">,</span> <span class="n">SDNode</span><span class="o">*&gt;</span>
-<span class="n">Cpu0DAGToDAGISel</span><span class="o">::</span><span class="n">SelectMULT</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">Opc</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">dl</span><span class="p">,</span> <span class="n">EVT</span> <span class="n">Ty</span><span class="p">,</span>
-              <span class="kt">bool</span> <span class="n">HasLo</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">HasHi</span><span class="p">)</span> <span class="p">{</span>
-<span class="n">SDNode</span> <span class="o">*</span><span class="n">Lo</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">Hi</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-<span class="n">SDNode</span> <span class="o">*</span><span class="n">Mul</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Opc</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Glue</span><span class="p">,</span> <span class="n">N</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
-                    <span class="n">N</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
-<span class="n">SDValue</span> <span class="n">InFlag</span> <span class="o">=</span> <span class="n">SDValue</span><span class="p">(</span><span class="n">Mul</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-
-<span class="k">if</span> <span class="p">(</span><span class="n">HasLo</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">Lo</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">MFLO</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span>
-                <span class="n">Ty</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Glue</span><span class="p">,</span> <span class="n">InFlag</span><span class="p">);</span>
-  <span class="n">InFlag</span> <span class="o">=</span> <span class="n">SDValue</span><span class="p">(</span><span class="n">Lo</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
-<span class="p">}</span>
-<span class="k">if</span> <span class="p">(</span><span class="n">HasHi</span><span class="p">)</span>
-  <span class="n">Hi</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">MFHI</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span>
-                <span class="n">Ty</span><span class="p">,</span> <span class="n">InFlag</span><span class="p">);</span>
-
-<span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">(</span><span class="n">Lo</span><span class="p">,</span> <span class="n">Hi</span><span class="p">);</span>
-<span class="p">}</span>
-
-<span class="c1">/// Select instructions not customized! Used for</span>
-<span class="c1">/// expanded, promoted and normal instructions</span>
-<span class="n">SDNode</span><span class="o">*</span> <span class="n">Cpu0DAGToDAGISel</span><span class="o">::</span><span class="n">Select</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">Node</span><span class="p">)</span> <span class="p">{</span>
-<span class="kt">unsigned</span> <span class="n">Opcode</span> <span class="o">=</span> <span class="n">Node</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">();</span>
-<span class="n">DebugLoc</span> <span class="n">dl</span> <span class="o">=</span> <span class="n">Node</span><span class="o">-&gt;</span><span class="n">getDebugLoc</span><span class="p">();</span>
-<span class="p">...</span>
-<span class="n">EVT</span> <span class="n">NodeTy</span> <span class="o">=</span> <span class="n">Node</span><span class="o">-&gt;</span><span class="n">getValueType</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
-<span class="kt">unsigned</span> <span class="n">MultOpc</span><span class="p">;</span>
-<span class="k">switch</span><span class="p">(</span><span class="n">Opcode</span><span class="p">)</span> <span class="p">{</span>
-<span class="k">default</span><span class="o">:</span> <span class="k">break</span><span class="p">;</span>
-
-<span class="k">case</span> <span class="n">ISD</span><span class="o">::</span><span class="nl">MULHS:</span>
-<span class="k">case</span> <span class="n">ISD</span><span class="o">::</span><span class="nl">MULHU:</span> <span class="p">{</span>
-  <span class="n">MultOpc</span> <span class="o">=</span> <span class="p">(</span><span class="n">Opcode</span> <span class="o">==</span> <span class="n">ISD</span><span class="o">::</span><span class="n">MULHU</span> <span class="o">?</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MULTu</span> <span class="o">:</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MULT</span><span class="p">);</span>
-  <span class="k">return</span> <span class="n">SelectMULT</span><span class="p">(</span><span class="n">Node</span><span class="p">,</span> <span class="n">MultOpc</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">NodeTy</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">true</span><span class="p">).</span><span class="n">second</span><span class="p">;</span>
-<span class="p">}</span>
-<span class="p">...</span>
-<span class="p">}</span>
-</pre></div>
-</div>
+The MULT, MULTu, MFHI, MFLO, MTHI, MTLO added in Chapter4_1/Cpu0InstrInfo.td;
+HI, LO register in Chapter4_1/Cpu0RegisterInfo.td and Chapter4_1/MCTargetDesc/
+Cpu0BaseInfo.h; IIHiLo, IIImul in Chapter4_1/Cpu0Schedule.td; SelectMULT() in
+Chapter4_1/Cpu0ISelDAGToDAG.cpp are for Mips style implementation.</p>
+<p>The related DAG nodes mulhs and mulhu which are used in Chapter4_1/
+came from TargetSelectionDAG.td as follows,</p>
 <p class="rubric">include/llvm/Target/TargetSelectionDAG.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">mulhs</span>    <span class="o">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s">&quot;ISD::MULHS&quot;</span>     <span class="p">,</span> <span class="n">SDTIntBinOp</span><span class="p">,</span> <span class="p">[</span><span class="n">SDNPCommutative</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="n">def</span> <span class="n">mulhu</span>    <span class="o">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s">&quot;ISD::MULHU&quot;</span>     <span class="p">,</span> <span class="n">SDTIntBinOp</span><span class="p">,</span> <span class="p">[</span><span class="n">SDNPCommutative</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
@@ -918,8 +993,8 @@ def MFLO    : MoveFromLOHI&lt;0x47, "mflo", CPURegs, [LO]&gt;;</pre>
 </div>
 <p>Except the custom type, llvm IR operations of expand and promote type will call
 Cpu0DAGToDAGISel::Select() during instruction selection of DAG translation.
-In Select(), it return the HI part of multiplication result to HI register,
-for IR operations of mulhs or mulhu.
+In SelectMULT() which called by Select(), it return the HI part of
+multiplication result to HI register, for IR operations of mulhs or mulhu.
 After that, MFHI instruction move the HI register to cpu0 field &#8220;a&#8221; register,
 $ra.
 MFHI instruction is FL format and only use cpu0 field &#8220;a&#8221; register, we set
@@ -934,26 +1009,20 @@ the $rb and imm16 to 0.
   .previous
   .file <span class="s2">&quot;ch4_2.bc&quot;</span>
   .text
-  .globl  main
+  .globl  _Z8test_modv
   .align  2
-  .type main,@function
-  .ent  main                    <span class="c"># @main</span>
-main:
-  .cfi_startproc
+  .type _Z8test_modv,@function
+  .ent  _Z8test_modv            <span class="c"># @_Z8test_modv</span>
+_Z8test_modv:
   .frame  <span class="nv">$sp</span>,8,<span class="nv">$lr</span>
   .mask   0x00000000,0
   .set  noreorder
   .set  nomacro
 <span class="c"># BB#0:</span>
   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -8
-<span class="nv">$tmp1</span>:
-  .cfi_def_cfa_offset 8
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 11
-  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 10922
-  shl <span class="nv">$2</span>, <span class="nv">$2</span>, 16
+  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  lui <span class="nv">$2</span>, 10922
   ori <span class="nv">$3</span>, <span class="nv">$2</span>, 43691
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 12
   mult  <span class="nv">$2</span>, <span class="nv">$3</span>
@@ -962,16 +1031,15 @@ main:
   sra <span class="nv">$3</span>, <span class="nv">$3</span>, 1
   addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
   mul <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-  sub <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  subu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 8
   ret <span class="nv">$lr</span>
   .set  macro
   .set  reorder
-  .end  main
-<span class="nv">$tmp2</span>:
-  .size main, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-main
-  .cfi_endproc
+  .end  _Z8test_modv
+<span class="nv">$tmp1</span>:
+  .size _Z8test_modv, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-_Z8test_modv
 </pre></div>
 </div>
 </div>
@@ -982,189 +1050,22 @@ of <strong>“div”</strong> to get the <strong>“%”</strong> result just be
 divider, <strong>“(b+1)%12”</strong> in our example.
 If programmer use variable as the divider like <strong>“(b+1)%a”</strong>, then what will
 happen in our code.
-The answer is our code will has error to take care this.
-In <a class="reference external" href="http://jonathan2251.github.com/lbd/otherinst.html#support-arithmetic-instructions">section Support arithmetic instructions</a>, we use <strong>“div a, b”</strong>
-to hold the quotient part in register.
-The multiplication operator <strong>“*”</strong> need 64 bits of register to hold the result
-for two 32 bits of operands multiplication.
-We modify cpu0 to use the pair of registers LO and HI which just like Mips to
-solve this issue in last section.
-Now, it&#8217;s time to modify cpu0 for integer <strong>“divide”</strong> operator again.
-We use LO and HI registers to hold the <strong>&#8220;quotient&#8221;</strong> and <strong>&#8220;remainder&#8221;</strong> and
+The answer is our code will has error to take care this.</p>
+<p>Cpu0 just like Mips use LO and HI registers to hold the <strong>&#8220;quotient&#8221;</strong> and
+<strong>&#8220;remainder&#8221;</strong>. And
 use instructions <strong>“mflo”</strong> and <strong>“mfhi”</strong> to get the result from LO or HI
 registers.
 With this solution, the <strong>“c = a / b”</strong> can be got by <strong>“div a, b”</strong> and
 <strong>“mflo c”</strong>; the <strong>“c = a % b”</strong> can be got by <strong>“div a, b”</strong> and <strong>“mfhi c”</strong>.</p>
-<p>Chapter4_1/ support operator <strong>“%”</strong> and <strong>“/”</strong>.
-The code added in Chapter4_1/ as follows,</p>
-<p class="rubric">lbdex/Chapter4_1/Cpu0InstrInfo.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
-<span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
-            <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
-            <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
-            <span class="kt">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="kt">unsigned</span> <span class="n">Opc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">ZeroReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">DestReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy to CPU Reg.</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">))</span>
-      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">ZeroReg</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">;</span>
-    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">HI</span><span class="p">)</span>
-      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFHI</span><span class="p">,</span> <span class="n">SrcReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LO</span><span class="p">)</span>
-      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFLO</span><span class="p">,</span> <span class="n">SrcReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy from CPU Reg.</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">HI</span><span class="p">)</span>
-      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTHI</span><span class="p">,</span> <span class="n">DestReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LO</span><span class="p">)</span>
-      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTLO</span><span class="p">,</span> <span class="n">DestReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="p">}</span>
-
-  <span class="n">assert</span><span class="p">(</span><span class="n">Opc</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Cannot copy registers&quot;</span><span class="p">);</span>
-
-  <span class="n">MachineInstrBuilder</span> <span class="n">MIB</span> <span class="o">=</span> <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">get</span><span class="p">(</span><span class="n">Opc</span><span class="p">));</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span><span class="p">)</span>
-    <span class="n">MIB</span><span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">DestReg</span><span class="p">,</span> <span class="n">RegState</span><span class="o">::</span><span class="n">Define</span><span class="p">);</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">ZeroReg</span><span class="p">)</span>
-    <span class="n">MIB</span><span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">ZeroReg</span><span class="p">);</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span><span class="p">)</span>
-    <span class="n">MIB</span><span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">,</span> <span class="n">getKillRegState</span><span class="p">(</span><span class="n">KillSrc</span><span class="p">));</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p class="rubric">lbdex/Chapter4_1/Cpu0InstrInfo.h</p>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="k">virtual</span> <span class="kt">void</span> <span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
-                           <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
-                           <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
-                           <span class="kt">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
-</pre></div>
-</div>
-<p class="rubric">lbdex/Chapter4_1/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><pre>def SDT_Cpu0DivRem     : SDTypeProfile&lt;0, 2,
-           [SDTCisInt&lt;0&gt;,
-          SDTCisSameAs&lt;0, 1&gt;]&gt;;
-...
-// DivRem(u) nodes
-def Cpu0DivRem  : SDNode&lt;"Cpu0ISD::DivRem", SDT_Cpu0DivRem,
-       [SDNPOutGlue]&gt;;
-def Cpu0DivRemU : SDNode&lt;"Cpu0ISD::DivRemU", SDT_Cpu0DivRem,
-       [SDNPOutGlue]&gt;;
-...
-class Div&lt;SDNode opNode, bits&lt;8&gt; op, string instr_asm, InstrItinClass itin,
-  RegisterClass RC, list&lt;Register&gt; DefRegs&gt;:
-FL&lt;op, (outs), (ins RC:$rb, RC:$rc),
- !strconcat(instr_asm, "\t$$zero, $rb, $rc"),
- [(opNode RC:$rb, RC:$rc)], itin&gt; {
-let imm16 = 0;
-let Defs = DefRegs;
-}
-
-class Div32&lt;SDNode opNode, bits&lt;8&gt; op, string instr_asm, InstrItinClass itin&gt;:
-Div&lt;opNode, op, instr_asm, itin, CPURegs, [HI, LO]&gt;;
-...
-class MoveToLOHI&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
-     list&lt;Register&gt; DefRegs&gt;:
-FL&lt;op, (outs), (ins RC:$ra),
- !strconcat(instr_asm, "\t$ra"), [], IIHiLo&gt; {
-let rb = 0;
-let imm16 = 0;
-let Defs = DefRegs;
-let neverHasSideEffects = 1;
-}
-...
-def SDIV    : Div32&lt;Cpu0DivRem, 0x43, "div", IIIdiv&gt;;
-def UDIV    : Div32&lt;Cpu0DivRemU, 0x44, "divu", IIIdiv&gt;;
-...
-def MTHI    : MoveToLOHI&lt;0x48, "mthi", CPURegs, [HI]&gt;;
-def MTLO    : MoveToLOHI&lt;0x49, "mtlo", CPURegs, [LO]&gt;;</pre>
-</div>
-<p class="rubric">lbdex/Chapter4_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
-<span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
-<span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">TargetLoweringObjectFileELF</span><span class="p">()),</span>
-<span class="n">Subtarget</span><span class="p">(</span><span class="o">&amp;</span><span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">())</span> <span class="p">{</span>
-<span class="p">...</span>
-<span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">SDIV</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">Expand</span><span class="p">);</span>
-<span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">SREM</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">Expand</span><span class="p">);</span>
-<span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">UDIV</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">Expand</span><span class="p">);</span>
-<span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">UREM</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">Expand</span><span class="p">);</span>
-
-<span class="n">setTargetDAGCombine</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">SDIVREM</span><span class="p">);</span>
-<span class="n">setTargetDAGCombine</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">UDIVREM</span><span class="p">);</span>
-<span class="p">...</span>
-<span class="p">}</span>
-<span class="p">...</span>
-<span class="k">static</span> <span class="n">SDValue</span> <span class="n">PerformDivRemCombine</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="n">SelectionDAG</span><span class="o">&amp;</span> <span class="n">DAG</span><span class="p">,</span>
-        <span class="n">TargetLowering</span><span class="o">::</span><span class="n">DAGCombinerInfo</span> <span class="o">&amp;</span><span class="n">DCI</span><span class="p">,</span>
-        <span class="k">const</span> <span class="n">Cpu0Subtarget</span><span class="o">*</span> <span class="n">Subtarget</span><span class="p">)</span> <span class="p">{</span>
-<span class="k">if</span> <span class="p">(</span><span class="n">DCI</span><span class="p">.</span><span class="n">isBeforeLegalizeOps</span><span class="p">())</span>
-<span class="k">return</span> <span class="n">SDValue</span><span class="p">();</span>
-
-<span class="n">EVT</span> <span class="n">Ty</span> <span class="o">=</span> <span class="n">N</span><span class="o">-&gt;</span><span class="n">getValueType</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
-<span class="kt">unsigned</span> <span class="n">LO</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LO</span><span class="p">;</span>
-<span class="kt">unsigned</span> <span class="n">HI</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">HI</span><span class="p">;</span>
-<span class="kt">unsigned</span> <span class="n">opc</span> <span class="o">=</span> <span class="n">N</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">()</span> <span class="o">==</span> <span class="n">ISD</span><span class="o">::</span><span class="n">SDIVREM</span> <span class="o">?</span> <span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">DivRem</span> <span class="o">:</span>
-            <span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">DivRemU</span><span class="p">;</span>
-<span class="n">DebugLoc</span> <span class="n">dl</span> <span class="o">=</span> <span class="n">N</span><span class="o">-&gt;</span><span class="n">getDebugLoc</span><span class="p">();</span>
-
-<span class="n">SDValue</span> <span class="n">DivRem</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">opc</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Glue</span><span class="p">,</span>
-         <span class="n">N</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">N</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
-<span class="n">SDValue</span> <span class="n">InChain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getEntryNode</span><span class="p">();</span>
-<span class="n">SDValue</span> <span class="n">InGlue</span> <span class="o">=</span> <span class="n">DivRem</span><span class="p">;</span>
-
-<span class="c1">// insert MFLO</span>
-<span class="k">if</span> <span class="p">(</span><span class="n">N</span><span class="o">-&gt;</span><span class="n">hasAnyUseOfValue</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="p">{</span>
-<span class="n">SDValue</span> <span class="n">CopyFromLo</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyFromReg</span><span class="p">(</span><span class="n">InChain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">LO</span><span class="p">,</span> <span class="n">Ty</span><span class="p">,</span>
-          <span class="n">InGlue</span><span class="p">);</span>
-<span class="n">DAG</span><span class="p">.</span><span class="n">ReplaceAllUsesOfValueWith</span><span class="p">(</span><span class="n">SDValue</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">CopyFromLo</span><span class="p">);</span>
-<span class="n">InChain</span> <span class="o">=</span> <span class="n">CopyFromLo</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-<span class="n">InGlue</span> <span class="o">=</span> <span class="n">CopyFromLo</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
-<span class="p">}</span>
-
-<span class="c1">// insert MFHI</span>
-<span class="k">if</span> <span class="p">(</span><span class="n">N</span><span class="o">-&gt;</span><span class="n">hasAnyUseOfValue</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span> <span class="p">{</span>
-<span class="n">SDValue</span> <span class="n">CopyFromHi</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyFromReg</span><span class="p">(</span><span class="n">InChain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span>
-          <span class="n">HI</span><span class="p">,</span> <span class="n">Ty</span><span class="p">,</span> <span class="n">InGlue</span><span class="p">);</span>
-<span class="n">DAG</span><span class="p">.</span><span class="n">ReplaceAllUsesOfValueWith</span><span class="p">(</span><span class="n">SDValue</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">CopyFromHi</span><span class="p">);</span>
-<span class="p">}</span>
-
-<span class="k">return</span> <span class="n">SDValue</span><span class="p">();</span>
-<span class="p">}</span>
-
-<span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">PerformDAGCombine</span><span class="p">(</span><span class="n">SDNode</span> <span class="o">*</span><span class="n">N</span><span class="p">,</span> <span class="n">DAGCombinerInfo</span> <span class="o">&amp;</span><span class="n">DCI</span><span class="p">)</span>
-<span class="k">const</span> <span class="p">{</span>
-<span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span> <span class="o">=</span> <span class="n">DCI</span><span class="p">.</span><span class="n">DAG</span><span class="p">;</span>
-<span class="kt">unsigned</span> <span class="n">opc</span> <span class="o">=</span> <span class="n">N</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">();</span>
-
-<span class="k">switch</span> <span class="p">(</span><span class="n">opc</span><span class="p">)</span> <span class="p">{</span>
-<span class="k">default</span><span class="o">:</span> <span class="k">break</span><span class="p">;</span>
-<span class="k">case</span> <span class="n">ISD</span><span class="o">::</span><span class="nl">SDIVREM:</span>
-<span class="k">case</span> <span class="n">ISD</span><span class="o">::</span><span class="nl">UDIVREM:</span>
-<span class="k">return</span> <span class="n">PerformDivRemCombine</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">DAG</span><span class="p">,</span> <span class="n">DCI</span><span class="p">,</span> <span class="n">Subtarget</span><span class="p">);</span>
-<span class="p">}</span>
-
-<span class="k">return</span> <span class="n">SDValue</span><span class="p">();</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p class="rubric">lbdex/Chapter4_1/Cpu0ISelLowering.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
-<span class="k">namespace</span> <span class="n">Cpu0ISD</span> <span class="p">{</span>
-<span class="k">enum</span> <span class="n">NodeType</span> <span class="p">{</span>
-  <span class="c1">// Start the numbering from where ISD NodeType finishes.</span>
-  <span class="n">FIRST_NUMBER</span> <span class="o">=</span> <span class="n">ISD</span><span class="o">::</span><span class="n">BUILTIN_OP_END</span><span class="p">,</span>
-  <span class="n">Ret</span><span class="p">,</span>
-  <span class="c1">// DivRem(u)</span>
-  <span class="n">DivRem</span><span class="p">,</span>
-  <span class="n">DivRemU</span>
-<span class="p">};</span>
-<span class="p">}</span>
-<span class="p">...</span>
-</pre></div>
-</div>
+<p>To support operators <strong>“%”</strong> and <strong>“/”</strong>, the following code added in Chapter4_1.</p>
+<ol class="arabic simple">
+<li>SDIV, UDIV and it&#8217;s reference class, nodes in Cpu0InstrInfo.td.</li>
+<li>The copyPhysReg() declared and defined in Cpu0InstrInfo.h and
+Cpu0InstrInfo.cpp.</li>
+<li>The setOperationAction(ISD::SDIV, MVT::i32, Expand), ...,
+setTargetDAGCombine(ISD::SDIVREM) in constructore of Cpu0ISelLowering.cpp;
+PerformDivRemCombine() and PerformDAGCombine() in Cpu0ISelLowering.cpp.</li>
+</ol>
 <p>IR instruction <strong>sdiv</strong> stand for signed div while <strong>udiv</strong> is for unsigned div.</p>
 <p>Run with ch4_2_2.cpp can get the &#8220;div&#8221; result for operator <strong>“%”</strong> but it cannot
 be compiled at this point. It need the function call argument support in Chapter
@@ -1553,6 +1454,27 @@ to <strong>mfhi</strong>.</p>
 They are trivial and easy. Listing the added code with comment and table for
 these operators IR, DAG and instructions as below. You check them with the
 run result of bc and asm instructions for ch4_5.cpp as below.</p>
+<p class="rubric">lbdex/Chapter4_2/Cpu0InstrInfo.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
+<span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
+            <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
+            <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
+            <span class="kt">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">DestReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy to CPU Reg.</span>
+    <span class="p">...</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>
+      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFSW</span><span class="p">,</span> <span class="n">SrcReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy from CPU Reg.</span>
+    <span class="p">...</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>
+      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTSW</span><span class="p">,</span> <span class="n">DestReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/Chapter4_2/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>class CmpInstr&lt;bits&lt;8&gt; op, string instr_asm,
                InstrItinClass itin, RegisterClass RC, RegisterClass RD,
@@ -1564,10 +1486,32 @@ run result of bc and asm instructions for ch4_5.cpp as below.</p>
   let isCommutable = isComm;
 }
 ...
+// Move from SW
+class MoveFromSW&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
+                   list&lt;Register&gt; UseRegs&gt;:
+  FL&lt;op, (outs RC:$ra), (ins),
+     !strconcat(instr_asm, "\t$ra"), [], IIAlu&gt; {
+  let rb = 0;
+  let imm16 = 0;
+  let Uses = UseRegs;
+  let neverHasSideEffects = 1;
+}
+
+// Move to SW
+class MoveToSW&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
+                 list&lt;Register&gt; DefRegs&gt;:
+  FL&lt;op, (outs), (ins RC:$ra),
+     !strconcat(instr_asm, "\t$ra"), [], IIAlu&gt; {
+  let rb = 0;
+  let imm16 = 0;
+  let Defs = DefRegs;
+  let neverHasSideEffects = 1;
+}
+...
 /// Arithmetic Instructions (ALU Immediate)
 ...
 def ANDi    : ArithLogicI&lt;0x0c, "andi", and, uimm16, immZExt16, CPURegs&gt;;
-def ORi     : ArithLogicI&lt;0x0d, "ori", or, uimm16, immZExt16, CPURegs&gt;;
+...
 def XORi    : ArithLogicI&lt;0x0e, "xori", xor, uimm16, immZExt16, CPURegs&gt;;
 
 /// Arithmetic Instructions (3-Operand, R-Type)
@@ -1576,6 +1520,9 @@ def CMP     : CmpInstr&lt;0x10, "cmp", IIAlu, CPURegs, SR, 0&gt;;
 def AND     : ArithLogicR&lt;0x18, "and", and, IIAlu, CPURegs, 1&gt;;
 def OR      : ArithLogicR&lt;0x19, "or", or, IIAlu, CPURegs, 1&gt;;
 def XOR     : ArithLogicR&lt;0x1a, "xor", xor, IIAlu, CPURegs, 1&gt;;
+...
+def MFSW    : MoveFromSW&lt;0x50, "mfsw", CPURegs, [SW]&gt;;
+def MTSW    : MoveToSW&lt;0x51, "mtsw", CPURegs, [SW]&gt;;
 ...
 def : Pat&lt;(not CPURegs:$in),
 // 1: in == 0; 0: in != 0
@@ -1679,253 +1626,228 @@ defm : SetgePats&lt;CPURegs&gt;;</pre>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>114-43-204-152:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
-ch4_5.cpp -emit-llvm -o ch4_5.bc
-114-43-204-152:InputFiles Jonathan<span class="nv">$ </span>llvm-dis ch4_5.bc -o -
-...
-; Function Attrs: nounwind uwtable
-define i32 @_Z16test_andorxornotv<span class="o">()</span> <span class="c">#0 {</span>
-entry:
-  %a <span class="o">=</span> alloca i32, align 4
-  %b <span class="o">=</span> alloca i32, align 4
-  %c <span class="o">=</span> alloca i32, align 4
-  %d <span class="o">=</span> alloca i32, align 4
-  %e <span class="o">=</span> alloca i32, align 4
-  store i32 5, i32* %a, align 4
-  store i32 3, i32* %b, align 4
-  store i32 0, i32* %c, align 4
-  store i32 0, i32* %d, align 4
-  store i32 0, i32* %e, align 4
-  %0 <span class="o">=</span> load i32* %a, align 4
-  %1 <span class="o">=</span> load i32* %b, align 4
-  %and <span class="o">=</span> and i32 %0, %1
-  store i32 %and, i32* %c, align 4
-  %2 <span class="o">=</span> load i32* %a, align 4
-  %3 <span class="o">=</span> load i32* %b, align 4
-  %or <span class="o">=</span> or i32 %2, %3
-  store i32 %or, i32* %d, align 4
-  %4 <span class="o">=</span> load i32* %a, align 4
-  %5 <span class="o">=</span> load i32* %b, align 4
-  %xor <span class="o">=</span> xor i32 %4, %5
-  store i32 %xor, i32* %e, align 4
-  %6 <span class="o">=</span> load i32* %a, align 4
-  %tobool <span class="o">=</span> icmp ne i32 %6, 0
-  %lnot <span class="o">=</span> xor i1 %tobool, <span class="nb">true</span>
-  %conv <span class="o">=</span> zext i1 %lnot to i32
-  store i32 %conv, i32* %b, align 4
-  %7 <span class="o">=</span> load i32* %c, align 4
-  %8 <span class="o">=</span> load i32* %d, align 4
-  %add <span class="o">=</span> add nsw i32 %7, %8
-  %9 <span class="o">=</span> load i32* %e, align 4
-  %add1 <span class="o">=</span> add nsw i32 %add, %9
-  %10 <span class="o">=</span> load i32* %b, align 4
-  %add2 <span class="o">=</span> add nsw i32 %add1, %10
-  ret i32 %add2
-<span class="o">}</span>
+<div class="highlight-bash"><div class="highlight"><pre> 114-43-204-152:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
+ ch4_5.cpp -emit-llvm -o ch4_5.bc
+ 114-43-204-152:InputFiles Jonathan<span class="nv">$ </span>llvm-dis ch4_5.bc -o -
+ ...
+ ; Function Attrs: nounwind uwtable
+ define i32 @_Z16test_andorxornotv<span class="o">()</span> <span class="c">#0 {</span>
+ entry:
+   %a <span class="o">=</span> alloca i32, align 4
+   %b <span class="o">=</span> alloca i32, align 4
+   %c <span class="o">=</span> alloca i32, align 4
+   %d <span class="o">=</span> alloca i32, align 4
+   %e <span class="o">=</span> alloca i32, align 4
+   store i32 5, i32* %a, align 4
+   store i32 3, i32* %b, align 4
+   store i32 0, i32* %c, align 4
+   store i32 0, i32* %d, align 4
+   store i32 0, i32* %e, align 4
+   %0 <span class="o">=</span> load i32* %a, align 4
+   %1 <span class="o">=</span> load i32* %b, align 4
+   %and <span class="o">=</span> and i32 %0, %1
+   store i32 %and, i32* %c, align 4
+   %2 <span class="o">=</span> load i32* %a, align 4
+   %3 <span class="o">=</span> load i32* %b, align 4
+   %or <span class="o">=</span> or i32 %2, %3
+   store i32 %or, i32* %d, align 4
+   %4 <span class="o">=</span> load i32* %a, align 4
+   %5 <span class="o">=</span> load i32* %b, align 4
+   %xor <span class="o">=</span> xor i32 %4, %5
+   store i32 %xor, i32* %e, align 4
+   %6 <span class="o">=</span> load i32* %a, align 4
+   %tobool <span class="o">=</span> icmp ne i32 %6, 0
+   %lnot <span class="o">=</span> xor i1 %tobool, <span class="nb">true</span>
+   %conv <span class="o">=</span> zext i1 %lnot to i32
+   store i32 %conv, i32* %b, align 4
+   %7 <span class="o">=</span> load i32* %c, align 4
+   %8 <span class="o">=</span> load i32* %d, align 4
+   %add <span class="o">=</span> add nsw i32 %7, %8
+   %9 <span class="o">=</span> load i32* %e, align 4
+   %add1 <span class="o">=</span> add nsw i32 %add, %9
+   %10 <span class="o">=</span> load i32* %b, align 4
+   %add2 <span class="o">=</span> add nsw i32 %add1, %10
+   ret i32 %add2
+ <span class="o">}</span>
 
-; Function Attrs: nounwind uwtable
-define i32 @_Z10test_setxxv<span class="o">()</span> <span class="c">#0 {</span>
-entry:
-  %a <span class="o">=</span> alloca i32, align 4
-  %b <span class="o">=</span> alloca i32, align 4
-  %c <span class="o">=</span> alloca i32, align 4
-  %d <span class="o">=</span> alloca i32, align 4
-  %e <span class="o">=</span> alloca i32, align 4
-  %f <span class="o">=</span> alloca i32, align 4
-  %g <span class="o">=</span> alloca i32, align 4
-  %h <span class="o">=</span> alloca i32, align 4
-  store i32 5, i32* %a, align 4
-  store i32 3, i32* %b, align 4
-  %0 <span class="o">=</span> load i32* %a, align 4
-  %1 <span class="o">=</span> load i32* %b, align 4
-  %cmp <span class="o">=</span> icmp eq i32 %0, %1
-  %conv <span class="o">=</span> zext i1 %cmp to i32
-  store i32 %conv, i32* %c, align 4
-  %2 <span class="o">=</span> load i32* %a, align 4
-  %3 <span class="o">=</span> load i32* %b, align 4
-  %cmp1 <span class="o">=</span> icmp ne i32 %2, %3
-  %conv2 <span class="o">=</span> zext i1 %cmp1 to i32
-  store i32 %conv2, i32* %d, align 4
-  %4 <span class="o">=</span> load i32* %a, align 4
-  %5 <span class="o">=</span> load i32* %b, align 4
-  %cmp3 <span class="o">=</span> icmp slt i32 %4, %5
-  %conv4 <span class="o">=</span> zext i1 %cmp3 to i32
-  store i32 %conv4, i32* %e, align 4
-  %6 <span class="o">=</span> load i32* %a, align 4
-  %7 <span class="o">=</span> load i32* %b, align 4
-  %cmp5 <span class="o">=</span> icmp sle i32 %6, %7
-  %conv6 <span class="o">=</span> zext i1 %cmp5 to i32
-  store i32 %conv6, i32* %f, align 4
-  %8 <span class="o">=</span> load i32* %a, align 4
-  %9 <span class="o">=</span> load i32* %b, align 4
-  %cmp7 <span class="o">=</span> icmp sgt i32 %8, %9
-  %conv8 <span class="o">=</span> zext i1 %cmp7 to i32
-  store i32 %conv8, i32* %g, align 4
-  %10 <span class="o">=</span> load i32* %a, align 4
-  %11 <span class="o">=</span> load i32* %b, align 4
-  %cmp9 <span class="o">=</span> icmp sge i32 %10, %11
-  %conv10 <span class="o">=</span> zext i1 %cmp9 to i32
-  store i32 %conv10, i32* %h, align 4
-  %12 <span class="o">=</span> load i32* %c, align 4
-  %13 <span class="o">=</span> load i32* %d, align 4
-  %add <span class="o">=</span> add nsw i32 %12, %13
-  %14 <span class="o">=</span> load i32* %e, align 4
-  %add11 <span class="o">=</span> add nsw i32 %add, %14
-  %15 <span class="o">=</span> load i32* %f, align 4
-  %add12 <span class="o">=</span> add nsw i32 %add11, %15
-  %16 <span class="o">=</span> load i32* %g, align 4
-  %add13 <span class="o">=</span> add nsw i32 %add12, %16
-  %17 <span class="o">=</span> load i32* %h, align 4
-  %add14 <span class="o">=</span> add nsw i32 %add13, %17
-  ret i32 %add14
-<span class="o">}</span>
+ ; Function Attrs: nounwind uwtable
+ define i32 @_Z10test_setxxv<span class="o">()</span> <span class="c">#0 {</span>
+ entry:
+   %a <span class="o">=</span> alloca i32, align 4
+   %b <span class="o">=</span> alloca i32, align 4
+   %c <span class="o">=</span> alloca i32, align 4
+   %d <span class="o">=</span> alloca i32, align 4
+   %e <span class="o">=</span> alloca i32, align 4
+   %f <span class="o">=</span> alloca i32, align 4
+   %g <span class="o">=</span> alloca i32, align 4
+   %h <span class="o">=</span> alloca i32, align 4
+   store i32 5, i32* %a, align 4
+   store i32 3, i32* %b, align 4
+   %0 <span class="o">=</span> load i32* %a, align 4
+   %1 <span class="o">=</span> load i32* %b, align 4
+   %cmp <span class="o">=</span> icmp eq i32 %0, %1
+   %conv <span class="o">=</span> zext i1 %cmp to i32
+   store i32 %conv, i32* %c, align 4
+   %2 <span class="o">=</span> load i32* %a, align 4
+   %3 <span class="o">=</span> load i32* %b, align 4
+   %cmp1 <span class="o">=</span> icmp ne i32 %2, %3
+   %conv2 <span class="o">=</span> zext i1 %cmp1 to i32
+   store i32 %conv2, i32* %d, align 4
+   %4 <span class="o">=</span> load i32* %a, align 4
+   %5 <span class="o">=</span> load i32* %b, align 4
+   %cmp3 <span class="o">=</span> icmp slt i32 %4, %5
+   %conv4 <span class="o">=</span> zext i1 %cmp3 to i32
+   store i32 %conv4, i32* %e, align 4
+   %6 <span class="o">=</span> load i32* %a, align 4
+   %7 <span class="o">=</span> load i32* %b, align 4
+   %cmp5 <span class="o">=</span> icmp sle i32 %6, %7
+   %conv6 <span class="o">=</span> zext i1 %cmp5 to i32
+   store i32 %conv6, i32* %f, align 4
+   %8 <span class="o">=</span> load i32* %a, align 4
+   %9 <span class="o">=</span> load i32* %b, align 4
+   %cmp7 <span class="o">=</span> icmp sgt i32 %8, %9
+   %conv8 <span class="o">=</span> zext i1 %cmp7 to i32
+   store i32 %conv8, i32* %g, align 4
+   %10 <span class="o">=</span> load i32* %a, align 4
+   %11 <span class="o">=</span> load i32* %b, align 4
+   %cmp9 <span class="o">=</span> icmp sge i32 %10, %11
+   %conv10 <span class="o">=</span> zext i1 %cmp9 to i32
+   store i32 %conv10, i32* %h, align 4
+   %12 <span class="o">=</span> load i32* %c, align 4
+   %13 <span class="o">=</span> load i32* %d, align 4
+   %add <span class="o">=</span> add nsw i32 %12, %13
+   %14 <span class="o">=</span> load i32* %e, align 4
+   %add11 <span class="o">=</span> add nsw i32 %add, %14
+   %15 <span class="o">=</span> load i32* %f, align 4
+   %add12 <span class="o">=</span> add nsw i32 %add11, %15
+   %16 <span class="o">=</span> load i32* %g, align 4
+   %add13 <span class="o">=</span> add nsw i32 %add12, %16
+   %17 <span class="o">=</span> load i32* %h, align 4
+   %add14 <span class="o">=</span> add nsw i32 %add13, %17
+   ret i32 %add14
+ <span class="o">}</span>
 
-114-43-204-152:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch4_5.bc -o -
-        .section .mdebug.abi32
-        .previous
-        .file <span class="s2">&quot;ch4_5.bc&quot;</span>
-        .text
-        .globl        _Z16test_andorxornotv
-        .align        2
-        .type _Z16test_andorxornotv,@function
-        .ent  _Z16test_andorxornotv   <span class="c"># @_Z16test_andorxornotv</span>
-_Z16test_andorxornotv:
-        .cfi_startproc
-        .frame        <span class="nv">$fp</span>,24,<span class="nv">$lr</span>
-        .mask         0x00000800,-4
-        .set  noreorder
-        .set  nomacro
-<span class="c"># BB#0:                                 # %entry</span>
-        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
-<span class="nv">$tmp3</span>:
-        .cfi_def_cfa_offset 24
-        st    <span class="nv">$fp</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
-<span class="nv">$tmp4</span>:
-        .cfi_offset 11, -4
-        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
-<span class="nv">$tmp5</span>:
-        .cfi_def_cfa_register 11
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
-        st    <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
-        st    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        and   <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-        st    <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        or    <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-        st    <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        xor   <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-        st    <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 2
-        shr   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-        st    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-        ld    <span class="nv">$4</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-        addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
-        ld    <span class="nv">$fp</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
-        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 24
-        ret   <span class="nv">$lr</span>
-        .set  macro
-        .set  reorder
-        .end  _Z16test_andorxornotv
-<span class="nv">$tmp6</span>:
-        .size _Z16test_andorxornotv, <span class="o">(</span><span class="nv">$tmp6</span><span class="o">)</span>-_Z16test_andorxornotv
-        .cfi_endproc
+ 114-43-204-152:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+ bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch4_5.bc -o -
+-filetype<span class="o">=</span>asm ch4_5.bc -o -
+   .section .mdebug.abi32
+   .previous
+   .file <span class="s2">&quot;ch4_5.bc&quot;</span>
+   .text
+   .globl  _Z16test_andorxornotv
+   .align  2
+   .type _Z16test_andorxornotv,@function
+   .ent  _Z16test_andorxornotv   <span class="c"># @_Z16test_andorxornotv</span>
+ _Z16test_andorxornotv:
+   .frame  <span class="nv">$fp</span>,24,<span class="nv">$lr</span>
+   .mask   0x00000000,0
+   .set  noreorder
+   .set  nomacro
+ <span class="c"># BB#0:                                 # %entry</span>
+   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
+   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
+   st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
+   st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+   st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   and <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+   st  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   or  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+   st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   xor <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+   st  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+   mfsw  <span class="nv">$2</span>
+   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+   shr <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 24
+   ret <span class="nv">$lr</span>
+   .set  macro
+   .set  reorder
+   .end  _Z16test_andorxornotv
+ <span class="nv">$tmp1</span>:
+   .size _Z16test_andorxornotv, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-_Z16test_andorxornotv
 
-        .globl        _Z10test_setxxv
-        .align        2
-        .type _Z10test_setxxv,@function
-        .ent  _Z10test_setxxv         <span class="c"># @_Z10test_setxxv</span>
-_Z10test_setxxv:
-        .cfi_startproc
-        .frame        <span class="nv">$fp</span>,40,<span class="nv">$lr</span>
-        .mask         0x00000800,-4
-        .set  noreorder
-        .set  nomacro
-<span class="c"># BB#0:                                 # %entry</span>
-        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -40
-<span class="nv">$tmp10</span>:
-        .cfi_def_cfa_offset 40
-        st    <span class="nv">$fp</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
-<span class="nv">$tmp11</span>:
-        .cfi_offset 11, -4
-        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
-<span class="nv">$tmp12</span>:
-        .cfi_def_cfa_register 11
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
-        st    <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
-        st    <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 2
-        shr   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 2
-        shr   <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-        xori  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-        st    <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
-        st    <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
-        xori  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-        st    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
-        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
-        xori  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-        ld    <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-        ld    <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-        ld    <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-        addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
-        ld    <span class="nv">$fp</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
-        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 40
-        ret   <span class="nv">$lr</span>
-        .set  macro
-        .set  reorder
-        .end  _Z10test_setxxv
-<span class="nv">$tmp13</span>:
-        .size _Z10test_setxxv, <span class="o">(</span><span class="nv">$tmp13</span><span class="o">)</span>-_Z10test_setxxv
-        .cfi_endproc
+   .globl  _Z10test_setxxv
+   .align  2
+   .type _Z10test_setxxv,@function
+   .ent  _Z10test_setxxv         <span class="c"># @_Z10test_setxxv</span>
+ _Z10test_setxxv:
+   .frame  <span class="nv">$fp</span>,32,<span class="nv">$lr</span>
+   .mask   0x00000000,0
+   .set  noreorder
+   .set  nomacro
+ <span class="c"># BB#0:                                 # %entry</span>
+   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -32
+   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
+   st  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
+   st  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+   mfsw  <span class="nv">$2</span>
+   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+   shr <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+   mfsw  <span class="nv">$2</span>
+   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+   shr <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   xori  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+   mfsw  <span class="nv">$2</span>
+   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+   mfsw  <span class="nv">$2</span>
+   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   xori  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+   mfsw  <span class="nv">$2</span>
+   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+   mfsw  <span class="nv">$2</span>
+   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   xori  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 32
+   ret <span class="nv">$lr</span>
+   .set  macro
+   .set  reorder
+   .end  _Z10test_setxxv
+ <span class="nv">$tmp3</span>:
+   .size _Z10test_setxxv, <span class="o">(</span><span class="nv">$tmp3</span><span class="o">)</span>-_Z10test_setxxv
 </pre></div>
 </div>
 <table border="1" class="docutils">
@@ -1989,7 +1911,8 @@ _Z10test_setxxv:
 </td>
 <td><ul class="first last simple">
 <li>cmp $sw, $3, $2</li>
-<li>andi  $2, $sw, 2</li>
+<li>mfsw  $2</li>
+<li>andi  $2, $2, 2</li>
 <li>shr $2, $2, 1</li>
 </ul>
 </td>
@@ -2006,7 +1929,8 @@ _Z10test_setxxv:
 </td>
 <td><ul class="first last simple">
 <li>cmp $sw, $3, $2</li>
-<li>andi  $2, $sw, 2</li>
+<li>mfsw  $2</li>
+<li>andi  $2, $2, 2</li>
 <li>shr $2, $2, 1</li>
 </ul>
 </td>
@@ -2023,7 +1947,8 @@ _Z10test_setxxv:
 </td>
 <td><ul class="first last simple">
 <li>cmp $sw, $3, $2</li>
-<li>andi  $2, $sw, 2</li>
+<li>mfsw  $2</li>
+<li>andi  $2, $2, 2</li>
 </ul>
 </td>
 </tr>
@@ -2039,7 +1964,8 @@ _Z10test_setxxv:
 </td>
 <td><ul class="first last simple">
 <li>cmp $sw, $2, $3</li>
-<li>andi  $2, $sw, 1</li>
+<li>mfsw  $2</li>
+<li>andi  $2, $2, 1</li>
 <li>xori  $2, $2, 1</li>
 </ul>
 </td>
@@ -2056,7 +1982,8 @@ _Z10test_setxxv:
 </td>
 <td><ul class="first last simple">
 <li>cmp $sw, $2, $3</li>
-<li>andi  $2, $sw, 2</li>
+<li>mfsw  $2</li>
+<li>andi  $2, $2, 2</li>
 </ul>
 </td>
 </tr>
@@ -2072,7 +1999,8 @@ _Z10test_setxxv:
 </td>
 <td><ul class="first last simple">
 <li>cmp $sw, $3, $2</li>
-<li>andi  $2, $sw, 1</li>
+<li>mfsw  $2</li>
+<li>andi  $2, $2, 1</li>
 <li>xori  $2, $2, 1</li>
 </ul>
 </td>

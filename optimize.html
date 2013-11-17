@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.6',
+        VERSION:     '3.3.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -104,107 +104,6 @@ optimization algorithm on your backend in real project.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter12_1/Cpu0DelUselessJMP.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0DelUselessJMP.cpp - Cpu0 DelJmp -------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">//                     The LLVM Compiler Infrastructure</span>
-<span class="c1">//</span>
-<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
-<span class="c1">// License. See LICENSE.TXT for details.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">//</span>
-<span class="c1">// Simple pass to fills delay slots with useful instructions.</span>
-<span class="c1">//</span>
-<span class="c1">//===----------------------------------------------------------------------===//</span>
-
-<span class="cp">#define DEBUG_TYPE &quot;del-jmp&quot;</span>
-
-<span class="cp">#include &quot;Cpu0.h&quot;</span>
-<span class="cp">#include &quot;Cpu0TargetMachine.h&quot;</span>
-<span class="cp">#include &quot;llvm/CodeGen/MachineFunctionPass.h&quot;</span>
-<span class="cp">#include &quot;llvm/Support/CommandLine.h&quot;</span>
-<span class="cp">#include &quot;llvm/Target/TargetMachine.h&quot;</span>
-<span class="cp">#include &quot;llvm/Target/TargetInstrInfo.h&quot;</span>
-<span class="cp">#include &quot;llvm/ADT/SmallSet.h&quot;</span>
-<span class="cp">#include &quot;llvm/ADT/Statistic.h&quot;</span>
-
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
-
-<span class="n">STATISTIC</span><span class="p">(</span><span class="n">NumDelJmp</span><span class="p">,</span> <span class="s">&quot;Number of useless jmp deleted&quot;</span><span class="p">);</span>
-
-<span class="k">static</span> <span class="n">cl</span><span class="o">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span> <span class="n">EnableDelJmp</span><span class="p">(</span>
-  <span class="s">&quot;enable-cpu0-del-useless-jmp&quot;</span><span class="p">,</span>
-  <span class="n">cl</span><span class="o">::</span><span class="n">init</span><span class="p">(</span><span class="kc">true</span><span class="p">),</span>
-  <span class="n">cl</span><span class="o">::</span><span class="n">desc</span><span class="p">(</span><span class="s">&quot;Delete useless jmp instructions: jmp 0.&quot;</span><span class="p">),</span>
-  <span class="n">cl</span><span class="o">::</span><span class="n">Hidden</span><span class="p">);</span>
-
-<span class="k">namespace</span> <span class="p">{</span>
-  <span class="k">struct</span> <span class="n">DelJmp</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MachineFunctionPass</span> <span class="p">{</span>
-
-    <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">;</span>
-    <span class="k">const</span> <span class="n">TargetInstrInfo</span> <span class="o">*</span><span class="n">TII</span><span class="p">;</span>
-
-    <span class="k">static</span> <span class="kt">char</span> <span class="n">ID</span><span class="p">;</span>
-    <span class="n">DelJmp</span><span class="p">(</span><span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">tm</span><span class="p">)</span>
-      <span class="o">:</span> <span class="n">MachineFunctionPass</span><span class="p">(</span><span class="n">ID</span><span class="p">),</span> <span class="n">TM</span><span class="p">(</span><span class="n">tm</span><span class="p">),</span> <span class="n">TII</span><span class="p">(</span><span class="n">tm</span><span class="p">.</span><span class="n">getInstrInfo</span><span class="p">())</span> <span class="p">{</span> <span class="p">}</span>
-
-    <span class="k">virtual</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">getPassName</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
-      <span class="k">return</span> <span class="s">&quot;Cpu0 Del Useless jmp&quot;</span><span class="p">;</span>
-    <span class="p">}</span>
-
-    <span class="kt">bool</span> <span class="n">runOnMachineBasicBlock</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBBN</span><span class="p">);</span>
-    <span class="kt">bool</span> <span class="n">runOnMachineFunction</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">F</span><span class="p">)</span> <span class="p">{</span>
-      <span class="kt">bool</span> <span class="n">Changed</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
-      <span class="k">if</span> <span class="p">(</span><span class="n">EnableDelJmp</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">MachineFunction</span><span class="o">::</span><span class="n">iterator</span> <span class="n">FJ</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">FJ</span> <span class="o">!=</span> <span class="n">F</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
-          <span class="n">FJ</span><span class="o">++</span><span class="p">;</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">FJ</span> <span class="o">==</span> <span class="n">F</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
-          <span class="k">return</span> <span class="n">Changed</span><span class="p">;</span>
-        <span class="k">for</span> <span class="p">(</span><span class="n">MachineFunction</span><span class="o">::</span><span class="n">iterator</span> <span class="n">FI</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">FE</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
-             <span class="n">FJ</span> <span class="o">!=</span> <span class="n">FE</span><span class="p">;</span> <span class="o">++</span><span class="n">FI</span><span class="p">,</span> <span class="o">++</span><span class="n">FJ</span><span class="p">)</span>
-          <span class="c1">// In STL style, F.end() is the dummy BasicBlock() like &#39;\0&#39; in </span>
-          <span class="c1">//  C string. </span>
-          <span class="c1">// FJ is the next BasicBlock of FI; When FI range from F.begin() to </span>
-          <span class="c1">//  the PreviousBasicBlock of F.end() call runOnMachineBasicBlock().</span>
-          <span class="n">Changed</span> <span class="o">|=</span> <span class="n">runOnMachineBasicBlock</span><span class="p">(</span><span class="o">*</span><span class="n">FI</span><span class="p">,</span> <span class="o">*</span><span class="n">FJ</span><span class="p">);</span>
-      <span class="p">}</span>
-      <span class="k">return</span> <span class="n">Changed</span><span class="p">;</span>
-    <span class="p">}</span>
-
-  <span class="p">};</span>
-  <span class="kt">char</span> <span class="n">DelJmp</span><span class="o">::</span><span class="n">ID</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span> <span class="c1">// end of anonymous namespace</span>
-
-<span class="kt">bool</span> <span class="n">DelJmp</span><span class="o">::</span>
-<span class="n">runOnMachineBasicBlock</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBBN</span><span class="p">)</span> <span class="p">{</span>
-  <span class="kt">bool</span> <span class="n">Changed</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
-
-  <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span> <span class="o">=</span> <span class="n">MBB</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">I</span> <span class="o">!=</span> <span class="n">MBB</span><span class="p">.</span><span class="n">begin</span><span class="p">())</span>
-    <span class="n">I</span><span class="o">--</span><span class="p">;</span>	<span class="c1">// set I to the last instruction</span>
-  <span class="k">else</span>
-    <span class="k">return</span> <span class="n">Changed</span><span class="p">;</span>
-    
-  <span class="k">if</span> <span class="p">(</span><span class="n">I</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">()</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JMP</span> <span class="o">&amp;&amp;</span> <span class="n">I</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">getMBB</span><span class="p">()</span> <span class="o">==</span> <span class="o">&amp;</span><span class="n">MBBN</span><span class="p">)</span> <span class="p">{</span>
-    <span class="c1">// I is the instruction of &quot;jmp #offset=0&quot;, as follows,</span>
-    <span class="c1">//     jmp	$BB0_3</span>
-    <span class="c1">// $BB0_3:</span>
-    <span class="c1">//     ld	$4, 28($sp)</span>
-    <span class="o">++</span><span class="n">NumDelJmp</span><span class="p">;</span>
-    <span class="n">MBB</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">I</span><span class="p">);</span>	<span class="c1">// delete the &quot;JMP 0&quot; instruction</span>
-    <span class="n">Changed</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>	<span class="c1">// Notify LLVM kernel Changed</span>
-  <span class="p">}</span>
-  <span class="k">return</span> <span class="n">Changed</span><span class="p">;</span>
-
-<span class="p">}</span>
-
-<span class="c1">/// createCpu0DelJmpPass - Returns a pass that DelJmp in Cpu0 MachineFunctions</span>
-<span class="n">FunctionPass</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0DelJmpPass</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">tm</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="k">new</span> <span class="n">DelJmp</span><span class="p">(</span><span class="n">tm</span><span class="p">);</span>
-<span class="p">}</span>
-</pre></div>
-</div>
 <p>As above code, except Cpu0DelUselessJMP.cpp, other files changed for register
 class DelJmp as a functional pass. As comment of above code, MBB is the current
 block and MBBN is the next block. For the last instruction of every MBB, we
@@ -340,8 +239,7 @@ Mips style BEQ instructions will reduce the number of branch instructions too.
 Which means optimization in speed and code size.</p>
 <div class="section" id="cpu0-new-instruction-sets-table">
 <h3>Cpu0 new instruction sets table<a class="headerlink" href="#cpu0-new-instruction-sets-table" title="Permalink to this headline">¶</a></h3>
-<p>Redesign Cpu0 instruction set and remap OP code as follows (OP code
-0x00 is reserved for NOP operation in pipeline architecture),</p>
+<p>Add Cpu0 instructions as follows,</p>
 <ul class="simple">
 <li>First column F.: meaning Format.</li>
 </ul>
@@ -364,272 +262,6 @@ Which means optimization in speed and code size.</p>
 <td>Meaning</td>
 <td>Syntax</td>
 <td>Operation</td>
-</tr>
-<tr class="row-even"><td>L</td>
-<td>NOP</td>
-<td>00</td>
-<td>No Operation</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-</tr>
-<tr class="row-odd"><td>L</td>
-<td>LD</td>
-<td>01</td>
-<td>Load word</td>
-<td>LD Ra, [Rb+Cx]</td>
-<td>Ra &lt;= [Rb+Cx]</td>
-</tr>
-<tr class="row-even"><td>L</td>
-<td>ST</td>
-<td>02</td>
-<td>Store word</td>
-<td>ST Ra, [Rb+Cx]</td>
-<td>[Rb+Cx] &lt;= Ra</td>
-</tr>
-<tr class="row-odd"><td>L</td>
-<td>LB</td>
-<td>03</td>
-<td>Load byte</td>
-<td>LB Ra, [Rb+Cx]</td>
-<td>Ra &lt;= (byte)[Rb+Cx]</td>
-</tr>
-<tr class="row-even"><td>L</td>
-<td>LBu</td>
-<td>04</td>
-<td>Load byte unsigned</td>
-<td>LBu Ra, [Rb+Cx]</td>
-<td>Ra &lt;= (byte)[Rb+Cx]</td>
-</tr>
-<tr class="row-odd"><td>L</td>
-<td>SB</td>
-<td>05</td>
-<td>Store byte</td>
-<td>SB Ra, [Rb+Cx]</td>
-<td>[Rb+Cx] &lt;= (byte)Ra</td>
-</tr>
-<tr class="row-even"><td>A</td>
-<td>LH</td>
-<td>06</td>
-<td>Load half word unsigned</td>
-<td>LH Ra, [Rb+Cx]</td>
-<td>Ra &lt;= (2bytes)[Rb+Cx]</td>
-</tr>
-<tr class="row-odd"><td>A</td>
-<td>LHu</td>
-<td>07</td>
-<td>Load half word</td>
-<td>LHu Ra, [Rb+Cx]</td>
-<td>Ra &lt;= (2bytes)[Rb+Cx]</td>
-</tr>
-<tr class="row-even"><td>A</td>
-<td>SH</td>
-<td>08</td>
-<td>Store half word</td>
-<td>SH Ra, [Rb+Cx]</td>
-<td>[Rb+Rc] &lt;= Ra</td>
-</tr>
-<tr class="row-odd"><td>L</td>
-<td>ADDiu</td>
-<td>09</td>
-<td>Add immediate</td>
-<td>ADDiu Ra, Rb, Cx</td>
-<td>Ra &lt;= (Rb + Cx)</td>
-</tr>
-<tr class="row-even"><td>L</td>
-<td>ANDi</td>
-<td>0C</td>
-<td>AND imm</td>
-<td>ANDi Ra, Rb, Cx</td>
-<td>Ra &lt;= (Rb &amp; Cx)</td>
-</tr>
-<tr class="row-odd"><td>L</td>
-<td>ORi</td>
-<td>0D</td>
-<td>OR</td>
-<td>ORi Ra, Rb, Cx</td>
-<td>Ra &lt;= (Rb | Cx)</td>
-</tr>
-<tr class="row-even"><td>L</td>
-<td>XORi</td>
-<td>0E</td>
-<td>XOR</td>
-<td>XORi Ra, Rb, Cx</td>
-<td>Ra &lt;= (Rb ^ Cx)</td>
-</tr>
-<tr class="row-odd"><td>L</td>
-<td>LUi</td>
-<td>0F</td>
-<td>Load upper</td>
-<td>LUi Ra, Cx</td>
-<td>Ra &lt;= (Cx &lt;&lt; 16)</td>
-</tr>
-<tr class="row-even"><td>A</td>
-<td>ADDu</td>
-<td>11</td>
-<td>Add unsigned</td>
-<td>ADD Ra, Rb, Rc</td>
-<td>Ra &lt;= Rb + Rc</td>
-</tr>
-<tr class="row-odd"><td>A</td>
-<td>SUBu</td>
-<td>12</td>
-<td>Sub unsigned</td>
-<td>SUB Ra, Rb, Rc</td>
-<td>Ra &lt;= Rb - Rc</td>
-</tr>
-<tr class="row-even"><td>A</td>
-<td>ADD</td>
-<td>13</td>
-<td>Add</td>
-<td>ADD Ra, Rb, Rc</td>
-<td>Ra &lt;= Rb + Rc</td>
-</tr>
-<tr class="row-odd"><td>A</td>
-<td>SUB</td>
-<td>14</td>
-<td>Subtract</td>
-<td>SUB Ra, Rb, Rc</td>
-<td>Ra &lt;= Rb - Rc</td>
-</tr>
-<tr class="row-even"><td>A</td>
-<td>MUL</td>
-<td>17</td>
-<td>Multiply</td>
-<td>MUL Ra, Rb, Rc</td>
-<td>Ra &lt;= Rb * Rc</td>
-</tr>
-<tr class="row-odd"><td>A</td>
-<td>AND</td>
-<td>18</td>
-<td>Bitwise and</td>
-<td>AND Ra, Rb, Rc</td>
-<td>Ra &lt;= Rb &amp; Rc</td>
-</tr>
-<tr class="row-even"><td>A</td>
-<td>OR</td>
-<td>19</td>
-<td>Bitwise or</td>
-<td>OR Ra, Rb, Rc</td>
-<td>Ra &lt;= Rb | Rc</td>
-</tr>
-<tr class="row-odd"><td>A</td>
-<td>XOR</td>
-<td>1A</td>
-<td>Bitwise exclusive or</td>
-<td>XOR Ra, Rb, Rc</td>
-<td>Ra &lt;= Rb ^ Rc</td>
-</tr>
-<tr class="row-even"><td>A</td>
-<td>ROL</td>
-<td>1B</td>
-<td>Rotate left</td>
-<td>ROL Ra, Rb, Cx</td>
-<td>Ra &lt;= Rb rol Cx</td>
-</tr>
-<tr class="row-odd"><td>A</td>
-<td>ROR</td>
-<td>1C</td>
-<td>Rotate right</td>
-<td>ROR Ra, Rb, Cx</td>
-<td>Ra &lt;= Rb ror Cx</td>
-</tr>
-<tr class="row-even"><td>A</td>
-<td>SRA</td>
-<td>1D</td>
-<td>Shift right</td>
-<td>SRA Ra, Rb, Cx</td>
-<td>Ra &lt;= Rb &#8216;&gt;&gt; Cx <a class="footnote-reference" href="#sra-note" id="id1">[1]</a></td>
-</tr>
-<tr class="row-odd"><td>A</td>
-<td>SHL</td>
-<td>1E</td>
-<td>Shift left</td>
-<td>SHL Ra, Rb, Cx</td>
-<td>Ra &lt;= Rb &lt;&lt; Cx</td>
-</tr>
-<tr class="row-even"><td>A</td>
-<td>SHR</td>
-<td>1F</td>
-<td>Shift right</td>
-<td>SHR Ra, Rb, Cx</td>
-<td>Ra &lt;= Rb &gt;&gt; Cx</td>
-</tr>
-<tr class="row-odd"><td>A</td>
-<td>SRAV</td>
-<td>20</td>
-<td>Shift right</td>
-<td>SRAV Ra, Rb, Rc</td>
-<td>Ra &lt;= Rb &#8216;&gt;&gt; Rc <a class="footnote-reference" href="#sra-note" id="id2">[1]</a></td>
-</tr>
-<tr class="row-even"><td>A</td>
-<td>SHLV</td>
-<td>21</td>
-<td>Shift left</td>
-<td>SHLV Ra, Rb, Rc</td>
-<td>Ra &lt;= Rb &lt;&lt; Rc</td>
-</tr>
-<tr class="row-odd"><td>A</td>
-<td>SHRV</td>
-<td>22</td>
-<td>Shift right</td>
-<td>SHRV Ra, Rb, Rc</td>
-<td>Ra &lt;= Rb &gt;&gt; Rc</td>
-</tr>
-<tr class="row-even"><td>L</td>
-<td>BEQ</td>
-<td>30</td>
-<td>Jump if equal</td>
-<td>BEQ Ra, Rb, Cx</td>
-<td>if (Ra==Rb), PC &lt;= PC + Cx</td>
-</tr>
-<tr class="row-odd"><td>L</td>
-<td>BNE</td>
-<td>31</td>
-<td>Jump if not equal</td>
-<td>BNE Ra, Rb, Cx</td>
-<td>if (Ra!=Rb), PC &lt;= PC + Cx</td>
-</tr>
-<tr class="row-even"><td>J</td>
-<td>JMP</td>
-<td>36</td>
-<td>Jump (unconditional)</td>
-<td>JMP Cx</td>
-<td>PC &lt;= PC + Cx</td>
-</tr>
-<tr class="row-odd"><td>J</td>
-<td>SWI</td>
-<td>3A</td>
-<td>Software interrupt</td>
-<td>SWI Cx</td>
-<td>LR &lt;= PC; PC &lt;= Cx</td>
-</tr>
-<tr class="row-even"><td>J</td>
-<td>JSUB</td>
-<td>3B</td>
-<td>Jump to subroutine</td>
-<td>JSUB Cx</td>
-<td>LR &lt;= PC; PC &lt;= PC + Cx</td>
-</tr>
-<tr class="row-odd"><td>J</td>
-<td>RET</td>
-<td>3C</td>
-<td>Return from subroutine</td>
-<td>RET LR</td>
-<td>PC &lt;= LR</td>
-</tr>
-<tr class="row-even"><td>J</td>
-<td>IRET</td>
-<td>3D</td>
-<td>Return from interrupt handler</td>
-<td>IRET</td>
-<td>PC &lt;= LR; INT 0</td>
-</tr>
-<tr class="row-odd"><td>J</td>
-<td>JALR</td>
-<td>3E</td>
-<td>Jump to subroutine</td>
-<td>JR Rb</td>
-<td>LR &lt;= PC; PC &lt;= Rb</td>
 </tr>
 <tr class="row-even"><td>L</td>
 <td>SLTi</td>
@@ -660,98 +292,38 @@ Which means optimization in speed and code size.</p>
 <td>Ra &lt;= (Rb &lt; Rc)</td>
 </tr>
 <tr class="row-even"><td>L</td>
-<td>MULT</td>
-<td>41</td>
-<td>Multiply for 64 bits result</td>
-<td>MULT Ra, Rb</td>
-<td>(HI,LO) &lt;= MULT(Ra,Rb)</td>
+<td>BEQ</td>
+<td>37</td>
+<td>Jump if equal</td>
+<td>BEQ Ra, Rb, Cx</td>
+<td>if (Ra==Rb), PC &lt;= PC + Cx</td>
 </tr>
 <tr class="row-odd"><td>L</td>
-<td>MULTU</td>
-<td>42</td>
-<td>MULT for unsigned 64 bits</td>
-<td>MULTU Ra, Rb</td>
-<td>(HI,LO) &lt;= MULTU(Ra,Rb)</td>
-</tr>
-<tr class="row-even"><td>L</td>
-<td>DIV</td>
-<td>43</td>
-<td>Divide</td>
-<td>DIV Ra, Rb</td>
-<td>HI&lt;=Ra%Rb, LO&lt;=Ra/Rb</td>
-</tr>
-<tr class="row-odd"><td>L</td>
-<td>DIVU</td>
-<td>44</td>
-<td>Divide</td>
-<td>DIV Ra, Rb</td>
-<td>HI&lt;=Ra%Rb, LO&lt;=Ra/Rb</td>
-</tr>
-<tr class="row-even"><td>L</td>
-<td>MFHI</td>
-<td>46</td>
-<td>Move HI to GPR</td>
-<td>MFHI Ra</td>
-<td>Ra &lt;= HI</td>
-</tr>
-<tr class="row-odd"><td>L</td>
-<td>MFLO</td>
-<td>47</td>
-<td>Move LO to GPR</td>
-<td>MFLO Ra</td>
-<td>Ra &lt;= LO</td>
-</tr>
-<tr class="row-even"><td>L</td>
-<td>MTHI</td>
-<td>48</td>
-<td>Move GPR to HI</td>
-<td>MTHI Ra</td>
-<td>HI &lt;= Ra</td>
-</tr>
-<tr class="row-odd"><td>L</td>
-<td>MTLO</td>
-<td>49</td>
-<td>Move GPR to LO</td>
-<td>MTLO Ra</td>
-<td>LO &lt;= Ra</td>
+<td>BNE</td>
+<td>38</td>
+<td>Jump if not equal</td>
+<td>BNE Ra, Rb, Cx</td>
+<td>if (Ra!=Rb), PC &lt;= PC + Cx</td>
 </tr>
 </tbody>
 </table>
-<p>As above, the OPu, such as ADDu is for unsigned integer or No Trigger
-Exception. The LUi for example, &#8220;LUi $2, 0x7000&#8221;, load 0x700 to high 16 bits
-of $2 and fill the low 16 bits of $2 to 0x0000.</p>
 </div>
 <div class="section" id="cpu0-code-changes">
 <h3>Cpu0 code changes<a class="headerlink" href="#cpu0-code-changes" title="Permalink to this headline">¶</a></h3>
 <p>Chapter12_2/ include the changes for new instruction sets as follows,</p>
-<p class="rubric">lbdex/Chapter12_2/AsmParser/Cpu0AsmParser.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0AsmParser.cpp</span>
-<span class="p">...</span>
-<span class="kt">int</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">matchRegisterName</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">Name</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">...</span>
-      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;t0&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">T0</span><span class="p">)</span>
-  <span class="p">...</span>
-<span class="p">}</span>
-</pre></div>
-</div>
 <p class="rubric">lbdex/Chapter12_2/Disassembler/Cpu0Disassembler.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Decoder tables for Cpu0 register</span>
-<span class="k">static</span> <span class="k">const</span> <span class="kt">unsigned</span> <span class="n">CPURegsTable</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
-<span class="c1">// Change SW to T0 which is a caller saved</span>
-  <span class="n">Cpu0</span><span class="o">::</span><span class="n">T0</span><span class="p">,</span> <span class="p">...</span>
-<span class="p">};</span>
-
-<span class="c1">// DecodeCMPInstruction() function is removed since No CMP instruction.</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeBranch16Target</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                       <span class="kt">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
+                                       <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                       <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">);</span>
 <span class="p">...</span>
-
-<span class="c1">// Change DecodeBranchTarget() to following for 16 bit offset</span>
-<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeBranchTarget</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeBranch16Target</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
                                        <span class="kt">unsigned</span> <span class="n">Insn</span><span class="p">,</span>
                                        <span class="n">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
                                        <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">)</span> <span class="p">{</span>
   <span class="kt">int</span> <span class="n">BranchOffset</span> <span class="o">=</span> <span class="n">fieldFromInstruction</span><span class="p">(</span><span class="n">Insn</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">16</span><span class="p">);</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">BranchOffset</span> <span class="o">&gt;</span> <span class="mh">0x8fff</span><span class="p">)</span>
-      <span class="n">BranchOffset</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="mh">0x10000</span> <span class="o">-</span> <span class="n">BranchOffset</span><span class="p">);</span>
+    <span class="n">BranchOffset</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="mh">0x10000</span> <span class="o">-</span> <span class="n">BranchOffset</span><span class="p">);</span>
   <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">BranchOffset</span><span class="p">));</span>
   <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Success</span><span class="p">;</span>
 <span class="p">}</span>
@@ -784,14 +356,21 @@ of $2 and fill the low 16 bits of $2 to 0x0000.</p>
 <span class="p">...</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Chapter12_2/MCTargetDesc/Cpu0BaseInfo.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kr">inline</span> <span class="k">static</span> <span class="kt">unsigned</span> <span class="n">getCpu0RegisterNumbering</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">RegEnum</span><span class="p">)</span>
-<span class="p">{</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">RegEnum</span><span class="p">)</span> <span class="p">{</span>
+<p class="rubric">lbdex/Chapter12_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0ELFObjectWriter</span><span class="o">::</span><span class="n">GetRelocType</span><span class="p">(</span><span class="k">const</span> <span class="n">MCValue</span> <span class="o">&amp;</span><span class="n">Target</span><span class="p">,</span>
+                                           <span class="k">const</span> <span class="n">MCFixup</span> <span class="o">&amp;</span><span class="n">Fixup</span><span class="p">,</span>
+                                           <span class="kt">bool</span> <span class="n">IsPCRel</span><span class="p">,</span>
+                                           <span class="kt">bool</span> <span class="n">IsRelocWithSymbol</span><span class="p">,</span>
+                                           <span class="n">int64_t</span> <span class="n">Addend</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="p">...</span>
-  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">T0:</span>
-  <span class="p">...</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">fixup_Cpu0_PC16:</span>
+    <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="o">::</span><span class="n">R_CPU0_PC16</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+    <span class="p">...</span>
   <span class="p">}</span>
+  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -806,22 +385,64 @@ of $2 and fill the low 16 bits of $2 to 0x0000.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter12_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
-<span class="n">getBranchTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="c1">// getBranch16TargetOpValue - Return binary encoding of the branch</span>
+  <span class="c1">// target operand, such as BEQ, BNE. If the machine operand</span>
+  <span class="c1">// requires relocation, record the relocation and return zero.</span>
+  <span class="kt">unsigned</span> <span class="n">getBranch16TargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+                                  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+
+<span class="p">...</span>
+<span class="c1">/// getBranch16TargetOpValue - Return binary encoding of the branch</span>
+<span class="c1">/// target operand. If the machine operand requires relocation,</span>
+<span class="c1">/// record the relocation and return zero.</span>
+<span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
+<span class="n">getBranch16TargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
                        <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="p">...</span>
+
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">MO</span> <span class="o">=</span> <span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">OpNo</span><span class="p">);</span>
+
+  <span class="c1">// If the destination is an immediate, we have nothing to do.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isImm</span><span class="p">())</span> <span class="k">return</span> <span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isExpr</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;getBranch16TargetOpValue expects only expressions&quot;</span><span class="p">);</span>
+
+  <span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span> <span class="o">=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getExpr</span><span class="p">();</span>
   <span class="n">Fixups</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MCFixup</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span>
                                    <span class="n">MCFixupKind</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_PC16</span><span class="p">)));</span>
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
-<span class="p">...</span>
-<span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
-<span class="n">getJumpTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
-                     <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter12_2/MCTargetDesc/Cpu0TargetDesc.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">ParseCpu0Triple</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">TT</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">...</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JSUB</span> <span class="o">||</span> <span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JMP</span><span class="p">)</span>
-  <span class="p">...</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">TheTriple</span> <span class="o">==</span> <span class="s">&quot;cpu0&quot;</span> <span class="o">||</span> <span class="n">TheTriple</span> <span class="o">==</span> <span class="s">&quot;cpu0el&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">CPU</span> <span class="o">==</span> <span class="s">&quot;cpu032II&quot;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">Cpu0ArchFeature</span> <span class="o">=</span> <span class="s">&quot;+cpu032II&quot;</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">Cpu0ArchFeature</span><span class="p">;</span>
 <span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter12_2/Cpu0InstrInfo.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Cpu0 Subtarget features                                                    //</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="p">...</span>
+<span class="n">def</span> <span class="n">FeatureCpu032II</span>    <span class="o">:</span> <span class="n">SubtargetFeature</span><span class="o">&lt;</span><span class="s">&quot;cpu032II&quot;</span><span class="p">,</span> <span class="s">&quot;Cpu0ArchVersion&quot;</span><span class="p">,</span>
+         <span class="s">&quot;Cpu032II&quot;</span><span class="p">,</span> <span class="s">&quot;Cpu032II ISA Support (use instruction slt)&quot;</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="n">def</span> <span class="n">FeatureCpu032III</span>   <span class="o">:</span> <span class="n">SubtargetFeature</span><span class="o">&lt;</span><span class="s">&quot;cpu032III&quot;</span><span class="p">,</span> <span class="s">&quot;Cpu0ArchVersion&quot;</span><span class="p">,</span>
+         <span class="s">&quot;Cpu032III&quot;</span><span class="p">,</span> <span class="s">&quot;Cpu032III ISA Support (use instruction slt)&quot;</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Cpu0 processors supported.</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="p">...</span>
+<span class="n">def</span> <span class="o">:</span> <span class="n">Proc</span><span class="o">&lt;</span><span class="s">&quot;cpu032I&quot;</span><span class="p">,</span>  <span class="p">[</span><span class="n">FeatureCpu032I</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="o">:</span> <span class="n">Proc</span><span class="o">&lt;</span><span class="s">&quot;cpu032II&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">FeatureCpu032II</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">def</span> <span class="o">:</span> <span class="n">Proc</span><span class="o">&lt;</span><span class="s">&quot;cpu032III&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">FeatureCpu032III</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter12_2/Cpu0InstrInfo.cpp</p>
@@ -831,21 +452,22 @@ of $2 and fill the low 16 bits of $2 to 0x0000.</p>
             <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
             <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
             <span class="kt">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="kt">unsigned</span> <span class="n">Opc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">ZeroReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">...</span>
+  <span class="k">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">Subtarget</span> <span class="o">=</span> <span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">();</span>
 
   <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">DestReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy to CPU Reg.</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">))</span>
-      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">ZeroReg</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">;</span>
-    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">HI</span><span class="p">)</span>
-      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFHI</span><span class="p">,</span> <span class="n">SrcReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LO</span><span class="p">)</span>
-      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFLO</span><span class="p">,</span> <span class="n">SrcReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="p">...</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Subtarget</span><span class="p">.</span><span class="n">hasCpu032II</span><span class="p">())</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>
+        <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFSW</span><span class="p">,</span> <span class="n">SrcReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="p">}</span>
   <span class="p">}</span>
   <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy from CPU Reg.</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">HI</span><span class="p">)</span>
-      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTHI</span><span class="p">,</span> <span class="n">DestReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LO</span><span class="p">)</span>
-      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTLO</span><span class="p">,</span> <span class="n">DestReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="p">...</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Subtarget</span><span class="p">.</span><span class="n">hasCpu032II</span><span class="p">())</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>
+        <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTSW</span><span class="p">,</span> <span class="n">DestReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="p">}</span>
   <span class="p">}</span>
 
   <span class="n">assert</span><span class="p">(</span><span class="n">Opc</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Cannot copy registers&quot;</span><span class="p">);</span>
@@ -864,17 +486,46 @@ of $2 and fill the low 16 bits of $2 to 0x0000.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter12_2/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><pre>def jmptarget    : Operand&lt;OtherVT&gt; {
-  let EncoderMethod = "getJumpTargetOpValue";
-  let OperandType = "OPERAND_PCREL";
-  let DecoderMethod = "DecodeJumpRelativeTarget";
+<div class="highlight-c++"><pre>def NotCpu032II :     Predicate&lt;"!Subtarget.hasCpu032II()"&gt;,
+                      AssemblerPredicate&lt;"FeatureCpu032I"&gt;;
+def HasCpu032II :     Predicate&lt;"Subtarget.hasCpu032II()"&gt;,
+                      AssemblerPredicate&lt;"!FeatureCpu032III"&gt;;
+// !FeatureCpu032III is for disassembler in "llvm-objdump -d"
+
+/*
+In Cpu0GenSubtargetInfo.inc,
+namespace llvm {
+namespace Cpu0 {
+enum {
+  FeatureCpu032I =  1ULL &lt;&lt; 0,
+  FeatureCpu032II =  1ULL &lt;&lt; 1,
+  FeatureCpu032III =  1ULL &lt;&lt; 2
+};
 }
+} // End llvm namespace
+
+static bool checkDecoderPredicate(unsigned Idx, uint64_t Bits) {
+  switch (Idx) {
+  default: llvm_unreachable("Invalid index!");
+  case 0:
+    return ((Bits &amp; Cpu0::FeatureCpu032I)); // came from "FeatureCpu032I"
+  case 1:
+    return (!(Bits &amp; Cpu0::FeatureCpu032III)); // came from !FeatureCpu032III"
+  }
+}
+
+To let disassembler work, the function
+checkDecoderPredicate(unsigned Idx, uint64_t Bits) must return true(=1).
+As above code, the argument Bits always is 1. Set !FeatureCpu032III" to do
+disassembler for expectation.
+*/
 ...
-// Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
-def immLow16Zero : PatLeaf&lt;(imm), [{
-  int64_t Val = N-&gt;getSExtValue();
-  return isInt&lt;32&gt;(Val) &amp;&amp; !(Val &amp; 0xffff);
-}]&gt;;
+// BEQ, BNE
+def brtarget16    : Operand&lt;OtherVT&gt; {
+  let EncoderMethod = "getBranch16TargetOpValue";
+  let OperandType = "OPERAND_PCREL";
+  let DecoderMethod = "DecodeBranch16Target";
+}
 ...
 class ArithOverflowR&lt;bits&lt;8&gt; op, string instr_asm,
                     InstrItinClass itin, RegisterClass RC, bit isComm = 0&gt;:
@@ -883,24 +534,41 @@ class ArithOverflowR&lt;bits&lt;8&gt; op, string instr_asm,
   let shamt = 0;
   let isCommutable = isComm;
 }
-// Conditional Branch
-class CBranch&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op, RegisterClass RC&gt;:
-  FL&lt;op, (outs), (ins RC:$ra, RC:$rb, brtarget:$imm16),
+class CmpInstr&lt;bits&lt;8&gt; op, string instr_asm,
+               InstrItinClass itin, RegisterClass RC, RegisterClass RD,
+               bit isComm = 0&gt;:
+  ...
+  let Predicates = [NotCpu032II];
+}
+// Conditional Branch, e.g. JEQ brtarget24
+class CBranch24&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
+                   list&lt;Register&gt; UseRegs&gt;:
+  FJ&lt;op, (outs), (ins RC:$ra, brtarget24:$addr),
+             !strconcat(instr_asm, "\t$ra, $addr"),
+             [], IIBranch&gt;, Requires&lt;[NotCpu032II]&gt; {
+  ...
+//  let Predicates = [HasCpu032II]; // same effect as Requires
+}
+
+// Conditional Branch, e.g. BEQ $r1, $r2, brtarget16
+class CBranch16&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op, RegisterClass RC&gt;:
+  FL&lt;op, (outs), (ins RC:$ra, RC:$rb, brtarget16:$imm16),
              !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
-             [(brcond (i32 (cond_op RC:$ra, RC:$rb)), bb:$imm16)], IIBranch&gt; {
+             [(brcond (i32 (cond_op RC:$ra, RC:$rb)), bb:$imm16)], IIBranch&gt;,
+             Requires&lt;[HasCpu032II]&gt; {
   let isBranch = 1;
   let isTerminator = 1;
   let hasDelaySlot = 1;
   let Defs = [AT];
 }
-...
+
 // SetCC
 class SetCC_R&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op,
               RegisterClass RC&gt;:
   FA&lt;op, (outs CPURegs:$ra), (ins RC:$rb, RC:$rc),
      !strconcat(instr_asm, "\t$ra, $rb, $rc"),
      [(set CPURegs:$ra, (cond_op RC:$rb, RC:$rc))],
-     IIAlu&gt; {
+     IIAlu&gt;, Requires&lt;[HasCpu032II]&gt; {
   let shamt = 0;
 }
 
@@ -909,28 +577,20 @@ class SetCC_I&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op, Operand Od
   FL&lt;op, (outs CPURegs:$ra), (ins RC:$rb, Od:$imm16),
      !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
      [(set CPURegs:$ra, (cond_op RC:$rb, imm_type:$imm16))],
-     IIAlu&gt;;
-// Unconditional branch, such as JMP
-class UncondBranch&lt;bits&lt;8&gt; op, string instr_asm&gt;:
-  FJ&lt;op, (outs), (ins jmptarget:$addr),
-             !strconcat(instr_asm, "\t$addr"), [(br bb:$addr)], IIBranch&gt; {
-  let isBranch = 1;
-  let isTerminator = 1;
-  let isBarrier = 1;
-  let hasDelaySlot = 0;
+     IIAlu&gt;, Requires&lt;[HasCpu032II]&gt; {
 }
 ...
 def SLTi    : SetCC_I&lt;0x26, "slti", setlt, simm16, immSExt16, CPURegs&gt;;
 def SLTiu   : SetCC_I&lt;0x27, "sltiu", setult, simm16, immSExt16, CPURegs&gt;;
 def SLT     : SetCC_R&lt;0x28, "slt", setlt, CPURegs&gt;;
 def SLTu    : SetCC_R&lt;0x29, "sltu", setult, CPURegs&gt;;
-
+...
 /// Jump and Branch Instructions
 def BEQ     : CBranch&lt;0x30, "beq", seteq, CPURegs&gt;;
 def BNE     : CBranch&lt;0x31, "bne", setne, CPURegs&gt;;
-
-// brcond patterns
-multiclass BrcondPats&lt;RegisterClass RC, Instruction BEQOp, Instruction BNEOp,
+...
+// brcond for slt instruction
+multiclass BrcondPatsSlt&lt;RegisterClass RC, Instruction BEQOp, Instruction BNEOp,
                       Instruction SLTOp, Instruction SLTuOp, Instruction SLTiOp,
                       Instruction SLTiuOp, Register ZEROReg&gt; {
 def : Pat&lt;(brcond (i32 (setne RC:$lhs, 0)), bb:$dst),
@@ -956,11 +616,15 @@ def : Pat&lt;(brcond RC:$cond, bb:$dst),
               (BNEOp RC:$cond, ZEROReg, bb:$dst)&gt;;
 }
 
-defm : BrcondPats&lt;CPURegs, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO&gt;;
+let Predicates = [NotCpu032II] in {
+defm : BrcondPatsCmp&lt;CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO&gt;;
+}
 
-
-// setcc patterns
-multiclass SeteqPats&lt;RegisterClass RC, Instruction SLTiuOp, Instruction XOROp,
+let Predicates = [HasCpu032II] in {
+defm : BrcondPatsSlt&lt;CPURegs, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO&gt;;
+}
+// setcc for slt instruction
+multiclass SeteqPatsSlt&lt;RegisterClass RC, Instruction SLTiuOp, Instruction XOROp,
                      Instruction SLTuOp, Register ZEROReg&gt; {
 // a == b
   def : Pat&lt;(seteq RC:$lhs, RC:$rhs),
@@ -971,7 +635,7 @@ multiclass SeteqPats&lt;RegisterClass RC, Instruction SLTiuOp, Instruction XOROp
 }
 
 // a &lt;= b
-multiclass SetlePats&lt;RegisterClass RC, Instruction SLTOp, Instruction SLTuOp&gt; {
+multiclass SetlePatsSlt&lt;RegisterClass RC, Instruction SLTOp, Instruction SLTuOp&gt; {
   def : Pat&lt;(setle RC:$lhs, RC:$rhs),
 // a &lt;= b is equal to (XORi (b &lt; a), 1)
                 (XORi (SLTOp RC:$rhs, RC:$lhs), 1)&gt;;
@@ -980,7 +644,7 @@ multiclass SetlePats&lt;RegisterClass RC, Instruction SLTOp, Instruction SLTuOp&
 }
 
 // a &gt; b
-multiclass SetgtPats&lt;RegisterClass RC, Instruction SLTOp, Instruction SLTuOp&gt; {
+multiclass SetgtPatsSlt&lt;RegisterClass RC, Instruction SLTOp, Instruction SLTuOp&gt; {
   def : Pat&lt;(setgt RC:$lhs, RC:$rhs),
 // a &gt; b is equal to b &lt; a is equal to setlt(b, a)
                 (SLTOp RC:$rhs, RC:$lhs)&gt;;
@@ -989,7 +653,7 @@ multiclass SetgtPats&lt;RegisterClass RC, Instruction SLTOp, Instruction SLTuOp&
 }
 
 // a &gt;= b
-multiclass SetgePats&lt;RegisterClass RC, Instruction SLTOp, Instruction SLTuOp&gt; {
+multiclass SetgePatsSlt&lt;RegisterClass RC, Instruction SLTOp, Instruction SLTuOp&gt; {
   def : Pat&lt;(setge RC:$lhs, RC:$rhs),
 // a &gt;= b is equal to b &lt;= a
                 (XORi (SLTOp RC:$lhs, RC:$rhs), 1)&gt;;
@@ -997,7 +661,7 @@ multiclass SetgePats&lt;RegisterClass RC, Instruction SLTOp, Instruction SLTuOp&
                 (XORi (SLTuOp RC:$lhs, RC:$rhs), 1)&gt;;
 }
 
-multiclass SetgeImmPats&lt;RegisterClass RC, Instruction SLTiOp,
+multiclass SetgeImmPatsSlt&lt;RegisterClass RC, Instruction SLTiOp,
                         Instruction SLTiuOp&gt; {
   def : Pat&lt;(setge RC:$lhs, immSExt16:$rhs),
                 (XORi (SLTiOp RC:$lhs, immSExt16:$rhs), 1)&gt;;
@@ -1005,11 +669,21 @@ multiclass SetgeImmPats&lt;RegisterClass RC, Instruction SLTiOp,
                 (XORi (SLTiuOp RC:$lhs, immSExt16:$rhs), 1)&gt;;
 }
 
-defm : SeteqPats&lt;CPURegs, SLTiu, XOR, SLTu, ZERO&gt;;
-defm : SetlePats&lt;CPURegs, SLT, SLTu&gt;;
-defm : SetgtPats&lt;CPURegs, SLT, SLTu&gt;;
-defm : SetgePats&lt;CPURegs, SLT, SLTu&gt;;
-defm : SetgeImmPats&lt;CPURegs, SLTi, SLTiu&gt;;</pre>
+let Predicates = [NotCpu032II] in {
+defm : SeteqPatsCmp&lt;CPURegs&gt;;
+defm : SetltPatsCmp&lt;CPURegs&gt;;
+defm : SetlePatsCmp&lt;CPURegs&gt;;
+defm : SetgtPatsCmp&lt;CPURegs&gt;;
+defm : SetgePatsCmp&lt;CPURegs&gt;;
+}
+
+let Predicates = [HasCpu032II] in {
+defm : SeteqPatsSlt&lt;CPURegs, SLTiu, XOR, SLTu, ZERO&gt;;
+defm : SetlePatsSlt&lt;CPURegs, SLT, SLTu&gt;;
+defm : SetgtPatsSlt&lt;CPURegs, SLT, SLTu&gt;;
+defm : SetgePatsSlt&lt;CPURegs, SLT, SLTu&gt;;
+defm : SetgeImmPatsSlt&lt;CPURegs, SLTi, SLTiu&gt;;
+}</pre>
 </div>
 <p class="rubric">lbdex/Chapter12_2/Cpu0ISelDAGToDAG.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// Select instructions not customized! Used for</span>
@@ -1019,35 +693,42 @@ defm : SetgeImmPats&lt;CPURegs, SLTi, SLTiu&gt;;</pre>
   <span class="k">case</span> <span class="n">ISD</span><span class="o">::</span><span class="nl">SUBE:</span>
   <span class="k">case</span> <span class="n">ISD</span><span class="o">::</span><span class="nl">ADDE:</span> <span class="p">{</span>
     <span class="p">...</span>
-    <span class="n">SDNode</span> <span class="o">*</span><span class="n">StatusWord</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CMP</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span> <span class="n">Ops</span><span class="p">);</span>
-    <span class="n">SDValue</span> <span class="n">Constant1</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getTargetConstant</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">VT</span><span class="p">);</span>
-    <span class="n">SDNode</span> <span class="o">*</span><span class="n">Carry</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ANDi</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span>
-                                           <span class="n">SDValue</span><span class="p">(</span><span class="n">StatusWord</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">Constant1</span><span class="p">);</span>
+    <span class="k">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span> <span class="o">=</span> <span class="n">getTargetMachine</span><span class="p">();</span>
+    <span class="k">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">Subtarget</span> <span class="o">=</span> <span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">();</span>
+    <span class="n">SDNode</span> <span class="o">*</span><span class="n">Carry</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">Subtarget</span><span class="p">.</span><span class="n">hasCpu032II</span><span class="p">())</span>
+      <span class="n">Carry</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">SLTu</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span> <span class="n">Ops</span><span class="p">);</span>
+    <span class="k">else</span> <span class="p">{</span>
+      <span class="n">SDNode</span> <span class="o">*</span><span class="n">StatusWord</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CMP</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span> <span class="n">Ops</span><span class="p">);</span>
+      <span class="n">SDValue</span> <span class="n">Constant1</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getTargetConstant</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">VT</span><span class="p">);</span>
+      <span class="n">Carry</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ANDi</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span>
+                                             <span class="n">SDValue</span><span class="p">(</span><span class="n">StatusWord</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">Constant1</span><span class="p">);</span>
+    <span class="p">}</span>
     <span class="p">...</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Chapter12_2/Cpu0RegisterInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span> <span class="n">in</span> <span class="p">{</span>
+<p class="rubric">lbdex/Chapter12_2/Cpu0Subtarget.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Cpu0Subtarget</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Cpu0GenSubtargetInfo</span> <span class="p">{</span>
   <span class="p">...</span>
-  <span class="n">def</span> <span class="n">T0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span> <span class="mi">12</span><span class="p">,</span> <span class="s">&quot;t0&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="k">enum</span> <span class="n">Cpu0ArchEnum</span> <span class="p">{</span>
+    <span class="n">Cpu032I</span><span class="p">,</span>
+    <span class="n">Cpu032II</span><span class="p">,</span>
+    <span class="n">Cpu032III</span>
+  <span class="p">};</span>
+  <span class="p">...</span>
+  <span class="kt">bool</span> <span class="n">hasCpu032I</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Cpu0ArchVersion</span> <span class="o">&gt;=</span> <span class="n">Cpu032I</span><span class="p">;</span> <span class="p">}</span>
+  <span class="kt">bool</span> <span class="n">hasCpu032II</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Cpu0ArchVersion</span> <span class="o">==</span> <span class="n">Cpu032II</span><span class="p">;</span> <span class="p">}</span>
   <span class="p">...</span>
 <span class="p">}</span>
-
-<span class="n">def</span> <span class="n">CPURegs</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span>
-  <span class="n">T0</span><span class="p">,</span>
-  <span class="c1">// Reserved</span>
-  <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
-
-<span class="c1">// Remove SR RegisterClass since no SW in General register</span>
-<span class="c1">// Status Registers</span>
-<span class="cm">/* def SR   : RegisterClass&lt;&quot;Cpu0&quot;, [i32], 32, (add SW)&gt;;*/</span>
 </pre></div>
 </div>
-<p>As modified from above, it remove the CMP instruction, SW register and
-related code from Chapter12_1/, and change from JEQ 24bits offset to BEQ 16 bits
-offset.</p>
+<p>As modified from above, the last Chapter instruction is work for cpu032I and
+the added instructions is for cpu032II. The llc will generate cpu032I cmp, jeq,
+..., instructions when <cite>llc -mcpu=cpu032I</cite> while <cite>llc -mcpu=cpu032II</cite> will
+generate slt, beq when meet &#8220;if else&#8221;, &#8220;while&#8221; and &#8220;for&#8221; flow control
+statements.</p>
 </div>
 <div class="section" id="cpu0-verilog-language-changes">
 <h3>Cpu0 Verilog language changes<a class="headerlink" href="#cpu0-verilog-language-changes" title="Permalink to this headline">¶</a></h3>
@@ -1204,8 +885,8 @@ RET to PC &lt; 0, finished!
 <p>Run with ch8_1_1.cpp, it reduce some branch from pair instructions &#8220;CMP, JXX&#8221;
 to 1 single instruction ether is BEQ or BNE, as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch8_1_1.bc -o
-ch8_1_1.cpu0.s
+bin/Debug/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032II -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm
+ch8_1_1.bc -o ch8_1_1.cpu0.s
 118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1_1.cpu0.s
         .section .mdebug.abi32
         .previous
@@ -1367,7 +1048,7 @@ will generate the obj.</p>
 <table class="docutils footnote" frame="void" id="sra-note" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>)</em> Rb &#8216;&gt;&gt; Cx, Rb &#8216;&gt;&gt; Rc: Shift with signed bit remain. It&#8217;s equal to ((Rb&amp;&#8217;h80000000)|Rb&gt;&gt;Cx) or ((Rb&amp;&#8217;h80000000)|Rb&gt;&gt;Rc).</td></tr>
+<tr><td class="label">[1]</td><td>Rb &#8216;&gt;&gt; Cx, Rb &#8216;&gt;&gt; Rc: Shift with signed bit remain. It&#8217;s equal to ((Rb&amp;&#8217;h80000000)|Rb&gt;&gt;Cx) or ((Rb&amp;&#8217;h80000000)|Rb&gt;&gt;Rc).</td></tr>
 </tbody>
 </table>
 </div>

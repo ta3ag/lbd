@@ -65,6 +65,7 @@ The registers are used for the following purposes:
   MDR           Memory Data Register (MDR)
   HI            High part of MULT result
   LO            Low part of MULT result
+  SW            Status Word Register
   ============  ===========
 
 The Cpu0 Instruction Set
@@ -351,9 +352,9 @@ The following table details the Cpu0 instruction set:
   * - J
     - JALR
     - 3E
-    - Jump to subroutine
-    - JR Rb
-    - LR <= PC; PC <= Rb
+    - Indirect jump
+    - JALR Rb
+    - LR <= PC; PC <= Rb [#call-note]_
   * - L
     - MULT
     - 41
@@ -402,6 +403,18 @@ The following table details the Cpu0 instruction set:
     - Move GPR to LO
     - MTLO Ra
     - LO <= Ra
+  * - L
+    - MFSW
+    - 50
+    - Move SW to GPR
+    - MFSW Ra
+    - Ra <= SW
+  * - L
+    - MTSW
+    - 51
+    - Move GPR to SW
+    - MTSW Ra
+    - SW <= Ra
 
 .. note:: **Cpu0 unsigned instructions**
 
@@ -681,7 +694,16 @@ files are used by the backend.  These files have a similar syntax to C++. For Cp
 target description file is called Cpu0.td, which is shown below:
 
 .. rubric:: lbdex/Chapter2/Cpu0.td
-.. literalinclude:: ../lbdex/Chapter2/Cpu0.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
+    :end-before: include "Cpu0CallingConv.td"
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
+    :start-after: include "Cpu0CallingConv.td"
+    :end-before: // Without this will have error: 'cpu032I'
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
+    :start-after: // const char *Cpu0InstPrinter::getRegisterName(unsigned RegNo) {...}
+    :end-before: let AssemblyParsers = [Cpu0AsmParser];
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
+    :start-after: let AssemblyParserVariants = [Cpu0AsmParserVariant];
 
 Cpu0.td includes a few other .td files.  Cpu0RegisterInfo.td (shown below) describes the 
 Cpu0's set of registers.  In this file, we see that registers have been given names, i.e.
@@ -693,7 +715,13 @@ of general purpose registers for Cpu0, and some registers that are reserved so t
 are not modified by instructions during execution.
 
 .. rubric:: lbdex/Chapter2/Cpu0RegisterInfo.td
-.. literalinclude:: ../lbdex/Chapter2/Cpu0RegisterInfo.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.td
+    :end-before: // Hi/Lo registers number and name
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.td
+    :start-after: def LO   : Register<"lo">, DwarfRegNum<[19]>;
+    :end-before: // Hi/Lo Registers class
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.td
+    :start-after: def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
 
 
 In C++, classes typically provide a structure to lay out some data and functions, 
@@ -747,17 +775,71 @@ The Cpu0RegisterInfo.td also defines that ``CPURegs`` is an instance of the clas
 The cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
 
 .. rubric:: lbdex/Chapter2/Cpu0InstrInfo.td
-.. literalinclude:: ../lbdex/Chapter2/Cpu0InstrInfo.td
-
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :end-before: def SDT_Cpu0DivRem       : SDTypeProfile<0, 2
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def Cpu0GPRel : SDNode<"Cpu0ISD::GPRel", SDTIntUnaryOp>;
+    :end-before: // These are target-independent nodes, but have target-specific formats.
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: disassembler for expectation. */
+    :end-before: // Instruction operand types
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: // lbd document - mark - def calltarget
+    :end-before: def shamt
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: // lbd document - mark - def Cpu0MemAsmOperand
+    :end-before: let ParserMatchClass = Cpu0MemAsmOperand;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: let ParserMatchClass = Cpu0MemAsmOperand;
+    :end-before: def mem_ea : Operand<i32> {
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: // lbd document - mark - def HI16
+    :end-before: // Node immediate fits as 16-bit zero extended on target immediate.
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def immZExt5 : ImmLeaf<i32, [{return Imm == (Imm & 0x1f);}]>;
+    :end-before: def sextloadi16_a   : AlignedLoad<sextloadi16>;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def extloadi16_a    : AlignedLoad<extloadi16>;
+    :end-before: def truncstorei16_a : AlignedStore<truncstorei16>;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def truncstorei16_a : AlignedStore<truncstorei16>;
+    :end-before: // Instructions specific format
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def store_a         : AlignedStore<store>;
+    :end-before: // Arithmetic and logical instructions with 3 register operands.
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: // lbd document - mark - class CmpInstr
+    :end-before: // Shifts
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: // lbd document - mark - class LoadUpper
+    :end-before: // Conditional Branch, e.g. JEQ brtarget24
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: // lbd document - mark - class UncondBranch
+    :end-before: // Jump and Link (Call)
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def LoadAddr32Imm : LoadAddressImm<"la", shamt, CPURegs>;
+    :end-before: defm LB     : LoadM32<0x03, "lb",  sextloadi8>;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: defm SH     : StoreM32<0x08, "sh", truncstorei16_a>;
+    :end-before: def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs>;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
+    :end-before: def IRET    : JumpFR<0x3d, "iret", CPURegs>;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: // lbd document - mark - def LEA_ADDiu
+    :end-before: def : Pat<(i32 immZExt16:$in),
 
 The Cpu0InstrFormats.td is included by Cpu0InstInfo.td as follows,
 
 .. rubric:: lbdex/Chapter2/Cpu0InstrFormats.td
-.. literalinclude:: ../lbdex/Chapter2/Cpu0InstrFormats.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrFormats.td
+    :end-before: // Cpu0 Pseudo Instructions Format
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrFormats.td
+    :start-after: // lbd document - mark - class Cpu0AsmPseudoInst
 
 
-ADDiu is class ArithLogicI inherited from FL, can expand and get member value 
-as follows,
+ADDiu is class ArithLogicI inherited from FL, can be expanded and get member 
+value as follows,
 
 .. code-block:: c++
 
@@ -905,6 +987,21 @@ Please notify the Pattern =
 **“add”**. 
 We will use it in DAG transformations later. 
 
+File Cpu0Schedule.td include the function units and pipeline stages information
+as follows,
+
+.. rubric:: lbdex/Chapter2/Cpu0Schedule.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Schedule.td
+    :end-before: def IMULDIV : FuncUnit;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Schedule.td
+    :start-after: def IMULDIV : FuncUnit;
+    :end-before: def IIHiLo
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Schedule.td
+    :start-after: def IIIdiv
+    :end-before: InstrItinData<IIHiLo
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Schedule.td
+    :start-after: InstrItinData<IIIdiv
+
 
 Write cmake file
 ----------------
@@ -913,10 +1010,39 @@ Target/Cpu0 directory has two files CMakeLists.txt and LLVMBuild.txt,
 contents as follows,
 
 .. rubric:: lbdex/Chapter2/CMakeLists.txt
-.. literalinclude:: ../lbdex/Chapter2/CMakeLists.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+    :end-before: tablegen(LLVM Cpu0GenDisassemblerTables.inc -gen-disassembler)
+.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+    :start-after: tablegen(LLVM Cpu0GenCallingConv.inc -gen-callingconv)
+    :end-before: tablegen(LLVM Cpu0GenAsmMatcher.inc -gen-asm-matcher)
+.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+    :start-after: tablegen(LLVM Cpu0GenAsmMatcher.inc -gen-asm-matcher)
+    :end-before: Cpu0AnalyzeImmediate.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+    :start-after: Cpu0Subtarget.cpp
+    :end-before: Cpu0TargetObjectFile.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+    :start-after: Cpu0SelectionDAGInfo.cpp
+    :end-before: add_subdirectory(InstPrinter)
+.. literalinclude:: ../../../lib/Target/Cpu0/CMakeLists.txt
+    :start-after: add_subdirectory(Disassembler)
+    :end-before: add_subdirectory(AsmParser)
+
 
 .. rubric:: lbdex/Chapter2/LLVMBuild.txt
-.. literalinclude:: ../lbdex/Chapter2/LLVMBuild.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+    :end-before: AsmParser
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+    :start-after: InstPrinter
+    :end-before: # Whether this target defines an assembly parser, 
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+    :start-after: has_disassembler = 1
+    :end-before: AsmPrinter
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+    :start-after: AsmPrinter
+    :end-before: Cpu0AsmPrinter
+.. literalinclude:: ../../../lib/Target/Cpu0/LLVMBuild.txt
+    :start-after: Cpu0AsmPrinter
 
 
 CMakeLists.txt is the make information for cmake, # is comment.
@@ -951,18 +1077,79 @@ and use the RegisterTarget template to register the target.
 For example, the file TargetInfo/Cpu0TargetInfo.cpp register TheCpu0Target for 
 big endian and TheCpu0elTarget for little endian, as follows.
 
-.. rubric:: lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
-.. literalinclude:: ../lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
+.. rubric:: lbdex/Chapter2/Cpu0.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.h
+    :end-before: FunctionPass *createCpu0EmitGPRestorePass(Cpu0TargetMachine &TM);
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.h
+    :start-after: FunctionPass *createCpu0DelJmpPass(Cpu0TargetMachine &TM);
 
+.. rubric:: lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/TargetInfo/Cpu0TargetInfo.cpp
+
+.. rubric:: lbdex/Chapter2/TargetInfo/CMakeLists.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/TargetInfo/CMakeLists.txt
+
+.. rubric:: lbdex/Chapter2/TargetInfo/LLVMBuild.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/TargetInfo/LLVMBuild.txt
 
 Files Cpu0TargetMachine.cpp and MCTargetDesc/Cpu0MCTargetDesc.cpp just define 
 the empty initialize function since we register nothing in them for this moment.
 
+.. rubric:: lbdex/Chapter2/Cpu0TargetMachine.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+    :end-before: #include "Cpu0TargetMachine.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+    :start-after: #include "llvm/CodeGen/Passes.h"
+    :end-before: // Register the target.
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetMachine.cpp
+    :start-after: RegisterTargetMachine<Cpu0elTargetMachine> Y(TheCpu0elTarget);
+    :end-before: // DataLayout --> Big-endian, 32-bit pointer/ABI/alignment
+
 .. rubric:: lbdex/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h
-.. literalinclude:: ../lbdex/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
+    :end-before: #include "llvm/Support/DataTypes.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
+    :start-after: #include "llvm/Support/DataTypes.h"
+    :end-before: class MCAsmBackend;
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
+    :start-after: class StringRef;
+    :end-before: class raw_ostream;
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
+    :start-after: class raw_ostream;
+    :end-before: MCCodeEmitter *createCpu0MCCodeEmitterEB
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.h
+    :start-after: bool IsLittleEndian);
 
 .. rubric:: lbdex/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp
-.. literalinclude:: ../lbdex/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+    :end-before: #include "Cpu0MCAsmInfo.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+    :start-after: #include "Cpu0MCAsmInfo.h"
+    :end-before: #include "InstPrinter/Cpu0InstPrinter.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+    :start-after: #include "InstPrinter/Cpu0InstPrinter.h"
+    :end-before: static std::string ParseCpu0Triple
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+    :start-after: // lbd document - mark - createMCStreamer
+    :end-before: // Register the MC asm info.
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
+    :start-after: // lbd document - mark - RegisterMCInstPrinter
+
+
+.. rubric:: lbdex/Chapter2/MCTargetDesc/CMakeLists.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/CMakeLists.txt
+    :end-before: Cpu0AsmBackend.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/CMakeLists.txt
+    :start-after: Cpu0MCCodeEmitter.cpp
+    :end-before: Cpu0ELFObjectWriter.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/CMakeLists.txt
+    :start-after: Cpu0ELFObjectWriter.cpp
+
+.. rubric:: lbdex/Chapter2/MCTargetDesc/LLVMBuild.txt
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/LLVMBuild.txt
+    :end-before: Cpu0AsmPrinter
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/LLVMBuild.txt
+    :start-after: Cpu0AsmPrinter
 
 
 Please see "Target Registration" [#target-reg]_ for reference.
@@ -1039,22 +1226,17 @@ After build, you can type command ``llc –version`` to find the cpu0 backend,
   ...
 
 The ``llc -version`` can display **“cpu0”** and **“cpu0el”** message, because 
-the following code from file TargetInfo/Cpu0TargetInfo.cpp what in 
+the code from file TargetInfo/Cpu0TargetInfo.cpp what in 
 "section Target Registration" [#asadasd]_ we made. 
-List them as follows again,
-
-.. rubric:: lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
-.. literalinclude:: ../lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp
-
 
 Let's build lbdex/Chapter2 code as follows,
 
 .. code-block:: bash
 
-  118-165-75-57:ExampleCode Jonathan$ pwd
-  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/ExampleCode
-  118-165-75-57:ExampleCode Jonathan$ sh removecpu0.sh 
-  118-165-75-57:ExampleCode Jonathan$ cp -rf lbdex/Chapter2/
+  118-165-75-57:lbdex Jonathan$ pwd
+  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/lbdex
+  118-165-75-57:lbdex Jonathan$ sh removecpu0.sh 
+  118-165-75-57:lbdex Jonathan$ cp -rf lbdex/Chapter2/
   * ../.
 
   118-165-75-57:cmake_debug_build Jonathan$ pwd
@@ -1114,7 +1296,6 @@ Now, compile ch3.bc into ch3.cpu0.s, we get the error message as follows,
   ch3.cpu0.s
   Assertion failed: (target.get() && "Could not allocate target machine!"), 
   function main, file /Users/Jonathan/llvm/test/src/tools/llc/llc.cpp, 
-  line 271.
   ...
 
 Currently we just define target td files (Cpu0.td, Cpu0RegisterInfo.td, ...). 
@@ -1122,44 +1303,6 @@ According to LLVM structure, we need to define our target machine and include
 those td related files. 
 The error message say we didn't define our target machine.
 
-
-.. commenting out this subsection
-
-  this subsection was originally between Stages of Cpu0 pipeline and LLVM Structure
-  
-  Replace ldi instruction by addiu instruction
-  ++++++++++++++++++++++++++++++++++++++++++++
-  
-  We have recognized the ldi instruction is a bad design and replace it with mips 
-  instruction addiu. 
-  The reason we replace ldi with addiu is that ldi use only one register even 
-  though ldi is L type format and has two registers, as :ref:`llvmstructure_f4`. 
-  Mips addiu which allow programmer to do load constant to register like ldi, 
-  and add constant to a register. So, it's powerful and fully contains the ldi 
-  ability. 
-  These two instructions format as :ref:`llvmstructure_f4` and :ref:`llvmstructure_f5`.
-  
-  .. _llvmstructure_f4: 
-  .. figure:: ../Fig/llvmstructure/4.png
-    :align: center
-  
-    Cpu0 ldi instruction
-
-  .. _llvmstructure_f5: 
-  .. figure:: ../Fig/llvmstructure/5.png
-    :align: center
-  
-    Mips addiu instruction format
-
-  From :ref:`llvmstructure_f4` and :ref:`llvmstructure_f5`, you can find ldi $Ra, 
-  5 can be replaced by addiu $Ra, $zero, 5. 
-  And more, addiu can do addiu $Ra, $Rb, 5 which add $Rb and 5 then save to $Ra, 
-  but ldi cannot. 
-  As a cpu design, it's common to redesign CPU instruction when find a better 
-  solution during design the compiler backend for that CPU. 
-  So, we add addiu instruction to cpu0. 
-  The cpu0 is my brother's work, I will find time to talk with him.
-.. end subsection
 
 
 .. [#cpu0-chinese] Original Cpu0 architecture and ISA details (Chinese). http://ccckmit.wikidot.com/ocs:cpu0
@@ -1169,6 +1312,8 @@ The error message say we didn't define our target machine.
 .. [#cond-note] Conditions include the following comparisons: >, >=, ==, !=, <=, <. SW is actually set by the subtraction of the two register operands, and the flags indicate which conditions are present.
 
 .. [#sra-note] Rb '>> Cx, Rb '>> Rc: Shift with signed bit remain. It's equal to ((Rb&'h80000000)|Rb>>Cx) or ((Rb&'h80000000)|Rb>>Rc).
+
+.. [#call-note] jsub cx is direct call for 24 bits value of cx while jalr $rb is indirect call for 32 bits value of register $rb.
 
 .. [#aosa-book] Chris Lattner, **LLVM**. Published in The Architecture of Open Source Applications. http://www.aosabook.org/en/llvm.html
 

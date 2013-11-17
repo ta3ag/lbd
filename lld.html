@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.6',
+        VERSION:     '3.3.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -3133,7 +3133,7 @@ instructions is work fine too by change cpu to cpu032II as follows,</p>
 <span class="o">[</span>Gamma@localhost cpu0_verilog<span class="o">]</span><span class="nv">$ </span>./cpu0IIs
 </pre></div>
 </div>
-<p>The verilog machine cpu032II include cpu0I all instructions (cmp, jeq, ...
+<p>The verilog machine cpu032IIs include cpu0I all instructions (cmp, jeq, ...
 are included also) and add Chapter12_2 slt, beq, ..., instructions.
 Run build-printf-stdarg-2.sh with cpu=cpu032II will generate slt, beq and bne
 instructions instead cmp, jeq, ... instructions. Since cpu0IIs include both
@@ -3614,12 +3614,12 @@ to execute the dynamic linker function on Cpu0 Verilog machine.</p>
 
 <span class="cp">#define ENABLE_TRACE \</span>
 <span class="cp">  asm(&quot;mfsw $at&quot;); \</span>
-<span class="cp">  asm(&quot;ori $at, $at, 0x0004&quot;); \</span>
+<span class="cp">  asm(&quot;ori $at, $at, 0x0020&quot;); \</span>
 <span class="cp">  asm(&quot;mtsw $at&quot;);</span>
 
 <span class="cp">#define DISABLE_TRACE \</span>
 <span class="cp">  asm(&quot;mfsw $at&quot;); \</span>
-<span class="cp">  asm(&quot;andi $at, $at, 0xfffb&quot;); \</span>
+<span class="cp">  asm(&quot;andi $at, $at, 0xffdf&quot;); \</span>
 <span class="cp">  asm(&quot;mtsw $at&quot;);</span>
 
 <span class="k">struct</span> <span class="n">ProgAddr</span> <span class="p">{</span>
