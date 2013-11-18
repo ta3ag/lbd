@@ -154,7 +154,7 @@ doctest:
 
 
 BACKEND_TUTORIAL_SUBDIR = docs/BackendTutorial
-TMP_PREFIX = tmp
+TMP_PREFIX = BT
 
 # Note: we have to run this as one big command in order to have the initial
 # 'cd' take effect for the whole command.
@@ -162,7 +162,7 @@ TMP_PREFIX = tmp
 gh-pages:
 	git checkout gh-pages &&\
 	rm -rf build _sources _static _images &&\
-	git read-tree --prefix=$(TMP_PREFIX)/ -u HEAD master:docs &&\
+	git read-tree --prefix=$(TMP_PREFIX)/ -u HEAD master:$(BACKEND_TUTORIAL_SUBDIR) &&\
 	mv ../../$(TMP_PREFIX)/BackendTutorial/* .\
 	sh ./rungenexample.sh &&\
 	mv -fv lbdex.tar.gz ../../.
