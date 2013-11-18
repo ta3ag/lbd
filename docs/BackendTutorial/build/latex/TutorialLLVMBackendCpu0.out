@@ -1,0 +1,81 @@
+\BOOKMARK [0][-]{chapter.1}{About}{}% 1
+\BOOKMARK [1][-]{section.1.1}{Authors}{chapter.1}% 2
+\BOOKMARK [1][-]{section.1.2}{Contributors}{chapter.1}% 3
+\BOOKMARK [1][-]{section.1.3}{Acknowledgments}{chapter.1}% 4
+\BOOKMARK [1][-]{section.1.4}{Support}{chapter.1}% 5
+\BOOKMARK [1][-]{section.1.5}{Revision history}{chapter.1}% 6
+\BOOKMARK [1][-]{section.1.6}{Licensing}{chapter.1}% 7
+\BOOKMARK [1][-]{section.1.7}{Preface}{chapter.1}% 8
+\BOOKMARK [1][-]{section.1.8}{Prerequisites}{chapter.1}% 9
+\BOOKMARK [1][-]{section.1.9}{Outline of Chapters}{chapter.1}% 10
+\BOOKMARK [0][-]{chapter.2}{Cpu0 Instruction Set and LLVM Target Description}{}% 11
+\BOOKMARK [1][-]{section.2.1}{Cpu0 Processor Architecture Details}{chapter.2}% 12
+\BOOKMARK [1][-]{section.2.2}{LLVM Structure}{chapter.2}% 13
+\BOOKMARK [1][-]{section.2.3}{.td: LLVM's Target Description Files}{chapter.2}% 14
+\BOOKMARK [1][-]{section.2.4}{Creating the Initial Cpu0 .td Files}{chapter.2}% 15
+\BOOKMARK [1][-]{section.2.5}{Write cmake file}{chapter.2}% 16
+\BOOKMARK [1][-]{section.2.6}{Target Registration}{chapter.2}% 17
+\BOOKMARK [1][-]{section.2.7}{Build libraries and td}{chapter.2}% 18
+\BOOKMARK [0][-]{chapter.3}{Backend structure}{}% 19
+\BOOKMARK [1][-]{section.3.1}{TargetMachine structure}{chapter.3}% 20
+\BOOKMARK [1][-]{section.3.2}{Add AsmPrinter}{chapter.3}% 21
+\BOOKMARK [1][-]{section.3.3}{LLVM Code Generation Sequence}{chapter.3}% 22
+\BOOKMARK [1][-]{section.3.4}{DAG \(Directed Acyclic Graph\)}{chapter.3}% 23
+\BOOKMARK [1][-]{section.3.5}{Instruction Selection}{chapter.3}% 24
+\BOOKMARK [1][-]{section.3.6}{Add Cpu0DAGToDAGISel class}{chapter.3}% 25
+\BOOKMARK [1][-]{section.3.7}{Handle return register lr}{chapter.3}% 26
+\BOOKMARK [1][-]{section.3.8}{Add Prologue/Epilogue functions}{chapter.3}% 27
+\BOOKMARK [1][-]{section.3.9}{Summary of this Chapter}{chapter.3}% 28
+\BOOKMARK [0][-]{chapter.4}{Arithmetic and logic lsupport}{}% 29
+\BOOKMARK [1][-]{section.4.1}{Arithmetic}{chapter.4}% 30
+\BOOKMARK [1][-]{section.4.2}{Logic}{chapter.4}% 31
+\BOOKMARK [1][-]{section.4.3}{Summary}{chapter.4}% 32
+\BOOKMARK [0][-]{chapter.5}{Generating object files}{}% 33
+\BOOKMARK [1][-]{section.5.1}{Translate into obj file}{chapter.5}% 34
+\BOOKMARK [1][-]{section.5.2}{Backend Target Registration Structure}{chapter.5}% 35
+\BOOKMARK [0][-]{chapter.6}{Global variables}{}% 36
+\BOOKMARK [1][-]{section.6.1}{Global variable}{chapter.6}% 37
+\BOOKMARK [0][-]{chapter.7}{Other data type}{}% 38
+\BOOKMARK [1][-]{section.7.1}{Local variable pointer}{chapter.7}% 39
+\BOOKMARK [1][-]{section.7.2}{char, short int and bool}{chapter.7}% 40
+\BOOKMARK [1][-]{section.7.3}{long long}{chapter.7}% 41
+\BOOKMARK [1][-]{section.7.4}{float and double}{chapter.7}% 42
+\BOOKMARK [1][-]{section.7.5}{Array and struct support}{chapter.7}% 43
+\BOOKMARK [0][-]{chapter.8}{Control flow statements}{}% 44
+\BOOKMARK [1][-]{section.8.1}{Control flow statement}{chapter.8}% 45
+\BOOKMARK [1][-]{section.8.2}{RISC CPU knowledge}{chapter.8}% 46
+\BOOKMARK [0][-]{chapter.9}{Function call}{}% 47
+\BOOKMARK [1][-]{section.9.1}{Mips stack frame}{chapter.9}% 48
+\BOOKMARK [1][-]{section.9.2}{Load incoming arguments from stack frame}{chapter.9}% 49
+\BOOKMARK [1][-]{section.9.3}{Store outgoing arguments to stack frame}{chapter.9}% 50
+\BOOKMARK [1][-]{section.9.4}{Fix issues}{chapter.9}% 51
+\BOOKMARK [1][-]{section.9.5}{Support features}{chapter.9}% 52
+\BOOKMARK [1][-]{section.9.6}{Summary of this chapter}{chapter.9}% 53
+\BOOKMARK [0][-]{chapter.10}{ELF Support}{}% 54
+\BOOKMARK [1][-]{section.10.1}{ELF format}{chapter.10}% 55
+\BOOKMARK [1][-]{section.10.2}{ELF header and Section header table}{chapter.10}% 56
+\BOOKMARK [1][-]{section.10.3}{Relocation Record}{chapter.10}% 57
+\BOOKMARK [1][-]{section.10.4}{Cpu0 ELF related files}{chapter.10}% 58
+\BOOKMARK [1][-]{section.10.5}{llvm-objdump}{chapter.10}% 59
+\BOOKMARK [1][-]{section.10.6}{Dynamic link}{chapter.10}% 60
+\BOOKMARK [0][-]{chapter.11}{Run backend}{}% 61
+\BOOKMARK [1][-]{section.11.1}{AsmParser support}{chapter.11}% 62
+\BOOKMARK [1][-]{section.11.2}{Verilog of CPU0}{chapter.11}% 63
+\BOOKMARK [1][-]{section.11.3}{Run program on CPU0 machine}{chapter.11}% 64
+\BOOKMARK [0][-]{chapter.12}{Backend Optimization}{}% 65
+\BOOKMARK [1][-]{section.12.1}{Cpu0 backend Optimization: Remove useless JMP}{chapter.12}% 66
+\BOOKMARK [1][-]{section.12.2}{Cpu0 Optimization: Redesign instruction sets}{chapter.12}% 67
+\BOOKMARK [0][-]{chapter.13}{LLD for Cpu0}{}% 68
+\BOOKMARK [1][-]{section.13.1}{Install lld}{chapter.13}% 69
+\BOOKMARK [1][-]{section.13.2}{Cpu0 lld souce code}{chapter.13}% 70
+\BOOKMARK [1][-]{section.13.3}{ELF to Hex}{chapter.13}% 71
+\BOOKMARK [1][-]{section.13.4}{Static linker}{chapter.13}% 72
+\BOOKMARK [1][-]{section.13.5}{Dynamic linker}{chapter.13}% 73
+\BOOKMARK [1][-]{section.13.6}{Summary}{chapter.13}% 74
+\BOOKMARK [0][-]{chapter.14}{Appendix A: Getting Started: Installing LLVM and the Cpu0 example code}{}% 75
+\BOOKMARK [1][-]{section.14.1}{Setting Up Your Mac}{chapter.14}% 76
+\BOOKMARK [1][-]{section.14.2}{Setting Up Your Linux Machine}{chapter.14}% 77
+\BOOKMARK [1][-]{section.14.3}{Install sphinx}{chapter.14}% 78
+\BOOKMARK [0][-]{chapter.15}{Todo List}{}% 79
+\BOOKMARK [0][-]{chapter.16}{Book example code}{}% 80
+\BOOKMARK [0][-]{chapter.17}{Alternate formats}{}% 81
