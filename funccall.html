@@ -273,7 +273,13 @@ pass arguments in stack frame.</p>
 <p>Function LowerFormalArguments() charge function incoming arguments creation.
 We define it as follows,</p>
 <p class="rubric">lbdex/Chapter9_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// LowerFormalArguments - transform physical registers into virtual registers</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">SDValue</span>
+<span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerCall</span><span class="p">(</span><span class="n">TargetLowering</span><span class="o">::</span><span class="n">CallLoweringInfo</span> <span class="o">&amp;</span><span class="n">CLI</span><span class="p">,</span>
+                              <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">CLI</span><span class="p">.</span><span class="n">Chain</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="c1">/// LowerFormalArguments - transform physical registers into virtual registers</span>
 <span class="c1">/// and generate load operations for arguments places on the stack.</span>
 <span class="n">SDValue</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerFormalArguments</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span>
@@ -339,6 +345,13 @@ We define it as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
+<p class="rubric">lbdex/Chapter9_1/Cpu0ISelLowering.h</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="k">virtual</span> <span class="n">SDValue</span>
+    <span class="n">LowerCall</span><span class="p">(</span><span class="n">TargetLowering</span><span class="o">::</span><span class="n">CallLoweringInfo</span> <span class="o">&amp;</span><span class="n">CLI</span><span class="p">,</span>
+              <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+<span class="c1">// LowerCall: outgoing arguments</span>
+</pre></div>
+</div>
 <p>Refresh &#8220;section Global variable&#8221; <a class="footnote-reference" href="#id14" id="id5">[5]</a>, we handled global
 variable translation by create the IR DAG in LowerGlobalAddress() first, and
 then do the Instruction Selection by their corresponding machine instruction
@@ -370,18 +383,17 @@ define the loadRegFromStackSlot() to issue the machine instruction
 GetMemOperand(..., FI, ...) return the Memory location of the frame index
 variable, which is the offset.</p>
 <p class="rubric">lbdex/Chapter9_1/Cpu0InstrInfo.cpp</p>
+<p class="rubric">lbdex/Chapter9_1/Cpu0InstrInfo.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">virtual</span> <span class="kt">void</span> <span class="n">loadRegFromStackSlot</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
+                                  <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MBBI</span><span class="p">,</span>
+                                  <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">int</span> <span class="n">FrameIndex</span><span class="p">,</span>
+                                  <span class="k">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span><span class="n">RC</span><span class="p">,</span>
+                                  <span class="k">const</span> <span class="n">TargetRegisterInfo</span> <span class="o">*</span><span class="n">TRI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+</pre></div>
+</div>
 <p>In addition to Calling Convention and LowerFormalArguments(), Chapter9_1/ add the
 following code for cpu0 instructions <strong>swi</strong> (Software Interrupt), <strong>jsub</strong> and
 <strong>jalr</strong> (function call) definition and printing.</p>
-<p class="rubric">lbdex/Chapter9_1/Cpu0InstrFormats.td</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0 Pseudo Instructions Format</span>
-<span class="k">class</span> <span class="nc">Cpu0Pseudo</span><span class="o">&lt;</span><span class="n">dag</span> <span class="n">outs</span><span class="p">,</span> <span class="n">dag</span> <span class="n">ins</span><span class="p">,</span> <span class="n">string</span> <span class="n">asmstr</span><span class="p">,</span> <span class="n">list</span><span class="o">&lt;</span><span class="n">dag</span><span class="o">&gt;</span> <span class="n">pattern</span><span class="o">&gt;:</span>
-      <span class="n">Cpu0Inst</span><span class="o">&lt;</span><span class="n">outs</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">asmstr</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">IIPseudo</span><span class="p">,</span> <span class="n">Pseudo</span><span class="o">&gt;</span> <span class="p">{</span>
-  <span class="n">let</span> <span class="n">isCodeGenOnly</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-  <span class="n">let</span> <span class="n">isPseudo</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
 <p class="rubric">lbdex/Chapter9_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>def SDT_Cpu0JmpLink      : SDTypeProfile&lt;0, 1, [SDTCisVT&lt;0, iPTR&gt;]&gt;;
 ...
@@ -389,10 +401,6 @@ following code for cpu0 instructions <strong>swi</strong> (Software Interrupt), 
 def Cpu0JmpLink : SDNode&lt;"Cpu0ISD::JmpLink",SDT_Cpu0JmpLink,
                          [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue,
                           SDNPVariadic]&gt;;
-...
-def jmptarget   : Operand&lt;OtherVT&gt; {
-  let EncoderMethod = "getJumpTargetOpValue";
-}
 ...
 def calltarget  : Operand&lt;iPTR&gt; {
   let EncoderMethod = "getJumpTargetOpValue";
@@ -420,7 +428,6 @@ let isCall=1, hasDelaySlot=0 in {
 def SWI  : JumpLink&lt;0x2a, "swi"&gt;;
 def JSUB : JumpLink&lt;0x2b, "jsub"&gt;;
 ...
-def IRET    : JumpFR&lt;0x2d, "iret", CPURegs&gt;;
 def JALR    : JumpLinkReg&lt;0x2e, "jalr", CPURegs&gt;;
 ...
 def : Pat&lt;(Cpu0JmpLink (i32 tglobaladdr:$dst)),
@@ -429,7 +436,7 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
           (JSUB texternalsym:$dst)&gt;;
 ...</pre>
 </div>
-<p class="rubric">lbdex/Chapter9_1/Cpu0InstPrinter.cpp</p>
+<p class="rubric">lbdex/Chapter9_1/InstPrinter/Cpu0InstPrinter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="n">printExpr</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">...</span>
@@ -444,6 +451,8 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
                                               <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
                                               <span class="kt">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="nl">MO_GOT_CALL:</span>  <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT_CALL</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
   <span class="p">...</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">MOTy</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">...</span>
@@ -470,8 +479,36 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
 <span class="p">}</span>
 </pre></div>
 </div>
+<p class="rubric">lbdex/Chapter9_1/MCTargetDesc/Cpu0AsmBackend.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">fixup_Cpu0_CALL16:</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter9_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">fixup_Cpu0_CALL16:</span>
+  <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="o">::</span><span class="n">R_CPU0_CALL16</span><span class="p">;</span>
+  <span class="k">break</span><span class="p">;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter9_1/MCTargetDesc/Cpu0FixupKinds.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// resulting in - R_CPU0_CALL16.</span>
+<span class="n">fixup_Cpu0_CALL16</span><span class="p">,</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/Chapter9_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
+<span class="n">getJumpTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+                     <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JSUB</span> <span class="o">||</span> <span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JMP</span><span class="p">)</span>
+    <span class="n">Fixups</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MCFixup</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span>
+                                     <span class="n">MCFixupKind</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_PC24</span><span class="p">)));</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SWI</span><span class="p">)</span>
+    <span class="n">Fixups</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MCFixup</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span>
+                                     <span class="n">MCFixupKind</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_24</span><span class="p">)));</span>
+  <span class="p">...</span>
+<span class="p">}</span> <span class="c1">// lbd document - mark - getJumpTargetOpValue</span>
+<span class="p">...</span>
+<span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
 <span class="n">getMachineOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
                   <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
 <span class="p">...</span>
@@ -483,6 +520,16 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
   <span class="p">...</span>
   <span class="p">}</span>
 <span class="p">...</span>
+<span class="p">}</span>
+
+<span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
+<span class="n">getMachineOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
+                  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="nl">VK_Cpu0_GOT_CALL:</span>
+    <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_CALL16</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -498,16 +545,16 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
   <span class="c1">// OutArgFIRange: Range of indices of all frame objects created during call to</span>
   <span class="c1">//                LowerCall except for the frame object for restoring $gp.</span>
   <span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span> <span class="kt">int</span><span class="o">&gt;</span> <span class="n">InArgFIRange</span><span class="p">,</span> <span class="n">OutArgFIRange</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">GPFI</span><span class="p">;</span> <span class="c1">// Index of the frame object for restoring $gp</span>
+  <span class="p">...</span>
   <span class="k">mutable</span> <span class="kt">int</span> <span class="n">DynAllocFI</span><span class="p">;</span> <span class="c1">// Frame index of dynamically allocated stack area.</span>
-  <span class="kt">unsigned</span> <span class="n">MaxCallFrameSize</span><span class="p">;</span>
+  <span class="p">...</span>
 
 <span class="k">public</span><span class="o">:</span>
   <span class="n">Cpu0FunctionInfo</span><span class="p">(</span><span class="n">MachineFunction</span><span class="o">&amp;</span> <span class="n">MF</span><span class="p">)</span>
-  <span class="o">:</span> <span class="n">MF</span><span class="p">(</span><span class="n">MF</span><span class="p">),</span> <span class="n">GlobalBaseReg</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+  <span class="o">:</span> <span class="p">...</span>
     <span class="n">VarArgsFrameIndex</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">InArgFIRange</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
     <span class="n">OutArgFIRange</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span> <span class="n">GPFI</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">DynAllocFI</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
-    <span class="n">MaxCallFrameSize</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="p">...</span>
     <span class="p">{}</span>
 
   <span class="kt">bool</span> <span class="n">isInArgFI</span><span class="p">(</span><span class="kt">int</span> <span class="n">FI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -539,9 +586,7 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
   <span class="p">...</span>
   <span class="kt">int</span> <span class="n">getVarArgsFrameIndex</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">VarArgsFrameIndex</span><span class="p">;</span> <span class="p">}</span>
   <span class="kt">void</span> <span class="n">setVarArgsFrameIndex</span><span class="p">(</span><span class="kt">int</span> <span class="n">Index</span><span class="p">)</span> <span class="p">{</span> <span class="n">VarArgsFrameIndex</span> <span class="o">=</span> <span class="n">Index</span><span class="p">;</span> <span class="p">}</span>
-
-  <span class="kt">unsigned</span> <span class="n">getMaxCallFrameSize</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">MaxCallFrameSize</span><span class="p">;</span> <span class="p">}</span>
-  <span class="kt">void</span> <span class="n">setMaxCallFrameSize</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">S</span><span class="p">)</span> <span class="p">{</span> <span class="n">MaxCallFrameSize</span> <span class="o">=</span> <span class="n">S</span><span class="p">;</span> <span class="p">}</span>
+  <span class="p">...</span>
 <span class="p">};</span>
 </pre></div>
 </div>
@@ -653,6 +698,7 @@ function last section.
 Now, we will finish <strong>“store outgoing arguments”</strong> in caller function.
 LowerCall() is responsible to do this. The implementation as follows,</p>
 <p class="rubric">lbdex/Chapter9_2/Cpu0ISelLowering.cpp</p>
+<p class="rubric">lbdex/Chapter9_2/Cpu0ISelLowering.h</p>
 <p>Just like load incoming arguments from stack frame, we call
 CCInfo(CallConv,..., ArgLocs, ...) to get outgoing arguments information before
 enter <strong>“for loop”</strong> and set stack alignment with 8 bytes.
@@ -673,7 +719,7 @@ def callseq_start : SDNode&lt;"ISD::CALLSEQ_START", SDT_Cpu0CallSeqStart,
                            [SDNPHasChain, SDNPOutGlue]&gt;;
 def callseq_end   : SDNode&lt;"ISD::CALLSEQ_END", SDT_Cpu0CallSeqEnd,
                            [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]&gt;;
-
+...
 //===----------------------------------------------------------------------===//
 // Pseudo instructions
 //===----------------------------------------------------------------------===//
@@ -708,11 +754,19 @@ store outgoing arguments to stack frame offset.</p>
   <span class="n">assert</span><span class="p">(</span><span class="n">Opc</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Register class not handled!&quot;</span><span class="p">);</span>
   <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">get</span><span class="p">(</span><span class="n">Opc</span><span class="p">)).</span><span class="n">addReg</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">,</span> <span class="n">getKillRegState</span><span class="p">(</span><span class="n">isKill</span><span class="p">))</span>
     <span class="p">.</span><span class="n">addFrameIndex</span><span class="p">(</span><span class="n">FI</span><span class="p">).</span><span class="n">addImm</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">addMemOperand</span><span class="p">(</span><span class="n">MMO</span><span class="p">);</span>
-<span class="p">}</span>
+<span class="p">}</span> <span class="c1">// lbd document - mark - storeRegToStackSlot</span>
 </pre></div>
 </div>
 <p>Now, let&#8217;s run Chapter9_2/ with ch9_1.cpp to get result as follows (see comment
 //),</p>
+<p class="rubric">lbdex/Chapter9_2/Cpu0InstrInfo.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">virtual</span> <span class="kt">void</span> <span class="n">storeRegToStackSlot</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
+                                 <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MBBI</span><span class="p">,</span>
+                                 <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">isKill</span><span class="p">,</span> <span class="kt">int</span> <span class="n">FrameIndex</span><span class="p">,</span>
+                                 <span class="k">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span><span class="n">RC</span><span class="p">,</span>
+                                 <span class="k">const</span> <span class="n">TargetRegisterInfo</span> <span class="o">*</span><span class="n">TRI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+</pre></div>
+</div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch9_1.bc -o
 ch9_1.cpu0.s
@@ -1050,7 +1104,8 @@ arguments into spOffset($sp) (Chapter9_2/ set them to pOffset+stackSize($sp).</p
 <span class="kt">unsigned</span> <span class="n">SRetReturnReg</span><span class="p">;</span>
 <span class="p">...</span>
 <span class="n">Cpu0FunctionInfo</span><span class="p">(</span><span class="n">MachineFunction</span><span class="o">&amp;</span> <span class="n">MF</span><span class="p">)</span>
-<span class="o">:</span> <span class="n">MF</span><span class="p">(</span><span class="n">MF</span><span class="p">),</span> <span class="n">SRetReturnReg</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="o">:</span> <span class="p">...</span>
+  <span class="n">SRetReturnReg</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="p">...</span>
 <span class="kt">bool</span> <span class="n">isOutArgFI</span><span class="p">(</span><span class="kt">int</span> <span class="n">FI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="k">return</span> <span class="n">FI</span> <span class="o">&lt;=</span> <span class="n">OutArgFIRange</span><span class="p">.</span><span class="n">first</span> <span class="o">&amp;&amp;</span> <span class="n">FI</span> <span class="o">&gt;=</span> <span class="n">OutArgFIRange</span><span class="p">.</span><span class="n">second</span><span class="p">;</span>
@@ -1125,7 +1180,8 @@ ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP) in Cpu0InstrInfo() constructor
 function and define eliminateCallFramePseudoInstr() as follows,</p>
 <p class="rubric">lbdex/Chapter9_3/Cpu0InstrInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">Cpu0InstrInfo</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">tm</span><span class="p">)</span>
-  <span class="o">:</span> <span class="n">Cpu0GenInstrInfo</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADJCALLSTACKDOWN</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADJCALLSTACKUP</span><span class="p">),</span>
+  <span class="o">:</span>
+    <span class="n">Cpu0GenInstrInfo</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADJCALLSTACKDOWN</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADJCALLSTACKUP</span><span class="p">),</span>
 <span class="p">...</span>
 </pre></div>
 </div>
@@ -1278,9 +1334,10 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.</p
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0FrameLowering</span><span class="o">::</span><span class="n">emitPrologue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="kt">unsigned</span> <span class="n">RegSize</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
-  <span class="kt">unsigned</span> <span class="n">LocalVarAreaOffset</span> <span class="o">=</span> <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">needGPSaveRestore</span><span class="p">()</span> <span class="o">?</span>
-  <span class="p">(</span><span class="n">MFI</span><span class="o">-&gt;</span><span class="n">getObjectOffset</span><span class="p">(</span><span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getGPFI</span><span class="p">())</span> <span class="o">+</span> <span class="n">RegSize</span><span class="p">)</span> <span class="o">:</span>
-  <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getMaxCallFrameSize</span><span class="p">();</span>
+  <span class="kt">unsigned</span> <span class="n">LocalVarAreaOffset</span> <span class="o">=</span>
+    <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">needGPSaveRestore</span><span class="p">()</span> <span class="o">?</span>
+    <span class="p">(</span><span class="n">MFI</span><span class="o">-&gt;</span><span class="n">getObjectOffset</span><span class="p">(</span><span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getGPFI</span><span class="p">())</span> <span class="o">+</span> <span class="n">RegSize</span><span class="p">)</span> <span class="o">:</span>
+    <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getMaxCallFrameSize</span><span class="p">();</span>
   <span class="p">...</span>
   <span class="c1">// Restore GP from the saved stack location</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">needGPSaveRestore</span><span class="p">())</span> <span class="p">{</span>
@@ -1334,7 +1391,7 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
 <span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">EmitInstruction</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="kt">unsigned</span> <span class="n">Opc</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">();</span>
-  <span class="n">MCInst</span> <span class="n">TmpInst0</span><span class="p">;</span>
+  <span class="p">...</span>
   <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;</span> <span class="n">MCInsts</span><span class="p">;</span>
 
   <span class="k">switch</span> <span class="p">(</span><span class="n">Opc</span><span class="p">)</span> <span class="p">{</span>
@@ -1363,13 +1420,12 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
   <span class="k">default</span><span class="o">:</span>
     <span class="k">break</span><span class="p">;</span>
   <span class="p">}</span>
-
-  <span class="n">MCInstLowering</span><span class="p">.</span><span class="n">Lower</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">TmpInst0</span><span class="p">);</span>
-  <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitInstruction</span><span class="p">(</span><span class="n">TmpInst0</span><span class="p">);</span>
+  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter9_3/Cpu0MCInstLower.cpp</p>
+<p class="rubric">lbdex/Chapter9_3/Cpu0MCInstLower.h</p>
 <p>The added code of Cpu0AsmPrinter.cpp as above will call the LowerCPRESTORE() when
 user run with <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-filetype=obj</span></tt>.
 The added code of Cpu0MCInstLower.cpp as above take care the .cprestore machine
@@ -1422,9 +1478,10 @@ The ch9_1_3.cpp and ch9_1_4.cpp are example code more for test.</p>
 <h3>Correct the return of main()<a class="headerlink" href="#correct-the-return-of-main" title="Permalink to this headline">¶</a></h3>
 <p>The LowerReturn() modified in Chapter9_3/ as follows,</p>
 <p class="rubric">lbdex/Chapter9_3/Cpu0ISelLowering.cpp</p>
-<p class="rubric">lbdex/Chapter9_3/Cpu0InstrInfo.h</p>
-<p class="rubric">lbdex/Chapter9_3/Cpu0InstrInfo.cpp</p>
-<p class="rubric">lbdex/Chapter9_3/Cpu0InstrInfo.td</p>
+<p>The LowerReturn work with RET defined in Chapter3_4 as follows,</p>
+<p class="rubric">lbdex/Chapter3_4/Cpu0InstrInfo.h</p>
+<p class="rubric">lbdex/Chapter3_4/Cpu0InstrInfo.cpp</p>
+<p class="rubric">lbdex/Chapter3_4/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// Return
 def Cpu0Ret : SDNode&lt;"Cpu0ISD::Ret", SDTNone,
                      [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]&gt;;
@@ -1455,7 +1512,7 @@ def RET     : RetBase&lt;CPURegs&gt;;</pre>
 <ol class="arabic simple">
 <li>Declare a pseudo node by the following code,</li>
 </ol>
-<p class="rubric">lbdex/Chapter9_3/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter3_4/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Return</span>
 <span class="n">def</span> <span class="n">Cpu0Ret</span> <span class="o">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s">&quot;Cpu0ISD::Ret&quot;</span><span class="p">,</span> <span class="n">SDTNone</span><span class="p">,</span>
                      <span class="p">[</span><span class="n">SDNPHasChain</span><span class="p">,</span> <span class="n">SDNPOptInGlue</span><span class="p">,</span> <span class="n">SDNPVariadic</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
@@ -1536,7 +1593,7 @@ V0 ($r2) by LR ($lr) without any side effect.</li>
 TableGen from *.td) generated by the following code at &#8220;Cpu0 Assembly
 Printer&#8221; stage.</li>
 </ol>
-<p class="rubric">lbdex/Chapter9_3/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter3_4/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>class JumpFR&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
   FL&lt;op, (outs), (ins RC:$ra),
      !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch&gt; {
@@ -1948,7 +2005,7 @@ function call.</p>
                                  <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
   <span class="n">OutChains</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Store</span><span class="p">);</span>
   <span class="p">}</span>
-<span class="p">}</span>
+<span class="p">}</span> <span class="c1">// lbd document - mark - ReadByValArg</span>
 <span class="p">...</span>
 <span class="n">SDValue</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerFormalArguments</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span>
@@ -2688,7 +2745,7 @@ In # BB#3, do i+=1.</p>
 add in Chapter9_4/.
 The ch9_3_2.cpp is C++ template example code, it can be translated into cpu0
 backend code too.</p>
-<p class="rubric">lbdex/Chapter9_4/Cpu0TargetLowering.h</p>
+<p class="rubric">lbdex/Chapter9_4/Cpu0ISelLowering.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Cpu0TargetLowering</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TargetLowering</span>  <span class="p">{</span>
 <span class="p">...</span>
 <span class="k">private</span><span class="o">:</span>
@@ -2698,7 +2755,7 @@ backend code too.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Chapter9_4/Cpu0TargetLowering.cpp</p>
+<p class="rubric">lbdex/Chapter9_4/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
 <span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
   <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">Cpu0TargetObjectFile</span><span class="p">()),</span>
@@ -2752,9 +2809,15 @@ backend code too.</p>
                       <span class="k">const</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">isVarArg</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">unsigned</span> <span class="n">NumOfRegs</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">FirstRegSlotOffset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// offset of $a0&#39;s slot.</span>
     <span class="kt">unsigned</span> <span class="n">RegSize</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">getSize</span><span class="p">();</span>
+    <span class="kt">int</span> <span class="n">RegSlotOffset</span> <span class="o">=</span> <span class="n">FirstRegSlotOffset</span> <span class="o">+</span> <span class="n">ArgLocs</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">*</span> <span class="n">RegSize</span><span class="p">;</span>
+
     <span class="c1">// Offset of the first variable argument from stack pointer.</span>
-    <span class="kt">int</span> <span class="n">FirstVaArgOffset</span> <span class="o">=</span> <span class="n">RegSize</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">FirstVaArgOffset</span><span class="p">;</span>
+
+    <span class="n">FirstVaArgOffset</span> <span class="o">=</span> <span class="n">RegSlotOffset</span><span class="p">;</span>
 
     <span class="c1">// Record the frame index of the first variable argument</span>
     <span class="c1">// which is a value necessary to VASTART.</span>
@@ -2845,7 +2908,7 @@ languages use it frequently. The following C example code use it.</p>
 
     <span class="c1">// Insert instruction &quot;move $sp, $fp&quot; at this location.</span>
     <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">TII</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">ADDu</span><span class="p">),</span> <span class="n">SP</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">FP</span><span class="p">).</span><span class="n">addReg</span><span class="p">(</span><span class="n">ZERO</span><span class="p">);</span>
-  <span class="p">}</span>
+  <span class="p">}</span> <span class="c1">// lbd document - mark - emitEpilogue() if (hasFP(MF))</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
