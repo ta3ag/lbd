@@ -172,7 +172,7 @@ gh-pages:
 	rm -rf `git ls-tree master:$(BACKEND_TUTORIAL_SUBDIR) | cut -f2` &&\
 	rm -rf build lbdex &&\
   cd ../../ &&\
-	git add -A &&\
+	git add git add *.html _images/. _sources/. _static/. TutorialLLVMBackendCpu0.* &&\
 	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" &&\
 	git push origin gh-pages &&\
 	git checkout master &&\
