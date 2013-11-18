@@ -162,7 +162,7 @@ TMP_PREFIX = tmp
 gh-pages:
 	git checkout gh-pages &&\
 	rm -rf build _sources _static _images &&\
-	git read-tree --prefix=$(TMP_PREFIX)/ -u HEAD master:$(BACKEND_TUTORIAL_SUBDIR) &&\
+	git read-tree -u HEAD master:$(BACKEND_TUTORIAL_SUBDIR) &&\
 	mv ../../$(TMP_PREFIX)/* .\
 	sh ./rungenexample.sh &&\
 	make html latexpdf epub &&\
@@ -174,7 +174,6 @@ gh-pages:
 	git add -A &&\
 	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" &&\
 	git push origin gh-pages &&\
-	rm -rf ../../tmp\
 	git checkout master
 
 genexample:
