@@ -160,21 +160,24 @@ TMP_PREFIX = tmp
 # 'cd' take effect for the whole command.
 # TODO: is there a nicer way of doing this?
 gh-pages:
+	cd ../../ &&\
 	git checkout gh-pages &&\
 	rm -rf build _sources _static _images &&\
 	git read-tree --prefix=$(TMP_PREFIX)/ -u HEAD master:$(BACKEND_TUTORIAL_SUBDIR) &&\
-	mv $(TMP_PREFIX)/* . &&\
+	mv $(TMP_PREFIX)/* $(BACKEND_TUTORIAL_SUBDIR)/. && cd $(BACKEND_TUTORIAL_SUBDIR)\
 	sh ./rungenexample.sh &&\
 	make html latexpdf epub &&\
 	mv -fv build/html/* ./ &&\
 	mv -fv build/latex/TutorialLLVMBackendCpu0.pdf "./TutorialLLVMBackendCpu0.pdf" &&\
 	mv -fv build/epub/TutorialLLVMBackendCpu0.epub "./TutorialLLVMBackendCpu0.epub" &&\
+	cd ../../ &&\
 	rm -rf `git ls-tree master:$(BACKEND_TUTORIAL_SUBDIR) | cut -f2` &&\
 	rm -rf build lbdex &&\
 	git add -A &&\
 	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" &&\
 	git push origin gh-pages &&\
-	git checkout master
+	git checkout master &&\
+  cd $(BACKEND_TUTORIAL_SUBDIR)
 
 genexample:
 	sh ./rungenexample.sh
