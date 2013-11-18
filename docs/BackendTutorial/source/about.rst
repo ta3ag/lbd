@@ -54,7 +54,7 @@ Revision history
 
 Version 3.3.9, Not release yet.
 
-Version 3.3.8, Released November 18, 2013
+Version 3.3.8-1, Released November 18, 2013
   Fix the reference file missing for make gh-page.
 
 Version 3.3.7, Released November 17, 2013
