@@ -162,7 +162,7 @@ TMP_PREFIX = tmp
 gh-pages:
 	git checkout gh-pages &&\
 	rm -rf build _sources _static _images &&\
-	git read-tree -u HEAD master:$(BACKEND_TUTORIAL_SUBDIR) &&\
+	git read-tree --prefix=$(TMP_PREFIX)/ -u HEAD master:$(BACKEND_TUTORIAL_SUBDIR) &&\
 	mv ../../$(TMP_PREFIX)/* .\
 	sh ./rungenexample.sh &&\
 	make html latexpdf epub &&\
