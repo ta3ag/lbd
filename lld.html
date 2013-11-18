@@ -2704,8 +2704,8 @@ below.</p>
 </div>
 <p class="rubric">lbdex/InputFiles/printf-stdarg.c</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cm">/*</span>
-<span class="cm">	Copyright 2001, 2002 Georges Menie (www.menie.org)</span>
-<span class="cm">	stdarg version contributed by Christian Ettinger</span>
+<span class="cm">  Copyright 2001, 2002 Georges Menie (www.menie.org)</span>
+<span class="cm">  stdarg version contributed by Christian Ettinger</span>
 
 <span class="cm">    This program is free software; you can redistribute it and/or modify</span>
 <span class="cm">    it under the terms of the GNU Lesser General Public License as published by</span>
@@ -2723,10 +2723,10 @@ below.</p>
 <span class="cm">*/</span>
 
 <span class="cm">/*</span>
-<span class="cm">	putchar is the only external dependency for this file,</span>
-<span class="cm">	if you have a working putchar, leave it commented out.</span>
-<span class="cm">	If not, uncomment the define below and</span>
-<span class="cm">	replace outbyte(c) by your own function call.</span>
+<span class="cm">  putchar is the only external dependency for this file,</span>
+<span class="cm">  if you have a working putchar, leave it commented out.</span>
+<span class="cm">  If not, uncomment the define below and</span>
+<span class="cm">  replace outbyte(c) by your own function call.</span>
 
 <span class="cm">#define putchar(c) outbyte(c)</span>
 <span class="cm">*/</span>
@@ -2735,13 +2735,13 @@ below.</p>
 
 <span class="k">static</span> <span class="kt">void</span> <span class="n">printchar</span><span class="p">(</span><span class="kt">char</span> <span class="o">**</span><span class="n">str</span><span class="p">,</span> <span class="kt">int</span> <span class="n">c</span><span class="p">)</span>
 <span class="p">{</span>
-	<span class="k">extern</span> <span class="kt">int</span> <span class="n">putchar</span><span class="p">(</span><span class="kt">int</span> <span class="n">c</span><span class="p">);</span>
-	
-	<span class="k">if</span> <span class="p">(</span><span class="n">str</span><span class="p">)</span> <span class="p">{</span>
-		<span class="o">**</span><span class="n">str</span> <span class="o">=</span> <span class="n">c</span><span class="p">;</span>
-		<span class="o">++</span><span class="p">(</span><span class="o">*</span><span class="n">str</span><span class="p">);</span>
-	<span class="p">}</span>
-	<span class="k">else</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">putchar</span><span class="p">(</span><span class="n">c</span><span class="p">);</span>
+  <span class="k">extern</span> <span class="kt">int</span> <span class="n">putchar</span><span class="p">(</span><span class="kt">int</span> <span class="n">c</span><span class="p">);</span>
+  
+  <span class="k">if</span> <span class="p">(</span><span class="n">str</span><span class="p">)</span> <span class="p">{</span>
+    <span class="o">**</span><span class="n">str</span> <span class="o">=</span> <span class="n">c</span><span class="p">;</span>
+    <span class="o">++</span><span class="p">(</span><span class="o">*</span><span class="n">str</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">else</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">putchar</span><span class="p">(</span><span class="n">c</span><span class="p">);</span>
 <span class="p">}</span>
 
 <span class="cp">#define PAD_RIGHT 1</span>
@@ -2749,32 +2749,32 @@ below.</p>
 
 <span class="k">static</span> <span class="kt">int</span> <span class="n">prints</span><span class="p">(</span><span class="kt">char</span> <span class="o">**</span><span class="n">out</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">string</span><span class="p">,</span> <span class="kt">int</span> <span class="n">width</span><span class="p">,</span> <span class="kt">int</span> <span class="n">pad</span><span class="p">)</span>
 <span class="p">{</span>
-	<span class="k">register</span> <span class="kt">int</span> <span class="n">pc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">padchar</span> <span class="o">=</span> <span class="sc">&#39; &#39;</span><span class="p">;</span>
+  <span class="k">register</span> <span class="kt">int</span> <span class="n">pc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">padchar</span> <span class="o">=</span> <span class="sc">&#39; &#39;</span><span class="p">;</span>
 
-	<span class="k">if</span> <span class="p">(</span><span class="n">width</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-		<span class="k">register</span> <span class="kt">int</span> <span class="n">len</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-		<span class="k">register</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">ptr</span><span class="p">;</span>
-		<span class="k">for</span> <span class="p">(</span><span class="n">ptr</span> <span class="o">=</span> <span class="n">string</span><span class="p">;</span> <span class="o">*</span><span class="n">ptr</span><span class="p">;</span> <span class="o">++</span><span class="n">ptr</span><span class="p">)</span> <span class="o">++</span><span class="n">len</span><span class="p">;</span>
-		<span class="k">if</span> <span class="p">(</span><span class="n">len</span> <span class="o">&gt;=</span> <span class="n">width</span><span class="p">)</span> <span class="n">width</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-		<span class="k">else</span> <span class="n">width</span> <span class="o">-=</span> <span class="n">len</span><span class="p">;</span>
-		<span class="k">if</span> <span class="p">(</span><span class="n">pad</span> <span class="o">&amp;</span> <span class="n">PAD_ZERO</span><span class="p">)</span> <span class="n">padchar</span> <span class="o">=</span> <span class="sc">&#39;0&#39;</span><span class="p">;</span>
-	<span class="p">}</span>
-	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">pad</span> <span class="o">&amp;</span> <span class="n">PAD_RIGHT</span><span class="p">))</span> <span class="p">{</span>
-		<span class="k">for</span> <span class="p">(</span> <span class="p">;</span> <span class="n">width</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">;</span> <span class="o">--</span><span class="n">width</span><span class="p">)</span> <span class="p">{</span>
-			<span class="n">printchar</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">padchar</span><span class="p">);</span>
-			<span class="o">++</span><span class="n">pc</span><span class="p">;</span>
-		<span class="p">}</span>
-	<span class="p">}</span>
-	<span class="k">for</span> <span class="p">(</span> <span class="p">;</span> <span class="o">*</span><span class="n">string</span> <span class="p">;</span> <span class="o">++</span><span class="n">string</span><span class="p">)</span> <span class="p">{</span>
-		<span class="n">printchar</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="o">*</span><span class="n">string</span><span class="p">);</span>
-		<span class="o">++</span><span class="n">pc</span><span class="p">;</span>
-	<span class="p">}</span>
-	<span class="k">for</span> <span class="p">(</span> <span class="p">;</span> <span class="n">width</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">;</span> <span class="o">--</span><span class="n">width</span><span class="p">)</span> <span class="p">{</span>
-		<span class="n">printchar</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">padchar</span><span class="p">);</span>
-		<span class="o">++</span><span class="n">pc</span><span class="p">;</span>
-	<span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">width</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">register</span> <span class="kt">int</span> <span class="n">len</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">register</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">ptr</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">ptr</span> <span class="o">=</span> <span class="n">string</span><span class="p">;</span> <span class="o">*</span><span class="n">ptr</span><span class="p">;</span> <span class="o">++</span><span class="n">ptr</span><span class="p">)</span> <span class="o">++</span><span class="n">len</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">len</span> <span class="o">&gt;=</span> <span class="n">width</span><span class="p">)</span> <span class="n">width</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">else</span> <span class="n">width</span> <span class="o">-=</span> <span class="n">len</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">pad</span> <span class="o">&amp;</span> <span class="n">PAD_ZERO</span><span class="p">)</span> <span class="n">padchar</span> <span class="o">=</span> <span class="sc">&#39;0&#39;</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">pad</span> <span class="o">&amp;</span> <span class="n">PAD_RIGHT</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span> <span class="p">;</span> <span class="n">width</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">;</span> <span class="o">--</span><span class="n">width</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">printchar</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">padchar</span><span class="p">);</span>
+      <span class="o">++</span><span class="n">pc</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="k">for</span> <span class="p">(</span> <span class="p">;</span> <span class="o">*</span><span class="n">string</span> <span class="p">;</span> <span class="o">++</span><span class="n">string</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">printchar</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="o">*</span><span class="n">string</span><span class="p">);</span>
+    <span class="o">++</span><span class="n">pc</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">for</span> <span class="p">(</span> <span class="p">;</span> <span class="n">width</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">;</span> <span class="o">--</span><span class="n">width</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">printchar</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">padchar</span><span class="p">);</span>
+    <span class="o">++</span><span class="n">pc</span><span class="p">;</span>
+  <span class="p">}</span>
 
-	<span class="k">return</span> <span class="n">pc</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">pc</span><span class="p">;</span>
 <span class="p">}</span>
 
 <span class="cm">/* the following should be enough for 32 bit int */</span>
@@ -2782,109 +2782,109 @@ below.</p>
 
 <span class="k">static</span> <span class="kt">int</span> <span class="n">printi</span><span class="p">(</span><span class="kt">char</span> <span class="o">**</span><span class="n">out</span><span class="p">,</span> <span class="kt">int</span> <span class="n">i</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">,</span> <span class="kt">int</span> <span class="n">sg</span><span class="p">,</span> <span class="kt">int</span> <span class="n">width</span><span class="p">,</span> <span class="kt">int</span> <span class="n">pad</span><span class="p">,</span> <span class="kt">int</span> <span class="n">letbase</span><span class="p">)</span>
 <span class="p">{</span>
-	<span class="kt">char</span> <span class="n">print_buf</span><span class="p">[</span><span class="n">PRINT_BUF_LEN</span><span class="p">];</span>
-	<span class="k">register</span> <span class="kt">char</span> <span class="o">*</span><span class="n">s</span><span class="p">;</span>
-	<span class="k">register</span> <span class="kt">int</span> <span class="n">t</span><span class="p">,</span> <span class="n">neg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">pc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-	<span class="k">register</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">u</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">print_buf</span><span class="p">[</span><span class="n">PRINT_BUF_LEN</span><span class="p">];</span>
+  <span class="k">register</span> <span class="kt">char</span> <span class="o">*</span><span class="n">s</span><span class="p">;</span>
+  <span class="k">register</span> <span class="kt">int</span> <span class="n">t</span><span class="p">,</span> <span class="n">neg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">pc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">register</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">u</span> <span class="o">=</span> <span class="n">i</span><span class="p">;</span>
 
-	<span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-		<span class="n">print_buf</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;0&#39;</span><span class="p">;</span>
-		<span class="n">print_buf</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
-		<span class="k">return</span> <span class="n">prints</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">print_buf</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">);</span>
-	<span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">print_buf</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;0&#39;</span><span class="p">;</span>
+    <span class="n">print_buf</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">prints</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">print_buf</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">);</span>
+  <span class="p">}</span>
 
-	<span class="k">if</span> <span class="p">(</span><span class="n">sg</span> <span class="o">&amp;&amp;</span> <span class="n">b</span> <span class="o">==</span> <span class="mi">10</span> <span class="o">&amp;&amp;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-		<span class="n">neg</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-		<span class="n">u</span> <span class="o">=</span> <span class="o">-</span><span class="n">i</span><span class="p">;</span>
-	<span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">sg</span> <span class="o">&amp;&amp;</span> <span class="n">b</span> <span class="o">==</span> <span class="mi">10</span> <span class="o">&amp;&amp;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">neg</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="o">-</span><span class="n">i</span><span class="p">;</span>
+  <span class="p">}</span>
 
-	<span class="n">s</span> <span class="o">=</span> <span class="n">print_buf</span> <span class="o">+</span> <span class="n">PRINT_BUF_LEN</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span>
-	<span class="o">*</span><span class="n">s</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+  <span class="n">s</span> <span class="o">=</span> <span class="n">print_buf</span> <span class="o">+</span> <span class="n">PRINT_BUF_LEN</span><span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+  <span class="o">*</span><span class="n">s</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
 
-	<span class="k">while</span> <span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="p">{</span>
-		<span class="n">t</span> <span class="o">=</span> <span class="n">u</span> <span class="o">%</span> <span class="n">b</span><span class="p">;</span>
-		<span class="k">if</span><span class="p">(</span> <span class="n">t</span> <span class="o">&gt;=</span> <span class="mi">10</span> <span class="p">)</span>
-			<span class="n">t</span> <span class="o">+=</span> <span class="n">letbase</span> <span class="o">-</span> <span class="sc">&#39;0&#39;</span> <span class="o">-</span> <span class="mi">10</span><span class="p">;</span>
-		<span class="o">*--</span><span class="n">s</span> <span class="o">=</span> <span class="n">t</span> <span class="o">+</span> <span class="sc">&#39;0&#39;</span><span class="p">;</span>
-		<span class="n">u</span> <span class="o">/=</span> <span class="n">b</span><span class="p">;</span>
-	<span class="p">}</span>
+  <span class="k">while</span> <span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">u</span> <span class="o">%</span> <span class="n">b</span><span class="p">;</span>
+    <span class="k">if</span><span class="p">(</span> <span class="n">t</span> <span class="o">&gt;=</span> <span class="mi">10</span> <span class="p">)</span>
+      <span class="n">t</span> <span class="o">+=</span> <span class="n">letbase</span> <span class="o">-</span> <span class="sc">&#39;0&#39;</span> <span class="o">-</span> <span class="mi">10</span><span class="p">;</span>
+    <span class="o">*--</span><span class="n">s</span> <span class="o">=</span> <span class="n">t</span> <span class="o">+</span> <span class="sc">&#39;0&#39;</span><span class="p">;</span>
+    <span class="n">u</span> <span class="o">/=</span> <span class="n">b</span><span class="p">;</span>
+  <span class="p">}</span>
 
-	<span class="k">if</span> <span class="p">(</span><span class="n">neg</span><span class="p">)</span> <span class="p">{</span>
-		<span class="k">if</span><span class="p">(</span> <span class="n">width</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">pad</span> <span class="o">&amp;</span> <span class="n">PAD_ZERO</span><span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
-			<span class="n">printchar</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="sc">&#39;-&#39;</span><span class="p">);</span>
-			<span class="o">++</span><span class="n">pc</span><span class="p">;</span>
-			<span class="o">--</span><span class="n">width</span><span class="p">;</span>
-		<span class="p">}</span>
-		<span class="k">else</span> <span class="p">{</span>
-			<span class="o">*--</span><span class="n">s</span> <span class="o">=</span> <span class="sc">&#39;-&#39;</span><span class="p">;</span>
-		<span class="p">}</span>
-	<span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">neg</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span> <span class="n">width</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">pad</span> <span class="o">&amp;</span> <span class="n">PAD_ZERO</span><span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="n">printchar</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="sc">&#39;-&#39;</span><span class="p">);</span>
+      <span class="o">++</span><span class="n">pc</span><span class="p">;</span>
+      <span class="o">--</span><span class="n">width</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="p">{</span>
+      <span class="o">*--</span><span class="n">s</span> <span class="o">=</span> <span class="sc">&#39;-&#39;</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
 
-	<span class="k">return</span> <span class="n">pc</span> <span class="o">+</span> <span class="n">prints</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">pc</span> <span class="o">+</span> <span class="n">prints</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">);</span>
 <span class="p">}</span>
 
 <span class="k">static</span> <span class="kt">int</span> <span class="n">print</span><span class="p">(</span><span class="kt">char</span> <span class="o">**</span><span class="n">out</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="n">va_list</span> <span class="n">args</span> <span class="p">)</span>
 <span class="p">{</span>
-	<span class="k">register</span> <span class="kt">int</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">;</span>
-	<span class="k">register</span> <span class="kt">int</span> <span class="n">pc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-	<span class="kt">char</span> <span class="n">scr</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+  <span class="k">register</span> <span class="kt">int</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">;</span>
+  <span class="k">register</span> <span class="kt">int</span> <span class="n">pc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">scr</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
 
-	<span class="k">for</span> <span class="p">(;</span> <span class="o">*</span><span class="n">format</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">;</span> <span class="o">++</span><span class="n">format</span><span class="p">)</span> <span class="p">{</span>
-		<span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;%&#39;</span><span class="p">)</span> <span class="p">{</span>
-			<span class="o">++</span><span class="n">format</span><span class="p">;</span>
-			<span class="n">width</span> <span class="o">=</span> <span class="n">pad</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-			<span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;\0&#39;</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
-			<span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;%&#39;</span><span class="p">)</span> <span class="k">goto</span> <span class="n">out</span><span class="p">;</span>
-			<span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;-&#39;</span><span class="p">)</span> <span class="p">{</span>
-				<span class="o">++</span><span class="n">format</span><span class="p">;</span>
-				<span class="n">pad</span> <span class="o">=</span> <span class="n">PAD_RIGHT</span><span class="p">;</span>
-			<span class="p">}</span>
-			<span class="k">while</span> <span class="p">(</span><span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;0&#39;</span><span class="p">)</span> <span class="p">{</span>
-				<span class="o">++</span><span class="n">format</span><span class="p">;</span>
-				<span class="n">pad</span> <span class="o">|=</span> <span class="n">PAD_ZERO</span><span class="p">;</span>
-			<span class="p">}</span>
-			<span class="k">for</span> <span class="p">(</span> <span class="p">;</span> <span class="o">*</span><span class="n">format</span> <span class="o">&gt;=</span> <span class="sc">&#39;0&#39;</span> <span class="o">&amp;&amp;</span> <span class="o">*</span><span class="n">format</span> <span class="o">&lt;=</span> <span class="sc">&#39;9&#39;</span><span class="p">;</span> <span class="o">++</span><span class="n">format</span><span class="p">)</span> <span class="p">{</span>
-				<span class="n">width</span> <span class="o">*=</span> <span class="mi">10</span><span class="p">;</span>
-				<span class="n">width</span> <span class="o">+=</span> <span class="o">*</span><span class="n">format</span> <span class="o">-</span> <span class="sc">&#39;0&#39;</span><span class="p">;</span>
-			<span class="p">}</span>
-			<span class="k">if</span><span class="p">(</span> <span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;s&#39;</span> <span class="p">)</span> <span class="p">{</span>
-				<span class="k">register</span> <span class="kt">char</span> <span class="o">*</span><span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">va_arg</span><span class="p">(</span> <span class="n">args</span><span class="p">,</span> <span class="kt">int</span> <span class="p">);</span>
-				<span class="n">pc</span> <span class="o">+=</span> <span class="n">prints</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">s</span><span class="o">?</span><span class="nl">s:</span><span class="s">&quot;(null)&quot;</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">);</span>
-				<span class="k">continue</span><span class="p">;</span>
-			<span class="p">}</span>
-			<span class="k">if</span><span class="p">(</span> <span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;d&#39;</span> <span class="p">)</span> <span class="p">{</span>
-				<span class="n">pc</span> <span class="o">+=</span> <span class="n">printi</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">va_arg</span><span class="p">(</span> <span class="n">args</span><span class="p">,</span> <span class="kt">int</span> <span class="p">),</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">);</span>
-				<span class="k">continue</span><span class="p">;</span>
-			<span class="p">}</span>
-			<span class="k">if</span><span class="p">(</span> <span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;x&#39;</span> <span class="p">)</span> <span class="p">{</span>
-				<span class="n">pc</span> <span class="o">+=</span> <span class="n">printi</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">va_arg</span><span class="p">(</span> <span class="n">args</span><span class="p">,</span> <span class="kt">int</span> <span class="p">),</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">);</span>
-				<span class="k">continue</span><span class="p">;</span>
-			<span class="p">}</span>
-			<span class="k">if</span><span class="p">(</span> <span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;X&#39;</span> <span class="p">)</span> <span class="p">{</span>
-				<span class="n">pc</span> <span class="o">+=</span> <span class="n">printi</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">va_arg</span><span class="p">(</span> <span class="n">args</span><span class="p">,</span> <span class="kt">int</span> <span class="p">),</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="sc">&#39;A&#39;</span><span class="p">);</span>
-				<span class="k">continue</span><span class="p">;</span>
-			<span class="p">}</span>
-			<span class="k">if</span><span class="p">(</span> <span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;u&#39;</span> <span class="p">)</span> <span class="p">{</span>
-				<span class="n">pc</span> <span class="o">+=</span> <span class="n">printi</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">va_arg</span><span class="p">(</span> <span class="n">args</span><span class="p">,</span> <span class="kt">int</span> <span class="p">),</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">);</span>
-				<span class="k">continue</span><span class="p">;</span>
-			<span class="p">}</span>
-			<span class="k">if</span><span class="p">(</span> <span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;c&#39;</span> <span class="p">)</span> <span class="p">{</span>
-				<span class="cm">/* char are converted to int then pushed on the stack */</span>
-				<span class="n">scr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="n">va_arg</span><span class="p">(</span> <span class="n">args</span><span class="p">,</span> <span class="kt">int</span> <span class="p">);</span>
-				<span class="n">scr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
-				<span class="n">pc</span> <span class="o">+=</span> <span class="n">prints</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">scr</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">);</span>
-				<span class="k">continue</span><span class="p">;</span>
-			<span class="p">}</span>
-		<span class="p">}</span>
-		<span class="k">else</span> <span class="p">{</span>
-		<span class="nl">out:</span>
-			<span class="n">printchar</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="o">*</span><span class="n">format</span><span class="p">);</span>
-			<span class="o">++</span><span class="n">pc</span><span class="p">;</span>
-		<span class="p">}</span>
-	<span class="p">}</span>
-	<span class="k">if</span> <span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">**</span><span class="n">out</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
-	<span class="n">va_end</span><span class="p">(</span> <span class="n">args</span> <span class="p">);</span>
-	<span class="k">return</span> <span class="n">pc</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(;</span> <span class="o">*</span><span class="n">format</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">;</span> <span class="o">++</span><span class="n">format</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;%&#39;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="o">++</span><span class="n">format</span><span class="p">;</span>
+      <span class="n">width</span> <span class="o">=</span> <span class="n">pad</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;\0&#39;</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;%&#39;</span><span class="p">)</span> <span class="k">goto</span> <span class="n">out</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;-&#39;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="o">++</span><span class="n">format</span><span class="p">;</span>
+        <span class="n">pad</span> <span class="o">=</span> <span class="n">PAD_RIGHT</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">while</span> <span class="p">(</span><span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;0&#39;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="o">++</span><span class="n">format</span><span class="p">;</span>
+        <span class="n">pad</span> <span class="o">|=</span> <span class="n">PAD_ZERO</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">for</span> <span class="p">(</span> <span class="p">;</span> <span class="o">*</span><span class="n">format</span> <span class="o">&gt;=</span> <span class="sc">&#39;0&#39;</span> <span class="o">&amp;&amp;</span> <span class="o">*</span><span class="n">format</span> <span class="o">&lt;=</span> <span class="sc">&#39;9&#39;</span><span class="p">;</span> <span class="o">++</span><span class="n">format</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">width</span> <span class="o">*=</span> <span class="mi">10</span><span class="p">;</span>
+        <span class="n">width</span> <span class="o">+=</span> <span class="o">*</span><span class="n">format</span> <span class="o">-</span> <span class="sc">&#39;0&#39;</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">if</span><span class="p">(</span> <span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;s&#39;</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="k">register</span> <span class="kt">char</span> <span class="o">*</span><span class="n">s</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="p">)</span><span class="n">va_arg</span><span class="p">(</span> <span class="n">args</span><span class="p">,</span> <span class="kt">int</span> <span class="p">);</span>
+        <span class="n">pc</span> <span class="o">+=</span> <span class="n">prints</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">s</span><span class="o">?</span><span class="nl">s:</span><span class="s">&quot;(null)&quot;</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">);</span>
+        <span class="k">continue</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">if</span><span class="p">(</span> <span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;d&#39;</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="n">pc</span> <span class="o">+=</span> <span class="n">printi</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">va_arg</span><span class="p">(</span> <span class="n">args</span><span class="p">,</span> <span class="kt">int</span> <span class="p">),</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">);</span>
+        <span class="k">continue</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">if</span><span class="p">(</span> <span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;x&#39;</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="n">pc</span> <span class="o">+=</span> <span class="n">printi</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">va_arg</span><span class="p">(</span> <span class="n">args</span><span class="p">,</span> <span class="kt">int</span> <span class="p">),</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">);</span>
+        <span class="k">continue</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">if</span><span class="p">(</span> <span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;X&#39;</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="n">pc</span> <span class="o">+=</span> <span class="n">printi</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">va_arg</span><span class="p">(</span> <span class="n">args</span><span class="p">,</span> <span class="kt">int</span> <span class="p">),</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="sc">&#39;A&#39;</span><span class="p">);</span>
+        <span class="k">continue</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">if</span><span class="p">(</span> <span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;u&#39;</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="n">pc</span> <span class="o">+=</span> <span class="n">printi</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">va_arg</span><span class="p">(</span> <span class="n">args</span><span class="p">,</span> <span class="kt">int</span> <span class="p">),</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">);</span>
+        <span class="k">continue</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="k">if</span><span class="p">(</span> <span class="o">*</span><span class="n">format</span> <span class="o">==</span> <span class="sc">&#39;c&#39;</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="cm">/* char are converted to int then pushed on the stack */</span>
+        <span class="n">scr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="n">va_arg</span><span class="p">(</span> <span class="n">args</span><span class="p">,</span> <span class="kt">int</span> <span class="p">);</span>
+        <span class="n">scr</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+        <span class="n">pc</span> <span class="o">+=</span> <span class="n">prints</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">scr</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">pad</span><span class="p">);</span>
+        <span class="k">continue</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="p">{</span>
+    <span class="nl">out:</span>
+      <span class="n">printchar</span> <span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="o">*</span><span class="n">format</span><span class="p">);</span>
+      <span class="o">++</span><span class="n">pc</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">**</span><span class="n">out</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+  <span class="n">va_end</span><span class="p">(</span> <span class="n">args</span> <span class="p">);</span>
+  <span class="k">return</span> <span class="n">pc</span><span class="p">;</span>
 <span class="p">}</span>
 
 <span class="kt">int</span> <span class="n">printf</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">...)</span>
@@ -2906,36 +2906,36 @@ below.</p>
 <span class="cp">#ifdef TEST_PRINTF</span>
 <span class="kt">int</span> <span class="n">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
 <span class="p">{</span>
-	<span class="kt">char</span> <span class="o">*</span><span class="n">ptr</span> <span class="o">=</span> <span class="s">&quot;Hello world!&quot;</span><span class="p">;</span>
-	<span class="kt">char</span> <span class="o">*</span><span class="n">np</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-	<span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
-	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">bs</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="o">*</span><span class="mi">8</span><span class="p">;</span>
-	<span class="kt">int</span> <span class="n">mi</span><span class="p">;</span>
-	<span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mi">80</span><span class="p">];</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">ptr</span> <span class="o">=</span> <span class="s">&quot;Hello world!&quot;</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">np</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">bs</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="o">*</span><span class="mi">8</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">mi</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mi">80</span><span class="p">];</span>
 
-	<span class="n">mi</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">bs</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
-	<span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">ptr</span><span class="p">);</span>
-	<span class="n">printf</span><span class="p">(</span><span class="s">&quot;printf test</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
-	<span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s is null pointer</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">np</span><span class="p">);</span>
-	<span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d = 5</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">);</span>
-	<span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d = - max int</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">mi</span><span class="p">);</span>
-	<span class="n">printf</span><span class="p">(</span><span class="s">&quot;char %c = &#39;a&#39;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">);</span>
-	<span class="n">printf</span><span class="p">(</span><span class="s">&quot;hex %x = ff</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mh">0xff</span><span class="p">);</span>
-	<span class="n">printf</span><span class="p">(</span><span class="s">&quot;hex %02x = 00</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-	<span class="n">printf</span><span class="p">(</span><span class="s">&quot;signed %d = unsigned %u = hex %x</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">);</span>
-	<span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d %s(s)%&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;message&quot;</span><span class="p">);</span>
-	<span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
-	<span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d %s(s) with %%</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;message&quot;</span><span class="p">);</span>
-	<span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;justif: </span><span class="se">\&quot;</span><span class="s">%-10s</span><span class="se">\&quot;\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="s">&quot;left&quot;</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
-	<span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;justif: </span><span class="se">\&quot;</span><span class="s">%10s</span><span class="se">\&quot;\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="s">&quot;right&quot;</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
-	<span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot; 3: %04d zero padded</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
-	<span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot; 3: %-4d left justif.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
-	<span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot; 3: %4d right justif.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
-	<span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;-3: %04d zero padded</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
-	<span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;-3: %-4d left justif.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
-	<span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;-3: %4d right justif.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
+  <span class="n">mi</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">bs</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">ptr</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;printf test</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s is null pointer</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">np</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d = 5</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d = - max int</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">mi</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;char %c = &#39;a&#39;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;hex %x = ff</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mh">0xff</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;hex %02x = 00</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;signed %d = unsigned %u = hex %x</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d %s(s)%&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;message&quot;</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d %s(s) with %%</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;message&quot;</span><span class="p">);</span>
+  <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;justif: </span><span class="se">\&quot;</span><span class="s">%-10s</span><span class="se">\&quot;\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="s">&quot;left&quot;</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
+  <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;justif: </span><span class="se">\&quot;</span><span class="s">%10s</span><span class="se">\&quot;\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="s">&quot;right&quot;</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
+  <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot; 3: %04d zero padded</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
+  <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot; 3: %-4d left justif.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
+  <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot; 3: %4d right justif.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
+  <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;-3: %04d zero padded</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
+  <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;-3: %-4d left justif.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
+  <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;-3: %4d right justif.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
 
-	<span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 
 <span class="cm">/*</span>
@@ -3009,15 +3009,21 @@ TOOLDIR=/home/cschen/test/lld/cmake_debug_build/bin
 
 cpu=cpu032I
 
-/usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
-/usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
-/usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-gnu -c printf-stdarg-2.c -emit-llvm -o printf-stdarg-2.bc
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj  start.bc -o start.cpu0.o
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj printf-stdarg.bc -o printf-stdarg.cpu0.o
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj printf-stdarg-2.bc -o printf-stdarg-2.cpu0.o
-${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o printf-stdarg.cpu0.o printf-stdarg-2.cpu0.o -o a.out
-${TOOLDIR}/llvm-objdump -elf2hex a.out &gt; ../cpu0_verilog/cpu0.hex
-</pre>
+/usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
+gnu -c start.cpp -emit-llvm -o start.bc
+/usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
+gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
+/usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
+gnu -c printf-stdarg-2.c -emit-llvm -o printf-stdarg-2.bc
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
+start.bc -o start.cpu0.o
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
+printf-stdarg.bc -o printf-stdarg.cpu0.o
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
+printf-stdarg-2.bc -o printf-stdarg-2.cpu0.o
+${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o
+printf-stdarg.cpu0.o printf-stdarg-2.cpu0.o -o a.out
+${TOOLDIR}/llvm-objdump -elf2hex a.out &gt; ../cpu0_verilog/cpu0.hex</pre>
 </div>
 <p>The cpu0_verilog/cpu0Is.v support cmp instruction and static linker as follows,</p>
 <p class="rubric">lbdex/cpu0_verilog/cpu0Is.v</p>
@@ -3863,6 +3869,42 @@ to execute the dynamic linker function on Cpu0 Verilog machine.</p>
   <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
+</div>
+<p class="rubric">lbdex/InputFiles/build-dlinker.sh</p>
+<div class="highlight-c++"><pre>#!/usr/bin/env bash
+#TOOLDIR=/home/Gamma/test/lld/cmake_debug_build/bin
+TOOLDIR=/home/cschen/test/lld/cmake_debug_build/bin
+
+cpu=cpu032I
+
+/usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
+gnu -c start.cpp -emit-llvm -o start.bc
+/usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
+gnu -c dynamic_linker.cpp -emit-llvm -o dynamic_linker.cpu0.bc
+/usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
+gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
+/usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
+gnu -c foobar.cpp -emit-llvm -o foobar.cpu0.bc
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
+-cpu0-reserve-gp=true dynamic_linker.cpu0.bc -o dynamic_linker.cpu0.o
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
+-cpu0-reserve-gp=true printf-stdarg.bc -o printf-stdarg.cpu0.o
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=pic -filetype=obj
+-cpu0-reserve-gp=true -cpu0-no-cpload=true foobar.cpu0.bc -o foobar.cpu0.o
+${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu -shared -o
+libfoobar.cpu0.so foobar.cpu0.o
+${TOOLDIR}/llc -mcpu=${cpu} -march=cpu0 -relocation-model=static -filetype=obj
+-cpu0-reserve-gp=true start.bc -o start.cpu0.o
+/usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
+gnu -c ch_dynamiclinker.cpp -emit-llvm -o ch_dynamiclinker.cpu0.bc
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
+-cpu0-reserve-gp=true ch_dynamiclinker.cpu0.bc -o ch_dynamiclinker.cpu0.o
+${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o printf-
+stdarg.cpu0.o dynamic_linker.cpu0.o ch_dynamiclinker.cpu0.o libfoobar.cpu0.so
+${TOOLDIR}/llvm-objdump -elf2hex -cpu0dumpso libfoobar.cpu0.so &gt; ../
+cpu0_verilog/libso.hex
+${TOOLDIR}/llvm-objdump -elf2hex -cpu0linkso a.out &gt; ../cpu0_verilog/cpu0.hex
+cp dynstr dynsym so_func_offset global_offset ../cpu0_verilog/.</pre>
 </div>
 <div class="section" id="id6">
 <h3>Run<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
