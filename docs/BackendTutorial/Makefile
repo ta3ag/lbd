@@ -154,7 +154,7 @@ doctest:
 
 
 BACKEND_TUTORIAL_SUBDIR = docs/BackendTutorial
-TMP_PREFIX = BT
+TMP_PREFIX = tmp
 
 # Note: we have to run this as one big command in order to have the initial
 # 'cd' take effect for the whole command.
@@ -162,17 +162,16 @@ TMP_PREFIX = BT
 gh-pages:
 	git checkout gh-pages &&\
 	rm -rf build _sources _static _images &&\
-	git read-tree --prefix=$(TMP_PREFIX)/ -u HEAD master:$(BACKEND_TUTORIAL_SUBDIR) &&\
-	mv ../../$(TMP_PREFIX)/BackendTutorial/* .\
+#	git read-tree --prefix=$(TMP_PREFIX)/ -u HEAD master:$(BACKEND_TUTORIAL_SUBDIR) &&\
+#	mv ../../$(TMP_PREFIX)/BackendTutorial/* .\
 	sh ./rungenexample.sh &&\
 	mv -fv lbdex.tar.gz ../../.
 	make html latexpdf epub &&\
 	mv -fv build/html/* ../../. &&\
 	mv -fv build/latex/TutorialLLVMBackendCpu0.pdf "../../TutorialLLVMBackendCpu0.pdf" &&\
 	mv -fv build/epub/TutorialLLVMBackendCpu0.epub "../../TutorialLLVMBackendCpu0.epub" &&\
-	rm -rf `git ls-tree master:$(BACKEND_TUTORIAL_SUBDIR) | cut -f2` &&\
-	rm -rf build lbdex &&\
-	rm -rf Cpu0_replace_select source_ExampleCode working Fig note source Table *~ &&\
+#	rm -rf `git ls-tree master:$(BACKEND_TUTORIAL_SUBDIR) | cut -f2` &&\
+	rm -rf * &&\
 	cd ../../ &&\
 	git add lbdex.tar.gz *.html _images/. _sources/. _static/. objects.inv searchindex.js TutorialLLVMBackendCpu0.* &&\
 	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" &&\
