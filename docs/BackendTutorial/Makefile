@@ -171,11 +171,13 @@ gh-pages:
 	mv -fv build/epub/TutorialLLVMBackendCpu0.epub "../../TutorialLLVMBackendCpu0.epub" &&\
 	rm -rf `git ls-tree master:$(BACKEND_TUTORIAL_SUBDIR) | cut -f2` &&\
 	rm -rf build lbdex &&\
+	rm -rf Cpu0_replace_select source_ExampleCode working Fig note source Table *~ &&\
   cd ../../ &&\
-	git add -A &&\
+	git add *.html _images/. _sources/. _static/. objects.inv searchindex.js TutorialLLVMBackendCpu0.* &&\
 	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" &&\
 	git push origin gh-pages &&\
-	git checkout master
+	git checkout master &&\
+  cd $(BACKEND_TUTORIAL_SUBDIR)
 
 genexample:
 	sh ./rungenexample.sh
