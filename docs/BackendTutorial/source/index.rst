@@ -36,10 +36,6 @@ The example code lbdex.tar.gz is available in:
 
 http://jonathan2251.github.com/lbd/lbdex.tar.gz
 
-or
-
-https://www.dropbox.com/sh/2pkh1fewlq2zag9/r9n4gnqPm7/
-
 
 Alternate formats
 -----------------
