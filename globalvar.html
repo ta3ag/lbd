@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.8',
+        VERSION:     '3.3.8-1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -460,7 +460,156 @@ About the <strong>cl::opt</strong> command line variable, you can refer to <a cl
 Next add file Cpu0TargetObjectFile.h, Cpu0TargetObjectFile.cpp and the
 following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.</p>
 <p class="rubric">lbdex/Chapter6_1/Cpu0TargetObjectFile.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- llvm/Target/Cpu0TargetObjectFile.h - Cpu0 Object Info ---*- C++ -*-===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#ifndef LLVM_TARGET_CPU0_TARGETOBJECTFILE_H</span>
+<span class="cp">#define LLVM_TARGET_CPU0_TARGETOBJECTFILE_H</span>
+
+<span class="cp">#include &quot;llvm/CodeGen/TargetLoweringObjectFileImpl.h&quot;</span>
+
+<span class="k">namespace</span> <span class="n">llvm</span> <span class="p">{</span>
+
+  <span class="k">class</span> <span class="nc">Cpu0TargetObjectFile</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TargetLoweringObjectFileELF</span> <span class="p">{</span>
+    <span class="k">const</span> <span class="n">MCSection</span> <span class="o">*</span><span class="n">SmallDataSection</span><span class="p">;</span>
+    <span class="k">const</span> <span class="n">MCSection</span> <span class="o">*</span><span class="n">SmallBSSSection</span><span class="p">;</span>
+  <span class="k">public</span><span class="o">:</span>
+
+    <span class="kt">void</span> <span class="n">Initialize</span><span class="p">(</span><span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
+
+
+    <span class="c1">/// IsGlobalInSmallSection - Return true if this global address should be</span>
+    <span class="c1">/// placed into small data/bss section.</span>
+    <span class="kt">bool</span> <span class="n">IsGlobalInSmallSection</span><span class="p">(</span><span class="k">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">GV</span><span class="p">,</span>
+                                <span class="k">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span> <span class="n">SectionKind</span> <span class="n">Kind</span><span class="p">)</span><span class="k">const</span><span class="p">;</span>
+    <span class="kt">bool</span> <span class="n">IsGlobalInSmallSection</span><span class="p">(</span><span class="k">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">GV</span><span class="p">,</span>
+                                <span class="k">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+
+    <span class="k">const</span> <span class="n">MCSection</span> <span class="o">*</span><span class="n">SelectSectionForGlobal</span><span class="p">(</span><span class="k">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">GV</span><span class="p">,</span>
+                                            <span class="n">SectionKind</span> <span class="n">Kind</span><span class="p">,</span>
+                                            <span class="n">Mangler</span> <span class="o">*</span><span class="n">Mang</span><span class="p">,</span>
+                                            <span class="k">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+
+    <span class="c1">// TODO: Classify globals as cpu0 wishes.</span>
+  <span class="p">};</span>
+<span class="p">}</span> <span class="c1">// end namespace llvm</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/Chapter6_1/Cpu0TargetObjectFile.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0TargetObjectFile.cpp - Cpu0 Object Files ----------------------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#include &quot;Cpu0TargetObjectFile.h&quot;</span>
+<span class="cp">#include &quot;Cpu0Subtarget.h&quot;</span>
+<span class="cp">#include &quot;llvm/IR/DerivedTypes.h&quot;</span>
+<span class="cp">#include &quot;llvm/IR/GlobalVariable.h&quot;</span>
+<span class="cp">#include &quot;llvm/IR/DataLayout.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCContext.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCSectionELF.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetMachine.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/CommandLine.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/ELF.h&quot;</span>
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="k">static</span> <span class="n">cl</span><span class="o">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="kt">unsigned</span><span class="o">&gt;</span>
+<span class="n">SSThreshold</span><span class="p">(</span><span class="s">&quot;cpu0-ssection-threshold&quot;</span><span class="p">,</span> <span class="n">cl</span><span class="o">::</span><span class="n">Hidden</span><span class="p">,</span>
+            <span class="n">cl</span><span class="o">::</span><span class="n">desc</span><span class="p">(</span><span class="s">&quot;Small data and bss section threshold size (default=8)&quot;</span><span class="p">),</span>
+            <span class="n">cl</span><span class="o">::</span><span class="n">init</span><span class="p">(</span><span class="mi">8</span><span class="p">));</span>
+
+<span class="kt">void</span> <span class="n">Cpu0TargetObjectFile</span><span class="o">::</span><span class="n">Initialize</span><span class="p">(</span><span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">){</span>
+  <span class="n">TargetLoweringObjectFileELF</span><span class="o">::</span><span class="n">Initialize</span><span class="p">(</span><span class="n">Ctx</span><span class="p">,</span> <span class="n">TM</span><span class="p">);</span>
+
+  <span class="n">SmallDataSection</span> <span class="o">=</span>
+    <span class="n">getContext</span><span class="p">().</span><span class="n">getELFSection</span><span class="p">(</span><span class="s">&quot;.sdata&quot;</span><span class="p">,</span> <span class="n">ELF</span><span class="o">::</span><span class="n">SHT_PROGBITS</span><span class="p">,</span>
+                               <span class="n">ELF</span><span class="o">::</span><span class="n">SHF_WRITE</span> <span class="o">|</span><span class="n">ELF</span><span class="o">::</span><span class="n">SHF_ALLOC</span><span class="p">,</span>
+                               <span class="n">SectionKind</span><span class="o">::</span><span class="n">getDataRel</span><span class="p">());</span>
+
+  <span class="n">SmallBSSSection</span> <span class="o">=</span>
+    <span class="n">getContext</span><span class="p">().</span><span class="n">getELFSection</span><span class="p">(</span><span class="s">&quot;.sbss&quot;</span><span class="p">,</span> <span class="n">ELF</span><span class="o">::</span><span class="n">SHT_NOBITS</span><span class="p">,</span>
+                               <span class="n">ELF</span><span class="o">::</span><span class="n">SHF_WRITE</span> <span class="o">|</span><span class="n">ELF</span><span class="o">::</span><span class="n">SHF_ALLOC</span><span class="p">,</span>
+                               <span class="n">SectionKind</span><span class="o">::</span><span class="n">getBSS</span><span class="p">());</span>
+
+<span class="p">}</span>
+
+<span class="c1">// A address must be loaded from a small section if its size is less than the</span>
+<span class="c1">// small section size threshold. Data in this section must be addressed using</span>
+<span class="c1">// gp_rel operator.</span>
+<span class="k">static</span> <span class="kt">bool</span> <span class="n">IsInSmallSection</span><span class="p">(</span><span class="n">uint64_t</span> <span class="n">Size</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">Size</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">Size</span> <span class="o">&lt;=</span> <span class="n">SSThreshold</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0TargetObjectFile</span><span class="o">::</span><span class="n">IsGlobalInSmallSection</span><span class="p">(</span><span class="k">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">GV</span><span class="p">,</span>
+                                                <span class="k">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">GV</span><span class="o">-&gt;</span><span class="n">isDeclaration</span><span class="p">()</span> <span class="o">||</span> <span class="n">GV</span><span class="o">-&gt;</span><span class="n">hasAvailableExternallyLinkage</span><span class="p">())</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="n">IsGlobalInSmallSection</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">TM</span><span class="p">,</span> <span class="n">getKindForGlobal</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">TM</span><span class="p">));</span>
+<span class="p">}</span>
+
+<span class="c1">/// IsGlobalInSmallSection - Return true if this global address should be</span>
+<span class="c1">/// placed into small data/bss section.</span>
+<span class="kt">bool</span> <span class="n">Cpu0TargetObjectFile</span><span class="o">::</span>
+<span class="n">IsGlobalInSmallSection</span><span class="p">(</span><span class="k">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">GV</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">,</span>
+                       <span class="n">SectionKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+
+  <span class="c1">// Only use small section for non linux targets.</span>
+  <span class="k">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">Subtarget</span> <span class="o">=</span> <span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">();</span>
+
+  <span class="c1">// Return if small section is not available.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Subtarget</span><span class="p">.</span><span class="n">useSmallSection</span><span class="p">())</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+
+  <span class="c1">// Only global variables, not functions.</span>
+  <span class="k">const</span> <span class="n">GlobalVariable</span> <span class="o">*</span><span class="n">GVA</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">GlobalVariable</span><span class="o">&gt;</span><span class="p">(</span><span class="n">GV</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">GVA</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+
+  <span class="c1">// We can only do this for datarel or BSS objects for now.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Kind</span><span class="p">.</span><span class="n">isBSS</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">Kind</span><span class="p">.</span><span class="n">isDataRel</span><span class="p">())</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+
+  <span class="c1">// If this is a internal constant string, there is a special</span>
+  <span class="c1">// section for it, but not in small data/bss.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Kind</span><span class="p">.</span><span class="n">isMergeable1ByteCString</span><span class="p">())</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+
+  <span class="n">Type</span> <span class="o">*</span><span class="n">Ty</span> <span class="o">=</span> <span class="n">GV</span><span class="o">-&gt;</span><span class="n">getType</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getElementType</span><span class="p">();</span>
+  <span class="k">return</span> <span class="n">IsInSmallSection</span><span class="p">(</span><span class="n">TM</span><span class="p">.</span><span class="n">getDataLayout</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getTypeAllocSize</span><span class="p">(</span><span class="n">Ty</span><span class="p">));</span>
+<span class="p">}</span>
+
+
+
+<span class="k">const</span> <span class="n">MCSection</span> <span class="o">*</span><span class="n">Cpu0TargetObjectFile</span><span class="o">::</span>
+<span class="n">SelectSectionForGlobal</span><span class="p">(</span><span class="k">const</span> <span class="n">GlobalValue</span> <span class="o">*</span><span class="n">GV</span><span class="p">,</span> <span class="n">SectionKind</span> <span class="n">Kind</span><span class="p">,</span>
+                       <span class="n">Mangler</span> <span class="o">*</span><span class="n">Mang</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="c1">// TODO: Could also support &quot;weak&quot; symbols as well with &quot;.gnu.linkonce.s.*&quot;</span>
+  <span class="c1">// sections?</span>
+
+  <span class="c1">// Handle Small Section classification here.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Kind</span><span class="p">.</span><span class="n">isBSS</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="n">IsGlobalInSmallSection</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">TM</span><span class="p">,</span> <span class="n">Kind</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">SmallBSSSection</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Kind</span><span class="p">.</span><span class="n">isDataNoRel</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="n">IsGlobalInSmallSection</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">TM</span><span class="p">,</span> <span class="n">Kind</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">SmallDataSection</span><span class="p">;</span>
+
+  <span class="c1">// Otherwise, we work the same as ELF.</span>
+  <span class="k">return</span> <span class="n">TargetLoweringObjectFileELF</span><span class="o">::</span><span class="n">SelectSectionForGlobal</span><span class="p">(</span><span class="n">GV</span><span class="p">,</span> <span class="n">Kind</span><span class="p">,</span> <span class="n">Mang</span><span class="p">,</span><span class="n">TM</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/Chapter6_1/Cpu0RegisterInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// pure virtual method</span>
 <span class="n">BitVector</span> <span class="n">Cpu0RegisterInfo</span><span class="o">::</span>
@@ -1035,6 +1184,52 @@ pseudo instruction at function entry point as below.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter6_1/Cpu0MachineFunction.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0MachineFunctionInfo.cpp - Private data used for Cpu0 ----------===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#include &quot;Cpu0MachineFunction.h&quot;</span>
+<span class="cp">#include &quot;Cpu0InstrInfo.h&quot;</span>
+<span class="cp">#include &quot;Cpu0Subtarget.h&quot;</span>
+<span class="cp">#include &quot;MCTargetDesc/Cpu0BaseInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/IR/Function.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineInstrBuilder.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineRegisterInfo.h&quot;</span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="kt">bool</span> <span class="n">FixGlobalBaseReg</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0FunctionInfo</span><span class="o">::</span><span class="n">globalBaseRegFixed</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">FixGlobalBaseReg</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0FunctionInfo</span><span class="o">::</span><span class="n">globalBaseRegSet</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">GlobalBaseReg</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">unsigned</span> <span class="n">Cpu0FunctionInfo</span><span class="o">::</span><span class="n">getGlobalBaseReg</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// Return if it has already been initialized.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">GlobalBaseReg</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">GlobalBaseReg</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">FixGlobalBaseReg</span><span class="p">)</span> <span class="c1">// $gp is the global base register.</span>
+    <span class="k">return</span> <span class="n">GlobalBaseReg</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">GP</span><span class="p">;</span>
+
+  <span class="k">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span><span class="n">RC</span><span class="p">;</span>
+  <span class="n">RC</span> <span class="o">=</span> <span class="p">(</span><span class="k">const</span> <span class="n">TargetRegisterClass</span><span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="n">GlobalBaseReg</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getRegInfo</span><span class="p">().</span><span class="n">createVirtualRegister</span><span class="p">(</span><span class="n">RC</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0FunctionInfo</span><span class="o">::</span><span class="n">anchor</span><span class="p">()</span> <span class="p">{</span> <span class="p">}</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/Chapter6_1/Cpu0AsmPrinter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// EmitFunctionBodyStart - Targets can override this to emit stuff before</span>
 <span class="c1">/// the first basic block in the function.</span>
@@ -1080,6 +1275,68 @@ as below.
 &#8220;0fa00000 09aa0000 13aa6000&#8221; is the <strong>.cpload</strong> machine instructions
 displayed in comments of Cpu0MCInstLower.cpp.</p>
 <p class="rubric">lbdex/Chapter6_1/Cpu0MCInstLower.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInst</span><span class="o">&amp;</span> <span class="n">Inst</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">Opc</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCOperand</span><span class="o">&amp;</span> <span class="n">Opnd0</span><span class="p">,</span>
+                         <span class="k">const</span> <span class="n">MCOperand</span><span class="o">&amp;</span> <span class="n">Opnd1</span><span class="p">,</span>
+                         <span class="k">const</span> <span class="n">MCOperand</span><span class="o">&amp;</span> <span class="n">Opnd2</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="p">())</span> <span class="p">{</span>
+  <span class="n">Inst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Opc</span><span class="p">);</span>
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">Opnd0</span><span class="p">);</span>
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">Opnd1</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Opnd2</span><span class="p">.</span><span class="n">isValid</span><span class="p">())</span>
+    <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">Opnd2</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// Lower &quot;.cpload $reg&quot; to</span>
+<span class="c1">//  &quot;lui   $gp, %hi(_gp_disp)&quot;</span>
+<span class="c1">//  &quot;addiu $gp, $gp, %lo(_gp_disp)&quot;</span>
+<span class="c1">//  &quot;addu  $gp, $gp, $t9&quot;</span>
+<span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerCPLOAD</span><span class="p">(</span><span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;&amp;</span> <span class="n">MCInsts</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">MCOperand</span> <span class="n">GPReg</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">GP</span><span class="p">);</span>
+  <span class="n">MCOperand</span> <span class="n">T9Reg</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">T9</span><span class="p">);</span>
+  <span class="n">StringRef</span> <span class="n">SymName</span><span class="p">(</span><span class="s">&quot;_gp_disp&quot;</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCSymbol</span> <span class="o">*</span><span class="n">Sym</span> <span class="o">=</span> <span class="n">Ctx</span><span class="o">-&gt;</span><span class="n">GetOrCreateSymbol</span><span class="p">(</span><span class="n">SymName</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCSymbolRefExpr</span> <span class="o">*</span><span class="n">MCSym</span><span class="p">;</span>
+
+  <span class="n">MCSym</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="n">Sym</span><span class="p">,</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_ABS_HI</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+  <span class="n">MCOperand</span> <span class="n">SymHi</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateExpr</span><span class="p">(</span><span class="n">MCSym</span><span class="p">);</span>
+  <span class="n">MCSym</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="n">Sym</span><span class="p">,</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_ABS_LO</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+  <span class="n">MCOperand</span> <span class="n">SymLo</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateExpr</span><span class="p">(</span><span class="n">MCSym</span><span class="p">);</span>
+
+  <span class="n">MCInsts</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span>
+
+  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">SymHi</span><span class="p">);</span>
+  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">SymLo</span><span class="p">);</span>
+  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">T9Reg</span><span class="p">);</span>
+<span class="p">}</span> <span class="c1">// lbd document - mark - LowerCPLOAD</span>
+
+<span class="c1">// Lower &quot;.cprestore offset&quot; to &quot;st $gp, offset($sp)&quot;.</span>
+<span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerCPRESTORE</span><span class="p">(</span><span class="n">int64_t</span> <span class="n">Offset</span><span class="p">,</span>
+                                     <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;&amp;</span> <span class="n">MCInsts</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">32</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Offset</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">Offset</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
+         <span class="s">&quot;Imm operand of .cprestore must be a non-negative 32-bit value.&quot;</span><span class="p">);</span>
+
+  <span class="n">MCOperand</span> <span class="n">SPReg</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">),</span> <span class="n">BaseReg</span> <span class="o">=</span> <span class="n">SPReg</span><span class="p">;</span>
+  <span class="n">MCOperand</span> <span class="n">GPReg</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">GP</span><span class="p">);</span>
+  <span class="n">MCOperand</span> <span class="n">ZEROReg</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Offset</span><span class="p">))</span> <span class="p">{</span>
+    <span class="kt">unsigned</span> <span class="n">Hi</span> <span class="o">=</span> <span class="p">((</span><span class="n">Offset</span> <span class="o">+</span> <span class="mh">0x8000</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">;</span>
+    <span class="n">Offset</span> <span class="o">&amp;=</span> <span class="mh">0xffff</span><span class="p">;</span>
+    <span class="n">MCOperand</span> <span class="n">ATReg</span> <span class="o">=</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">);</span>
+    <span class="n">BaseReg</span> <span class="o">=</span> <span class="n">ATReg</span><span class="p">;</span>
+
+    <span class="c1">// lui   at,hi</span>
+    <span class="c1">// add   at,at,sp</span>
+    <span class="n">MCInsts</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+    <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">ZEROReg</span><span class="p">,</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">Hi</span><span class="p">));</span>
+    <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">MCInsts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">ATReg</span><span class="p">,</span> <span class="n">SPReg</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="n">MCInst</span> <span class="n">St</span><span class="p">;</span>
+  <span class="n">CreateMCInst</span><span class="p">(</span><span class="n">St</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ST</span><span class="p">,</span> <span class="n">GPReg</span><span class="p">,</span> <span class="n">BaseReg</span><span class="p">,</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">Offset</span><span class="p">));</span>
+  <span class="n">MCInsts</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">St</span><span class="p">);</span>
+<span class="p">}</span> <span class="c1">// lbd document - mark - LowerCPRESTORE</span>
+</pre></div>
+</div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>
 obj ch6_1.bc -o ch6_1.cpu0.o
@@ -1330,6 +1587,55 @@ instructions as below.</p>
 Next, add the following code to Cpu0MCInstLower.cpp, Cpu0InstPrinter.cpp and
 Cpu0ISelLowering.cpp for global variable printing operand function.</p>
 <p class="rubric">lbdex/Chapter6_1/Cpu0MCInstLower.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
+                                              <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
+                                              <span class="kt">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VariantKind</span> <span class="n">Kind</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">MCSymbol</span> <span class="o">*</span><span class="n">Symbol</span><span class="p">;</span>
+
+  <span class="k">switch</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getTargetFlags</span><span class="p">())</span> <span class="p">{</span>
+  <span class="k">default</span><span class="o">:</span>                   <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Invalid target flag!&quot;</span><span class="p">);</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="nl">MO_NO_FLAG:</span>   <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_None</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+
+<span class="c1">// Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static -cpu0-islinux-</span>
+<span class="c1">//  format=false (global var in .sdata).</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="nl">MO_GPREL:</span>     <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GPREL</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="k">case</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="nl">MO_GOT16:</span>     <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT16</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="nl">MO_GOT:</span>       <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+<span class="c1">// ABS_HI and ABS_LO is for llc -march=cpu0 -relocation-model=static (global </span>
+<span class="c1">//  var in .data).</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="nl">MO_ABS_HI:</span>    <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_ABS_HI</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="nl">MO_ABS_LO:</span>    <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_ABS_LO</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="nl">MO_GOT_HI16:</span>  <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT_HI16</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="nl">MO_GOT_LO16:</span>  <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT_LO16</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">switch</span> <span class="p">(</span><span class="n">MOTy</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_GlobalAddress:</span>
+    <span class="n">Symbol</span> <span class="o">=</span> <span class="n">Mang</span><span class="o">-&gt;</span><span class="n">getSymbol</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getGlobal</span><span class="p">());</span>
+    <span class="k">break</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="k">default</span><span class="o">:</span>
+    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;&lt;unknown operand type&gt;&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">const</span> <span class="n">MCSymbolRefExpr</span> <span class="o">*</span><span class="n">MCSym</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="n">Symbol</span><span class="p">,</span> <span class="n">Kind</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Offset</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateExpr</span><span class="p">(</span><span class="n">MCSym</span><span class="p">);</span>
+
+  <span class="c1">// Assume offset is never negative.</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">Offset</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">);</span>
+
+  <span class="k">const</span> <span class="n">MCConstantExpr</span> <span class="o">*</span><span class="n">OffsetExpr</span> <span class="o">=</span>  <span class="n">MCConstantExpr</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="n">Offset</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCBinaryExpr</span> <span class="o">*</span><span class="n">AddExpr</span> <span class="o">=</span> <span class="n">MCBinaryExpr</span><span class="o">::</span><span class="n">CreateAdd</span><span class="p">(</span><span class="n">MCSym</span><span class="p">,</span> <span class="n">OffsetExpr</span><span class="p">,</span> <span class="o">*</span><span class="n">Ctx</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateExpr</span><span class="p">(</span><span class="n">AddExpr</span><span class="p">);</span>
+<span class="p">}</span> <span class="c1">// lbd document - mark - LowerSymbolOperand</span>
+</pre></div>
+</div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">MCOperand</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineOperand</span><span class="o">&amp;</span> <span class="n">MO</span><span class="p">,</span>
                                           <span class="kt">unsigned</span> <span class="n">offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="n">MachineOperandType</span> <span class="n">MOTy</span> <span class="o">=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getType</span><span class="p">();</span>

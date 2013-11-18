@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.8',
+        VERSION:     '3.3.8-1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -490,6 +490,67 @@ Cpu0 take 2 instructions for conditional branch, (jne(cmp...)), while Mips use
 one instruction (bne).</p>
 <p>Finally we list the code added for full support of control flow statement,</p>
 <p class="rubric">lbdex/Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="c1">// getBranch24TargetOpValue - Return binary encoding of the branch</span>
+  <span class="c1">// target operand, such as JMP #BB01, JEQ, JSUB. If the machine operand</span>
+  <span class="c1">// requires relocation, record the relocation and return zero.</span>
+  <span class="kt">unsigned</span> <span class="n">getBranch24TargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+                                  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+                                  
+  <span class="c1">// getJumpTargetOpValue - Return binary encoding of the jump</span>
+  <span class="c1">// target operand, such as SWI #interrupt_addr and JSUB #function_addr. </span>
+  <span class="c1">// If the machine operand requires relocation,</span>
+  <span class="c1">// record the relocation and return zero.</span>
+   <span class="kt">unsigned</span> <span class="n">getJumpTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+                                 <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+  <span class="c1">// lbd document - mark - unsigned getJumpTargetOpValue</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// getBranch24TargetOpValue - Return binary encoding of the branch</span>
+<span class="c1">/// target operand. If the machine operand requires relocation,</span>
+<span class="c1">/// record the relocation and return zero.</span>
+<span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
+<span class="n">getBranch24TargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+                       <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">MO</span> <span class="o">=</span> <span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">OpNo</span><span class="p">);</span>
+
+  <span class="c1">// If the destination is an immediate, we have nothing to do.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isImm</span><span class="p">())</span> <span class="k">return</span> <span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isExpr</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;getBranch24TargetOpValue expects only expressions&quot;</span><span class="p">);</span>
+
+  <span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span> <span class="o">=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getExpr</span><span class="p">();</span>
+  <span class="n">Fixups</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MCFixup</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span>
+                                   <span class="n">MCFixupKind</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_PC24</span><span class="p">)));</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">/// getJumpTargetOpValue - Return binary encoding of the jump</span>
+<span class="c1">/// target operand. Such as SWI and JSUB. </span>
+<span class="c1">/// If the machine operand requires relocation,</span>
+<span class="c1">/// record the relocation and return zero.</span>
+<span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
+<span class="n">getJumpTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+                     <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+
+  <span class="kt">unsigned</span> <span class="n">Opcode</span> <span class="o">=</span> <span class="n">MI</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">();</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">MO</span> <span class="o">=</span> <span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">OpNo</span><span class="p">);</span>
+  <span class="c1">// If the destination is an immediate, we have nothing to do.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isImm</span><span class="p">())</span> <span class="k">return</span> <span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isExpr</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;getJumpTargetOpValue expects only expressions&quot;</span><span class="p">);</span>
+
+  <span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span> <span class="o">=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getExpr</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JSUB</span> <span class="o">||</span> <span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JMP</span><span class="p">)</span>
+    <span class="n">Fixups</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MCFixup</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span>
+                                     <span class="n">MCFixupKind</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_PC24</span><span class="p">)));</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SWI</span><span class="p">)</span>
+    <span class="n">Fixups</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MCFixup</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span>
+                                     <span class="n">MCFixupKind</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_24</span><span class="p">)));</span>
+  <span class="k">else</span>
+    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;unexpect opcode in getJumpAbsoluteTargetOpValue()&quot;</span><span class="p">);</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span> <span class="c1">// lbd document - mark - getJumpTargetOpValue</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/Chapter8_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
 <span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>

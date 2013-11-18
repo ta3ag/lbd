@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.8',
+        VERSION:     '3.3.8-1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -122,8 +122,1071 @@ translate hand code assembly into obj.
 Directory AsmParser handle the assembly to obj translation.
 The Chapter11_1/ include AsmParser implementation as follows,</p>
 <p class="rubric">lbdex/Chapter11_1/AsmParser/Cpu0AsmParser.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0AsmParser.cpp - Parse Cpu0 assembly to MCInst instructions ----===//</span>
+<span class="cp">//</span>
+<span class="cp">//                     The LLVM Compiler Infrastructure</span>
+<span class="cp">//</span>
+<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
+<span class="cp">// License. See LICENSE.TXT for details.</span>
+<span class="cp">//</span>
+<span class="cp">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#include &quot;MCTargetDesc/Cpu0MCTargetDesc.h&quot;</span>
+<span class="cp">#include &quot;Cpu0RegisterInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/ADT/StringSwitch.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCContext.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCExpr.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCInst.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCStreamer.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCSubtargetInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCSymbol.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCParser/MCAsmLexer.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCParser/MCParsedAsmOperand.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCTargetAsmParser.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/TargetRegistry.h&quot;</span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="k">namespace</span> <span class="p">{</span>
+<span class="k">class</span> <span class="nc">Cpu0AssemblerOptions</span> <span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+  <span class="n">Cpu0AssemblerOptions</span><span class="p">()</span><span class="o">:</span>
+    <span class="n">aTReg</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">reorder</span><span class="p">(</span><span class="kc">true</span><span class="p">),</span> <span class="n">macro</span><span class="p">(</span><span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">}</span>
+
+  <span class="kt">bool</span> <span class="n">isReorder</span><span class="p">()</span> <span class="p">{</span><span class="k">return</span> <span class="n">reorder</span><span class="p">;}</span>
+  <span class="kt">void</span> <span class="n">setReorder</span><span class="p">()</span> <span class="p">{</span><span class="n">reorder</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;}</span>
+  <span class="kt">void</span> <span class="n">setNoreorder</span><span class="p">()</span> <span class="p">{</span><span class="n">reorder</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;}</span>
+
+  <span class="kt">bool</span> <span class="n">isMacro</span><span class="p">()</span> <span class="p">{</span><span class="k">return</span> <span class="n">macro</span><span class="p">;}</span>
+  <span class="kt">void</span> <span class="n">setMacro</span><span class="p">()</span> <span class="p">{</span><span class="n">macro</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;}</span>
+  <span class="kt">void</span> <span class="n">setNomacro</span><span class="p">()</span> <span class="p">{</span><span class="n">macro</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;}</span>
+
+<span class="k">private</span><span class="o">:</span>
+  <span class="kt">unsigned</span> <span class="n">aTReg</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="n">reorder</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="n">macro</span><span class="p">;</span>
+<span class="p">};</span>
+<span class="p">}</span>
+
+<span class="k">namespace</span> <span class="p">{</span>
+<span class="k">class</span> <span class="nc">Cpu0AsmParser</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCTargetAsmParser</span> <span class="p">{</span>
+  <span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">STI</span><span class="p">;</span>
+  <span class="n">MCAsmParser</span> <span class="o">&amp;</span><span class="n">Parser</span><span class="p">;</span>
+  <span class="n">Cpu0AssemblerOptions</span> <span class="n">Options</span><span class="p">;</span>
+
+
+<span class="cp">#define GET_ASSEMBLER_HEADER</span>
+<span class="cp">#include &quot;Cpu0GenAsmMatcher.inc&quot;</span>
+
+  <span class="kt">bool</span> <span class="n">MatchAndEmitInstruction</span><span class="p">(</span><span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="o">&amp;</span><span class="n">Opcode</span><span class="p">,</span>
+                               <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">,</span>
+                               <span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">Out</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="o">&amp;</span><span class="n">ErrorInfo</span><span class="p">,</span>
+                               <span class="kt">bool</span> <span class="n">MatchingInlineAsm</span><span class="p">);</span>
+
+  <span class="kt">bool</span> <span class="n">ParseRegister</span><span class="p">(</span><span class="kt">unsigned</span> <span class="o">&amp;</span><span class="n">RegNo</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="o">&amp;</span><span class="n">StartLoc</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="o">&amp;</span><span class="n">EndLoc</span><span class="p">);</span>
+
+  <span class="kt">bool</span> <span class="n">ParseInstruction</span><span class="p">(</span><span class="n">ParseInstructionInfo</span> <span class="o">&amp;</span><span class="n">Info</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">Name</span><span class="p">,</span>
+                        <span class="n">SMLoc</span> <span class="n">NameLoc</span><span class="p">,</span>
+                        <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">);</span>
+
+  <span class="kt">bool</span> <span class="n">parseMathOperation</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">Name</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">NameLoc</span><span class="p">,</span>
+                        <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">);</span>
+
+  <span class="kt">bool</span> <span class="n">ParseDirective</span><span class="p">(</span><span class="n">AsmToken</span> <span class="n">DirectiveID</span><span class="p">);</span>
+
+  <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">OperandMatchResultTy</span>
+  <span class="n">parseMemOperand</span><span class="p">(</span><span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;&amp;</span><span class="p">);</span>
+
+  <span class="kt">bool</span> <span class="n">ParseOperand</span><span class="p">(</span><span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="p">,</span>
+                    <span class="n">StringRef</span> <span class="n">Mnemonic</span><span class="p">);</span>
+
+  <span class="kt">int</span> <span class="n">tryParseRegister</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">Mnemonic</span><span class="p">);</span>
+
+  <span class="kt">bool</span> <span class="n">tryParseRegisterOperand</span><span class="p">(</span><span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">,</span>
+                               <span class="n">StringRef</span> <span class="n">Mnemonic</span><span class="p">);</span>
+
+  <span class="kt">bool</span> <span class="n">needsExpansion</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">);</span>
+
+  <span class="kt">void</span> <span class="n">expandInstruction</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span>
+                         <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Instructions</span><span class="p">);</span>
+  <span class="kt">void</span> <span class="n">expandLoadImm</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span>
+                     <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Instructions</span><span class="p">);</span>
+  <span class="kt">void</span> <span class="n">expandLoadAddressImm</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span>
+                            <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Instructions</span><span class="p">);</span>
+  <span class="kt">void</span> <span class="n">expandLoadAddressReg</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span>
+                            <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Instructions</span><span class="p">);</span>
+  <span class="kt">bool</span> <span class="n">reportParseError</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">ErrorMsg</span><span class="p">);</span>
+
+  <span class="kt">bool</span> <span class="n">parseMemOffset</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*&amp;</span><span class="n">Res</span><span class="p">);</span>
+  <span class="kt">bool</span> <span class="n">parseRelocOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*&amp;</span><span class="n">Res</span><span class="p">);</span>
+
+  <span class="kt">bool</span> <span class="n">parseDirectiveSet</span><span class="p">();</span>
+
+  <span class="kt">bool</span> <span class="n">parseSetAtDirective</span><span class="p">();</span>
+  <span class="kt">bool</span> <span class="n">parseSetNoAtDirective</span><span class="p">();</span>
+  <span class="kt">bool</span> <span class="n">parseSetMacroDirective</span><span class="p">();</span>
+  <span class="kt">bool</span> <span class="n">parseSetNoMacroDirective</span><span class="p">();</span>
+  <span class="kt">bool</span> <span class="n">parseSetReorderDirective</span><span class="p">();</span>
+  <span class="kt">bool</span> <span class="n">parseSetNoReorderDirective</span><span class="p">();</span>
+
+  <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VariantKind</span> <span class="n">getVariantKind</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">Symbol</span><span class="p">);</span>
+
+  <span class="kt">int</span> <span class="n">matchRegisterName</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">Symbol</span><span class="p">);</span>
+
+  <span class="kt">int</span> <span class="n">matchRegisterByNumber</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">RegNum</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">Mnemonic</span><span class="p">);</span>
+
+  <span class="kt">unsigned</span> <span class="n">getReg</span><span class="p">(</span><span class="kt">int</span> <span class="n">RC</span><span class="p">,</span><span class="kt">int</span> <span class="n">RegNo</span><span class="p">);</span>
+
+<span class="k">public</span><span class="o">:</span>
+  <span class="n">Cpu0AsmParser</span><span class="p">(</span><span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">sti</span><span class="p">,</span> <span class="n">MCAsmParser</span> <span class="o">&amp;</span><span class="n">parser</span><span class="p">)</span>
+    <span class="o">:</span> <span class="n">MCTargetAsmParser</span><span class="p">(),</span> <span class="n">STI</span><span class="p">(</span><span class="n">sti</span><span class="p">),</span> <span class="n">Parser</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// Initialize the set of available features.</span>
+    <span class="n">setAvailableFeatures</span><span class="p">(</span><span class="n">ComputeAvailableFeatures</span><span class="p">(</span><span class="n">STI</span><span class="p">.</span><span class="n">getFeatureBits</span><span class="p">()));</span>
+  <span class="p">}</span>
+
+  <span class="n">MCAsmParser</span> <span class="o">&amp;</span><span class="n">getParser</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Parser</span><span class="p">;</span> <span class="p">}</span>
+  <span class="n">MCAsmLexer</span> <span class="o">&amp;</span><span class="n">getLexer</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Parser</span><span class="p">.</span><span class="n">getLexer</span><span class="p">();</span> <span class="p">}</span>
+
+<span class="p">};</span>
+<span class="p">}</span>
+
+<span class="k">namespace</span> <span class="p">{</span>
+
+<span class="c1">/// Cpu0Operand - Instances of this class represent a parsed Cpu0 machine</span>
+<span class="c1">/// instruction.</span>
+<span class="k">class</span> <span class="nc">Cpu0Operand</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MCParsedAsmOperand</span> <span class="p">{</span>
+
+  <span class="k">enum</span> <span class="n">KindTy</span> <span class="p">{</span>
+    <span class="n">k_CondCode</span><span class="p">,</span>
+    <span class="n">k_CoprocNum</span><span class="p">,</span>
+    <span class="n">k_Immediate</span><span class="p">,</span>
+    <span class="n">k_Memory</span><span class="p">,</span>
+    <span class="n">k_PostIndexRegister</span><span class="p">,</span>
+    <span class="n">k_Register</span><span class="p">,</span>
+    <span class="n">k_Token</span>
+  <span class="p">}</span> <span class="n">Kind</span><span class="p">;</span>
+
+  <span class="n">Cpu0Operand</span><span class="p">(</span><span class="n">KindTy</span> <span class="n">K</span><span class="p">)</span> <span class="o">:</span> <span class="n">MCParsedAsmOperand</span><span class="p">(),</span> <span class="n">Kind</span><span class="p">(</span><span class="n">K</span><span class="p">)</span> <span class="p">{}</span>
+
+  <span class="k">union</span> <span class="p">{</span>
+    <span class="k">struct</span> <span class="p">{</span>
+      <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">Data</span><span class="p">;</span>
+      <span class="kt">unsigned</span> <span class="n">Length</span><span class="p">;</span>
+    <span class="p">}</span> <span class="n">Tok</span><span class="p">;</span>
+
+    <span class="k">struct</span> <span class="p">{</span>
+      <span class="kt">unsigned</span> <span class="n">RegNum</span><span class="p">;</span>
+    <span class="p">}</span> <span class="n">Reg</span><span class="p">;</span>
+
+    <span class="k">struct</span> <span class="p">{</span>
+      <span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Val</span><span class="p">;</span>
+    <span class="p">}</span> <span class="n">Imm</span><span class="p">;</span>
+
+    <span class="k">struct</span> <span class="p">{</span>
+      <span class="kt">unsigned</span> <span class="n">Base</span><span class="p">;</span>
+      <span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Off</span><span class="p">;</span>
+    <span class="p">}</span> <span class="n">Mem</span><span class="p">;</span>
+  <span class="p">};</span>
+
+  <span class="n">SMLoc</span> <span class="n">StartLoc</span><span class="p">,</span> <span class="n">EndLoc</span><span class="p">;</span>
+
+<span class="k">public</span><span class="o">:</span>
+  <span class="kt">void</span> <span class="n">addRegOperands</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">N</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">N</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Invalid number of operands!&quot;</span><span class="p">);</span>
+    <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">getReg</span><span class="p">()));</span>
+  <span class="p">}</span>
+
+  <span class="kt">void</span> <span class="n">addExpr</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">)</span> <span class="k">const</span><span class="p">{</span>
+    <span class="c1">// Add as immediate when possible.  Null MCExpr = 0.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">Expr</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+      <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="mi">0</span><span class="p">));</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="k">const</span> <span class="n">MCConstantExpr</span> <span class="o">*</span><span class="n">CE</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">MCConstantExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">))</span>
+      <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">CE</span><span class="o">-&gt;</span><span class="n">getValue</span><span class="p">()));</span>
+    <span class="k">else</span>
+      <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateExpr</span><span class="p">(</span><span class="n">Expr</span><span class="p">));</span>
+  <span class="p">}</span>
+
+  <span class="kt">void</span> <span class="n">addImmOperands</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">N</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">N</span> <span class="o">==</span> <span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Invalid number of operands!&quot;</span><span class="p">);</span>
+    <span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span> <span class="o">=</span> <span class="n">getImm</span><span class="p">();</span>
+    <span class="n">addExpr</span><span class="p">(</span><span class="n">Inst</span><span class="p">,</span><span class="n">Expr</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="kt">void</span> <span class="n">addMemOperands</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">N</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">N</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Invalid number of operands!&quot;</span><span class="p">);</span>
+
+    <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">getMemBase</span><span class="p">()));</span>
+
+    <span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span> <span class="o">=</span> <span class="n">getMemOff</span><span class="p">();</span>
+    <span class="n">addExpr</span><span class="p">(</span><span class="n">Inst</span><span class="p">,</span><span class="n">Expr</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="kt">bool</span> <span class="n">isReg</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Kind</span> <span class="o">==</span> <span class="n">k_Register</span><span class="p">;</span> <span class="p">}</span>
+  <span class="kt">bool</span> <span class="n">isImm</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Kind</span> <span class="o">==</span> <span class="n">k_Immediate</span><span class="p">;</span> <span class="p">}</span>
+  <span class="kt">bool</span> <span class="n">isToken</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Kind</span> <span class="o">==</span> <span class="n">k_Token</span><span class="p">;</span> <span class="p">}</span>
+  <span class="kt">bool</span> <span class="n">isMem</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">Kind</span> <span class="o">==</span> <span class="n">k_Memory</span><span class="p">;</span> <span class="p">}</span>
+
+  <span class="n">StringRef</span> <span class="n">getToken</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">Kind</span> <span class="o">==</span> <span class="n">k_Token</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Invalid access!&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">StringRef</span><span class="p">(</span><span class="n">Tok</span><span class="p">.</span><span class="n">Data</span><span class="p">,</span> <span class="n">Tok</span><span class="p">.</span><span class="n">Length</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="kt">unsigned</span> <span class="n">getReg</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="n">assert</span><span class="p">((</span><span class="n">Kind</span> <span class="o">==</span> <span class="n">k_Register</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Invalid access!&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">Reg</span><span class="p">.</span><span class="n">RegNum</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">getImm</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="n">assert</span><span class="p">((</span><span class="n">Kind</span> <span class="o">==</span> <span class="n">k_Immediate</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Invalid access!&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">Imm</span><span class="p">.</span><span class="n">Val</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="kt">unsigned</span> <span class="n">getMemBase</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="n">assert</span><span class="p">((</span><span class="n">Kind</span> <span class="o">==</span> <span class="n">k_Memory</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Invalid access!&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">Mem</span><span class="p">.</span><span class="n">Base</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">getMemOff</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="n">assert</span><span class="p">((</span><span class="n">Kind</span> <span class="o">==</span> <span class="n">k_Memory</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Invalid access!&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">Mem</span><span class="p">.</span><span class="n">Off</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">static</span> <span class="n">Cpu0Operand</span> <span class="o">*</span><span class="n">CreateToken</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">Str</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">S</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">Cpu0Operand</span> <span class="o">*</span><span class="n">Op</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Cpu0Operand</span><span class="p">(</span><span class="n">k_Token</span><span class="p">);</span>
+    <span class="n">Op</span><span class="o">-&gt;</span><span class="n">Tok</span><span class="p">.</span><span class="n">Data</span> <span class="o">=</span> <span class="n">Str</span><span class="p">.</span><span class="n">data</span><span class="p">();</span>
+    <span class="n">Op</span><span class="o">-&gt;</span><span class="n">Tok</span><span class="p">.</span><span class="n">Length</span> <span class="o">=</span> <span class="n">Str</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+    <span class="n">Op</span><span class="o">-&gt;</span><span class="n">StartLoc</span> <span class="o">=</span> <span class="n">S</span><span class="p">;</span>
+    <span class="n">Op</span><span class="o">-&gt;</span><span class="n">EndLoc</span> <span class="o">=</span> <span class="n">S</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">Op</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">static</span> <span class="n">Cpu0Operand</span> <span class="o">*</span><span class="n">CreateReg</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">RegNum</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">S</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">E</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">Cpu0Operand</span> <span class="o">*</span><span class="n">Op</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Cpu0Operand</span><span class="p">(</span><span class="n">k_Register</span><span class="p">);</span>
+    <span class="n">Op</span><span class="o">-&gt;</span><span class="n">Reg</span><span class="p">.</span><span class="n">RegNum</span> <span class="o">=</span> <span class="n">RegNum</span><span class="p">;</span>
+    <span class="n">Op</span><span class="o">-&gt;</span><span class="n">StartLoc</span> <span class="o">=</span> <span class="n">S</span><span class="p">;</span>
+    <span class="n">Op</span><span class="o">-&gt;</span><span class="n">EndLoc</span> <span class="o">=</span> <span class="n">E</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">Op</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">static</span> <span class="n">Cpu0Operand</span> <span class="o">*</span><span class="n">CreateImm</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Val</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">S</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">E</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">Cpu0Operand</span> <span class="o">*</span><span class="n">Op</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Cpu0Operand</span><span class="p">(</span><span class="n">k_Immediate</span><span class="p">);</span>
+    <span class="n">Op</span><span class="o">-&gt;</span><span class="n">Imm</span><span class="p">.</span><span class="n">Val</span> <span class="o">=</span> <span class="n">Val</span><span class="p">;</span>
+    <span class="n">Op</span><span class="o">-&gt;</span><span class="n">StartLoc</span> <span class="o">=</span> <span class="n">S</span><span class="p">;</span>
+    <span class="n">Op</span><span class="o">-&gt;</span><span class="n">EndLoc</span> <span class="o">=</span> <span class="n">E</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">Op</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">static</span> <span class="n">Cpu0Operand</span> <span class="o">*</span><span class="n">CreateMem</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Base</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Off</span><span class="p">,</span>
+                                 <span class="n">SMLoc</span> <span class="n">S</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">E</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">Cpu0Operand</span> <span class="o">*</span><span class="n">Op</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Cpu0Operand</span><span class="p">(</span><span class="n">k_Memory</span><span class="p">);</span>
+    <span class="n">Op</span><span class="o">-&gt;</span><span class="n">Mem</span><span class="p">.</span><span class="n">Base</span> <span class="o">=</span> <span class="n">Base</span><span class="p">;</span>
+    <span class="n">Op</span><span class="o">-&gt;</span><span class="n">Mem</span><span class="p">.</span><span class="n">Off</span> <span class="o">=</span> <span class="n">Off</span><span class="p">;</span>
+    <span class="n">Op</span><span class="o">-&gt;</span><span class="n">StartLoc</span> <span class="o">=</span> <span class="n">S</span><span class="p">;</span>
+    <span class="n">Op</span><span class="o">-&gt;</span><span class="n">EndLoc</span> <span class="o">=</span> <span class="n">E</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">Op</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="c1">/// getStartLoc - Get the location of the first token of this operand.</span>
+  <span class="n">SMLoc</span> <span class="n">getStartLoc</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">StartLoc</span><span class="p">;</span> <span class="p">}</span>
+  <span class="c1">/// getEndLoc - Get the location of the last token of this operand.</span>
+  <span class="n">SMLoc</span> <span class="n">getEndLoc</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">EndLoc</span><span class="p">;</span> <span class="p">}</span>
+
+  <span class="k">virtual</span> <span class="kt">void</span> <span class="n">print</span><span class="p">(</span><span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;unimplemented!&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">needsExpansion</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">)</span> <span class="p">{</span>
+
+  <span class="k">switch</span><span class="p">(</span><span class="n">Inst</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">LoadImm32Reg:</span>
+    <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">LoadAddr32Imm:</span>
+    <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">LoadAddr32Reg:</span>
+      <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="k">default</span><span class="o">:</span>
+      <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">expandInstruction</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span>
+                        <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Instructions</span><span class="p">){</span>
+  <span class="k">switch</span><span class="p">(</span><span class="n">Inst</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">LoadImm32Reg:</span>
+      <span class="k">return</span> <span class="n">expandLoadImm</span><span class="p">(</span><span class="n">Inst</span><span class="p">,</span> <span class="n">IDLoc</span><span class="p">,</span> <span class="n">Instructions</span><span class="p">);</span>
+    <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">LoadAddr32Imm:</span>
+      <span class="k">return</span> <span class="n">expandLoadAddressImm</span><span class="p">(</span><span class="n">Inst</span><span class="p">,</span><span class="n">IDLoc</span><span class="p">,</span><span class="n">Instructions</span><span class="p">);</span>
+    <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">LoadAddr32Reg:</span>
+      <span class="k">return</span> <span class="n">expandLoadAddressReg</span><span class="p">(</span><span class="n">Inst</span><span class="p">,</span><span class="n">IDLoc</span><span class="p">,</span><span class="n">Instructions</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">expandLoadImm</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span>
+                                  <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Instructions</span><span class="p">){</span>
+  <span class="n">MCInst</span> <span class="n">tmpInst</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">ImmOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">ImmOp</span><span class="p">.</span><span class="n">isImm</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected immediate operand kind&quot;</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">RegOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">isReg</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected register operand kind&quot;</span><span class="p">);</span>
+
+  <span class="kt">int</span> <span class="n">ImmValue</span> <span class="o">=</span> <span class="n">ImmOp</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+  <span class="n">tmpInst</span><span class="p">.</span><span class="n">setLoc</span><span class="p">(</span><span class="n">IDLoc</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">ImmValue</span> <span class="o">&amp;&amp;</span> <span class="n">ImmValue</span> <span class="o">&lt;=</span> <span class="mi">65535</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// for 0 &lt;= j &lt;= 65535.</span>
+    <span class="c1">// li d,j =&gt; ori d,$zero,j</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ORi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span>
+              <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span> <span class="n">ImmValue</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">ImmValue</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mi">32768</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// for -32768 &lt;= j &lt; 0.</span>
+    <span class="c1">// li d,j =&gt; addiu d,$zero,j</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">);</span> <span class="c1">//TODO:no ADDiu64 in td files?</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span>
+              <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="c1">// for any other value of j that is representable as a 32-bit integer.</span>
+    <span class="c1">// li d,j =&gt; lui d,hi16(j)</span>
+    <span class="c1">//           ori d,d,lo16(j)</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">((</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff0000</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ORi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setLoc</span><span class="p">(</span><span class="n">IDLoc</span><span class="p">);</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">expandLoadAddressReg</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span>
+                                         <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Instructions</span><span class="p">){</span>
+  <span class="n">MCInst</span> <span class="n">tmpInst</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">ImmOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">ImmOp</span><span class="p">.</span><span class="n">isImm</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected immediate operand kind&quot;</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">SrcRegOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">SrcRegOp</span><span class="p">.</span><span class="n">isReg</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected register operand kind&quot;</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">DstRegOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">isReg</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected register operand kind&quot;</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="n">ImmValue</span> <span class="o">=</span> <span class="n">ImmOp</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="o">-</span><span class="mi">32768</span> <span class="o">&lt;=</span> <span class="n">ImmValue</span> <span class="o">&amp;&amp;</span> <span class="n">ImmValue</span> <span class="o">&lt;=</span> <span class="mi">32767</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// for -32768 &lt;= j &lt; 32767.</span>
+    <span class="c1">//la d,j(s) =&gt; addiu d,s,j</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">);</span> <span class="c1">//TODO:no ADDiu64 in td files?</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">SrcRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="c1">// for any other value of j that is representable as a 32-bit integer.</span>
+    <span class="c1">// la d,j(s) =&gt; lui d,hi16(j)</span>
+    <span class="c1">//              ori d,d,lo16(j)</span>
+    <span class="c1">//              add d,d,s</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">((</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff0000</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ORi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">DstRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">SrcRegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">expandLoadAddressImm</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span>
+                                         <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Instructions</span><span class="p">){</span>
+  <span class="n">MCInst</span> <span class="n">tmpInst</span><span class="p">;</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">ImmOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">ImmOp</span><span class="p">.</span><span class="n">isImm</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected immediate operand kind&quot;</span><span class="p">);</span>
+  <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">RegOp</span> <span class="o">=</span> <span class="n">Inst</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">isReg</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;expected register operand kind&quot;</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="n">ImmValue</span> <span class="o">=</span> <span class="n">ImmOp</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span> <span class="o">-</span><span class="mi">32768</span> <span class="o">&lt;=</span> <span class="n">ImmValue</span> <span class="o">&amp;&amp;</span> <span class="n">ImmValue</span> <span class="o">&lt;=</span> <span class="mi">32767</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// for -32768 &lt;= j &lt; 32767.</span>
+    <span class="c1">//la d,j =&gt; addiu d,$zero,j</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span>
+              <span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="c1">// for any other value of j that is representable as a 32-bit integer.</span>
+    <span class="c1">// la d,j =&gt; lui d,hi16(j)</span>
+    <span class="c1">//           ori d,d,lo16(j)</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">((</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff0000</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ORi</span><span class="p">);</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegOp</span><span class="p">.</span><span class="n">getReg</span><span class="p">()));</span>
+    <span class="n">tmpInst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">ImmValue</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">));</span>
+    <span class="n">Instructions</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">tmpInst</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span>
+<span class="n">MatchAndEmitInstruction</span><span class="p">(</span><span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="o">&amp;</span><span class="n">Opcode</span><span class="p">,</span>
+                        <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">,</span>
+                        <span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">Out</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="o">&amp;</span><span class="n">ErrorInfo</span><span class="p">,</span>
+                        <span class="kt">bool</span> <span class="n">MatchingInlineAsm</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">MCInst</span> <span class="n">Inst</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="n">MatchResult</span> <span class="o">=</span> <span class="n">MatchInstructionImpl</span><span class="p">(</span><span class="n">Operands</span><span class="p">,</span> <span class="n">Inst</span><span class="p">,</span> <span class="n">ErrorInfo</span><span class="p">,</span>
+                                              <span class="n">MatchingInlineAsm</span><span class="p">);</span>
+
+  <span class="k">switch</span> <span class="p">(</span><span class="n">MatchResult</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">default</span><span class="o">:</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="nl">Match_Success:</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">needsExpansion</span><span class="p">(</span><span class="n">Inst</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;</span> <span class="n">Instructions</span><span class="p">;</span>
+      <span class="n">expandInstruction</span><span class="p">(</span><span class="n">Inst</span><span class="p">,</span> <span class="n">IDLoc</span><span class="p">,</span> <span class="n">Instructions</span><span class="p">);</span>
+      <span class="k">for</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">Instructions</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="n">i</span><span class="o">++</span><span class="p">){</span>
+        <span class="n">Out</span><span class="p">.</span><span class="n">EmitInstruction</span><span class="p">(</span><span class="n">Instructions</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+      <span class="p">}</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="n">Inst</span><span class="p">.</span><span class="n">setLoc</span><span class="p">(</span><span class="n">IDLoc</span><span class="p">);</span>
+        <span class="n">Out</span><span class="p">.</span><span class="n">EmitInstruction</span><span class="p">(</span><span class="n">Inst</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">case</span> <span class="nl">Match_MissingFeature:</span>
+    <span class="n">Error</span><span class="p">(</span><span class="n">IDLoc</span><span class="p">,</span> <span class="s">&quot;instruction requires a CPU feature not currently enabled&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="k">case</span> <span class="nl">Match_InvalidOperand:</span> <span class="p">{</span>
+    <span class="n">SMLoc</span> <span class="n">ErrorLoc</span> <span class="o">=</span> <span class="n">IDLoc</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ErrorInfo</span> <span class="o">!=</span> <span class="o">~</span><span class="mi">0U</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">ErrorInfo</span> <span class="o">&gt;=</span> <span class="n">Operands</span><span class="p">.</span><span class="n">size</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">Error</span><span class="p">(</span><span class="n">IDLoc</span><span class="p">,</span> <span class="s">&quot;too few operands for instruction&quot;</span><span class="p">);</span>
+
+      <span class="n">ErrorLoc</span> <span class="o">=</span> <span class="p">((</span><span class="n">Cpu0Operand</span><span class="o">*</span><span class="p">)</span><span class="n">Operands</span><span class="p">[</span><span class="n">ErrorInfo</span><span class="p">])</span><span class="o">-&gt;</span><span class="n">getStartLoc</span><span class="p">();</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">ErrorLoc</span> <span class="o">==</span> <span class="n">SMLoc</span><span class="p">())</span> <span class="n">ErrorLoc</span> <span class="o">=</span> <span class="n">IDLoc</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">Error</span><span class="p">(</span><span class="n">ErrorLoc</span><span class="p">,</span> <span class="s">&quot;invalid operand for instruction&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">case</span> <span class="nl">Match_MnemonicFail:</span>
+    <span class="k">return</span> <span class="n">Error</span><span class="p">(</span><span class="n">IDLoc</span><span class="p">,</span> <span class="s">&quot;invalid instruction&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">matchRegisterName</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">Name</span><span class="p">)</span> <span class="p">{</span>
+
+   <span class="kt">int</span> <span class="n">CC</span><span class="p">;</span>
+    <span class="n">CC</span> <span class="o">=</span> <span class="n">StringSwitch</span><span class="o">&lt;</span><span class="kt">unsigned</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Name</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;zero&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;at&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;v0&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">V0</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;v1&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">V1</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;a0&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">A0</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;a1&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">A1</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;t9&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">T9</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;t0&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">T0</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;s0&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">S0</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;s1&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">S1</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;s2&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">S2</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;gp&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">GP</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;fp&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;sp&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;lr&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;pc&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">PC</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;hi&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">HI</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;lo&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">LO</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;sw&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Default</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">CC</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">CC</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">unsigned</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">getReg</span><span class="p">(</span><span class="kt">int</span> <span class="n">RC</span><span class="p">,</span><span class="kt">int</span> <span class="n">RegNo</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="o">*</span><span class="p">(</span><span class="n">getContext</span><span class="p">().</span><span class="n">getRegisterInfo</span><span class="p">().</span><span class="n">getRegClass</span><span class="p">(</span><span class="n">RC</span><span class="p">).</span><span class="n">begin</span><span class="p">()</span> <span class="o">+</span> <span class="n">RegNo</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">matchRegisterByNumber</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">RegNum</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">Mnemonic</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">RegNum</span> <span class="o">&gt;</span> <span class="mi">15</span><span class="p">)</span>
+    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="n">getReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClassID</span><span class="p">,</span> <span class="n">RegNum</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">tryParseRegister</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">Mnemonic</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">AsmToken</span> <span class="o">&amp;</span><span class="n">Tok</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">();</span>
+  <span class="kt">int</span> <span class="n">RegNum</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">Tok</span><span class="p">.</span><span class="n">is</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">Identifier</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">lowerCase</span> <span class="o">=</span> <span class="n">Tok</span><span class="p">.</span><span class="n">getString</span><span class="p">().</span><span class="n">lower</span><span class="p">();</span>
+    <span class="n">RegNum</span> <span class="o">=</span> <span class="n">matchRegisterName</span><span class="p">(</span><span class="n">lowerCase</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Tok</span><span class="p">.</span><span class="n">is</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">Integer</span><span class="p">))</span>
+    <span class="n">RegNum</span> <span class="o">=</span> <span class="n">matchRegisterByNumber</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">unsigned</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Tok</span><span class="p">.</span><span class="n">getIntVal</span><span class="p">()),</span>
+                                   <span class="n">Mnemonic</span><span class="p">.</span><span class="n">lower</span><span class="p">());</span>
+    <span class="k">else</span>
+      <span class="k">return</span> <span class="n">RegNum</span><span class="p">;</span>  <span class="c1">//error</span>
+  <span class="k">return</span> <span class="n">RegNum</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span>
+  <span class="n">tryParseRegisterOperand</span><span class="p">(</span><span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">,</span>
+                          <span class="n">StringRef</span> <span class="n">Mnemonic</span><span class="p">){</span>
+
+  <span class="n">SMLoc</span> <span class="n">S</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">();</span>
+  <span class="kt">int</span> <span class="n">RegNo</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+
+    <span class="n">RegNo</span> <span class="o">=</span> <span class="n">tryParseRegister</span><span class="p">(</span><span class="n">Mnemonic</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">RegNo</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+
+  <span class="n">Operands</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Cpu0Operand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">RegNo</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span>
+      <span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">()));</span>
+  <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// Eat register token.</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">ParseOperand</span><span class="p">(</span><span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;&amp;</span><span class="n">Operands</span><span class="p">,</span>
+                                 <span class="n">StringRef</span> <span class="n">Mnemonic</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// Check if the current operand has a custom associated parser, if so, try to</span>
+  <span class="c1">// custom parse the operand, or fallback to the general approach.</span>
+  <span class="n">OperandMatchResultTy</span> <span class="n">ResTy</span> <span class="o">=</span> <span class="n">MatchOperandParserImpl</span><span class="p">(</span><span class="n">Operands</span><span class="p">,</span> <span class="n">Mnemonic</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">ResTy</span> <span class="o">==</span> <span class="n">MatchOperand_Success</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="c1">// If there wasn&#39;t a custom match, try the generic matcher below. Otherwise,</span>
+  <span class="c1">// there was a match, but an error occurred, in which case, just return that</span>
+  <span class="c1">// the operand parsing failed.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">ResTy</span> <span class="o">==</span> <span class="n">MatchOperand_ParseFail</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+
+  <span class="k">switch</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">getKind</span><span class="p">())</span> <span class="p">{</span>
+  <span class="k">default</span><span class="o">:</span>
+    <span class="n">Error</span><span class="p">(</span><span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">(),</span> <span class="s">&quot;unexpected token in operand&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">AsmToken</span><span class="o">::</span><span class="nl">Dollar:</span> <span class="p">{</span>
+    <span class="c1">// parse register</span>
+    <span class="n">SMLoc</span> <span class="n">S</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">();</span>
+    <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// Eat dollar token.</span>
+    <span class="c1">// parse register operand</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">tryParseRegisterOperand</span><span class="p">(</span><span class="n">Operands</span><span class="p">,</span> <span class="n">Mnemonic</span><span class="p">))</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">is</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">LParen</span><span class="p">))</span> <span class="p">{</span>
+        <span class="c1">// check if it is indexed addressing operand</span>
+        <span class="n">Operands</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Cpu0Operand</span><span class="o">::</span><span class="n">CreateToken</span><span class="p">(</span><span class="s">&quot;(&quot;</span><span class="p">,</span> <span class="n">S</span><span class="p">));</span>
+        <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// eat parenthesis</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">isNot</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">Dollar</span><span class="p">))</span>
+          <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+
+        <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// eat dollar</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">tryParseRegisterOperand</span><span class="p">(</span><span class="n">Operands</span><span class="p">,</span> <span class="n">Mnemonic</span><span class="p">))</span>
+          <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">getLexer</span><span class="p">().</span><span class="n">is</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">RParen</span><span class="p">))</span>
+          <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+
+        <span class="n">S</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">();</span>
+        <span class="n">Operands</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Cpu0Operand</span><span class="o">::</span><span class="n">CreateToken</span><span class="p">(</span><span class="s">&quot;)&quot;</span><span class="p">,</span> <span class="n">S</span><span class="p">));</span>
+        <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="c1">// maybe it is a symbol reference</span>
+    <span class="n">StringRef</span> <span class="n">Identifier</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">Parser</span><span class="p">.</span><span class="n">parseIdentifier</span><span class="p">(</span><span class="n">Identifier</span><span class="p">))</span>
+      <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+
+    <span class="n">SMLoc</span> <span class="n">E</span> <span class="o">=</span> <span class="n">SMLoc</span><span class="o">::</span><span class="n">getFromPointer</span><span class="p">(</span><span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">().</span><span class="n">getPointer</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
+
+    <span class="n">MCSymbol</span> <span class="o">*</span><span class="n">Sym</span> <span class="o">=</span> <span class="n">getContext</span><span class="p">().</span><span class="n">GetOrCreateSymbol</span><span class="p">(</span><span class="s">&quot;$&quot;</span> <span class="o">+</span> <span class="n">Identifier</span><span class="p">);</span>
+
+    <span class="c1">// Otherwise create a symbol ref.</span>
+    <span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Res</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="n">Sym</span><span class="p">,</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_None</span><span class="p">,</span>
+                                                <span class="n">getContext</span><span class="p">());</span>
+
+    <span class="n">Operands</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Cpu0Operand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">Res</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">E</span><span class="p">));</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">case</span> <span class="n">AsmToken</span><span class="o">::</span><span class="nl">Identifier:</span>
+  <span class="k">case</span> <span class="n">AsmToken</span><span class="o">::</span><span class="nl">LParen:</span>
+  <span class="k">case</span> <span class="n">AsmToken</span><span class="o">::</span><span class="nl">Minus:</span>
+  <span class="k">case</span> <span class="n">AsmToken</span><span class="o">::</span><span class="nl">Plus:</span>
+  <span class="k">case</span> <span class="n">AsmToken</span><span class="o">::</span><span class="nl">Integer:</span>
+  <span class="k">case</span> <span class="n">AsmToken</span><span class="o">::</span><span class="nl">String:</span> <span class="p">{</span>
+     <span class="c1">// quoted label names</span>
+    <span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">IdVal</span><span class="p">;</span>
+    <span class="n">SMLoc</span> <span class="n">S</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">getParser</span><span class="p">().</span><span class="n">parseExpression</span><span class="p">(</span><span class="n">IdVal</span><span class="p">))</span>
+      <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="n">SMLoc</span> <span class="n">E</span> <span class="o">=</span> <span class="n">SMLoc</span><span class="o">::</span><span class="n">getFromPointer</span><span class="p">(</span><span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">().</span><span class="n">getPointer</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">Operands</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Cpu0Operand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">IdVal</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">E</span><span class="p">));</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">case</span> <span class="n">AsmToken</span><span class="o">::</span><span class="nl">Percent:</span> <span class="p">{</span>
+    <span class="c1">// it is a symbol reference or constant expression</span>
+    <span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">IdVal</span><span class="p">;</span>
+    <span class="n">SMLoc</span> <span class="n">S</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">();</span> <span class="c1">// start location of the operand</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">parseRelocOperand</span><span class="p">(</span><span class="n">IdVal</span><span class="p">))</span>
+      <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+
+    <span class="n">SMLoc</span> <span class="n">E</span> <span class="o">=</span> <span class="n">SMLoc</span><span class="o">::</span><span class="n">getFromPointer</span><span class="p">(</span><span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">().</span><span class="n">getPointer</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
+
+    <span class="n">Operands</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Cpu0Operand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">IdVal</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">E</span><span class="p">));</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span> <span class="c1">// case AsmToken::Percent</span>
+  <span class="p">}</span> <span class="c1">// switch(getLexer().getKind())</span>
+  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">parseRelocOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*&amp;</span><span class="n">Res</span><span class="p">)</span> <span class="p">{</span>
+
+  <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// eat % token</span>
+  <span class="k">const</span> <span class="n">AsmToken</span> <span class="o">&amp;</span><span class="n">Tok</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">();</span> <span class="c1">// get next token, operation</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Tok</span><span class="p">.</span><span class="n">isNot</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">Identifier</span><span class="p">))</span>
+    <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+
+  <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">Str</span> <span class="o">=</span> <span class="n">Tok</span><span class="p">.</span><span class="n">getIdentifier</span><span class="p">().</span><span class="n">str</span><span class="p">();</span>
+
+  <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// eat identifier</span>
+  <span class="c1">// now make expression from the rest of the operand</span>
+  <span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">IdVal</span><span class="p">;</span>
+  <span class="n">SMLoc</span> <span class="n">EndLoc</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">getKind</span><span class="p">()</span> <span class="o">==</span> <span class="n">AsmToken</span><span class="o">::</span><span class="n">LParen</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// eat &#39;(&#39; token</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">getKind</span><span class="p">()</span> <span class="o">==</span> <span class="n">AsmToken</span><span class="o">::</span><span class="n">Percent</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// eat % token</span>
+        <span class="k">const</span> <span class="n">AsmToken</span> <span class="o">&amp;</span><span class="n">nextTok</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">();</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">nextTok</span><span class="p">.</span><span class="n">isNot</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">Identifier</span><span class="p">))</span>
+          <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+        <span class="n">Str</span> <span class="o">+=</span> <span class="s">&quot;(%&quot;</span><span class="p">;</span>
+        <span class="n">Str</span> <span class="o">+=</span> <span class="n">nextTok</span><span class="p">.</span><span class="n">getIdentifier</span><span class="p">();</span>
+        <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// eat identifier</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">getKind</span><span class="p">()</span> <span class="o">!=</span> <span class="n">AsmToken</span><span class="o">::</span><span class="n">LParen</span><span class="p">)</span>
+          <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+      <span class="p">}</span> <span class="k">else</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">getParser</span><span class="p">().</span><span class="n">parseParenExpression</span><span class="p">(</span><span class="n">IdVal</span><span class="p">,</span><span class="n">EndLoc</span><span class="p">))</span>
+      <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+
+    <span class="k">while</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">getKind</span><span class="p">()</span> <span class="o">==</span> <span class="n">AsmToken</span><span class="o">::</span><span class="n">RParen</span><span class="p">)</span>
+      <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// eat &#39;)&#39; token</span>
+
+  <span class="p">}</span> <span class="k">else</span>
+    <span class="k">return</span> <span class="kc">true</span><span class="p">;</span> <span class="c1">// parenthesis must follow reloc operand</span>
+
+  <span class="c1">// Check the type of the expression</span>
+  <span class="k">if</span> <span class="p">(</span><span class="k">const</span> <span class="n">MCConstantExpr</span> <span class="o">*</span><span class="n">MCE</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">MCConstantExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">IdVal</span><span class="p">))</span> <span class="p">{</span>
+    <span class="c1">// it&#39;s a constant, evaluate lo or hi value</span>
+    <span class="kt">int</span> <span class="n">Val</span> <span class="o">=</span> <span class="n">MCE</span><span class="o">-&gt;</span><span class="n">getValue</span><span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">Str</span> <span class="o">==</span> <span class="s">&quot;lo&quot;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">Val</span> <span class="o">=</span> <span class="n">Val</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Str</span> <span class="o">==</span> <span class="s">&quot;hi&quot;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">Val</span> <span class="o">=</span> <span class="p">(</span><span class="n">Val</span> <span class="o">&amp;</span> <span class="mh">0xffff0000</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">Res</span> <span class="o">=</span> <span class="n">MCConstantExpr</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="n">Val</span><span class="p">,</span> <span class="n">getContext</span><span class="p">());</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="k">const</span> <span class="n">MCSymbolRefExpr</span> <span class="o">*</span><span class="n">MSRE</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">MCSymbolRefExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">IdVal</span><span class="p">))</span> <span class="p">{</span>
+    <span class="c1">// it&#39;s a symbol, create symbolic expression from symbol</span>
+    <span class="n">StringRef</span> <span class="n">Symbol</span> <span class="o">=</span> <span class="n">MSRE</span><span class="o">-&gt;</span><span class="n">getSymbol</span><span class="p">().</span><span class="n">getName</span><span class="p">();</span>
+    <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VariantKind</span> <span class="n">VK</span> <span class="o">=</span> <span class="n">getVariantKind</span><span class="p">(</span><span class="n">Str</span><span class="p">);</span>
+    <span class="n">Res</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="n">Symbol</span><span class="p">,</span><span class="n">VK</span><span class="p">,</span><span class="n">getContext</span><span class="p">());</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">ParseRegister</span><span class="p">(</span><span class="kt">unsigned</span> <span class="o">&amp;</span><span class="n">RegNo</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="o">&amp;</span><span class="n">StartLoc</span><span class="p">,</span>
+                                  <span class="n">SMLoc</span> <span class="o">&amp;</span><span class="n">EndLoc</span><span class="p">)</span> <span class="p">{</span>
+
+  <span class="n">StartLoc</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">();</span>
+  <span class="n">RegNo</span> <span class="o">=</span> <span class="n">tryParseRegister</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">);</span>
+  <span class="n">EndLoc</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">();</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">RegNo</span> <span class="o">==</span> <span class="p">(</span><span class="kt">unsigned</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">parseMemOffset</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*&amp;</span><span class="n">Res</span><span class="p">)</span> <span class="p">{</span>
+
+  <span class="n">SMLoc</span> <span class="n">S</span><span class="p">;</span>
+
+  <span class="k">switch</span><span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">getKind</span><span class="p">())</span> <span class="p">{</span>
+  <span class="k">default</span><span class="o">:</span>
+    <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">AsmToken</span><span class="o">::</span><span class="nl">Integer:</span>
+  <span class="k">case</span> <span class="n">AsmToken</span><span class="o">::</span><span class="nl">Minus:</span>
+  <span class="k">case</span> <span class="n">AsmToken</span><span class="o">::</span><span class="nl">Plus:</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">getParser</span><span class="p">().</span><span class="n">parseExpression</span><span class="p">(</span><span class="n">Res</span><span class="p">));</span>
+  <span class="k">case</span> <span class="n">AsmToken</span><span class="o">::</span><span class="nl">Percent:</span>
+    <span class="k">return</span> <span class="n">parseRelocOperand</span><span class="p">(</span><span class="n">Res</span><span class="p">);</span>
+  <span class="k">case</span> <span class="n">AsmToken</span><span class="o">::</span><span class="nl">LParen:</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>  <span class="c1">// it&#39;s probably assuming 0</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// eg, 12($sp) or 12(la)</span>
+<span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">OperandMatchResultTy</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">parseMemOperand</span><span class="p">(</span>
+               <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;&amp;</span><span class="n">Operands</span><span class="p">)</span> <span class="p">{</span>
+
+  <span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">IdVal</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">SMLoc</span> <span class="n">S</span><span class="p">;</span>
+  <span class="c1">// first operand is the offset</span>
+  <span class="n">S</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">();</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">parseMemOffset</span><span class="p">(</span><span class="n">IdVal</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">MatchOperand_ParseFail</span><span class="p">;</span>
+
+  <span class="k">const</span> <span class="n">AsmToken</span> <span class="o">&amp;</span><span class="n">Tok</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">();</span> <span class="c1">// get next token</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Tok</span><span class="p">.</span><span class="n">isNot</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">LParen</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">Cpu0Operand</span> <span class="o">*</span><span class="n">Mnemonic</span> <span class="o">=</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="n">Cpu0Operand</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">Operands</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">Mnemonic</span><span class="o">-&gt;</span><span class="n">getToken</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;la&quot;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">SMLoc</span> <span class="n">E</span> <span class="o">=</span> <span class="n">SMLoc</span><span class="o">::</span><span class="n">getFromPointer</span><span class="p">(</span><span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">().</span><span class="n">getPointer</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+      <span class="n">Operands</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Cpu0Operand</span><span class="o">::</span><span class="n">CreateImm</span><span class="p">(</span><span class="n">IdVal</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">E</span><span class="p">));</span>
+      <span class="k">return</span> <span class="n">MatchOperand_Success</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">Error</span><span class="p">(</span><span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">(),</span> <span class="s">&quot;&#39;(&#39; expected&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">MatchOperand_ParseFail</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// Eat &#39;(&#39; token.</span>
+
+  <span class="k">const</span> <span class="n">AsmToken</span> <span class="o">&amp;</span><span class="n">Tok1</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">();</span> <span class="c1">// get next token</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Tok1</span><span class="p">.</span><span class="n">is</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">Dollar</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// Eat &#39;$&#39; token.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">tryParseRegisterOperand</span><span class="p">(</span><span class="n">Operands</span><span class="p">,</span><span class="s">&quot;&quot;</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">Error</span><span class="p">(</span><span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">(),</span> <span class="s">&quot;unexpected token in operand&quot;</span><span class="p">);</span>
+      <span class="k">return</span> <span class="n">MatchOperand_ParseFail</span><span class="p">;</span>
+    <span class="p">}</span>
+
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="n">Error</span><span class="p">(</span><span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">(),</span> <span class="s">&quot;unexpected token in operand&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">MatchOperand_ParseFail</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">const</span> <span class="n">AsmToken</span> <span class="o">&amp;</span><span class="n">Tok2</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">();</span> <span class="c1">// get next token</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Tok2</span><span class="p">.</span><span class="n">isNot</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">RParen</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">Error</span><span class="p">(</span><span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">(),</span> <span class="s">&quot;&#39;)&#39; expected&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">MatchOperand_ParseFail</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">SMLoc</span> <span class="n">E</span> <span class="o">=</span> <span class="n">SMLoc</span><span class="o">::</span><span class="n">getFromPointer</span><span class="p">(</span><span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">().</span><span class="n">getLoc</span><span class="p">().</span><span class="n">getPointer</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
+
+  <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// Eat &#39;)&#39; token.</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">IdVal</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">IdVal</span> <span class="o">=</span> <span class="n">MCConstantExpr</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">getContext</span><span class="p">());</span>
+
+  <span class="c1">// now replace register operand with the mem operand</span>
+  <span class="n">Cpu0Operand</span><span class="o">*</span> <span class="n">op</span> <span class="o">=</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="n">Cpu0Operand</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">Operands</span><span class="p">.</span><span class="n">back</span><span class="p">());</span>
+  <span class="kt">int</span> <span class="n">RegNo</span> <span class="o">=</span> <span class="n">op</span><span class="o">-&gt;</span><span class="n">getReg</span><span class="p">();</span>
+  <span class="c1">// remove register from operands</span>
+  <span class="n">Operands</span><span class="p">.</span><span class="n">pop_back</span><span class="p">();</span>
+  <span class="c1">// and add memory operand</span>
+  <span class="n">Operands</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Cpu0Operand</span><span class="o">::</span><span class="n">CreateMem</span><span class="p">(</span><span class="n">RegNo</span><span class="p">,</span> <span class="n">IdVal</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">E</span><span class="p">));</span>
+  <span class="k">delete</span> <span class="n">op</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">MatchOperand_Success</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VariantKind</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">getVariantKind</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">Symbol</span><span class="p">)</span> <span class="p">{</span>
+
+  <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VariantKind</span> <span class="n">VK</span>
+                   <span class="o">=</span> <span class="n">StringSwitch</span><span class="o">&lt;</span><span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VariantKind</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Symbol</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;hi&quot;</span><span class="p">,</span>          <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_ABS_HI</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;lo&quot;</span><span class="p">,</span>          <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_ABS_LO</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;gp_rel&quot;</span><span class="p">,</span>      <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GPREL</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;call16&quot;</span><span class="p">,</span>      <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT_CALL</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;got&quot;</span><span class="p">,</span>         <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;tlsgd&quot;</span><span class="p">,</span>       <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_TLSGD</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;tlsldm&quot;</span><span class="p">,</span>      <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_TLSLDM</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;dtprel_hi&quot;</span><span class="p">,</span>   <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_DTPREL_HI</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;dtprel_lo&quot;</span><span class="p">,</span>   <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_DTPREL_LO</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;gottprel&quot;</span><span class="p">,</span>    <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOTTPREL</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;tprel_hi&quot;</span><span class="p">,</span>    <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_TPREL_HI</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;tprel_lo&quot;</span><span class="p">,</span>    <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_TPREL_LO</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;got_disp&quot;</span><span class="p">,</span>    <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT_DISP</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;got_page&quot;</span><span class="p">,</span>    <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT_PAGE</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;got_ofst&quot;</span><span class="p">,</span>    <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT_OFST</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;hi(%neg(%gp_rel&quot;</span><span class="p">,</span>    <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GPOFF_HI</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;lo(%neg(%gp_rel&quot;</span><span class="p">,</span>    <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GPOFF_LO</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">Default</span><span class="p">(</span><span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_None</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">VK</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span>
+<span class="n">parseMathOperation</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">Name</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">NameLoc</span><span class="p">,</span>
+                   <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// split the format</span>
+  <span class="n">size_t</span> <span class="n">Start</span> <span class="o">=</span> <span class="n">Name</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="sc">&#39;.&#39;</span><span class="p">),</span> <span class="n">Next</span> <span class="o">=</span> <span class="n">Name</span><span class="p">.</span><span class="n">rfind</span><span class="p">(</span><span class="sc">&#39;.&#39;</span><span class="p">);</span>
+  <span class="n">StringRef</span> <span class="n">Format1</span> <span class="o">=</span> <span class="n">Name</span><span class="p">.</span><span class="n">slice</span><span class="p">(</span><span class="n">Start</span><span class="p">,</span> <span class="n">Next</span><span class="p">);</span>
+  <span class="c1">// and add the first format to the operands</span>
+  <span class="n">Operands</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Cpu0Operand</span><span class="o">::</span><span class="n">CreateToken</span><span class="p">(</span><span class="n">Format1</span><span class="p">,</span> <span class="n">NameLoc</span><span class="p">));</span>
+  <span class="c1">// now for the second format</span>
+  <span class="n">StringRef</span> <span class="n">Format2</span> <span class="o">=</span> <span class="n">Name</span><span class="p">.</span><span class="n">slice</span><span class="p">(</span><span class="n">Next</span><span class="p">,</span> <span class="n">StringRef</span><span class="o">::</span><span class="n">npos</span><span class="p">);</span>
+  <span class="n">Operands</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Cpu0Operand</span><span class="o">::</span><span class="n">CreateToken</span><span class="p">(</span><span class="n">Format2</span><span class="p">,</span> <span class="n">NameLoc</span><span class="p">));</span>
+
+  <span class="c1">// set the format for the first register</span>
+<span class="c1">//  setFpFormat(Format1);</span>
+
+  <span class="c1">// Read the remaining operands.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">isNot</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">EndOfStatement</span><span class="p">))</span> <span class="p">{</span>
+    <span class="c1">// Read the first operand.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ParseOperand</span><span class="p">(</span><span class="n">Operands</span><span class="p">,</span> <span class="n">Name</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">SMLoc</span> <span class="n">Loc</span> <span class="o">=</span> <span class="n">getLexer</span><span class="p">().</span><span class="n">getLoc</span><span class="p">();</span>
+      <span class="n">Parser</span><span class="p">.</span><span class="n">eatToEndOfStatement</span><span class="p">();</span>
+      <span class="k">return</span> <span class="n">Error</span><span class="p">(</span><span class="n">Loc</span><span class="p">,</span> <span class="s">&quot;unexpected token in argument list&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">isNot</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">Comma</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">SMLoc</span> <span class="n">Loc</span> <span class="o">=</span> <span class="n">getLexer</span><span class="p">().</span><span class="n">getLoc</span><span class="p">();</span>
+      <span class="n">Parser</span><span class="p">.</span><span class="n">eatToEndOfStatement</span><span class="p">();</span>
+      <span class="k">return</span> <span class="n">Error</span><span class="p">(</span><span class="n">Loc</span><span class="p">,</span> <span class="s">&quot;unexpected token in argument list&quot;</span><span class="p">);</span>
+
+    <span class="p">}</span>
+    <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span>  <span class="c1">// Eat the comma.</span>
+
+    <span class="c1">// Parse and remember the operand.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ParseOperand</span><span class="p">(</span><span class="n">Operands</span><span class="p">,</span> <span class="n">Name</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">SMLoc</span> <span class="n">Loc</span> <span class="o">=</span> <span class="n">getLexer</span><span class="p">().</span><span class="n">getLoc</span><span class="p">();</span>
+      <span class="n">Parser</span><span class="p">.</span><span class="n">eatToEndOfStatement</span><span class="p">();</span>
+      <span class="k">return</span> <span class="n">Error</span><span class="p">(</span><span class="n">Loc</span><span class="p">,</span> <span class="s">&quot;unexpected token in argument list&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">isNot</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">EndOfStatement</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">SMLoc</span> <span class="n">Loc</span> <span class="o">=</span> <span class="n">getLexer</span><span class="p">().</span><span class="n">getLoc</span><span class="p">();</span>
+    <span class="n">Parser</span><span class="p">.</span><span class="n">eatToEndOfStatement</span><span class="p">();</span>
+    <span class="k">return</span> <span class="n">Error</span><span class="p">(</span><span class="n">Loc</span><span class="p">,</span> <span class="s">&quot;unexpected token in argument list&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// Consume the EndOfStatement</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span>
+<span class="n">ParseInstruction</span><span class="p">(</span><span class="n">ParseInstructionInfo</span> <span class="o">&amp;</span><span class="n">Info</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">Name</span><span class="p">,</span> <span class="n">SMLoc</span> <span class="n">NameLoc</span><span class="p">,</span>
+                 <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">)</span> <span class="p">{</span>
+
+  <span class="c1">// Create the leading tokens for the mnemonic, split by &#39;.&#39; characters.</span>
+  <span class="n">size_t</span> <span class="n">Start</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Next</span> <span class="o">=</span> <span class="n">Name</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="sc">&#39;.&#39;</span><span class="p">);</span>
+  <span class="n">StringRef</span> <span class="n">Mnemonic</span> <span class="o">=</span> <span class="n">Name</span><span class="p">.</span><span class="n">slice</span><span class="p">(</span><span class="n">Start</span><span class="p">,</span> <span class="n">Next</span><span class="p">);</span>
+
+  <span class="n">Operands</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Cpu0Operand</span><span class="o">::</span><span class="n">CreateToken</span><span class="p">(</span><span class="n">Mnemonic</span><span class="p">,</span> <span class="n">NameLoc</span><span class="p">));</span>
+
+  <span class="c1">// Read the remaining operands.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">isNot</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">EndOfStatement</span><span class="p">))</span> <span class="p">{</span>
+    <span class="c1">// Read the first operand.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ParseOperand</span><span class="p">(</span><span class="n">Operands</span><span class="p">,</span> <span class="n">Name</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">SMLoc</span> <span class="n">Loc</span> <span class="o">=</span> <span class="n">getLexer</span><span class="p">().</span><span class="n">getLoc</span><span class="p">();</span>
+      <span class="n">Parser</span><span class="p">.</span><span class="n">eatToEndOfStatement</span><span class="p">();</span>
+      <span class="k">return</span> <span class="n">Error</span><span class="p">(</span><span class="n">Loc</span><span class="p">,</span> <span class="s">&quot;unexpected token in argument list&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">while</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">is</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">Comma</span><span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+      <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span>  <span class="c1">// Eat the comma.</span>
+
+      <span class="c1">// Parse and remember the operand.</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">ParseOperand</span><span class="p">(</span><span class="n">Operands</span><span class="p">,</span> <span class="n">Name</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">SMLoc</span> <span class="n">Loc</span> <span class="o">=</span> <span class="n">getLexer</span><span class="p">().</span><span class="n">getLoc</span><span class="p">();</span>
+        <span class="n">Parser</span><span class="p">.</span><span class="n">eatToEndOfStatement</span><span class="p">();</span>
+        <span class="k">return</span> <span class="n">Error</span><span class="p">(</span><span class="n">Loc</span><span class="p">,</span> <span class="s">&quot;unexpected token in argument list&quot;</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">isNot</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">EndOfStatement</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">SMLoc</span> <span class="n">Loc</span> <span class="o">=</span> <span class="n">getLexer</span><span class="p">().</span><span class="n">getLoc</span><span class="p">();</span>
+    <span class="n">Parser</span><span class="p">.</span><span class="n">eatToEndOfStatement</span><span class="p">();</span>
+    <span class="k">return</span> <span class="n">Error</span><span class="p">(</span><span class="n">Loc</span><span class="p">,</span> <span class="s">&quot;unexpected token in argument list&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// Consume the EndOfStatement</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">reportParseError</span><span class="p">(</span><span class="n">StringRef</span> <span class="n">ErrorMsg</span><span class="p">)</span> <span class="p">{</span>
+   <span class="n">SMLoc</span> <span class="n">Loc</span> <span class="o">=</span> <span class="n">getLexer</span><span class="p">().</span><span class="n">getLoc</span><span class="p">();</span>
+   <span class="n">Parser</span><span class="p">.</span><span class="n">eatToEndOfStatement</span><span class="p">();</span>
+   <span class="k">return</span> <span class="n">Error</span><span class="p">(</span><span class="n">Loc</span><span class="p">,</span> <span class="n">ErrorMsg</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">parseSetReorderDirective</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span>
+  <span class="c1">// if this is not the end of the statement, report error</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">isNot</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">EndOfStatement</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">reportParseError</span><span class="p">(</span><span class="s">&quot;unexpected token in statement&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">Options</span><span class="p">.</span><span class="n">setReorder</span><span class="p">();</span>
+  <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// Consume the EndOfStatement</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">parseSetNoReorderDirective</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span>
+    <span class="c1">// if this is not the end of the statement, report error</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">isNot</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">EndOfStatement</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">reportParseError</span><span class="p">(</span><span class="s">&quot;unexpected token in statement&quot;</span><span class="p">);</span>
+      <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">Options</span><span class="p">.</span><span class="n">setNoreorder</span><span class="p">();</span>
+    <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// Consume the EndOfStatement</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">parseSetMacroDirective</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span>
+  <span class="c1">// if this is not the end of the statement, report error</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">isNot</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">EndOfStatement</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">reportParseError</span><span class="p">(</span><span class="s">&quot;unexpected token in statement&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">Options</span><span class="p">.</span><span class="n">setMacro</span><span class="p">();</span>
+  <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// Consume the EndOfStatement</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">parseSetNoMacroDirective</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span>
+  <span class="c1">// if this is not the end of the statement, report error</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">getLexer</span><span class="p">().</span><span class="n">isNot</span><span class="p">(</span><span class="n">AsmToken</span><span class="o">::</span><span class="n">EndOfStatement</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">reportParseError</span><span class="p">(</span><span class="s">&quot;`noreorder&#39; must be set before `nomacro&#39;&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Options</span><span class="p">.</span><span class="n">isReorder</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">reportParseError</span><span class="p">(</span><span class="s">&quot;`noreorder&#39; must be set before `nomacro&#39;&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="n">Options</span><span class="p">.</span><span class="n">setNomacro</span><span class="p">();</span>
+  <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span> <span class="c1">// Consume the EndOfStatement</span>
+  <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">parseDirectiveSet</span><span class="p">()</span> <span class="p">{</span>
+
+  <span class="c1">// get next token</span>
+  <span class="k">const</span> <span class="n">AsmToken</span> <span class="o">&amp;</span><span class="n">Tok</span> <span class="o">=</span> <span class="n">Parser</span><span class="p">.</span><span class="n">getTok</span><span class="p">();</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">Tok</span><span class="p">.</span><span class="n">getString</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;reorder&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">parseSetReorderDirective</span><span class="p">();</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Tok</span><span class="p">.</span><span class="n">getString</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;noreorder&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">parseSetNoReorderDirective</span><span class="p">();</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Tok</span><span class="p">.</span><span class="n">getString</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;macro&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">parseSetMacroDirective</span><span class="p">();</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Tok</span><span class="p">.</span><span class="n">getString</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;nomacro&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">parseSetNoMacroDirective</span><span class="p">();</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">ParseDirective</span><span class="p">(</span><span class="n">AsmToken</span> <span class="n">DirectiveID</span><span class="p">)</span> <span class="p">{</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">DirectiveID</span><span class="p">.</span><span class="n">getString</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;.ent&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// ignore this directive for now</span>
+    <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">DirectiveID</span><span class="p">.</span><span class="n">getString</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;.end&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// ignore this directive for now</span>
+    <span class="n">Parser</span><span class="p">.</span><span class="n">Lex</span><span class="p">();</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">DirectiveID</span><span class="p">.</span><span class="n">getString</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;.frame&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// ignore this directive for now</span>
+    <span class="n">Parser</span><span class="p">.</span><span class="n">eatToEndOfStatement</span><span class="p">();</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">DirectiveID</span><span class="p">.</span><span class="n">getString</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;.set&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">parseDirectiveSet</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">DirectiveID</span><span class="p">.</span><span class="n">getString</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;.fmask&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// ignore this directive for now</span>
+    <span class="n">Parser</span><span class="p">.</span><span class="n">eatToEndOfStatement</span><span class="p">();</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">DirectiveID</span><span class="p">.</span><span class="n">getString</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;.mask&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// ignore this directive for now</span>
+    <span class="n">Parser</span><span class="p">.</span><span class="n">eatToEndOfStatement</span><span class="p">();</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">DirectiveID</span><span class="p">.</span><span class="n">getString</span><span class="p">()</span> <span class="o">==</span> <span class="s">&quot;.gpword&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// ignore this directive for now</span>
+    <span class="n">Parser</span><span class="p">.</span><span class="n">eatToEndOfStatement</span><span class="p">();</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0AsmParser</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">RegisterMCAsmParser</span><span class="o">&lt;</span><span class="n">Cpu0AsmParser</span><span class="o">&gt;</span> <span class="n">X</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">);</span>
+  <span class="n">RegisterMCAsmParser</span><span class="o">&lt;</span><span class="n">Cpu0AsmParser</span><span class="o">&gt;</span> <span class="n">Y</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="cp">#define GET_REGISTER_MATCHER</span>
+<span class="cp">#define GET_MATCHER_IMPLEMENTATION</span>
+<span class="cp">#include &quot;Cpu0GenAsmMatcher.inc&quot;</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/Chapter11_1/AsmParser/CMakeLists.txt</p>
+<div class="highlight-c++"><pre>include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
+add_llvm_library(LLVMCpu0AsmParser
+  Cpu0AsmParser.cpp
+  )
+
+add_dependencies(LLVMCpu0AsmParser Cpu0CommonTableGen)
+</pre>
+</div>
 <p class="rubric">lbdex/Chapter11_1/AsmParser/LLVMBuild.txt</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">;</span><span class="o">===-</span> <span class="p">.</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">Target</span><span class="o">/</span><span class="n">Mips</span><span class="o">/</span><span class="n">AsmParser</span><span class="o">/</span><span class="n">LLVMBuild</span><span class="p">.</span><span class="n">txt</span> <span class="o">----------------*-</span> <span class="n">Conf</span> <span class="o">-*--===</span><span class="p">;</span>
+<span class="p">;</span>
+<span class="p">;</span>                     <span class="n">The</span> <span class="n">LLVM</span> <span class="n">Compiler</span> <span class="n">Infrastructure</span>
+<span class="p">;</span>
+<span class="p">;</span> <span class="n">This</span> <span class="n">file</span> <span class="n">is</span> <span class="n">distributed</span> <span class="n">under</span> <span class="n">the</span> <span class="n">University</span> <span class="n">of</span> <span class="n">Illinois</span> <span class="n">Open</span> <span class="n">Source</span>
+<span class="p">;</span> <span class="n">License</span><span class="p">.</span> <span class="n">See</span> <span class="n">LICENSE</span><span class="p">.</span><span class="n">TXT</span> <span class="k">for</span> <span class="n">details</span><span class="p">.</span>
+<span class="p">;</span>
+<span class="p">;</span><span class="o">===------------------------------------------------------------------------===</span><span class="p">;</span>
+<span class="p">;</span>
+<span class="p">;</span> <span class="n">This</span> <span class="n">is</span> <span class="n">an</span> <span class="n">LLVMBuild</span> <span class="n">description</span> <span class="n">file</span> <span class="k">for</span> <span class="n">the</span> <span class="n">components</span> <span class="n">in</span> <span class="k">this</span> <span class="n">subdirectory</span><span class="p">.</span>
+<span class="p">;</span>
+<span class="p">;</span> <span class="n">For</span> <span class="n">more</span> <span class="n">information</span> <span class="n">on</span> <span class="n">the</span> <span class="n">LLVMBuild</span> <span class="n">system</span><span class="p">,</span> <span class="n">please</span> <span class="nl">see:</span>
+<span class="p">;</span>
+<span class="p">;</span>   <span class="nl">http:</span><span class="c1">//llvm.org/docs/LLVMBuild.html</span>
+<span class="p">;</span>
+<span class="p">;</span><span class="o">===------------------------------------------------------------------------===</span><span class="p">;</span>
+
+<span class="p">[</span><span class="n">component_0</span><span class="p">]</span>
+<span class="n">type</span> <span class="o">=</span> <span class="n">Library</span>
+<span class="n">name</span> <span class="o">=</span> <span class="n">Cpu0AsmParser</span>
+<span class="n">parent</span> <span class="o">=</span> <span class="n">Mips</span>
+<span class="n">required_libraries</span> <span class="o">=</span> <span class="n">MC</span> <span class="n">MCParser</span> <span class="n">Support</span> <span class="n">MipsDesc</span> <span class="n">MipsInfo</span>
+<span class="n">add_to_library_groups</span> <span class="o">=</span> <span class="n">Cpu0</span>
+</pre></div>
+</div>
 <p>The Cpu0AsmParser.cpp contains one thousand of code which do the assembly
 language parsing. You can understand it with a little patient only.
 To let directory AsmParser be built, modify CMakeLists.txt and LLVMBuild.txt as
@@ -336,6 +1399,53 @@ LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,</p>
 follow the order of register number because AsmParser use this when do register
 number encode.</p>
 <p class="rubric">lbdex/Chapter11_1/Cpu0RegisterInfo.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// The register string, such as &quot;9&quot; or &quot;gp&quot; will show on &quot;llvm-objdump -d&quot;</span>
+<span class="n">let</span> <span class="n">Namespace</span> <span class="o">=</span> <span class="s">&quot;Cpu0&quot;</span> <span class="n">in</span> <span class="p">{</span>
+  <span class="c1">// General Purpose Registers</span>
+  <span class="n">def</span> <span class="n">ZERO</span> <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">,</span>  <span class="s">&quot;zero&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">AT</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span>  <span class="s">&quot;1&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">V0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">,</span>  <span class="s">&quot;2&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">V1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">,</span>  <span class="s">&quot;3&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">A0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">4</span><span class="p">,</span>  <span class="s">&quot;4&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">A1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">5</span><span class="p">,</span>  <span class="s">&quot;5&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">T9</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">6</span><span class="p">,</span>  <span class="s">&quot;t9&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">T0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">7</span><span class="p">,</span>  <span class="s">&quot;t0&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">S0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">,</span>  <span class="s">&quot;8&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">S1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">9</span><span class="p">,</span>  <span class="s">&quot;9&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">S2</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">10</span><span class="p">,</span> <span class="s">&quot;10&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">GP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">11</span><span class="p">,</span> <span class="s">&quot;gp&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">FP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">12</span><span class="p">,</span> <span class="s">&quot;fp&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">SP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">13</span><span class="p">,</span> <span class="s">&quot;sp&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">LR</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">14</span><span class="p">,</span> <span class="s">&quot;lr&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">PC</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">15</span><span class="p">,</span> <span class="s">&quot;pc&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">15</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="c1">//  def MAR  : Register&lt; 16, &quot;mar&quot;&gt;,  DwarfRegNum&lt;[16]&gt;;</span>
+<span class="c1">//  def MDR  : Register&lt; 17, &quot;mdr&quot;&gt;,  DwarfRegNum&lt;[17]&gt;;</span>
+
+  <span class="c1">// Hi/Lo registers number and name</span>
+  <span class="n">def</span> <span class="n">HI</span>   <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;hi&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">18</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">LO</span>   <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;lo&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">19</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">SW</span>   <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;sw&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">20</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Register Classes</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="n">def</span> <span class="n">CPURegs</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span>
+  <span class="c1">// Reserved</span>
+  <span class="n">ZERO</span><span class="p">,</span> <span class="n">AT</span><span class="p">,</span> 
+  <span class="c1">// Return Values and Arguments</span>
+  <span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">A0</span><span class="p">,</span> <span class="n">A1</span><span class="p">,</span> 
+  <span class="c1">// Not preserved across procedure calls</span>
+  <span class="n">T9</span><span class="p">,</span> <span class="n">T0</span><span class="p">,</span>
+  <span class="c1">// Callee save</span>
+  <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">S2</span><span class="p">,</span> 
+  <span class="c1">// Reserved</span>
+  <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> 
+  <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
 <p>Run Chapter11_1/ with ch11_1.cpp to get the correct result as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
 build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj ch11_1.bc -o
