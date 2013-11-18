@@ -174,7 +174,7 @@ gh-pages:
 	rm -rf build lbdex &&\
 	rm -rf Cpu0_replace_select source_ExampleCode working Fig note source Table *~ &&\
   cd ../../ &&\
-	git add *.html _images/. _sources/. _static/. objects.inv searchindex.js TutorialLLVMBackendCpu0.* &&\
+	git add lbdex.tar.gz *.html _images/. _sources/. _static/. objects.inv searchindex.js TutorialLLVMBackendCpu0.* &&\
 	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" &&\
 	git push origin gh-pages &&\
 	git checkout master &&\
