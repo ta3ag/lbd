@@ -170,12 +170,14 @@ gh-pages:
 	mv -fv build/html/* ./ &&\
 	mv -fv build/latex/TutorialLLVMBackendCpu0.pdf "./TutorialLLVMBackendCpu0.pdf" &&\
 	mv -fv build/epub/TutorialLLVMBackendCpu0.epub "./TutorialLLVMBackendCpu0.epub" &&\
+	cd ../../ &&\
 	rm -rf `git ls-tree master:$(BACKEND_TUTORIAL_SUBDIR) | cut -f2` &&\
 	rm -rf build lbdex &&\
 	git add -A &&\
 	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" &&\
 	git push origin gh-pages &&\
-	git checkout master
+	git checkout master &&\
+  cd $(BACKEND_TUTORIAL_SUBDIR)
 
 genexample:
 	sh ./rungenexample.sh
