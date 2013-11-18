@@ -160,10 +160,11 @@ TMP_PREFIX = tmp
 # 'cd' take effect for the whole command.
 # TODO: is there a nicer way of doing this?
 gh-pages:
+	cd ../../ &&\
 	git checkout gh-pages &&\
 	rm -rf build _sources _static _images &&\
 	git read-tree --prefix=$(TMP_PREFIX)/ -u HEAD master:$(BACKEND_TUTORIAL_SUBDIR) &&\
-	mv $(TMP_PREFIX)/* . &&\
+	mv $(TMP_PREFIX)/* $(BACKEND_TUTORIAL_SUBDIR) && cd $(BACKEND_TUTORIAL_SUBDIR)\
 	sh ./rungenexample.sh &&\
 	make html latexpdf epub &&\
 	mv -fv build/html/* ./ &&\
