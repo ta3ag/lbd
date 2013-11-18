@@ -238,6 +238,12 @@ We define it as follows,
 .. rubric:: lbdex/Chapter9_1/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
+  SDValue
+  Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
+                                SmallVectorImpl<SDValue> &InVals) const {
+    return CLI.Chain;
+  }
+  ...
   /// LowerFormalArguments - transform physical registers into virtual registers
   /// and generate load operations for arguments places on the stack.
   SDValue
@@ -303,6 +309,15 @@ We define it as follows,
     return Chain;
   }
 
+.. rubric:: lbdex/Chapter9_1/Cpu0ISelLowering.h
+.. code-block:: c++
+
+      virtual SDValue
+        LowerCall(TargetLowering::CallLoweringInfo &CLI,
+                  SmallVectorImpl<SDValue> &InVals) const;
+    // LowerCall: outgoing arguments
+
+
 Refresh "section Global variable" [#]_, we handled global 
 variable translation by create the IR DAG in LowerGlobalAddress() first, and 
 then do the Instruction Selection by their corresponding machine instruction 
@@ -337,24 +352,26 @@ variable, which is the offset.
 .. rubric:: lbdex/Chapter9_1/Cpu0InstrInfo.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
     :start-after: // lbd document - mark - copyPhysReg
+    :end-before: #include "llvm/CodeGen/MachineInstrBuilder.h"
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+    :start-after: // lbd document - mark - copyPhysReg
     :end-before: //- st SrcReg, MMO(FI)
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
     :start-after: // lbd document - mark - storeRegToStackSlot
     :end-before: MachineInstr*
 
+.. rubric:: lbdex/Chapter9_1/Cpu0InstrInfo.h
+.. code-block:: c++
+
+    virtual void loadRegFromStackSlot(MachineBasicBlock &MBB,
+                                      MachineBasicBlock::iterator MBBI,
+                                      unsigned DestReg, int FrameIndex,
+                                      const TargetRegisterClass *RC,
+                                      const TargetRegisterInfo *TRI) const;
+
 In addition to Calling Convention and LowerFormalArguments(), Chapter9_1/ add the 
 following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and 
 **jalr** (function call) definition and printing.
-
-.. rubric:: lbdex/Chapter9_1/Cpu0InstrFormats.td
-.. code-block:: c++
-
-  // Cpu0 Pseudo Instructions Format
-  class Cpu0Pseudo<dag outs, dag ins, string asmstr, list<dag> pattern>:
-        Cpu0Inst<outs, ins, asmstr, pattern, IIPseudo, Pseudo> {
-    let isCodeGenOnly = 1;
-    let isPseudo = 1;
-  }
     
 .. rubric:: lbdex/Chapter9_1/Cpu0InstrInfo.td
 .. code-block:: c++
@@ -365,10 +382,6 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
   def Cpu0JmpLink : SDNode<"Cpu0ISD::JmpLink",SDT_Cpu0JmpLink,
                            [SDNPHasChain, SDNPOutGlue, SDNPOptInGlue,
                             SDNPVariadic]>;
-  ...
-  def jmptarget   : Operand<OtherVT> {
-    let EncoderMethod = "getJumpTargetOpValue";
-  }
   ...
   def calltarget  : Operand<iPTR> {
     let EncoderMethod = "getJumpTargetOpValue";
@@ -396,7 +409,6 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
   def SWI  : JumpLink<0x2a, "swi">;
   def JSUB : JumpLink<0x2b, "jsub">;
   ...
-  def IRET    : JumpFR<0x2d, "iret", CPURegs>;
   def JALR    : JumpLinkReg<0x2e, "jalr", CPURegs>;
   ...
   def : Pat<(Cpu0JmpLink (i32 tglobaladdr:$dst)),
@@ -405,7 +417,7 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
             (JSUB texternalsym:$dst)>;
   ...
     
-.. rubric:: lbdex/Chapter9_1/Cpu0InstPrinter.cpp
+.. rubric:: lbdex/Chapter9_1/InstPrinter/Cpu0InstPrinter.cpp
 .. code-block:: c++
 
   static void printExpr(const MCExpr *Expr, raw_ostream &OS) {
@@ -423,6 +435,8 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
   MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
                                                 MachineOperandType MOTy,
                                                 unsigned Offset) const {
+    ...
+    case Cpu0II::MO_GOT_CALL:  Kind = MCSymbolRefExpr::VK_Cpu0_GOT_CALL; break;
     ...
     switch (MOTy) {
     ...
@@ -448,9 +462,41 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
     ...
   }
 
+.. rubric:: lbdex/Chapter9_1/MCTargetDesc/Cpu0AsmBackend.cpp
+.. code-block:: c++
+
+    case Cpu0::fixup_Cpu0_CALL16:
+
+.. rubric:: lbdex/Chapter9_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
+.. code-block:: c++
+
+    case Cpu0::fixup_Cpu0_CALL16:
+      Type = ELF::R_CPU0_CALL16;
+      break;
+
+.. rubric:: lbdex/Chapter9_1/MCTargetDesc/Cpu0FixupKinds.h
+.. code-block:: c++
+
+      // resulting in - R_CPU0_CALL16.
+      fixup_Cpu0_CALL16,
+
+
 .. rubric:: lbdex/Chapter9_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 .. code-block:: c++
 
+  unsigned Cpu0MCCodeEmitter::
+  getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
+                       SmallVectorImpl<MCFixup> &Fixups) const {
+    ...
+    if (Opcode == Cpu0::JSUB || Opcode == Cpu0::JMP)
+      Fixups.push_back(MCFixup::Create(0, Expr,
+                                       MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
+    else if (Opcode == Cpu0::SWI)
+      Fixups.push_back(MCFixup::Create(0, Expr,
+                                       MCFixupKind(Cpu0::fixup_Cpu0_24)));
+    ...
+  } // lbd document - mark - getJumpTargetOpValue
+  ...
   unsigned Cpu0MCCodeEmitter::
   getMachineOpValue(const MCInst &MI, const MCOperand &MO,
                     SmallVectorImpl<MCFixup> &Fixups) const {
@@ -464,7 +510,17 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
     }
   ...
   }
-    
+
+  unsigned Cpu0MCCodeEmitter::
+  getMachineOpValue(const MCInst &MI, const MCOperand &MO,
+                    SmallVectorImpl<MCFixup> &Fixups) const {
+    ...
+    case MCSymbolRefExpr::VK_Cpu0_GOT_CALL:
+      FixupKind = Cpu0::fixup_Cpu0_CALL16;
+      break;
+    ...
+  }
+ 
 .. rubric:: lbdex/Chapter9_1/Cpu0MachineFucntion.h
 .. code-block:: c++
 
@@ -479,16 +535,16 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
     // OutArgFIRange: Range of indices of all frame objects created during call to
     //                LowerCall except for the frame object for restoring $gp.
     std::pair<int, int> InArgFIRange, OutArgFIRange;
-    int GPFI; // Index of the frame object for restoring $gp
+    ...
     mutable int DynAllocFI; // Frame index of dynamically allocated stack area.
-    unsigned MaxCallFrameSize;
+    ...
   
   public:
     Cpu0FunctionInfo(MachineFunction& MF)
-    : MF(MF), GlobalBaseReg(0),
+    : ...
       VarArgsFrameIndex(0), InArgFIRange(std::make_pair(-1, 0)),
       OutArgFIRange(std::make_pair(-1, 0)), GPFI(0), DynAllocFI(0),
-      MaxCallFrameSize(0)
+      ...
       {}
       
     bool isInArgFI(int FI) const {
@@ -520,9 +576,7 @@ following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and
     ...
     int getVarArgsFrameIndex() const { return VarArgsFrameIndex; }
     void setVarArgsFrameIndex(int Index) { VarArgsFrameIndex = Index; }
-    
-    unsigned getMaxCallFrameSize() const { return MaxCallFrameSize; }
-    void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
+    ...
   };
 
 
@@ -655,6 +709,10 @@ LowerCall() is responsible to do this. The implementation as follows,
     :start-after: Subtarget->isLittle());
     :end-before: //===----------------------------------------------------------------------===//
 
+.. rubric:: lbdex/Chapter9_2/Cpu0ISelLowering.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+    :start-after: const Cpu0Subtarget *Subtarget;
+    :end-before: // Lower Operand specifics
 
 Just like load incoming arguments from stack frame, we call 
 CCInfo(CallConv,..., ArgLocs, ...) to get outgoing arguments information before 
@@ -679,7 +737,7 @@ CALLSEQ_END, and translate into pseudo machine instructions !ADJCALLSTACKDOWN,
                              [SDNPHasChain, SDNPOutGlue]>;
   def callseq_end   : SDNode<"ISD::CALLSEQ_END", SDT_Cpu0CallSeqEnd,
                              [SDNPHasChain, SDNPOptInGlue, SDNPOutGlue]>;
-    
+  ...
   //===----------------------------------------------------------------------===//
   // Pseudo instructions
   //===----------------------------------------------------------------------===//
@@ -693,8 +751,8 @@ CALLSEQ_END, and translate into pseudo machine instructions !ADJCALLSTACKDOWN,
                                     "!ADJCALLSTACKUP $amt1",
                                     [(callseq_end timm:$amt1, timm:$amt2)]>;
   }
-    
-    
+  
+
 Like load incoming arguments, we need to implement storeRegToStackSlot() for 
 store outgoing arguments to stack frame offset.
     
@@ -718,10 +776,20 @@ store outgoing arguments to stack frame offset.
     assert(Opc && "Register class not handled!");
     BuildMI(MBB, I, DL, get(Opc)).addReg(SrcReg, getKillRegState(isKill))
       .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
-  }
+  } // lbd document - mark - storeRegToStackSlot
 
 Now, let's run Chapter9_2/ with ch9_1.cpp to get result as follows (see comment 
 //),
+
+.. rubric:: lbdex/Chapter9_2/Cpu0InstrInfo.h
+.. code-block:: c++
+
+    virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
+                                     MachineBasicBlock::iterator MBBI,
+                                     unsigned SrcReg, bool isKill, int FrameIndex,
+                                     const TargetRegisterClass *RC,
+                                     const TargetRegisterInfo *TRI) const;
+
 
 .. code-block:: bash
 
@@ -1055,7 +1123,8 @@ arguments into spOffset($sp) (Chapter9_2/ set them to pOffset+stackSize($sp).
   unsigned SRetReturnReg;
   ...
   Cpu0FunctionInfo(MachineFunction& MF)
-  : MF(MF), SRetReturnReg(0)
+  : ...
+    SRetReturnReg(0)
   ...
   bool isOutArgFI(int FI) const {
     return FI <= OutArgFIRange.first && FI >= OutArgFIRange.second;
@@ -1121,7 +1190,8 @@ function and define eliminateCallFramePseudoInstr() as follows,
 .. code-block:: c++
 
   Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
-    : Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
+    : 
+      Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
   ...
   
 .. rubric:: lbdex/Chapter9_3/Cpu0FrameLowering.h
@@ -1289,9 +1359,10 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
   void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
     ...
     unsigned RegSize = 4;
-    unsigned LocalVarAreaOffset = Cpu0FI->needGPSaveRestore() ?
-    (MFI->getObjectOffset(Cpu0FI->getGPFI()) + RegSize) :
-    Cpu0FI->getMaxCallFrameSize();
+    unsigned LocalVarAreaOffset = 
+      Cpu0FI->needGPSaveRestore() ?
+      (MFI->getObjectOffset(Cpu0FI->getGPFI()) + RegSize) :
+      Cpu0FI->getMaxCallFrameSize();
     ...
     // Restore GP from the saved stack location
     if (Cpu0FI->needGPSaveRestore()) {
@@ -1353,7 +1424,7 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
   void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
     ...
     unsigned Opc = MI->getOpcode();
-    MCInst TmpInst0;
+    ...
     SmallVector<MCInst, 4> MCInsts;
   
     switch (Opc) {
@@ -1382,9 +1453,7 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
     default:
       break;
     }
-  
-    MCInstLowering.Lower(MI, TmpInst0);
-    OutStreamer.EmitInstruction(TmpInst0);
+    ...
   }
   
 .. rubric:: lbdex/Chapter9_3/Cpu0MCInstLower.cpp
@@ -1392,6 +1461,10 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
     :start-after: // lbd document - mark - LowerCPLOAD
     :end-before: MCOperand Cpu0MCInstLower::LowerOperand
 
+.. rubric:: lbdex/Chapter9_3/Cpu0MCInstLower.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0MCInstLower.h
+    :start-after: void LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts);
+    :end-before: private:
 
 The added code of Cpu0AsmPrinter.cpp as above will call the LowerCPRESTORE() when 
 user run with ``llc -filetype=obj``. 
@@ -1460,16 +1533,18 @@ The LowerReturn() modified in Chapter9_3/ as follows,
     :start-after: // structure return end
     :end-before: // lbd document - mark - isOffsetFoldingLegal
 
-.. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.h
+The LowerReturn work with RET defined in Chapter3_4 as follows,
+
+.. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.h
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.h
     :start-after: // lbd document - mark - emitFrameIndexDebugValue
     :end-before: };
 
-.. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.cpp
+.. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
     :start-after: // lbd document - mark - emitFrameIndexDebugValue
 
-.. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.td
 .. code-block:: c++
 
   // Return
@@ -1503,7 +1578,7 @@ Above code do the following:
 
 1. Declare a pseudo node by the following code,
 
-.. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.td
 .. code-block:: c++
 
   // Return
@@ -1589,7 +1664,7 @@ Above code do the following:
    TableGen from \*.td) generated by the following code at "Cpu0 Assembly 
    Printer" stage.
 
-.. rubric:: lbdex/Chapter9_3/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.td
 .. code-block:: c++
 
   class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
@@ -1906,7 +1981,7 @@ function call.
                                    false, false, 0);
     OutChains.push_back(Store);
     }
-  }
+  } // lbd document - mark - ReadByValArg
   ...
   SDValue
   Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
@@ -2669,7 +2744,7 @@ add in Chapter9_4/.
 The ch9_3_2.cpp is C++ template example code, it can be translated into cpu0 
 backend code too.
 
-.. rubric:: lbdex/Chapter9_4/Cpu0TargetLowering.h
+.. rubric:: lbdex/Chapter9_4/Cpu0ISelLowering.h
 .. code-block:: c++
 
     class Cpu0TargetLowering : public TargetLowering  {
@@ -2680,7 +2755,7 @@ backend code too.
       ...
     }
 
-.. rubric:: lbdex/Chapter9_4/Cpu0TargetLowering.cpp
+.. rubric:: lbdex/Chapter9_4/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   Cpu0TargetLowering::
@@ -2736,10 +2811,16 @@ backend code too.
                         const {
     ...
     if (isVarArg) {
+      unsigned NumOfRegs = 0;
+      int FirstRegSlotOffset = 0; // offset of $a0's slot.
       unsigned RegSize = Cpu0::CPURegsRegClass.getSize();
+      int RegSlotOffset = FirstRegSlotOffset + ArgLocs.size() * RegSize;
+
       // Offset of the first variable argument from stack pointer.
-      int FirstVaArgOffset = RegSize;
-    
+      int FirstVaArgOffset;
+
+      FirstVaArgOffset = RegSlotOffset;
+
       // Record the frame index of the first variable argument
       // which is a value necessary to VASTART.
       LastFI = MFI->CreateFixedObject(RegSize, FirstVaArgOffset, true);
@@ -2809,7 +2890,7 @@ Chapter9_4 support dynamic stack allocation with the following code added.
   
       // Insert instruction "move $sp, $fp" at this location.
       BuildMI(MBB, I, dl, TII.get(ADDu), SP).addReg(FP).addReg(ZERO);
-    }
+    } // lbd document - mark - emitEpilogue() if (hasFP(MF))
     ...
   }
 
