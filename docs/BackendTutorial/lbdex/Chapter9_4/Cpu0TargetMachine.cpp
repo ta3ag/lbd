@@ -80,7 +80,7 @@ public:
 
   const Cpu0Subtarget &getCpu0Subtarget() const {
     return *getCpu0TargetMachine().getSubtargetImpl();
-  }
+  } // lbd document - mark - getCpu0Subtarget()
   virtual bool addInstSelector();
   virtual bool addPreRegAlloc();
 };
@@ -88,18 +88,17 @@ public:
 
 TargetPassConfig *Cpu0TargetMachine::createPassConfig(PassManagerBase &PM) {
   return new Cpu0PassConfig(this, PM);
-}
+} // lbd document - mark - createPassConfig
 
 // Install an instruction selector pass using
 // the ISelDag to gen Cpu0 code.
 bool Cpu0PassConfig::addInstSelector() {
   addPass(createCpu0ISelDag(getCpu0TargetMachine()));
   return false;
-}
+} // lbd document - mark - addInstSelector()
 
 bool Cpu0PassConfig::addPreRegAlloc() {
-  // Do not restore $gp if target is Cpu064.
-  // In N32/64, $gp is a callee-saved register.
+  // $gp is a caller-saved register.
 
   addPass(createCpu0EmitGPRestorePass(getCpu0TargetMachine()));
   return true;

@@ -89,7 +89,7 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &MF) const {
   const MachineFrameInfo *MFI = MF.getFrameInfo();
   return MF.getTarget().Options.DisableFramePointerElim(MF) ||
       MFI->hasVarSizedObjects() || MFI->isFrameAddressTaken();
-}
+} // lbd document - mark - hasFP
 
 // Build an instruction sequence to load an immediate that is too large to fit
 // in 16-bit and add the result to Reg.
@@ -121,7 +121,7 @@ static void expandLargeImm(unsigned Reg, int64_t Imm,
       .addImm(SignExtend64<16>(Inst->ImmOpnd));
 
   BuildMI(MBB, II, DL, TII.get(ADDu), Reg).addReg(Reg).addReg(ATReg);
-}
+} // lbd document - mark - expandLargeImm
 
 void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   MachineBasicBlock &MBB   = MF.front();
@@ -132,11 +132,13 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   MachineBasicBlock::iterator MBBI = MBB.begin();
   DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
   unsigned SP = Cpu0::SP;
+ // lbd document - mark - Cpu0::SP
   unsigned ADDiu = Cpu0::ADDiu;
   // First, compute final stack size.
   unsigned StackAlign = getStackAlignment();
   unsigned RegSize = 4;
-  unsigned LocalVarAreaOffset = Cpu0FI->needGPSaveRestore() ?
+  unsigned LocalVarAreaOffset = 
+    Cpu0FI->needGPSaveRestore() ?
     (MFI->getObjectOffset(Cpu0FI->getGPFI()) + RegSize) :
     Cpu0FI->getMaxCallFrameSize();
   uint64_t StackSize =  RoundUpToAlignment(LocalVarAreaOffset, StackAlign) +
@@ -212,6 +214,7 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
     *static_cast<const Cpu0InstrInfo*>(MF.getTarget().getInstrInfo());
   DebugLoc dl = MBBI->getDebugLoc();
   unsigned SP = Cpu0::SP;
+ // lbd document - mark - emitEpilogue() Cpu0::SP
   unsigned ADDiu = Cpu0::ADDiu;
 
   // Get the number of bytes from FrameInfo

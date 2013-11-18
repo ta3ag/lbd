@@ -27,8 +27,8 @@ def SDT_Cpu0DivRem       : SDTypeProfile<0, 2,
                                           SDTCisSameAs<0, 1>]>;
 
 // Return
-def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDT_Cpu0Ret, [SDNPHasChain,
-                     SDNPOptInGlue]>;
+def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDTNone,
+                     [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
 
 // DivRem(u) nodes
 def Cpu0DivRem    : SDNode<"Cpu0ISD::DivRem", SDT_Cpu0DivRem,
@@ -67,7 +67,7 @@ def LO16 : SDNodeXForm<imm, [{
 // Transformation Function - get the higher 16 bits.
 def HI16 : SDNodeXForm<imm, [{
   return getImm(N, (N->getZExtValue() >> 16) & 0xffff);
-}]>;
+}]>; // lbd document - mark - def HI16
 
 // Node immediate fits as 16-bit sign extended on target immediate.
 // e.g. addi, andi
@@ -172,7 +172,7 @@ class LoadUpper<bits<8> op, string instr_asm, RegisterClass RC, Operand Imm>:
   let rb = 0;
   let neverHasSideEffects = 1;
   let isReMaterializable = 1;
-}
+} // lbd document - mark - class LoadUpper
 
 class FMem<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern,
           InstrItinClass itin>: FL<op, outs, ins, asmstr, pattern, itin> {
@@ -210,6 +210,23 @@ multiclass LoadM32<bits<8> op, string instr_asm, PatFrag OpNode,
 multiclass StoreM32<bits<8> op, string instr_asm, PatFrag OpNode,
                     bit Pseudo = 0> {
   def #NAME# : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
+}
+
+let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
+    isIndirectBranch = 1 in
+class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
+  FL<op, (outs), (ins RC:$ra),
+     !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch> {
+  let rb = 0;
+  let imm16 = 0;
+}
+
+// Return instruction
+class RetBase<RegisterClass RC>: JumpFR<0x3c, "ret", RC> {
+  let isReturn = 1;
+  let isCodeGenOnly = 1;
+  let hasCtrlDep = 1;
+  let hasExtraSrcRegAllocReq = 1;
 }
 
 // Mul, Div
@@ -264,7 +281,7 @@ class MoveToLOHI<bits<8> op, string instr_asm, RegisterClass RC,
 //===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
-// Cpu0I Instructions
+// Cpu0 Instructions
 //===----------------------------------------------------------------------===//
 
 /// Load and Store Instructions
@@ -297,10 +314,10 @@ def SRAV    : shift_rotate_reg<0x20, 0x00, "srav", sra, CPURegs>;
 def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
 def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
 
-let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
-    isBarrier=1, hasCtrlDep=1 in
-  def RET : FJ <0x3c, (outs), (ins CPURegs:$target),
-                "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch>;
+let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
+  def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
+
+def RET     : RetBase<CPURegs>;
 
 /// Multiply and Divide Instructions.
 def MULT    : Mult32<0x41, "mult", IIImul>;
@@ -322,7 +339,6 @@ let addr=0 in
 //===----------------------------------------------------------------------===//
 
 // Small immediates
-
 def : Pat<(i32 immSExt16:$in),
           (ADDiu ZERO, imm:$in)>;
 def : Pat<(i32 immZExt16:$in),

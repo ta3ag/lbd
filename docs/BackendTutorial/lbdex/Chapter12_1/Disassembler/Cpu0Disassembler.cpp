@@ -53,9 +53,9 @@ private:
 // Decoder tables for Cpu0 register
 static const unsigned CPURegsTable[] = {
   Cpu0::ZERO, Cpu0::AT, Cpu0::V0, Cpu0::V1,
-  Cpu0::A0, Cpu0::A1, Cpu0::T9, Cpu0::S0, 
-  Cpu0::S1, Cpu0::S2, Cpu0::GP, Cpu0::FP, 
-  Cpu0::SW, Cpu0::SP, Cpu0::LR, Cpu0::PC
+  Cpu0::A0, Cpu0::A1, Cpu0::T9, Cpu0::T0, 
+  Cpu0::S0, Cpu0::S1, Cpu0::S2, Cpu0::GP, 
+  Cpu0::FP, Cpu0::SP, Cpu0::LR, Cpu0::PC
 };
 
 static DecodeStatus DecodeCPURegsRegisterClass(MCInst &Inst,
@@ -66,7 +66,8 @@ static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder);
-static DecodeStatus DecodeBranchTarget(MCInst &Inst,
+// lbd document - mark - declare DecodeCMPInstruction
+static DecodeStatus DecodeBranch24Target(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder);
@@ -232,11 +233,11 @@ static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
   int Reg_b = (int)fieldFromInstruction(Insn, 16, 4);
   int Reg_c = (int)fieldFromInstruction(Insn, 12, 4);
 
-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_c]));
+  Inst.addOperand(MCOperand::CreateReg(Cpu0::SW));
   Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_a]));
   Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_b]));
   return MCDisassembler::Success;
-}
+} // lbd document - mark - DecodeCMPInstruction
 
 /* CBranch instruction define $ra and then imm24; The printOperand() print 
 operand 1 (operand 0 is $ra and operand 1 is imm24), so we Create register 
@@ -257,14 +258,14 @@ void Cpu0InstPrinter::printInstruction(const MCInst *MI, raw_ostream &O) {
     printOperand(MI, 1, O); 
     break;
 */
-static DecodeStatus DecodeBranchTarget(MCInst &Inst,
+static DecodeStatus DecodeBranch24Target(MCInst &Inst,
                                        unsigned Insn,
                                        uint64_t Address,
                                        const void *Decoder) {
   int BranchOffset = fieldFromInstruction(Insn, 0, 24);
   if (BranchOffset > 0x8fffff)
   	BranchOffset = -1*(0x1000000 - BranchOffset);
-  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[0]));
+  Inst.addOperand(MCOperand::CreateReg(Cpu0::SW));
   Inst.addOperand(MCOperand::CreateImm(BranchOffset));
   return MCDisassembler::Success;
 }

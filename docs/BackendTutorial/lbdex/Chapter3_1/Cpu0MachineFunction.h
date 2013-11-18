@@ -28,8 +28,9 @@ class Cpu0FunctionInfo : public MachineFunctionInfo {
 
 public:
   Cpu0FunctionInfo(MachineFunction& MF)
-  : MF(MF), MaxCallFrameSize(0)
-  {}
+  : MF(MF), 
+    MaxCallFrameSize(0)
+    {}
 
   unsigned getMaxCallFrameSize() const { return MaxCallFrameSize; }
   void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }

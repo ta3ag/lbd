@@ -35,8 +35,6 @@ public:
   /// always be able to get register info as well (through this method).
   ///
   virtual const Cpu0RegisterInfo &getRegisterInfo() const;
-
-public:
 };
 }
 

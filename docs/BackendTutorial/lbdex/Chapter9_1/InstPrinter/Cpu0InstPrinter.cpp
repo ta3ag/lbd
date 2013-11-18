@@ -58,7 +58,7 @@ static void printExpr(const MCExpr *Expr, raw_ostream &OS) {
   case MCSymbolRefExpr::VK_None:           break;
 // Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static
   case MCSymbolRefExpr::VK_Cpu0_GPREL:     OS << "%gp_rel("; break;
-  case MCSymbolRefExpr::VK_Cpu0_GOT_CALL:  OS << "%call24("; break;
+  case MCSymbolRefExpr::VK_Cpu0_GOT_CALL:  OS << "%call16("; break;
   case MCSymbolRefExpr::VK_Cpu0_GOT16:     OS << "%got(";    break;
   case MCSymbolRefExpr::VK_Cpu0_GOT:       OS << "%got(";    break;
   case MCSymbolRefExpr::VK_Cpu0_ABS_HI:    OS << "%hi(";     break;
@@ -112,14 +112,14 @@ void Cpu0InstPrinter::
 printMemOperand(const MCInst *MI, int opNum, raw_ostream &O) {
   // Load/Store memory operands -- imm($reg)
   // If PIC target the target is loaded as the
-  // pattern ld $t9,%call24($gp)
+  // pattern ld $t9,%call16($gp)
   printOperand(MI, opNum+1, O);
   O << "(";
   printOperand(MI, opNum, O);
   O << ")";
 }
 
-void Cpu0InstPrinter::
+void Cpu0InstPrinter:: // lbd document - mark - printMemOperandEA
 printMemOperandEA(const MCInst *MI, int opNum, raw_ostream &O) {
   // when using stack locations for not load/store instructions
   // print the same way as all normal 3 operand instructions.

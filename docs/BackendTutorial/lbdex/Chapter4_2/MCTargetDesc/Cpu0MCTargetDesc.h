@@ -30,8 +30,11 @@ class raw_ostream;
 extern Target TheCpu0Target;
 extern Target TheCpu0elTarget;
 
-MCAsmBackend *createCpu0AsmBackendEB32(const Target &T, StringRef TT);
-MCAsmBackend *createCpu0AsmBackendEL32(const Target &T, StringRef TT);
+MCAsmBackend *createCpu0AsmBackendEB32(const Target &T, StringRef TT,
+                                       StringRef CPU);
+MCAsmBackend *createCpu0AsmBackendEL32(const Target &T, StringRef TT,
+                                       StringRef CPU);
+// lbd document - mark - createCpu0AsmBackendEL32
 } // End llvm namespace
 
 // Defines symbolic names for Cpu0 registers.  This defines a mapping from

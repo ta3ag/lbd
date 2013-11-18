@@ -98,21 +98,11 @@ unsigned Cpu0ELFObjectWriter::GetRelocType(const MCValue &Target,
   case FK_Data_4:
     Type = ELF::R_CPU0_32;
     break;
-  case FK_GPRel_4:
-    Type = ELF::R_CPU0_GPREL32;
-    break;
-  case Cpu0::fixup_Cpu0_GPREL16:
-    Type = ELF::R_CPU0_GPREL16;
-    break;
   case Cpu0::fixup_Cpu0_24:
     Type = ELF::R_CPU0_24;
     break;
-  case Cpu0::fixup_Cpu0_CALL24:
-    Type = ELF::R_CPU0_CALL24;
-    break;
-  case Cpu0::fixup_Cpu0_GOT_Global:
-  case Cpu0::fixup_Cpu0_GOT_Local:
-    Type = ELF::R_CPU0_GOT16;
+  case Cpu0::fixup_Cpu0_32:
+    Type = ELF::R_CPU0_32;
     break;
   case Cpu0::fixup_Cpu0_HI16:
     Type = ELF::R_CPU0_HI16;
@@ -120,30 +110,21 @@ unsigned Cpu0ELFObjectWriter::GetRelocType(const MCValue &Target,
   case Cpu0::fixup_Cpu0_LO16:
     Type = ELF::R_CPU0_LO16;
     break;
-  case Cpu0::fixup_Cpu0_TLSGD:
-    Type = ELF::R_CPU0_TLS_GD;
+  case Cpu0::fixup_Cpu0_GPREL16:
+    Type = ELF::R_CPU0_GPREL16;
     break;
-  case Cpu0::fixup_Cpu0_GOTTPREL:
-    Type = ELF::R_CPU0_TLS_GOTTPREL;
+  case Cpu0::fixup_Cpu0_GOT_Global:
+  case Cpu0::fixup_Cpu0_GOT_Local:
+    Type = ELF::R_CPU0_GOT16;
     break;
-  case Cpu0::fixup_Cpu0_TPREL_HI:
-    Type = ELF::R_CPU0_TLS_TPREL_HI16;
-    break;
-  case Cpu0::fixup_Cpu0_TPREL_LO:
-    Type = ELF::R_CPU0_TLS_TPREL_LO16;
-    break;
-  case Cpu0::fixup_Cpu0_TLSLDM:
-    Type = ELF::R_CPU0_TLS_LDM;
-    break;
-  case Cpu0::fixup_Cpu0_DTPREL_HI:
-    Type = ELF::R_CPU0_TLS_DTPREL_HI16;
-    break;
-  case Cpu0::fixup_Cpu0_DTPREL_LO:
-    Type = ELF::R_CPU0_TLS_DTPREL_LO16;
-    break;
-  case Cpu0::fixup_Cpu0_Branch_PCRel:
   case Cpu0::fixup_Cpu0_PC24:
     Type = ELF::R_CPU0_PC24;
+    break;
+  case Cpu0::fixup_Cpu0_GOT_HI16:
+    Type = ELF::R_CPU0_GOT_HI16;
+    break;
+  case Cpu0::fixup_Cpu0_GOT_LO16:
+    Type = ELF::R_CPU0_GOT_LO16;
     break;
   }
 

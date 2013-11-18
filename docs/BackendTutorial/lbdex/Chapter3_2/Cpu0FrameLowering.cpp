@@ -88,7 +88,7 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &MF) const {
   const MachineFrameInfo *MFI = MF.getFrameInfo();
   return MF.getTarget().Options.DisableFramePointerElim(MF) ||
       MFI->hasVarSizedObjects() || MFI->isFrameAddressTaken();
-}
+} // lbd document - mark - hasFP
 
 void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
 }

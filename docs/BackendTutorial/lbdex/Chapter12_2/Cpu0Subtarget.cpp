@@ -21,11 +21,22 @@
 #include "Cpu0GenSubtargetInfo.inc"
 
 using namespace llvm;
-
-static cl::opt<bool>
-UseSmallSectionOpt("cpu0-use-small-section", cl::Hidden, cl::init(false),
+ 
+static cl::opt<bool> UseSmallSectionOpt
+                ("cpu0-use-small-section", cl::Hidden, cl::init(false),
                  cl::desc("Use small section. Only work when -relocation-model="
                  "static. pic always not use small section."));
+
+static cl::opt<bool> ReserveGPOpt
+                ("cpu0-reserve-gp", cl::Hidden, cl::init(false),
+                 cl::desc("Never allocate $gp to variable"));
+
+static cl::opt<bool> NoCploadOpt
+                ("cpu0-no-cpload", cl::Hidden, cl::init(false),
+                 cl::desc("No issue .cpload"));
+
+bool Cpu0ReserveGP;
+bool Cpu0NoCpload;
 
 extern bool FixGlobalBaseReg;
 
@@ -39,7 +50,7 @@ Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
 {
   std::string CPUName = CPU;
   if (CPUName.empty())
-    CPUName = "cpu032";
+    CPUName = "cpu032I";
 
   // Parse features string.
   ParseSubtargetFeatures(CPUName, FS);
@@ -53,7 +64,9 @@ Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
 
   // Set UseSmallSection.
   UseSmallSection = UseSmallSectionOpt;
-  if (RM == Reloc::Static && !UseSmallSection)
+  Cpu0ReserveGP = ReserveGPOpt;
+  Cpu0NoCpload = NoCploadOpt;
+  if (RM == Reloc::Static && !UseSmallSection && !Cpu0ReserveGP)
     FixGlobalBaseReg = false;
   else
     FixGlobalBaseReg = true;

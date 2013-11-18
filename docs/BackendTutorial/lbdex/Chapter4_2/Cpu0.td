@@ -26,14 +26,14 @@ include "Cpu0CallingConv.td"
 
 def Cpu0InstrInfo : InstrInfo;
 
-// Without this will have error: 'cpu032' is not a recognized processor for 
+// Without this will have error: 'cpu032I' is not a recognized processor for 
 //  this target (ignoring processor)
 //===----------------------------------------------------------------------===//
 // Cpu0 Subtarget features                                                    //
 //===----------------------------------------------------------------------===//
 
-def FeatureCpu032      : SubtargetFeature<"cpu032", "Cpu0ArchVersion", "Cpu032",
-                                "Cpu032 ISA Support">;
+def FeatureCpu032I     : SubtargetFeature<"cpu032I", "Cpu0ArchVersion", 
+        "Cpu032I", "Cpu032I ISA Support">;
 
 //===----------------------------------------------------------------------===//
 // Cpu0 processors supported.
@@ -42,7 +42,7 @@ def FeatureCpu032      : SubtargetFeature<"cpu032", "Cpu0ArchVersion", "Cpu032",
 class Proc<string Name, list<SubtargetFeature> Features>
  : Processor<Name, Cpu0GenericItineraries, Features>;
 
-def : Proc<"cpu032", [FeatureCpu032]>;
+def : Proc<"cpu032I", [FeatureCpu032I]>;
 
 def Cpu0AsmWriter : AsmWriter {
   string AsmWriterClassName  = "InstPrinter";

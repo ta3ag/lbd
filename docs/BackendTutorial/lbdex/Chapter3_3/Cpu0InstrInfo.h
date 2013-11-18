@@ -36,11 +36,11 @@ public:
   ///
   virtual const Cpu0RegisterInfo &getRegisterInfo() const;
 
-public:
   virtual MachineInstr* emitFrameIndexDebugValue(MachineFunction &MF,
                                                  int FrameIx, uint64_t Offset,
                                                  const MDNode *MDPtr,
                                                  DebugLoc DL) const;
+  // lbd document - mark - emitFrameIndexDebugValue
 };
 }
 

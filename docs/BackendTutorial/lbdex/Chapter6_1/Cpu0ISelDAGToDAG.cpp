@@ -110,7 +110,7 @@ bool Cpu0DAGToDAGISel::runOnMachineFunction(MachineFunction &MF) {
 SDNode *Cpu0DAGToDAGISel::getGlobalBaseReg() {
   unsigned GlobalBaseReg = MF->getInfo<Cpu0FunctionInfo>()->getGlobalBaseReg();
   return CurDAG->getRegister(GlobalBaseReg, TLI.getPointerTy()).getNode();
-}
+} // lbd document - mark - getGlobalBaseReg()
 
 /// ComplexPattern used on Cpu0InstrInfo
 /// Used on Cpu0 Load/Store instructions
@@ -177,7 +177,7 @@ Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
                                 Ty, InFlag);
 
   return std::make_pair(Lo, Hi);
-}
+} // lbd document - mark - SelectMULT
 
 /// Select instructions not customized! Used for
 /// expanded, promoted and normal instructions

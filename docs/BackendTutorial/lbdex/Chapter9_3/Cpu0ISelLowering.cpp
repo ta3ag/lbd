@@ -112,7 +112,7 @@ const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
   case Cpu0ISD::Wrapper:           return "Cpu0ISD::Wrapper";
   default:                         return NULL;
   }
-}
+} // lbd document - mark - getTargetNodeName
 
 Cpu0TargetLowering::
 Cpu0TargetLowering(Cpu0TargetMachine &TM)
@@ -595,7 +595,6 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
                                  MachinePointerInfo::getFixedStack(LastFI),
                                  false, false, false, 0));
   }
-
   Cpu0FI->setLastInArgFI(LastFI);
   // All stores are grouped in one node to allow the matching between
   // the size of Ins and InVals. This only happens when on varg functions
@@ -603,7 +602,7 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
     OutChains.push_back(Chain);
     Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
                         &OutChains[0], OutChains.size());
-  }
+  } // if (!OutChains.empty())
   return Chain;
 }
 
@@ -654,7 +653,7 @@ Cpu0TargetLowering::LowerReturn(SDValue Chain,
   return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other, &RetOps[0], RetOps.size());
 }
 
-bool
+bool // lbd document - mark - isOffsetFoldingLegal
 Cpu0TargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
   // The Cpu0 target isn't yet aware of offsets.
   return false;

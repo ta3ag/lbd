@@ -112,7 +112,7 @@ const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
   case Cpu0ISD::Wrapper:           return "Cpu0ISD::Wrapper";
   default:                         return NULL;
   }
-}
+} // lbd document - mark - getTargetNodeName
 
 Cpu0TargetLowering::
 Cpu0TargetLowering(Cpu0TargetMachine &TM)

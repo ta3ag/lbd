@@ -83,9 +83,9 @@ getReservedRegs(const MachineFunction &MF) const {
     Reserved.set(Cpu0::GP);
 
   return Reserved;
-}
+} // lbd document - mark - getReservedRegs
 
-//- If eliminateFrameIndex() is empty, it will hang on run. 
+//- If no eliminateFrameIndex(), it will hang on run. 
 // pure virtual method
 // FrameIndex represent objects inside a abstract stack.
 // We must replace FrameIndex with an stack/frame pointer

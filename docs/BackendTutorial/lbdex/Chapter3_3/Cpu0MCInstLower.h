@@ -34,8 +34,6 @@ public:
   void Initialize(Mangler *mang, MCContext* C);
   void Lower(const MachineInstr *MI, MCInst &OutMI) const;
 private:
-  MCOperand LowerSymbolOperand(const MachineOperand &MO,
-                               MachineOperandType MOTy, unsigned Offset) const;
   MCOperand LowerOperand(const MachineOperand& MO, unsigned offset = 0) const;
 };
 }

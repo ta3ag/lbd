@@ -32,7 +32,7 @@ Cpu0MCInstLower::Cpu0MCInstLower(Cpu0AsmPrinter &asmprinter)
 void Cpu0MCInstLower::Initialize(Mangler *M, MCContext* C) {
   Mang = M;
   Ctx = C;
-}
+} // lbd document - mark - Initialize
 
 MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
                                               MachineOperandType MOTy,
@@ -60,12 +60,12 @@ MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
   }
 
   switch (MOTy) {
-  case MachineOperand::MO_MachineBasicBlock:
-    Symbol = MO.getMBB()->getSymbol();
-    break;
-
   case MachineOperand::MO_GlobalAddress:
     Symbol = Mang->getSymbol(MO.getGlobal());
+    break;
+
+  case MachineOperand::MO_MachineBasicBlock:
+    Symbol = MO.getMBB()->getSymbol();
     break;
 
   case MachineOperand::MO_BlockAddress:
@@ -76,7 +76,7 @@ MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
   case MachineOperand::MO_ExternalSymbol:
     Symbol = AsmPrinter.GetExternalSymbolSymbol(MO.getSymbolName());
     Offset += MO.getOffset();
-    break;
+    break; // lbd document - mark - case MachineOperand::MO_ExternalSymbol:
 
   default:
     llvm_unreachable("<unknown operand type>");
@@ -93,7 +93,7 @@ MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
   const MCConstantExpr *OffsetExpr =  MCConstantExpr::Create(Offset, *Ctx);
   const MCBinaryExpr *AddExpr = MCBinaryExpr::CreateAdd(MCSym, OffsetExpr, *Ctx);
   return MCOperand::CreateExpr(AddExpr);
-}
+} // lbd document - mark - LowerSymbolOperand
 
 static void CreateMCInst(MCInst& Inst, unsigned Opc, const MCOperand& Opnd0,
                          const MCOperand& Opnd1,
@@ -126,7 +126,7 @@ void Cpu0MCInstLower::LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts) {
   CreateMCInst(MCInsts[0], Cpu0::LUi, GPReg, SymHi);
   CreateMCInst(MCInsts[1], Cpu0::ADDiu, GPReg, GPReg, SymLo);
   CreateMCInst(MCInsts[2], Cpu0::ADD, GPReg, GPReg, T9Reg);
-}
+} // lbd document - mark - LowerCPLOAD
 
 MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand& MO,
                                         unsigned offset) const {

@@ -12,7 +12,6 @@
 //===----------------------------------------------------------------------===//
 //
 
-#include "Cpu0.h"
 #include "Cpu0FixupKinds.h"
 #include "MCTargetDesc/Cpu0MCTargetDesc.h"
 #include "llvm/MC/MCAsmBackend.h"
@@ -36,7 +35,6 @@ static unsigned adjustFixupValue(unsigned Kind, uint64_t Value) {
     return 0;
   case FK_GPRel_4:
   case FK_Data_4:
-  case Cpu0::fixup_Cpu0_32:
   case Cpu0::fixup_Cpu0_CALL16:
   case Cpu0::fixup_Cpu0_LO16:
   case Cpu0::fixup_Cpu0_GOT_LO16:
@@ -52,6 +50,7 @@ static unsigned adjustFixupValue(unsigned Kind, uint64_t Value) {
     // So far we are only using this type for instruction SWI.
     break;
   case Cpu0::fixup_Cpu0_HI16:
+  case Cpu0::fixup_Cpu0_GOT_Local:
   case Cpu0::fixup_Cpu0_GOT_HI16:
     // Get the higher 16-bits. Also add 1 if bit 15 is 1.
     Value = ((Value + 0x8000) >> 16) & 0xffff;
@@ -143,7 +142,6 @@ public:
       { "fixup_Cpu0_PC16",           0,     16,  MCFixupKindInfo::FKF_IsPCRel },
       { "fixup_Cpu0_PC24",           0,     24,  MCFixupKindInfo::FKF_IsPCRel },
       { "fixup_Cpu0_CALL16",         0,     16,   0 },
-      { "fixup_Cpu0_Branch_PCRel",   0,     16,  MCFixupKindInfo::FKF_IsPCRel },
       { "fixup_Cpu0_GOT_HI16",       0,     16,   0 },
       { "fixup_Cpu0_GOT_LO16",       0,     16,   0 }
     };
@@ -217,4 +215,3 @@ MCAsmBackend *llvm::createCpu0AsmBackendEB32(const Target &T,
   return new Cpu0AsmBackend(T, Triple(TT).getOS(),
                             /*IsLittle*/false);
 }
-

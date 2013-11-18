@@ -90,7 +90,7 @@ bool Cpu0FrameLowering::hasFP(const MachineFunction &MF) const {
   const MachineFrameInfo *MFI = MF.getFrameInfo();
   return MF.getTarget().Options.DisableFramePointerElim(MF) ||
       MFI->hasVarSizedObjects() || MFI->isFrameAddressTaken();
-}
+} // lbd document - mark - hasFP
 
 // Build an instruction sequence to load an immediate that is too large to fit
 // in 16-bit and add the result to Reg.
@@ -122,7 +122,7 @@ static void expandLargeImm(unsigned Reg, int64_t Imm,
       .addImm(SignExtend64<16>(Inst->ImmOpnd));
 
   BuildMI(MBB, II, DL, TII.get(ADDu), Reg).addReg(Reg).addReg(ATReg);
-}
+} // lbd document - mark - expandLargeImm
 
 void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   MachineBasicBlock &MBB   = MF.front();
@@ -133,14 +133,17 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   MachineBasicBlock::iterator MBBI = MBB.begin();
   DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
   unsigned SP = Cpu0::SP;
+ // lbd document - mark - Cpu0::SP
   unsigned FP = Cpu0::FP;
   unsigned ZERO = Cpu0::ZERO;
   unsigned ADDu = Cpu0::ADDu;
+ // lbd document - mark - Cpu0::ADDu
   unsigned ADDiu = Cpu0::ADDiu;
   // First, compute final stack size.
   unsigned StackAlign = getStackAlignment();
   unsigned RegSize = 4;
-  unsigned LocalVarAreaOffset = Cpu0FI->needGPSaveRestore() ?
+  unsigned LocalVarAreaOffset = 
+    Cpu0FI->needGPSaveRestore() ?
     (MFI->getObjectOffset(Cpu0FI->getGPFI()) + RegSize) :
     Cpu0FI->getMaxCallFrameSize();
   uint64_t StackSize =  RoundUpToAlignment(LocalVarAreaOffset, StackAlign) +
@@ -215,7 +218,7 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
     unsigned Offset = MFI->getObjectOffset(Cpu0FI->getGPFI());
     BuildMI(MBB, MBBI, dl, TII.get(Cpu0::CPRESTORE)).addImm(Offset)
       .addReg(Cpu0::GP);
-  }
+  } // lbd document - mark - if (Cpu0FI->needGPSaveRestore())
 }
 
 void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
@@ -227,9 +230,11 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
     *static_cast<const Cpu0InstrInfo*>(MF.getTarget().getInstrInfo());
   DebugLoc dl = MBBI->getDebugLoc();
   unsigned SP = Cpu0::SP;
+ // lbd document - mark - emitEpilogue() Cpu0::SP
   unsigned FP = Cpu0::FP;
   unsigned ZERO = Cpu0::ZERO;
   unsigned ADDu = Cpu0::ADDu;
+ // lbd document - mark - emitEpilogue() Cpu0::ADDu
   unsigned ADDiu = Cpu0::ADDiu;
 
   // if framepointer enabled, restore the stack pointer.
@@ -242,7 +247,7 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
 
     // Insert instruction "move $sp, $fp" at this location.
     BuildMI(MBB, I, dl, TII.get(ADDu), SP).addReg(FP).addReg(ZERO);
-  }
+  } // lbd document - mark - emitEpilogue() if (hasFP(MF))
 
   // Get the number of bytes from FrameInfo
   uint64_t StackSize = MFI->getStackSize();
@@ -259,8 +264,8 @@ void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
   }
 }
 
-bool Cpu0FrameLowering::
-spillCalleeSavedRegisters(MachineBasicBlock &MBB,
+bool Cpu0FrameLowering::spillCalleeSavedRegisters(
+                          MachineBasicBlock &MBB,
                           MachineBasicBlock::iterator MI,
                           const std::vector<CalleeSavedInfo> &CSI,
                           const TargetRegisterInfo *TRI) const {
@@ -325,6 +330,7 @@ void Cpu0FrameLowering::
 processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
                                      RegScavenger *RS) const {
   MachineRegisterInfo& MRI = MF.getRegInfo();
+  Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
   unsigned FP = Cpu0::FP;
 
   // Mark $fp as used if function has dedicated frame pointer.

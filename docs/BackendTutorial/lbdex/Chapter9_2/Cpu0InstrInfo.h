@@ -36,7 +36,6 @@ public:
   ///
   virtual const Cpu0RegisterInfo &getRegisterInfo() const;
 
-public:
   virtual void copyPhysReg(MachineBasicBlock &MBB,
                            MachineBasicBlock::iterator MI, DebugLoc DL,
                            unsigned DestReg, unsigned SrcReg,
@@ -58,6 +57,14 @@ public:
                                                  int FrameIx, uint64_t Offset,
                                                  const MDNode *MDPtr,
                                                  DebugLoc DL) const;
+  // lbd document - mark - emitFrameIndexDebugValue
+
+  /// Expand Pseudo instructions into real backend instructions
+  virtual bool expandPostRAPseudo(MachineBasicBlock::iterator MI) const;
+
+private:
+  void ExpandRetLR(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
+                   unsigned Opc) const;
 };
 }
 

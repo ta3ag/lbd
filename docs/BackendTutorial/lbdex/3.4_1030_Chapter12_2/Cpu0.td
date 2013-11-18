@@ -26,7 +26,7 @@ include "Cpu0CallingConv.td"
 
 def Cpu0InstrInfo : InstrInfo;
 
-// Without this will have error: 'cpu032' is not a recognized processor for 
+// Without this will have error: 'cpu032I' is not a recognized processor for 
 //  this target (ignoring processor)
 //===----------------------------------------------------------------------===//
 // Cpu0 Subtarget features                                                    //
@@ -66,7 +66,7 @@ def Cpu0AsmParserVariant : AsmParserVariant {
 
   // Recognize hard coded registers.
   string RegisterPrefix = "$";
-}
+} // def Cpu0AsmParserVariant
 
 // Will generate Cpu0GenAsmWrite.inc included by Cpu0InstPrinter.cpp, contents 
 //  as follows,

@@ -51,7 +51,7 @@ void Cpu0AsmPrinter::EmitInstrWithMacroNoAT(const MachineInstr *MI) {
   if (Cpu0FI->getEmitNOAT())
     OutStreamer.EmitRawText(StringRef("\t.set\tnoat"));
   OutStreamer.EmitRawText(StringRef("\t.set\tnomacro"));
-}
+} // lbd document - mark - EmitInstrWithMacroNoAT
 
 bool Cpu0AsmPrinter::runOnMachineFunction(MachineFunction &MF) {
   Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
@@ -98,7 +98,7 @@ void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
   }
   default:
     break;
-  }
+  } // lbd document - mark - switch (Opc)
 
   MCInstLowering.Lower(MI, TmpInst0);
   OutStreamer.EmitInstruction(TmpInst0);
@@ -231,6 +231,8 @@ void Cpu0AsmPrinter::EmitFunctionBodyStart() {
   bool EmitCPLoad = (MF->getTarget().getRelocationModel() == Reloc::PIC_) &&
     Cpu0FI->globalBaseRegSet() &&
     Cpu0FI->globalBaseRegFixed();
+  if (Cpu0NoCpload)
+    EmitCPLoad = false;
 
   if (OutStreamer.hasRawTextSupport()) {
     SmallString<128> Str;
@@ -250,6 +252,7 @@ void Cpu0AsmPrinter::EmitFunctionBodyStart() {
     for (SmallVector<MCInst, 4>::iterator I = MCInsts.begin();
        I != MCInsts.end(); ++I)
       OutStreamer.EmitInstruction(*I);
+    // lbd document - mark - EmitInstruction(*I)
   }
 }
 

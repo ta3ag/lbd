@@ -32,7 +32,7 @@ Cpu0MCInstLower::Cpu0MCInstLower(Cpu0AsmPrinter &asmprinter)
 void Cpu0MCInstLower::Initialize(Mangler *M, MCContext* C) {
   Mang = M;
   Ctx = C;
-}
+} // lbd document - mark - Initialize
 
 MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
                                               MachineOperandType MOTy,
@@ -42,6 +42,8 @@ MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
 
   switch(MO.getTargetFlags()) {
   default:                   llvm_unreachable("Invalid target flag!");
+  case Cpu0II::MO_NO_FLAG:   Kind = MCSymbolRefExpr::VK_None; break;
+
 // Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static -cpu0-islinux-
 //  format=false (global var in .sdata).
   case Cpu0II::MO_GPREL:     Kind = MCSymbolRefExpr::VK_Cpu0_GPREL; break;
@@ -76,7 +78,7 @@ MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
   const MCConstantExpr *OffsetExpr =  MCConstantExpr::Create(Offset, *Ctx);
   const MCBinaryExpr *AddExpr = MCBinaryExpr::CreateAdd(MCSym, OffsetExpr, *Ctx);
   return MCOperand::CreateExpr(AddExpr);
-}
+} // lbd document - mark - LowerSymbolOperand
 
 static void CreateMCInst(MCInst& Inst, unsigned Opc, const MCOperand& Opnd0,
                          const MCOperand& Opnd1,
@@ -109,7 +111,7 @@ void Cpu0MCInstLower::LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts) {
   CreateMCInst(MCInsts[0], Cpu0::LUi, GPReg, SymHi);
   CreateMCInst(MCInsts[1], Cpu0::ADDiu, GPReg, GPReg, SymLo);
   CreateMCInst(MCInsts[2], Cpu0::ADD, GPReg, GPReg, T9Reg);
-}
+} // lbd document - mark - LowerCPLOAD
 
 MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand& MO,
                                         unsigned offset) const {

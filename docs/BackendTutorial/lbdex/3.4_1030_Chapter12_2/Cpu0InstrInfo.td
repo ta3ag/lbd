@@ -69,8 +69,7 @@ def HasCpu032II :     Predicate<"Subtarget.hasCpu032II()">,
                       AssemblerPredicate<"!FeatureCpu032III">;
 // !FeatureCpu032III is for disassembler in "llvm-objdump -d"
 
-/*
-In Cpu0GenSubtargetInfo.inc,
+/* In Cpu0GenSubtargetInfo.inc,
 namespace llvm {
 namespace Cpu0 {
 enum {
@@ -94,9 +93,7 @@ static bool checkDecoderPredicate(unsigned Idx, uint64_t Bits) {
 To let disassembler work, the function 
 checkDecoderPredicate(unsigned Idx, uint64_t Bits) must return true(=1).
 As above code, the argument Bits always is 1. Set !FeatureCpu032III" to do 
-disassembler for expectation.
-*/
-
+disassembler for expectation. */
 
 //===----------------------------------------------------------------------===//
 // Cpu0 Operand, Complex Patterns and Transformations Definitions.
@@ -126,7 +123,7 @@ def jmptarget    : Operand<OtherVT> {
 
 def calltarget  : Operand<iPTR> {
   let EncoderMethod = "getJumpTargetOpValue";
-}
+} // lbd document - mark - def calltarget
 
 // Signed Operand
 def simm16      : Operand<i32> {
@@ -143,7 +140,7 @@ def uimm16      : Operand<i32> {
 def Cpu0MemAsmOperand : AsmOperandClass {
   let Name = "Mem";
   let ParserMethod = "parseMemOperand";
-}
+} // lbd document - mark - def Cpu0MemAsmOperand
 
 // Address operand
 def mem : Operand<i32> {
@@ -167,7 +164,7 @@ def LO16 : SDNodeXForm<imm, [{
 // Transformation Function - get the higher 16 bits.
 def HI16 : SDNodeXForm<imm, [{
   return getImm(N, (N->getZExtValue() >> 16) & 0xffff);
-}]>;
+}]>; // lbd document - mark - def HI16
 
 // Node immediate fits as 16-bit sign extended on target immediate.
 // e.g. addi, andi
@@ -254,7 +251,7 @@ class CmpInstr<bits<8> op, string instr_asm,
   let isCommutable = isComm;
   let DecoderMethod = "DecodeCMPInstruction";
   let Predicates = [NotCpu032II];
-}
+} // lbd document - mark - class CmpInstr
 
 // Arithmetic and logical instructions with 2 register operands.
 class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
@@ -296,7 +293,7 @@ class LoadUpper<bits<8> op, string instr_asm, RegisterClass RC, Operand Imm>:
   let rb = 0;
   let neverHasSideEffects = 1;
   let isReMaterializable = 1;
-}
+} // lbd document - mark - class LoadUpper
 
 class FMem<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern,
           InstrItinClass itin>: FL<op, outs, ins, asmstr, pattern, itin> {
@@ -346,7 +343,7 @@ class CBranch24<bits<8> op, string instr_asm, RegisterClass RC,
   let isTerminator = 1;
   let hasDelaySlot = 0;
   let neverHasSideEffects = 1;
-//  let Predicates = [NotCpu032II];
+//  let Predicates = [HasCpu032II]; // same effect as Requires
 }
 
 // Conditional Branch, e.g. BEQ $r1, $r2, brtarget16
@@ -359,7 +356,6 @@ class CBranch16<bits<8> op, string instr_asm, PatFrag cond_op, RegisterClass RC>
   let isTerminator = 1;
   let hasDelaySlot = 1;
   let Defs = [AT];
-//  let Predicates = [HasCpu032II];
 }
 
 // SetCC
@@ -370,7 +366,6 @@ class SetCC_R<bits<8> op, string instr_asm, PatFrag cond_op,
      [(set CPURegs:$ra, (cond_op RC:$rb, RC:$rc))],
      IIAlu>, Requires<[HasCpu032II]> {
   let shamt = 0;
-//  let Predicates = [HasCpu032II];
 }
 
 class SetCC_I<bits<8> op, string instr_asm, PatFrag cond_op, Operand Od,
@@ -379,7 +374,6 @@ class SetCC_I<bits<8> op, string instr_asm, PatFrag cond_op, Operand Od,
      !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
      [(set CPURegs:$ra, (cond_op RC:$rb, imm_type:$imm16))],
      IIAlu>, Requires<[HasCpu032II]> {
-//  let Predicates = [HasCpu032II]; // same effect as Requires
 }
 
 // Unconditional branch, such as JMP
@@ -390,7 +384,7 @@ class UncondBranch<bits<8> op, string instr_asm>:
   let isTerminator = 1;
   let isBarrier = 1;
   let hasDelaySlot = 0;
-}
+} // lbd document - mark - class UncondBranch
 
 let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
     isIndirectBranch = 1 in
@@ -525,6 +519,10 @@ def CPRESTORE : Cpu0Pseudo<(outs), (ins i32imm:$loc, CPURegs:$gp),
                            ".cprestore\t$loc", []>;
 
 //===----------------------------------------------------------------------===//
+// Instruction definition
+//===----------------------------------------------------------------------===//
+
+//===----------------------------------------------------------------------===//
 // Pseudo Instruction definition
 //===----------------------------------------------------------------------===//
 
@@ -589,31 +587,25 @@ def SRAV    : shift_rotate_reg<0x20, 0x00, "srav", sra, CPURegs>;
 def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
 def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
 
-//let Predicates = [HasCpu032II] in {
 def SLTi    : SetCC_I<0x26, "slti", setlt, simm16, immSExt16, CPURegs>;
 def SLTiu   : SetCC_I<0x27, "sltiu", setult, simm16, immSExt16, CPURegs>;
 def SLT     : SetCC_R<0x28, "slt", setlt, CPURegs>;
 def SLTu    : SetCC_R<0x29, "sltu", setult, CPURegs>;
-//}
 
 /// Jump and Branch Instructions
-//let Predicates = [NotCpu032II] in {
 def JEQ     : CBranch24<0x30, "jeq", SR, [SW]>;
 def JNE     : CBranch24<0x31, "jne", SR, [SW]>;
 def JLT     : CBranch24<0x32, "jlt", SR, [SW]>;
 def JGT     : CBranch24<0x33, "jgt", SR, [SW]>;
 def JLE     : CBranch24<0x34, "jle", SR, [SW]>;
 def JGE     : CBranch24<0x35, "jge", SR, [SW]>;
-//}
 
-//let Predicates = [HasCpu032II] in {
 def BEQ     : CBranch16<0x37, "beq", seteq, CPURegs>;
 def BNE     : CBranch16<0x38, "bne", setne, CPURegs>;
-//}
 
 def JMP     : UncondBranch<0x36, "jmp">;
 
-/// Jump and Branch Instructions
+/// Jump & link and Return Instructions
 def SWI     : JumpLink<0x3a, "swi">;
 def JSUB    : JumpLink<0x3b, "jsub">;
 def JR      : JumpFR<0x3c, "ret", CPURegs>;
@@ -622,8 +614,8 @@ let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
   def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
 
 def RET     : RetBase<CPURegs>;
-
 def IRET    : JumpFR<0x3d, "iret", CPURegs>;
+
 def JALR    : JumpLinkReg<0x3e, "jalr", CPURegs>;
 
 /// Multiply and Divide Instructions.
@@ -649,7 +641,7 @@ let addr=0 in
 // can be matched. It's similar to Sparc LEA_ADDRi
 def LEA_ADDiu : EffectiveAddress<"addiu\t$ra, $addr", CPURegs, mem_ea> {
   let isCodeGenOnly = 1;
-}
+} // lbd document - mark - def LEA_ADDiu
 
 //===----------------------------------------------------------------------===//
 //  Arbitrary patterns that map to one or more instructions
@@ -699,9 +691,7 @@ def : Pat<(i32 (extloadi1  addr:$src)), (LBu addr:$src)>;
 def : Pat<(i32 (extloadi8  addr:$src)), (LBu addr:$src)>;
 def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
 
-
 // brcond patterns
-
 // brcond for cmp instruction
 multiclass BrcondPatsCmp<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
 Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp, 
@@ -769,7 +759,6 @@ defm : BrcondPatsCmp<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
 let Predicates = [HasCpu032II] in {
 defm : BrcondPatsSlt<CPURegs, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO>;
 }
-
 
 // setcc patterns
 
@@ -882,5 +871,3 @@ defm : SetgtPatsSlt<CPURegs, SLT, SLTu>;
 defm : SetgePatsSlt<CPURegs, SLT, SLTu>;
 defm : SetgeImmPatsSlt<CPURegs, SLTi, SLTiu>;
 }
-
-

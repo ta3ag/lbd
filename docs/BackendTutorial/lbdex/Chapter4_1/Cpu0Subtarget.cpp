@@ -24,13 +24,14 @@ using namespace llvm;
 void Cpu0Subtarget::anchor() { }
 
 Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
-                             const std::string &FS, bool little) :
+                             const std::string &FS, bool little, 
+                             Reloc::Model _RM) :
   Cpu0GenSubtargetInfo(TT, CPU, FS),
-  Cpu0ABI(UnknownABI), IsLittle(little)
+  Cpu0ABI(UnknownABI), IsLittle(little), RM(_RM)
 {
   std::string CPUName = CPU;
   if (CPUName.empty())
-    CPUName = "cpu032";
+    CPUName = "cpu032I";
 
   // Parse features string.
   ParseSubtargetFeatures(CPUName, FS);

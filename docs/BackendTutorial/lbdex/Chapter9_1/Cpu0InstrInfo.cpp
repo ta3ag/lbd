@@ -27,9 +27,8 @@ Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
 
 const Cpu0RegisterInfo &Cpu0InstrInfo::getRegisterInfo() const {
   return RI;
-}
+} // lbd document - mark - getRegisterInfo()
 
-// Cpu0InstrInfo::copyPhysReg()
 void Cpu0InstrInfo::
 copyPhysReg(MachineBasicBlock &MBB,
             MachineBasicBlock::iterator I, DebugLoc DL,
@@ -44,18 +43,16 @@ copyPhysReg(MachineBasicBlock &MBB,
       Opc = Cpu0::MFHI, SrcReg = 0;
     else if (SrcReg == Cpu0::LO)
       Opc = Cpu0::MFLO, SrcReg = 0;
-    else if (SrcReg == Cpu0::SW)	// add $ra, $ZERO, $SW
-      Opc = Cpu0::ADD, ZeroReg = Cpu0::ZERO;
+    if (SrcReg == Cpu0::SW)
+      Opc = Cpu0::MFSW, SrcReg = 0;
   }
   else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
     if (DestReg == Cpu0::HI)
       Opc = Cpu0::MTHI, DestReg = 0;
     else if (DestReg == Cpu0::LO)
       Opc = Cpu0::MTLO, DestReg = 0;
-    // Only possibility in (DestReg==SW, SrcReg==CPU0Regs) is 
-    //  cmp $SW, $ZERO, $rc
-    else if (DestReg == Cpu0::SW)
-      Opc = Cpu0::CMP, ZeroReg = Cpu0::ZERO;
+    if (DestReg == Cpu0::SW)
+      Opc = Cpu0::MTSW, DestReg = 0;
   }
 
   assert(Opc && "Cannot copy registers");
@@ -70,7 +67,7 @@ copyPhysReg(MachineBasicBlock &MBB,
 
   if (SrcReg)
     MIB.addReg(SrcReg, getKillRegState(KillSrc));
-}
+} // lbd document - mark - copyPhysReg
 
 static MachineMemOperand* GetMemOperand(MachineBasicBlock &MBB, int FI,
                                         unsigned Flag) {
@@ -98,7 +95,7 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   assert(Opc && "Register class not handled!");
   BuildMI(MBB, I, DL, get(Opc), DestReg).addFrameIndex(FI).addImm(0)
     .addMemOperand(MMO);
-}
+} // lbd document - mark - loadRegFromStackSlot
 
 MachineInstr*
 Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
@@ -107,5 +104,27 @@ Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
   MachineInstrBuilder MIB = BuildMI(MF, DL, get(Cpu0::DBG_VALUE))
     .addFrameIndex(FrameIx).addImm(0).addImm(Offset).addMetadata(MDPtr);
   return &*MIB;
+} // lbd document - mark - emitFrameIndexDebugValue
+
+// Cpu0InstrInfo::expandPostRAPseudo
+/// Expand Pseudo instructions into real backend instructions
+bool Cpu0InstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
+  MachineBasicBlock &MBB = *MI->getParent();
+
+  switch(MI->getDesc().getOpcode()) {
+  default:
+    return false;
+  case Cpu0::RetLR:
+    ExpandRetLR(MBB, MI, Cpu0::RET);
+    break;
+  }
+
+  MBB.erase(MI);
+  return true;
 }
 
+void Cpu0InstrInfo::ExpandRetLR(MachineBasicBlock &MBB,
+                                MachineBasicBlock::iterator I,
+                                unsigned Opc) const {
+  BuildMI(MBB, I, I->getDebugLoc(), get(Opc)).addReg(Cpu0::LR);
+}

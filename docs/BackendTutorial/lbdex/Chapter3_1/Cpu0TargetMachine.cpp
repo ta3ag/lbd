@@ -41,7 +41,7 @@ Cpu0TargetMachine(const Target &T, StringRef TT,
                   bool isLittle)
   //- Default is big endian
   : LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL),
-    Subtarget(TT, CPU, FS, isLittle),
+    Subtarget(TT, CPU, FS, isLittle, RM),
     DL(isLittle ?
                ("e-p:32:32:32-i8:8:32-i16:16:32-i64:64:64-n32") :
                ("E-p:32:32:32-i8:8:32-i16:16:32-i64:64:64-n32")),
@@ -80,11 +80,11 @@ public:
 
   const Cpu0Subtarget &getCpu0Subtarget() const {
     return *getCpu0TargetMachine().getSubtargetImpl();
-  }
+  } // lbd document - mark - getCpu0Subtarget()
 };
 } // namespace
 
 TargetPassConfig *Cpu0TargetMachine::createPassConfig(PassManagerBase &PM) {
   return new Cpu0PassConfig(this, PM);
-}
+} // lbd document - mark - createPassConfig
 

@@ -80,19 +80,19 @@ public:
 
   const Cpu0Subtarget &getCpu0Subtarget() const {
     return *getCpu0TargetMachine().getSubtargetImpl();
-  }
+  } // lbd document - mark - getCpu0Subtarget()
   virtual bool addInstSelector();
 };
 } // namespace
 
 TargetPassConfig *Cpu0TargetMachine::createPassConfig(PassManagerBase &PM) {
   return new Cpu0PassConfig(this, PM);
-}
+} // lbd document - mark - createPassConfig
 
 // Install an instruction selector pass using
 // the ISelDag to gen Cpu0 code.
 bool Cpu0PassConfig::addInstSelector() {
   addPass(createCpu0ISelDag(getCpu0TargetMachine()));
   return false;
-}
+} // lbd document - mark - addInstSelector()
 

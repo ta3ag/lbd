@@ -105,10 +105,12 @@ namespace llvm {
                            const SmallVectorImpl<ISD::InputArg> &Ins,
                            DebugLoc dl, SelectionDAG &DAG,
                            SmallVectorImpl<SDValue> &InVals) const;
+  // LowerFormalArguments: incoming arguments
 
     virtual SDValue
       LowerCall(TargetLowering::CallLoweringInfo &CLI,
                 SmallVectorImpl<SDValue> &InVals) const;
+  // LowerCall: outgoing arguments
 
 	//- must be exist without function all
     virtual SDValue

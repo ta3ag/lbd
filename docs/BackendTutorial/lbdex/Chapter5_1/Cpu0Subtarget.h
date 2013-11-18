@@ -35,7 +35,7 @@ public:
 
 protected:
   enum Cpu0ArchEnum {
-    Cpu032
+    Cpu032I
   };
 
   // Cpu0 architecture version
@@ -49,13 +49,16 @@ protected:
 
   InstrItineraryData InstrItins;
 
+  // Relocation Model
+  Reloc::Model RM;
+
 public:
   unsigned getTargetABI() const { return Cpu0ABI; }
 
   /// This constructor initializes the data members to match that
   /// of the specified triple.
   Cpu0Subtarget(const std::string &TT, const std::string &CPU,
-                const std::string &FS, bool little);
+                const std::string &FS, bool little, Reloc::Model _RM);
 
 //- Vitual function, must have
   /// ParseSubtargetFeatures - Parses features string setting specified

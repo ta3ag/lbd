@@ -120,7 +120,9 @@ unsigned Cpu0ELFObjectWriter::GetRelocType(const MCValue &Target,
   case Cpu0::fixup_Cpu0_GOT_Local:
     Type = ELF::R_CPU0_GOT16;
     break;
-  case Cpu0::fixup_Cpu0_Branch_PCRel:
+  case Cpu0::fixup_Cpu0_PC16:
+    Type = ELF::R_CPU0_PC16;
+    break;
   case Cpu0::fixup_Cpu0_PC24:
     Type = ELF::R_CPU0_PC24;
     break;

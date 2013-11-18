@@ -14,12 +14,12 @@
 
 #define ENABLE_TRACE \
   asm("mfsw $at"); \
-  asm("ori $at, $at, 0x0004"); \
+  asm("ori $at, $at, 0x0020"); \
   asm("mtsw $at");
 
 #define DISABLE_TRACE \
   asm("mfsw $at"); \
-  asm("andi $at, $at, 0xfffb"); \
+  asm("andi $at, $at, 0xffdf"); \
   asm("mtsw $at");
 
 struct ProgAddr {

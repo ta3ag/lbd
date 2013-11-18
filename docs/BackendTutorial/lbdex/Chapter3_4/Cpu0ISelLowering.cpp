@@ -15,7 +15,7 @@
 #define DEBUG_TYPE "cpu0-lower"
 #include "Cpu0ISelLowering.h"
 #include "Cpu0TargetMachine.h"
-#include "llvm/CodeGen/TargetLoweringObjectFileImpl.h"
+#include "Cpu0TargetObjectFile.h"
 #include "Cpu0Subtarget.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
@@ -37,7 +37,7 @@ using namespace llvm;
 
 Cpu0TargetLowering::
 Cpu0TargetLowering(Cpu0TargetMachine &TM)
-  : TargetLowering(TM, new TargetLoweringObjectFileELF()),
+  : TargetLowering(TM, new Cpu0TargetObjectFile()),
     Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
 
   // Set up the register classes

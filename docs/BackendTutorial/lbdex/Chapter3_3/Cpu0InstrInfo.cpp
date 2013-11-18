@@ -26,7 +26,7 @@ Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
 
 const Cpu0RegisterInfo &Cpu0InstrInfo::getRegisterInfo() const {
   return RI;
-}
+} // lbd document - mark - getRegisterInfo()
 
 MachineInstr*
 Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
@@ -35,5 +35,5 @@ Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
   MachineInstrBuilder MIB = BuildMI(MF, DL, get(Cpu0::DBG_VALUE))
     .addFrameIndex(FrameIx).addImm(0).addImm(Offset).addMetadata(MDPtr);
   return &*MIB;
-}
+} // lbd document - mark - emitFrameIndexDebugValue
 

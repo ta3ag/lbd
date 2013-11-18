@@ -112,7 +112,7 @@ const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
   case Cpu0ISD::Wrapper:           return "Cpu0ISD::Wrapper";
   default:                         return NULL;
   }
-}
+} // lbd document - mark - getTargetNodeName
 
 Cpu0TargetLowering::
 Cpu0TargetLowering(Cpu0TargetMachine &TM)
@@ -294,8 +294,8 @@ Cpu0TargetLowering::LowerReturn(SDValue Chain,
                        Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
 }
 
-bool
+bool // lbd document - mark - isOffsetFoldingLegal
 Cpu0TargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
-  // The Mips target isn't yet aware of offsets.
+  // The Cpu0 target isn't yet aware of offsets.
   return false;
 }

@@ -21,6 +21,8 @@
 #define GET_SUBTARGETINFO_HEADER
 #include "Cpu0GenSubtargetInfo.inc"
 
+extern bool Cpu0NoCpload;
+
 namespace llvm {
 class StringRef;
 
@@ -35,7 +37,9 @@ public:
 
 protected:
   enum Cpu0ArchEnum {
-    Cpu032
+    Cpu032I
+    , Cpu032II,
+    Cpu032III
   };
 
   // Cpu0 architecture version
@@ -47,13 +51,13 @@ protected:
   // IsLittle - The target is Little Endian
   bool IsLittle;
 
-  // UseSmallSection - Small section is used.
-  bool UseSmallSection;
-
   InstrItineraryData InstrItins;
 
   // Relocation Model
   Reloc::Model RM;
+
+  // UseSmallSection - Small section is used.
+  bool UseSmallSection;
 
 public:
   unsigned getTargetABI() const { return Cpu0ABI; }
@@ -69,6 +73,8 @@ public:
   void ParseSubtargetFeatures(StringRef CPU, StringRef FS);
 
   bool isLittle() const { return IsLittle; }
+  bool hasCpu032I() const { return Cpu0ArchVersion >= Cpu032I; }
+  bool hasCpu032II() const { return Cpu0ArchVersion == Cpu032II; }
   bool useSmallSection() const { return UseSmallSection; }
 };
 } // End llvm namespace

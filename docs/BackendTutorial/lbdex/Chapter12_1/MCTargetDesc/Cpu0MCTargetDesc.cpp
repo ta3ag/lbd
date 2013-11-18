@@ -10,7 +10,7 @@
 // This file provides Cpu0 specific target descriptions.
 //
 //===----------------------------------------------------------------------===//
-
+// #include
 #include "Cpu0MCAsmInfo.h"
 #include "Cpu0MCTargetDesc.h"
 #include "InstPrinter/Cpu0InstPrinter.h"
@@ -51,8 +51,8 @@ static std::string ParseCpu0Triple(StringRef TT, StringRef CPU) {
   }
 
   if (TheTriple == "cpu0" || TheTriple == "cpu0el") {
-    if (CPU.empty() || CPU == "cpu032") {
-      Cpu0ArchFeature = "+cpu032";
+    if (CPU.empty() || CPU == "cpu032I") {
+      Cpu0ArchFeature = "+cpu032I";
     }
   }
   return Cpu0ArchFeature;
@@ -113,7 +113,7 @@ static MCInstPrinter *createCpu0MCInstPrinter(const Target &T,
                                               const MCRegisterInfo &MRI,
                                               const MCSubtargetInfo &STI) {
   return new Cpu0InstPrinter(MAI, MII, MRI);
-}
+} // lbd document - mark - createCpu0MCInstPrinter
 
 static MCStreamer *createMCStreamer(const Target &T, StringRef TT,
                                     MCContext &Ctx, MCAsmBackend &MAB,
@@ -124,7 +124,7 @@ static MCStreamer *createMCStreamer(const Target &T, StringRef TT,
   Triple TheTriple(TT);
 
   return createELFStreamer(Ctx, MAB, _OS, _Emitter, RelaxAll, NoExecStack);
-}
+} // lbd document - mark - createMCStreamer
 
 extern "C" void LLVMInitializeCpu0TargetMC() {
   // Register the MC asm info.
@@ -169,4 +169,5 @@ extern "C" void LLVMInitializeCpu0TargetMC() {
                                         createCpu0MCInstPrinter);
   TargetRegistry::RegisterMCInstPrinter(TheCpu0elTarget,
                                         createCpu0MCInstPrinter);
+  // lbd document - mark - RegisterMCInstPrinter
 }

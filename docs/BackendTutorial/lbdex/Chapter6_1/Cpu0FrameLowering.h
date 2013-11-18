@@ -28,7 +28,7 @@ public:
   explicit Cpu0FrameLowering(const Cpu0Subtarget &sti)
     : TargetFrameLowering(StackGrowsDown, 8, 0),
       STI(sti) {
-  }
+  } // lbd document - mark - explicit Cpu0FrameLowering
 
   /// emitProlog/emitEpilog - These methods insert prolog and epilog code into
   /// the function.

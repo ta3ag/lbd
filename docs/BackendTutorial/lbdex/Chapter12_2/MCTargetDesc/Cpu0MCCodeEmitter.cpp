@@ -39,9 +39,6 @@ class Cpu0MCCodeEmitter : public MCCodeEmitter {
 
   Cpu0MCCodeEmitter(const Cpu0MCCodeEmitter &) LLVM_DELETED_FUNCTION;
   void operator=(const Cpu0MCCodeEmitter &) LLVM_DELETED_FUNCTION;
-  // Even though, the old function still work on LLVM version 3.2
-  //  Cpu0MCCodeEmitter(const Cpu0MCCodeEmitter &); // DO NOT IMPLEMENT
-  //  void operator=(const Cpu0MCCodeEmitter &); // DO NOT IMPLEMENT
 
   const MCInstrInfo &MCII;
   const MCSubtargetInfo &STI;
@@ -75,21 +72,29 @@ public:
   uint64_t getBinaryCodeForInstr(const MCInst &MI,
                                  SmallVectorImpl<MCFixup> &Fixups) const;
 
-  // getBranchTargetOpValue - Return binary encoding of the branch
+  // getBranch16TargetOpValue - Return binary encoding of the branch
+  // target operand, such as BEQ, BNE. If the machine operand
+  // requires relocation, record the relocation and return zero.
+  unsigned getBranch16TargetOpValue(const MCInst &MI, unsigned OpNo,
+                                  SmallVectorImpl<MCFixup> &Fixups) const;
+  // lbd document - mark - declare getBranch16TargetOpValue
+
+  // getBranch24TargetOpValue - Return binary encoding of the branch
   // target operand, such as JMP #BB01, JEQ, JSUB. If the machine operand
   // requires relocation, record the relocation and return zero.
-  unsigned getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
+  unsigned getBranch24TargetOpValue(const MCInst &MI, unsigned OpNo,
                                   SmallVectorImpl<MCFixup> &Fixups) const;
-
+                                  
   // getJumpTargetOpValue - Return binary encoding of the jump
   // target operand, such as SWI #interrupt_addr and JSUB #function_addr. 
   // If the machine operand requires relocation,
   // record the relocation and return zero.
    unsigned getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
                                  SmallVectorImpl<MCFixup> &Fixups) const;
+  // lbd document - mark - unsigned getJumpTargetOpValue
 
-   // getMachineOpValue - Return binary encoding of operand. If the machin
-   // operand requires relocation, record the relocation and return zero.
+  // getMachineOpValue - Return binary encoding of operand. If the machin
+  // operand requires relocation, record the relocation and return zero.
   unsigned getMachineOpValue(const MCInst &MI,const MCOperand &MO,
                              SmallVectorImpl<MCFixup> &Fixups) const;
 
@@ -143,22 +148,41 @@ EncodeInstruction(const MCInst &MI, raw_ostream &OS,
   EmitInstruction(Binary, Size, OS);
 }
 
-/// getBranchTargetOpValue - Return binary encoding of the branch
+/// getBranch16TargetOpValue - Return binary encoding of the branch
 /// target operand. If the machine operand requires relocation,
 /// record the relocation and return zero.
 unsigned Cpu0MCCodeEmitter::
-getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
+getBranch16TargetOpValue(const MCInst &MI, unsigned OpNo,
                        SmallVectorImpl<MCFixup> &Fixups) const {
 
   const MCOperand &MO = MI.getOperand(OpNo);
 
   // If the destination is an immediate, we have nothing to do.
   if (MO.isImm()) return MO.getImm();
-  assert(MO.isExpr() && "getBranchTargetOpValue expects only expressions");
+  assert(MO.isExpr() && "getBranch16TargetOpValue expects only expressions");
 
   const MCExpr *Expr = MO.getExpr();
   Fixups.push_back(MCFixup::Create(0, Expr,
                                    MCFixupKind(Cpu0::fixup_Cpu0_PC16)));
+  return 0;
+} // lbd document - mark - getBranch16TargetOpValue
+
+/// getBranch24TargetOpValue - Return binary encoding of the branch
+/// target operand. If the machine operand requires relocation,
+/// record the relocation and return zero.
+unsigned Cpu0MCCodeEmitter::
+getBranch24TargetOpValue(const MCInst &MI, unsigned OpNo,
+                       SmallVectorImpl<MCFixup> &Fixups) const {
+
+  const MCOperand &MO = MI.getOperand(OpNo);
+
+  // If the destination is an immediate, we have nothing to do.
+  if (MO.isImm()) return MO.getImm();
+  assert(MO.isExpr() && "getBranch24TargetOpValue expects only expressions");
+
+  const MCExpr *Expr = MO.getExpr();
+  Fixups.push_back(MCFixup::Create(0, Expr,
+                                   MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
   return 0;
 }
 
@@ -185,9 +209,8 @@ getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
                                      MCFixupKind(Cpu0::fixup_Cpu0_24)));
   else
     llvm_unreachable("unexpect opcode in getJumpAbsoluteTargetOpValue()");
-  
   return 0;
-}
+} // lbd document - mark - getJumpTargetOpValue
 
 /// getMachineOpValue - Return binary encoding of operand. If the machine
 /// operand requires relocation, record the relocation and return zero.
@@ -225,7 +248,7 @@ getMachineOpValue(const MCInst &MI, const MCOperand &MO,
     FixupKind = Cpu0::fixup_Cpu0_GPREL16;
     break;
   case MCSymbolRefExpr::VK_Cpu0_GOT_CALL:
-    FixupKind = Cpu0::fixup_Cpu0_CALL24;
+    FixupKind = Cpu0::fixup_Cpu0_CALL16;
     break;
   case MCSymbolRefExpr::VK_Cpu0_GOT16:
     FixupKind = Cpu0::fixup_Cpu0_GOT_Global;

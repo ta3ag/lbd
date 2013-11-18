@@ -120,7 +120,7 @@ static MCInstPrinter *createCpu0MCInstPrinter(const Target &T,
                                               const MCRegisterInfo &MRI,
                                               const MCSubtargetInfo &STI) {
   return new Cpu0InstPrinter(MAI, MII, MRI);
-}
+} // lbd document - mark - createCpu0MCInstPrinter
 
 static MCStreamer *createMCStreamer(const Target &T, StringRef TT,
                                     MCContext &Context, MCAsmBackend &MAB,
@@ -140,7 +140,7 @@ createMCAsmStreamer(MCContext &Ctx, formatted_raw_ostream &OS,
   return llvm::createAsmStreamer(Ctx, S, OS, isVerboseAsm, useLoc, useCFI,
                                  useDwarfDirectory, InstPrint, CE, TAB,
                                  ShowInst);
-}
+} // lbd document - mark - createMCStreamer
 
 extern "C" void LLVMInitializeCpu0TargetMC() {
   // Register the MC asm info.
@@ -189,4 +189,5 @@ extern "C" void LLVMInitializeCpu0TargetMC() {
                                         createCpu0MCInstPrinter);
   TargetRegistry::RegisterMCInstPrinter(TheCpu0elTarget,
                                         createCpu0MCInstPrinter);
+  // lbd document - mark - RegisterMCInstPrinter
 }

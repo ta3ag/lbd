@@ -67,7 +67,7 @@ class Cpu0Inst<dag outs, dag ins, string asmstr, list<dag> pattern,
   let DecoderNamespace = "Cpu0";
 
   field bits<32> SoftFail = 0;
-}
+} // lbd document - mark - class Cpu0Inst
 
 // Cpu0 Pseudo Instructions Format
 class Cpu0Pseudo<dag outs, dag ins, string asmstr, list<dag> pattern>:

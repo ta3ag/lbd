@@ -39,9 +39,6 @@ class Cpu0MCCodeEmitter : public MCCodeEmitter {
 
   Cpu0MCCodeEmitter(const Cpu0MCCodeEmitter &) LLVM_DELETED_FUNCTION;
   void operator=(const Cpu0MCCodeEmitter &) LLVM_DELETED_FUNCTION;
-  // Even though, the old function still work on LLVM version 3.2
-  //  Cpu0MCCodeEmitter(const Cpu0MCCodeEmitter &); // DO NOT IMPLEMENT
-  //  void operator=(const Cpu0MCCodeEmitter &); // DO NOT IMPLEMENT
 
   const MCInstrInfo &MCII;
   const MCSubtargetInfo &STI;
@@ -69,12 +66,13 @@ public:
 
   void EncodeInstruction(const MCInst &MI, raw_ostream &OS,
                          SmallVectorImpl<MCFixup> &Fixups) const;
+
   // getBinaryCodeForInstr - TableGen'erated function for getting the
   // binary encoding for an instruction.
   uint64_t getBinaryCodeForInstr(const MCInst &MI,
                                  SmallVectorImpl<MCFixup> &Fixups) const;
-   // getMachineOpValue - Return binary encoding of operand. If the machin
-   // operand requires relocation, record the relocation and return zero.
+  // getMachineOpValue - Return binary encoding of operand. If the machin
+  // operand requires relocation, record the relocation and return zero.
   unsigned getMachineOpValue(const MCInst &MI,const MCOperand &MO,
                              SmallVectorImpl<MCFixup> &Fixups) const;
 

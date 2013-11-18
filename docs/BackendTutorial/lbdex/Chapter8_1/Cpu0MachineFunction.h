@@ -36,8 +36,11 @@ class Cpu0FunctionInfo : public MachineFunctionInfo {
 
 public:
   Cpu0FunctionInfo(MachineFunction& MF)
-  : MF(MF), GlobalBaseReg(0), MaxCallFrameSize(0), EmitNOAT(false)
-  {}
+  : MF(MF), 
+    GlobalBaseReg(0),
+    EmitNOAT(false), 
+    MaxCallFrameSize(0)
+    {}
 
   bool globalBaseRegFixed() const;
   bool globalBaseRegSet() const;

@@ -155,7 +155,7 @@ Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
                                 Ty, InFlag);
 
   return std::make_pair(Lo, Hi);
-}
+} // lbd document - mark - SelectMULT
 
 /// Select instructions not customized! Used for
 /// expanded, promoted and normal instructions

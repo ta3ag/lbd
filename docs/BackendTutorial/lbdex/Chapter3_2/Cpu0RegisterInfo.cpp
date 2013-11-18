@@ -78,7 +78,7 @@ getReservedRegs(const MachineFunction &MF) const {
     Reserved.set(ReservedCPURegs[I]);
 
   return Reserved;
-}
+} // lbd document - mark - getReservedRegs
 
 // pure virtual method
 // FrameIndex represent objects inside a abstract stack.

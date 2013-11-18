@@ -28,15 +28,13 @@ public:
   explicit Cpu0FrameLowering(const Cpu0Subtarget &sti)
     : TargetFrameLowering(StackGrowsDown, 8, 0),
       STI(sti) {
-  }
+  } // lbd document - mark - explicit Cpu0FrameLowering
 
   /// emitProlog/emitEpilog - These methods insert prolog and epilog code into
   /// the function.
   void emitPrologue(MachineFunction &MF) const;
   void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const;
   bool hasFP(const MachineFunction &MF) const;
-  void processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
-                                            RegScavenger *RS) const;
 };
 
 } // End llvm namespace

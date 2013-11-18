@@ -110,7 +110,7 @@ bool Cpu0DAGToDAGISel::runOnMachineFunction(MachineFunction &MF) {
 SDNode *Cpu0DAGToDAGISel::getGlobalBaseReg() {
   unsigned GlobalBaseReg = MF->getInfo<Cpu0FunctionInfo>()->getGlobalBaseReg();
   return CurDAG->getRegister(GlobalBaseReg, TLI.getPointerTy()).getNode();
-}
+} // lbd document - mark - getGlobalBaseReg()
 
 /// ComplexPattern used on Cpu0InstrInfo
 /// Used on Cpu0 Load/Store instructions
@@ -168,7 +168,7 @@ SelectAddr(SDNode *Parent, SDValue Addr, SDValue &Base, SDValue &Offset) {
       Offset = CurDAG->getTargetConstant(CN->getZExtValue(), ValTy);
       return true;
     }
-  }
+  } // lbd document - mark - if (CurDAG->isBaseWithConstantOffset(Addr))
 
   Base   = Addr;
   Offset = CurDAG->getTargetConstant(0, ValTy);
@@ -194,7 +194,7 @@ Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
                                 Ty, InFlag);
 
   return std::make_pair(Lo, Hi);
-}
+} // lbd document - mark - SelectMULT
 
 /// Select instructions not customized! Used for
 /// expanded, promoted and normal instructions
@@ -244,7 +244,17 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
     SDValue RHS = Node->getOperand(1);
 
     EVT VT = LHS.getValueType();
-    SDNode *Carry = CurDAG->getMachineNode(Cpu0::SLTu, dl, VT, Ops);
+    const Cpu0TargetMachine &TM = getTargetMachine();
+    const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
+    SDNode *Carry;
+    if (Subtarget.hasCpu032II())
+      Carry = CurDAG->getMachineNode(Cpu0::SLTu, dl, VT, Ops);
+    else {
+      SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, dl, VT, Ops);
+      SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
+      Carry = CurDAG->getMachineNode(Cpu0::ANDi, dl, VT, 
+                                             SDValue(StatusWord,0), Constant1);
+    }
     SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, dl, VT,
                                               SDValue(Carry,0), RHS);
 

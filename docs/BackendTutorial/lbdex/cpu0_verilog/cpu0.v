@@ -32,21 +32,20 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   `define LR   R[14]   // Link Register
   `define SP   R[13]   // Stack Pointer
   // SW Flage
-  `define C    SW[29] // Carry
-  `define V    SW[28] // Overflow
-  `define MODE SW[25:23] // itype
   `define I2   SW[16] // Hardware Interrupt 1, IO1 interrupt, status, 
                       // 1: in interrupt
   `define I1   SW[15] // Hardware Interrupt 0, timer interrupt, status, 
                       // 1: in interrupt
   `define I0   SW[14] // Software interrupt, status, 1: in interrupt
   `define I    SW[13] // Interrupt, 1: in interrupt
-  `define I2E  SW[8]  // Hardware Interrupt 1, IO1 interrupt, Enable
-  `define I1E  SW[7]  // Hardware Interrupt 0, timer interrupt, Enable
-  `define I0E  SW[6]  // Software Interrupt Enable
-  `define IE   SW[5]  // Interrupt Enable
-  `define M    SW[4]  // Mode bit
-  `define TR   SW[2]  // Debug Trace
+  `define I2E  SW[12]  // Hardware Interrupt 1, IO1 interrupt, Enable
+  `define I1E  SW[11]  // Hardware Interrupt 0, timer interrupt, Enable
+  `define I0E  SW[10]  // Software Interrupt Enable
+  `define IE   SW[9]  // Interrupt Enable
+  `define M    SW[8:6]  // Mode bits, itype
+  `define D    SW[5]  // Debug Trace
+  `define V    SW[3]  // Overflow
+  `define C    SW[2]  // Carry
   `define Z    SW[1]  // Zero
   `define N    SW[0]  // Negative flag
   // Instruction Opcode 
@@ -263,7 +262,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       JALR:  begin R[a] =`PC;`PC=Rb; end // JALR Ra,Rb; Ra<=PC; PC<=Rb
       RET:   begin `PC=Ra; end               // RET; PC <= Ra
       IRET:  begin 
-        `PC=Ra;`I = 1'b0; `MODE = `EXE;
+        `PC=Ra;`I = 1'b0; `M = `EXE;
       end // Interrupt Return; IRET; PC <= LR; INT<=0
       default : 
         $display("%4dns %8x : OP code %8x not support", $stime, pc0, op);
@@ -279,11 +278,11 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       endcase
       case (op)
       MULT, MULTu, DIV, DIVu, MTHI, MTLO, MTSW :
-        if (`TR)
+        if (`D)
           $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
         LO, SW);
       ST : begin
-        if (`TR)
+        if (`D)
           $display("%4dns %8x : %8x m[%-04d+%-04d]=%8x  SW=%8x", $stime, pc0, ir, 
           R[b], c16, R[a], SW);
         if (R[b]+c16 == `IOADDR) begin
@@ -291,7 +290,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
         end
       end
       SB : begin
-        if (`TR)
+        if (`D)
           $display("%4dns %8x : %8x m[%-04d+%-04d]=%c  SW=%8x", $stime, pc0, ir, 
         R[b], c16, R[a][7:0], SW);
         if (R[b]+c16 == `IOADDR) begin
@@ -299,7 +298,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
         end
       end
       default :
-        if (`TR) // Display the written register content
+        if (`D) // Display the written register content
           $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, 
           a, R[a], R[a], SW);
       endcase
@@ -315,15 +314,15 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   always @(posedge clock) begin
     if (inInt == 0 && itype == `RESET) begin
       taskInterrupt(`RESET);
-      `MODE = `RESET;
+      `M = `RESET;
       state = Fetch;
     end else if (inInt == 0 && (state == Fetch) && (`IE && `I) && 
                  ((`I0E && `I0) || (`I1E && `I1) || (`I2E && `I2)) ) begin
-      `MODE = `IRQ;
+      `M = `IRQ;
       taskInterrupt(`IRQ);
       state = Fetch;
     end else begin
-      // `TR = 1; // Trace register content at beginning
+      // `D = 1; // Trace register content at beginning
       taskExecute();
       state = next_state;
     end

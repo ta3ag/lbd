@@ -14,7 +14,6 @@
 #ifndef CPU0BASEINFO_H
 #define CPU0BASEINFO_H
 
-#include "Cpu0FixupKinds.h"
 #include "Cpu0MCTargetDesc.h"
 #include "llvm/MC/MCExpr.h"
 #include "llvm/Support/DataTypes.h"
@@ -70,17 +69,17 @@ inline static unsigned getCpu0RegisterNumbering(unsigned RegEnum)
     return 5;
   case Cpu0::T9:
     return 6;
-  case Cpu0::S0:
+  case Cpu0::T0:
     return 7;
-  case Cpu0::S1:
+  case Cpu0::S0:
     return 8;
-  case Cpu0::S2:
+  case Cpu0::S1:
     return 9;
-  case Cpu0::GP:
+  case Cpu0::S2:
     return 10;
-  case Cpu0::FP:
+  case Cpu0::GP:
     return 11;
-  case Cpu0::SW:
+  case Cpu0::FP:
     return 12;
   case Cpu0::SP:
     return 13;
@@ -88,6 +87,12 @@ inline static unsigned getCpu0RegisterNumbering(unsigned RegEnum)
     return 14;
   case Cpu0::PC:
     return 15;
+  case Cpu0::HI:
+    return 18;
+  case Cpu0::LO:
+    return 19;
+  case Cpu0::SW:
+    return 20;
   default: llvm_unreachable("Unknown register number!");
   }
 }

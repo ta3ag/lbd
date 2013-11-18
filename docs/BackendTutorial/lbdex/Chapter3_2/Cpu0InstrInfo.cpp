@@ -25,5 +25,5 @@ Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
 
 const Cpu0RegisterInfo &Cpu0InstrInfo::getRegisterInfo() const {
   return RI;
-}
+} // lbd document - mark - getRegisterInfo()
 

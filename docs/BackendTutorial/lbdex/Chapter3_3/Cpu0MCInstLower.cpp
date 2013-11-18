@@ -32,39 +32,7 @@ Cpu0MCInstLower::Cpu0MCInstLower(Cpu0AsmPrinter &asmprinter)
 void Cpu0MCInstLower::Initialize(Mangler *M, MCContext* C) {
   Mang = M;
   Ctx = C;
-}
-
-MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
-                                              MachineOperandType MOTy,
-                                              unsigned Offset) const {
-  MCSymbolRefExpr::VariantKind Kind;
-  const MCSymbol *Symbol;
-
-  switch(MO.getTargetFlags()) {
-  default:                   llvm_unreachable("Invalid target flag!");
-  }
-
-  switch (MOTy) {
-  case MachineOperand::MO_GlobalAddress:
-    Symbol = Mang->getSymbol(MO.getGlobal());
-    break;
-
-  default:
-    llvm_unreachable("<unknown operand type>");
-  }
-
-  const MCSymbolRefExpr *MCSym = MCSymbolRefExpr::Create(Symbol, Kind, *Ctx);
-
-  if (!Offset)
-    return MCOperand::CreateExpr(MCSym);
-
-  // Assume offset is never negative.
-  assert(Offset > 0);
-
-  const MCConstantExpr *OffsetExpr =  MCConstantExpr::Create(Offset, *Ctx);
-  const MCBinaryExpr *AddExpr = MCBinaryExpr::CreateAdd(MCSym, OffsetExpr, *Ctx);
-  return MCOperand::CreateExpr(AddExpr);
-}
+} // lbd document - mark - Initialize
 
 MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand& MO,
                                         unsigned offset) const {

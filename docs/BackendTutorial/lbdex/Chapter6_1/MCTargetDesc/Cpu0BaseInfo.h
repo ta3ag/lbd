@@ -77,14 +77,14 @@ namespace Cpu0II {
     // N32/64 Flags.
     MO_GPOFF_HI,
     MO_GPOFF_LO,
-    MO_GOT_DISP,
-    MO_GOT_PAGE,
-    MO_GOT_OFST,
 
     /// MO_GOT_HI16/LO16 - Relocations used for large GOTs.
     MO_GOT_HI16,
-    MO_GOT_LO16
-  };
+    MO_GOT_LO16,
+    MO_GOT_DISP,
+    MO_GOT_PAGE,
+    MO_GOT_OFST
+  }; // enum TOF {
 
   enum {
     //===------------------------------------------------------------------===//
@@ -129,17 +129,17 @@ inline static unsigned getCpu0RegisterNumbering(unsigned RegEnum)
     return 5;
   case Cpu0::T9:
     return 6;
-  case Cpu0::S0:
+  case Cpu0::T0:
     return 7;
-  case Cpu0::S1:
+  case Cpu0::S0:
     return 8;
-  case Cpu0::S2:
+  case Cpu0::S1:
     return 9;
-  case Cpu0::GP:
+  case Cpu0::S2:
     return 10;
-  case Cpu0::FP:
+  case Cpu0::GP:
     return 11;
-  case Cpu0::SW:
+  case Cpu0::FP:
     return 12;
   case Cpu0::SP:
     return 13;
@@ -147,6 +147,12 @@ inline static unsigned getCpu0RegisterNumbering(unsigned RegEnum)
     return 14;
   case Cpu0::PC:
     return 15;
+  case Cpu0::HI:
+    return 18;
+  case Cpu0::LO:
+    return 19;
+  case Cpu0::SW:
+    return 20;
   default: llvm_unreachable("Unknown register number!");
   }
 }
@@ -177,7 +183,7 @@ Cpu0GetSymAndOffset(const MCFixup &Fixup) {
     return std::make_pair((const MCSymbolRefExpr*)0, (int64_t)0);
 
   return std::make_pair(cast<MCSymbolRefExpr>(Expr), 0);
-}
+} // Cpu0GetSymAndOffset
 }
 
 #endif

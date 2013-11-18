@@ -47,12 +47,14 @@ class Cpu0FunctionInfo : public MachineFunctionInfo {
 
 public:
   Cpu0FunctionInfo(MachineFunction& MF)
-  : MF(MF), GlobalBaseReg(0),
+  : MF(MF), 
+    GlobalBaseReg(0),
     VarArgsFrameIndex(0), InArgFIRange(std::make_pair(-1, 0)),
     OutArgFIRange(std::make_pair(-1, 0)), GPFI(0), DynAllocFI(0),
-    MaxCallFrameSize(0), EmitNOAT(false)
+    EmitNOAT(false), 
+    MaxCallFrameSize(0)
     {}
-  
+
   bool isInArgFI(int FI) const {
     return FI <= InArgFIRange.first && FI >= InArgFIRange.second;
   }

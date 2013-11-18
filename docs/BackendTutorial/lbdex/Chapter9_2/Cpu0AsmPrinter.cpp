@@ -188,6 +188,8 @@ void Cpu0AsmPrinter::EmitFunctionBodyStart() {
   bool EmitCPLoad = (MF->getTarget().getRelocationModel() == Reloc::PIC_) &&
     Cpu0FI->globalBaseRegSet() &&
     Cpu0FI->globalBaseRegFixed();
+  if (Cpu0NoCpload)
+    EmitCPLoad = false;
 
   if (OutStreamer.hasRawTextSupport()) {
     SmallString<128> Str;
@@ -207,6 +209,7 @@ void Cpu0AsmPrinter::EmitFunctionBodyStart() {
     for (SmallVector<MCInst, 4>::iterator I = MCInsts.begin();
        I != MCInsts.end(); ++I)
       OutStreamer.EmitInstruction(*I);
+    // lbd document - mark - EmitInstruction(*I)
   }
 }
 
