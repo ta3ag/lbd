@@ -188,7 +188,7 @@ gh-pages2:
 	mv -fv build/latex/TutorialLLVMBackendCpu0.pdf "../../TutorialLLVMBackendCpu0.pdf" &&\
 	mv -fv build/epub/TutorialLLVMBackendCpu0.epub "../../TutorialLLVMBackendCpu0.epub" &&\
 	rm -rf `git ls-tree master:$(BACKEND_TUTORIAL_SUBDIR) | cut -f2` &&\
-	rm -rf * &&\
+	rm -rf build lbdex &&\
 	git add lbdex.tar.gz *.html _images/. _sources/. _static/. objects.inv searchindex.js TutorialLLVMBackendCpu0.* &&\
 	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" &&\
 	git push origin gh-pages &&\
