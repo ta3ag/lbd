@@ -788,6 +788,195 @@ change from cpu=cpu0I to cpu0=cpu0II in build-dlinker.sh and run it again to
 get the same result.
 
 
+How to work
+~~~~~~~~~~~~~
+
+After run build-dlinker.sh, the following files are created.
+
+.. rubric:: lbdex/cpu0_verilog/cpu0.hex
+.. code-block:: bash
+  
+  /*Disassembly of section .plt:*/
+  /*.PLT0:*/
+  /*       0:*/	36 00 00 3c                                  /*	jmp	60*/
+  /*       4:*/	36 00 00 04                                  /*	jmp	4*/
+  /*       8:*/	36 00 00 04                                  /*	jmp	4*/
+  /*       c:*/	36 ff ff fc                                  /*	jmp	-4*/
+
+  /*.PLT0:*/
+  /*      10:*/	02 eb 00 04                                  /*	st	$lr, 4($gp)*/
+  /*      14:*/	02 cb 00 08                                  /*	st	$fp, 8($gp)*/
+  /*      18:*/	02 db 00 0c                                  /*	st	$sp, 12($gp)*/
+  /*      1c:*/	36 00 09 b8                                  /*	jmp	2488*/
+
+  /*__plt__Z3fooii:*/
+  /*      20:*/	09 60 00 04                                  /* addiu	$t9, $zero, 4($gp)*/
+  /*      24:*/	02 6b 00 00                                  /*	st	$t9, 0($gp)*/
+  /*      28:*/	01 6b 00 10                                  /*	ld	$t9, 16($gp)*/
+  /*      2c:*/	3c 60 00 00                                  /*	ret	$t9*/
+
+  /*__plt__Z3barv:*/
+  /*      30:*/	09 60 00 05                                  /* addiu	$t9, $zero, 5($gp)*/
+  /*      34:*/	02 6b 00 00                                  /*	st	$t9, 0($gp)*/
+  /*      38:*/	01 6b 00 10                                  /*	ld	$t9, 16($gp)*/
+  /*      3c:*/	3c 60 00 00                                  /*	ret	$t9*/
+  ...
+
+  /*main:*/
+  ...
+  /*     d68:*/	3b ff f2 b4                                  /*	jsub	16773812*/ // call foo()
+  ...
+  /*     d80:*/	3b ff f3 28                                  /*	jsub	16773928*/ // call printf()
+  /*     d84:*/	3b ff f2 a8                                  /*	jsub	16773800*/ // call bar()
+  ...
+  /*     d9c:*/	3b ff f3 0c                                  /*	jsub	16773900*/ // call printf()
+  ...
+  /*     db8:*/	3c e0 00 00                                  /*	ret	$lr*/
+  ...
+  /*Contents of section .data:*/
+  /*20a8 */00 00 00 01  00 00 00 01  00 00 00 01  00 00 00 01 /*  ................*/
+  ...
+
+.. rubric:: lbdex/cpu0_verilog/dynstr
+.. code-block:: bash
+
+  00 5f 5f 74 6c 73 5f 67 65 74 5f 61 64 64 72 00 5f 5a 32 6c 61 69 69 00 5f 5a 
+  35 70 6f 77 65 72 69 00 5f 5a 33 66 6f 6f 69 69 00 5f 5a 33 62 61 72 76 00 5f 
+  47 4c 4f 42 41 4c 5f 4f 46 46 53 45 54 5f 54 41 42 4c 45 5f 00 5f 44 59 4e 41 
+  4d 49 43 00 
+
+.. rubric:: lbdex/cpu0_verilog/dynsym
+.. code-block:: c++
+
+  00 00 00 00 00 00 00 01 00 00 00 10 00 00 00 18 00 00 00 22 00 00 00 2b 00 00 
+  00 33 00 00 00 49 
+
+.. rubric:: lbdex/cpu0_verilog/global_offset
+.. code-block:: bash
+
+  00 00 20 68 
+
+.. rubric:: lbdex/InputFiles/num_dyn_entry
+.. code-block:: bash
+
+  6
+
+.. rubric:: lbdex/InputFiles/libfoobar.cpu0.so
+.. code-block:: bash
+
+  cschen@cschen-BM6835-BM6635-BP6335:~/test/lbd/docs/BackendTutorial/lbdex/
+  InputFiles$ /home/cschen/test/lld/cmake_debug_build/bin/llvm-objdump -s 
+  libfoobar.cpu0.so 
+
+  libfoobar.cpu0.so:	file format ELF32-CPU0
+
+  Contents of section :
+  ...
+  Contents of section .dynsym:
+   00e4 00000000 00000000 00000000 00000000  ................
+   00f4 00000001 0000019c 00000000 12000004  ................
+   0104 00000010 0000019c 0000003c 12000004  ...........<....
+   0114 00000018 000001d8 00000038 12000004  ...........8....
+   0124 00000021 00000210 00000070 12000004  ...!.......p....
+   0134 00000029 00001040 00000000 10000006  ...)...@........
+   0144 0000003f 00001040 00000000 11000005  ...?...@........
+  Contents of section .dynstr:
+   0154 005f5f74 6c735f67 65745f61 64647200  .__tls_get_addr.
+   0164 5f5a326c 61696900 5f5a3366 6f6f6969  _Z2laii._Z3fooii
+   0174 005f5a33 62617276 005f474c 4f42414c  ._Z3barv._GLOBAL
+   0184 5f4f4646 5345545f 5441424c 455f005f  _OFFSET_TABLE_._
+   0194 44594e41 4d494300                    DYNAMIC.
+
+.. rubric:: lbdex/InputFiles/a.out
+.. code-block:: bash
+
+  cschen@cschen-BM6835-BM6635-BP6335:~/test/lbd/docs/BackendTutorial/lbdex/
+  InputFiles$ /home/cschen/test/lld/cmake_debug_build/bin/llvm-objdump -s a.out
+
+  a.out:	file format ELF32-CPU0
+
+  Contents of section :
+  ...
+  Contents of section .dynsym:
+   013c 00000000 00000000 00000000 00000000  ................
+   014c 00000001 00000000 00000000 12000000  ................
+   015c 0000000a 00000000 00000000 12000000  ................
+  Contents of section .dynstr:
+   016c 005f5a33 666f6f69 69005f5a 33626172  ._Z3fooii._Z3bar
+   017c 76006c69 62666f6f 6261722e 63707530  v.libfoobar.cpu0
+   018c 2e736f00                             .so.
+  ...
+  Contents of section .got.plt:
+   2068 00000000 00000000 00000000 00000000  ................
+   2078 00000000 00000000 00000000 00000000  ................
+   2088 000001d0 00000000 00000000 00000000  ................
+   2098 000001e0 00000000 00000000 00000000  ................
+  Contents of section .data:
+   20a8 00000001 00000001 00000001 00000001  ................
+
+
+File dynstr is section .dynstr of libfoobar.cpu0.so. File dynsym is the first 
+4 bytes of every entry of .dynsym. File global_offset contains the start address 
+of section .got.plt.
+
+The code of dynlinker.v will set the memory as follows after load program.
+(gp value below is 2068 came from file global_offset).
+
+.. rubric:: memory contents
+.. code-block:: bash
+
+//                                 -----------------------------------
+// gp ---------------------------> | all 0                           | (16 bytes)
+// gp+16 ------------------------> | 0                          |
+// gp+16+1*4 --------------------> | 1st plt entry address      | (4 bytes)
+//                                 | ...                        |
+// gp+16+(numDynEntry-1)*4 ------> | the last plt entry address |
+//                                 ------------------------------
+// gp ---------------------------> | all 0                           | (16 bytes)
+// gp+16+0*8'h10 ----------------> | 32'h10: pointer to plt0         |
+// gp+16+1*8'h10 ----------------> | 1st plt entry                   |
+// gp+16+2*8'h10 ----------------> | 2nd plt entry                   |
+//                                 | ...                             |
+// gp+16+(numDynEntry-1)*8'h10 --> | the last plt entry              |
+//                                 -----------------------------------
+
+For example as ch_dynamiclinker.cpp and foobar.cpp, gp is 2068, numDynEntry is 
+the contents of file num_dyn_entry which is 6. Every plt entry above (memory 
+address gp+16+1*8'h10..gp+16+(numDynEntry-1)*8'h10) is initialize to "addiu	$t9, 
+$zero, 4($gp); st	$t9, 0($gp); ld	$t9, 16($gp); ret	$t9" as follows,
+
+
+.. rubric:: memory contents
+.. code-block:: bash
+
+//                                 -----------------------------------
+// gp ---------------------------> | all 0                           | (16 bytes)
+// gp+16 ------------------------> | 0                          |
+// gp+16+1*4 --------------------> | 1st plt entry address      | (4 bytes)
+// gp+16+2*4 --------------------> | 1st plt entry address      | (4 bytes)
+//                                 | ...                        |
+// gp+16+(6-1)*4 ----------------> | the last plt entry address |
+//                                 ------------------------------
+// gp ---------------------------> | all 0                           | (16 bytes)
+// gp+16+0*8'h10 ----------------> | 32'h10: pointer to plt0         |
+// gp+16+1*8'h10 ----------------> | addiu	$t9, $zero, 4($gp)       |
+//                                 | st	$t9, 0($gp)                  |
+//                                 | ld	$t9, 16($gp)                 |
+//                                 | ret	$t9                        |
+// gp+16+2*8'h10 ----------------> | addiu	$t9, $zero, 4($gp)       |
+//                                 | st	$t9, 0($gp)                  |
+//                                 | ld	$t9, 16($gp)                 |
+//                                 | ret	$t9                        |
+// ...                             | ...                             |
+// gp+16+(6-1)*8'h10 ------------> | addiu	$t9, $zero, 4($gp)       |
+//                                 | st	$t9, 0($gp)                  |
+//                                 | ld	$t9, 16($gp)                 |
+//                                 | ret	$t9                        |
+//                                 -----------------------------------
+
+
+
+
 Cpu0 lld dynamic linker structure
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

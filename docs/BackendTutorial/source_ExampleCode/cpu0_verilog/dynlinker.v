@@ -94,12 +94,12 @@
 //                                 | ...                        |
 // gp+16+(numDynEntry-1)*4 ------> | the last plt entry address |
 //                                 ------------------------------
-// gp ---------------------------> | all 0                           | (16 bytes)
-// gp+16+0*8'h10 ----------------> | 32'h10: pointer to plt0         |
-// gp+16+1*8'h10 ----------------> | 1st plt entry                   |
-// gp+16+2*8'h10 ----------------> | 2nd plt entry                   |
+// gpPlt ------------------------> | all 0                           | (16 bytes)
+// gpPlt+16+0*8'h10 -------------> | 32'h10: pointer to plt0         |
+// gpPlt+16+1*8'h10 -------------> | 1st plt entry                   |
+// gpPlt+16+2*8'h10 -------------> | 2nd plt entry                   |
 //                                 | ...                             |
-// gp+16+(numDynEntry-1)*8'h10 --> | the last plt entry              |
+// gpPlt+16+(numDynEntry-1)*8'h10 --> | the last plt entry              |
 //                                 -----------------------------------
 // note: gp point to the _GLOBAL_OFFSET_TABLE_, 
 //       numDynEntry = actual number of functions + 1.
