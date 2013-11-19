@@ -160,36 +160,19 @@ TMP_PREFIX = tmp
 # 'cd' take effect for the whole command.
 # TODO: is there a nicer way of doing this?
 gh-pages:
-	make genexample &&\
-	make html latexpdf epub &&\
-	rm -rf /tmp/build /tmp/lbdex.tar.gz &&\
-	cp -f lbdex.tar.gz /tmp/. &&\
-	cp -rf build /tmp/. &&\
-	git checkout gh-pages &&\
-	cp -f /tmp/lbdex.tar.gz ../../. &&\
-	cp -rf /tmp/build/html/* ../../. &&\
-	cp build/latex/TutorialLLVMBackendCpu0.pdf ../../. &&\
-	cp build/epub/TutorialLLVMBackendCpu0.epub ../../. &&\
 	cd ../../ &&\
-	git add lbdex.tar.gz *.html _images/. _sources/. _static/. objects.inv searchindex.js TutorialLLVMBackendCpu0.* &&\
-	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" &&\
-	git push origin gh-pages &&\
-	git checkout master &&\
-	cd $(BACKEND_TUTORIAL_SUBDIR)
-
-gh-pages2:
 	git checkout gh-pages &&\
 	rm -rf build _sources _static _images &&\
 	git read-tree --prefix=$(TMP_PREFIX)/ -u HEAD master:$(BACKEND_TUTORIAL_SUBDIR) &&\
-	mv ../../$(TMP_PREFIX)/* . &&\
+	mv $(TMP_PREFIX)/* . &&\
 	sh ./rungenexample.sh &&\
 	make html latexpdf epub &&\
-	mv -fv build/html/* ../../. &&\
-	mv -fv build/latex/TutorialLLVMBackendCpu0.pdf "../../TutorialLLVMBackendCpu0.pdf" &&\
-	mv -fv build/epub/TutorialLLVMBackendCpu0.epub "../../TutorialLLVMBackendCpu0.epub" &&\
+	mv -fv build/html/* ./ &&\
+	mv -fv build/latex/TutorialLLVMBackendCpu0.pdf "./TutorialLLVMBackendCpu0.pdf" &&\
+	mv -fv build/epub/TutorialLLVMBackendCpu0.epub "./TutorialLLVMBackendCpu0.epub" &&\
 	rm -rf `git ls-tree master:$(BACKEND_TUTORIAL_SUBDIR) | cut -f2` &&\
 	rm -rf build lbdex &&\
-	git add lbdex.tar.gz *.html _images/. _sources/. _static/. objects.inv searchindex.js TutorialLLVMBackendCpu0.* &&\
+	git add -A &&\
 	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" &&\
 	git push origin gh-pages &&\
 	git checkout master

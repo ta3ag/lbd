@@ -181,7 +181,7 @@ gh-pages2:
 	git checkout gh-pages &&\
 	rm -rf build _sources _static _images &&\
 	git read-tree --prefix=$(TMP_PREFIX)/ -u HEAD master:$(BACKEND_TUTORIAL_SUBDIR) &&\
-	mv ../../$(TMP_PREFIX)/* . &&\
+	mv $(TMP_PREFIX)/* . &&\
 	sh ./rungenexample.sh &&\
 	make html latexpdf epub &&\
 	mv -fv build/html/* ../../. &&\
