@@ -177,6 +177,23 @@ gh-pages:
 	git checkout master &&\
 	cd $(BACKEND_TUTORIAL_SUBDIR)
 
+gh-pages2:
+	git checkout gh-pages &&\
+	rm -rf build _sources _static _images &&\
+	git read-tree --prefix=$(TMP_PREFIX)/ -u HEAD master:$(BACKEND_TUTORIAL_SUBDIR) &&\
+	mv $(TMP_PREFIX)/* . &&\
+	sh ./rungenexample.sh &&\
+	make html latexpdf epub &&\
+	mv -fv build/html/* ../../. &&\
+	mv -fv build/latex/TutorialLLVMBackendCpu0.pdf "../../TutorialLLVMBackendCpu0.pdf" &&\
+	mv -fv build/epub/TutorialLLVMBackendCpu0.epub "../../TutorialLLVMBackendCpu0.epub" &&\
+	rm -rf `git ls-tree master:$(BACKEND_TUTORIAL_SUBDIR) | cut -f2` &&\
+	rm -rf build lbdex &&\
+	git add lbdex.tar.gz *.html _images/. _sources/. _static/. objects.inv searchindex.js TutorialLLVMBackendCpu0.* &&\
+	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" &&\
+	git push origin gh-pages &&\
+	git checkout master
+
 genexample:
 	sh ./rungenexample.sh
  
