@@ -526,7 +526,7 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
           outs() << "09 60 " << format("%02" PRIx64, funIndex & 0xff00)
                   << format(" %02" PRIx64, funIndex & 0x00ff);
           outs() << "                                  /* addiu\t$t9, $zero, " 
-                 << funIndex << "($gp)*/\n";
+                 << funIndex << "\n";
         }
         else {
           if (DisAsm->getInstruction(Inst, Size, memoryObject,

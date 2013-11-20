@@ -14,11 +14,11 @@
 //                                                      | ...                                 |
 // DLINKER_INFO_ADDR+(numDynEntry-1)*4 ---------------> | index of dynsym (the last row)      |
 //                                                      ---------------------------------------
-// DLINKER_INFO_ADDR+numDynEntry*4 -------------------> | 1st function (foo()) offset in lib  |
-// DLINKER_INFO_ADDR+numDynEntry*4+4 -----------------> | 1st function (foo()) name (48 bytes)|
+// DLINKER_INFO_ADDR+numDynEntry*4 -------------------> | 1st function (la()) offset in lib   |
+// DLINKER_INFO_ADDR+numDynEntry*4+4 -----------------> | 1st function (la()) name (48 bytes) |
 //                                                      | ...                                 |
-// DLINKER_INFO_ADDR+numDynEntry+(numDynEntry-1)*4 ---> | last function (foo()) offset in lib |
-// DLINKER_INFO_ADDR+numDynEntry+(numDynEntry-1)*4+4 -> | last function (foo()) name          |
+// DLINKER_INFO_ADDR+numDynEntry+(numDynEntry-1)*4 ---> | last function (bar()) offset in lib |
+// DLINKER_INFO_ADDR+numDynEntry+(numDynEntry-1)*4+4 -> | last function (bar()) name          |
 //                                                      ---------------------------------------
 // DLINKER_INFO_ADDR+4+numDynEntry*4+numDynEntry*52 --> | .dynstr of lib                      |
 //                                                      |   ...                               |

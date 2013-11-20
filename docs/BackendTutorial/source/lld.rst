@@ -919,26 +919,26 @@ File dynstr is section .dynstr of libfoobar.cpu0.so. File dynsym is the first
 4 bytes of every entry of .dynsym. File global_offset contains the start address 
 of section .got.plt.
 
-The code of dynlinker.v will set the memory as follows after load program.
+The code of dynlinker.v will set the memory as follows after program is loaded.
 (gp value below is 2068 came from file global_offset).
 
 .. rubric:: memory contents
 .. code-block:: bash
 
-//                                 -----------------------------------
-// gp ---------------------------> | all 0                           | (16 bytes)
-// gp+16 ------------------------> | 0                          |
-// gp+16+1*4 --------------------> | 1st plt entry address      | (4 bytes)
-//                                 | ...                        |
-// gp+16+(numDynEntry-1)*4 ------> | the last plt entry address |
-//                                 ------------------------------
-// gp ---------------------------> | all 0                           | (16 bytes)
-// gp+16+0*8'h10 ----------------> | 32'h10: pointer to plt0         |
-// gp+16+1*8'h10 ----------------> | 1st plt entry                   |
-// gp+16+2*8'h10 ----------------> | 2nd plt entry                   |
-//                                 | ...                             |
-// gp+16+(numDynEntry-1)*8'h10 --> | the last plt entry              |
-//                                 -----------------------------------
+  //                                 -----------------------------------
+  // gp ---------------------------> | all 0                           | (16 bytes)
+  // gp+16 ------------------------> | 0                          |
+  // gp+16+1*4 --------------------> | 1st plt entry address      | (4 bytes)
+  //                                 | ...                        |
+  // gp+16+(numDynEntry-1)*4 ------> | the last plt entry address |
+  //                                 ------------------------------
+  // gp ---------------------------> | all 0                           | (16 bytes)
+  // gp+16+0*8'h10 ----------------> | 32'h10: pointer to plt0         |
+  // gp+16+1*8'h10 ----------------> | 1st plt entry                   |
+  // gp+16+2*8'h10 ----------------> | 2nd plt entry                   |
+  //                                 | ...                             |
+  // gp+16+(numDynEntry-1)*8'h10 --> | the last plt entry              |
+  //                                 -----------------------------------
 
 For example as ch_dynamiclinker.cpp and foobar.cpp, gp is 2068, numDynEntry is 
 the contents of file num_dyn_entry which is 6. Every plt entry above (memory 
@@ -949,37 +949,87 @@ $zero, 4($gp); st	$t9, 0($gp); ld	$t9, 16($gp); ret	$t9" as follows,
 .. rubric:: memory contents
 .. code-block:: bash
 
-//                                 -----------------------------------
-// gp ---------------------------> | all 0                           | (16 bytes)
-// gp+16 ------------------------> | 0                          |
-// gp+16+1*4 --------------------> | 1st plt entry address      | (4 bytes)
-// gp+16+2*4 --------------------> | 1st plt entry address      | (4 bytes)
-//                                 | ...                        |
-// gp+16+(6-1)*4 ----------------> | the last plt entry address |
-//                                 ------------------------------
-// gp ---------------------------> | all 0                           | (16 bytes)
-// gp+16+0*8'h10 ----------------> | 32'h10: pointer to plt0         |
-// gp+16+1*8'h10 ----------------> | addiu	$t9, $zero, 4($gp)       |
-//                                 | st	$t9, 0($gp)                  |
-//                                 | ld	$t9, 16($gp)                 |
-//                                 | ret	$t9                        |
-// gp+16+2*8'h10 ----------------> | addiu	$t9, $zero, 4($gp)       |
-//                                 | st	$t9, 0($gp)                  |
-//                                 | ld	$t9, 16($gp)                 |
-//                                 | ret	$t9                        |
-// ...                             | ...                             |
-// gp+16+(6-1)*8'h10 ------------> | addiu	$t9, $zero, 4($gp)       |
-//                                 | st	$t9, 0($gp)                  |
-//                                 | ld	$t9, 16($gp)                 |
-//                                 | ret	$t9                        |
-//                                 -----------------------------------
+  //                                 -----------------------------------
+  // gp ---------------------------> | all 0                           | (16 bytes)
+  // gp+16 ------------------------> | 0                          |
+  // gp+16+1*4 --------------------> | 1st plt entry address      | (4 bytes)
+  // gp+16+2*4 --------------------> | 1st plt entry address      | (4 bytes)
+  //                                 | ...                        |
+  // gp+16+(6-1)*4 ----------------> | the last plt entry address |
+  //                                 ------------------------------
+  // gp ---------------------------> | all 0                           | (16 bytes)
+  // gp+16+0*8'h10 ----------------> | 32'h10: pointer to plt0         |
+  // gp+16+1*8'h10 ----------------> | addiu	$t9, $zero, 4($gp)       |
+  //                                 | st	$t9, 0($gp)                  |
+  //                                 | ld	$t9, 16($gp)                 |
+  //                                 | ret	$t9                        |
+  // gp+16+2*8'h10 ----------------> | addiu	$t9, $zero, 4($gp)       |
+  //                                 | st	$t9, 0($gp)                  |
+  //                                 | ld	$t9, 16($gp)                 |
+  //                                 | ret	$t9                        |
+  // ...                             | ...                             |
+  // gp+16+(6-1)*8'h10 ------------> | addiu	$t9, $zero, 4($gp)       |
+  //                                 | st	$t9, 0($gp)                  |
+  //                                 | ld	$t9, 16($gp)                 |
+  //                                 | ret	$t9                        |
+  //                                 -----------------------------------
 
 
+:num:`Figure #lld-f6` is the memory content after the example program is loaded.
+
+.. _lld-f6: 
+.. figure:: ../Fig/lld/6.png
+  :scale: 80 %
+  :align: center
+
+  Memory content after the program is loaded
+
+.. _lld-f7: 
+.. figure:: ../Fig/lld/7.png
+  :scale: 80 %
+  :align: center
+
+  Control flow transfer from calling foo() instruction of main() to dynamic linker
+
+:num:`Figure #lld-f7` is the Control flow transfer from call foo() of main() to 
+dynamic linker. After ch_dynamiclinker.cpp call foo() first time, it jump to 
+__plt_Z3fooii plt entry. Since __plt_Z3fooii is the 3rd plt entry,
+it save 3 to 0($gp) memory address then jump to PLT0. The PLT0 purpose is to
+save $lr, $fp, $sp and jump to dynamic linker. 
+Now, the control flow transfer to dynamic linker.
+Dynamic linker will get the loaded function name and function offset of shared 
+library by the value of 0($gp) which set just in __plt_Z3fooii is 3. The value 
+3 tell dynamic linker load foo() (3rd string in .dynstr) from offset of shared
+library, 0x3c (3rd value of Function offset area in Figure).
+Now, dynamic linker can load foo() function from flash to memory, set the 
+address gp+3*4 to 0x40000 where the address 0x40000 is the foo() function
+loaded to memory and prepare jump to the foo() memory address. 
+Remember we say the prepare jump to foo().
+Before jump to foo(), dynamic linker need to restore the $lr, $fp, $sp at the 
+caller calling foo() state (they are saved in 4,8,12 of $gp offset in PLT0, so
+them can be restore from that address).
+
+.. _lld-f8: 
+.. figure:: ../Fig/lld/8.png
+  :scale: 80 %
+  :align: center
+
+  Transfer from dynamic linker to foo() and back to main()
+
+As :num:`Figure #lld-f8` depicted, control flow from dynamic linker to foo() and
+back to caller main when it meet the instruction "ret $lr" in foo().
+
+Now the program run at the next instruction of call foo() in main(). When it run 
+to address 0xd8 "jsub __plt__Z3barv", the control flow will transfer from 
+__plt_Z3barv through PLT0 to dynamic linker then load and run bar() from flash to 
+memory just like the calling __plt__Z3fooii. The difference is bar() will foo() 
+first and call la() next. The call foo() in bar() will jump to foo() directly as 
+:num:`Figure #lld-f9` because the gp+28 is the address of 0x40000 which
+set in dynamic linker when the foo() function is called first time. 
 
 
 Cpu0 lld dynamic linker structure
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
 
 Summary
