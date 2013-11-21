@@ -998,16 +998,16 @@ it save 3 to 0($gp) memory address then jump to PLT0. The PLT0 purpose is to
 save $lr, $fp, $sp and jump to dynamic linker. 
 Now, the control flow transfer to dynamic linker.
 Dynamic linker will get the loaded function name and function offset of shared 
-library by the value of 0($gp) which set just in __plt_Z3fooii is 3. The value 
+library by the value of 0($gp) which is 3 set in __plt_Z3fooii. The value 
 3 tell dynamic linker load foo() (3rd string in .dynstr) from offset of shared
 library, 0x3c (3rd value of Function offset area in Figure).
 Now, dynamic linker can load foo() function from flash to memory, set the 
 address gp+3*4 to 0x40000 where the address 0x40000 is the foo() function
 loaded to memory and prepare jump to the foo() memory address. 
-Remember we say the prepare jump to foo().
-Before jump to foo(), dynamic linker need to restore the $lr, $fp, $sp at the 
-caller calling foo() state (they are saved in 4,8,12 of $gp offset in PLT0, so
-them can be restore from that address).
+Remind we say the prepare jump to foo(). It because
+before jump to foo(), dynamic linker need to restore the $lr, $fp, $sp to the 
+value of just before caller calling foo() (they are saved in 4, 8, 12 of $gp 
+offset in PLT0, so them can be restored from that address).
 
 .. _lld-f8: 
 .. figure:: ../Fig/lld/8.png
@@ -1017,15 +1017,28 @@ them can be restore from that address).
   Transfer from dynamic linker to foo() and back to main()
 
 As :num:`Figure #lld-f8` depicted, control flow from dynamic linker to foo() and
-back to caller main when it meet the instruction "ret $lr" in foo().
+back to caller main() when it meets the instruction "ret $lr" in foo().
 
 Now the program run at the next instruction of call foo() in main(). When it run 
 to address 0xd8 "jsub __plt__Z3barv", the control flow will transfer from 
-__plt_Z3barv through PLT0 to dynamic linker then load and run bar() from flash to 
-memory just like the calling __plt__Z3fooii. The difference is bar() will foo() 
-first and call la() next. The call foo() in bar() will jump to foo() directly as 
-:num:`Figure #lld-f9` because the gp+28 is the address of 0x40000 which
+__plt_Z3barv through PLT0 to dynamic linker then load and run bar() from flash 
+to memory just like the calling __plt__Z3fooii. 
+The difference is bar() will call foo() first and call la() next. 
+The call foo() in bar() will jump to foo() directly as 
+:num:`Figure #lld-f8` because the content of gp+28 is the address of 0x40000 which
 set in dynamic linker when the foo() function is called first time. 
+
+Finally the when bar() call la() function it will jump to __plt_Z3laii since the 
+content of $gp+24 point to __plt_Z3laii. 
+The __plt_Z3laii code will call dynamic linker
+to load la() function, run la() and back to bar() as :num:`Figure #lld-f9`.
+
+.. _lld-f9: 
+.. figure:: ../Fig/lld/9.png
+  :scale: 80 %
+  :align: center
+
+  Call la through __plt_Z3laii in bar()
 
 
 Cpu0 lld dynamic linker structure
@@ -1046,9 +1059,25 @@ If you like to pay money to buy the FPGA development hardware, we believe the
 code can run on FPGA CPU without problem even though we didn't do it.
 System program toolchain can be designed just like we show you at this point. 
 School knowledge of system program, compiler, linker, loader, computer 
-architecture and CPU design can be translated into a real work and see how it be 
+architecture and CPU design can be translated into a real work and see how it is 
 run. Now, these school books knowledge is not limited on paper. 
 We program it, design it and run it on real world.
+
+The code size of we design an llvm Cpu0 backend compiler, lld linker, 
+llvm-objdump and Verilog language is under 10 thousands lines of source code 
+include comments. The clang, llvm and lld has 1000 thousands lines exclude the
+test and documents parts. It is only 1 % of the llvm size. 
+Based on this truth, we believe llvm is a well defined structure in compiler 
+architecture. 
+
+Finally, 10 thousands of source code in Cpu0 backend is very small size in UI 
+program. But it's quite complex in system program which based on llvm. 
+We spent 500 pages of pdf to explain these code. Open source code give the 
+programmer best opportunity to understand the code and enhance/extend the 
+code function. But not enough, we believe the book documents are the next most 
+important thing to improve the open source code development. 
+Writing document will help yourself to examine your software and make the 
+program better in structure and reliability.
 
 
 .. [#] http://lld.llvm.org/

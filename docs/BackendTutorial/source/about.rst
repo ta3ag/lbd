@@ -53,6 +53,7 @@ Revision history
 ----------------
 
 Version 3.3.9, Not release yet.
+  lld.rst document.
 
 Version 3.3.8, Released November 19, 2013
   Fix the reference file missing for make gh-page.
