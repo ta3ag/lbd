@@ -528,6 +528,13 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
           outs() << "                                  /* addiu\t$t9, $zero, " 
                  << funIndex << "\n";
         }
+        else if (LinkSo && funIndex && Index == Start+8) {
+          outs() << format("/*%8" PRIx64 ":*/\t", /*SectionAddr + */lastDumpAddr+Index);
+          outs() << "01 6b " << format("%02" PRIx64, (funIndex*4+16) & 0xff00)
+                  << format(" %02" PRIx64, (funIndex*4+16) & 0x00ff);
+          outs() << "                                  /* ld\t$t9, " 
+                 << funIndex*4+16 << "($gp)\n";
+        }
         else {
           if (DisAsm->getInstruction(Inst, Size, memoryObject,
                                      SectionAddr + Index,

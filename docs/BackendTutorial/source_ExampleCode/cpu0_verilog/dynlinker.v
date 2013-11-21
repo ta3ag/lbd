@@ -117,14 +117,13 @@
       m[gpPlt+j] = 8'h00;
     // put plt in (gpPlt..gpPlt+numDynEntry*8'h10+1)
     for (i=1; i < numDynEntry; i=i+1) begin
-      j=i*4;
       // (gp+'8h10..gp+numDynEntry*'8h10+15) set to plt entry
       // addiu	$t9, $zero, dynsym_idx
       m[gpPlt+i*8'h10] = 8'h09;
       m[gpPlt+i*8'h10+1] = 8'h60;
       m[gpPlt+i*8'h10+2] = i[15:8];
       m[gpPlt+i*8'h10+3] = i[7:0];
-      // st	$t9, j($gp)
+      // st	$t9, 0($gp)
       m[gpPlt+i*8'h10+4] = 8'h02;
       m[gpPlt+i*8'h10+5] = 8'h6b;
       m[gpPlt+i*8'h10+6] = 0;
