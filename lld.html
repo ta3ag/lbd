@@ -2497,7 +2497,7 @@ Others are used in both static and dynamic link execution file dump.</p>
 <div class="section" id="lld-introduction">
 <h2>LLD introduction<a class="headerlink" href="#lld-introduction" title="Permalink to this headline">¶</a></h2>
 <p>In general, linker do the Relocation Records Resolve as Chapter ELF support
-depicted and optimization for those cannot do in compiler stage. One of
+depicted and optimization for those cannot finish in compiler stage. One of
 the optimization opportunity in linker is Dead Code Stripping which will
 explained in this section. List the LLD project status as follows,</p>
 <ul class="simple">
@@ -2515,10 +2515,16 @@ Currently, clang must invoke the system linker to produce executables.</li>
 </ul>
 </li>
 </ul>
+<p>The following is for LLD introduction, we extract information from web site,
+<a class="reference external" href="http://lld.llvm.org/design.html">http://lld.llvm.org/design.html</a>. It&#8217;s part and fragment. Please read the lld
+design web document first, then reading the following to ensure you agree to
+our understanding from lld design document and experience in lld backend
+implementation. Because some of the following came from our understanding.</p>
 <div class="section" id="how-lld-do-the-linker-job">
 <h3>How LLD do the linker job<a class="headerlink" href="#how-lld-do-the-linker-job" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first">LLD structure</p>
 <ul class="simple">
-<li>LLD structure<ul>
 <li>Internal structure Atom<ul>
 <li>Like llvm IR, lld operating and optimize in Atom.</li>
 </ul>
@@ -2531,7 +2537,8 @@ Currently, clang must invoke the system linker to produce executables.</li>
 </li>
 </ul>
 </li>
-<li>Atom<ul>
+<li><p class="first">Atom</p>
+<ul class="simple">
 <li>An atom is an indivisible chunk of code or data.</li>
 <li>Typically each user written function or global variable is an atom.</li>
 <li>In addition, the compiler may emit other atoms, such as for literal c-strings
@@ -2539,10 +2546,11 @@ or floating point constants, or for runtime data structures like dwarf unwind
 info or pointers to initializers.</li>
 </ul>
 </li>
-<li>Atoms classified:</li>
+<li><p class="first">Atoms classified:</p>
+<ul class="simple">
+<li>The following Hello World code can be classified with these different kinds of
+Atoms as follows,</li>
 </ul>
-<p>The following Hello World code can be classified with these different kinds of
-Atoms as follows,</p>
 <p class="rubric">Atom example code</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">extern</span> <span class="kt">int</span> <span class="n">printf</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">...);</span>
 
@@ -2570,6 +2578,8 @@ Atoms as follows,</p>
 <li>AbsoluteAtom<ul>
 <li>This is for embedded support where some stuff is implemented in ROM at some
 fixed address.</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -3339,7 +3349,7 @@ below.</p>
 <span class="c1">//  asm(&quot;boot:&quot;);</span>
   <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui   $1,  0x7&quot;</span><span class="p">);</span>
   <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ori   $1,  $1, 0xfff0&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld    $gp, 0($1)&quot;</span><span class="p">);</span> <span class="c1">// load $gp($10) value from 0x7fff0</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld    $gp, 0($1)&quot;</span><span class="p">);</span> <span class="c1">// load $gp($11) value from 0x7fff0</span>
   <span class="n">initRegs</span><span class="p">();</span>
   <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $zero, 0x6ffc&quot;</span><span class="p">);</span>
   <span class="n">main</span><span class="p">();</span>

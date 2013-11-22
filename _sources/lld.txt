@@ -282,7 +282,7 @@ LLD introduction
 ------------------
 
 In general, linker do the Relocation Records Resolve as Chapter ELF support 
-depicted and optimization for those cannot do in compiler stage. One of 
+depicted and optimization for those cannot finish in compiler stage. One of 
 the optimization opportunity in linker is Dead Code Stripping which will 
 explained in this section. List the LLD project status as follows,
 
@@ -300,6 +300,13 @@ explained in this section. List the LLD project status as follows,
 
   - cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_FLAGS=-std
     =c++11 -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ../src/
+
+
+The following is for LLD introduction, we extract information from web site, 
+http://lld.llvm.org/design.html. It's part and fragment. Please read the lld 
+design web document first, then reading the following to ensure you agree to 
+our understanding from lld design document and experience in lld backend 
+implementation. Because some of the following came from our understanding.
 
 
 How LLD do the linker job
@@ -328,40 +335,39 @@ How LLD do the linker job
     or floating point constants, or for runtime data structures like dwarf unwind 
     info or pointers to initializers.
 
-
 - Atoms classified:
 
-The following Hello World code can be classified with these different kinds of 
-Atoms as follows,
+  - The following Hello World code can be classified with these different kinds of 
+    Atoms as follows,
 
-.. rubric:: Atom example code
-.. code-block:: c++
+  .. rubric:: Atom example code
+  .. code-block:: c++
 
-  extern int printf(const char *format, ...);
+    extern int printf(const char *format, ...);
 
-  int main(void)
-  {
-    char *ptr = "Hello world!";
+    int main(void)
+    {
+      char *ptr = "Hello world!";
 
-    printf("%s\n", ptr);
-  }
+      printf("%s\n", ptr);
+    }
 
-- DefinedAtom
+  - DefinedAtom
 
-  - 95% of all atoms. This is a chunk of code or data
+    - 95% of all atoms. This is a chunk of code or data
 
-- UndefinedAtom
+  - UndefinedAtom
 
-  - printf in this example.
+    - printf in this example.
 
-- SharedLibraryAtom
+  - SharedLibraryAtom
 
-  - Symbols defined in shared library (file *.so).
+    - Symbols defined in shared library (file *.so).
 
-- AbsoluteAtom
+  - AbsoluteAtom
 
-  - This is for embedded support where some stuff is implemented in ROM at some 
-    fixed address.
+    - This is for embedded support where some stuff is implemented in ROM at some 
+      fixed address.
 
 .. _lld-atom: 
 .. figure:: ../Fig/lld/atom.png
