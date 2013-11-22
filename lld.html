@@ -61,7 +61,7 @@ llvm-objdump driver is modified for support generate Hex file from ELF.
 With these two tools supported, the program with global variables exist in
 section.data and .rodata can be accessed and transfered to Hex file which feed
 to Verilog Cpu0 machine and run on your PC/Laptop.</p>
-<p>LLD web site <a class="footnote-reference" href="#id9" id="id1">[1]</a>. LLD install requirement on Linux <a class="footnote-reference" href="#id10" id="id2">[2]</a>.
+<p>LLD web site <a class="footnote-reference" href="#id7" id="id1">[1]</a>. LLD install requirement on Linux <a class="footnote-reference" href="#id8" id="id2">[2]</a>.
 In spite of the requirement, we
 only can build with gcc4.7 above (clang will fail) on Linux.
 If you run with Virtual Machine (VM), please keep your phisical memory size
@@ -2572,7 +2572,7 @@ Atoms as follows,</li>
 </ul>
 </li>
 <li>SharedLibraryAtom<ul>
-<li>Symbols defined in shared library (file <a href="#id3"><span class="problematic" id="id4">*</span></a>.so).</li>
+<li>Symbols defined in shared library (file *.so).</li>
 </ul>
 </li>
 <li>AbsoluteAtom<ul>
@@ -3633,7 +3633,7 @@ The Cpu0LinkingContext constructor will create it&#8217;s ELFLinkingContext part
 The std::unique_ptr came from c++11 standard.
 The unique_ptr objects automatically delete the object they manage (using a
 deleter) as soon as they themselves are destroyed. Just like the Singlelten
-pattern in Design Pattern book or Smart Pointers in Effective C++ book. <a class="footnote-reference" href="#id11" id="id5">[3]</a></p>
+pattern in Design Pattern book or Smart Pointers in Effective C++ book. <a class="footnote-reference" href="#id9" id="id3">[3]</a></p>
 <div class="figure align-center" id="lld-f5">
 <a class="reference internal image-reference" href="_images/54.png"><img alt="_images/54.png" src="_images/54.png" style="width: 804.0px; height: 601.0px;" /></a>
 <p class="caption">Figure 7: Cpu0LinkingContext get Cpu0TargetHandler through &amp;getTargetHandler()</p>
@@ -3646,14 +3646,14 @@ the unique_ptr point to Cpu0TargetHandler will be saved in LinkingContext
 contructor function.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>std::unique_ptr::get() <a class="footnote-reference" href="#id12" id="id6">[4]</a></p>
+<p>std::unique_ptr::get() <a class="footnote-reference" href="#id10" id="id4">[4]</a></p>
 <p>pointer get() const noexcept;</p>
 <p class="last">Get pointer
 Returns the stored pointer.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>std::move() <a class="footnote-reference" href="#id13" id="id7">[5]</a></p>
+<p>std::move() <a class="footnote-reference" href="#id11" id="id5">[5]</a></p>
 <dl class="last docutils">
 <dt>for example:</dt>
 <dd><p class="first">std::string bar = &#8220;bar-string&#8221;;
@@ -4257,8 +4257,8 @@ cpu0_verilog/libso.hex
 ${TOOLDIR}/llvm-objdump -elf2hex -cpu0linkso a.out &gt; ../cpu0_verilog/cpu0.hex
 cp dynstr dynsym so_func_offset global_offset ../cpu0_verilog/.</pre>
 </div>
-<div class="section" id="id8">
-<h3>Run<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id6">
+<h3>Run<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost cpu0_verilog<span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
 /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
 <span class="o">[</span>Gamma@localhost cpu0_verilog<span class="o">]</span><span class="nv">$ </span>bash clean.sh
@@ -4531,6 +4531,8 @@ to load la() function, run la() and back to bar() as <a class="pageref" href="#l
 </div>
 <div class="section" id="summary">
 <h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="llvm-judgement">
+<h3>LLVM judgement<a class="headerlink" href="#llvm-judgement" title="Permalink to this headline">¶</a></h3>
 <p>Thanks the llvm open source project.
 To write a linker and ELF to Hex tools for a new CPU architecture is easy and
 reliable.
@@ -4553,6 +4555,9 @@ The clang, llvm and lld has 1000 thousands lines exclude the
 test and documents parts. It is only 1 % of the llvm size.
 Based on this truth, we believe llvm is a well defined structure in compiler
 architecture.</p>
+</div>
+<div class="section" id="contribute-back-to-open-source-through-working-and-learning">
+<h3>Contribute back to Open Source through working and learning<a class="headerlink" href="#contribute-back-to-open-source-through-working-and-learning" title="Permalink to this headline">¶</a></h3>
 <p>Finally, 10 thousands lines of source code in Cpu0 backend is very small in UI
 program. But it&#8217;s quite complex in system program which based on llvm.
 We spent 500 pages of pdf to explain these code. Open source code give
@@ -4561,42 +4566,53 @@ code function. But not enough, we believe the documentation is the next most
 important thing to improve the open source code development.
 The Open Source Fundation recognized this point before us and set
 Open Source Document Project years ago.
+Open Source grows up and become a giant software infrastructure with the forces
+of company, school research and many talent engineers.
+It terminate the situation of everyone try to re-invent wheels during 10 years
+ago.
+Extend your software from the re-usable source code is the right way.
+Of course you should consider GPL license if you are working with business.
+Actually anyone can contribute back to open source through the learning process.
+We write this book through the process of learning llvm backend and contribute
+back to llvm open source project.
 We all learned the knowledge through books during school and after school.
 So, if you cannot find a good way to produce documents, you can consider to
-write the document like this book. This book document use sphinx tool just
+write document like this book. This book document use sphinx tool just
 like the llvm development team. Appendix A tell you how to install sphinx tool.
-Writing document will help yourself to re-examine your software and make the
-program better in structure and reliability.</p>
-<table class="docutils footnote" frame="void" id="id9" rules="none">
+Documentation work will help yourself to re-examine your software and make your
+program better in structure, reliability and more important &#8220;Extend your code
+to somewhere you didn&#8217;t expect to&#8221;.</p>
+<table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://lld.llvm.org/">http://lld.llvm.org/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id10" rules="none">
+<table class="docutils footnote" frame="void" id="id8" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://lld.llvm.org/getting_started.html#on-unix-like-systems">http://lld.llvm.org/getting_started.html#on-unix-like-systems</a></td></tr>
 </tbody>
 </table>
+<table class="docutils footnote" frame="void" id="id9" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/">http://www.cplusplus.com/reference/memory/unique_ptr/</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id10" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/get/">http://www.cplusplus.com/reference/memory/unique_ptr/get/</a></td></tr>
+</tbody>
+</table>
 <table class="docutils footnote" frame="void" id="id11" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[3]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/">http://www.cplusplus.com/reference/memory/unique_ptr/</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/utility/move/">http://www.cplusplus.com/reference/utility/move/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id12" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id6">[4]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/get/">http://www.cplusplus.com/reference/memory/unique_ptr/get/</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id13" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id7">[5]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/utility/move/">http://www.cplusplus.com/reference/utility/move/</a></td></tr>
-</tbody>
-</table>
+</div>
 </div>
 </div>
 
