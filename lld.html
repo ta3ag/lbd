@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.8',
+        VERSION:     '3.3.9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -61,7 +61,7 @@ llvm-objdump driver is modified for support generate Hex file from ELF.
 With these two tools supported, the program with global variables exist in
 section.data and .rodata can be accessed and transfered to Hex file which feed
 to Verilog Cpu0 machine and run on your PC/Laptop.</p>
-<p>LLD web site <a class="footnote-reference" href="#id7" id="id1">[1]</a>. LLD install requirement on Linux <a class="footnote-reference" href="#id8" id="id2">[2]</a>.
+<p>LLD web site <a class="footnote-reference" href="#id9" id="id1">[1]</a>. LLD install requirement on Linux <a class="footnote-reference" href="#id10" id="id2">[2]</a>.
 In spite of the requirement, we
 only can build with gcc4.7 above (clang will fail) on Linux.
 If you run with Virtual Machine (VM), please keep your phisical memory size
@@ -2129,7 +2129,14 @@ backend as follows,</p>
           <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;09 60 &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">format</span><span class="p">(</span><span class="s">&quot;%02&quot;</span> <span class="n">PRIx64</span><span class="p">,</span> <span class="n">funIndex</span> <span class="o">&amp;</span> <span class="mh">0xff00</span><span class="p">)</span>
                   <span class="o">&lt;&lt;</span> <span class="n">format</span><span class="p">(</span><span class="s">&quot; %02&quot;</span> <span class="n">PRIx64</span><span class="p">,</span> <span class="n">funIndex</span> <span class="o">&amp;</span> <span class="mh">0x00ff</span><span class="p">);</span>
           <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;                                  /* addiu</span><span class="se">\t</span><span class="s">$t9, $zero, &quot;</span> 
-                 <span class="o">&lt;&lt;</span> <span class="n">funIndex</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;($gp)*/</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+                 <span class="o">&lt;&lt;</span> <span class="n">funIndex</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">LinkSo</span> <span class="o">&amp;&amp;</span> <span class="n">funIndex</span> <span class="o">&amp;&amp;</span> <span class="n">Index</span> <span class="o">==</span> <span class="n">Start</span><span class="o">+</span><span class="mi">8</span><span class="p">)</span> <span class="p">{</span>
+          <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">format</span><span class="p">(</span><span class="s">&quot;/*%8&quot;</span> <span class="n">PRIx64</span> <span class="s">&quot;:*/</span><span class="se">\t</span><span class="s">&quot;</span><span class="p">,</span> <span class="cm">/*SectionAddr + */</span><span class="n">lastDumpAddr</span><span class="o">+</span><span class="n">Index</span><span class="p">);</span>
+          <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;01 6b &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">format</span><span class="p">(</span><span class="s">&quot;%02&quot;</span> <span class="n">PRIx64</span><span class="p">,</span> <span class="p">(</span><span class="n">funIndex</span><span class="o">*</span><span class="mi">4</span><span class="o">+</span><span class="mi">16</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xff00</span><span class="p">)</span>
+                  <span class="o">&lt;&lt;</span> <span class="n">format</span><span class="p">(</span><span class="s">&quot; %02&quot;</span> <span class="n">PRIx64</span><span class="p">,</span> <span class="p">(</span><span class="n">funIndex</span><span class="o">*</span><span class="mi">4</span><span class="o">+</span><span class="mi">16</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0x00ff</span><span class="p">);</span>
+          <span class="n">outs</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;                                  /* ld</span><span class="se">\t</span><span class="s">$t9, &quot;</span> 
+                 <span class="o">&lt;&lt;</span> <span class="n">funIndex</span><span class="o">*</span><span class="mi">4</span><span class="o">+</span><span class="mi">16</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;($gp)</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
         <span class="p">}</span>
         <span class="k">else</span> <span class="p">{</span>
           <span class="k">if</span> <span class="p">(</span><span class="n">DisAsm</span><span class="o">-&gt;</span><span class="n">getInstruction</span><span class="p">(</span><span class="n">Inst</span><span class="p">,</span> <span class="n">Size</span><span class="p">,</span> <span class="n">memoryObject</span><span class="p">,</span>
@@ -2486,6 +2493,335 @@ backend as follows,</p>
 </div>
 <p>The &#8220;if (DumpSo)&#8221; and &#8220;if (LinkSo)&#8221; included code are for dynamic linker support.
 Others are used in both static and dynamic link execution file dump.</p>
+</div>
+<div class="section" id="lld-introduction">
+<h2>LLD introduction<a class="headerlink" href="#lld-introduction" title="Permalink to this headline">¶</a></h2>
+<p>In general, linker do the Relocation Records Resolve as Chapter ELF support
+depicted and optimization for those cannot do in compiler stage. One of
+the optimization opportunity in linker is Dead Code Stripping which will
+explained in this section. List the LLD project status as follows,</p>
+<ul class="simple">
+<li>The lld project aims to to be the built-in linker for clang/llvm.
+Currently, clang must invoke the system linker to produce executables.</li>
+<li>web site <a class="reference external" href="http://lld.llvm.org/">http://lld.llvm.org/</a></li>
+<li>Current Status<ul>
+<li>lld is in its early stages of development.</li>
+<li>It can currently self host on Linux x86-64 with -static.</li>
+</ul>
+</li>
+<li>How to build<ul>
+<li>cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_FLAGS=-std
+=c++11 -DCMAKE_BUILD_TYPE=Debug -G &#8220;Unix Makefiles&#8221; ../src/</li>
+</ul>
+</li>
+</ul>
+<div class="section" id="how-lld-do-the-linker-job">
+<h3>How LLD do the linker job<a class="headerlink" href="#how-lld-do-the-linker-job" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Internal structure Atom<ul>
+<li>Like llvm IR, lld operating and optimize in Atom.</li>
+</ul>
+</li>
+<li>ELF reader/writer, Mach-O reader/writer, COFF<ul>
+<li>Connect to any specific linker format by implement the concrete Read/Writer.</li>
+<li>e.g. Implement Microsoft link format Reader/Writer
+=&gt; extend lld to support Microsoft link format.</li>
+</ul>
+</li>
+<li>An atom is an indivisible chunk of code or data.</li>
+<li>Typically each user written function or global variable is an atom.</li>
+<li>In addition, the compiler may emit other atoms, such as for literal c-strings
+or floating point constants, or for runtime data structures like dwarf unwind
+info or pointers to initializers.</li>
+<li>Atoms classified:</li>
+</ul>
+<p>The following Hello World code can be classified these different kinds of
+Atoms as follows,</p>
+<p class="rubric">Atom example code</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">extern</span> <span class="kt">int</span> <span class="n">printf</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">...);</span>
+
+<span class="kt">int</span> <span class="n">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">ptr</span> <span class="o">=</span> <span class="s">&quot;Hello world!&quot;</span><span class="p">;</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">ptr</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>DefinedAtom<ul>
+<li>95% of all atoms. This is a chunk of code or data</li>
+</ul>
+</li>
+<li>UndefinedAtom<ul>
+<li>printf in this example.</li>
+</ul>
+</li>
+<li>SharedLibraryAtom<ul>
+<li>Symbols defined in shared library (file <a href="#id3"><span class="problematic" id="id4">*</span></a>.so).</li>
+</ul>
+</li>
+<li>AbsoluteAtom<ul>
+<li>This is for embedded support where some stuff is implemented in ROM at some
+fixed address.</li>
+</ul>
+</li>
+</ul>
+<div class="figure align-center" id="lld-atom">
+<a class="reference internal image-reference" href="_images/atom.png"><img alt="_images/atom.png" src="_images/atom.png" style="width: 386.0px; height: 417.0px;" /></a>
+<p class="caption">Figure 1: Atom classified (from lld web)</p>
+</div>
+</div>
+<div class="section" id="linking-steps">
+<h3>Linking Steps<a class="headerlink" href="#linking-steps" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Command line processing<ul>
+<li>lld -flavor gnu -target cpu0-unknown-linux-gnu hello.o printf-stdarg.o -o a.out</li>
+</ul>
+</li>
+<li>Parsing input files<ul>
+<li>ELF reader =&gt; create lld:File</li>
+</ul>
+</li>
+<li>Resolving<ul>
+<li>dead code stripping</li>
+</ul>
+</li>
+<li>Passes/Optimizations<ul>
+<li>Like llvm passes, give the backend chance to do something like optimization.</li>
+</ul>
+</li>
+<li>Generate output file<ul>
+<li>Resolving Relocation Records – I guess in this step</li>
+</ul>
+</li>
+</ul>
+<div class="section" id="parsing-input-files">
+<h4>Parsing input files<a class="headerlink" href="#parsing-input-files" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li>Input Files<ul>
+<li>A goal of lld is to be file format independent.</li>
+<li>The lld::Reader is the base class for all object file readers</li>
+<li>Every Reader subclass defines its own “options” class (for instance the
+mach-o Reader defines the class ReaderOptionsMachO). This options class is
+the one-and-only way to control how the Reader operates when parsing an input
+file into an Atom graph</li>
+</ul>
+</li>
+<li>Reader</li>
+</ul>
+<p class="rubric">lld/lib/ReaderWriter</p>
+<div class="highlight-c++"><pre>~/test/lld/src/tools/lld/lib/ReaderWriter$ cat Reader.cpp
+...
+#include "lld/ReaderWriter/Reader.h"
+
+#include "llvm/ADT/OwningPtr.h"
+#include "llvm/ADT/StringRef.h"
+#include "llvm/Support/MemoryBuffer.h"
+#include "llvm/Support/system_error.h"
+
+namespace lld {
+Reader::~Reader() {
+}
+} // end namespace lld</pre>
+</div>
+<p class="rubric">lld/lib/ReaderWriter</p>
+<div class="highlight-c++"><pre>~/test/lld/src/tools/lld/lib/ReaderWriter/ELF$ cat Reader.cpp
+namespace lld {
+namespace elf {
+...
+class ELFReader : public Reader {
+public:
+  ELFReader(const ELFLinkingContext &amp;ctx)
+      : lld::Reader(ctx), _elfLinkingContext(ctx) {}
+
+  error_code parseFile(std::unique_ptr&lt;MemoryBuffer&gt; &amp;mb,
+                       std::vector&lt;std::unique_ptr&lt;File&gt; &gt; &amp;result) const {
+…
+private:
+  const ELFLinkingContext &amp;_elfLinkingContext;
+};
+} // end namespace elf
+
+std::unique_ptr&lt;Reader&gt; createReaderELF(const ELFLinkingContext &amp;context) {
+  return std::unique_ptr&lt;Reader&gt;(new elf::ELFReader(context));
+}
+} // end namespace lld</pre>
+</div>
+<ul class="simple">
+<li>lld::File representations<ul>
+<li>In memory, abstract C++ classes (lld::Atom, lld::Reference, and lld::File).<ul>
+<li>Data structure keep in memory to be fast</li>
+</ul>
+</li>
+<li>textual (in YAML)</li>
+<li>atoms:<ul>
+<li>name:    _main</li>
+<li>scope:   global</li>
+<li>type:    code</li>
+<li>content: [ 55, 48, 89, e5, 48, 8d, 3d, 00, 00, 00, 00, 30, c0, e8, 00, 00,
+00, 00, 31, c0, 5d, c3 ]</li>
+</ul>
+</li>
+<li>binary format (“native”)<ul>
+<li>With this model for the native file format, files can be read and turned
+into the in-memory graph of lld::Atoms with just a few memory allocations.
+And the format can easily adapt over time to new features.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="resolving">
+<h4>Resolving<a class="headerlink" href="#resolving" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li>Dead code stripping (if requested) is done at the end of resolving.</li>
+<li>The linker does a simple mark-and-sweep. It starts with “root” atoms (like
+“main” in a main executable) and follows each references and marks each Atom
+that it visits as “live”.</li>
+<li>When done, all atoms not marked “live” are removed.</li>
+</ul>
+<p class="rubric">Dead code stripping - example (modified from llvm lto document web)</p>
+<p class="rubric">a.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">extern</span> <span class="kt">int</span> <span class="n">foo1</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+<span class="k">extern</span> <span class="kt">void</span> <span class="n">foo2</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+<span class="k">extern</span> <span class="kt">int</span> <span class="n">foo4</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+</pre></div>
+</div>
+<p class="rubric">a.c</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;a.h&quot;</span>
+
+<span class="k">static</span> <span class="kt">signed</span> <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="n">foo2</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="kt">int</span> <span class="n">foo3</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">(</span><span class="mi">10</span><span class="o">+</span><span class="n">foo4</span><span class="p">());</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">foo1</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">data</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">foo3</span><span class="p">();</span>
+
+  <span class="n">data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">+</span> <span class="mi">42</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">data</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">ch13_1.c</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;a.h&quot;</span>
+
+<span class="kt">int</span> <span class="n">foo4</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="mi">5</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">foo1</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Above code can be reduced to <a class="pageref" href="#lld-deadcodestripping">Figure  2</a> to perform
+mark and swip in graph for Dead Code Stripping.</p>
+<div class="figure align-center" id="lld-deadcodestripping">
+<a class="reference internal image-reference" href="_images/deadcodestripping.png"><img alt="_images/deadcodestripping.png" src="_images/deadcodestripping.png" style="width: 252.7px; height: 473.9px;" /></a>
+<p class="caption">Figure 2: Atom classified (from lld web)</p>
+</div>
+<p>As above example, the foo2() is isolated node without any reference. It&#8217;s dead
+code and can removed in linker optimization. We test this example by
+build-ch13_1.sh and find it cannot remove foo2(). It&#8217;s reasonable since the
+lld is in  early stages of development.</p>
+</div>
+<div class="section" id="passes-optimizations">
+<h4>Passes/Optimizations<a class="headerlink" href="#passes-optimizations" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li>Passes<ul>
+<li>stub (PLT) generation</li>
+<li>GOT instantiation</li>
+<li>order_file optimization</li>
+<li>branch island generation</li>
+<li>branch shim generation</li>
+<li>Objective-C optimizations (Darwin specific)</li>
+<li>TLV instantiation (Darwin specific)</li>
+<li>DTrace probe processing (Darwin specific)</li>
+<li>compact unwind encoding (Darwin specific)</li>
+</ul>
+</li>
+</ul>
+<p>The Cpu0RelocationPass.cpp and Cpu0RelocationPass.h are example code for lld
+backend Passes embedded. The Relocation Pass structure shown as
+<a class="pageref" href="#lld-f3">Figure  3</a>.</p>
+<div class="figure align-center" id="lld-f3">
+<a class="reference internal image-reference" href="_images/34.png"><img alt="_images/34.png" src="_images/34.png" style="width: 833.0px; height: 726.0px;" /></a>
+<p class="caption">Figure 3: Cpu0 lld RelocationPass</p>
+</div>
+</div>
+<div class="section" id="generate-output-file">
+<h4>Generate Output File<a class="headerlink" href="#generate-output-file" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li>All concrete writers (e.g. ELF, mach-o, etc) are subclasses of the lld::Writer
+class.</li>
+<li>Every Writer subclass defines its own “options” class (for instance the mach-o
+Writer defines the class WriterOptionsMachO). This options class is the
+one-and-only way to control how the Writer operates when producing an output
+file from an Atom graph.</li>
+<li>Writer</li>
+</ul>
+<p class="rubric">lld/lib/ReaderWriter</p>
+<div class="highlight-c++"><pre>~/test/lld/src/tools/lld/lib/ReaderWriter$ cat Writer.cpp
+...
+#include "lld/Core/File.h"
+#include "lld/ReaderWriter/Writer.h"
+
+namespace lld {
+Writer::Writer() {
+}
+
+Writer::~Writer() {
+}
+
+bool Writer::createImplicitFiles(std::vector&lt;std::unique_ptr&lt;File&gt; &gt; &amp;) {
+  return true;
+}
+} // end namespace lld</pre>
+</div>
+<p class="rubric">lld/lib/ReaderWriter</p>
+<div class="highlight-c++"><pre>~/test/lld/src/tools/lld/lib/ReaderWriter/ELF$ cat Writer.cpp
+namespace lld {
+
+std::unique_ptr&lt;Writer&gt; createWriterELF(const ELFLinkingContext &amp;info) {
+  using llvm::object::ELFType;
+  ...
+  switch (info.getOutputELFType()) {
+  case llvm::ELF::ET_EXEC:
+    if (info.is64Bits()) {
+      if (info.isLittleEndian())
+        return std::unique_ptr&lt;Writer&gt;(new
+            elf::ExecutableWriter&lt;ELFType&lt;support::little, 8, true&gt;&gt;(info));
+      else
+        return std::unique_ptr&lt;Writer&gt;(new
+                elf::ExecutableWriter&lt;ELFType&lt;support::big, 8, true&gt;&gt;(info));
+...
+
+} // namespace lld</pre>
+</div>
+<p>All lld backends which like to handle the Relocation
+Records Resolve need to register a pass when the lld backend code is up.
+Next section will show you how to design your lld backend and register a pass
+for Relocation Records Solve. After register the pass LLD will do last two steps
+Passes/Optimization and Generate Output file interactivly just like the &#8220;Parsing
+and Generating code&#8221; in compiler. LLD will do Passes/Optimization and call your
+lld backend hook function &#8220;applyRelocation()&#8221; (define in
+Cpu0TargetRelocationHandler.cpp) to finish the address binding in linker stage.
+Base on this understanding, we believe the &#8220;applyRelocation()&#8221; is at the step of
+Generate output file rather than Passes/Optimization even LLD web document
+didn&#8217;t indicate this.</p>
+</div>
+</div>
 </div>
 <div class="section" id="static-linker">
 <h2>Static linker<a class="headerlink" href="#static-linker" title="Permalink to this headline">¶</a></h2>
@@ -3150,15 +3486,11 @@ it without any problem.</p>
 <h3>Cpu0 lld structure<a class="headerlink" href="#cpu0-lld-structure" title="Permalink to this headline">¶</a></h3>
 <div class="figure align-center" id="lld-f1">
 <a class="reference internal image-reference" href="_images/16.png"><img alt="_images/16.png" src="_images/16.png" style="width: 752.0px; height: 823.0px;" /></a>
-<p class="caption">Figure 1: Cpu0 lld class relationship</p>
+<p class="caption">Figure 4: Cpu0 lld class relationship</p>
 </div>
 <div class="figure align-center" id="lld-f2">
 <a class="reference internal image-reference" href="_images/25.png"><img alt="_images/25.png" src="_images/25.png" style="width: 459.2px; height: 699.2px;" /></a>
-<p class="caption">Figure 2: Cpu0 lld ELFLinkingContext and DefaultLayout member functions</p>
-</div>
-<div class="figure align-center" id="lld-f3">
-<a class="reference internal image-reference" href="_images/34.png"><img alt="_images/34.png" src="_images/34.png" style="width: 833.0px; height: 726.0px;" /></a>
-<p class="caption">Figure 3: Cpu0 lld RelocationPass</p>
+<p class="caption">Figure 5: Cpu0 lld ELFLinkingContext and DefaultLayout member functions</p>
 </div>
 <p>The Cpu0LinkingContext include the context information for those input obj
 files and output elf file you want to link.
@@ -3200,7 +3532,7 @@ the Cpu0LinkingContext object pointer to Cpu0TargeHandler.</p>
 </pre></div>
 </div>
 <p>Finally, the Cpu0TargeHandler constructor will create other related objects
-and set up the relation reference object pointers as <a class="pageref" href="#lld-f1">Figure  1</a>
+and set up the relation reference object pointers as <a class="pageref" href="#lld-f1">Figure  4</a>
 depicted by the following code.</p>
 <p class="rubric">lbdex/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetHandler</span><span class="o">::</span><span class="n">Cpu0TargetHandler</span><span class="p">(</span><span class="n">Cpu0LinkingContext</span> <span class="o">&amp;</span><span class="n">context</span><span class="p">)</span>
@@ -3269,10 +3601,10 @@ Cpu0TargetHandler by lld ELF driver when it meet each relocation record.</p>
   <span class="p">}</span>
 </pre></div>
 </div>
-<p>Summary as <a class="pageref" href="#lld-f4">Figure  4</a>.</p>
+<p>Summary as <a class="pageref" href="#lld-f4">Figure  6</a>.</p>
 <div class="figure align-center" id="lld-f4">
 <a class="reference internal image-reference" href="_images/44.png"><img alt="_images/44.png" src="_images/44.png" style="width: 333.6px; height: 566.4px;" /></a>
-<p class="caption">Figure 4: Cpu0 lld related objects created sequence</p>
+<p class="caption">Figure 6: Cpu0 lld related objects created sequence</p>
 </div>
 <p>Remind, static std::unique_ptr&lt;ELFLinkingContext&gt;
 ELFLinkingContext::create(llvm::Triple) is called without an object of
@@ -3281,27 +3613,27 @@ The Cpu0LinkingContext constructor will create it&#8217;s ELFLinkingContext part
 The std::unique_ptr came from c++11 standard.
 The unique_ptr objects automatically delete the object they manage (using a
 deleter) as soon as they themselves are destroyed. Just like the Singlelten
-pattern in Design Pattern book or Smart Pointers in Effective C++ book. <a class="footnote-reference" href="#id9" id="id3">[3]</a></p>
+pattern in Design Pattern book or Smart Pointers in Effective C++ book. <a class="footnote-reference" href="#id11" id="id5">[3]</a></p>
 <div class="figure align-center" id="lld-f5">
 <a class="reference internal image-reference" href="_images/54.png"><img alt="_images/54.png" src="_images/54.png" style="width: 804.0px; height: 601.0px;" /></a>
-<p class="caption">Figure 5: Cpu0LinkingContext get Cpu0TargetHandler through &amp;getTargetHandler()</p>
+<p class="caption">Figure 7: Cpu0LinkingContext get Cpu0TargetHandler through &amp;getTargetHandler()</p>
 </div>
-<p>As <a class="pageref" href="#lld-f1">Figure  1</a> depicted, the Cpu0TargetHandler include the members or
+<p>As <a class="pageref" href="#lld-f1">Figure  4</a> depicted, the Cpu0TargetHandler include the members or
 pointers which can access to other object. The way to access Cpu0TargetHandler
 object from Cpu0LinkingContext or Cpu0RelocationHandler rely on
-LinkingContext::getTargetHandler() function. As <a class="pageref" href="#lld-f5">Figure  5</a> depicted,
+LinkingContext::getTargetHandler() function. As <a class="pageref" href="#lld-f5">Figure  7</a> depicted,
 the unique_ptr point to Cpu0TargetHandler will be saved in LinkingContext
 contructor function.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>std::unique_ptr::get() <a class="footnote-reference" href="#id10" id="id4">[4]</a></p>
+<p>std::unique_ptr::get() <a class="footnote-reference" href="#id12" id="id6">[4]</a></p>
 <p>pointer get() const noexcept;</p>
 <p class="last">Get pointer
 Returns the stored pointer.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>std::move() <a class="footnote-reference" href="#id11" id="id5">[5]</a></p>
+<p>std::move() <a class="footnote-reference" href="#id13" id="id7">[5]</a></p>
 <dl class="last docutils">
 <dt>for example:</dt>
 <dd><p class="first">std::string bar = &#8220;bar-string&#8221;;
@@ -3333,11 +3665,11 @@ support dynamic linker.</p>
 //                                                      | ...                                 |
 // DLINKER_INFO_ADDR+(numDynEntry-1)*4 ---------------&gt; | index of dynsym (the last row)      |
 //                                                      ---------------------------------------
-// DLINKER_INFO_ADDR+numDynEntry*4 -------------------&gt; | 1st function (foo()) offset in lib  |
-// DLINKER_INFO_ADDR+numDynEntry*4+4 -----------------&gt; | 1st function (foo()) name (48 bytes)|
+// DLINKER_INFO_ADDR+numDynEntry*4 -------------------&gt; | 1st function (la()) offset in lib   |
+// DLINKER_INFO_ADDR+numDynEntry*4+4 -----------------&gt; | 1st function (la()) name (48 bytes) |
 //                                                      | ...                                 |
-// DLINKER_INFO_ADDR+numDynEntry+(numDynEntry-1)*4 ---&gt; | last function (foo()) offset in lib |
-// DLINKER_INFO_ADDR+numDynEntry+(numDynEntry-1)*4+4 -&gt; | last function (foo()) name          |
+// DLINKER_INFO_ADDR+numDynEntry+(numDynEntry-1)*4 ---&gt; | last function (bar()) offset in lib |
+// DLINKER_INFO_ADDR+numDynEntry+(numDynEntry-1)*4+4 -&gt; | last function (bar()) name          |
 //                                                      ---------------------------------------
 // DLINKER_INFO_ADDR+4+numDynEntry*4+numDynEntry*52 --&gt; | .dynstr of lib                      |
 //                                                      |   ...                               |
@@ -3406,20 +3738,20 @@ support dynamic linker.</p>
     $display("gp = %8x", gp);
   `endif
 // below code set memory as follows,
-//                                 -----------------------------------
-// gp ---------------------------&gt; | all 0                           | (16 bytes)
-// gp+16 ------------------------&gt; | 0                          |
-// gp+16+1*4 --------------------&gt; | 1st plt entry address      | (4 bytes)
-//                                 | ...                        |
-// gp+16+(numDynEntry-1)*4 ------&gt; | the last plt entry address |
-//                                 ------------------------------
-// gp ---------------------------&gt; | all 0                           | (16 bytes)
-// gp+16+0*8'h10 ----------------&gt; | 32'h10: pointer to plt0         |
-// gp+16+1*8'h10 ----------------&gt; | 1st plt entry                   |
-// gp+16+2*8'h10 ----------------&gt; | 2nd plt entry                   |
-//                                 | ...                             |
-// gp+16+(numDynEntry-1)*8'h10 --&gt; | the last plt entry              |
-//                                 -----------------------------------
+//                                    -----------------------------------
+// gp ------------------------------&gt; | all 0                           | (16 bytes)
+// gp+16 ---------------------------&gt; | 0                          |
+// gp+16+1*4 -----------------------&gt; | 1st plt entry address      | (4 bytes)
+//                                    | ...                        |
+// gp+16+(numDynEntry-1)*4 ---------&gt; | the last plt entry address |
+//                                    -----------------------------------
+// gpPlt ---------------------------&gt; | all 0                           | (16 bytes)
+// gpPlt+16+0*8'h10 ----------------&gt; | 32'h10: pointer to plt0         |
+// gpPlt+16+1*8'h10 ----------------&gt; | 1st plt entry                   |
+// gpPlt+16+2*8'h10 ----------------&gt; | 2nd plt entry                   |
+//                                    | ...                             |
+// gpPlt+16+(numDynEntry-1)*8'h10 --&gt; | the last plt entry              |
+//                                    -----------------------------------
 // note: gp point to the _GLOBAL_OFFSET_TABLE_, 
 //       numDynEntry = actual number of functions + 1.
 //   gp+1*4..gp+numDynEntry*4 set to 8'h10 plt0 which will jump to dynamic 
@@ -3436,14 +3768,13 @@ support dynamic linker.</p>
       m[gpPlt+j] = 8'h00;
     // put plt in (gpPlt..gpPlt+numDynEntry*8'h10+1)
     for (i=1; i &lt; numDynEntry; i=i+1) begin
-      j=i*4;
       // (gp+'8h10..gp+numDynEntry*'8h10+15) set to plt entry
       // addiu	$t9, $zero, dynsym_idx
       m[gpPlt+i*8'h10] = 8'h09;
       m[gpPlt+i*8'h10+1] = 8'h60;
       m[gpPlt+i*8'h10+2] = i[15:8];
       m[gpPlt+i*8'h10+3] = i[7:0];
-      // st	$t9, j($gp)
+      // st	$t9, 0($gp)
       m[gpPlt+i*8'h10+4] = 8'h02;
       m[gpPlt+i*8'h10+5] = 8'h6b;
       m[gpPlt+i*8'h10+6] = 0;
@@ -3906,8 +4237,8 @@ cpu0_verilog/libso.hex
 ${TOOLDIR}/llvm-objdump -elf2hex -cpu0linkso a.out &gt; ../cpu0_verilog/cpu0.hex
 cp dynstr dynsym so_func_offset global_offset ../cpu0_verilog/.</pre>
 </div>
-<div class="section" id="id6">
-<h3>Run<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id8">
+<h3>Run<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost cpu0_verilog<span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
 /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
 <span class="o">[</span>Gamma@localhost cpu0_verilog<span class="o">]</span><span class="nv">$ </span>bash clean.sh
@@ -3957,6 +4288,223 @@ address by &#8220;ret $t9&#8221; instruction.</p>
 change from cpu=cpu0I to cpu0=cpu0II in build-dlinker.sh and run it again to
 get the same result.</p>
 </div>
+<div class="section" id="how-to-work">
+<h3>How to work<a class="headerlink" href="#how-to-work" title="Permalink to this headline">¶</a></h3>
+<p>After run build-dlinker.sh, the following files are created.</p>
+<p class="rubric">lbdex/cpu0_verilog/cpu0.hex</p>
+<div class="highlight-bash"><div class="highlight"><pre>/*Disassembly of section .plt:*/
+/*.PLT0:*/
+/*       0:*/ 36 00 00 3c                                  /* jmp     60*/
+/*       4:*/ 36 00 00 04                                  /* jmp     4*/
+/*       8:*/ 36 00 00 04                                  /* jmp     4*/
+/*       c:*/ 36 ff ff <span class="nb">fc</span>                                  /* jmp     -4*/
+
+/*.PLT0:*/
+/*      10:*/ 02 eb 00 04                                  /* st      <span class="nv">$lr</span>, 4<span class="o">(</span><span class="nv">$gp</span><span class="o">)</span>*/
+/*      14:*/ 02 cb 00 08                                  /* st      <span class="nv">$fp</span>, 8<span class="o">(</span><span class="nv">$gp</span><span class="o">)</span>*/
+/*      18:*/ 02 db 00 0c                                  /* st      <span class="nv">$sp</span>, 12<span class="o">(</span><span class="nv">$gp</span><span class="o">)</span>*/
+/*      1c:*/ 36 00 09 b8                                  /* jmp     2488*/
+
+/*__plt__Z3fooii:*/
+/*      20:*/ 09 60 00 04                                  /* addiu   <span class="nv">$t9</span>, <span class="nv">$zero</span>, 4<span class="o">(</span><span class="nv">$gp</span><span class="o">)</span>*/
+/*      24:*/ 02 6b 00 00                                  /* st      <span class="nv">$t9</span>, 0<span class="o">(</span><span class="nv">$gp</span><span class="o">)</span>*/
+/*      28:*/ 01 6b 00 10                                  /* ld      <span class="nv">$t9</span>, 16<span class="o">(</span><span class="nv">$gp</span><span class="o">)</span>*/
+/*      2c:*/ 3c 60 00 00                                  /* ret     <span class="nv">$t9</span>*/
+
+/*__plt__Z3barv:*/
+/*      30:*/ 09 60 00 05                                  /* addiu   <span class="nv">$t9</span>, <span class="nv">$zero</span>, 5<span class="o">(</span><span class="nv">$gp</span><span class="o">)</span>*/
+/*      34:*/ 02 6b 00 00                                  /* st      <span class="nv">$t9</span>, 0<span class="o">(</span><span class="nv">$gp</span><span class="o">)</span>*/
+/*      38:*/ 01 6b 00 10                                  /* ld      <span class="nv">$t9</span>, 16<span class="o">(</span><span class="nv">$gp</span><span class="o">)</span>*/
+/*      3c:*/ 3c 60 00 00                                  /* ret     <span class="nv">$t9</span>*/
+...
+
+/*main:*/
+...
+/*     d68:*/ 3b ff f2 b4                                  /* jsub    16773812*/ // call foo<span class="o">()</span>
+...
+/*     d80:*/ 3b ff f3 28                                  /* jsub    16773928*/ // call <span class="nb">printf</span><span class="o">()</span>
+/*     d84:*/ 3b ff f2 a8                                  /* jsub    16773800*/ // call bar<span class="o">()</span>
+...
+/*     d9c:*/ 3b ff f3 0c                                  /* jsub    16773900*/ // call <span class="nb">printf</span><span class="o">()</span>
+...
+/*     db8:*/ 3c e0 00 00                                  /* ret     <span class="nv">$lr</span>*/
+...
+/*Contents of section .data:*/
+/*20a8 */00 00 00 01  00 00 00 01  00 00 00 01  00 00 00 01 /*  ................*/
+...
+</pre></div>
+</div>
+<p class="rubric">lbdex/cpu0_verilog/dynstr</p>
+<div class="highlight-bash"><div class="highlight"><pre>00 5f 5f 74 6c 73 5f 67 65 74 5f 61 64 64 72 00 5f 5a 32 6c 61 69 69 00 5f 5a
+35 70 6f 77 65 72 69 00 5f 5a 33 66 6f 6f 69 69 00 5f 5a 33 62 61 72 76 00 5f
+47 4c 4f 42 41 4c 5f 4f 46 46 53 45 54 5f 54 41 42 4c 45 5f 00 5f 44 59 4e 41
+4d 49 43 00
+</pre></div>
+</div>
+<p class="rubric">lbdex/cpu0_verilog/dynsym</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">01</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">10</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">18</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">22</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">2</span><span class="n">b</span> <span class="mo">00</span> <span class="mo">00</span>
+<span class="mo">00</span> <span class="mi">33</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mo">00</span> <span class="mi">49</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/cpu0_verilog/global_offset</p>
+<div class="highlight-bash"><div class="highlight"><pre>00 00 20 68
+</pre></div>
+</div>
+<p class="rubric">lbdex/InputFiles/num_dyn_entry</p>
+<div class="highlight-bash"><div class="highlight"><pre>6
+</pre></div>
+</div>
+<p class="rubric">lbdex/InputFiles/libfoobar.cpu0.so</p>
+<div class="highlight-bash"><div class="highlight"><pre>cschen@cschen-BM6835-BM6635-BP6335:~/test/lbd/docs/BackendTutorial/lbdex/
+InputFiles<span class="nv">$ </span>/home/cschen/test/lld/cmake_debug_build/bin/llvm-objdump -s
+libfoobar.cpu0.so
+
+libfoobar.cpu0.so:    file format ELF32-CPU0
+
+Contents of section :
+...
+Contents of section .dynsym:
+ 00e4 00000000 00000000 00000000 00000000  ................
+ 00f4 00000001 0000019c 00000000 12000004  ................
+ 0104 00000010 0000019c 0000003c 12000004  ...........&lt;....
+ 0114 00000018 000001d8 00000038 12000004  ...........8....
+ 0124 00000021 00000210 00000070 12000004  ...!.......p....
+ 0134 00000029 00001040 00000000 10000006  ...<span class="o">)</span>...@........
+ 0144 0000003f 00001040 00000000 11000005  ...?...@........
+Contents of section .dynstr:
+ 0154 005f5f74 6c735f67 65745f61 64647200  .__tls_get_addr.
+ 0164 5f5a326c 61696900 5f5a3366 6f6f6969  _Z2laii._Z3fooii
+ 0174 005f5a33 62617276 005f474c 4f42414c  ._Z3barv._GLOBAL
+ 0184 5f4f4646 5345545f 5441424c 455f005f  _OFFSET_TABLE_._
+ 0194 44594e41 4d494300                    DYNAMIC.
+</pre></div>
+</div>
+<p class="rubric">lbdex/InputFiles/a.out</p>
+<div class="highlight-bash"><div class="highlight"><pre>cschen@cschen-BM6835-BM6635-BP6335:~/test/lbd/docs/BackendTutorial/lbdex/
+InputFiles<span class="nv">$ </span>/home/cschen/test/lld/cmake_debug_build/bin/llvm-objdump -s a.out
+
+a.out:        file format ELF32-CPU0
+
+Contents of section :
+...
+Contents of section .dynsym:
+ 013c 00000000 00000000 00000000 00000000  ................
+ 014c 00000001 00000000 00000000 12000000  ................
+ 015c 0000000a 00000000 00000000 12000000  ................
+Contents of section .dynstr:
+ 016c 005f5a33 666f6f69 69005f5a 33626172  ._Z3fooii._Z3bar
+ 017c 76006c69 62666f6f 6261722e 63707530  v.libfoobar.cpu0
+ 018c 2e736f00                             .so.
+...
+Contents of section .got.plt:
+ 2068 00000000 00000000 00000000 00000000  ................
+ 2078 00000000 00000000 00000000 00000000  ................
+ 2088 000001d0 00000000 00000000 00000000  ................
+ 2098 000001e0 00000000 00000000 00000000  ................
+Contents of section .data:
+ 20a8 00000001 00000001 00000001 00000001  ................
+</pre></div>
+</div>
+<p>File dynstr is section .dynstr of libfoobar.cpu0.so. File dynsym is the first
+4 bytes of every entry of .dynsym. File global_offset contains the start address
+of section .got.plt.</p>
+<p>The code of dynlinker.v will set the memory as follows after program is loaded.
+(gp value below is 2068 came from file global_offset).</p>
+<p class="rubric">memory contents</p>
+<div class="highlight-bash"><pre>//                                 -----------------------------------
+// gp ---------------------------&gt; | all 0                           | (16 bytes)
+// gp+16 ------------------------&gt; | 0                          |
+// gp+16+1*4 --------------------&gt; | 1st plt entry address      | (4 bytes)
+//                                 | ...                        |
+// gp+16+(numDynEntry-1)*4 ------&gt; | the last plt entry address |
+//                                 ------------------------------
+// gp ---------------------------&gt; | all 0                           | (16 bytes)
+// gp+16+0*8'h10 ----------------&gt; | 32'h10: pointer to plt0         |
+// gp+16+1*8'h10 ----------------&gt; | 1st plt entry                   |
+// gp+16+2*8'h10 ----------------&gt; | 2nd plt entry                   |
+//                                 | ...                             |
+// gp+16+(numDynEntry-1)*8'h10 --&gt; | the last plt entry              |
+//                                 -----------------------------------</pre>
+</div>
+<p>For example as ch_dynamiclinker.cpp and foobar.cpp, gp is 2068, numDynEntry is
+the contents of file num_dyn_entry which is 6. Every plt entry above (memory
+address gp+16+1*8&#8217;h10..gp+16+(numDynEntry-1)*8&#8217;h10) is initialize to &#8220;addiu     $t9,
+$zero, 4($gp); st       $t9, 0($gp); ld $t9, 16($gp); ret       $t9&#8221; as follows,</p>
+<p class="rubric">memory contents</p>
+<div class="highlight-bash"><pre>//                                 -----------------------------------
+// gp ---------------------------&gt; | all 0                           | (16 bytes)
+// gp+16 ------------------------&gt; | 0                          |
+// gp+16+1*4 --------------------&gt; | 1st plt entry address      | (4 bytes)
+// gp+16+2*4 --------------------&gt; | 1st plt entry address      | (4 bytes)
+//                                 | ...                        |
+// gp+16+(6-1)*4 ----------------&gt; | the last plt entry address |
+//                                 ------------------------------
+// gp ---------------------------&gt; | all 0                           | (16 bytes)
+// gp+16+0*8'h10 ----------------&gt; | 32'h10: pointer to plt0         |
+// gp+16+1*8'h10 ----------------&gt; | addiu    $t9, $zero, 4($gp)       |
+//                                 | st       $t9, 0($gp)                  |
+//                                 | ld       $t9, 16($gp)                 |
+//                                 | ret      $t9                        |
+// gp+16+2*8'h10 ----------------&gt; | addiu    $t9, $zero, 4($gp)       |
+//                                 | st       $t9, 0($gp)                  |
+//                                 | ld       $t9, 16($gp)                 |
+//                                 | ret      $t9                        |
+// ...                             | ...                             |
+// gp+16+(6-1)*8'h10 ------------&gt; | addiu    $t9, $zero, 4($gp)       |
+//                                 | st       $t9, 0($gp)                  |
+//                                 | ld       $t9, 16($gp)                 |
+//                                 | ret      $t9                        |
+//                                 -----------------------------------</pre>
+</div>
+<p><a class="pageref" href="#lld-f6">Figure  8</a> is the memory content after the example program is loaded.</p>
+<div class="figure align-center" id="lld-f6">
+<a class="reference internal image-reference" href="_images/64.png"><img alt="_images/64.png" src="_images/64.png" style="width: 352.0px; height: 564.0px;" /></a>
+<p class="caption">Figure 8: Memory content after the program is loaded</p>
+</div>
+<div class="figure align-center" id="lld-f7">
+<a class="reference internal image-reference" href="_images/73.png"><img alt="_images/73.png" src="_images/73.png" style="width: 192.8px; height: 556.0px;" /></a>
+<p class="caption">Figure 9: Control flow transfer from calling foo() instruction of main() to dynamic linker</p>
+</div>
+<p><a class="pageref" href="#lld-f7">Figure  9</a> is the Control flow transfer from call foo() of main() to
+dynamic linker. After ch_dynamiclinker.cpp call foo() first time, it jump to
+__plt_Z3fooii plt entry. Since __plt_Z3fooii is the 3rd plt entry,
+it save 3 to 0($gp) memory address then jump to PLT0. The PLT0 purpose is to
+save $lr, $fp, $sp and jump to dynamic linker.
+Now, the control flow transfer to dynamic linker.
+Dynamic linker will get the loaded function name and function offset of shared
+library by the value of 0($gp) which is 3 set in __plt_Z3fooii. The value
+3 tell dynamic linker load foo() (3rd string in .dynstr) from offset of shared
+library, 0x3c (3rd value of Function offset area in Figure).
+Now, dynamic linker can load foo() function from flash to memory, set the
+address gp+3*4 to 0x40000 where the address 0x40000 is the foo() function
+loaded to memory and prepare jump to the foo() memory address.
+Remind we say the prepare jump to foo(). It because
+before jump to foo(), dynamic linker need to restore the $lr, $fp, $sp to the
+value of just before caller calling foo() (they are saved in 4, 8, 12 of $gp
+offset in PLT0, so them can be restored from that address).</p>
+<div class="figure align-center" id="lld-f8">
+<a class="reference internal image-reference" href="_images/83.png"><img alt="_images/83.png" src="_images/83.png" style="width: 353.6px; height: 422.4px;" /></a>
+<p class="caption">Figure 10: Transfer from dynamic linker to foo() and back to main()</p>
+</div>
+<p>As <a class="pageref" href="#lld-f8">Figure  10</a> depicted, control flow from dynamic linker to foo() and
+back to caller main() when it meets the instruction &#8220;ret $lr&#8221; in foo().</p>
+<p>Now the program run at the next instruction of call foo() in main(). When it run
+to address 0xd8 &#8220;jsub __plt__Z3barv&#8221;, the control flow will transfer from
+__plt_Z3barv through PLT0 to dynamic linker then load and run bar() from flash
+to memory just like the calling __plt__Z3fooii.
+The difference is bar() will call foo() first and call la() next.
+The call foo() in bar() will jump to foo() directly as
+<a class="pageref" href="#lld-f8">Figure  10</a> because the content of gp+28 is the address of 0x40000 which
+set in dynamic linker when the foo() function is called first time.</p>
+<p>Finally the when bar() call la() function it will jump to __plt_Z3laii since the
+content of $gp+24 point to __plt_Z3laii.
+The __plt_Z3laii code will call dynamic linker
+to load la() function, run la() and back to bar() as <a class="pageref" href="#lld-f9">Figure  11</a>.</p>
+<div class="figure align-center" id="lld-f9">
+<a class="reference internal image-reference" href="_images/93.png"><img alt="_images/93.png" src="_images/93.png" style="width: 197.6px; height: 417.6px;" /></a>
+<p class="caption">Figure 11: Call la through __plt_Z3laii in bar()</p>
+</div>
+</div>
 <div class="section" id="cpu0-lld-dynamic-linker-structure">
 <h3>Cpu0 lld dynamic linker structure<a class="headerlink" href="#cpu0-lld-dynamic-linker-structure" title="Permalink to this headline">¶</a></h3>
 </div>
@@ -3974,37 +4522,51 @@ If you like to pay money to buy the FPGA development hardware, we believe the
 code can run on FPGA CPU without problem even though we didn&#8217;t do it.
 System program toolchain can be designed just like we show you at this point.
 School knowledge of system program, compiler, linker, loader, computer
-architecture and CPU design can be translated into a real work and see how it be
+architecture and CPU design can be translated into a real work and see how it is
 run. Now, these school books knowledge is not limited on paper.
 We program it, design it and run it on real world.</p>
-<table class="docutils footnote" frame="void" id="id7" rules="none">
+<p>The code size of we design an llvm Cpu0 backend compiler, lld linker,
+llvm-objdump and Verilog language is under 10 thousands lines of source code
+include comments. The clang, llvm and lld has 1000 thousands lines exclude the
+test and documents parts. It is only 1 % of the llvm size.
+Based on this truth, we believe llvm is a well defined structure in compiler
+architecture.</p>
+<p>Finally, 10 thousands of source code in Cpu0 backend is very small size in UI
+program. But it&#8217;s quite complex in system program which based on llvm.
+We spent 500 pages of pdf to explain these code. Open source code give the
+programmer best opportunity to understand the code and enhance/extend the
+code function. But not enough, we believe the book documents are the next most
+important thing to improve the open source code development.
+Writing document will help yourself to examine your software and make the
+program better in structure and reliability.</p>
+<table class="docutils footnote" frame="void" id="id9" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://lld.llvm.org/">http://lld.llvm.org/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id8" rules="none">
+<table class="docutils footnote" frame="void" id="id10" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://lld.llvm.org/getting_started.html#on-unix-like-systems">http://lld.llvm.org/getting_started.html#on-unix-like-systems</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id9" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/">http://www.cplusplus.com/reference/memory/unique_ptr/</a></td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id10" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/get/">http://www.cplusplus.com/reference/memory/unique_ptr/get/</a></td></tr>
-</tbody>
-</table>
 <table class="docutils footnote" frame="void" id="id11" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/utility/move/">http://www.cplusplus.com/reference/utility/move/</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id5">[3]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/">http://www.cplusplus.com/reference/memory/unique_ptr/</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id12" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id6">[4]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/get/">http://www.cplusplus.com/reference/memory/unique_ptr/get/</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id13" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id7">[5]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/utility/move/">http://www.cplusplus.com/reference/utility/move/</a></td></tr>
 </tbody>
 </table>
 </div>
