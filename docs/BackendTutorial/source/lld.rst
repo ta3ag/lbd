@@ -488,41 +488,32 @@ Resolving
 
 - When done, all atoms not marked “live” are removed.
 
-.. rubric:: Dead code stripping - example (from llvm lto document web)
-.. code-block:: c++
+.. rubric:: Dead code stripping - example (modified from llvm lto document web)
 
-  int main() {
-    return foo1();
-  }
-  static signed int i = 0;
-  void foo2(void) {
-    i = -1;
-  }
-  static int foo3() {
-    foo4();
-    return 10;
-  }
-  int foo1(void) {
-    int data = 0;
-    if (i < 0)
-      data = foo3();
-    data = data + 42;
-    return data;
-  }
-  void foo4(void) {
-    printf("Hi\n");
-  }
+.. rubric:: a.h
+.. literalinclude:: ../lbdex/InputFiles/a.h
 
+.. rubric:: a.c
+.. literalinclude:: ../lbdex/InputFiles/a.c
+
+.. rubric:: ch13_1.c
+.. literalinclude:: ../lbdex/InputFiles/ch13_1.c
 
 Above code can be reduced to :num:`Figure #lld-deadcodestripping` to perform
 mark and swip in graph for Dead Code Stripping.
 
 .. _lld-deadcodestripping: 
 .. figure:: ../Fig/lld/deadcodestripping.png
-  :scale: 100 %
+  :scale: 70 %
   :align: center
 
   Atom classified (from lld web)
+
+
+As above example, the foo2() is isolated node without any reference. It's dead 
+code and can removed in linker optimization. We test this example by 
+build-ch13_1.sh and find it cannot remove foo2(). It's reasonable since the 
+lld is in  early stages of development.
 
 
 Passes/Optimizations
