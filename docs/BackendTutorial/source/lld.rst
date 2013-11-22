@@ -305,30 +305,33 @@ explained in this section. List the LLD project status as follows,
 How LLD do the linker job
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Internal structure Atom
+- LLD structure
 
-  - Like llvm IR, lld operating and optimize in Atom.
+  - Internal structure Atom
 
-- ELF reader/writer, Mach-O reader/writer, COFF
+    - Like llvm IR, lld operating and optimize in Atom.
 
-  - Connect to any specific linker format by implement the concrete Read/Writer.
+  - ELF reader/writer, Mach-O reader/writer, COFF
 
-  - e.g. Implement Microsoft link format Reader/Writer
-    => extend lld to support Microsoft link format.
+    - Connect to any specific linker format by implement the concrete Read/Writer.
 
+    - e.g. Implement Microsoft link format Reader/Writer
+      => extend lld to support Microsoft link format.
 
-- An atom is an indivisible chunk of code or data.
+- Atom
 
-- Typically each user written function or global variable is an atom.
+  - An atom is an indivisible chunk of code or data.
 
-- In addition, the compiler may emit other atoms, such as for literal c-strings 
-  or floating point constants, or for runtime data structures like dwarf unwind 
-  info or pointers to initializers.
+  - Typically each user written function or global variable is an atom.
+
+  - In addition, the compiler may emit other atoms, such as for literal c-strings 
+    or floating point constants, or for runtime data structures like dwarf unwind 
+    info or pointers to initializers.
 
 
 - Atoms classified:
 
-The following Hello World code can be classified these different kinds of 
+The following Hello World code can be classified with these different kinds of 
 Atoms as follows,
 
 .. rubric:: Atom example code
@@ -408,7 +411,7 @@ Parsing input files
 
 - Reader
 
-.. rubric:: lld/lib/ReaderWriter
+.. rubric:: lld/lib/ReaderWriter/Reader.cpp
 .. code-block:: c++
 
   ~/test/lld/src/tools/lld/lib/ReaderWriter$ cat Reader.cpp
@@ -425,7 +428,7 @@ Parsing input files
   }
   } // end namespace lld
 
-.. rubric:: lld/lib/ReaderWriter
+.. rubric:: lld/lib/ReaderWriter/ELF/Reader.cpp
 .. code-block:: c++
 
   ~/test/lld/src/tools/lld/lib/ReaderWriter/ELF$ cat Reader.cpp 
@@ -455,7 +458,7 @@ Parsing input files
 
   - In memory, abstract C++ classes (lld::Atom, lld::Reference, and lld::File).
 
-    - Data structure keep in memory to be fast
+    - Data structure keeped in memory to be fast
 
   - textual (in YAML)
 
@@ -510,10 +513,14 @@ mark and swip in graph for Dead Code Stripping.
   Atom classified (from lld web)
 
 
-As above example, the foo2() is isolated node without any reference. It's dead 
-code and can removed in linker optimization. We test this example by 
-build-ch13_1.sh and find it cannot remove foo2(). It's reasonable since the 
-lld is in  early stages of development.
+As above example, the foo2() is an isolated node without any reference. It's 
+dead code and can be removed in linker optimization. We test this example by 
+build-ch13_1.sh and find foo2() cannot be removed. It's reasonable since the 
+lld is in its early stages of development. 
+Remind, llvm-linker is the linker works on IR level linker optimization. 
+Sometime when you got the obj file only (if you have a.o in this case), 
+the native linker (such as lld) have the opportunity to do Dead Code Stripping 
+while the IR linker hasn't.
 
 
 Passes/Optimizations
@@ -615,8 +622,8 @@ Passes/Optimization and Generate Output file interactivly just like the "Parsing
 and Generating code" in compiler. LLD will do Passes/Optimization and call your
 lld backend hook function "applyRelocation()" (define in 
 Cpu0TargetRelocationHandler.cpp) to finish the address binding in linker stage.
-Base on this understanding, we believe the "applyRelocation()" is at the step of 
-Generate output file rather than Passes/Optimization even LLD web document 
+Based on this understanding, we believe the "applyRelocation()" is at the step 
+of Generate output file rather than Passes/Optimization even LLD web document 
 didn't indicate this.
 
 
@@ -1384,34 +1391,42 @@ Summary
 --------
 
 Thanks the llvm open source project. 
-To write a linker and ELF to Hex tools for the new CPU architecture is easy and 
+To write a linker and ELF to Hex tools for a new CPU architecture is easy and 
 reliable. 
-Combine with the llvm compiler backend of support new architecture Cpu0 and 
-Verilog language program in the previouse Chapters, we design a software 
+Combined with the llvm Cpu0 backend code and Verilog language code we program 
+in previouse Chapters, we design a software 
 toolchain to compile C/C++ code, link and run it on Verilog Cpu0 simulated
 machine of PC without any real hardware to investment.
-If you like to pay money to buy the FPGA development hardware, we believe the 
-code can run on FPGA CPU without problem even though we didn't do it.
-System program toolchain can be designed just like we show you at this point. 
-School knowledge of system program, compiler, linker, loader, computer 
-architecture and CPU design can be translated into a real work and see how it is 
-run. Now, these school books knowledge is not limited on paper. 
-We program it, design it and run it on real world.
+If you like to pay money to buy the FPGA development hardware, we believe these  
+code can run on FPGA CPU even though we didn't do it.
+Extend system program toolchain to support a new CPU instructions can be 
+designed just like we show you at this point. 
+School knowledges of system program, compiler, linker, loader, computer 
+architecture and CPU design has been translated into a real work and see how it 
+is run. Now, these school books knowledge is not limited on paper. 
+We design it, program it and run it on real world.
 
-The code size of we design an llvm Cpu0 backend compiler, lld linker, 
-llvm-objdump and Verilog language is under 10 thousands lines of source code 
-include comments. The clang, llvm and lld has 1000 thousands lines exclude the
+The total code size of llvm Cpu0 backend compiler, Cpu0 lld linker, llvm-objdump 
+with elf2hex Cpu0 support and Cpu0 Verilog Language is under 10 thousands lines 
+of source code include comments. 
+The clang, llvm and lld has 1000 thousands lines exclude the
 test and documents parts. It is only 1 % of the llvm size. 
 Based on this truth, we believe llvm is a well defined structure in compiler 
 architecture. 
 
-Finally, 10 thousands of source code in Cpu0 backend is very small size in UI 
+Finally, 10 thousands lines of source code in Cpu0 backend is very small in UI 
 program. But it's quite complex in system program which based on llvm. 
-We spent 500 pages of pdf to explain these code. Open source code give the 
-programmer best opportunity to understand the code and enhance/extend the 
-code function. But not enough, we believe the book documents are the next most 
+We spent 500 pages of pdf to explain these code. Open source code give 
+programmers best opportunity to understand the code and enhance/extend the 
+code function. But not enough, we believe the documentation is the next most 
 important thing to improve the open source code development. 
-Writing document will help yourself to examine your software and make the 
+The Open Source Fundation recognized this point before us and set 
+Open Source Document Project years ago.
+We all learned the knowledge through books during school and after school. 
+So, if you cannot find a good way to produce documents, you can consider to 
+write the document like this book. This book document use sphinx tool just 
+like the llvm development team. Appendix A tell you how to install sphinx tool. 
+Writing document will help yourself to re-examine your software and make the 
 program better in structure and reliability.
 
 
