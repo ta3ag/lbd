@@ -362,7 +362,7 @@ How LLD do the linker job
 
   - SharedLibraryAtom
 
-    - Symbols defined in shared library (file *.so).
+    - Symbols defined in shared library (file \*.so).
 
   - AbsoluteAtom
 
@@ -1396,6 +1396,9 @@ Cpu0 lld dynamic linker structure
 Summary
 --------
 
+LLVM judgement
+~~~~~~~~~~~~~~~~~
+
 Thanks the llvm open source project. 
 To write a linker and ELF to Hex tools for a new CPU architecture is easy and 
 reliable. 
@@ -1420,6 +1423,9 @@ test and documents parts. It is only 1 % of the llvm size.
 Based on this truth, we believe llvm is a well defined structure in compiler 
 architecture. 
 
+Contribute back to Open Source through working and learning
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Finally, 10 thousands lines of source code in Cpu0 backend is very small in UI 
 program. But it's quite complex in system program which based on llvm. 
 We spent 500 pages of pdf to explain these code. Open source code give 
@@ -1428,12 +1434,22 @@ code function. But not enough, we believe the documentation is the next most
 important thing to improve the open source code development. 
 The Open Source Fundation recognized this point before us and set 
 Open Source Document Project years ago.
+Open Source grows up and become a giant software infrastructure with the forces 
+of company, school research and many talent engineers. 
+It terminate the situation of everyone try to re-invent wheels during 10 years 
+ago.
+Extend your software from the re-usable source code is the right way. 
+Of course you should consider GPL license if you are working with business.
+Actually anyone can contribute back to open source through the learning process. 
+We write this book through the process of learning llvm backend and contribute 
+back to llvm open source project.
 We all learned the knowledge through books during school and after school. 
 So, if you cannot find a good way to produce documents, you can consider to 
-write the document like this book. This book document use sphinx tool just 
+write document like this book. This book document use sphinx tool just 
 like the llvm development team. Appendix A tell you how to install sphinx tool. 
-Writing document will help yourself to re-examine your software and make the 
-program better in structure and reliability.
+Documentation work will help yourself to re-examine your software and make your 
+program better in structure, reliability and more important "Extend your code 
+to somewhere you didn't expect to".
 
 
 .. [#] http://lld.llvm.org/
