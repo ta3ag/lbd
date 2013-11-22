@@ -37,7 +37,7 @@ void start() {
 //  asm("boot:");
   asm("lui   $1,  0x7");
   asm("ori   $1,  $1, 0xfff0");
-  asm("ld    $gp, 0($1)"); // load $gp($10) value from 0x7fff0
+  asm("ld    $gp, 0($1)"); // load $gp($11) value from 0x7fff0
   initRegs();
   asm("addiu $sp, $zero, 0x6ffc");
   main();
