@@ -52,8 +52,11 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
+Version 3.3.10, Not release yet.
+
 Version 3.3.9, Not release yet.
-  lld.rst document.
+  Add LLD introduction and Cpu0 static linker document in lld.rst.
+  Fix the plt bug in elf2hex.h for dynamic linker.
 
 Version 3.3.8, Released November 19, 2013
   Fix the reference file missing for make gh-page.

@@ -278,6 +278,357 @@ The "if (DumpSo)" and "if (LinkSo)" included code are for dynamic linker support
 Others are used in both static and dynamic link execution file dump.
 
 
+LLD introduction 
+------------------
+
+In general, linker do the Relocation Records Resolve as Chapter ELF support 
+depicted and optimization for those cannot do in compiler stage. One of 
+the optimization opportunity in linker is Dead Code Stripping which will 
+explained in this section. List the LLD project status as follows,
+
+- The lld project aims to to be the built-in linker for clang/llvm.
+  Currently, clang must invoke the system linker to produce executables.
+
+- web site http://lld.llvm.org/
+
+- Current Status
+
+  - lld is in its early stages of development.
+  - It can currently self host on Linux x86-64 with -static.
+
+- How to build
+
+  - cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_FLAGS=-std
+    =c++11 -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ../src/
+
+
+How LLD do the linker job
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Internal structure Atom
+
+  - Like llvm IR, lld operating and optimize in Atom.
+
+- ELF reader/writer, Mach-O reader/writer, COFF
+
+  - Connect to any specific linker format by implement the concrete Read/Writer.
+
+  - e.g. Implement Microsoft link format Reader/Writer
+    => extend lld to support Microsoft link format.
+
+
+- An atom is an indivisible chunk of code or data.
+
+- Typically each user written function or global variable is an atom.
+
+- In addition, the compiler may emit other atoms, such as for literal c-strings 
+  or floating point constants, or for runtime data structures like dwarf unwind 
+  info or pointers to initializers.
+
+
+- Atoms classified:
+
+The following Hello World code can be classified these different kinds of 
+Atoms as follows,
+
+.. rubric:: Atom example code
+.. code-block:: c++
+
+  extern int printf(const char *format, ...);
+
+  int main(void)
+  {
+    char *ptr = "Hello world!";
+
+    printf("%s\n", ptr);
+  }
+
+- DefinedAtom
+
+  - 95% of all atoms. This is a chunk of code or data
+
+- UndefinedAtom
+
+  - printf in this example.
+
+- SharedLibraryAtom
+
+  - Symbols defined in shared library (file *.so).
+
+- AbsoluteAtom
+
+  - This is for embedded support where some stuff is implemented in ROM at some 
+    fixed address.
+
+.. _lld-atom: 
+.. figure:: ../Fig/lld/atom.png
+  :scale: 100 %
+  :align: center
+
+  Atom classified (from lld web)
+
+
+Linking Steps
+~~~~~~~~~~~~~~
+
+- Command line processing
+
+  - lld -flavor gnu -target cpu0-unknown-linux-gnu hello.o printf-stdarg.o -o a.out
+
+- Parsing input files
+
+  - ELF reader => create lld:File
+
+- Resolving
+
+  - dead code stripping
+
+- Passes/Optimizations
+
+  - Like llvm passes, give the backend chance to do something like optimization. 
+
+- Generate output file
+
+  - Resolving Relocation Records – I guess in this step
+
+
+Parsing input files 
++++++++++++++++++++++++++
+
+- Input Files
+
+  - A goal of lld is to be file format independent.
+
+  - The lld::Reader is the base class for all object file readers
+
+  - Every Reader subclass defines its own “options” class (for instance the 
+    mach-o Reader defines the class ReaderOptionsMachO). This options class is 
+    the one-and-only way to control how the Reader operates when parsing an input 
+    file into an Atom graph
+
+- Reader
+
+.. rubric:: lld/lib/ReaderWriter
+.. code-block:: c++
+
+  ~/test/lld/src/tools/lld/lib/ReaderWriter$ cat Reader.cpp
+  ...
+  #include "lld/ReaderWriter/Reader.h"
+
+  #include "llvm/ADT/OwningPtr.h"
+  #include "llvm/ADT/StringRef.h"
+  #include "llvm/Support/MemoryBuffer.h"
+  #include "llvm/Support/system_error.h"
+
+  namespace lld {
+  Reader::~Reader() {
+  }
+  } // end namespace lld
+
+.. rubric:: lld/lib/ReaderWriter
+.. code-block:: c++
+
+  ~/test/lld/src/tools/lld/lib/ReaderWriter/ELF$ cat Reader.cpp 
+  namespace lld {
+  namespace elf {
+  ...
+  class ELFReader : public Reader {
+  public:
+    ELFReader(const ELFLinkingContext &ctx)
+        : lld::Reader(ctx), _elfLinkingContext(ctx) {}
+
+    error_code parseFile(std::unique_ptr<MemoryBuffer> &mb,
+                         std::vector<std::unique_ptr<File> > &result) const {
+  …
+  private:
+    const ELFLinkingContext &_elfLinkingContext;
+  };
+  } // end namespace elf
+
+  std::unique_ptr<Reader> createReaderELF(const ELFLinkingContext &context) {
+    return std::unique_ptr<Reader>(new elf::ELFReader(context));
+  }
+  } // end namespace lld
+
+
+- lld::File representations
+
+  - In memory, abstract C++ classes (lld::Atom, lld::Reference, and lld::File).
+
+    - Data structure keep in memory to be fast
+
+  - textual (in YAML)
+
+  - atoms:
+
+    - name:    _main
+
+    - scope:   global
+
+    - type:    code
+
+    - content: [ 55, 48, 89, e5, 48, 8d, 3d, 00, 00, 00, 00, 30, c0, e8, 00, 00,
+      00, 00, 31, c0, 5d, c3 ]
+
+  - binary format (“native”)
+
+    - With this model for the native file format, files can be read and turned 
+      into the in-memory graph of lld::Atoms with just a few memory allocations. 
+      And the format can easily adapt over time to new features.
+
+
+Resolving
++++++++++++
+
+- Dead code stripping (if requested) is done at the end of resolving. 
+
+- The linker does a simple mark-and-sweep. It starts with “root” atoms (like 
+  “main” in a main executable) and follows each references and marks each Atom 
+  that it visits as “live”. 
+
+- When done, all atoms not marked “live” are removed.
+
+.. rubric:: Dead code stripping - example (from llvm lto document web)
+.. code-block:: c++
+
+  int main() {
+    return foo1();
+  }
+  static signed int i = 0;
+  void foo2(void) {
+    i = -1;
+  }
+  static int foo3() {
+    foo4();
+    return 10;
+  }
+  int foo1(void) {
+    int data = 0;
+    if (i < 0)
+      data = foo3();
+    data = data + 42;
+    return data;
+  }
+  void foo4(void) {
+    printf("Hi\n");
+  }
+
+
+Above code can be reduced to :num:`Figure #lld-deadcodestripping` to perform
+mark and swip in graph for Dead Code Stripping.
+
+.. _lld-deadcodestripping: 
+.. figure:: ../Fig/lld/deadcodestripping.png
+  :scale: 100 %
+  :align: center
+
+  Atom classified (from lld web)
+
+
+Passes/Optimizations
++++++++++++++++++++++++
+
+- Passes
+
+  - stub (PLT) generation
+
+  - GOT instantiation
+
+  - order_file optimization
+
+  - branch island generation
+
+  - branch shim generation
+
+  - Objective-C optimizations (Darwin specific)
+
+  - TLV instantiation (Darwin specific)
+
+  - DTrace probe processing (Darwin specific)
+
+  - compact unwind encoding (Darwin specific)
+
+The Cpu0RelocationPass.cpp and Cpu0RelocationPass.h are example code for lld 
+backend Passes embedded. The Relocation Pass structure shown as 
+:num:`Figure #lld-f3`. 
+
+.. _lld-f3: 
+.. figure:: ../Fig/lld/3.png
+  :scale: 100 %
+  :align: center
+
+  Cpu0 lld RelocationPass
+
+
+Generate Output File
++++++++++++++++++++++++
+
+- All concrete writers (e.g. ELF, mach-o, etc) are subclasses of the lld::Writer 
+  class.
+
+- Every Writer subclass defines its own “options” class (for instance the mach-o 
+  Writer defines the class WriterOptionsMachO). This options class is the 
+  one-and-only way to control how the Writer operates when producing an output 
+  file from an Atom graph.
+
+- Writer
+
+.. rubric:: lld/lib/ReaderWriter
+.. code-block:: c++
+
+  ~/test/lld/src/tools/lld/lib/ReaderWriter$ cat Writer.cpp
+  ...
+  #include "lld/Core/File.h"
+  #include "lld/ReaderWriter/Writer.h"
+
+  namespace lld {
+  Writer::Writer() {
+  }
+
+  Writer::~Writer() {
+  }
+
+  bool Writer::createImplicitFiles(std::vector<std::unique_ptr<File> > &) {
+    return true;
+  }
+  } // end namespace lld
+
+.. rubric:: lld/lib/ReaderWriter
+.. code-block:: c++
+
+  ~/test/lld/src/tools/lld/lib/ReaderWriter/ELF$ cat Writer.cpp 
+  namespace lld {
+
+  std::unique_ptr<Writer> createWriterELF(const ELFLinkingContext &info) {
+    using llvm::object::ELFType;
+    ...
+    switch (info.getOutputELFType()) {
+    case llvm::ELF::ET_EXEC:
+      if (info.is64Bits()) {
+        if (info.isLittleEndian())
+          return std::unique_ptr<Writer>(new
+              elf::ExecutableWriter<ELFType<support::little, 8, true>>(info));
+        else
+          return std::unique_ptr<Writer>(new
+                  elf::ExecutableWriter<ELFType<support::big, 8, true>>(info));
+  ...
+
+  } // namespace lld
+
+
+All lld backends which like to handle the Relocation 
+Records Resolve need to register a pass when the lld backend code is up.
+Next section will show you how to design your lld backend and register a pass 
+for Relocation Records Solve. After register the pass LLD will do last two steps 
+Passes/Optimization and Generate Output file interactivly just like the "Parsing 
+and Generating code" in compiler. LLD will do Passes/Optimization and call your
+lld backend hook function "applyRelocation()" (define in 
+Cpu0TargetRelocationHandler.cpp) to finish the address binding in linker stage.
+Base on this understanding, we believe the "applyRelocation()" is at the step of 
+Generate output file rather than Passes/Optimization even LLD web document 
+didn't indicate this.
+
+
 Static linker 
 ---------------
 
@@ -473,13 +824,6 @@ Cpu0 lld structure
   :align: center
 
   Cpu0 lld ELFLinkingContext and DefaultLayout member functions
-
-.. _lld-f3: 
-.. figure:: ../Fig/lld/3.png
-  :scale: 100 %
-  :align: center
-
-  Cpu0 lld RelocationPass
 
 The Cpu0LinkingContext include the context information for those input obj 
 files and output elf file you want to link.
