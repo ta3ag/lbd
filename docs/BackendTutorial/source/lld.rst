@@ -968,7 +968,7 @@ class ELFLinkingContext instance (because the static keyword).
 The Cpu0LinkingContext constructor will create it's ELFLinkingContext part.
 The std::unique_ptr came from c++11 standard.
 The unique_ptr objects automatically delete the object they manage (using a 
-deleter) as soon as they themselves are destroyed. Just like the Singlelten 
+deleter) as soon as themselves are destroyed. Just like the Singlelten 
 pattern in Design Pattern book or Smart Pointers in Effective C++ book. [#]_
 
 .. _lld-f5: 
@@ -1006,8 +1006,8 @@ contructor function.
 Dynamic linker 
 ---------------
 
-Except the lld code with #ifdef DLINKER. The following code in Verilog exist to 
-support dynamic linker.
+Except the lld code with #ifdef DLINKER. The following code in Verilog exists 
+to support dynamic linker.
 
 .. rubric:: lbdex/cpu0_verilog/dynlinker.v
 .. literalinclude:: ../lbdex/cpu0_verilog/dynlinker.v
@@ -1158,13 +1158,13 @@ After run build-dlinker.sh, the following files are created.
   /*      1c:*/	36 00 09 b8                                  /*	jmp	2488*/
 
   /*__plt__Z3fooii:*/
-  /*      20:*/	09 60 00 04                                  /* addiu	$t9, $zero, 4($gp)*/
+  /*      20:*/	09 60 00 04                                  /* addiu	$t9, $zero, 4*/
   /*      24:*/	02 6b 00 00                                  /*	st	$t9, 0($gp)*/
   /*      28:*/	01 6b 00 10                                  /*	ld	$t9, 16($gp)*/
   /*      2c:*/	3c 60 00 00                                  /*	ret	$t9*/
 
   /*__plt__Z3barv:*/
-  /*      30:*/	09 60 00 05                                  /* addiu	$t9, $zero, 5($gp)*/
+  /*      30:*/	09 60 00 05                                  /* addiu	$t9, $zero, 5*/
   /*      34:*/	02 6b 00 00                                  /*	st	$t9, 0($gp)*/
   /*      38:*/	01 6b 00 10                                  /*	ld	$t9, 16($gp)*/
   /*      3c:*/	3c 60 00 00                                  /*	ret	$t9*/
@@ -1304,21 +1304,21 @@ $zero, 4($gp); st	$t9, 0($gp); ld	$t9, 16($gp); ret	$t9" as follows,
   // gp+16+2*4 --------------------> | 1st plt entry address      | (4 bytes)
   //                                 | ...                        |
   // gp+16+(6-1)*4 ----------------> | the last plt entry address |
-  //                                 ------------------------------
+  //                                 -----------------------------------
   // gp ---------------------------> | all 0                           | (16 bytes)
   // gp+16+0*8'h10 ----------------> | 32'h10: pointer to plt0         |
-  // gp+16+1*8'h10 ----------------> | addiu	$t9, $zero, 4($gp)       |
-  //                                 | st	$t9, 0($gp)                  |
-  //                                 | ld	$t9, 16($gp)                 |
+  // gp+16+1*8'h10 ----------------> | addiu	$t9, $zero, 4          |
+  //                                 | st	$t9, 0($gp)                |
+  //                                 | ld	$t9, 16($gp)               |
   //                                 | ret	$t9                        |
-  // gp+16+2*8'h10 ----------------> | addiu	$t9, $zero, 4($gp)       |
-  //                                 | st	$t9, 0($gp)                  |
-  //                                 | ld	$t9, 16($gp)                 |
+  // gp+16+2*8'h10 ----------------> | addiu	$t9, $zero, 4          |
+  //                                 | st	$t9, 0($gp)                |
+  //                                 | ld	$t9, 16($gp)               |
   //                                 | ret	$t9                        |
   // ...                             | ...                             |
-  // gp+16+(6-1)*8'h10 ------------> | addiu	$t9, $zero, 4($gp)       |
-  //                                 | st	$t9, 0($gp)                  |
-  //                                 | ld	$t9, 16($gp)                 |
+  // gp+16+(6-1)*8'h10 ------------> | addiu	$t9, $zero, 4          |
+  //                                 | st	$t9, 0($gp)                |
+  //                                 | ld	$t9, 16($gp)               |
   //                                 | ret	$t9                        |
   //                                 -----------------------------------
 
@@ -1376,7 +1376,7 @@ The call foo() in bar() will jump to foo() directly as
 :num:`Figure #lld-f8` because the content of gp+28 is the address of 0x40000 which
 set in dynamic linker when the foo() function is called first time. 
 
-Finally the when bar() call la() function it will jump to __plt_Z3laii since the 
+Finally when bar() call la() function it will jump to __plt_Z3laii since the 
 content of $gp+24 point to __plt_Z3laii. 
 The __plt_Z3laii code will call dynamic linker
 to load la() function, run la() and back to bar() as :num:`Figure #lld-f9`.
@@ -1406,14 +1406,14 @@ Combined with the llvm Cpu0 backend code and Verilog language code we program
 in previouse Chapters, we design a software 
 toolchain to compile C/C++ code, link and run it on Verilog Cpu0 simulated
 machine of PC without any real hardware to investment.
-If you like to pay money to buy the FPGA development hardware, we believe these  
+If you like to pay money to buy the FPGA development hardware, we believe these 
 code can run on FPGA CPU even though we didn't do it.
 Extend system program toolchain to support a new CPU instructions can be 
 designed just like we show you at this point. 
 School knowledges of system program, compiler, linker, loader, computer 
 architecture and CPU design has been translated into a real work and see how it 
 is run. Now, these school books knowledge is not limited on paper. 
-We design it, program it and run it on real world.
+We design it, program it, and run it on real world.
 
 The total code size of llvm Cpu0 backend compiler, Cpu0 lld linker, llvm-objdump 
 with elf2hex Cpu0 support and Cpu0 Verilog Language is under 10 thousands lines 
@@ -1435,11 +1435,12 @@ important thing to improve the open source code development.
 The Open Source Fundation recognized this point before us and set 
 Open Source Document Project years ago.
 Open Source grows up and becomes a giant software infrastructure with the forces 
-of company, school research and countless talent engineers passion. 
-It terminated the situation of everyone try to re-invent wheels during 10 years 
-ago.
+of company, school research team and countless talent engineers passion. 
+It terminated the situation of everyone trying to re-invent wheels during 10 
+years ago.
 Extend your software from the re-usable source code is the right way. 
-Of course you should consider GPL license if you are working with business.
+Of course you should consider an open source license if you are working 
+with business.
 Actually anyone can contribute back to open source through the learning process. 
 We write this book through the process of learning llvm backend and contribute 
 back to llvm open source project.
@@ -1449,7 +1450,7 @@ write document like this book. This book document use sphinx tool just
 like the llvm development team. Appendix A tell you how to install sphinx tool. 
 Documentation work will help yourself to re-examine your software and make your 
 program better in structure, reliability and more important "Extend your code 
-to somewhere you didn't expect to".
+to somewhere you didn't expect".
 
 
 .. [#] http://lld.llvm.org/
