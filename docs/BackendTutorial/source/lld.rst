@@ -400,6 +400,36 @@ Linking Steps
 
   - Resolving Relocation Records – I guess in this step
 
+Command line processing 
++++++++++++++++++++++++++
+
+To support a new backend, the following code added for Command line processing.
+
+.. rubric:: lld/lib/ReaderWriter/ELF/ELFLinkingContext.cpp
+.. code-block:: c++
+
+  uint16_t ELFLinkingContext::getOutputMachine() const {
+    switch (getTriple().getArch()) {
+    ...
+    case llvm::Triple::cpu0:
+      return llvm::ELF::EM_CPU0;
+    default:
+      llvm_unreachable("Unhandled arch");
+    }
+  }
+  
+  std::unique_ptr<ELFLinkingContext>
+  ELFLinkingContext::create(llvm::Triple triple) {
+    switch (triple.getArch()) {
+    ...
+    case llvm::Triple::cpu0:
+      return std::unique_ptr<ELFLinkingContext>(
+          new lld::elf::Cpu0LinkingContext(triple));
+    default:
+      return nullptr;
+    }
+  }
+
 
 Parsing input files 
 +++++++++++++++++++++++++
