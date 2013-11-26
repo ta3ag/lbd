@@ -337,7 +337,7 @@ running result.
 :ref:`sec-optimize`:
 
 Introduce how to do backend optimization by a simple effective example, and 
-redesign Cpu0 instruction sets to be a efficient RISC CPU.
+extend Cpu0 instruction sets to be a efficient RISC CPU.
 
 :ref:`sec-lld`:
 

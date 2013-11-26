@@ -562,24 +562,19 @@ To support llvm-objdump, the following code added to Chapter10_1/
 
   tablegen(LLVM Cpu0GenDisassemblerTables.inc -gen-disassembler)
   ...
+  add_subdirectory(Disassembler)
+  ...
   
 .. rubric:: lbdex/Chapter10_1/LLVMBuild.txt
 .. code-block:: c++
 
   [common]
-  subdirectories = Disassembler ...
+  subdirectories = 
+    Disassembler 
   ...
   has_disassembler = 1
   ...
-  
-.. rubric:: lbdex/Chapter8_1/Cpu0InstrInfo.td
-.. code-block:: c++
 
-  def brtarget24    : Operand<OtherVT> {
-    ...
-    let DecoderMethod = "DecodeBranch24Target";
-  }
-  
 .. rubric:: lbdex/Chapter10_1/Cpu0InstrInfo.td
 .. code-block:: c++
 
