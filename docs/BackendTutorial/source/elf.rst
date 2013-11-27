@@ -599,7 +599,7 @@ Not every instruction in \*.td can be disassembled without trouble even though
 they can be translated into assembly and obj successfully. 
 For those cannot be disassembled, LLVM supply the **"let DecoderMethod"** 
 keyword to allow programmers implement their decode function. 
-In Cpu0 example, we define function DecodeCMPInstruction(), DecodeBranchTarget()
+In Cpu0 example, we define function DecodeCMPInstruction(), DecodeBranch24Target()
 and DecodeJumpAbsoluteTarget() in Cpu0Disassembler.cpp and tell the LLVM table 
 driven system by write **"let DecoderMethod = ..."** in the corresponding 
 instruction definitions or ISD node of Cpu0InstrInfo.td. 
@@ -638,125 +638,121 @@ the following result.
 
   Disassembly of section .text:
   _Z13test_control1v:
-           0: 09 dd ff d0                                   addiu $sp, $sp, -48
-           4: 02 cd 00 2c                                   st  $fp, 44($sp)
-           8: 11 cd 00 00                                   addu  $fp, $sp, $zero
-           c: 09 30 00 00                                   addiu $3, $zero, 0
-          10: 02 3c 00 28                                   st  $3, 40($fp)
-          14: 09 20 00 01                                   addiu $2, $zero, 1
-          18: 02 2c 00 24                                   st  $2, 36($fp)
-          1c: 09 40 00 02                                   addiu $4, $zero, 2
-          20: 02 4c 00 20                                   st  $4, 32($fp)
-          24: 09 40 00 03                                   addiu $4, $zero, 3
-          28: 02 4c 00 1c                                   st  $4, 28($fp)
-          2c: 09 40 00 04                                   addiu $4, $zero, 4
-          30: 02 4c 00 18                                   st  $4, 24($fp)
-          34: 09 40 00 05                                   addiu $4, $zero, 5
-          38: 02 4c 00 14                                   st  $4, 20($fp)
-          3c: 09 40 00 06                                   addiu $4, $zero, 6
-          40: 02 4c 00 10                                   st  $4, 16($fp)
-          44: 09 40 00 07                                   addiu $4, $zero, 7
-          48: 02 4c 00 0c                                   st  $4, 12($fp)
-          4c: 09 40 00 08                                   addiu $4, $zero, 8
-          50: 02 4c 00 08                                   st  $4, 8($fp)
-          54: 09 40 00 09                                   addiu $4, $zero, 9
-          58: 02 4c 00 04                                   st  $4, 4($fp)
-          5c: 01 4c 00 28                                   ld  $4, 40($fp)
-          60: 10 43 00 00                                   cmp $zero, $4, $3
-          64: 31 00 00 10                                   jne $zero, 16
-          68: 36 00 00 00                                   jmp 0
-          6c: 01 4c 00 28                                   ld  $4, 40($fp)
-          70: 09 44 00 01                                   addiu $4, $4, 1
-          74: 02 4c 00 28                                   st  $4, 40($fp)
-          78: 01 4c 00 24                                   ld  $4, 36($fp)
-          7c: 10 43 00 00                                   cmp $zero, $4, $3
-          80: 30 00 00 10                                   jeq $zero, 16
-          84: 36 00 00 00                                   jmp 0
-          88: 01 4c 00 24                                   ld  $4, 36($fp)
-          8c: 09 44 00 01                                   addiu $4, $4, 1
-          90: 02 4c 00 24                                   st  $4, 36($fp)
-          94: 01 4c 00 20                                   ld  $4, 32($fp)
-          98: 10 42 00 00                                   cmp $zero, $4, $2
-          9c: 32 00 00 10                                   jlt $zero, 16
-          a0: 36 00 00 00                                   jmp 0
-          a4: 01 4c 00 20                                   ld  $4, 32($fp)
-          a8: 09 44 00 01                                   addiu $4, $4, 1
-          ac: 02 4c 00 20                                   st  $4, 32($fp)
-          b0: 01 4c 00 1c                                   ld  $4, 28($fp)
-          b4: 10 43 00 00                                   cmp $zero, $4, $3
-          b8: 32 00 00 10                                   jlt $zero, 16
-          bc: 36 00 00 00                                   jmp 0
-          c0: 01 4c 00 1c                                   ld  $4, 28($fp)
-          c4: 09 44 00 01                                   addiu $4, $4, 1
-          c8: 02 4c 00 1c                                   st  $4, 28($fp)
-          cc: 09 40 ff ff                                   addiu $4, $zero, -1
-          d0: 01 5c 00 18                                   ld  $5, 24($fp)
-          d4: 10 54 00 00                                   cmp $zero, $5, $4
-          d8: 33 00 00 10                                   jgt $zero, 16
-          dc: 36 00 00 00                                   jmp 0
-          e0: 01 4c 00 18                                   ld  $4, 24($fp)
-          e4: 09 44 00 01                                   addiu $4, $4, 1
-          e8: 02 4c 00 18                                   st  $4, 24($fp)
-          ec: 01 4c 00 14                                   ld  $4, 20($fp)
-          f0: 10 43 00 00                                   cmp $zero, $4, $3
-          f4: 33 00 00 10                                   jgt $zero, 16
-          f8: 36 00 00 00                                   jmp 0
-          fc: 01 3c 00 14                                   ld  $3, 20($fp)
-         100: 09 33 00 01                                   addiu $3, $3, 1
-         104: 02 3c 00 14                                   st  $3, 20($fp)
-         108: 01 3c 00 10                                   ld  $3, 16($fp)
-         10c: 10 32 00 00                                   cmp $zero, $3, $2
-         110: 33 00 00 10                                   jgt $zero, 16
-         114: 36 00 00 00                                   jmp 0
-         118: 01 3c 00 10                                   ld  $3, 16($fp)
-         11c: 09 33 00 01                                   addiu $3, $3, 1
-         120: 02 3c 00 10                                   st  $3, 16($fp)
-         124: 01 3c 00 0c                                   ld  $3, 12($fp)
-         128: 10 32 00 00                                   cmp $zero, $3, $2
-         12c: 32 00 00 10                                   jlt $zero, 16
-         130: 36 00 00 00                                   jmp 0
-         134: 01 2c 00 0c                                   ld  $2, 12($fp)
-         138: 09 22 00 01                                   addiu $2, $2, 1
-         13c: 02 2c 00 0c                                   st  $2, 12($fp)
-         140: 01 2c 00 0c                                   ld  $2, 12($fp)
-         144: 01 3c 00 08                                   ld  $3, 8($fp)
-         148: 10 32 00 00                                   cmp $zero, $3, $2
-         14c: 35 00 00 10                                   jge $zero, 16
-         150: 36 00 00 00                                   jmp 0
-         154: 01 2c 00 08                                   ld  $2, 8($fp)
-         158: 09 22 00 01                                   addiu $2, $2, 1
-         15c: 02 2c 00 08                                   st  $2, 8($fp)
-         160: 01 2c 00 24                                   ld  $2, 36($fp)
-         164: 01 3c 00 28                                   ld  $3, 40($fp)
-         168: 10 32 00 00                                   cmp $zero, $3, $2
-         16c: 30 00 00 10                                   jeq $zero, 16
-         170: 36 00 00 00                                   jmp 0
-         174: 01 2c 00 04                                   ld  $2, 4($fp)
-         178: 09 22 00 01                                   addiu $2, $2, 1
-         17c: 02 2c 00 04                                   st  $2, 4($fp)
-         180: 01 2c 00 24                                   ld  $2, 36($fp)
-         184: 01 3c 00 28                                   ld  $3, 40($fp)
-         188: 11 23 20 00                                   addu  $2, $3, $2
-         18c: 01 3c 00 20                                   ld  $3, 32($fp)
-         190: 11 22 30 00                                   addu  $2, $2, $3
-         194: 01 3c 00 1c                                   ld  $3, 28($fp)
-         198: 11 22 30 00                                   addu  $2, $2, $3
-         19c: 01 3c 00 18                                   ld  $3, 24($fp)
-         1a0: 11 22 30 00                                   addu  $2, $2, $3
-         1a4: 01 3c 00 14                                   ld  $3, 20($fp)
-         1a8: 11 22 30 00                                   addu  $2, $2, $3
-         1ac: 01 3c 00 10                                   ld  $3, 16($fp)
-         1b0: 11 22 30 00                                   addu  $2, $2, $3
-         1b4: 01 3c 00 0c                                   ld  $3, 12($fp)
-         1b8: 11 22 30 00                                   addu  $2, $2, $3
-         1bc: 01 3c 00 08                                   ld  $3, 8($fp)
-         1c0: 11 22 30 00                                   addu  $2, $2, $3
-         1c4: 01 3c 00 04                                   ld  $3, 4($fp)
-         1c8: 11 22 30 00                                   addu  $2, $2, $3
-         1cc: 11 dc 00 00                                   addu  $sp, $fp, $zero
-         1d0: 01 cd 00 2c                                   ld  $fp, 44($sp)
-         1d4: 09 dd 00 30                                   addiu $sp, $sp, 48
-         1d8: 3c e0 00 00                                   ret $lr
+         0: 09 dd ff d8                                   addiu $sp, $sp, -40
+         4: 09 30 00 00                                   addiu $3, $zero, 0
+         8: 02 3d 00 24                                   st  $3, 36($sp)
+         c: 09 20 00 01                                   addiu $2, $zero, 1
+        10: 02 2d 00 20                                   st  $2, 32($sp)
+        14: 09 40 00 02                                   addiu $4, $zero, 2
+        18: 02 4d 00 1c                                   st  $4, 28($sp)
+        1c: 09 40 00 03                                   addiu $4, $zero, 3
+        20: 02 4d 00 18                                   st  $4, 24($sp)
+        24: 09 40 00 04                                   addiu $4, $zero, 4
+        28: 02 4d 00 14                                   st  $4, 20($sp)
+        2c: 09 40 00 05                                   addiu $4, $zero, 5
+        30: 02 4d 00 10                                   st  $4, 16($sp)
+        34: 09 40 00 06                                   addiu $4, $zero, 6
+        38: 02 4d 00 0c                                   st  $4, 12($sp)
+        3c: 09 40 00 07                                   addiu $4, $zero, 7
+        40: 02 4d 00 08                                   st  $4, 8($sp)
+        44: 09 40 00 08                                   addiu $4, $zero, 8
+        48: 02 4d 00 04                                   st  $4, 4($sp)
+        4c: 09 40 00 09                                   addiu $4, $zero, 9
+        50: 02 4d 00 00                                   st  $4, 0($sp)
+        54: 01 4d 00 24                                   ld  $4, 36($sp)
+        58: 10 43 00 00                                   cmp $sw, $4, $3
+        5c: 31 00 00 10                                   jne $sw, 16
+        60: 36 00 00 00                                   jmp 0
+        64: 01 4d 00 24                                   ld  $4, 36($sp)
+        68: 09 44 00 01                                   addiu $4, $4, 1
+        6c: 02 4d 00 24                                   st  $4, 36($sp)
+        70: 01 4d 00 20                                   ld  $4, 32($sp)
+        74: 10 43 00 00                                   cmp $sw, $4, $3
+        78: 30 00 00 10                                   jeq $sw, 16
+        7c: 36 00 00 00                                   jmp 0
+        80: 01 4d 00 20                                   ld  $4, 32($sp)
+        84: 09 44 00 01                                   addiu $4, $4, 1
+        88: 02 4d 00 20                                   st  $4, 32($sp)
+        8c: 01 4d 00 1c                                   ld  $4, 28($sp)
+        90: 10 42 00 00                                   cmp $sw, $4, $2
+        94: 32 00 00 10                                   jlt $sw, 16
+        98: 36 00 00 00                                   jmp 0
+        9c: 01 4d 00 1c                                   ld  $4, 28($sp)
+        a0: 09 44 00 01                                   addiu $4, $4, 1
+        a4: 02 4d 00 1c                                   st  $4, 28($sp)
+        a8: 01 4d 00 18                                   ld  $4, 24($sp)
+        ac: 10 43 00 00                                   cmp $sw, $4, $3
+        b0: 32 00 00 10                                   jlt $sw, 16
+        b4: 36 00 00 00                                   jmp 0
+        b8: 01 4d 00 18                                   ld  $4, 24($sp)
+        bc: 09 44 00 01                                   addiu $4, $4, 1
+        c0: 02 4d 00 18                                   st  $4, 24($sp)
+        c4: 09 40 ff ff                                   addiu $4, $zero, -1
+        c8: 01 5d 00 14                                   ld  $5, 20($sp)
+        cc: 10 54 00 00                                   cmp $sw, $5, $4
+        d0: 33 00 00 10                                   jgt $sw, 16
+        d4: 36 00 00 00                                   jmp 0
+        d8: 01 4d 00 14                                   ld  $4, 20($sp)
+        dc: 09 44 00 01                                   addiu $4, $4, 1
+        e0: 02 4d 00 14                                   st  $4, 20($sp)
+        e4: 01 4d 00 10                                   ld  $4, 16($sp)
+        e8: 10 43 00 00                                   cmp $sw, $4, $3
+        ec: 33 00 00 10                                   jgt $sw, 16
+        f0: 36 00 00 00                                   jmp 0
+        f4: 01 3d 00 10                                   ld  $3, 16($sp)
+        f8: 09 33 00 01                                   addiu $3, $3, 1
+        fc: 02 3d 00 10                                   st  $3, 16($sp)
+       100: 01 3d 00 0c                                   ld  $3, 12($sp)
+       104: 10 32 00 00                                   cmp $sw, $3, $2
+       108: 33 00 00 10                                   jgt $sw, 16
+       10c: 36 00 00 00                                   jmp 0
+       110: 01 3d 00 0c                                   ld  $3, 12($sp)
+       114: 09 33 00 01                                   addiu $3, $3, 1
+       118: 02 3d 00 0c                                   st  $3, 12($sp)
+       11c: 01 3d 00 08                                   ld  $3, 8($sp)
+       120: 10 32 00 00                                   cmp $sw, $3, $2
+       124: 32 00 00 10                                   jlt $sw, 16
+       128: 36 00 00 00                                   jmp 0
+       12c: 01 2d 00 08                                   ld  $2, 8($sp)
+       130: 09 22 00 01                                   addiu $2, $2, 1
+       134: 02 2d 00 08                                   st  $2, 8($sp)
+       138: 01 2d 00 08                                   ld  $2, 8($sp)
+       13c: 01 3d 00 04                                   ld  $3, 4($sp)
+       140: 10 32 00 00                                   cmp $sw, $3, $2
+       144: 35 00 00 10                                   jge $sw, 16
+       148: 36 00 00 00                                   jmp 0
+       14c: 01 2d 00 04                                   ld  $2, 4($sp)
+       150: 09 22 00 01                                   addiu $2, $2, 1
+       154: 02 2d 00 04                                   st  $2, 4($sp)
+       158: 01 2d 00 20                                   ld  $2, 32($sp)
+       15c: 01 3d 00 24                                   ld  $3, 36($sp)
+       160: 10 32 00 00                                   cmp $sw, $3, $2
+       164: 30 00 00 10                                   jeq $sw, 16
+       168: 36 00 00 00                                   jmp 0
+       16c: 01 2d 00 00                                   ld  $2, 0($sp)
+       170: 09 22 00 01                                   addiu $2, $2, 1
+       174: 02 2d 00 00                                   st  $2, 0($sp)
+       178: 01 2d 00 20                                   ld  $2, 32($sp)
+       17c: 01 3d 00 24                                   ld  $3, 36($sp)
+       180: 11 23 20 00                                   addu  $2, $3, $2
+       184: 01 3d 00 1c                                   ld  $3, 28($sp)
+       188: 11 22 30 00                                   addu  $2, $2, $3
+       18c: 01 3d 00 18                                   ld  $3, 24($sp)
+       190: 11 22 30 00                                   addu  $2, $2, $3
+       194: 01 3d 00 14                                   ld  $3, 20($sp)
+       198: 11 22 30 00                                   addu  $2, $2, $3
+       19c: 01 3d 00 10                                   ld  $3, 16($sp)
+       1a0: 11 22 30 00                                   addu  $2, $2, $3
+       1a4: 01 3d 00 0c                                   ld  $3, 12($sp)
+       1a8: 11 22 30 00                                   addu  $2, $2, $3
+       1ac: 01 3d 00 08                                   ld  $3, 8($sp)
+       1b0: 11 22 30 00                                   addu  $2, $2, $3
+       1b4: 01 3d 00 04                                   ld  $3, 4($sp)
+       1b8: 11 22 30 00                                   addu  $2, $2, $3
+       1bc: 01 3d 00 00                                   ld  $3, 0($sp)
+       1c0: 11 22 30 00                                   addu  $2, $2, $3
+       1c4: 09 dd 00 28                                   addiu $sp, $sp, 40
+       1c8: 3c e0 00 00                                   ret $lr
 
 
 
