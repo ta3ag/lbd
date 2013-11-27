@@ -36,9 +36,9 @@ Run Chapter10_1/ with ch11_1.cpp will get the following error message.
   LLVM ERROR: Inline asm not supported by this streamer because we don't have 
   an asm parser for this target
   
-Since we didn't implement cpu0 assembly, it has the error message as above. 
+Since we didn't implement cpu0 assembler, it has the error message as above. 
 The cpu0 can translate LLVM IR into assembly and obj directly, but it cannot 
-translate hand code assembly into obj. 
+translate hand code assembly instructions into obj. 
 Directory AsmParser handle the assembly to obj translation.
 The Chapter11_1/ include AsmParser implementation as follows,
 
@@ -52,10 +52,10 @@ The Chapter11_1/ include AsmParser implementation as follows,
 .. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/LLVMBuild.txt
 
 
-The Cpu0AsmParser.cpp contains one thousand of code which do the assembly 
+The Cpu0AsmParser.cpp contains one thousand lines of code which do the assembly 
 language parsing. You can understand it with a little patient only.
-To let directory AsmParser be built, modify CMakeLists.txt and LLVMBuild.txt as 
-follows,
+To let file directory of AsmParser be built, modify CMakeLists.txt and 
+LLVMBuild.txt as follows,
 
 .. rubric:: lbdex/Chapter11_1/CMakeLists.txt
 .. code-block:: c++
@@ -141,9 +141,10 @@ follows,
   def LoadAddr32Imm : LoadAddressImm<"la", shamt, CPURegs>;
 
 
-Above define the **ParserMethod = "parseMemOperand"** and implement the 
+Above declare the **ParserMethod = "parseMemOperand"** and implement the 
 parseMemOperand() in Cpu0AsmParser.cpp to handle the **"mem"** operand which 
-used in ld and st. For example, ld $2, 4($sp), the **mem** operand is 4($sp). 
+used in Cpu0 instructions ld and st. 
+For example, ld $2, 4($sp), the **mem** operand is 4($sp). 
 Accompany with **"let ParserMatchClass = Cpu0MemAsmOperand;"**, 
 LLVM will call parseMemOperand() of Cpu0AsmParser.cpp when it meets the assembly 
 **mem** operand 4($sp). With above **"let"** assignment, TableGen will generate 
@@ -192,7 +193,7 @@ the following structure and functions in Cpu0GenAsmMatcher.inc.
   };
 
 
-Above 3 Pseudo Instruction definitions in Cpu0InstrInfo.td such as 
+Above three Pseudo Instruction definitions in Cpu0InstrInfo.td such as 
 LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,
 
 .. rubric:: lbdex/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
@@ -311,8 +312,8 @@ Run Chapter11_1/ with ch11_1.cpp to get the correct result as follows,
 
 The instructions cmp and jeg printed with explicit $sw displayed in assembly 
 and disassembly. You can change code in AsmParser and Dissassembly (the last 
-chapter) to hide the $sw printed in these instructions (the $sw is implicit 
-and not displayed).
+chapter) to hide the $sw printed in these instructions (set $sw to implicit 
+and not displayed, such as "jeq 20" rather than "jeq $sw, 20").
 
 
 Verilog of CPU0
@@ -478,7 +479,7 @@ get the result as below,
 .. code-block:: c++
 
       ...
-      `TR = 1; // Trace register content at beginning
+      `D = 1; // Trace register content at beginning
 
 .. code-block:: bash
 
