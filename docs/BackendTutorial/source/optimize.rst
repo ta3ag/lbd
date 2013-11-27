@@ -4,8 +4,8 @@ Backend Optimization
 ====================
 
 This chapter introduce how to do backend optimization in LLVM first. 
-Next we do optimization via redesign instruction sets with hardware level to 
-do optimization by create a efficient RISC CPU which aim to C/C++ high level 
+Next we do optimization via extend instruction sets with hardware level to 
+do optimization by create a efficient RISC CPU which aims to C/C++ high level 
 language.
 
 Cpu0 backend Optimization: Remove useless JMP
@@ -13,8 +13,8 @@ Cpu0 backend Optimization: Remove useless JMP
 
 LLVM use functional pass in code generation and optimization. 
 Following the 3 tiers of compiler architecture, LLVM did much optimization in 
-middle tier of which is LLVM IR, SSA form. 
-In spite of this middle tier optimization, there are opportunities in 
+middle tier of LLVM IR, SSA form. 
+In addition of this middle tier optimization, there are opportunities in 
 optimization which depend on backend features. 
 Mips fill delay slot is an example of backend optimization used in pipeline 
 RISC machine.
@@ -23,10 +23,11 @@ delay slot.
 We apply the "delete useless jmp" unconditional branch instruction in Cpu0 
 backend optimization in this section. 
 This algorithm is simple and effective as a perfect tutorial in optimization. 
-You can understand how to add a optimization pass and design your complicate 
-optimization algorithm on your backend in real project.
+Through this example, you can understand how to add a optimization pass and 
+design your complicate optimization algorithm on your backend in real project.
 
-Chapter12_1/ support this optimization algorithm include the added codes as follows,
+Chapter12_1/ support "delete useless jmp" optimization algorithm which add 
+codes as follows,
 
 .. rubric:: lbdex/Chapter12_1/CMakeLists.txt
 .. code-block:: c++
@@ -65,12 +66,13 @@ Chapter12_1/ support this optimization algorithm include the added codes as foll
 
 
 As above code, except Cpu0DelUselessJMP.cpp, other files changed for register 
-class DelJmp as a functional pass. As comment of above code, MBB is the current 
+class DelJmp as a functional pass. 
+As the comment of above code, MBB is the current 
 block and MBBN is the next block. For the last instruction of every MBB, we 
 check if it is the JMP instruction as well as 
 its Operand is the next basic block. 
 By getMBB() in MachineOperand, you can get the MBB address. 
-For the member function of MachineOperand, please check 
+For the member functions of MachineOperand, please check 
 include/llvm/CodeGen/MachineOperand.h
 Let's run Chapter12_1/ with ch12_1.cpp to explain it easier.
 
@@ -168,26 +170,22 @@ Let's run Chapter12_1/ with ch12_1.cpp to explain it easier.
 
 The terminal display "Number of useless jmp deleted" by ``llc -stats`` option 
 because we set the "STATISTIC(NumDelJmp, "Number of useless jmp deleted")" in 
-code. It delete 2 jmp instructions from block "# BB#0" and "$BB0_6".
+code. It deletes 2 jmp instructions from block "# BB#0" and "$BB0_6".
 You can check it by ``llc -enable-cpu0-del-useless-jmp=false`` option to see 
 the difference from no optimization version.
 If you run with ch8_1_1.cpp, will find 10 jmp instructions are deleted in 100 
-lines of assembly code, which meaning 10\% enhance in speed and code size.
+lines of assembly code, which meaning 10\% improvement in speed and code size.
 
 
 Cpu0 Optimization: Extends instruction sets
 ---------------------------------------------
 
-If you compare the cpu0 and Mips instruction sets, you will find the following,
-
-1. Mips has **addu** and **add** two different instructions for No Trigger 
-   Exception and Trigger Exception.
-
-2. Mips use SLT, BEQ and set the status in explicit/general register while Cpu0 
-   use CMP, JEQ and set status in implicit/specific register.
+If you compare the cpu0 and Mips instruction sets, you will find that Mips use 
+SLT, BEQ and set the status in explicit/general register while Cpu0 use CMP, 
+JEQ and set status in implicit/specific register.
 
 According RISC spirits, this section will replace CMP, JEQ with Mips style 
-instructions and support both Trigger and No Trigger Exception operators.
+instructions.
 Mips style BEQ instructions will reduce the number of branch instructions too. 
 Which means optimization in speed and code size.
 
@@ -666,8 +664,9 @@ Chapter12_2/ include the changes for new instruction sets as follows,
   }
 
 
-As modified from above, the last Chapter instruction is work for cpu032I and
-the added instructions is for cpu032II. The llc will generate cpu032I cmp, jeq, 
+As modified as listed above, the last Chapter instructions are work for cpu032I 
+and the added instructions is for cpu032II. 
+The llc will generate cpu032I cmp, jeq, 
 ..., instructions when `llc -mcpu=cpu032I` while `llc -mcpu=cpu032II` will
 generate slt, beq when meet "if else", "while" and "for" flow control 
 statements.
@@ -687,7 +686,7 @@ Run the Cpu0II
 ~~~~~~~~~~~~~~~~
 
 Run Chapter12_2/ with ch_run_backend.cpp to get result as below. 
-It match the expect value as comment in ch_run_backend.cpp.
+It match the output result as comments in ch_run_backend.cpp.
 
 .. rubric:: lbdex/InputFiles/ch_run_backend.cpp
 .. literalinclude:: ../lbdex/InputFiles/ch_run_backend.cpp
@@ -728,7 +727,7 @@ It match the expect value as comment in ch_run_backend.cpp.
   15
   RET to PC < 0, finished!
 
-Run with ch8_1_1.cpp, it reduce some branch from pair instructions "CMP, JXX" 
+Run with ch8_1_1.cpp, it reduces some branches from pair instructions "CMP, JXX" 
 to 1 single instruction ether is BEQ or BNE, as follows,
 
 .. code-block:: bash
