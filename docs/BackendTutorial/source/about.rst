@@ -55,6 +55,7 @@ Revision history
 Version 3.3.10, Not release yet.
   Correct typing error.
   Dynamic linker in lld.rst.
+  Correct errors came from old version of example code.
 
 Version 3.3.9, Not release yet.
   Add LLD introduction and Cpu0 static linker document in lld.rst.
