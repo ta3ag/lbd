@@ -175,7 +175,7 @@ If you run with ch8_1_1.cpp, will find 10 jmp instructions are deleted in 100
 lines of assembly code, which meaning 10\% enhance in speed and code size.
 
 
-Cpu0 Optimization: Redesign instruction sets
+Cpu0 Optimization: Extends instruction sets
 ---------------------------------------------
 
 If you compare the cpu0 and Mips instruction sets, you will find the following,
