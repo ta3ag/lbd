@@ -43,7 +43,9 @@ Chapter12_1/ support this optimization algorithm include the added codes as foll
   ...
     FunctionPass *createCpu0DelJmpPass(Cpu0TargetMachine &TM);
   
-  // Cpu-TargetMachine.cpp
+.. rubric:: lbdex/Chapter12_1/Cpu0TargetMachine.cpp
+.. code-block:: c++
+
   class Cpu0PassConfig : public TargetPassConfig {
     ...
     virtual bool addPreEmitPass();
@@ -82,81 +84,87 @@ Let's run Chapter12_1/ with ch12_1.cpp to explain it easier.
   -c ch12_1.cpp -emit-llvm -o ch12_1.bc
   118-165-78-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm -stats 
-  ch12_1.bc -o ch12_1.cpu0.s
+  ch12_1.bc -o -
+  
+	  .section .mdebug.abi32
+	  .previous
+	  .file	"ch12_1.bc"
+	  .text
+	  .globl	main
+	  .align	2
+	  .type	main,@function
+	  .ent	main                    # @main
+  main:
+	  .frame	$fp,24,$lr
+	  .mask 	0x00001000,-4
+	  .set	noreorder
+	  .set	nomacro
+  # BB#0:                                 # %entry
+	  addiu	$sp, $sp, -24
+	  st	$fp, 20($sp)            # 4-byte Folded Spill
+	  addu	$fp, $sp, $zero
+	  addiu	$3, $zero, 0
+	  st	$3, 16($fp)
+	  st	$3, 12($fp)
+	  addiu	$2, $zero, 1
+	  st	$2, 8($fp)
+	  addiu	$4, $zero, 2
+	  st	$4, 4($fp)
+	  ld	$4, 12($fp)
+	  cmp	$sw, $4, $3
+	  jne	$sw, $BB0_2
+  # BB#1:                                 # %if.then
+	  ld	$4, 12($fp)
+	  addiu	$4, $4, 1
+	  st	$4, 12($fp)
+  $BB0_2:                                 # %if.end
+	  ld	$4, 8($fp)
+	  cmp	$sw, $4, $3
+	  jne	$sw, $BB0_4
+	  jmp	$BB0_3
+  $BB0_4:                                 # %if.else
+	  addiu	$3, $zero, -1
+	  ld	$4, 8($fp)
+	  cmp	$sw, $4, $3
+	  jgt	$sw, $BB0_6
+	  jmp	$BB0_5
+  $BB0_3:                                 # %if.then2
+	  ld	$3, 8($fp)
+	  ld	$4, 12($fp)
+	  addu	$3, $4, $3
+	  st	$3, 12($fp)
+	  jmp	$BB0_6
+  $BB0_5:                                 # %if.then4
+	  ld	$3, 12($fp)
+	  addiu	$4, $3, -1
+	  st	$4, 12($fp)
+	  st	$3, 12($fp)
+  $BB0_6:                                 # %if.end6
+	  ld	$3, 4($fp)
+	  cmp	$sw, $3, $2
+	  jlt	$sw, $BB0_8
+  # BB#7:                                 # %if.then8
+	  ld	$2, 4($fp)
+	  addiu	$2, $2, 1
+	  st	$2, 4($fp)
+  $BB0_8:                                 # %if.end10
+	  ld	$2, 12($fp)
+	  addu	$sp, $fp, $zero
+	  ld	$fp, 20($sp)            # 4-byte Folded Reload
+	  addiu	$sp, $sp, 24
+	  ret	$lr
+	  .set	macro
+	  .set	reorder
+	  .end	main
+  $tmp3:
+	  .size	main, ($tmp3)-main
+  ...
   ===-------------------------------------------------------------------------===
                             ... Statistics Collected ...
   ===-------------------------------------------------------------------------===
    ...
    2 del-jmp        - Number of useless jmp deleted
    ...
-  
-    .section .mdebug.abi32
-    .previous
-    .file "ch12_1.bc"
-    .text
-    .globl  main
-    .align  2
-    .type main,@function
-    .ent  main                    # @main
-  main:
-    .frame  $sp,16,$lr
-    .mask   0x00000000,0
-    .set  noreorder
-    .set  nomacro
-  # BB#0:
-    addiu $sp, $sp, -16
-    addiu $2, $zero, 0
-    st  $2, 12($sp)
-    st  $2, 8($sp)
-    addiu $2, $zero, 1
-    st  $2, 4($sp)
-    addiu $2, $zero, 2
-    st  $2, 0($sp)
-    ld  $2, 8($sp)
-    bne $2, $zero, $BB0_2
-  # BB#1:
-    ld  $2, 8($sp)
-    addiu $2, $2, 1
-    st  $2, 8($sp)
-  $BB0_2:
-    ld  $2, 4($sp)
-    bne $2, $zero, $BB0_4
-    jmp $BB0_3
-  $BB0_4:
-    ld  $2, 4($sp)
-    addiu $3, $zero, -1
-    slt $2, $3, $2
-    bne $2, $zero, $BB0_6
-    jmp $BB0_5
-  $BB0_3:
-    ld  $2, 4($sp)
-    ld  $3, 8($sp)
-    addu  $2, $3, $2
-    st  $2, 8($sp)
-    jmp $BB0_6
-  $BB0_5:
-    ld  $2, 8($sp)
-    addiu $3, $2, -1
-    st  $3, 8($sp)
-    st  $2, 8($sp)
-  $BB0_6:
-    ld  $2, 0($sp)
-    slti  $2, $2, 1
-    bne $2, $zero, $BB0_8
-  # BB#7:
-    ld  $2, 0($sp)
-    addiu $2, $2, 1
-    st  $2, 0($sp)
-  $BB0_8:
-    ld  $2, 8($sp)
-    addiu $sp, $sp, 16
-    ret $lr
-    .set  macro
-    .set  reorder
-    .end  main
-  $tmp1:
-    .size main, ($tmp1)-main
-
 
 The terminal display "Number of useless jmp deleted" by ``llc -stats`` option 
 because we set the "STATISTIC(NumDelJmp, "Number of useless jmp deleted")" in 
@@ -164,7 +172,7 @@ code. It delete 2 jmp instructions from block "# BB#0" and "$BB0_6".
 You can check it by ``llc -enable-cpu0-del-useless-jmp=false`` option to see 
 the difference from no optimization version.
 If you run with ch8_1_1.cpp, will find 10 jmp instructions are deleted in 100 
-lines of assembly code, which meaning 10% enhance in speed and code size.
+lines of assembly code, which meaning 10\% enhance in speed and code size.
 
 
 Cpu0 Optimization: Redesign instruction sets
@@ -349,7 +357,7 @@ Chapter12_2/ include the changes for new instruction sets as follows,
     Fixups.push_back(MCFixup::Create(0, Expr,
                                      MCFixupKind(Cpu0::fixup_Cpu0_PC16)));
     return 0;
-  }
+  } // lbd document - mark - getBranch16TargetOpValue
 
 
 .. rubric:: lbdex/Chapter12_2/MCTargetDesc/Cpu0TargetDesc.cpp
@@ -366,7 +374,7 @@ Chapter12_2/ include the changes for new instruction sets as follows,
     return Cpu0ArchFeature;
   }
   
-.. rubric:: lbdex/Chapter12_2/Cpu0InstrInfo.cpp
+.. rubric:: lbdex/Chapter12_2/Cpu0.td
 .. code-block:: c++
 
   //===----------------------------------------------------------------------===//
@@ -383,7 +391,6 @@ Chapter12_2/ include the changes for new instruction sets as follows,
   // Cpu0 processors supported.
   //===----------------------------------------------------------------------===//
   ...
-  def : Proc<"cpu032I",  [FeatureCpu032I]>;
   def : Proc<"cpu032II", [FeatureCpu032II]>;
   def : Proc<"cpu032III", [FeatureCpu032III]>;
 
@@ -406,27 +413,15 @@ Chapter12_2/ include the changes for new instruction sets as follows,
         if (SrcReg == Cpu0::SW)
           Opc = Cpu0::MFSW, SrcReg = 0;
       }
-    }
+    } // lbd document - mark - if (!Subtarget.hasCpu032II()) 1
     else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
       ...
-      if (!Subtarget.hasCpu032II()) {
+      if (!Subtarget.hasCpu032II()) { // lbd document - mark - 2
         if (DestReg == Cpu0::SW)
           Opc = Cpu0::MTSW, DestReg = 0;
-      }
+      } // lbd document - mark - if (!Subtarget.hasCpu032II()) 2
     }
-  
-    assert(Opc && "Cannot copy registers");
-  
-    MachineInstrBuilder MIB = BuildMI(MBB, I, DL, get(Opc));
-  
-    if (DestReg)
-      MIB.addReg(DestReg, RegState::Define);
-  
-    if (ZeroReg)
-      MIB.addReg(ZeroReg);
-  
-    if (SrcReg)
-      MIB.addReg(SrcReg, getKillRegState(KillSrc));
+    ...
   }
 
 .. rubric:: lbdex/Chapter12_2/Cpu0InstrInfo.td
@@ -438,8 +433,7 @@ Chapter12_2/ include the changes for new instruction sets as follows,
                         AssemblerPredicate<"!FeatureCpu032III">;
   // !FeatureCpu032III is for disassembler in "llvm-objdump -d"
   
-  /*
-  In Cpu0GenSubtargetInfo.inc,
+  /* In Cpu0GenSubtargetInfo.inc,
   namespace llvm {
   namespace Cpu0 {
   enum {
@@ -463,8 +457,7 @@ Chapter12_2/ include the changes for new instruction sets as follows,
   To let disassembler work, the function 
   checkDecoderPredicate(unsigned Idx, uint64_t Bits) must return true(=1).
   As above code, the argument Bits always is 1. Set !FeatureCpu032III" to do 
-  disassembler for expectation.
-  */
+  disassembler for expectation. */
   ...
   // BEQ, BNE
   def brtarget16    : Operand<OtherVT> {
@@ -532,8 +525,8 @@ Chapter12_2/ include the changes for new instruction sets as follows,
   def SLTu    : SetCC_R<0x29, "sltu", setult, CPURegs>;
   ...
   /// Jump and Branch Instructions
-  def BEQ     : CBranch<0x30, "beq", seteq, CPURegs>;
-  def BNE     : CBranch<0x31, "bne", setne, CPURegs>;
+  def BEQ     : CBranch<0x37, "beq", seteq, CPURegs>;
+  def BNE     : CBranch<0x38, "bne", setne, CPURegs>;
   ...
   // brcond for slt instruction
   multiclass BrcondPatsSlt<RegisterClass RC, Instruction BEQOp, Instruction BNEOp,
@@ -662,8 +655,8 @@ Chapter12_2/ include the changes for new instruction sets as follows,
   class Cpu0Subtarget : public Cpu0GenSubtargetInfo {
     ...
     enum Cpu0ArchEnum {
-      Cpu032I,
-      Cpu032II,
+      Cpu032I
+      , Cpu032II,
       Cpu032III
     };
     ...
@@ -703,8 +696,8 @@ It match the expect value as comment in ch_run_backend.cpp.
 .. code-block:: bash
 
   118-165-77-203:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=obj -stats 
-  ch_run_backend.bc -o ch_run_backend.cpu0.o
+  bin/Debug/llc -march=cpu0 -mcpu=cpu032II -relocation-model=static -filetype=obj 
+  -stats ch_run_backend.bc -o ch_run_backend.cpu0.o
   ===-------------------------------------------------------------------------===
                             ... Statistics Collected ...
   ===-------------------------------------------------------------------------===
@@ -901,6 +894,4 @@ to 1 single instruction ether is BEQ or BNE, as follows,
 
 The ch12_3.cpp is written in assembly for AsmParser test. You can check if it 
 will generate the obj.
-
-.. [#sra-note] Rb '>> Cx, Rb '>> Rc: Shift with signed bit remain. It's equal to ((Rb&'h80000000)|Rb>>Cx) or ((Rb&'h80000000)|Rb>>Rc).
 
