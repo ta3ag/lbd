@@ -447,47 +447,49 @@ Parsing input files
 
 - Reader
 
-.. rubric:: lld/lib/ReaderWriter/Reader.cpp
-.. code-block:: c++
+  - The base class lld::reader and the elf specific file format reader as follows,
 
-  ~/test/lld/src/tools/lld/lib/ReaderWriter$ cat Reader.cpp
-  ...
-  #include "lld/ReaderWriter/Reader.h"
+    .. rubric:: lld/lib/ReaderWriter/Reader.cpp
+    .. code-block:: c++
 
-  #include "llvm/ADT/OwningPtr.h"
-  #include "llvm/ADT/StringRef.h"
-  #include "llvm/Support/MemoryBuffer.h"
-  #include "llvm/Support/system_error.h"
+      ~/test/lld/src/tools/lld/lib/ReaderWriter$ cat Reader.cpp
+      ...
+      #include "lld/ReaderWriter/Reader.h"
 
-  namespace lld {
-  Reader::~Reader() {
-  }
-  } // end namespace lld
+      #include "llvm/ADT/OwningPtr.h"
+      #include "llvm/ADT/StringRef.h"
+      #include "llvm/Support/MemoryBuffer.h"
+      #include "llvm/Support/system_error.h"
 
-.. rubric:: lld/lib/ReaderWriter/ELF/Reader.cpp
-.. code-block:: c++
+      namespace lld {
+      Reader::~Reader() {
+      }
+      } // end namespace lld
 
-  ~/test/lld/src/tools/lld/lib/ReaderWriter/ELF$ cat Reader.cpp 
-  namespace lld {
-  namespace elf {
-  ...
-  class ELFReader : public Reader {
-  public:
-    ELFReader(const ELFLinkingContext &ctx)
-        : lld::Reader(ctx), _elfLinkingContext(ctx) {}
+    .. rubric:: lld/lib/ReaderWriter/ELF/Reader.cpp
+    .. code-block:: c++
 
-    error_code parseFile(std::unique_ptr<MemoryBuffer> &mb,
-                         std::vector<std::unique_ptr<File> > &result) const {
-  …
-  private:
-    const ELFLinkingContext &_elfLinkingContext;
-  };
-  } // end namespace elf
+      ~/test/lld/src/tools/lld/lib/ReaderWriter/ELF$ cat Reader.cpp 
+      namespace lld {
+      namespace elf {
+      ...
+      class ELFReader : public Reader {
+      public:
+        ELFReader(const ELFLinkingContext &ctx)
+            : lld::Reader(ctx), _elfLinkingContext(ctx) {}
 
-  std::unique_ptr<Reader> createReaderELF(const ELFLinkingContext &context) {
-    return std::unique_ptr<Reader>(new elf::ELFReader(context));
-  }
-  } // end namespace lld
+        error_code parseFile(std::unique_ptr<MemoryBuffer> &mb,
+                             std::vector<std::unique_ptr<File> > &result) const {
+      …
+      private:
+        const ELFLinkingContext &_elfLinkingContext;
+      };
+      } // end namespace elf
+
+      std::unique_ptr<Reader> createReaderELF(const ELFLinkingContext &context) {
+        return std::unique_ptr<Reader>(new elf::ELFReader(context));
+      }
+      } // end namespace lld
 
 
 - lld::File representations
@@ -498,16 +500,18 @@ Parsing input files
 
   - textual (in YAML)
 
-  - atoms:
+    - target-triple:   x86_64-apple-darwin11
 
-    - name:    _main
+    - atoms:
 
-    - scope:   global
+      - name:    _main
 
-    - type:    code
+      - scope:   global
 
-    - content: [ 55, 48, 89, e5, 48, 8d, 3d, 00, 00, 00, 00, 30, c0, e8, 00, 00,
-      00, 00, 31, c0, 5d, c3 ]
+      - type:    code
+
+      - content: [ 55, 48, 89, e5, 48, 8d, 3d, 00, 00, 00, 00, 30, c0, e8, 00, 00,
+        00, 00, 31, c0, 5d, c3 ]
 
   - binary format (“native”)
 
@@ -551,8 +555,14 @@ mark and swip in graph for Dead Code Stripping.
 
 As above example, the foo2() is an isolated node without any reference. It's 
 dead code and can be removed in linker optimization. We test this example by 
-build-ch13_1.sh and find foo2() cannot be removed. It's reasonable since the 
-lld is in its early stages of development. 
+build-ch13_1.sh and find foo2() cannot be removed. 
+There are two possibilities. One is we did trigger lld dead code stripping 
+optimization in command (the default is not do it). The other is lld didn't 
+implement it at this point. It's reasonable since the 
+lld is in its early stages of development. We didn't dig it more, since the 
+Cpu0 backend tutorial just need a linker to finish Relocation Records Resolve 
+and see how it run on PC.
+
 Remind, llvm-linker is the linker works on IR level linker optimization. 
 Sometime when you got the obj file only (if you have a.o in this case), 
 the native linker (such as lld) have the opportunity to do Dead Code Stripping 
@@ -583,8 +593,12 @@ Passes/Optimizations
   - compact unwind encoding (Darwin specific)
 
 The Cpu0RelocationPass.cpp and Cpu0RelocationPass.h are example code for lld 
-backend Passes embedded. The Relocation Pass structure shown as 
-:num:`Figure #lld-f3`. 
+backend Passes. The Relocation Pass structure shown as :num:`Figure #lld-f3`. 
+The Cpu0 backend has two Releocation Pass and both of them are children of 
+RelocationPass. The StaticRelocationPass is for static linker and 
+DynamicRelocationPass is for dynamic linker. We will see how to register 
+relocation pass according the staic or dynamic linker you like to do in
+next section.
 
 .. _lld-f3: 
 .. figure:: ../Fig/lld/3.png
@@ -607,55 +621,56 @@ Generate Output File
 
 - Writer
 
-.. rubric:: lld/lib/ReaderWriter
-.. code-block:: c++
+  .. rubric:: lld/lib/ReaderWriter
+  .. code-block:: c++
 
-  ~/test/lld/src/tools/lld/lib/ReaderWriter$ cat Writer.cpp
-  ...
-  #include "lld/Core/File.h"
-  #include "lld/ReaderWriter/Writer.h"
-
-  namespace lld {
-  Writer::Writer() {
-  }
-
-  Writer::~Writer() {
-  }
-
-  bool Writer::createImplicitFiles(std::vector<std::unique_ptr<File> > &) {
-    return true;
-  }
-  } // end namespace lld
-
-.. rubric:: lld/lib/ReaderWriter
-.. code-block:: c++
-
-  ~/test/lld/src/tools/lld/lib/ReaderWriter/ELF$ cat Writer.cpp 
-  namespace lld {
-
-  std::unique_ptr<Writer> createWriterELF(const ELFLinkingContext &info) {
-    using llvm::object::ELFType;
+    ~/test/lld/src/tools/lld/lib/ReaderWriter$ cat Writer.cpp
     ...
-    switch (info.getOutputELFType()) {
-    case llvm::ELF::ET_EXEC:
-      if (info.is64Bits()) {
-        if (info.isLittleEndian())
-          return std::unique_ptr<Writer>(new
-              elf::ExecutableWriter<ELFType<support::little, 8, true>>(info));
-        else
-          return std::unique_ptr<Writer>(new
-                  elf::ExecutableWriter<ELFType<support::big, 8, true>>(info));
-  ...
+    #include "lld/Core/File.h"
+    #include "lld/ReaderWriter/Writer.h"
 
-  } // namespace lld
+    namespace lld {
+    Writer::Writer() {
+    }
+
+    Writer::~Writer() {
+    }
+
+    bool Writer::createImplicitFiles(std::vector<std::unique_ptr<File> > &) {
+      return true;
+    }
+    } // end namespace lld
+
+  .. rubric:: lld/lib/ReaderWriter
+  .. code-block:: c++
+
+    ~/test/lld/src/tools/lld/lib/ReaderWriter/ELF$ cat Writer.cpp 
+    namespace lld {
+
+    std::unique_ptr<Writer> createWriterELF(const ELFLinkingContext &info) {
+      using llvm::object::ELFType;
+      ...
+      switch (info.getOutputELFType()) {
+      case llvm::ELF::ET_EXEC:
+        if (info.is64Bits()) {
+          if (info.isLittleEndian())
+            return std::unique_ptr<Writer>(new
+                elf::ExecutableWriter<ELFType<support::little, 8, true>>(info));
+          else
+            return std::unique_ptr<Writer>(new
+                    elf::ExecutableWriter<ELFType<support::big, 8, true>>(info));
+    ...
+
+    } // namespace lld
 
 
 All lld backends which like to handle the Relocation 
 Records Resolve need to register a pass when the lld backend code is up.
 Next section will show you how to design your lld backend and register a pass 
-for Relocation Records Solve. After register the pass LLD will do last two steps 
-Passes/Optimization and Generate Output file interactivly just like the "Parsing 
-and Generating code" in compiler. LLD will do Passes/Optimization and call your
+for Relocation Records Solve. After register the pass, LLD will do last two 
+steps, Passes/Optimization and Generate Output file, interactivly just like the 
+"Parsing and Generating code" in compiler. 
+LLD will do Passes/Optimization and call your
 lld backend hook function "applyRelocation()" (define in 
 Cpu0TargetRelocationHandler.cpp) to finish the address binding in linker stage.
 Based on this understanding, we believe the "applyRelocation()" is at the step 
@@ -673,9 +688,9 @@ Run
 
 File printf-stdarg.c came from internet download which is GPL2 license. GPL2 
 is more restricted than LLVM license. File printf-stdarg-2.c is modified from 
-printf-stdarg.c of printf() function supplied and add some test function for 
+main() function of printf-stdarg.c and add some test function for 
 /demo/verification/debugpurpose on Cpu0 backend. 
-File printf-stdarg-1.c is file for testing the printf()
+File printf-stdarg-1.c is the file for testing the printf()
 function implemented on PC OS platform. Let's run printf-stdarg-2.c on Cpu0 and
 compare with the result of printf() function which implemented by PC OS as 
 below.
@@ -732,7 +747,8 @@ The cpu0_verilog/cpu0IIs.v support slt instruction and static linker as follows,
 .. literalinclude:: ../lbdex/cpu0_verilog/cpu0IIs.v
 
 The build-printf-stdarg-2.sh is for my PC setting. Please change this script to
-your lld installed directory and run static linker example code as follows,
+the directory of your lld installed to. After that run static linker example 
+code as follows,
 
 .. code-block:: bash
 
@@ -834,10 +850,10 @@ instructions is work fine too by change cpu to cpu032II as follows,
   1 warning generated.
   [Gamma@localhost cpu0_verilog]$ ./cpu0IIs 
 
-The verilog machine cpu032IIs include cpu0I all instructions (cmp, jeq, ... 
-are included also) and add Chapter12_2 slt, beq, ..., instructions.
+The verilog machine cpu0IIs include all instructions (cmp, jeq, ... 
+are included also) of cpu032I and add Chapter12_2 slt, beq, ..., instructions.
 Run build-printf-stdarg-2.sh with cpu=cpu032II will generate slt, beq and bne 
-instructions instead cmp, jeq, ... instructions. Since cpu0IIs include both
+instructions instead of cmp, jeq, ... instructions. Since cpu0IIs include both
 slt, cmp, ... instructions, the slt and cmp both code generated can be run on
 it without any problem.
 
@@ -943,7 +959,8 @@ function at proper time.
     }
   }
 
-The "#ifdef DLINKER" part is for dynamic linker will used in next section.
+The "#ifdef DLINKER" part is for dynamic linker which will be used in next 
+section.
 For static linker, a StaticRelocationPass object is created and return.
 
 Now the following code of Cpu0TargetRelocationHandler::applyRelocation() 
@@ -1303,20 +1320,20 @@ The code of dynlinker.v will set the memory as follows after program is loaded.
 .. rubric:: memory contents
 .. code-block:: bash
 
-  //                                 -----------------------------------
-  // gp ---------------------------> | all 0                           | (16 bytes)
-  // gp+16 ------------------------> | 0                          |
-  // gp+16+1*4 --------------------> | 1st plt entry address      | (4 bytes)
-  //                                 | ...                        |
-  // gp+16+(numDynEntry-1)*4 ------> | the last plt entry address |
-  //                                 ------------------------------
-  // gp ---------------------------> | all 0                           | (16 bytes)
-  // gp+16+0*8'h10 ----------------> | 32'h10: pointer to plt0         |
-  // gp+16+1*8'h10 ----------------> | 1st plt entry                   |
-  // gp+16+2*8'h10 ----------------> | 2nd plt entry                   |
-  //                                 | ...                             |
-  // gp+16+(numDynEntry-1)*8'h10 --> | the last plt entry              |
-  //                                 -----------------------------------
+  //                                    -----------------------------------
+  // gp ------------------------------> | all 0                           | (16 bytes)
+  // gp+16 ---------------------------> | 0                          |
+  // gp+16+1*4 -----------------------> | 1st plt entry address      | (4 bytes)
+  //                                    | ...                        |
+  // gp+16+(numDynEntry-1)*4 ---------> | the last plt entry address |
+  //                                    -----------------------------------
+  // gpPlt ---------------------------> | all 0                           | (16 bytes)
+  // gpPlt+16+0*8'h10 ----------------> | 32'h10: pointer to plt0         |
+  // gpPlt+16+1*8'h10 ----------------> | 1st plt entry                   |
+  // gpPlt+16+2*8'h10 ----------------> | 2nd plt entry                   |
+  //                                    | ...                             |
+  // gpPlt+16+(numDynEntry-1)*8'h10 --> | the last plt entry              |
+  //                                    -----------------------------------
 
 For example as ch_dynamiclinker.cpp and foobar.cpp, gp is 2068, numDynEntry is 
 the contents of file num_dyn_entry which is 6. Every plt entry above (memory 
@@ -1327,30 +1344,29 @@ $zero, 4($gp); st	$t9, 0($gp); ld	$t9, 16($gp); ret	$t9" as follows,
 .. rubric:: memory contents
 .. code-block:: bash
 
-  //                                 -----------------------------------
-  // gp ---------------------------> | all 0                           | (16 bytes)
-  // gp+16 ------------------------> | 0                          |
-  // gp+16+1*4 --------------------> | 1st plt entry address      | (4 bytes)
-  // gp+16+2*4 --------------------> | 1st plt entry address      | (4 bytes)
-  //                                 | ...                        |
-  // gp+16+(6-1)*4 ----------------> | the last plt entry address |
-  //                                 -----------------------------------
-  // gp ---------------------------> | all 0                           | (16 bytes)
-  // gp+16+0*8'h10 ----------------> | 32'h10: pointer to plt0         |
-  // gp+16+1*8'h10 ----------------> | addiu	$t9, $zero, 4          |
-  //                                 | st	$t9, 0($gp)                |
-  //                                 | ld	$t9, 16($gp)               |
-  //                                 | ret	$t9                        |
-  // gp+16+2*8'h10 ----------------> | addiu	$t9, $zero, 4          |
-  //                                 | st	$t9, 0($gp)                |
-  //                                 | ld	$t9, 16($gp)               |
-  //                                 | ret	$t9                        |
-  // ...                             | ...                             |
-  // gp+16+(6-1)*8'h10 ------------> | addiu	$t9, $zero, 4          |
-  //                                 | st	$t9, 0($gp)                |
-  //                                 | ld	$t9, 16($gp)               |
-  //                                 | ret	$t9                        |
-  //                                 -----------------------------------
+  //                                    -----------------------------------
+  // gp ------------------------------> | all 0                           | (16 bytes)
+  // gp+16 ---------------------------> | 0                          |
+  // gp+16+1*4 -----------------------> | 1st plt entry address      | (4 bytes)
+  //                                    | ...                        |
+  // gp+16+(numDynEntry-1)*4 ---------> | the last plt entry address |
+  //                                    -----------------------------------
+  // gpPlt ---------------------------> | all 0                           | (16 bytes)
+  // gpPlt+16+0*8'h10 ----------------> | 32'h10: pointer to plt0         |
+  // gpPlt+16+1*8'h10 ----------------> | addiu $t9, $zero, 4             |
+  //                                    | st  $t9, 0($gp)                 |
+  //                                    | ld  $t9, 16($gp)                |
+  //                                    | ret $t9                         |
+  // gpPlt+16+2*8'h10 ----------------> | addiu $t9, $zero, 4             |
+  //                                    | st  $t9, 0($gp)                 |
+  //                                    | ld  $t9, 16($gp)                |
+  //                                    | ret $t9                         |
+  // ...                                | ...                             |
+  // gpPlt+16+(6-1)*8'h10 ------------> | addiu $t9, $zero, 4             |
+  //                                    | st  $t9, 0($gp)                 |
+  //                                    | ld  $t9, 16($gp)                |
+  //                                    | ret $t9                         |
+  //                                    -----------------------------------
 
 
 :num:`Figure #lld-f6` is the memory content after the example program is loaded.
