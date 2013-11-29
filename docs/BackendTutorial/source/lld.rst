@@ -302,11 +302,15 @@ explained in this section. List the LLD project status as follows,
     =c++11 -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ../src/
 
 
-The following is for LLD introduction, we extract information from web site, 
-http://lld.llvm.org/design.html. It's part and fragment. Please read the lld 
-design web document first, then reading the following to ensure you agree to 
-our understanding from lld design document and experience in lld backend 
-implementation. Because some of the following came from our understanding.
+This whole book focus on backend design, this chapter is too. To help readers 
+understand the lld document, first we list the linking steps from lld web. 
+After that, explain each step with the class of source code which came from 
+lld source and more with what kind of Cpu0 lld backend implementation needed 
+in each step. 
+Please read the lld design web document first, http://lld.llvm.org/design.html, 
+then reading the following to 
+ensure you agree to our understanding from lld design document.
+Because some of the following came from our understanding.
 
 
 How LLD do the linker job
@@ -720,7 +724,29 @@ will be called by lld driver to finish the address binding in linker stage.
     :start-after: // start
 
 .. rubric:: lbdex/InputFiles/build-hello.sh
-.. literalinclude:: ../lbdex/InputFiles/build-hello.sh
+.. code-block:: c++
+
+  #!/usr/bin/env bash
+  #TOOLDIR=/home/Gamma/test/lld/cmake_debug_build/bin
+  TOOLDIR=/home/cschen/test/lld/cmake_debug_build/bin
+
+  cpu=cpu032I
+
+  /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
+  gnu -c start.cpp -emit-llvm -o start.bc
+  /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
+  gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
+  /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
+  gnu -c ch_hello.c -emit-llvm -o ch_hello.bc
+  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
+  start.bc -o start.cpu0.o
+  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
+  printf-stdarg.bc -o printf-stdarg.cpu0.o
+  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
+  ch_hello.bc -o ch_hello.cpu0.o
+  ${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o 
+  printf-stdarg.cpu0.o ch_hello.cpu0.o -o a.out
+  ${TOOLDIR}/llvm-objdump -elf2hex a.out > ../cpu0_verilog/cpu0.hex
 
 .. rubric:: lbdex/cpu0_verilog/Cpu0.hex
 .. code-block:: c++
@@ -745,19 +771,20 @@ As you can see, applyRelocation() get four values for the Relocation Records
 Solving. When meet R_CPU0_LO16, targetVAddress is the only one value needed for 
 this Relocation Solving in these four values. For this ch_hello.c example code, 
 the lld set the "Hello world!" string begin at 0x0b98+7=0x0b9f. 
-So, targetVAddress is 0x0b9f in the "Hello world!" string address access. 
+So, targetVAddress is 0x0b9f. 
 The instructions 
 "lui" and "addiu" at address 0x9f0 and 0x9f4 loading the address of 
 "Hello world!" string to register \$2. The "lui" got the HI 16 bits while the 
 "addiu" got the LO 16 bits of address of "Hello world!" string. This "lui" 
 Relocation Record, R_CPU0_HI16, is 0 since the HI 16 bits of 0xb9f is 0 while 
 the "addiu" Relocation Record, R_CPU0_LO16, is 0xb9f.
-The instruction "jsub" at 0xa0c is instruction jump to printf(). This is PC 
-relative address Relocation Record, R_CPU0_PC24, while the R_CPU0_LO16 is 
-absolute address Relocation Record. To solve this Relocation Record, it need 
-"location" in addition to targetVAddress. In this case, the targetVAddress is 
-0xb4 where the printf start address and the location is 0xa0c since the 
-instruction "jsub" at this address. 
+The instruction "jsub" at 0xa0c is an instruction jump to printf(). 
+This instruction is a PC relative address Relocation Record, R_CPU0_PC24, 
+while the R_CPU0_LO16 is an absolute address Relocation Record. 
+To solve this Relocation Record, it need "location" in addition to 
+targetVAddress. In this case, the targetVAddress is 0xb4 where is the printf 
+subroutine start address and the location is 0xa0c since the 
+instruction "jsub" sit at this address. 
 The R_CPU0_PC24 is solved by (0xb4 - (0xa0c + 4) = 0xf6a4 for 16 bits with sign 
 extension) since after this "jsub" instruction executed the PC counter is 
 (0xa0c+4). 
@@ -768,7 +795,9 @@ Remind, we explain the Relocation Records Solving according file cpu0.hex list
 as above because the the Cpu0 machine boot at memory address 0x0 while the elf 
 text section or plt section as follows start at 0x140. The 0x0 is the header of 
 machine architecture information. The elf2hex code must keeps the address 
-relative distance just like the Cpu0 elf2hex.h did.
+relative distance between text and plt sections just like the Cpu0 elf2hex.h did. 
+The .rodata and other data sections are binding with absolute address, Cpu0 
+elf2hex must keeps them as the same address of elf.
 
 .. code-block:: bash
 
@@ -782,8 +811,8 @@ relative distance just like the Cpu0 elf2hex.h did.
    0150 09ddfff8 02ed0004 02cd0000 11cd0000  ................
   ...
   Contents of section .rodata:
-   10a4 286e756c 6c290048 656c6c6f 20776f72  (null).Hello wor
-   10b4 6c642100 676c6f62 616c2076 61726961  ld!.global varia
+   0b98 286e756c 6c290048 656c6c6f 20776f72  (null).Hello wor
+   0ba8 6c642100 25730a00                    ld!.%s..
 
 
 Next section will show you how to design your lld backend and register a pass 
