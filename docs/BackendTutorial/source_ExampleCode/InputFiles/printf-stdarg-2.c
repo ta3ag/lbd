@@ -41,15 +41,6 @@ struct Time copyTime(struct Time time)
   return time;
 }
 
-// For memory IO
-int putchar(const char c)
-{
-  char *p = (char*)OUT_MEM;
-  *p = c;
-
-  return 0;
-}
-
 int main(void)
 {
   char *ptr = "Hello world!";

@@ -10,15 +10,6 @@
 
 extern "C" int printf(const char *format, ...);
 
-// For memory IO
-extern "C" int putchar(const char c)
-{
-  char *p = (char*)OUT_MEM;
-  *p = c;
-
-  return 0;
-}
-
 extern int la(int x1, int x2);
 extern int foo(int x1, int x2);
 extern int bar();
@@ -28,10 +19,6 @@ int main()
 //  ENABLE_TRACE;
   int a = 0;
 
-#if 0
-  a = la(1, 2);
-  printf("la(1, 2) = %d\n", a);
-#endif
 #if 1
   a = foo(1, 2);
   printf("foo(1, 2) = %d\n", a);
@@ -39,6 +26,10 @@ int main()
 #if 1
   a = bar();
   printf("bar() = %d\n", a);
+#endif
+#if 0
+  a = foo(1, 2);
+  printf("foo(1, 2) = %d\n", a);
 #endif
   
   return 0;

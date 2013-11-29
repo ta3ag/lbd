@@ -460,14 +460,17 @@ std::unique_ptr<Pass>
 lld::elf::createCpu0RelocationPass(const Cpu0LinkingContext &ctx) {
   switch (ctx.getOutputELFType()) {
   case llvm::ELF::ET_EXEC:
+  // when the output file is execution file: e.g. a.out
 #ifdef DLINKER
     if (ctx.isDynamic())
+    // when the a.out refer to shared object *.so
       return std::unique_ptr<Pass>(new DynamicRelocationPass(ctx));
     else
 #endif // DLINKER
       return std::unique_ptr<Pass>(new StaticRelocationPass(ctx));
 #ifdef DLINKER
   case llvm::ELF::ET_DYN:
+  // when the output file is shared object: e.g. foobar.so
     return std::unique_ptr<Pass>(new DynamicRelocationPass(ctx));
 #endif // DLINKER
   case llvm::ELF::ET_REL:

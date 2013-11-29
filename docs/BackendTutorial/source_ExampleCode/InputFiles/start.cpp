@@ -16,6 +16,7 @@ SYMBOL TABLE:
 
 /// start
 
+#include "print.h"
 #include "dynamic_linker.h"
 
 extern int main();
@@ -44,3 +45,13 @@ void start() {
   asm("addiu $lr, $ZERO, -1");
   asm("ret $lr");
 }
+
+// For memory IO
+extern "C" int putchar(const char c)
+{
+  char *p = (char*)OUT_MEM;
+  *p = c;
+
+  return 0;
+}
+

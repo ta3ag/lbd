@@ -607,6 +607,24 @@ next section.
 
   Cpu0 lld RelocationPass
 
+All lld backends which like to handle the Relocation 
+Records Resolve need to register a pass when the lld backend code is up.
+After register the pass, LLD will do last two 
+steps, Passes/Optimization and Generate Output file, interactivly just like the 
+"Parsing and Generating code" in compiler. 
+LLD will do Passes/Optimization and call your
+lld backend hook function "applyRelocation()" (define in 
+Cpu0TargetRelocationHandler.cpp) to finish the address binding in linker stage.
+Based on this understanding, we believe the "applyRelocation()" is at the step 
+of Generate output file rather than Passes/Optimization even LLD web document 
+didn't indicate this.
+
+The following code will register a pass when the lld backend code is up. 
+
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
+    :start-after: } // end anon namespace
+
 
 Generate Output File
 +++++++++++++++++++++++
@@ -664,18 +682,113 @@ Generate Output File
     } // namespace lld
 
 
-All lld backends which like to handle the Relocation 
-Records Resolve need to register a pass when the lld backend code is up.
+After register a relocation pass, lld backend hook function "applyRelocation()" 
+will be called by lld driver to finish the address binding in linker stage.
+
+.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp
+.. code-block:: c++
+
+  ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
+      ELFWriter &writer, llvm::FileOutputBuffer &buf, const lld::AtomLayout &atom,
+      const Reference &ref) const {
+    ...
+    uint8_t *atomContent = buf.getBufferStart() + atom._fileOffset;
+    uint8_t *location = atomContent + ref.offsetInAtom();
+    uint64_t targetVAddress = writer.addressOfAtom(ref.target());
+    uint64_t relocVAddress = atom._virtualAddr + ref.offsetInAtom();
+    ...
+    switch (ref.kind()) {
+    case R_CPU0_NONE:
+      break;
+    case R_CPU0_HI16:
+      relocHI16(location, relocVAddress, targetVAddress, ref.addend());
+      break;
+    case R_CPU0_LO16:
+      relocLO16(location, relocVAddress, targetVAddress, ref.addend());
+      break;
+    ...
+    case R_CPU0_PC24:
+      relocPC24(location, relocVAddress, targetVAddress, ref.addend());
+      break;
+    ...
+    }
+    return error_code::success();
+  }
+
+.. rubric:: lbdex/InputFiles/ch_hello.c
+.. literalinclude:: ../lbdex/InputFiles/ch_hello.c
+    :start-after: // start
+
+.. rubric:: lbdex/InputFiles/build-hello.sh
+.. literalinclude:: ../lbdex/InputFiles/build-hello.sh
+
+.. rubric:: lbdex/cpu0_verilog/Cpu0.hex
+.. code-block:: c++
+
+  ...
+  /*printf:*/
+  /*      b4:*/	09 dd ff e0                                  /*	addiu	$sp, $sp, -32*/
+  ...
+  /*main:*/
+  /*     9e0:*/	09 dd ff e8                                  /*	addiu	$sp, $sp, -24*/
+  ...
+  /*     9f0:*/	0f 20 00 00                                  /*	lui	$2, 0*/
+  /*     9f4:*/	09 22 0b 9f                                  /*	addiu	$2, $2, 2975*/
+  ...
+  /*     a0c:*/	3b ff f6 a4                                  /*	jsub	16774820*/
+  ...
+  /*Contents of section .rodata:*/
+  /*0b98 */28 6e 75 6c  6c 29 00 48  65 6c 6c 6f  20 77 6f 72 /*  (null).Hello wor*/
+  /*0ba8 */6c 64 21 00  25 73 0a 00   /*  ld!.\%s..*/
+
+As you can see, applyRelocation() get four values for the Relocation Records 
+Solving. When meet R_CPU0_LO16, targetVAddress is the only one value needed for 
+this Relocation Solving in these four values. For this ch_hello.c example code, 
+the lld set the "Hello world!" string begin at 0x0b98+7=0x0b9f. 
+So, targetVAddress is 0x0b9f in the "Hello world!" string address access. 
+The instructions 
+"lui" and "addiu" at address 0x9f0 and 0x9f4 loading the address of 
+"Hello world!" string to register \$2. The "lui" got the HI 16 bits while the 
+"addiu" got the LO 16 bits of address of "Hello world!" string. This "lui" 
+Relocation Record, R_CPU0_HI16, is 0 since the HI 16 bits of 0xb9f is 0 while 
+the "addiu" Relocation Record, R_CPU0_LO16, is 0xb9f.
+The instruction "jsub" at 0xa0c is instruction jump to printf(). This is PC 
+relative address Relocation Record, R_CPU0_PC24, while the R_CPU0_LO16 is 
+absolute address Relocation Record. To solve this Relocation Record, it need 
+"location" in addition to targetVAddress. In this case, the targetVAddress is 
+0xb4 where the printf start address and the location is 0xa0c since the 
+instruction "jsub" at this address. 
+The R_CPU0_PC24 is solved by (0xb4 - (0xa0c + 4) = 0xf6a4 for 16 bits with sign 
+extension) since after this "jsub" instruction executed the PC counter is 
+(0xa0c+4). 
+To +4 at current instruction because PC counter increased at instruction fetch 
+stage in Verilog design.
+
+Remind, we explain the Relocation Records Solving according file cpu0.hex list 
+as above because the the Cpu0 machine boot at memory address 0x0 while the elf 
+text section or plt section as follows start at 0x140. The 0x0 is the header of 
+machine architecture information. The elf2hex code must keeps the address 
+relative distance just like the Cpu0 elf2hex.h did.
+
+.. code-block:: bash
+
+  [Gamma@localhost InputFiles]$ bash build-hello.sh
+  [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/
+  llvm-objdump -s a.out
+  ...                .
+  Contents of section .plt:
+   0140 3600000c 36000004 36000004 36fffffc  6...6...6...6...
+  Contents of section .text:
+   0150 09ddfff8 02ed0004 02cd0000 11cd0000  ................
+  ...
+  Contents of section .rodata:
+   10a4 286e756c 6c290048 656c6c6f 20776f72  (null).Hello wor
+   10b4 6c642100 676c6f62 616c2076 61726961  ld!.global varia
+
+
 Next section will show you how to design your lld backend and register a pass 
-for Relocation Records Solve. After register the pass, LLD will do last two 
-steps, Passes/Optimization and Generate Output file, interactivly just like the 
-"Parsing and Generating code" in compiler. 
-LLD will do Passes/Optimization and call your
-lld backend hook function "applyRelocation()" (define in 
-Cpu0TargetRelocationHandler.cpp) to finish the address binding in linker stage.
-Based on this understanding, we believe the "applyRelocation()" is at the step 
-of Generate output file rather than Passes/Optimization even LLD web document 
-didn't indicate this.
+for Relocation Records Solve in details through the Cpu0 lld backend code 
+explantation. 
 
 
 Static linker 
@@ -936,28 +1049,8 @@ The following code give the chance to let lld system call our relocation
 function at proper time.
 
 .. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
-.. code-block:: c++
-
-  std::unique_ptr<Pass>
-  lld::elf::createCpu0RelocationPass(const Cpu0LinkingContext &ctx) {
-    switch (ctx.getOutputELFType()) {
-    case llvm::ELF::ET_EXEC:
-  #ifdef DLINKER
-      if (ctx.isDynamic())
-        return std::unique_ptr<Pass>(new DynamicRelocationPass(ctx));
-      else
-  #endif // DLINKER
-        return std::unique_ptr<Pass>(new StaticRelocationPass(ctx));
-  #ifdef DLINKER
-    case llvm::ELF::ET_DYN:
-      return std::unique_ptr<Pass>(new DynamicRelocationPass(ctx));
-  #endif // DLINKER
-    case llvm::ELF::ET_REL:
-      return std::unique_ptr<Pass>();
-    default:
-      llvm_unreachable("Unhandled output file type");
-    }
-  }
+.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
+    :start-after: } // end anon namespace
 
 The "#ifdef DLINKER" part is for dynamic linker which will be used in next 
 section.
@@ -965,7 +1058,7 @@ For static linker, a StaticRelocationPass object is created and return.
 
 Now the following code of Cpu0TargetRelocationHandler::applyRelocation() 
 will be called through 
-Cpu0TargetHandler by lld ELF driver when it meet each relocation record.
+Cpu0TargetHandler by lld ELF driver when it meets each relocation record.
 
 .. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp
 .. code-block:: c++
@@ -1032,6 +1125,9 @@ object from Cpu0LinkingContext or Cpu0RelocationHandler rely on
 LinkingContext::getTargetHandler() function. As :num:`Figure #lld-f5` depicted, 
 the unique_ptr point to Cpu0TargetHandler will be saved in LinkingContext 
 contructor function.
+
+List the c++11 unique_ptr::get() and move() which used in :num:`Figure #lld-f5` 
+as follows.
 
 .. note:: std::unique_ptr::get() [#]_
 
