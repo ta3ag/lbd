@@ -5,9 +5,9 @@ LLD for Cpu0
 
 This chapter add Cpu0 backend in lld. With this lld Cpu0 for ELF linker support,
 the program with global variables can be allocated in ELF file format layout. 
-Meaning the relocation records of global variable can be solved. In addition, 
+Meaning the relocation records of global variables can be solved. In addition, 
 llvm-objdump driver is modified for support generate Hex file from ELF.
-With these two tools supported, the program with global variables exist in 
+With these two tools supported, the program with global variables of existed in 
 section.data and .rodata can be accessed and transfered to Hex file which feed 
 to Verilog Cpu0 machine and run on your PC/Laptop.
 
@@ -15,13 +15,13 @@ LLD web site [#]_. LLD install requirement on Linux [#]_.
 In spite of the requirement, we
 only can build with gcc4.7 above (clang will fail) on Linux. 
 If you run with Virtual Machine (VM), please keep your phisical memory size 
-setting over 1GB to avoid link error with insufficient memory.
+setting over 1GB to avoid insufficient memory link error.
 
 
 Install lld
 -------------
 
-LLD project is underdevelopment and can be compiled with c++11 standard (C++
+LLD project is underdevelopment and can be compiled only with c++11 standard (C++
 2011 year announced standard). Currently, we only know how to build lld with 
 llvm on Linux platform or Linux VM. Please let us know if you know how to build
 it on iMac with Xcode. So, if you got iMac only, please install VM (such as 
@@ -274,7 +274,7 @@ backend as follows,
     :start-after: // 2 llvm-objdump -elf2hex code update begin:
     :end-before: // 2 llvm-objdump -elf2hex code udpate end:
 
-The "if (DumpSo)" and "if (LinkSo)" included code are for dynamic linker support.
+The code included "if (DumpSo)" and "if (LinkSo)" are for dynamic linker support.
 Others are used in both static and dynamic link execution file dump.
 
 
@@ -302,7 +302,8 @@ explained in this section. List the LLD project status as follows,
     =c++11 -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ../src/
 
 
-This whole book focus on backend design, this chapter is too. To help readers 
+This whole book focus on backend design, and this chapter is same. 
+To help readers 
 understand the lld document, first we list the linking steps from lld web. 
 After that, explain each step with the class of source code which came from 
 lld source and more with what kind of Cpu0 lld backend implementation needed 
