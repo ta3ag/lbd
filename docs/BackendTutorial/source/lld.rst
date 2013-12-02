@@ -1179,8 +1179,8 @@ as follows.
 Dynamic linker 
 ---------------
 
-Except the lld code with #ifdef DLINKER. The following code in Verilog exists 
-to support dynamic linker.
+In addition to the lld code with #ifdef DLINKER. The following code in Verilog 
+exists to support dynamic linker.
 
 .. rubric:: lbdex/cpu0_verilog/dynlinker.v
 .. literalinclude:: ../lbdex/cpu0_verilog/dynlinker.v
@@ -1298,7 +1298,7 @@ purpose (since we coding it and take time to debug). After skip these debug
 code, the dynamic_linker.cpp is short and not difficult to read.
 
 The run result is under expectation. The main() call foo() function first.
-Function foo() is loaded by dynamic linker (dynamic_linker.cpp) from memory
+Function foo() is loaded by dynamic linker (dynamic_linker.cpp) from flash
 address FLASHADDR (defined in dynamic_linker.h) to memory.
 The flashio.v implement the simulation read from flash address.
 After loaded foo() body from flash, dynamic_linker.cpp jump to this loaded
@@ -1513,18 +1513,19 @@ $zero, 4($gp); st	$t9, 0($gp); ld	$t9, 16($gp); ret	$t9" as follows,
 
 :num:`Figure #lld-f7` is the Control flow transfer from call foo() of main() to 
 dynamic linker. After ch_dynamiclinker.cpp call foo() first time, it jump to 
-__plt_Z3fooii plt entry. Since __plt_Z3fooii is the 3rd plt entry,
+__plt_Z3fooii plt entry. In __plt_Z3fooii, "ld $t9, 1c($gp)" and "ret $t9" will 
+jump to "Plt foo:". Since foo is the 3rd plt entry, in "Plt foo:" 
 it save 3 to 0($gp) memory address then jump to PLT0. The PLT0 purpose is to
 save $lr, $fp, $sp and jump to dynamic linker. 
 Now, the control flow transfer to dynamic linker.
 Dynamic linker will get the loaded function name and function offset of shared 
-library by the value of 0($gp) which is 3 set in __plt_Z3fooii. The value 
-3 tell dynamic linker load foo() (3rd string in .dynstr) from offset of shared
-library, 0x3c (3rd value of Function offset area in Figure).
+library by the value of 0($gp) which is 3 set in "Plt foo:". The value 
+3 tells dynamic linker loading foo() (3rd string in .dynstr) from offset of 
+shared library, 0x3c (3rd value of Function offset area in Figure).
 Now, dynamic linker can load foo() function from flash to memory, set the 
-address gp+3*4 to 0x40000 where the address 0x40000 is the foo() function
+address gp+3*4 to 0x40000 where the address 0x40000 is the foo() function is 
 loaded to memory and prepare jump to the foo() memory address. 
-Remind we say the prepare jump to foo(). It because
+Remind we say the prepare jump to foo(). Because
 before jump to foo(), dynamic linker need to restore the $lr, $fp, $sp to the 
 value of just before caller calling foo() (they are saved in 4, 8, 12 of $gp 
 offset in PLT0, so them can be restored from that address).
@@ -1539,22 +1540,31 @@ offset in PLT0, so them can be restored from that address).
 As :num:`Figure #lld-f8` depicted, control flow from dynamic linker to foo() and
 back to caller main() when it meets the instruction "ret $lr" in foo().
 
-Now the program run at the next instruction of call foo() in main(). When it run 
+.. _lld-f9: 
+.. figure:: ../Fig/lld/9.png
+  :scale: 80 %
+  :align: center
+
+  Transfer from dynamic linker to foo() and back to main()
+  
+Now the program run at the next instruction of call foo() in main() as 
+:num:`Figure #lld-f9` depicted. When it run 
 to address 0xd8 "jsub __plt__Z3barv", the control flow will transfer from 
-__plt_Z3barv through PLT0 to dynamic linker then load and run bar() from flash 
+__plt_Z3barv through "Plt bar:" and PLT0 to dynamic linker then load and run 
+bar() from flash 
 to memory just like the calling __plt__Z3fooii. 
 The difference is bar() will call foo() first and call la() next. 
 The call foo() in bar() will jump to foo() directly as 
-:num:`Figure #lld-f8` because the content of gp+28 is the address of 0x40000 which
+:num:`Figure #lld-f9` because the content of gp+28 is the address of 0x40000 which
 set in dynamic linker when the foo() function is called first time. 
 
-Finally when bar() call la() function it will jump to __plt_Z3laii since the 
-content of $gp+24 point to __plt_Z3laii. 
-The __plt_Z3laii code will call dynamic linker
-to load la() function, run la() and back to bar() as :num:`Figure #lld-f9`.
+Finally when bar() call la() function it will jump to "Plt la:" since the 
+content of $gp+24 point to "Plt la:". 
+The "Plt la:" code will call dynamic linker
+to load la() function, run la() and back to bar() as :num:`Figure #lld-f10`.
 
-.. _lld-f9: 
-.. figure:: ../Fig/lld/9.png
+.. _lld-f10: 
+.. figure:: ../Fig/lld/10.png
   :scale: 80 %
   :align: center
 
