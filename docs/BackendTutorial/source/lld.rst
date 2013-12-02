@@ -1581,7 +1581,9 @@ The dynamic linker implementation usually is not specified in ABI. It need the
 co-work between linker and dynamic linker/loader. It use the pointers (the area 
 from gp+16+1*4 to gp+16+(numDynEntry-1)*4). When the code is loaded, this 
 corresponding pointer in this area point to the loaded memory. Otherwise, it 
-point to dynamic linker. 
+point to dynamic linker. The Plt or __plt_Z3fooii, __pltZ3barv are coding in 
+our cpu0PltAtomContent[] of Cpu0RelocationPass.cpp. It is called linkage editor 
+implementation.
 
 
 Cpu0 lld dynamic linker structure
