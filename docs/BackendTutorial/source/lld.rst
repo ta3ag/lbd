@@ -1545,14 +1545,21 @@ back to caller main() when it meets the instruction "ret $lr" in foo().
   :scale: 80 %
   :align: center
 
-  Transfer from dynamic linker to foo() and back to main()
+  Control flow transfer from calling bar() instruction of main() to dynamic linker
+  
+.. _lld-f10: 
+.. figure:: ../Fig/lld/10.png
+  :scale: 80 %
+  :align: center
+
+  Dynamic linker load bar() from flash to memory
   
 Now the program run at the next instruction of call foo() in main() as 
 :num:`Figure #lld-f9` depicted. When it run 
 to address 0xd8 "jsub __plt__Z3barv", the control flow will transfer from 
-__plt_Z3barv through "Plt bar:" and PLT0 to dynamic linker then load and run 
-bar() from flash 
-to memory just like the calling __plt__Z3fooii. 
+main through __plt_Z3barv, "Plt bar:" and PLT0 to dynamic linker as 
+:num:`Figure #lld-f9` depicted. Then load and run bar() from flash to memory 
+just like the calling __plt__Z3fooii as :num:`Figure #lld-f10` depicted. 
 The difference is bar() will call foo() first and call la() next. 
 The call foo() in bar() will jump to foo() directly as 
 :num:`Figure #lld-f9` because the content of gp+28 is the address of 0x40000 which
@@ -1561,14 +1568,20 @@ set in dynamic linker when the foo() function is called first time.
 Finally when bar() call la() function it will jump to "Plt la:" since the 
 content of $gp+24 point to "Plt la:". 
 The "Plt la:" code will call dynamic linker
-to load la() function, run la() and back to bar() as :num:`Figure #lld-f10`.
+to load la() function, run la() and back to bar() as :num:`Figure #lld-f11`.
 
-.. _lld-f10: 
-.. figure:: ../Fig/lld/10.png
+.. _lld-f11: 
+.. figure:: ../Fig/lld/11.png
   :scale: 80 %
   :align: center
 
-  Call la through __plt_Z3laii in bar()
+  Call la through "Plt la:" in bar()
+  
+The dynamic linker implementation usually is not specified in ABI. It need the 
+co-work between linker and dynamic linker/loader. It use the pointers (the area 
+from gp+16+1*4 to gp+16+(numDynEntry-1)*4). When the code is loaded, this 
+corresponding pointer in this area point to the loaded memory. Otherwise, it 
+point to dynamic linker. 
 
 
 Cpu0 lld dynamic linker structure
