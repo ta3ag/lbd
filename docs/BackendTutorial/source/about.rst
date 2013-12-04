@@ -238,11 +238,12 @@ ABI as a guide. You may want to familiarize yourself with the relevant parts of
 the Mips ABI as you progress through this tutorial.
 
 This document can be a tutorial of toolchain development for a new CPU 
-architecture. It also is a material for those people with the knowledges of 
-Compiler as well as Computer architecture but is not an expert, who want to 
-know how to develop and real programming a toolchain and design a CPU based on 
-the LLVM Open source structure and open source tool without pay any money to 
-buy any software or hardware. The PC is the only device needed.
+architecture. Many programmer gradutated from school with the knowledges of 
+Compiler as well as Computer architecture but is not an professional engineer 
+in compiler or CPU design. This document is a material for these engineer to 
+show them how to develop and real programming a toolchain as well as design a 
+CPU based on the LLVM Open source structure and open source tool without pay 
+any money to buy any software or hardware. Computer is the only device needed.
 
 
 Prerequisites
@@ -312,7 +313,7 @@ Global variable, struct and array support, char and short int, are added in this
 About 300 lines of source code are added to do this. The Cpu0 supports PIC and static 
 addressing mode, both of which area explained as their functionality is implemented.
 
-:ref:_sec-othertypesupport:
+:ref:`sec-othertypesupport`:
 
 In addition to type int, other data type like pointer, char, bool, long long, 
 structure and array are added in this chapter.
