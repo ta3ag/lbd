@@ -236,7 +236,14 @@ documentation needed when developing a compiler, such as an Application Binary
 Interface (ABI). We implement our backend borrowing information from the Mips 
 ABI as a guide. You may want to familiarize yourself with the relevant parts of 
 the Mips ABI as you progress through this tutorial.
-	
+
+This document can be a tutorial of toolchain development for a new CPU 
+architecture. It also is a material for those people with the knowledges of 
+Compiler as well as Computer architecture but is not an expert, who want to 
+know how to develop and real programming a toolchain and design a CPU based on 
+the LLVM Open source structure and open source tool without pay any money to 
+buy any software or hardware. The PC is the only device needed.
+
 
 Prerequisites
 -------------
