@@ -134,9 +134,6 @@ The Cpu0TargetMachine contents and it's own class as follows,
     :end-before: #include "Cpu0AnalyzeImmediate.h"
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
     :start-after: #include "Cpu0AnalyzeImmediate.h"
-    :end-before: #include "MCTargetDesc/Cpu0BaseInfo.h"
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
-    :start-after: #include "MCTargetDesc/Cpu0BaseInfo.h"
     :end-before: // Build an instruction sequence to load an immediate 
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
     :start-after: // lbd document - mark - expandLargeImm
@@ -1538,8 +1535,8 @@ The Prologue and Epilogue functions as follows,
 
 .. rubric:: lbdex/Chapter3_5/Cpu0FrameLowering.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
-    :start-after:  #include "Cpu0MachineFunction.h"
-    :end-before: #include "llvm/IR/Function.h"
+    :start-after:  #include "Cpu0FrameLowering.h"
+    :end-before: #include "Cpu0InstrInfo.h"
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0FrameLowering.cpp
     :start-after:  // lbd document - mark - hasFP
     :end-before: // lbd document - mark - Cpu0::SP
