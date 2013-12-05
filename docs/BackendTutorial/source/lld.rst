@@ -1586,10 +1586,6 @@ our cpu0PltAtomContent[] of Cpu0RelocationPass.cpp. It is called linkage editor
 implementation.
 
 
-Cpu0 lld dynamic linker structure
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
 Summary
 --------
 

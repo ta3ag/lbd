@@ -52,7 +52,9 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.3.10, Not release yet.
+Version 3.3.11, Not release yet.
+
+Version 3.3.10, Released December 5, 2013
   Correct typing error.
   Dynamic linker in lld.rst.
   Correct errors came from old version of example code.
