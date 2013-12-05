@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.9',
+        VERSION:     '3.3.10',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -116,20 +116,20 @@ build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj ch11_1.bc
 LLVM ERROR: Inline asm not supported by this streamer because we don't have
 an asm parser for this target</pre>
 </div>
-<p>Since we didn&#8217;t implement cpu0 assembly, it has the error message as above.
+<p>Since we didn&#8217;t implement cpu0 assembler, it has the error message as above.
 The cpu0 can translate LLVM IR into assembly and obj directly, but it cannot
-translate hand code assembly into obj.
+translate hand code assembly instructions into obj.
 Directory AsmParser handle the assembly to obj translation.
 The Chapter11_1/ include AsmParser implementation as follows,</p>
 <p class="rubric">lbdex/Chapter11_1/AsmParser/Cpu0AsmParser.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0AsmParser.cpp - Parse Cpu0 assembly to MCInst instructions ----===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0AsmParser.cpp - Parse Cpu0 assembly to MCInst instructions ----===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;MCTargetDesc/Cpu0MCTargetDesc.h&quot;</span>
 <span class="cp">#include &quot;Cpu0RegisterInfo.h&quot;</span>
@@ -1187,10 +1187,10 @@ add_dependencies(LLVMCpu0AsmParser Cpu0CommonTableGen)
 <span class="n">add_to_library_groups</span> <span class="o">=</span> <span class="n">Cpu0</span>
 </pre></div>
 </div>
-<p>The Cpu0AsmParser.cpp contains one thousand of code which do the assembly
+<p>The Cpu0AsmParser.cpp contains one thousand lines of code which do the assembly
 language parsing. You can understand it with a little patient only.
-To let directory AsmParser be built, modify CMakeLists.txt and LLVMBuild.txt as
-follows,</p>
+To let file directory of AsmParser be built, modify CMakeLists.txt and
+LLVMBuild.txt as follows,</p>
 <p class="rubric">lbdex/Chapter11_1/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenAsmMatcher</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="k">asm</span><span class="o">-</span><span class="n">matcher</span><span class="p">)</span>
 <span class="p">...</span>
@@ -1198,32 +1198,10 @@ follows,</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter11_1/LLVMBuild.txt</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">subdirectories</span> <span class="o">=</span> <span class="n">AsmParser</span> <span class="p">...</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">subdirectories</span> <span class="o">=</span>
+  <span class="n">AsmParser</span>
 <span class="p">...</span>
 <span class="n">has_asmparser</span> <span class="o">=</span> <span class="mi">1</span>
-</pre></div>
-</div>
-<p>The other files change as follows,</p>
-<p class="rubric">lbdex/Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
-<span class="n">getBranchTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
-             <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="c1">// If the destination is an immediate, we have nothing to do.</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isImm</span><span class="p">())</span> <span class="k">return</span> <span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
-  <span class="p">...</span>
-<span class="p">}</span>
-
-<span class="c1">/// getJumpAbsoluteTargetOpValue - Return binary encoding of the jump</span>
-<span class="c1">/// target operand. Such as SWI.</span>
-<span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
-<span class="n">getJumpAbsoluteTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
-           <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="c1">// If the destination is an immediate, we have nothing to do.</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isImm</span><span class="p">())</span> <span class="k">return</span> <span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
-  <span class="p">...</span>
-<span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter11_1/Cpu0.td</p>
@@ -1236,8 +1214,8 @@ follows,</p>
 
   <span class="c1">// Recognize hard coded registers.</span>
   <span class="n">string</span> <span class="n">RegisterPrefix</span> <span class="o">=</span> <span class="s">&quot;$&quot;</span><span class="p">;</span>
-<span class="p">}</span>
-
+<span class="p">}</span> <span class="c1">// def Cpu0AsmParserVariant</span>
+<span class="p">...</span>
 <span class="n">def</span> <span class="n">Cpu0</span> <span class="o">:</span> <span class="n">Target</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="n">let</span> <span class="n">AssemblyParsers</span> <span class="o">=</span> <span class="p">[</span><span class="n">Cpu0AsmParser</span><span class="p">];</span>
@@ -1254,7 +1232,7 @@ follows,</p>
   <span class="n">Cpu0Inst</span><span class="o">&lt;</span><span class="n">outs</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">asmstr</span><span class="p">,</span> <span class="p">[],</span> <span class="n">IIPseudo</span><span class="p">,</span> <span class="n">Pseudo</span><span class="o">&gt;</span> <span class="p">{</span>
   <span class="n">let</span> <span class="n">isPseudo</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
   <span class="n">let</span> <span class="n">Pattern</span> <span class="o">=</span> <span class="p">[];</span>
-<span class="p">}</span>
+<span class="p">}</span> <span class="c1">// lbd document - mark - class Cpu0AsmPseudoInst</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter11_1/Cpu0InstrInfo.td</p>
@@ -1262,22 +1240,12 @@ follows,</p>
 def Cpu0MemAsmOperand : AsmOperandClass {
   let Name = "Mem";
   let ParserMethod = "parseMemOperand";
-}
+} // lbd document - mark - def Cpu0MemAsmOperand
 
 // Address operand
 def mem : Operand&lt;i32&gt; {
   ...
   let ParserMatchClass = Cpu0MemAsmOperand;
-}
-...
-class CmpInstr&lt;...
-   !strconcat(instr_asm, "\t$rc, $ra, $rb"), [], itin&gt; {
-  ...
-}
-...
-class CBranch&lt;...
-       !strconcat(instr_asm, "\t$ra, $addr"), ...&gt; {
-  ...
 }
 ...
 //===----------------------------------------------------------------------===//
@@ -1299,9 +1267,10 @@ class LoadAddressImm&lt;string instr_asm, Operand Od, RegisterClass RC&gt; :
            !strconcat(instr_asm, "\t$ra, $imm32")&gt; ;
 def LoadAddr32Imm : LoadAddressImm&lt;"la", shamt, CPURegs&gt;;</pre>
 </div>
-<p>Above define the <strong>ParserMethod = &#8220;parseMemOperand&#8221;</strong> and implement the
+<p>Above declare the <strong>ParserMethod = &#8220;parseMemOperand&#8221;</strong> and implement the
 parseMemOperand() in Cpu0AsmParser.cpp to handle the <strong>&#8220;mem&#8221;</strong> operand which
-used in ld and st. For example, ld $2, 4($sp), the <strong>mem</strong> operand is 4($sp).
+used in Cpu0 instructions ld and st.
+For example, ld $2, 4($sp), the <strong>mem</strong> operand is 4($sp).
 Accompany with <strong>&#8220;let ParserMatchClass = Cpu0MemAsmOperand;&#8221;</strong>,
 LLVM will call parseMemOperand() of Cpu0AsmParser.cpp when it meets the assembly
 <strong>mem</strong> operand 4($sp). With above <strong>&#8220;let&#8221;</strong> assignment, TableGen will generate
@@ -1347,7 +1316,7 @@ the following structure and functions in Cpu0GenAsmMatcher.inc.</p>
 <span class="p">};</span>
 </pre></div>
 </div>
-<p>Above 3 Pseudo Instruction definitions in Cpu0InstrInfo.td such as
+<p>Above three Pseudo Instruction definitions in Cpu0InstrInfo.td such as
 LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,</p>
 <p class="rubric">lbdex/Chapter11_1/AsmParser/Cpu0AsmParser.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">bool</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">needsExpansion</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">)</span> <span class="p">{</span>
@@ -1457,57 +1426,52 @@ ch11_1.cpu0.o:  file format ELF32-unknown
 
 Disassembly of section .text:
 .text:
-     0: 00 2d 00 08                                   ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     4: 01 0d 00 04                                   st  <span class="nv">$zero</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-     8: 09 30 00 00                                   addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
-     c: 13 31 20 00                                   add <span class="nv">$3</span>, <span class="nv">$at</span>, <span class="nv">$2</span>
-    10: 14 32 30 00                                   sub <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-    14: 15 21 30 00                                   mul <span class="nv">$2</span>, <span class="nv">$at</span>, <span class="nv">$3</span>
-    18: 16 32 00 00                                   div <span class="nv">$3</span>, <span class="nv">$2</span>
-    1c: 17 23 00 00                                   divu  <span class="nv">$2</span>, <span class="nv">$3</span>
-    20: 18 21 30 00                                   and <span class="nv">$2</span>, <span class="nv">$at</span>, <span class="nv">$3</span>
-    24: 19 31 20 00                                   or  <span class="nv">$3</span>, <span class="nv">$at</span>, <span class="nv">$2</span>
-    28: 1a 12 30 00                                   xor <span class="nv">$at</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-    2c: 50 43 00 00                                   mult  <span class="nv">$4</span>, <span class="nv">$3</span>
-    30: 51 32 00 00                                   multu <span class="nv">$3</span>, <span class="nv">$2</span>
-    34: 40 30 00 00                                   mfhi  <span class="nv">$3</span>
-    38: 41 20 00 00                                   mflo  <span class="nv">$2</span>
-    3c: 42 20 00 00                                   mthi  <span class="nv">$2</span>
-    40: 43 20 00 00                                   mtlo  <span class="nv">$2</span>
-    44: 1b 22 00 02                                   sra <span class="nv">$2</span>, <span class="nv">$2</span>, 2
-    48: 1c 21 10 03                                   rol <span class="nv">$2</span>, <span class="nv">$at</span>, 3
-    4c: 1d 33 10 04                                   ror <span class="nv">$3</span>, <span class="nv">$3</span>, 4
-    50: 1e 22 00 02                                   shl <span class="nv">$2</span>, <span class="nv">$2</span>, 2
-    54: 1f 23 00 05                                   shr <span class="nv">$2</span>, <span class="nv">$3</span>, 5
-    58: 10 23 00 00                                   cmp <span class="nv">$zero</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-    5c: 20 00 00 14                                   jeq <span class="nv">$zero</span>, 20
-    60: 21 00 00 10                                   jne <span class="nv">$zero</span>, 16
-    64: 22 ff ff ec                                   jlt <span class="nv">$zero</span>, -20
-    68: 24 ff ff f0                                   jle <span class="nv">$zero</span>, -16
-    6c: 23 ff ff <span class="nb">fc                                   </span>jgt <span class="nv">$zero</span>, -4
-    70: 25 ff ff f4                                   jge <span class="nv">$zero</span>, -12
-    74: 2a 00 04 00                                   swi 1024
-    78: 2b 01 00 00                                   jsub  65536
-    7c: 2c e0 00 00                                   ret <span class="nv">$lr</span>
-    80: 2d e6 00 00                                   jalr  <span class="nv">$6</span>
-    84: 09 30 00 70                                   addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 112
-    88: 1e 33 00 10                                   shl <span class="nv">$3</span>, <span class="nv">$3</span>, 16
-    8c: 09 10 00 00                                   addiu <span class="nv">$at</span>, <span class="nv">$zero</span>, 0
-    90: 19 33 10 00                                   or  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$at</span>
-    94: 09 30 00 80                                   addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 128
-    98: 1e 36 00 10                                   shl <span class="nv">$3</span>, <span class="nv">$6</span>, 16
-    9c: 09 10 00 00                                   addiu <span class="nv">$at</span>, <span class="nv">$zero</span>, 0
-    a0: 19 36 10 00                                   or  <span class="nv">$3</span>, <span class="nv">$6</span>, <span class="nv">$at</span>
-    a4: 13 33 60 00                                   add <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$6</span>
-    a8: 09 30 00 90                                   addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 144
-    ac: 1e 33 00 10                                   shl <span class="nv">$3</span>, <span class="nv">$3</span>, 16
-    b0: 09 10 00 00                                   addiu <span class="nv">$at</span>, <span class="nv">$zero</span>, 0
-    b4: 19 33 10 00                                   or  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$at</span>
+       0:     01 2d 00 08                                     ld      <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+       4:     02 0d 00 04                                     st      <span class="nv">$zero</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+       8:     09 30 00 00                                     addiu   <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
+       c:     13 31 20 00                                     add     <span class="nv">$3</span>, <span class="nv">$1</span>, <span class="nv">$2</span>
+      10:     14 32 30 00                                     sub     <span class="nv">$3</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+      14:     17 21 30 00                                     mul     <span class="nv">$2</span>, <span class="nv">$1</span>, <span class="nv">$3</span>
+      18:     43 32 00 00                                     div     <span class="nv">$3</span>, <span class="nv">$2</span>
+      1c:     44 23 00 00                                     divu    <span class="nv">$2</span>, <span class="nv">$3</span>
+      20:     18 21 30 00                                     and     <span class="nv">$2</span>, <span class="nv">$1</span>, <span class="nv">$3</span>
+      24:     19 31 20 00                                     or      <span class="nv">$3</span>, <span class="nv">$1</span>, <span class="nv">$2</span>
+      28:     1a 12 30 00                                     xor     <span class="nv">$1</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+      2c:     41 43 00 00                                     mult    <span class="nv">$4</span>, <span class="nv">$3</span>
+      30:     42 32 00 00                                     multu   <span class="nv">$3</span>, <span class="nv">$2</span>
+      34:     46 30 00 00                                     mfhi    <span class="nv">$3</span>
+      38:     47 20 00 00                                     mflo    <span class="nv">$2</span>
+      3c:     48 20 00 00                                     mthi    <span class="nv">$2</span>
+      40:     49 20 00 00                                     mtlo    <span class="nv">$2</span>
+      44:     1d 22 00 02                                     sra     <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+      48:     1b 21 00 03                                     rol     <span class="nv">$2</span>, <span class="nv">$1</span>, 3
+      4c:     1c 33 00 04                                     ror     <span class="nv">$3</span>, <span class="nv">$3</span>, 4
+      50:     1e 22 00 02                                     shl     <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+      54:     1f 23 00 05                                     shr     <span class="nv">$2</span>, <span class="nv">$3</span>, 5
+      58:     10 23 00 00                                     cmp     <span class="nv">$sw</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+      5c:     30 00 00 14                                     jeq     <span class="nv">$sw</span>, 20
+      60:     31 00 00 10                                     jne     <span class="nv">$sw</span>, 16
+      64:     32 ff ff ec                                     jlt     <span class="nv">$sw</span>, -20
+      68:     34 ff ff f0                                     jle     <span class="nv">$sw</span>, -16
+      6c:     33 ff ff <span class="nb">fc                                     </span>jgt     <span class="nv">$sw</span>, -4
+      70:     35 ff ff f4                                     jge     <span class="nv">$sw</span>, -12
+      74:     3a 00 04 00                                     swi     1024
+      78:     3b 01 00 00                                     jsub    65536
+      7c:     3c e0 00 00                                     ret     <span class="nv">$lr</span>
+      80:     3e e6 00 00                                     jalr    <span class="nv">$t9</span>
+      84:     0f 30 00 70                                     lui     <span class="nv">$3</span>, 112
+      88:     0d 33 00 00                                     ori     <span class="nv">$3</span>, <span class="nv">$3</span>, 0
+      8c:     0f 30 00 80                                     lui     <span class="nv">$3</span>, 128
+      90:     0d 33 00 00                                     ori     <span class="nv">$3</span>, <span class="nv">$3</span>, 0
+      94:     13 33 60 00                                     add     <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$t9</span>
+      98:     0f 30 00 90                                     lui     <span class="nv">$3</span>, 144
+      9c:     0d 33 00 00                                     ori     <span class="nv">$3</span>, <span class="nv">$3</span>, 0
 </pre></div>
 </div>
-<p>We replace cmp and jeg with explicit $sw in assembly and $zero in disassembly for
-AsmParser support. It&#8217;s OK with just a little bad in readability and in assembly
-programing than implicit representation.</p>
+<p>The instructions cmp and jeg printed with explicit $sw displayed in assembly
+and disassembly. You can change code in AsmParser and Dissassembly (the last
+chapter) to hide the $sw printed in these instructions (set $sw to implicit
+and not displayed, such as &#8220;jeq 20&#8221; rather than &#8220;jeq $sw, 20&#8221;).</p>
 </div>
 <div class="section" id="verilog-of-cpu0">
 <h2>Verilog of CPU0<a class="headerlink" href="#verilog-of-cpu0" title="Permalink to this headline">¶</a></h2>
@@ -2148,78 +2112,6 @@ cpu0.v use 0x7000 bytes of memory.</p>
 <span class="cp">#include &quot;ch8_1_1.cpp&quot;</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
-/Users/Jonathan/test/2/lbd/lbdex/InputFiles
-JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>clang -c ch_run_backend.cpp -emit-llvm -o
-ch_run_backend.bc
-JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
-build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>obj
-ch_run_backend.bc -o ch_run_backend.cpu0.o
-JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
-build/bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk <span class="s1">&#39;{print &quot;/* &quot;</span>
-<span class="s1">$1 &quot; */\t&quot; $2 &quot; &quot; $3 &quot; &quot; $4 &quot; &quot; $5 &quot;\t/* &quot; $6&quot;\t&quot; $7&quot; &quot; $8&quot; &quot; $9&quot; &quot; $10 &quot;\t*/&quot;}&#39;</span>
- &gt; ../cpu0_verilog/raw/cpu0.hex
-
-118-165-81-39:raw Jonathan<span class="nv">$ </span>cat cpu0.hex
-...
-/* 4c: */ 2b 00 00 20 /* jsub 0    */
-/* 50: */ 01 2d 00 04 /* st <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>    */
-/* 54: */ 2b 00 01 44 /* jsub 0    */
-</pre></div>
-</div>
-<p>As above code the subroutine address for <strong>&#8220;jsub #offset&#8221;</strong> are 0.
-This is correct since C language support separate compile and the subroutine
-address is decided at link time for static address mode or at
-load time for PIC address mode.
-Since our backend didn&#8217;t implement the linker and loader, we change the
-<strong>&#8220;jsub #offset&#8221;</strong> encode in Chapter11_2/ as follow,</p>
-<p class="rubric">lbdex/Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0MCCodeEmitter</span><span class="o">::</span>
-<span class="n">getJumpTargetOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
-           <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-
-  <span class="kt">unsigned</span> <span class="n">Opcode</span> <span class="o">=</span> <span class="n">MI</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">();</span>
-  <span class="p">...</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JSUB</span><span class="p">)</span>
-    <span class="n">Fixups</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MCFixup</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span>
-                     <span class="n">MCFixupKind</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_PC24</span><span class="p">)));</span>
-  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JSUB</span><span class="p">)</span>
-    <span class="n">Fixups</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MCFixup</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span>
-                     <span class="n">MCFixupKind</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_24</span><span class="p">)));</span>
-  <span class="k">else</span>
-    <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;unexpect opcode in getJumpAbsoluteTargetOpValue()&quot;</span><span class="p">);</span>
-
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p>We change JSUB from Relocation Records fixup_Cpu0_24 to Non-Relocaton Records
-fixup_Cpu0_PC24 as the definition below. This change is fine since if call a
-outside defined subroutine, it will add a Relocation Record for this
-<strong>&#8220;jsub #offset&#8221;</strong>. At this point, we set it to Non-Relocaton Records for
-run on CPU0 Verilog machine. If one day, the CPU0 linker is appeared and the
-linker do the sections arrangement, we should adjust it back to Relocation
-Records. A good linker will reorder the sections for optimization in
-data/function access. In other word,
-keep the global variable access as close as possible to reduce cache miss
-possibility.</p>
-<p class="rubric">lbdex/Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">const</span> <span class="n">MCFixupKindInfo</span> <span class="o">&amp;</span><span class="n">getFixupKindInfo</span><span class="p">(</span><span class="n">MCFixupKind</span> <span class="n">Kind</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">const</span> <span class="k">static</span> <span class="n">MCFixupKindInfo</span> <span class="n">Infos</span><span class="p">[</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">NumTargetFixupKinds</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="c1">// This table *must* be in same the order of fixup_* kinds in</span>
-    <span class="c1">// Cpu0FixupKinds.h.</span>
-    <span class="c1">//</span>
-    <span class="c1">// name                    offset  bits  flags</span>
-    <span class="p">...</span>
-    <span class="p">{</span> <span class="s">&quot;fixup_Cpu0_24&quot;</span><span class="p">,</span>           <span class="mi">0</span><span class="p">,</span>     <span class="mi">24</span><span class="p">,</span>   <span class="mi">0</span> <span class="p">},</span>
-    <span class="p">...</span>
-    <span class="p">{</span> <span class="s">&quot;fixup_Cpu0_PC24&quot;</span><span class="p">,</span>         <span class="mi">0</span><span class="p">,</span>     <span class="mi">24</span><span class="p">,</span>  <span class="n">MCFixupKindInfo</span><span class="o">::</span><span class="n">FKF_IsPCRel</span> <span class="p">},</span>
-    <span class="p">...</span>
-  <span class="p">}</span>
-  <span class="p">...</span>
-<span class="p">}</span>
-</pre></div>
-</div>
 <p>Let&#8217;s run the Chapter11_2/ with <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></tt> for input files
 ch_run_backend.cpp to generate the hex file
 and input to cpu0Is Verilog simulator to get the output result as below.
@@ -2227,8 +2119,9 @@ Remind ch_run_backend.cpp have to
 compile with option <tt class="docutils literal"><span class="pre">clang</span> <span class="pre">-target</span> <span class="pre">mips-unknown-linux-gnu</span></tt> and use the clang of
 your build instead of download from Xcode on iMac. The ~/llvm/release/
 cmake_debug_build/bin/Debug/ is my build clang from source code.</p>
-<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
-ch_run_backend.cpp -emit-llvm -o ch_run_backend.bc
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>~/llvm/release/cmake_debug_build/bin/
+Debug/clang -target mips-unknown-linux-gnu -c ch_run_backend.cpp -emit-llvm
+-o ch_run_backend.bc
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
 build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>obj
 ch_run_backend.bc -o ch_run_backend.cpu0.o
@@ -2304,7 +2197,7 @@ get the result as below,</p>
 </div>
 <p class="rubric">lbdex/cpu0_verilog/cpu0.v</p>
 <div class="highlight-c++"><pre>...
-`TR = 1; // Trace register content at beginning</pre>
+`D = 1; // Trace register content at beginning</pre>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:raw Jonathan<span class="nv">$ </span>./cpu0Is
 WARNING: cpu0.v:386: <span class="nv">$readmemh</span><span class="o">(</span>cpu0.hex<span class="o">)</span>: Not enough words in the file <span class="k">for </span>the

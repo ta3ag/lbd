@@ -52,10 +52,15 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.3.10, Not release yet.
-  Correct typing error.
+Version 3.3.11, Not release yet.
 
-Version 3.3.9, Not release yet.
+Version 3.3.10, Released December 5, 2013
+  Correct typing error.
+  Dynamic linker in lld.rst.
+  Correct errors came from old version of example code.
+  lld.rst.
+
+Version 3.3.9, Released November 22, 2013
   Add LLD introduction and Cpu0 static linker document in lld.rst.
   Fix the plt bug in elf2hex.h for dynamic linker.
 
@@ -233,7 +238,15 @@ documentation needed when developing a compiler, such as an Application Binary
 Interface (ABI). We implement our backend borrowing information from the Mips 
 ABI as a guide. You may want to familiarize yourself with the relevant parts of 
 the Mips ABI as you progress through this tutorial.
-	
+
+This document can be a tutorial of toolchain development for a new CPU 
+architecture. Many programmer gradutated from school with the knowledges of 
+Compiler as well as Computer architecture but is not an professional engineer 
+in compiler or CPU design. This document is a material for these engineer to 
+show them how to develop and real programming a toolchain as well as design a 
+CPU based on the LLVM Open source structure and open source tool without pay 
+any money to buy any software or hardware. Computer is the only device needed.
+
 
 Prerequisites
 -------------
@@ -302,7 +315,7 @@ Global variable, struct and array support, char and short int, are added in this
 About 300 lines of source code are added to do this. The Cpu0 supports PIC and static 
 addressing mode, both of which area explained as their functionality is implemented.
 
-:ref:_sec-othertypesupport:
+:ref:`sec-othertypesupport`:
 
 In addition to type int, other data type like pointer, char, bool, long long, 
 structure and array are added in this chapter.
@@ -336,7 +349,7 @@ running result.
 :ref:`sec-optimize`:
 
 Introduce how to do backend optimization by a simple effective example, and 
-redesign Cpu0 instruction sets to be a efficient RISC CPU.
+extends Cpu0 instruction sets to be a efficient RISC CPU.
 
 :ref:`sec-lld`:
 

@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.9',
+        VERSION:     '3.3.10',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -223,7 +223,7 @@ It load argument 5 from 48($sp) in sum_i() since the argument 5 is saved to
 The stack size of sum_i() is 32, so 16+32($sp) is the location of incoming
 argument 5.</p>
 <div class="figure align-center" id="funccall-f2">
-<a class="reference internal image-reference" href="_images/22.png"><img alt="_images/22.png" src="_images/22.png" style="width: 740.0px; height: 577.0px;" /></a>
+<a class="reference internal image-reference" href="_images/21.png"><img alt="_images/21.png" src="_images/21.png" style="width: 740.0px; height: 577.0px;" /></a>
 <p class="caption">Figure 2: Mips arguments location in stack frame</p>
 </div>
 <p>The 007-2418-003.pdf in <a class="footnote-reference" href="#id11" id="id2">[2]</a> is the Mips assembly language manual.
@@ -1788,19 +1788,19 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter9_3/Cpu0EmitGPRestore.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0EmitGPRestore.cpp - Emit GP Restore Instruction ---------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This pass emits instructions that restore $gp right</span>
-<span class="cp">// after jalr instructions.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0EmitGPRestore.cpp - Emit GP Restore Instruction ---------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This pass emits instructions that restore $gp right</span>
+<span class="c1">// after jalr instructions.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#define DEBUG_TYPE &quot;emit-gp-restore&quot;</span>
 

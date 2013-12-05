@@ -36,9 +36,9 @@ Run Chapter10_1/ with ch11_1.cpp will get the following error message.
   LLVM ERROR: Inline asm not supported by this streamer because we don't have 
   an asm parser for this target
   
-Since we didn't implement cpu0 assembly, it has the error message as above. 
+Since we didn't implement cpu0 assembler, it has the error message as above. 
 The cpu0 can translate LLVM IR into assembly and obj directly, but it cannot 
-translate hand code assembly into obj. 
+translate hand code assembly instructions into obj. 
 Directory AsmParser handle the assembly to obj translation.
 The Chapter11_1/ include AsmParser implementation as follows,
 
@@ -52,10 +52,10 @@ The Chapter11_1/ include AsmParser implementation as follows,
 .. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/LLVMBuild.txt
 
 
-The Cpu0AsmParser.cpp contains one thousand of code which do the assembly 
+The Cpu0AsmParser.cpp contains one thousand lines of code which do the assembly 
 language parsing. You can understand it with a little patient only.
-To let directory AsmParser be built, modify CMakeLists.txt and LLVMBuild.txt as 
-follows,
+To let file directory of AsmParser be built, modify CMakeLists.txt and 
+LLVMBuild.txt as follows,
 
 .. rubric:: lbdex/Chapter11_1/CMakeLists.txt
 .. code-block:: c++
@@ -67,35 +67,11 @@ follows,
 .. rubric:: lbdex/Chapter11_1/LLVMBuild.txt
 .. code-block:: c++
 
-  subdirectories = AsmParser ...
+  subdirectories = 
+    AsmParser 
   ...
   has_asmparser = 1
   
-  
-The other files change as follows,
-
-.. rubric:: lbdex/Chapter11_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
-.. code-block:: c++
-
-  unsigned Cpu0MCCodeEmitter::
-  getBranchTargetOpValue(const MCInst &MI, unsigned OpNo,
-               SmallVectorImpl<MCFixup> &Fixups) const {
-    ...
-    // If the destination is an immediate, we have nothing to do.
-    if (MO.isImm()) return MO.getImm();
-    ...
-  }
-  
-  /// getJumpAbsoluteTargetOpValue - Return binary encoding of the jump
-  /// target operand. Such as SWI.
-  unsigned Cpu0MCCodeEmitter::
-  getJumpAbsoluteTargetOpValue(const MCInst &MI, unsigned OpNo,
-             SmallVectorImpl<MCFixup> &Fixups) const {
-    ...
-    // If the destination is an immediate, we have nothing to do.
-    if (MO.isImm()) return MO.getImm();
-    ...
-  }
   
 .. rubric:: lbdex/Chapter11_1/Cpu0.td
 .. code-block:: c++
@@ -109,8 +85,8 @@ The other files change as follows,
   
     // Recognize hard coded registers.
     string RegisterPrefix = "$";
-  }
-  
+  } // def Cpu0AsmParserVariant
+  ...
   def Cpu0 : Target {
     ...
     let AssemblyParsers = [Cpu0AsmParser];
@@ -128,7 +104,7 @@ The other files change as follows,
     Cpu0Inst<outs, ins, asmstr, [], IIPseudo, Pseudo> {
     let isPseudo = 1;
     let Pattern = [];
-  }
+  } // lbd document - mark - class Cpu0AsmPseudoInst
   
 .. rubric:: lbdex/Chapter11_1/Cpu0InstrInfo.td
 .. code-block:: c++
@@ -137,22 +113,12 @@ The other files change as follows,
   def Cpu0MemAsmOperand : AsmOperandClass {
     let Name = "Mem";
     let ParserMethod = "parseMemOperand";
-  }
+  } // lbd document - mark - def Cpu0MemAsmOperand
   
   // Address operand
   def mem : Operand<i32> {
     ...
     let ParserMatchClass = Cpu0MemAsmOperand;
-  }
-  ...
-  class CmpInstr<...
-     !strconcat(instr_asm, "\t$rc, $ra, $rb"), [], itin> {
-    ...
-  }
-  ...
-  class CBranch<...
-         !strconcat(instr_asm, "\t$ra, $addr"), ...> {
-    ...
   }
   ...
   //===----------------------------------------------------------------------===//
@@ -175,9 +141,10 @@ The other files change as follows,
   def LoadAddr32Imm : LoadAddressImm<"la", shamt, CPURegs>;
 
 
-Above define the **ParserMethod = "parseMemOperand"** and implement the 
+Above declare the **ParserMethod = "parseMemOperand"** and implement the 
 parseMemOperand() in Cpu0AsmParser.cpp to handle the **"mem"** operand which 
-used in ld and st. For example, ld $2, 4($sp), the **mem** operand is 4($sp). 
+used in Cpu0 instructions ld and st. 
+For example, ld $2, 4($sp), the **mem** operand is 4($sp). 
 Accompany with **"let ParserMatchClass = Cpu0MemAsmOperand;"**, 
 LLVM will call parseMemOperand() of Cpu0AsmParser.cpp when it meets the assembly 
 **mem** operand 4($sp). With above **"let"** assignment, TableGen will generate 
@@ -226,7 +193,7 @@ the following structure and functions in Cpu0GenAsmMatcher.inc.
   };
 
 
-Above 3 Pseudo Instruction definitions in Cpu0InstrInfo.td such as 
+Above three Pseudo Instruction definitions in Cpu0InstrInfo.td such as 
 LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,
 
 .. rubric:: lbdex/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
@@ -301,57 +268,52 @@ Run Chapter11_1/ with ch11_1.cpp to get the correct result as follows,
   
   Disassembly of section .text:
   .text:
-       0: 00 2d 00 08                                   ld  $2, 8($sp)
-       4: 01 0d 00 04                                   st  $zero, 4($sp)
-       8: 09 30 00 00                                   addiu $3, $zero, 0
-       c: 13 31 20 00                                   add $3, $at, $2
-      10: 14 32 30 00                                   sub $3, $2, $3
-      14: 15 21 30 00                                   mul $2, $at, $3
-      18: 16 32 00 00                                   div $3, $2
-      1c: 17 23 00 00                                   divu  $2, $3
-      20: 18 21 30 00                                   and $2, $at, $3
-      24: 19 31 20 00                                   or  $3, $at, $2
-      28: 1a 12 30 00                                   xor $at, $2, $3
-      2c: 50 43 00 00                                   mult  $4, $3
-      30: 51 32 00 00                                   multu $3, $2
-      34: 40 30 00 00                                   mfhi  $3
-      38: 41 20 00 00                                   mflo  $2
-      3c: 42 20 00 00                                   mthi  $2
-      40: 43 20 00 00                                   mtlo  $2
-      44: 1b 22 00 02                                   sra $2, $2, 2
-      48: 1c 21 10 03                                   rol $2, $at, 3
-      4c: 1d 33 10 04                                   ror $3, $3, 4
-      50: 1e 22 00 02                                   shl $2, $2, 2
-      54: 1f 23 00 05                                   shr $2, $3, 5
-      58: 10 23 00 00                                   cmp $zero, $2, $3
-      5c: 20 00 00 14                                   jeq $zero, 20
-      60: 21 00 00 10                                   jne $zero, 16
-      64: 22 ff ff ec                                   jlt $zero, -20
-      68: 24 ff ff f0                                   jle $zero, -16
-      6c: 23 ff ff fc                                   jgt $zero, -4
-      70: 25 ff ff f4                                   jge $zero, -12
-      74: 2a 00 04 00                                   swi 1024
-      78: 2b 01 00 00                                   jsub  65536
-      7c: 2c e0 00 00                                   ret $lr
-      80: 2d e6 00 00                                   jalr  $6
-      84: 09 30 00 70                                   addiu $3, $zero, 112
-      88: 1e 33 00 10                                   shl $3, $3, 16
-      8c: 09 10 00 00                                   addiu $at, $zero, 0
-      90: 19 33 10 00                                   or  $3, $3, $at
-      94: 09 30 00 80                                   addiu $3, $zero, 128
-      98: 1e 36 00 10                                   shl $3, $6, 16
-      9c: 09 10 00 00                                   addiu $at, $zero, 0
-      a0: 19 36 10 00                                   or  $3, $6, $at
-      a4: 13 33 60 00                                   add $3, $3, $6
-      a8: 09 30 00 90                                   addiu $3, $zero, 144
-      ac: 1e 33 00 10                                   shl $3, $3, 16
-      b0: 09 10 00 00                                   addiu $at, $zero, 0
-      b4: 19 33 10 00                                   or  $3, $3, $at
+         0:	01 2d 00 08                                  	ld	$2, 8($sp)
+         4:	02 0d 00 04                                  	st	$zero, 4($sp)
+         8:	09 30 00 00                                  	addiu	$3, $zero, 0
+         c:	13 31 20 00                                  	add	$3, $1, $2
+        10:	14 32 30 00                                  	sub	$3, $2, $3
+        14:	17 21 30 00                                  	mul	$2, $1, $3
+        18:	43 32 00 00                                  	div	$3, $2
+        1c:	44 23 00 00                                  	divu	$2, $3
+        20:	18 21 30 00                                  	and	$2, $1, $3
+        24:	19 31 20 00                                  	or	$3, $1, $2
+        28:	1a 12 30 00                                  	xor	$1, $2, $3
+        2c:	41 43 00 00                                  	mult	$4, $3
+        30:	42 32 00 00                                  	multu	$3, $2
+        34:	46 30 00 00                                  	mfhi	$3
+        38:	47 20 00 00                                  	mflo	$2
+        3c:	48 20 00 00                                  	mthi	$2
+        40:	49 20 00 00                                  	mtlo	$2
+        44:	1d 22 00 02                                  	sra	$2, $2, 2
+        48:	1b 21 00 03                                  	rol	$2, $1, 3
+        4c:	1c 33 00 04                                  	ror	$3, $3, 4
+        50:	1e 22 00 02                                  	shl	$2, $2, 2
+        54:	1f 23 00 05                                  	shr	$2, $3, 5
+        58:	10 23 00 00                                  	cmp	$sw, $2, $3
+        5c:	30 00 00 14                                  	jeq	$sw, 20
+        60:	31 00 00 10                                  	jne	$sw, 16
+        64:	32 ff ff ec                                  	jlt	$sw, -20
+        68:	34 ff ff f0                                  	jle	$sw, -16
+        6c:	33 ff ff fc                                  	jgt	$sw, -4
+        70:	35 ff ff f4                                  	jge	$sw, -12
+        74:	3a 00 04 00                                  	swi	1024
+        78:	3b 01 00 00                                  	jsub	65536
+        7c:	3c e0 00 00                                  	ret	$lr
+        80:	3e e6 00 00                                  	jalr	$t9
+        84:	0f 30 00 70                                  	lui	$3, 112
+        88:	0d 33 00 00                                  	ori	$3, $3, 0
+        8c:	0f 30 00 80                                  	lui	$3, 128
+        90:	0d 33 00 00                                  	ori	$3, $3, 0
+        94:	13 33 60 00                                  	add	$3, $3, $t9
+        98:	0f 30 00 90                                  	lui	$3, 144
+        9c:	0d 33 00 00                                  	ori	$3, $3, 0
 
 
-We replace cmp and jeg with explicit $sw in assembly and $zero in disassembly for 
-AsmParser support. It's OK with just a little bad in readability and in assembly 
-programing than implicit representation.
+The instructions cmp and jeg printed with explicit $sw displayed in assembly 
+and disassembly. You can change code in AsmParser and Dissassembly (the last 
+chapter) to hide the $sw printed in these instructions (set $sw to implicit 
+and not displayed, such as "jeq 20" rather than "jeq $sw, 20").
 
 
 Verilog of CPU0
@@ -418,84 +380,6 @@ cpu0.v use 0x7000 bytes of memory.
 .. literalinclude:: ../lbdex/InputFiles/ch_run_backend.cpp
     :start-after: /// start
 
-.. code-block:: bash
-
-  JonathantekiiMac:InputFiles Jonathan$ pwd
-  /Users/Jonathan/test/2/lbd/lbdex/InputFiles
-  JonathantekiiMac:InputFiles Jonathan$ clang -c ch_run_backend.cpp -emit-llvm -o 
-  ch_run_backend.bc
-  JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-  build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=obj 
-  ch_run_backend.bc -o ch_run_backend.cpu0.o
-  JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-  build/bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk '{print "/* " 
-  $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t*/"}'
-   > ../cpu0_verilog/raw/cpu0.hex
-  
-  118-165-81-39:raw Jonathan$ cat cpu0.hex 
-  ...
-  /* 4c: */ 2b 00 00 20 /* jsub 0    */
-  /* 50: */ 01 2d 00 04 /* st $2, 4($sp)    */
-  /* 54: */ 2b 00 01 44 /* jsub 0    */
-  
-  
-As above code the subroutine address for **"jsub #offset"** are 0. 
-This is correct since C language support separate compile and the subroutine 
-address is decided at link time for static address mode or at 
-load time for PIC address mode.
-Since our backend didn't implement the linker and loader, we change the  
-**"jsub #offset"** encode in Chapter11_2/ as follow,
-
-.. rubric:: lbdex/Chapter11_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
-.. code-block:: c++
-
-  unsigned Cpu0MCCodeEmitter::
-  getJumpTargetOpValue(const MCInst &MI, unsigned OpNo,
-             SmallVectorImpl<MCFixup> &Fixups) const {
-  
-    unsigned Opcode = MI.getOpcode();
-    ...
-    if (Opcode == Cpu0::JSUB)
-      Fixups.push_back(MCFixup::Create(0, Expr,
-                       MCFixupKind(Cpu0::fixup_Cpu0_PC24)));
-    else if (Opcode == Cpu0::JSUB)
-      Fixups.push_back(MCFixup::Create(0, Expr,
-                       MCFixupKind(Cpu0::fixup_Cpu0_24)));
-    else
-      llvm_unreachable("unexpect opcode in getJumpAbsoluteTargetOpValue()");
-    
-    return 0;
-  }
-
-We change JSUB from Relocation Records fixup_Cpu0_24 to Non-Relocaton Records 
-fixup_Cpu0_PC24 as the definition below. This change is fine since if call a 
-outside defined subroutine, it will add a Relocation Record for this 
-**"jsub #offset"**. At this point, we set it to Non-Relocaton Records for 
-run on CPU0 Verilog machine. If one day, the CPU0 linker is appeared and the 
-linker do the sections arrangement, we should adjust it back to Relocation 
-Records. A good linker will reorder the sections for optimization in 
-data/function access. In other word, 
-keep the global variable access as close as possible to reduce cache miss 
-possibility.
-
-.. rubric:: lbdex/Chapter11_2/MCTargetDesc/Cpu0AsmBackend.cpp
-.. code-block:: c++
-
-    const MCFixupKindInfo &getFixupKindInfo(MCFixupKind Kind) const {
-      const static MCFixupKindInfo Infos[Cpu0::NumTargetFixupKinds] = {
-        // This table *must* be in same the order of fixup_* kinds in
-        // Cpu0FixupKinds.h.
-        //
-        // name                    offset  bits  flags
-        ...
-        { "fixup_Cpu0_24",           0,     24,   0 },
-        ...
-        { "fixup_Cpu0_PC24",         0,     24,  MCFixupKindInfo::FKF_IsPCRel },
-        ...
-      }
-      ...
-    }
-
 Let's run the Chapter11_2/ with ``llvm-objdump -d`` for input files 
 ch_run_backend.cpp to generate the hex file 
 and input to cpu0Is Verilog simulator to get the output result as below. 
@@ -507,8 +391,9 @@ cmake_debug_build/bin/Debug/ is my build clang from source code.
 
 .. code-block:: bash
 
-  JonathantekiiMac:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch_run_backend.cpp -emit-llvm -o ch_run_backend.bc
+  JonathantekiiMac:InputFiles Jonathan$ ~/llvm/release/cmake_debug_build/bin/
+  Debug/clang -target mips-unknown-linux-gnu -c ch_run_backend.cpp -emit-llvm 
+  -o ch_run_backend.bc
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
   build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=obj 
   ch_run_backend.bc -o ch_run_backend.cpu0.o
@@ -594,7 +479,7 @@ get the result as below,
 .. code-block:: c++
 
       ...
-      `TR = 1; // Trace register content at beginning
+      `D = 1; // Trace register content at beginning
 
 .. code-block:: bash
 

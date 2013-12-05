@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.9',
+        VERSION:     '3.3.10',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -148,7 +148,7 @@ operations, and J-type instructions that are typically used when altering contro
 (i.e. jumps).  <a class="pageref" href="#llvmstructure-f2">Figure  2</a> illustrates how the bitfields are broken
 down for each type of instruction.</p>
 <div class="figure align-center" id="llvmstructure-f2">
-<img alt="_images/26.png" src="_images/26.png" />
+<img alt="_images/25.png" src="_images/25.png" />
 <p class="caption">Figure 2: Cpu0&#8217;s three instruction formats</p>
 </div>
 <p>The following table details the Cpu0 instruction set:</p>
@@ -565,7 +565,7 @@ it is -1. Otherwise, if you treat the result is positive then it&#8217;s (+4G - 
 Carry (C), Overflow (V), and Interrupt (I), Trap (T), and Mode (M) boolean flags.
 The bit layout of the SW register is shown in <a class="pageref" href="#llvmstructure-f3">Figure  3</a> below.</p>
 <div class="figure align-center" id="llvmstructure-f3">
-<img alt="_images/35.png" src="_images/35.png" />
+<img alt="_images/34.png" src="_images/34.png" />
 <p class="caption">Figure 3: Cpu0 status word (SW) register</p>
 </div>
 <p>When a CMP Ra, Rb instruction executes, the condition flags will change. For example:</p>
@@ -1615,19 +1615,19 @@ and use the RegisterTarget template to register the target.
 For example, the file TargetInfo/Cpu0TargetInfo.cpp register TheCpu0Target for
 big endian and TheCpu0elTarget for little endian, as follows.</p>
 <p class="rubric">lbdex/Chapter2/Cpu0.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0.h - Top-level interface for Cpu0 representation ----*- C++ -*-===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This file contains the entry points for global functions defined in</span>
-<span class="cp">// the LLVM Cpu0 back-end.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0.h - Top-level interface for Cpu0 representation ----*- C++ -*-===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file contains the entry points for global functions defined in</span>
+<span class="c1">// the LLVM Cpu0 back-end.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef TARGET_CPU0_H</span>
 <span class="cp">#define TARGET_CPU0_H</span>
@@ -1648,14 +1648,14 @@ big endian and TheCpu0elTarget for little endian, as follows.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter2/TargetInfo/Cpu0TargetInfo.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0TargetInfo.cpp - Cpu0 Target Implementation -------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0TargetInfo.cpp - Cpu0 Target Implementation -------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#include &quot;Cpu0.h&quot;</span>
 <span class="cp">#include &quot;llvm/IR/Module.h&quot;</span>
@@ -1736,18 +1736,18 @@ the empty initialize function since we register nothing in them for this moment.
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter2/MCTargetDesc/Cpu0MCTargetDesc.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0MCTargetDesc.h - Cpu0 Target Descriptions -----------*- C++ -*-===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// This file provides Cpu0 specific target descriptions.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0MCTargetDesc.h - Cpu0 Target Descriptions -----------*- C++ -*-===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// This file provides Cpu0 specific target descriptions.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#ifndef CPU0MCTARGETDESC_H</span>
 <span class="cp">#define CPU0MCTARGETDESC_H</span>
@@ -1765,12 +1765,12 @@ the empty initialize function since we register nothing in them for this moment.
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span> <span class="c1">// End llvm namespace</span>
 
-<span class="cp">// Defines symbolic names for Cpu0 registers.  This defines a mapping from</span>
-<span class="cp">// register name to register number.</span>
+<span class="c1">// Defines symbolic names for Cpu0 registers.  This defines a mapping from</span>
+<span class="c1">// register name to register number.</span>
 <span class="cp">#define GET_REGINFO_ENUM</span>
 <span class="cp">#include &quot;Cpu0GenRegisterInfo.inc&quot;</span>
 
-<span class="cp">// Defines symbolic names for the Cpu0 instructions.</span>
+<span class="c1">// Defines symbolic names for the Cpu0 instructions.</span>
 <span class="cp">#define GET_INSTRINFO_ENUM</span>
 <span class="cp">#include &quot;Cpu0GenInstrInfo.inc&quot;</span>
 

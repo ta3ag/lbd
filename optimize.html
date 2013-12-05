@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.9',
+        VERSION:     '3.3.10',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -55,15 +55,15 @@
   <div class="section" id="backend-optimization">
 <span id="sec-optimize"></span><h1>Backend Optimization<a class="headerlink" href="#backend-optimization" title="Permalink to this headline">¶</a></h1>
 <p>This chapter introduce how to do backend optimization in LLVM first.
-Next we do optimization via redesign instruction sets with hardware level to
-do optimization by create a efficient RISC CPU which aim to C/C++ high level
+Next we do optimization via extend instruction sets with hardware level to
+do optimization by create a efficient RISC CPU which aims to C/C++ high level
 language.</p>
 <div class="section" id="cpu0-backend-optimization-remove-useless-jmp">
 <h2>Cpu0 backend Optimization: Remove useless JMP<a class="headerlink" href="#cpu0-backend-optimization-remove-useless-jmp" title="Permalink to this headline">¶</a></h2>
 <p>LLVM use functional pass in code generation and optimization.
 Following the 3 tiers of compiler architecture, LLVM did much optimization in
-middle tier of which is LLVM IR, SSA form.
-In spite of this middle tier optimization, there are opportunities in
+middle tier of LLVM IR, SSA form.
+In addition of this middle tier optimization, there are opportunities in
 optimization which depend on backend features.
 Mips fill delay slot is an example of backend optimization used in pipeline
 RISC machine.
@@ -72,9 +72,10 @@ delay slot.
 We apply the &#8220;delete useless jmp&#8221; unconditional branch instruction in Cpu0
 backend optimization in this section.
 This algorithm is simple and effective as a perfect tutorial in optimization.
-You can understand how to add a optimization pass and design your complicate
-optimization algorithm on your backend in real project.</p>
-<p>Chapter12_1/ support this optimization algorithm include the added codes as follows,</p>
+Through this example, you can understand how to add a optimization pass and
+design your complicate optimization algorithm on your backend in real project.</p>
+<p>Chapter12_1/ support &#8220;delete useless jmp&#8221; optimization algorithm which add
+codes as follows,</p>
 <p class="rubric">lbdex/Chapter12_1/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">add_llvm_target</span><span class="p">(</span><span class="n">Cpu0CodeGen</span>
   <span class="p">...</span>
@@ -86,9 +87,10 @@ optimization algorithm on your backend in real project.</p>
 <p class="rubric">lbdex/Chapter12_1/Cpu0.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
   <span class="n">FunctionPass</span> <span class="o">*</span><span class="n">createCpu0DelJmpPass</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
-
-<span class="c1">// Cpu-TargetMachine.cpp</span>
-<span class="k">class</span> <span class="nc">Cpu0PassConfig</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TargetPassConfig</span> <span class="p">{</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter12_1/Cpu0TargetMachine.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Cpu0PassConfig</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TargetPassConfig</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">addPreEmitPass</span><span class="p">();</span>
 <span class="p">};</span>
@@ -104,18 +106,18 @@ optimization algorithm on your backend in real project.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter12_1/Cpu0DelUselessJMP.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">//===-- Cpu0DelUselessJMP.cpp - Cpu0 DelJmp -------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">//                     The LLVM Compiler Infrastructure</span>
-<span class="cp">//</span>
-<span class="cp">// This file is distributed under the University of Illinois Open Source</span>
-<span class="cp">// License. See LICENSE.TXT for details.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
-<span class="cp">//</span>
-<span class="cp">// Simple pass to fills delay slots with useful instructions.</span>
-<span class="cp">//</span>
-<span class="cp">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0DelUselessJMP.cpp - Cpu0 DelJmp -------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// Simple pass to fills delay slots with useful instructions.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="cp">#define DEBUG_TYPE &quot;del-jmp&quot;</span>
 
@@ -206,12 +208,13 @@ optimization algorithm on your backend in real project.</p>
 </pre></div>
 </div>
 <p>As above code, except Cpu0DelUselessJMP.cpp, other files changed for register
-class DelJmp as a functional pass. As comment of above code, MBB is the current
+class DelJmp as a functional pass.
+As the comment of above code, MBB is the current
 block and MBBN is the next block. For the last instruction of every MBB, we
 check if it is the JMP instruction as well as
 its Operand is the next basic block.
 By getMBB() in MachineOperand, you can get the MBB address.
-For the member function of MachineOperand, please check
+For the member functions of MachineOperand, please check
 include/llvm/CodeGen/MachineOperand.h
 Let&#8217;s run Chapter12_1/ with ch12_1.cpp to explain it easier.</p>
 <p class="rubric">lbdex/InputFiles/ch12_1.cpp</p>
@@ -241,101 +244,104 @@ Let&#8217;s run Chapter12_1/ with ch12_1.cpp to explain it easier.</p>
 -c ch12_1.cpp -emit-llvm -o ch12_1.bc
 118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm -stats
-ch12_1.bc -o ch12_1.cpu0.s
+ch12_1.bc -o -
+
+        .section .mdebug.abi32
+        .previous
+        .file <span class="s2">&quot;ch12_1.bc&quot;</span>
+        .text
+        .globl        main
+        .align        2
+        .type main,@function
+        .ent  main                    <span class="c"># @main</span>
+main:
+        .frame        <span class="nv">$fp</span>,24,<span class="nv">$lr</span>
+        .mask         0x00001000,-4
+        .set  noreorder
+        .set  nomacro
+<span class="c"># BB#0:                                 # %entry</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
+        st    <span class="nv">$fp</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
+        addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
+        st    <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 2
+        st    <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        cmp   <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+        jne   <span class="nv">$sw</span>, <span class="nv">$BB0_2</span>
+<span class="c"># BB#1:                                 # %if.then</span>
+        ld    <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+        st    <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+<span class="nv">$BB0_2</span>:                                 <span class="c"># %if.end</span>
+        ld    <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        cmp   <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+        jne   <span class="nv">$sw</span>, <span class="nv">$BB0_4</span>
+        jmp   <span class="nv">$BB0_3</span>
+<span class="nv">$BB0_4</span>:                                 <span class="c"># %if.else</span>
+        addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, -1
+        ld    <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        cmp   <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+        jgt   <span class="nv">$sw</span>, <span class="nv">$BB0_6</span>
+        jmp   <span class="nv">$BB0_5</span>
+<span class="nv">$BB0_3</span>:                                 <span class="c"># %if.then2</span>
+        ld    <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+        st    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        jmp   <span class="nv">$BB0_6</span>
+<span class="nv">$BB0_5</span>:                                 <span class="c"># %if.then4</span>
+        ld    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$4</span>, <span class="nv">$3</span>, -1
+        st    <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+<span class="nv">$BB0_6</span>:                                 <span class="c"># %if.end6</span>
+        ld    <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        jlt   <span class="nv">$sw</span>, <span class="nv">$BB0_8</span>
+<span class="c"># BB#7:                                 # %if.then8</span>
+        ld    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+<span class="nv">$BB0_8</span>:                                 <span class="c"># %if.end10</span>
+        ld    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
+        ld    <span class="nv">$fp</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 24
+        ret   <span class="nv">$lr</span>
+        .set  macro
+        .set  reorder
+        .end  main
+<span class="nv">$tmp3</span>:
+        .size main, <span class="o">(</span><span class="nv">$tmp3</span><span class="o">)</span>-main
+...
 <span class="o">===</span>-------------------------------------------------------------------------<span class="o">===</span>
                           ... Statistics Collected ...
 <span class="o">===</span>-------------------------------------------------------------------------<span class="o">===</span>
  ...
  2 del-jmp        - Number of useless jmp deleted
  ...
-
-  .section .mdebug.abi32
-  .previous
-  .file <span class="s2">&quot;ch12_1.bc&quot;</span>
-  .text
-  .globl  main
-  .align  2
-  .type main,@function
-  .ent  main                    <span class="c"># @main</span>
-main:
-  .frame  <span class="nv">$sp</span>,16,<span class="nv">$lr</span>
-  .mask   0x00000000,0
-  .set  noreorder
-  .set  nomacro
-<span class="c"># BB#0:</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
-  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  bne <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_2</span>
-<span class="c"># BB#1:</span>
-  ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_2</span>:
-  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  bne <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_4</span>
-  jmp <span class="nv">$BB0_3</span>
-<span class="nv">$BB0_4</span>:
-  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, -1
-  slt <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-  bne <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_6</span>
-  jmp <span class="nv">$BB0_5</span>
-<span class="nv">$BB0_3</span>:
-  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  jmp <span class="nv">$BB0_6</span>
-<span class="nv">$BB0_5</span>:
-  ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$3</span>, <span class="nv">$2</span>, -1
-  st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_6</span>:
-  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  slti  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-  bne <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_8</span>
-<span class="c"># BB#7:</span>
-  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_8</span>:
-  ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
-  ret <span class="nv">$lr</span>
-  .set  macro
-  .set  reorder
-  .end  main
-<span class="nv">$tmp1</span>:
-  .size main, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-main
 </pre></div>
 </div>
 <p>The terminal display &#8220;Number of useless jmp deleted&#8221; by <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-stats</span></tt> option
 because we set the &#8220;STATISTIC(NumDelJmp, &#8220;Number of useless jmp deleted&#8221;)&#8221; in
-code. It delete 2 jmp instructions from block &#8220;# BB#0&#8221; and &#8220;$BB0_6&#8221;.
+code. It deletes 2 jmp instructions from block &#8220;# BB#0&#8221; and &#8220;$BB0_6&#8221;.
 You can check it by <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-enable-cpu0-del-useless-jmp=false</span></tt> option to see
 the difference from no optimization version.
 If you run with ch8_1_1.cpp, will find 10 jmp instructions are deleted in 100
-lines of assembly code, which meaning 10% enhance in speed and code size.</p>
+lines of assembly code, which meaning 10% improvement in speed and code size.</p>
 </div>
-<div class="section" id="cpu0-optimization-redesign-instruction-sets">
-<h2>Cpu0 Optimization: Redesign instruction sets<a class="headerlink" href="#cpu0-optimization-redesign-instruction-sets" title="Permalink to this headline">¶</a></h2>
-<p>If you compare the cpu0 and Mips instruction sets, you will find the following,</p>
-<ol class="arabic simple">
-<li>Mips has <strong>addu</strong> and <strong>add</strong> two different instructions for No Trigger
-Exception and Trigger Exception.</li>
-<li>Mips use SLT, BEQ and set the status in explicit/general register while Cpu0
-use CMP, JEQ and set status in implicit/specific register.</li>
-</ol>
+<div class="section" id="cpu0-optimization-extends-instruction-sets">
+<h2>Cpu0 Optimization: Extends instruction sets<a class="headerlink" href="#cpu0-optimization-extends-instruction-sets" title="Permalink to this headline">¶</a></h2>
+<p>If you compare the cpu0 and Mips instruction sets, you will find that Mips use
+SLT, BEQ and set the status in explicit/general register while Cpu0 use CMP,
+JEQ and set status in implicit/specific register.</p>
 <p>According RISC spirits, this section will replace CMP, JEQ with Mips style
-instructions and support both Trigger and No Trigger Exception operators.
+instructions.
 Mips style BEQ instructions will reduce the number of branch instructions too.
 Which means optimization in speed and code size.</p>
 <div class="section" id="cpu0-new-instruction-sets-table">
@@ -510,7 +516,7 @@ Which means optimization in speed and code size.</p>
   <span class="n">Fixups</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MCFixup</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span>
                                    <span class="n">MCFixupKind</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_PC16</span><span class="p">)));</span>
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="p">}</span> <span class="c1">// lbd document - mark - getBranch16TargetOpValue</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter12_2/MCTargetDesc/Cpu0TargetDesc.cpp</p>
@@ -526,7 +532,7 @@ Which means optimization in speed and code size.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Chapter12_2/Cpu0InstrInfo.cpp</p>
+<p class="rubric">lbdex/Chapter12_2/Cpu0.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">// Cpu0 Subtarget features                                                    //</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
@@ -541,7 +547,6 @@ Which means optimization in speed and code size.</p>
 <span class="c1">// Cpu0 processors supported.</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="p">...</span>
-<span class="n">def</span> <span class="o">:</span> <span class="n">Proc</span><span class="o">&lt;</span><span class="s">&quot;cpu032I&quot;</span><span class="p">,</span>  <span class="p">[</span><span class="n">FeatureCpu032I</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="n">def</span> <span class="o">:</span> <span class="n">Proc</span><span class="o">&lt;</span><span class="s">&quot;cpu032II&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">FeatureCpu032II</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="n">def</span> <span class="o">:</span> <span class="n">Proc</span><span class="o">&lt;</span><span class="s">&quot;cpu032III&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">FeatureCpu032III</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
@@ -562,27 +567,15 @@ Which means optimization in speed and code size.</p>
       <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>
         <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFSW</span><span class="p">,</span> <span class="n">SrcReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
     <span class="p">}</span>
-  <span class="p">}</span>
+  <span class="p">}</span> <span class="c1">// lbd document - mark - if (!Subtarget.hasCpu032II()) 1</span>
   <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy from CPU Reg.</span>
     <span class="p">...</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Subtarget</span><span class="p">.</span><span class="n">hasCpu032II</span><span class="p">())</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Subtarget</span><span class="p">.</span><span class="n">hasCpu032II</span><span class="p">())</span> <span class="p">{</span> <span class="c1">// lbd document - mark - 2</span>
       <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>
         <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTSW</span><span class="p">,</span> <span class="n">DestReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="p">}</span>
+    <span class="p">}</span> <span class="c1">// lbd document - mark - if (!Subtarget.hasCpu032II()) 2</span>
   <span class="p">}</span>
-
-  <span class="n">assert</span><span class="p">(</span><span class="n">Opc</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Cannot copy registers&quot;</span><span class="p">);</span>
-
-  <span class="n">MachineInstrBuilder</span> <span class="n">MIB</span> <span class="o">=</span> <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">get</span><span class="p">(</span><span class="n">Opc</span><span class="p">));</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span><span class="p">)</span>
-    <span class="n">MIB</span><span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">DestReg</span><span class="p">,</span> <span class="n">RegState</span><span class="o">::</span><span class="n">Define</span><span class="p">);</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">ZeroReg</span><span class="p">)</span>
-    <span class="n">MIB</span><span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">ZeroReg</span><span class="p">);</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span><span class="p">)</span>
-    <span class="n">MIB</span><span class="p">.</span><span class="n">addReg</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">,</span> <span class="n">getKillRegState</span><span class="p">(</span><span class="n">KillSrc</span><span class="p">));</span>
+  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -593,8 +586,7 @@ def HasCpu032II :     Predicate&lt;"Subtarget.hasCpu032II()"&gt;,
                       AssemblerPredicate&lt;"!FeatureCpu032III"&gt;;
 // !FeatureCpu032III is for disassembler in "llvm-objdump -d"
 
-/*
-In Cpu0GenSubtargetInfo.inc,
+/* In Cpu0GenSubtargetInfo.inc,
 namespace llvm {
 namespace Cpu0 {
 enum {
@@ -618,8 +610,7 @@ static bool checkDecoderPredicate(unsigned Idx, uint64_t Bits) {
 To let disassembler work, the function
 checkDecoderPredicate(unsigned Idx, uint64_t Bits) must return true(=1).
 As above code, the argument Bits always is 1. Set !FeatureCpu032III" to do
-disassembler for expectation.
-*/
+disassembler for expectation. */
 ...
 // BEQ, BNE
 def brtarget16    : Operand&lt;OtherVT&gt; {
@@ -687,8 +678,8 @@ def SLT     : SetCC_R&lt;0x28, "slt", setlt, CPURegs&gt;;
 def SLTu    : SetCC_R&lt;0x29, "sltu", setult, CPURegs&gt;;
 ...
 /// Jump and Branch Instructions
-def BEQ     : CBranch&lt;0x30, "beq", seteq, CPURegs&gt;;
-def BNE     : CBranch&lt;0x31, "bne", setne, CPURegs&gt;;
+def BEQ     : CBranch&lt;0x37, "beq", seteq, CPURegs&gt;;
+def BNE     : CBranch&lt;0x38, "bne", setne, CPURegs&gt;;
 ...
 // brcond for slt instruction
 multiclass BrcondPatsSlt&lt;RegisterClass RC, Instruction BEQOp, Instruction BNEOp,
@@ -814,8 +805,8 @@ defm : SetgeImmPatsSlt&lt;CPURegs, SLTi, SLTiu&gt;;
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Cpu0Subtarget</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Cpu0GenSubtargetInfo</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="k">enum</span> <span class="n">Cpu0ArchEnum</span> <span class="p">{</span>
-    <span class="n">Cpu032I</span><span class="p">,</span>
-    <span class="n">Cpu032II</span><span class="p">,</span>
+    <span class="n">Cpu032I</span>
+    <span class="p">,</span> <span class="n">Cpu032II</span><span class="p">,</span>
     <span class="n">Cpu032III</span>
   <span class="p">};</span>
   <span class="p">...</span>
@@ -825,8 +816,9 @@ defm : SetgeImmPatsSlt&lt;CPURegs, SLTi, SLTiu&gt;;
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>As modified from above, the last Chapter instruction is work for cpu032I and
-the added instructions is for cpu032II. The llc will generate cpu032I cmp, jeq,
+<p>As modified as listed above, the last Chapter instructions are work for cpu032I
+and the added instructions is for cpu032II.
+The llc will generate cpu032I cmp, jeq,
 ..., instructions when <cite>llc -mcpu=cpu032I</cite> while <cite>llc -mcpu=cpu032II</cite> will
 generate slt, beq when meet &#8220;if else&#8221;, &#8220;while&#8221; and &#8220;for&#8221; flow control
 statements.</p>
@@ -848,7 +840,7 @@ instructions, slt, beq and bne.</p>
 <div class="section" id="run-the-cpu0ii">
 <h3>Run the Cpu0II<a class="headerlink" href="#run-the-cpu0ii" title="Permalink to this headline">¶</a></h3>
 <p>Run Chapter12_2/ with ch_run_backend.cpp to get result as below.
-It match the expect value as comment in ch_run_backend.cpp.</p>
+It match the output result as comments in ch_run_backend.cpp.</p>
 <p class="rubric">lbdex/InputFiles/ch_run_backend.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;boot.cpp&quot;</span>
 
@@ -950,8 +942,8 @@ It match the expect value as comment in ch_run_backend.cpp.</p>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>obj -stats
-ch_run_backend.bc -o ch_run_backend.cpu0.o
+bin/Debug/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032II -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>obj
+-stats ch_run_backend.bc -o ch_run_backend.cpu0.o
 <span class="o">===</span>-------------------------------------------------------------------------<span class="o">===</span>
                           ... Statistics Collected ...
 <span class="o">===</span>-------------------------------------------------------------------------<span class="o">===</span>
@@ -983,7 +975,7 @@ taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 RET to PC &lt; 0, finished!
 </pre></div>
 </div>
-<p>Run with ch8_1_1.cpp, it reduce some branch from pair instructions &#8220;CMP, JXX&#8221;
+<p>Run with ch8_1_1.cpp, it reduces some branches from pair instructions &#8220;CMP, JXX&#8221;
 to 1 single instruction ether is BEQ or BNE, as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032II -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm
@@ -1146,12 +1138,6 @@ _Z13test_control1v:
 </div>
 <p>The ch12_3.cpp is written in assembly for AsmParser test. You can check if it
 will generate the obj.</p>
-<table class="docutils footnote" frame="void" id="sra-note" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[1]</td><td>Rb &#8216;&gt;&gt; Cx, Rb &#8216;&gt;&gt; Rc: Shift with signed bit remain. It&#8217;s equal to ((Rb&amp;&#8217;h80000000)|Rb&gt;&gt;Cx) or ((Rb&amp;&#8217;h80000000)|Rb&gt;&gt;Rc).</td></tr>
-</tbody>
-</table>
 </div>
 </div>
 </div>
