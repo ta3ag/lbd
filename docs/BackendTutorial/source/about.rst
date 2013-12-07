@@ -288,8 +288,11 @@ Outline of Chapters
   Code generation and execution flow
 
 The upper half of :num:`Figure #about-f1` is the computer program generating 
-and execution flow. The lower half is this book flow of the toolchain extended 
-implementation based on llvm.
+and execution flow. IR stand for Intermediate Representation. 
+The lower half is this book flow of the toolchain extended 
+implementation based on llvm. The hex is the ascii from '0' to 'f' for 
+hexadecimal value representation (4 bits of binary code representation) since 
+the verilog language machine use it as input file.
 
 This book include 10,000 lines of sources code for
 
