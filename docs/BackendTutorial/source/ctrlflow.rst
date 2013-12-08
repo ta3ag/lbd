@@ -178,7 +178,7 @@ Run ch8_1_1.cpp with clang will get result as follows,
 
 The **“icmp ne”** stand for integer compare NotEqual, **“slt”** stands for Set 
 Less Than, **“sle”** stands for Set Less Equal. 
-Run version Chapter6_2/ with ``llc  -view-isel-dags`` or ``-debug`` option, you 
+Run version Chapter8_1/ with ``llc  -view-isel-dags`` or ``-debug`` option, you 
 can see it has translated **if** statement into 
 (br (brcond (%1, setcc(%2, Constant<c>, setne)), BasicBlock_02), BasicBlock_01).
 Ignore %1, we get the form (br (brcond (setcc(%2, Constant<c>, setne)), 

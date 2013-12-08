@@ -40,5 +40,7 @@ i64arg.ll                                 v
 imm.ll                                    v
 indirectcall.ll                           v
 init-array.ll                             x                   Don't know the purpose.
+inlineasm-xxx.ll                          x                   No support tail inline asm, such as tail call i32 asm sideeffect "add $0,$1,$2", "=r,r,I"(i32 7, i32 -3)
+
 sext_inreg.ll                             v
 
