@@ -870,12 +870,12 @@ Similarly, SMMUL get the high word of multiply result.
 
 .. _otherinst-f3:
 .. figure:: ../Fig/otherinst/3.png
-  :height: 702 px
-  :width: 687 px
+  :height: 743 px
+  :width: 684 px
   :scale: 100 %
   :align: center
 
-  Translate ch4_2.bc into cpu0 backend DAG
+  DAG for ch4_2.bc with ARM style SMMUL
 
 Follows is the result of run above changes with ch4_2.bc.
 
@@ -977,8 +977,8 @@ the $rb and imm16 to 0.
 
 .. _otherinst-f4:
 .. figure:: ../Fig/otherinst/4.png
-  :height: 807 px
-  :width: 309 px
+  :height: 837 px
+  :width: 554 px
   :scale: 75 %
   :align: center
 
