@@ -979,7 +979,7 @@ the $rb and imm16 to 0.
 .. figure:: ../Fig/otherinst/4.png
   :height: 837 px
   :width: 554 px
-  :scale: 75 %
+  :scale: 90 %
   :align: center
 
   DAG for ch4_2.bc with Mips style MULT
