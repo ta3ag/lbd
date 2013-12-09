@@ -6,8 +6,7 @@
 
 define i32 @main(i32 %argc, i8** nocapture %argv) nounwind {
 entry:
-; CHECK: lw $[[R0:[0-9]+]], %got(f2)
-; CHECK: addiu $25, $[[R0]], %lo(f2)
+; CHECK: ld	$t9, %call16(f2)($gp)
   tail call fastcc void @f2()
   ret i32 0
 }

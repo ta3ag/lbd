@@ -1,4 +1,4 @@
-; RUN: llc  -march=mipsel -mcpu=mips16 -relocation-model=pic -O3 < %s | FileCheck %s -check-prefix=16
+; RUN: llc  -march=cpu0el < %s | FileCheck %s -check-prefix=16
 
 @.str = private unnamed_addr constant [6 x i8] c"hello\00", align 1
 @_ZTIPKc = external constant i8*
@@ -8,7 +8,7 @@ define i32 @main() {
 ; 16: 	.cfi_startproc
 ; 16: 	st	$lr, 
 ; 16:   .cfi_offset 14, -4
-; 16: 	.cfi_offset 7, -8
+; 16: 	.cfi_offset 8, -8
 ; 16: 	.cprestore	16
 entry:
   %retval = alloca i32, align 4
