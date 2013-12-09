@@ -2004,13 +2004,12 @@ only. The effect as the following table.
 .. table:: Cpu0 stack adjustment instructions after replace addiu and shl with lui instruction
 
   ======  ====================  ================  ==================================  ==================================
-          stack size range      ex. stack size    Cpu0 Prologue instructions          Cpu0 Epilogue instructions
+  opt     stack size range      ex. stack size    Cpu0 Prologue instructions          Cpu0 Epilogue instructions
   ======  ====================  ================  ==================================  ==================================
   old     x10000 ~ 0xffffffff   - 0x90008000      - addiu $1, $zero, -9;              - addiu $1, $zero, -28671;
                                                   - shl $1, $1, 28;                   - shl $1, $1, 16
                                                   - addiu $1, $1, -32768;             - addiu $1, $1, -32768;
                                                   - addu $sp, $sp, $1;                - addu $sp, $sp, $1;
-  ------  --------------------  ----------------  ----------------------------------  ----------------------------------
   new     x10000 ~ 0xffffffff   - 0x90008000      - lui	$1, 28671;                    - lui	$1, 36865;
                                                   - ori	$1, $1, 32768;                - addiu $1, $1, -32768;
                                                   - addu $sp, $sp, $1;                - addu $sp, $sp, $1;

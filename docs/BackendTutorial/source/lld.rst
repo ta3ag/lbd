@@ -1625,7 +1625,7 @@ We spent 500 pages of pdf to explain these code. Open source code give
 programmers best opportunity to understand the code and enhance/extend the 
 code function. But not enough, we believe the documentation is the next most 
 important thing to improve the open source code development. 
-The Open Source Fundation recognized this point before us and set 
+The Open Source Organization recognized this point before us and set 
 Open Source Document Project years ago.
 Open Source grows up and becomes a giant software infrastructure with the forces 
 of company, school research team and countless talent engineers passion. 
