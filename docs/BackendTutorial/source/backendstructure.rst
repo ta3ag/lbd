@@ -2036,7 +2036,6 @@ Verify with the Cpu0 Epilogue instructions with sp = 0x10000000 and stack size =
 3. "addu $sp, $sp, $1" => $sp = (0x10000000 + 0x90008000) => $sp = 0xa0008000.
 
 
-
 Summary of this Chapter
 -----------------------
 
