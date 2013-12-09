@@ -54,6 +54,7 @@ Revision history
 
 Version 3.3.11, Not release yet.
   Add Figure Code generation and execution flow in about.rst.
+  Update backendstructure.rst.
 
 Version 3.3.10, Released December 5, 2013
   Correct typing error.
