@@ -1964,20 +1964,23 @@ replace addiu and shl with lui instruction as below),
   ====================  ================  ==================================  ==================================
   stack size range      ex. stack size    Cpu0 Prologue instructions          Cpu0 Epilogue instructions
   ====================  ================  ==================================  ==================================
-  0 ~ 0x7fff            - 0x7fff          - addiu $sp, $sp, 32767;            - addiu $sp, $sp, 32767;
-  0x8000 ~ 0xffff       - 0x8000          - addiu $sp, $sp, -32768;           - addiu $1, $zero, 1;
+  0 ~ 0x7ff8            - 0x7ff8          - addiu $sp, $sp, -32760;           - addiu $sp, $sp, 32760;
+  0x8000 ~ 0xfff8       - 0x8000          - addiu $sp, $sp, -32768;           - addiu $1, $zero, 1;
                                                                               - shl $1, $1, 16;
                                                                               - addiu $1, $1, -32768;
                                                                               - addu $sp, $sp, $1;
-  x10000 ~ 0xffffffff   - 0x7fffffff      - addiu $1, $zero, -1;              - addiu $1, $zero, 1;
-                                          - shl $1, $1, 31;                   - shl $1, $1, 31;
-                                          - addiu $1, $1, 1;                  - addiu $1, $1, -1;
+  x10000 ~ 0xfffffff8   - 0x7ffffff8      - addiu $1, $zero, 8;               - addiu $1, $zero, 8;
+                                          - shl $1, $1, 28;                   - shl $1, $1, 28;
+                                          - addiu $1, $1, 8;                  - addiu $1, $1, -8;
                                           - addu $sp, $sp, $1;                - addu $sp, $sp, $1;
-  x10000 ~ 0xffffffff   - 0x90008000      - addiu $1, $zero, -9;              - addiu $1, $zero, -28671;
+  x10000 ~ 0xfffffff8   - 0x90008000      - addiu $1, $zero, -9;              - addiu $1, $zero, -28671;
                                           - shl $1, $1, 28;                   - shl $1, $1, 16
                                           - addiu $1, $1, -32768;             - addiu $1, $1, -32768;
                                           - addu $sp, $sp, $1;                - addu $sp, $sp, $1;
   ====================  ================  ==================================  ==================================
+
+Since the Cpu0 stack is 8 bytes alignment, the 0x7ff9 to 0x7fff is impossible 
+to exist.
 
 Assume sp = 0xa0008000 and stack size = 0x90008000, then (0xa0008000 - 
 0x90008000) => 0x10000000. Verify with the Cpu0 Prologue instructions as 
@@ -2003,17 +2006,18 @@ only. The effect as the following table.
 
 .. table:: Cpu0 stack adjustment instructions after replace addiu and shl with lui instruction
 
-  ======  ====================  ================  ==================================  ==================================
-  opt     stack size range      ex. stack size    Cpu0 Prologue instructions          Cpu0 Epilogue instructions
-  ======  ====================  ================  ==================================  ==================================
-  old     x10000 ~ 0xffffffff   - 0x90008000      - addiu $1, $zero, -9;              - addiu $1, $zero, -28671;
-                                                  - shl $1, $1, 28;                   - shl $1, $1, 16
-                                                  - addiu $1, $1, -32768;             - addiu $1, $1, -32768;
-                                                  - addu $sp, $sp, $1;                - addu $sp, $sp, $1;
-  new     x10000 ~ 0xffffffff   - 0x90008000      - lui	$1, 28671;                    - lui	$1, 36865;
-                                                  - ori	$1, $1, 32768;                - addiu $1, $1, -32768;
-                                                  - addu $sp, $sp, $1;                - addu $sp, $sp, $1;
-  ======  ====================  ================  ==================================  ==================================
+  ====================  ================  ==================================  ==================================
+  stack size range      ex. stack size    Cpu0 Prologue instructions          Cpu0 Epilogue instructions
+  ====================  ================  ==================================  ==================================
+  0x8000 ~ 0xfff8       - 0x8000          - addiu $sp, $sp, -32768;           - ori	$1, $zero, 32768;
+                                                                              - addu $sp, $sp, $1;
+  x10000 ~ 0xfffffff8   - 0x7ffffff8      - lui	$1, 32768;                    - lui	$1, 32767;
+                                          - addiu $1, $1, 8;                  - ori	$1, $1, 65528
+                                          - addu $sp, $sp, $1;                - addu $sp, $sp, $1;
+  x10000 ~ 0xfffffff8   - 0x90008000      - lui $1, 28671;                    - lui $1, 36865;
+                                          - ori	$1, $1, 32768;                - addiu $1, $1, -32768;
+                                          - addu $sp, $sp, $1;                - addu $sp, $sp, $1;
+  ====================  ================  ==================================  ==================================
 
 
 Assume sp = 0xa0008000 and stack size = 0x90008000, then (0xa0008000 - 
