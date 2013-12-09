@@ -5,6 +5,7 @@ File                              Result v:pass x:fail        comment
 ch3-directive.ll                          v
 ch3-proepilog.ll                          v
 ch3-ret.ll                                v
+ch4_1.ll                                  v
 2008-06-05-Carry.ll                       v
 2008-07-03-SRet.ll                        v
 2008-07-15InternalConstant.ll             v
