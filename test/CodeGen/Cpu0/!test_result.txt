@@ -7,6 +7,7 @@ ch3-proepilog.ll                          v
 ch3-ret.ll                                v
 ch4_1.ll                                  v
 ch4_2-mod.ll                              v
+ch4_2_2-mod.ll                            v
 2008-06-05-Carry.ll                       v
 2008-07-03-SRet.ll                        v
 2008-07-15InternalConstant.ll             v
@@ -46,6 +47,12 @@ imm.ll                                    v
 indirectcall.ll                           v
 init-array.ll                             x                   Don't know the purpose.
 inlineasm-xxx.ll                          x                   No support tail inline asm, such as tail call i32 asm sideeffect "add $0,$1,$2", "=r,r,I"(i32 7, i32 -3)
+jstat.ll                                  x                   No support jump table (C/C++ corresponding statement ?)
+largeimm1.ll                              v                   Purpose ?
+
 module-asm.ll                             v
+
+seteq.ll                                  v
+
 sext_inreg.ll                             v
 
