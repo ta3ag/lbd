@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLD_READER_WRITER_ELF_CPU0_LINKER_CONTEXT_H
-#define LLD_READER_WRITER_ELF_CPU0_LINKER_CONTEXT_H
+#ifndef LLD_READER_WRITER_ELF_CPU0_LINKING_CONTEXT_H
+#define LLD_READER_WRITER_ELF_CPU0_LINKING_CONTEXT_H
 
 #include "Cpu0TargetHandler.h"
 
