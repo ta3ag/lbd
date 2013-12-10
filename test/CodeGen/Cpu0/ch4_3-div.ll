@@ -1,3 +1,5 @@
+; RUN: llc  -march=cpu0 -relocation-model=pic < %s | FileCheck %s
+
 ; ModuleID = 'ch4_3.bc'
 target datalayout = "E-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64"
 target triple = "mips-unknown-linux-gnu"
