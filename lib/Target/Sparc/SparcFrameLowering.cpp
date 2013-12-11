@@ -26,9 +26,6 @@
 
 using namespace llvm;
 
-<<<<<<< HEAD
-void SparcFrameLowering::emitPrologue(MachineFunction &MF) const {
-=======
 static cl::opt<bool>
 DisableLeafProc("disable-sparc-leaf-proc",
                 cl::init(false),
@@ -84,7 +81,6 @@ void SparcFrameLowering::emitSPAdjustment(MachineFunction &MF,
 void SparcFrameLowering::emitPrologue(MachineFunction &MF) const {
   SparcMachineFunctionInfo *FuncInfo = MF.getInfo<SparcMachineFunctionInfo>();
 
->>>>>>> llvmtrunk/master
   MachineBasicBlock &MBB = MF.front();
   MachineFrameInfo *MFI = MF.getFrameInfo();
   const SparcInstrInfo &TII =
@@ -145,10 +141,7 @@ eliminateCallFramePseudoInstr(MachineFunction &MF, MachineBasicBlock &MBB,
 
 void SparcFrameLowering::emitEpilogue(MachineFunction &MF,
                                   MachineBasicBlock &MBB) const {
-<<<<<<< HEAD
-=======
   SparcMachineFunctionInfo *FuncInfo = MF.getInfo<SparcMachineFunctionInfo>();
->>>>>>> llvmtrunk/master
   MachineBasicBlock::iterator MBBI = MBB.getLastNonDebugInstr();
   const SparcInstrInfo &TII =
     *static_cast<const SparcInstrInfo*>(MF.getTarget().getInstrInfo());
@@ -169,8 +162,6 @@ void SparcFrameLowering::emitEpilogue(MachineFunction &MF,
   NumBytes = SubTarget.getAdjustedFrameSize(NumBytes);
   emitSPAdjustment(MF, MBB, MBBI, NumBytes, SP::ADDrr, SP::ADDri);
 }
-<<<<<<< HEAD
-=======
 
 bool SparcFrameLowering::hasReservedCallFrame(const MachineFunction &MF) const {
   // Reserve call frame if there are no variable sized objects on the stack.
@@ -259,4 +250,3 @@ void SparcFrameLowering::processFunctionBeforeCalleeSavedScan
   }
 
 }
->>>>>>> llvmtrunk/master

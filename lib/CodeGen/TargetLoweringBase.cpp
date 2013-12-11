@@ -1148,7 +1148,7 @@ void TargetLoweringBase::computeRegisterProperties() {
   }
 }
 
-EVT TargetLoweringBase::getSetCCResultType(EVT VT) const {
+EVT TargetLoweringBase::getSetCCResultType(LLVMContext &, EVT VT) const {
   assert(!VT.isVector() && "No default SetCC type for vectors!");
   return getPointerTy(0).SimpleTy;
 }

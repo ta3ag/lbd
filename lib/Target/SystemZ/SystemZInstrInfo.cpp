@@ -14,11 +14,8 @@
 #include "SystemZInstrInfo.h"
 #include "SystemZTargetMachine.h"
 #include "SystemZInstrBuilder.h"
-<<<<<<< HEAD
-=======
 #include "llvm/CodeGen/LiveVariables.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
->>>>>>> llvmtrunk/master
 
 #define GET_INSTRINFO_CTOR_DTOR
 #define GET_INSTRMAP_INFO
@@ -263,19 +260,22 @@ bool SystemZInstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
 
     // A terminator that isn't a branch can't easily be handled by this
     // analysis.
-    unsigned ThisCond;
-    const MachineOperand *ThisTarget;
-    if (!isBranch(I, ThisCond, ThisTarget))
+    if (!I->isBranch())
       return true;
 
     // Can't handle indirect branches.
-    if (!ThisTarget->isMBB())
+    SystemZII::Branch Branch(getBranchInfo(I));
+    if (!Branch.Target->isMBB())
       return true;
 
-    if (ThisCond == SystemZ::CCMASK_ANY) {
+    // Punt on compound branches.
+    if (Branch.Type != SystemZII::BranchNormal)
+      return true;
+
+    if (Branch.CCMask == SystemZ::CCMASK_ANY) {
       // Handle unconditional branches.
       if (!AllowModify) {
-        TBB = ThisTarget->getMBB();
+        TBB = Branch.Target->getMBB();
         continue;
       }
 
@@ -287,7 +287,7 @@ bool SystemZInstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
       FBB = 0;
 
       // Delete the JMP if it's equivalent to a fall-through.
-      if (MBB.isLayoutSuccessor(ThisTarget->getMBB())) {
+      if (MBB.isLayoutSuccessor(Branch.Target->getMBB())) {
         TBB = 0;
         I->eraseFromParent();
         I = MBB.end();
@@ -295,7 +295,7 @@ bool SystemZInstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
       }
 
       // TBB is used to indicate the unconditinal destination.
-      TBB = ThisTarget->getMBB();
+      TBB = Branch.Target->getMBB();
       continue;
     }
 
@@ -303,14 +303,9 @@ bool SystemZInstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
     if (Cond.empty()) {
       // FIXME: add X86-style branch swap
       FBB = TBB;
-<<<<<<< HEAD
-      TBB = ThisTarget->getMBB();
-      Cond.push_back(MachineOperand::CreateImm(ThisCond));
-=======
       TBB = Branch.Target->getMBB();
       Cond.push_back(MachineOperand::CreateImm(Branch.CCValid));
       Cond.push_back(MachineOperand::CreateImm(Branch.CCMask));
->>>>>>> llvmtrunk/master
       continue;
     }
 
@@ -319,18 +314,13 @@ bool SystemZInstrInfo::AnalyzeBranch(MachineBasicBlock &MBB,
 
     // Only handle the case where all conditional branches branch to the same
     // destination.
-    if (TBB != ThisTarget->getMBB())
+    if (TBB != Branch.Target->getMBB())
       return true;
 
     // If the conditions are the same, we can leave them alone.
-<<<<<<< HEAD
-    unsigned OldCond = Cond[0].getImm();
-    if (OldCond == ThisCond)
-=======
     unsigned OldCCValid = Cond[0].getImm();
     unsigned OldCCMask = Cond[1].getImm();
     if (OldCCValid == Branch.CCValid && OldCCMask == Branch.CCMask)
->>>>>>> llvmtrunk/master
       continue;
 
     // FIXME: Try combining conditions like X86 does.  Should be easy on Z!
@@ -349,11 +339,9 @@ unsigned SystemZInstrInfo::RemoveBranch(MachineBasicBlock &MBB) const {
     --I;
     if (I->isDebugValue())
       continue;
-    unsigned Cond;
-    const MachineOperand *Target;
-    if (!isBranch(I, Cond, Target))
+    if (!I->isBranch())
       break;
-    if (!Target->isMBB())
+    if (!getBranchInfo(I).Target->isMBB())
       break;
     // Remove the branch.
     I->eraseFromParent();
@@ -388,26 +376,21 @@ SystemZInstrInfo::InsertBranch(MachineBasicBlock &MBB, MachineBasicBlock *TBB,
   if (Cond.empty()) {
     // Unconditional branch?
     assert(!FBB && "Unconditional branch with multiple successors!");
-    BuildMI(&MBB, DL, get(SystemZ::JG)).addMBB(TBB);
+    BuildMI(&MBB, DL, get(SystemZ::J)).addMBB(TBB);
     return 1;
   }
 
   // Conditional branch.
   unsigned Count = 0;
-<<<<<<< HEAD
-  unsigned CC = Cond[0].getImm();
-  BuildMI(&MBB, DL, get(SystemZ::BRCL)).addImm(CC).addMBB(TBB);
-=======
   unsigned CCValid = Cond[0].getImm();
   unsigned CCMask = Cond[1].getImm();
   BuildMI(&MBB, DL, get(SystemZ::BRC))
     .addImm(CCValid).addImm(CCMask).addMBB(TBB);
->>>>>>> llvmtrunk/master
   ++Count;
 
   if (FBB) {
     // Two-way Conditional branch. Insert the second branch.
-    BuildMI(&MBB, DL, get(SystemZ::JG)).addMBB(FBB);
+    BuildMI(&MBB, DL, get(SystemZ::J)).addMBB(FBB);
     ++Count;
   }
   return Count;
@@ -1045,17 +1028,6 @@ SystemZInstrInfo::expandPostRAPseudo(MachineBasicBlock::iterator MI) const {
   }
 }
 
-<<<<<<< HEAD
-bool SystemZInstrInfo::
-ReverseBranchCondition(SmallVectorImpl<MachineOperand> &Cond) const {
-  assert(Cond.size() == 1 && "Invalid branch condition!");
-  Cond[0].setImm(Cond[0].getImm() ^ SystemZ::CCMASK_ANY);
-  return false;
-}
-
-bool SystemZInstrInfo::isBranch(const MachineInstr *MI, unsigned &Cond,
-                                const MachineOperand *&Target) const {
-=======
 uint64_t SystemZInstrInfo::getInstSizeInBytes(const MachineInstr *MI) const {
   if (MI->getOpcode() == TargetOpcode::INLINEASM) {
     const MachineFunction *MF = MI->getParent()->getParent();
@@ -1067,22 +1039,10 @@ uint64_t SystemZInstrInfo::getInstSizeInBytes(const MachineInstr *MI) const {
 
 SystemZII::Branch
 SystemZInstrInfo::getBranchInfo(const MachineInstr *MI) const {
->>>>>>> llvmtrunk/master
   switch (MI->getOpcode()) {
   case SystemZ::BR:
   case SystemZ::J:
   case SystemZ::JG:
-<<<<<<< HEAD
-    Cond = SystemZ::CCMASK_ANY;
-    Target = &MI->getOperand(0);
-    return true;
-
-  case SystemZ::BRC:
-  case SystemZ::BRCL:
-    Cond = MI->getOperand(0).getImm();
-    Target = &MI->getOperand(1);
-    return true;
-=======
     return SystemZII::Branch(SystemZII::BranchNormal, SystemZ::CCMASK_ANY,
                              SystemZ::CCMASK_ANY, &MI->getOperand(0));
 
@@ -1119,11 +1079,9 @@ SystemZInstrInfo::getBranchInfo(const MachineInstr *MI) const {
   case SystemZ::CLGRJ:
     return SystemZII::Branch(SystemZII::BranchCLG, SystemZ::CCMASK_ICMP,
                              MI->getOperand(2).getImm(), &MI->getOperand(3));
->>>>>>> llvmtrunk/master
 
   default:
-    assert(!MI->getDesc().isBranch() && "Unknown branch opcode");
-    return false;
+    llvm_unreachable("Unrecognized branch opcode");
   }
 }
 
@@ -1187,8 +1145,6 @@ unsigned SystemZInstrInfo::getOpcodeForOffset(unsigned Opcode,
   return 0;
 }
 
-<<<<<<< HEAD
-=======
 unsigned SystemZInstrInfo::getLoadAndTest(unsigned Opcode) const {
   switch (Opcode) {
   case SystemZ::L:    return SystemZ::LT;
@@ -1271,7 +1227,6 @@ unsigned SystemZInstrInfo::getCompareAndBranch(unsigned Opcode,
   }
 }
 
->>>>>>> llvmtrunk/master
 void SystemZInstrInfo::loadImmediate(MachineBasicBlock &MBB,
                                      MachineBasicBlock::iterator MBBI,
                                      unsigned Reg, uint64_t Value) const {

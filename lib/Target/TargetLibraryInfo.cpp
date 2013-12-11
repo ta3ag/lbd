@@ -47,8 +47,6 @@ const char* TargetLibraryInfo::StandardNames[LibFunc::NumLibFuncs] =
     "__isoc99_scanf",
     "__isoc99_sscanf",
     "__memcpy_chk",
-<<<<<<< HEAD
-=======
     "__sincospi_stret",
     "__sincospi_stretf",
     "__sinpi",
@@ -56,7 +54,6 @@ const char* TargetLibraryInfo::StandardNames[LibFunc::NumLibFuncs] =
     "__sqrt_finite",
     "__sqrtf_finite",
     "__sqrtl_finite",
->>>>>>> llvmtrunk/master
     "__strdup",
     "__strndup",
     "__strtok_r",

@@ -27,11 +27,8 @@ class MCInstPrinter;
 class MCObjectWriter;
 class MCRegisterInfo;
 class MCSubtargetInfo;
-<<<<<<< HEAD
-=======
 class MCStreamer;
 class MCRelocationInfo;
->>>>>>> llvmtrunk/master
 class StringRef;
 class Target;
 class raw_ostream;
@@ -72,6 +69,9 @@ MCObjectWriter *createARMMachObjectWriter(raw_ostream &OS,
                                           uint32_t CPUType,
                                           uint32_t CPUSubtype);
 
+
+/// createARMMachORelocationInfo - Construct ARM Mach-O relocation info.
+MCRelocationInfo *createARMMachORelocationInfo(MCContext &Ctx);
 } // End llvm namespace
 
 // Defines symbolic names for ARM registers.  This defines a mapping from

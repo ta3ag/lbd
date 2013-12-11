@@ -64,8 +64,9 @@ namespace {
     bool isDelayFiller(MachineBasicBlock &MBB,
                        MachineBasicBlock::iterator candidate);
 
-    void insertCallUses(MachineBasicBlock::iterator MI,
-                        SmallSet<unsigned, 32>& RegUses);
+    void insertCallDefsUses(MachineBasicBlock::iterator MI,
+                            SmallSet<unsigned, 32>& RegDefs,
+                            SmallSet<unsigned, 32>& RegUses);
 
     void insertDefsUses(MachineBasicBlock::iterator MI,
                         SmallSet<unsigned, 32>& RegDefs,
@@ -165,20 +166,13 @@ Filler::findDelayInstr(MachineBasicBlock &MBB,
   bool sawLoad = false;
   bool sawStore = false;
 
-  MachineBasicBlock::iterator I = slot;
+  if (slot == MBB.begin())
+    return MBB.end();
 
   if (slot->getOpcode() == SP::RET || slot->getOpcode() == SP::TLS_CALL)
     return MBB.end();
 
   if (slot->getOpcode() == SP::RETL) {
-<<<<<<< HEAD
-    --I;
-    if (I->getOpcode() != SP::RESTORErr)
-      return MBB.end();
-    //change retl to ret
-    slot->setDesc(TII->get(SP::RET));
-    return I;
-=======
     MachineBasicBlock::iterator J = slot;
     --J;
 
@@ -188,16 +182,17 @@ Filler::findDelayInstr(MachineBasicBlock &MBB,
       slot->setDesc(TM.getInstrInfo()->get(SP::RET));
       return J;
     }
->>>>>>> llvmtrunk/master
   }
 
   // Call's delay filler can def some of call's uses.
   if (slot->isCall())
-    insertCallUses(slot, RegUses);
+    insertCallDefsUses(slot, RegDefs, RegUses);
   else
     insertDefsUses(slot, RegDefs, RegUses);
 
   bool done = false;
+
+  MachineBasicBlock::iterator I = slot;
 
   while (!done) {
     done = (I == MBB.begin());
@@ -273,14 +268,12 @@ bool Filler::delayHasHazard(MachineBasicBlock::iterator candidate,
 }
 
 
-void Filler::insertCallUses(MachineBasicBlock::iterator MI,
-                            SmallSet<unsigned, 32>& RegUses)
+void Filler::insertCallDefsUses(MachineBasicBlock::iterator MI,
+                                SmallSet<unsigned, 32>& RegDefs,
+                                SmallSet<unsigned, 32>& RegUses)
 {
-<<<<<<< HEAD
-=======
   // Call defines o7, which is visible to the instruction in delay slot.
   RegDefs.insert(SP::O7);
->>>>>>> llvmtrunk/master
 
   switch(MI->getOpcode()) {
   default: llvm_unreachable("Unknown opcode.");
@@ -318,17 +311,13 @@ void Filler::insertDefsUses(MachineBasicBlock::iterator MI,
       continue;
     if (MO.isDef())
       RegDefs.insert(Reg);
-<<<<<<< HEAD
-    if (MO.isUse())
-=======
     if (MO.isUse()) {
       // Implicit register uses of retl are return values and
       // retl does not use them.
       if (MO.isImplicit() && MI->getOpcode() == SP::RETL)
         continue;
->>>>>>> llvmtrunk/master
       RegUses.insert(Reg);
-
+    }
   }
 }
 

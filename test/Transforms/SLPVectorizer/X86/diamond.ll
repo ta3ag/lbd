@@ -1,4 +1,4 @@
-; RUN: opt < %s -basicaa -slp-vectorizer -dce -S -mtriple=x86_64-apple-macosx10.8.0 -mcpu=corei7-avx | FileCheck %s
+; RUN: opt < %s -basicaa -slp-vectorizer -S -mtriple=x86_64-apple-macosx10.8.0 -mcpu=corei7-avx | FileCheck %s
 
 target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128"
 target triple = "x86_64-apple-macosx10.8.0"
@@ -41,7 +41,7 @@ entry:
 }
 
 
-; int foo_fail(int * restrict B,  int * restrict A, int n, int m) {
+; int extr_user(int * restrict B,  int * restrict A, int n, int m) {
 ;   B[0] = n * A[0] + m * A[0];
 ;   B[1] = n * A[1] + m * A[1];
 ;   B[2] = n * A[2] + m * A[2];
@@ -49,19 +49,12 @@ entry:
 ;   return A[0];
 ; }
 
-<<<<<<< HEAD
-; CHECK: @foo_fail
-; CHECK-NOT: load <4 x i32>
-; CHECK: ret
-define i32 @foo_fail(i32* noalias nocapture %B, i32* noalias nocapture %A, i32 %n, i32 %m) {
-=======
 ; CHECK-LABEL: @extr_user(
 ; CHECK: load <4 x i32>
 ; CHECK: store <4 x i32>
 ; CHECK: extractelement <4 x i32>
 ; CHECK-NEXT: ret
 define i32 @extr_user(i32* noalias nocapture %B, i32* noalias nocapture %A, i32 %n, i32 %m) {
->>>>>>> llvmtrunk/master
 entry:
   %0 = load i32* %A, align 4
   %mul238 = add i32 %m, %n
@@ -82,11 +75,9 @@ entry:
   %add20 = mul i32 %3, %mul238
   %arrayidx21 = getelementptr inbounds i32* %B, i64 3
   store i32 %add20, i32* %arrayidx21, align 4
-  ret i32 %0  ;<--------- This value has multiple users and can't be vectorized.
+  ret i32 %0  ;<--------- This value has multiple users
 }
 
-<<<<<<< HEAD
-=======
 ; In this example we have an external user that is not the first element in the vector.
 ; CHECK-LABEL: @extr_user1(
 ; CHECK: load <4 x i32>
@@ -116,4 +107,3 @@ entry:
   store i32 %add20, i32* %arrayidx21, align 4
   ret i32 %1  ;<--------- This value has multiple users
 }
->>>>>>> llvmtrunk/master

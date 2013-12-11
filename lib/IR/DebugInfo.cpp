@@ -47,7 +47,7 @@ bool DIDescriptor::Verify() const {
           DIObjCProperty(DbgNode).Verify() ||
           DITemplateTypeParameter(DbgNode).Verify() ||
           DITemplateValueParameter(DbgNode).Verify() ||
-          DIImportedModule(DbgNode).Verify());
+          DIImportedEntity(DbgNode).Verify());
 }
 
 static Value *getField(const MDNode *DbgNode, unsigned Elt) {
@@ -314,25 +314,17 @@ bool DIDescriptor::isObjCProperty() const {
   return DbgNode && getTag() == dwarf::DW_TAG_APPLE_property;
 }
 
-/// \brief Return true if the specified tag is DW_TAG_imported_module.
-bool DIDescriptor::isImportedModule() const {
-  return DbgNode && getTag() == dwarf::DW_TAG_imported_module;
+/// \brief Return true if the specified tag is DW_TAG_imported_module or
+/// DW_TAG_imported_declaration.
+bool DIDescriptor::isImportedEntity() const {
+  return DbgNode && (getTag() == dwarf::DW_TAG_imported_module ||
+                     getTag() == dwarf::DW_TAG_imported_declaration);
 }
 
 //===----------------------------------------------------------------------===//
 // Simple Descriptor Constructors and other Methods
 //===----------------------------------------------------------------------===//
 
-<<<<<<< HEAD
-DIType::DIType(const MDNode *N) : DIScope(N) {
-  if (!N) return;
-  if (!isBasicType() && !isDerivedType() && !isCompositeType()) {
-    DbgNode = 0;
-  }
-}
-
-=======
->>>>>>> llvmtrunk/master
 unsigned DIArray::getNumElements() const {
   if (!DbgNode)
     return 0;
@@ -617,8 +609,9 @@ bool DITemplateValueParameter::Verify() const {
 }
 
 /// \brief Verify that the imported module descriptor is well formed.
-bool DIImportedModule::Verify() const {
-  return isImportedModule() && DbgNode->getNumOperands() == 4;
+bool DIImportedEntity::Verify() const {
+  return isImportedEntity() &&
+         (DbgNode->getNumOperands() == 4 || DbgNode->getNumOperands() == 5);
 }
 
 /// getObjCProperty - Return property node, if this ivar is associated with one.
@@ -735,8 +728,6 @@ DIArray DISubprogram::getVariables() const {
   return DIArray(getNodeField(DbgNode, 18));
 }
 
-<<<<<<< HEAD
-=======
 Value *DITemplateValueParameter::getValue() const {
   return getField(DbgNode, 4);
 }
@@ -778,7 +769,6 @@ StringRef DIScope::getName() const {
   return StringRef();
 }
 
->>>>>>> llvmtrunk/master
 StringRef DIScope::getFilename() const {
   if (!DbgNode)
     return StringRef();
@@ -819,7 +809,7 @@ DIArray DICompileUnit::getGlobalVariables() const {
   return DIArray(getNodeField(DbgNode, 10));
 }
 
-DIArray DICompileUnit::getImportedModules() const {
+DIArray DICompileUnit::getImportedEntities() const {
   if (!DbgNode || DbgNode->getNumOperands() < 13)
     return DIArray();
 

@@ -5,14 +5,8 @@
 ; Check a value near the low end of the range.  We use signed forms for
 ; comparisons with zero, or things that are equivalent to them.
 define double @f1(double %a, double %b, i64 %i1) {
-<<<<<<< HEAD
-; CHECK: f1:
-; CHECK: clgfi %r2, 1
-; CHECK-NEXT: j{{g?}}h
-=======
 ; CHECK-LABEL: f1:
 ; CHECK: clgijh %r2, 1
->>>>>>> llvmtrunk/master
 ; CHECK: ldr %f0, %f2
 ; CHECK: br %r14
   %cond = icmp ugt i64 %i1, 1
@@ -47,7 +41,7 @@ define double @f3(double %a, double %b, i64 %i1) {
 define double @f4(double %a, double %b, i64 %i1) {
 ; CHECK-LABEL: f4:
 ; CHECK: clgfi %r2, 4294967295
-; CHECK-NEXT: j{{g?}}l
+; CHECK-NEXT: jl
 ; CHECK: ldr %f0, %f2
 ; CHECK: br %r14
   %cond = icmp ult i64 %i1, 4294967295
@@ -56,16 +50,9 @@ define double @f4(double %a, double %b, i64 %i1) {
 }
 
 ; Check the next value up, which must use a register comparison.
-<<<<<<< HEAD
-define double @f3(double %a, double %b, i64 %i1) {
-; CHECK: f3:
-; CHECK: clgr %r2,
-; CHECK-NEXT: j{{g?}}l
-=======
 define double @f5(double %a, double %b, i64 %i1) {
 ; CHECK-LABEL: f5:
 ; CHECK: clgrjl %r2,
->>>>>>> llvmtrunk/master
 ; CHECK: ldr %f0, %f2
 ; CHECK: br %r14
   %cond = icmp ult i64 %i1, 4294967296

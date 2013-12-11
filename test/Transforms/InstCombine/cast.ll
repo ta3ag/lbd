@@ -925,8 +925,6 @@ define double @test81(double *%p, float %f) {
   %l = load double* %r
   ret double %l
 }
-<<<<<<< HEAD
-=======
 
 define i64 @test82(i64 %A) nounwind {
   %B = trunc i64 %A to i32
@@ -955,4 +953,3 @@ define i64 @test83(i16 %a, i64 %k) {
 ; CHECK: %sh_prom = trunc i64 %sub to i32
 ; CHECK: %shl = shl i32 %conv, %sh_prom
 }
->>>>>>> llvmtrunk/master

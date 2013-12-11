@@ -108,7 +108,7 @@ namespace llvm {
     SDValue LowerFormalArguments(SDValue Chain,
                                  CallingConv::ID CallConv, bool isVarArg,
                                  const SmallVectorImpl<ISD::InputArg> &Ins,
-                                 DebugLoc dl, SelectionDAG &DAG,
+                                 SDLoc dl, SelectionDAG &DAG,
                                  SmallVectorImpl<SDValue> &InVals) const;
     SDValue LowerGLOBALADDRESS(SDValue Op, SelectionDAG &DAG) const;
     SDValue LowerBlockAddress(SDValue Op, SelectionDAG &DAG) const;
@@ -119,7 +119,7 @@ namespace llvm {
     SDValue LowerCallResult(SDValue Chain, SDValue InFlag,
                             CallingConv::ID CallConv, bool isVarArg,
                             const SmallVectorImpl<ISD::InputArg> &Ins,
-                            DebugLoc dl, SelectionDAG &DAG,
+                            SDLoc dl, SelectionDAG &DAG,
                             SmallVectorImpl<SDValue> &InVals,
                             const SmallVectorImpl<SDValue> &OutVals,
                             SDValue Callee) const;
@@ -133,7 +133,7 @@ namespace llvm {
                         CallingConv::ID CallConv, bool isVarArg,
                         const SmallVectorImpl<ISD::OutputArg> &Outs,
                         const SmallVectorImpl<SDValue> &OutVals,
-                        DebugLoc dl, SelectionDAG &DAG) const;
+                        SDLoc dl, SelectionDAG &DAG) const;
 
     virtual MachineBasicBlock
     *EmitInstrWithCustomInserter(MachineInstr *MI,
@@ -141,16 +141,11 @@ namespace llvm {
 
     SDValue  LowerVASTART(SDValue Op, SelectionDAG &DAG) const;
     SDValue  LowerConstantPool(SDValue Op, SelectionDAG &DAG) const;
-<<<<<<< HEAD
-    virtual EVT getSetCCResultType(EVT VT) const {
-      return MVT::i1;
-=======
     virtual EVT getSetCCResultType(LLVMContext &C, EVT VT) const {
       if (!VT.isVector())
         return MVT::i1;
       else
         return EVT::getVectorVT(C, MVT::i1, VT.getVectorNumElements());
->>>>>>> llvmtrunk/master
     }
 
     virtual bool getPostIndexedAddressParts(SDNode *N, SDNode *Op,

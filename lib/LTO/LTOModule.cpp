@@ -43,17 +43,12 @@ using namespace llvm;
 
 LTOModule::LTOModule(llvm::Module *m, llvm::TargetMachine *t)
   : _module(m), _target(t),
-<<<<<<< HEAD:tools/lto/LTOModule.cpp
-    _context(*_target->getMCAsmInfo(), *_target->getRegisterInfo(), NULL),
-    _mangler(_context, *_target->getDataLayout()) {}
-=======
     _context(_target->getMCAsmInfo(), _target->getRegisterInfo(), &ObjFileInfo),
     _mangler(t) {
   ObjFileInfo.InitMCObjectFileInfo(t->getTargetTriple(),
                                    t->getRelocationModel(), t->getCodeModel(),
                                    _context);
 }
->>>>>>> llvmtrunk/master:lib/LTO/LTOModule.cpp
 
 /// isBitcodeFile - Returns 'true' if the file (or memory contents) is LLVM
 /// bitcode.
@@ -373,7 +368,7 @@ void LTOModule::addDefinedSymbol(const GlobalValue *def, bool isFunction) {
 
   // set alignment part log2() can have rounding errors
   uint32_t align = def->getAlignment();
-  uint32_t attr = align ? CountTrailingZeros_32(def->getAlignment()) : 0;
+  uint32_t attr = align ? countTrailingZeros(def->getAlignment()) : 0;
 
   // set permissions part
   if (isFunction) {

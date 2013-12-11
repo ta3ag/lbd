@@ -145,8 +145,6 @@ class BForm_2<bits<6> opcode, bits<5> bo, bits<5> bi, bit aa, bit lk,
   let Inst{31}    = lk;
 }
 
-<<<<<<< HEAD
-=======
 class BForm_3<bits<6> opcode, bit aa, bit lk,
               dag OOL, dag IOL, string asmstr>
   : I<opcode, OOL, IOL, asmstr, IIC_BrB> {
@@ -174,7 +172,6 @@ class SCForm<bits<6> opcode, bits<1> xo,
   let Inst{30}    = xo;
 }
 
->>>>>>> llvmtrunk/master
 // 1.7.4 D-Form
 class DForm_base<bits<6> opcode, dag OOL, dag IOL, string asmstr,
                  InstrItinClass itin, list<dag> pattern> 

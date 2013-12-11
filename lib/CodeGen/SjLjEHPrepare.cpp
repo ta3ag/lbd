@@ -220,17 +220,11 @@ Value *SjLjEHPrepare::setupFunctionContext(Function &F,
   IRBuilder<> Builder(EntryBB->getTerminator());
   if (!PersonalityFn)
     PersonalityFn = LPads[0]->getPersonalityFn();
-<<<<<<< HEAD
-  Value *PersonalityFieldPtr = Builder.CreateConstGEP2_32(FuncCtx, 0, 3,
-                                                          "pers_fn_gep");
-  Builder.CreateStore(PersonalityFn, PersonalityFieldPtr, /*isVolatile=*/true);
-=======
   Value *PersonalityFieldPtr =
       Builder.CreateConstGEP2_32(FuncCtx, 0, 3, "pers_fn_gep");
   Builder.CreateStore(
       Builder.CreateBitCast(PersonalityFn, Builder.getInt8PtrTy()),
       PersonalityFieldPtr, /*isVolatile=*/true);
->>>>>>> llvmtrunk/master
 
   // LSDA address
   Value *LSDA = Builder.CreateCall(LSDAAddrFn, "lsda_addr");

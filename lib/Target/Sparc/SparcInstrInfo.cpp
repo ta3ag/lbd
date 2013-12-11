@@ -46,6 +46,7 @@ SparcInstrInfo::SparcInstrInfo(SparcSubtarget &ST)
 unsigned SparcInstrInfo::isLoadFromStackSlot(const MachineInstr *MI,
                                              int &FrameIndex) const {
   if (MI->getOpcode() == SP::LDri ||
+      MI->getOpcode() == SP::LDXri ||
       MI->getOpcode() == SP::LDFri ||
       MI->getOpcode() == SP::LDDFri ||
       MI->getOpcode() == SP::LDQFri) {
@@ -66,6 +67,7 @@ unsigned SparcInstrInfo::isLoadFromStackSlot(const MachineInstr *MI,
 unsigned SparcInstrInfo::isStoreToStackSlot(const MachineInstr *MI,
                                             int &FrameIndex) const {
   if (MI->getOpcode() == SP::STri ||
+      MI->getOpcode() == SP::STXri ||
       MI->getOpcode() == SP::STFri ||
       MI->getOpcode() == SP::STDFri ||
       MI->getOpcode() == SP::STQFri) {
@@ -359,14 +361,10 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                              MFI.getObjectAlignment(FI));
 
   // On the order of operands here: think "[FrameIdx + 0] = SrcReg".
-<<<<<<< HEAD
-  if (RC == &SP::IntRegsRegClass)
-=======
  if (RC == &SP::I64RegsRegClass)
     BuildMI(MBB, I, DL, get(SP::STXri)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill)).addMemOperand(MMO);
   else if (RC == &SP::IntRegsRegClass)
->>>>>>> llvmtrunk/master
     BuildMI(MBB, I, DL, get(SP::STri)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill)).addMemOperand(MMO);
   else if (RC == &SP::FPRegsRegClass)
@@ -392,10 +390,6 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   DebugLoc DL;
   if (I != MBB.end()) DL = I->getDebugLoc();
 
-<<<<<<< HEAD
-  if (RC == &SP::IntRegsRegClass)
-    BuildMI(MBB, I, DL, get(SP::LDri), DestReg).addFrameIndex(FI).addImm(0);
-=======
   MachineFunction *MF = MBB.getParent();
   const MachineFrameInfo &MFI = *MF->getFrameInfo();
   MachineMemOperand *MMO =
@@ -410,7 +404,6 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   else if (RC == &SP::IntRegsRegClass)
     BuildMI(MBB, I, DL, get(SP::LDri), DestReg).addFrameIndex(FI).addImm(0)
       .addMemOperand(MMO);
->>>>>>> llvmtrunk/master
   else if (RC == &SP::FPRegsRegClass)
     BuildMI(MBB, I, DL, get(SP::LDFri), DestReg).addFrameIndex(FI).addImm(0)
       .addMemOperand(MMO);

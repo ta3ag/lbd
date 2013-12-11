@@ -146,19 +146,12 @@ namespace llvm {
     const std::vector<DIE *> &getChildren() const { return Children; }
     const SmallVectorImpl<DIEValue*> &getValues() const { return Values; }
     DIE *getParent() const { return Parent; }
-<<<<<<< HEAD
-    /// Climb up the parent chain to get the compile unit DIE this DIE belongs
-    /// to.
-    DIE *getCompileUnit() const;
-    void setTag(unsigned Tag) { Abbrev.setTag(Tag); }
-=======
     /// Climb up the parent chain to get the compile or type unit DIE this DIE
     /// belongs to.
     const DIE *getUnit() const;
     /// Similar to getUnit, returns null when DIE is not added to an
     /// owner yet.
     const DIE *getUnitOrNull() const;
->>>>>>> llvmtrunk/master
     void setOffset(unsigned O) { Offset = O; }
     void setSize(unsigned S) { Size = S; }
 
@@ -390,7 +383,9 @@ namespace llvm {
   class DIEEntry : public DIEValue {
     DIE *const Entry;
   public:
-    explicit DIEEntry(DIE *E) : DIEValue(isEntry), Entry(E) {}
+    explicit DIEEntry(DIE *E) : DIEValue(isEntry), Entry(E) {
+      assert(E && "Cannot construct a DIEEntry with a null DIE");
+    }
 
     DIE *getEntry() const { return Entry; }
 

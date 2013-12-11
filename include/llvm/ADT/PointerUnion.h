@@ -15,6 +15,7 @@
 #ifndef LLVM_ADT_POINTERUNION_H
 #define LLVM_ADT_POINTERUNION_H
 
+#include "llvm/Support/Compiler.h"
 #include "llvm/ADT/PointerIntPair.h"
 
 namespace llvm {
@@ -109,7 +110,7 @@ namespace llvm {
       // we recursively strip off low bits if we have a nested PointerUnion.
       return !PointerLikeTypeTraits<PT1>::getFromVoidPointer(Val.getPointer());
     }
-    operator bool() const { return !isNull(); }
+    LLVM_EXPLICIT operator bool() const { return !isNull(); }
 
     /// is<T>() return true if the Union currently holds the type matching T.
     template<typename T>
@@ -174,9 +175,6 @@ namespace llvm {
       return V;
     }
   };
-<<<<<<< HEAD
-  
-=======
 
   template<typename PT1, typename PT2>
   static bool operator==(PointerUnion<PT1, PT2> lhs,
@@ -190,7 +188,6 @@ namespace llvm {
     return lhs.getOpaqueValue() != rhs.getOpaqueValue();
   }
 
->>>>>>> llvmtrunk/master
   // Teach SmallPtrSet that PointerUnion is "basically a pointer", that has
   // # low bits available = min(PT1bits,PT2bits)-1.
   template<typename PT1, typename PT2>
@@ -267,7 +264,7 @@ namespace llvm {
     /// isNull - Return true if the pointer held in the union is null,
     /// regardless of which type it is.
     bool isNull() const { return Val.isNull(); }
-    operator bool() const { return !isNull(); }
+    LLVM_EXPLICIT operator bool() const { return !isNull(); }
     
     /// is<T>() return true if the Union currently holds the type matching T.
     template<typename T>
@@ -375,7 +372,7 @@ namespace llvm {
     /// isNull - Return true if the pointer held in the union is null,
     /// regardless of which type it is.
     bool isNull() const { return Val.isNull(); }
-    operator bool() const { return !isNull(); }
+    LLVM_EXPLICIT operator bool() const { return !isNull(); }
     
     /// is<T>() return true if the Union currently holds the type matching T.
     template<typename T>

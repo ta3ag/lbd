@@ -12,6 +12,33 @@
 //===----------------------------------------------------------------------===//
 
 let TargetPrefix = "R600", isTarget = 1 in {
+  class TextureIntrinsicFloatInput :
+    Intrinsic<[llvm_v4f32_ty], [
+      llvm_v4f32_ty, // Coord
+      llvm_i32_ty, // offset_x
+      llvm_i32_ty, // offset_y,
+      llvm_i32_ty, // offset_z,
+      llvm_i32_ty, // resource_id
+      llvm_i32_ty, // samplerid
+      llvm_i32_ty, // coord_type_x
+      llvm_i32_ty, // coord_type_y
+      llvm_i32_ty, // coord_type_z
+      llvm_i32_ty // coord_type_w
+    ], [IntrNoMem]>;
+  class TextureIntrinsicInt32Input :
+    Intrinsic<[llvm_v4i32_ty], [
+      llvm_v4i32_ty, // Coord
+      llvm_i32_ty, // offset_x
+      llvm_i32_ty, // offset_y,
+      llvm_i32_ty, // offset_z,
+      llvm_i32_ty, // resource_id
+      llvm_i32_ty, // samplerid
+      llvm_i32_ty, // coord_type_x
+      llvm_i32_ty, // coord_type_y
+      llvm_i32_ty, // coord_type_z
+      llvm_i32_ty // coord_type_w
+    ], [IntrNoMem]>;
+
   def int_R600_load_input :
     Intrinsic<[llvm_float_ty], [llvm_i32_ty], [IntrNoMem]>;
   def int_R600_interp_input :
@@ -24,8 +51,6 @@ def int_R600_interp_zw :
     Intrinsic<[llvm_v2f32_ty], [llvm_i32_ty, llvm_float_ty, llvm_float_ty], [IntrNoMem]>;
   def int_R600_load_texbuf :
     Intrinsic<[llvm_v4f32_ty], [llvm_i32_ty, llvm_i32_ty], [IntrNoMem]>;
-<<<<<<< HEAD
-=======
   def int_R600_tex : TextureIntrinsicFloatInput;
   def int_R600_texc : TextureIntrinsicFloatInput;
   def int_R600_txl : TextureIntrinsicFloatInput;
@@ -37,7 +62,6 @@ def int_R600_interp_zw :
   def int_R600_txq : TextureIntrinsicInt32Input;
   def int_R600_ddx : TextureIntrinsicFloatInput;
   def int_R600_ddy : TextureIntrinsicFloatInput;
->>>>>>> llvmtrunk/master
   def int_R600_store_swizzle :
     Intrinsic<[], [llvm_v4f32_ty, llvm_i32_ty, llvm_i32_ty], []>;
   def int_R600_store_stream_output :

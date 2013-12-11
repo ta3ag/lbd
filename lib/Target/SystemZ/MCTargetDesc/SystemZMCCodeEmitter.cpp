@@ -45,11 +45,9 @@ private:
 
   // Called by the TableGen code to get the binary encoding of operand
   // MO in MI.  Fixups is the list of fixups against MI.
-  unsigned getMachineOpValue(const MCInst &MI, const MCOperand &MO,
+  uint64_t getMachineOpValue(const MCInst &MI, const MCOperand &MO,
                              SmallVectorImpl<MCFixup> &Fixups) const;
 
-<<<<<<< HEAD
-=======
   // Called by the TableGen code to get the binary encoding of an address.
   // The index or length, if any, is encoded first, followed by the base,
   // followed by the displacement.  In a 20-bit displacement,
@@ -65,34 +63,22 @@ private:
   uint64_t getBDLAddr12Len8Encoding(const MCInst &MI, unsigned OpNum,
                                     SmallVectorImpl<MCFixup> &Fixups) const;
 
->>>>>>> llvmtrunk/master
   // Operand OpNum of MI needs a PC-relative fixup of kind Kind at
   // Offset bytes from the start of MI.  Add the fixup to Fixups
   // and return the in-place addend, which since we're a RELA target
   // is always 0.
-  unsigned getPCRelEncoding(const MCInst &MI, unsigned int OpNum,
+  uint64_t getPCRelEncoding(const MCInst &MI, unsigned OpNum,
                             SmallVectorImpl<MCFixup> &Fixups,
                             unsigned Kind, int64_t Offset) const;
 
-  unsigned getPC16DBLEncoding(const MCInst &MI, unsigned int OpNum,
+  uint64_t getPC16DBLEncoding(const MCInst &MI, unsigned OpNum,
                               SmallVectorImpl<MCFixup> &Fixups) const {
     return getPCRelEncoding(MI, OpNum, Fixups, SystemZ::FK_390_PC16DBL, 2);
   }
-  unsigned getPC32DBLEncoding(const MCInst &MI, unsigned int OpNum,
+  uint64_t getPC32DBLEncoding(const MCInst &MI, unsigned OpNum,
                               SmallVectorImpl<MCFixup> &Fixups) const {
     return getPCRelEncoding(MI, OpNum, Fixups, SystemZ::FK_390_PC32DBL, 2);
   }
-<<<<<<< HEAD
-  unsigned getPLT16DBLEncoding(const MCInst &MI, unsigned int OpNum,
-                               SmallVectorImpl<MCFixup> &Fixups) const {
-    return getPCRelEncoding(MI, OpNum, Fixups, SystemZ::FK_390_PLT16DBL, 2);
-  }
-  unsigned getPLT32DBLEncoding(const MCInst &MI, unsigned int OpNum,
-                               SmallVectorImpl<MCFixup> &Fixups) const {
-    return getPCRelEncoding(MI, OpNum, Fixups, SystemZ::FK_390_PLT32DBL, 2);
-  }
-=======
->>>>>>> llvmtrunk/master
 };
 }
 
@@ -116,20 +102,16 @@ EncodeInstruction(const MCInst &MI, raw_ostream &OS,
   }
 }
 
-unsigned SystemZMCCodeEmitter::
+uint64_t SystemZMCCodeEmitter::
 getMachineOpValue(const MCInst &MI, const MCOperand &MO,
                   SmallVectorImpl<MCFixup> &Fixups) const {
   if (MO.isReg())
     return Ctx.getRegisterInfo()->getEncodingValue(MO.getReg());
   if (MO.isImm())
-    return static_cast<unsigned>(MO.getImm());
+    return static_cast<uint64_t>(MO.getImm());
   llvm_unreachable("Unexpected operand type!");
 }
 
-<<<<<<< HEAD
-unsigned
-SystemZMCCodeEmitter::getPCRelEncoding(const MCInst &MI, unsigned int OpNum,
-=======
 uint64_t SystemZMCCodeEmitter::
 getBDAddr12Encoding(const MCInst &MI, unsigned OpNum,
                     SmallVectorImpl<MCFixup> &Fixups) const {
@@ -181,23 +163,22 @@ getBDLAddr12Len8Encoding(const MCInst &MI, unsigned OpNum,
 
 uint64_t
 SystemZMCCodeEmitter::getPCRelEncoding(const MCInst &MI, unsigned OpNum,
->>>>>>> llvmtrunk/master
                                        SmallVectorImpl<MCFixup> &Fixups,
                                        unsigned Kind, int64_t Offset) const {
   const MCOperand &MO = MI.getOperand(OpNum);
-  // For compatibility with the GNU assembler, treat constant operands as
-  // unadjusted PC-relative offsets.
+  const MCExpr *Expr;
   if (MO.isImm())
-    return MO.getImm() / 2;
-
-  const MCExpr *Expr = MO.getExpr();
-  if (Offset) {
-    // The operand value is relative to the start of MI, but the fixup
-    // is relative to the operand field itself, which is Offset bytes
-    // into MI.  Add Offset to the relocation value to cancel out
-    // this difference.
-    const MCExpr *OffsetExpr = MCConstantExpr::Create(Offset, Ctx);
-    Expr = MCBinaryExpr::CreateAdd(Expr, OffsetExpr, Ctx);
+    Expr = MCConstantExpr::Create(MO.getImm() + Offset, Ctx);
+  else {
+    Expr = MO.getExpr();
+    if (Offset) {
+      // The operand value is relative to the start of MI, but the fixup
+      // is relative to the operand field itself, which is Offset bytes
+      // into MI.  Add Offset to the relocation value to cancel out
+      // this difference.
+      const MCExpr *OffsetExpr = MCConstantExpr::Create(Offset, Ctx);
+      Expr = MCBinaryExpr::CreateAdd(Expr, OffsetExpr, Ctx);
+    }
   }
   Fixups.push_back(MCFixup::Create(Offset, Expr, (MCFixupKind)Kind));
   return 0;

@@ -149,15 +149,6 @@ def LLD : LLBase<"lld", GPR64Opnd>, LW_FM<0x34>;
 def SCD : SCBase<"scd", GPR64Opnd>, LW_FM<0x3c>;
 
 /// Jump and Branch Instructions
-<<<<<<< HEAD
-def JR64   : IndirectBranch<CPU64Regs>, MTLO_FM<8>;
-def BEQ64  : CBranch<"beq", seteq, CPU64Regs>, BEQ_FM<4>;
-def BNE64  : CBranch<"bne", setne, CPU64Regs>, BEQ_FM<5>;
-def BGEZ64 : CBranchZero<"bgez", setge, CPU64Regs>, BGEZ_FM<1, 1>;
-def BGTZ64 : CBranchZero<"bgtz", setgt, CPU64Regs>, BGEZ_FM<7, 0>;
-def BLEZ64 : CBranchZero<"blez", setle, CPU64Regs>, BGEZ_FM<6, 0>;
-def BLTZ64 : CBranchZero<"bltz", setlt, CPU64Regs>, BGEZ_FM<1, 0>;
-=======
 let isCodeGenOnly = 1 in {
 def JR64   : IndirectBranch<"jr", GPR64Opnd>, MTLO_FM<8>;
 def BEQ64  : CBranch<"beq", brtarget, seteq, GPR64Opnd>, BEQ_FM<4>;
@@ -169,7 +160,6 @@ def BLTZ64 : CBranchZero<"bltz", brtarget, setlt, GPR64Opnd>, BGEZ_FM<1, 0>;
 def JALR64 : JumpLinkReg<"jalr", GPR64Opnd>, JALR_FM;
 def JALR64Pseudo : JumpLinkRegPseudo<GPR64Opnd, JALR, RA, GPR32Opnd>;
 def TAILCALL64_R : TailCallReg<GPR64Opnd, JR, GPR32Opnd>;
->>>>>>> llvmtrunk/master
 }
 
 /// Multiply and Divide Instructions.
@@ -177,18 +167,6 @@ def DMULT  : Mult<"dmult", IIImult, GPR64Opnd, [HI0_64, LO0_64]>,
              MULT_FM<0, 0x1c>;
 def DMULTu : Mult<"dmultu", IIImult, GPR64Opnd, [HI0_64, LO0_64]>,
              MULT_FM<0, 0x1d>;
-<<<<<<< HEAD
-def PseudoDMULT  : MultDivPseudo<DMULT, ACRegs128, CPU64RegsOpnd, MipsMult,
-                                 IIImul>;
-def PseudoDMULTu : MultDivPseudo<DMULTu, ACRegs128, CPU64RegsOpnd, MipsMultu,
-                                 IIImul>;
-def DSDIV : Div<"ddiv", IIIdiv, CPU64RegsOpnd, [HI64, LO64]>, MULT_FM<0, 0x1e>;
-def DUDIV : Div<"ddivu", IIIdiv, CPU64RegsOpnd, [HI64, LO64]>, MULT_FM<0, 0x1f>;
-def PseudoDSDIV : MultDivPseudo<DSDIV, ACRegs128, CPU64RegsOpnd, MipsDivRem,
-                                IIIdiv, 0>;
-def PseudoDUDIV : MultDivPseudo<DUDIV, ACRegs128, CPU64RegsOpnd, MipsDivRemU,
-                                IIIdiv, 0>;
-=======
 def PseudoDMULT  : MultDivPseudo<DMULT, ACC128, GPR64Opnd, MipsMult,
                                  IIImult>;
 def PseudoDMULTu : MultDivPseudo<DMULTu, ACC128, GPR64Opnd, MipsMultu,
@@ -199,7 +177,6 @@ def PseudoDSDIV : MultDivPseudo<DSDIV, ACC128, GPR64Opnd, MipsDivRem,
                                 IIIdiv, 0, 1, 1>;
 def PseudoDUDIV : MultDivPseudo<DUDIV, ACC128, GPR64Opnd, MipsDivRemU,
                                 IIIdiv, 0, 1, 1>;
->>>>>>> llvmtrunk/master
 
 let isCodeGenOnly = 1 in {
 def MTHI64 : MoveToLOHI<"mthi", GPR64Opnd, [HI0_64]>, MTLO_FM<0x11>;
@@ -294,6 +271,11 @@ def : WrapperPat<tglobaltlsaddr, DADDiu, GPR64>;
 defm : BrcondPats<GPR64, BEQ64, BNE64, SLT64, SLTu64, SLTi64, SLTiu64,
                   ZERO_64>;
 
+def : MipsPat<(brcond (i32 (setlt i64:$lhs, 1)), bb:$dst),
+              (BLEZ64 i64:$lhs, bb:$dst)>;
+def : MipsPat<(brcond (i32 (setgt i64:$lhs, -1)), bb:$dst),
+              (BGEZ64 i64:$lhs, bb:$dst)>;
+
 // setcc patterns
 defm : SeteqPats<GPR64, SLTiu64, XOR64, SLTu64, ZERO_64>;
 defm : SetlePats<GPR64, SLT64, SLTu64>;
@@ -328,28 +310,6 @@ def : InstAlias<"daddu $rs, $rt, $imm",
                 (DADDiu GPR64Opnd:$rs, GPR64Opnd:$rt, simm16_64:$imm),
                 0>;
 def : InstAlias<"dadd $rs, $rt, $imm",
-<<<<<<< HEAD
-                (DADDi CPU64RegsOpnd:$rs, CPU64RegsOpnd:$rt, simm16_64:$imm),
-                1>;
-def : InstAlias<"or $rs, $rt, $imm",
-                (ORi64 CPU64RegsOpnd:$rs, CPU64RegsOpnd:$rt, uimm16_64:$imm),
-                1>, Requires<[HasMips64]>;
-/// Move between CPU and coprocessor registers
-
-let DecoderNamespace = "Mips64" in {
-def DMFC0_3OP64 : MFC3OP<(outs CPU64RegsOpnd:$rt),
-                         (ins CPU64RegsOpnd:$rd, uimm16:$sel),
-                         "dmfc0\t$rt, $rd, $sel">, MFC3OP_FM<0x10, 1>;
-def DMTC0_3OP64 : MFC3OP<(outs CPU64RegsOpnd:$rd, uimm16:$sel),
-                         (ins CPU64RegsOpnd:$rt),
-                         "dmtc0\t$rt, $rd, $sel">, MFC3OP_FM<0x10, 5>;
-def DMFC2_3OP64 : MFC3OP<(outs CPU64RegsOpnd:$rt),
-                         (ins CPU64RegsOpnd:$rd, uimm16:$sel),
-                         "dmfc2\t$rt, $rd, $sel">, MFC3OP_FM<0x12, 1>;
-def DMTC2_3OP64 : MFC3OP<(outs CPU64RegsOpnd:$rd, uimm16:$sel),
-                         (ins CPU64RegsOpnd:$rt),
-                         "dmtc2\t$rt, $rd, $sel">, MFC3OP_FM<0x12, 5>;
-=======
                 (DADDi GPR64Opnd:$rs, GPR64Opnd:$rt, simm16_64:$imm),
                 0>;
 
@@ -359,7 +319,6 @@ def DMFC0 : MFC3OP<"dmfc0", GPR64Opnd>, MFC3OP_FM<0x10, 1>;
 def DMTC0 : MFC3OP<"dmtc0", GPR64Opnd>, MFC3OP_FM<0x10, 5>;
 def DMFC2 : MFC3OP<"dmfc2", GPR64Opnd>, MFC3OP_FM<0x12, 1>;
 def DMTC2 : MFC3OP<"dmtc2", GPR64Opnd>, MFC3OP_FM<0x12, 5>;
->>>>>>> llvmtrunk/master
 }
 
 // Two operand (implicit 0 selector) versions:

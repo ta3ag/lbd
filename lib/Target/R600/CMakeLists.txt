@@ -38,6 +38,7 @@ add_llvm_target(R600CodeGen
   R600OptimizeVectorRegisters.cpp
   R600Packetizer.cpp
   R600RegisterInfo.cpp
+  R600TextureIntrinsicsReplacer.cpp
   SIAnnotateControlFlow.cpp
   SIFixSGPRCopies.cpp
   SIInsertWaits.cpp

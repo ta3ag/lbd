@@ -48,8 +48,6 @@ static cl::opt<bool> Mips_Os16(
            "floating point as Mips 16"),
   cl::Hidden);
 
-<<<<<<< HEAD
-=======
 static cl::opt<bool>
 Mips16HardFloat("mips16-hard-float", cl::NotHidden,
                 cl::desc("MIPS: mips16 hard float enable."),
@@ -61,7 +59,6 @@ Mips16ConstantIslands(
   cl::desc("MIPS: mips16 constant islands enable."),
   cl::init(true));
 
->>>>>>> llvmtrunk/master
 void MipsSubtarget::anchor() { }
 
 MipsSubtarget::MipsSubtarget(const std::string &TT, const std::string &CPU,
@@ -72,14 +69,9 @@ MipsSubtarget::MipsSubtarget(const std::string &TT, const std::string &CPU,
   IsSingleFloat(false), IsFP64bit(false), IsGP64bit(false), HasVFPU(false),
   IsLinux(true), HasSEInReg(false), HasCondMov(false), HasSwap(false),
   HasBitCount(false), HasFPIdx(false),
-<<<<<<< HEAD
-  InMips16Mode(false), InMicroMipsMode(false), HasDSP(false), HasDSPR2(false),
-  AllowMixed16_32(Mixed16_32 | Mips_Os16), Os16(Mips_Os16),
-=======
   InMips16Mode(false), InMips16HardFloat(Mips16HardFloat),
   InMicroMipsMode(false), HasDSP(false), HasDSPR2(false),
   AllowMixed16_32(Mixed16_32 | Mips_Os16), Os16(Mips_Os16), HasMSA(false),
->>>>>>> llvmtrunk/master
   RM(_RM), OverrideMode(NoOverride), TM(_TM)
 {
   std::string CPUName = CPU;

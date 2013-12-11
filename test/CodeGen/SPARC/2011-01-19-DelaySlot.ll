@@ -87,8 +87,6 @@ entry:
   ret i32 0
 }
 
-<<<<<<< HEAD
-=======
 define i32 @prevent_o7_in_call_delay_slot(i32 %i0) {
 entry:
 ;CHECK-LABEL:       prevent_o7_in_call_delay_slot:
@@ -106,7 +104,6 @@ entry:
 }
 
 
->>>>>>> llvmtrunk/master
 declare i32 @func(i32*)
 
 

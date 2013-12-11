@@ -12,10 +12,7 @@ target datalayout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f3
 ; We used to vectorize this loop. But it has a value that is used outside of the
 ; and is not a recognized reduction variable "tmp17".
 
-<<<<<<< HEAD
-=======
 ; CHECK-LABEL: @main(
->>>>>>> llvmtrunk/master
 ; CHECK-NOT: <2 x i32>
 
 define i32 @main()  {
@@ -42,9 +39,6 @@ f1.exit.loopexit:
   ret i32 %.lcssa
 }
 
-<<<<<<< HEAD
-
-=======
 ; Don't vectorize this loop. Its phi node (induction variable) has an outside
 ; loop user. We currently don't handle this case.
 ; PR17179
@@ -75,4 +69,3 @@ for.end5:
   store i32 1, i32* @x2, align 4
   ret i32 %xor
 }
->>>>>>> llvmtrunk/master

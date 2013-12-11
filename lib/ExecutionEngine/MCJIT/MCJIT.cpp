@@ -42,7 +42,7 @@ extern "C" void LLVMLinkInMCJIT() {
 
 ExecutionEngine *MCJIT::createJIT(Module *M,
                                   std::string *ErrorStr,
-                                  JITMemoryManager *JMM,
+                                  RTDyldMemoryManager *MemMgr,
                                   bool GVsWithCode,
                                   TargetMachine *TM) {
   // Try to register the program as a source of symbols to resolve against.
@@ -50,19 +50,14 @@ ExecutionEngine *MCJIT::createJIT(Module *M,
   // FIXME: Don't do this here.
   sys::DynamicLibrary::LoadLibraryPermanently(0, NULL);
 
-  return new MCJIT(M, TM, JMM ? JMM : new SectionMemoryManager(), GVsWithCode);
+  return new MCJIT(M, TM, MemMgr ? MemMgr : new SectionMemoryManager(),
+                   GVsWithCode);
 }
 
 MCJIT::MCJIT(Module *m, TargetMachine *tm, RTDyldMemoryManager *MM,
              bool AllocateGVsWithCode)
-<<<<<<< HEAD
-  : ExecutionEngine(m), TM(tm), Ctx(0),
-    MemMgr(MM ? MM : new SectionMemoryManager()), Dyld(MemMgr),
-    IsLoaded(false), M(m), ObjCache(0)  {
-=======
   : ExecutionEngine(m), TM(tm), Ctx(0), MemMgr(this, MM), Dyld(&MemMgr),
     ObjCache(0) {
->>>>>>> llvmtrunk/master
 
   OwnedModules.addModule(m);
   setDataLayout(TM->getDataLayout());
@@ -219,10 +214,6 @@ void MCJIT::finalizeObject() {
   finalizeLoadedModules();
 }
 
-<<<<<<< HEAD
-  // Set page permissions.
-  MemMgr->applyPermissions();
-=======
 void MCJIT::finalizeModule(Module *M) {
   MutexGuard locked(lock);
 
@@ -234,7 +225,6 @@ void MCJIT::finalizeModule(Module *M) {
     generateCodeForModule(M);
 
   finalizeLoadedModules();
->>>>>>> llvmtrunk/master
 }
 
 void *MCJIT::getPointerToBasicBlock(BasicBlock *BB) {

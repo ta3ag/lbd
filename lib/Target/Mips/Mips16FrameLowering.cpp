@@ -41,11 +41,7 @@ void Mips16FrameLowering::emitPrologue(MachineFunction &MF) const {
   if (StackSize == 0 && !MFI->adjustsStack()) return;
 
   MachineModuleInfo &MMI = MF.getMMI();
-<<<<<<< HEAD
-  std::vector<MachineMove> &Moves = MMI.getFrameMoves();
-=======
   const MCRegisterInfo *MRI = MMI.getContext().getRegisterInfo();
->>>>>>> llvmtrunk/master
   MachineLocation DstML, SrcML;
 
   // Adjust stack.
@@ -55,26 +51,12 @@ void Mips16FrameLowering::emitPrologue(MachineFunction &MF) const {
   MCSymbol *AdjustSPLabel = MMI.getContext().CreateTempSymbol();
   BuildMI(MBB, MBBI, dl,
           TII.get(TargetOpcode::PROLOG_LABEL)).addSym(AdjustSPLabel);
-  DstML = MachineLocation(MachineLocation::VirtualFP);
-  SrcML = MachineLocation(MachineLocation::VirtualFP, -StackSize);
-  Moves.push_back(MachineMove(AdjustSPLabel, DstML, SrcML));
+  MMI.addFrameInst(
+      MCCFIInstruction::createDefCfaOffset(AdjustSPLabel, -StackSize));
 
   MCSymbol *CSLabel = MMI.getContext().CreateTempSymbol();
   BuildMI(MBB, MBBI, dl,
           TII.get(TargetOpcode::PROLOG_LABEL)).addSym(CSLabel);
-<<<<<<< HEAD
-  DstML = MachineLocation(MachineLocation::VirtualFP, -8);
-  SrcML = MachineLocation(Mips::S1);
-  Moves.push_back(MachineMove(CSLabel, DstML, SrcML));
-
-  DstML = MachineLocation(MachineLocation::VirtualFP, -12);
-  SrcML = MachineLocation(Mips::S0);
-  Moves.push_back(MachineMove(CSLabel, DstML, SrcML));
-
-  DstML = MachineLocation(MachineLocation::VirtualFP, -4);
-  SrcML = MachineLocation(Mips::RA);
-  Moves.push_back(MachineMove(CSLabel, DstML, SrcML));
-=======
 
 
   const MipsRegisterInfo &RI = TII.getRegisterInfo();
@@ -100,7 +82,6 @@ void Mips16FrameLowering::emitPrologue(MachineFunction &MF) const {
   MMI.addFrameInst(MCCFIInstruction::createOffset(CSLabel, S0, Offset));
 
 
->>>>>>> llvmtrunk/master
 
   if (hasFP(MF))
     BuildMI(MBB, MBBI, dl, TII.get(Mips::MoveR3216), Mips::S0)

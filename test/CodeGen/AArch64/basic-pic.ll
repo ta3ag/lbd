@@ -2,11 +2,6 @@
 
 @var = global i32 0
 
-<<<<<<< HEAD
-; CHECK-ELF: RELOCATION RECORDS FOR [.text]
-
-=======
->>>>>>> llvmtrunk/master
 define i32 @get_globalvar() {
 ; CHECK-LABEL: get_globalvar:
 

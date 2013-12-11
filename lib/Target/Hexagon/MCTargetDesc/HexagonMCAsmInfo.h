@@ -18,16 +18,10 @@
 #include "llvm/MC/MCAsmInfoELF.h"
 
 namespace llvm {
-<<<<<<< HEAD
-  class Target;
-
-  class HexagonMCAsmInfo : public MCAsmInfo {
-=======
   class HexagonMCAsmInfo : public MCAsmInfoELF {
     virtual void anchor();
->>>>>>> llvmtrunk/master
   public:
-    explicit HexagonMCAsmInfo(const Target &T, StringRef TT);
+    explicit HexagonMCAsmInfo(StringRef TT);
   };
 
 } // namespace llvm

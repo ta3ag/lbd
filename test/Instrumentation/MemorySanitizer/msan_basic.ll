@@ -1,19 +1,12 @@
 ; RUN: opt < %s -msan -msan-check-access-address=0 -S | FileCheck %s
-<<<<<<< HEAD
-; RUN: opt < %s -msan -msan-check-access-address=0 -msan-track-origins=1 -S | FileCheck -check-prefix=CHECK-ORIGINS %s
-=======
 ; RUN: opt < %s -msan -msan-check-access-address=0 -msan-track-origins=1 -S | FileCheck -check-prefix=CHECK -check-prefix=CHECK-ORIGINS %s
 
->>>>>>> llvmtrunk/master
 target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
 
 ; Check the presence of __msan_init
 ; CHECK: @llvm.global_ctors {{.*}} @__msan_init
 
-<<<<<<< HEAD
-; Check the presence and the linkage type of __msan_track_origins
-; CHECK: @__msan_track_origins = weak_odr constant i32 0
-=======
 ; Check the presence and the linkage type of __msan_track_origins and
 ; other interface symbols.
 ; CHECK-NOT: @__msan_track_origins
@@ -26,7 +19,6 @@ target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f3
 ; CHECK: @__msan_va_arg_tls = external thread_local(initialexec) global [{{.*}}]
 ; CHECK: @__msan_va_arg_overflow_size_tls = external thread_local(initialexec) global i64
 ; CHECK: @__msan_origin_tls = external thread_local(initialexec) global i32
->>>>>>> llvmtrunk/master
 
 
 ; Check instrumentation of stores
@@ -698,8 +690,6 @@ declare void @bar()
 ; CHECK: store {{.*}} @__msan_retval_tls
 ; CHECK-NOT: @__msan_warning
 ; CHECK: ret i32
-<<<<<<< HEAD
-=======
 
 
 ; Test that stack allocations are unpoisoned in functions missing
@@ -775,4 +765,3 @@ entry:
 ; Second element app value
 ; CHECK-ORIGINS: insertvalue { i64, i32 } {{.*}}, i32 {{.*}}, 1
 ; CHECK-ORIGINS: ret { i64, i32 }
->>>>>>> llvmtrunk/master

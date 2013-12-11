@@ -340,10 +340,7 @@ void PPCFrameLowering::emitPrologue(MachineFunction &MF) const {
     static_cast<const PPCRegisterInfo*>(MF.getTarget().getRegisterInfo());
 
   MachineModuleInfo &MMI = MF.getMMI();
-<<<<<<< HEAD
-=======
   const MCRegisterInfo *MRI = MMI.getContext().getRegisterInfo();
->>>>>>> llvmtrunk/master
   DebugLoc dl;
   bool needsFrameMoves = MMI.hasDebugInfo() ||
     MF.getFunction()->needsUnwindTableEntry();
@@ -447,47 +444,6 @@ void PPCFrameLowering::emitPrologue(MachineFunction &MF) const {
       BPOffset =
         PPCFrameLowering::getBasePointerSaveOffset(isPPC64, isDarwinABI);
     }
-<<<<<<< HEAD
-
-    if (HasFP)
-      BuildMI(MBB, MBBI, dl, TII.get(PPC::STD))
-        .addReg(PPC::X31)
-        .addImm(FPOffset/4)
-        .addReg(PPC::X1);
-
-    if (MustSaveLR)
-      BuildMI(MBB, MBBI, dl, TII.get(PPC::STD))
-        .addReg(PPC::X0)
-        .addImm(LROffset / 4)
-        .addReg(PPC::X1);
-
-    if (!MustSaveCRs.empty())
-      BuildMI(MBB, MBBI, dl, TII.get(PPC::STW8))
-        .addReg(PPC::X12, getKillRegState(true))
-        .addImm(8)
-        .addReg(PPC::X1);
-  } else {
-    if (MustSaveLR)
-      BuildMI(MBB, MBBI, dl, TII.get(PPC::MFLR), PPC::R0);
-
-    if (HasFP)
-      // FIXME: On PPC32 SVR4, FPOffset is negative and access to negative
-      // offsets of R1 is not allowed.
-      BuildMI(MBB, MBBI, dl, TII.get(PPC::STW))
-        .addReg(PPC::R31)
-        .addImm(FPOffset)
-        .addReg(PPC::R1);
-
-    assert(MustSaveCRs.empty() &&
-           "Prologue CR saving supported only in 64-bit mode");
-
-    if (MustSaveLR)
-      BuildMI(MBB, MBBI, dl, TII.get(PPC::STW))
-        .addReg(PPC::R0)
-        .addImm(LROffset)
-        .addReg(PPC::R1);
-=======
->>>>>>> llvmtrunk/master
   }
 
   // Get stack alignments.
@@ -575,49 +531,9 @@ void PPCFrameLowering::emitPrologue(MachineFunction &MF) const {
       BuildMI(MBB, MBBI, dl, OrImmInst, TempReg)
         .addReg(TempReg, RegState::Kill)
         .addImm(NegFrameSize & 0xFFFF);
-<<<<<<< HEAD
-      BuildMI(MBB, MBBI, dl, TII.get(PPC::STWUX), PPC::R1)
-        .addReg(PPC::R1, RegState::Kill)
-        .addReg(PPC::R1)
-        .addReg(PPC::R0);
-    }
-  } else {    // PPC64.
-    if (ALIGN_STACK && MaxAlign > TargetAlign) {
-      assert(isPowerOf2_32(MaxAlign) && isInt<16>(MaxAlign) &&
-             "Invalid alignment!");
-      assert(isInt<16>(NegFrameSize) && "Unhandled stack size and alignment!");
-
-      BuildMI(MBB, MBBI, dl, TII.get(PPC::RLDICL), PPC::X0)
-        .addReg(PPC::X1)
-        .addImm(0)
-        .addImm(64 - Log2_32(MaxAlign));
-      BuildMI(MBB, MBBI, dl, TII.get(PPC::SUBFIC8), PPC::X0)
-        .addReg(PPC::X0)
-        .addImm(NegFrameSize);
-      BuildMI(MBB, MBBI, dl, TII.get(PPC::STDUX), PPC::X1)
-        .addReg(PPC::X1, RegState::Kill)
-        .addReg(PPC::X1)
-        .addReg(PPC::X0);
-    } else if (isInt<16>(NegFrameSize)) {
-      BuildMI(MBB, MBBI, dl, TII.get(PPC::STDU), PPC::X1)
-        .addReg(PPC::X1)
-        .addImm(NegFrameSize / 4)
-        .addReg(PPC::X1);
-    } else {
-      BuildMI(MBB, MBBI, dl, TII.get(PPC::LIS8), PPC::X0)
-        .addImm(NegFrameSize >> 16);
-      BuildMI(MBB, MBBI, dl, TII.get(PPC::ORI8), PPC::X0)
-        .addReg(PPC::X0, RegState::Kill)
-        .addImm(NegFrameSize & 0xFFFF);
-      BuildMI(MBB, MBBI, dl, TII.get(PPC::STDUX), PPC::X1)
-        .addReg(PPC::X1, RegState::Kill)
-        .addReg(PPC::X1)
-        .addReg(PPC::X0);
-=======
       BuildMI(MBB, MBBI, dl, SubtractCarryingInst, ScratchReg)
         .addReg(ScratchReg, RegState::Kill)
         .addReg(TempReg, RegState::Kill);
->>>>>>> llvmtrunk/master
     }
     BuildMI(MBB, MBBI, dl, StoreUpdtIdxInst, SPReg)
       .addReg(SPReg, RegState::Kill)
@@ -642,8 +558,6 @@ void PPCFrameLowering::emitPrologue(MachineFunction &MF) const {
       .addReg(ScratchReg);
   }
 
-  std::vector<MachineMove> &Moves = MMI.getFrameMoves();
-
   // Add the "machine moves" for the instructions we generated above, but in
   // reverse order.
   if (needsFrameMoves) {
@@ -652,25 +566,14 @@ void PPCFrameLowering::emitPrologue(MachineFunction &MF) const {
     BuildMI(MBB, MBBI, dl, TII.get(PPC::PROLOG_LABEL)).addSym(FrameLabel);
 
     // Show update of SP.
-    if (NegFrameSize) {
-      MachineLocation SPDst(MachineLocation::VirtualFP);
-      MachineLocation SPSrc(MachineLocation::VirtualFP, NegFrameSize);
-      Moves.push_back(MachineMove(FrameLabel, SPDst, SPSrc));
-    } else {
-      MachineLocation SP(isPPC64 ? PPC::X31 : PPC::R31);
-      Moves.push_back(MachineMove(FrameLabel, SP, SP));
-    }
+    assert(NegFrameSize);
+    MMI.addFrameInst(
+        MCCFIInstruction::createDefCfaOffset(FrameLabel, NegFrameSize));
 
     if (HasFP) {
-<<<<<<< HEAD
-      MachineLocation FPDst(MachineLocation::VirtualFP, FPOffset);
-      MachineLocation FPSrc(isPPC64 ? PPC::X31 : PPC::R31);
-      Moves.push_back(MachineMove(FrameLabel, FPDst, FPSrc));
-=======
       unsigned Reg = MRI->getDwarfRegNum(FPReg, true);
       MMI.addFrameInst(
           MCCFIInstruction::createOffset(FrameLabel, Reg, FPOffset));
->>>>>>> llvmtrunk/master
     }
 
     if (HasBP) {
@@ -680,15 +583,9 @@ void PPCFrameLowering::emitPrologue(MachineFunction &MF) const {
     }
 
     if (MustSaveLR) {
-<<<<<<< HEAD
-      MachineLocation LRDst(MachineLocation::VirtualFP, LROffset);
-      MachineLocation LRSrc(isPPC64 ? PPC::LR8 : PPC::LR);
-      Moves.push_back(MachineMove(FrameLabel, LRDst, LRSrc));
-=======
       unsigned Reg = MRI->getDwarfRegNum(LRReg, true);
       MMI.addFrameInst(
           MCCFIInstruction::createOffset(FrameLabel, Reg, LROffset));
->>>>>>> llvmtrunk/master
     }
   }
 
@@ -706,15 +603,8 @@ void PPCFrameLowering::emitPrologue(MachineFunction &MF) const {
       // Mark effective beginning of when frame pointer is ready.
       BuildMI(MBB, MBBI, dl, TII.get(PPC::PROLOG_LABEL)).addSym(ReadyLabel);
 
-<<<<<<< HEAD
-      MachineLocation FPDst(HasFP ? (isPPC64 ? PPC::X31 : PPC::R31) :
-                                    (isPPC64 ? PPC::X1 : PPC::R1));
-      MachineLocation FPSrc(MachineLocation::VirtualFP);
-      Moves.push_back(MachineMove(ReadyLabel, FPDst, FPSrc));
-=======
       unsigned Reg = MRI->getDwarfRegNum(FPReg, true);
       MMI.addFrameInst(MCCFIInstruction::createDefCfaRegister(ReadyLabel, Reg));
->>>>>>> llvmtrunk/master
     }
   }
 
@@ -740,21 +630,6 @@ void PPCFrameLowering::emitPrologue(MachineFunction &MF) const {
 
       // For 64-bit SVR4 when we have spilled CRs, the spill location
       // is SP+8, not a frame-relative slot.
-<<<<<<< HEAD
-      if (Subtarget.isSVR4ABI()
-	  && Subtarget.isPPC64()
-	  && (PPC::CR2 <= Reg && Reg <= PPC::CR4)) {
-	MachineLocation CSDst(PPC::X1, 8);
-	MachineLocation CSSrc(PPC::CR2);
-	Moves.push_back(MachineMove(Label, CSDst, CSSrc));
-	continue;
-      }
-
-      int Offset = MFI->getObjectOffset(CSI[I].getFrameIdx());
-      MachineLocation CSDst(MachineLocation::VirtualFP, Offset);
-      MachineLocation CSSrc(Reg);
-      Moves.push_back(MachineMove(Label, CSDst, CSSrc));
-=======
       if (isSVR4ABI && isPPC64 && (PPC::CR2 <= Reg && Reg <= PPC::CR4)) {
         MMI.addFrameInst(MCCFIInstruction::createOffset(
             Label, MRI->getDwarfRegNum(PPC::CR2, true), 8));
@@ -764,7 +639,6 @@ void PPCFrameLowering::emitPrologue(MachineFunction &MF) const {
       int Offset = MFI->getObjectOffset(CSI[I].getFrameIdx());
       MMI.addFrameInst(MCCFIInstruction::createOffset(
           Label, MRI->getDwarfRegNum(Reg, true), Offset));
->>>>>>> llvmtrunk/master
     }
   }
 }
@@ -914,28 +788,15 @@ void PPCFrameLowering::emitEpilogue(MachineFunction &MF,
         .addReg(SPReg);
     }
 
-<<<<<<< HEAD
-  if (isPPC64) {
-    if (MustSaveLR)
-      BuildMI(MBB, MBBI, dl, TII.get(PPC::LD), PPC::X0)
-        .addImm(LROffset/4).addReg(PPC::X1);
-=======
   }
->>>>>>> llvmtrunk/master
 
   if (MustSaveLR)
     BuildMI(MBB, MBBI, dl, LoadInst, ScratchReg)
       .addImm(LROffset)
       .addReg(SPReg);
 
-<<<<<<< HEAD
-    if (HasFP)
-      BuildMI(MBB, MBBI, dl, TII.get(PPC::LD), PPC::X31)
-        .addImm(FPOffset/4).addReg(PPC::X1);
-=======
   assert((isPPC64 || MustSaveCRs.empty()) &&
          "Epilogue CR restoring supported only in 64-bit mode");
->>>>>>> llvmtrunk/master
 
   if (!MustSaveCRs.empty()) // will only occur for PPC64
     BuildMI(MBB, MBBI, dl, TII.get(PPC::LWZ8), TempReg)

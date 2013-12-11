@@ -184,11 +184,6 @@ namespace {
                      clEnumValEnd));
 
   cl::opt<bool>
-  EnableJITExceptionHandling("jit-enable-eh",
-    cl::desc("Emit exception handling information"),
-    cl::init(false));
-
-  cl::opt<bool>
   GenerateSoftFloatCalls("soft-float",
     cl::desc("Generate software floating point library calls"),
     cl::init(false));
@@ -234,81 +229,6 @@ static void do_shutdown() {
 #endif
 }
 
-<<<<<<< HEAD
-void layoutRemoteTargetMemory(RemoteTarget *T, RecordingMemoryManager *JMM) {
-  // Lay out our sections in order, with all the code sections first, then
-  // all the data sections.
-  uint64_t CurOffset = 0;
-  unsigned MaxAlign = T->getPageAlignment();
-  SmallVector<std::pair<const void*, uint64_t>, 16> Offsets;
-  SmallVector<unsigned, 16> Sizes;
-  for (RecordingMemoryManager::const_code_iterator I = JMM->code_begin(),
-                                                   E = JMM->code_end();
-       I != E; ++I) {
-    DEBUG(dbgs() << "code region: size " << I->first.size()
-                 << ", alignment " << I->second << "\n");
-    // Align the current offset up to whatever is needed for the next
-    // section.
-    unsigned Align = I->second;
-    CurOffset = (CurOffset + Align - 1) / Align * Align;
-    // Save off the address of the new section and allocate its space.
-    Offsets.push_back(std::pair<const void*,uint64_t>(I->first.base(), CurOffset));
-    Sizes.push_back(I->first.size());
-    CurOffset += I->first.size();
-  }
-  // Adjust to keep code and data aligned on seperate pages.
-  CurOffset = (CurOffset + MaxAlign - 1) / MaxAlign * MaxAlign;
-  unsigned FirstDataIndex = Offsets.size();
-  for (RecordingMemoryManager::const_data_iterator I = JMM->data_begin(),
-                                                   E = JMM->data_end();
-       I != E; ++I) {
-    DEBUG(dbgs() << "data region: size " << I->first.size()
-                 << ", alignment " << I->second << "\n");
-    // Align the current offset up to whatever is needed for the next
-    // section.
-    unsigned Align = I->second;
-    CurOffset = (CurOffset + Align - 1) / Align * Align;
-    // Save off the address of the new section and allocate its space.
-    Offsets.push_back(std::pair<const void*,uint64_t>(I->first.base(), CurOffset));
-    Sizes.push_back(I->first.size());
-    CurOffset += I->first.size();
-  }
-
-  // Allocate space in the remote target.
-  uint64_t RemoteAddr;
-  if (T->allocateSpace(CurOffset, MaxAlign, RemoteAddr))
-    report_fatal_error(T->getErrorMsg());
-  // Map the section addresses so relocations will get updated in the local
-  // copies of the sections.
-  for (unsigned i = 0, e = Offsets.size(); i != e; ++i) {
-    uint64_t Addr = RemoteAddr + Offsets[i].second;
-    EE->mapSectionAddress(const_cast<void*>(Offsets[i].first), Addr);
-
-    DEBUG(dbgs() << "  Mapping local: " << Offsets[i].first
-                 << " to remote: " << format("%p", Addr) << "\n");
-
-  }
-
-  // Trigger application of relocations
-  EE->finalizeObject();
-
-  // Now load it all to the target.
-  for (unsigned i = 0, e = Offsets.size(); i != e; ++i) {
-    uint64_t Addr = RemoteAddr + Offsets[i].second;
-
-    if (i < FirstDataIndex) {
-      T->loadCode(Addr, Offsets[i].first, Sizes[i]);
-
-      DEBUG(dbgs() << "  loading code: " << Offsets[i].first
-            << " to remote: " << format("%p", Addr) << "\n");
-    } else {
-      T->loadData(Addr, Offsets[i].first, Sizes[i]);
-
-      DEBUG(dbgs() << "  loading data: " << Offsets[i].first
-            << " to remote: " << format("%p", Addr) << "\n");
-    }
-
-=======
 // On Mingw and Cygwin, an external symbol named '__main' is called from the
 // generated 'main' function to allow static intialization.  To avoid linking
 // problems with remote targets (because lli's remote target support does not
@@ -334,7 +254,6 @@ static void addCygMingExtraModule(ExecutionEngine *EE,
     Result = Function::Create(
       TypeBuilder<int32_t(void), false>::get(Context),
       GlobalValue::ExternalLinkage, "__main", M);
->>>>>>> llvmtrunk/master
   }
   BasicBlock *BB = BasicBlock::Create(Context, "__main", Result);
   Builder.SetInsertPoint(BB);
@@ -418,18 +337,14 @@ int main(int argc, char **argv, char * const *envp) {
     Mod->setTargetTriple(Triple::normalize(TargetTriple));
 
   // Enable MCJIT if desired.
-  JITMemoryManager *JMM = 0;
+  RTDyldMemoryManager *RTDyldMM = 0;
   if (UseMCJIT && !ForceInterpreter) {
     builder.setUseMCJIT(true);
     if (RemoteMCJIT)
-<<<<<<< HEAD
-      JMM = new RecordingMemoryManager();
-=======
       RTDyldMM = new RemoteMemoryManager();
->>>>>>> llvmtrunk/master
     else
-      JMM = new SectionMemoryManager();
-    builder.setJITMemoryManager(JMM);
+      RTDyldMM = new SectionMemoryManager();
+    builder.setMCJITMemoryManager(RTDyldMM);
   } else {
     if (RemoteMCJIT) {
       errs() << "error: Remote process execution requires -use-mcjit\n";
@@ -461,7 +376,6 @@ int main(int argc, char **argv, char * const *envp) {
 
   // Remote target execution doesn't handle EH or debug registration.
   if (!RemoteMCJIT) {
-    Options.JITExceptionHandling = EnableJITExceptionHandling;
     Options.JITEmitDebugInfo = EmitJitDebugInfo;
     Options.JITEmitDebugInfoToDisk = EmitJitDebugInfoToDisk;
   }
@@ -535,33 +449,6 @@ int main(int argc, char **argv, char * const *envp) {
   errno = 0;
 
   int Result;
-<<<<<<< HEAD
-  if (RemoteMCJIT) {
-    RecordingMemoryManager *MM = static_cast<RecordingMemoryManager*>(JMM);
-    // Everything is prepared now, so lay out our program for the target
-    // address space, assign the section addresses to resolve any relocations,
-    // and send it to the target.
-    RemoteTarget Target;
-    Target.create();
-
-    // Ask for a pointer to the entry function. This triggers the actual
-    // compilation.
-    (void)EE->getPointerToFunction(EntryFn);
-
-    // Enough has been compiled to execute the entry function now, so
-    // layout the target memory.
-    layoutRemoteTargetMemory(&Target, MM);
-
-    // Since we're executing in a (at least simulated) remote address space,
-    // we can't use the ExecutionEngine::runFunctionAsMain(). We have to
-    // grab the function address directly here and tell the remote target
-    // to execute the function.
-    // FIXME: argv and envp handling.
-    uint64_t Entry = (uint64_t)EE->getPointerToFunction(EntryFn);
-
-    DEBUG(dbgs() << "Executing '" << EntryFn->getName() << "' at "
-                 << format("%p", Entry) << "\n");
-=======
 
   if (!RemoteMCJIT) {
     // If the program doesn't explicitly call exit, we will need the Exit
@@ -576,7 +463,6 @@ int main(int argc, char **argv, char * const *envp) {
       EE->finalizeObject();
     }
     EE->runStaticConstructorsDestructors(false);
->>>>>>> llvmtrunk/master
 
     if (!UseMCJIT && NoLazyCompilation) {
       for (Module::iterator I = Mod->begin(), E = Mod->end(); I != E; ++I) {
@@ -590,8 +476,8 @@ int main(int argc, char **argv, char * const *envp) {
     // invalidated will be known.
     (void)EE->getPointerToFunction(EntryFn);
     // Clear instruction cache before code will be executed.
-    if (JMM)
-      static_cast<SectionMemoryManager*>(JMM)->invalidateInstructionCache();
+    if (RTDyldMM)
+      static_cast<SectionMemoryManager*>(RTDyldMM)->invalidateInstructionCache();
 
     // Run main.
     Result = EE->runFunctionAsMain(EntryFn, InputArgv, envp);

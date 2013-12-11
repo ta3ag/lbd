@@ -89,13 +89,9 @@ entry:
 
 define i64 @f14(i64 %a, i64 %b) nounwind readnone {
 entry:
-<<<<<<< HEAD
-; CHECK: ddiv $zero
-=======
 ; CHECK-LABEL: f14:
 ; CHECK: ddiv $zero, ${{[0-9]+}}, $[[R0:[0-9]+]]
 ; CHECK: teq $[[R0]], $zero, 7
->>>>>>> llvmtrunk/master
 ; CHECK: mflo
   %0 = load i64* @gll0, align 8
   %1 = load i64* @gll1, align 8
@@ -105,13 +101,9 @@ entry:
 
 define i64 @f15() nounwind readnone {
 entry:
-<<<<<<< HEAD
-; CHECK: ddivu $zero
-=======
 ; CHECK-LABEL: f15:
 ; CHECK: ddivu $zero, ${{[0-9]+}}, $[[R0:[0-9]+]]
 ; CHECK: teq $[[R0]], $zero, 7
->>>>>>> llvmtrunk/master
 ; CHECK: mflo
   %0 = load i64* @gll0, align 8
   %1 = load i64* @gll1, align 8
@@ -121,13 +113,9 @@ entry:
 
 define i64 @f16(i64 %a, i64 %b) nounwind readnone {
 entry:
-<<<<<<< HEAD
-; CHECK: ddiv $zero
-=======
 ; CHECK-LABEL: f16:
 ; CHECK: ddiv $zero, ${{[0-9]+}}, $[[R0:[0-9]+]]
 ; CHECK: teq $[[R0]], $zero, 7
->>>>>>> llvmtrunk/master
 ; CHECK: mfhi
   %rem = srem i64 %a, %b
   ret i64 %rem
@@ -135,13 +123,9 @@ entry:
 
 define i64 @f17(i64 %a, i64 %b) nounwind readnone {
 entry:
-<<<<<<< HEAD
-; CHECK: ddivu $zero
-=======
 ; CHECK-LABEL: f17:
 ; CHECK: ddivu $zero, ${{[0-9]+}}, $[[R0:[0-9]+]]
 ; CHECK: teq $[[R0]], $zero, 7
->>>>>>> llvmtrunk/master
 ; CHECK: mfhi
   %rem = urem i64 %a, %b
   ret i64 %rem

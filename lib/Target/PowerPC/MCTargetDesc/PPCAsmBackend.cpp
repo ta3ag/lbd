@@ -22,7 +22,7 @@
 #include "llvm/Support/TargetRegistry.h"
 using namespace llvm;
 
-static unsigned adjustFixupValue(unsigned Kind, uint64_t Value) {
+static uint64_t adjustFixupValue(unsigned Kind, uint64_t Value) {
   switch (Kind) {
   default:
     llvm_unreachable("Unknown fixup kind!");
@@ -38,21 +38,13 @@ static unsigned adjustFixupValue(unsigned Kind, uint64_t Value) {
   case PPC::fixup_ppc_br24:
   case PPC::fixup_ppc_br24abs:
     return Value & 0x3fffffc;
-#if 0
-  case PPC::fixup_ppc_hi16:
-    return (Value >> 16) & 0xffff;
-#endif
-  case PPC::fixup_ppc_ha16:
-    return ((Value >> 16) + ((Value & 0x8000) ? 1 : 0)) & 0xffff;
-  case PPC::fixup_ppc_lo16:
+  case PPC::fixup_ppc_half16:
     return Value & 0xffff;
-  case PPC::fixup_ppc_lo16_ds:
+  case PPC::fixup_ppc_half16ds:
     return Value & 0xfffc;
   }
 }
 
-<<<<<<< HEAD
-=======
 static unsigned getFixupKindNumBytes(unsigned Kind) {
   switch (Kind) {
   default:
@@ -76,7 +68,6 @@ static unsigned getFixupKindNumBytes(unsigned Kind) {
   }
 }
 
->>>>>>> llvmtrunk/master
 namespace {
 
 class PPCAsmBackend : public MCAsmBackend {
@@ -91,17 +82,10 @@ public:
       // name                    offset  bits  flags
       { "fixup_ppc_br24",        6,      24,   MCFixupKindInfo::FKF_IsPCRel },
       { "fixup_ppc_brcond14",    16,     14,   MCFixupKindInfo::FKF_IsPCRel },
-<<<<<<< HEAD
-      { "fixup_ppc_lo16",        16,     16,   0 },
-      { "fixup_ppc_ha16",        16,     16,   0 },
-      { "fixup_ppc_lo16_ds",     16,     14,   0 },
-      { "fixup_ppc_tlsreg",       0,      0,   0 },
-=======
       { "fixup_ppc_br24abs",     6,      24,   0 },
       { "fixup_ppc_brcond14abs", 16,     14,   0 },
       { "fixup_ppc_half16",       0,     16,   0 },
       { "fixup_ppc_half16ds",     0,     14,   0 },
->>>>>>> llvmtrunk/master
       { "fixup_ppc_nofixup",      0,      0,   0 }
     };
 
@@ -119,12 +103,13 @@ public:
     if (!Value) return;           // Doesn't change encoding.
 
     unsigned Offset = Fixup.getOffset();
+    unsigned NumBytes = getFixupKindNumBytes(Fixup.getKind());
 
     // For each byte of the fragment that the fixup touches, mask in the bits
     // from the fixup value. The Value has been "split up" into the appropriate
     // bitfields above.
-    for (unsigned i = 0; i != 4; ++i)
-      Data[Offset + i] |= uint8_t((Value >> ((4 - i - 1)*8)) & 0xff);
+    for (unsigned i = 0; i != NumBytes; ++i)
+      Data[Offset + i] |= uint8_t((Value >> ((NumBytes - i - 1)*8)) & 0xff);
   }
 
   bool mayNeedRelaxation(const MCInst &Inst) const {

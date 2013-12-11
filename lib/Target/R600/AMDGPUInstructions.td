@@ -397,8 +397,6 @@ class BFEPattern <Instruction BFE> : Pat <
   (BFE $x, $y, $z)
 >;
 
-<<<<<<< HEAD
-=======
 // rotr pattern
 class ROTRPattern <Instruction BIT_ALIGN> : Pat <
   (rotr i32:$src0, i32:$src1),
@@ -415,7 +413,6 @@ class UMUL24Pattern <Instruction UMUL24> : Pat <
 >;
 */
 
->>>>>>> llvmtrunk/master
 include "R600Instructions.td"
 
 include "SIInstrInfo.td"

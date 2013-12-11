@@ -1,13 +1,9 @@
 ; RUN: llc < %s -march=r600 -mcpu=redwood | FileCheck %s --check-prefix=R600-CHECK
 ; RUN: llc < %s -march=r600 -mcpu=SI -verify-machineinstrs | FileCheck %s --check-prefix=SI-CHECK
 
-<<<<<<< HEAD
-;CHECK: MOV * T{{[0-9]+\.[XYZW], \|T[0-9]+\.[XYZW]\|}}
-=======
 ; DAGCombiner will transform:
 ; (fabs (f32 bitcast (i32 a))) => (f32 bitcast (and (i32 a), 0x7FFFFFFF))
 ; unless isFabsFree returns true
->>>>>>> llvmtrunk/master
 
 ; R600-CHECK-LABEL: @fabs_free
 ; R600-CHECK-NOT: AND

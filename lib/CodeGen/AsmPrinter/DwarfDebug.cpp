@@ -659,15 +659,10 @@ DIE *DwarfDebug::constructScopeDIE(DwarfCompileUnit *TheCU,
     if (Children.empty() && Range.first == Range.second)
       return NULL;
     ScopeDIE = constructLexicalScopeDIE(TheCU, Scope);
-<<<<<<< HEAD
-    for (ImportedEntityMap::const_iterator i = Range.first; i != Range.second; ++i)
-      constructImportedModuleDIE(TheCU, i->second, ScopeDIE);
-=======
     assert(ScopeDIE && "Scope DIE should not be null.");
     for (ImportedEntityMap::const_iterator i = Range.first; i != Range.second;
          ++i)
       constructImportedEntityDIE(TheCU, i->second, ScopeDIE);
->>>>>>> llvmtrunk/master
   }
 
   if (!ScopeDIE) {
@@ -755,15 +750,9 @@ DwarfCompileUnit *DwarfDebug::constructDwarfCompileUnit(DICompileUnit DIUnit) {
   CompilationDir = DIUnit.getDirectory();
 
   DIE *Die = new DIE(dwarf::DW_TAG_compile_unit);
-<<<<<<< HEAD
-  CompileUnit *NewCU = new CompileUnit(GlobalCUIndexCount++,
-                                       DIUnit.getLanguage(), Die, Asm,
-                                       this, &InfoHolder);
-=======
   DwarfCompileUnit *NewCU = new DwarfCompileUnit(
       InfoHolder.getUnits().size(), Die, DIUnit, Asm, this, &InfoHolder);
   InfoHolder.addUnit(NewCU);
->>>>>>> llvmtrunk/master
 
   FileIDCUMap[NewCU->getUniqueID()] = 0;
   // Call this to emit a .file directive if it wasn't emitted for the source
@@ -868,62 +857,50 @@ void DwarfDebug::constructSubprogramDIE(DwarfCompileUnit *TheCU,
   TheCU->addGlobalName(SP.getName(), SubprogramDie, resolve(SP.getContext()));
 }
 
-<<<<<<< HEAD
-void DwarfDebug::constructImportedModuleDIE(CompileUnit *TheCU,
-=======
 void DwarfDebug::constructImportedEntityDIE(DwarfCompileUnit *TheCU,
->>>>>>> llvmtrunk/master
                                             const MDNode *N) {
-  DIImportedModule Module(N);
+  DIImportedEntity Module(N);
   if (!Module.Verify())
     return;
   if (DIE *D = TheCU->getOrCreateContextDIE(Module.getContext()))
-    constructImportedModuleDIE(TheCU, Module, D);
+    constructImportedEntityDIE(TheCU, Module, D);
 }
 
-<<<<<<< HEAD
-void DwarfDebug::constructImportedModuleDIE(CompileUnit *TheCU, const MDNode *N,
-                                            DIE *Context) {
-  DIImportedModule Module(N);
-=======
 void DwarfDebug::constructImportedEntityDIE(DwarfCompileUnit *TheCU,
                                             const MDNode *N, DIE *Context) {
   DIImportedEntity Module(N);
->>>>>>> llvmtrunk/master
   if (!Module.Verify())
     return;
-  return constructImportedModuleDIE(TheCU, Module, Context);
+  return constructImportedEntityDIE(TheCU, Module, Context);
 }
 
-<<<<<<< HEAD
-void DwarfDebug::constructImportedModuleDIE(CompileUnit *TheCU,
-                                            const DIImportedModule &Module,
-=======
 void DwarfDebug::constructImportedEntityDIE(DwarfCompileUnit *TheCU,
                                             const DIImportedEntity &Module,
->>>>>>> llvmtrunk/master
                                             DIE *Context) {
   assert(Module.Verify() &&
          "Use one of the MDNode * overloads to handle invalid metadata");
   assert(Context && "Should always have a context for an imported_module");
-  DIE *IMDie = new DIE(dwarf::DW_TAG_imported_module);
+  DIE *IMDie = new DIE(Module.getTag());
   TheCU->insertDIE(Module, IMDie);
-  DIE *NSDie = TheCU->getOrCreateNameSpace(Module.getNameSpace());
+  DIE *EntityDie;
+  DIDescriptor Entity = Module.getEntity();
+  if (Entity.isNameSpace())
+    EntityDie = TheCU->getOrCreateNameSpace(DINameSpace(Entity));
+  else if (Entity.isSubprogram())
+    EntityDie = TheCU->getOrCreateSubprogramDIE(DISubprogram(Entity));
+  else if (Entity.isType())
+    EntityDie = TheCU->getOrCreateTypeDIE(DIType(Entity));
+  else
+    EntityDie = TheCU->getDIE(Entity);
   unsigned FileID = getOrCreateSourceID(Module.getContext().getFilename(),
                                         Module.getContext().getDirectory(),
                                         TheCU->getUniqueID());
-<<<<<<< HEAD
-  TheCU->addUInt(IMDie, dwarf::DW_AT_decl_file, 0, FileID);
-  TheCU->addUInt(IMDie, dwarf::DW_AT_decl_line, 0, Module.getLineNumber());
-  TheCU->addDIEEntry(IMDie, dwarf::DW_AT_import, dwarf::DW_FORM_ref4, NSDie);
-=======
   TheCU->addUInt(IMDie, dwarf::DW_AT_decl_file, None, FileID);
   TheCU->addUInt(IMDie, dwarf::DW_AT_decl_line, None, Module.getLineNumber());
   TheCU->addDIEEntry(IMDie, dwarf::DW_AT_import, EntityDie);
   StringRef Name = Module.getName();
   if (!Name.empty())
     TheCU->addString(IMDie, dwarf::DW_AT_name, Name);
->>>>>>> llvmtrunk/master
   Context->addChild(IMDie);
 }
 
@@ -948,18 +925,12 @@ void DwarfDebug::beginModule() {
 
   for (unsigned i = 0, e = CU_Nodes->getNumOperands(); i != e; ++i) {
     DICompileUnit CUNode(CU_Nodes->getOperand(i));
-<<<<<<< HEAD
-    CompileUnit *CU = constructCompileUnit(CUNode);
-    DIArray ImportedModules = CUNode.getImportedModules();
-    for (unsigned i = 0, e = ImportedModules.getNumElements(); i != e; ++i)
-=======
     DwarfCompileUnit *CU = constructDwarfCompileUnit(CUNode);
     DIArray ImportedEntities = CUNode.getImportedEntities();
     for (unsigned i = 0, e = ImportedEntities.getNumElements(); i != e; ++i)
->>>>>>> llvmtrunk/master
       ScopesWithImportedEntities.push_back(std::make_pair(
-          DIImportedModule(ImportedModules.getElement(i)).getContext(),
-          ImportedModules.getElement(i)));
+          DIImportedEntity(ImportedEntities.getElement(i)).getContext(),
+          ImportedEntities.getElement(i)));
     std::sort(ScopesWithImportedEntities.begin(),
               ScopesWithImportedEntities.end(), less_first());
     DIArray GVs = CUNode.getGlobalVariables();
@@ -976,22 +947,8 @@ void DwarfDebug::beginModule() {
       CU->getOrCreateTypeDIE(RetainedTypes.getElement(i));
     // Emit imported_modules last so that the relevant context is already
     // available.
-<<<<<<< HEAD
-    for (unsigned i = 0, e = ImportedModules.getNumElements(); i != e; ++i)
-      constructImportedModuleDIE(CU, ImportedModules.getElement(i));
-    // If we're splitting the dwarf out now that we've got the entire
-    // CU then construct a skeleton CU based upon it.
-    if (useSplitDwarf()) {
-      // This should be a unique identifier when we want to build .dwp files.
-      CU->addUInt(CU->getCUDie(), dwarf::DW_AT_GNU_dwo_id,
-                  dwarf::DW_FORM_data8, 0);
-      // Now construct the skeleton CU associated.
-      constructSkeletonCU(CUNode);
-    }
-=======
     for (unsigned i = 0, e = ImportedEntities.getNumElements(); i != e; ++i)
       constructImportedEntityDIE(CU, ImportedEntities.getElement(i));
->>>>>>> llvmtrunk/master
   }
 
   // Tell MMI that we have debug info.
@@ -1902,9 +1859,6 @@ void DwarfDebug::endFunction(const MachineFunction *MF) {
   if (!CurFn->getTarget().Options.DisableFramePointerElim(*CurFn))
     TheCU->addFlag(CurFnDIE, dwarf::DW_AT_APPLE_omit_frame_ptr);
 
-  DebugFrames.push_back(FunctionDebugFrameInfo(Asm->getFunctionNumber(),
-                                               MMI->getFrameMoves()));
-
   // Clear debug info
   for (ScopeVariablesMap::iterator I = ScopeVariables.begin(),
                                    E = ScopeVariables.end();
@@ -2006,23 +1960,6 @@ unsigned DwarfFile::computeSizeAndOffset(DIE *Die, unsigned Offset) {
   return Offset;
 }
 
-<<<<<<< HEAD
-// Compute the size and offset of all the DIEs.
-void DwarfUnits::computeSizeAndOffsets() {
-  // Offset from the beginning of debug info section.
-  unsigned AccuOffset = 0;
-  for (SmallVectorImpl<CompileUnit *>::iterator I = CUs.begin(),
-         E = CUs.end(); I != E; ++I) {
-    (*I)->setDebugInfoOffset(AccuOffset);
-    unsigned Offset =
-      sizeof(int32_t) + // Length of Compilation Unit Info
-      sizeof(int16_t) + // DWARF version number
-      sizeof(int32_t) + // Offset Into Abbrev. Section
-      sizeof(int8_t);   // Pointer Size (in bytes)
-
-    unsigned EndOffset = computeSizeAndOffset((*I)->getCUDie(), Offset);
-    AccuOffset += EndOffset;
-=======
 // Compute the size and offset for each DIE.
 void DwarfFile::computeSizeAndOffsets() {
   // Offset from the first CU in the debug info section is 0 initially.
@@ -2043,7 +1980,6 @@ void DwarfFile::computeSizeAndOffsets() {
     // all of the CU DIE.
     unsigned EndOffset = computeSizeAndOffset((*I)->getUnitDie(), Offset);
     SecOffset += EndOffset;
->>>>>>> llvmtrunk/master
   }
 }
 
@@ -2280,21 +2216,6 @@ void DwarfDebug::emitEndOfLineMatrix(unsigned SectionEnd) {
 
 // Emit visible names into a hashed accelerator table section.
 void DwarfDebug::emitAccelNames() {
-<<<<<<< HEAD
-  DwarfAccelTable AT(DwarfAccelTable::Atom(DwarfAccelTable::eAtomTypeDIEOffset,
-                                           dwarf::DW_FORM_data4));
-  for (DenseMap<const MDNode *, CompileUnit *>::iterator I = CUMap.begin(),
-         E = CUMap.end(); I != E; ++I) {
-    CompileUnit *TheCU = I->second;
-    const StringMap<std::vector<DIE*> > &Names = TheCU->getAccelNames();
-    for (StringMap<std::vector<DIE*> >::const_iterator
-           GI = Names.begin(), GE = Names.end(); GI != GE; ++GI) {
-      const char *Name = GI->getKeyData();
-      const std::vector<DIE *> &Entities = GI->second;
-      for (std::vector<DIE *>::const_iterator DI = Entities.begin(),
-             DE = Entities.end(); DI != DE; ++DI)
-        AT.AddName(Name, (*DI));
-=======
   DwarfAccelTable AT(
       DwarfAccelTable::Atom(dwarf::DW_ATOM_die_offset, dwarf::DW_FORM_data4));
   for (SmallVectorImpl<DwarfUnit *>::const_iterator I = getUnits().begin(),
@@ -2312,7 +2233,6 @@ void DwarfDebug::emitAccelNames() {
                                                     DE = Entities.end();
            DI != DE; ++DI)
         AT.AddName(Name, *DI);
->>>>>>> llvmtrunk/master
     }
   }
 
@@ -2329,21 +2249,6 @@ void DwarfDebug::emitAccelNames() {
 // Emit objective C classes and categories into a hashed accelerator table
 // section.
 void DwarfDebug::emitAccelObjC() {
-<<<<<<< HEAD
-  DwarfAccelTable AT(DwarfAccelTable::Atom(DwarfAccelTable::eAtomTypeDIEOffset,
-                                           dwarf::DW_FORM_data4));
-  for (DenseMap<const MDNode *, CompileUnit *>::iterator I = CUMap.begin(),
-         E = CUMap.end(); I != E; ++I) {
-    CompileUnit *TheCU = I->second;
-    const StringMap<std::vector<DIE*> > &Names = TheCU->getAccelObjC();
-    for (StringMap<std::vector<DIE*> >::const_iterator
-           GI = Names.begin(), GE = Names.end(); GI != GE; ++GI) {
-      const char *Name = GI->getKeyData();
-      const std::vector<DIE *> &Entities = GI->second;
-      for (std::vector<DIE *>::const_iterator DI = Entities.begin(),
-             DE = Entities.end(); DI != DE; ++DI)
-        AT.AddName(Name, (*DI));
-=======
   DwarfAccelTable AT(
       DwarfAccelTable::Atom(dwarf::DW_ATOM_die_offset, dwarf::DW_FORM_data4));
   for (SmallVectorImpl<DwarfUnit *>::const_iterator I = getUnits().begin(),
@@ -2361,7 +2266,6 @@ void DwarfDebug::emitAccelObjC() {
                                                     DE = Entities.end();
            DI != DE; ++DI)
         AT.AddName(Name, *DI);
->>>>>>> llvmtrunk/master
     }
   }
 
@@ -2377,21 +2281,6 @@ void DwarfDebug::emitAccelObjC() {
 
 // Emit namespace dies into a hashed accelerator table.
 void DwarfDebug::emitAccelNamespaces() {
-<<<<<<< HEAD
-  DwarfAccelTable AT(DwarfAccelTable::Atom(DwarfAccelTable::eAtomTypeDIEOffset,
-                                           dwarf::DW_FORM_data4));
-  for (DenseMap<const MDNode *, CompileUnit *>::iterator I = CUMap.begin(),
-         E = CUMap.end(); I != E; ++I) {
-    CompileUnit *TheCU = I->second;
-    const StringMap<std::vector<DIE*> > &Names = TheCU->getAccelNamespace();
-    for (StringMap<std::vector<DIE*> >::const_iterator
-           GI = Names.begin(), GE = Names.end(); GI != GE; ++GI) {
-      const char *Name = GI->getKeyData();
-      const std::vector<DIE *> &Entities = GI->second;
-      for (std::vector<DIE *>::const_iterator DI = Entities.begin(),
-             DE = Entities.end(); DI != DE; ++DI)
-        AT.AddName(Name, (*DI));
-=======
   DwarfAccelTable AT(
       DwarfAccelTable::Atom(dwarf::DW_ATOM_die_offset, dwarf::DW_FORM_data4));
   for (SmallVectorImpl<DwarfUnit *>::const_iterator I = getUnits().begin(),
@@ -2410,7 +2299,6 @@ void DwarfDebug::emitAccelNamespaces() {
                                                     DE = Entities.end();
            DI != DE; ++DI)
         AT.AddName(Name, *DI);
->>>>>>> llvmtrunk/master
     }
   }
 
@@ -2434,20 +2322,6 @@ void DwarfDebug::emitAccelTypes() {
   Atoms.push_back(
       DwarfAccelTable::Atom(dwarf::DW_ATOM_type_flags, dwarf::DW_FORM_data1));
   DwarfAccelTable AT(Atoms);
-<<<<<<< HEAD
-  for (DenseMap<const MDNode *, CompileUnit *>::iterator I = CUMap.begin(),
-         E = CUMap.end(); I != E; ++I) {
-    CompileUnit *TheCU = I->second;
-    const StringMap<std::vector<std::pair<DIE*, unsigned > > > &Names
-      = TheCU->getAccelTypes();
-    for (StringMap<std::vector<std::pair<DIE*, unsigned> > >::const_iterator
-           GI = Names.begin(), GE = Names.end(); GI != GE; ++GI) {
-      const char *Name = GI->getKeyData();
-      const std::vector<std::pair<DIE *, unsigned> > &Entities = GI->second;
-      for (std::vector<std::pair<DIE *, unsigned> >::const_iterator DI
-             = Entities.begin(), DE = Entities.end(); DI !=DE; ++DI)
-        AT.AddName(Name, (*DI).first, (*DI).second);
-=======
   for (SmallVectorImpl<DwarfUnit *>::const_iterator I = getUnits().begin(),
                                                     E = getUnits().end();
        I != E; ++I) {
@@ -2467,7 +2341,6 @@ void DwarfDebug::emitAccelTypes() {
                DE = Entities.end();
            DI != DE; ++DI)
         AT.AddName(Name, DI->first, DI->second);
->>>>>>> llvmtrunk/master
     }
   }
 
@@ -2586,11 +2459,6 @@ void DwarfDebug::emitDebugPubNames(bool GnuStyle) {
       Asm->OutStreamer.AddComment("DIE offset");
       Asm->EmitInt32(Entity->getOffset());
 
-<<<<<<< HEAD
-      if (Asm->isVerbose())
-        Asm->OutStreamer.AddComment("External Name");
-      Asm->OutStreamer.EmitBytes(StringRef(Name, strlen(Name)+1), 0);
-=======
       if (GnuStyle) {
         dwarf::PubIndexEntryDescriptor Desc = computeIndexValue(TheU, Entity);
         Asm->OutStreamer.AddComment(
@@ -2601,7 +2469,6 @@ void DwarfDebug::emitDebugPubNames(bool GnuStyle) {
 
       Asm->OutStreamer.AddComment("External Name");
       Asm->OutStreamer.EmitBytes(StringRef(Name, GI->getKeyLength() + 1));
->>>>>>> llvmtrunk/master
     }
 
     Asm->OutStreamer.AddComment("End Mark");
@@ -3080,16 +2947,10 @@ void DwarfDebug::emitDebugRanges() {
 DwarfCompileUnit *DwarfDebug::constructSkeletonCU(const DwarfCompileUnit *CU) {
 
   DIE *Die = new DIE(dwarf::DW_TAG_compile_unit);
-<<<<<<< HEAD
-  CompileUnit *NewCU = new CompileUnit(GlobalCUIndexCount++,
-                                       DIUnit.getLanguage(), Die, Asm,
-                                       this, &SkeletonHolder);
-=======
   DwarfCompileUnit *NewCU = new DwarfCompileUnit(
       CU->getUniqueID(), Die, CU->getNode(), Asm, this, &SkeletonHolder);
   NewCU->initSection(Asm->getObjFileLowering().getDwarfInfoSection(),
                      DwarfInfoSectionSym);
->>>>>>> llvmtrunk/master
 
   NewCU->addLocalString(Die, dwarf::DW_AT_GNU_dwo_name,
                         CU->getNode().getSplitDebugFilename());

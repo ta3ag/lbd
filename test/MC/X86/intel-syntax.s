@@ -330,6 +330,8 @@ _main:
     setnle al
 // CHECK: jne _foo
     jnz _foo
+// CHECK: outb %al, $4
+    out 4, al
     ret
 
 // CHECK: cmovbl %ebx, %eax

@@ -9,4 +9,5 @@ add_llvm_library(LLVMARMDesc
   ARMMachObjectWriter.cpp
   ARMELFObjectWriter.cpp
   ARMUnwindOpAsm.cpp
+  ARMMachORelocationInfo.cpp
   )

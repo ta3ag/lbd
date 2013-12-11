@@ -54,8 +54,6 @@ class ARMAsmParser : public MCTargetAsmParser {
   const MCInstrInfo &MII;
   const MCRegisterInfo *MRI;
 
-<<<<<<< HEAD
-=======
   ARMTargetStreamer &getTargetStreamer() {
     MCTargetStreamer &TS = getParser().getStreamer().getTargetStreamer();
     return static_cast<ARMTargetStreamer &>(TS);
@@ -75,7 +73,6 @@ class ARMAsmParser : public MCTargetAsmParser {
     FPReg = -1;
   }
 
->>>>>>> llvmtrunk/master
   // Map of register aliases registers via the .req directive.
   StringMap<unsigned> RegisterReqs;
 
@@ -105,7 +102,7 @@ class ARMAsmParser : public MCTargetAsmParser {
     if (!inITBlock()) return;
     // Move to the next instruction in the IT block, if there is one. If not,
     // mark the block as done.
-    unsigned TZ = CountTrailingZeros_32(ITState.Mask);
+    unsigned TZ = countTrailingZeros(ITState.Mask);
     if (++ITState.CurPosition == 5 - TZ)
       ITState.CurPosition = ~0U; // Done with the IT block after this.
   }
@@ -142,8 +139,6 @@ class ARMAsmParser : public MCTargetAsmParser {
   bool parseDirectiveUnreq(SMLoc L);
   bool parseDirectiveArch(SMLoc L);
   bool parseDirectiveEabiAttr(SMLoc L);
-<<<<<<< HEAD
-=======
   bool parseDirectiveCPU(SMLoc L);
   bool parseDirectiveFPU(SMLoc L);
   bool parseDirectiveFnStart(SMLoc L);
@@ -154,7 +149,6 @@ class ARMAsmParser : public MCTargetAsmParser {
   bool parseDirectiveSetFP(SMLoc L);
   bool parseDirectivePad(SMLoc L);
   bool parseDirectiveRegSave(SMLoc L, bool IsVector);
->>>>>>> llvmtrunk/master
 
   StringRef splitMnemonic(StringRef Mnemonic, unsigned &PredicationCode,
                           bool &CarrySetting, unsigned &ProcessorIMod,
@@ -267,14 +261,9 @@ public:
 
   };
 
-<<<<<<< HEAD
-  ARMAsmParser(MCSubtargetInfo &_STI, MCAsmParser &_Parser)
-    : MCTargetAsmParser(), STI(_STI), Parser(_Parser) {
-=======
   ARMAsmParser(MCSubtargetInfo &_STI, MCAsmParser &_Parser,
                const MCInstrInfo &MII)
       : MCTargetAsmParser(), STI(_STI), Parser(_Parser), MII(MII), FPReg(-1) {
->>>>>>> llvmtrunk/master
     MCAsmParserExtension::Initialize(_Parser);
 
     // Cache the MCRegisterInfo.
@@ -7528,11 +7517,10 @@ processInstruction(MCInst &Inst,
     MCOperand &MO = Inst.getOperand(1);
     unsigned Mask = MO.getImm();
     unsigned OrigMask = Mask;
-    unsigned TZ = CountTrailingZeros_32(Mask);
+    unsigned TZ = countTrailingZeros(Mask);
     if ((Inst.getOperand(0).getImm() & 1) == 0) {
       assert(Mask && TZ <= 3 && "illegal IT mask value!");
-      for (unsigned i = 3; i != TZ; --i)
-        Mask ^= 1 << i;
+      Mask ^= (0xE << TZ) & 0xF;
     }
     MO.setImm(Mask);
 
@@ -7798,8 +7786,6 @@ bool ARMAsmParser::ParseDirective(AsmToken DirectiveID) {
     return parseDirectiveArch(DirectiveID.getLoc());
   else if (IDVal == ".eabi_attribute")
     return parseDirectiveEabiAttr(DirectiveID.getLoc());
-<<<<<<< HEAD
-=======
   else if (IDVal == ".cpu")
     return parseDirectiveCPU(DirectiveID.getLoc());
   else if (IDVal == ".fpu")
@@ -7822,7 +7808,6 @@ bool ARMAsmParser::ParseDirective(AsmToken DirectiveID) {
     return parseDirectiveRegSave(DirectiveID.getLoc(), false);
   else if (IDVal == ".vsave")
     return parseDirectiveRegSave(DirectiveID.getLoc(), true);
->>>>>>> llvmtrunk/master
   return true;
 }
 
@@ -8071,8 +8056,6 @@ bool ARMAsmParser::parseDirectiveFPU(SMLoc L) {
   return false;
 }
 
-<<<<<<< HEAD
-=======
 /// parseDirectiveFnStart
 ///  ::= .fnstart
 bool ARMAsmParser::parseDirectiveFnStart(SMLoc L) {
@@ -8292,7 +8275,6 @@ bool ARMAsmParser::parseDirectiveRegSave(SMLoc L, bool IsVector) {
   return false;
 }
 
->>>>>>> llvmtrunk/master
 /// Force static initialization.
 extern "C" void LLVMInitializeARMAsmParser() {
   RegisterMCAsmParser<ARMAsmParser> X(TheARMTarget);

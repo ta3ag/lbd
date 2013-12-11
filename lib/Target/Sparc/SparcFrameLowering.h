@@ -38,9 +38,6 @@ public:
                                      MachineBasicBlock &MBB,
                                      MachineBasicBlock::iterator I) const;
 
-<<<<<<< HEAD
-  bool hasFP(const MachineFunction &MF) const { return false; }
-=======
   bool hasReservedCallFrame(const MachineFunction &MF) const;
   bool hasFP(const MachineFunction &MF) const;
   void processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
@@ -60,7 +57,6 @@ private:
                         MachineBasicBlock::iterator MBBI,
                         int NumBytes, unsigned ADDrr, unsigned ADDri) const;
 
->>>>>>> llvmtrunk/master
 };
 
 } // End llvm namespace

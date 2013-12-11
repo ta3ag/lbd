@@ -31,7 +31,6 @@
 #include "llvm/IR/CallingConv.h"
 #include "llvm/IR/InlineAsm.h"
 #include "llvm/Support/CallSite.h"
-#include "llvm/Support/DebugLoc.h"
 #include "llvm/Target/TargetCallingConv.h"
 #include "llvm/Target/TargetMachine.h"
 #include <climits>
@@ -205,14 +204,6 @@ public:
     return PredictableSelectIsExpensive;
   }
 
-<<<<<<< HEAD
-  /// getSetCCResultType - Return the ValueType of the result of SETCC
-  /// operations.  Also used to obtain the target's preferred type for
-  /// the condition operand of SELECT and BRCOND nodes.  In the case of
-  /// BRCOND the argument passed is MVT::Other since there are no other
-  /// operands to get a type hint from.
-  virtual EVT getSetCCResultType(EVT VT) const;
-=======
   /// isLoadBitCastBeneficial() - Return true if the following transform
   /// is beneficial.
   /// fold (conv (load x)) -> (load (conv*)x)
@@ -229,7 +220,6 @@ public:
   /// BRCOND nodes.  In the case of BRCOND the argument passed is MVT::Other
   /// since there are no other operands to get a type hint from.
   virtual EVT getSetCCResultType(LLVMContext &Context, EVT VT) const;
->>>>>>> llvmtrunk/master
 
   /// Return the ValueType for comparison libcalls. Comparions libcalls include
   /// floating point comparion calls, and Ordered/Unordered check calls on
@@ -1766,20 +1756,14 @@ public:
 
   void softenSetCCOperands(SelectionDAG &DAG, EVT VT,
                            SDValue &NewLHS, SDValue &NewRHS,
-                           ISD::CondCode &CCCode, DebugLoc DL) const;
+                           ISD::CondCode &CCCode, SDLoc DL) const;
 
-<<<<<<< HEAD
-  SDValue makeLibCall(SelectionDAG &DAG, RTLIB::Libcall LC, EVT RetVT,
-                      const SDValue *Ops, unsigned NumOps,
-                      bool isSigned, DebugLoc dl) const;
-=======
   /// Returns a pair of (return value, chain).
   std::pair<SDValue, SDValue> makeLibCall(SelectionDAG &DAG, RTLIB::Libcall LC,
                                           EVT RetVT, const SDValue *Ops,
                                           unsigned NumOps, bool isSigned,
                                           SDLoc dl, bool doesNotReturn = false,
                                           bool isReturnValueUsed = true) const;
->>>>>>> llvmtrunk/master
 
   //===--------------------------------------------------------------------===//
   // TargetLowering Optimization Methods
@@ -1818,7 +1802,7 @@ public:
     /// uses isZExtFree and ZERO_EXTEND for the widening cast, but it could be
     /// generalized for targets with other types of implicit widening casts.
     bool ShrinkDemandedOp(SDValue Op, unsigned BitWidth, const APInt &Demanded,
-                          DebugLoc dl);
+                          SDLoc dl);
   };
 
   /// Look at Op.  At this point, we know that only the DemandedMask bits of the
@@ -1877,7 +1861,7 @@ public:
   /// unable to simplify it, return a null SDValue.
   SDValue SimplifySetCC(EVT VT, SDValue N0, SDValue N1,
                           ISD::CondCode Cond, bool foldBooleans,
-                          DAGCombinerInfo &DCI, DebugLoc dl) const;
+                          DAGCombinerInfo &DCI, SDLoc dl) const;
 
   /// Returns true (and the GlobalValue and the offset) if the node is a
   /// GlobalAddress + offset.
@@ -1937,7 +1921,7 @@ public:
     LowerFormalArguments(SDValue /*Chain*/, CallingConv::ID /*CallConv*/,
                          bool /*isVarArg*/,
                          const SmallVectorImpl<ISD::InputArg> &/*Ins*/,
-                         DebugLoc /*dl*/, SelectionDAG &/*DAG*/,
+                         SDLoc /*dl*/, SelectionDAG &/*DAG*/,
                          SmallVectorImpl<SDValue> &/*InVals*/) const {
     llvm_unreachable("Not Implemented");
   }
@@ -1985,7 +1969,7 @@ public:
     SDValue Callee;
     ArgListTy &Args;
     SelectionDAG &DAG;
-    DebugLoc DL;
+    SDLoc DL;
     ImmutableCallSite *CS;
     SmallVector<ISD::OutputArg, 32> Outs;
     SmallVector<SDValue, 32> OutVals;
@@ -1995,7 +1979,7 @@ public:
     /// Constructs a call lowering context based on the ImmutableCallSite \p cs.
     CallLoweringInfo(SDValue chain, Type *retTy,
                      FunctionType *FTy, bool isTailCall, SDValue callee,
-                     ArgListTy &args, SelectionDAG &dag, DebugLoc dl,
+                     ArgListTy &args, SelectionDAG &dag, SDLoc dl,
                      ImmutableCallSite &cs)
     : Chain(chain), RetTy(retTy), RetSExt(cs.paramHasAttr(0, Attribute::SExt)),
       RetZExt(cs.paramHasAttr(0, Attribute::ZExt)), IsVarArg(FTy->isVarArg()),
@@ -2012,7 +1996,7 @@ public:
                      bool isVarArg, bool isInReg, unsigned numFixedArgs,
                      CallingConv::ID callConv, bool isTailCall,
                      bool doesNotReturn, bool isReturnValueUsed, SDValue callee,
-                     ArgListTy &args, SelectionDAG &dag, DebugLoc dl)
+                     ArgListTy &args, SelectionDAG &dag, SDLoc dl)
     : Chain(chain), RetTy(retTy), RetSExt(retSExt), RetZExt(retZExt),
       IsVarArg(isVarArg), IsInReg(isInReg), DoesNotReturn(doesNotReturn),
       IsReturnValueUsed(isReturnValueUsed), IsTailCall(isTailCall),
@@ -2060,7 +2044,7 @@ public:
                 bool /*isVarArg*/,
                 const SmallVectorImpl<ISD::OutputArg> &/*Outs*/,
                 const SmallVectorImpl<SDValue> &/*OutVals*/,
-                DebugLoc /*dl*/, SelectionDAG &/*DAG*/) const {
+                SDLoc /*dl*/, SelectionDAG &/*DAG*/) const {
     llvm_unreachable("Not Implemented");
   }
 
@@ -2295,7 +2279,7 @@ public:
   //===--------------------------------------------------------------------===//
   // Div utility functions
   //
-  SDValue BuildExactSDIV(SDValue Op1, SDValue Op2, DebugLoc dl,
+  SDValue BuildExactSDIV(SDValue Op1, SDValue Op2, SDLoc dl,
                          SelectionDAG &DAG) const;
   SDValue BuildSDIV(SDNode *N, SelectionDAG &DAG, bool IsAfterLegalization,
                       std::vector<SDNode*> *Created) const;

@@ -59,6 +59,12 @@ def UP : InstFlag <"printUpdatePred">;
 // Once we start using the packetizer in this backend we should have this
 // default to 0.
 def LAST : InstFlag<"printLast", 1>;
+def RSel : Operand<i32> {
+  let PrintMethod = "printRSel";
+}
+def CT: Operand<i32> {
+  let PrintMethod = "printCT";
+}
 
 def FRAMEri : Operand<iPTR> {
   let MIOperandInfo = (ops R600_Reg32:$ptr, i32imm:$index);
@@ -91,7 +97,7 @@ class R600_1OP <bits<11> inst, string opName, list<dag> pattern,
                    LAST:$last, R600_Pred:$pred_sel, LITERAL:$literal,
                    BANK_SWIZZLE:$bank_swizzle),
               !strconcat("  ", opName,
-                   "$last$clamp $dst$write$dst_rel$omod, "
+                   "$clamp $last $dst$write$dst_rel$omod, "
                    "$src0_neg$src0_abs$src0$src0_abs$src0_rel, "
                    "$pred_sel $bank_swizzle"),
               pattern,
@@ -134,7 +140,7 @@ class R600_2OP <bits<11> inst, string opName, list<dag> pattern,
                LAST:$last, R600_Pred:$pred_sel, LITERAL:$literal,
                BANK_SWIZZLE:$bank_swizzle),
           !strconcat("  ", opName,
-                "$last$clamp $update_exec_mask$update_pred$dst$write$dst_rel$omod, "
+                "$clamp $last $update_exec_mask$update_pred$dst$write$dst_rel$omod, "
                 "$src0_neg$src0_abs$src0$src0_abs$src0_rel, "
                 "$src1_neg$src1_abs$src1$src1_abs$src1_rel, "
                 "$pred_sel $bank_swizzle"),
@@ -173,7 +179,7 @@ class R600_3OP <bits<5> inst, string opName, list<dag> pattern,
                R600_Reg32:$src2, NEG:$src2_neg, REL:$src2_rel, SEL:$src2_sel,
                LAST:$last, R600_Pred:$pred_sel, LITERAL:$literal,
                BANK_SWIZZLE:$bank_swizzle),
-          !strconcat("  ", opName, "$last$clamp $dst$dst_rel, "
+          !strconcat("  ", opName, "$clamp $last $dst$dst_rel, "
                              "$src0_neg$src0$src0_rel, "
                              "$src1_neg$src1$src1_rel, "
                              "$src2_neg$src2$src2_rel, "
@@ -202,38 +208,7 @@ class R600_REDUCTION <bits<11> inst, dag ins, string asm, list<dag> pattern,
           pattern,
           itin>;
 
-class R600_TEX <bits<11> inst, string opName, list<dag> pattern,
-                InstrItinClass itin = AnyALU> :
-  InstR600 <(outs R600_Reg128:$DST_GPR),
-          (ins R600_Reg128:$SRC_GPR, i32imm:$RESOURCE_ID, i32imm:$SAMPLER_ID, i32imm:$textureTarget),
-          !strconcat(opName, "$DST_GPR, $SRC_GPR, $RESOURCE_ID, $SAMPLER_ID, $textureTarget"),
-          pattern,
-          itin>, TEX_WORD0, TEX_WORD1, TEX_WORD2 {
-    let Inst{31-0} = Word0;
-    let Inst{63-32} = Word1;
 
-    let TEX_INST = inst{4-0};
-    let SRC_REL = 0;
-    let DST_REL = 0;
-    let DST_SEL_X = 0;
-    let DST_SEL_Y = 1;
-    let DST_SEL_Z = 2;
-    let DST_SEL_W = 3;
-    let LOD_BIAS = 0;
-
-    let INST_MOD = 0;
-    let FETCH_WHOLE_QUAD = 0;
-    let ALT_CONST = 0;
-    let SAMPLER_INDEX_MODE = 0;
-    let RESOURCE_INDEX_MODE = 0;
-
-    let COORD_TYPE_X = 0;
-    let COORD_TYPE_Y = 0;
-    let COORD_TYPE_Z = 0;
-    let COORD_TYPE_W = 0;
-
-    let TEXInst = 1;
-  }
 
 } // End mayLoad = 1, mayStore = 0, hasSideEffects = 0
 
@@ -396,8 +371,6 @@ def CONST_ADDRESS: SDNode<"AMDGPUISD::CONST_ADDRESS",
   [SDNPVariadic]
 >;
 
-<<<<<<< HEAD
-=======
 def DOT4 : SDNode<"AMDGPUISD::DOT4",
   SDTypeProfile<1, 8, [SDTCisFP<0>, SDTCisVT<1, f32>, SDTCisVT<2, f32>,
       SDTCisVT<3, f32>, SDTCisVT<4, f32>, SDTCisVT<5, f32>,
@@ -436,7 +409,6 @@ def : Pat<(TEXTURE_FETCH (i32 TextureOp), vt:$SRC_GPR,
           imm:$COORD_TYPE_W)>;
 }
 
->>>>>>> llvmtrunk/master
 //===----------------------------------------------------------------------===//
 // Interpolation Instructions
 //===----------------------------------------------------------------------===//
@@ -862,94 +834,45 @@ def CNDGT_INT : R600_3OP <
 // Texture instructions
 //===----------------------------------------------------------------------===//
 
-def TEX_LD : R600_TEX <
-  0x03, "TEX_LD",
-  [(set v4f32:$DST_GPR, (int_AMDGPU_txf v4f32:$SRC_GPR,
-      imm:$OFFSET_X, imm:$OFFSET_Y, imm:$OFFSET_Z, imm:$RESOURCE_ID,
-      imm:$SAMPLER_ID, imm:$textureTarget))]
-> {
-let AsmString = "TEX_LD $DST_GPR, $SRC_GPR, $OFFSET_X, $OFFSET_Y, $OFFSET_Z,"
-    "$RESOURCE_ID, $SAMPLER_ID, $textureTarget";
-let InOperandList = (ins R600_Reg128:$SRC_GPR, i32imm:$OFFSET_X,
-    i32imm:$OFFSET_Y, i32imm:$OFFSET_Z, i32imm:$RESOURCE_ID, i32imm:$SAMPLER_ID,
-    i32imm:$textureTarget);
+let mayLoad = 0, mayStore = 0, hasSideEffects = 0 in {
+
+class R600_TEX <bits<11> inst, string opName> :
+  InstR600 <(outs R600_Reg128:$DST_GPR),
+          (ins R600_Reg128:$SRC_GPR,
+          RSel:$srcx, RSel:$srcy, RSel:$srcz, RSel:$srcw,
+          i32imm:$offsetx, i32imm:$offsety, i32imm:$offsetz,
+          RSel:$DST_SEL_X, RSel:$DST_SEL_Y, RSel:$DST_SEL_Z, RSel:$DST_SEL_W,
+          i32imm:$RESOURCE_ID, i32imm:$SAMPLER_ID,
+          CT:$COORD_TYPE_X, CT:$COORD_TYPE_Y, CT:$COORD_TYPE_Z,
+          CT:$COORD_TYPE_W),
+          !strconcat(opName,
+          " $DST_GPR.$DST_SEL_X$DST_SEL_Y$DST_SEL_Z$DST_SEL_W, "
+          "$SRC_GPR.$srcx$srcy$srcz$srcw "
+          "RID:$RESOURCE_ID SID:$SAMPLER_ID "
+          "CT:$COORD_TYPE_X$COORD_TYPE_Y$COORD_TYPE_Z$COORD_TYPE_W"),
+          [],
+          NullALU>, TEX_WORD0, TEX_WORD1, TEX_WORD2 {
+  let Inst{31-0} = Word0;
+  let Inst{63-32} = Word1;
+
+  let TEX_INST = inst{4-0};
+  let SRC_REL = 0;
+  let DST_REL = 0;
+  let LOD_BIAS = 0;
+
+  let INST_MOD = 0;
+  let FETCH_WHOLE_QUAD = 0;
+  let ALT_CONST = 0;
+  let SAMPLER_INDEX_MODE = 0;
+  let RESOURCE_INDEX_MODE = 0;
+
+  let TEXInst = 1;
 }
 
-def TEX_GET_TEXTURE_RESINFO : R600_TEX <
-  0x04, "TEX_GET_TEXTURE_RESINFO",
-  [(set v4f32:$DST_GPR, (int_AMDGPU_txq v4f32:$SRC_GPR,
-      imm:$RESOURCE_ID, imm:$SAMPLER_ID, imm:$textureTarget))]
->;
+} // End mayLoad = 0, mayStore = 0, hasSideEffects = 0
 
-def TEX_GET_GRADIENTS_H : R600_TEX <
-  0x07, "TEX_GET_GRADIENTS_H",
-  [(set v4f32:$DST_GPR, (int_AMDGPU_ddx v4f32:$SRC_GPR,
-      imm:$RESOURCE_ID, imm:$SAMPLER_ID, imm:$textureTarget))]
->;
 
-def TEX_GET_GRADIENTS_V : R600_TEX <
-  0x08, "TEX_GET_GRADIENTS_V",
-  [(set v4f32:$DST_GPR, (int_AMDGPU_ddy v4f32:$SRC_GPR,
-      imm:$RESOURCE_ID, imm:$SAMPLER_ID, imm:$textureTarget))]
->;
 
-def TEX_SET_GRADIENTS_H : R600_TEX <
-  0x0B, "TEX_SET_GRADIENTS_H",
-  []
->;
-
-def TEX_SET_GRADIENTS_V : R600_TEX <
-  0x0C, "TEX_SET_GRADIENTS_V",
-  []
->;
-
-def TEX_SAMPLE : R600_TEX <
-  0x10, "TEX_SAMPLE",
-  [(set v4f32:$DST_GPR, (int_AMDGPU_tex v4f32:$SRC_GPR,
-      imm:$RESOURCE_ID, imm:$SAMPLER_ID, imm:$textureTarget))]
->;
-
-def TEX_SAMPLE_C : R600_TEX <
-  0x18, "TEX_SAMPLE_C",
-  [(set v4f32:$DST_GPR, (int_AMDGPU_tex v4f32:$SRC_GPR,
-      imm:$RESOURCE_ID, imm:$SAMPLER_ID, TEX_SHADOW:$textureTarget))]
->;
-
-<<<<<<< HEAD
-def TEX_SAMPLE_L : R600_TEX <
-  0x11, "TEX_SAMPLE_L",
-  [(set v4f32:$DST_GPR, (int_AMDGPU_txl v4f32:$SRC_GPR,
-      imm:$RESOURCE_ID, imm:$SAMPLER_ID, imm:$textureTarget))]
->;
-
-def TEX_SAMPLE_C_L : R600_TEX <
-  0x19, "TEX_SAMPLE_C_L",
-  [(set v4f32:$DST_GPR, (int_AMDGPU_txl v4f32:$SRC_GPR,
-      imm:$RESOURCE_ID, imm:$SAMPLER_ID, TEX_SHADOW:$textureTarget))]
->;
-
-def TEX_SAMPLE_LB : R600_TEX <
-  0x12, "TEX_SAMPLE_LB",
-  [(set v4f32:$DST_GPR, (int_AMDGPU_txb v4f32:$SRC_GPR,
-      imm:$RESOURCE_ID, imm:$SAMPLER_ID, imm:$textureTarget))]
->;
-
-def TEX_SAMPLE_C_LB : R600_TEX <
-  0x1A, "TEX_SAMPLE_C_LB",
-  [(set v4f32:$DST_GPR, (int_AMDGPU_txb v4f32:$SRC_GPR,
-      imm:$RESOURCE_ID, imm:$SAMPLER_ID, TEX_SHADOW:$textureTarget))]
->;
-
-def TEX_SAMPLE_G : R600_TEX <
-  0x14, "TEX_SAMPLE_G",
-  []
->;
-
-def TEX_SAMPLE_C_G : R600_TEX <
-  0x1C, "TEX_SAMPLE_C_G",
-  []
->;
-=======
 def TEX_SAMPLE : R600_TEX <0x10, "TEX_SAMPLE">;
 def TEX_SAMPLE_C : R600_TEX <0x18, "TEX_SAMPLE_C">;
 def TEX_SAMPLE_L : R600_TEX <0x11, "TEX_SAMPLE_L">;
@@ -979,7 +902,6 @@ defm : TexPattern<7, TEX_GET_TEXTURE_RESINFO, v4i32>;
 defm : TexPattern<8, TEX_GET_GRADIENTS_H>;
 defm : TexPattern<9, TEX_GET_GRADIENTS_V>;
 defm : TexPattern<10, TEX_LDPTR, v4i32>;
->>>>>>> llvmtrunk/master
 
 //===----------------------------------------------------------------------===//
 // Helper classes for common instructions
@@ -1019,15 +941,7 @@ class CNDGE_Common <bits<5> inst> : R600_3OP <
   let Itinerary = VecALU;
 }
 
-multiclass DOT4_Common <bits<11> inst> {
 
-<<<<<<< HEAD
-  def _pseudo : R600_REDUCTION <inst,
-    (ins R600_Reg128:$src0, R600_Reg128:$src1),
-    "DOT4 $dst $src0, $src1",
-    [(set f32:$dst, (int_AMDGPU_dp4 v4f32:$src0, v4f32:$src1))]
-  >;
-=======
 let isCodeGenOnly = 1, isPseudo = 1, Namespace = "AMDGPU"  in {
 class R600_VEC2OP<list<dag> pattern> : InstR600 <(outs R600_Reg32:$dst), (ins
 // Slot X
@@ -1072,10 +986,7 @@ def DOT_4 : R600_VEC2OP<[(set R600_Reg32:$dst, (DOT4
 
 
 class DOT4_Common <bits<11> inst> : R600_2OP <inst, "DOT4", []>;
->>>>>>> llvmtrunk/master
 
-  def _real : R600_2OP <inst, "DOT4", []>;
-}
 
 let mayLoad = 0, mayStore = 0, hasSideEffects = 0 in {
 multiclass CUBE_Common <bits<11> inst> {
@@ -1244,7 +1155,7 @@ let Predicates = [isR600] in {
   def CNDE_r600 : CNDE_Common<0x18>;
   def CNDGT_r600 : CNDGT_Common<0x19>;
   def CNDGE_r600 : CNDGE_Common<0x1A>;
-  defm DOT4_r600 : DOT4_Common<0x50>;
+  def DOT4_r600 : DOT4_Common<0x50>;
   defm CUBE_r600 : CUBE_Common<0x52>;
   def EXP_IEEE_r600 : EXP_IEEE_Common<0x61>;
   def LOG_CLAMPED_r600 : LOG_CLAMPED_Common<0x62>;
@@ -1427,25 +1338,6 @@ def RAT_WRITE_CACHELESS_64_eg : CF_MEM_RAT_CACHELESS <0x2, 0, 0x3,
   [(global_store v2i32:$rw_gpr, i32:$index_gpr)]
 >;
 
-<<<<<<< HEAD
-  def BIT_ALIGN_INT_eg : R600_3OP <0xC, "BIT_ALIGN_INT",
-    [(set i32:$dst, (AMDGPUbitalign i32:$src0, i32:$src1, i32:$src2))],
-    VecALU
-  >;
-
-  def MULADD_eg : MULADD_Common<0x14>;
-  def MULADD_IEEE_eg : MULADD_IEEE_Common<0x18>;
-  def ASHR_eg : ASHR_Common<0x15>;
-  def LSHR_eg : LSHR_Common<0x16>;
-  def LSHL_eg : LSHL_Common<0x17>;
-  def CNDE_eg : CNDE_Common<0x19>;
-  def CNDGT_eg : CNDGT_Common<0x1A>;
-  def CNDGE_eg : CNDGE_Common<0x1B>;
-  def MUL_LIT_eg : MUL_LIT_Common<0x1F>;
-  def LOG_CLAMPED_eg : LOG_CLAMPED_Common<0x82>;
-  defm DOT4_eg : DOT4_Common<0xBE>;
-  defm CUBE_eg : CUBE_Common<0xC0>;
-=======
 //128-bit store
 def RAT_WRITE_CACHELESS_128_eg : CF_MEM_RAT_CACHELESS <0x2, 0, 0xf,
   (ins R600_Reg128:$rw_gpr, R600_TReg32_X:$index_gpr, InstFlag:$eop),
@@ -1454,7 +1346,6 @@ def RAT_WRITE_CACHELESS_128_eg : CF_MEM_RAT_CACHELESS <0x2, 0, 0xf,
 >;
 
 } // End usesCustomInserter = 1
->>>>>>> llvmtrunk/master
 
 class VTX_READ_eg <string name, bits<8> buffer_id, dag outs, list<dag> pattern>
     : VTX_WORD0_eg, VTX_READ<name, buffer_id, outs, pattern> {
@@ -1926,19 +1817,7 @@ def LDS_USHORT_READ_RET : R600_LDS_1A <0x39, "LDS_USHORT_READ_RET",
 // Regist loads and stores - for indirect addressing
 //===----------------------------------------------------------------------===//
 
-<<<<<<< HEAD
-class RAT_WRITE_CACHELESS_eg <dag ins, bits<4> comp_mask, string name,
-                              list<dag> pattern>
-    : EG_CF_RAT <0x57, 0x2, 0, (outs), ins,
-                 !strconcat(name, " $rw_gpr, $index_gpr, $eop"), pattern> {
-  let RIM         = 0;
-  // XXX: Have a separate instruction for non-indexed writes.
-  let TYPE        = 1;
-  let RW_REL      = 0;
-  let ELEM_SIZE   = 0;
-=======
 defm R600_ : RegisterLoadStore <R600_Reg32, FRAMEri, ADDRIndirect>;
->>>>>>> llvmtrunk/master
 
 //===----------------------------------------------------------------------===//
 // Cayman Instructions
@@ -1946,25 +1825,6 @@ defm R600_ : RegisterLoadStore <R600_Reg32, FRAMEri, ADDRIndirect>;
 
 let Predicates = [isCayman] in {
 
-<<<<<<< HEAD
-// 32-bit store
-def RAT_WRITE_CACHELESS_32_eg : RAT_WRITE_CACHELESS_eg <
-  (ins R600_TReg32_X:$rw_gpr, R600_TReg32_X:$index_gpr, InstFlag:$eop),
-  0x1, "RAT_WRITE_CACHELESS_32_eg",
-  [(global_store i32:$rw_gpr, i32:$index_gpr)]
->;
-
-//128-bit store
-def RAT_WRITE_CACHELESS_128_eg : RAT_WRITE_CACHELESS_eg <
-  (ins R600_Reg128:$rw_gpr, R600_TReg32_X:$index_gpr, InstFlag:$eop),
-  0xf, "RAT_WRITE_CACHELESS_128",
-  [(global_store v4i32:$rw_gpr, i32:$index_gpr)]
->;
-
-class VTX_READ_eg <string name, bits<8> buffer_id, dag outs, list<dag> pattern>
-    : InstR600ISA <outs, (ins MEMxi:$ptr), name#" $dst, $ptr", pattern>,
-      VTX_WORD1_GPR, VTX_WORD0 {
-=======
 def MULADD_INT24_cm : R600_3OP <0x08, "MULADD_INT24",
   [(set i32:$dst, (add (mul I24:$src0, I24:$src1), i32:$src2))], VecALU
 >;
@@ -2027,7 +1887,6 @@ def RAT_STORE_DWORD128 : RAT_STORE_DWORD <R600_Reg128, v4i32, 0xf>;
 
 class VTX_READ_cm <string name, bits<8> buffer_id, dag outs, list<dag> pattern>
     : VTX_WORD0_cm, VTX_READ<name, buffer_id, outs, pattern> {
->>>>>>> llvmtrunk/master
 
   // Static fields
   let VC_INST = 0;
@@ -2046,15 +1905,9 @@ class VTX_READ_cm <string name, bits<8> buffer_id, dag outs, list<dag> pattern>
   let Inst{31-0} = Word0;
 }
 
-<<<<<<< HEAD
-class VTX_READ_8_eg <bits<8> buffer_id, list<dag> pattern>
-    : VTX_READ_eg <"VTX_READ_8", buffer_id, (outs R600_TReg32_X:$dst),
-                   pattern> {
-=======
 class VTX_READ_8_cm <bits<8> buffer_id, list<dag> pattern>
     : VTX_READ_cm <"VTX_READ_8 $dst_gpr, $src_gpr", buffer_id,
                    (outs R600_TReg32_X:$dst_gpr), pattern> {
->>>>>>> llvmtrunk/master
 
   let DST_SEL_X = 0;
   let DST_SEL_Y = 7;   // Masked
@@ -2063,16 +1916,9 @@ class VTX_READ_8_cm <bits<8> buffer_id, list<dag> pattern>
   let DATA_FORMAT = 1; // FMT_8
 }
 
-<<<<<<< HEAD
-class VTX_READ_16_eg <bits<8> buffer_id, list<dag> pattern>
-    : VTX_READ_eg <"VTX_READ_16", buffer_id, (outs R600_TReg32_X:$dst),
-                    pattern> {
-  let MEGA_FETCH_COUNT = 2;
-=======
 class VTX_READ_16_cm <bits<8> buffer_id, list<dag> pattern>
     : VTX_READ_cm <"VTX_READ_16 $dst_gpr, $src_gpr", buffer_id,
                    (outs R600_TReg32_X:$dst_gpr), pattern> {
->>>>>>> llvmtrunk/master
   let DST_SEL_X = 0;
   let DST_SEL_Y = 7;   // Masked
   let DST_SEL_Z = 7;   // Masked
@@ -2081,15 +1927,9 @@ class VTX_READ_16_cm <bits<8> buffer_id, list<dag> pattern>
 
 }
 
-<<<<<<< HEAD
-class VTX_READ_32_eg <bits<8> buffer_id, list<dag> pattern>
-    : VTX_READ_eg <"VTX_READ_32", buffer_id, (outs R600_TReg32_X:$dst),
-                   pattern> {
-=======
 class VTX_READ_32_cm <bits<8> buffer_id, list<dag> pattern>
     : VTX_READ_cm <"VTX_READ_32 $dst_gpr, $src_gpr", buffer_id,
                    (outs R600_TReg32_X:$dst_gpr), pattern> {
->>>>>>> llvmtrunk/master
 
   let DST_SEL_X        = 0;
   let DST_SEL_Y        = 7;   // Masked
@@ -2107,11 +1947,6 @@ class VTX_READ_32_cm <bits<8> buffer_id, list<dag> pattern>
   let Constraints = "$src_gpr.ptr = $dst_gpr";
 }
 
-<<<<<<< HEAD
-class VTX_READ_128_eg <bits<8> buffer_id, list<dag> pattern>
-    : VTX_READ_eg <"VTX_READ_128", buffer_id, (outs R600_Reg128:$dst),
-                   pattern> {
-=======
 class VTX_READ_64_cm <bits<8> buffer_id, list<dag> pattern>
     : VTX_READ_cm <"VTX_READ_64 $dst_gpr, $src_gpr", buffer_id,
                    (outs R600_Reg64:$dst_gpr), pattern> {
@@ -2126,7 +1961,6 @@ class VTX_READ_64_cm <bits<8> buffer_id, list<dag> pattern>
 class VTX_READ_128_cm <bits<8> buffer_id, list<dag> pattern>
     : VTX_READ_cm <"VTX_READ_128 $dst_gpr.XYZW, $src_gpr", buffer_id,
                    (outs R600_Reg128:$dst_gpr), pattern> {
->>>>>>> llvmtrunk/master
 
   let DST_SEL_X        =  0;
   let DST_SEL_Y        =  1;

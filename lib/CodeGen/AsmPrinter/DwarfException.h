@@ -24,7 +24,6 @@ namespace llvm {
 template <typename T> class SmallVectorImpl;
 struct LandingPadInfo;
 class MachineModuleInfo;
-class MachineMove;
 class MachineInstr;
 class MachineFunction;
 class MCAsmInfo;

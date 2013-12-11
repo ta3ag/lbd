@@ -45,15 +45,12 @@ private:
   bool DumpCode;
   bool R600ALUInst;
   bool HasVertexCache;
-<<<<<<< HEAD
-=======
   short TexVTXClauseSize;
   enum Generation Gen;
   bool FP64;
   bool CaymanISA;
   bool EnableIRStructurizer;
   bool EnableIfCvt;
->>>>>>> llvmtrunk/master
 
   InstrItineraryData InstrItins;
 
@@ -65,8 +62,6 @@ public:
 
   bool is64bit() const;
   bool hasVertexCache() const;
-<<<<<<< HEAD
-=======
   short getTexVTXClauseSize() const;
   enum Generation getGeneration() const;
   bool hasHWFP64() const;
@@ -77,7 +72,6 @@ public:
   virtual bool enableMachineScheduler() const {
     return getGeneration() <= NORTHERN_ISLANDS;
   }
->>>>>>> llvmtrunk/master
 
   // Helper functions to simplify if statements
   bool isTargetELF() const;

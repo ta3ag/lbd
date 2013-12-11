@@ -6,19 +6,12 @@
 define i32 @main() {
 ; 16-LABEL: main:
 ; 16: 	.cfi_startproc
-<<<<<<< HEAD
-; 16: 	save	$ra, $s0, $s1, 32
-; 16:   .cfi_offset 17, -8
-; 16: 	.cfi_offset 16, -12
-; 16: 	.cfi_offset 31, -4
-=======
 ; 16: 	save	$ra, $16, $17, 40
 ; 16:   .cfi_def_cfa_offset 40
 ; 16: 	.cfi_offset 31, -4
 ; 16:   .cfi_offset 17, -8
 ; 16: 	.cfi_offset 16, -12
 ; 16:   .cfi_endproc
->>>>>>> llvmtrunk/master
 entry:
   %retval = alloca i32, align 4
   store i32 0, i32* %retval

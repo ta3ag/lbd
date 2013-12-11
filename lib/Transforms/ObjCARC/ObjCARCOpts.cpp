@@ -31,6 +31,7 @@
 #include "ObjCARCAliasAnalysis.h"
 #include "ProvenanceAnalysis.h"
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/Statistic.h"
@@ -108,6 +109,12 @@ namespace {
       return std::make_pair(Vector.begin() + Pair.first->second, false);
     }
 
+    iterator find(const KeyT &Key) {
+      typename MapTy::iterator It = Map.find(Key);
+      if (It == Map.end()) return Vector.end();
+      return Vector.begin() + It->second;
+    }
+
     const_iterator find(const KeyT &Key) const {
       typename MapTy::const_iterator It = Map.find(Key);
       if (It == Map.end()) return Vector.end();
@@ -169,93 +176,6 @@ static const Value *FindSingleUseIdentifiedObject(const Value *Arg) {
   return 0;
 }
 
-<<<<<<< HEAD
-/// \brief Test whether the given retainable object pointer escapes.
-///
-/// This differs from regular escape analysis in that a use as an
-/// argument to a call is not considered an escape.
-///
-static bool DoesRetainableObjPtrEscape(const User *Ptr) {
-  DEBUG(dbgs() << "DoesRetainableObjPtrEscape: Target: " << *Ptr << "\n");
-
-  // Walk the def-use chains.
-  SmallVector<const Value *, 4> Worklist;
-  Worklist.push_back(Ptr);
-  // If Ptr has any operands add them as well.
-  for (User::const_op_iterator I = Ptr->op_begin(), E = Ptr->op_end(); I != E;
-       ++I) {
-    Worklist.push_back(*I);
-  }
-
-  // Ensure we do not visit any value twice.
-  SmallPtrSet<const Value *, 8> VisitedSet;
-
-  do {
-    const Value *V = Worklist.pop_back_val();
-
-    DEBUG(dbgs() << "Visiting: " << *V << "\n");
-
-    for (Value::const_use_iterator UI = V->use_begin(), UE = V->use_end();
-         UI != UE; ++UI) {
-      const User *UUser = *UI;
-
-      DEBUG(dbgs() << "User: " << *UUser << "\n");
-
-      // Special - Use by a call (callee or argument) is not considered
-      // to be an escape.
-      switch (GetBasicInstructionClass(UUser)) {
-      case IC_StoreWeak:
-      case IC_InitWeak:
-      case IC_StoreStrong:
-      case IC_Autorelease:
-      case IC_AutoreleaseRV: {
-        DEBUG(dbgs() << "User copies pointer arguments. Pointer Escapes!\n");
-        // These special functions make copies of their pointer arguments.
-        return true;
-      }
-      case IC_IntrinsicUser:
-        // Use by the use intrinsic is not an escape.
-        continue;
-      case IC_User:
-      case IC_None:
-        // Use by an instruction which copies the value is an escape if the
-        // result is an escape.
-        if (isa<BitCastInst>(UUser) || isa<GetElementPtrInst>(UUser) ||
-            isa<PHINode>(UUser) || isa<SelectInst>(UUser)) {
-
-          if (VisitedSet.insert(UUser)) {
-            DEBUG(dbgs() << "User copies value. Ptr escapes if result escapes."
-                  " Adding to list.\n");
-            Worklist.push_back(UUser);
-          } else {
-            DEBUG(dbgs() << "Already visited node.\n");
-          }
-          continue;
-        }
-        // Use by a load is not an escape.
-        if (isa<LoadInst>(UUser))
-          continue;
-        // Use by a store is not an escape if the use is the address.
-        if (const StoreInst *SI = dyn_cast<StoreInst>(UUser))
-          if (V != SI->getValueOperand())
-            continue;
-        break;
-      default:
-        // Regular calls and other stuff are not considered escapes.
-        continue;
-      }
-      // Otherwise, conservatively assume an escape.
-      DEBUG(dbgs() << "Assuming ptr escapes.\n");
-      return true;
-    }
-  } while (!Worklist.empty());
-
-  // No escapes found.
-  DEBUG(dbgs() << "Ptr does not escape.\n");
-  return false;
-}
-
-=======
 /// This is a wrapper around getUnderlyingObjCPtr along the lines of
 /// GetUnderlyingObjects except that it returns early when it sees the first
 /// alloca.
@@ -290,7 +210,6 @@ static inline bool AreAnyUnderlyingObjectsAnAlloca(const Value *V) {
 }
 
 
->>>>>>> llvmtrunk/master
 /// @}
 ///
 /// \defgroup ARCOpt ARC Optimization.
@@ -338,18 +257,18 @@ STATISTIC(NumNoops,       "Number of no-op objc calls eliminated");
 STATISTIC(NumPartialNoops, "Number of partially no-op objc calls eliminated");
 STATISTIC(NumAutoreleases,"Number of autoreleases converted to releases");
 STATISTIC(NumRets,        "Number of return value forwarding "
-                          "retain+autoreleaes eliminated");
+                          "retain+autoreleases eliminated");
 STATISTIC(NumRRs,         "Number of retain+release paths eliminated");
 STATISTIC(NumPeeps,       "Number of calls peephole-optimized");
-STATISTIC(NumRetainsBeforeOpt,
-          "Number of retains before optimization.");
-STATISTIC(NumReleasesBeforeOpt,
-          "Number of releases before optimization.");
 #ifndef NDEBUG
+STATISTIC(NumRetainsBeforeOpt,
+          "Number of retains before optimization");
+STATISTIC(NumReleasesBeforeOpt,
+          "Number of releases before optimization");
 STATISTIC(NumRetainsAfterOpt,
-          "Number of retains after optimization.");
+          "Number of retains after optimization");
 STATISTIC(NumReleasesAfterOpt,
-          "Number of releases after optimization.");
+          "Number of releases after optimization");
 #endif
 
 namespace {
@@ -452,8 +371,13 @@ namespace {
     /// sequence.
     SmallPtrSet<Instruction *, 2> ReverseInsertPts;
 
+    /// If this is true, we cannot perform code motion but can still remove
+    /// retain/release pairs.
+    bool CFGHazardAfflicted;
+
     RRInfo() :
-      KnownSafe(false), IsTailCallRelease(false), ReleaseMetadata(0) {}
+      KnownSafe(false), IsTailCallRelease(false), ReleaseMetadata(0),
+      CFGHazardAfflicted(false) {}
 
     void clear();
 
@@ -470,6 +394,7 @@ void RRInfo::clear() {
   ReleaseMetadata = 0;
   Calls.clear();
   ReverseInsertPts.clear();
+  CFGHazardAfflicted = false;
 }
 
 bool RRInfo::Merge(const RRInfo &Other) {
@@ -554,10 +479,12 @@ namespace {
     }
 
     void SetKnownPositiveRefCount() {
+      DEBUG(dbgs() << "Setting Known Positive.\n");
       KnownPositiveRefCount = true;
     }
 
     void ClearKnownPositiveRefCount() {
+      DEBUG(dbgs() << "Clearing Known Positive.\n");
       KnownPositiveRefCount = false;
     }
 
@@ -625,30 +552,11 @@ PtrState::Merge(const PtrState &Other, bool TopDown) {
     // mixing them is unsafe.
     ClearSequenceProgress();
   } else {
-<<<<<<< HEAD
-    // Conservatively merge the ReleaseMetadata information.
-    if (RRI.ReleaseMetadata != Other.RRI.ReleaseMetadata)
-      RRI.ReleaseMetadata = 0;
-
-    RRI.KnownSafe = RRI.KnownSafe && Other.RRI.KnownSafe;
-    RRI.IsTailCallRelease = RRI.IsTailCallRelease &&
-                            Other.RRI.IsTailCallRelease;
-    RRI.Calls.insert(Other.RRI.Calls.begin(), Other.RRI.Calls.end());
-
-    // Merge the insert point sets. If there are any differences,
-    // that makes this a partial merge.
-    Partial = RRI.ReverseInsertPts.size() != Other.RRI.ReverseInsertPts.size();
-    for (SmallPtrSet<Instruction *, 2>::const_iterator
-         I = Other.RRI.ReverseInsertPts.begin(),
-         E = Other.RRI.ReverseInsertPts.end(); I != E; ++I)
-      Partial |= RRI.ReverseInsertPts.insert(*I);
-=======
     // Otherwise merge the other PtrState's RRInfo into our RRInfo. At this
     // point, we know that currently we are not partial. Stash whether or not
     // the merge operation caused us to undergo a partial merging of reverse
     // insertion points.
     Partial = RRI.Merge(Other.RRI);
->>>>>>> llvmtrunk/master
   }
 }
 
@@ -714,12 +622,24 @@ namespace {
     /// definition.
     void SetAsExit()  { BottomUpPathCount = 1; }
 
+    /// Attempt to find the PtrState object describing the top down state for
+    /// pointer Arg. Return a new initialized PtrState describing the top down
+    /// state for Arg if we do not find one.
     PtrState &getPtrTopDownState(const Value *Arg) {
       return PerPtrTopDown[Arg];
     }
 
+    /// Attempt to find the PtrState object describing the bottom up state for
+    /// pointer Arg. Return a new initialized PtrState describing the bottom up
+    /// state for Arg if we do not find one.
     PtrState &getPtrBottomUpState(const Value *Arg) {
       return PerPtrBottomUp[Arg];
+    }
+
+    /// Attempt to find the PtrState object describing the bottom up state for
+    /// pointer Arg.
+    ptr_iterator findPtrBottomUpState(const Value *Arg) {
+      return PerPtrBottomUp.find(Arg);
     }
 
     void clearBottomUpPointers() {
@@ -1155,6 +1075,9 @@ namespace {
     ProvenanceAnalysis PA;
     ARCRuntimeEntryPoints EP;
 
+    // This is used to track if a pointer is stored into an alloca.
+    DenseSet<const Value *> MultiOwnersSet;
+
     /// A flag indicating whether this optimization pass should run.
     bool Run;
 
@@ -1447,27 +1370,12 @@ void ObjCARCOpt::OptimizeIndividualCalls(Function &F) {
       }
       break;
     }
-<<<<<<< HEAD
-    case IC_RetainBlock:
-      // If we strength reduce an objc_retainBlock to an objc_retain, continue
-      // onto the objc_retain peephole optimizations. Otherwise break.
-      if (!OptimizeRetainBlockCall(F, Inst, Class))
-        break;
-      // FALLTHROUGH
-    case IC_Retain:
-      ++NumRetainsBeforeOpt;
-      break;
-=======
->>>>>>> llvmtrunk/master
     case IC_RetainRV:
       if (OptimizeRetainRVCall(F, Inst))
         continue;
       break;
     case IC_AutoreleaseRV:
       OptimizeAutoreleaseRVCall(F, Inst, Class);
-      break;
-    case IC_Release:
-      ++NumReleasesBeforeOpt;
       break;
     }
 
@@ -1653,6 +1561,7 @@ static void CheckForUseCFGHazard(const Sequence SuccSSeq,
                                  PtrState &S,
                                  bool &SomeSuccHasSame,
                                  bool &AllSuccsHaveSame,
+                                 bool &NotAllSeqEqualButKnownSafe,
                                  bool &ShouldContinue) {
   switch (SuccSSeq) {
   case S_CanRelease: {
@@ -1660,10 +1569,7 @@ static void CheckForUseCFGHazard(const Sequence SuccSSeq,
       S.ClearSequenceProgress();
       break;
     }
-<<<<<<< HEAD
-=======
     S.SetCFGHazardAfflicted(true);
->>>>>>> llvmtrunk/master
     ShouldContinue = true;
     break;
   }
@@ -1675,6 +1581,8 @@ static void CheckForUseCFGHazard(const Sequence SuccSSeq,
   case S_MovableRelease:
     if (!S.IsKnownSafe() && !SuccSRRIKnownSafe)
       AllSuccsHaveSame = false;
+    else
+      NotAllSeqEqualButKnownSafe = true;
     break;
   case S_Retain:
     llvm_unreachable("bottom-up pointer in retain state!");
@@ -1690,7 +1598,8 @@ static void CheckForCanReleaseCFGHazard(const Sequence SuccSSeq,
                                         const bool SuccSRRIKnownSafe,
                                         PtrState &S,
                                         bool &SomeSuccHasSame,
-                                        bool &AllSuccsHaveSame) {
+                                        bool &AllSuccsHaveSame,
+                                        bool &NotAllSeqEqualButKnownSafe) {
   switch (SuccSSeq) {
   case S_CanRelease:
     SomeSuccHasSame = true;
@@ -1701,6 +1610,8 @@ static void CheckForCanReleaseCFGHazard(const Sequence SuccSSeq,
   case S_Use:
     if (!S.IsKnownSafe() && !SuccSRRIKnownSafe)
       AllSuccsHaveSame = false;
+    else
+      NotAllSeqEqualButKnownSafe = true;
     break;
   case S_Retain:
     llvm_unreachable("bottom-up pointer in retain state!");
@@ -1736,6 +1647,7 @@ ObjCARCOpt::CheckForCFGHazards(const BasicBlock *BB,
     const TerminatorInst *TI = cast<TerminatorInst>(&BB->back());
     bool SomeSuccHasSame = false;
     bool AllSuccsHaveSame = true;
+    bool NotAllSeqEqualButKnownSafe = false;
 
     succ_const_iterator SI(TI), SE(TI, false);
 
@@ -1767,17 +1679,17 @@ ObjCARCOpt::CheckForCFGHazards(const BasicBlock *BB,
       switch(S.GetSeq()) {
       case S_Use: {
         bool ShouldContinue = false;
-        CheckForUseCFGHazard(SuccSSeq, SuccSRRIKnownSafe, S,
-                             SomeSuccHasSame, AllSuccsHaveSame,
+        CheckForUseCFGHazard(SuccSSeq, SuccSRRIKnownSafe, S, SomeSuccHasSame,
+                             AllSuccsHaveSame, NotAllSeqEqualButKnownSafe,
                              ShouldContinue);
         if (ShouldContinue)
           continue;
         break;
       }
       case S_CanRelease: {
-        CheckForCanReleaseCFGHazard(SuccSSeq, SuccSRRIKnownSafe,
-                                    S, SomeSuccHasSame,
-                                    AllSuccsHaveSame);
+        CheckForCanReleaseCFGHazard(SuccSSeq, SuccSRRIKnownSafe, S,
+                                    SomeSuccHasSame, AllSuccsHaveSame,
+                                    NotAllSeqEqualButKnownSafe);
         break;
       }
       case S_Retain:
@@ -1792,10 +1704,8 @@ ObjCARCOpt::CheckForCFGHazards(const BasicBlock *BB,
     // If the state at the other end of any of the successor edges
     // matches the current state, require all edges to match. This
     // guards against loops in the middle of a sequence.
-    if (SomeSuccHasSame && !AllSuccsHaveSame)
+    if (SomeSuccHasSame && !AllSuccsHaveSame) {
       S.ClearSequenceProgress();
-<<<<<<< HEAD
-=======
     } else if (NotAllSeqEqualButKnownSafe) {
       // If we would have cleared the state foregoing the fact that we are known
       // safe, stop code motion. This is because whether or not it is safe to
@@ -1803,7 +1713,6 @@ ObjCARCOpt::CheckForCFGHazards(const BasicBlock *BB,
       // are allowed to perform code motion.
       S.SetCFGHazardAfflicted(true);
     }
->>>>>>> llvmtrunk/master
   }
 }
 
@@ -1894,6 +1803,28 @@ ObjCARCOpt::VisitInstructionBottomUp(Instruction *Inst,
   case IC_None:
     // These are irrelevant.
     return NestingDetected;
+  case IC_User:
+    // If we have a store into an alloca of a pointer we are tracking, the
+    // pointer has multiple owners implying that we must be more conservative.
+    //
+    // This comes up in the context of a pointer being ``KnownSafe''. In the
+    // presense of a block being initialized, the frontend will emit the
+    // objc_retain on the original pointer and the release on the pointer loaded
+    // from the alloca. The optimizer will through the provenance analysis
+    // realize that the two are related, but since we only require KnownSafe in
+    // one direction, will match the inner retain on the original pointer with
+    // the guard release on the original pointer. This is fixed by ensuring that
+    // in the presense of allocas we only unconditionally remove pointers if
+    // both our retain and our release are KnownSafe.
+    if (StoreInst *SI = dyn_cast<StoreInst>(Inst)) {
+      if (AreAnyUnderlyingObjectsAnAlloca(SI->getPointerOperand())) {
+        BBState::ptr_iterator I = MyStates.findPtrBottomUpState(
+          StripPointerCastsAndObjCCalls(SI->getValueOperand()));
+        if (I != MyStates.bottom_up_ptr_end())
+          MultiOwnersSet.insert(I->first);
+      }
+    }
+    break;
   default:
     break;
   }
@@ -2440,8 +2371,11 @@ ObjCARCOpt::ConnectTDBUTraversals(DenseMap<const BasicBlock *, BBState>
                                   bool KnownSafe,
                                   bool &AnyPairsCompletelyEliminated) {
   // If a pair happens in a region where it is known that the reference count
-  // is already incremented, we can similarly ignore possible decrements.
+  // is already incremented, we can similarly ignore possible decrements unless
+  // we are dealing with a retainable object with multiple provenance sources.
   bool KnownSafeTD = true, KnownSafeBU = true;
+  bool MultipleOwners = false;
+  bool CFGHazardAfflicted = false;
 
   // Connect the dots between the top-down-collected RetainsToMove and
   // bottom-up-collected ReleasesToMove to form sets of related calls.
@@ -2460,6 +2394,8 @@ ObjCARCOpt::ConnectTDBUTraversals(DenseMap<const BasicBlock *, BBState>
       assert(It != Retains.end());
       const RRInfo &NewRetainRRI = It->second;
       KnownSafeTD &= NewRetainRRI.KnownSafe;
+      MultipleOwners =
+        MultipleOwners || MultiOwnersSet.count(GetObjCArg(NewRetain));
       for (SmallPtrSet<Instruction *, 2>::const_iterator
              LI = NewRetainRRI.Calls.begin(),
              LE = NewRetainRRI.Calls.end(); LI != LE; ++LI) {
@@ -2543,6 +2479,7 @@ ObjCARCOpt::ConnectTDBUTraversals(DenseMap<const BasicBlock *, BBState>
       assert(It != Releases.end());
       const RRInfo &NewReleaseRRI = It->second;
       KnownSafeBU &= NewReleaseRRI.KnownSafe;
+      CFGHazardAfflicted |= NewReleaseRRI.CFGHazardAfflicted;
       for (SmallPtrSet<Instruction *, 2>::const_iterator
              LI = NewReleaseRRI.Calls.begin(),
              LE = NewReleaseRRI.Calls.end(); LI != LE; ++LI) {
@@ -2604,9 +2541,12 @@ ObjCARCOpt::ConnectTDBUTraversals(DenseMap<const BasicBlock *, BBState>
     if (NewRetains.empty()) break;
   }
 
-  // If the pointer is known incremented or nested, we can safely delete the
-  // pair regardless of what's between them.
-  if (KnownSafeTD || KnownSafeBU) {
+  // If the pointer is known incremented in 1 direction and we do not have
+  // MultipleOwners, we can safely remove the retain/releases. Otherwise we need
+  // to be known safe in both directions.
+  bool UnconditionallySafe = (KnownSafeTD && KnownSafeBU) ||
+    ((KnownSafeTD || KnownSafeBU) && !MultipleOwners);
+  if (UnconditionallySafe) {
     RetainsToMove.ReverseInsertPts.clear();
     ReleasesToMove.ReverseInsertPts.clear();
     NewCount = 0;
@@ -2616,6 +2556,14 @@ ObjCARCOpt::ConnectTDBUTraversals(DenseMap<const BasicBlock *, BBState>
     // TODO: If the fully aggressive solution isn't valid, try to find a
     // less aggressive solution which is.
     if (NewDelta != 0)
+      return false;
+
+    // At this point, we are not going to remove any RR pairs, but we still are
+    // able to move RR pairs. If one of our pointers is afflicted with
+    // CFGHazards, we cannot perform such code motion so exit early.
+    const bool WillPerformCodeMotion = RetainsToMove.ReverseInsertPts.size() ||
+      ReleasesToMove.ReverseInsertPts.size();
+    if (CFGHazardAfflicted && WillPerformCodeMotion)
       return false;
   }
 
@@ -2878,23 +2826,29 @@ void ObjCARCOpt::OptimizeWeakCalls(Function &F) {
 /// Identify program paths which execute sequences of retains and releases which
 /// can be eliminated.
 bool ObjCARCOpt::OptimizeSequences(Function &F) {
-  /// Releases, Retains - These are used to store the results of the main flow
-  /// analysis. These use Value* as the key instead of Instruction* so that the
-  /// map stays valid when we get around to rewriting code and calls get
-  /// replaced by arguments.
+  // Releases, Retains - These are used to store the results of the main flow
+  // analysis. These use Value* as the key instead of Instruction* so that the
+  // map stays valid when we get around to rewriting code and calls get
+  // replaced by arguments.
   DenseMap<Value *, RRInfo> Releases;
   MapVector<Value *, RRInfo> Retains;
 
-  /// This is used during the traversal of the function to track the
-  /// states for each identified object at each block.
+  // This is used during the traversal of the function to track the
+  // states for each identified object at each block.
   DenseMap<const BasicBlock *, BBState> BBStates;
 
   // Analyze the CFG of the function, and all instructions.
   bool NestingDetected = Visit(F, BBStates, Retains, Releases);
 
   // Transform.
-  return PerformCodePlacement(BBStates, Retains, Releases, F.getParent()) &&
-         NestingDetected;
+  bool AnyPairsCompletelyEliminated = PerformCodePlacement(BBStates, Retains,
+                                                           Releases,
+                                                           F.getParent());
+
+  // Cleanup.
+  MultiOwnersSet.clear();
+
+  return AnyPairsCompletelyEliminated && NestingDetected;
 }
 
 /// Check if there is a dependent call earlier that does not have anything in
@@ -3122,6 +3076,12 @@ bool ObjCARCOpt::runOnFunction(Function &F) {
         "\n");
 
   PA.setAA(&getAnalysis<AliasAnalysis>());
+
+#ifndef NDEBUG
+  if (AreStatisticsEnabled()) {
+    GatherStatistics(F, false);
+  }
+#endif
 
   // This pass performs several distinct transformations. As a compile-time aid
   // when compiling code that isn't ObjC, skip these if the relevant ObjC

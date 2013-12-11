@@ -278,13 +278,8 @@ entry:
 ; 32-LABEL: t17:
 ; 32: jmp {{_?}}bar5
 
-<<<<<<< HEAD
-; 64: t17:
-; 64: xorb %al, %al
-=======
 ; 64-LABEL: t17:
 ; 64: xorl %eax, %eax
->>>>>>> llvmtrunk/master
 ; 64: jmp {{_?}}bar5
   tail call void (...)* @bar5() nounwind
   ret void
@@ -299,13 +294,8 @@ entry:
 ; 32: calll {{_?}}bar6
 ; 32: fstp %st(0)
 
-<<<<<<< HEAD
-; 64: t18:
-; 64: xorb %al, %al
-=======
 ; 64-LABEL: t18:
 ; 64: xorl %eax, %eax
->>>>>>> llvmtrunk/master
 ; 64: jmp {{_?}}bar6
   %0 = tail call double (...)* @bar6() nounwind
   ret void

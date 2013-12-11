@@ -237,8 +237,6 @@ public:
   /// Sets the object manager that MCJIT should use to avoid compilation.
   virtual void setObjectCache(ObjectCache *manager);
 
-<<<<<<< HEAD
-=======
   virtual void generateCodeForModule(Module *M);
 
   /// finalizeObject - ensure the module is fully processed and is usable.
@@ -250,7 +248,6 @@ public:
   /// object.
   /// Is it OK to finalize a set of modules, add modules and finalize again.
   // FIXME: Do we really need both of these?
->>>>>>> llvmtrunk/master
   virtual void finalizeObject();
   virtual void finalizeModule(Module *);
   void finalizeLoadedModules();
@@ -310,7 +307,7 @@ public:
 
   static ExecutionEngine *createJIT(Module *M,
                                     std::string *ErrorStr,
-                                    JITMemoryManager *JMM,
+                                    RTDyldMemoryManager *MemMgr,
                                     bool GVsWithCode,
                                     TargetMachine *TM);
 

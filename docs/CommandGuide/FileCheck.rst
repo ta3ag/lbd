@@ -197,8 +197,6 @@ can be used:
    ; CHECK: ret i8
    }
 
-<<<<<<< HEAD
-=======
 The "CHECK-DAG:" directive
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -327,7 +325,6 @@ simply uniquely match a single line in the file being verified.
 
 ``CHECK-LABEL:`` directives cannot contain variable definitions or uses.
 
->>>>>>> llvmtrunk/master
 FileCheck Pattern Matching Syntax
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

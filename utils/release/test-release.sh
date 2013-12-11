@@ -18,7 +18,7 @@ else
     MAKE=make
 fi
 
-projects="llvm cfe dragonegg compiler-rt test-suite"
+projects="llvm cfe dragonegg compiler-rt libcxx test-suite clang-tools-extra"
 
 # Base SVN URL for the sources.
 Base_url="http://llvm.org/svn/llvm-project"
@@ -37,7 +37,7 @@ do_objc="yes"
 do_64bit="yes"
 do_debug="no"
 do_asserts="no"
-do_compare="no"
+do_compare="yes"
 BuildDir="`pwd`"
 
 function usage() {
@@ -246,12 +246,19 @@ function export_sources() {
     if [ ! -h clang ]; then
         ln -s ../../cfe.src clang
     fi
+    cd $BuildDir/llvm.src/tools/clang/tools
+    if [ ! -h clang-tools-extra ]; then
+        ln -s ../../../../clang-tools-extra.src extra
+    fi
     cd $BuildDir/llvm.src/projects
-    if [ ! -h llvm-test ]; then
-        ln -s ../../test-suite.src llvm-test
+    if [ ! -h test-suite ]; then
+        ln -s ../../test-suite.src test-suite
     fi
     if [ ! -h compiler-rt ]; then
         ln -s ../../compiler-rt.src compiler-rt
+    fi
+    if [ ! -h libcxx ]; then
+        ln -s ../../libcxx.src libcxx
     fi
     cd $BuildDir
 }

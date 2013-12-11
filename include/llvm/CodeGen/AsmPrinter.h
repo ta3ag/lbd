@@ -39,8 +39,8 @@ namespace llvm {
   class MachineConstantPoolValue;
   class MachineJumpTableInfo;
   class MachineModuleInfo;
-  class MachineMove;
   class MCAsmInfo;
+  class MCCFIInstruction;
   class MCContext;
   class MCInstrInfo;
   class MCSection;
@@ -431,9 +431,8 @@ namespace llvm {
     // Dwarf Lowering Routines
     //===------------------------------------------------------------------===//
 
-    /// EmitCFIFrameMove - Emit frame instruction to describe the layout of the
-    /// frame.
-    void EmitCFIFrameMove(const MachineMove &Move) const;
+    /// \brief Emit frame instruction to describe the layout of the frame.
+    void emitCFIInstruction(const MCCFIInstruction &Inst) const;
 
     //===------------------------------------------------------------------===//
     // Inline Asm Support

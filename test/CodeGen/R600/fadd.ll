@@ -1,16 +1,6 @@
 ; RUN: llc < %s -march=r600 -mcpu=redwood | FileCheck %s --check-prefix=R600-CHECK
 ; RUN: llc < %s -march=r600 -mcpu=SI -verify-machineinstrs | FileCheck %s --check-prefix=SI-CHECK
 
-<<<<<<< HEAD
-; CHECK: @fadd_f32
-; CHECK: ADD * T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-
-define void @fadd_f32() {
-   %r0 = call float @llvm.R600.load.input(i32 0)
-   %r1 = call float @llvm.R600.load.input(i32 1)
-   %r2 = fadd float %r0, %r1
-   call void @llvm.AMDGPU.store.output(float %r2, i32 0)
-=======
 ; R600-CHECK: @fadd_f32
 ; R600-CHECK: ADD {{\** *}}T{{[0-9]+\.[XYZW]}}, KC0[2].Z, KC0[2].W
 ; SI-CHECK: @fadd_f32
@@ -19,7 +9,6 @@ define void @fadd_f32(float addrspace(1)* %out, float %a, float %b) {
 entry:
    %0 = fadd float %a, %b
    store float %0, float addrspace(1)* %out
->>>>>>> llvmtrunk/master
    ret void
 }
 

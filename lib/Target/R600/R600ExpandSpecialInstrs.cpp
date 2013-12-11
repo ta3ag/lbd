@@ -194,8 +194,6 @@ bool R600ExpandSpecialInstrsPass::runOnMachineFunction(MachineFunction &MF) {
         MI.eraseFromParent();
         continue;
         }
-<<<<<<< HEAD
-=======
       case AMDGPU::DOT_4: {
 
         const R600RegisterInfo &TRI = TII->getRegisterInfo();
@@ -235,7 +233,6 @@ bool R600ExpandSpecialInstrsPass::runOnMachineFunction(MachineFunction &MF) {
         MI.eraseFromParent();
         continue;
       }
->>>>>>> llvmtrunk/master
       }
 
       bool IsReduction = TII->isReductionOp(MI.getOpcode());
@@ -321,12 +318,6 @@ bool R600ExpandSpecialInstrsPass::runOnMachineFunction(MachineFunction &MF) {
           break;
         case AMDGPU::CUBE_eg_pseudo:
           Opcode = AMDGPU::CUBE_eg_real;
-          break;
-        case AMDGPU::DOT4_r600_pseudo:
-          Opcode = AMDGPU::DOT4_r600_real;
-          break;
-        case AMDGPU::DOT4_eg_pseudo:
-          Opcode = AMDGPU::DOT4_eg_real;
           break;
         default:
           break;

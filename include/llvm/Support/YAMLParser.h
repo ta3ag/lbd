@@ -538,7 +538,7 @@ public:
     if (isAtEnd() || Other.isAtEnd())
       return isAtEnd() && Other.isAtEnd();
 
-    return *Doc == *Other.Doc;
+    return Doc == Other.Doc;
   }
   bool operator !=(const document_iterator &Other) {
     return !(*this == Other);
@@ -565,7 +565,7 @@ public:
 
 private:
   bool isAtEnd() const {
-    return Doc == 0 || *Doc == 0;
+    return !Doc || !*Doc;
   }
 
   OwningPtr<Document> *Doc;

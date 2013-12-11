@@ -69,7 +69,9 @@
 # CHECK:  daddi   $9, $6, 17767   # encoding: [0x67,0x45,0xc9,0x60]
 # CHECK:  daddiu  $9, $6, -15001  # encoding: [0x67,0xc5,0xc9,0x64]
 # CHECK:  daddi   $9, $6, 17767   # encoding: [0x67,0x45,0xc9,0x60]
+# CHECK:  daddi   $9, $9, 17767   # encoding: [0x67,0x45,0x29,0x61]
 # CHECK:  daddiu  $9, $6, -15001  # encoding: [0x67,0xc5,0xc9,0x64]
+# CHECK:  daddiu  $9, $9, -15001  # encoding: [0x67,0xc5,0x29,0x65]
 # CHECK:  daddu   $9, $6, $7      # encoding: [0x2d,0x48,0xc7,0x00]
 # CHECK:  drotr   $9, $6, 20      # encoding: [0x3a,0x4d,0x26,0x00]
 # CHECK:  drotr32 $9, $6, 52      # encoding: [0x3e,0x4d,0x26,0x00]
@@ -90,7 +92,9 @@
     dadd    $9,$6,17767
     daddu   $9,$6,-15001
     daddi   $9,$6,17767
+    daddi   $9,17767
     daddiu  $9,$6,-15001
+    daddiu  $9,-15001
     daddu   $9,$6,$7
     drotr   $9, $6, 20
     drotr32 $9, $6, 52

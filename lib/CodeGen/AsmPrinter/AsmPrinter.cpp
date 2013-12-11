@@ -163,13 +163,9 @@ bool AsmPrinter::doInitialization(Module &M) {
   const_cast<TargetLoweringObjectFile&>(getObjFileLowering())
     .Initialize(OutContext, TM);
 
-<<<<<<< HEAD
-  Mang = new Mangler(OutContext, *TM.getDataLayout());
-=======
   OutStreamer.InitStreamer();
 
   Mang = new Mangler(&TM);
->>>>>>> llvmtrunk/master
 
   // Allow the target to emit any magic that it wants at the start of the file.
   EmitStartOfAsmFile(M);
@@ -681,23 +677,14 @@ void AsmPrinter::emitPrologLabel(const MachineInstr &MI) {
   if (MMI->getCompactUnwindEncoding() != 0)
     OutStreamer.EmitCompactUnwindEncoding(MMI->getCompactUnwindEncoding());
 
-<<<<<<< HEAD
-  MachineModuleInfo &MMI = MF->getMMI();
-  std::vector<MachineMove> &Moves = MMI.getFrameMoves();
-  bool FoundOne = false;
-  (void)FoundOne;
-  for (std::vector<MachineMove>::iterator I = Moves.begin(),
-         E = Moves.end(); I != E; ++I) {
-=======
   const MachineModuleInfo &MMI = MF->getMMI();
   const std::vector<MCCFIInstruction> &Instrs = MMI.getFrameInstructions();
   bool FoundOne = false;
   (void)FoundOne;
   for (std::vector<MCCFIInstruction>::const_iterator I = Instrs.begin(),
          E = Instrs.end(); I != E; ++I) {
->>>>>>> llvmtrunk/master
     if (I->getLabel() == Label) {
-      EmitCFIFrameMove(*I);
+      emitCFIInstruction(*I);
       FoundOne = true;
     }
   }

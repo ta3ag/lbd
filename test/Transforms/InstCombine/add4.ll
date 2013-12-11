@@ -3,14 +3,6 @@
 define float @test1(float %A, float %B, i1 %C) {
 EntryBlock:
   ;; A*(1 - uitofp i1 C) -> select C, 0, A
-<<<<<<< HEAD
-  %cf = uitofp i1 %C to float
-  %mc = fsub float 1.000000e+00, %cf
-  %p1 = fmul fast float %A, %mc
-  ret float %p1
-; CHECK: @test1
-; CHECK: select i1 %C, float -0.000000e+00, float %A
-=======
   %cf = uitofp i1 %C to float
   %mc = fsub float 1.000000e+00, %cf
   %p1 = fmul fast float %A, %mc
@@ -39,31 +31,26 @@ EntryBlock:
   ret float %sum
 ; CHECK-LABEL: @test3(
 ; CHECK: select i1 %C, float %A, float %B
->>>>>>> llvmtrunk/master
 }
 
 define float @test4(float %A, float %B, i1 %C) {
 EntryBlock:
-  ;; B*(uitofp i1 C) -> select C, B, 0
+  ;;  B*(uitofp i1 C) + A*(1 - uitofp i1 C) -> select C, A, B
   %cf = uitofp i1 %C to float
+  %mc = fsub fast float 1.000000e+00, %cf
+  %p1 = fmul fast float %A, %mc
   %p2 = fmul fast float %B, %cf
-<<<<<<< HEAD
-  ret float %p2
-; CHECK: @test2
-; CHECK: select i1 %C, float %B, float -0.000000e+00
-=======
   %s1 = fadd fast float %p2, %p1
   ret float %s1
 ; CHECK-LABEL: @test4(
 ; CHECK: select i1 %C, float %B, float %A
->>>>>>> llvmtrunk/master
 }
 
 define float @test5(float %A, float %B, i1 %C) {
 EntryBlock:
   ;; A*(1 - uitofp i1 C) + B*(uitofp i1 C) -> select C, A, B
   %cf = uitofp i1 %C to float
-  %mc = fsub float 1.000000e+00, %cf
+  %mc = fsub fast float 1.000000e+00, %cf
   %p1 = fmul fast float %A, %mc
   %p2 = fmul fast float %B, %cf
   %s1 = fadd fast float %p1, %p2
@@ -73,26 +60,11 @@ EntryBlock:
 }
 
 ; PR15952
-<<<<<<< HEAD
-define float @test4(float %A, float %B, i32 %C) {
-=======
 define float @test6(float %A, float %B, i32 %C) {
->>>>>>> llvmtrunk/master
   %cf = uitofp i32 %C to float
   %mc = fsub float 1.000000e+00, %cf
   %p1 = fmul fast float %A, %mc
   ret float %p1
-<<<<<<< HEAD
-; CHECK: @test4
-; CHECK: uitofp
-}
-
-define float @test5(float %A, float %B, i32 %C) {
-  %cf = uitofp i32 %C to float
-  %p2 = fmul fast float %B, %cf
-  ret float %p2
-; CHECK: @test5
-=======
 ; CHECK-LABEL: @test6(
 ; CHECK: uitofp
 }
@@ -102,7 +74,6 @@ define float @test7(float %A, float %B, i32 %C) {
   %p2 = fmul fast float %B, %cf
   ret float %p2
 ; CHECK-LABEL: @test7(
->>>>>>> llvmtrunk/master
 ; CHECK: uitofp
 }
 

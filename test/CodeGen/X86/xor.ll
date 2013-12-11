@@ -142,8 +142,6 @@ entry:
 ; X32-LABEL: test8:
 ; X32:   notl %eax
 }
-<<<<<<< HEAD
-=======
 
 define i32 @test9(i32 %a) nounwind {
   %1 = and i32 %a, 4096
@@ -183,4 +181,3 @@ define i32 @PR17487(i1 %tobool) {
 ; X32-LABEL: PR17487:
 ; X32: andn
 }
->>>>>>> llvmtrunk/master

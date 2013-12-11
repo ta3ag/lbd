@@ -3193,13 +3193,8 @@ error_code BitcodeReader::InitLazyStream() {
   Stream.init(*StreamFile);
 
   unsigned char buf[16];
-<<<<<<< HEAD
-  if (Bytes->readBytes(0, 16, buf, NULL) == -1)
-    return Error("Bitcode stream must be at least 16 bytes in length");
-=======
   if (Bytes->readBytes(0, 16, buf) == -1)
     return Error(BitcodeStreamInvalidSize);
->>>>>>> llvmtrunk/master
 
   if (!isBitcode(buf, buf + 16))
     return Error(InvalidBitcodeSignature);

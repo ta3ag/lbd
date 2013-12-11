@@ -20,19 +20,10 @@
 
 using namespace llvm;
 
-<<<<<<< HEAD
-R600RegisterInfo::R600RegisterInfo(AMDGPUTargetMachine &tm,
-    const TargetInstrInfo &tii)
-: AMDGPURegisterInfo(tm, tii),
-  TM(tm),
-  TII(tii)
-  { }
-=======
 R600RegisterInfo::R600RegisterInfo(AMDGPUTargetMachine &tm)
 : AMDGPURegisterInfo(tm),
   TM(tm)
   { RCW.RegWeight = 0; RCW.WeightLimit = 0;}
->>>>>>> llvmtrunk/master
 
 BitVector R600RegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   BitVector Reserved(getNumRegs());
@@ -90,18 +81,6 @@ const TargetRegisterClass * R600RegisterInfo::getCFGStructurizerRegClass(
   }
 }
 
-<<<<<<< HEAD
-unsigned R600RegisterInfo::getSubRegFromChannel(unsigned Channel) const {
-  switch (Channel) {
-    default: assert(!"Invalid channel index"); return 0;
-    case 0: return AMDGPU::sub0;
-    case 1: return AMDGPU::sub1;
-    case 2: return AMDGPU::sub2;
-    case 3: return AMDGPU::sub3;
-  }
-}
-
-=======
 const RegClassWeight &R600RegisterInfo::getRegClassWeight(
   const TargetRegisterClass *RC) const {
   return RCW;
@@ -119,4 +98,3 @@ bool R600RegisterInfo::isPhysRegLiveAcrossClauses(unsigned Reg) const {
     return true;
   }
 }
->>>>>>> llvmtrunk/master

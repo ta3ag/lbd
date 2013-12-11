@@ -163,6 +163,11 @@ protected:
   /// precision.
   bool FPOnlySP;
 
+  /// If true, the processor supports the Performance Monitor Extensions. These
+  /// include a generic cycle-counter as well as more fine-grained (often
+  /// implementation-specific) events.
+  bool HasPerfMon;
+
   /// HasTrustZone - if true, processor supports TrustZone security extensions
   bool HasTrustZone;
 
@@ -286,6 +291,7 @@ public:
   bool hasVMLxForwarding() const { return HasVMLxForwarding; }
   bool isFPBrccSlow() const { return SlowFPBrcc; }
   bool isFPOnlySP() const { return FPOnlySP; }
+  bool hasPerfMon() const { return HasPerfMon; }
   bool hasTrustZone() const { return HasTrustZone; }
   bool prefers32BitThumb() const { return Pref32BitThumb; }
   bool avoidCPSRPartialUpdate() const { return AvoidCPSRPartialUpdate; }
@@ -302,12 +308,6 @@ public:
 
   bool isTargetIOS() const { return TargetTriple.isiOS(); }
   bool isTargetDarwin() const { return TargetTriple.isOSDarwin(); }
-<<<<<<< HEAD
-  bool isTargetNaCl() const {
-    return TargetTriple.getOS() == Triple::NaCl;
-  }
-  bool isTargetELF() const { return !isTargetDarwin(); }
-=======
   bool isTargetNaCl() const { return TargetTriple.isOSNaCl(); }
   bool isTargetLinux() const { return TargetTriple.isOSLinux(); }
   bool isTargetELF() const { return TargetTriple.isOSBinFormatELF(); }
@@ -319,7 +319,6 @@ public:
   bool isTargetAEABI() const {
     return TargetTriple.getEnvironment() == Triple::EABI;
   }
->>>>>>> llvmtrunk/master
 
   bool isAPCS_ABI() const { return TargetABI == ARM_ABI_APCS; }
   bool isAAPCS_ABI() const { return TargetABI == ARM_ABI_AAPCS; }

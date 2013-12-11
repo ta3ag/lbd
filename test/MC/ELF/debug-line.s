@@ -17,30 +17,18 @@
 // CHECK-NEXT:     Flags [
 // CHECK-NEXT:     ]
 // CHECK-NEXT:     Address: 0x0
-<<<<<<< HEAD
-// CHECK-NEXT:     Offset: 0x44
-// CHECK-NEXT:     Size: 55
-=======
 // CHECK-NEXT:     Offset: 0x50
 // CHECK-NEXT:     Size: 57
->>>>>>> llvmtrunk/master
 // CHECK-NEXT:     Link: 0
 // CHECK-NEXT:     Info: 0
 // CHECK-NEXT:     AddressAlignment: 1
 // CHECK-NEXT:     EntrySize: 0
 // CHECK-NEXT:     SectionData (
-<<<<<<< HEAD
-// CHECK-NEXT:       0000: 33000000 02001C00 00000101 FB0E0D00
-// CHECK-NEXT:       0010: 01010101 00000001 00000100 666F6F2E
-// CHECK-NEXT:       0020: 63000000 00000009 02000000 00000000
-// CHECK-NEXT:       0030: 00150204 000101
-=======
 
 // CHECK-NEXT:       0000: 35000000 02001C00 00000101 FB0E0D00
 // CHECK-NEXT:       0010: 01010101 00000001 00000100 666F6F2E
 // CHECK-NEXT:       0020: 63000000 00000009 02000000 00000000
 // CHECK-NEXT:       0030: 00154B21 02080001 01
->>>>>>> llvmtrunk/master
 // CHECK-NEXT:     )
 // CHECK-NEXT:   }
 
@@ -50,8 +38,6 @@
 	.file 1 "foo.c"
 	.loc 1 4 0
 	subq	$8, %rsp
-<<<<<<< HEAD
-=======
 
 // Test that .loc works with values, not just instructions.
 
@@ -61,4 +47,3 @@
 	.loc 1 6 0
 l:
 	.quad l
->>>>>>> llvmtrunk/master

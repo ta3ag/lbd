@@ -108,11 +108,8 @@ namespace llvm {
 
   FunctionPass *createSystemZISelDag(SystemZTargetMachine &TM,
                                      CodeGenOpt::Level OptLevel);
-<<<<<<< HEAD
-=======
   FunctionPass *createSystemZElimComparePass(SystemZTargetMachine &TM);
   FunctionPass *createSystemZShortenInstPass(SystemZTargetMachine &TM);
   FunctionPass *createSystemZLongBranchPass(SystemZTargetMachine &TM);
->>>>>>> llvmtrunk/master
 } // end namespace llvm;
 #endif

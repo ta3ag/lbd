@@ -7,28 +7,14 @@
 
 ; XFAIL: vg_leak
 
+; Note that some of these tests assume that relocations are either
+; movw/movt or constant pool loads. Different platforms will select
+; different approaches.
+
 @message1 = global [60 x i8] c"The LLVM Compiler Infrastructure\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", align 1
 @temp = common global [60 x i8] zeroinitializer, align 1
 
 define void @t1() nounwind ssp {
-<<<<<<< HEAD
-; ARM: t1
-; ARM: movw r0, :lower16:_message1
-; ARM: movt r0, :upper16:_message1
-; ARM: add r0, r0, #5
-; ARM: movw r1, #64
-; ARM: movw r2, #10
-; ARM: uxtb r1, r1
-; ARM: bl _memset
-; ARM-LONG: t1
-; ARM-LONG: movw r3, :lower16:L_memset$non_lazy_ptr
-; ARM-LONG: movt r3, :upper16:L_memset$non_lazy_ptr
-; ARM-LONG: ldr r3, [r3]
-; ARM-LONG: blx r3
-; THUMB: t1
-; THUMB: movw r0, :lower16:_message1
-; THUMB: movt r0, :upper16:_message1
-=======
 ; ARM-LABEL: t1:
 ; ARM: {{(movw r0, :lower16:_?message1)|(ldr r0, .LCPI)}}
 ; ARM: {{(movt r0, :upper16:_?message1)|(ldr r0, \[r0\])}}
@@ -45,21 +31,14 @@ define void @t1() nounwind ssp {
 ; THUMB-LABEL: t1:
 ; THUMB: {{(movw r0, :lower16:_?message1)|(ldr.n r0, .LCPI)}}
 ; THUMB: {{(movt r0, :upper16:_?message1)|(ldr r0, \[r0\])}}
->>>>>>> llvmtrunk/master
 ; THUMB: adds r0, #5
 ; THUMB: movs r1, #64
 ; THUMB: movt r1, #0
 ; THUMB: movs r2, #10
 ; THUMB: movt r2, #0
-<<<<<<< HEAD
-; THUMB: uxtb r1, r1
-; THUMB: bl _memset
-; THUMB-LONG: t1
-=======
 ; THUMB: and r1, r1, #255
 ; THUMB: bl {{_?}}memset
 ; THUMB-LONG-LABEL: t1:
->>>>>>> llvmtrunk/master
 ; THUMB-LONG: movw r3, :lower16:L_memset$non_lazy_ptr
 ; THUMB-LONG: movt r3, :upper16:L_memset$non_lazy_ptr
 ; THUMB-LONG: ldr r3, [r3]
@@ -71,33 +50,15 @@ define void @t1() nounwind ssp {
 declare void @llvm.memset.p0i8.i32(i8* nocapture, i8, i32, i32, i1) nounwind
 
 define void @t2() nounwind ssp {
-<<<<<<< HEAD
-; ARM: t2
-; ARM: movw r0, :lower16:L_temp$non_lazy_ptr
-; ARM: movt r0, :upper16:L_temp$non_lazy_ptr
-=======
 ; ARM-LABEL: t2:
 ; ARM: {{(movw r0, :lower16:L_temp\$non_lazy_ptr)|(ldr r0, .LCPI)}}
 ; ARM: {{(movt r0, :upper16:L_temp\$non_lazy_ptr)?}}
->>>>>>> llvmtrunk/master
 ; ARM: ldr r0, [r0]
 ; ARM: add r1, r0, #4
 ; ARM: add r0, r0, #16
 ; ARM: movw r2, #17
-; ARM: str r0, [sp]                @ 4-byte Spill
+; ARM: str r0, [sp[[SLOT:[, #0-9]*]]] @ 4-byte Spill
 ; ARM: mov r0, r1
-<<<<<<< HEAD
-; ARM: ldr r1, [sp]                @ 4-byte Reload
-; ARM: bl _memcpy
-; ARM-LONG: t2
-; ARM-LONG: movw r3, :lower16:L_memcpy$non_lazy_ptr
-; ARM-LONG: movt r3, :upper16:L_memcpy$non_lazy_ptr
-; ARM-LONG: ldr r3, [r3]
-; ARM-LONG: blx r3
-; THUMB: t2
-; THUMB: movw r0, :lower16:L_temp$non_lazy_ptr
-; THUMB: movt r0, :upper16:L_temp$non_lazy_ptr
-=======
 ; ARM: ldr r1, [sp[[SLOT]]] @ 4-byte Reload
 ; ARM: bl {{_?}}memcpy
 ; ARM-LONG-LABEL: t2:
@@ -108,21 +69,16 @@ define void @t2() nounwind ssp {
 ; THUMB-LABEL: t2:
 ; THUMB: {{(movw r0, :lower16:L_temp\$non_lazy_ptr)|(ldr.n r0, .LCPI)}}
 ; THUMB: {{(movt r0, :upper16:L_temp\$non_lazy_ptr)?}}
->>>>>>> llvmtrunk/master
 ; THUMB: ldr r0, [r0]
 ; THUMB: adds r1, r0, #4
 ; THUMB: adds r0, #16
 ; THUMB: movs r2, #17
 ; THUMB: movt r2, #0
+; THUMB: str r0, [sp[[SLOT:[, #0-9]*]]] @ 4-byte Spill
 ; THUMB: mov r0, r1
-<<<<<<< HEAD
-; THUMB: bl _memcpy
-; THUMB-LONG: t2
-=======
 ; THUMB: ldr r1,  [sp[[SLOT]]] @ 4-byte Reload
 ; THUMB: bl {{_?}}memcpy
 ; THUMB-LONG-LABEL: t2:
->>>>>>> llvmtrunk/master
 ; THUMB-LONG: movw r3, :lower16:L_memcpy$non_lazy_ptr
 ; THUMB-LONG: movt r3, :upper16:L_memcpy$non_lazy_ptr
 ; THUMB-LONG: ldr r3, [r3]
@@ -134,31 +90,14 @@ define void @t2() nounwind ssp {
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8* nocapture, i8* nocapture, i32, i32, i1) nounwind
 
 define void @t3() nounwind ssp {
-<<<<<<< HEAD
-; ARM: t3
-; ARM: movw r0, :lower16:L_temp$non_lazy_ptr
-; ARM: movt r0, :upper16:L_temp$non_lazy_ptr
-=======
 ; ARM-LABEL: t3:
 ; ARM: {{(movw r0, :lower16:L_temp\$non_lazy_ptr)|(ldr r0, .LCPI)}}
 ; ARM: {{(movt r0, :upper16:L_temp\$non_lazy_ptr)?}}
->>>>>>> llvmtrunk/master
 ; ARM: ldr r0, [r0]
 ; ARM: add r1, r0, #4
 ; ARM: add r0, r0, #16
 ; ARM: movw r2, #10
 ; ARM: mov r0, r1
-<<<<<<< HEAD
-; ARM: bl _memmove
-; ARM-LONG: t3
-; ARM-LONG: movw r3, :lower16:L_memmove$non_lazy_ptr
-; ARM-LONG: movt r3, :upper16:L_memmove$non_lazy_ptr
-; ARM-LONG: ldr r3, [r3]
-; ARM-LONG: blx r3
-; THUMB: t3
-; THUMB: movw r0, :lower16:L_temp$non_lazy_ptr
-; THUMB: movt r0, :upper16:L_temp$non_lazy_ptr
-=======
 ; ARM: bl {{_?}}memmove
 ; ARM-LONG-LABEL: t3:
 ; ARM-LONG: {{(movw r3, :lower16:L_memmove\$non_lazy_ptr)|(ldr r3, .LCPI)}}
@@ -168,21 +107,16 @@ define void @t3() nounwind ssp {
 ; THUMB-LABEL: t3:
 ; THUMB: {{(movw r0, :lower16:L_temp\$non_lazy_ptr)|(ldr.n r0, .LCPI)}}
 ; THUMB: {{(movt r0, :upper16:L_temp\$non_lazy_ptr)?}}
->>>>>>> llvmtrunk/master
 ; THUMB: ldr r0, [r0]
 ; THUMB: adds r1, r0, #4
 ; THUMB: adds r0, #16
 ; THUMB: movs r2, #10
 ; THUMB: movt r2, #0
+; THUMB: str r0, [sp[[SLOT:[, #0-9]*]]] @ 4-byte Spill
 ; THUMB: mov r0, r1
-<<<<<<< HEAD
-; THUMB: bl _memmove
-; THUMB-LONG: t3
-=======
 ; THUMB: ldr r1,  [sp[[SLOT]]] @ 4-byte Reload
 ; THUMB: bl {{_?}}memmove
 ; THUMB-LONG-LABEL: t3:
->>>>>>> llvmtrunk/master
 ; THUMB-LONG: movw r3, :lower16:L_memmove$non_lazy_ptr
 ; THUMB-LONG: movt r3, :upper16:L_memmove$non_lazy_ptr
 ; THUMB-LONG: ldr r3, [r3]
@@ -192,15 +126,9 @@ define void @t3() nounwind ssp {
 }
 
 define void @t4() nounwind ssp {
-<<<<<<< HEAD
-; ARM: t4
-; ARM: movw r0, :lower16:L_temp$non_lazy_ptr
-; ARM: movt r0, :upper16:L_temp$non_lazy_ptr
-=======
 ; ARM-LABEL: t4:
 ; ARM: {{(movw r0, :lower16:L_temp\$non_lazy_ptr)|(ldr r0, .LCPI)}}
 ; ARM: {{(movt r0, :upper16:L_temp\$non_lazy_ptr)?}}
->>>>>>> llvmtrunk/master
 ; ARM: ldr r0, [r0]
 ; ARM: ldr r1, [r0, #16]
 ; ARM: str r1, [r0, #4]
@@ -209,15 +137,9 @@ define void @t4() nounwind ssp {
 ; ARM: ldrh r1, [r0, #24]
 ; ARM: strh r1, [r0, #12]
 ; ARM: bx lr
-<<<<<<< HEAD
-; THUMB: t4
-; THUMB: movw r0, :lower16:L_temp$non_lazy_ptr
-; THUMB: movt r0, :upper16:L_temp$non_lazy_ptr
-=======
 ; THUMB-LABEL: t4:
 ; THUMB: {{(movw r0, :lower16:L_temp\$non_lazy_ptr)|(ldr.n r0, .LCPI)}}
 ; THUMB: {{(movt r0, :upper16:L_temp\$non_lazy_ptr)?}}
->>>>>>> llvmtrunk/master
 ; THUMB: ldr r0, [r0]
 ; THUMB: ldr r1, [r0, #16]
 ; THUMB: str r1, [r0, #4]
@@ -233,15 +155,9 @@ define void @t4() nounwind ssp {
 declare void @llvm.memmove.p0i8.p0i8.i32(i8* nocapture, i8* nocapture, i32, i32, i1) nounwind
 
 define void @t5() nounwind ssp {
-<<<<<<< HEAD
-; ARM: t5
-; ARM: movw r0, :lower16:L_temp$non_lazy_ptr
-; ARM: movt r0, :upper16:L_temp$non_lazy_ptr
-=======
 ; ARM-LABEL: t5:
 ; ARM: {{(movw r0, :lower16:L_temp\$non_lazy_ptr)|(ldr r0, .LCPI)}}
 ; ARM: {{(movt r0, :upper16:L_temp\$non_lazy_ptr)?}}
->>>>>>> llvmtrunk/master
 ; ARM: ldr r0, [r0]
 ; ARM: ldrh r1, [r0, #16]
 ; ARM: strh r1, [r0, #4]
@@ -254,15 +170,9 @@ define void @t5() nounwind ssp {
 ; ARM: ldrh r1, [r0, #24]
 ; ARM: strh r1, [r0, #12]
 ; ARM: bx lr
-<<<<<<< HEAD
-; THUMB: t5
-; THUMB: movw r0, :lower16:L_temp$non_lazy_ptr
-; THUMB: movt r0, :upper16:L_temp$non_lazy_ptr
-=======
 ; THUMB-LABEL: t5:
 ; THUMB: {{(movw r0, :lower16:L_temp\$non_lazy_ptr)|(ldr.n r0, .LCPI)}}
 ; THUMB: {{(movt r0, :upper16:L_temp\$non_lazy_ptr)?}}
->>>>>>> llvmtrunk/master
 ; THUMB: ldr r0, [r0]
 ; THUMB: ldrh r1, [r0, #16]
 ; THUMB: strh r1, [r0, #4]
@@ -280,15 +190,9 @@ define void @t5() nounwind ssp {
 }
 
 define void @t6() nounwind ssp {
-<<<<<<< HEAD
-; ARM: t6
-; ARM: movw r0, :lower16:L_temp$non_lazy_ptr
-; ARM: movt r0, :upper16:L_temp$non_lazy_ptr
-=======
 ; ARM-LABEL: t6:
 ; ARM: {{(movw r0, :lower16:L_temp\$non_lazy_ptr)|(ldr r0, .LCPI)}}
 ; ARM: {{(movt r0, :upper16:L_temp\$non_lazy_ptr)?}}
->>>>>>> llvmtrunk/master
 ; ARM: ldr r0, [r0]
 ; ARM: ldrb r1, [r0, #16]
 ; ARM: strb r1, [r0, #4]
@@ -311,15 +215,9 @@ define void @t6() nounwind ssp {
 ; ARM: ldrb r1, [r0, #25]
 ; ARM: strb r1, [r0, #13]
 ; ARM: bx lr
-<<<<<<< HEAD
-; THUMB: t6
-; THUMB: movw r0, :lower16:L_temp$non_lazy_ptr
-; THUMB: movt r0, :upper16:L_temp$non_lazy_ptr
-=======
 ; THUMB-LABEL: t6:
 ; THUMB: {{(movw r0, :lower16:L_temp\$non_lazy_ptr)|(ldr.n r0, .LCPI)}}
 ; THUMB: {{(movt r0, :upper16:L_temp\$non_lazy_ptr)?}}
->>>>>>> llvmtrunk/master
 ; THUMB: ldr r0, [r0]
 ; THUMB: ldrb r1, [r0, #16]
 ; THUMB: strb r1, [r0, #4]

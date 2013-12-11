@@ -537,11 +537,7 @@ namespace llvm {
 
   /// createDwarfEHPass - This pass mulches exception handling code into a form
   /// adapted to code generation.  Required if using dwarf exception handling.
-<<<<<<< HEAD
-  FunctionPass *createDwarfEHPass(const TargetMachine *tm);
-=======
   FunctionPass *createDwarfEHPass(const TargetMachine *TM);
->>>>>>> llvmtrunk/master
 
   /// createSjLjEHPreparePass - This pass adapts exception handling code to use
   /// the GCC-style builtin setjmp/longjmp (sjlj) to handling EH control flow.

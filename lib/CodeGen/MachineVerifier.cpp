@@ -680,8 +680,8 @@ MachineVerifier::visitMachineBasicBlockBefore(const MachineBasicBlock *MBB) {
       report("MBB live-in list contains non-physical register", MBB);
       continue;
     }
-    regsLive.insert(*I);
-    for (MCSubRegIterator SubRegs(*I, TRI); SubRegs.isValid(); ++SubRegs)
+    for (MCSubRegIterator SubRegs(*I, TRI, /*IncludeSelf=*/true);
+         SubRegs.isValid(); ++SubRegs)
       regsLive.insert(*SubRegs);
   }
   regsLiveInButUnused = regsLive;
@@ -690,8 +690,8 @@ MachineVerifier::visitMachineBasicBlockBefore(const MachineBasicBlock *MBB) {
   assert(MFI && "Function has no frame info");
   BitVector PR = MFI->getPristineRegs(MBB);
   for (int I = PR.find_first(); I>0; I = PR.find_next(I)) {
-    regsLive.insert(I);
-    for (MCSubRegIterator SubRegs(I, TRI); SubRegs.isValid(); ++SubRegs)
+    for (MCSubRegIterator SubRegs(I, TRI, /*IncludeSelf=*/true);
+         SubRegs.isValid(); ++SubRegs)
       regsLive.insert(*SubRegs);
   }
 

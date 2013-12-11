@@ -69,6 +69,20 @@ static const uint32_t UR_TAKEN_WEIGHT = 1;
 /// easily subsume it.
 static const uint32_t UR_NONTAKEN_WEIGHT = 1024*1024 - 1;
 
+/// \brief Weight for a branch taken going into a cold block.
+///
+/// This is the weight for a branch taken toward a block marked
+/// cold.  A block is marked cold if it's postdominated by a
+/// block containing a call to a cold function.  Cold functions
+/// are those marked with attribute 'cold'.
+static const uint32_t CC_TAKEN_WEIGHT = 4;
+
+/// \brief Weight for a branch not-taken into a cold block.
+///
+/// This is the weight for a branch not taken toward a block marked
+/// cold.
+static const uint32_t CC_NONTAKEN_WEIGHT = 64;
+
 static const uint32_t PH_TAKEN_WEIGHT = 20;
 static const uint32_t PH_NONTAKEN_WEIGHT = 12;
 
@@ -193,8 +207,6 @@ bool BranchProbabilityInfo::calcMetadataWeights(BasicBlock *BB) {
   return true;
 }
 
-<<<<<<< HEAD
-=======
 /// \brief Calculate edge weights for edges leading to cold blocks.
 ///
 /// A cold block is one post-dominated by  a block with a call to a
@@ -256,7 +268,6 @@ bool BranchProbabilityInfo::calcColdCallHeuristics(BasicBlock *BB) {
   return true;
 }
 
->>>>>>> llvmtrunk/master
 // Calculate Edge Weights using "Pointer Heuristics". Predict a comparsion
 // between two pointer or pointer and NULL will fail.
 bool BranchProbabilityInfo::calcPointerHeuristics(BasicBlock *BB) {
@@ -475,6 +486,7 @@ bool BranchProbabilityInfo::runOnFunction(Function &F) {
   LastF = &F; // Store the last function we ran on for printing.
   LI = &getAnalysis<LoopInfo>();
   assert(PostDominatedByUnreachable.empty());
+  assert(PostDominatedByColdCall.empty());
 
   // Walk the basic blocks in post-order so that we can build up state about
   // the successors of a block iteratively.
@@ -485,6 +497,8 @@ bool BranchProbabilityInfo::runOnFunction(Function &F) {
     if (calcUnreachableHeuristics(*I))
       continue;
     if (calcMetadataWeights(*I))
+      continue;
+    if (calcColdCallHeuristics(*I))
       continue;
     if (calcLoopBranchHeuristics(*I))
       continue;
@@ -498,6 +512,7 @@ bool BranchProbabilityInfo::runOnFunction(Function &F) {
   }
 
   PostDominatedByUnreachable.clear();
+  PostDominatedByColdCall.clear();
   return false;
 }
 

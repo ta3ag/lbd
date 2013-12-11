@@ -1,13 +1,8 @@
 ;RUN: llc < %s -march=r600 -mcpu=redwood | FileCheck %s
 
 ;CHECK: LOG_IEEE * T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-<<<<<<< HEAD
-;CHECK-NEXT: MUL NON-IEEE * T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-;CHECK-NEXT: EXP_IEEE * T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-=======
 ;CHECK: MUL NON-IEEE * T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], PS}}
 ;CHECK-NEXT: EXP_IEEE * T{{[0-9]+\.[XYZW], PV\.[XYZW]}}
->>>>>>> llvmtrunk/master
 
 define void @test(<4 x float> inreg %reg0) #0 {
    %r0 = extractelement <4 x float> %reg0, i32 0

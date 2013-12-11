@@ -3983,11 +3983,7 @@ const SCEV *ScalarEvolution::createSCEV(Value *V) {
 /// depends on a NSW assumption, and we would only fall back to a conservative
 /// trip count in that case.
 unsigned ScalarEvolution::
-<<<<<<< HEAD
-getSmallConstantTripCount(Loop *L, BasicBlock */*ExitingBlock*/) {
-=======
 getSmallConstantTripCount(Loop *L, BasicBlock * /*ExitingBlock*/) {
->>>>>>> llvmtrunk/master
   const SCEVConstant *ExitCount =
     dyn_cast<SCEVConstant>(getBackedgeTakenCount(L));
   if (!ExitCount)
@@ -4016,11 +4012,7 @@ getSmallConstantTripCount(Loop *L, BasicBlock * /*ExitingBlock*/) {
 /// As explained in the comments for getSmallConstantTripCount, this assumes
 /// that control exits the loop via ExitingBlock.
 unsigned ScalarEvolution::
-<<<<<<< HEAD
-getSmallConstantTripMultiple(Loop *L, BasicBlock */*ExitingBlock*/) {
-=======
 getSmallConstantTripMultiple(Loop *L, BasicBlock * /*ExitingBlock*/) {
->>>>>>> llvmtrunk/master
   const SCEV *ExitCount = getBackedgeTakenCount(L);
   if (ExitCount == getCouldNotCompute())
     return 1;
@@ -4619,27 +4611,6 @@ ScalarEvolution::ComputeExitLimitFromICmp(const Loop *L,
     if (EL.hasAnyInfo()) return EL;
     break;
   }
-<<<<<<< HEAD
-  case ICmpInst::ICMP_SLT: {
-    ExitLimit EL = HowManyLessThans(LHS, RHS, L, true, IsSubExpr);
-    if (EL.hasAnyInfo()) return EL;
-    break;
-  }
-  case ICmpInst::ICMP_SGT: {
-    ExitLimit EL = HowManyLessThans(getNotSCEV(LHS),
-                                    getNotSCEV(RHS), L, true, IsSubExpr);
-    if (EL.hasAnyInfo()) return EL;
-    break;
-  }
-  case ICmpInst::ICMP_ULT: {
-    ExitLimit EL = HowManyLessThans(LHS, RHS, L, false, IsSubExpr);
-    if (EL.hasAnyInfo()) return EL;
-    break;
-  }
-  case ICmpInst::ICMP_UGT: {
-    ExitLimit EL = HowManyLessThans(getNotSCEV(LHS),
-                                    getNotSCEV(RHS), L, false, IsSubExpr);
-=======
   case ICmpInst::ICMP_SLT:
   case ICmpInst::ICMP_ULT: {                    // while (X < Y)
     bool IsSigned = Cond == ICmpInst::ICMP_SLT;
@@ -4651,7 +4622,6 @@ ScalarEvolution::ComputeExitLimitFromICmp(const Loop *L,
   case ICmpInst::ICMP_UGT: {                    // while (X > Y)
     bool IsSigned = Cond == ICmpInst::ICMP_SGT;
     ExitLimit EL = HowManyGreaterThans(LHS, RHS, L, IsSigned, IsSubExpr);
->>>>>>> llvmtrunk/master
     if (EL.hasAnyInfo()) return EL;
     break;
   }
@@ -6441,18 +6411,11 @@ const SCEV *ScalarEvolution::computeBECount(const SCEV *Delta, const SCEV *Step,
 /// a subexpression that cannot overflow before evaluating true.
 ScalarEvolution::ExitLimit
 ScalarEvolution::HowManyLessThans(const SCEV *LHS, const SCEV *RHS,
-<<<<<<< HEAD
-                                  const Loop *L, bool isSigned,
-                                  bool IsSubExpr) {
-  // Only handle:  "ADDREC < LoopInvariant".
-  if (!isLoopInvariant(RHS, L)) return getCouldNotCompute();
-=======
                                   const Loop *L, bool IsSigned,
                                   bool IsSubExpr) {
   // We handle only IV < Invariant
   if (!isLoopInvariant(RHS, L))
     return getCouldNotCompute();
->>>>>>> llvmtrunk/master
 
   const SCEVAddRecExpr *IV = dyn_cast<SCEVAddRecExpr>(LHS);
 
@@ -6460,23 +6423,10 @@ ScalarEvolution::HowManyLessThans(const SCEV *LHS, const SCEV *RHS,
   if (!IV || IV->getLoop() != L || !IV->isAffine())
     return getCouldNotCompute();
 
-<<<<<<< HEAD
-  // Check to see if we have a flag which makes analysis easy.
-  bool NoWrap = false;
-  if (!IsSubExpr) {
-    NoWrap = AddRec->getNoWrapFlags(
-      (SCEV::NoWrapFlags)(((isSigned ? SCEV::FlagNSW : SCEV::FlagNUW))
-                          | SCEV::FlagNW));
-  }
-  if (AddRec->isAffine()) {
-    unsigned BitWidth = getTypeSizeInBits(AddRec->getType());
-    const SCEV *Step = AddRec->getStepRecurrence(*this);
-=======
   bool NoWrap = !IsSubExpr &&
                 IV->getNoWrapFlags(IsSigned ? SCEV::FlagNSW : SCEV::FlagNUW);
 
   const SCEV *Stride = IV->getStepRecurrence(*this);
->>>>>>> llvmtrunk/master
 
   // Avoid negative or zero stride values
   if (!isKnownPositive(Stride))

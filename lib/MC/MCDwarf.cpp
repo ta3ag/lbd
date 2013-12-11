@@ -862,17 +862,6 @@ static void EmitPersonality(MCStreamer &streamer, const MCSymbol &symbol,
   streamer.EmitValue(v, size);
 }
 
-static const MachineLocation TranslateMachineLocation(
-                                                  const MCRegisterInfo &MRI,
-                                                  const MachineLocation &Loc) {
-  unsigned Reg = Loc.getReg() == MachineLocation::VirtualFP ?
-    MachineLocation::VirtualFP :
-    unsigned(MRI.getDwarfRegNum(Loc.getReg(), true));
-  const MachineLocation &NewLoc = Loc.isReg() ?
-    MachineLocation(Reg) : MachineLocation(Reg, Loc.getOffset());
-  return NewLoc;
-}
-
 namespace {
   class FrameEmitterImpl {
     int CFAOffset;
@@ -1304,39 +1293,9 @@ const MCSymbol &FrameEmitterImpl::EmitCIE(MCStreamer &streamer,
 
   // Initial Instructions
 
-<<<<<<< HEAD
-  const MCAsmInfo &MAI = context.getAsmInfo();
-  const std::vector<MachineMove> &Moves = MAI.getInitialFrameState();
-  std::vector<MCCFIInstruction> Instructions;
-
-  for (int i = 0, n = Moves.size(); i != n; ++i) {
-    MCSymbol *Label = Moves[i].getLabel();
-    const MachineLocation &Dst =
-      TranslateMachineLocation(MRI, Moves[i].getDestination());
-    const MachineLocation &Src =
-      TranslateMachineLocation(MRI, Moves[i].getSource());
-
-    if (Dst.isReg()) {
-      assert(Dst.getReg() == MachineLocation::VirtualFP);
-      assert(!Src.isReg());
-      MCCFIInstruction Inst =
-        MCCFIInstruction::createDefCfa(Label, Src.getReg(), -Src.getOffset());
-      Instructions.push_back(Inst);
-    } else {
-      assert(Src.isReg());
-      unsigned Reg = Src.getReg();
-      int Offset = Dst.getOffset();
-      MCCFIInstruction Inst =
-        MCCFIInstruction::createOffset(Label, Reg, Offset);
-      Instructions.push_back(Inst);
-    }
-  }
-
-=======
   const MCAsmInfo *MAI = context.getAsmInfo();
   const std::vector<MCCFIInstruction> &Instructions =
       MAI->getInitialFrameState();
->>>>>>> llvmtrunk/master
   EmitCFIInstructions(streamer, Instructions, NULL);
 
   // Padding
@@ -1468,28 +1427,13 @@ void MCDwarfFrameEmitter::Emit(MCStreamer &Streamer, MCAsmBackend *MAB,
   Streamer.generateCompactUnwindEncodings(MAB);
 
   MCContext &Context = Streamer.getContext();
-  MCObjectFileInfo *MOFI =
-    const_cast<MCObjectFileInfo*>(Context.getObjectFileInfo());
+  const MCObjectFileInfo *MOFI = Context.getObjectFileInfo();
   FrameEmitterImpl Emitter(UsingCFI, IsEH);
   ArrayRef<MCDwarfFrameInfo> FrameArray = Streamer.getFrameInfos();
 
   // Emit the compact unwind info if available.
   if (IsEH && MOFI->getCompactUnwindSection()) {
-    unsigned NumFrameInfos = Streamer.getNumFrameInfos();
     bool SectionEmitted = false;
-<<<<<<< HEAD
-
-    if (NumFrameInfos) {
-      for (unsigned i = 0; i < NumFrameInfos; ++i) {
-        const MCDwarfFrameInfo &Frame = Streamer.getFrameInfo(i);
-        if (Frame.CompactUnwindEncoding == 0) continue;
-        if (!SectionEmitted) {
-          Streamer.SwitchSection(MOFI->getCompactUnwindSection());
-          Streamer.EmitValueToAlignment(Context.getAsmInfo().getPointerSize());
-          SectionEmitted = true;
-        }
-        Emitter.EmitCompactUnwind(Streamer, Frame);
-=======
     for (unsigned i = 0, n = FrameArray.size(); i < n; ++i) {
       const MCDwarfFrameInfo &Frame = FrameArray[i];
       if (Frame.CompactUnwindEncoding == 0) continue;
@@ -1497,13 +1441,14 @@ void MCDwarfFrameEmitter::Emit(MCStreamer &Streamer, MCAsmBackend *MAB,
         Streamer.SwitchSection(MOFI->getCompactUnwindSection());
         Streamer.EmitValueToAlignment(Context.getAsmInfo()->getPointerSize());
         SectionEmitted = true;
->>>>>>> llvmtrunk/master
       }
+      Emitter.EmitCompactUnwind(Streamer, Frame);
     }
   }
 
-  const MCSection &Section = IsEH ? *MOFI->getEHFrameSection() :
-                                    *MOFI->getDwarfFrameSection();
+  const MCSection &Section =
+    IsEH ? *const_cast<MCObjectFileInfo*>(MOFI)->getEHFrameSection() :
+           *MOFI->getDwarfFrameSection();
   Streamer.SwitchSection(&Section);
   MCSymbol *SectionStart = Context.CreateTempSymbol();
   Streamer.EmitLabel(SectionStart);

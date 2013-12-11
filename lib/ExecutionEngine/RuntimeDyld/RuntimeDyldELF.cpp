@@ -347,7 +347,7 @@ void RuntimeDyldELF::resolveAArch64Relocation(const SectionEntry &Section,
     *TargetPtr = Value + Addend;
     break;
   }
-  case ELF::R_AARCH64_PREL32: { // test-shift.ll (.eh_frame)
+  case ELF::R_AARCH64_PREL32: {
     uint64_t Result = Value + Addend - FinalAddress;
     assert(static_cast<int64_t>(Result) >= INT32_MIN &&
            static_cast<int64_t>(Result) <= UINT32_MAX);
@@ -363,19 +363,20 @@ void RuntimeDyldELF::resolveAArch64Relocation(const SectionEntry &Section,
     // "Check that -2^27 <= result < 2^27".
     assert(-(1LL << 27) <= static_cast<int64_t>(BranchImm) &&
            static_cast<int64_t>(BranchImm) < (1LL << 27));
+
+    // AArch64 code is emitted with .rela relocations. The data already in any
+    // bits affected by the relocation on entry is garbage.
+    *TargetPtr &= 0xfc000000U;
     // Immediate goes in bits 25:0 of B and BL.
     *TargetPtr |= static_cast<uint32_t>(BranchImm & 0xffffffcU) >> 2;
     break;
   }
   case ELF::R_AARCH64_MOVW_UABS_G3: {
     uint64_t Result = Value + Addend;
-<<<<<<< HEAD
-=======
 
     // AArch64 code is emitted with .rela relocations. The data already in any
     // bits affected by the relocation on entry is garbage.
     *TargetPtr &= 0xffe0001fU;
->>>>>>> llvmtrunk/master
     // Immediate goes in bits 20:5 of MOVZ/MOVK instruction
     *TargetPtr |= Result >> (48 - 5);
     // Shift must be "lsl #48", in bits 22:21
@@ -384,13 +385,10 @@ void RuntimeDyldELF::resolveAArch64Relocation(const SectionEntry &Section,
   }
   case ELF::R_AARCH64_MOVW_UABS_G2_NC: {
     uint64_t Result = Value + Addend;
-<<<<<<< HEAD
-=======
 
     // AArch64 code is emitted with .rela relocations. The data already in any
     // bits affected by the relocation on entry is garbage.
     *TargetPtr &= 0xffe0001fU;
->>>>>>> llvmtrunk/master
     // Immediate goes in bits 20:5 of MOVZ/MOVK instruction
     *TargetPtr |= ((Result & 0xffff00000000ULL) >> (32 - 5));
     // Shift must be "lsl #32", in bits 22:21
@@ -399,13 +397,10 @@ void RuntimeDyldELF::resolveAArch64Relocation(const SectionEntry &Section,
   }
   case ELF::R_AARCH64_MOVW_UABS_G1_NC: {
     uint64_t Result = Value + Addend;
-<<<<<<< HEAD
-=======
 
     // AArch64 code is emitted with .rela relocations. The data already in any
     // bits affected by the relocation on entry is garbage.
     *TargetPtr &= 0xffe0001fU;
->>>>>>> llvmtrunk/master
     // Immediate goes in bits 20:5 of MOVZ/MOVK instruction
     *TargetPtr |= ((Result & 0xffff0000U) >> (16 - 5));
     // Shift must be "lsl #16", in bits 22:2
@@ -414,13 +409,10 @@ void RuntimeDyldELF::resolveAArch64Relocation(const SectionEntry &Section,
   }
   case ELF::R_AARCH64_MOVW_UABS_G0_NC: {
     uint64_t Result = Value + Addend;
-<<<<<<< HEAD
-=======
 
     // AArch64 code is emitted with .rela relocations. The data already in any
     // bits affected by the relocation on entry is garbage.
     *TargetPtr &= 0xffe0001fU;
->>>>>>> llvmtrunk/master
     // Immediate goes in bits 20:5 of MOVZ/MOVK instruction
     *TargetPtr |= ((Result & 0xffffU) << 5);
     // Shift must be "lsl #0", in bits 22:21.
@@ -436,6 +428,8 @@ void RuntimeDyldELF::resolveARMRelocation(const SectionEntry &Section,
                                           uint32_t Type,
                                           int32_t Addend) {
   // TODO: Add Thumb relocations.
+  uint32_t *Placeholder = reinterpret_cast<uint32_t*>(Section.ObjAddress +
+                                                      Offset);
   uint32_t* TargetPtr = (uint32_t*)(Section.Address + Offset);
   uint32_t FinalAddress = ((Section.LoadAddress + Offset) & 0xFFFFFFFF);
   Value += Addend;
@@ -454,42 +448,49 @@ void RuntimeDyldELF::resolveARMRelocation(const SectionEntry &Section,
 
   // Write a 32bit value to relocation address, taking into account the
   // implicit addend encoded in the target.
-  case ELF::R_ARM_TARGET1 :
-  case ELF::R_ARM_ABS32 :
-    *TargetPtr += Value;
+  case ELF::R_ARM_TARGET1:
+  case ELF::R_ARM_ABS32:
+    *TargetPtr = *Placeholder + Value;
     break;
-
   // Write first 16 bit of 32 bit value to the mov instruction.
   // Last 4 bit should be shifted.
-  case ELF::R_ARM_MOVW_ABS_NC :
+  case ELF::R_ARM_MOVW_ABS_NC:
     // We are not expecting any other addend in the relocation address.
     // Using 0x000F0FFF because MOVW has its 16 bit immediate split into 2
     // non-contiguous fields.
-    assert((*TargetPtr & 0x000F0FFF) == 0);
+    assert((*Placeholder & 0x000F0FFF) == 0);
     Value = Value & 0xFFFF;
-    *TargetPtr |= Value & 0xFFF;
+    *TargetPtr = *Placeholder | (Value & 0xFFF);
     *TargetPtr |= ((Value >> 12) & 0xF) << 16;
     break;
-
   // Write last 16 bit of 32 bit value to the mov instruction.
   // Last 4 bit should be shifted.
-  case ELF::R_ARM_MOVT_ABS :
+  case ELF::R_ARM_MOVT_ABS:
     // We are not expecting any other addend in the relocation address.
     // Use 0x000F0FFF for the same reason as R_ARM_MOVW_ABS_NC.
-    assert((*TargetPtr & 0x000F0FFF) == 0);
+    assert((*Placeholder & 0x000F0FFF) == 0);
+
     Value = (Value >> 16) & 0xFFFF;
-    *TargetPtr |= Value & 0xFFF;
+    *TargetPtr = *Placeholder | (Value & 0xFFF);
     *TargetPtr |= ((Value >> 12) & 0xF) << 16;
     break;
-
   // Write 24 bit relative value to the branch instruction.
   case ELF::R_ARM_PC24 :    // Fall through.
   case ELF::R_ARM_CALL :    // Fall through.
-  case ELF::R_ARM_JUMP24 :
+  case ELF::R_ARM_JUMP24: {
     int32_t RelValue = static_cast<int32_t>(Value - FinalAddress - 8);
     RelValue = (RelValue & 0x03FFFFFC) >> 2;
+    assert((*TargetPtr & 0xFFFFFF) == 0xFFFFFE);
     *TargetPtr &= 0xFF000000;
     *TargetPtr |= RelValue;
+    break;
+  }
+  case ELF::R_ARM_PRIVATE_0:
+    // This relocation is reserved by the ARM ELF ABI for internal use. We
+    // appropriate it here to act as an R_ARM_ABS32 without any addend for use
+    // in the stubs created during JIT (which can't put an addend into the
+    // original object file).
+    *TargetPtr = Value;
     break;
   }
 }
@@ -609,14 +610,10 @@ void RuntimeDyldELF::findOPDEntrySection(ObjectImage &Obj,
       }
 
       uint64_t TargetSymbolOffset;
-<<<<<<< HEAD
-      int64_t TargetAdditionalInfo;
-      check(i->getSymbol(TargetSymbol));
-=======
       symbol_iterator TargetSymbol = i->getSymbol();
->>>>>>> llvmtrunk/master
       check(i->getOffset(TargetSymbolOffset));
-      check(i->getAdditionalInfo(TargetAdditionalInfo));
+      int64_t Addend;
+      check(getELFRelocationAddend(*i, Addend));
 
       i = i.increment(err);
       if (i == e)
@@ -638,7 +635,7 @@ void RuntimeDyldELF::findOPDEntrySection(ObjectImage &Obj,
       section_iterator tsi(Obj.end_sections());
       check(TargetSymbol->getSection(tsi));
       Rel.SectionID = findOrEmitSection(Obj, (*tsi), true, LocalSections);
-      Rel.Addend = (intptr_t)TargetAdditionalInfo;
+      Rel.Addend = (intptr_t)Addend;
       return;
     }
   }
@@ -859,14 +856,8 @@ void RuntimeDyldELF::processRelocationRef(unsigned SectionID,
   uint64_t RelType;
   Check(RelI.getType(RelType));
   int64_t Addend;
-<<<<<<< HEAD
-  Check(RelI.getAdditionalInfo(Addend));
-  SymbolRef Symbol;
-  Check(RelI.getSymbol(Symbol));
-=======
   Check(getELFRelocationAddend(RelI, Addend));
   symbol_iterator Symbol = RelI.getSymbol();
->>>>>>> llvmtrunk/master
 
   // Obtain the symbol name which is referenced in the relocation
   StringRef TargetName;
@@ -1013,7 +1004,7 @@ void RuntimeDyldELF::processRelocationRef(unsigned SectionID,
       uint8_t *StubTargetAddr = createStubFunction(Section.Address +
                                                    Section.StubOffset);
       RelocationEntry RE(SectionID, StubTargetAddr - Section.Address,
-                         ELF::R_ARM_ABS32, Value.Addend);
+                         ELF::R_ARM_PRIVATE_0, Value.Addend);
       if (Value.SymbolName)
         addRelocationForSymbol(RE, Value.SymbolName);
       else

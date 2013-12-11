@@ -350,8 +350,6 @@ bb3:
   ret i32 0
 }
 
-<<<<<<< HEAD
-=======
 
 ; Regression test for PR15707.  %buf1 and %buf2 should not be merged
 ; in this test case.
@@ -374,7 +372,6 @@ define void @myCall_pr15707() {
 }
 
 
->>>>>>> llvmtrunk/master
 ; Check that we don't assert and crash even when there are allocas
 ; outside the declared lifetime regions.
 ;YESCOLOR-LABEL: bad_range:

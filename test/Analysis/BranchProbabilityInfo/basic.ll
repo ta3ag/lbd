@@ -115,8 +115,6 @@ return:
 }
 
 !2 = metadata !{metadata !"branch_weights", i32 7, i32 6, i32 4, i32 4, i32 64}
-<<<<<<< HEAD
-=======
 
 declare void @coldfunc() cold
 
@@ -214,4 +212,3 @@ exit:
   ret i32 %result
 }
 
->>>>>>> llvmtrunk/master

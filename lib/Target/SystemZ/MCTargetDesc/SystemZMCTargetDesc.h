@@ -34,8 +34,6 @@ namespace SystemZMC {
 
   // The offset of the DWARF CFA from the incoming stack pointer.
   const int64_t CFAOffsetFromInitialSP = CallFrameSize;
-<<<<<<< HEAD
-=======
 
   // Maps of asm register numbers to LLVM register numbers, with 0 indicating
   // an invalid register.  In principle we could use 32-bit and 64-bit register
@@ -69,7 +67,6 @@ namespace SystemZMC {
   inline unsigned getRegAsGRH32(unsigned Reg) {
     return GRH32Regs[getFirstReg(Reg)];
   }
->>>>>>> llvmtrunk/master
 }
 
 MCCodeEmitter *createSystemZMCCodeEmitter(const MCInstrInfo &MCII,

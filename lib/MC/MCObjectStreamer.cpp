@@ -105,6 +105,8 @@ const MCExpr *MCObjectStreamer::AddValueSymbols(const MCExpr *Value) {
 void MCObjectStreamer::EmitValueImpl(const MCExpr *Value, unsigned Size) {
   MCDataFragment *DF = getOrCreateDataFragment();
 
+  MCLineEntry::Make(this, getCurrentSection().first);
+
   // Avoid fixups when possible.
   int64_t AbsValue;
   if (AddValueSymbols(Value)->EvaluateAsAbsolute(AbsValue, getAssembler())) {

@@ -212,7 +212,7 @@ static MCRegisterInfo *createARMMCRegisterInfo(StringRef Triple) {
   return X;
 }
 
-static MCAsmInfo *createARMMCAsmInfo(const Target &T, StringRef TT) {
+static MCAsmInfo *createARMMCAsmInfo(const MCRegisterInfo &MRI, StringRef TT) {
   Triple TheTriple(TT);
 
   if (TheTriple.isOSDarwin())
@@ -265,8 +265,6 @@ static MCInstPrinter *createARMMCInstPrinter(const Target &T,
   return 0;
 }
 
-<<<<<<< HEAD
-=======
 static MCRelocationInfo *createARMMCRelocationInfo(StringRef TT,
                                                    MCContext &Ctx) {
   Triple TheTriple(TT);
@@ -276,7 +274,6 @@ static MCRelocationInfo *createARMMCRelocationInfo(StringRef TT,
   return llvm::createMCRelocationInfo(TT, Ctx);
 }
 
->>>>>>> llvmtrunk/master
 namespace {
 
 class ARMMCInstrAnalysis : public MCInstrAnalysis {
@@ -297,15 +294,16 @@ public:
     return MCInstrAnalysis::isConditionalBranch(Inst);
   }
 
-  uint64_t evaluateBranch(const MCInst &Inst, uint64_t Addr,
-                          uint64_t Size) const {
+  bool evaluateBranch(const MCInst &Inst, uint64_t Addr,
+                      uint64_t Size, uint64_t &Target) const {
     // We only handle PCRel branches for now.
     if (Info->get(Inst.getOpcode()).OpInfo[0].OperandType!=MCOI::OPERAND_PCREL)
-      return -1ULL;
+      return false;
 
     int64_t Imm = Inst.getOperand(0).getImm();
     // FIXME: This is not right for thumb.
-    return Addr+Imm+8; // In ARM mode the PC is always off by 8 bytes.
+    Target = Addr+Imm+8; // In ARM mode the PC is always off by 8 bytes.
+    return true;
   }
 };
 
@@ -364,4 +362,10 @@ extern "C" void LLVMInitializeARMTargetMC() {
   // Register the MCInstPrinter.
   TargetRegistry::RegisterMCInstPrinter(TheARMTarget, createARMMCInstPrinter);
   TargetRegistry::RegisterMCInstPrinter(TheThumbTarget, createARMMCInstPrinter);
+
+  // Register the MC relocation info.
+  TargetRegistry::RegisterMCRelocationInfo(TheARMTarget,
+                                           createARMMCRelocationInfo);
+  TargetRegistry::RegisterMCRelocationInfo(TheThumbTarget,
+                                           createARMMCRelocationInfo);
 }

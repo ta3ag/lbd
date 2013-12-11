@@ -65,7 +65,7 @@ namespace {
       void setITState(char Firstcond, char Mask) {
         // (3 - the number of trailing zeros) is the number of then / else.
         unsigned CondBit0 = Firstcond & 1;
-        unsigned NumTZ = CountTrailingZeros_32(Mask);
+        unsigned NumTZ = countTrailingZeros<uint8_t>(Mask);
         unsigned char CCBits = static_cast<unsigned char>(Firstcond & 0xf);
         assert(NumTZ <= 3 && "Invalid IT mask!");
         // push condition codes onto the stack the correct order for the pops
@@ -156,6 +156,9 @@ static DecodeStatus DecodeGPRRegisterClass(MCInst &Inst, unsigned RegNo,
 static DecodeStatus DecodeGPRnopcRegisterClass(MCInst &Inst,
                                                unsigned RegNo, uint64_t Address,
                                                const void *Decoder);
+static DecodeStatus DecodeGPRwithAPSRRegisterClass(MCInst &Inst,
+                                               unsigned RegNo, uint64_t Address,
+                                               const void *Decoder);
 static DecodeStatus DecodetGPRRegisterClass(MCInst &Inst, unsigned RegNo,
                                    uint64_t Address, const void *Decoder);
 static DecodeStatus DecodetcGPRRegisterClass(MCInst &Inst, unsigned RegNo,
@@ -240,8 +243,6 @@ static DecodeStatus DecodeAddrMode6Operand(MCInst &Inst, unsigned Val,
                                uint64_t Address, const void *Decoder);
 static DecodeStatus DecodeVLDST1Instruction(MCInst &Inst, unsigned Val,
                                uint64_t Address, const void *Decoder);
-<<<<<<< HEAD
-=======
 static DecodeStatus DecodeVLDST2Instruction(MCInst &Inst, unsigned Val,
                                uint64_t Address, const void *Decoder);
 static DecodeStatus DecodeVLDST3Instruction(MCInst &Inst, unsigned Val,
@@ -250,7 +251,6 @@ static DecodeStatus DecodeVLDST4Instruction(MCInst &Inst, unsigned Val,
                                uint64_t Address, const void *Decoder);
 static DecodeStatus DecodeVLDInstruction(MCInst &Inst, unsigned Val,
                                uint64_t Address, const void *Decoder);
->>>>>>> llvmtrunk/master
 static DecodeStatus DecodeVSTInstruction(MCInst &Inst, unsigned Val,
                                uint64_t Address, const void *Decoder);
 static DecodeStatus DecodeVLD1DupInstruction(MCInst &Inst, unsigned Val,
@@ -425,7 +425,7 @@ DecodeStatus ARMDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
          "Asked to disassemble an ARM instruction but Subtarget is in Thumb mode!");
 
   // We want to read exactly 4 bytes of data.
-  if (Region.readBytes(Address, 4, (uint8_t*)bytes, NULL) == -1) {
+  if (Region.readBytes(Address, 4, bytes) == -1) {
     Size = 0;
     return MCDisassembler::Fail;
   }
@@ -537,102 +537,9 @@ static bool tryAddingSymbolicOperand(uint64_t Address, int32_t Value,
                                      bool isBranch, uint64_t InstSize,
                                      MCInst &MI, const void *Decoder) {
   const MCDisassembler *Dis = static_cast<const MCDisassembler*>(Decoder);
-  LLVMOpInfoCallback getOpInfo = Dis->getLLVMOpInfoCallback();
-  struct LLVMOpInfo1 SymbolicOp;
-  memset(&SymbolicOp, '\0', sizeof(struct LLVMOpInfo1));
-  SymbolicOp.Value = Value;
-  void *DisInfo = Dis->getDisInfoBlock();
-
-  if (!getOpInfo ||
-      !getOpInfo(DisInfo, Address, 0 /* Offset */, InstSize, 1, &SymbolicOp)) {
-    // Clear SymbolicOp.Value from above and also all other fields.
-    memset(&SymbolicOp, '\0', sizeof(struct LLVMOpInfo1));
-    LLVMSymbolLookupCallback SymbolLookUp = Dis->getLLVMSymbolLookupCallback();
-    if (!SymbolLookUp)
-      return false;
-    uint64_t ReferenceType;
-    if (isBranch)
-       ReferenceType = LLVMDisassembler_ReferenceType_In_Branch;
-    else
-       ReferenceType = LLVMDisassembler_ReferenceType_InOut_None;
-    const char *ReferenceName;
-    uint64_t SymbolValue = 0x00000000ffffffffULL & Value;
-    const char *Name = SymbolLookUp(DisInfo, SymbolValue, &ReferenceType,
-                                    Address, &ReferenceName);
-    if (Name) {
-      SymbolicOp.AddSymbol.Name = Name;
-      SymbolicOp.AddSymbol.Present = true;
-    }
-    // For branches always create an MCExpr so it gets printed as hex address.
-    else if (isBranch) {
-      SymbolicOp.Value = Value;
-    }
-    if(ReferenceType == LLVMDisassembler_ReferenceType_Out_SymbolStub)
-      (*Dis->CommentStream) << "symbol stub for: " << ReferenceName;
-    if (!Name && !isBranch)
-      return false;
-  }
-
-  MCContext *Ctx = Dis->getMCContext();
-  const MCExpr *Add = NULL;
-  if (SymbolicOp.AddSymbol.Present) {
-    if (SymbolicOp.AddSymbol.Name) {
-      StringRef Name(SymbolicOp.AddSymbol.Name);
-      MCSymbol *Sym = Ctx->GetOrCreateSymbol(Name);
-      Add = MCSymbolRefExpr::Create(Sym, *Ctx);
-    } else {
-      Add = MCConstantExpr::Create(SymbolicOp.AddSymbol.Value, *Ctx);
-    }
-  }
-
-  const MCExpr *Sub = NULL;
-  if (SymbolicOp.SubtractSymbol.Present) {
-    if (SymbolicOp.SubtractSymbol.Name) {
-      StringRef Name(SymbolicOp.SubtractSymbol.Name);
-      MCSymbol *Sym = Ctx->GetOrCreateSymbol(Name);
-      Sub = MCSymbolRefExpr::Create(Sym, *Ctx);
-    } else {
-      Sub = MCConstantExpr::Create(SymbolicOp.SubtractSymbol.Value, *Ctx);
-    }
-  }
-
-  const MCExpr *Off = NULL;
-  if (SymbolicOp.Value != 0)
-    Off = MCConstantExpr::Create(SymbolicOp.Value, *Ctx);
-
-  const MCExpr *Expr;
-  if (Sub) {
-    const MCExpr *LHS;
-    if (Add)
-      LHS = MCBinaryExpr::CreateSub(Add, Sub, *Ctx);
-    else
-      LHS = MCUnaryExpr::CreateMinus(Sub, *Ctx);
-    if (Off != 0)
-      Expr = MCBinaryExpr::CreateAdd(LHS, Off, *Ctx);
-    else
-      Expr = LHS;
-  } else if (Add) {
-    if (Off != 0)
-      Expr = MCBinaryExpr::CreateAdd(Add, Off, *Ctx);
-    else
-      Expr = Add;
-  } else {
-    if (Off != 0)
-      Expr = Off;
-    else
-      Expr = MCConstantExpr::Create(0, *Ctx);
-  }
-
-  if (SymbolicOp.VariantKind == LLVMDisassembler_VariantKind_ARM_HI16)
-    MI.addOperand(MCOperand::CreateExpr(ARMMCExpr::CreateUpper16(Expr, *Ctx)));
-  else if (SymbolicOp.VariantKind == LLVMDisassembler_VariantKind_ARM_LO16)
-    MI.addOperand(MCOperand::CreateExpr(ARMMCExpr::CreateLower16(Expr, *Ctx)));
-  else if (SymbolicOp.VariantKind == LLVMDisassembler_VariantKind_None)
-    MI.addOperand(MCOperand::CreateExpr(Expr));
-  else
-    llvm_unreachable("bad SymbolicOp.VariantKind");
-
-  return true;
+  // FIXME: Does it make sense for value to be negative?
+  return Dis->tryAddingSymbolicOperand(MI, (uint32_t)Value, Address, isBranch,
+                                       /* Offset */ 0, InstSize);
 }
 
 /// tryAddingPcLoadReferenceComment - trys to add a comment as to what is being
@@ -647,17 +554,7 @@ static bool tryAddingSymbolicOperand(uint64_t Address, int32_t Value,
 static void tryAddingPcLoadReferenceComment(uint64_t Address, int Value,
                                             const void *Decoder) {
   const MCDisassembler *Dis = static_cast<const MCDisassembler*>(Decoder);
-  LLVMSymbolLookupCallback SymbolLookUp = Dis->getLLVMSymbolLookupCallback();
-  if (SymbolLookUp) {
-    void *DisInfo = Dis->getDisInfoBlock();
-    uint64_t ReferenceType;
-    ReferenceType = LLVMDisassembler_ReferenceType_In_PCrel_Load;
-    const char *ReferenceName;
-    (void)SymbolLookUp(DisInfo, Value, &ReferenceType, Address, &ReferenceName);
-    if(ReferenceType == LLVMDisassembler_ReferenceType_Out_LitPool_SymAddr ||
-       ReferenceType == LLVMDisassembler_ReferenceType_Out_LitPool_CstrAddr)
-      (*Dis->CommentStream) << "literal pool for: " << ReferenceName;
-  }
+  Dis->tryAddingPcLoadReferenceComment(Value, Address);
 }
 
 // Thumb1 instructions don't have explicit S bits.  Rather, they
@@ -796,7 +693,7 @@ DecodeStatus ThumbDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
          "Asked to disassemble in Thumb mode but Subtarget is in ARM mode!");
 
   // We want to read exactly 2 bytes of data.
-  if (Region.readBytes(Address, 2, (uint8_t*)bytes, NULL) == -1) {
+  if (Region.readBytes(Address, 2, bytes) == -1) {
     Size = 0;
     return MCDisassembler::Fail;
   }
@@ -848,7 +745,7 @@ DecodeStatus ThumbDisassembler::getInstruction(MCInst &MI, uint64_t &Size,
   }
 
   // We want to read exactly 4 bytes of data.
-  if (Region.readBytes(Address, 4, (uint8_t*)bytes, NULL) == -1) {
+  if (Region.readBytes(Address, 4, bytes) == -1) {
     Size = 0;
     return MCDisassembler::Fail;
   }
@@ -999,6 +896,21 @@ DecodeGPRnopcRegisterClass(MCInst &Inst, unsigned RegNo,
   return S;
 }
 
+static DecodeStatus
+DecodeGPRwithAPSRRegisterClass(MCInst &Inst, unsigned RegNo,
+                               uint64_t Address, const void *Decoder) {
+  DecodeStatus S = MCDisassembler::Success;
+
+  if (RegNo == 15)
+  {
+    Inst.addOperand(MCOperand::CreateReg(ARM::APSR_NZCV));
+    return MCDisassembler::Success;
+  }
+
+  Check(S, DecodeGPRRegisterClass(Inst, RegNo, Address, Decoder));
+  return S;
+}
+
 static DecodeStatus DecodetGPRRegisterClass(MCInst &Inst, unsigned RegNo,
                                    uint64_t Address, const void *Decoder) {
   if (RegNo > 7)
@@ -1132,7 +1044,7 @@ static const uint16_t QPRDecoderTable[] = {
 
 static DecodeStatus DecodeQPRRegisterClass(MCInst &Inst, unsigned RegNo,
                                    uint64_t Address, const void *Decoder) {
-  if (RegNo > 31)
+  if (RegNo > 31 || (RegNo & 1) != 0)
     return MCDisassembler::Fail;
   RegNo >>= 1;
 
@@ -1310,7 +1222,7 @@ static DecodeStatus DecodeRegListOperand(MCInst &Inst, unsigned Val,
   }
 
   // Empty register lists are not allowed.
-  if (CountPopulation_32(Val) == 0) return MCDisassembler::Fail;
+  if (Val == 0) return MCDisassembler::Fail;
   for (unsigned i = 0; i < 16; ++i) {
     if (Val & (1 << i)) {
       if (!Check(S, DecodeGPRRegisterClass(Inst, i, Address, Decoder)))
@@ -2590,8 +2502,6 @@ static DecodeStatus DecodeVLDInstruction(MCInst &Inst, unsigned Insn,
   return S;
 }
 
-<<<<<<< HEAD
-=======
 static DecodeStatus DecodeVLDST1Instruction(MCInst &Inst, unsigned Insn,
                                    uint64_t Address, const void *Decoder) {
   unsigned type = fieldFromInstruction(Insn, 8, 4);
@@ -2643,7 +2553,6 @@ static DecodeStatus DecodeVLDST4Instruction(MCInst &Inst, unsigned Insn,
               : DecodeVSTInstruction(Inst, Insn, Address, Decoder);
 }
 
->>>>>>> llvmtrunk/master
 static DecodeStatus DecodeVSTInstruction(MCInst &Inst, unsigned Insn,
                                  uint64_t Address, const void *Decoder) {
   DecodeStatus S = MCDisassembler::Success;

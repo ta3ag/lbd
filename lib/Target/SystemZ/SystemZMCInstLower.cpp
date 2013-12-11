@@ -15,23 +15,6 @@
 
 using namespace llvm;
 
-<<<<<<< HEAD
-// Where relaxable pairs of reloc-generating instructions exist,
-// we tend to use the longest form by default, since that produces
-// correct assembly in cases where no relaxation is performed.
-// If Opcode is one such instruction, return the opcode for the
-// shortest possible form instead, otherwise return Opcode itself.
-static unsigned getShortenedInstr(unsigned Opcode) {
-  switch (Opcode) {
-  case SystemZ::BRCL:  return SystemZ::BRC;
-  case SystemZ::JG:    return SystemZ::J;
-  case SystemZ::BRASL: return SystemZ::BRAS;
-  }
-  return Opcode;
-}
-
-=======
->>>>>>> llvmtrunk/master
 // Return the VK_* enumeration for MachineOperand target flags Flags.
 static MCSymbolRefExpr::VariantKind getVariantKind(unsigned Flags) {
   switch (Flags & SystemZII::MO_SYMBOL_MODIFIER) {

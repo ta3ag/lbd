@@ -13,16 +13,36 @@
 ; CHECK-NEXT: DW_AT_decl_file{{.*}}(0x0[[F2:[0-9]]])
 ; CHECK-NEXT: DW_AT_decl_line{{.*}}(0x01)
 ; CHECK-NOT: NULL
-; CHECK: DW_TAG_variable
+; CHECK: [[I:0x[0-9a-f]*]]:{{ *}}DW_TAG_variable
 ; CHECK-NEXT: DW_AT_name{{.*}}= "i"
+; CHECK-NOT: NULL
+; CHECK: DW_TAG_subprogram
+; CHECK-NEXT: DW_AT_MIPS_linkage_name
+; CHECK-NEXT: DW_AT_name{{.*}}= "f1"
+; CHECK: [[FUNC1:0x[0-9a-f]*]]:{{ *}}DW_TAG_subprogram
+; CHECK-NEXT: DW_AT_MIPS_linkage_name
+; CHECK-NEXT: DW_AT_name{{.*}}= "f1"
 ; CHECK: NULL
+; CHECK-NOT: NULL
+; CHECK: [[FOO:0x[0-9a-f]*]]:{{ *}}DW_TAG_structure_type
+; CHECK-NEXT: DW_AT_name{{.*}}= "foo"
+; CHECK-NEXT: DW_AT_declaration
+; CHECK-NOT: NULL
+; CHECK: [[BAR:0x[0-9a-f]*]]:{{ *}}DW_TAG_structure_type
+; CHECK-NEXT: DW_AT_name{{.*}}= "bar"
+; CHECK: NULL
+; CHECK: NULL
+; CHECK: NULL
+
 ; CHECK-NOT: NULL
 ; CHECK: DW_TAG_imported_module
 ; This is a bug, it should be in F2 but it inherits the file from its
 ; enclosing scope
 ; CHECK-NEXT: DW_AT_decl_file{{.*}}(0x0[[F1]])
-; CHECK-NEXT: DW_AT_decl_line{{.*}}(0x04)
+; CHECK-NEXT: DW_AT_decl_line{{.*}}(0x08)
 ; CHECK-NEXT: DW_AT_import{{.*}}=> {[[NS2]]})
+; CHECK: NULL
+; CHECK-NOT: NULL
 
 ; CHECK: DW_TAG_subprogram
 ; CHECK-NEXT: DW_AT_MIPS_linkage_name
@@ -30,111 +50,156 @@
 ; CHECK-NOT: NULL
 ; CHECK: DW_TAG_imported_module
 ; CHECK-NEXT: DW_AT_decl_file{{.*}}(0x0[[F2]])
-; CHECK-NEXT: DW_AT_decl_line{{.*}}(0x0e)
+; CHECK-NEXT: DW_AT_decl_line{{.*}}(0x12)
 ; CHECK-NEXT: DW_AT_import{{.*}}=> {[[NS1]]})
+; CHECK-NOT: NULL
+; CHECK: DW_TAG_imported_declaration
+; CHECK-NEXT: DW_AT_decl_file{{.*}}(0x0[[F2]])
+; CHECK-NEXT: DW_AT_decl_line{{.*}}(0x13)
+; CHECK-NEXT: DW_AT_import{{.*}}=> {[[FOO]]})
+; CHECK-NOT: NULL
+; CHECK: DW_TAG_imported_declaration
+; CHECK-NEXT: DW_AT_decl_file{{.*}}(0x0[[F2]])
+; CHECK-NEXT: DW_AT_decl_line{{.*}}(0x14)
+; CHECK-NEXT: DW_AT_import{{.*}}=> {[[BAR]]})
+; CHECK-NOT: NULL
+; CHECK: DW_TAG_imported_declaration
+; CHECK-NEXT: DW_AT_decl_file{{.*}}(0x0[[F2]])
+; CHECK-NEXT: DW_AT_decl_line{{.*}}(0x15)
+; CHECK-NEXT: DW_AT_import{{.*}}=> {[[FUNC1]]})
+; CHECK-NOT: NULL
+; CHECK: DW_TAG_imported_declaration
+; CHECK-NEXT: DW_AT_decl_file{{.*}}(0x0[[F2]])
+; CHECK-NEXT: DW_AT_decl_line{{.*}}(0x16)
+; CHECK-NEXT: DW_AT_import{{.*}}=> {[[I]]})
+; CHECK-NOT: NULL
+; CHECK: [[X:0x[0-9a-f]*]]:{{ *}}DW_TAG_imported_module
+; CHECK-NEXT: DW_AT_decl_file{{.*}}(0x0[[F2]])
+; CHECK-NEXT: DW_AT_decl_line{{.*}}(0x18)
+; CHECK-NEXT: DW_AT_import{{.*}}=> {[[NS1]]})
+; CHECK-NEXT: DW_AT_name{{.*}}"X"
+; CHECK-NOT: NULL
+; CHECK: DW_TAG_imported_module
+; CHECK-NEXT: DW_AT_decl_file{{.*}}(0x0[[F2]])
+; CHECK-NEXT: DW_AT_decl_line{{.*}}(0x19)
+; CHECK-NEXT: DW_AT_import{{.*}}=> {[[X]]})
+; CHECK-NEXT: DW_AT_name{{.*}}"Y"
 ; CHECK-NOT: NULL
 ; CHECK: DW_TAG_lexical_block
 ; CHECK-NOT: NULL
 ; CHECK: DW_TAG_imported_module
 ; CHECK-NEXT: DW_AT_decl_file{{.*}}(0x0[[F2]])
-; CHECK-NEXT: DW_AT_decl_line{{.*}}(0x0b)
+; CHECK-NEXT: DW_AT_decl_line{{.*}}(0x0f)
 ; CHECK-NEXT: DW_AT_import{{.*}}=> {[[NS2]]})
+; CHECK: NULL
+; CHECK: NULL
+; CHECK-NOT: NULL
+
+; CHECK: DW_TAG_imported_module
+; Same bug as above, this should be F2, not F1
+; CHECK-NEXT: DW_AT_decl_file{{.*}}(0x0[[F1]])
+; CHECK-NEXT: DW_AT_decl_line{{.*}}(0x0b)
+; CHECK-NEXT: DW_AT_import{{.*}}=> {[[NS1]]})
 
 ; CHECK: file_names[  [[F1]]]{{.*}}debug-info-namespace.cpp
 ; CHECK: file_names[  [[F2]]]{{.*}}foo.cpp
 
 ; IR generated from clang/test/CodeGenCXX/debug-info-namespace.cpp, file paths
-; changed to protect the guilty. The C++ source code is simply:
+; changed to protect the guilty. The C++ source code is:
 ; namespace A {
 ; #line 1 "foo.cpp"
 ; namespace B {
 ; int i;
+; void f1() { }
+; void f1(int) { }
+; struct foo;
+; struct bar { };
 ; }
 ; using namespace B;
 ; }
 ;
 ; using namespace A;
-; 
+;
 ; int func(bool b) {
 ;   if (b) {
 ;     using namespace A::B;
 ;     return i;
 ;   }
 ;   using namespace A;
-;   return B::i;
+;   using B::foo;
+;   using B::bar;
+;   using B::f1;
+;   using B::i;
+;   bar x;
+;   namespace X = A;
+;   namespace Y = X;
+;   return i + X::B::i + Y::B::i;
 ; }
 
+%"struct.A::B::bar" = type { i8 }
+
 @_ZN1A1B1iE = global i32 0, align 4
+
+; Function Attrs: nounwind uwtable
+define void @_ZN1A1B2f1Ev() #0 {
+entry:
+  ret void, !dbg !41
+}
+
+; Function Attrs: nounwind uwtable
+define void @_ZN1A1B2f1Ei(i32) #0 {
+entry:
+  %.addr = alloca i32, align 4
+  store i32 %0, i32* %.addr, align 4
+  call void @llvm.dbg.declare(metadata !{i32* %.addr}, metadata !42), !dbg !43
+  ret void, !dbg !43
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata) #1
 
 ; Function Attrs: nounwind uwtable
 define i32 @_Z4funcb(i1 zeroext %b) #0 {
 entry:
   %retval = alloca i32, align 4
   %b.addr = alloca i8, align 1
+  %x = alloca %"struct.A::B::bar", align 1
   %frombool = zext i1 %b to i8
   store i8 %frombool, i8* %b.addr, align 1
-  call void @llvm.dbg.declare(metadata !{i8* %b.addr}, metadata !21), !dbg !22
-  %0 = load i8* %b.addr, align 1, !dbg !23
-  %tobool = trunc i8 %0 to i1, !dbg !23
-  br i1 %tobool, label %if.then, label %if.end, !dbg !23
+  call void @llvm.dbg.declare(metadata !{i8* %b.addr}, metadata !44), !dbg !45
+  %0 = load i8* %b.addr, align 1, !dbg !46
+  %tobool = trunc i8 %0 to i1, !dbg !46
+  br i1 %tobool, label %if.then, label %if.end, !dbg !46
 
 if.then:                                          ; preds = %entry
-  %1 = load i32* @_ZN1A1B1iE, align 4, !dbg !24
-  store i32 %1, i32* %retval, !dbg !24
-  br label %return, !dbg !24
+  %1 = load i32* @_ZN1A1B1iE, align 4, !dbg !47
+  store i32 %1, i32* %retval, !dbg !47
+  br label %return, !dbg !47
 
 if.end:                                           ; preds = %entry
-  %2 = load i32* @_ZN1A1B1iE, align 4, !dbg !25
-  store i32 %2, i32* %retval, !dbg !25
-  br label %return, !dbg !25
+  call void @llvm.dbg.declare(metadata !{%"struct.A::B::bar"* %x}, metadata !48), !dbg !49
+  %2 = load i32* @_ZN1A1B1iE, align 4, !dbg !50
+  %3 = load i32* @_ZN1A1B1iE, align 4, !dbg !50
+  %add = add nsw i32 %2, %3, !dbg !50
+  %4 = load i32* @_ZN1A1B1iE, align 4, !dbg !50
+  %add1 = add nsw i32 %add, %4, !dbg !50
+  store i32 %add1, i32* %retval, !dbg !50
+  br label %return, !dbg !50
 
 return:                                           ; preds = %if.end, %if.then
-  %3 = load i32* %retval, !dbg !26
-  ret i32 %3, !dbg !26
+  %5 = load i32* %retval, !dbg !51
+  ret i32 %5, !dbg !51
 }
 
-<<<<<<< HEAD
-; Function Attrs: nounwind readnone
-declare void @llvm.dbg.declare(metadata, metadata) #1
-
-attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf"="true" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "unsafe-fp-math"="false" "use-soft-float"="false" }
-=======
 attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "unsafe-fp-math"="false" "use-soft-float"="false" }
->>>>>>> llvmtrunk/master
 attributes #1 = { nounwind readnone }
 
 !llvm.dbg.cu = !{!0}
 !llvm.module.flags = !{!52}
 
-!0 = metadata !{i32 786449, metadata !1, i32 4, metadata !"clang version 3.3 ", i1 false, metadata !"", i32 0, metadata !2, metadata !2, metadata !3, metadata !11, metadata !15, metadata !""} ; [ DW_TAG_compile_unit ] [/usr/local/google/home/blaikie/dev/llvm/src/tools/clang//usr/local/google/home/blaikie/dev/llvm/src/tools/clang/test/CodeGenCXX/debug-info-namespace.cpp] [DW_LANG_C_plus_plus]
-!1 = metadata !{metadata !"/usr/local/google/home/blaikie/dev/llvm/src/tools/clang/test/CodeGenCXX/debug-info-namespace.cpp", metadata !"/usr/local/google/home/blaikie/dev/llvm/src/tools/clang"}
+!0 = metadata !{i32 786449, metadata !1, i32 4, metadata !"clang version 3.4 ", i1 false, metadata !"", i32 0, metadata !2, metadata !2, metadata !3, metadata !19, metadata !21, metadata !""} ; [ DW_TAG_compile_unit ] [/usr/local/google/home/blaikie/dev/llvm/build/clang/debug//usr/local/google/home/blaikie/dev/llvm/src/tools/clang/test/CodeGenCXX/debug-info-namespace.cpp] [DW_LANG_C_plus_plus]
+!1 = metadata !{metadata !"/usr/local/google/home/blaikie/dev/llvm/src/tools/clang/test/CodeGenCXX/debug-info-namespace.cpp", metadata !"/usr/local/google/home/blaikie/dev/llvm/build/clang/debug"}
 !2 = metadata !{i32 0}
-<<<<<<< HEAD
-!3 = metadata !{metadata !4}
-!4 = metadata !{i32 786478, metadata !5, metadata !6, metadata !"func", metadata !"func", metadata !"_Z4funcb", i32 9, metadata !7, i1 false, i1 true, i32 0, i32 0, null, i32 256, i1 false, i32 (i1)* @_Z4funcb, null, null, metadata !2, i32 9} ; [ DW_TAG_subprogram ] [line 9] [def] [func]
-!5 = metadata !{metadata !"foo.cpp", metadata !"/usr/local/google/home/blaikie/dev/llvm/src/tools/clang"}
-!6 = metadata !{i32 786473, metadata !5}          ; [ DW_TAG_file_type ] [/usr/local/google/home/blaikie/dev/llvm/build/clang/debug/foo.cpp]
-!7 = metadata !{i32 786453, i32 0, i32 0, metadata !"", i32 0, i64 0, i64 0, i64 0, i32 0, null, metadata !8, i32 0, i32 0} ; [ DW_TAG_subroutine_type ] [line 0, size 0, align 0, offset 0] [from ]
-!8 = metadata !{metadata !9, metadata !10}
-!9 = metadata !{i32 786468, null, null, metadata !"int", i32 0, i64 32, i64 32, i64 0, i32 0, i32 5} ; [ DW_TAG_base_type ] [int] [line 0, size 32, align 32, offset 0, enc DW_ATE_signed]
-!10 = metadata !{i32 786468, null, null, metadata !"bool", i32 0, i64 8, i64 8, i64 0, i32 0, i32 2} ; [ DW_TAG_base_type ] [bool] [line 0, size 8, align 8, offset 0, enc DW_ATE_boolean]
-!11 = metadata !{metadata !12}
-!12 = metadata !{i32 786484, i32 0, metadata !13, metadata !"i", metadata !"i", metadata !"_ZN1A1B1iE", metadata !6, i32 2, metadata !9, i32 0, i32 1, i32* @_ZN1A1B1iE, null} ; [ DW_TAG_variable ] [i] [line 2] [def]
-!13 = metadata !{i32 786489, metadata !5, metadata !14, metadata !"B", i32 1} ; [ DW_TAG_namespace ] [B] [line 1]
-!14 = metadata !{i32 786489, metadata !1, null, metadata !"A", i32 3} ; [ DW_TAG_namespace ] [A] [line 3]
-!15 = metadata !{metadata !16, metadata !17, metadata !18, metadata !20}
-!16 = metadata !{i32 786490, metadata !14, metadata !13, i32 4} ; [ DW_TAG_imported_module ]
-!17 = metadata !{i32 786490, metadata !0, metadata !14, i32 7} ; [ DW_TAG_imported_module ]
-!18 = metadata !{i32 786490, metadata !19, metadata !13, i32 11} ; [ DW_TAG_imported_module ]
-!19 = metadata !{i32 786443, metadata !5, metadata !4, i32 10, i32 0, i32 0} ; [ DW_TAG_lexical_block ] [/usr/local/google/home/blaikie/dev/llvm/build/clang/debug/foo.cpp]
-!20 = metadata !{i32 786490, metadata !4, metadata !14, i32 14} ; [ DW_TAG_imported_module ]
-!21 = metadata !{i32 786689, metadata !4, metadata !"b", metadata !6, i32 16777225, metadata !10, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [b] [line 9]
-!22 = metadata !{i32 9, i32 0, metadata !4, null}
-!23 = metadata !{i32 10, i32 0, metadata !4, null}
-!24 = metadata !{i32 12, i32 0, metadata !19, null}
-!25 = metadata !{i32 15, i32 0, metadata !4, null}
-!26 = metadata !{i32 16, i32 0, metadata !4, null}
-=======
 !3 = metadata !{metadata !4, metadata !10, metadata !14}
 !4 = metadata !{i32 786478, metadata !5, metadata !6, metadata !"f1", metadata !"f1", metadata !"_ZN1A1B2f1Ev", i32 3, metadata !8, i1 false, i1 true, i32 0, i32 0, null, i32 256, i1 false, void ()* @_ZN1A1B2f1Ev, null, null, metadata !2, i32 3} ; [ DW_TAG_subprogram ] [line 3] [def] [f1]
 !5 = metadata !{metadata !"foo.cpp", metadata !"/usr/local/google/home/blaikie/dev/llvm/build/clang/debug"}
@@ -185,4 +250,3 @@ attributes #1 = { nounwind readnone }
 !50 = metadata !{i32 26, i32 0, metadata !14, null}
 !51 = metadata !{i32 27, i32 0, metadata !14, null}
 !52 = metadata !{i32 1, metadata !"Debug Info Version", i32 1}
->>>>>>> llvmtrunk/master

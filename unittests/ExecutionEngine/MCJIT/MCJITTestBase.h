@@ -37,33 +37,8 @@ protected:
   IRBuilder<> Builder;
   std::string BuilderTriple;
 
-<<<<<<< HEAD
-  MCJITTestBase()
-    : OptLevel(CodeGenOpt::None)
-    , RelocModel(Reloc::Default)
-    , CodeModel(CodeModel::Default)
-    , MArch("")
-    , Builder(Context)
-    , MM(new SectionMemoryManager)
-  {
-    // The architectures below are known to be compatible with MCJIT as they
-    // are copied from test/ExecutionEngine/MCJIT/lit.local.cfg and should be
-    // kept in sync.
-    SupportedArchs.push_back(Triple::arm);
-    SupportedArchs.push_back(Triple::mips);
-    SupportedArchs.push_back(Triple::x86);
-    SupportedArchs.push_back(Triple::x86_64);
-
-    // The operating systems below are known to be incompatible with MCJIT as
-    // they are copied from the test/ExecutionEngine/MCJIT/lit.local.cfg and
-    // should be kept in sync.
-    UnsupportedOSs.push_back(Triple::Cygwin);
-    UnsupportedOSs.push_back(Triple::Darwin);
-  }
-=======
   TrivialModuleBuilder(const std::string &Triple)
     : Builder(Context), BuilderTriple(Triple) {}
->>>>>>> llvmtrunk/master
 
   Module *createEmptyModule(StringRef Name = StringRef()) {
     Module * M = new Module(Name, Context);
@@ -348,7 +323,7 @@ protected:
     std::string Error;
     TheJIT.reset(EB.setEngineKind(EngineKind::JIT)
                  .setUseMCJIT(true) /* can this be folded into the EngineKind enum? */
-                 .setJITMemoryManager(MM)
+                 .setMCJITMemoryManager(MM)
                  .setErrorStr(&Error)
                  .setOptLevel(CodeGenOpt::None)
                  .setAllocateGVsWithCode(false) /*does this do anything?*/
@@ -367,14 +342,8 @@ protected:
   CodeModel::Model CodeModel;
   StringRef MArch;
   SmallVector<std::string, 1> MAttrs;
-  OwningPtr<TargetMachine> TM;
   OwningPtr<ExecutionEngine> TheJIT;
-<<<<<<< HEAD
-  IRBuilder<> Builder;
-  JITMemoryManager *MM;
-=======
   RTDyldMemoryManager *MM;
->>>>>>> llvmtrunk/master
 
   OwningPtr<Module> M;
 };

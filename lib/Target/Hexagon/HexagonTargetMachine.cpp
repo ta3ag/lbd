@@ -15,6 +15,7 @@
 #include "Hexagon.h"
 #include "HexagonISelLowering.h"
 #include "HexagonMachineScheduler.h"
+#include "HexagonTargetObjectFile.h"
 #include "llvm/CodeGen/Passes.h"
 #include "llvm/IR/Module.h"
 #include "llvm/PassManager.h"
@@ -78,6 +79,7 @@ HexagonTargetMachine::HexagonTargetMachine(const Target &T, StringRef TT,
     FrameLowering(Subtarget),
     InstrItins(&Subtarget.getInstrItineraryData()) {
     setMCUseCFI(false);
+    initAsmInfo();
 }
 
 // addPassesForOptimizations - Allow the backend (target) to add Target
@@ -164,9 +166,18 @@ bool HexagonPassConfig::addPostRegAlloc() {
 }
 
 bool HexagonPassConfig::addPreSched2() {
+  const HexagonTargetMachine &TM = getHexagonTargetMachine();
+  const HexagonTargetObjectFile &TLOF =
+    (const HexagonTargetObjectFile &)getTargetLowering()->getObjFileLowering();
+
+  addPass(createHexagonCopyToCombine());
   if (getOptLevel() != CodeGenOpt::None)
     addPass(&IfConverterID);
-  return false;
+  if (!TLOF.IsSmallDataEnabled()) {
+    addPass(createHexagonSplitConst32AndConst64(TM));
+    printAndVerify("After hexagon split const32/64 pass");
+  }
+  return true;
 }
 
 bool HexagonPassConfig::addPreEmitPass() {

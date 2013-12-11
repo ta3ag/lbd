@@ -415,12 +415,8 @@ private:
   void Reset();
 
   void EmitPersonalityFixup(StringRef Name);
-<<<<<<< HEAD
-  void CollectUnwindOpcodes();
-=======
   void FlushPendingOffset();
   void FlushUnwindOpcodes(bool NoHandlerData);
->>>>>>> llvmtrunk/master
 
   void SwitchToEHSection(const char *Prefix, unsigned Type, unsigned Flags,
                          SectionKind Kind, const MCSymbol &Fn);
@@ -740,22 +736,8 @@ void ARMELFStreamer::emitFnEnd() {
   assert(FnStart && ".fnstart must preceeds .fnend");
 
   // Emit unwind opcodes if there is no .handlerdata directive
-  if (!ExTab && !CantUnwind) {
-    CollectUnwindOpcodes();
-
-    unsigned PersonalityIndex = UnwindOpAsm.getPersonalityIndex();
-    if (PersonalityIndex == AEABI_UNWIND_CPP_PR1 ||
-        PersonalityIndex == AEABI_UNWIND_CPP_PR2) {
-      // For the __aeabi_unwind_cpp_pr1 and __aeabi_unwind_cpp_pr2, we have to
-      // emit the unwind opcodes in the corresponding ".ARM.extab" section, and
-      // then emit a reference to these unwind opcodes in the second word of
-      // the exception index table entry.
-      SwitchToExTabSection(*FnStart);
-      ExTab = getContext().CreateTempSymbol();
-      EmitLabel(ExTab);
-      EmitBytes(UnwindOpAsm.data(), 0);
-    }
-  }
+  if (!ExTab && !CantUnwind)
+    FlushUnwindOpcodes(true);
 
   // Emit the exception index table entry
   SwitchToExIdxSection(*FnStart);
@@ -791,6 +773,9 @@ void ARMELFStreamer::emitFnEnd() {
                         Opcodes.size()));
   }
 
+  // Switch to the section containing FnStart
+  SwitchSection(&FnStart->getSection());
+
   // Clean exception handling frame information
   Reset();
 }
@@ -818,9 +803,6 @@ void ARMELFStreamer::FlushPendingOffset() {
   }
 }
 
-<<<<<<< HEAD
-void ARMELFStreamer::EmitHandlerData() {
-=======
 void ARMELFStreamer::FlushUnwindOpcodes(bool NoHandlerData) {
   // Emit the unwind opcode to restore $sp.
   if (UsedFP) {
@@ -842,7 +824,6 @@ void ARMELFStreamer::FlushUnwindOpcodes(bool NoHandlerData) {
     return;
 
   // Switch to .ARM.extab section.
->>>>>>> llvmtrunk/master
   SwitchToExTabSection(*FnStart);
 
   // Create .ARM.extab label for offset in .ARM.exidx
@@ -850,24 +831,13 @@ void ARMELFStreamer::FlushUnwindOpcodes(bool NoHandlerData) {
   ExTab = getContext().CreateTempSymbol();
   EmitLabel(ExTab);
 
-  // Emit Personality
-  assert(Personality && ".personality directive must preceed .handlerdata");
+  // Emit personality
+  if (Personality) {
+    const MCSymbolRefExpr *PersonalityRef =
+      MCSymbolRefExpr::Create(Personality,
+                              MCSymbolRefExpr::VK_ARM_PREL31,
+                              getContext());
 
-<<<<<<< HEAD
-  const MCSymbolRefExpr *PersonalityRef =
-    MCSymbolRefExpr::Create(Personality,
-                            MCSymbolRefExpr::VK_ARM_PREL31,
-                            getContext());
-
-  EmitValue(PersonalityRef, 4, 0);
-
-  // Emit unwind opcodes
-  CollectUnwindOpcodes();
-  EmitBytes(UnwindOpAsm.data(), 0);
-}
-
-void ARMELFStreamer::EmitPersonality(const MCSymbol *Per) {
-=======
     EmitValue(PersonalityRef, 4);
   }
 
@@ -889,7 +859,6 @@ void ARMELFStreamer::EmitPersonality(const MCSymbol *Per) {
 void ARMELFStreamer::emitHandlerData() { FlushUnwindOpcodes(false); }
 
 void ARMELFStreamer::emitPersonality(const MCSymbol *Per) {
->>>>>>> llvmtrunk/master
   Personality = Per;
   UnwindOpAsm.setPersonality(Per);
 }

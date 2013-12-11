@@ -114,12 +114,6 @@ void SystemZInstPrinter::printAccessRegOperand(const MCInst *MI, int OpNum,
   O << "%a" << (unsigned int)Value;
 }
 
-<<<<<<< HEAD
-void SystemZInstPrinter::printCallOperand(const MCInst *MI, int OpNum,
-                                          raw_ostream &O) {
-  printOperand(MI, OpNum, O);
-  O << "@PLT";
-=======
 void SystemZInstPrinter::printPCRelOperand(const MCInst *MI, int OpNum,
                                            raw_ostream &O) {
   const MCOperand &MO = MI->getOperand(OpNum);
@@ -128,7 +122,6 @@ void SystemZInstPrinter::printPCRelOperand(const MCInst *MI, int OpNum,
     O.write_hex(MO.getImm());
   } else
     O << *MO.getExpr();
->>>>>>> llvmtrunk/master
 }
 
 void SystemZInstPrinter::printOperand(const MCInst *MI, int OpNum,

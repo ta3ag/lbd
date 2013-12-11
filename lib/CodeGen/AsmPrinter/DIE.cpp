@@ -114,10 +114,6 @@ DIE::~DIE() {
 
 /// Climb up the parent chain to get the unit DIE to which this DIE
 /// belongs.
-<<<<<<< HEAD
-DIE *DIE::getCompileUnit() const {
-  DIE *p = getParent();
-=======
 const DIE *DIE::getUnit() const {
   const DIE *Cu = getUnitOrNull();
   assert(Cu && "We should not have orphaned DIEs.");
@@ -128,7 +124,6 @@ const DIE *DIE::getUnit() const {
 /// to. Return NULL if DIE is not added to an owner yet.
 const DIE *DIE::getUnitOrNull() const {
   const DIE *p = this;
->>>>>>> llvmtrunk/master
   while (p) {
     if (p->getTag() == dwarf::DW_TAG_compile_unit ||
         p->getTag() == dwarf::DW_TAG_type_unit)

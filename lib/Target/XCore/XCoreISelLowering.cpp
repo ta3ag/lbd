@@ -243,7 +243,7 @@ void XCoreTargetLowering::ReplaceNodeResults(SDNode *N,
 SDValue XCoreTargetLowering::
 LowerSELECT_CC(SDValue Op, SelectionDAG &DAG) const
 {
-  DebugLoc dl = Op.getDebugLoc();
+  SDLoc dl(Op);
   SDValue Cond = DAG.getNode(ISD::SETCC, dl, MVT::i32, Op.getOperand(2),
                              Op.getOperand(3), Op.getOperand(4));
   return DAG.getNode(ISD::SELECT, dl, MVT::i32, Cond, Op.getOperand(0),
@@ -255,7 +255,7 @@ getGlobalAddressWrapper(SDValue GA, const GlobalValue *GV,
                         SelectionDAG &DAG) const
 {
   // FIXME there is no actual debug info here
-  DebugLoc dl = GA.getDebugLoc();
+  SDLoc dl(GA);
   const GlobalValue *UnderlyingGV = GV;
   // If GV is an alias then use the aliasee to determine the wrapper type
   if (const GlobalAlias *GA = dyn_cast<GlobalAlias>(GV))
@@ -271,10 +271,6 @@ getGlobalAddressWrapper(SDValue GA, const GlobalValue *GV,
 SDValue XCoreTargetLowering::
 LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const
 {
-<<<<<<< HEAD
-  DebugLoc DL = Op.getDebugLoc();
-=======
->>>>>>> llvmtrunk/master
   const GlobalAddressSDNode *GN = cast<GlobalAddressSDNode>(Op);
   const GlobalValue *GV = GN->getGlobal();
   SDLoc DL(GN);
@@ -304,21 +300,12 @@ LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const
     return DAG.getLoad(getPointerTy(), DL, DAG.getEntryNode(), CP,
                        MachinePointerInfo(), false, false, false, 0);
   }
-<<<<<<< HEAD
-  return GA;
-}
-
-static inline SDValue BuildGetId(SelectionDAG &DAG, DebugLoc dl) {
-  return DAG.getNode(ISD::INTRINSIC_WO_CHAIN, dl, MVT::i32,
-                     DAG.getConstant(Intrinsic::xcore_getid, MVT::i32));
-=======
->>>>>>> llvmtrunk/master
 }
 
 SDValue XCoreTargetLowering::
 LowerBlockAddress(SDValue Op, SelectionDAG &DAG) const
 {
-  DebugLoc DL = Op.getDebugLoc();
+  SDLoc DL(Op);
 
   const BlockAddress *BA = cast<BlockAddressSDNode>(Op)->getBlockAddress();
   SDValue Result = DAG.getTargetBlockAddress(BA, getPointerTy());
@@ -331,7 +318,7 @@ LowerConstantPool(SDValue Op, SelectionDAG &DAG) const
 {
   ConstantPoolSDNode *CP = cast<ConstantPoolSDNode>(Op);
   // FIXME there isn't really debug info here
-  DebugLoc dl = CP->getDebugLoc();
+  SDLoc dl(CP);
   EVT PtrVT = Op.getValueType();
   SDValue Res;
   if (CP->isMachineConstantPoolEntry()) {
@@ -354,7 +341,7 @@ LowerBR_JT(SDValue Op, SelectionDAG &DAG) const
   SDValue Chain = Op.getOperand(0);
   SDValue Table = Op.getOperand(1);
   SDValue Index = Op.getOperand(2);
-  DebugLoc dl = Op.getDebugLoc();
+  SDLoc dl(Op);
   JumpTableSDNode *JT = cast<JumpTableSDNode>(Table);
   unsigned JTI = JT->getIndex();
   MachineFunction &MF = DAG.getMachineFunction();
@@ -373,7 +360,7 @@ LowerBR_JT(SDValue Op, SelectionDAG &DAG) const
 }
 
 SDValue XCoreTargetLowering::
-lowerLoadWordFromAlignedBasePlusOffset(DebugLoc DL, SDValue Chain, SDValue Base,
+lowerLoadWordFromAlignedBasePlusOffset(SDLoc DL, SDValue Chain, SDValue Base,
                                        int64_t Offset, SelectionDAG &DAG) const
 {
   if ((Offset & 0x3) == 0) {
@@ -439,7 +426,7 @@ LowerLOAD(SDValue Op, SelectionDAG &DAG) const {
 
   SDValue Chain = LD->getChain();
   SDValue BasePtr = LD->getBasePtr();
-  DebugLoc DL = Op.getDebugLoc();
+  SDLoc DL(Op);
 
   if (!LD->isVolatile()) {
     const GlobalValue *GV;
@@ -520,7 +507,7 @@ LowerSTORE(SDValue Op, SelectionDAG &DAG) const
   SDValue Chain = ST->getChain();
   SDValue BasePtr = ST->getBasePtr();
   SDValue Value = ST->getValue();
-  DebugLoc dl = Op.getDebugLoc();
+  SDLoc dl(Op);
 
   if (ST->getAlignment() == 2) {
     SDValue Low = Value;
@@ -567,7 +554,7 @@ LowerSMUL_LOHI(SDValue Op, SelectionDAG &DAG) const
 {
   assert(Op.getValueType() == MVT::i32 && Op.getOpcode() == ISD::SMUL_LOHI &&
          "Unexpected operand to lower!");
-  DebugLoc dl = Op.getDebugLoc();
+  SDLoc dl(Op);
   SDValue LHS = Op.getOperand(0);
   SDValue RHS = Op.getOperand(1);
   SDValue Zero = DAG.getConstant(0, MVT::i32);
@@ -584,7 +571,7 @@ LowerUMUL_LOHI(SDValue Op, SelectionDAG &DAG) const
 {
   assert(Op.getValueType() == MVT::i32 && Op.getOpcode() == ISD::UMUL_LOHI &&
          "Unexpected operand to lower!");
-  DebugLoc dl = Op.getDebugLoc();
+  SDLoc dl(Op);
   SDValue LHS = Op.getOperand(0);
   SDValue RHS = Op.getOperand(1);
   SDValue Zero = DAG.getConstant(0, MVT::i32);
@@ -669,7 +656,7 @@ TryExpandADDWithMul(SDNode *N, SelectionDAG &DAG) const
   } else {
     return SDValue();
   }
-  DebugLoc dl = N->getDebugLoc();
+  SDLoc dl(N);
   SDValue LL, RL, AddendL, AddendH;
   LL = DAG.getNode(ISD::EXTRACT_ELEMENT, dl, MVT::i32,
                    Mul.getOperand(0),  DAG.getConstant(0, MVT::i32));
@@ -728,7 +715,7 @@ ExpandADDSUB(SDNode *N, SelectionDAG &DAG) const
       return Result;
   }
 
-  DebugLoc dl = N->getDebugLoc();
+  SDLoc dl(N);
 
   // Extract components
   SDValue LHSL = DAG.getNode(ISD::EXTRACT_ELEMENT, dl, MVT::i32,
@@ -761,13 +748,6 @@ LowerVAARG(SDValue Op, SelectionDAG &DAG) const
   // Whist llvm does not support aggregate varargs we can ignore
   // the possibility of the ValueType being an implicit byVal vararg.
   SDNode *Node = Op.getNode();
-<<<<<<< HEAD
-  DebugLoc dl = Node->getDebugLoc();
-  const Value *V = cast<SrcValueSDNode>(Node->getOperand(2))->getValue();
-  EVT VT = Node->getValueType(0);
-  SDValue VAList = DAG.getLoad(getPointerTy(), dl, Node->getOperand(0),
-                               Node->getOperand(1), MachinePointerInfo(V),
-=======
   EVT VT = Node->getValueType(0); // not an aggregate
   SDValue InChain = Node->getOperand(0);
   SDValue VAListPtr = Node->getOperand(1);
@@ -776,7 +756,6 @@ LowerVAARG(SDValue Op, SelectionDAG &DAG) const
   SDLoc dl(Node);
   SDValue VAList = DAG.getLoad(PtrVT, dl, InChain,
                                VAListPtr, MachinePointerInfo(SV),
->>>>>>> llvmtrunk/master
                                false, false, false, 0);
   // Increment the pointer, VAList, to the next vararg
   SDValue nextPtr = DAG.getNode(ISD::ADD, dl, PtrVT, VAList,
@@ -792,7 +771,7 @@ LowerVAARG(SDValue Op, SelectionDAG &DAG) const
 SDValue XCoreTargetLowering::
 LowerVASTART(SDValue Op, SelectionDAG &DAG) const
 {
-  DebugLoc dl = Op.getDebugLoc();
+  SDLoc dl(Op);
   // vastart stores the address of the VarArgsFrameIndex slot into the
   // memory location argument
   MachineFunction &MF = DAG.getMachineFunction();
@@ -804,7 +783,7 @@ LowerVASTART(SDValue Op, SelectionDAG &DAG) const
 
 SDValue XCoreTargetLowering::LowerFRAMEADDR(SDValue Op,
                                             SelectionDAG &DAG) const {
-  DebugLoc dl = Op.getDebugLoc();
+  SDLoc dl(Op);
   // Depths > 0 not supported yet!
   if (cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue() > 0)
     return SDValue();
@@ -844,7 +823,7 @@ LowerINIT_TRAMPOLINE(SDValue Op, SelectionDAG &DAG) const {
 
   SDValue Addr = Trmp;
 
-  DebugLoc dl = Op.getDebugLoc();
+  SDLoc dl(Op);
   OutChains[0] = DAG.getStore(Chain, dl, DAG.getConstant(0x0a3cd805, MVT::i32),
                               Addr, MachinePointerInfo(TrmpAddr), false, false,
                               0);
@@ -878,7 +857,7 @@ LowerINIT_TRAMPOLINE(SDValue Op, SelectionDAG &DAG) const {
 
 SDValue XCoreTargetLowering::
 LowerINTRINSIC_WO_CHAIN(SDValue Op, SelectionDAG &DAG) const {
-  DebugLoc DL = Op.getDebugLoc();
+  SDLoc DL(Op);
   unsigned IntNo = cast<ConstantSDNode>(Op.getOperand(0))->getZExtValue();
   switch (IntNo) {
     case Intrinsic::xcore_crc8:
@@ -914,17 +893,10 @@ SDValue
 XCoreTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                                SmallVectorImpl<SDValue> &InVals) const {
   SelectionDAG &DAG                     = CLI.DAG;
-<<<<<<< HEAD
-  DebugLoc &dl                          = CLI.DL;
-  SmallVector<ISD::OutputArg, 32> &Outs = CLI.Outs;
-  SmallVector<SDValue, 32> &OutVals     = CLI.OutVals;
-  SmallVector<ISD::InputArg, 32> &Ins   = CLI.Ins;
-=======
   SDLoc &dl                             = CLI.DL;
   SmallVectorImpl<ISD::OutputArg> &Outs = CLI.Outs;
   SmallVectorImpl<SDValue> &OutVals     = CLI.OutVals;
   SmallVectorImpl<ISD::InputArg> &Ins   = CLI.Ins;
->>>>>>> llvmtrunk/master
   SDValue Chain                         = CLI.Chain;
   SDValue Callee                        = CLI.Callee;
   bool &isTailCall                      = CLI.IsTailCall;
@@ -957,7 +929,7 @@ XCoreTargetLowering::LowerCCCCallTo(SDValue Chain, SDValue Callee,
                                     const SmallVectorImpl<ISD::OutputArg> &Outs,
                                     const SmallVectorImpl<SDValue> &OutVals,
                                     const SmallVectorImpl<ISD::InputArg> &Ins,
-                                    DebugLoc dl, SelectionDAG &DAG,
+                                    SDLoc dl, SelectionDAG &DAG,
                                     SmallVectorImpl<SDValue> &InVals) const {
 
   // Analyze operands of the call, assigning locations to each operand.
@@ -975,7 +947,7 @@ XCoreTargetLowering::LowerCCCCallTo(SDValue Chain, SDValue Callee,
   unsigned NumBytes = CCInfo.getNextStackOffset();
 
   Chain = DAG.getCALLSEQ_START(Chain,DAG.getConstant(NumBytes,
-                                 getPointerTy(), true));
+                                 getPointerTy(), true), dl);
 
   SmallVector<std::pair<unsigned, SDValue>, 4> RegsToPass;
   SmallVector<SDValue, 12> MemOpChains;
@@ -1065,7 +1037,7 @@ XCoreTargetLowering::LowerCCCCallTo(SDValue Chain, SDValue Callee,
   Chain = DAG.getCALLSEQ_END(Chain,
                              DAG.getConstant(NumBytes, getPointerTy(), true),
                              DAG.getConstant(0, getPointerTy(), true),
-                             InFlag);
+                             InFlag, dl);
   InFlag = Chain.getValue(1);
 
   // Handle result values, copying them out of physregs into vregs that we
@@ -1080,7 +1052,7 @@ SDValue
 XCoreTargetLowering::LowerCallResult(SDValue Chain, SDValue InFlag,
                                      CallingConv::ID CallConv, bool isVarArg,
                                      const SmallVectorImpl<ISD::InputArg> &Ins,
-                                     DebugLoc dl, SelectionDAG &DAG,
+                                     SDLoc dl, SelectionDAG &DAG,
                                      SmallVectorImpl<SDValue> &InVals) const {
 
   // Assign locations to each value returned by this call.
@@ -1115,7 +1087,7 @@ XCoreTargetLowering::LowerFormalArguments(SDValue Chain,
                                           CallingConv::ID CallConv,
                                           bool isVarArg,
                                       const SmallVectorImpl<ISD::InputArg> &Ins,
-                                          DebugLoc dl,
+                                          SDLoc dl,
                                           SelectionDAG &DAG,
                                           SmallVectorImpl<SDValue> &InVals)
                                             const {
@@ -1140,7 +1112,7 @@ XCoreTargetLowering::LowerCCCArguments(SDValue Chain,
                                        bool isVarArg,
                                        const SmallVectorImpl<ISD::InputArg>
                                          &Ins,
-                                       DebugLoc dl,
+                                       SDLoc dl,
                                        SelectionDAG &DAG,
                                        SmallVectorImpl<SDValue> &InVals) const {
   MachineFunction &MF = DAG.getMachineFunction();
@@ -1316,7 +1288,7 @@ XCoreTargetLowering::LowerReturn(SDValue Chain,
                                  CallingConv::ID CallConv, bool isVarArg,
                                  const SmallVectorImpl<ISD::OutputArg> &Outs,
                                  const SmallVectorImpl<SDValue> &OutVals,
-                                 DebugLoc dl, SelectionDAG &DAG) const {
+                                 SDLoc dl, SelectionDAG &DAG) const {
 
   // CCValAssign - represent the assignment of
   // the return value to a location
@@ -1433,7 +1405,7 @@ XCoreTargetLowering::EmitInstrWithCustomInserter(MachineInstr *MI,
 SDValue XCoreTargetLowering::PerformDAGCombine(SDNode *N,
                                              DAGCombinerInfo &DCI) const {
   SelectionDAG &DAG = DCI.DAG;
-  DebugLoc dl = N->getDebugLoc();
+  SDLoc dl(N);
   switch (N->getOpcode()) {
   default: break;
   case XCoreISD::LADD: {

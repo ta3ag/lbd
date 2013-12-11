@@ -39,48 +39,22 @@ let isReturn = 1, isTerminator = 1, isBarrier = 1, hasCtrlDep = 1 in
 // Unconditional branches.  R1 is the condition-code mask (all 1s).
 let isBranch = 1, isTerminator = 1, isBarrier = 1, R1 = 15 in {
   let isIndirectBranch = 1 in
-    def BR : InstRR<0x07, (outs), (ins ADDR64:$dst),
-                    "br\t$dst", [(brind ADDR64:$dst)]>;
+    def BR : InstRR<0x07, (outs), (ins ADDR64:$R2),
+                    "br\t$R2", [(brind ADDR64:$R2)]>;
 
-  // An assembler extended mnemonic for BRC.  Use a separate instruction for
-  // the asm parser, so that we don't relax Js to external symbols into JGs.
-  let isCodeGenOnly = 1 in
-    def J : InstRI<0xA74, (outs), (ins brtarget16:$dst), "j\t$dst", []>;
-  let isAsmParserOnly = 1 in
-    def AsmJ : InstRI<0xA74, (outs), (ins brtarget16:$dst), "j\t$dst", []>;
+  // An assembler extended mnemonic for BRC.
+  def J : InstRI<0xA74, (outs), (ins brtarget16:$I2), "j\t$I2",
+                 [(br bb:$I2)]>;
 
   // An assembler extended mnemonic for BRCL.  (The extension is "G"
   // rather than "L" because "JL" is "Jump if Less".)
-  def JG : InstRIL<0xC04, (outs), (ins brtarget32:$dst),
-                   "jg\t$dst", [(br bb:$dst)]>;
+  def JG : InstRIL<0xC04, (outs), (ins brtarget32:$I2), "jg\t$I2", []>;
 }
 
 // Conditional branches.  It's easier for LLVM to handle these branches
 // in their raw BRC/BRCL form, with the 4-bit condition-code mask being
 // the first operand.  It seems friendlier to use mnemonic forms like
 // JE and JLH when writing out the assembly though.
-<<<<<<< HEAD
-multiclass CondBranches<Operand imm, string short, string long> {
-  let isBranch = 1, isTerminator = 1, Uses = [PSW] in {
-    def "" : InstRI<0xA74, (outs), (ins imm:$cond, brtarget16:$dst), short, []>;
-    def L  : InstRIL<0xC04, (outs), (ins imm:$cond, brtarget32:$dst), long, []>;
-  }
-}
-let isCodeGenOnly = 1 in
-  defm BRC : CondBranches<cond4, "j$cond\t$dst", "jg$cond\t$dst">;
-let isAsmParserOnly = 1 in
-  defm AsmBRC : CondBranches<uimm8zx4, "brc\t$cond, $dst", "brcl\t$cond, $dst">;
-
-def : Pat<(z_br_ccmask cond4:$cond, bb:$dst), (BRCL cond4:$cond, bb:$dst)>;
-
-// Define AsmParser mnemonics for each condition code.
-multiclass CondExtendedMnemonic<bits<4> Cond, string name> {
-  let R1 = Cond in {
-    def "" : InstRI<0xA74, (outs), (ins brtarget16:$dst),
-                    "j"##name##"\t$dst", []>;
-    def L  : InstRIL<0xC04, (outs), (ins brtarget32:$dst),
-                    "jg"##name##"\t$dst", []>;
-=======
 let isBranch = 1, isTerminator = 1, Uses = [CC] in {
   let isCodeGenOnly = 1, CCMaskFirst = 1 in {
     def BRC : InstRI<0xA74, (outs), (ins cond4:$valid, cond4:$R1,
@@ -202,25 +176,19 @@ multiclass IntCondExtendedMnemonicA<bits<4> ccmask, string name> {
     def CLGI : InstRIEc<0xEC7D, (outs), (ins GR64:$R1, imm64zx8:$I2,
                                              brtarget16:$RI4),
                         "clgij"##name##"\t$R1, $I2, $RI4", []>;
->>>>>>> llvmtrunk/master
   }
 }
-let isAsmParserOnly = 1 in {
-  defm AsmJO   : CondExtendedMnemonic<1,  "o">;
-  defm AsmJH   : CondExtendedMnemonic<2,  "h">;
-  defm AsmJNLE : CondExtendedMnemonic<3,  "nle">;
-  defm AsmJL   : CondExtendedMnemonic<4,  "l">;
-  defm AsmJNHE : CondExtendedMnemonic<5,  "nhe">;
-  defm AsmJLH  : CondExtendedMnemonic<6,  "lh">;
-  defm AsmJNE  : CondExtendedMnemonic<7,  "ne">;
-  defm AsmJE   : CondExtendedMnemonic<8,  "e">;
-  defm AsmJNLH : CondExtendedMnemonic<9,  "nlh">;
-  defm AsmJHE  : CondExtendedMnemonic<10, "he">;
-  defm AsmJNL  : CondExtendedMnemonic<11, "nl">;
-  defm AsmJLE  : CondExtendedMnemonic<12, "le">;
-  defm AsmJNH  : CondExtendedMnemonic<13, "nh">;
-  defm AsmJNO  : CondExtendedMnemonic<14, "no">;
+multiclass IntCondExtendedMnemonic<bits<4> ccmask, string name1, string name2>
+  : IntCondExtendedMnemonicA<ccmask, name1> {
+  let isAsmParserOnly = 1 in
+    defm Alt : IntCondExtendedMnemonicA<ccmask, name2>;
 }
+defm AsmJH   : IntCondExtendedMnemonic<2,  "h",  "nle">;
+defm AsmJL   : IntCondExtendedMnemonic<4,  "l",  "nhe">;
+defm AsmJLH  : IntCondExtendedMnemonic<6,  "lh", "ne">;
+defm AsmJE   : IntCondExtendedMnemonic<8,  "e",  "nlh">;
+defm AsmJHE  : IntCondExtendedMnemonic<10, "he", "nl">;
+defm AsmJLE  : IntCondExtendedMnemonic<12, "le", "nh">;
 
 // Decrement a register and branch if it is nonzero.  These don't clobber CC,
 // but we might need to split long branches into sequences that do.
@@ -267,16 +235,6 @@ defm CondStore64 : CondStores<GR64, nonvolatile_store,
 
 // The definitions here are for the call-clobbered registers.
 let isCall = 1, Defs = [R0D, R1D, R2D, R3D, R4D, R5D, R14D,
-<<<<<<< HEAD
-                        F0D, F1D, F2D, F3D, F4D, F5D, F6D, F7D],
-    R1 = 14, isCodeGenOnly = 1 in {
-  def BRAS  : InstRI<0xA75, (outs), (ins pcrel16call:$dst, variable_ops),
-                     "bras\t%r14, $dst", []>;
-  def BRASL : InstRIL<0xC05, (outs), (ins pcrel32call:$dst, variable_ops),
-                      "brasl\t%r14, $dst", [(z_call pcrel32call:$dst)]>;
-  def BASR  : InstRR<0x0D, (outs), (ins ADDR64:$dst, variable_ops),
-                     "basr\t%r14, $dst", [(z_call ADDR64:$dst)]>;
-=======
                         F0D, F1D, F2D, F3D, F4D, F5D, F6D, F7D, CC] in {
   def CallBRASL : Alias<6, (outs), (ins pcrel32:$I2, variable_ops),
                         [(z_call pcrel32:$I2)]>;
@@ -291,28 +249,16 @@ let isCall = 1, isTerminator = 1, isReturn = 1, isBarrier = 1 in {
                      [(z_sibcall pcrel32:$I2)]>;
   let Uses = [R1D] in
     def CallBR : Alias<2, (outs), (ins), [(z_sibcall R1D)]>;
->>>>>>> llvmtrunk/master
 }
 
 // Define the general form of the call instructions for the asm parser.
 // These instructions don't hard-code %r14 as the return address register.
-<<<<<<< HEAD
-let isAsmParserOnly = 1 in {
-  def AsmBRAS  : InstRI<0xA75, (outs), (ins GR64:$save, brtarget16:$dst),
-                        "bras\t$save, $dst", []>;
-  def AsmBRASL : InstRIL<0xC05, (outs), (ins GR64:$save, brtarget32:$dst),
-                        "brasl\t$save, $dst", []>;
-  def AsmBASR  : InstRR<0x0D, (outs), (ins GR64:$save, ADDR64:$dst),
-                        "basr\t$save, $dst", []>;
-}
-=======
 def BRAS  : InstRI<0xA75, (outs), (ins GR64:$R1, brtarget16:$I2),
                    "bras\t$R1, $I2", []>;
 def BRASL : InstRIL<0xC05, (outs), (ins GR64:$R1, brtarget32:$I2),
                     "brasl\t$R1, $I2", []>;
 def BASR  : InstRR<0x0D, (outs), (ins GR64:$R1, ADDR64:$R2),
                    "basr\t$R1, $R2", []>;
->>>>>>> llvmtrunk/master
 
 //===----------------------------------------------------------------------===//
 // Move instructions
@@ -622,17 +568,6 @@ def STRVG : StoreRXY<"strvg", 0xE32F, storeu<bswap, nonvolatile_store>,
 //===----------------------------------------------------------------------===//
 
 // Load BDX-style addresses.
-<<<<<<< HEAD
-let neverHasSideEffects = 1, Function = "la" in {
-  let PairType = "12" in
-    def LA : InstRX<0x41, (outs GR64:$dst), (ins laaddr12pair:$src),
-                    "la\t$dst, $src",
-                    [(set GR64:$dst, laaddr12pair:$src)]>;
-  let PairType = "20" in
-    def LAY : InstRXY<0xE371, (outs GR64:$dst), (ins laaddr20pair:$src),
-                      "lay\t$dst, $src",
-                      [(set GR64:$dst, laaddr20pair:$src)]>;
-=======
 let neverHasSideEffects = 1, isAsCheapAsAMove = 1, isReMaterializable = 1,
     DispKey = "la" in {
   let DispSize = "12" in
@@ -643,35 +578,21 @@ let neverHasSideEffects = 1, isAsCheapAsAMove = 1, isReMaterializable = 1,
     def LAY : InstRXY<0xE371, (outs GR64:$R1), (ins laaddr20pair:$XBD2),
                       "lay\t$R1, $XBD2",
                       [(set GR64:$R1, laaddr20pair:$XBD2)]>;
->>>>>>> llvmtrunk/master
 }
 
 // Load a PC-relative address.  There's no version of this instruction
 // with a 16-bit offset, so there's no relaxation.
-<<<<<<< HEAD
-let neverHasSideEffects = 1 in {
-  def LARL : InstRIL<0xC00, (outs GR64:$dst), (ins pcrel32:$src),
-                     "larl\t$dst, $src",
-                     [(set GR64:$dst, pcrel32:$src)]>;
-=======
 let neverHasSideEffects = 1, isAsCheapAsAMove = 1, isMoveImm = 1,
     isReMaterializable = 1 in {
   def LARL : InstRIL<0xC00, (outs GR64:$R1), (ins pcrel32:$I2),
                      "larl\t$R1, $I2",
                      [(set GR64:$R1, pcrel32:$I2)]>;
->>>>>>> llvmtrunk/master
 }
 
 //===----------------------------------------------------------------------===//
 // Absolute and Negation
 //===----------------------------------------------------------------------===//
 
-<<<<<<< HEAD
-let Defs = [PSW] in {
-  def LCR   : UnaryRR <"lcr",   0x13,   ineg,      GR32, GR32>;
-  def LCGR  : UnaryRRE<"lcgr",  0xB903, ineg,      GR64, GR64>;
-  def LCGFR : UnaryRRE<"lcgfr", 0xB913, null_frag, GR64, GR32>;
-=======
 let Defs = [CC] in {
   let CCValues = 0xF, CompareZeroCCMask = 0x8 in {
     def LPR  : UnaryRR <"lp",  0x10,   z_iabs32, GR32, GR32>;
@@ -699,7 +620,6 @@ let Defs = [CC] in {
   }
   let CCValues = 0xE, CompareZeroCCMask = 0xE in
     def LCGFR : UnaryRRE<"lcgf", 0xB913, null_frag, GR64, GR32>;
->>>>>>> llvmtrunk/master
 }
 defm : SXU<ineg, LCGFR>;
 
@@ -759,11 +679,7 @@ def : Pat<(or (zext32 GR32:$src), imm64hf32:$imm),
 //===----------------------------------------------------------------------===//
 
 // Plain addition.
-<<<<<<< HEAD
-let Defs = [PSW] in {
-=======
 let Defs = [CC], CCValues = 0xF, CompareZeroCCMask = 0x8 in {
->>>>>>> llvmtrunk/master
   // Addition of a register.
   let isCommutable = 1 in {
     defm AR : BinaryRRAndK<"a", 0x1A, 0xB9F8, add, GR32, GR32>;
@@ -797,7 +713,7 @@ let Defs = [CC], CCValues = 0xF, CompareZeroCCMask = 0x8 in {
 defm : SXB<add, GR64, AGFR>;
 
 // Addition producing a carry.
-let Defs = [PSW] in {
+let Defs = [CC] in {
   // Addition of a register.
   let isCommutable = 1 in {
     defm ALR : BinaryRRAndK<"al", 0x1E, 0xB9FA, addc, GR32, GR32>;
@@ -823,7 +739,7 @@ let Defs = [PSW] in {
 defm : ZXB<addc, GR64, ALGFR>;
 
 // Addition producing and using a carry.
-let Defs = [PSW], Uses = [PSW] in {
+let Defs = [CC], Uses = [CC] in {
   // Addition of a register.
   def ALCR  : BinaryRRE<"alc",  0xB998, adde, GR32, GR32>;
   def ALCGR : BinaryRRE<"alcg", 0xB988, adde, GR64, GR64>;
@@ -839,32 +755,22 @@ let Defs = [PSW], Uses = [PSW] in {
 
 // Plain substraction.  Although immediate forms exist, we use the
 // add-immediate instruction instead.
-<<<<<<< HEAD
-let Defs = [PSW] in {
-=======
 let Defs = [CC], CCValues = 0xF, CompareZeroCCMask = 0x8 in {
->>>>>>> llvmtrunk/master
   // Subtraction of a register.
   defm SR : BinaryRRAndK<"s", 0x1B, 0xB9F9, sub, GR32, GR32>;
   def SGFR : BinaryRRE<"sgf", 0xB919, null_frag, GR64, GR32>;
   defm SGR : BinaryRREAndK<"sg", 0xB909, 0xB9E9, sub, GR64, GR64>;
 
   // Subtraction of memory.
-<<<<<<< HEAD
-  defm S   : BinaryRXPair<"s", 0x5B, 0xE35B, sub, GR32, load>;
-  def  SGF : BinaryRXY<"sgf", 0xE319, sub, GR64, sextloadi32>;
-  def  SG  : BinaryRXY<"sg",  0xE309, sub, GR64, load>;
-=======
   defm SH  : BinaryRXPair<"sh", 0x4B, 0xE37B, sub, GR32, asextloadi16, 2>;
   defm S   : BinaryRXPair<"s", 0x5B, 0xE35B, sub, GR32, load, 4>;
   def  SGF : BinaryRXY<"sgf", 0xE319, sub, GR64, asextloadi32, 4>;
   def  SG  : BinaryRXY<"sg",  0xE309, sub, GR64, load, 8>;
->>>>>>> llvmtrunk/master
 }
 defm : SXB<sub, GR64, SGFR>;
 
 // Subtraction producing a carry.
-let Defs = [PSW] in {
+let Defs = [CC] in {
   // Subtraction of a register.
   defm SLR : BinaryRRAndK<"sl", 0x1F, 0xB9FB, subc, GR32, GR32>;
   def SLGFR : BinaryRRE<"slgf", 0xB91B, null_frag, GR64, GR32>;
@@ -883,7 +789,7 @@ let Defs = [PSW] in {
 defm : ZXB<subc, GR64, SLGFR>;
 
 // Subtraction producing and using a carry.
-let Defs = [PSW], Uses = [PSW] in {
+let Defs = [CC], Uses = [CC] in {
   // Subtraction of a register.
   def SLBR  : BinaryRRE<"slb",  0xB999, sube, GR32, GR32>;
   def SLGBR : BinaryRRE<"slbg", 0xB989, sube, GR64, GR64>;
@@ -897,7 +803,7 @@ let Defs = [PSW], Uses = [PSW] in {
 // AND
 //===----------------------------------------------------------------------===//
 
-let Defs = [PSW] in {
+let Defs = [CC] in {
   // ANDs of a register.
   let isCommutable = 1, CCValues = 0xC, CompareZeroCCMask = 0x8 in {
     defm NR : BinaryRRAndK<"n", 0x14, 0xB9F4, and, GR32, GR32>;
@@ -956,7 +862,7 @@ defm : RMWIByte<and, bdaddr20pair, NIY>;
 // OR
 //===----------------------------------------------------------------------===//
 
-let Defs = [PSW] in {
+let Defs = [CC] in {
   // ORs of a register.
   let isCommutable = 1, CCValues = 0xC, CompareZeroCCMask = 0x8 in {
     defm OR : BinaryRRAndK<"o", 0x16, 0xB9F6, or, GR32, GR32>;
@@ -1013,7 +919,7 @@ defm : RMWIByte<or, bdaddr20pair, OIY>;
 // XOR
 //===----------------------------------------------------------------------===//
 
-let Defs = [PSW] in {
+let Defs = [CC] in {
   // XORs of a register.
   let isCommutable = 1, CCValues = 0xC, CompareZeroCCMask = 0x8 in {
     defm XR : BinaryRRAndK<"x", 0x17, 0xB9F7, xor, GR32, GR32>;
@@ -1114,15 +1020,9 @@ let neverHasSideEffects = 1 in {
 }
 
 // Arithmetic shift right.
-<<<<<<< HEAD
-let Defs = [PSW] in {
-  def SRA  : ShiftRS <"sra",  0x8A,   sra, GR32, shift12only>;
-  def SRAG : ShiftRSY<"srag", 0xEB0A, sra, GR64, shift20only>;
-=======
 let Defs = [CC], CCValues = 0xE, CompareZeroCCMask = 0xE in {
   defm SRA : ShiftRSAndK<"sra", 0x8A, 0xEBDC, sra, GR32>;
   def SRAG : ShiftRSY<"srag", 0xEB0A, sra, GR64>;
->>>>>>> llvmtrunk/master
 }
 
 // Rotate left.
@@ -1133,13 +1033,8 @@ let neverHasSideEffects = 1 in {
 
 // Rotate second operand left and inserted selected bits into first operand.
 // These can act like 32-bit operands provided that the constant start and
-<<<<<<< HEAD
-// end bits (operands 2 and 3) are in the range [32, 64)
-let Defs = [PSW] in {
-=======
 // end bits (operands 2 and 3) are in the range [32, 64).
 let Defs = [CC] in {
->>>>>>> llvmtrunk/master
   let isCodeGenOnly = 1 in
     def RISBG32 : RotateSelectRIEf<"risbg", 0xEC55, GR32, GR32>;
   let CCValues = 0xE, CompareZeroCCMask = 0xE in
@@ -1171,15 +1066,10 @@ let Defs = [CC] in {
 // Comparison
 //===----------------------------------------------------------------------===//
 
-<<<<<<< HEAD
-// Signed comparisons.
-let Defs = [PSW] in {
-=======
 // Signed comparisons.  We put these before the unsigned comparisons because
 // some of the signed forms have COMPARE AND BRANCH equivalents whereas none
 // of the unsigned forms do.
 let Defs = [CC], CCValues = 0xE in {
->>>>>>> llvmtrunk/master
   // Comparison with a register.
   def CR   : CompareRR <"c",   0x19,   z_scmp,    GR32, GR32>;
   def CGFR : CompareRRE<"cgf", 0xB930, null_frag, GR64, GR32>;
@@ -1222,11 +1112,7 @@ let Defs = [CC], CCValues = 0xE in {
 defm : SXB<z_scmp, GR64, CGFR>;
 
 // Unsigned comparisons.
-<<<<<<< HEAD
-let Defs = [PSW] in {
-=======
 let Defs = [CC], CCValues = 0xE, IsLogical = 1 in {
->>>>>>> llvmtrunk/master
   // Comparison with a register.
   def CLR   : CompareRR <"cl",   0x15,   z_ucmp,    GR32, GR32>;
   def CLGFR : CompareRRE<"clgf", 0xB931, null_frag, GR64, GR32>;
@@ -1411,13 +1297,13 @@ def ATOMIC_CMP_SWAPW
                  (z_atomic_cmp_swapw bdaddr20only:$addr, GR32:$cmp, GR32:$swap,
                                      ADDR32:$bitshift, ADDR32:$negbitshift,
                                      uimm32:$bitsize))]> {
-  let Defs = [PSW];
+  let Defs = [CC];
   let mayLoad = 1;
   let mayStore = 1;
   let usesCustomInserter = 1;
 }
 
-let Defs = [PSW] in {
+let Defs = [CC] in {
   defm CS  : CmpSwapRSPair<"cs", 0xBA, 0xEB14, atomic_cmp_swap_32, GR32>;
   def  CSG : CmpSwapRSY<"csg", 0xEB30, atomic_cmp_swap_64, GR64>;
 }
@@ -1433,21 +1319,16 @@ let Uses = [CC] in
 // Read a 32-bit access register into a GR32.  As with all GR32 operations,
 // the upper 32 bits of the enclosing GR64 remain unchanged, which is useful
 // when a 64-bit address is stored in a pair of access registers.
-def EAR : InstRRE<0xB24F, (outs GR32:$dst), (ins access_reg:$src),
-                  "ear\t$dst, $src",
-                  [(set GR32:$dst, (z_extract_access access_reg:$src))]>;
+def EAR : InstRRE<0xB24F, (outs GR32:$R1), (ins access_reg:$R2),
+                  "ear\t$R1, $R2",
+                  [(set GR32:$R1, (z_extract_access access_reg:$R2))]>;
 
 // Find leftmost one, AKA count leading zeros.  The instruction actually
 // returns a pair of GR64s, the first giving the number of leading zeros
 // and the second giving a copy of the source with the leftmost one bit
 // cleared.  We only use the first result here.
-<<<<<<< HEAD
-let Defs = [PSW] in {
-  def FLOGR : UnaryRRE<"flogr", 0xB983, null_frag, GR128, GR64>;
-=======
 let Defs = [CC] in {
   def FLOGR : UnaryRRE<"flog", 0xB983, null_frag, GR128, GR64>;
->>>>>>> llvmtrunk/master
 }
 def : Pat<(ctlz GR64:$src),
           (EXTRACT_SUBREG (FLOGR GR64:$src), subreg_h64)>;

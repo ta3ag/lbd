@@ -23,11 +23,7 @@ define i8 @f1(i8 *%src, i8 %b) {
 ; CHECK: xilf [[ROT]], 4278190080
 ; CHECK: rll [[NEW:%r[0-9]+]], [[ROT]], 0({{%r[1-9]+}})
 ; CHECK: cs [[OLD]], [[NEW]], 0(%r2)
-<<<<<<< HEAD
-; CHECK: j{{g?}}lh [[LABEL]]
-=======
 ; CHECK: jl [[LABEL]]
->>>>>>> llvmtrunk/master
 ; CHECK: rll %r2, [[OLD]], 8([[SHIFT]])
 ; CHECK: br %r14
 ;
@@ -63,11 +59,7 @@ define i8 @f2(i8 *%src) {
 ; CHECK: xilf [[ROT]], 4278190080
 ; CHECK: rll [[NEW:%r[0-9]+]], [[ROT]], 0([[NEGSHIFT:%r[1-9]+]])
 ; CHECK: cs [[OLD]], [[NEW]], 0(%r2)
-<<<<<<< HEAD
-; CHECK: j{{g?}}lh [[LABEL]]
-=======
 ; CHECK: jl [[LABEL]]
->>>>>>> llvmtrunk/master
 ; CHECK: rll %r2, [[OLD]], 8([[SHIFT]])
 ; CHECK: br %r14
 ;

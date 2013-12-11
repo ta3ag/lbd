@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-; RUN: llc < %s -O0 -verify-machineinstrs -mtriple=thumbv7-apple-darwin
-=======
 ; RUN: llc < %s -O0 -verify-machineinstrs -fast-isel-abort -mtriple=thumbv7-apple-darwin
 ; RUN: llc < %s -O0 -verify-machineinstrs -fast-isel-abort -mtriple=thumbv7-linux-gnueabi
->>>>>>> llvmtrunk/master
 ; rdar://9515076
 ; (Make sure this doesn't crash.)
 

@@ -491,11 +491,8 @@ namespace llvm {
     /// less-than is signed.
     ExitLimit HowManyLessThans(const SCEV *LHS, const SCEV *RHS,
                                const Loop *L, bool isSigned, bool IsSubExpr);
-<<<<<<< HEAD
-=======
     ExitLimit HowManyGreaterThans(const SCEV *LHS, const SCEV *RHS,
                                   const Loop *L, bool isSigned, bool IsSubExpr);
->>>>>>> llvmtrunk/master
 
     /// getPredecessorWithUniqueSuccessorForBB - Return a predecessor of BB
     /// (which may not be an immediate predecessor) which has exactly one

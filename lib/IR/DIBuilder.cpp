@@ -139,16 +139,60 @@ DICompileUnit DIBuilder::createCompileUnit(unsigned Lang, StringRef Filename,
   return DICompileUnit(CUNode);
 }
 
-DIImportedModule DIBuilder::createImportedModule(DIScope Context,
-                                                 DINameSpace NS,
-                                                 unsigned Line) {
+static DIImportedEntity
+createImportedModule(LLVMContext &C, DIScope Context, DIDescriptor NS,
+                     unsigned Line, StringRef Name,
+                     SmallVectorImpl<Value *> &AllImportedModules) {
+  const MDNode *R;
+  if (Name.empty()) {
+    Value *Elts[] = {
+      GetTagConstant(C, dwarf::DW_TAG_imported_module),
+      Context,
+      NS,
+      ConstantInt::get(Type::getInt32Ty(C), Line),
+    };
+    R = MDNode::get(C, Elts);
+  } else {
+    Value *Elts[] = {
+      GetTagConstant(C, dwarf::DW_TAG_imported_module),
+      Context,
+      NS,
+      ConstantInt::get(Type::getInt32Ty(C), Line),
+      MDString::get(C, Name)
+    };
+    R = MDNode::get(C, Elts);
+  }
+  DIImportedEntity M(R);
+  assert(M.Verify() && "Imported module should be valid");
+  AllImportedModules.push_back(M);
+  return M;
+}
+
+DIImportedEntity DIBuilder::createImportedModule(DIScope Context,
+                                                 DINameSpace NS, unsigned Line,
+                                                 StringRef Name) {
+  return ::createImportedModule(VMContext, Context, NS, Line, Name,
+                                AllImportedModules);
+}
+
+DIImportedEntity DIBuilder::createImportedModule(DIScope Context,
+                                                 DIImportedEntity NS,
+                                                 unsigned Line,
+                                                 StringRef Name) {
+  return ::createImportedModule(VMContext, Context, NS, Line, Name,
+                                AllImportedModules);
+}
+
+DIImportedEntity DIBuilder::createImportedDeclaration(DIScope Context,
+                                                      DIDescriptor Decl,
+                                                      unsigned Line) {
   Value *Elts[] = {
-    GetTagConstant(VMContext, dwarf::DW_TAG_imported_module),
+    GetTagConstant(VMContext, dwarf::DW_TAG_imported_declaration),
     Context,
-    NS,
+    Decl,
     ConstantInt::get(Type::getInt32Ty(VMContext), Line),
   };
-  DIImportedModule M(MDNode::get(VMContext, Elts));
+  DIImportedEntity M(MDNode::get(VMContext, Elts));
   assert(M.Verify() && "Imported module should be valid");
   AllImportedModules.push_back(M);
   return M;
@@ -502,28 +546,17 @@ DIBuilder::createTemplateTypeParameter(DIDescriptor Context, StringRef Name,
 }
 
 DITemplateValueParameter
-<<<<<<< HEAD
-DIBuilder::createTemplateValueParameter(DIDescriptor Context, StringRef Name,
-                                        DIType Ty, uint64_t Val,
-                                        MDNode *File, unsigned LineNo,
-=======
 DIBuilder::createTemplateValueParameter(unsigned Tag, DIDescriptor Context,
                                         StringRef Name, DIType Ty,
                                         Value *Val, MDNode *File,
                                         unsigned LineNo,
->>>>>>> llvmtrunk/master
                                         unsigned ColumnNo) {
   Value *Elts[] = {
     GetTagConstant(VMContext, Tag),
     DIScope(getNonCompileUnitScope(Context)).getRef(),
     MDString::get(VMContext, Name),
-<<<<<<< HEAD
-    Ty,
-    ConstantInt::get(Type::getInt64Ty(VMContext), Val),
-=======
     Ty.getRef(),
     Val,
->>>>>>> llvmtrunk/master
     File,
     ConstantInt::get(Type::getInt32Ty(VMContext), LineNo),
     ConstantInt::get(Type::getInt32Ty(VMContext), ColumnNo)
@@ -1009,19 +1042,6 @@ DIVariable DIBuilder::createComplexVariable(unsigned Tag, DIDescriptor Scope,
 }
 
 /// createFunction - Create a new descriptor for the specified function.
-<<<<<<< HEAD
-DISubprogram DIBuilder::createFunction(DIDescriptor Context,
-                                       StringRef Name,
-                                       StringRef LinkageName,
-                                       DIFile File, unsigned LineNo,
-                                       DIType Ty,
-                                       bool isLocalToUnit, bool isDefinition,
-                                       unsigned ScopeLine,
-                                       unsigned Flags, bool isOptimized,
-                                       Function *Fn,
-                                       MDNode *TParams,
-                                       MDNode *Decl) {
-=======
 /// FIXME: this is added for dragonegg. Once we update dragonegg
 /// to call resolve function, this will be removed.
 DISubprogram DIBuilder::createFunction(DIScopeRef Context, StringRef Name,
@@ -1049,7 +1069,6 @@ DISubprogram DIBuilder::createFunction(DIDescriptor Context, StringRef Name,
                                        MDNode *TParams, MDNode *Decl) {
   assert(Ty.getTag() == dwarf::DW_TAG_subroutine_type &&
          "function types should be subroutines");
->>>>>>> llvmtrunk/master
   Value *TElts[] = { GetTagConstant(VMContext, DW_TAG_base_type) };
   Value *Elts[] = {
     GetTagConstant(VMContext, dwarf::DW_TAG_subprogram),
@@ -1084,32 +1103,19 @@ DISubprogram DIBuilder::createFunction(DIDescriptor Context, StringRef Name,
 }
 
 /// createMethod - Create a new descriptor for the specified C++ method.
-<<<<<<< HEAD
-DISubprogram DIBuilder::createMethod(DIDescriptor Context,
-                                     StringRef Name,
-                                     StringRef LinkageName,
-                                     DIFile F,
-                                     unsigned LineNo, DIType Ty,
-                                     bool isLocalToUnit,
-                                     bool isDefinition,
-=======
 DISubprogram DIBuilder::createMethod(DIDescriptor Context, StringRef Name,
                                      StringRef LinkageName, DIFile F,
                                      unsigned LineNo, DICompositeType Ty,
                                      bool isLocalToUnit, bool isDefinition,
->>>>>>> llvmtrunk/master
                                      unsigned VK, unsigned VIndex,
                                      DIType VTableHolder, unsigned Flags,
                                      bool isOptimized, Function *Fn,
                                      MDNode *TParam) {
-<<<<<<< HEAD
-=======
   assert(Ty.getTag() == dwarf::DW_TAG_subroutine_type &&
          "function types should be subroutines");
   assert(getNonCompileUnitScope(Context) &&
          "Methods should have both a Context and a context that isn't "
          "the compile unit.");
->>>>>>> llvmtrunk/master
   Value *TElts[] = { GetTagConstant(VMContext, DW_TAG_base_type) };
   Value *Elts[] = {
     GetTagConstant(VMContext, dwarf::DW_TAG_subprogram),

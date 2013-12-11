@@ -128,11 +128,7 @@ return:
 ;
 ; This test must be disabled until trip count computation can be optimized...
 ; rdar:14038809 [SCEV]: Optimize trip count computation for multi-exit loops.
-<<<<<<< HEAD
-; CHECKFIXME: @unloopDeepNested
-=======
 ; CHECKFIXME-LABEL: @unloopDeepNested(
->>>>>>> llvmtrunk/master
 ; Inner-inner loop control.
 ; CHECKFIXME: while.cond.us.i:
 ; CHECKFIXME: br i1 %cmp.us.i, label %next_data.exit, label %while.body.us.i

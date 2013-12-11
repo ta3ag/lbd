@@ -15,14 +15,10 @@
 
 using namespace llvm;
 
-<<<<<<< HEAD
-HexagonMCAsmInfo::HexagonMCAsmInfo(const Target &T, StringRef TT) {
-=======
 // Pin the vtable to this file.
 void HexagonMCAsmInfo::anchor() {}
 
 HexagonMCAsmInfo::HexagonMCAsmInfo(StringRef TT) {
->>>>>>> llvmtrunk/master
   Data16bitsDirective = "\t.half\t";
   Data32bitsDirective = "\t.word\t";
   Data64bitsDirective = 0;  // .xword is only supported by V9.

@@ -27,13 +27,6 @@
 
 using namespace llvm;
 
-<<<<<<< HEAD
-static MCAsmInfo *createSystemZMCAsmInfo(const Target &T, StringRef TT) {
-  MCAsmInfo *MAI = new SystemZMCAsmInfo(T, TT);
-  MachineLocation FPDst(MachineLocation::VirtualFP);
-  MachineLocation FPSrc(SystemZ::R15D, -SystemZMC::CFAOffsetFromInitialSP);
-  MAI->addInitialFrameState(0, FPDst, FPSrc);
-=======
 const unsigned SystemZMC::GR32Regs[16] = {
   SystemZ::R0L, SystemZ::R1L, SystemZ::R2L, SystemZ::R3L,
   SystemZ::R4L, SystemZ::R5L, SystemZ::R6L, SystemZ::R7L,
@@ -108,7 +101,6 @@ static MCAsmInfo *createSystemZMCAsmInfo(const MCRegisterInfo &MRI,
       MCCFIInstruction::createDefCfa(0, MRI.getDwarfRegNum(SystemZ::R15D, true),
                                      SystemZMC::CFAOffsetFromInitialSP);
   MAI->addInitialFrameState(Inst);
->>>>>>> llvmtrunk/master
   return MAI;
 }
 

@@ -322,7 +322,7 @@ SDValue VectorLegalizer::PromoteVectorOp(SDValue Op) {
   assert(Op.getNode()->getNumValues() == 1 &&
          "Can't promote a vector with multiple results!");
   MVT NVT = TLI.getTypeToPromoteTo(Op.getOpcode(), VT);
-  DebugLoc dl = Op.getDebugLoc();
+  SDLoc dl(Op);
   SmallVector<SDValue, 4> Operands(Op.getNumOperands());
 
   for (unsigned j = 0; j != Op.getNumOperands(); ++j) {
@@ -359,7 +359,7 @@ SDValue VectorLegalizer::PromoteVectorOpINT_TO_FP(SDValue Op) {
   // Build a new vector type and check if it is legal.
   MVT NVT = MVT::getVectorVT(EltVT.getSimpleVT(), NumElts);
 
-  DebugLoc dl = Op.getDebugLoc();
+  SDLoc dl(Op);
   SmallVector<SDValue, 4> Operands(Op.getNumOperands());
 
   unsigned Opc = Op.getOpcode() == ISD::UINT_TO_FP ? ISD::ZERO_EXTEND :
@@ -377,7 +377,7 @@ SDValue VectorLegalizer::PromoteVectorOpINT_TO_FP(SDValue Op) {
 
 
 SDValue VectorLegalizer::ExpandLoad(SDValue Op) {
-  DebugLoc dl = Op.getDebugLoc();
+  SDLoc dl(Op);
   LoadSDNode *LD = cast<LoadSDNode>(Op.getNode());
   SDValue Chain = LD->getChain();
   SDValue BasePTR = LD->getBasePtr();
@@ -523,7 +523,7 @@ SDValue VectorLegalizer::ExpandLoad(SDValue Op) {
 }
 
 SDValue VectorLegalizer::ExpandStore(SDValue Op) {
-  DebugLoc dl = Op.getDebugLoc();
+  SDLoc dl(Op);
   StoreSDNode *ST = cast<StoreSDNode>(Op.getNode());
   SDValue Chain = ST->getChain();
   SDValue BasePTR = ST->getBasePtr();
@@ -579,7 +579,7 @@ SDValue VectorLegalizer::ExpandSELECT(SDValue Op) {
   // operands are vectors. Lower this select to VSELECT and implement it
   // using XOR AND OR. The selector bit is broadcasted.
   EVT VT = Op.getValueType();
-  DebugLoc DL = Op.getDebugLoc();
+  SDLoc DL(Op);
 
   SDValue Mask = Op.getOperand(0);
   SDValue Op1 = Op.getOperand(1);
@@ -602,14 +602,7 @@ SDValue VectorLegalizer::ExpandSELECT(SDValue Op) {
     return DAG.UnrollVectorOp(Op.getNode());
 
   // Generate a mask operand.
-<<<<<<< HEAD
-  EVT MaskTy = TLI.getSetCCResultType(VT);
-  assert(MaskTy.isVector() && "Invalid CC type");
-  assert(MaskTy.getSizeInBits() == Op1.getValueType().getSizeInBits()
-         && "Invalid mask size");
-=======
   EVT MaskTy = VT.changeVectorElementTypeToInteger();
->>>>>>> llvmtrunk/master
 
   // What is the size of each element in the vector mask.
   EVT BitTy = MaskTy.getScalarType();
@@ -646,7 +639,7 @@ SDValue VectorLegalizer::ExpandSEXTINREG(SDValue Op) {
       TLI.getOperationAction(ISD::SHL, VT) == TargetLowering::Expand)
     return DAG.UnrollVectorOp(Op.getNode());
 
-  DebugLoc DL = Op.getDebugLoc();
+  SDLoc DL(Op);
   EVT OrigTy = cast<VTSDNode>(Op->getOperand(1))->getVT();
 
   unsigned BW = VT.getScalarType().getSizeInBits();
@@ -661,12 +654,13 @@ SDValue VectorLegalizer::ExpandSEXTINREG(SDValue Op) {
 SDValue VectorLegalizer::ExpandVSELECT(SDValue Op) {
   // Implement VSELECT in terms of XOR, AND, OR
   // on platforms which do not support blend natively.
-  EVT VT =  Op.getOperand(0).getValueType();
-  DebugLoc DL = Op.getDebugLoc();
+  SDLoc DL(Op);
 
   SDValue Mask = Op.getOperand(0);
   SDValue Op1 = Op.getOperand(1);
   SDValue Op2 = Op.getOperand(2);
+
+  EVT VT = Mask.getValueType();
 
   // If we can't even use the basic vector operations of
   // AND,OR,XOR, we will have to scalarize the op.
@@ -682,8 +676,12 @@ SDValue VectorLegalizer::ExpandVSELECT(SDValue Op) {
       TargetLowering::ZeroOrNegativeOneBooleanContent)
     return DAG.UnrollVectorOp(Op.getNode());
 
-  assert(VT.getSizeInBits() == Op1.getValueType().getSizeInBits()
-         && "Invalid mask size");
+  // If the mask and the type are different sizes, unroll the vector op. This
+  // can occur when getSetCCResultType returns something that is different in
+  // size from the operand types. For example, v4i8 = select v4i32, v4i8, v4i8.
+  if (VT.getSizeInBits() != Op1.getValueType().getSizeInBits())
+    return DAG.UnrollVectorOp(Op.getNode());
+
   // Bitcast the operands to be the same type as the mask.
   // This is needed when we select between FP types because
   // the mask is a vector of integers.
@@ -702,7 +700,7 @@ SDValue VectorLegalizer::ExpandVSELECT(SDValue Op) {
 
 SDValue VectorLegalizer::ExpandUINT_TO_FLOAT(SDValue Op) {
   EVT VT = Op.getOperand(0).getValueType();
-  DebugLoc DL = Op.getDebugLoc();
+  SDLoc DL(Op);
 
   // Make sure that the SINT_TO_FP and SRL instructions are available.
   if (TLI.getOperationAction(ISD::SINT_TO_FP, VT) == TargetLowering::Expand ||
@@ -743,7 +741,7 @@ SDValue VectorLegalizer::ExpandUINT_TO_FLOAT(SDValue Op) {
 SDValue VectorLegalizer::ExpandFNEG(SDValue Op) {
   if (TLI.isOperationLegalOrCustom(ISD::FSUB, Op.getValueType())) {
     SDValue Zero = DAG.getConstantFP(-0.0, Op.getValueType());
-    return DAG.getNode(ISD::FSUB, Op.getDebugLoc(), Op.getValueType(),
+    return DAG.getNode(ISD::FSUB, SDLoc(Op), Op.getValueType(),
                        Zero, Op.getOperand(0));
   }
   return DAG.UnrollVectorOp(Op.getNode());
@@ -755,20 +753,15 @@ SDValue VectorLegalizer::UnrollVSETCC(SDValue Op) {
   EVT EltVT = VT.getVectorElementType();
   SDValue LHS = Op.getOperand(0), RHS = Op.getOperand(1), CC = Op.getOperand(2);
   EVT TmpEltVT = LHS.getValueType().getVectorElementType();
-  DebugLoc dl = Op.getDebugLoc();
+  SDLoc dl(Op);
   SmallVector<SDValue, 8> Ops(NumElems);
   for (unsigned i = 0; i < NumElems; ++i) {
     SDValue LHSElem = DAG.getNode(ISD::EXTRACT_VECTOR_ELT, dl, TmpEltVT, LHS,
                                   DAG.getConstant(i, TLI.getVectorIdxTy()));
     SDValue RHSElem = DAG.getNode(ISD::EXTRACT_VECTOR_ELT, dl, TmpEltVT, RHS,
-<<<<<<< HEAD
-                                  DAG.getIntPtrConstant(i));
-    Ops[i] = DAG.getNode(ISD::SETCC, dl, TLI.getSetCCResultType(TmpEltVT),
-=======
                                   DAG.getConstant(i, TLI.getVectorIdxTy()));
     Ops[i] = DAG.getNode(ISD::SETCC, dl,
                          TLI.getSetCCResultType(*DAG.getContext(), TmpEltVT),
->>>>>>> llvmtrunk/master
                          LHSElem, RHSElem, CC);
     Ops[i] = DAG.getSelect(dl, EltVT, Ops[i],
                            DAG.getConstant(APInt::getAllOnesValue

@@ -38,3 +38,6 @@ define void @shl_v4i32(<4 x i32> addrspace(1)* %out, <4 x i32> addrspace(1)* %in
   store <4 x i32> %result, <4 x i32> addrspace(1)* %out
   ret void
 }
+
+; XXX: Add SI test for i64 shl once i64 stores and i64 function arguments are
+; supported.

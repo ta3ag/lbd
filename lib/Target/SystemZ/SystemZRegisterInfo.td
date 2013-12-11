@@ -161,12 +161,7 @@ defm FP128 : SystemZRegClass<"FP128", f128, 128, (add F0Q, F1Q, F4Q, F5Q,
 // Other registers
 //===----------------------------------------------------------------------===//
 
-<<<<<<< HEAD
-// Status register
-def PSW : SystemZReg<"psw">;
-=======
 // The 2-bit condition code field of the PSW.  Every register named in an
 // inline asm needs a class associated with it.
 def CC : SystemZReg<"cc">;
 def CCRegs : RegisterClass<"SystemZ", [i32], 32, (add CC)>;
->>>>>>> llvmtrunk/master

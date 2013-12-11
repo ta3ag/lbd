@@ -21,6 +21,7 @@
 #include "llvm/MC/MCSymbol.h"
 #include "llvm/MC/MCTargetAsmParser.h"
 #include "llvm/Support/TargetRegistry.h"
+#include "llvm/ADT/APInt.h"
 
 using namespace llvm;
 
@@ -1620,39 +1621,6 @@ MipsAsmParser::parseRegs(SmallVectorImpl<MCParsedAsmOperand *> &Operands,
 bool MipsAsmParser::validateMSAIndex(int Val, int RegKind) {
   MipsOperand::RegisterKind Kind = (MipsOperand::RegisterKind)RegKind;
 
-<<<<<<< HEAD
-  MCSymbol *Sym = getContext().LookupSymbol(Parser.getTok().getIdentifier());
-  if (Sym) {
-    SMLoc S = Parser.getTok().getLoc();
-    const MCExpr *Expr;
-    if (Sym->isVariable())
-      Expr = Sym->getVariableValue();
-    else
-      return false;
-    if (Expr->getKind() == MCExpr::SymbolRef) {
-      const MCSymbolRefExpr *Ref = static_cast<const MCSymbolRefExpr*>(Expr);
-      const StringRef DefSymbol = Ref->getSymbol().getName();
-      if (DefSymbol.startswith("$")) {
-        // Lookup for the register with the corresponding name.
-        int RegNum = matchRegisterName(DefSymbol.substr(1), isMips64());
-        if (RegNum > -1) {
-          Parser.Lex();
-          MipsOperand *op = MipsOperand::CreateReg(RegNum, S,
-                                                   Parser.getTok().getLoc());
-          op->setRegKind((MipsOperand::RegisterKind) RegisterKind);
-          Operands.push_back(op);
-          return true;
-        }
-      }
-    } else if (Expr->getKind() == MCExpr::Constant) {
-      Parser.Lex();
-      const MCConstantExpr *Const = static_cast<const MCConstantExpr*>(Expr);
-      MipsOperand *op = MipsOperand::CreateImm(Const, S,
-          Parser.getTok().getLoc());
-      Operands.push_back(op);
-      return true;
-    }
-=======
   if (Val < 0)
     return false;
 
@@ -1667,7 +1635,6 @@ bool MipsAsmParser::validateMSAIndex(int Val, int RegKind) {
     return Val < 4;
   case MipsOperand::Kind_MSA128DRegs:
     return Val < 2;
->>>>>>> llvmtrunk/master
   }
 }
 
@@ -2341,13 +2308,8 @@ bool MipsAsmParser::parseSetAssignment() {
     return reportParseError("unexpected token in .set directive");
   Lex(); // Eat comma
 
-<<<<<<< HEAD
-  if (Parser.parseExpression(Value))
-    reportParseError("expected valid expression after comma");
-=======
  if (Parser.parseExpression(Value))
     return reportParseError("expected valid expression after comma");
->>>>>>> llvmtrunk/master
 
   // Check if the Name already exists as a symbol.
   MCSymbol *Sym = getContext().LookupSymbol(Name);

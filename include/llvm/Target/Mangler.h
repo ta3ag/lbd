@@ -17,18 +17,12 @@
 #include "llvm/ADT/DenseMap.h"
 
 namespace llvm {
-class Twine;
+
 class GlobalValue;
-template <typename T> class SmallVectorImpl;
 class MCContext;
-<<<<<<< HEAD
-class MCSymbol;
-class DataLayout;
-=======
 template <typename T> class SmallVectorImpl;
 class TargetMachine;
 class Twine;
->>>>>>> llvmtrunk/master
 
 class Mangler {
 public:
@@ -39,12 +33,7 @@ public:
   };
 
 private:
-<<<<<<< HEAD
-  MCContext &Context;
-  const DataLayout &TD;
-=======
   const TargetMachine *TM;
->>>>>>> llvmtrunk/master
 
   /// AnonGlobalIDs - We need to give global values the same name every time
   /// they are mangled.  This keeps track of the number we give to anonymous
@@ -57,16 +46,7 @@ private:
   unsigned NextAnonGlobalID;
 
 public:
-<<<<<<< HEAD
-  Mangler(MCContext &context, const DataLayout &td)
-    : Context(context), TD(td), NextAnonGlobalID(1) {}
-
-  /// getSymbol - Return the MCSymbol for the specified global value.  This
-  /// symbol is the main label that is the address of the global.
-  MCSymbol *getSymbol(const GlobalValue *GV);
-=======
   Mangler(const TargetMachine *TM) : TM(TM), NextAnonGlobalID(1) {}
->>>>>>> llvmtrunk/master
 
   /// getNameWithPrefix - Fill OutName with the name of the appropriate prefix
   /// and the specified global variable's name.  If the global variable doesn't

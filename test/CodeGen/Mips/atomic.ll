@@ -1,4 +1,5 @@
-; RUN: llc -march=mipsel --disable-machine-licm < %s | FileCheck %s
+; RUN: llc -march=mipsel --disable-machine-licm < %s | FileCheck %s -check-prefix=CHECK-EL
+; RUN: llc -march=mips   --disable-machine-licm < %s | FileCheck %s -check-prefix=CHECK-EB
 
 @x = common global i32 0, align 4
 
@@ -7,15 +8,6 @@ entry:
   %0 = atomicrmw add i32* @x, i32 %incr monotonic
   ret i32 %0
 
-<<<<<<< HEAD
-; CHECK:   AtomicLoadAdd32:
-; CHECK:   lw      $[[R0:[0-9]+]], %got(x)
-; CHECK:   $[[BB0:[A-Z_0-9]+]]:
-; CHECK:   ll      $[[R1:[0-9]+]], 0($[[R0]])
-; CHECK:   addu    $[[R2:[0-9]+]], $[[R1]], $4
-; CHECK:   sc      $[[R2]], 0($[[R0]])
-; CHECK:   beq     $[[R2]], $zero, $[[BB0]]
-=======
 ; CHECK-EL-LABEL:   AtomicLoadAdd32:
 ; CHECK-EL:   lw      $[[R0:[0-9]+]], %got(x)
 ; CHECK-EL:   $[[BB0:[A-Z_0-9]+]]:
@@ -31,7 +23,6 @@ entry:
 ; CHECK-EB:   addu    $[[R2:[0-9]+]], $[[R1]], $4
 ; CHECK-EB:   sc      $[[R2]], 0($[[R0]])
 ; CHECK-EB:   beqz    $[[R2]], $[[BB0]]
->>>>>>> llvmtrunk/master
 }
 
 define i32 @AtomicLoadNand32(i32 %incr) nounwind {
@@ -39,16 +30,6 @@ entry:
   %0 = atomicrmw nand i32* @x, i32 %incr monotonic
   ret i32 %0
 
-<<<<<<< HEAD
-; CHECK:   AtomicLoadNand32:
-; CHECK:   lw      $[[R0:[0-9]+]], %got(x)
-; CHECK:   $[[BB0:[A-Z_0-9]+]]:
-; CHECK:   ll      $[[R1:[0-9]+]], 0($[[R0]])
-; CHECK:   and     $[[R3:[0-9]+]], $[[R1]], $4
-; CHECK:   nor     $[[R2:[0-9]+]], $zero, $[[R3]]
-; CHECK:   sc      $[[R2]], 0($[[R0]])
-; CHECK:   beq     $[[R2]], $zero, $[[BB0]]
-=======
 ; CHECK-EL-LABEL:   AtomicLoadNand32:
 ; CHECK-EL:   lw      $[[R0:[0-9]+]], %got(x)
 ; CHECK-EL:   $[[BB0:[A-Z_0-9]+]]:
@@ -66,7 +47,6 @@ entry:
 ; CHECK-EB:   nor     $[[R2:[0-9]+]], $zero, $[[R3]]
 ; CHECK-EB:   sc      $[[R2]], 0($[[R0]])
 ; CHECK-EB:   beqz    $[[R2]], $[[BB0]]
->>>>>>> llvmtrunk/master
 }
 
 define i32 @AtomicSwap32(i32 %newval) nounwind {
@@ -77,14 +57,6 @@ entry:
   %0 = atomicrmw xchg i32* @x, i32 %tmp monotonic
   ret i32 %0
 
-<<<<<<< HEAD
-; CHECK:   AtomicSwap32:
-; CHECK:   lw      $[[R0:[0-9]+]], %got(x)
-; CHECK:   $[[BB0:[A-Z_0-9]+]]:
-; CHECK:   ll      ${{[0-9]+}}, 0($[[R0]])
-; CHECK:   sc      $[[R2:[0-9]+]], 0($[[R0]])
-; CHECK:   beq     $[[R2]], $zero, $[[BB0]]
-=======
 ; CHECK-EL-LABEL:   AtomicSwap32:
 ; CHECK-EL:   lw      $[[R0:[0-9]+]], %got(x)
 ; CHECK-EL:   $[[BB0:[A-Z_0-9]+]]:
@@ -98,7 +70,6 @@ entry:
 ; CHECK-EB:   ll      ${{[0-9]+}}, 0($[[R0]])
 ; CHECK-EB:   sc      $[[R2:[0-9]+]], 0($[[R0]])
 ; CHECK-EB:   beqz    $[[R2]], $[[BB0]]
->>>>>>> llvmtrunk/master
 }
 
 define i32 @AtomicCmpSwap32(i32 %oldval, i32 %newval) nounwind {
@@ -109,16 +80,6 @@ entry:
   %0 = cmpxchg i32* @x, i32 %oldval, i32 %tmp monotonic
   ret i32 %0
 
-<<<<<<< HEAD
-; CHECK:   AtomicCmpSwap32:
-; CHECK:   lw      $[[R0:[0-9]+]], %got(x)
-; CHECK:   $[[BB0:[A-Z_0-9]+]]:
-; CHECK:   ll      $2, 0($[[R0]])
-; CHECK:   bne     $2, $4, $[[BB1:[A-Z_0-9]+]]
-; CHECK:   sc      $[[R2:[0-9]+]], 0($[[R0]])
-; CHECK:   beq     $[[R2]], $zero, $[[BB0]]
-; CHECK:   $[[BB1]]:
-=======
 ; CHECK-EL-LABEL:   AtomicCmpSwap32:
 ; CHECK-EL:   lw      $[[R0:[0-9]+]], %got(x)
 ; CHECK-EL:   $[[BB0:[A-Z_0-9]+]]:
@@ -136,7 +97,6 @@ entry:
 ; CHECK-EB:   sc      $[[R2:[0-9]+]], 0($[[R0]])
 ; CHECK-EB:   beqz    $[[R2]], $[[BB0]]
 ; CHECK-EB:   $[[BB1]]:
->>>>>>> llvmtrunk/master
 }
 
 
@@ -148,32 +108,6 @@ entry:
   %0 = atomicrmw add i8* @y, i8 %incr monotonic
   ret i8 %0
 
-<<<<<<< HEAD
-; CHECK:   AtomicLoadAdd8:
-; CHECK:   lw      $[[R0:[0-9]+]], %got(y)
-; CHECK:   addiu   $[[R1:[0-9]+]], $zero, -4
-; CHECK:   and     $[[R2:[0-9]+]], $[[R0]], $[[R1]]
-; CHECK:   andi    $[[R3:[0-9]+]], $[[R0]], 3
-; CHECK:   sll     $[[R4:[0-9]+]], $[[R3]], 3
-; CHECK:   ori     $[[R5:[0-9]+]], $zero, 255
-; CHECK:   sllv    $[[R6:[0-9]+]], $[[R5]], $[[R4]]
-; CHECK:   nor     $[[R7:[0-9]+]], $zero, $[[R6]]
-; CHECK:   sllv    $[[R9:[0-9]+]], $4, $[[R4]]
-
-; CHECK:   $[[BB0:[A-Z_0-9]+]]:
-; CHECK:   ll      $[[R10:[0-9]+]], 0($[[R2]])
-; CHECK:   addu    $[[R11:[0-9]+]], $[[R10]], $[[R9]]
-; CHECK:   and     $[[R12:[0-9]+]], $[[R11]], $[[R6]]
-; CHECK:   and     $[[R13:[0-9]+]], $[[R10]], $[[R7]]
-; CHECK:   or      $[[R14:[0-9]+]], $[[R13]], $[[R12]]
-; CHECK:   sc      $[[R14]], 0($[[R2]])
-; CHECK:   beq     $[[R14]], $zero, $[[BB0]]
-
-; CHECK:   and     $[[R15:[0-9]+]], $[[R10]], $[[R6]]
-; CHECK:   srlv    $[[R16:[0-9]+]], $[[R15]], $[[R4]]
-; CHECK:   sll     $[[R17:[0-9]+]], $[[R16]], 24
-; CHECK:   sra     $2, $[[R17]], 24
-=======
 ; CHECK-EL-LABEL:   AtomicLoadAdd8:
 ; CHECK-EL:   lw      $[[R0:[0-9]+]], %got(y)
 ; CHECK-EL:   addiu   $[[R1:[0-9]+]], $zero, -4
@@ -224,7 +158,6 @@ entry:
 ; CHECK-EB:   srlv    $[[R16:[0-9]+]], $[[R15]], $[[R5]]
 ; CHECK-EB:   sll     $[[R17:[0-9]+]], $[[R16]], 24
 ; CHECK-EB:   sra     $2, $[[R17]], 24
->>>>>>> llvmtrunk/master
 }
 
 define signext i8 @AtomicLoadSub8(i8 signext %incr) nounwind {
@@ -232,32 +165,6 @@ entry:
   %0 = atomicrmw sub i8* @y, i8 %incr monotonic
   ret i8 %0
 
-<<<<<<< HEAD
-; CHECK:   AtomicLoadSub8:
-; CHECK:   lw      $[[R0:[0-9]+]], %got(y)
-; CHECK:   addiu   $[[R1:[0-9]+]], $zero, -4
-; CHECK:   and     $[[R2:[0-9]+]], $[[R0]], $[[R1]]
-; CHECK:   andi    $[[R3:[0-9]+]], $[[R0]], 3
-; CHECK:   sll     $[[R4:[0-9]+]], $[[R3]], 3
-; CHECK:   ori     $[[R5:[0-9]+]], $zero, 255
-; CHECK:   sllv    $[[R6:[0-9]+]], $[[R5]], $[[R4]]
-; CHECK:   nor     $[[R7:[0-9]+]], $zero, $[[R6]]
-; CHECK:   sllv     $[[R9:[0-9]+]], $4, $[[R4]]
-
-; CHECK:   $[[BB0:[A-Z_0-9]+]]:
-; CHECK:   ll      $[[R10:[0-9]+]], 0($[[R2]])
-; CHECK:   subu    $[[R11:[0-9]+]], $[[R10]], $[[R9]]
-; CHECK:   and     $[[R12:[0-9]+]], $[[R11]], $[[R6]]
-; CHECK:   and     $[[R13:[0-9]+]], $[[R10]], $[[R7]]
-; CHECK:   or      $[[R14:[0-9]+]], $[[R13]], $[[R12]]
-; CHECK:   sc      $[[R14]], 0($[[R2]])
-; CHECK:   beq     $[[R14]], $zero, $[[BB0]]
-
-; CHECK:   and     $[[R15:[0-9]+]], $[[R10]], $[[R6]]
-; CHECK:   srlv    $[[R16:[0-9]+]], $[[R15]], $[[R4]]
-; CHECK:   sll     $[[R17:[0-9]+]], $[[R16]], 24
-; CHECK:   sra     $2, $[[R17]], 24
-=======
 ; CHECK-EL-LABEL:   AtomicLoadSub8:
 ; CHECK-EL:   lw      $[[R0:[0-9]+]], %got(y)
 ; CHECK-EL:   addiu   $[[R1:[0-9]+]], $zero, -4
@@ -308,7 +215,6 @@ entry:
 ; CHECK-EB:   srlv    $[[R16:[0-9]+]], $[[R15]], $[[R5]]
 ; CHECK-EB:   sll     $[[R17:[0-9]+]], $[[R16]], 24
 ; CHECK-EB:   sra     $2, $[[R17]], 24
->>>>>>> llvmtrunk/master
 }
 
 define signext i8 @AtomicLoadNand8(i8 signext %incr) nounwind {
@@ -316,33 +222,6 @@ entry:
   %0 = atomicrmw nand i8* @y, i8 %incr monotonic
   ret i8 %0
 
-<<<<<<< HEAD
-; CHECK:   AtomicLoadNand8:
-; CHECK:   lw      $[[R0:[0-9]+]], %got(y)
-; CHECK:   addiu   $[[R1:[0-9]+]], $zero, -4
-; CHECK:   and     $[[R2:[0-9]+]], $[[R0]], $[[R1]]
-; CHECK:   andi    $[[R3:[0-9]+]], $[[R0]], 3
-; CHECK:   sll     $[[R4:[0-9]+]], $[[R3]], 3
-; CHECK:   ori     $[[R5:[0-9]+]], $zero, 255
-; CHECK:   sllv    $[[R6:[0-9]+]], $[[R5]], $[[R4]]
-; CHECK:   nor     $[[R7:[0-9]+]], $zero, $[[R6]]
-; CHECK:   sllv    $[[R9:[0-9]+]], $4, $[[R4]]
-
-; CHECK:   $[[BB0:[A-Z_0-9]+]]:
-; CHECK:   ll      $[[R10:[0-9]+]], 0($[[R2]])
-; CHECK:   and     $[[R18:[0-9]+]], $[[R10]], $[[R9]]
-; CHECK:   nor     $[[R11:[0-9]+]], $zero, $[[R18]]
-; CHECK:   and     $[[R12:[0-9]+]], $[[R11]], $[[R6]]
-; CHECK:   and     $[[R13:[0-9]+]], $[[R10]], $[[R7]]
-; CHECK:   or      $[[R14:[0-9]+]], $[[R13]], $[[R12]]
-; CHECK:   sc      $[[R14]], 0($[[R2]])
-; CHECK:   beq     $[[R14]], $zero, $[[BB0]]
-
-; CHECK:   and     $[[R15:[0-9]+]], $[[R10]], $[[R6]]
-; CHECK:   srlv    $[[R16:[0-9]+]], $[[R15]], $[[R4]]
-; CHECK:   sll     $[[R17:[0-9]+]], $[[R16]], 24
-; CHECK:   sra     $2, $[[R17]], 24
-=======
 ; CHECK-EL-LABEL:   AtomicLoadNand8:
 ; CHECK-EL:   lw      $[[R0:[0-9]+]], %got(y)
 ; CHECK-EL:   addiu   $[[R1:[0-9]+]], $zero, -4
@@ -395,7 +274,6 @@ entry:
 ; CHECK-EB:   srlv    $[[R16:[0-9]+]], $[[R15]], $[[R5]]
 ; CHECK-EB:   sll     $[[R17:[0-9]+]], $[[R16]], 24
 ; CHECK-EB:   sra     $2, $[[R17]], 24
->>>>>>> llvmtrunk/master
 }
 
 define signext i8 @AtomicSwap8(i8 signext %newval) nounwind {
@@ -403,31 +281,6 @@ entry:
   %0 = atomicrmw xchg i8* @y, i8 %newval monotonic
   ret i8 %0
 
-<<<<<<< HEAD
-; CHECK:   AtomicSwap8:
-; CHECK:   lw      $[[R0:[0-9]+]], %got(y)
-; CHECK:   addiu   $[[R1:[0-9]+]], $zero, -4
-; CHECK:   and     $[[R2:[0-9]+]], $[[R0]], $[[R1]]
-; CHECK:   andi    $[[R3:[0-9]+]], $[[R0]], 3
-; CHECK:   sll     $[[R4:[0-9]+]], $[[R3]], 3
-; CHECK:   ori     $[[R5:[0-9]+]], $zero, 255
-; CHECK:   sllv    $[[R6:[0-9]+]], $[[R5]], $[[R4]]
-; CHECK:   nor     $[[R7:[0-9]+]], $zero, $[[R6]]
-; CHECK:   sllv    $[[R9:[0-9]+]], $4, $[[R4]]
-
-; CHECK:   $[[BB0:[A-Z_0-9]+]]:
-; CHECK:   ll      $[[R10:[0-9]+]], 0($[[R2]])
-; CHECK:   and     $[[R18:[0-9]+]], $[[R9]], $[[R6]]
-; CHECK:   and     $[[R13:[0-9]+]], $[[R10]], $[[R7]]
-; CHECK:   or      $[[R14:[0-9]+]], $[[R13]], $[[R18]]
-; CHECK:   sc      $[[R14]], 0($[[R2]])
-; CHECK:   beq     $[[R14]], $zero, $[[BB0]]
-
-; CHECK:   and     $[[R15:[0-9]+]], $[[R10]], $[[R6]]
-; CHECK:   srlv    $[[R16:[0-9]+]], $[[R15]], $[[R4]]
-; CHECK:   sll     $[[R17:[0-9]+]], $[[R16]], 24
-; CHECK:   sra     $2, $[[R17]], 24
-=======
 ; CHECK-EL-LABEL:   AtomicSwap8:
 ; CHECK-EL:   lw      $[[R0:[0-9]+]], %got(y)
 ; CHECK-EL:   addiu   $[[R1:[0-9]+]], $zero, -4
@@ -476,7 +329,6 @@ entry:
 ; CHECK-EB:   srlv    $[[R16:[0-9]+]], $[[R15]], $[[R5]]
 ; CHECK-EB:   sll     $[[R17:[0-9]+]], $[[R16]], 24
 ; CHECK-EB:   sra     $2, $[[R17]], 24
->>>>>>> llvmtrunk/master
 }
 
 define signext i8 @AtomicCmpSwap8(i8 signext %oldval, i8 signext %newval) nounwind {
@@ -484,36 +336,6 @@ entry:
   %0 = cmpxchg i8* @y, i8 %oldval, i8 %newval monotonic
   ret i8 %0
 
-<<<<<<< HEAD
-; CHECK:   AtomicCmpSwap8:
-; CHECK:   lw      $[[R0:[0-9]+]], %got(y)
-; CHECK:   addiu   $[[R1:[0-9]+]], $zero, -4
-; CHECK:   and     $[[R2:[0-9]+]], $[[R0]], $[[R1]]
-; CHECK:   andi    $[[R3:[0-9]+]], $[[R0]], 3
-; CHECK:   sll     $[[R4:[0-9]+]], $[[R3]], 3
-; CHECK:   ori     $[[R5:[0-9]+]], $zero, 255
-; CHECK:   sllv    $[[R6:[0-9]+]], $[[R5]], $[[R4]]
-; CHECK:   nor     $[[R7:[0-9]+]], $zero, $[[R6]]
-; CHECK:   andi    $[[R8:[0-9]+]], $4, 255
-; CHECK:   sllv    $[[R9:[0-9]+]], $[[R8]], $[[R4]]
-; CHECK:   andi    $[[R10:[0-9]+]], $5, 255
-; CHECK:   sllv    $[[R11:[0-9]+]], $[[R10]], $[[R4]]
-
-; CHECK:   $[[BB0:[A-Z_0-9]+]]:
-; CHECK:   ll      $[[R12:[0-9]+]], 0($[[R2]])
-; CHECK:   and     $[[R13:[0-9]+]], $[[R12]], $[[R6]]
-; CHECK:   bne     $[[R13]], $[[R9]], $[[BB1:[A-Z_0-9]+]]
-
-; CHECK:   and     $[[R14:[0-9]+]], $[[R12]], $[[R7]]
-; CHECK:   or      $[[R15:[0-9]+]], $[[R14]], $[[R11]]
-; CHECK:   sc      $[[R15]], 0($[[R2]])
-; CHECK:   beq     $[[R15]], $zero, $[[BB0]]
-
-; CHECK:   $[[BB1]]:
-; CHECK:   srlv    $[[R16:[0-9]+]], $[[R13]], $[[R4]]
-; CHECK:   sll     $[[R17:[0-9]+]], $[[R16]], 24
-; CHECK:   sra     $2, $[[R17]], 24
-=======
 ; CHECK-EL-LABEL:   AtomicCmpSwap8:
 ; CHECK-EL:   lw      $[[R0:[0-9]+]], %got(y)
 ; CHECK-EL:   addiu   $[[R1:[0-9]+]], $zero, -4
@@ -572,7 +394,6 @@ entry:
 ; CHECK-EB:   srlv    $[[R17:[0-9]+]], $[[R14]], $[[R5]]
 ; CHECK-EB:   sll     $[[R18:[0-9]+]], $[[R17]], 24
 ; CHECK-EB:   sra     $2, $[[R18]], 24
->>>>>>> llvmtrunk/master
 }
 
 @countsint = common global i32 0, align 4
@@ -582,14 +403,6 @@ entry:
   %0 = atomicrmw add i32* @countsint, i32 %v seq_cst
   ret i32 %0 
 
-<<<<<<< HEAD
-; CHECK:   CheckSync:
-; CHECK:   sync 0
-; CHECK:   ll
-; CHECK:   sc
-; CHECK:   beq
-; CHECK:   sync 0
-=======
 ; CHECK-EL-LABEL:   CheckSync:
 ; CHECK-EL:   sync 0
 ; CHECK-EL:   ll
@@ -603,7 +416,6 @@ entry:
 ; CHECK-EB:   sc
 ; CHECK-EB:   beq
 ; CHECK-EB:   sync 0
->>>>>>> llvmtrunk/master
 }
 
 ; make sure that this assertion in

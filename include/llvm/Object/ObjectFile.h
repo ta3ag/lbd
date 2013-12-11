@@ -28,12 +28,8 @@ namespace object {
 class ObjectFile;
 
 union DataRefImpl {
-  struct {
-    // ELF needs this for relocations. This entire union should probably be a
-    // char[max(8, sizeof(uintptr_t))] and require the impl to cast.
-    uint16_t a, b;
-    uint32_t c;
-  } w;
+  // This entire union should probably be a
+  // char[max(8, sizeof(uintptr_t))] and require the impl to cast.
   struct {
     uint32_t a, b;
   } d;
@@ -120,7 +116,6 @@ public:
   ///
   /// This is for display purposes only.
   error_code getTypeName(SmallVectorImpl<char> &Result) const;
-  error_code getAdditionalInfo(int64_t &Result) const;
 
   /// @brief Get a string that represents the calculation of the value of this
   ///        relocation.
@@ -129,11 +124,14 @@ public:
   error_code getValueString(SmallVectorImpl<char> &Result) const;
 
   DataRefImpl getRawDataRefImpl() const;
+  const ObjectFile *getObjectFile() const;
 };
 typedef content_iterator<RelocationRef> relocation_iterator;
 
 /// SectionRef - This is a value type class that represents a single section in
 /// the list of sections in the object file.
+class SectionRef;
+typedef content_iterator<SectionRef> section_iterator;
 class SectionRef {
   friend class SymbolRef;
   DataRefImpl SectionPimpl;
@@ -170,10 +168,10 @@ public:
 
   relocation_iterator begin_relocations() const;
   relocation_iterator end_relocations() const;
+  section_iterator getRelocatedSection() const;
 
   DataRefImpl getRawDataRefImpl() const;
 };
-typedef content_iterator<SectionRef> section_iterator;
 
 /// SymbolRef - This is a value type class that represents a single symbol in
 /// the list of symbols in the object file.
@@ -319,15 +317,9 @@ protected:
   virtual error_code isSectionReadOnlyData(DataRefImpl Sec, bool &Res) const =0;
   virtual error_code sectionContainsSymbol(DataRefImpl Sec, DataRefImpl Symb,
                                            bool &Result) const = 0;
-<<<<<<< HEAD
-  virtual relocation_iterator getSectionRelBegin(DataRefImpl Sec) const = 0;
-  virtual relocation_iterator getSectionRelEnd(DataRefImpl Sec) const = 0;
-
-=======
   virtual relocation_iterator section_rel_begin(DataRefImpl Sec) const = 0;
   virtual relocation_iterator section_rel_end(DataRefImpl Sec) const = 0;
   virtual section_iterator getRelocatedSection(DataRefImpl Sec) const;
->>>>>>> llvmtrunk/master
 
   // Same as above for RelocationRef.
   friend class RelocationRef;
@@ -342,8 +334,6 @@ protected:
                                        uint64_t &Res) const = 0;
   virtual error_code getRelocationTypeName(DataRefImpl Rel,
                                        SmallVectorImpl<char> &Result) const = 0;
-  virtual error_code getRelocationAdditionalInfo(DataRefImpl Rel,
-                                                 int64_t &Res) const = 0;
   virtual error_code getRelocationValueString(DataRefImpl Rel,
                                        SmallVectorImpl<char> &Result) const = 0;
   virtual error_code getRelocationHidden(DataRefImpl Rel, bool &Result) const {
@@ -536,6 +526,10 @@ inline relocation_iterator SectionRef::end_relocations() const {
   return OwningObject->section_rel_end(SectionPimpl);
 }
 
+inline section_iterator SectionRef::getRelocatedSection() const {
+  return OwningObject->getRelocatedSection(SectionPimpl);
+}
+
 inline DataRefImpl SectionRef::getRawDataRefImpl() const {
   return SectionPimpl;
 }
@@ -575,10 +569,6 @@ inline error_code RelocationRef::getTypeName(SmallVectorImpl<char> &Result)
   return OwningObject->getRelocationTypeName(RelocationPimpl, Result);
 }
 
-inline error_code RelocationRef::getAdditionalInfo(int64_t &Result) const {
-  return OwningObject->getRelocationAdditionalInfo(RelocationPimpl, Result);
-}
-
 inline error_code RelocationRef::getValueString(SmallVectorImpl<char> &Result)
   const {
   return OwningObject->getRelocationValueString(RelocationPimpl, Result);
@@ -590,6 +580,10 @@ inline error_code RelocationRef::getHidden(bool &Result) const {
 
 inline DataRefImpl RelocationRef::getRawDataRefImpl() const {
   return RelocationPimpl;
+}
+
+inline const ObjectFile *RelocationRef::getObjectFile() const {
+  return OwningObject;
 }
 
 // Inline function definitions.

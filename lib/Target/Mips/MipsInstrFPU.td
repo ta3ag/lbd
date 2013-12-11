@@ -29,14 +29,9 @@ def SDT_MipsFPBrcond : SDTypeProfile<0, 3, [SDTCisInt<0>,
                                             SDTCisVT<2, OtherVT>]>;
 def SDT_MipsFPCmp : SDTypeProfile<0, 3, [SDTCisSameAs<0, 1>, SDTCisFP<1>,
                                          SDTCisVT<2, i32>]>;
-<<<<<<< HEAD
-def SDT_MipsCMovFP : SDTypeProfile<1, 2, [SDTCisSameAs<0, 1>,
-                                          SDTCisSameAs<1, 2>]>;
-=======
 def SDT_MipsCMovFP : SDTypeProfile<1, 3, [SDTCisSameAs<0, 1>, SDTCisVT<2, i32>,
                                           SDTCisSameAs<1, 3>]>;
 def SDT_MipsTruncIntFP : SDTypeProfile<1, 1, [SDTCisFP<0>, SDTCisFP<1>]>;
->>>>>>> llvmtrunk/master
 def SDT_MipsBuildPairF64 : SDTypeProfile<1, 2, [SDTCisVT<0, f64>,
                                                 SDTCisVT<1, i32>,
                                                 SDTCisSameAs<1, 2>]>;
@@ -49,6 +44,7 @@ def MipsCMovFP_T : SDNode<"MipsISD::CMovFP_T", SDT_MipsCMovFP, [SDNPInGlue]>;
 def MipsCMovFP_F : SDNode<"MipsISD::CMovFP_F", SDT_MipsCMovFP, [SDNPInGlue]>;
 def MipsFPBrcond : SDNode<"MipsISD::FPBrcond", SDT_MipsFPBrcond,
                           [SDNPHasChain, SDNPOptInGlue]>;
+def MipsTruncIntFP : SDNode<"MipsISD::TruncIntFP", SDT_MipsTruncIntFP>;
 def MipsBuildPairF64 : SDNode<"MipsISD::BuildPairF64", SDT_MipsBuildPairF64>;
 def MipsExtractElementF64 : SDNode<"MipsISD::ExtractElementF64",
                                    SDT_MipsExtractElementF64>;
@@ -151,6 +147,7 @@ class LW_FT<string opstr, RegisterOperand RC, InstrItinClass Itin,
   InstSE<(outs RC:$rt), (ins mem:$addr), !strconcat(opstr, "\t$rt, $addr"),
          [(set RC:$rt, (OpNode addrDefault:$addr))], Itin, FrmFI> {
   let DecoderMethod = "DecodeFMem";
+  let mayLoad = 1;
 }
 
 class SW_FT<string opstr, RegisterOperand RC, InstrItinClass Itin,
@@ -158,6 +155,7 @@ class SW_FT<string opstr, RegisterOperand RC, InstrItinClass Itin,
   InstSE<(outs), (ins RC:$rt, mem:$addr), !strconcat(opstr, "\t$rt, $addr"),
          [(OpNode RC:$rt, addrDefault:$addr)], Itin, FrmFI> {
   let DecoderMethod = "DecodeFMem";
+  let mayStore = 1;
 }
 
 class MADDS_FT<string opstr, RegisterOperand RC, InstrItinClass Itin,
@@ -295,13 +293,6 @@ let Predicates = [NotFP64bit, HasStdEnc] in {
 }
 
 let Predicates = [IsFP64bit, HasStdEnc], DecoderNamespace = "Mips64" in {
-<<<<<<< HEAD
- def CVT_S_D64 : ABSS_FT<"cvt.s.d", FGR32, FGR64, IIFcvt>, ABSS_FM<0x20, 17>;
- def CVT_S_L   : ABSS_FT<"cvt.s.l", FGR32, FGR64, IIFcvt>, ABSS_FM<0x20, 21>;
- def CVT_D64_W : ABSS_FT<"cvt.d.w", FGR64, FGR32, IIFcvt>, ABSS_FM<0x21, 20>;
- def CVT_D64_S : ABSS_FT<"cvt.d.s", FGR64, FGR32, IIFcvt>, ABSS_FM<0x21, 16>;
- def CVT_D64_L : ABSS_FT<"cvt.d.l", FGR64, FGR64, IIFcvt>, ABSS_FM<0x21, 21>;
-=======
   def CVT_S_D64 : ABSS_FT<"cvt.s.d", FGR32Opnd, FGR64Opnd, IIFcvt>,
                   ABSS_FM<0x20, 17>;
   def CVT_S_L   : ABSS_FT<"cvt.s.l", FGR32Opnd, FGR64Opnd, IIFcvt>,
@@ -320,7 +311,6 @@ let isPseudo = 1, isCodeGenOnly = 1 in {
   def PseudoCVT_S_L : ABSS_FT<"", FGR64Opnd, GPR64Opnd, IIFcvt>;
   def PseudoCVT_D64_W : ABSS_FT<"", FGR64Opnd, GPR32Opnd, IIFcvt>;
   def PseudoCVT_D64_L : ABSS_FT<"", FGR64Opnd, GPR64Opnd, IIFcvt>;
->>>>>>> llvmtrunk/master
 }
 
 let Predicates = [NoNaNsFPMath, HasStdEnc] in {
@@ -382,18 +372,12 @@ let Predicates = [NotFP64bit, HasStdEnc] in {
   def SDC1 : SW_FT<"sdc1", AFGR64Opnd, IIFStore, store>, LW_FM<0x3d>;
 }
 
-<<<<<<< HEAD
-let Predicates = [NotN64, NotMips64, HasStdEnc] in {
-  def LDC1 : LW_FT<"ldc1", AFGR64, IILoad, mem, load>, LW_FM<0x35>;
-  def SDC1 : SW_FT<"sdc1", AFGR64, IIStore, mem, store>, LW_FM<0x3d>;
-=======
 /// Cop2 Memory Instructions
 let Predicates = [HasStdEnc] in {
   def LWC2 : LW_FT<"lwc2", COP2Opnd, NoItinerary, load>, LW_FM<0x32>;
   def SWC2 : SW_FT<"swc2", COP2Opnd, NoItinerary, store>, LW_FM<0x3a>;
   def LDC2 : LW_FT<"ldc2", COP2Opnd, NoItinerary, load>, LW_FM<0x36>;
   def SDC2 : SW_FT<"sdc2", COP2Opnd, NoItinerary, store>, LW_FM<0x3e>;
->>>>>>> llvmtrunk/master
 }
 
 // Indexed loads and stores.
@@ -562,18 +546,6 @@ def : InstAlias<"bc1f $offset", (BC1F FCC0, brtarget:$offset)>;
 def : MipsPat<(f32 fpimm0), (MTC1 ZERO)>;
 def : MipsPat<(f32 fpimm0neg), (FNEG_S (MTC1 ZERO))>;
 
-<<<<<<< HEAD
-def : MipsPat<(f32 (sint_to_fp CPURegs:$src)), (CVT_S_W (MTC1 CPURegs:$src))>;
-def : MipsPat<(i32 (fp_to_sint FGR32:$src)), (MFC1 (TRUNC_W_S FGR32:$src))>;
-
-let Predicates = [NotFP64bit, HasStdEnc] in {
-  def : MipsPat<(f64 (sint_to_fp CPURegs:$src)),
-                (CVT_D32_W (MTC1 CPURegs:$src))>;
-  def : MipsPat<(i32 (fp_to_sint AFGR64:$src)),
-                (MFC1 (TRUNC_W_D32 AFGR64:$src))>;
-  def : MipsPat<(f32 (fround AFGR64:$src)), (CVT_S_D32 AFGR64:$src)>;
-  def : MipsPat<(f64 (fextend FGR32:$src)), (CVT_D32_S FGR32:$src)>;
-=======
 def : MipsPat<(f32 (sint_to_fp GPR32Opnd:$src)),
               (PseudoCVT_S_W GPR32Opnd:$src)>;
 def : MipsPat<(MipsTruncIntFP FGR32Opnd:$src),
@@ -588,27 +560,12 @@ let Predicates = [NotFP64bit, HasStdEnc] in {
                 (CVT_S_D32 AFGR64Opnd:$src)>;
   def : MipsPat<(f64 (fextend FGR32Opnd:$src)),
                 (CVT_D32_S FGR32Opnd:$src)>;
->>>>>>> llvmtrunk/master
 }
 
 let Predicates = [IsFP64bit, HasStdEnc] in {
   def : MipsPat<(f64 fpimm0), (DMTC1 ZERO_64)>;
   def : MipsPat<(f64 fpimm0neg), (FNEG_D64 (DMTC1 ZERO_64))>;
 
-<<<<<<< HEAD
-  def : MipsPat<(f64 (sint_to_fp CPURegs:$src)),
-                (CVT_D64_W (MTC1 CPURegs:$src))>;
-  def : MipsPat<(f32 (sint_to_fp CPU64Regs:$src)),
-                (CVT_S_L (DMTC1 CPU64Regs:$src))>;
-  def : MipsPat<(f64 (sint_to_fp CPU64Regs:$src)),
-                (CVT_D64_L (DMTC1 CPU64Regs:$src))>;
-
-  def : MipsPat<(i32 (fp_to_sint FGR64:$src)),
-                (MFC1 (TRUNC_W_D64 FGR64:$src))>;
-  def : MipsPat<(i64 (fp_to_sint FGR32:$src)), (DMFC1 (TRUNC_L_S FGR32:$src))>;
-  def : MipsPat<(i64 (fp_to_sint FGR64:$src)),
-                (DMFC1 (TRUNC_L_D64 FGR64:$src))>;
-=======
   def : MipsPat<(f64 (sint_to_fp GPR32Opnd:$src)),
                 (PseudoCVT_D64_W GPR32Opnd:$src)>;
   def : MipsPat<(f32 (sint_to_fp GPR64Opnd:$src)),
@@ -622,7 +579,6 @@ let Predicates = [IsFP64bit, HasStdEnc] in {
                 (TRUNC_L_S FGR32Opnd:$src)>;
   def : MipsPat<(MipsTruncIntFP FGR64Opnd:$src),
                 (TRUNC_L_D64 FGR64Opnd:$src)>;
->>>>>>> llvmtrunk/master
 
   def : MipsPat<(f32 (fround FGR64Opnd:$src)),
                 (CVT_S_D64 FGR64Opnd:$src)>;
@@ -642,11 +598,7 @@ let AddedComplexity = 40 in {
     def : StoreRegImmPat<SDC164, f64>;
   }
 
-<<<<<<< HEAD
-  let Predicates = [NotN64, NotMips64, HasStdEnc] in {
-=======
   let Predicates = [NotFP64bit, HasStdEnc] in {
->>>>>>> llvmtrunk/master
     def : LoadRegImmPat<LDC1, f64, load>;
     def : StoreRegImmPat<SDC1, f64>;
   }

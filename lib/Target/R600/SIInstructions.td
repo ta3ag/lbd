@@ -410,22 +410,11 @@ def DS_READ_U16 : DS_Load_Helper <0x0000003c, "DS_READ_U16", VReg_32>;
 //def BUFFER_LOAD_FORMAT_X : MUBUF_ <0x00000000, "BUFFER_LOAD_FORMAT_X", []>;
 //def BUFFER_LOAD_FORMAT_XY : MUBUF_ <0x00000001, "BUFFER_LOAD_FORMAT_XY", []>;
 //def BUFFER_LOAD_FORMAT_XYZ : MUBUF_ <0x00000002, "BUFFER_LOAD_FORMAT_XYZ", []>;
-def BUFFER_LOAD_FORMAT_XYZW : MUBUF_Load_Helper <0x00000003, "BUFFER_LOAD_FORMAT_XYZW", VReg_128>;
+defm BUFFER_LOAD_FORMAT_XYZW : MUBUF_Load_Helper <0x00000003, "BUFFER_LOAD_FORMAT_XYZW", VReg_128>;
 //def BUFFER_STORE_FORMAT_X : MUBUF_ <0x00000004, "BUFFER_STORE_FORMAT_X", []>;
 //def BUFFER_STORE_FORMAT_XY : MUBUF_ <0x00000005, "BUFFER_STORE_FORMAT_XY", []>;
 //def BUFFER_STORE_FORMAT_XYZ : MUBUF_ <0x00000006, "BUFFER_STORE_FORMAT_XYZ", []>;
 //def BUFFER_STORE_FORMAT_XYZW : MUBUF_ <0x00000007, "BUFFER_STORE_FORMAT_XYZW", []>;
-<<<<<<< HEAD
-//def BUFFER_LOAD_UBYTE : MUBUF_ <0x00000008, "BUFFER_LOAD_UBYTE", []>;
-//def BUFFER_LOAD_SBYTE : MUBUF_ <0x00000009, "BUFFER_LOAD_SBYTE", []>;
-//def BUFFER_LOAD_USHORT : MUBUF_ <0x0000000a, "BUFFER_LOAD_USHORT", []>;
-//def BUFFER_LOAD_SSHORT : MUBUF_ <0x0000000b, "BUFFER_LOAD_SSHORT", []>;
-def BUFFER_LOAD_DWORD : MUBUF_Load_Helper <0x0000000c, "BUFFER_LOAD_DWORD", VReg_32>;
-def BUFFER_LOAD_DWORDX2 : MUBUF_Load_Helper <0x0000000d, "BUFFER_LOAD_DWORDX2", VReg_64>;
-def BUFFER_LOAD_DWORDX4 : MUBUF_Load_Helper <0x0000000e, "BUFFER_LOAD_DWORDX4", VReg_128>;
-//def BUFFER_STORE_BYTE : MUBUF_ <0x00000018, "BUFFER_STORE_BYTE", []>;
-//def BUFFER_STORE_SHORT : MUBUF_ <0x0000001a, "BUFFER_STORE_SHORT", []>;
-=======
 defm BUFFER_LOAD_UBYTE : MUBUF_Load_Helper <0x00000008, "BUFFER_LOAD_UBYTE", VReg_32>;
 defm BUFFER_LOAD_SBYTE : MUBUF_Load_Helper <0x00000009, "BUFFER_LOAD_SBYTE", VReg_32>;
 defm BUFFER_LOAD_USHORT : MUBUF_Load_Helper <0x0000000a, "BUFFER_LOAD_USHORT", VReg_32>;
@@ -441,7 +430,6 @@ def BUFFER_STORE_BYTE : MUBUF_Store_Helper <
 def BUFFER_STORE_SHORT : MUBUF_Store_Helper <
   0x0000001a, "BUFFER_STORE_SHORT", VReg_32
 >;
->>>>>>> llvmtrunk/master
 
 def BUFFER_STORE_DWORD : MUBUF_Store_Helper <
   0x0000001c, "BUFFER_STORE_DWORD", VReg_32
@@ -1070,6 +1058,8 @@ def V_FMA_F64 : VOP3_64 <0x0000014c, "V_FMA_F64",
 >;
 //def V_LERP_U8 : VOP3_U8 <0x0000014d, "V_LERP_U8", []>;
 def V_ALIGNBIT_B32 : VOP3_32 <0x0000014e, "V_ALIGNBIT_B32", []>;
+def : ROTRPattern <V_ALIGNBIT_B32>;
+
 def V_ALIGNBYTE_B32 : VOP3_32 <0x0000014f, "V_ALIGNBYTE_B32", []>;
 def V_MULLIT_F32 : VOP3_32 <0x00000150, "V_MULLIT_F32", []>;
 ////def V_MIN3_F32 : VOP3_MIN3 <0x00000151, "V_MIN3_F32", []>;
@@ -1088,11 +1078,6 @@ def V_SAD_U32 : VOP3_32 <0x0000015d, "V_SAD_U32", []>;
 ////def V_CVT_PK_U8_F32 : VOP3_U8 <0x0000015e, "V_CVT_PK_U8_F32", []>;
 def V_DIV_FIXUP_F32 : VOP3_32 <0x0000015f, "V_DIV_FIXUP_F32", []>;
 def V_DIV_FIXUP_F64 : VOP3_64 <0x00000160, "V_DIV_FIXUP_F64", []>;
-<<<<<<< HEAD
-def V_LSHL_B64 : VOP3_64 <0x00000161, "V_LSHL_B64", []>;
-def V_LSHR_B64 : VOP3_64 <0x00000162, "V_LSHR_B64", []>;
-def V_ASHR_I64 : VOP3_64 <0x00000163, "V_ASHR_I64", []>;
-=======
 
 def V_LSHL_B64 : VOP3_64_Shift <0x00000161, "V_LSHL_B64",
   [(set i64:$dst, (shl i64:$src0, i32:$src1))]
@@ -1106,7 +1091,6 @@ def V_ASHR_I64 : VOP3_64_Shift <0x00000163, "V_ASHR_I64",
 
 let isCommutable = 1 in {
 
->>>>>>> llvmtrunk/master
 def V_ADD_F64 : VOP3_64 <0x00000164, "V_ADD_F64", []>;
 def V_MUL_F64 : VOP3_64 <0x00000165, "V_MUL_F64", []>;
 def V_MIN_F64 : VOP3_64 <0x00000166, "V_MIN_F64", []>;
@@ -1431,15 +1415,8 @@ def : Pat <
 
 /* int_SI_vs_load_input */
 def : Pat<
-<<<<<<< HEAD
-  (int_SI_vs_load_input v16i8:$tlst, IMM12bit:$attr_offset,
-                        i32:$buf_idx_vgpr),
-  (BUFFER_LOAD_FORMAT_XYZW imm:$attr_offset, 0, 1, 0, 0, 0,
-                           $buf_idx_vgpr, $tlst, 0, 0, 0)
-=======
   (SIload_input i128:$tlst, IMM12bit:$attr_offset, i32:$buf_idx_vgpr),
   (BUFFER_LOAD_FORMAT_XYZW_IDXEN $tlst, $buf_idx_vgpr, imm:$attr_offset)
->>>>>>> llvmtrunk/master
 >;
 
 /* int_SI_export */
@@ -1844,13 +1821,8 @@ def : Pat <
 
 // 3. Offset in an 32Bit VGPR
 def : Pat <
-<<<<<<< HEAD
-  (int_SI_load_const v16i8:$sbase, i32:$voff),
-  (BUFFER_LOAD_DWORD 0, 1, 0, 0, 0, 0, $voff, $sbase, 0, 0, 0)
-=======
   (SIload_constant i128:$sbase, i32:$voff),
   (BUFFER_LOAD_DWORD_OFFEN $sbase, $voff)
->>>>>>> llvmtrunk/master
 >;
 
 // The multiplication scales from [0,1] to the unsigned integer range
@@ -1937,14 +1909,10 @@ multiclass SMRD_Pattern <SMRD Instr_IMM, SMRD Instr_SGPR, ValueType vt> {
 
 defm : SMRD_Pattern <S_LOAD_DWORD_IMM, S_LOAD_DWORD_SGPR, f32>;
 defm : SMRD_Pattern <S_LOAD_DWORD_IMM, S_LOAD_DWORD_SGPR, i32>;
-<<<<<<< HEAD
-defm : SMRD_Pattern <S_LOAD_DWORDX4_IMM, S_LOAD_DWORDX4_SGPR, v16i8>;
-=======
 defm : SMRD_Pattern <S_LOAD_DWORDX2_IMM, S_LOAD_DWORDX2_SGPR, i64>;
 defm : SMRD_Pattern <S_LOAD_DWORDX2_IMM, S_LOAD_DWORDX2_SGPR, v2i32>;
 defm : SMRD_Pattern <S_LOAD_DWORDX4_IMM, S_LOAD_DWORDX4_SGPR, i128>;
 defm : SMRD_Pattern <S_LOAD_DWORDX4_IMM, S_LOAD_DWORDX4_SGPR, v4i32>;
->>>>>>> llvmtrunk/master
 defm : SMRD_Pattern <S_LOAD_DWORDX8_IMM, S_LOAD_DWORDX8_SGPR, v32i8>;
 defm : SMRD_Pattern <S_LOAD_DWORDX8_IMM, S_LOAD_DWORDX8_SGPR, v8i32>;
 defm : SMRD_Pattern <S_LOAD_DWORDX16_IMM, S_LOAD_DWORDX16_SGPR, v16i32>;

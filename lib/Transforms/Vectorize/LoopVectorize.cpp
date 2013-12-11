@@ -121,11 +121,11 @@ static const unsigned TinyTripCountUnrollThreshold = 128;
 /// than this number of comparisons.
 static const unsigned RuntimeMemoryCheckThreshold = 8;
 
-/// We use a metadata with this name  to indicate that a scalar loop was
-/// vectorized and that we don't need to re-vectorize it if we run into it
-/// again.
-static const char*
-AlreadyVectorizedMDName = "llvm.vectorizer.already_vectorized";
+/// Maximum simd width.
+static const unsigned MaxVectorWidth = 64;
+
+/// Maximum vectorization unroll count.
+static const unsigned MaxUnrollFactor = 16;
 
 /// The cost of a loop that is considered 'small' by the unroller.
 static const unsigned SmallLoopCost = 20;
@@ -340,13 +340,13 @@ protected:
   PHINode *Induction;
   /// The induction variable of the old basic block.
   PHINode *OldInduction;
+  /// Holds the extended (to the widest induction type) start index.
+  Value *ExtendedIdx;
   /// Maps scalars to widened vectors.
   ValueMap WidenMap;
   EdgeMaskCache MaskCache;
 };
 
-<<<<<<< HEAD
-=======
 class InnerLoopUnroller : public InnerLoopVectorizer {
 public:
   InnerLoopUnroller(Loop *OrigLoop, ScalarEvolution *SE, LoopInfo *LI,
@@ -391,7 +391,6 @@ static void setDebugLocFromInst(IRBuilder<> &B, const Value *Ptr) {
     B.SetCurrentDebugLocation(DebugLoc());
 }
 
->>>>>>> llvmtrunk/master
 /// LoopVectorizationLegality checks if it is legal to vectorize a loop, and
 /// to what vectorization factor.
 /// This class does not look at the profitability of vectorization, only the
@@ -408,17 +407,10 @@ static void setDebugLocFromInst(IRBuilder<> &B, const Value *Ptr) {
 class LoopVectorizationLegality {
 public:
   LoopVectorizationLegality(Loop *L, ScalarEvolution *SE, DataLayout *DL,
-<<<<<<< HEAD
-                            DominatorTree *DT, TargetTransformInfo* TTI,
-                            AliasAnalysis *AA, TargetLibraryInfo *TLI)
-      : TheLoop(L), SE(SE), DL(DL), DT(DT), TTI(TTI), AA(AA), TLI(TLI),
-        Induction(0), HasFunNoNaNAttr(false) {}
-=======
                             DominatorTree *DT, TargetLibraryInfo *TLI)
       : TheLoop(L), SE(SE), DL(DL), DT(DT), TLI(TLI),
         Induction(0), WidestIndTy(0), HasFunNoNaNAttr(false),
         MaxSafeDepDistBytes(-1U) {}
->>>>>>> llvmtrunk/master
 
   /// This enum represents the kinds of reductions that we support.
   enum ReductionKind {
@@ -557,6 +549,9 @@ public:
   /// Returns the induction variables found in the loop.
   InductionList *getInductionVars() { return &Inductions; }
 
+  /// Returns the widest induction type.
+  Type *getWidestInductionType() { return WidestIndTy; }
+
   /// Returns True if V is an induction variable in this loop.
   bool isInductionVariable(const Value *V);
 
@@ -653,6 +648,8 @@ private:
   /// Notice that inductions don't need to start at zero and that induction
   /// variables can be pointers.
   InductionList Inductions;
+  /// Holds the widest induction type encountered.
+  Type *WidestIndTy;
 
   /// Allowed outside users. This holds the reduction
   /// vars which can be accessed from outside the loop.
@@ -665,11 +662,8 @@ private:
   RuntimePointerCheck PtrRtCheck;
   /// Can we assume the absence of NaNs.
   bool HasFunNoNaNAttr;
-<<<<<<< HEAD
-=======
 
   unsigned MaxSafeDepDistBytes;
->>>>>>> llvmtrunk/master
 };
 
 /// LoopVectorizationCostModel - estimates the expected speedups due to
@@ -762,8 +756,6 @@ private:
   const TargetLibraryInfo *TLI;
 };
 
-<<<<<<< HEAD
-=======
 /// Utility class for getting and setting loop vectorizer hints in the form
 /// of loop metadata.
 struct LoopVectorizeHints {
@@ -899,7 +891,6 @@ private:
   }
 };
 
->>>>>>> llvmtrunk/master
 /// The LoopVectorize Pass.
 struct LoopVectorize : public LoopPass {
   /// Pass identification, replacement for typeid
@@ -946,8 +937,6 @@ struct LoopVectorize : public LoopPass {
     DEBUG(dbgs() << "LV: Checking a loop in \"" <<
           L->getHeader()->getParent()->getName() << "\"\n");
 
-<<<<<<< HEAD
-=======
     LoopVectorizeHints Hints(L, DisableUnrolling);
 
     if (Hints.Force == 0) {
@@ -965,7 +954,6 @@ struct LoopVectorize : public LoopPass {
       return false;
     }
 
->>>>>>> llvmtrunk/master
     // Check if it is legal to vectorize the loop.
     LoopVectorizationLegality LVL(L, SE, DL, DT, TLI);
     if (!LVL.canVectorize()) {
@@ -994,10 +982,10 @@ struct LoopVectorize : public LoopPass {
 
     // Select the optimal vectorization factor.
     LoopVectorizationCostModel::VectorizationFactor VF;
-    VF = CM.selectVectorizationFactor(OptForSize, VectorizationFactor);
+    VF = CM.selectVectorizationFactor(OptForSize, Hints.Width);
     // Select the unroll factor.
-    unsigned UF = CM.selectUnrollFactor(OptForSize, VectorizationUnroll,
-                                        VF.Width, VF.Cost);
+    unsigned UF = CM.selectUnrollFactor(OptForSize, Hints.Unroll, VF.Width,
+                                        VF.Cost);
 
     DEBUG(dbgs() << "LV: Found a vectorizable loop ("<< VF.Width << ") in "<<
           F->getParent()->getModuleIdentifier() << '\n');
@@ -1017,18 +1005,8 @@ struct LoopVectorize : public LoopPass {
       LB.vectorize(&LVL);
     }
 
-<<<<<<< HEAD
-    DEBUG(dbgs() << "LV: Found a vectorizable loop ("<< VF.Width << ") in "<<
-          F->getParent()->getModuleIdentifier()<<"\n");
-    DEBUG(dbgs() << "LV: Unroll Factor is " << UF << "\n");
-
-    // If we decided that it is *legal* to vectorize the loop then do it.
-    InnerLoopVectorizer LB(L, SE, LI, DT, DL, TLI, VF.Width, UF);
-    LB.vectorize(&LVL);
-=======
     // Mark the loop as already vectorized to avoid vectorizing again.
     Hints.setAlreadyVectorized(L);
->>>>>>> llvmtrunk/master
 
     DEBUG(verifyFunction(*L->getHeader()->getParent()));
     return true;
@@ -1571,18 +1549,12 @@ InnerLoopVectorizer::createEmptyLoop(LoopVectorizationLegality *Legal) {
   BasicBlock *ExitBlock = OrigLoop->getExitBlock();
   assert(ExitBlock && "Must have an exit block");
 
-  // Mark the old scalar loop with metadata that tells us not to vectorize this
-  // loop again if we run into it.
-  MDNode *MD = MDNode::get(OldBasicBlock->getContext(), None);
-  OldBasicBlock->getTerminator()->setMetadata(AlreadyVectorizedMDName, MD);
-
   // Some loops have a single integer induction variable, while other loops
   // don't. One example is c++ iterators that often have multiple pointer
   // induction variables. In the code below we also support a case where we
   // don't have a single induction variable.
   OldInduction = Legal->getInduction();
-  Type *IdxTy = OldInduction ? OldInduction->getType() :
-  DL->getIntPtrType(SE->getContext());
+  Type *IdxTy = Legal->getWidestInductionType();
 
   // Find the loop boundaries.
   const SCEV *ExitCount = SE->getBackedgeTakenCount(OrigLoop);
@@ -1613,9 +1585,11 @@ InnerLoopVectorizer::createEmptyLoop(LoopVectorizationLegality *Legal) {
   // The loop index does not have to start at Zero. Find the original start
   // value from the induction PHI node. If we don't have an induction variable
   // then we know that it starts at zero.
-  Value *StartIdx = OldInduction ?
-  OldInduction->getIncomingValueForBlock(BypassBlock):
-  ConstantInt::get(IdxTy, 0);
+  Builder.SetInsertPoint(BypassBlock->getTerminator());
+  Value *StartIdx = ExtendedIdx = OldInduction ?
+    Builder.CreateZExt(OldInduction->getIncomingValueForBlock(BypassBlock),
+                       IdxTy):
+    ConstantInt::get(IdxTy, 0);
 
   assert(BypassBlock && "Invalid loop structure");
   LoopBypassBlocks.push_back(BypassBlock);
@@ -1730,76 +1704,101 @@ InnerLoopVectorizer::createEmptyLoop(LoopVectorizationLegality *Legal) {
   PHINode *ResumeIndex = 0;
   LoopVectorizationLegality::InductionList::iterator I, E;
   LoopVectorizationLegality::InductionList *List = Legal->getInductionVars();
+  // Set builder to point to last bypass block.
+  BypassBuilder.SetInsertPoint(LoopBypassBlocks.back()->getTerminator());
   for (I = List->begin(), E = List->end(); I != E; ++I) {
     PHINode *OrigPhi = I->first;
     LoopVectorizationLegality::InductionInfo II = I->second;
-    PHINode *ResumeVal = PHINode::Create(OrigPhi->getType(), 2, "resume.val",
+
+    Type *ResumeValTy = (OrigPhi == OldInduction) ? IdxTy : OrigPhi->getType();
+    PHINode *ResumeVal = PHINode::Create(ResumeValTy, 2, "resume.val",
                                          MiddleBlock->getTerminator());
+    // We might have extended the type of the induction variable but we need a
+    // truncated version for the scalar loop.
+    PHINode *TruncResumeVal = (OrigPhi == OldInduction) ?
+      PHINode::Create(OrigPhi->getType(), 2, "trunc.resume.val",
+                      MiddleBlock->getTerminator()) : 0;
+
     Value *EndValue = 0;
     switch (II.IK) {
     case LoopVectorizationLegality::IK_NoInduction:
       llvm_unreachable("Unknown induction");
     case LoopVectorizationLegality::IK_IntInduction: {
-      // Handle the integer induction counter:
+      // Handle the integer induction counter.
       assert(OrigPhi->getType()->isIntegerTy() && "Invalid type");
-      assert(OrigPhi == OldInduction && "Unknown integer PHI");
-      // We know what the end value is.
-      EndValue = IdxEndRoundDown;
-      // We also know which PHI node holds it.
-      ResumeIndex = ResumeVal;
+
+      // We have the canonical induction variable.
+      if (OrigPhi == OldInduction) {
+        // Create a truncated version of the resume value for the scalar loop,
+        // we might have promoted the type to a larger width.
+        EndValue =
+          BypassBuilder.CreateTrunc(IdxEndRoundDown, OrigPhi->getType());
+        // The new PHI merges the original incoming value, in case of a bypass,
+        // or the value at the end of the vectorized loop.
+        for (unsigned I = 0, E = LoopBypassBlocks.size(); I != E; ++I)
+          TruncResumeVal->addIncoming(II.StartValue, LoopBypassBlocks[I]);
+        TruncResumeVal->addIncoming(EndValue, VecBody);
+
+        // We know what the end value is.
+        EndValue = IdxEndRoundDown;
+        // We also know which PHI node holds it.
+        ResumeIndex = ResumeVal;
+        break;
+      }
+
+      // Not the canonical induction variable - add the vector loop count to the
+      // start value.
+      Value *CRD = BypassBuilder.CreateSExtOrTrunc(CountRoundDown,
+                                                   II.StartValue->getType(),
+                                                   "cast.crd");
+      EndValue = BypassBuilder.CreateAdd(CRD, II.StartValue , "ind.end");
       break;
     }
     case LoopVectorizationLegality::IK_ReverseIntInduction: {
       // Convert the CountRoundDown variable to the PHI size.
-      unsigned CRDSize = CountRoundDown->getType()->getScalarSizeInBits();
-      unsigned IISize = II.StartValue->getType()->getScalarSizeInBits();
-      Value *CRD = CountRoundDown;
-      if (CRDSize > IISize)
-        CRD = CastInst::Create(Instruction::Trunc, CountRoundDown,
-                               II.StartValue->getType(), "tr.crd",
-                               LoopBypassBlocks.back()->getTerminator());
-      else if (CRDSize < IISize)
-        CRD = CastInst::Create(Instruction::SExt, CountRoundDown,
-                               II.StartValue->getType(),
-                               "sext.crd",
-                               LoopBypassBlocks.back()->getTerminator());
-      // Handle reverse integer induction counter:
-      EndValue =
-        BinaryOperator::CreateSub(II.StartValue, CRD, "rev.ind.end",
-                                  LoopBypassBlocks.back()->getTerminator());
+      Value *CRD = BypassBuilder.CreateSExtOrTrunc(CountRoundDown,
+                                                   II.StartValue->getType(),
+                                                   "cast.crd");
+      // Handle reverse integer induction counter.
+      EndValue = BypassBuilder.CreateSub(II.StartValue, CRD, "rev.ind.end");
       break;
     }
     case LoopVectorizationLegality::IK_PtrInduction: {
       // For pointer induction variables, calculate the offset using
       // the end index.
-      EndValue =
-        GetElementPtrInst::Create(II.StartValue, CountRoundDown, "ptr.ind.end",
-                                  LoopBypassBlocks.back()->getTerminator());
+      EndValue = BypassBuilder.CreateGEP(II.StartValue, CountRoundDown,
+                                         "ptr.ind.end");
       break;
     }
     case LoopVectorizationLegality::IK_ReversePtrInduction: {
       // The value at the end of the loop for the reverse pointer is calculated
       // by creating a GEP with a negative index starting from the start value.
       Value *Zero = ConstantInt::get(CountRoundDown->getType(), 0);
-      Value *NegIdx = BinaryOperator::CreateSub(Zero, CountRoundDown,
-                                  "rev.ind.end",
-                                  LoopBypassBlocks.back()->getTerminator());
-      EndValue = GetElementPtrInst::Create(II.StartValue, NegIdx,
-                                  "rev.ptr.ind.end",
-                                  LoopBypassBlocks.back()->getTerminator());
+      Value *NegIdx = BypassBuilder.CreateSub(Zero, CountRoundDown,
+                                              "rev.ind.end");
+      EndValue = BypassBuilder.CreateGEP(II.StartValue, NegIdx,
+                                         "rev.ptr.ind.end");
       break;
     }
     }// end of case
 
     // The new PHI merges the original incoming value, in case of a bypass,
     // or the value at the end of the vectorized loop.
-    for (unsigned I = 0, E = LoopBypassBlocks.size(); I != E; ++I)
-      ResumeVal->addIncoming(II.StartValue, LoopBypassBlocks[I]);
+    for (unsigned I = 0, E = LoopBypassBlocks.size(); I != E; ++I) {
+      if (OrigPhi == OldInduction)
+        ResumeVal->addIncoming(StartIdx, LoopBypassBlocks[I]);
+      else
+        ResumeVal->addIncoming(II.StartValue, LoopBypassBlocks[I]);
+    }
     ResumeVal->addIncoming(EndValue, VecBody);
 
     // Fix the scalar body counter (PHI node).
     unsigned BlockIdx = OrigPhi->getBasicBlockIndex(ScalarPH);
-    OrigPhi->setIncomingValue(BlockIdx, ResumeVal);
+    // The old inductions phi node in the scalar body needs the truncated value.
+    if (OrigPhi == OldInduction)
+      OrigPhi->setIncomingValue(BlockIdx, TruncResumeVal);
+    else
+      OrigPhi->setIncomingValue(BlockIdx, ResumeVal);
   }
 
   // If we are generating a new induction variable then we also need to
@@ -2248,7 +2247,7 @@ InnerLoopVectorizer::vectorizeLoop(LoopVectorizationLegality *Legal) {
     Value *LoopVal = RdxPhi->getIncomingValueForBlock(Latch);
     VectorParts &Val = getVectorValue(LoopVal);
     for (unsigned part = 0; part < UF; ++part) {
-      // Make sure to add the reduction stat value only to the 
+      // Make sure to add the reduction stat value only to the
       // first unroll part.
       Value *StartVal = (part == 0) ? VectorStart : Identity;
       cast<PHINode>(VecRdxPhi[part])->addIncoming(StartVal, VecPreheader);
@@ -2451,42 +2450,6 @@ void InnerLoopVectorizer::widenPHIInstruction(Instruction *PN,
     return;
   }
 
-<<<<<<< HEAD
-      // Check for PHI nodes that are lowered to vector selects.
-      if (P->getParent() != OrigLoop->getHeader()) {
-        // We know that all PHIs in non header blocks are converted into
-        // selects, so we don't have to worry about the insertion order and we
-        // can just use the builder.
-        // At this point we generate the predication tree. There may be
-        // duplications since this is a simple recursive scan, but future
-        // optimizations will clean it up.
-
-        unsigned NumIncoming = P->getNumIncomingValues();
-        assert(NumIncoming > 1 && "Invalid PHI");
-
-        // Generate a sequence of selects of the form:
-        // SELECT(Mask3, In3,
-        //      SELECT(Mask2, In2,
-        //                   ( ...)))
-        for (unsigned In = 0; In < NumIncoming; In++) {
-          VectorParts Cond = createEdgeMask(P->getIncomingBlock(In),
-                                            P->getParent());
-          VectorParts &In0 = getVectorValue(P->getIncomingValue(In));
-
-          for (unsigned part = 0; part < UF; ++part) {
-            // We don't need to 'select' the first PHI operand because it is
-            // the default value if all of the other masks don't match.
-            if (In == 0)
-              Entry[part] = In0[part];
-            else
-              // Select between the current value and the previous incoming edge
-              // based on the incoming mask.
-              Entry[part] = Builder.CreateSelect(Cond[part], In0[part],
-                                                 Entry[part], "predphi");
-          }
-        }
-        continue;
-=======
   setDebugLocFromInst(Builder, P);
   // Check for PHI nodes that are lowered to vector selects.
   if (P->getParent() != OrigLoop->getHeader()) {
@@ -2519,30 +2482,11 @@ void InnerLoopVectorizer::widenPHIInstruction(Instruction *PN,
           // based on the incoming mask.
           Entry[part] = Builder.CreateSelect(Cond[part], In0[part],
                                              Entry[part], "predphi");
->>>>>>> llvmtrunk/master
       }
     }
     return;
   }
 
-<<<<<<< HEAD
-      // This PHINode must be an induction variable.
-      // Make sure that we know about it.
-      assert(Legal->getInductionVars()->count(P) &&
-             "Not an induction variable");
-
-      LoopVectorizationLegality::InductionInfo II =
-        Legal->getInductionVars()->lookup(P);
-
-      switch (II.IK) {
-      case LoopVectorizationLegality::IK_NoInduction:
-        llvm_unreachable("Unknown induction");
-      case LoopVectorizationLegality::IK_IntInduction: {
-        assert(P == OldInduction && "Unexpected PHI");
-        Value *Broadcasted = getBroadcastInstrs(Induction);
-        // After broadcasting the induction variable we need to make the
-        // vector consecutive by adding 0, 1, 2 ...
-=======
   // This PHINode must be an induction variable.
   // Make sure that we know about it.
   assert(Legal->getInductionVars()->count(P) &&
@@ -2599,32 +2543,11 @@ void InnerLoopVectorizer::widenPHIInstruction(Instruction *PN,
         Value *Broadcasted = getBroadcastInstrs(ReverseInd);
         // After broadcasting the induction variable we need to make the
         // vector consecutive by adding  ... -3, -2, -1, 0.
->>>>>>> llvmtrunk/master
         for (unsigned part = 0; part < UF; ++part)
           Entry[part] = getConsecutiveVector(Broadcasted, -(int)VF * part,
                                              true);
         return;
       }
-<<<<<<< HEAD
-      case LoopVectorizationLegality::IK_ReverseIntInduction:
-      case LoopVectorizationLegality::IK_PtrInduction:
-      case LoopVectorizationLegality::IK_ReversePtrInduction:
-        // Handle reverse integer and pointer inductions.
-        Value *StartIdx = 0;
-        // If we have a single integer induction variable then use it.
-        // Otherwise, start counting at zero.
-        if (OldInduction) {
-          LoopVectorizationLegality::InductionInfo OldII =
-            Legal->getInductionVars()->lookup(OldInduction);
-          StartIdx = OldII.StartValue;
-        } else {
-          StartIdx = ConstantInt::get(Induction->getType(), 0);
-        }
-        // This is the normalized GEP that starts counting at zero.
-        Value *NormalizedIdx = Builder.CreateSub(Induction, StartIdx,
-                                                 "normalized.idx");
-=======
->>>>>>> llvmtrunk/master
 
       // Handle the pointer induction variable case.
       assert(P->getType()->isPointerTy() && "Unexpected type.");
@@ -2994,26 +2917,6 @@ bool LoopVectorizationLegality::canVectorize() {
   return true;
 }
 
-<<<<<<< HEAD
-/// \brief Check that the instruction has outside loop users and is not an
-/// identified reduction variable.
-static bool hasOutsideLoopUser(const Loop *TheLoop, Instruction *Inst,
-                               SmallPtrSet<Value *, 4> &Reductions) {
-  // Reduction instructions are allowed to have exit users. All other
-  // instructions must not have external users.
-  if (!Reductions.count(Inst))
-    //Check that all of the users of the loop are inside the BB.
-    for (Value::use_iterator I = Inst->use_begin(), E = Inst->use_end();
-         I != E; ++I) {
-      Instruction *U = cast<Instruction>(*I);
-      // This user may be a reduction exit value.
-      if (!TheLoop->contains(U)) {
-        DEBUG(dbgs() << "LV: Found an outside user for : "<< *U << "\n");
-        return true;
-      }
-    }
-  return false;
-=======
 static Type *convertPointerToIntegerType(DataLayout &DL, Type *Ty) {
   if (Ty->isPointerTy())
     return DL.getIntPtrType(Ty);
@@ -3032,7 +2935,6 @@ static Type* getWiderType(DataLayout &DL, Type *Ty0, Type *Ty1) {
   if (Ty0->getScalarSizeInBits() > Ty1->getScalarSizeInBits())
     return Ty0;
   return Ty1;
->>>>>>> llvmtrunk/master
 }
 
 /// \brief Check that the instruction has outside loop users and is not an
@@ -3059,13 +2961,6 @@ bool LoopVectorizationLegality::canVectorizeInstrs() {
   BasicBlock *PreHeader = TheLoop->getLoopPreheader();
   BasicBlock *Header = TheLoop->getHeader();
 
-  // If we marked the scalar loop as "already vectorized" then no need
-  // to vectorize it again.
-  if (Header->getTerminator()->getMetadata(AlreadyVectorizedMDName)) {
-    DEBUG(dbgs() << "LV: This loop was vectorized before\n");
-    return false;
-  }
-
   // Look for the attribute signaling the absence of NaNs.
   Function &F = *Header->getParent();
   if (F.hasFnAttribute("no-nans-fp-math"))
@@ -3082,10 +2977,11 @@ bool LoopVectorizationLegality::canVectorizeInstrs() {
          ++it) {
 
       if (PHINode *Phi = dyn_cast<PHINode>(it)) {
+        Type *PhiTy = Phi->getType();
         // Check that this PHI type is allowed.
-        if (!Phi->getType()->isIntegerTy() &&
-            !Phi->getType()->isFloatingPointTy() &&
-            !Phi->getType()->isPointerTy()) {
+        if (!PhiTy->isIntegerTy() &&
+            !PhiTy->isFloatingPointTy() &&
+            !PhiTy->isPointerTy()) {
           DEBUG(dbgs() << "LV: Found an non-int non-pointer PHI.\n");
           return false;
         }
@@ -3113,13 +3009,19 @@ bool LoopVectorizationLegality::canVectorizeInstrs() {
         InductionKind IK = isInductionVariable(Phi);
 
         if (IK_NoInduction != IK) {
+          // Get the widest type.
+          if (!WidestIndTy)
+            WidestIndTy = convertPointerToIntegerType(*DL, PhiTy);
+          else
+            WidestIndTy = getWiderType(*DL, PhiTy, WidestIndTy);
+
           // Int inductions are special because we only allow one IV.
           if (IK == IK_IntInduction) {
-            if (Induction) {
-              DEBUG(dbgs() << "LV: Found too many inductions."<< *Phi <<"\n");
-              return false;
-            }
-            Induction = Phi;
+            // Use the phi node with the widest type as induction. Use the last
+            // one if there are multiple (no good reason for doing this other
+            // than it is expedient).
+            if (!Induction || PhiTy == WidestIndTy)
+              Induction = Phi;
           }
 
           DEBUG(dbgs() << "LV: Found an induction variable.\n");
@@ -3209,7 +3111,8 @@ bool LoopVectorizationLegality::canVectorizeInstrs() {
 
   if (!Induction) {
     DEBUG(dbgs() << "LV: Did not find one integer induction var.\n");
-    assert(getInductionVars()->size() && "No induction variables");
+    if (Inductions.empty())
+      return false;
   }
 
   return true;
@@ -3238,9 +3141,7 @@ void LoopVectorizationLegality::collectLoopUniforms() {
     Uniforms.insert(I);
 
     // Insert all operands.
-    for (int i = 0, Op = I->getNumOperands(); i < Op; ++i) {
-      Worklist.push_back(I->getOperand(i));
-    }
+    Worklist.insert(Worklist.end(), I->op_begin(), I->op_end());
   }
 }
 
@@ -4143,6 +4044,26 @@ bool LoopVectorizationLegality::canVectorizeMemory() {
   return CanVecMem;
 }
 
+static bool hasMultipleUsesOf(Instruction *I,
+                              SmallPtrSet<Instruction *, 8> &Insts) {
+  unsigned NumUses = 0;
+  for(User::op_iterator Use = I->op_begin(), E = I->op_end(); Use != E; ++Use) {
+    if (Insts.count(dyn_cast<Instruction>(*Use)))
+      ++NumUses;
+    if (NumUses > 1)
+      return true;
+  }
+
+  return false;
+}
+
+static bool areAllUsesIn(Instruction *I, SmallPtrSet<Instruction *, 8> &Set) {
+  for(User::op_iterator Use = I->op_begin(), E = I->op_end(); Use != E; ++Use)
+    if (!Set.count(dyn_cast<Instruction>(*Use)))
+      return false;
+  return true;
+}
+
 bool LoopVectorizationLegality::AddReductionVar(PHINode *Phi,
                                                 ReductionKind Kind) {
   if (Phi->getNumIncomingValues() != 2)
@@ -4161,50 +4082,73 @@ bool LoopVectorizationLegality::AddReductionVar(PHINode *Phi,
   // This includes users of the reduction, variables (which form a cycle
   // which ends in the phi node).
   Instruction *ExitInstruction = 0;
-  // Indicates that we found a binary operation in our scan.
-  bool FoundBinOp = false;
+  // Indicates that we found a reduction operation in our scan.
+  bool FoundReduxOp = false;
 
-  // Iter is our iterator. We start with the PHI node and scan for all of the
-  // users of this instruction. All users must be instructions that can be
-  // used as reduction variables (such as ADD). We may have a single
-  // out-of-block user. The cycle must end with the original PHI.
-  Instruction *Iter = Phi;
+  // We start with the PHI node and scan for all of the users of this
+  // instruction. All users must be instructions that can be used as reduction
+  // variables (such as ADD). We must have a single out-of-block user. The cycle
+  // must include the original PHI.
+  bool FoundStartPHI = false;
 
   // To recognize min/max patterns formed by a icmp select sequence, we store
   // the number of instruction we saw from the recognized min/max pattern,
-  // such that we don't stop when we see the phi has two uses (one by the select
-  // and one by the icmp) and to make sure we only see exactly the two
-  // instructions.
+  //  to make sure we only see exactly the two instructions.
   unsigned NumCmpSelectPatternInst = 0;
   ReductionInstDesc ReduxDesc(false, 0);
 
-  // Avoid cycles in the chain.
   SmallPtrSet<Instruction *, 8> VisitedInsts;
-  while (VisitedInsts.insert(Iter)) {
-    // If the instruction has no users then this is a broken
-    // chain and can't be a reduction variable.
-    if (Iter->use_empty())
+  SmallVector<Instruction *, 8> Worklist;
+  Worklist.push_back(Phi);
+  VisitedInsts.insert(Phi);
+
+  // A value in the reduction can be used:
+  //  - By the reduction:
+  //      - Reduction operation:
+  //        - One use of reduction value (safe).
+  //        - Multiple use of reduction value (not safe).
+  //      - PHI:
+  //        - All uses of the PHI must be the reduction (safe).
+  //        - Otherwise, not safe.
+  //  - By one instruction outside of the loop (safe).
+  //  - By further instructions outside of the loop (not safe).
+  //  - By an instruction that is not part of the reduction (not safe).
+  //    This is either:
+  //      * An instruction type other than PHI or the reduction operation.
+  //      * A PHI in the header other than the initial PHI.
+  while (!Worklist.empty()) {
+    Instruction *Cur = Worklist.back();
+    Worklist.pop_back();
+
+    // No Users.
+    // If the instruction has no users then this is a broken chain and can't be
+    // a reduction variable.
+    if (Cur->use_empty())
       return false;
 
-    // Did we find a user inside this loop already ?
-    bool FoundInBlockUser = false;
-    // Did we reach the initial PHI node already ?
-    bool FoundStartPHI = false;
+    bool IsAPhi = isa<PHINode>(Cur);
 
-    // Is this a bin op ?
-    FoundBinOp |= !isa<PHINode>(Iter);
+    // A header PHI use other than the original PHI.
+    if (Cur != Phi && IsAPhi && Cur->getParent() == Phi->getParent())
+      return false;
 
-<<<<<<< HEAD
-    // For each of the *users* of iter.
-    for (Value::use_iterator it = Iter->use_begin(), e = Iter->use_end();
-         it != e; ++it) {
-      Instruction *U = cast<Instruction>(*it);
-      // We already know that the PHI is a user.
-      if (U == Phi) {
-        FoundStartPHI = true;
-        continue;
-      }
-=======
+    // Reductions of instructions such as Div, and Sub is only possible if the
+    // LHS is the reduction variable.
+    if (!Cur->isCommutative() && !IsAPhi && !isa<SelectInst>(Cur) &&
+        !isa<ICmpInst>(Cur) && !isa<FCmpInst>(Cur) &&
+        !VisitedInsts.count(dyn_cast<Instruction>(Cur->getOperand(0))))
+      return false;
+
+    // Any reduction instruction must be of one of the allowed kinds.
+    ReduxDesc = isReductionInstr(Cur, Kind, ReduxDesc);
+    if (!ReduxDesc.IsReduction)
+      return false;
+
+    // A reduction operation must only have one use of the reduction value.
+    if (!IsAPhi && Kind != RK_IntegerMinMax && Kind != RK_FloatMinMax &&
+        hasMultipleUsesOf(Cur, VisitedInsts))
+      return false;
+
     // All inputs to a PHI node must be a reduction value.
     if(IsAPhi && Cur != Phi && !areAllUsesIn(Cur, VisitedInsts))
       return false;
@@ -4227,10 +4171,9 @@ bool LoopVectorizationLegality::AddReductionVar(PHINode *Phi,
     for (Value::use_iterator UI = Cur->use_begin(), E = Cur->use_end(); UI != E;
          ++UI) {
       Instruction *Usr = cast<Instruction>(*UI);
->>>>>>> llvmtrunk/master
 
       // Check if we found the exit user.
-      BasicBlock *Parent = U->getParent();
+      BasicBlock *Parent = Usr->getParent();
       if (!TheLoop->contains(Parent)) {
         // Exit if you find multiple outside users or if the header phi node is
         // being used. In this case the user uses the value of the previous
@@ -4238,9 +4181,6 @@ bool LoopVectorizationLegality::AddReductionVar(PHINode *Phi,
         // reduction operation if we vectorize.
         if (ExitInstruction != 0 || Cur == Phi)
           return false;
-<<<<<<< HEAD
-        ExitInstruction = Iter;
-=======
 
         // The instruction used by an outside user must be the last instruction
         // before we feed back to the reduction phi. Otherwise, we loose VF-1
@@ -4250,67 +4190,46 @@ bool LoopVectorizationLegality::AddReductionVar(PHINode *Phi,
 
         ExitInstruction = Cur;
         continue;
->>>>>>> llvmtrunk/master
       }
 
-      // We allow in-loop PHINodes which are not the original reduction PHI
-      // node. If this PHI is the only user of Iter (happens in IF w/ no ELSE
-      // structure) then don't skip this PHI.
-      if (isa<PHINode>(Iter) && isa<PHINode>(U) &&
-          U->getParent() != TheLoop->getHeader() &&
-          TheLoop->contains(U) &&
-          Iter->hasNUsesOrMore(2))
-        continue;
-
-      // We can't have multiple inside users except for a combination of
-      // icmp/select both using the phi.
-      if (FoundInBlockUser && !NumCmpSelectPatternInst)
-        return false;
-      FoundInBlockUser = true;
-
-      // Any reduction instr must be of one of the allowed kinds.
-      ReduxDesc = isReductionInstr(U, Kind, ReduxDesc);
-      if (!ReduxDesc.IsReduction)
-        return false;
-
-      if (Kind == RK_IntegerMinMax && (isa<ICmpInst>(U) || isa<SelectInst>(U)))
-          ++NumCmpSelectPatternInst;
-      if (Kind == RK_FloatMinMax && (isa<FCmpInst>(U) || isa<SelectInst>(U)))
-          ++NumCmpSelectPatternInst;
-
-      // Reductions of instructions such as Div, and Sub is only
-      // possible if the LHS is the reduction variable.
-      if (!U->isCommutative() && !isa<PHINode>(U) && !isa<SelectInst>(U) &&
-          !isa<ICmpInst>(U) && !isa<FCmpInst>(U) && U->getOperand(0) != Iter)
-        return false;
-
-      Iter = ReduxDesc.PatternLastInst;
+      // Process instructions only once (termination).
+      if (VisitedInsts.insert(Usr)) {
+        if (isa<PHINode>(Usr))
+          PHIs.push_back(Usr);
+        else
+          NonPHIs.push_back(Usr);
+      }
+      // Remember that we completed the cycle.
+      if (Usr == Phi)
+        FoundStartPHI = true;
     }
-
-    // This means we have seen one but not the other instruction of the
-    // pattern or more than just a select and cmp.
-    if ((Kind == RK_IntegerMinMax || Kind == RK_FloatMinMax) &&
-        NumCmpSelectPatternInst != 2)
-      return false;
-
-    // We found a reduction var if we have reached the original
-    // phi node and we only have a single instruction with out-of-loop
-    // users.
-    if (FoundStartPHI) {
-      // This instruction is allowed to have out-of-loop users.
-      AllowedExit.insert(ExitInstruction);
-
-      // Save the description of this reduction variable.
-      ReductionDescriptor RD(RdxStart, ExitInstruction, Kind,
-                             ReduxDesc.MinMaxKind);
-      Reductions[Phi] = RD;
-      // We've ended the cycle. This is a reduction variable if we have an
-      // outside user and it has a binary op.
-      return FoundBinOp && ExitInstruction;
-    }
+    Worklist.append(PHIs.begin(), PHIs.end());
+    Worklist.append(NonPHIs.begin(), NonPHIs.end());
   }
 
-  return false;
+  // This means we have seen one but not the other instruction of the
+  // pattern or more than just a select and cmp.
+  if ((Kind == RK_IntegerMinMax || Kind == RK_FloatMinMax) &&
+      NumCmpSelectPatternInst != 2)
+    return false;
+
+  if (!FoundStartPHI || !FoundReduxOp || !ExitInstruction)
+    return false;
+
+  // We found a reduction var if we have reached the original phi node and we
+  // only have a single instruction with out-of-loop users.
+
+  // This instruction is allowed to have out-of-loop users.
+  AllowedExit.insert(ExitInstruction);
+
+  // Save the description of this reduction variable.
+  ReductionDescriptor RD(RdxStart, ExitInstruction, Kind,
+                         ReduxDesc.MinMaxKind);
+  Reductions[Phi] = RD;
+  // We've ended the cycle. This is a reduction variable if we have an
+  // outside user and it has a binary op.
+
+  return true;
 }
 
 /// Returns true if the instruction is a Select(ICmp(X, Y), X, Y) instruction
@@ -4464,10 +4383,6 @@ bool LoopVectorizationLegality::blockNeedsPredication(BasicBlock *BB)  {
 bool LoopVectorizationLegality::blockCanBePredicated(BasicBlock *BB,
                                             SmallPtrSet<Value *, 8>& SafePtrs) {
   for (BasicBlock::iterator it = BB->begin(), e = BB->end(); it != e; ++it) {
-<<<<<<< HEAD
-    // We don't predicate loads/stores at the moment.
-    if (it->mayReadFromMemory() || it->mayWriteToMemory() || it->mayThrow())
-=======
     // We might be able to hoist the load.
     if (it->mayReadFromMemory()) {
       LoadInst *LI = dyn_cast<LoadInst>(it);
@@ -4477,7 +4392,6 @@ bool LoopVectorizationLegality::blockCanBePredicated(BasicBlock *BB,
 
     // We don't predicate stores at the moment.
     if (it->mayWriteToMemory() || it->mayThrow())
->>>>>>> llvmtrunk/master
       return false;
 
     // The instructions below can trap.

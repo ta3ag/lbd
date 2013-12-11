@@ -19,6 +19,7 @@
 #include <algorithm>
 using namespace llvm;
 using namespace dwarf;
+using namespace object;
 
 typedef DWARFDebugLine::LineTable DWARFLineTable;
 
@@ -603,25 +604,6 @@ DWARFContextInMemory::DWARFContextInMemory(object::ObjectFile *Obj) :
       UncompressedSections.push_back(UncompressedSection.take());
     }
 
-<<<<<<< HEAD
-    StringRef *Section = StringSwitch<StringRef*>(name)
-        .Case("debug_info", &InfoSection)
-        .Case("debug_abbrev", &AbbrevSection)
-        .Case("debug_line", &LineSection)
-        .Case("debug_aranges", &ARangeSection)
-        .Case("debug_frame", &DebugFrameSection)
-        .Case("debug_str", &StringSection)
-        .Case("debug_ranges", &RangeSection)
-        .Case("debug_pubnames", &PubNamesSection)
-        .Case("debug_info.dwo", &InfoDWOSection)
-        .Case("debug_abbrev.dwo", &AbbrevDWOSection)
-        .Case("debug_str.dwo", &StringDWOSection)
-        .Case("debug_str_offsets.dwo", &StringOffsetDWOSection)
-        .Case("debug_addr", &AddrSection)
-        // Any more debug info sections go here.
-        .Default(0);
-    if (!Section)
-=======
     StringRef *Section =
         StringSwitch<StringRef *>(name)
             .Case("debug_info", &InfoSection.Data)
@@ -657,28 +639,20 @@ DWARFContextInMemory::DWARFContextInMemory(object::ObjectFile *Obj) :
 
     section_iterator RelocatedSection = i->getRelocatedSection();
     if (RelocatedSection == Obj->end_sections())
->>>>>>> llvmtrunk/master
       continue;
-    *Section = data;
-    if (name == "debug_ranges") {
-      // FIXME: Use the other dwo range section when we emit it.
-      RangeDWOSection = data;
-    }
+
+    StringRef RelSecName;
+    RelocatedSection->getName(RelSecName);
+    RelSecName = RelSecName.substr(
+        RelSecName.find_first_not_of("._")); // Skip . and _ prefixes.
 
     // TODO: Add support for relocations in other sections as needed.
     // Record relocations for the debug_info and debug_line sections.
-<<<<<<< HEAD
-    RelocAddrMap *Map = StringSwitch<RelocAddrMap*>(name)
-        .Case("debug_info", &InfoRelocMap)
-        .Case("debug_info.dwo", &InfoDWORelocMap)
-        .Case("debug_line", &LineRelocMap)
-=======
     RelocAddrMap *Map = StringSwitch<RelocAddrMap*>(RelSecName)
         .Case("debug_info", &InfoSection.Relocs)
         .Case("debug_loc", &LocSection.Relocs)
         .Case("debug_info.dwo", &InfoDWOSection.Relocs)
         .Case("debug_line", &LineSection.Relocs)
->>>>>>> llvmtrunk/master
         .Default(0);
     if (!Map) {
       if (RelSecName != "debug_types")
@@ -690,7 +664,7 @@ DWARFContextInMemory::DWARFContextInMemory(object::ObjectFile *Obj) :
 
     if (i->begin_relocations() != i->end_relocations()) {
       uint64_t SectionSize;
-      i->getSize(SectionSize);
+      RelocatedSection->getSize(SectionSize);
       for (object::relocation_iterator reloc_i = i->begin_relocations(),
              reloc_e = i->end_relocations();
            reloc_i != reloc_e; reloc_i.increment(ec)) {

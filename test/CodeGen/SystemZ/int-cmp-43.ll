@@ -4,12 +4,13 @@
 ; RUN: llc < %s -mtriple=s390x-linux-gnu | FileCheck %s
 
 @g = global i64 1
+@h = global i64 1, align 4, section "foo"
 
 ; Check signed comparisons.
 define i64 @f1(i64 %src1) {
 ; CHECK-LABEL: f1:
 ; CHECK: cgrl %r2, g
-; CHECK-NEXT: j{{g?}}l
+; CHECK-NEXT: jl
 ; CHECK: br %r14
 entry:
   %src2 = load i64 *@g
@@ -27,7 +28,7 @@ exit:
 define i64 @f2(i64 %src1) {
 ; CHECK-LABEL: f2:
 ; CHECK: clgrl %r2, g
-; CHECK-NEXT: j{{g?}}l
+; CHECK-NEXT: jl
 ; CHECK: br %r14
 entry:
   %src2 = load i64 *@g
@@ -45,7 +46,7 @@ exit:
 define i64 @f3(i64 %src1) {
 ; CHECK-LABEL: f3:
 ; CHECK: c{{l?}}grl %r2, g
-; CHECK-NEXT: j{{g?}}e
+; CHECK-NEXT: je
 ; CHECK: br %r14
 entry:
   %src2 = load i64 *@g
@@ -63,7 +64,7 @@ exit:
 define i64 @f4(i64 %src1) {
 ; CHECK-LABEL: f4:
 ; CHECK: c{{l?}}grl %r2, g
-; CHECK-NEXT: j{{g?}}lh
+; CHECK-NEXT: jlh
 ; CHECK: br %r14
 entry:
   %src2 = load i64 *@g
@@ -76,8 +77,6 @@ exit:
   %res = phi i64 [ %src1, %entry ], [ %mul, %mulb ]
   ret i64 %res
 }
-<<<<<<< HEAD
-=======
 
 ; Repeat f1 with an unaligned address.
 define i64 @f5(i64 %src1) {
@@ -115,4 +114,3 @@ exit:
   %res = phi i64 [ %src2, %entry ], [ %mul, %mulb ]
   ret i64 %res
 }
->>>>>>> llvmtrunk/master

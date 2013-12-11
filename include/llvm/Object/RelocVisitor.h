@@ -18,10 +18,7 @@
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Object/ObjectFile.h"
-<<<<<<< HEAD
-=======
 #include "llvm/Object/ELFObjectFile.h"
->>>>>>> llvmtrunk/master
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ELF.h"
 #include "llvm/Support/raw_ostream.h"
@@ -90,6 +87,14 @@ public:
         HasError = true;
         return RelocToApply();
       }
+    } else if (FileFormat == "ELF32-ppc") {
+      switch (RelocType) {
+      case llvm::ELF::R_PPC_ADDR32:
+        return visitELF_PPC_ADDR32(R, Value);
+      default:
+        HasError = true;
+        return RelocToApply();
+      }
     } else if (FileFormat == "ELF32-mips") {
       switch (RelocType) {
       case llvm::ELF::R_MIPS_32:
@@ -129,6 +134,37 @@ private:
   StringRef FileFormat;
   bool HasError;
 
+  int64_t getAddend32LE(RelocationRef R) {
+    const ELF32LEObjectFile *Obj = cast<ELF32LEObjectFile>(R.getObjectFile());
+    DataRefImpl DRI = R.getRawDataRefImpl();
+    int64_t Addend;
+    Obj->getRelocationAddend(DRI, Addend);
+    return Addend;
+  }
+
+  int64_t getAddend64LE(RelocationRef R) {
+    const ELF64LEObjectFile *Obj = cast<ELF64LEObjectFile>(R.getObjectFile());
+    DataRefImpl DRI = R.getRawDataRefImpl();
+    int64_t Addend;
+    Obj->getRelocationAddend(DRI, Addend);
+    return Addend;
+  }
+
+  int64_t getAddend32BE(RelocationRef R) {
+    const ELF32BEObjectFile *Obj = cast<ELF32BEObjectFile>(R.getObjectFile());
+    DataRefImpl DRI = R.getRawDataRefImpl();
+    int64_t Addend;
+    Obj->getRelocationAddend(DRI, Addend);
+    return Addend;
+  }
+
+  int64_t getAddend64BE(RelocationRef R) {
+    const ELF64BEObjectFile *Obj = cast<ELF64BEObjectFile>(R.getObjectFile());
+    DataRefImpl DRI = R.getRawDataRefImpl();
+    int64_t Addend;
+    Obj->getRelocationAddend(DRI, Addend);
+    return Addend;
+  }
   /// Operations
 
   /// 386-ELF
@@ -139,15 +175,13 @@ private:
   // Ideally the Addend here will be the addend in the data for
   // the relocation. It's not actually the case for Rel relocations.
   RelocToApply visitELF_386_32(RelocationRef R, uint64_t Value) {
-    int64_t Addend;
-    R.getAdditionalInfo(Addend);
+    int64_t Addend = getAddend32LE(R);
     return RelocToApply(Value + Addend, 4);
   }
 
   RelocToApply visitELF_386_PC32(RelocationRef R, uint64_t Value,
                                  uint64_t SecAddr) {
-    int64_t Addend;
-    R.getAdditionalInfo(Addend);
+    int64_t Addend = getAddend32LE(R);
     uint64_t Address;
     R.getOffset(Address);
     return RelocToApply(Value + Addend - Address, 4);
@@ -158,37 +192,29 @@ private:
     return RelocToApply(0, 0);
   }
   RelocToApply visitELF_X86_64_64(RelocationRef R, uint64_t Value) {
-    int64_t Addend;
-    R.getAdditionalInfo(Addend);
+    int64_t Addend = getAddend64LE(R);
     return RelocToApply(Value + Addend, 8);
   }
   RelocToApply visitELF_X86_64_PC32(RelocationRef R, uint64_t Value,
                                     uint64_t SecAddr) {
-    int64_t Addend;
-    R.getAdditionalInfo(Addend);
+    int64_t Addend = getAddend64LE(R);
     uint64_t Address;
     R.getOffset(Address);
     return RelocToApply(Value + Addend - Address, 4);
   }
   RelocToApply visitELF_X86_64_32(RelocationRef R, uint64_t Value) {
-    int64_t Addend;
-    R.getAdditionalInfo(Addend);
+    int64_t Addend = getAddend64LE(R);
     uint32_t Res = (Value + Addend) & 0xFFFFFFFF;
     return RelocToApply(Res, 4);
   }
   RelocToApply visitELF_X86_64_32S(RelocationRef R, uint64_t Value) {
-    int64_t Addend;
-    R.getAdditionalInfo(Addend);
+    int64_t Addend = getAddend64LE(R);
     int32_t Res = (Value + Addend) & 0xFFFFFFFF;
     return RelocToApply(Res, 4);
   }
 
   /// PPC64 ELF
   RelocToApply visitELF_PPC64_ADDR32(RelocationRef R, uint64_t Value) {
-<<<<<<< HEAD
-    int64_t Addend;
-    R.getAdditionalInfo(Addend);
-=======
     int64_t Addend = getAddend64BE(R);
     uint32_t Res = (Value + Addend) & 0xFFFFFFFF;
     return RelocToApply(Res, 4);
@@ -201,7 +227,6 @@ private:
   /// PPC32 ELF
   RelocToApply visitELF_PPC_ADDR32(RelocationRef R, uint64_t Value) {
     int64_t Addend = getAddend32BE(R);
->>>>>>> llvmtrunk/master
     uint32_t Res = (Value + Addend) & 0xFFFFFFFF;
     return RelocToApply(Res, 4);
   }
@@ -209,15 +234,14 @@ private:
   /// MIPS ELF
   RelocToApply visitELF_MIPS_32(RelocationRef R, uint64_t Value) {
     int64_t Addend;
-    R.getAdditionalInfo(Addend);
+    getELFRelocationAddend(R, Addend);
     uint32_t Res = (Value + Addend) & 0xFFFFFFFF;
     return RelocToApply(Res, 4);
   }
 
   // AArch64 ELF
   RelocToApply visitELF_AARCH64_ABS32(RelocationRef R, uint64_t Value) {
-    int64_t Addend;
-    R.getAdditionalInfo(Addend);
+    int64_t Addend = getAddend64LE(R);
     int64_t Res =  Value + Addend;
 
     // Overflow check allows for both signed and unsigned interpretation.
@@ -228,15 +252,13 @@ private:
   }
 
   RelocToApply visitELF_AARCH64_ABS64(RelocationRef R, uint64_t Value) {
-    int64_t Addend;
-    R.getAdditionalInfo(Addend);
+    int64_t Addend = getAddend64LE(R);
     return RelocToApply(Value + Addend, 8);
   }
 
   // SystemZ ELF
   RelocToApply visitELF_390_32(RelocationRef R, uint64_t Value) {
-    int64_t Addend;
-    R.getAdditionalInfo(Addend);
+    int64_t Addend = getAddend64BE(R);
     int64_t Res = Value + Addend;
 
     // Overflow check allows for both signed and unsigned interpretation.
@@ -247,8 +269,7 @@ private:
   }
 
   RelocToApply visitELF_390_64(RelocationRef R, uint64_t Value) {
-    int64_t Addend;
-    R.getAdditionalInfo(Addend);
+    int64_t Addend = getAddend64BE(R);
     return RelocToApply(Value + Addend, 8);
   }
 };

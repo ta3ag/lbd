@@ -502,18 +502,11 @@ defm SRA : F3_12<"sra", 0b100111, sra>;
 defm ADD   : F3_12<"add", 0b000000, add>;
 
 // "LEA" forms of add (patterns to make tblgen happy)
-<<<<<<< HEAD
-def LEA_ADDri   : F3_2<2, 0b000000,
-                   (outs IntRegs:$dst), (ins MEMri:$addr),
-                   "add ${addr:arith}, $dst",
-                   [(set i32:$dst, ADDRri:$addr)]>;
-=======
 let Predicates = [Is32Bit] in
   def LEA_ADDri   : F3_2<2, 0b000000,
                      (outs IntRegs:$dst), (ins MEMri:$addr),
                      "add ${addr:arith}, $dst",
                      [(set iPTR:$dst, ADDRri:$addr)]>;
->>>>>>> llvmtrunk/master
 
 let Defs = [ICC] in
   defm ADDCC  : F3_12<"addcc", 0b010000, addc>;
@@ -874,19 +867,10 @@ let Uses = [O6], isCall = 1, hasDelaySlot = 1 in
 //===----------------------------------------------------------------------===//
 
 // V9 Conditional Moves.
-let Predicates = [HasV9], Constraints = "$T = $dst" in {
+let Predicates = [HasV9], Constraints = "$f = $rd" in {
   // Move Integer Register on Condition (MOVcc) p. 194 of the V9 manual.
   let Uses = [ICC], cc = 0b100 in {
     def MOVICCrr
-<<<<<<< HEAD
-      : Pseudo<(outs IntRegs:$dst), (ins IntRegs:$T, IntRegs:$F, CCOp:$cc),
-               "mov$cc %icc, $F, $dst",
-               [(set i32:$dst, (SPselecticc i32:$F, i32:$T, imm:$cc))]>;
-    def MOVICCri
-      : Pseudo<(outs IntRegs:$dst), (ins IntRegs:$T, i32imm:$F, CCOp:$cc),
-               "mov$cc %icc, $F, $dst",
-               [(set i32:$dst, (SPselecticc simm11:$F, i32:$T, imm:$cc))]>;
-=======
       : F4_1<0b101100, (outs IntRegs:$rd),
              (ins IntRegs:$rs2, IntRegs:$f, CCOp:$cond),
              "mov$cond %icc, $rs2, $rd",
@@ -898,20 +882,10 @@ let Predicates = [HasV9], Constraints = "$T = $dst" in {
              "mov$cond %icc, $simm11, $rd",
              [(set i32:$rd,
                     (SPselecticc simm11:$simm11, i32:$f, imm:$cond))]>;
->>>>>>> llvmtrunk/master
   }
 
   let Uses = [FCC], cc = 0b000 in {
     def MOVFCCrr
-<<<<<<< HEAD
-      : Pseudo<(outs IntRegs:$dst), (ins IntRegs:$T, IntRegs:$F, CCOp:$cc),
-               "mov$cc %fcc0, $F, $dst",
-               [(set i32:$dst, (SPselectfcc i32:$F, i32:$T, imm:$cc))]>;
-    def MOVFCCri
-      : Pseudo<(outs IntRegs:$dst), (ins IntRegs:$T, i32imm:$F, CCOp:$cc),
-               "mov$cc %fcc0, $F, $dst",
-               [(set i32:$dst, (SPselectfcc simm11:$F, i32:$T, imm:$cc))]>;
-=======
       : F4_1<0b101100, (outs IntRegs:$rd),
              (ins IntRegs:$rs2, IntRegs:$f, CCOp:$cond),
              "mov$cond %fcc0, $rs2, $rd",
@@ -922,21 +896,10 @@ let Predicates = [HasV9], Constraints = "$T = $dst" in {
              "mov$cond %fcc0, $simm11, $rd",
              [(set i32:$rd,
                     (SPselectfcc simm11:$simm11, i32:$f, imm:$cond))]>;
->>>>>>> llvmtrunk/master
   }
 
   let Uses = [ICC], opf_cc = 0b100 in {
     def FMOVS_ICC
-<<<<<<< HEAD
-      : Pseudo<(outs FPRegs:$dst), (ins FPRegs:$T, FPRegs:$F, CCOp:$cc),
-               "fmovs$cc %icc, $F, $dst",
-               [(set f32:$dst,
-                           (SPselecticc f32:$F, f32:$T, imm:$cc))]>;
-    def FMOVD_ICC
-      : Pseudo<(outs DFPRegs:$dst), (ins DFPRegs:$T, DFPRegs:$F, CCOp:$cc),
-               "fmovd$cc %icc, $F, $dst",
-               [(set f64:$dst, (SPselecticc f64:$F, f64:$T, imm:$cc))]>;
-=======
       : F4_3<0b110101, 0b000001, (outs FPRegs:$rd),
              (ins FPRegs:$rs2, FPRegs:$f, CCOp:$cond),
              "fmovs$cond %icc, $rs2, $rd",
@@ -951,20 +914,10 @@ let Predicates = [HasV9], Constraints = "$T = $dst" in {
                (ins QFPRegs:$rs2, QFPRegs:$f, CCOp:$cond),
                "fmovd$cond %icc, $rs2, $rd",
                [(set f128:$rd, (SPselecticc f128:$rs2, f128:$f, imm:$cond))]>;
->>>>>>> llvmtrunk/master
   }
 
   let Uses = [FCC], opf_cc = 0b000 in {
     def FMOVS_FCC
-<<<<<<< HEAD
-      : Pseudo<(outs FPRegs:$dst), (ins FPRegs:$T, FPRegs:$F, CCOp:$cc),
-               "fmovs$cc %fcc0, $F, $dst",
-               [(set f32:$dst, (SPselectfcc f32:$F, f32:$T, imm:$cc))]>;
-    def FMOVD_FCC
-      : Pseudo<(outs DFPRegs:$dst), (ins DFPRegs:$T, DFPRegs:$F, CCOp:$cc),
-               "fmovd$cc %fcc0, $F, $dst",
-               [(set f64:$dst, (SPselectfcc f64:$F, f64:$T, imm:$cc))]>;
-=======
       : F4_3<0b110101, 0b000001, (outs FPRegs:$rd),
              (ins FPRegs:$rs2, FPRegs:$f, CCOp:$cond),
              "fmovs$cond %fcc0, $rs2, $rd",
@@ -979,7 +932,6 @@ let Predicates = [HasV9], Constraints = "$T = $dst" in {
              (ins QFPRegs:$rs2, QFPRegs:$f, CCOp:$cond),
              "fmovd$cond %fcc0, $rs2, $rd",
              [(set f128:$rd, (SPselectfcc f128:$rs2, f128:$f, imm:$cond))]>;
->>>>>>> llvmtrunk/master
   }
 
 }

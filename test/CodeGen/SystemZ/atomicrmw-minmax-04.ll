@@ -8,16 +8,11 @@ define i64 @f1(i64 %dummy, i64 *%src, i64 %b) {
 ; CHECK-LABEL: f1:
 ; CHECK: lg %r2, 0(%r3)
 ; CHECK: [[LOOP:\.[^:]*]]:
-; CHECK: cgr %r2, %r4
 ; CHECK: lgr [[NEW:%r[0-9]+]], %r2
-; CHECK: j{{g?}}le [[KEEP:\..*]]
+; CHECK: cgrjle %r2, %r4, [[KEEP:\..*]]
 ; CHECK: lgr [[NEW]], %r4
 ; CHECK: csg %r2, [[NEW]], 0(%r3)
-<<<<<<< HEAD
-; CHECK: j{{g?}}lh [[LOOP]]
-=======
 ; CHECK: jl [[LOOP]]
->>>>>>> llvmtrunk/master
 ; CHECK: br %r14
   %res = atomicrmw min i64 *%src, i64 %b seq_cst
   ret i64 %res
@@ -28,16 +23,11 @@ define i64 @f2(i64 %dummy, i64 *%src, i64 %b) {
 ; CHECK-LABEL: f2:
 ; CHECK: lg %r2, 0(%r3)
 ; CHECK: [[LOOP:\.[^:]*]]:
-; CHECK: cgr %r2, %r4
 ; CHECK: lgr [[NEW:%r[0-9]+]], %r2
-; CHECK: j{{g?}}he [[KEEP:\..*]]
+; CHECK: cgrjhe %r2, %r4, [[KEEP:\..*]]
 ; CHECK: lgr [[NEW]], %r4
 ; CHECK: csg %r2, [[NEW]], 0(%r3)
-<<<<<<< HEAD
-; CHECK: j{{g?}}lh [[LOOP]]
-=======
 ; CHECK: jl [[LOOP]]
->>>>>>> llvmtrunk/master
 ; CHECK: br %r14
   %res = atomicrmw max i64 *%src, i64 %b seq_cst
   ret i64 %res
@@ -49,17 +39,10 @@ define i64 @f3(i64 %dummy, i64 *%src, i64 %b) {
 ; CHECK: lg %r2, 0(%r3)
 ; CHECK: [[LOOP:\.[^:]*]]:
 ; CHECK: lgr [[NEW:%r[0-9]+]], %r2
-<<<<<<< HEAD
-; CHECK: j{{g?}}le [[KEEP:\..*]]
-; CHECK: lgr [[NEW]], %r4
-; CHECK: csg %r2, [[NEW]], 0(%r3)
-; CHECK: j{{g?}}lh [[LOOP]]
-=======
 ; CHECK: clgrjle %r2, %r4, [[KEEP:\..*]]
 ; CHECK: lgr [[NEW]], %r4
 ; CHECK: csg %r2, [[NEW]], 0(%r3)
 ; CHECK: jl [[LOOP]]
->>>>>>> llvmtrunk/master
 ; CHECK: br %r14
   %res = atomicrmw umin i64 *%src, i64 %b seq_cst
   ret i64 %res
@@ -71,17 +54,10 @@ define i64 @f4(i64 %dummy, i64 *%src, i64 %b) {
 ; CHECK: lg %r2, 0(%r3)
 ; CHECK: [[LOOP:\.[^:]*]]:
 ; CHECK: lgr [[NEW:%r[0-9]+]], %r2
-<<<<<<< HEAD
-; CHECK: j{{g?}}he [[KEEP:\..*]]
-; CHECK: lgr [[NEW]], %r4
-; CHECK: csg %r2, [[NEW]], 0(%r3)
-; CHECK: j{{g?}}lh [[LOOP]]
-=======
 ; CHECK: clgrjhe %r2, %r4, [[KEEP:\..*]]
 ; CHECK: lgr [[NEW]], %r4
 ; CHECK: csg %r2, [[NEW]], 0(%r3)
 ; CHECK: jl [[LOOP]]
->>>>>>> llvmtrunk/master
 ; CHECK: br %r14
   %res = atomicrmw umax i64 *%src, i64 %b seq_cst
   ret i64 %res
@@ -152,19 +128,11 @@ define i64 @f10(i64 %dummy, i64 *%ptr) {
 ; CHECK: lghi [[LIMIT:%r[0-9]+]], 42
 ; CHECK: lg %r2, 0(%r3)
 ; CHECK: [[LOOP:\.[^:]*]]:
-; CHECK: cgr %r2, [[LIMIT]]
 ; CHECK: lgr [[NEW:%r[0-9]+]], %r2
-<<<<<<< HEAD
-; CHECK: j{{g?}}le [[KEEP:\..*]]
-; CHECK: lgr [[NEW]], [[LIMIT]]
-; CHECK: csg %r2, [[NEW]], 0(%r3)
-; CHECK: j{{g?}}lh [[LOOP]]
-=======
 ; CHECK: cgrjle %r2, [[LIMIT]], [[KEEP:\..*]]
 ; CHECK: lghi [[NEW]], 42
 ; CHECK: csg %r2, [[NEW]], 0(%r3)
 ; CHECK: jl [[LOOP]]
->>>>>>> llvmtrunk/master
 ; CHECK: br %r14
   %res = atomicrmw min i64 *%ptr, i64 42 seq_cst
   ret i64 %res

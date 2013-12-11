@@ -71,7 +71,9 @@ NVPTXTargetMachine::NVPTXTargetMachine(
       Subtarget(TT, CPU, FS, is64bit), DL(Subtarget.getDataLayout()),
       InstrInfo(*this), TLInfo(*this), TSInfo(*this),
       FrameLowering(
-          *this, is64bit) /*FrameInfo(TargetFrameInfo::StackGrowsUp, 8, 0)*/ {}
+          *this, is64bit) /*FrameInfo(TargetFrameInfo::StackGrowsUp, 8, 0)*/ {
+  initAsmInfo();
+}
 
 void NVPTXTargetMachine32::anchor() {}
 
@@ -89,7 +91,7 @@ NVPTXTargetMachine64::NVPTXTargetMachine64(
     CodeGenOpt::Level OL)
     : NVPTXTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL, true) {}
 
-namespace llvm {
+namespace {
 class NVPTXPassConfig : public TargetPassConfig {
 public:
   NVPTXPassConfig(NVPTXTargetMachine *TM, PassManagerBase &PM)
@@ -108,7 +110,7 @@ public:
   virtual void addFastRegAlloc(FunctionPass *RegAllocPass);
   virtual void addOptimizedRegAlloc(FunctionPass *RegAllocPass);
 };
-}
+} // end anonymous namespace
 
 TargetPassConfig *NVPTXTargetMachine::createPassConfig(PassManagerBase &PM) {
   NVPTXPassConfig *PassConfig = new NVPTXPassConfig(this, PM);

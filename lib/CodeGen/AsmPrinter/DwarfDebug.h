@@ -416,23 +416,11 @@ class DwarfDebug : public AsmPrinterHandler {
   // body.
   DebugLoc PrologEndLoc;
 
-<<<<<<< HEAD
-  struct FunctionDebugFrameInfo {
-    unsigned Number;
-    std::vector<MachineMove> Moves;
-
-    FunctionDebugFrameInfo(unsigned Num, const std::vector<MachineMove> &M)
-      : Number(Num), Moves(M) {}
-  };
-
-  std::vector<FunctionDebugFrameInfo> DebugFrames;
-=======
   // If nonnull, stores the current machine function we're processing.
   const MachineFunction *CurFn;
 
   // If nonnull, stores the current machine instruction we're processing.
   const MachineInstr *CurMI;
->>>>>>> llvmtrunk/master
 
   // Section Symbols: these are assembler temporary labels that are emitted at
   // the beginning of each supported dwarf section.  These are used to form
@@ -628,19 +616,6 @@ class DwarfDebug : public AsmPrinterHandler {
   /// \brief Construct subprogram DIE.
   void constructSubprogramDIE(DwarfCompileUnit *TheCU, const MDNode *N);
 
-<<<<<<< HEAD
-  /// \brief Construct import_module DIE.
-  void constructImportedModuleDIE(CompileUnit *TheCU, const MDNode *N);
-
-  /// \brief Construct import_module DIE.
-  void constructImportedModuleDIE(CompileUnit *TheCU, const MDNode *N,
-                                  DIE *Context);
-
-  /// \brief Construct import_module DIE.
-  void constructImportedModuleDIE(CompileUnit *TheCU,
-                                  const DIImportedModule &Module,
-                                  DIE *Context);
-=======
   /// \brief Construct imported_module or imported_declaration DIE.
   void constructImportedEntityDIE(DwarfCompileUnit *TheCU, const MDNode *N);
 
@@ -651,7 +626,6 @@ class DwarfDebug : public AsmPrinterHandler {
   /// \brief Construct import_module DIE.
   void constructImportedEntityDIE(DwarfCompileUnit *TheCU,
                                   const DIImportedEntity &Module, DIE *Context);
->>>>>>> llvmtrunk/master
 
   /// \brief Register a source line with debug info. Returns the unique
   /// label that was emitted and which provides correspondence to the

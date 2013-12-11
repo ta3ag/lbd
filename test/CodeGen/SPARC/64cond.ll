@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-; RUN: llc < %s -march=sparcv9 | FileCheck %s
-; Testing 64-bit conditionals.
-=======
 ; RUN: llc < %s -mtriple=sparc64-pc-openbsd -disable-sparc-leaf-proc | FileCheck %s
 ; Testing 64-bit conditionals. The sparc64 triple is an alias for sparcv9.
->>>>>>> llvmtrunk/master
 
 ; CHECK: cmpri
 ; CHECK: cmp %i1, 1
@@ -59,8 +54,6 @@ entry:
   %rv = select i1 %tobool, i64 %a, i64 %b
   ret i64 %rv
 }
-<<<<<<< HEAD
-=======
 
 ; CHECK: selecti64_icc
 ; CHECK: cmp %i0, %i1
@@ -130,4 +123,3 @@ define i1 @setcc_resultty(i64 %a, i1 %b) {
 }
 
 declare { i64, i1 } @llvm.umul.with.overflow.i64(i64, i64)
->>>>>>> llvmtrunk/master

@@ -17,25 +17,26 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm-objdump.h"
-#include "MCFunction.h"
 #include "llvm/ADT/OwningPtr.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/Triple.h"
 #include "llvm/MC/MCAsmInfo.h"
+#include "llvm/MC/MCAtom.h"
+#include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCDisassembler.h"
+#include "llvm/MC/MCFunction.h"
 #include "llvm/MC/MCInst.h"
 #include "llvm/MC/MCInstPrinter.h"
+#include "llvm/MC/MCInstrAnalysis.h"
 #include "llvm/MC/MCInstrInfo.h"
-<<<<<<< HEAD
-=======
 #include "llvm/MC/MCModule.h"
 #include "llvm/MC/MCModuleYAML.h"
 #include "llvm/MC/MCObjectDisassembler.h"
 #include "llvm/MC/MCObjectFileInfo.h"
 #include "llvm/MC/MCObjectSymbolizer.h"
->>>>>>> llvmtrunk/master
 #include "llvm/MC/MCRegisterInfo.h"
+#include "llvm/MC/MCRelocationInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
 #include "llvm/Object/Archive.h"
 #include "llvm/Object/COFF.h"
@@ -132,8 +133,6 @@ static cl::alias
 PrivateHeadersShort("p", cl::desc("Alias for --private-headers"),
                     cl::aliasopt(PrivateHeaders));
 
-<<<<<<< HEAD
-=======
 static cl::opt<bool>
 Symbolize("symbolize", cl::desc("When disassembling instructions, "
                                 "try to symbolize operands."));
@@ -148,7 +147,6 @@ YAMLCFG("yaml-cfg",
         cl::desc("Create a CFG and write it as a YAML MCModule."),
         cl::value_desc("yaml output file"));
 
->>>>>>> llvmtrunk/master
 static StringRef ToolName;
 
 bool llvm::error(error_code ec) {
@@ -163,8 +161,13 @@ static const Target *getTarget(const ObjectFile *Obj = NULL) {
   // Figure out the target triple.
   llvm::Triple TheTriple("unknown-unknown-unknown");
   if (TripleName.empty()) {
-    if (Obj)
+    if (Obj) {
       TheTriple.setArch(Triple::ArchType(Obj->getArch()));
+      // TheTriple defaults to ELF, and COFF doesn't have an environment:
+      // the best we can do here is indicate that it is mach-o.
+      if (Obj->isMachO())
+        TheTriple.setEnvironment(Triple::MachO);
+    }
   } else
     TheTriple.setTriple(Triple::normalize(TripleName));
 
@@ -182,9 +185,6 @@ static const Target *getTarget(const ObjectFile *Obj = NULL) {
   return TheTarget;
 }
 
-<<<<<<< HEAD
-void llvm::StringRefMemoryObject::anchor() { }
-=======
 // Write a graphviz file for the CFG inside an MCFunction.
 // FIXME: Use GraphWriter
 static void emitDOTFile(const char *FileName, const MCFunction &f,
@@ -231,7 +231,6 @@ static void emitDOTFile(const char *FileName, const MCFunction &f,
   }
   Out << "}\n";
 }
->>>>>>> llvmtrunk/master
 
 void llvm::DumpBytes(StringRef bytes) {
   static const char hex_rep[] = "0123456789abcdef";
@@ -282,8 +281,6 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
     FeaturesStr = Features.getString();
   }
 
-<<<<<<< HEAD
-=======
   OwningPtr<const MCRegisterInfo> MRI(TheTarget->createMCRegInfo(TripleName));
   if (!MRI) {
     errs() << "error: no register info for target " << TripleName << "\n";
@@ -385,7 +382,6 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
   }
 
 
->>>>>>> llvmtrunk/master
   error_code ec;
   for (section_iterator i = Obj->begin_sections(),
                         e = Obj->end_sections();
@@ -451,53 +447,13 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
     if (Symbols.empty())
       Symbols.push_back(std::make_pair(0, name));
 
-    // Set up disassembler.
-    OwningPtr<const MCAsmInfo> AsmInfo(TheTarget->createMCAsmInfo(TripleName));
 
-    if (!AsmInfo) {
-      errs() << "error: no assembly info for target " << TripleName << "\n";
-      return;
-    }
-
-    OwningPtr<const MCSubtargetInfo> STI(
-      TheTarget->createMCSubtargetInfo(TripleName, "", FeaturesStr));
-
-    if (!STI) {
-      errs() << "error: no subtarget info for target " << TripleName << "\n";
-      return;
-    }
-
-    OwningPtr<const MCDisassembler> DisAsm(
-      TheTarget->createMCDisassembler(*STI));
-    if (!DisAsm) {
-      errs() << "error: no disassembler for target " << TripleName << "\n";
-      return;
-    }
-
-    OwningPtr<const MCRegisterInfo> MRI(TheTarget->createMCRegInfo(TripleName));
-    if (!MRI) {
-      errs() << "error: no register info for target " << TripleName << "\n";
-      return;
-    }
-
-    OwningPtr<const MCInstrInfo> MII(TheTarget->createMCInstrInfo());
-    if (!MII) {
-      errs() << "error: no instruction info for target " << TripleName << "\n";
-      return;
-    }
-
-    int AsmPrinterVariant = AsmInfo->getAssemblerDialect();
-    OwningPtr<MCInstPrinter> IP(TheTarget->createMCInstPrinter(
-                                AsmPrinterVariant, *AsmInfo, *MII, *MRI, *STI));
-    if (!IP) {
-      errs() << "error: no instruction printer for target " << TripleName
-             << '\n';
-      return;
-    }
+    SmallString<40> Comments;
+    raw_svector_ostream CommentStream(Comments);
 
     StringRef Bytes;
     if (error(i->getContents(Bytes))) break;
-    StringRefMemoryObject memoryObject(Bytes);
+    StringRefMemoryObject memoryObject(Bytes, SectionAddr);
     uint64_t Size;
     uint64_t Index;
     uint64_t SectSize;
@@ -531,14 +487,17 @@ static void DisassembleObject(const ObjectFile *Obj, bool InlineRelocs) {
       for (Index = Start; Index < End; Index += Size) {
         MCInst Inst;
 
-        if (DisAsm->getInstruction(Inst, Size, memoryObject, Index,
-                                   DebugOut, nulls())) {
+        if (DisAsm->getInstruction(Inst, Size, memoryObject,
+                                   SectionAddr + Index,
+                                   DebugOut, CommentStream)) {
           outs() << format("%8" PRIx64 ":", SectionAddr + Index);
           if (!NoShowRawInsn) {
             outs() << "\t";
             DumpBytes(StringRef(Bytes.data() + Index, Size));
           }
           IP->printInst(&Inst, outs(), "");
+          outs() << CommentStream.str();
+          Comments.clear();
           outs() << "\n";
         } else {
           errs() << ToolName << ": warning: invalid instruction encoding\n";

@@ -355,7 +355,7 @@ void ARMDAGToDAGISel::PreprocessISelDAG() {
       continue;
 
     // Check if the AND mask is an immediate of the form: 000.....1111111100
-    unsigned TZ = CountTrailingZeros_32(And_imm);
+    unsigned TZ = countTrailingZeros(And_imm);
     if (TZ != 1 && TZ != 2)
       // Be conservative here. Shifter operands aren't always free. e.g. On
       // Swift, left shifter operand of 1 / 2 for free but others are not.
@@ -393,12 +393,12 @@ void ARMDAGToDAGISel::PreprocessISelDAG() {
     }
 
     // Now make the transformation.
-    Srl = CurDAG->getNode(ISD::SRL, Srl.getDebugLoc(), MVT::i32,
+    Srl = CurDAG->getNode(ISD::SRL, SDLoc(Srl), MVT::i32,
                           Srl.getOperand(0),
                           CurDAG->getConstant(Srl_imm+TZ, MVT::i32));
-    N1 = CurDAG->getNode(ISD::AND, N1.getDebugLoc(), MVT::i32,
+    N1 = CurDAG->getNode(ISD::AND, SDLoc(N1), MVT::i32,
                          Srl, CurDAG->getConstant(And_imm, MVT::i32));
-    N1 = CurDAG->getNode(ISD::SHL, N1.getDebugLoc(), MVT::i32,
+    N1 = CurDAG->getNode(ISD::SHL, SDLoc(N1), MVT::i32,
                          N1, CurDAG->getConstant(TZ, MVT::i32));
     CurDAG->UpdateNodeOperands(N, N0, N1);
   }  
@@ -1498,14 +1498,14 @@ SDNode *ARMDAGToDAGISel::SelectARMIndexedLoad(SDNode *N) {
       SDValue Base = LD->getBasePtr();
       SDValue Ops[]= { Base, AMOpc, getAL(CurDAG),
                        CurDAG->getRegister(0, MVT::i32), Chain };
-      return CurDAG->getMachineNode(Opcode, N->getDebugLoc(), MVT::i32,
+      return CurDAG->getMachineNode(Opcode, SDLoc(N), MVT::i32,
                                     MVT::i32, MVT::Other, Ops);
     } else {
       SDValue Chain = LD->getChain();
       SDValue Base = LD->getBasePtr();
       SDValue Ops[]= { Base, Offset, AMOpc, getAL(CurDAG),
                        CurDAG->getRegister(0, MVT::i32), Chain };
-      return CurDAG->getMachineNode(Opcode, N->getDebugLoc(), MVT::i32,
+      return CurDAG->getMachineNode(Opcode, SDLoc(N), MVT::i32,
                                     MVT::i32, MVT::Other, Ops);
     }
   }
@@ -1554,7 +1554,7 @@ SDNode *ARMDAGToDAGISel::SelectT2IndexedLoad(SDNode *N) {
     SDValue Base = LD->getBasePtr();
     SDValue Ops[]= { Base, Offset, getAL(CurDAG),
                      CurDAG->getRegister(0, MVT::i32), Chain };
-    return CurDAG->getMachineNode(Opcode, N->getDebugLoc(), MVT::i32, MVT::i32,
+    return CurDAG->getMachineNode(Opcode, SDLoc(N), MVT::i32, MVT::i32,
                                   MVT::Other, Ops);
   }
 
@@ -1563,7 +1563,7 @@ SDNode *ARMDAGToDAGISel::SelectT2IndexedLoad(SDNode *N) {
 
 /// \brief Form a GPRPair pseudo register from a pair of GPR regs.
 SDNode *ARMDAGToDAGISel::createGPRPairNode(EVT VT, SDValue V0, SDValue V1) {
-  DebugLoc dl = V0.getNode()->getDebugLoc();
+  SDLoc dl(V0.getNode());
   SDValue RegClass =
     CurDAG->getTargetConstant(ARM::GPRPairRegClassID, MVT::i32);
   SDValue SubReg0 = CurDAG->getTargetConstant(ARM::gsub_0, MVT::i32);
@@ -1574,7 +1574,7 @@ SDNode *ARMDAGToDAGISel::createGPRPairNode(EVT VT, SDValue V0, SDValue V1) {
 
 /// \brief Form a D register from a pair of S registers.
 SDNode *ARMDAGToDAGISel::createSRegPairNode(EVT VT, SDValue V0, SDValue V1) {
-  DebugLoc dl = V0.getNode()->getDebugLoc();
+  SDLoc dl(V0.getNode());
   SDValue RegClass =
     CurDAG->getTargetConstant(ARM::DPR_VFP2RegClassID, MVT::i32);
   SDValue SubReg0 = CurDAG->getTargetConstant(ARM::ssub_0, MVT::i32);
@@ -1585,7 +1585,7 @@ SDNode *ARMDAGToDAGISel::createSRegPairNode(EVT VT, SDValue V0, SDValue V1) {
 
 /// \brief Form a quad register from a pair of D registers.
 SDNode *ARMDAGToDAGISel::createDRegPairNode(EVT VT, SDValue V0, SDValue V1) {
-  DebugLoc dl = V0.getNode()->getDebugLoc();
+  SDLoc dl(V0.getNode());
   SDValue RegClass = CurDAG->getTargetConstant(ARM::QPRRegClassID, MVT::i32);
   SDValue SubReg0 = CurDAG->getTargetConstant(ARM::dsub_0, MVT::i32);
   SDValue SubReg1 = CurDAG->getTargetConstant(ARM::dsub_1, MVT::i32);
@@ -1595,7 +1595,7 @@ SDNode *ARMDAGToDAGISel::createDRegPairNode(EVT VT, SDValue V0, SDValue V1) {
 
 /// \brief Form 4 consecutive D registers from a pair of Q registers.
 SDNode *ARMDAGToDAGISel::createQRegPairNode(EVT VT, SDValue V0, SDValue V1) {
-  DebugLoc dl = V0.getNode()->getDebugLoc();
+  SDLoc dl(V0.getNode());
   SDValue RegClass = CurDAG->getTargetConstant(ARM::QQPRRegClassID, MVT::i32);
   SDValue SubReg0 = CurDAG->getTargetConstant(ARM::qsub_0, MVT::i32);
   SDValue SubReg1 = CurDAG->getTargetConstant(ARM::qsub_1, MVT::i32);
@@ -1606,7 +1606,7 @@ SDNode *ARMDAGToDAGISel::createQRegPairNode(EVT VT, SDValue V0, SDValue V1) {
 /// \brief Form 4 consecutive S registers.
 SDNode *ARMDAGToDAGISel::createQuadSRegsNode(EVT VT, SDValue V0, SDValue V1,
                                    SDValue V2, SDValue V3) {
-  DebugLoc dl = V0.getNode()->getDebugLoc();
+  SDLoc dl(V0.getNode());
   SDValue RegClass =
     CurDAG->getTargetConstant(ARM::QPR_VFP2RegClassID, MVT::i32);
   SDValue SubReg0 = CurDAG->getTargetConstant(ARM::ssub_0, MVT::i32);
@@ -1621,7 +1621,7 @@ SDNode *ARMDAGToDAGISel::createQuadSRegsNode(EVT VT, SDValue V0, SDValue V1,
 /// \brief Form 4 consecutive D registers.
 SDNode *ARMDAGToDAGISel::createQuadDRegsNode(EVT VT, SDValue V0, SDValue V1,
                                    SDValue V2, SDValue V3) {
-  DebugLoc dl = V0.getNode()->getDebugLoc();
+  SDLoc dl(V0.getNode());
   SDValue RegClass = CurDAG->getTargetConstant(ARM::QQPRRegClassID, MVT::i32);
   SDValue SubReg0 = CurDAG->getTargetConstant(ARM::dsub_0, MVT::i32);
   SDValue SubReg1 = CurDAG->getTargetConstant(ARM::dsub_1, MVT::i32);
@@ -1635,7 +1635,7 @@ SDNode *ARMDAGToDAGISel::createQuadDRegsNode(EVT VT, SDValue V0, SDValue V1,
 /// \brief Form 4 consecutive Q registers.
 SDNode *ARMDAGToDAGISel::createQuadQRegsNode(EVT VT, SDValue V0, SDValue V1,
                                    SDValue V2, SDValue V3) {
-  DebugLoc dl = V0.getNode()->getDebugLoc();
+  SDLoc dl(V0.getNode());
   SDValue RegClass = CurDAG->getTargetConstant(ARM::QQQQPRRegClassID, MVT::i32);
   SDValue SubReg0 = CurDAG->getTargetConstant(ARM::qsub_0, MVT::i32);
   SDValue SubReg1 = CurDAG->getTargetConstant(ARM::qsub_1, MVT::i32);
@@ -1719,7 +1719,7 @@ SDNode *ARMDAGToDAGISel::SelectVLD(SDNode *N, bool isUpdating, unsigned NumVecs,
                                    const uint16_t *QOpcodes0,
                                    const uint16_t *QOpcodes1) {
   assert(NumVecs >= 1 && NumVecs <= 4 && "VLD NumVecs out-of-range");
-  DebugLoc dl = N->getDebugLoc();
+  SDLoc dl(N);
 
   SDValue MemAddr, Align;
   unsigned AddrOpIdx = isUpdating ? 1 : 2;
@@ -1851,7 +1851,7 @@ SDNode *ARMDAGToDAGISel::SelectVST(SDNode *N, bool isUpdating, unsigned NumVecs,
                                    const uint16_t *QOpcodes0,
                                    const uint16_t *QOpcodes1) {
   assert(NumVecs >= 1 && NumVecs <= 4 && "VST NumVecs out-of-range");
-  DebugLoc dl = N->getDebugLoc();
+  SDLoc dl(N);
 
   SDValue MemAddr, Align;
   unsigned AddrOpIdx = isUpdating ? 1 : 2;
@@ -1996,7 +1996,7 @@ SDNode *ARMDAGToDAGISel::SelectVLDSTLane(SDNode *N, bool IsLoad,
                                          const uint16_t *DOpcodes,
                                          const uint16_t *QOpcodes) {
   assert(NumVecs >=2 && NumVecs <= 4 && "VLDSTLane NumVecs out-of-range");
-  DebugLoc dl = N->getDebugLoc();
+  SDLoc dl(N);
 
   SDValue MemAddr, Align;
   unsigned AddrOpIdx = isUpdating ? 1 : 2;
@@ -2114,7 +2114,7 @@ SDNode *ARMDAGToDAGISel::SelectVLDDup(SDNode *N, bool isUpdating,
                                       unsigned NumVecs,
                                       const uint16_t *Opcodes) {
   assert(NumVecs >=2 && NumVecs <= 4 && "VLDDup NumVecs out-of-range");
-  DebugLoc dl = N->getDebugLoc();
+  SDLoc dl(N);
 
   SDValue MemAddr, Align;
   if (!SelectAddrMode6(N, N->getOperand(1), MemAddr, Align))
@@ -2196,7 +2196,7 @@ SDNode *ARMDAGToDAGISel::SelectVLDDup(SDNode *N, bool isUpdating,
 SDNode *ARMDAGToDAGISel::SelectVTBL(SDNode *N, bool IsExt, unsigned NumVecs,
                                     unsigned Opc) {
   assert(NumVecs >= 2 && NumVecs <= 4 && "VTBL NumVecs out-of-range");
-  DebugLoc dl = N->getDebugLoc();
+  SDLoc dl(N);
   EVT VT = N->getValueType(0);
   unsigned FirstTblReg = IsExt ? 2 : 1;
 
@@ -2379,23 +2379,6 @@ SDNode *ARMDAGToDAGISel::SelectAtomic(SDNode *Node, unsigned Op8,
     llvm_unreachable("Unexpected atomic operation");
 
   SmallVector<SDValue, 6> Ops;
-<<<<<<< HEAD
-  Ops.push_back(Node->getOperand(1)); // Ptr
-  Ops.push_back(Node->getOperand(2)); // Low part of Val1
-  Ops.push_back(Node->getOperand(3)); // High part of Val1
-  if (Opc == ARM::ATOMCMPXCHG6432) {
-    Ops.push_back(Node->getOperand(4)); // Low part of Val2
-    Ops.push_back(Node->getOperand(5)); // High part of Val2
-  }
-  Ops.push_back(Node->getOperand(0)); // Chain
-  MachineSDNode::mmo_iterator MemOp = MF->allocateMemRefsArray(1);
-  MemOp[0] = cast<MemSDNode>(Node)->getMemOperand();
-  SDNode *ResNode = CurDAG->getMachineNode(Opc, Node->getDebugLoc(),
-                                           MVT::i32, MVT::i32, MVT::Other,
-                                           Ops);
-  cast<MachineSDNode>(ResNode)->setMemRefs(MemOp, MemOp + 1);
-  return ResNode;
-=======
   for (unsigned i = 1; i < AN->getNumOperands(); ++i)
       Ops.push_back(AN->getOperand(i));
 
@@ -2403,11 +2386,10 @@ SDNode *ARMDAGToDAGISel::SelectAtomic(SDNode *Node, unsigned Op8,
   Ops.push_back(AN->getOperand(0)); // Chain moves to the end
 
   return CurDAG->SelectNodeTo(Node, Op, VTs, &Ops[0], Ops.size());
->>>>>>> llvmtrunk/master
 }
 
 SDNode *ARMDAGToDAGISel::Select(SDNode *N) {
-  DebugLoc dl = N->getDebugLoc();
+  SDLoc dl(N);
 
   if (N->isMachineOpcode()) {
     N->setNodeId(-1);
@@ -2985,7 +2967,7 @@ SDNode *ARMDAGToDAGISel::Select(SDNode *N) {
 
     case Intrinsic::arm_ldrexd: {
       SDValue MemAddr = N->getOperand(2);
-      DebugLoc dl = N->getDebugLoc();
+      SDLoc dl(N);
       SDValue Chain = N->getOperand(0);
 
       bool isThumb = Subtarget->isThumb() && Subtarget->hasThumb2();
@@ -3043,7 +3025,7 @@ SDNode *ARMDAGToDAGISel::Select(SDNode *N) {
     }
 
     case Intrinsic::arm_strexd: {
-      DebugLoc dl = N->getDebugLoc();
+      SDLoc dl(N);
       SDValue Chain = N->getOperand(0);
       SDValue Val0 = N->getOperand(2);
       SDValue Val1 = N->getOperand(3);
@@ -3247,7 +3229,7 @@ SDNode *ARMDAGToDAGISel::Select(SDNode *N) {
   }
 
   case ARMISD::VTBL1: {
-    DebugLoc dl = N->getDebugLoc();
+    SDLoc dl(N);
     EVT VT = N->getValueType(0);
     SmallVector<SDValue, 6> Ops;
 
@@ -3258,7 +3240,7 @@ SDNode *ARMDAGToDAGISel::Select(SDNode *N) {
     return CurDAG->getMachineNode(ARM::VTBL1, dl, VT, Ops);
   }
   case ARMISD::VTBL2: {
-    DebugLoc dl = N->getDebugLoc();
+    SDLoc dl(N);
     EVT VT = N->getValueType(0);
 
     // Form a REG_SEQUENCE to force register allocation.
@@ -3380,13 +3362,8 @@ SDNode *ARMDAGToDAGISel::SelectInlineAsm(SDNode *N){
   // the 64-bit data may be referred by H, Q, R modifiers, so we still pack
   // them into a GPRPair.
 
-<<<<<<< HEAD
-  DebugLoc dl = N->getDebugLoc();
-  SDValue Glue = N->getOperand(NumOps-1);
-=======
   SDLoc dl(N);
   SDValue Glue = N->getGluedNode() ? N->getOperand(NumOps-1) : SDValue(0,0);
->>>>>>> llvmtrunk/master
 
   SmallVector<bool, 8> OpChanged;
   // Glue node will be appended late.
@@ -3517,7 +3494,7 @@ SDNode *ARMDAGToDAGISel::SelectInlineAsm(SDNode *N){
   if (!Changed)
     return NULL;
 
-  SDValue New = CurDAG->getNode(ISD::INLINEASM, N->getDebugLoc(),
+  SDValue New = CurDAG->getNode(ISD::INLINEASM, SDLoc(N),
       CurDAG->getVTList(MVT::Other, MVT::Glue), &AsmNodeOperands[0],
                         AsmNodeOperands.size());
   New->setNodeId(-1);

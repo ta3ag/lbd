@@ -13,7 +13,6 @@
 //
 #define DEBUG_TYPE "mccodeemitter"
 #include "MCTargetDesc/MipsBaseInfo.h"
-#include "MCTargetDesc/MipsDirectObjLower.h"
 #include "MCTargetDesc/MipsFixupKinds.h"
 #include "MCTargetDesc/MipsMCTargetDesc.h"
 #include "llvm/ADT/APFloat.h"
@@ -146,8 +145,6 @@ MCCodeEmitter *llvm::createMipsMCCodeEmitterEL(const MCInstrInfo &MCII,
   return new MipsMCCodeEmitter(MCII, Ctx, STI, true);
 }
 
-<<<<<<< HEAD
-=======
 
 // If the D<shift> instruction has a shift amount that is greater
 // than 31 (checked in calling routine), lower it to a D<shift>32 instruction
@@ -214,7 +211,6 @@ static void LowerDextDins(MCInst& InstIn) {
   return;
 }
 
->>>>>>> llvmtrunk/master
 /// EncodeInstruction - Emit the instruction.
 /// Size the instruction with Desc.getSize().
 void MipsMCCodeEmitter::
@@ -232,17 +228,13 @@ EncodeInstruction(const MCInst &MI, raw_ostream &OS,
   case Mips::DSLL:
   case Mips::DSRL:
   case Mips::DSRA:
-<<<<<<< HEAD
-    Mips::LowerLargeShift(TmpInst);
-=======
   case Mips::DROTR:
     LowerLargeShift(TmpInst);
->>>>>>> llvmtrunk/master
     break;
     // Double extract instruction is chosen by pos and size operands
   case Mips::DEXT:
   case Mips::DINS:
-    Mips::LowerDextDins(TmpInst);
+    LowerDextDins(TmpInst);
   }
 
   unsigned long N = Fixups.size();

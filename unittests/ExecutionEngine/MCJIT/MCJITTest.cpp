@@ -51,11 +51,6 @@ TEST_F(MCJITTest, global_variable) {
   GlobalValue *Global = insertGlobalInt32(M.get(), "test_global", initialValue);
   createJIT(M.take());
   void *globalPtr =  TheJIT->getPointerToGlobal(Global);
-<<<<<<< HEAD
-  MM->applyPermissions();
-  static_cast<SectionMemoryManager*>(MM)->invalidateInstructionCache();
-=======
->>>>>>> llvmtrunk/master
   EXPECT_TRUE(0 != globalPtr)
     << "Unable to get pointer to global value from JIT";
 
@@ -68,13 +63,7 @@ TEST_F(MCJITTest, add_function) {
 
   Function *F = insertAddFunction(M.get());
   createJIT(M.take());
-<<<<<<< HEAD
-  void *addPtr = TheJIT->getPointerToFunction(F);
-  MM->applyPermissions();
-  static_cast<SectionMemoryManager*>(MM)->invalidateInstructionCache();
-=======
   uint64_t addPtr = TheJIT->getFunctionAddress(F->getName().str());
->>>>>>> llvmtrunk/master
   EXPECT_TRUE(0 != addPtr)
     << "Unable to get pointer to function from JIT";
 
@@ -95,15 +84,8 @@ TEST_F(MCJITTest, run_main) {
   int rc = 6;
   Function *Main = insertMainFunction(M.get(), 6);
   createJIT(M.take());
-<<<<<<< HEAD
-  void *vPtr = TheJIT->getPointerToFunction(Main);
-  MM->applyPermissions();
-  static_cast<SectionMemoryManager*>(MM)->invalidateInstructionCache();
-  EXPECT_TRUE(0 != vPtr)
-=======
   uint64_t ptr = TheJIT->getFunctionAddress(Main->getName().str());
   EXPECT_TRUE(0 != ptr)
->>>>>>> llvmtrunk/master
     << "Unable to get pointer to main() from JIT";
 
   int (*FuncPtr)(void) = (int(*)(void))ptr;
@@ -123,13 +105,7 @@ TEST_F(MCJITTest, return_global) {
   endFunctionWithRet(ReturnGlobal, ReadGlobal);
 
   createJIT(M.take());
-<<<<<<< HEAD
-  void *rgvPtr = TheJIT->getPointerToFunction(ReturnGlobal);
-  MM->applyPermissions();
-  static_cast<SectionMemoryManager*>(MM)->invalidateInstructionCache();
-=======
   uint64_t rgvPtr = TheJIT->getFunctionAddress(ReturnGlobal->getName().str());
->>>>>>> llvmtrunk/master
   EXPECT_TRUE(0 != rgvPtr);
 
   int32_t(*FuncPtr)(void) = (int32_t(*)(void))rgvPtr;
@@ -176,6 +152,9 @@ TEST_F(MCJITTest, increment_global) {
 }
 */
 
+// PR16013: XFAIL this test on ARM, which currently can't handle multiple relocations.
+#if !defined(__arm__)
+
 TEST_F(MCJITTest, multiple_functions) {
   SKIP_UNSUPPORTED_PLATFORM;
 
@@ -197,15 +176,8 @@ TEST_F(MCJITTest, multiple_functions) {
   }
 
   createJIT(M.take());
-<<<<<<< HEAD
-  void *vPtr = TheJIT->getPointerToFunction(Outer);
-  MM->applyPermissions();
-  static_cast<SectionMemoryManager*>(MM)->invalidateInstructionCache();
-  EXPECT_TRUE(0 != vPtr)
-=======
   uint64_t ptr = TheJIT->getFunctionAddress(Outer->getName().str());
   EXPECT_TRUE(0 != ptr)
->>>>>>> llvmtrunk/master
     << "Unable to get pointer to outer function from JIT";
 
   int32_t(*FuncPtr)(void) = (int32_t(*)(void))ptr;
@@ -213,58 +185,6 @@ TEST_F(MCJITTest, multiple_functions) {
     << "Incorrect result returned from function";
 }
 
-<<<<<<< HEAD
-// FIXME: ExecutionEngine has no support empty modules
-/*
-TEST_F(MCJITTest, multiple_empty_modules) {
-  SKIP_UNSUPPORTED_PLATFORM;
-
-  createJIT(M.take());
-  // JIT-compile
-  EXPECT_NE(0, TheJIT->getObjectImage())
-    << "Unable to generate executable loaded object image";
-
-  TheJIT->addModule(createEmptyModule("<other module>"));
-  TheJIT->addModule(createEmptyModule("<other other module>"));
-
-  // JIT again
-  EXPECT_NE(0, TheJIT->getObjectImage())
-    << "Unable to generate executable loaded object image";
-}
-*/
-
-// FIXME: MCJIT must support multiple modules
-/*
-TEST_F(MCJITTest, multiple_modules) {
-  SKIP_UNSUPPORTED_PLATFORM;
-
-  Function *Callee = insertAddFunction(M.get());
-  createJIT(M.take());
-
-  // caller function is defined in a different module
-  M.reset(createEmptyModule("<caller module>"));
-
-  Function *CalleeRef = insertExternalReferenceToFunction(M.get(), Callee);
-  Function *Caller = insertSimpleCallFunction(M.get(), CalleeRef);
-
-  TheJIT->addModule(M.take());
-
-  // get a function pointer in a module that was not used in EE construction
-  void *vPtr = TheJIT->getPointerToFunction(Caller);
-  EXPECT_NE(0, vPtr)
-    << "Unable to get pointer to caller function from JIT";
-
-  int(*FuncPtr)(int, int) = (int(*)(int, int))(intptr_t)vPtr;
-  EXPECT_EQ(0, FuncPtr(0, 0));
-  EXPECT_EQ(30, FuncPtr(10, 20));
-  EXPECT_EQ(-30, FuncPtr(-10, -20));
-
-  // ensure caller is destroyed before callee (free use before def)
-  M.reset();
-}
-*/
-=======
 #endif /*!defined(__arm__)*/
->>>>>>> llvmtrunk/master
 
 }

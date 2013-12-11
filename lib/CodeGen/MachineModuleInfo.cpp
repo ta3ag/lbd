@@ -302,7 +302,7 @@ bool MachineModuleInfo::doFinalization(Module &M) {
 ///
 void MachineModuleInfo::EndFunction() {
   // Clean up frame info.
-  FrameMoves.clear();
+  FrameInstructions.clear();
 
   // Clean up exception info.
   LandingPads.clear();

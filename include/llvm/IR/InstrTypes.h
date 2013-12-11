@@ -574,7 +574,7 @@ public:
     Instruction::CastOps Opcode,  ///< Opcode of cast
     Type *SrcTy,   ///< SrcTy of cast
     Type *DstTy,   ///< DstTy of cast
-    Type *IntPtrTy ///< Integer type corresponding to Ptr types, or null
+    Type *IntPtrTy ///< Integer type corresponding to Ptr types
   );
 
   /// @brief Determine if this cast is a no-op cast.

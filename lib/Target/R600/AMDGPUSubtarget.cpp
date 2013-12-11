@@ -40,10 +40,6 @@ AMDGPUSubtarget::AMDGPUSubtarget(StringRef TT, StringRef CPU, StringRef FS) :
   EnableIfCvt = true;
   ParseSubtargetFeatures(GPU, FS);
   DevName = GPU;
-<<<<<<< HEAD
-  Device = AMDGPUDeviceInfo::getDeviceFromName(DevName, this, Is64bit);
-=======
->>>>>>> llvmtrunk/master
 }
 
 bool
@@ -54,8 +50,6 @@ bool
 AMDGPUSubtarget::hasVertexCache() const {
   return HasVertexCache;
 }
-<<<<<<< HEAD
-=======
 short
 AMDGPUSubtarget::getTexVTXClauseSize() const {
   return TexVTXClauseSize;
@@ -80,7 +74,6 @@ bool
 AMDGPUSubtarget::isIfCvtEnabled() const {
   return EnableIfCvt;
 }
->>>>>>> llvmtrunk/master
 bool
 AMDGPUSubtarget::isTargetELF() const {
   return false;

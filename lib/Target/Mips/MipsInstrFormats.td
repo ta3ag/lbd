@@ -454,8 +454,6 @@ class RDHWR_FM {
   let Inst{5-0}   = 0x3b;
 }
 
-<<<<<<< HEAD
-=======
 class TEQ_FM<bits<6> funct> : StdArch {
   bits<5> rs;
   bits<5> rt;
@@ -540,7 +538,6 @@ class EI_FM<bits<1> sc>
   let Inst{4-0}   = 0;
 }
 
->>>>>>> llvmtrunk/master
 //===----------------------------------------------------------------------===//
 //
 //  FLOATING POINT INSTRUCTION FORMATS

@@ -37,11 +37,15 @@ namespace llvm {
   FunctionPass *createHexagonCFGOptimizer(const HexagonTargetMachine &TM);
 
   FunctionPass *createHexagonSplitTFRCondSets(const HexagonTargetMachine &TM);
+  FunctionPass *createHexagonSplitConst32AndConst64(
+                      const HexagonTargetMachine &TM);
   FunctionPass *createHexagonExpandPredSpillCode(
                       const HexagonTargetMachine &TM);
   FunctionPass *createHexagonHardwareLoops();
   FunctionPass *createHexagonPeephole();
   FunctionPass *createHexagonFixupHwLoops();
+  FunctionPass *createHexagonNewValueJump();
+  FunctionPass *createHexagonCopyToCombine();
   FunctionPass *createHexagonPacketizer();
   FunctionPass *createHexagonNewValueJump();
 

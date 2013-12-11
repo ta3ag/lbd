@@ -162,8 +162,6 @@ define i32 @t9() nounwind {
 declare %class.MutexLock* @_ZN9MutexLockC1Ev(%class.MutexLock*) unnamed_addr nounwind align 2
 
 declare %class.MutexLock* @_ZN9MutexLockD1Ev(%class.MutexLock*) unnamed_addr nounwind align 2
-<<<<<<< HEAD
-=======
 
 ; rdar://13827621
 ; Correctly preserve the input chain for the tailcall node in the bitcast case,
@@ -181,4 +179,3 @@ define float @libcall_tc_test2(float* nocapture %a, float %b) {
 
 declare float @floorf(float) readnone
 declare float @truncf(float) readnone
->>>>>>> llvmtrunk/master

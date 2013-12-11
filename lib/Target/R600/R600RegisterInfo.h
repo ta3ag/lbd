@@ -24,11 +24,7 @@ class R600TargetMachine;
 
 struct R600RegisterInfo : public AMDGPURegisterInfo {
   AMDGPUTargetMachine &TM;
-<<<<<<< HEAD
-  const TargetInstrInfo &TII;
-=======
   RegClassWeight RCW;
->>>>>>> llvmtrunk/master
 
   R600RegisterInfo(AMDGPUTargetMachine &tm);
 
@@ -49,17 +45,10 @@ struct R600RegisterInfo : public AMDGPURegisterInfo {
   /// CFGStructurizer
   virtual const TargetRegisterClass * getCFGStructurizerRegClass(MVT VT) const;
 
-<<<<<<< HEAD
-  /// \returns the sub reg enum value for the given \p Channel
-  /// (e.g. getSubRegFromChannel(0) -> AMDGPU::sel_x)
-  unsigned getSubRegFromChannel(unsigned Channel) const;
-
-=======
   virtual const RegClassWeight &getRegClassWeight(const TargetRegisterClass *RC) const;
 
   // \returns true if \p Reg can be defined in one ALU caluse and used in another.
   virtual bool isPhysRegLiveAcrossClauses(unsigned Reg) const;
->>>>>>> llvmtrunk/master
 };
 
 } // End namespace llvm

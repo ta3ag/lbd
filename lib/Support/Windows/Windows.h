@@ -27,11 +27,8 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Config/config.h" // Get build system configuration settings
-<<<<<<< HEAD
-=======
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/system_error.h"
->>>>>>> llvmtrunk/master
 #include <windows.h>
 #include <wincrypt.h>
 #include <cassert>
@@ -87,7 +84,7 @@ public:
   }
 
   // True if Handle is valid.
-  operator bool() const {
+  LLVM_EXPLICIT operator bool() const {
     return HandleTraits::IsValid(Handle) ? true : false;
   }
 

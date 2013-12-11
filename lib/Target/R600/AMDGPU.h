@@ -25,12 +25,8 @@ class Target;
 class TargetMachine;
 
 // R600 Passes
-<<<<<<< HEAD
-FunctionPass* createR600KernelParametersPass(const DataLayout *TD);
-=======
 FunctionPass *createR600VectorRegMerger(TargetMachine &tm);
 FunctionPass *createR600TextureIntrinsicsReplacer();
->>>>>>> llvmtrunk/master
 FunctionPass *createR600ExpandSpecialInstrsPass(TargetMachine &tm);
 FunctionPass *createR600EmitClauseMarkers(TargetMachine &tm);
 FunctionPass *createR600ClauseMergePass(TargetMachine &tm);

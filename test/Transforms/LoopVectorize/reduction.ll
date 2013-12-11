@@ -323,8 +323,6 @@ for.end:                                          ; preds = %for.body, %entry
   %x.0.lcssa = phi i32 [ 0, %entry ], [ %sub, %for.body ]
   ret i32 %x.0.lcssa
 }
-<<<<<<< HEAD
-=======
 
 ; We can vectorize conditional reductions with multi-input phis.
 ; CHECK: reduction_conditional
@@ -496,4 +494,3 @@ exit:
   %inc.2 = add nsw i32 %inc511.1.inc4.1, 2
   ret i32 %inc.2
 }
->>>>>>> llvmtrunk/master

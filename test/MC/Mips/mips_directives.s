@@ -40,12 +40,6 @@ $BB0_4:
     .set  at=$a0
     .set STORE_MASK,$t7
     .set FPU_MASK,$f7
-<<<<<<< HEAD
-#CHECK:    abs.s   $f6, $f7           # encoding: [0x46,0x00,0x39,0x85]
-#CHECK:    and     $3, $15, $15       # encoding: [0x01,0xef,0x18,0x24]
-    abs.s      $f6,FPU_MASK
-    and $3,$t7,STORE_MASK
-=======
     .set  $tmp7, $BB0_4-$BB0_2
     .set f6,$f6
 # CHECK:    abs.s   $f6, $f7           # encoding: [0x46,0x00,0x39,0x85]
@@ -53,4 +47,3 @@ $BB0_4:
 # CHECK:                               #   fixup A - offset: 0, value: ($tmp7)@ABS_HI, kind: fixup_Mips_HI16
     abs.s  f6,FPU_MASK
     lui $1, %hi($tmp7)
->>>>>>> llvmtrunk/master

@@ -984,7 +984,7 @@ class BinOpMI8_F<string mnemonic, X86TypeInfo typeinfo,
              [(set EFLAGS, (opnode (load addr:$dst),
                                    typeinfo.Imm8Operator:$src))]>;
 
-// BinOpAI - Instructions like "add %eax, %eax, imm".
+// BinOpAI - Instructions like "add %eax, %eax, imm", that imp-def EFLAGS.
 class BinOpAI<bits<8> opcode, string mnemonic, X86TypeInfo typeinfo,
               Register areg, string operands,
               InstrItinClass itin = IIC_BIN_NONMEM>
@@ -993,12 +993,10 @@ class BinOpAI<bits<8> opcode, string mnemonic, X86TypeInfo typeinfo,
         mnemonic, operands, [], itin>, Sched<[WriteALU]> {
   let ImmT = typeinfo.ImmEncoding;
   let Uses = [areg];
-  let Defs = [areg];
+  let Defs = [areg, EFLAGS];
   let hasSideEffects = 0;
 }
 
-<<<<<<< HEAD
-=======
 // BinOpAI_FF - Instructions like "adc %eax, %eax, imm", that implicitly define
 // and use EFLAGS.
 class BinOpAI_FF<bits<8> opcode, string mnemonic, X86TypeInfo typeinfo,
@@ -1008,7 +1006,6 @@ class BinOpAI_FF<bits<8> opcode, string mnemonic, X86TypeInfo typeinfo,
   let Uses = [areg, EFLAGS];
 }
 
->>>>>>> llvmtrunk/master
 /// ArithBinOp_RF - This is an arithmetic binary operator where the pattern is
 /// defined with "(set GPR:$dst, EFLAGS, (...".
 ///
@@ -1067,18 +1064,8 @@ multiclass ArithBinOp_RF<bits<8> BaseOpc, bits<8> BaseOpc2, bits<8> BaseOpc4,
     def NAME#16mi   : BinOpMI_RMW<mnemonic, Xi16, opnode, MemMRM>;
     def NAME#32mi   : BinOpMI_RMW<mnemonic, Xi32, opnode, MemMRM>;
     def NAME#64mi32 : BinOpMI_RMW<mnemonic, Xi64, opnode, MemMRM>;
+  } // Defs = [EFLAGS]
 
-<<<<<<< HEAD
-    def NAME#8i8   : BinOpAI<BaseOpc4, mnemonic, Xi8 , AL,
-                             "{$src, %al|AL, $src}">;
-    def NAME#16i16 : BinOpAI<BaseOpc4, mnemonic, Xi16, AX,
-                             "{$src, %ax|AX, $src}">;
-    def NAME#32i32 : BinOpAI<BaseOpc4, mnemonic, Xi32, EAX,
-                             "{$src, %eax|EAX, $src}">;
-    def NAME#64i32 : BinOpAI<BaseOpc4, mnemonic, Xi64, RAX,
-                             "{$src, %rax|RAX, $src}">;
-  }
-=======
   def NAME#8i8   : BinOpAI<BaseOpc4, mnemonic, Xi8 , AL,
                            "{$src, %al|al, $src}">;
   def NAME#16i16 : BinOpAI<BaseOpc4, mnemonic, Xi16, AX,
@@ -1087,7 +1074,6 @@ multiclass ArithBinOp_RF<bits<8> BaseOpc, bits<8> BaseOpc2, bits<8> BaseOpc4,
                            "{$src, %eax|eax, $src}">;
   def NAME#64i32 : BinOpAI<BaseOpc4, mnemonic, Xi64, RAX,
                            "{$src, %rax|rax, $src}">;
->>>>>>> llvmtrunk/master
 }
 
 /// ArithBinOp_RFF - This is an arithmetic binary operator where the pattern is
@@ -1100,7 +1086,7 @@ multiclass ArithBinOp_RFF<bits<8> BaseOpc, bits<8> BaseOpc2, bits<8> BaseOpc4,
                           string mnemonic, Format RegMRM, Format MemMRM,
                           SDNode opnode, bit CommutableRR,
                            bit ConvertibleToThreeAddress> {
-  let Defs = [EFLAGS] in {
+  let Uses = [EFLAGS], Defs = [EFLAGS] in {
     let Constraints = "$src1 = $dst" in {
       let isCommutable = CommutableRR,
           isConvertibleToThreeAddress = ConvertibleToThreeAddress in {
@@ -1149,18 +1135,6 @@ multiclass ArithBinOp_RFF<bits<8> BaseOpc, bits<8> BaseOpc2, bits<8> BaseOpc4,
     def NAME#16mi   : BinOpMI_RMW_FF<mnemonic, Xi16, opnode, MemMRM>;
     def NAME#32mi   : BinOpMI_RMW_FF<mnemonic, Xi32, opnode, MemMRM>;
     def NAME#64mi32 : BinOpMI_RMW_FF<mnemonic, Xi64, opnode, MemMRM>;
-<<<<<<< HEAD
-
-    def NAME#8i8   : BinOpAI<BaseOpc4, mnemonic, Xi8 , AL,
-                             "{$src, %al|AL, $src}">;
-    def NAME#16i16 : BinOpAI<BaseOpc4, mnemonic, Xi16, AX,
-                             "{$src, %ax|AX, $src}">;
-    def NAME#32i32 : BinOpAI<BaseOpc4, mnemonic, Xi32, EAX,
-                             "{$src, %eax|EAX, $src}">;
-    def NAME#64i32 : BinOpAI<BaseOpc4, mnemonic, Xi64, RAX,
-                             "{$src, %rax|RAX, $src}">;
-  }
-=======
   } // Uses = [EFLAGS], Defs = [EFLAGS]
 
   def NAME#8i8   : BinOpAI_FF<BaseOpc4, mnemonic, Xi8 , AL,
@@ -1171,7 +1145,6 @@ multiclass ArithBinOp_RFF<bits<8> BaseOpc, bits<8> BaseOpc2, bits<8> BaseOpc4,
                               "{$src, %eax|eax, $src}">;
   def NAME#64i32 : BinOpAI_FF<BaseOpc4, mnemonic, Xi64, RAX,
                               "{$src, %rax|rax, $src}">;
->>>>>>> llvmtrunk/master
 }
 
 /// ArithBinOp_F - This is an arithmetic binary operator where the pattern is
@@ -1229,18 +1202,8 @@ multiclass ArithBinOp_F<bits<8> BaseOpc, bits<8> BaseOpc2, bits<8> BaseOpc4,
     def NAME#16mi   : BinOpMI_F<mnemonic, Xi16, opnode, MemMRM>;
     def NAME#32mi   : BinOpMI_F<mnemonic, Xi32, opnode, MemMRM>;
     def NAME#64mi32 : BinOpMI_F<mnemonic, Xi64, opnode, MemMRM>;
+  } // Defs = [EFLAGS]
 
-<<<<<<< HEAD
-    def NAME#8i8   : BinOpAI<BaseOpc4, mnemonic, Xi8 , AL,
-                             "{$src, %al|AL, $src}">;
-    def NAME#16i16 : BinOpAI<BaseOpc4, mnemonic, Xi16, AX,
-                             "{$src, %ax|AX, $src}">;
-    def NAME#32i32 : BinOpAI<BaseOpc4, mnemonic, Xi32, EAX,
-                             "{$src, %eax|EAX, $src}">;
-    def NAME#64i32 : BinOpAI<BaseOpc4, mnemonic, Xi64, RAX,
-                             "{$src, %rax|RAX, $src}">;
-  }
-=======
   def NAME#8i8   : BinOpAI<BaseOpc4, mnemonic, Xi8 , AL,
                            "{$src, %al|al, $src}">;
   def NAME#16i16 : BinOpAI<BaseOpc4, mnemonic, Xi16, AX,
@@ -1249,7 +1212,6 @@ multiclass ArithBinOp_F<bits<8> BaseOpc, bits<8> BaseOpc2, bits<8> BaseOpc4,
                            "{$src, %eax|eax, $src}">;
   def NAME#64i32 : BinOpAI<BaseOpc4, mnemonic, Xi64, RAX,
                            "{$src, %rax|rax, $src}">;
->>>>>>> llvmtrunk/master
 }
 
 
@@ -1267,12 +1229,10 @@ defm SUB : ArithBinOp_RF<0x28, 0x2A, 0x2C, "sub", MRM5r, MRM5m,
 }
 
 // Arithmetic.
-let Uses = [EFLAGS] in {
-  defm ADC : ArithBinOp_RFF<0x10, 0x12, 0x14, "adc", MRM2r, MRM2m, X86adc_flag,
-                            1, 0>;
-  defm SBB : ArithBinOp_RFF<0x18, 0x1A, 0x1C, "sbb", MRM3r, MRM3m, X86sbb_flag,
-                            0, 0>;
-}
+defm ADC : ArithBinOp_RFF<0x10, 0x12, 0x14, "adc", MRM2r, MRM2m, X86adc_flag,
+                          1, 0>;
+defm SBB : ArithBinOp_RFF<0x18, 0x1A, 0x1C, "sbb", MRM3r, MRM3m, X86sbb_flag,
+                          0, 0>;
 
 let isCompare = 1 in {
 defm CMP : ArithBinOp_F<0x38, 0x3A, 0x3C, "cmp", MRM7r, MRM7m, X86cmp, 0, 0>;
@@ -1287,28 +1247,36 @@ defm CMP : ArithBinOp_F<0x38, 0x3A, 0x3C, "cmp", MRM7r, MRM7m, X86cmp, 0, 0>;
 def X86testpat : PatFrag<(ops node:$lhs, node:$rhs),
                          (X86cmp (and_su node:$lhs, node:$rhs), 0)>;
 
-let isCompare = 1, Defs = [EFLAGS] in {
-  let isCommutable = 1 in {
-    def TEST8rr  : BinOpRR_F<0x84, "test", Xi8 , X86testpat, MRMSrcReg>;
-    def TEST16rr : BinOpRR_F<0x84, "test", Xi16, X86testpat, MRMSrcReg>;
-    def TEST32rr : BinOpRR_F<0x84, "test", Xi32, X86testpat, MRMSrcReg>;
-    def TEST64rr : BinOpRR_F<0x84, "test", Xi64, X86testpat, MRMSrcReg>;
-  } // isCommutable
+let isCompare = 1 in {
+  let Defs = [EFLAGS] in {
+    let isCommutable = 1 in {
+      def TEST8rr  : BinOpRR_F<0x84, "test", Xi8 , X86testpat, MRMSrcReg>;
+      def TEST16rr : BinOpRR_F<0x84, "test", Xi16, X86testpat, MRMSrcReg>;
+      def TEST32rr : BinOpRR_F<0x84, "test", Xi32, X86testpat, MRMSrcReg>;
+      def TEST64rr : BinOpRR_F<0x84, "test", Xi64, X86testpat, MRMSrcReg>;
+    } // isCommutable
 
-  def TEST8rm    : BinOpRM_F<0x84, "test", Xi8 , X86testpat>;
-  def TEST16rm   : BinOpRM_F<0x84, "test", Xi16, X86testpat>;
-  def TEST32rm   : BinOpRM_F<0x84, "test", Xi32, X86testpat>;
-  def TEST64rm   : BinOpRM_F<0x84, "test", Xi64, X86testpat>;
+    def TEST8rm    : BinOpRM_F<0x84, "test", Xi8 , X86testpat>;
+    def TEST16rm   : BinOpRM_F<0x84, "test", Xi16, X86testpat>;
+    def TEST32rm   : BinOpRM_F<0x84, "test", Xi32, X86testpat>;
+    def TEST64rm   : BinOpRM_F<0x84, "test", Xi64, X86testpat>;
 
-  def TEST8ri    : BinOpRI_F<0xF6, "test", Xi8 , X86testpat, MRM0r>;
-  def TEST16ri   : BinOpRI_F<0xF6, "test", Xi16, X86testpat, MRM0r>;
-  def TEST32ri   : BinOpRI_F<0xF6, "test", Xi32, X86testpat, MRM0r>;
-  def TEST64ri32 : BinOpRI_F<0xF6, "test", Xi64, X86testpat, MRM0r>;
+    def TEST8ri    : BinOpRI_F<0xF6, "test", Xi8 , X86testpat, MRM0r>;
+    def TEST16ri   : BinOpRI_F<0xF6, "test", Xi16, X86testpat, MRM0r>;
+    def TEST32ri   : BinOpRI_F<0xF6, "test", Xi32, X86testpat, MRM0r>;
+    def TEST64ri32 : BinOpRI_F<0xF6, "test", Xi64, X86testpat, MRM0r>;
 
-  def TEST8mi    : BinOpMI_F<"test", Xi8 , X86testpat, MRM0m, 0xF6>;
-  def TEST16mi   : BinOpMI_F<"test", Xi16, X86testpat, MRM0m, 0xF6>;
-  def TEST32mi   : BinOpMI_F<"test", Xi32, X86testpat, MRM0m, 0xF6>;
-  def TEST64mi32 : BinOpMI_F<"test", Xi64, X86testpat, MRM0m, 0xF6>;
+    def TEST8mi    : BinOpMI_F<"test", Xi8 , X86testpat, MRM0m, 0xF6>;
+    def TEST16mi   : BinOpMI_F<"test", Xi16, X86testpat, MRM0m, 0xF6>;
+    def TEST32mi   : BinOpMI_F<"test", Xi32, X86testpat, MRM0m, 0xF6>;
+    def TEST64mi32 : BinOpMI_F<"test", Xi64, X86testpat, MRM0m, 0xF6>;
+
+    // When testing the result of EXTRACT_SUBREG sub_8bit_hi, make sure the
+    // register class is constrained to GR8_NOREX.
+    let isPseudo = 1 in
+    def TEST8ri_NOREX : I<0, Pseudo, (outs), (ins GR8_NOREX:$src, i8imm:$mask),
+                          "", [], IIC_BIN_NONMEM>, Sched<[WriteALU]>;
+  } // Defs = [EFLAGS]
 
   def TEST8i8    : BinOpAI<0xA8, "test", Xi8 , AL,
                            "{$src, %al|al, $src}">;
@@ -1317,19 +1285,8 @@ let isCompare = 1, Defs = [EFLAGS] in {
   def TEST32i32  : BinOpAI<0xA8, "test", Xi32, EAX,
                            "{$src, %eax|eax, $src}">;
   def TEST64i32  : BinOpAI<0xA8, "test", Xi64, RAX,
-<<<<<<< HEAD
-                           "{$src, %rax|RAX, $src}">;
-
-  // When testing the result of EXTRACT_SUBREG sub_8bit_hi, make sure the
-  // register class is constrained to GR8_NOREX.
-  let isPseudo = 1 in
-  def TEST8ri_NOREX : I<0, Pseudo, (outs), (ins GR8_NOREX:$src, i8imm:$mask),
-                        "", [], IIC_BIN_NONMEM>, Sched<[WriteALU]>;
-}
-=======
                            "{$src, %rax|rax, $src}">;
 } // isCompare
->>>>>>> llvmtrunk/master
 
 //===----------------------------------------------------------------------===//
 // ANDN Instruction

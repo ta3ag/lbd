@@ -49,19 +49,12 @@ public:
                                SmallVectorImpl<MCFixup> &Fixups) const;
   unsigned getCondBrEncoding(const MCInst &MI, unsigned OpNo,
                              SmallVectorImpl<MCFixup> &Fixups) const;
-<<<<<<< HEAD
-  unsigned getHA16Encoding(const MCInst &MI, unsigned OpNo,
-                           SmallVectorImpl<MCFixup> &Fixups) const;
-  unsigned getLO16Encoding(const MCInst &MI, unsigned OpNo,
-                           SmallVectorImpl<MCFixup> &Fixups) const;
-=======
   unsigned getAbsDirectBrEncoding(const MCInst &MI, unsigned OpNo,
                                   SmallVectorImpl<MCFixup> &Fixups) const;
   unsigned getAbsCondBrEncoding(const MCInst &MI, unsigned OpNo,
                                 SmallVectorImpl<MCFixup> &Fixups) const;
   unsigned getImm16Encoding(const MCInst &MI, unsigned OpNo,
                              SmallVectorImpl<MCFixup> &Fixups) const;
->>>>>>> llvmtrunk/master
   unsigned getMemRIEncoding(const MCInst &MI, unsigned OpNo,
                             SmallVectorImpl<MCFixup> &Fixups) const;
   unsigned getMemRIXEncoding(const MCInst &MI, unsigned OpNo,
@@ -143,9 +136,6 @@ unsigned PPCMCCodeEmitter::getCondBrEncoding(const MCInst &MI, unsigned OpNo,
   return 0;
 }
 
-<<<<<<< HEAD
-unsigned PPCMCCodeEmitter::getHA16Encoding(const MCInst &MI, unsigned OpNo,
-=======
 unsigned PPCMCCodeEmitter::
 getAbsDirectBrEncoding(const MCInst &MI, unsigned OpNo,
                        SmallVectorImpl<MCFixup> &Fixups) const {
@@ -171,31 +161,13 @@ getAbsCondBrEncoding(const MCInst &MI, unsigned OpNo,
 }
 
 unsigned PPCMCCodeEmitter::getImm16Encoding(const MCInst &MI, unsigned OpNo,
->>>>>>> llvmtrunk/master
                                        SmallVectorImpl<MCFixup> &Fixups) const {
   const MCOperand &MO = MI.getOperand(OpNo);
   if (MO.isReg() || MO.isImm()) return getMachineOpValue(MI, MO, Fixups);
   
-<<<<<<< HEAD
-  // Add a fixup for the branch target.
-  Fixups.push_back(MCFixup::Create(0, MO.getExpr(),
-                                   (MCFixupKind)PPC::fixup_ppc_ha16));
-  return 0;
-}
-
-unsigned PPCMCCodeEmitter::getLO16Encoding(const MCInst &MI, unsigned OpNo,
-                                       SmallVectorImpl<MCFixup> &Fixups) const {
-  const MCOperand &MO = MI.getOperand(OpNo);
-  if (MO.isReg() || MO.isImm()) return getMachineOpValue(MI, MO, Fixups);
-  
-  // Add a fixup for the branch target.
-  Fixups.push_back(MCFixup::Create(0, MO.getExpr(),
-                                   (MCFixupKind)PPC::fixup_ppc_lo16));
-=======
   // Add a fixup for the immediate field.
   Fixups.push_back(MCFixup::Create(2, MO.getExpr(),
                                    (MCFixupKind)PPC::fixup_ppc_half16));
->>>>>>> llvmtrunk/master
   return 0;
 }
 
@@ -211,8 +183,8 @@ unsigned PPCMCCodeEmitter::getMemRIEncoding(const MCInst &MI, unsigned OpNo,
     return (getMachineOpValue(MI, MO, Fixups) & 0xFFFF) | RegBits;
   
   // Add a fixup for the displacement field.
-  Fixups.push_back(MCFixup::Create(0, MO.getExpr(),
-                                   (MCFixupKind)PPC::fixup_ppc_lo16));
+  Fixups.push_back(MCFixup::Create(2, MO.getExpr(),
+                                   (MCFixupKind)PPC::fixup_ppc_half16));
   return RegBits;
 }
 
@@ -226,11 +198,11 @@ unsigned PPCMCCodeEmitter::getMemRIXEncoding(const MCInst &MI, unsigned OpNo,
   
   const MCOperand &MO = MI.getOperand(OpNo);
   if (MO.isImm())
-    return (getMachineOpValue(MI, MO, Fixups) & 0x3FFF) | RegBits;
+    return ((getMachineOpValue(MI, MO, Fixups) >> 2) & 0x3FFF) | RegBits;
   
   // Add a fixup for the displacement field.
-  Fixups.push_back(MCFixup::Create(0, MO.getExpr(),
-                                   (MCFixupKind)PPC::fixup_ppc_lo16_ds));
+  Fixups.push_back(MCFixup::Create(2, MO.getExpr(),
+                                   (MCFixupKind)PPC::fixup_ppc_half16ds));
   return RegBits;
 }
 

@@ -40,12 +40,14 @@ void LLVMLinkInInterpreter(void);
 
 typedef struct LLVMOpaqueGenericValue *LLVMGenericValueRef;
 typedef struct LLVMOpaqueExecutionEngine *LLVMExecutionEngineRef;
+typedef struct LLVMOpaqueMCJITMemoryManager *LLVMMCJITMemoryManagerRef;
 
 struct LLVMMCJITCompilerOptions {
   unsigned OptLevel;
   LLVMCodeModel CodeModel;
   LLVMBool NoFramePointerElim;
   LLVMBool EnableFastISel;
+  LLVMMCJITMemoryManagerRef MCJMM;
 };
 
 /*===-- Operations on generic values --------------------------------------===*/
@@ -167,8 +169,6 @@ void LLVMAddGlobalMapping(LLVMExecutionEngineRef EE, LLVMValueRef Global,
 
 void *LLVMGetPointerToGlobal(LLVMExecutionEngineRef EE, LLVMValueRef Global);
 
-<<<<<<< HEAD
-=======
 /*===-- Operations on memory managers -------------------------------------===*/
 
 typedef uint8_t *(*LLVMMemoryManagerAllocateCodeSectionCallback)(
@@ -201,7 +201,6 @@ LLVMMCJITMemoryManagerRef LLVMCreateSimpleMCJITMemoryManager(
 
 void LLVMDisposeMCJITMemoryManager(LLVMMCJITMemoryManagerRef MM);
 
->>>>>>> llvmtrunk/master
 /**
  * @}
  */

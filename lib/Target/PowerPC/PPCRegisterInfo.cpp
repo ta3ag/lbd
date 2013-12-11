@@ -153,8 +153,6 @@ BitVector PPCRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   Reserved.set(PPC::FP);
   Reserved.set(PPC::FP8);
 
-<<<<<<< HEAD
-=======
   // The BP register is also not really a register, but is the representation
   // of the base pointer register used by setjmp.
   Reserved.set(PPC::BP);
@@ -165,7 +163,6 @@ BitVector PPCRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   Reserved.set(PPC::CTR);
   Reserved.set(PPC::CTR8);
 
->>>>>>> llvmtrunk/master
   Reserved.set(PPC::R1);
   Reserved.set(PPC::LR);
   Reserved.set(PPC::LR8);
@@ -527,9 +524,8 @@ PPCRegisterInfo::hasReservedSpillSlot(const MachineFunction &MF,
   return false;
 }
 
-// Figure out if the offset in the instruction is shifted right two bits. This
-// is true for instructions like "STD", which the machine implicitly adds two
-// low zeros to.
+// Figure out if the offset in the instruction must be a multiple of 4.
+// This is true for instructions like "STD".
 static bool usesIXAddr(const MachineInstr &MI) {
   unsigned OpC = MI.getOpcode();
 
@@ -620,10 +616,7 @@ PPCRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
   // Now add the frame object offset to the offset from r1.
   int Offset = MFI->getObjectOffset(FrameIndex);
-  if (!isIXAddr)
-    Offset += MI.getOperand(OffsetOperandNo).getImm();
-  else
-    Offset += MI.getOperand(OffsetOperandNo).getImm() << 2;
+  Offset += MI.getOperand(OffsetOperandNo).getImm();
 
   // If we're not using a Frame Pointer that has been set to the value of the
   // SP before having the stack size subtracted from it, then add the stack size
@@ -642,17 +635,9 @@ PPCRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
   // clear can be encoded.  This is extremely uncommon, because normally you
   // only "std" to a stack slot that is at least 4-byte aligned, but it can
   // happen in invalid code.
-<<<<<<< HEAD
-  if (OpC == PPC::DBG_VALUE || // DBG_VALUE is always Reg+Imm
-      (!noImmForm &&
-       isInt<16>(Offset) && (!isIXAddr || (Offset & 3) == 0))) {
-    if (isIXAddr)
-      Offset >>= 2;    // The actual encoded value has the low two bits zero.
-=======
   assert(OpC != PPC::DBG_VALUE &&
          "This should be handle in a target independent way");
   if (!noImmForm && isInt<16>(Offset) && (!isIXAddr || (Offset & 3) == 0)) {
->>>>>>> llvmtrunk/master
     MI.getOperand(OffsetOperandNo).ChangeToImmediate(Offset);
     return;
   }
@@ -760,11 +745,7 @@ needsFrameBaseReg(MachineInstr *MI, int64_t Offset) const {
   }
 
   unsigned OffsetOperandNo = getOffsetONFromFION(*MI, FIOperandNum);
-
-  if (!usesIXAddr(*MI))
-    Offset += MI->getOperand(OffsetOperandNo).getImm();
-  else
-    Offset += MI->getOperand(OffsetOperandNo).getImm() << 2;
+  Offset += MI->getOperand(OffsetOperandNo).getImm();
 
   // It's the load/store FI references that cause issues, as it can be difficult
   // to materialize the offset if it won't fit in the literal field. Estimate
@@ -845,17 +826,7 @@ PPCRegisterInfo::resolveFrameIndex(MachineBasicBlock::iterator I,
 
   MI.getOperand(FIOperandNum).ChangeToRegister(BaseReg, false);
   unsigned OffsetOperandNo = getOffsetONFromFION(MI, FIOperandNum);
-
-  bool isIXAddr = usesIXAddr(MI);
-  if (!isIXAddr)
-    Offset += MI.getOperand(OffsetOperandNo).getImm();
-  else
-    Offset += MI.getOperand(OffsetOperandNo).getImm() << 2;
-
-  // Figure out if the offset in the instruction is shifted right two bits.
-  if (isIXAddr)
-    Offset >>= 2;    // The actual encoded value has the low two bits zero.
-
+  Offset += MI.getOperand(OffsetOperandNo).getImm();
   MI.getOperand(OffsetOperandNo).ChangeToImmediate(Offset);
 }
 

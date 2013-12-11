@@ -351,7 +351,7 @@ public:
 
   unsigned getCRBitMask() const {
     assert(isCRBitMask() && "Invalid access!");
-    return 7 - CountTrailingZeros_32(Imm.Val);
+    return 7 - countTrailingZeros<uint64_t>(Imm.Val);
   }
 
   bool isToken() const { return Kind == Token; }
@@ -465,33 +465,17 @@ public:
       Inst.addOperand(MCOperand::CreateExpr(getExpr()));
   }
 
-<<<<<<< HEAD
-  void addDispRIOperands(MCInst &Inst, unsigned N) const {
-    assert(N == 1 && "Invalid number of operands!");
-    if (Kind == Immediate)
-      Inst.addOperand(MCOperand::CreateImm(getImm()));
-=======
   void addBranchTargetOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
     if (Kind == Immediate)
       Inst.addOperand(MCOperand::CreateImm(getImm() / 4));
->>>>>>> llvmtrunk/master
     else
       Inst.addOperand(MCOperand::CreateExpr(getExpr()));
   }
 
-<<<<<<< HEAD
-  void addDispRIXOperands(MCInst &Inst, unsigned N) const {
-    assert(N == 1 && "Invalid number of operands!");
-    if (Kind == Immediate)
-      Inst.addOperand(MCOperand::CreateImm(getImm() / 4));
-    else
-      Inst.addOperand(MCOperand::CreateExpr(getExpr()));
-=======
   void addTLSRegOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
     Inst.addOperand(MCOperand::CreateExpr(getTLSReg()));
->>>>>>> llvmtrunk/master
   }
 
   StringRef getToken() const {

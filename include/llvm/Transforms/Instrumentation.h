@@ -96,8 +96,6 @@ inline ModulePass *createDataFlowSanitizerPassForJIT(StringRef ABIListFile =
 // checking on loads, stores, and other memory intrinsics.
 FunctionPass *createBoundsCheckingPass();
 
-<<<<<<< HEAD
-=======
 /// createDebugIRPass - Enable interactive stepping through LLVM IR in LLDB (or
 ///                     GDB) and generate a file with the LLVM IR to be
 ///                     displayed in the debugger.
@@ -129,7 +127,6 @@ ModulePass *createDebugIRPass(bool HideDebugIntrinsics,
 ///       seen by the debugger.
 ModulePass *createDebugIRPass();
 
->>>>>>> llvmtrunk/master
 } // End llvm namespace
 
 #endif

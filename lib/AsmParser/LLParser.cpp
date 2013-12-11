@@ -909,11 +909,8 @@ bool LLParser::ParseFnAttributeValuePairs(AttrBuilder &B,
       continue;
     }
     case lltok::kw_alwaysinline:      B.addAttribute(Attribute::AlwaysInline); break;
-<<<<<<< HEAD
-=======
     case lltok::kw_builtin:           B.addAttribute(Attribute::Builtin); break;
     case lltok::kw_cold:              B.addAttribute(Attribute::Cold); break;
->>>>>>> llvmtrunk/master
     case lltok::kw_inlinehint:        B.addAttribute(Attribute::InlineHint); break;
     case lltok::kw_minsize:           B.addAttribute(Attribute::MinSize); break;
     case lltok::kw_naked:             B.addAttribute(Attribute::Naked); break;
@@ -1230,11 +1227,8 @@ bool LLParser::ParseOptionalReturnAttrs(AttrBuilder &B) {
 
     case lltok::kw_alignstack:
     case lltok::kw_alwaysinline:
-<<<<<<< HEAD
-=======
     case lltok::kw_builtin:
     case lltok::kw_cold:
->>>>>>> llvmtrunk/master
     case lltok::kw_inlinehint:
     case lltok::kw_minsize:
     case lltok::kw_naked:

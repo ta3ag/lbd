@@ -65,24 +65,15 @@ AMDGPUTargetMachine::AMDGPUTargetMachine(const Target &T, StringRef TT,
   IntrinsicInfo(this),
   InstrItins(&Subtarget.getInstrItineraryData()) {
   // TLInfo uses InstrInfo so it must be initialized after.
-<<<<<<< HEAD
-  if (Subtarget.device()->getGeneration() <= AMDGPUDeviceInfo::HD6XXX) {
-    InstrInfo = new R600InstrInfo(*this);
-    TLInfo = new R600TargetLowering(*this);
-=======
   if (Subtarget.getGeneration() <= AMDGPUSubtarget::NORTHERN_ISLANDS) {
     InstrInfo.reset(new R600InstrInfo(*this));
     TLInfo.reset(new R600TargetLowering(*this));
->>>>>>> llvmtrunk/master
   } else {
-    InstrInfo = new SIInstrInfo(*this);
-    TLInfo = new SITargetLowering(*this);
+    InstrInfo.reset(new SIInstrInfo(*this));
+    TLInfo.reset(new SITargetLowering(*this));
   }
-<<<<<<< HEAD
-=======
   setRequiresStructuredCFG(true);
   initAsmInfo();
->>>>>>> llvmtrunk/master
 }
 
 AMDGPUTargetMachine::~AMDGPUTargetMachine() {
@@ -141,6 +132,8 @@ AMDGPUPassConfig::addPreISel() {
     addPass(createSinkingPass());
     addPass(createSITypeRewriter());
     addPass(createSIAnnotateControlFlowPass());
+  } else {
+    addPass(createR600TextureIntrinsicsReplacer());
   }
   return false;
 }

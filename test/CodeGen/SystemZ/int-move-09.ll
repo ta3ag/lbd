@@ -8,6 +8,12 @@
 @gdst16 = global i16 2
 @gdst32 = global i32 2
 @gdst64 = global i64 2
+@gsrc16u = global i16 1, align 1, section "foo"
+@gsrc32u = global i32 1, align 2, section "foo"
+@gsrc64u = global i64 1, align 4, section "foo"
+@gdst16u = global i16 2, align 1, section "foo"
+@gdst32u = global i32 2, align 2, section "foo"
+@gdst64u = global i64 2, align 4, section "foo"
 
 ; Check sign-extending loads from i16.
 define i64 @f1() {
@@ -79,8 +85,6 @@ define void @f7() {
   store i64 %val, i64 *@gdst64
   ret void
 }
-<<<<<<< HEAD
-=======
 
 ; Repeat f1 with an unaligned variable.
 define i64 @f8() {
@@ -160,4 +164,3 @@ define void @f14() {
   store i64 %val, i64 *@gdst64u, align 4
   ret void
 }
->>>>>>> llvmtrunk/master

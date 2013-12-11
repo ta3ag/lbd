@@ -1089,8 +1089,6 @@ while.end:
   store double %rra.0, double* %arrayidx34, align 8
   br label %for.cond
 }
-<<<<<<< HEAD
-=======
 
 declare void @cold_function() cold
 
@@ -1123,4 +1121,3 @@ exit:
   %ret = phi i32 [ %val1, %then ], [ %val2, %else ]
   ret i32 %ret
 }
->>>>>>> llvmtrunk/master

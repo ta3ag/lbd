@@ -35,10 +35,6 @@ namespace llvm {
   const AMDGPUSubtarget &ST;
 
   int getBranchInstr(const MachineOperand &op) const;
-<<<<<<< HEAD
-
-  public:
-=======
   std::vector<std::pair<int, unsigned> >
   ExtractSrcs(MachineInstr *MI, const DenseMap<unsigned, unsigned> &PV, unsigned &ConstCount) const;
 
@@ -52,7 +48,6 @@ namespace llvm {
     ALU_VEC_210
   };
 
->>>>>>> llvmtrunk/master
   explicit R600InstrInfo(AMDGPUTargetMachine &tm);
 
   const R600RegisterInfo &getRegisterInfo() const;
@@ -90,8 +85,6 @@ namespace llvm {
   bool usesTextureCache(unsigned Opcode) const;
   bool usesTextureCache(const MachineInstr *MI) const;
 
-<<<<<<< HEAD
-=======
   bool mustBeLastInClause(unsigned Opcode) const;
   bool usesAddressRegister(MachineInstr *MI) const;
   bool definesAddressRegister(MachineInstr *MI) const;
@@ -143,7 +136,6 @@ namespace llvm {
   /// this limitations
   bool fitsConstReadLimitations(const std::vector<MachineInstr *> &) const;
   /// Same but using const index set instead of MI set.
->>>>>>> llvmtrunk/master
   bool fitsConstReadLimitations(const std::vector<unsigned>&) const;
 
   /// \breif Vector instructions are instructions that must fill all
@@ -239,6 +231,11 @@ namespace llvm {
                                               unsigned DstReg,
                                               unsigned Src0Reg,
                                               unsigned Src1Reg = 0) const;
+
+  MachineInstr *buildSlotOfVectorInstruction(MachineBasicBlock &MBB,
+                                             MachineInstr *MI,
+                                             unsigned Slot,
+                                             unsigned DstReg) const;
 
   MachineInstr *buildMovImm(MachineBasicBlock &BB,
                                   MachineBasicBlock::iterator I,

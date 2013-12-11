@@ -966,52 +966,17 @@ void IfConverter::RemoveExtraEdges(BBInfo &BBI) {
     BBI.BB->CorrectExtraCFGEdges(TBB, FBB, !Cond.empty());
 }
 
-<<<<<<< HEAD
-/// InitPredRedefs / UpdatePredRedefs - Defs by predicated instructions are
-/// modeled as read + write (sort like two-address instructions). These
-/// routines track register liveness and add implicit uses to if-converted
-/// instructions to conform to the model.
-static void InitPredRedefs(MachineBasicBlock *BB, SmallSet<unsigned,4> &Redefs,
-                           const TargetRegisterInfo *TRI) {
-  for (MachineBasicBlock::livein_iterator I = BB->livein_begin(),
-         E = BB->livein_end(); I != E; ++I) {
-    unsigned Reg = *I;
-    Redefs.insert(Reg);
-    for (MCSubRegIterator SubRegs(Reg, TRI); SubRegs.isValid(); ++SubRegs)
-      Redefs.insert(*SubRegs);
-  }
-}
-
-static void UpdatePredRedefs(MachineInstr *MI, SmallSet<unsigned,4> &Redefs,
-                             const TargetRegisterInfo *TRI,
-                             bool AddImpUse = false) {
-  SmallVector<unsigned, 4> Defs;
-  for (unsigned i = 0, e = MI->getNumOperands(); i != e; ++i) {
-    const MachineOperand &MO = MI->getOperand(i);
-    if (!MO.isReg())
-=======
 /// Behaves like LiveRegUnits::StepForward() but also adds implicit uses to all
 /// values defined in MI which are not live/used by MI.
 static void UpdatePredRedefs(MachineInstr *MI, LiveRegUnits &Redefs,
                              const TargetRegisterInfo *TRI) {
   for (ConstMIBundleOperands Ops(MI); Ops.isValid(); ++Ops) {
     if (!Ops->isReg() || !Ops->isKill())
->>>>>>> llvmtrunk/master
       continue;
     unsigned Reg = Ops->getReg();
     if (Reg == 0)
       continue;
-<<<<<<< HEAD
-    if (MO.isDef())
-      Defs.push_back(Reg);
-    else if (MO.isKill()) {
-      Redefs.erase(Reg);
-      for (MCSubRegIterator SubRegs(Reg, TRI); SubRegs.isValid(); ++SubRegs)
-        Redefs.erase(*SubRegs);
-    }
-=======
     Redefs.removeReg(Reg, *TRI);
->>>>>>> llvmtrunk/master
   }
   for (MIBundleOperands Ops(MI); Ops.isValid(); ++Ops) {
     if (!Ops->isReg() || !Ops->isDef())
@@ -1420,8 +1385,8 @@ bool IfConverter::IfConvertDiamond(BBInfo &BBI, IfcvtKind Kind,
         } else if (!RedefsByFalse.count(Reg)) {
           // These are defined before ctrl flow reach the 'false' instructions.
           // They cannot be modified by the 'true' instructions.
-          ExtUses.insert(Reg);
-          for (MCSubRegIterator SubRegs(Reg, TRI); SubRegs.isValid(); ++SubRegs)
+          for (MCSubRegIterator SubRegs(Reg, TRI, /*IncludeSelf=*/true);
+               SubRegs.isValid(); ++SubRegs)
             ExtUses.insert(*SubRegs);
         }
       }
@@ -1429,8 +1394,8 @@ bool IfConverter::IfConvertDiamond(BBInfo &BBI, IfcvtKind Kind,
       for (unsigned i = 0, e = Defs.size(); i != e; ++i) {
         unsigned Reg = Defs[i];
         if (!ExtUses.count(Reg)) {
-          RedefsByFalse.insert(Reg);
-          for (MCSubRegIterator SubRegs(Reg, TRI); SubRegs.isValid(); ++SubRegs)
+          for (MCSubRegIterator SubRegs(Reg, TRI, /*IncludeSelf=*/true);
+               SubRegs.isValid(); ++SubRegs)
             RedefsByFalse.insert(*SubRegs);
         }
       }

@@ -78,12 +78,9 @@ static Function *getCalledFunction(const Value *V, bool LookThroughBitCast) {
   if (!CS.getInstruction())
     return 0;
 
-<<<<<<< HEAD
-=======
   if (CS.isNoBuiltin())
     return 0;
 
->>>>>>> llvmtrunk/master
   Function *Callee = CS.getCalledFunction();
   if (!Callee || !Callee->isDeclaration())
     return 0;

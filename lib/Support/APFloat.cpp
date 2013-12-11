@@ -691,8 +691,6 @@ APFloat::isDenormal() const {
 }
 
 bool
-<<<<<<< HEAD
-=======
 APFloat::isSmallest() const {
   // The smallest number by magnitude in our format will be the smallest
   // denormal, i.e. the floating point number with exponent being minimum
@@ -754,7 +752,6 @@ APFloat::isLargest() const {
 }
 
 bool
->>>>>>> llvmtrunk/master
 APFloat::bitwiseIsEqual(const APFloat &rhs) const {
   if (this == &rhs)
     return true;
@@ -929,7 +926,21 @@ APFloat::multiplySignificand(const APFloat &rhs, const APFloat *addend)
   omsb = APInt::tcMSB(fullSignificand, newPartsCount) + 1;
   exponent += rhs.exponent;
 
+  // Assume the operands involved in the multiplication are single-precision
+  // FP, and the two multiplicants are:
+  //   *this = a23 . a22 ... a0 * 2^e1
+  //     rhs = b23 . b22 ... b0 * 2^e2
+  // the result of multiplication is:
+  //   *this = c47 c46 . c45 ... c0 * 2^(e1+e2)
+  // Note that there are two significant bits at the left-hand side of the 
+  // radix point. Move the radix point toward left by one bit, and adjust
+  // exponent accordingly.
+  exponent += 1;
+
   if (addend) {
+    // The intermediate result of the multiplication has "2 * precision" 
+    // signicant bit; adjust the addend to be consistent with mul result.
+    //
     Significand savedSignificand = significand;
     const fltSemantics *savedSemantics = semantics;
     fltSemantics extendedSemantics;
@@ -937,8 +948,9 @@ APFloat::multiplySignificand(const APFloat &rhs, const APFloat *addend)
     unsigned int extendedPrecision;
 
     /* Normalize our MSB.  */
-    extendedPrecision = precision + precision - 1;
+    extendedPrecision = 2 * precision;
     if (omsb != extendedPrecision) {
+      assert(extendedPrecision > omsb);
       APInt::tcShiftLeft(fullSignificand, newPartsCount,
                          extendedPrecision - omsb);
       exponent -= extendedPrecision - omsb;
@@ -969,8 +981,18 @@ APFloat::multiplySignificand(const APFloat &rhs, const APFloat *addend)
     omsb = APInt::tcMSB(fullSignificand, newPartsCount) + 1;
   }
 
-  exponent -= (precision - 1);
+  // Convert the result having "2 * precision" significant-bits back to the one
+  // having "precision" significant-bits. First, move the radix point from 
+  // poision "2*precision - 1" to "precision - 1". The exponent need to be
+  // adjusted by "2*precision - 1" - "precision - 1" = "precision".
+  exponent -= precision;
 
+  // In case MSB resides at the left-hand side of radix point, shift the
+  // mantissa right by some amount to make sure the MSB reside right before
+  // the radix point (i.e. "MSB . rest-significant-bits").
+  //
+  // Note that the result is not normalized when "omsb < precision". So, the
+  // caller needs to call APFloat::normalize() if normalized value is expected.
   if (omsb > precision) {
     unsigned int bits, significantParts;
     lostFraction lf;
@@ -3315,42 +3337,60 @@ APFloat::getAllOnesValue(unsigned BitWidth, bool isIEEE)
   }
 }
 
-APFloat APFloat::getLargest(const fltSemantics &Sem, bool Negative) {
-  APFloat Val(Sem, fcNormal, Negative);
-
+/// Make this number the largest magnitude normal number in the given
+/// semantics.
+void APFloat::makeLargest(bool Negative) {
   // We want (in interchange format):
   //   sign = {Negative}
   //   exponent = 1..10
   //   significand = 1..1
+  category = fcNormal;
+  sign = Negative;
+  exponent = semantics->maxExponent;
 
-  Val.exponent = Sem.maxExponent; // unbiased
+  // Use memset to set all but the highest integerPart to all ones.
+  integerPart *significand = significandParts();
+  unsigned PartCount = partCount();
+  memset(significand, 0xFF, sizeof(integerPart)*(PartCount - 1));
 
-  // 1-initialize all bits....
-  Val.zeroSignificand();
-  integerPart *significand = Val.significandParts();
-  unsigned N = partCountForBits(Sem.precision);
-  for (unsigned i = 0; i != N; ++i)
-    significand[i] = ~((integerPart) 0);
-
-  // ...and then clear the top bits for internal consistency.
-  if (Sem.precision % integerPartWidth != 0)
-    significand[N-1] &=
-      (((integerPart) 1) << (Sem.precision % integerPartWidth)) - 1;
-
-  return Val;
+  // Set the high integerPart especially setting all unused top bits for
+  // internal consistency.
+  const unsigned NumUnusedHighBits =
+    PartCount*integerPartWidth - semantics->precision;
+  significand[PartCount - 1] = ~integerPart(0) >> NumUnusedHighBits;
 }
 
-APFloat APFloat::getSmallest(const fltSemantics &Sem, bool Negative) {
-  APFloat Val(Sem, fcNormal, Negative);
-
+/// Make this number the smallest magnitude denormal number in the given
+/// semantics.
+void APFloat::makeSmallest(bool Negative) {
   // We want (in interchange format):
   //   sign = {Negative}
   //   exponent = 0..0
   //   significand = 0..01
+  category = fcNormal;
+  sign = Negative;
+  exponent = semantics->minExponent;
+  APInt::tcSet(significandParts(), 1, partCount());
+}
 
-  Val.exponent = Sem.minExponent; // unbiased
-  Val.zeroSignificand();
-  Val.significandParts()[0] = 1;
+
+APFloat APFloat::getLargest(const fltSemantics &Sem, bool Negative) {
+  // We want (in interchange format):
+  //   sign = {Negative}
+  //   exponent = 1..10
+  //   significand = 1..1
+  APFloat Val(Sem, uninitialized);
+  Val.makeLargest(Negative);
+  return Val;
+}
+
+APFloat APFloat::getSmallest(const fltSemantics &Sem, bool Negative) {
+  // We want (in interchange format):
+  //   sign = {Negative}
+  //   exponent = 0..0
+  //   significand = 0..01
+  APFloat Val(Sem, uninitialized);
+  Val.makeSmallest(Negative);
   return Val;
 }
 
@@ -3699,8 +3739,6 @@ bool APFloat::getExactInverse(APFloat *inv) const {
 
   return true;
 }
-<<<<<<< HEAD
-=======
 
 bool APFloat::isSignaling() const {
   if (!isNaN())
@@ -3846,4 +3884,3 @@ APFloat::makeZero(bool Negative) {
   exponent = semantics->minExponent-1;
   APInt::tcSet(significandParts(), 0, partCount());  
 }
->>>>>>> llvmtrunk/master

@@ -33,10 +33,6 @@ STATISTIC(NumResumesLowered, "Number of resume calls lowered");
 namespace {
   class DwarfEHPrepare : public FunctionPass {
     const TargetMachine *TM;
-<<<<<<< HEAD
-    const TargetLoweringBase *TLI;
-=======
->>>>>>> llvmtrunk/master
 
     // RewindFunction - _Unwind_Resume or the target equivalent.
     Constant *RewindFunction;
@@ -46,14 +42,8 @@ namespace {
 
   public:
     static char ID; // Pass identification, replacement for typeid.
-<<<<<<< HEAD
-    DwarfEHPrepare(const TargetMachine *tm) :
-      FunctionPass(ID), TM(tm), TLI(TM->getTargetLowering()),
-      RewindFunction(0) {
-=======
     DwarfEHPrepare(const TargetMachine *TM) :
       FunctionPass(ID), TM(TM), RewindFunction(0) {
->>>>>>> llvmtrunk/master
         initializeDominatorTreePass(*PassRegistry::getPassRegistry());
       }
 
@@ -69,13 +59,8 @@ namespace {
 
 char DwarfEHPrepare::ID = 0;
 
-<<<<<<< HEAD
-FunctionPass *llvm::createDwarfEHPass(const TargetMachine *tm) {
-  return new DwarfEHPrepare(tm);
-=======
 FunctionPass *llvm::createDwarfEHPass(const TargetMachine *TM) {
   return new DwarfEHPrepare(TM);
->>>>>>> llvmtrunk/master
 }
 
 /// GetExceptionObject - Return the exception object from the value passed into

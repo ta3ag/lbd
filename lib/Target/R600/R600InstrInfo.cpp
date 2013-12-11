@@ -19,8 +19,8 @@
 #include "R600Defines.h"
 #include "R600MachineFunctionInfo.h"
 #include "R600RegisterInfo.h"
-#include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
+#include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 
 #define GET_INSTRINFO_CTOR_DTOR
@@ -117,16 +117,7 @@ bool R600InstrInfo::isPlaceHolderOpcode(unsigned Opcode) const {
 }
 
 bool R600InstrInfo::isReductionOp(unsigned Opcode) const {
-<<<<<<< HEAD
-  switch(Opcode) {
-    default: return false;
-    case AMDGPU::DOT4_r600_pseudo:
-    case AMDGPU::DOT4_eg_pseudo:
-      return true;
-  }
-=======
   return false;
->>>>>>> llvmtrunk/master
 }
 
 bool R600InstrInfo::isCubeOp(unsigned Opcode) const {
@@ -229,8 +220,6 @@ bool R600InstrInfo::usesTextureCache(const MachineInstr *MI) const {
          usesTextureCache(MI->getOpcode());
 }
 
-<<<<<<< HEAD
-=======
 bool R600InstrInfo::mustBeLastInClause(unsigned Opcode) const {
   switch (Opcode) {
   case AMDGPU::KILLGT:
@@ -605,7 +594,6 @@ R600InstrInfo::fitsReadPortLimitations(const std::vector<MachineInstr *> &IG,
 }
 
 
->>>>>>> llvmtrunk/master
 bool
 R600InstrInfo::fitsConstReadLimitations(const std::vector<unsigned> &Consts)
     const {
@@ -637,34 +625,10 @@ R600InstrInfo::fitsConstReadLimitations(const std::vector<MachineInstr *> &MIs)
   std::vector<unsigned> Consts;
   SmallSet<int64_t, 4> Literals;
   for (unsigned i = 0, n = MIs.size(); i < n; i++) {
-    const MachineInstr *MI = MIs[i];
-
-    const R600Operands::Ops OpTable[3][2] = {
-      {R600Operands::SRC0, R600Operands::SRC0_SEL},
-      {R600Operands::SRC1, R600Operands::SRC1_SEL},
-      {R600Operands::SRC2, R600Operands::SRC2_SEL},
-    };
-
+    MachineInstr *MI = MIs[i];
     if (!isALUInstr(MI->getOpcode()))
       continue;
 
-<<<<<<< HEAD
-    for (unsigned j = 0; j < 3; j++) {
-      int SrcIdx = getOperandIdx(MI->getOpcode(), OpTable[j][0]);
-      if (SrcIdx < 0)
-        break;
-      unsigned Reg = MI->getOperand(SrcIdx).getReg();
-      if (Reg == AMDGPU::ALU_CONST) {
-        unsigned Const = MI->getOperand(
-            getOperandIdx(MI->getOpcode(), OpTable[j][1])).getImm();
-        Consts.push_back(Const);
-        continue;
-      }
-      if (AMDGPU::R600_KC0RegClass.contains(Reg) ||
-          AMDGPU::R600_KC1RegClass.contains(Reg)) {
-        unsigned Index = RI.getEncodingValue(Reg) & 0xff;
-        unsigned Chan = RI.getHWRegChan(Reg);
-=======
     const SmallVectorImpl<std::pair<MachineOperand *, int64_t> > &Srcs =
         getSrcs(MI);
 
@@ -680,9 +644,7 @@ R600InstrInfo::fitsConstReadLimitations(const std::vector<MachineInstr *> &MIs)
           AMDGPU::R600_KC1RegClass.contains(Src.first->getReg())) {
         unsigned Index = RI.getEncodingValue(Src.first->getReg()) & 0xff;
         unsigned Chan = RI.getHWRegChan(Src.first->getReg());
->>>>>>> llvmtrunk/master
         Consts.push_back((Index << 2) | Chan);
-        continue;
       }
     }
   }
@@ -1209,8 +1171,6 @@ MachineInstrBuilder R600InstrInfo::buildDefaultInstruction(MachineBasicBlock &MB
   return MIB;
 }
 
-<<<<<<< HEAD
-=======
 #define OPERAND_CASE(Label) \
   case Label: { \
     static const unsigned Ops[] = \
@@ -1298,7 +1258,6 @@ MachineInstr *R600InstrInfo::buildSlotOfVectorInstruction(
   return MIB;
 }
 
->>>>>>> llvmtrunk/master
 MachineInstr *R600InstrInfo::buildMovImm(MachineBasicBlock &BB,
                                          MachineBasicBlock::iterator I,
                                          unsigned DstReg,

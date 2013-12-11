@@ -22,11 +22,7 @@ define i16 @f1(i16 *%src, i16 %b) {
 ; CHECK: sr [[ROT]], %r3
 ; CHECK: rll [[NEW:%r[0-9]+]], [[ROT]], 0({{%r[1-9]+}})
 ; CHECK: cs [[OLD]], [[NEW]], 0(%r2)
-<<<<<<< HEAD
-; CHECK: j{{g?}}lh [[LABEL]]
-=======
 ; CHECK: jl [[LABEL]]
->>>>>>> llvmtrunk/master
 ; CHECK: rll %r2, [[OLD]], 16([[SHIFT]])
 ; CHECK: br %r14
 ;
@@ -60,11 +56,7 @@ define i16 @f2(i16 *%src) {
 ; CHECK: afi [[ROT]], -2147483648
 ; CHECK: rll [[NEW:%r[0-9]+]], [[ROT]], 0([[NEGSHIFT:%r[1-9]+]])
 ; CHECK: cs [[OLD]], [[NEW]], 0(%r2)
-<<<<<<< HEAD
-; CHECK: j{{g?}}lh [[LABEL]]
-=======
 ; CHECK: jl [[LABEL]]
->>>>>>> llvmtrunk/master
 ; CHECK: rll %r2, [[OLD]], 16([[SHIFT]])
 ; CHECK: br %r14
 ;

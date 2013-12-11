@@ -493,19 +493,11 @@ void Verifier::visitGlobalVariable(GlobalVariable &GV) {
         Assert1(InitArray, "wrong initalizer for intrinsic global variable",
                 Init);
         for (unsigned i = 0, e = InitArray->getNumOperands(); i != e; ++i) {
-<<<<<<< HEAD
-          Value *V = Init->getOperand(i)->stripPointerCasts();
-          // stripPointerCasts strips aliases, so we only need to check for
-          // variables and functions.
-          Assert1(isa<GlobalVariable>(V) || isa<Function>(V),
-                  "invalid llvm.used member", V);
-=======
           Value *V = Init->getOperand(i)->stripPointerCastsNoFollowAliases();
           Assert1(
               isa<GlobalVariable>(V) || isa<Function>(V) || isa<GlobalAlias>(V),
               "invalid llvm.used member", V);
           Assert1(V->hasName(), "members of llvm.used must be named", V);
->>>>>>> llvmtrunk/master
         }
       }
     }
@@ -783,16 +775,6 @@ void Verifier::VerifyAttributeTypes(AttributeSet Attrs, unsigned Idx,
         I->getKindAsEnum() == Attribute::SanitizeMemory ||
         I->getKindAsEnum() == Attribute::MinSize ||
         I->getKindAsEnum() == Attribute::NoDuplicate ||
-<<<<<<< HEAD
-        I->getKindAsEnum() == Attribute::NoBuiltin) {
-      if (!isFunction)
-          CheckFailed("Attribute '" + I->getKindAsString() +
-                      "' only applies to functions!", V);
-          return;
-    } else if (isFunction) {
-        CheckFailed("Attribute '" + I->getKindAsString() +
-                    "' does not apply to functions!", V);
-=======
         I->getKindAsEnum() == Attribute::Builtin ||
         I->getKindAsEnum() == Attribute::NoBuiltin ||
         I->getKindAsEnum() == Attribute::Cold ||
@@ -800,7 +782,6 @@ void Verifier::VerifyAttributeTypes(AttributeSet Attrs, unsigned Idx,
       if (!isFunction) {
         CheckFailed("Attribute '" + I->getAsString() +
                     "' only applies to functions!", V);
->>>>>>> llvmtrunk/master
         return;
       }
     } else if (I->getKindAsEnum() == Attribute::ReadOnly ||

@@ -1,20 +1,9 @@
 ; RUN: llc < %s -march=r600 -mcpu=redwood | FileCheck %s --check-prefix=R600-CHECK
 ; RUN: llc < %s -march=r600 -mcpu=SI -verify-machineinstrs | FileCheck %s --check-prefix=SI-CHECK
 
-<<<<<<< HEAD
-;CHECK: RECIP_IEEE * T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-;CHECK: RECIP_IEEE * T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-;CHECK: RECIP_IEEE * T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-;CHECK: RECIP_IEEE * T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-;CHECK: MUL_IEEE T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-;CHECK: MUL_IEEE * T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-;CHECK: MUL_IEEE * T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-;CHECK: MUL_IEEE * T{{[0-9]+\.[XYZW], T[0-9]+\.[XYZW], T[0-9]+\.[XYZW]}}
-=======
 ; These tests check that fdiv is expanded correctly and also test that the
 ; scheduler is scheduling the RECIP_IEEE and MUL_IEEE instructions in separate
 ; instruction groups.
->>>>>>> llvmtrunk/master
 
 ; R600-CHECK: @fdiv_v2f32
 ; R600-CHECK-DAG: RECIP_IEEE * T{{[0-9]+\.[XYZW]}}, KC0[3].Z

@@ -71,14 +71,10 @@
 
 # System call instruction
 
-<<<<<<< HEAD
-# FIXME: sc 1
-=======
 # CHECK: sc 1                            # encoding: [0x44,0x00,0x00,0x22]
          sc 1
 # CHECK: sc 0                            # encoding: [0x44,0x00,0x00,0x02]
          sc
->>>>>>> llvmtrunk/master
 
 # Fixed-point facility
 

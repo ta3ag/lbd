@@ -29,16 +29,8 @@ namespace PBQP {
   class Graph {
   public:
 
-<<<<<<< HEAD
-    typedef NodeEntry* NodeItr;
-    typedef const NodeEntry* ConstNodeItr;
-
-    typedef EdgeEntry* EdgeItr;
-    typedef const EdgeEntry* ConstEdgeItr;
-=======
     typedef unsigned NodeId;
     typedef unsigned EdgeId;
->>>>>>> llvmtrunk/master
 
   private:
 

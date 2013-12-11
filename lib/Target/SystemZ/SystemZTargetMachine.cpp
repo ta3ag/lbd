@@ -34,6 +34,7 @@ SystemZTargetMachine::SystemZTargetMachine(const Target &T, StringRef TT,
        "-f32:32-f64:64-f128:64-a0:8:16-n32:64"),
     InstrInfo(*this), TLInfo(*this), TSInfo(*this),
     FrameLowering(*this, Subtarget) {
+  initAsmInfo();
 }
 
 namespace {
@@ -47,14 +48,10 @@ public:
     return getTM<SystemZTargetMachine>();
   }
 
-<<<<<<< HEAD
-  virtual bool addInstSelector();
-=======
   virtual void addIRPasses() LLVM_OVERRIDE;
   virtual bool addInstSelector() LLVM_OVERRIDE;
   virtual bool addPreSched2() LLVM_OVERRIDE;
   virtual bool addPreEmitPass() LLVM_OVERRIDE;
->>>>>>> llvmtrunk/master
 };
 } // end anonymous namespace
 
@@ -68,8 +65,6 @@ bool SystemZPassConfig::addInstSelector() {
   return false;
 }
 
-<<<<<<< HEAD
-=======
 bool SystemZPassConfig::addPreSched2() {
   if (getSystemZTargetMachine().getSubtargetImpl()->hasLoadStoreOnCond())
     addPass(&IfConverterID);
@@ -108,7 +103,6 @@ bool SystemZPassConfig::addPreEmitPass() {
   return true;
 }
 
->>>>>>> llvmtrunk/master
 TargetPassConfig *SystemZTargetMachine::createPassConfig(PassManagerBase &PM) {
   return new SystemZPassConfig(this, PM);
 }

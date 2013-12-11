@@ -130,13 +130,8 @@ declare void @foo11()
 ; Check that delay slots of branches in both the entry block and loop body are
 ; filled.
 ;
-<<<<<<< HEAD
-; SUCCBB:      succbbs_loop1:
-; SUCCBB:      bne ${{[0-9]+}}, $zero, $BB
-=======
 ; SUCCBB-LABEL:      succbbs_loop1:
 ; SUCCBB:      blez $5, $BB
->>>>>>> llvmtrunk/master
 ; SUCCBB-NEXT: addiu
 ; SUCCBB:      bnez ${{[0-9]+}}, $BB
 ; SUCCBB-NEXT: addiu

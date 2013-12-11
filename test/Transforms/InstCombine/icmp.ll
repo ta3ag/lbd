@@ -770,9 +770,6 @@ define i1 @test69(i32 %c) nounwind uwtable {
   ret i1 %3
 }
 
-<<<<<<< HEAD
-; CHECK: @icmp_sext16trunc
-=======
 ; PR15940
 ; CHECK-LABEL: @test70(
 ; CHECK-NEXT: %A = srem i32 5, %X
@@ -786,7 +783,6 @@ define i1 @test70(i32 %X) {
 }
 
 ; CHECK-LABEL: @icmp_sext16trunc(
->>>>>>> llvmtrunk/master
 ; CHECK-NEXT: %1 = trunc i32 %x to i16
 ; CHECK-NEXT: %cmp = icmp slt i16 %1, 36
 define i1 @icmp_sext16trunc(i32 %x) {

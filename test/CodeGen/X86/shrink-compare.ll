@@ -34,8 +34,6 @@ if.end:
 ; CHECK-LABEL: test2:
 ; CHECK: cmpb $47, %{{dil|cl}}
 }
-<<<<<<< HEAD
-=======
 
 define void @test3(i32 %X) nounwind minsize {
 entry:
@@ -91,4 +89,3 @@ if.end:
 ; CHECK-NOT: cmpl $1,{{.*}}x+4
 ; CHECK: ret
 }
->>>>>>> llvmtrunk/master

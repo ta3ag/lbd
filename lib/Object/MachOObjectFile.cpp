@@ -346,7 +346,7 @@ static void printRelocationTargetName(const MachOObjectFile *O,
 
   StringRef S;
   bool isExtern = O->getPlainRelocationExternal(RE);
-  uint64_t Val = O->getAnyRelocationAddress(RE);
+  uint64_t Val = O->getPlainRelocationSymbolNum(RE);
 
   if (isExtern) {
     symbol_iterator SI = O->begin_symbols();
@@ -354,7 +354,8 @@ static void printRelocationTargetName(const MachOObjectFile *O,
     SI->getName(S);
   } else {
     section_iterator SI = O->begin_sections();
-    advanceTo(SI, Val);
+    // Adjust for the fact that sections are 1-indexed.
+    advanceTo(SI, Val - 1);
     SI->getName(S);
   }
 
@@ -972,12 +973,6 @@ MachOObjectFile::getRelocationTypeName(DataRefImpl Rel,
       break;
   }
   Result.append(res.begin(), res.end());
-  return object_error::success;
-}
-
-error_code MachOObjectFile::getRelocationAdditionalInfo(DataRefImpl Rel,
-                                                        int64_t &Res) const {
-  Res = 0;
   return object_error::success;
 }
 

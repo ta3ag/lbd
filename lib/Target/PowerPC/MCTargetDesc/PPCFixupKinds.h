@@ -25,11 +25,6 @@ enum Fixups {
   /// branches.
   fixup_ppc_brcond14,
   
-<<<<<<< HEAD
-  /// fixup_ppc_lo16 - A 16-bit fixup corresponding to lo16(_foo) for instrs
-  /// like 'li'.
-  fixup_ppc_lo16,
-=======
   /// fixup_ppc_br24abs - 24-bit absolute relocation for direct branches
   /// like 'ba' and 'bla'.
   fixup_ppc_br24abs,
@@ -41,15 +36,10 @@ enum Fixups {
   /// fixup_ppc_half16 - A 16-bit fixup corresponding to lo16(_foo)
   /// or ha16(_foo) for instrs like 'li' or 'addis'.
   fixup_ppc_half16,
->>>>>>> llvmtrunk/master
   
-  /// fixup_ppc_ha16 - A 16-bit fixup corresponding to ha16(_foo) for instrs
-  /// like 'lis'.
-  fixup_ppc_ha16,
-  
-  /// fixup_ppc_lo16_ds - A 14-bit fixup corresponding to lo16(_foo) with
+  /// fixup_ppc_half16ds - A 14-bit fixup corresponding to lo16(_foo) with
   /// implied 2 zero bits for instrs like 'std'.
-  fixup_ppc_lo16_ds,
+  fixup_ppc_half16ds,
 
   /// fixup_ppc_nofixup - Not a true fixup, but ties a symbol to a call
   /// to __tls_get_addr for the TLS general and local dynamic models,

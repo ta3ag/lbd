@@ -127,14 +127,10 @@ lexical features of LLVM:
 #. Comments are delimited with a '``;``' and go until the end of line.
 #. Unnamed temporaries are created when the result of a computation is
    not assigned to a named value.
-<<<<<<< HEAD
-#. Unnamed temporaries are numbered sequentially
-=======
 #. Unnamed temporaries are numbered sequentially (using a per-function
    incrementing counter, starting with 0). Note that basic blocks are
    included in this numbering. For example, if the entry basic block is not
    given a label name, then it will get number 0.
->>>>>>> llvmtrunk/master
 
 It also shows a convention that we follow in this document. When
 demonstrating instructions, we will follow an instruction with a comment
@@ -562,17 +558,6 @@ optional :ref:`linkage type <linkage>`, an optional :ref:`visibility
 style <visibility>`, an optional :ref:`calling convention <callingconv>`,
 an optional ``unnamed_addr`` attribute, a return type, an optional
 :ref:`parameter attribute <paramattrs>` for the return type, a function
-<<<<<<< HEAD
-name, a possibly empty list of arguments, an optional alignment, and an
-optional :ref:`garbage collector name <gc>`.
-
-A function definition contains a list of basic blocks, forming the CFG
-(Control Flow Graph) for the function. Each basic block may optionally
-start with a label (giving the basic block a symbol table entry),
-contains a list of instructions, and ends with a
-:ref:`terminator <terminators>` instruction (such as a branch or function
-return).
-=======
 name, a possibly empty list of arguments, an optional alignment, an optional
 :ref:`garbage collector name <gc>` and an optional :ref:`prefix <prefixdata>`.
 
@@ -585,7 +570,6 @@ implicit numbered label, using the next value from the same counter as used for
 unnamed temporaries (:ref:`see above<identifiers>`). For example, if a function
 entry block does not have an explicit label, it will be assigned label "%0",
 then the first unnamed temporary in that block will be "%1", etc.
->>>>>>> llvmtrunk/master
 
 The first basic block in a function is special in two ways: it is
 immediately executed on entrance to the function, and it is not allowed
@@ -885,12 +869,6 @@ example:
     This attribute indicates that the inliner should attempt to inline
     this function into callers whenever possible, ignoring any active
     inlining size threshold for this caller.
-<<<<<<< HEAD
-``nonlazybind``
-    This attribute suppresses lazy symbol binding for the function. This
-    may make calls to the function faster, at the cost of extra program
-    startup time if the function is not called during program startup.
-=======
 ``builtin``
     This indicates that the callee function at a call site should be
     recognized as a built-in function, even though the function's declaration
@@ -902,7 +880,6 @@ example:
     computing edge weights, basic blocks post-dominated by a cold
     function call are also considered to be cold; and, thus, given low
     weight.
->>>>>>> llvmtrunk/master
 ``inlinehint``
     This attribute indicates that the source code contained a hint that
     inlining this function is desirable (such as the "inline" keyword in
@@ -2628,13 +2605,8 @@ Examples:
 It is sometimes useful to attach information to loop constructs. Currently,
 loop metadata is implemented as metadata attached to the branch instruction
 in the loop latch block. This type of metadata refer to a metadata node that is
-<<<<<<< HEAD
-guaranteed to be separate for each loop. The loop-level metadata is prefixed
-with ``llvm.loop``.
-=======
 guaranteed to be separate for each loop. The loop identifier metadata is
 specified with the name ``llvm.loop``.
->>>>>>> llvmtrunk/master
 
 The loop identifier metadata is implemented using a metadata that refers to
 itself to avoid merging it with any other identifier metadata, e.g.,
@@ -2648,32 +2620,17 @@ constructs:
     !0 = metadata !{ metadata !0 }
     !1 = metadata !{ metadata !1 }
 
+The loop identifier metadata can be used to specify additional per-loop
+metadata. Any operands after the first operand can be treated as user-defined
+metadata. For example the ``llvm.vectorizer.unroll`` metadata is understood
+by the loop vectorizer to indicate how many times to unroll the loop:
 
-'``llvm.loop.parallel``' Metadata
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: llvm
 
-This loop metadata can be used to communicate that a loop should be considered
-a parallel loop. The semantics of parallel loops in this case is the one
-with the strongest cross-iteration instruction ordering freedom: the
-iterations in the loop can be considered completely independent of each
-other (also known as embarrassingly parallel loops).
-
-This metadata can originate from a programming language with parallel loop
-constructs. In such a case it is completely the programmer's responsibility
-to ensure the instructions from the different iterations of the loop can be
-executed in an arbitrary order, in parallel, or intertwined. No loop-carried
-dependency checking at all must be expected from the compiler.
-
-In order to fulfill the LLVM requirement for metadata to be safely ignored,
-it is important to ensure that a parallel loop is converted to
-a sequential loop in case an optimization (agnostic of the parallel loop
-semantics) converts the loop back to such. This happens when new memory
-accesses that do not fulfill the requirement of free ordering across iterations
-are added to the loop. Therefore, this metadata is required, but not
-sufficient, to consider the loop at hand a parallel loop. For a loop
-to be parallel,  all its memory accessing instructions need to be
-marked with the ``llvm.mem.parallel_loop_access`` metadata that refer
-to the same loop identifier metadata that identify the loop at hand.
+      br i1 %exitcond, label %._crit_edge, label %.lr.ph, !llvm.loop !0
+    ...
+    !0 = metadata !{ metadata !0, metadata !1 }
+    !1 = metadata !{ metadata !"llvm.vectorizer.unroll", i32 2 }
 
 '``llvm.mem``'
 ^^^^^^^^^^^^^^^
@@ -2685,29 +2642,28 @@ for optimizations are prefixed with ``llvm.mem``.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For a loop to be parallel, in addition to using
-the ``llvm.loop.parallel`` metadata to mark the loop latch branch instruction,
+the ``llvm.loop`` metadata to mark the loop latch branch instruction,
 also all of the memory accessing instructions in the loop body need to be
 marked with the ``llvm.mem.parallel_loop_access`` metadata. If there
 is at least one memory accessing instruction not marked with the metadata,
-the loop, despite it possibly using the ``llvm.loop.parallel`` metadata,
-must be considered a sequential loop. This causes parallel loops to be
+the loop must be considered a sequential loop. This causes parallel loops to be
 converted to sequential loops due to optimization passes that are unaware of
 the parallel semantics and that insert new memory instructions to the loop
 body.
 
 Example of a loop that is considered parallel due to its correct use of
-both ``llvm.loop.parallel`` and ``llvm.mem.parallel_loop_access``
+both ``llvm.loop`` and ``llvm.mem.parallel_loop_access``
 metadata types that refer to the same loop identifier metadata.
 
 .. code-block:: llvm
 
    for.body:
-   ...
-   %0 = load i32* %arrayidx, align 4, !llvm.mem.parallel_loop_access !0
-   ...
-   store i32 %0, i32* %arrayidx4, align 4, !llvm.mem.parallel_loop_access !0
-   ...
-   br i1 %exitcond, label %for.end, label %for.body, !llvm.loop.parallel !0
+     ...
+     %0 = load i32* %arrayidx, align 4, !llvm.mem.parallel_loop_access !0
+     ...
+     store i32 %0, i32* %arrayidx4, align 4, !llvm.mem.parallel_loop_access !0
+     ...
+     br i1 %exitcond, label %for.end, label %for.body, !llvm.loop !0
 
    for.end:
    ...
@@ -2723,27 +2679,75 @@ the loop identifier metadata node directly:
    ...
 
    inner.for.body:
-   ...
-   %0 = load i32* %arrayidx, align 4, !llvm.mem.parallel_loop_access !0
-   ...
-   store i32 %0, i32* %arrayidx4, align 4, !llvm.mem.parallel_loop_access !0
-   ...
-   br i1 %exitcond, label %inner.for.end, label %inner.for.body, !llvm.loop.parallel !1
+     ...
+     %0 = load i32* %arrayidx, align 4, !llvm.mem.parallel_loop_access !0
+     ...
+     store i32 %0, i32* %arrayidx4, align 4, !llvm.mem.parallel_loop_access !0
+     ...
+     br i1 %exitcond, label %inner.for.end, label %inner.for.body, !llvm.loop !1
 
    inner.for.end:
-   ...
-   %0 = load i32* %arrayidx, align 4, !llvm.mem.parallel_loop_access !0
-   ...
-   store i32 %0, i32* %arrayidx4, align 4, !llvm.mem.parallel_loop_access !0
-   ...
-   br i1 %exitcond, label %outer.for.end, label %outer.for.body, !llvm.loop.parallel !2
+     ...
+     %0 = load i32* %arrayidx, align 4, !llvm.mem.parallel_loop_access !0
+     ...
+     store i32 %0, i32* %arrayidx4, align 4, !llvm.mem.parallel_loop_access !0
+     ...
+     br i1 %exitcond, label %outer.for.end, label %outer.for.body, !llvm.loop !2
 
    outer.for.end:                                          ; preds = %for.body
    ...
-   !0 = metadata !{ metadata !1, metadata !2 } ; a list of parallel loop identifiers
-   !1 = metadata !{ metadata !1 } ; an identifier for the inner parallel loop
-   !2 = metadata !{ metadata !2 } ; an identifier for the outer parallel loop
+   !0 = metadata !{ metadata !1, metadata !2 } ; a list of loop identifiers
+   !1 = metadata !{ metadata !1 } ; an identifier for the inner loop
+   !2 = metadata !{ metadata !2 } ; an identifier for the outer loop
 
+'``llvm.vectorizer``'
+^^^^^^^^^^^^^^^^^^^^^
+
+Metadata prefixed with ``llvm.vectorizer`` is used to control per-loop
+vectorization parameters such as vectorization factor and unroll factor.
+
+``llvm.vectorizer`` metadata should be used in conjunction with ``llvm.loop``
+loop identification metadata.
+
+'``llvm.vectorizer.unroll``' Metadata
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This metadata instructs the loop vectorizer to unroll the specified
+loop exactly ``N`` times.
+
+The first operand is the string ``llvm.vectorizer.unroll`` and the second
+operand is an integer specifying the unroll factor. For example:
+
+.. code-block:: llvm
+
+   !0 = metadata !{ metadata !"llvm.vectorizer.unroll", i32 4 }
+
+Note that setting ``llvm.vectorizer.unroll`` to 1 disables unrolling of the
+loop.
+
+If ``llvm.vectorizer.unroll`` is set to 0 then the amount of unrolling will be
+determined automatically.
+
+'``llvm.vectorizer.width``' Metadata
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This metadata sets the target width of the vectorizer to ``N``. Without
+this metadata, the vectorizer will choose a width automatically.
+Regardless of this metadata, the vectorizer will only vectorize loops if
+it believes it is valid to do so.
+
+The first operand is the string ``llvm.vectorizer.width`` and the second
+operand is an integer specifying the width. For example:
+
+.. code-block:: llvm
+
+   !0 = metadata !{ metadata !"llvm.vectorizer.width", i32 4 }
+
+Note that setting ``llvm.vectorizer.width`` to 1 disables vectorization of the
+loop.
+
+If ``llvm.vectorizer.width`` is set to 0 then the width will be determined
+automatically.
 
 Module Flags Metadata
 =====================
@@ -2961,18 +2965,11 @@ All globals of this sort should have a section specified as
 The '``llvm.used``' Global Variable
 -----------------------------------
 
-<<<<<<< HEAD
-The ``@llvm.used`` global is an array which has :ref:`appending linkage
-<linkage_appending>`. This array contains a list of pointers to global
-variables, functions and aliases which may optionally have a pointer cast formed
-of bitcast or getelementptr. For example, a legal use of it is:
-=======
 The ``@llvm.used`` global is an array which has
 :ref:`appending linkage <linkage_appending>`. This array contains a list of
 pointers to named global variables, functions and aliases which may optionally
 have a pointer cast formed of bitcast or getelementptr. For example, a legal
 use of it is:
->>>>>>> llvmtrunk/master
 
 .. code-block:: llvm
 
@@ -4114,7 +4111,7 @@ Example:
       <result> = lshr i32 4, 1   ; yields {i32}:result = 2
       <result> = lshr i32 4, 2   ; yields {i32}:result = 1
       <result> = lshr i8  4, 3   ; yields {i8}:result = 0
-      <result> = lshr i8 -2, 1   ; yields {i8}:result = 0x7FFFFFFF
+      <result> = lshr i8 -2, 1   ; yields {i8}:result = 0x7F
       <result> = lshr i32 1, 32  ; undefined
       <result> = lshr <2 x i32> < i32 -2, i32 4>, < i32 1, i32 2>   ; yields: result=<2 x i32> < i32 0x7FFFFFFF, i32 1>
 
@@ -6808,6 +6805,9 @@ When directly supported, reading the cycle counter should not modify any
 memory. Implementations are allowed to either return a application
 specific value or a system wide value. On backends without support, this
 is lowered to a constant 0.
+
+Note that runtime support may be conditional on the privilege-level code is
+running at and the host platform.
 
 Standard C Library Intrinsics
 -----------------------------

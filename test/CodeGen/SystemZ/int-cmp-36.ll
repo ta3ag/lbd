@@ -4,12 +4,13 @@
 ; RUN: llc < %s -mtriple=s390x-linux-gnu | FileCheck %s
 
 @g = global i16 1
+@h = global i16 1, align 1, section "foo"
 
 ; Check signed comparison.
 define i32 @f1(i32 %src1) {
 ; CHECK-LABEL: f1:
 ; CHECK: chrl %r2, g
-; CHECK-NEXT: j{{g?}}l
+; CHECK-NEXT: jl
 ; CHECK: br %r14
 entry:
   %val = load i16 *@g
@@ -46,7 +47,7 @@ exit:
 define i32 @f3(i32 %src1) {
 ; CHECK-LABEL: f3:
 ; CHECK: chrl %r2, g
-; CHECK-NEXT: j{{g?}}e
+; CHECK-NEXT: je
 ; CHECK: br %r14
 entry:
   %val = load i16 *@g
@@ -65,7 +66,7 @@ exit:
 define i32 @f4(i32 %src1) {
 ; CHECK-LABEL: f4:
 ; CHECK: chrl %r2, g
-; CHECK-NEXT: j{{g?}}lh
+; CHECK-NEXT: jlh
 ; CHECK: br %r14
 entry:
   %val = load i16 *@g
@@ -79,8 +80,6 @@ exit:
   %res = phi i32 [ %src1, %entry ], [ %mul, %mulb ]
   ret i32 %res
 }
-<<<<<<< HEAD
-=======
 
 ; Repeat f1 with an unaligned address.
 define i32 @f5(i32 %src1) {
@@ -120,4 +119,3 @@ exit:
   %res = phi i32 [ %src2, %entry ], [ %mul, %mulb ]
   ret i32 %res
 }
->>>>>>> llvmtrunk/master

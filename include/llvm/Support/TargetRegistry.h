@@ -21,6 +21,7 @@
 
 #include "llvm/ADT/Triple.h"
 #include "llvm/Support/CodeGen.h"
+#include "llvm-c/Disassembler.h"
 #include <cassert>
 #include <string>
 
@@ -41,6 +42,8 @@ namespace llvm {
   class MCRegisterInfo;
   class MCStreamer;
   class MCSubtargetInfo;
+  class MCSymbolizer;
+  class MCRelocationInfo;
   class MCTargetAsmParser;
   class TargetMachine;
   class MCTargetStreamer;
@@ -56,6 +59,14 @@ namespace llvm {
                                 MCInstPrinter *InstPrint, MCCodeEmitter *CE,
                                 MCAsmBackend *TAB, bool ShowInst);
 
+  MCRelocationInfo *createMCRelocationInfo(StringRef TT, MCContext &Ctx);
+
+  MCSymbolizer *createMCSymbolizer(StringRef TT, LLVMOpInfoCallback GetOpInfo,
+                                   LLVMSymbolLookupCallback SymbolLookUp,
+                                   void *DisInfo,
+                                   MCContext *Ctx,
+                                   MCRelocationInfo *RelInfo);
+
   /// Target - Wrapper for Target specific information.
   ///
   /// For registration purposes, this is a POD type so that targets can be
@@ -70,7 +81,7 @@ namespace llvm {
 
     typedef unsigned (*TripleMatchQualityFnTy)(const std::string &TT);
 
-    typedef MCAsmInfo *(*MCAsmInfoCtorFnTy)(const Target &T,
+    typedef MCAsmInfo *(*MCAsmInfoCtorFnTy)(const MCRegisterInfo &MRI,
                                             StringRef TT);
     typedef MCCodeGenInfo *(*MCCodeGenInfoCtorFnTy)(StringRef TT,
                                                     Reloc::Model RM,
@@ -129,6 +140,14 @@ namespace llvm {
                                              MCCodeEmitter *CE,
                                              MCAsmBackend *TAB,
                                              bool ShowInst);
+    typedef MCRelocationInfo *(*MCRelocationInfoCtorTy)(StringRef TT,
+                                                        MCContext &Ctx);
+    typedef MCSymbolizer *(*MCSymbolizerCtorTy)(StringRef TT,
+                                   LLVMOpInfoCallback GetOpInfo,
+                                   LLVMSymbolLookupCallback SymbolLookUp,
+                                   void *DisInfo,
+                                   MCContext *Ctx,
+                                   MCRelocationInfo *RelInfo);
 
   private:
     /// Next - The next registered target in the linked list, maintained by the
@@ -208,14 +227,18 @@ namespace llvm {
     /// AsmStreamer, if registered (default = llvm::createAsmStreamer).
     AsmStreamerCtorTy AsmStreamerCtorFn;
 
+    /// MCRelocationInfoCtorFn - Construction function for this target's
+    /// MCRelocationInfo, if registered (default = llvm::createMCRelocationInfo)
+    MCRelocationInfoCtorTy MCRelocationInfoCtorFn;
+
+    /// MCSymbolizerCtorFn - Construction function for this target's
+    /// MCSymbolizer, if registered (default = llvm::createMCSymbolizer)
+    MCSymbolizerCtorTy MCSymbolizerCtorFn;
+
   public:
-<<<<<<< HEAD
-    Target() : AsmStreamerCtorFn(llvm::createAsmStreamer) {}
-=======
     Target()
         : AsmStreamerCtorFn(0), MCRelocationInfoCtorFn(0),
           MCSymbolizerCtorFn(0) {}
->>>>>>> llvmtrunk/master
 
     /// @name Target Information
     /// @{
@@ -253,10 +276,11 @@ namespace llvm {
     /// feature set; it should always be provided. Generally this should be
     /// either the target triple from the module, or the target triple of the
     /// host if that does not exist.
-    MCAsmInfo *createMCAsmInfo(StringRef Triple) const {
+    MCAsmInfo *createMCAsmInfo(const MCRegisterInfo &MRI,
+                               StringRef Triple) const {
       if (!MCAsmInfoCtorFn)
         return 0;
-      return MCAsmInfoCtorFn(*this, Triple);
+      return MCAsmInfoCtorFn(MRI, Triple);
     }
 
     /// createMCCodeGenInfo - Create a MCCodeGenInfo implementation.
@@ -425,8 +449,6 @@ namespace llvm {
                                      ShowInst);
     }
 
-<<<<<<< HEAD
-=======
     /// createMCRelocationInfo - Create a target specific MCRelocationInfo.
     ///
     /// \param TT The target triple.
@@ -458,7 +480,6 @@ namespace llvm {
       return Fn(TT, GetOpInfo, SymbolLookUp, DisInfo, Ctx, RelInfo);
     }
 
->>>>>>> llvmtrunk/master
     /// @}
   };
 
@@ -763,8 +784,6 @@ namespace llvm {
       T.AsmStreamerCtorFn = Fn;
     }
 
-<<<<<<< HEAD
-=======
     /// RegisterMCRelocationInfo - Register an MCRelocationInfo
     /// implementation for the given target.
     ///
@@ -793,7 +812,6 @@ namespace llvm {
       T.MCSymbolizerCtorFn = Fn;
     }
 
->>>>>>> llvmtrunk/master
     /// @}
   };
 
@@ -839,13 +857,8 @@ namespace llvm {
       TargetRegistry::RegisterMCAsmInfo(T, &Allocator);
     }
   private:
-<<<<<<< HEAD
-    static MCAsmInfo *Allocator(const Target &T, StringRef TT) {
-      return new MCAsmInfoImpl(T, TT);
-=======
     static MCAsmInfo *Allocator(const MCRegisterInfo &/*MRI*/, StringRef TT) {
       return new MCAsmInfoImpl(TT);
->>>>>>> llvmtrunk/master
     }
 
   };

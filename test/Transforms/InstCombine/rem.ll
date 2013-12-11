@@ -1,74 +1,56 @@
-; This test makes sure that these instructions are properly eliminated.
+; This test makes sure that urem instructions are properly eliminated.
 ;
-; RUN: opt < %s -instcombine -S | not grep rem
+; RUN: opt < %s -instcombine -S | FileCheck %s
 ; END.
 
 define i32 @test1(i32 %A) {
-<<<<<<< HEAD
-=======
 ; CHECK-LABEL: @test1(
 ; CHECK-NEXT: ret i32 0
->>>>>>> llvmtrunk/master
 	%B = srem i32 %A, 1	; ISA constant 0
 	ret i32 %B
 }
 
 define i32 @test2(i32 %A) {	; 0 % X = 0, we don't need to preserve traps
-<<<<<<< HEAD
-=======
 ; CHECK-LABEL: @test2(
 ; CHECK-NEXT: ret i32 0
->>>>>>> llvmtrunk/master
 	%B = srem i32 0, %A
 	ret i32 %B
 }
 
 define i32 @test3(i32 %A) {
-<<<<<<< HEAD
-=======
 ; CHECK-LABEL: @test3(
 ; CHECK-NEXT: [[AND:%.*]] = and i32 %A, 7
 ; CHECK-NEXT: ret i32 [[AND]]
->>>>>>> llvmtrunk/master
 	%B = urem i32 %A, 8
 	ret i32 %B
 }
 
 define i1 @test3a(i32 %A) {
-<<<<<<< HEAD
-=======
 ; CHECK-LABEL: @test3a(
 ; CHECK-NEXT: [[AND:%.*]] = and i32 %A, 7
 ; CHECK-NEXT: [[CMP:%.*]] = icmp ne i32 [[AND]], 0
 ; CHECK-NEXT: ret i1 [[CMP]]
->>>>>>> llvmtrunk/master
 	%B = srem i32 %A, -8
 	%C = icmp ne i32 %B, 0
 	ret i1 %C
 }
 
 define i32 @test4(i32 %X, i1 %C) {
-<<<<<<< HEAD
-=======
 ; CHECK-LABEL: @test4(
 ; CHECK-NEXT: [[SEL:%.*]] = select i1 %C, i32 0, i32 7
 ; CHECK-NEXT: [[AND:%.*]] = and i32 [[SEL]], %X
->>>>>>> llvmtrunk/master
 	%V = select i1 %C, i32 1, i32 8
 	%R = urem i32 %X, %V
 	ret i32 %R
 }
 
 define i32 @test5(i32 %X, i8 %B) {
-<<<<<<< HEAD
-=======
 ; CHECK-LABEL: @test5(
 ; CHECK-NEXT: [[ZEXT:%.*]] = zext i8 %B to i32
 ; CHECK-NEXT: [[SHL:%.*]] = shl nuw i32 32, [[ZEXT]]
 ; CHECK-NEXT: [[ADD:%.*]] = add i32 [[SHL]], -1
 ; CHECK-NEXT: [[AND:%.*]] = and i32 [[ADD]], %X
 ; CHECK-NEXT: ret i32 [[AND]]
->>>>>>> llvmtrunk/master
 	%shift.upgrd.1 = zext i8 %B to i32
 	%Amt = shl i32 32, %shift.upgrd.1
 	%V = urem i32 %X, %Amt
@@ -76,54 +58,39 @@ define i32 @test5(i32 %X, i8 %B) {
 }
 
 define i32 @test6(i32 %A) {
-<<<<<<< HEAD
-=======
 ; CHECK-LABEL: @test6(
 ; CHECK-NEXT: ret i32 undef
->>>>>>> llvmtrunk/master
 	%B = srem i32 %A, 0	;; undef
 	ret i32 %B
 }
 
 define i32 @test7(i32 %A) {
-<<<<<<< HEAD
-=======
 ; CHECK-LABEL: @test7(
 ; CHECK-NEXT: ret i32 0
->>>>>>> llvmtrunk/master
 	%B = mul i32 %A, 8
 	%C = srem i32 %B, 4
 	ret i32 %C
 }
 
 define i32 @test8(i32 %A) {
-<<<<<<< HEAD
-=======
 ; CHECK-LABEL: @test8(
 ; CHECK-NEXT: ret i32 0
->>>>>>> llvmtrunk/master
 	%B = shl i32 %A, 4
 	%C = srem i32 %B, 8
 	ret i32 %C
 }
 
 define i32 @test9(i32 %A) {
-<<<<<<< HEAD
-=======
 ; CHECK-LABEL: @test9(
 ; CHECK-NEXT: ret i32 0
->>>>>>> llvmtrunk/master
 	%B = mul i32 %A, 64
 	%C = urem i32 %B, 32
 	ret i32 %C
 }
 
 define i32 @test10(i8 %c) {
-<<<<<<< HEAD
-=======
 ; CHECK-LABEL: @test10(
 ; CHECK-NEXT: ret i32 0
->>>>>>> llvmtrunk/master
 	%tmp.1 = zext i8 %c to i32
 	%tmp.2 = mul i32 %tmp.1, 4
 	%tmp.3 = sext i32 %tmp.2 to i64
@@ -133,11 +100,8 @@ define i32 @test10(i8 %c) {
 }
 
 define i32 @test11(i32 %i) {
-<<<<<<< HEAD
-=======
 ; CHECK-LABEL: @test11(
 ; CHECK-NEXT: ret i32 0
->>>>>>> llvmtrunk/master
 	%tmp.1 = and i32 %i, -2
 	%tmp.3 = mul i32 %tmp.1, 2
 	%tmp.5 = urem i32 %tmp.3, 4
@@ -145,22 +109,14 @@ define i32 @test11(i32 %i) {
 }
 
 define i32 @test12(i32 %i) {
-<<<<<<< HEAD
-=======
 ; CHECK-LABEL: @test12(
 ; CHECK-NEXT: ret i32 0
->>>>>>> llvmtrunk/master
 	%tmp.1 = and i32 %i, -4
 	%tmp.5 = srem i32 %tmp.1, 2
 	ret i32 %tmp.5
 }
 
 define i32 @test13(i32 %i) {
-<<<<<<< HEAD
-	%x = srem i32 %i, %i
-	ret i32 %x
-}
-=======
 ; CHECK-LABEL: @test13(
 ; CHECK-NEXT: ret i32 0
 	%x = srem i32 %i, %i
@@ -248,4 +204,3 @@ define i32 @test19(i32 %x, i32 %y) {
 	%E = urem i32 %y, %D
 	ret i32 %E
 }
->>>>>>> llvmtrunk/master

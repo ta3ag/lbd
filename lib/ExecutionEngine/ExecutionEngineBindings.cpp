@@ -15,6 +15,7 @@
 #include "llvm-c/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
+#include "llvm/ExecutionEngine/RTDyldMemoryManager.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -157,10 +158,8 @@ LLVMBool LLVMCreateJITCompilerForModule(LLVMExecutionEngineRef *OutJIT,
 void LLVMInitializeMCJITCompilerOptions(LLVMMCJITCompilerOptions *PassedOptions,
                                         size_t SizeOfPassedOptions) {
   LLVMMCJITCompilerOptions options;
-  options.OptLevel = 0;
+  memset(&options, 0, sizeof(options)); // Most fields are zero by default.
   options.CodeModel = LLVMCodeModelJITDefault;
-  options.NoFramePointerElim = false;
-  options.EnableFastISel = false;
   
   memcpy(PassedOptions, &options,
          std::min(sizeof(options), SizeOfPassedOptions));
@@ -199,6 +198,8 @@ LLVMBool LLVMCreateMCJITCompilerForModule(
          .setOptLevel((CodeGenOpt::Level)options.OptLevel)
          .setCodeModel(unwrap(options.CodeModel))
          .setTargetOptions(targetOptions);
+  if (options.MCJMM)
+    builder.setMCJITMemoryManager(unwrap(options.MCJMM));
   if (ExecutionEngine *JIT = builder.create()) {
     *OutJIT = wrap(JIT);
     return 0;
@@ -332,8 +333,6 @@ void *LLVMGetPointerToGlobal(LLVMExecutionEngineRef EE, LLVMValueRef Global) {
   
   return unwrap(EE)->getPointerToGlobal(unwrap<GlobalValue>(Global));
 }
-<<<<<<< HEAD
-=======
 
 /*===-- Operations on memory managers -------------------------------------===*/
 
@@ -438,4 +437,3 @@ void LLVMDisposeMCJITMemoryManager(LLVMMCJITMemoryManagerRef MM) {
   delete unwrap(MM);
 }
 
->>>>>>> llvmtrunk/master

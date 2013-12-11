@@ -153,8 +153,6 @@ define <8 x i8> @test12a(<8 x i8> %tmp6, <8 x i8> %tmp2) nounwind {
   ret <8 x i8> %tmp3
 }
 
-<<<<<<< HEAD
-=======
 define <2 x i8> @test13a(i8 %x1, i8 %x2) {
 ; CHECK-LABEL: @test13a(
 ; CHECK-NEXT: insertelement {{.*}} undef, i8 %x1, i32 1
@@ -230,4 +228,3 @@ define <4 x float> @test15b(<4 x float> %LHS, <4 x float> %RHS) {
   ret <4 x float> %tmp5
 }
 
->>>>>>> llvmtrunk/master

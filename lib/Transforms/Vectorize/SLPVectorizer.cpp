@@ -19,12 +19,9 @@
 #define DEBUG_TYPE "SLP"
 
 #include "llvm/Transforms/Vectorize.h"
-<<<<<<< HEAD
-=======
 #include "llvm/ADT/MapVector.h"
 #include "llvm/ADT/PostOrderIterator.h"
 #include "llvm/ADT/SetVector.h"
->>>>>>> llvmtrunk/master
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Analysis/Dominators.h"
 #include "llvm/Analysis/ScalarEvolution.h"
@@ -1756,12 +1753,8 @@ void BoUpSLP::optimizeGatherSequence() {
 
 /// The SLPVectorizer Pass.
 struct SLPVectorizer : public FunctionPass {
-<<<<<<< HEAD
-  typedef std::map<Value*, BoUpSLP::StoreList> StoreListMap;
-=======
   typedef SmallVector<StoreInst *, 8> StoreList;
   typedef MapVector<Value *, StoreList> StoreListMap;
->>>>>>> llvmtrunk/master
 
   /// Pass identification, replacement for typeid
   static char ID;
@@ -1798,17 +1791,11 @@ struct SLPVectorizer : public FunctionPass {
     if (!DL)
       return false;
 
-<<<<<<< HEAD
-    for (Function::iterator it = F.begin(), e = F.end(); it != e; ++it) {
-      BasicBlock *BB = it;
-      bool BBChanged = false;
-=======
     // Don't vectorize when the attribute NoImplicitFloat is used.
     if (F.hasFnAttribute(Attribute::NoImplicitFloat))
       return false;
 
     DEBUG(dbgs() << "SLP: Analyzing blocks in " << F.getName() << ".\n");
->>>>>>> llvmtrunk/master
 
     // Use the bollom up slp vectorizer to construct chains that start with
     // he store instructions.

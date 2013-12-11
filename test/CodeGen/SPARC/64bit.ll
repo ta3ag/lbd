@@ -39,15 +39,11 @@ define i64 @sra_reg(i64 %a, i64 %b) {
 ;     restore %g0, %g0, %o0
 ;
 ; CHECK: ret_imm0
-<<<<<<< HEAD
-; CHECK: or %g0, %g0, %i0
-=======
 ; CHECK: or %g0, 0, %i0
 
 ; OPT: ret_imm0
 ; OPT: jmp %o7+8
 ; OPT: or %g0, 0, %o0
->>>>>>> llvmtrunk/master
 define i64 @ret_imm0() {
   ret i64 0
 }
@@ -230,8 +226,6 @@ define i64 @unsigned_divide(i64 %a, i64 %b) {
   %r = udiv i64 %a, %b
   ret i64 %r
 }
-<<<<<<< HEAD
-=======
 
 define void @access_fi() {
 entry:
@@ -314,4 +308,3 @@ declare i64 @llvm.ctpop.i64(i64) nounwind readnone
 declare i64 @llvm.ctlz.i64(i64, i1) nounwind readnone
 declare i64 @llvm.cttz.i64(i64, i1) nounwind readnone
 declare i64 @llvm.bswap.i64(i64) nounwind readnone
->>>>>>> llvmtrunk/master

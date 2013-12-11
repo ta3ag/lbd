@@ -20,9 +20,9 @@
 #include "llvm/Analysis/ValueTracking.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 #include "llvm/CodeGen/PseudoSourceValue.h"
+#include "llvm/CodeGen/SelectionDAG.h"
 #include "llvm/CodeGen/SelectionDAGISel.h"
 #include "llvm/Support/Compiler.h"
-#include "llvm/CodeGen/SelectionDAG.h"
 #include <list>
 #include <queue>
 
@@ -307,7 +307,7 @@ SDNode *AMDGPUDAGToDAGISel::Select(SDNode *N) {
     const SDValue Ops[] = { RC, N->getOperand(0), SubReg0,
                             N->getOperand(1), SubReg1 };
     return CurDAG->getMachineNode(TargetOpcode::REG_SEQUENCE,
-                                  N->getDebugLoc(), N->getValueType(0), Ops);
+                                  SDLoc(N), N->getValueType(0), Ops);
   }
   case AMDGPUISD::REGISTER_LOAD: {
     const AMDGPUSubtarget &ST = TM.getSubtarget<AMDGPUSubtarget>();
@@ -484,7 +484,7 @@ bool AMDGPUDAGToDAGISel::SelectADDRVTX_READ(SDValue Addr, SDValue &Base,
   } else if ((IMMOffset = dyn_cast<ConstantSDNode>(Addr))
              && isInt<16>(IMMOffset->getZExtValue())) {
     Base = CurDAG->getCopyFromReg(CurDAG->getEntryNode(),
-                                  CurDAG->getEntryNode().getDebugLoc(),
+                                  SDLoc(CurDAG->getEntryNode()),
                                   AMDGPU::ZERO, MVT::i32);
     Offset = CurDAG->getTargetConstant(IMMOffset->getZExtValue(), MVT::i32);
     return true;

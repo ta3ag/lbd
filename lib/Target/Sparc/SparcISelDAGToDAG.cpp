@@ -140,14 +140,9 @@ bool SparcDAGToDAGISel::SelectADDRrr(SDValue Addr, SDValue &R1, SDValue &R2) {
 }
 
 SDNode *SparcDAGToDAGISel::Select(SDNode *N) {
-<<<<<<< HEAD
-  DebugLoc dl = N->getDebugLoc();
-  if (N->isMachineOpcode())
-=======
   SDLoc dl(N);
   if (N->isMachineOpcode()) {
     N->setNodeId(-1);
->>>>>>> llvmtrunk/master
     return NULL;   // Already selected.
   }
 

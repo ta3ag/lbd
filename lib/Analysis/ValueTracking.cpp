@@ -291,7 +291,7 @@ void llvm::ComputeMaskedBits(Value *V, APInt &KnownZero, APInt &KnownOne,
     }
     if (Align > 0)
       KnownZero = APInt::getLowBitsSet(BitWidth,
-                                       CountTrailingZeros_32(Align));
+                                       countTrailingZeros(Align));
     else
       KnownZero.clearAllBits();
     KnownOne.clearAllBits();
@@ -322,7 +322,7 @@ void llvm::ComputeMaskedBits(Value *V, APInt &KnownZero, APInt &KnownOne,
     }
 
     if (Align)
-      KnownZero = APInt::getLowBitsSet(BitWidth, CountTrailingZeros_32(Align));
+      KnownZero = APInt::getLowBitsSet(BitWidth, countTrailingZeros(Align));
     return;
   }
 
@@ -614,7 +614,7 @@ void llvm::ComputeMaskedBits(Value *V, APInt &KnownZero, APInt &KnownOne,
       Align = TD->getABITypeAlignment(AI->getType()->getElementType());
 
     if (Align > 0)
-      KnownZero = APInt::getLowBitsSet(BitWidth, CountTrailingZeros_32(Align));
+      KnownZero = APInt::getLowBitsSet(BitWidth, countTrailingZeros(Align));
     break;
   }
   case Instruction::GetElementPtr: {
@@ -644,8 +644,8 @@ void llvm::ComputeMaskedBits(Value *V, APInt &KnownZero, APInt &KnownOne,
         unsigned Idx = cast<ConstantInt>(Index)->getZExtValue();
         const StructLayout *SL = TD->getStructLayout(STy);
         uint64_t Offset = SL->getElementOffset(Idx);
-        TrailZ = std::min(TrailZ,
-                          CountTrailingZeros_64(Offset));
+        TrailZ = std::min<unsigned>(TrailZ,
+                                    countTrailingZeros(Offset));
       } else {
         // Handle array index arithmetic.
         Type *IndexedTy = GTI.getIndexedType();
@@ -655,7 +655,7 @@ void llvm::ComputeMaskedBits(Value *V, APInt &KnownZero, APInt &KnownOne,
         LocalKnownZero = LocalKnownOne = APInt(GEPOpiBits, 0);
         ComputeMaskedBits(Index, LocalKnownZero, LocalKnownOne, TD, Depth+1);
         TrailZ = std::min(TrailZ,
-                          unsigned(CountTrailingZeros_64(TypeSize) +
+                          unsigned(countTrailingZeros(TypeSize) +
                                    LocalKnownZero.countTrailingOnes()));
       }
     }
@@ -865,8 +865,6 @@ bool llvm::isKnownToBeAPowerOfTwo(Value *V, bool OrZero, unsigned Depth) {
     return false;
   }
 
-<<<<<<< HEAD
-=======
   // Adding a power-of-two or zero to the same power-of-two or zero yields
   // either the original power-of-two, a larger power-of-two or zero.
   if (match(V, m_Add(m_Value(X), m_Value(Y)))) {
@@ -898,7 +896,6 @@ bool llvm::isKnownToBeAPowerOfTwo(Value *V, bool OrZero, unsigned Depth) {
     }
   }
 
->>>>>>> llvmtrunk/master
   // An exact divide or right shift can only shift off zero bits, so the result
   // is a power of two only if the first operand is a power of two and not
   // copying a sign bit (sdiv int_min, 2).

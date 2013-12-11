@@ -187,31 +187,6 @@ void AsmPrinter::EmitSectionOffset(const MCSymbol *Label,
 // Dwarf Lowering Routines
 //===----------------------------------------------------------------------===//
 
-<<<<<<< HEAD
-/// EmitCFIFrameMove - Emit a frame instruction.
-void AsmPrinter::EmitCFIFrameMove(const MachineMove &Move) const {
-  const TargetRegisterInfo *RI = TM.getRegisterInfo();
-
-  const MachineLocation &Dst = Move.getDestination();
-  const MachineLocation &Src = Move.getSource();
-
-  // If advancing cfa.
-  if (Dst.isReg() && Dst.getReg() == MachineLocation::VirtualFP) {
-    if (Src.getReg() == MachineLocation::VirtualFP) {
-      OutStreamer.EmitCFIDefCfaOffset(-Src.getOffset());
-    } else {
-      // Reg + Offset
-      OutStreamer.EmitCFIDefCfa(RI->getDwarfRegNum(Src.getReg(), true),
-                                Src.getOffset());
-    }
-  } else if (Src.isReg() && Src.getReg() == MachineLocation::VirtualFP) {
-    assert(Dst.isReg() && "Machine move not supported yet.");
-    OutStreamer.EmitCFIDefCfaRegister(RI->getDwarfRegNum(Dst.getReg(), true));
-  } else {
-    assert(!Dst.isReg() && "Machine move not supported yet.");
-    OutStreamer.EmitCFIOffset(RI->getDwarfRegNum(Src.getReg(), true),
-                              Dst.getOffset());
-=======
 void AsmPrinter::emitCFIInstruction(const MCCFIInstruction &Inst) const {
   switch (Inst.getOperation()) {
   default:
@@ -234,6 +209,5 @@ void AsmPrinter::emitCFIInstruction(const MCCFIInstruction &Inst) const {
   case MCCFIInstruction::OpWindowSave:
     OutStreamer.EmitCFIWindowSave();
     break;
->>>>>>> llvmtrunk/master
   }
 }

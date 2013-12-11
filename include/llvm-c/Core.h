@@ -165,13 +165,9 @@ typedef enum {
        a temporary measure until the API/ABI impact to the C API is understood
        and the path forward agreed upon.
     LLVMAddressSafety = 1ULL << 32,
-<<<<<<< HEAD
-    LLVMStackProtectStrongAttribute = 1ULL<<33
-=======
     LLVMStackProtectStrongAttribute = 1ULL<<33,
     LLVMCold = 1ULL << 34,
     LLVMOptimizeNone = 1ULL << 35
->>>>>>> llvmtrunk/master
     */
 } LLVMAttribute;
 
@@ -420,6 +416,7 @@ void LLVMShutdown(void);
 
 /*===-- Error handling ----------------------------------------------------===*/
 
+char *LLVMCreateMessage(const char *Message);
 void LLVMDisposeMessage(char *Message);
 
 typedef void (*LLVMFatalErrorHandler)(const char *Reason);

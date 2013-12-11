@@ -61,8 +61,6 @@ namespace SystemZII {
     // @GOT (aka @GOTENT)
     MO_GOT = (1 << 0)
   };
-<<<<<<< HEAD
-=======
   // Classifies a branch.
   enum BranchType {
     // An instruction that branches on the current value of CC.
@@ -110,7 +108,6 @@ namespace SystemZII {
            const MachineOperand *target)
       : Type(type), CCValid(ccValid), CCMask(ccMask), Target(target) {}
   };
->>>>>>> llvmtrunk/master
 }
 
 class SystemZInstrInfo : public SystemZGenInstrInfo {
@@ -212,13 +209,15 @@ public:
   // Return the SystemZRegisterInfo, which this class owns.
   const SystemZRegisterInfo &getRegisterInfo() const { return RI; }
 
+  // Return the size in bytes of MI.
+  uint64_t getInstSizeInBytes(const MachineInstr *MI) const;
+
   // Return true if MI is a conditional or unconditional branch.
   // When returning true, set Cond to the mask of condition-code
   // values on which the instruction will branch, and set Target
   // to the operand that contains the branch target.  This target
   // can be a register or a basic block.
-  bool isBranch(const MachineInstr *MI, unsigned &Cond,
-                const MachineOperand *&Target) const;
+  SystemZII::Branch getBranchInfo(const MachineInstr *MI) const;
 
   // Get the load and store opcodes for a given register class.
   void getLoadStoreOpcodes(const TargetRegisterClass *RC,
@@ -231,8 +230,6 @@ public:
   // exists.
   unsigned getOpcodeForOffset(unsigned Opcode, int64_t Offset) const;
 
-<<<<<<< HEAD
-=======
   // If Opcode is a load instruction that has a LOAD AND TEST form,
   // return the opcode for the testing form, otherwise return 0.
   unsigned getLoadAndTest(unsigned Opcode) const;
@@ -249,7 +246,6 @@ public:
   unsigned getCompareAndBranch(unsigned Opcode,
                                const MachineInstr *MI = 0) const;
 
->>>>>>> llvmtrunk/master
   // Emit code before MBBI in MI to move immediate value Value into
   // physical register Reg.
   void loadImmediate(MachineBasicBlock &MBB,

@@ -6,15 +6,12 @@
 @gsrc32 = global i32 1
 @gdst16 = global i16 2
 @gdst32 = global i32 2
-<<<<<<< HEAD
-=======
 @gsrc16u = global i16 1, align 1, section "foo"
 @gsrc32u = global i32 1, align 2, section "foo"
 @gdst16u = global i16 2, align 1, section "foo"
 @gdst32u = global i32 2, align 2, section "foo"
 @garray8 = global [2 x i8] [i8 100, i8 101]
 @garray16 = global [2 x i16] [i16 102, i16 103]
->>>>>>> llvmtrunk/master
 
 ; Check sign-extending loads from i16.
 define i32 @f1() {
@@ -56,8 +53,6 @@ define void @f4() {
   store i32 %val, i32 *@gdst32
   ret void
 }
-<<<<<<< HEAD
-=======
 
 ; Repeat f1 with an unaligned variable.
 define i32 @f5() {
@@ -137,4 +132,3 @@ define void @f10() {
   store i16 %shr, i16 *%ptr2
   ret void
 }
->>>>>>> llvmtrunk/master

@@ -241,15 +241,9 @@ private:
 public:
   DwarfAccelTable(ArrayRef<DwarfAccelTable::Atom>);
   ~DwarfAccelTable();
-<<<<<<< HEAD
-  void AddName(StringRef, DIE*, char = 0);
-  void FinalizeTable(AsmPrinter *, const char *);
-  void Emit(AsmPrinter *, MCSymbol *, DwarfUnits *);
-=======
   void AddName(StringRef, const DIE *, char = 0);
   void FinalizeTable(AsmPrinter *, StringRef);
   void Emit(AsmPrinter *, MCSymbol *, DwarfFile *);
->>>>>>> llvmtrunk/master
 #ifndef NDEBUG
   void print(raw_ostream &O);
   void dump() { print(dbgs()); }

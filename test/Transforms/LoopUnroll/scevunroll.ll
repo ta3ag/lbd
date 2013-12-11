@@ -69,11 +69,7 @@ exit2:
 ; SCEV cannot currently unroll this loop.
 ; It should ideally detect a trip count of 5.
 ; rdar:14038809 [SCEV]: Optimize trip count computation for multi-exit loops.
-<<<<<<< HEAD
-; CHECK: @multiExit
-=======
 ; CHECK-LABEL: @multiExit(
->>>>>>> llvmtrunk/master
 ; CHECKFIXME: getelementptr i32* %base, i32 10
 ; CHECKFIXME-NEXT: load i32*
 ; CHECKFIXME: br i1 false, label %l2.10, label %exit1
@@ -187,11 +183,7 @@ for.body87:
 ; the loop latch's exit count of zero is an upper bound on the number
 ; of iterations.
 ;
-<<<<<<< HEAD
-; CHECK: @nsw_latch
-=======
 ; CHECK-LABEL: @nsw_latch(
->>>>>>> llvmtrunk/master
 ; CHECK: for.body:
 ; CHECK: %b.03 = phi i32 [ 0, %entry ], [ %add, %for.cond ]
 ; CHECK: return:

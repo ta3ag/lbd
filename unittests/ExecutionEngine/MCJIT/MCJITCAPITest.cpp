@@ -17,14 +17,13 @@
 #include "llvm-c/ExecutionEngine.h"
 #include "llvm-c/Target.h"
 #include "llvm-c/Transforms/Scalar.h"
+#include "llvm/ExecutionEngine/SectionMemoryManager.h"
 #include "llvm/Support/Host.h"
 #include "MCJITTestAPICommon.h"
 #include "gtest/gtest.h"
 
 using namespace llvm;
 
-<<<<<<< HEAD
-=======
 static bool didCallAllocateCodeSection;
 
 static uint8_t *roundTripAllocateCodeSection(void *object, uintptr_t size,
@@ -61,50 +60,97 @@ static void roundTripDestroy(void *object) {
 }
 
 namespace {
->>>>>>> llvmtrunk/master
 class MCJITCAPITest : public testing::Test, public MCJITTestAPICommon {
 protected:
   MCJITCAPITest() {
     // The architectures below are known to be compatible with MCJIT as they
     // are copied from test/ExecutionEngine/MCJIT/lit.local.cfg and should be
     // kept in sync.
+    SupportedArchs.push_back(Triple::aarch64);
     SupportedArchs.push_back(Triple::arm);
     SupportedArchs.push_back(Triple::mips);
     SupportedArchs.push_back(Triple::x86);
     SupportedArchs.push_back(Triple::x86_64);
 
+    // Some architectures have sub-architectures in which tests will fail, like
+    // ARM. These two vectors will define if they do have sub-archs (to avoid
+    // extra work for those who don't), and if so, if they are listed to work
+    HasSubArchs.push_back(Triple::arm);
+    SupportedSubArchs.push_back("armv6");
+    SupportedSubArchs.push_back("armv7");
+
     // The operating systems below are known to be sufficiently incompatible
     // that they will fail the MCJIT C API tests.
     UnsupportedOSs.push_back(Triple::Cygwin);
   }
-};
-
-TEST_F(MCJITCAPITest, simple_function) {
-  SKIP_UNSUPPORTED_PLATFORM;
   
-  char *error = 0;
+  virtual void SetUp() {
+    didCallAllocateCodeSection = false;
+    Module = 0;
+    Function = 0;
+    Engine = 0;
+    Error = 0;
+  }
   
-  // Creates a function that returns 42, compiles it, and runs it.
+  virtual void TearDown() {
+    if (Engine)
+      LLVMDisposeExecutionEngine(Engine);
+    else if (Module)
+      LLVMDisposeModule(Module);
+  }
   
-  LLVMModuleRef module = LLVMModuleCreateWithName("simple_module");
-
-  LLVMSetTarget(module, HostTriple.c_str());
+  void buildSimpleFunction() {
+    Module = LLVMModuleCreateWithName("simple_module");
+    
+    LLVMSetTarget(Module, HostTriple.c_str());
+    
+    Function = LLVMAddFunction(
+      Module, "simple_function", LLVMFunctionType(LLVMInt32Type(), 0, 0, 0));
+    LLVMSetFunctionCallConv(Function, LLVMCCallConv);
+    
+    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(Function, "entry");
+    LLVMBuilderRef builder = LLVMCreateBuilder();
+    LLVMPositionBuilderAtEnd(builder, entry);
+    LLVMBuildRet(builder, LLVMConstInt(LLVMInt32Type(), 42, 0));
+    
+    LLVMVerifyModule(Module, LLVMAbortProcessAction, &Error);
+    LLVMDisposeMessage(Error);
+    
+    LLVMDisposeBuilder(builder);
+  }
   
-  LLVMValueRef function = LLVMAddFunction(
-    module, "simple_function", LLVMFunctionType(LLVMInt32Type(), 0, 0, 0));
-  LLVMSetFunctionCallConv(function, LLVMCCallConv);
+  void buildMCJITOptions() {
+    LLVMInitializeMCJITCompilerOptions(&Options, sizeof(Options));
+    Options.OptLevel = 2;
+    
+    // Just ensure that this field still exists.
+    Options.NoFramePointerElim = false;
+  }
   
-  LLVMBasicBlockRef entry = LLVMAppendBasicBlock(function, "entry");
-  LLVMBuilderRef builder = LLVMCreateBuilder();
-  LLVMPositionBuilderAtEnd(builder, entry);
-  LLVMBuildRet(builder, LLVMConstInt(LLVMInt32Type(), 42, 0));
+  void useRoundTripSectionMemoryManager() {
+    Options.MCJMM = LLVMCreateSimpleMCJITMemoryManager(
+      new SectionMemoryManager(),
+      roundTripAllocateCodeSection,
+      roundTripAllocateDataSection,
+      roundTripFinalizeMemory,
+      roundTripDestroy);
+  }
   
-  LLVMVerifyModule(module, LLVMAbortProcessAction, &error);
-  LLVMDisposeMessage(error);
+  void buildMCJITEngine() {
+    ASSERT_EQ(
+      0, LLVMCreateMCJITCompilerForModule(&Engine, Module, &Options,
+                                          sizeof(Options), &Error));
+  }
   
-<<<<<<< HEAD
-  LLVMDisposeBuilder(builder);
-=======
+  void buildAndRunPasses() {
+    LLVMPassManagerRef pass = LLVMCreatePassManager();
+    LLVMAddTargetData(LLVMGetExecutionEngineTargetData(Engine), pass);
+    LLVMAddConstantPropagationPass(pass);
+    LLVMAddInstructionCombiningPass(pass);
+    LLVMRunPassManager(pass, Module);
+    LLVMDisposePassManager(pass);
+  }
+  
   LLVMModuleRef Module;
   LLVMValueRef Function;
   LLVMMCJITCompilerOptions Options;
@@ -115,35 +161,36 @@ TEST_F(MCJITCAPITest, simple_function) {
 
 TEST_F(MCJITCAPITest, simple_function) {
   SKIP_UNSUPPORTED_PLATFORM;
->>>>>>> llvmtrunk/master
   
-  LLVMMCJITCompilerOptions options;
-  LLVMInitializeMCJITCompilerOptions(&options, sizeof(options));
-  options.OptLevel = 2;
-  
-  // Just ensure that this field still exists.
-  options.NoFramePointerElim = false;
-  
-  LLVMExecutionEngineRef engine;
-  ASSERT_EQ(
-    0, LLVMCreateMCJITCompilerForModule(&engine, module, &options,
-                                        sizeof(options), &error));
-  
-  LLVMPassManagerRef pass = LLVMCreatePassManager();
-  LLVMAddTargetData(LLVMGetExecutionEngineTargetData(engine), pass);
-  LLVMAddConstantPropagationPass(pass);
-  LLVMAddInstructionCombiningPass(pass);
-  LLVMRunPassManager(pass, module);
-  LLVMDisposePassManager(pass);
+  buildSimpleFunction();
+  buildMCJITOptions();
+  buildMCJITEngine();
+  buildAndRunPasses();
   
   union {
     void *raw;
     int (*usable)();
   } functionPointer;
-  functionPointer.raw = LLVMGetPointerToGlobal(engine, function);
+  functionPointer.raw = LLVMGetPointerToGlobal(Engine, Function);
   
   EXPECT_EQ(42, functionPointer.usable());
-  
-  LLVMDisposeExecutionEngine(engine);
 }
 
+TEST_F(MCJITCAPITest, custom_memory_manager) {
+  SKIP_UNSUPPORTED_PLATFORM;
+  
+  buildSimpleFunction();
+  buildMCJITOptions();
+  useRoundTripSectionMemoryManager();
+  buildMCJITEngine();
+  buildAndRunPasses();
+  
+  union {
+    void *raw;
+    int (*usable)();
+  } functionPointer;
+  functionPointer.raw = LLVMGetPointerToGlobal(Engine, Function);
+  
+  EXPECT_EQ(42, functionPointer.usable());
+  EXPECT_TRUE(didCallAllocateCodeSection);
+}

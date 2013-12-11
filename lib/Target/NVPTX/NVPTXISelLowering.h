@@ -103,7 +103,7 @@ public:
   /// getFunctionAlignment - Return the Log2 alignment of this function.
   virtual unsigned getFunctionAlignment(const Function *F) const;
 
-  virtual EVT getSetCCResultType(EVT VT) const {
+  virtual EVT getSetCCResultType(LLVMContext &, EVT VT) const {
     if (VT.isVector())
       return MVT::getVectorVT(MVT::i1, VT.getVectorNumElements());
     return MVT::i1;
@@ -115,7 +115,7 @@ public:
 
   virtual SDValue LowerFormalArguments(
       SDValue Chain, CallingConv::ID CallConv, bool isVarArg,
-      const SmallVectorImpl<ISD::InputArg> &Ins, DebugLoc dl, SelectionDAG &DAG,
+      const SmallVectorImpl<ISD::InputArg> &Ins, SDLoc dl, SelectionDAG &DAG,
       SmallVectorImpl<SDValue> &InVals) const;
 
   virtual SDValue
@@ -129,7 +129,7 @@ public:
   virtual SDValue
   LowerReturn(SDValue Chain, CallingConv::ID CallConv, bool isVarArg,
               const SmallVectorImpl<ISD::OutputArg> &Outs,
-              const SmallVectorImpl<SDValue> &OutVals, DebugLoc dl,
+              const SmallVectorImpl<SDValue> &OutVals, SDLoc dl,
               SelectionDAG &DAG) const;
 
   virtual void LowerAsmOperandForConstraint(SDValue Op, std::string &Constraint,

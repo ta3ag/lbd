@@ -7,21 +7,16 @@
 //
 //===----------------------------------------------------------------------===//
 
-<<<<<<< HEAD:lib/Target/R600/AMDGPUStructurizeCFG.cpp
-#include "AMDGPU.h"
-=======
 #define DEBUG_TYPE "structurizecfg"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/ADT/MapVector.h"
->>>>>>> llvmtrunk/master:lib/Transforms/Scalar/StructurizeCFG.cpp
 #include "llvm/ADT/SCCIterator.h"
-#include "llvm/ADT/MapVector.h"
 #include "llvm/Analysis/RegionInfo.h"
 #include "llvm/Analysis/RegionIterator.h"
 #include "llvm/Analysis/RegionPass.h"
 #include "llvm/IR/Module.h"
-#include "llvm/Transforms/Utils/SSAUpdater.h"
 #include "llvm/Support/PatternMatch.h"
+#include "llvm/Transforms/Utils/SSAUpdater.h"
 
 using namespace llvm;
 using namespace llvm::PatternMatch;

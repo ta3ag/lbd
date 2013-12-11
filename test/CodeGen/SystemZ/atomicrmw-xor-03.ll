@@ -10,11 +10,7 @@ define i32 @f1(i32 %dummy, i32 *%src, i32 %b) {
 ; CHECK: lr %r0, %r2
 ; CHECK: xr %r0, %r4
 ; CHECK: cs %r2, %r0, 0(%r3)
-<<<<<<< HEAD
-; CHECK: j{{g?}}lh [[LABEL]]
-=======
 ; CHECK: jl [[LABEL]]
->>>>>>> llvmtrunk/master
 ; CHECK: br %r14
   %res = atomicrmw xor i32 *%src, i32 %b seq_cst
   ret i32 %res
@@ -28,11 +24,7 @@ define i32 @f2(i32 %dummy, i32 *%src) {
 ; CHECK: lr %r0, %r2
 ; CHECK: xilf %r0, 1
 ; CHECK: cs %r2, %r0, 0(%r3)
-<<<<<<< HEAD
-; CHECK: j{{g?}}lh [[LABEL]]
-=======
 ; CHECK: jl [[LABEL]]
->>>>>>> llvmtrunk/master
 ; CHECK: br %r14
   %res = atomicrmw xor i32 *%src, i32 1 seq_cst
   ret i32 %res

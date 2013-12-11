@@ -337,7 +337,7 @@ bool NVPTXTargetLowering::shouldSplitVectorElementType(EVT VT) const {
 
 SDValue
 NVPTXTargetLowering::LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const {
-  DebugLoc dl = Op.getDebugLoc();
+  SDLoc dl(Op);
   const GlobalValue *GV = cast<GlobalAddressSDNode>(Op)->getGlobal();
   Op = DAG.getTargetGlobalAddress(GV, dl, getPointerTy());
   return DAG.getNode(NVPTXISD::Wrapper, dl, getPointerTy(), Op);
@@ -519,17 +519,10 @@ NVPTXTargetLowering::getArgumentAlignment(SDValue Callee,
 SDValue NVPTXTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                                        SmallVectorImpl<SDValue> &InVals) const {
   SelectionDAG &DAG = CLI.DAG;
-<<<<<<< HEAD
-  DebugLoc &dl = CLI.DL;
-  SmallVector<ISD::OutputArg, 32> &Outs = CLI.Outs;
-  SmallVector<SDValue, 32> &OutVals = CLI.OutVals;
-  SmallVector<ISD::InputArg, 32> &Ins = CLI.Ins;
-=======
   SDLoc dl = CLI.DL;
   SmallVectorImpl<ISD::OutputArg> &Outs = CLI.Outs;
   SmallVectorImpl<SDValue> &OutVals = CLI.OutVals;
   SmallVectorImpl<ISD::InputArg> &Ins = CLI.Ins;
->>>>>>> llvmtrunk/master
   SDValue Chain = CLI.Chain;
   SDValue Callee = CLI.Callee;
   bool &isTailCall = CLI.IsTailCall;
@@ -547,12 +540,8 @@ SDValue NVPTXTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   SDValue tempChain = Chain;
   Chain =
-<<<<<<< HEAD
-      DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(uniqueCallSite, true));
-=======
       DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(uniqueCallSite, true),
                            dl);
->>>>>>> llvmtrunk/master
   SDValue InFlag = Chain.getValue(1);
 
   unsigned paramCount = 0;
@@ -1136,7 +1125,7 @@ SDValue NVPTXTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
   Chain = DAG.getCALLSEQ_END(Chain, DAG.getIntPtrConstant(uniqueCallSite, true),
                              DAG.getIntPtrConstant(uniqueCallSite + 1, true),
-                             InFlag);
+                             InFlag, dl);
   uniqueCallSite++;
 
   // set isTailCall to false for now, until we figure out how to express
@@ -1151,7 +1140,7 @@ SDValue NVPTXTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 SDValue
 NVPTXTargetLowering::LowerCONCAT_VECTORS(SDValue Op, SelectionDAG &DAG) const {
   SDNode *Node = Op.getNode();
-  DebugLoc dl = Node->getDebugLoc();
+  SDLoc dl(Node);
   SmallVector<SDValue, 8> Ops;
   unsigned NumOperands = Node->getNumOperands();
   for (unsigned i = 0; i < NumOperands; ++i) {
@@ -1207,7 +1196,7 @@ SDValue NVPTXTargetLowering::LowerLOAD(SDValue Op, SelectionDAG &DAG) const {
 SDValue NVPTXTargetLowering::LowerLOADi1(SDValue Op, SelectionDAG &DAG) const {
   SDNode *Node = Op.getNode();
   LoadSDNode *LD = cast<LoadSDNode>(Node);
-  DebugLoc dl = Node->getDebugLoc();
+  SDLoc dl(Node);
   assert(LD->getExtensionType() == ISD::NON_EXTLOAD);
   assert(Node->getValueType(0) == MVT::i1 &&
          "Custom lowering for i1 load only");
@@ -1237,7 +1226,7 @@ SDValue
 NVPTXTargetLowering::LowerSTOREVector(SDValue Op, SelectionDAG &DAG) const {
   SDNode *N = Op.getNode();
   SDValue Val = N->getOperand(1);
-  DebugLoc DL = N->getDebugLoc();
+  SDLoc DL(N);
   EVT ValVT = Val.getValueType();
 
   if (ValVT.isVector()) {
@@ -1324,7 +1313,7 @@ NVPTXTargetLowering::LowerSTOREVector(SDValue Op, SelectionDAG &DAG) const {
 // st.u8 i16, addr
 SDValue NVPTXTargetLowering::LowerSTOREi1(SDValue Op, SelectionDAG &DAG) const {
   SDNode *Node = Op.getNode();
-  DebugLoc dl = Node->getDebugLoc();
+  SDLoc dl(Node);
   StoreSDNode *ST = cast<StoreSDNode>(Node);
   SDValue Tmp1 = ST->getChain();
   SDValue Tmp2 = ST->getBasePtr();
@@ -1394,7 +1383,7 @@ bool llvm::isImageOrSamplerVal(const Value *arg, const Module *context) {
 
 SDValue NVPTXTargetLowering::LowerFormalArguments(
     SDValue Chain, CallingConv::ID CallConv, bool isVarArg,
-    const SmallVectorImpl<ISD::InputArg> &Ins, DebugLoc dl, SelectionDAG &DAG,
+    const SmallVectorImpl<ISD::InputArg> &Ins, SDLoc dl, SelectionDAG &DAG,
     SmallVectorImpl<SDValue> &InVals) const {
   MachineFunction &MF = DAG.getMachineFunction();
   const DataLayout *TD = getDataLayout();
@@ -1638,30 +1627,6 @@ SDValue NVPTXTargetLowering::LowerFormalArguments(
         continue;
       }
       // A plain scalar.
-<<<<<<< HEAD
-      if (isABI || isKernel) {
-        // If ABI, load from the param symbol
-        SDValue Arg = getParamSymbol(DAG, idx);
-        // Conjure up a value that we can get the address space from.
-        // FIXME: Using a constant here is a hack.
-        Value *srcValue = Constant::getNullValue(
-            PointerType::get(ObjectVT.getTypeForEVT(F->getContext()),
-                             llvm::ADDRESS_SPACE_PARAM));
-        SDValue p = DAG.getLoad(
-            ObjectVT, dl, Root, Arg, MachinePointerInfo(srcValue), false, false,
-            false,
-            TD->getABITypeAlignment(ObjectVT.getTypeForEVT(F->getContext())));
-        if (p.getNode())
-          DAG.AssignOrdering(p.getNode(), idx + 1);
-        InVals.push_back(p);
-      } else {
-        // If no ABI, just move the param symbol
-        SDValue Arg = getParamSymbol(DAG, idx, ObjectVT);
-        SDValue p = DAG.getNode(NVPTXISD::MoveParam, dl, ObjectVT, Arg);
-        if (p.getNode())
-          DAG.AssignOrdering(p.getNode(), idx + 1);
-        InVals.push_back(p);
-=======
       EVT ObjectVT = getValueType(Ty);
       // If ABI, load from the param symbol
       SDValue Arg = getParamSymbol(DAG, idx, getPointerTy());
@@ -1678,7 +1643,6 @@ SDValue NVPTXTargetLowering::LowerFormalArguments(
         p = DAG.getLoad(Ins[InsIdx].VT, dl, Root, Arg,
                         MachinePointerInfo(srcValue), false, false, false,
         TD->getABITypeAlignment(ObjectVT.getTypeForEVT(F->getContext())));
->>>>>>> llvmtrunk/master
       }
       if (p.getNode())
         p.getNode()->setIROrder(idx + 1);
@@ -1687,68 +1651,6 @@ SDValue NVPTXTargetLowering::LowerFormalArguments(
     }
 
     // Param has ByVal attribute
-<<<<<<< HEAD
-    if (isABI || isKernel) {
-      // Return MoveParam(param symbol).
-      // Ideally, the param symbol can be returned directly,
-      // but when SDNode builder decides to use it in a CopyToReg(),
-      // machine instruction fails because TargetExternalSymbol
-      // (not lowered) is target dependent, and CopyToReg assumes
-      // the source is lowered.
-      SDValue Arg = getParamSymbol(DAG, idx, getPointerTy());
-      SDValue p = DAG.getNode(NVPTXISD::MoveParam, dl, ObjectVT, Arg);
-      if (p.getNode())
-        DAG.AssignOrdering(p.getNode(), idx + 1);
-      if (isKernel)
-        InVals.push_back(p);
-      else {
-        SDValue p2 = DAG.getNode(
-            ISD::INTRINSIC_WO_CHAIN, dl, ObjectVT,
-            DAG.getConstant(Intrinsic::nvvm_ptr_local_to_gen, MVT::i32), p);
-        InVals.push_back(p2);
-      }
-    } else {
-      // Have to move a set of param symbols to registers and
-      // store them locally and return the local pointer in InVals
-      const PointerType *elemPtrType = dyn_cast<PointerType>(argTypes[i]);
-      assert(elemPtrType && "Byval parameter should be a pointer type");
-      Type *elemType = elemPtrType->getElementType();
-      // Compute the constituent parts
-      SmallVector<EVT, 16> vtparts;
-      SmallVector<uint64_t, 16> offsets;
-      ComputeValueVTs(*this, elemType, vtparts, &offsets, 0);
-      unsigned totalsize = 0;
-      for (unsigned j = 0, je = vtparts.size(); j != je; ++j)
-        totalsize += vtparts[j].getStoreSizeInBits();
-      SDValue localcopy = DAG.getFrameIndex(
-          MF.getFrameInfo()->CreateStackObject(totalsize / 8, 16, false),
-          getPointerTy());
-      unsigned sizesofar = 0;
-      std::vector<SDValue> theChains;
-      for (unsigned j = 0, je = vtparts.size(); j != je; ++j) {
-        unsigned numElems = 1;
-        if (vtparts[j].isVector())
-          numElems = vtparts[j].getVectorNumElements();
-        for (unsigned k = 0, ke = numElems; k != ke; ++k) {
-          EVT tmpvt = vtparts[j];
-          if (tmpvt.isVector())
-            tmpvt = tmpvt.getVectorElementType();
-          SDValue arg = DAG.getNode(NVPTXISD::MoveParam, dl, tmpvt,
-                                    getParamSymbol(DAG, idx, tmpvt));
-          SDValue addr =
-              DAG.getNode(ISD::ADD, dl, getPointerTy(), localcopy,
-                          DAG.getConstant(sizesofar, getPointerTy()));
-          theChains.push_back(DAG.getStore(
-              Chain, dl, arg, addr, MachinePointerInfo(), false, false, 0));
-          sizesofar += tmpvt.getStoreSizeInBits() / 8;
-          ++idx;
-        }
-      }
-      --idx;
-      Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other, &theChains[0],
-                          theChains.size());
-      InVals.push_back(localcopy);
-=======
     // Return MoveParam(param symbol).
     // Ideally, the param symbol can be returned directly,
     // but when SDNode builder decides to use it in a CopyToReg(),
@@ -1769,7 +1671,6 @@ SDValue NVPTXTargetLowering::LowerFormalArguments(
           ISD::INTRINSIC_WO_CHAIN, dl, ObjectVT,
           DAG.getConstant(Intrinsic::nvvm_ptr_local_to_gen, MVT::i32), p);
       InVals.push_back(p2);
->>>>>>> llvmtrunk/master
     }
   }
 
@@ -1788,13 +1689,6 @@ SDValue NVPTXTargetLowering::LowerFormalArguments(
   return Chain;
 }
 
-<<<<<<< HEAD
-SDValue NVPTXTargetLowering::LowerReturn(
-    SDValue Chain, CallingConv::ID CallConv, bool isVarArg,
-    const SmallVectorImpl<ISD::OutputArg> &Outs,
-    const SmallVectorImpl<SDValue> &OutVals, DebugLoc dl,
-    SelectionDAG &DAG) const {
-=======
 
 SDValue
 NVPTXTargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
@@ -1806,7 +1700,6 @@ NVPTXTargetLowering::LowerReturn(SDValue Chain, CallingConv::ID CallConv,
   const Function *F = MF.getFunction();
   Type *RetTy = F->getReturnType();
   const DataLayout *TD = getDataLayout();
->>>>>>> llvmtrunk/master
 
   bool isABI = (nvptxSubtarget.getSmVersion() >= 20);
   assert(isABI && "Non-ABI compilation is not supported");
@@ -2151,7 +2044,7 @@ unsigned NVPTXTargetLowering::getFunctionAlignment(const Function *) const {
 static void ReplaceLoadVector(SDNode *N, SelectionDAG &DAG,
                               SmallVectorImpl<SDValue> &Results) {
   EVT ResVT = N->getValueType(0);
-  DebugLoc DL = N->getDebugLoc();
+  SDLoc DL(N);
 
   assert(ResVT.isVector() && "Vector load must have vector type");
 
@@ -2244,7 +2137,7 @@ static void ReplaceINTRINSIC_W_CHAIN(SDNode *N, SelectionDAG &DAG,
                                      SmallVectorImpl<SDValue> &Results) {
   SDValue Chain = N->getOperand(0);
   SDValue Intrin = N->getOperand(1);
-  DebugLoc DL = N->getDebugLoc();
+  SDLoc DL(N);
 
   // Get the intrinsic ID
   unsigned IntrinNo = cast<ConstantSDNode>(Intrin.getNode())->getZExtValue();
