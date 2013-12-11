@@ -645,6 +645,17 @@ public:
     // Do nothing.
   }
 
+  /// Allow the target to reverse allocation order of local live ranges. This
+  /// will generally allocate shorter local live ranges first. For targets with
+  /// many registers, this could reduce regalloc compile time by a large
+  /// factor. It should still achieve optimal coloring; however, it can change
+  /// register eviction decisions. It is disabled by default for two reasons:
+  /// (1) Top-down allocation is simpler and easier to debug for targets that
+  /// don't benefit from reversing the order.
+  /// (2) Bottom-up allocation could result in poor evicition decisions on some
+  /// targets affecting the performance of compiled code.
+  virtual bool reverseLocalAssignment() const { return false; }
+
   /// requiresRegisterScavenging - returns true if the target requires (and can
   /// make use of) the register scavenger.
   virtual bool requiresRegisterScavenging(const MachineFunction &MF) const {
@@ -874,6 +885,7 @@ static inline raw_ostream &operator<<(raw_ostream &OS, const PrintReg &PR) {
 /// Usage: OS << PrintRegUnit(Unit, TRI) << '\n';
 ///
 class PrintRegUnit {
+protected:
   const TargetRegisterInfo *TRI;
   unsigned Unit;
 public:
@@ -883,6 +895,21 @@ public:
 };
 
 static inline raw_ostream &operator<<(raw_ostream &OS, const PrintRegUnit &PR) {
+  PR.print(OS);
+  return OS;
+}
+
+/// PrintVRegOrUnit - It is often convenient to track virtual registers and
+/// physical register units in the same list.
+class PrintVRegOrUnit : protected PrintRegUnit {
+public:
+  PrintVRegOrUnit(unsigned VRegOrUnit, const TargetRegisterInfo *tri)
+    : PrintRegUnit(VRegOrUnit, tri) {}
+  void print(raw_ostream&) const;
+};
+
+static inline raw_ostream &operator<<(raw_ostream &OS,
+                                      const PrintVRegOrUnit &PR) {
   PR.print(OS);
   return OS;
 }

@@ -16,19 +16,23 @@
 #include "AMDGPUInstrInfo.h"
 #include "AMDGPURegisterInfo.h"
 #include "AMDGPUTargetMachine.h"
-#include "AMDIL.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 
-#define GET_INSTRINFO_CTOR
+#define GET_INSTRINFO_CTOR_DTOR
+#define GET_INSTRINFO_NAMED_OPS
 #define GET_INSTRMAP_INFO
 #include "AMDGPUGenInstrInfo.inc"
 
 using namespace llvm;
 
+
+// Pin the vtable to this file.
+void AMDGPUInstrInfo::anchor() {}
+
 AMDGPUInstrInfo::AMDGPUInstrInfo(TargetMachine &tm)
-  : AMDGPUGenInstrInfo(0,0), RI(tm, *this), TM(tm) { }
+  : AMDGPUGenInstrInfo(-1,-1), RI(tm), TM(tm) { }
 
 const AMDGPURegisterInfo &AMDGPUInstrInfo::getRegisterInfo() const {
   return RI;
@@ -127,7 +131,7 @@ AMDGPUInstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
                                     int FrameIndex,
                                     const TargetRegisterClass *RC,
                                     const TargetRegisterInfo *TRI) const {
-  assert(!"Not Implemented");
+  llvm_unreachable("Not Implemented");
 }
 
 void
@@ -136,8 +140,57 @@ AMDGPUInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
                                      unsigned DestReg, int FrameIndex,
                                      const TargetRegisterClass *RC,
                                      const TargetRegisterInfo *TRI) const {
-  assert(!"Not Implemented");
+  llvm_unreachable("Not Implemented");
 }
+
+bool AMDGPUInstrInfo::expandPostRAPseudo (MachineBasicBlock::iterator MI) const {
+  MachineBasicBlock *MBB = MI->getParent();
+   int OffsetOpIdx =
+       AMDGPU::getNamedOperandIdx(MI->getOpcode(), AMDGPU::OpName::addr);
+   // addr is a custom operand with multiple MI operands, and only the
+   // first MI operand is given a name.
+  int RegOpIdx = OffsetOpIdx + 1;
+  int ChanOpIdx =
+      AMDGPU::getNamedOperandIdx(MI->getOpcode(), AMDGPU::OpName::chan);
+
+  if (isRegisterLoad(*MI)) {
+    int DstOpIdx =
+        AMDGPU::getNamedOperandIdx(MI->getOpcode(), AMDGPU::OpName::dst);
+    unsigned RegIndex = MI->getOperand(RegOpIdx).getImm();
+    unsigned Channel = MI->getOperand(ChanOpIdx).getImm();
+    unsigned Address = calculateIndirectAddress(RegIndex, Channel);
+    unsigned OffsetReg = MI->getOperand(OffsetOpIdx).getReg();
+    if (OffsetReg == AMDGPU::INDIRECT_BASE_ADDR) {
+      buildMovInstr(MBB, MI, MI->getOperand(DstOpIdx).getReg(),
+                    getIndirectAddrRegClass()->getRegister(Address));
+    } else {
+      buildIndirectRead(MBB, MI, MI->getOperand(DstOpIdx).getReg(),
+                        Address, OffsetReg);
+    }
+  } else if (isRegisterStore(*MI)) {
+    int ValOpIdx =
+        AMDGPU::getNamedOperandIdx(MI->getOpcode(), AMDGPU::OpName::val);
+    AMDGPU::getNamedOperandIdx(MI->getOpcode(), AMDGPU::OpName::dst);
+    unsigned RegIndex = MI->getOperand(RegOpIdx).getImm();
+    unsigned Channel = MI->getOperand(ChanOpIdx).getImm();
+    unsigned Address = calculateIndirectAddress(RegIndex, Channel);
+    unsigned OffsetReg = MI->getOperand(OffsetOpIdx).getReg();
+    if (OffsetReg == AMDGPU::INDIRECT_BASE_ADDR) {
+      buildMovInstr(MBB, MI, getIndirectAddrRegClass()->getRegister(Address),
+                    MI->getOperand(ValOpIdx).getReg());
+    } else {
+      buildIndirectWrite(MBB, MI, MI->getOperand(ValOpIdx).getReg(),
+                         calculateIndirectAddress(RegIndex, Channel),
+                         OffsetReg);
+    }
+  } else {
+    return false;
+  }
+
+  MBB->erase(MI);
+  return true;
+}
+
 
 MachineInstr *
 AMDGPUInstrInfo::foldMemoryOperandImpl(MachineFunction &MF,
@@ -244,6 +297,57 @@ bool AMDGPUInstrInfo::isRegisterLoad(const MachineInstr &MI) const {
   return get(MI.getOpcode()).TSFlags & AMDGPU_FLAG_REGISTER_LOAD;
 }
 
+int AMDGPUInstrInfo::getIndirectIndexBegin(const MachineFunction &MF) const {
+  const MachineRegisterInfo &MRI = MF.getRegInfo();
+  const MachineFrameInfo *MFI = MF.getFrameInfo();
+  int Offset = -1;
+
+  if (MFI->getNumObjects() == 0) {
+    return -1;
+  }
+
+  if (MRI.livein_empty()) {
+    return 0;
+  }
+
+  const TargetRegisterClass *IndirectRC = getIndirectAddrRegClass();
+  for (MachineRegisterInfo::livein_iterator LI = MRI.livein_begin(),
+                                            LE = MRI.livein_end();
+                                            LI != LE; ++LI) {
+    unsigned Reg = LI->first;
+    if (TargetRegisterInfo::isVirtualRegister(Reg) ||
+        !IndirectRC->contains(Reg))
+      continue;
+
+    unsigned RegIndex;
+    unsigned RegEnd;
+    for (RegIndex = 0, RegEnd = IndirectRC->getNumRegs(); RegIndex != RegEnd;
+                                                          ++RegIndex) {
+      if (IndirectRC->getRegister(RegIndex) == Reg)
+        break;
+    }
+    Offset = std::max(Offset, (int)RegIndex);
+  }
+
+  return Offset + 1;
+}
+
+int AMDGPUInstrInfo::getIndirectIndexEnd(const MachineFunction &MF) const {
+  int Offset = 0;
+  const MachineFrameInfo *MFI = MF.getFrameInfo();
+
+  // Variable sized objects are not supported
+  assert(!MFI->hasVarSizedObjects());
+
+  if (MFI->getNumObjects() == 0) {
+    return -1;
+  }
+
+  Offset = TM.getFrameLowering()->getFrameIndexOffset(MF, -1);
+
+  return getIndirectIndexBegin(MF) + Offset;
+}
+
 
 void AMDGPUInstrInfo::convertToISA(MachineInstr & MI, MachineFunction &MF,
     DebugLoc DL) const {
@@ -263,5 +367,14 @@ void AMDGPUInstrInfo::convertToISA(MachineInstr & MI, MachineFunction &MF,
         MRI.setRegClass(MO.getReg(), newRegClass);
       }
     }
+  }
+}
+
+int AMDGPUInstrInfo::getMaskedMIMGOp(uint16_t Opcode, unsigned Channels) const {
+  switch (Channels) {
+  default: return Opcode;
+  case 1: return AMDGPU::getMaskedMIMGOp(Opcode, AMDGPU::Channels_1);
+  case 2: return AMDGPU::getMaskedMIMGOp(Opcode, AMDGPU::Channels_2);
+  case 3: return AMDGPU::getMaskedMIMGOp(Opcode, AMDGPU::Channels_3);
   }
 }

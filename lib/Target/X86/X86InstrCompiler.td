@@ -129,12 +129,13 @@ def SEG_ALLOCA_64 : I<0, Pseudo, (outs GR64:$dst), (ins GR64:$size),
 
 // The MSVC runtime contains an _ftol2 routine for converting floating-point
 // to integer values. It has a strange calling convention: the input is
-// popped from the x87 stack, and the return value is given in EDX:EAX. No
-// other registers (aside from flags) are touched.
+// popped from the x87 stack, and the return value is given in EDX:EAX. ECX is
+// used as a temporary register. No other registers (aside from flags) are
+// touched.
 // Microsoft toolchains do not support 80-bit precision, so a WIN_FTOL_80
 // variant is unnecessary.
 
-let Defs = [EAX, EDX, EFLAGS], FPForm = SpecialFP in {
+let Defs = [EAX, EDX, ECX, EFLAGS], FPForm = SpecialFP in {
   def WIN_FTOL_32 : I<0, Pseudo, (outs), (ins RFP32:$src),
                       "# win32 fptoui",
                       [(X86WinFTOL RFP32:$src)]>,
@@ -254,10 +255,18 @@ def MOV64r0   : I<0x31, MRMInitReg, (outs GR64:$dst), (ins), "",
 // use MOV32ri with a SUBREG_TO_REG to represent the zero-extension, however
 // that would make it more difficult to rematerialize.
 let AddedComplexity = 1, isReMaterializable = 1, isAsCheapAsAMove = 1,
-    isCodeGenOnly = 1 in
-def MOV64ri64i32 : Ii32<0xB8, AddRegFrm, (outs GR64:$dst), (ins i64i32imm:$src),
-                        "", [(set GR64:$dst, i64immZExt32:$src)],
-                        IIC_ALU_NONMEM>, Sched<[WriteALU]>;
+    isCodeGenOnly = 1, neverHasSideEffects = 1 in
+def MOV32ri64 : Ii32<0xb8, AddRegFrm, (outs GR32:$dst), (ins i64i32imm:$src),
+                     "", [], IIC_ALU_NONMEM>, Sched<[WriteALU]>;
+
+// This 64-bit pseudo-move can be used for both a 64-bit constant that is
+// actually the zero-extension of a 32-bit constant, and for labels in the
+// x86-64 small code model.
+def mov64imm32 : ComplexPattern<i64, 1, "SelectMOV64Imm32", [imm, X86Wrapper]>;
+
+let AddedComplexity = 1 in
+def : Pat<(i64 mov64imm32:$src),
+          (SUBREG_TO_REG (i64 0), (MOV32ri64 mov64imm32:$src), sub_32bit)>;
 
 // Use sbb to materialize carry bit.
 let Uses = [EFLAGS], Defs = [EFLAGS], isPseudo = 1, SchedRW = [WriteALU] in {
@@ -893,6 +902,24 @@ let Uses = [EFLAGS], usesCustomInserter = 1 in {
                     [(set VR256:$dst,
                       (v4i64 (X86cmov VR256:$t, VR256:$f, imm:$cond,
                                           EFLAGS)))]>;
+  def CMOV_V8I64 : I<0, Pseudo,
+                    (outs VR512:$dst), (ins VR512:$t, VR512:$f, i8imm:$cond),
+                    "#CMOV_V8I64 PSEUDO!",
+                    [(set VR512:$dst,
+                      (v8i64 (X86cmov VR512:$t, VR512:$f, imm:$cond,
+                                          EFLAGS)))]>;
+  def CMOV_V8F64 : I<0, Pseudo,
+                    (outs VR512:$dst), (ins VR512:$t, VR512:$f, i8imm:$cond),
+                    "#CMOV_V8F64 PSEUDO!",
+                    [(set VR512:$dst,
+                      (v8f64 (X86cmov VR512:$t, VR512:$f, imm:$cond,
+                                          EFLAGS)))]>;
+  def CMOV_V16F32 : I<0, Pseudo,
+                    (outs VR512:$dst), (ins VR512:$t, VR512:$f, i8imm:$cond),
+                    "#CMOV_V16F32 PSEUDO!",
+                    [(set VR512:$dst,
+                      (v16f32 (X86cmov VR512:$t, VR512:$f, imm:$cond,
+                                          EFLAGS)))]>;
 }
 
 
@@ -926,8 +953,6 @@ def : Pat<(store (i32 (X86Wrapper texternalsym:$src)), addr:$dst),
 def : Pat<(store (i32 (X86Wrapper tblockaddress:$src)), addr:$dst),
           (MOV32mi addr:$dst, tblockaddress:$src)>;
 
-
-
 // ConstantPool GlobalAddress, ExternalSymbol, and JumpTable when not in small
 // code model mode, should use 'movabs'.  FIXME: This is really a hack, the
 //  'movabs' predicate should handle this sort of thing.
@@ -941,20 +966,6 @@ def : Pat<(i64 (X86Wrapper texternalsym:$dst)),
           (MOV64ri texternalsym:$dst)>, Requires<[FarData]>;
 def : Pat<(i64 (X86Wrapper tblockaddress:$dst)),
           (MOV64ri tblockaddress:$dst)>, Requires<[FarData]>;
-
-// In static codegen with small code model, we can get the address of a label
-// into a register with 'movl'.  FIXME: This is a hack, the 'imm' predicate of
-// the MOV64ri64i32 should accept these.
-def : Pat<(i64 (X86Wrapper tconstpool  :$dst)),
-          (MOV64ri64i32 tconstpool  :$dst)>, Requires<[SmallCode]>;
-def : Pat<(i64 (X86Wrapper tjumptable  :$dst)),
-          (MOV64ri64i32 tjumptable  :$dst)>, Requires<[SmallCode]>;
-def : Pat<(i64 (X86Wrapper tglobaladdr :$dst)),
-          (MOV64ri64i32 tglobaladdr :$dst)>, Requires<[SmallCode]>;
-def : Pat<(i64 (X86Wrapper texternalsym:$dst)),
-          (MOV64ri64i32 texternalsym:$dst)>, Requires<[SmallCode]>;
-def : Pat<(i64 (X86Wrapper tblockaddress:$dst)),
-          (MOV64ri64i32 tblockaddress:$dst)>, Requires<[SmallCode]>;
 
 // In kernel code model, we can get the address of a label
 // into a register with 'movq'.  FIXME: This is a hack, the 'imm' predicate of
@@ -989,14 +1000,12 @@ def : Pat<(store (i64 (X86Wrapper tblockaddress:$src)), addr:$dst),
           (MOV64mi32 addr:$dst, tblockaddress:$src)>,
           Requires<[NearData, IsStatic]>;
 
-
-
 // Calls
 
 // tls has some funny stuff here...
 // This corresponds to movabs $foo@tpoff, %rax
 def : Pat<(i64 (X86Wrapper tglobaltlsaddr :$dst)),
-          (MOV64ri tglobaltlsaddr :$dst)>;
+          (MOV64ri32 tglobaltlsaddr :$dst)>;
 // This corresponds to add $foo@tpoff, %rax
 def : Pat<(add GR64:$src1, (X86Wrapper tglobaltlsaddr :$dst)),
           (ADD64ri32 GR64:$src1, tglobaltlsaddr :$dst)>;

@@ -110,6 +110,9 @@ protected:
   // compiled as Mips32
   bool Os16;
 
+  // HasMSA -- supports MSA ASE.
+  bool HasMSA;
+
   InstrItineraryData InstrItins;
 
   // The instance to the register info section object
@@ -154,6 +157,7 @@ public:
 
   bool isLittle() const { return IsLittle; }
   bool isFP64bit() const { return IsFP64bit; }
+  bool isNotFP64bit() const { return !IsFP64bit; }
   bool isGP64bit() const { return IsGP64bit; }
   bool isGP32bit() const { return !IsGP64bit; }
   bool isSingleFloat() const { return IsSingleFloat; }
@@ -176,10 +180,17 @@ public:
   bool inMicroMipsMode() const { return InMicroMipsMode; }
   bool hasDSP() const { return HasDSP; }
   bool hasDSPR2() const { return HasDSPR2; }
+  bool hasMSA() const { return HasMSA; }
   bool isLinux() const { return IsLinux; }
   bool useSmallSection() const { return UseSmallSection; }
 
   bool hasStandardEncoding() const { return !inMips16Mode(); }
+
+  bool mipsSEUsesSoftFloat() const;
+
+  bool enableLongBranchPass() const {
+    return hasStandardEncoding() || allowMixed16_32();
+  }
 
   /// Features related to the presence of specific instructions.
   bool hasSEInReg()   const { return HasSEInReg; }
@@ -187,10 +198,24 @@ public:
   bool hasSwap()      const { return HasSwap; }
   bool hasBitCount()  const { return HasBitCount; }
   bool hasFPIdx()     const { return HasFPIdx; }
+  bool hasExtractInsert() const { return !inMips16Mode() && hasMips32r2(); }
 
+<<<<<<< HEAD
   bool allowMixed16_32() const { return AllowMixed16_32;};
+=======
+  const InstrItineraryData &getInstrItineraryData() const { return InstrItins; }
+  bool allowMixed16_32() const { return inMips16ModeDefault() |
+                                        AllowMixed16_32;}
+>>>>>>> llvmtrunk/master
 
   bool os16() const { return Os16;};
+
+// for now constant islands are on for the whole compilation unit but we only
+// really use them if in addition we are in mips16 mode
+//
+static bool useConstantIslands();
+
+  unsigned stackAlignment() const { return hasMips64() ? 16 : 8; }
 
   // Grab MipsRegInfo object
   const MipsReginfo &getMReginfo() const { return MRI; }

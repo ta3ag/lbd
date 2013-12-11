@@ -1,14 +1,15 @@
 add_llvm_library(LLVMInstrumentation
   AddressSanitizer.cpp
-  BlackList.cpp
   BoundsChecking.cpp
+<<<<<<< HEAD
   EdgeProfiling.cpp
+=======
+  DataFlowSanitizer.cpp
+  DebugIR.cpp
+>>>>>>> llvmtrunk/master
   GCOVProfiling.cpp
   MemorySanitizer.cpp
   Instrumentation.cpp
-  OptimalEdgeProfiling.cpp
-  PathProfiling.cpp
-  ProfilingUtils.cpp
   ThreadSanitizer.cpp
   )
 

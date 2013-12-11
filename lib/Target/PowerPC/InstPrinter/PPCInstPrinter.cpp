@@ -18,8 +18,16 @@
 #include "llvm/MC/MCExpr.h"
 #include "llvm/MC/MCInst.h"
 #include "llvm/MC/MCInstrInfo.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Target/TargetOpcodes.h"
 using namespace llvm;
+
+// FIXME: Once the integrated assembler supports full register names, tie this
+// to the verbose-asm setting.
+static cl::opt<bool>
+FullRegNames("ppc-asm-full-reg-names", cl::Hidden, cl::init(false),
+             cl::desc("Use full register names when printing assembly"));
 
 #include "PPCGenAsmWriter.inc"
 
@@ -78,6 +86,17 @@ void PPCInstPrinter::printInst(const MCInst *MI, raw_ostream &O,
     }
   }
   
+  // For fast-isel, a COPY_TO_REGCLASS may survive this long.  This is
+  // used when converting a 32-bit float to a 64-bit float as part of
+  // conversion to an integer (see PPCFastISel.cpp:SelectFPToI()),
+  // as otherwise we have problems with incorrect register classes
+  // in machine instruction verification.  For now, just avoid trying
+  // to print it as such an instruction has no effect (a 32-bit float
+  // in a register is already in 64-bit form, just with lower
+  // precision).  FIXME: Is there a better solution?
+  if (MI->getOpcode() == TargetOpcode::COPY_TO_REGCLASS)
+    return;
+  
   printInstruction(MI, O);
   printAnnotation(O, Annot);
 }
@@ -90,19 +109,87 @@ void PPCInstPrinter::printPredicateOperand(const MCInst *MI, unsigned OpNo,
 
   if (StringRef(Modifier) == "cc") {
     switch ((PPC::Predicate)Code) {
-    case PPC::PRED_LT: O << "lt"; return;
-    case PPC::PRED_LE: O << "le"; return;
-    case PPC::PRED_EQ: O << "eq"; return;
-    case PPC::PRED_GE: O << "ge"; return;
-    case PPC::PRED_GT: O << "gt"; return;
-    case PPC::PRED_NE: O << "ne"; return;
-    case PPC::PRED_UN: O << "un"; return;
-    case PPC::PRED_NU: O << "nu"; return;
+    case PPC::PRED_LT_MINUS:
+    case PPC::PRED_LT_PLUS:
+    case PPC::PRED_LT:
+      O << "lt";
+      return;
+    case PPC::PRED_LE_MINUS:
+    case PPC::PRED_LE_PLUS:
+    case PPC::PRED_LE:
+      O << "le";
+      return;
+    case PPC::PRED_EQ_MINUS:
+    case PPC::PRED_EQ_PLUS:
+    case PPC::PRED_EQ:
+      O << "eq";
+      return;
+    case PPC::PRED_GE_MINUS:
+    case PPC::PRED_GE_PLUS:
+    case PPC::PRED_GE:
+      O << "ge";
+      return;
+    case PPC::PRED_GT_MINUS:
+    case PPC::PRED_GT_PLUS:
+    case PPC::PRED_GT:
+      O << "gt";
+      return;
+    case PPC::PRED_NE_MINUS:
+    case PPC::PRED_NE_PLUS:
+    case PPC::PRED_NE:
+      O << "ne";
+      return;
+    case PPC::PRED_UN_MINUS:
+    case PPC::PRED_UN_PLUS:
+    case PPC::PRED_UN:
+      O << "un";
+      return;
+    case PPC::PRED_NU_MINUS:
+    case PPC::PRED_NU_PLUS:
+    case PPC::PRED_NU:
+      O << "nu";
+      return;
     }
+    llvm_unreachable("Invalid predicate code");
+  }
+
+  if (StringRef(Modifier) == "pm") {
+    switch ((PPC::Predicate)Code) {
+    case PPC::PRED_LT:
+    case PPC::PRED_LE:
+    case PPC::PRED_EQ:
+    case PPC::PRED_GE:
+    case PPC::PRED_GT:
+    case PPC::PRED_NE:
+    case PPC::PRED_UN:
+    case PPC::PRED_NU:
+      return;
+    case PPC::PRED_LT_MINUS:
+    case PPC::PRED_LE_MINUS:
+    case PPC::PRED_EQ_MINUS:
+    case PPC::PRED_GE_MINUS:
+    case PPC::PRED_GT_MINUS:
+    case PPC::PRED_NE_MINUS:
+    case PPC::PRED_UN_MINUS:
+    case PPC::PRED_NU_MINUS:
+      O << "-";
+      return;
+    case PPC::PRED_LT_PLUS:
+    case PPC::PRED_LE_PLUS:
+    case PPC::PRED_EQ_PLUS:
+    case PPC::PRED_GE_PLUS:
+    case PPC::PRED_GT_PLUS:
+    case PPC::PRED_NE_PLUS:
+    case PPC::PRED_UN_PLUS:
+    case PPC::PRED_NU_PLUS:
+      O << "+";
+      return;
+    }
+    llvm_unreachable("Invalid predicate code");
   }
   
   assert(StringRef(Modifier) == "reg" &&
-         "Need to specify 'cc' or 'reg' as predicate op modifier!");
+         "Need to specify 'cc', 'pm' or 'reg' as predicate op modifier!");
   printOperand(MI, OpNo+1, O);
 }
 
@@ -134,7 +221,10 @@ void PPCInstPrinter::printS16ImmOperand(const MCInst *MI, unsigned OpNo,
 
 void PPCInstPrinter::printU16ImmOperand(const MCInst *MI, unsigned OpNo,
                                         raw_ostream &O) {
-  O << (unsigned short)MI->getOperand(OpNo).getImm();
+  if (MI->getOperand(OpNo).isImm())
+    O << (unsigned short)MI->getOperand(OpNo).getImm();
+  else
+    printOperand(MI, OpNo, O);
 }
 
 void PPCInstPrinter::printS16X4ImmOperand(const MCInst *MI, unsigned OpNo,
@@ -153,11 +243,14 @@ void PPCInstPrinter::printBranchOperand(const MCInst *MI, unsigned OpNo,
   // Branches can take an immediate operand.  This is used by the branch
   // selection pass to print .+8, an eight byte displacement from the PC.
   O << ".+";
-  printAbsAddrOperand(MI, OpNo, O);
+  printAbsBranchOperand(MI, OpNo, O);
 }
 
-void PPCInstPrinter::printAbsAddrOperand(const MCInst *MI, unsigned OpNo,
-                                         raw_ostream &O) {
+void PPCInstPrinter::printAbsBranchOperand(const MCInst *MI, unsigned OpNo,
+                                           raw_ostream &O) {
+  if (!MI->getOperand(OpNo).isImm())
+    return printOperand(MI, OpNo, O);
+
   O << (int)MI->getOperand(OpNo).getImm()*4;
 }
 
@@ -220,11 +313,21 @@ void PPCInstPrinter::printMemRegReg(const MCInst *MI, unsigned OpNo,
   printOperand(MI, OpNo+1, O);
 }
 
+void PPCInstPrinter::printTLSCall(const MCInst *MI, unsigned OpNo,
+                                  raw_ostream &O) {
+  printBranchOperand(MI, OpNo, O);
+  O << '(';
+  printOperand(MI, OpNo+1, O);
+  O << ')';
+}
 
 
 /// stripRegisterPrefix - This method strips the character prefix from a
 /// register name so that only the number is left.  Used by for linux asm.
 static const char *stripRegisterPrefix(const char *RegName) {
+  if (FullRegNames)
+    return RegName;
+
   switch (RegName[0]) {
   case 'r':
   case 'f':

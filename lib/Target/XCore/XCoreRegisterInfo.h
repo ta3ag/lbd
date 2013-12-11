@@ -24,23 +24,8 @@ namespace llvm {
 class TargetInstrInfo;
 
 struct XCoreRegisterInfo : public XCoreGenRegisterInfo {
-private:
-  const TargetInstrInfo &TII;
-
-  void loadConstant(MachineBasicBlock &MBB,
-                  MachineBasicBlock::iterator I,
-                  unsigned DstReg, int64_t Value, DebugLoc dl) const;
-
-  void storeToStack(MachineBasicBlock &MBB,
-                  MachineBasicBlock::iterator I,
-                  unsigned SrcReg, int Offset, DebugLoc dl) const;
-
-  void loadFromStack(MachineBasicBlock &MBB,
-                  MachineBasicBlock::iterator I,
-                  unsigned DstReg, int Offset, DebugLoc dl) const;
-
 public:
-  XCoreRegisterInfo(const TargetInstrInfo &tii);
+  XCoreRegisterInfo();
 
   /// Code Generation virtual methods...
 

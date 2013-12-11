@@ -15,6 +15,7 @@
 #include "MCTargetDesc/MipsBaseInfo.h"
 #include "Mips16InstrInfo.h"
 #include "MipsInstrInfo.h"
+#include "MipsRegisterInfo.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
@@ -40,7 +41,11 @@ void Mips16FrameLowering::emitPrologue(MachineFunction &MF) const {
   if (StackSize == 0 && !MFI->adjustsStack()) return;
 
   MachineModuleInfo &MMI = MF.getMMI();
+<<<<<<< HEAD
   std::vector<MachineMove> &Moves = MMI.getFrameMoves();
+=======
+  const MCRegisterInfo *MRI = MMI.getContext().getRegisterInfo();
+>>>>>>> llvmtrunk/master
   MachineLocation DstML, SrcML;
 
   // Adjust stack.
@@ -57,6 +62,7 @@ void Mips16FrameLowering::emitPrologue(MachineFunction &MF) const {
   MCSymbol *CSLabel = MMI.getContext().CreateTempSymbol();
   BuildMI(MBB, MBBI, dl,
           TII.get(TargetOpcode::PROLOG_LABEL)).addSym(CSLabel);
+<<<<<<< HEAD
   DstML = MachineLocation(MachineLocation::VirtualFP, -8);
   SrcML = MachineLocation(Mips::S1);
   Moves.push_back(MachineMove(CSLabel, DstML, SrcML));
@@ -68,6 +74,33 @@ void Mips16FrameLowering::emitPrologue(MachineFunction &MF) const {
   DstML = MachineLocation(MachineLocation::VirtualFP, -4);
   SrcML = MachineLocation(Mips::RA);
   Moves.push_back(MachineMove(CSLabel, DstML, SrcML));
+=======
+
+
+  const MipsRegisterInfo &RI = TII.getRegisterInfo();
+  const BitVector Reserved = RI.getReservedRegs(MF);
+  bool SaveS2 = Reserved[Mips::S2];
+  int Offset=-4;
+  unsigned RA = MRI->getDwarfRegNum(Mips::RA, true);
+  MMI.addFrameInst(MCCFIInstruction::createOffset(CSLabel, RA, Offset));
+  Offset -= 4;
+
+  if (SaveS2) {
+    unsigned S2 = MRI->getDwarfRegNum(Mips::S2, true);
+    MMI.addFrameInst(MCCFIInstruction::createOffset(CSLabel, S2, Offset));
+    Offset -= 4;
+  }
+
+
+  unsigned S1 = MRI->getDwarfRegNum(Mips::S1, true);
+  MMI.addFrameInst(MCCFIInstruction::createOffset(CSLabel, S1, Offset));
+  Offset -= 4;
+
+  unsigned S0 = MRI->getDwarfRegNum(Mips::S0, true);
+  MMI.addFrameInst(MCCFIInstruction::createOffset(CSLabel, S0, Offset));
+
+
+>>>>>>> llvmtrunk/master
 
   if (hasFP(MF))
     BuildMI(MBB, MBBI, dl, TII.get(Mips::MoveR3216), Mips::S0)
@@ -172,6 +205,7 @@ processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
   MF.getRegInfo().setPhysRegUsed(Mips::RA);
   MF.getRegInfo().setPhysRegUsed(Mips::S0);
   MF.getRegInfo().setPhysRegUsed(Mips::S1);
+  MF.getRegInfo().setPhysRegUsed(Mips::S2);
 }
 
 const MipsFrameLowering *

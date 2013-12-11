@@ -165,7 +165,7 @@ unsigned A15SDOptimizer::getPrefSPRLane(unsigned SReg) {
   if (!MI) return ARM::ssub_0;
   MachineOperand *MO = MI->findRegisterDefOperand(SReg);
 
-  assert(MO->isReg() && "Non register operand found!");
+  assert(MO->isReg() && "Non-register operand found!");
   if (!MO) return ARM::ssub_0;
 
   if (MI->isCopy() && usesRegClass(MI->getOperand(1),
@@ -615,7 +615,7 @@ bool A15SDOptimizer::runOnInstruction(MachineInstr *MI) {
   SmallVector<unsigned, 8> Defs = getReadDPRs(MI);
   bool Modified = false;
 
-  for (SmallVector<unsigned, 8>::iterator I = Defs.begin(), E = Defs.end();
+  for (SmallVectorImpl<unsigned>::iterator I = Defs.begin(), E = Defs.end();
      I != E; ++I) {
     // Follow the def-use chain for this DPR through COPYs, and also through
     // PHIs (which are essentially multi-way COPYs). It is because of PHIs that
@@ -630,7 +630,7 @@ bool A15SDOptimizer::runOnInstruction(MachineInstr *MI) {
 
     elideCopiesAndPHIs(Def, DefSrcs);
 
-    for (SmallVector<MachineInstr*, 8>::iterator II = DefSrcs.begin(),
+    for (SmallVectorImpl<MachineInstr *>::iterator II = DefSrcs.begin(),
       EE = DefSrcs.end(); II != EE; ++II) {
       MachineInstr *MI = *II;
 
@@ -655,8 +655,15 @@ bool A15SDOptimizer::runOnInstruction(MachineInstr *MI) {
 
       if (NewReg != 0) {
         Modified = true;
-        for (SmallVector<MachineOperand*, 8>::const_iterator I = Uses.begin(),
+        for (SmallVectorImpl<MachineOperand *>::const_iterator I = Uses.begin(),
                E = Uses.end(); I != E; ++I) {
+          // Make sure to constrain the register class of the new register to
+          // match what we're replacing. Otherwise we can optimize a DPR_VFP2
+          // reference into a plain DPR, and that will end poorly. NewReg is
+          // always virtual here, so there will always be a matching subclass
+          // to find.
+          MRI->constrainRegClass(NewReg, MRI->getRegClass((*I)->getReg()));
+
           DEBUG(dbgs() << "Replacing operand "
                        << **I << " with "
                        << PrintReg(NewReg) << "\n");

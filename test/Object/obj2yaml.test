@@ -12,6 +12,7 @@ COFF-I386-NEXT:    Characteristics: [IMAGE_SCN_CNT_CODE, IMAGE_SCN_ALIGN_16BYTES
 COFF-I386-NEXT:    SectionData:  !hex "83EC0CC744240800000000C7042400000000E800000000E8000000008B44240883C40CC3" # |....D$.......$...............D$.....|
 
 COFF-I386:    Relocations:
+<<<<<<< HEAD
 COFF-I386-NEXT:      - !Relocation
 COFF-I386-NEXT:        VirtualAddress: 0xe
 COFF-I386-NEXT:        SymbolTableIndex: 5
@@ -25,6 +26,18 @@ COFF-I386-NEXT:        Type: IMAGE_REL_I386_REL32
 COFF-I386:      - !Relocation
 COFF-I386-NEXT:        VirtualAddress: 0x18
 COFF-I386-NEXT:        SymbolTableIndex: 7
+=======
+COFF-I386-NEXT:      - VirtualAddress: 14
+COFF-I386-NEXT:        SymbolName: L_.str
+COFF-I386-NEXT:        Type: IMAGE_REL_I386_DIR32
+
+COFF-I386:           - VirtualAddress: 19
+COFF-I386-NEXT:        SymbolName: _puts
+COFF-I386-NEXT:        Type: IMAGE_REL_I386_REL32
+
+COFF-I386:           - VirtualAddress: 24
+COFF-I386-NEXT:        SymbolName: _SomeOtherFunction
+>>>>>>> llvmtrunk/master
 COFF-I386-NEXT:        Type: IMAGE_REL_I386_REL32
 
 COFF-I386:  - !Section
@@ -96,6 +109,7 @@ COFF-X86-64-NEXT:     Characteristics: [IMAGE_SCN_CNT_CODE, IMAGE_SCN_ALIGN_16BY
 COFF-X86-64-NEXT:     SectionData:  !hex "4883EC28C744242400000000488D0D00000000E800000000E8000000008B4424244883C428C3" # |H..(.D$$....H.................D$$H..(.|
 
 COFF-X86-64:     Relocations:
+<<<<<<< HEAD
 COFF-X86-64-NEXT:       - !Relocation
 COFF-X86-64-NEXT:         VirtualAddress: 0xf
 COFF-X86-64-NEXT:         SymbolTableIndex: 5
@@ -109,6 +123,18 @@ COFF-X86-64-NEXT:         Type: IMAGE_REL_AMD64_REL32
 COFF-X86-64:       - !Relocation
 COFF-X86-64-NEXT:         VirtualAddress: 0x19
 COFF-X86-64-NEXT:         SymbolTableIndex: 7
+=======
+COFF-X86-64-NEXT:       - VirtualAddress: 15
+COFF-X86-64-NEXT:         SymbolName: L.str
+COFF-X86-64-NEXT:         Type: IMAGE_REL_AMD64_REL32
+
+COFF-X86-64:            - VirtualAddress: 20
+COFF-X86-64-NEXT:         SymbolName: puts
+COFF-X86-64-NEXT:         Type: IMAGE_REL_AMD64_REL32
+
+COFF-X86-64:            - VirtualAddress: 25
+COFF-X86-64-NEXT:         SymbolName: SomeOtherFunction
+>>>>>>> llvmtrunk/master
 COFF-X86-64-NEXT:         Type: IMAGE_REL_AMD64_REL32
 
 COFF-X86-64:   - !Section
@@ -165,6 +191,13 @@ COFF-X86-64:   - !Symbol
 COFF-X86-64-NEXT:     Name: SomeOtherFunction
 COFF-X86-64-NEXT:     Value: 0
 COFF-X86-64-NEXT:     SectionNumber: 0
+<<<<<<< HEAD
 COFF-X86-64-NEXT:     SimpleType: IMAGE_SYM_TYPE_NULL # (0)
 COFF-X86-64-NEXT:     ComplexType: IMAGE_SYM_DTYPE_NULL # (0)
 COFF-X86-64-NEXT:     StorageClass: IMAGE_SYM_CLASS_EXTERNAL # (2)
+=======
+COFF-X86-64-NEXT:     SimpleType: IMAGE_SYM_TYPE_NULL
+COFF-X86-64-NEXT:     ComplexType: IMAGE_SYM_DTYPE_NULL
+COFF-X86-64-NEXT:     StorageClass: IMAGE_SYM_CLASS_EXTERNAL
+COFF-X86-64-NOT:      NumberOfAuxSymbols
+>>>>>>> llvmtrunk/master

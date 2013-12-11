@@ -31,27 +31,42 @@ class TargetOptions;
 class ARMSubtarget : public ARMGenSubtargetInfo {
 protected:
   enum ARMProcFamilyEnum {
-    Others, CortexA5, CortexA8, CortexA9, CortexA15, CortexR5, Swift
+    Others, CortexA5, CortexA7, CortexA8, CortexA9, CortexA12, CortexA15, 
+    CortexR5, Swift, CortexA53, CortexA57, Krait
+  };
+  enum ARMProcClassEnum {
+    None, AClass, RClass, MClass
   };
 
   /// ARMProcFamily - ARM processor family: Cortex-A8, Cortex-A9, and others.
   ARMProcFamilyEnum ARMProcFamily;
 
-  /// HasV4TOps, HasV5TOps, HasV5TEOps, HasV6Ops, HasV6T2Ops, HasV7Ops -
+  /// ARMProcClass - ARM processor class: None, AClass, RClass or MClass.
+  ARMProcClassEnum ARMProcClass;
+
+  /// HasV4TOps, HasV5TOps, HasV5TEOps,
+  /// HasV6Ops, HasV6MOps, HasV6T2Ops, HasV7Ops, HasV8Ops -
   /// Specify whether target support specific ARM ISA variants.
   bool HasV4TOps;
   bool HasV5TOps;
   bool HasV5TEOps;
   bool HasV6Ops;
+  bool HasV6MOps;
   bool HasV6T2Ops;
   bool HasV7Ops;
+  bool HasV8Ops;
 
-  /// HasVFPv2, HasVFPv3, HasVFPv4, HasNEON - Specify what
+  /// HasVFPv2, HasVFPv3, HasVFPv4, HasFPARMv8, HasNEON - Specify what
   /// floating point ISAs are supported.
   bool HasVFPv2;
   bool HasVFPv3;
   bool HasVFPv4;
+  bool HasFPARMv8;
   bool HasNEON;
+
+  /// MinSize - True if the function being compiled has the "minsize" attribute
+  /// and should be optimised for size at the expense of speed.
+  bool MinSize;
 
   /// UseNEONForSinglePrecisionFP - if the NEONFP attribute has been
   /// specified. Use the method useNEONForSinglePrecisionFP() to
@@ -78,10 +93,6 @@ protected:
 
   /// HasThumb2 - True if Thumb2 instructions are supported.
   bool HasThumb2;
-
-  /// IsMClass - True if the subtarget belongs to the 'M' profile of CPUs -
-  /// v6m, v7m for example.
-  bool IsMClass;
 
   /// NoARM - True if subtarget does not support ARM mode execution.
   bool NoARM;
@@ -144,6 +155,10 @@ protected:
   /// extension (ARMv7 only).
   bool HasMPExtension;
 
+  /// HasVirtualization - True if the subtarget supports the Virtualization
+  /// extension.
+  bool HasVirtualization;
+
   /// FPOnlySP - If true, the floating point unit only supports single
   /// precision.
   bool FPOnlySP;
@@ -151,10 +166,20 @@ protected:
   /// HasTrustZone - if true, processor supports TrustZone security extensions
   bool HasTrustZone;
 
+  /// HasCrypto - if true, processor supports Cryptography extensions
+  bool HasCrypto;
+
+  /// HasCRC - if true, processor supports CRC instructions
+  bool HasCRC;
+
   /// AllowsUnalignedMem - If true, the subtarget allows unaligned memory
   /// accesses for some types.  For details, see
   /// ARMTargetLowering::allowsUnalignedMemoryAccesses().
   bool AllowsUnalignedMem;
+
+  /// RestrictIT - If true, the subtarget disallows generation of deprecated IT
+  ///  blocks to conform to ARMv8 rule.
+  bool RestrictIT;
 
   /// Thumb2DSP - If true, the subtarget supports the v7 DSP (saturating arith
   /// and such) instructions in Thumb2 code.
@@ -186,10 +211,6 @@ protected:
   const TargetOptions &Options;
 
  public:
-  enum {
-    isELF, isDarwin
-  } TargetType;
-
   enum {
     ARM_ABI_APCS,
     ARM_ABI_AAPCS // ARM EABI
@@ -224,8 +245,10 @@ public:
   bool hasV5TOps()  const { return HasV5TOps;  }
   bool hasV5TEOps() const { return HasV5TEOps; }
   bool hasV6Ops()   const { return HasV6Ops;   }
+  bool hasV6MOps()  const { return HasV6MOps;  }
   bool hasV6T2Ops() const { return HasV6T2Ops; }
   bool hasV7Ops()   const { return HasV7Ops;  }
+  bool hasV8Ops()   const { return HasV8Ops;  }
 
   bool isCortexA5() const { return ARMProcFamily == CortexA5; }
   bool isCortexA8() const { return ARMProcFamily == CortexA8; }
@@ -233,15 +256,21 @@ public:
   bool isCortexA15() const { return ARMProcFamily == CortexA15; }
   bool isSwift()    const { return ARMProcFamily == Swift; }
   bool isCortexM3() const { return CPUString == "cortex-m3"; }
-  bool isLikeA9() const { return isCortexA9() || isCortexA15(); }
+  bool isLikeA9() const { return isCortexA9() || isCortexA15() || isKrait(); }
   bool isCortexR5() const { return ARMProcFamily == CortexR5; }
+  bool isKrait() const { return ARMProcFamily == Krait; }
 
   bool hasARMOps() const { return !NoARM; }
 
   bool hasVFP2() const { return HasVFPv2; }
   bool hasVFP3() const { return HasVFPv3; }
   bool hasVFP4() const { return HasVFPv4; }
+  bool hasFPARMv8() const { return HasFPARMv8; }
   bool hasNEON() const { return HasNEON;  }
+  bool hasCrypto() const { return HasCrypto; }
+  bool hasCRC() const { return HasCRC; }
+  bool hasVirtualization() const { return HasVirtualization; }
+  bool isMinSize() const { return MinSize; }
   bool useNEONForSinglePrecisionFP() const {
     return hasNEON() && UseNEONForSinglePrecisionFP; }
 
@@ -249,6 +278,9 @@ public:
   bool hasDivideInARMMode() const { return HasHardwareDivideInARM; }
   bool hasT2ExtractPack() const { return HasT2ExtractPack; }
   bool hasDataBarrier() const { return HasDataBarrier; }
+  bool hasAnyDataBarrier() const {
+    return HasDataBarrier || (hasV6Ops() && !isThumb());
+  }
   bool useMulOps() const { return UseMulOps; }
   bool useFPVMLx() const { return !SlowFPVMLx; }
   bool hasVMLxForwarding() const { return HasVMLxForwarding; }
@@ -268,12 +300,26 @@ public:
 
   const Triple &getTargetTriple() const { return TargetTriple; }
 
-  bool isTargetIOS() const { return TargetTriple.getOS() == Triple::IOS; }
+  bool isTargetIOS() const { return TargetTriple.isiOS(); }
   bool isTargetDarwin() const { return TargetTriple.isOSDarwin(); }
+<<<<<<< HEAD
   bool isTargetNaCl() const {
     return TargetTriple.getOS() == Triple::NaCl;
   }
   bool isTargetELF() const { return !isTargetDarwin(); }
+=======
+  bool isTargetNaCl() const { return TargetTriple.isOSNaCl(); }
+  bool isTargetLinux() const { return TargetTriple.isOSLinux(); }
+  bool isTargetELF() const { return TargetTriple.isOSBinFormatELF(); }
+  // ARM EABI is the bare-metal EABI described in ARM ABI documents and
+  // can be accessed via -target arm-none-eabi. This is NOT GNUEABI.
+  // FIXME: Add a flag for bare-metal for that target and set Triple::EABI
+  // even for GNUEABI, so we can make a distinction here and still conform to
+  // the EABI on GNU (and Android) mode. This requires change in Clang, too.
+  bool isTargetAEABI() const {
+    return TargetTriple.getEnvironment() == Triple::EABI;
+  }
+>>>>>>> llvmtrunk/master
 
   bool isAPCS_ABI() const { return TargetABI == ARM_ABI_APCS; }
   bool isAAPCS_ABI() const { return TargetABI == ARM_ABI_AAPCS; }
@@ -282,19 +328,26 @@ public:
   bool isThumb1Only() const { return InThumbMode && !HasThumb2; }
   bool isThumb2() const { return InThumbMode && HasThumb2; }
   bool hasThumb2() const { return HasThumb2; }
-  bool isMClass() const { return IsMClass; }
-  bool isARClass() const { return !IsMClass; }
+  bool isMClass() const { return ARMProcClass == MClass; }
+  bool isRClass() const { return ARMProcClass == RClass; }
+  bool isAClass() const { return ARMProcClass == AClass; }
 
   bool isR9Reserved() const { return IsR9Reserved; }
 
-  bool useMovt() const { return UseMovt && hasV6T2Ops(); }
+  bool useMovt() const { return UseMovt && !isMinSize(); }
   bool supportsTailCall() const { return SupportsTailCall; }
 
   bool allowsUnalignedMem() const { return AllowsUnalignedMem; }
 
+  bool restrictIT() const { return RestrictIT; }
+
   const std::string & getCPUString() const { return CPUString; }
 
   unsigned getMispredictionPenalty() const;
+  
+  /// This function returns true if the target has sincos() routine in its
+  /// compiler runtime or math libraries.
+  bool hasSinCos() const;
 
   /// enablePostRAScheduler - True at 'More' optimization.
   bool enablePostRAScheduler(CodeGenOpt::Level OptLevel,

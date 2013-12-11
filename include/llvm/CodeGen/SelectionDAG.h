@@ -39,6 +39,45 @@ class TargetLowering;
 class TargetSelectionDAGInfo;
 class TargetTransformInfo;
 
+class SDVTListNode : public FoldingSetNode {
+  friend struct FoldingSetTrait<SDVTListNode>;
+  /// FastID - A reference to an Interned FoldingSetNodeID for this node.
+  /// The Allocator in SelectionDAG holds the data.
+  /// SDVTList contains all types which are frequently accessed in SelectionDAG.
+  /// The size of this list is not expected big so it won't introduce memory penalty.
+  FoldingSetNodeIDRef FastID;
+  const EVT *VTs;
+  unsigned int NumVTs;
+  /// The hash value for SDVTList is fixed so cache it to avoid hash calculation
+  unsigned HashValue;
+public:
+  SDVTListNode(const FoldingSetNodeIDRef ID, const EVT *VT, unsigned int Num) :
+      FastID(ID), VTs(VT), NumVTs(Num) {
+    HashValue = ID.ComputeHash();
+  }
+  SDVTList getSDVTList() {
+    SDVTList result = {VTs, NumVTs};
+    return result;
+  }
+};
+
+// Specialize FoldingSetTrait for SDVTListNode
+// To avoid computing temp FoldingSetNodeID and hash value.
+template<> struct FoldingSetTrait<SDVTListNode> : DefaultFoldingSetTrait<SDVTListNode> {
+  static void Profile(const SDVTListNode &X, FoldingSetNodeID& ID) {
+    ID = X.FastID;
+  }
+  static bool Equals(const SDVTListNode &X, const FoldingSetNodeID &ID,
+                     unsigned IDHash, FoldingSetNodeID &TempID) {
+    if (X.HashValue != IDHash)
+      return false;
+    return ID == X.FastID;
+  }
+  static unsigned ComputeHash(const SDVTListNode &X, FoldingSetNodeID &TempID) {
+    return X.HashValue;
+  }
+};
+
 template<> struct ilist_traits<SDNode> : public ilist_default_traits<SDNode> {
 private:
   mutable ilist_half_node<SDNode> Sentinel;
@@ -73,7 +112,8 @@ private:
 class SDDbgInfo {
   SmallVector<SDDbgValue*, 32> DbgValues;
   SmallVector<SDDbgValue*, 32> ByvalParmDbgValues;
-  DenseMap<const SDNode*, SmallVector<SDDbgValue*, 2> > DbgValMap;
+  typedef DenseMap<const SDNode*, SmallVector<SDDbgValue*, 2> > DbgValMapType;
+  DbgValMapType DbgValMap;
 
   void operator=(const SDDbgInfo&) LLVM_DELETED_FUNCTION;
   SDDbgInfo(const SDDbgInfo&) LLVM_DELETED_FUNCTION;
@@ -99,14 +139,13 @@ public:
   }
 
   ArrayRef<SDDbgValue*> getSDDbgValues(const SDNode *Node) {
-    DenseMap<const SDNode*, SmallVector<SDDbgValue*, 2> >::iterator I =
-      DbgValMap.find(Node);
+    DbgValMapType::iterator I = DbgValMap.find(Node);
     if (I != DbgValMap.end())
       return I->second;
     return ArrayRef<SDDbgValue*>();
   }
 
-  typedef SmallVector<SDDbgValue*,32>::iterator DbgIterator;
+  typedef SmallVectorImpl<SDDbgValue*>::iterator DbgIterator;
   DbgIterator DbgBegin() { return DbgValues.begin(); }
   DbgIterator DbgEnd()   { return DbgValues.end(); }
   DbgIterator ByvalParmDbgBegin() { return ByvalParmDbgValues.begin(); }
@@ -130,9 +169,9 @@ void checkForCycles(const SelectionDAG *DAG);
 ///
 class SelectionDAG {
   const TargetMachine &TM;
-  const TargetLowering &TLI;
   const TargetSelectionDAGInfo &TSI;
   const TargetTransformInfo *TTI;
+  const TargetLowering *TLI;
   MachineFunction *MF;
   LLVMContext *Context;
   CodeGenOpt::Level OptLevel;
@@ -203,6 +242,13 @@ public:
     virtual void NodeUpdated(SDNode *N);
   };
 
+  /// NewNodesMustHaveLegalTypes - When true, additional steps are taken to
+  /// ensure that getConstant() and similar functions return DAG nodes that
+  /// have legal types. This is important after type legalization since
+  /// any illegally typed nodes generated after this point will not experience
+  /// type legalization.
+  bool NewNodesMustHaveLegalTypes;
+
 private:
   /// DAGUpdateListener is a friend so it can manipulate the listener stack.
   friend struct DAGUpdateListener;
@@ -228,7 +274,8 @@ public:
   /// init - Prepare this SelectionDAG to process code in the given
   /// MachineFunction.
   ///
-  void init(MachineFunction &mf, const TargetTransformInfo *TTI);
+  void init(MachineFunction &mf, const TargetTransformInfo *TTI,
+            const TargetLowering *TLI);
 
   /// clear - Clear state and free memory necessary to make this
   /// SelectionDAG ready to process a new block.
@@ -237,7 +284,7 @@ public:
 
   MachineFunction &getMachineFunction() const { return *MF; }
   const TargetMachine &getTarget() const { return TM; }
-  const TargetLowering &getTargetLoweringInfo() const { return TLI; }
+  const TargetLowering &getTargetLoweringInfo() const { return *TLI; }
   const TargetSelectionDAGInfo &getSelectionDAGInfo() const { return TSI; }
   const TargetTransformInfo *getTargetTransformInfo() const { return TTI; }
   LLVMContext *getContext() const {return Context; }
@@ -614,7 +661,21 @@ public:
       "Cannot compare scalars to vectors");
     assert(LHS.getValueType().isVector() == VT.isVector() &&
       "Cannot compare scalars to vectors");
+    assert(Cond != ISD::SETCC_INVALID &&
+        "Cannot create a setCC of an invalid node.");
     return getNode(ISD::SETCC, DL, VT, LHS, RHS, getCondCode(Cond));
+  }
+
+  // getSelect - Helper function to make it easier to build Select's if you just
+  // have operands and don't want to check for vector.
+  SDValue getSelect(SDLoc DL, EVT VT, SDValue Cond,
+                    SDValue LHS, SDValue RHS) {
+    assert(LHS.getValueType() == RHS.getValueType() &&
+           "Cannot use select on differing types");
+    assert(VT.isVector() == LHS.getValueType().isVector() &&
+           "Cannot mix vectors and scalars");
+    return getNode(Cond.getValueType().isVector() ? ISD::VSELECT : ISD::SELECT, DL, VT,
+                   Cond, LHS, RHS);
   }
 
   /// getSelectCC - Helper function to make it easier to build SelectCC's if you
@@ -667,6 +728,13 @@ public:
                     AtomicOrdering Ordering,
                     SynchronizationScope SynchScope);
 
+  /// getAtomic - Gets a node for an atomic op, produces result and chain and
+  /// takes N operands.
+  SDValue getAtomic(unsigned Opcode, SDLoc dl, EVT MemVT, SDVTList VTList,
+                    SDValue* Ops, unsigned NumOps, MachineMemOperand *MMO,
+                    AtomicOrdering Ordering,
+                    SynchronizationScope SynchScope);
+
   /// getMemIntrinsicNode - Creates a MemIntrinsicNode that may produce a
   /// result and takes a list of operands. Opcode may be INTRINSIC_VOID,
   /// INTRINSIC_W_CHAIN, or a target-specific opcode with a value not
@@ -698,12 +766,25 @@ public:
                   MachinePointerInfo PtrInfo, bool isVolatile,
                   bool isNonTemporal, bool isInvariant, unsigned Alignment,
                   const MDNode *TBAAInfo = 0, const MDNode *Ranges = 0);
+<<<<<<< HEAD
   SDValue getExtLoad(ISD::LoadExtType ExtType, DebugLoc dl, EVT VT,
+=======
+  SDValue getLoad(EVT VT, SDLoc dl, SDValue Chain, SDValue Ptr,
+                  MachineMemOperand *MMO);
+  SDValue getExtLoad(ISD::LoadExtType ExtType, SDLoc dl, EVT VT,
+>>>>>>> llvmtrunk/master
                      SDValue Chain, SDValue Ptr, MachinePointerInfo PtrInfo,
                      EVT MemVT, bool isVolatile,
                      bool isNonTemporal, unsigned Alignment,
                      const MDNode *TBAAInfo = 0);
+<<<<<<< HEAD
   SDValue getIndexedLoad(SDValue OrigLoad, DebugLoc dl, SDValue Base,
+=======
+  SDValue getExtLoad(ISD::LoadExtType ExtType, SDLoc dl, EVT VT,
+                     SDValue Chain, SDValue Ptr, EVT MemVT,
+                     MachineMemOperand *MMO);
+  SDValue getIndexedLoad(SDValue OrigLoad, SDLoc dl, SDValue Base,
+>>>>>>> llvmtrunk/master
                          SDValue Offset, ISD::MemIndexedMode AM);
   SDValue getLoad(ISD::MemIndexedMode AM, ISD::LoadExtType ExtType,
                   EVT VT, DebugLoc dl,
@@ -740,6 +821,10 @@ public:
 
   /// getMDNode - Return an MDNodeSDNode which holds an MDNode.
   SDValue getMDNode(const MDNode *MD);
+
+  /// getAddrSpaceCast - Return an AddrSpaceCastSDNode.
+  SDValue getAddrSpaceCast(SDLoc dl, EVT VT, SDValue Ptr,
+                           unsigned SrcAS, unsigned DestAS);
 
   /// getShiftAmountOperand - Return the specified value casted to
   /// the target's desired shift amount type.
@@ -1064,6 +1149,30 @@ public:
   /// it cannot be inferred.
   unsigned InferPtrAlignment(SDValue Ptr) const;
 
+  /// GetSplitDestVTs - Compute the VTs needed for the low/hi parts of a type
+  /// which is split (or expanded) into two not necessarily identical pieces.
+  std::pair<EVT, EVT> GetSplitDestVTs(const EVT &VT) const;
+
+  /// SplitVector - Split the vector with EXTRACT_SUBVECTOR using the provides
+  /// VTs and return the low/high part.
+  std::pair<SDValue, SDValue> SplitVector(const SDValue &N, const SDLoc &DL,
+                                          const EVT &LoVT, const EVT &HiVT);
+
+  /// SplitVector - Split the vector with EXTRACT_SUBVECTOR and return the
+  /// low/high part.
+  std::pair<SDValue, SDValue> SplitVector(const SDValue &N, const SDLoc &DL) {
+    EVT LoVT, HiVT;
+    llvm::tie(LoVT, HiVT) = GetSplitDestVTs(N.getValueType());
+    return SplitVector(N, DL, LoVT, HiVT);
+  }
+
+  /// SplitVectorOperand - Split the node's operand with EXTRACT_SUBVECTOR and
+  /// return the low/high part.
+  std::pair<SDValue, SDValue> SplitVectorOperand(const SDNode *N, unsigned OpNo)
+  {
+    return SplitVector(N->getOperand(OpNo), SDLoc(N));
+  }
+
 private:
   bool RemoveNodeFromCSEMaps(SDNode *N);
   void AddModifiedNodeToCSEMaps(SDNode *N);
@@ -1082,7 +1191,7 @@ private:
   void allnodes_clear();
 
   /// VTList - List of non-single value types.
-  std::vector<SDVTList> VTList;
+  FoldingSet<SDVTListNode> VTListMap;
 
   /// CondCodeNodes - Maps to auto-CSE operations.
   std::vector<CondCodeSDNode*> CondCodeNodes;

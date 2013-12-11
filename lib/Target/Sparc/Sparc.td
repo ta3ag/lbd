@@ -19,7 +19,7 @@ include "llvm/Target/Target.td"
 //===----------------------------------------------------------------------===//
 // SPARC Subtarget features.
 //
- 
+
 def FeatureV9
   : SubtargetFeature<"v9", "IsV9", "true",
                      "Enable SPARC-V9 instructions">;
@@ -29,6 +29,10 @@ def FeatureV8Deprecated
 def FeatureVIS
   : SubtargetFeature<"vis", "IsVIS", "true",
                      "Enable UltraSPARC Visual Instruction Set extensions">;
+
+def FeatureHardQuad
+  : SubtargetFeature<"hard-quad-float", "HasHardQuad", "true",
+                     "Enable quad-word floating point instructions">;
 
 //===----------------------------------------------------------------------===//
 // Register File, Calling Conv, Instruction Descriptions
@@ -62,6 +66,11 @@ def : Proc<"ultrasparc3",     [FeatureV9, FeatureV8Deprecated]>;
 def : Proc<"ultrasparc3-vis", [FeatureV9, FeatureV8Deprecated, FeatureVIS]>;
 
 
+def SparcAsmWriter : AsmWriter {
+  string AsmWriterClassName  = "AsmPrinter";
+  bit isMCAsmWriter = 0;
+}
+
 //===----------------------------------------------------------------------===//
 // Declare the target which we are implementing
 //===----------------------------------------------------------------------===//
@@ -69,4 +78,6 @@ def : Proc<"ultrasparc3-vis", [FeatureV9, FeatureV8Deprecated, FeatureVIS]>;
 def Sparc : Target {
   // Pull in Instruction Info:
   let InstructionSet = SparcInstrInfo;
+
+  let AssemblyWriters = [SparcAsmWriter];
 }

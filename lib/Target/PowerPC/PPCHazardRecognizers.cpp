@@ -22,30 +22,6 @@
 using namespace llvm;
 
 //===----------------------------------------------------------------------===//
-// PowerPC Scoreboard Hazard Recognizer
-void PPCScoreboardHazardRecognizer::EmitInstruction(SUnit *SU) {
-  const MCInstrDesc *MCID = DAG->getInstrDesc(SU);
-  if (!MCID)
-    // This is a PPC pseudo-instruction.
-    return;
-
-  ScoreboardHazardRecognizer::EmitInstruction(SU);
-}
-
-ScheduleHazardRecognizer::HazardType
-PPCScoreboardHazardRecognizer::getHazardType(SUnit *SU, int Stalls) {
-  return ScoreboardHazardRecognizer::getHazardType(SU, Stalls);
-}
-
-void PPCScoreboardHazardRecognizer::AdvanceCycle() {
-  ScoreboardHazardRecognizer::AdvanceCycle();
-}
-
-void PPCScoreboardHazardRecognizer::Reset() {
-  ScoreboardHazardRecognizer::Reset();
-}
-
-//===----------------------------------------------------------------------===//
 // PowerPC 970 Hazard Recognizer
 //
 // This models the dispatch group formation of the PPC970 processor.  Dispatch
@@ -71,8 +47,8 @@ void PPCScoreboardHazardRecognizer::Reset() {
 //   3. Handling of the esoteric cases in "Resource-based Instruction Grouping".
 //
 
-PPCHazardRecognizer970::PPCHazardRecognizer970(const TargetInstrInfo &tii)
-  : TII(tii) {
+PPCHazardRecognizer970::PPCHazardRecognizer970(const TargetMachine &TM)
+  : TM(TM) {
   EndDispatchGroup();
 }
 
@@ -91,7 +67,7 @@ PPCHazardRecognizer970::GetInstrType(unsigned Opcode,
                                      bool &isFirst, bool &isSingle,
                                      bool &isCracked,
                                      bool &isLoad, bool &isStore) {
-  const MCInstrDesc &MCID = TII.get(Opcode);
+  const MCInstrDesc &MCID = TM.getInstrInfo()->get(Opcode);
 
   isLoad  = MCID.mayLoad();
   isStore = MCID.mayStore();

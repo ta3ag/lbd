@@ -302,7 +302,7 @@ Subprogram descriptors
     i32,      ;; Index into a virtual function
     metadata, ;; indicates which base type contains the vtable pointer for the
               ;; derived class
-    i32,      ;; Flags - Artifical, Private, Protected, Explicit, Prototyped.
+    i32,      ;; Flags - Artificial, Private, Protected, Explicit, Prototyped.
     i1,       ;; isOptimized
     Function * , ;; Pointer to LLVM function
     metadata, ;; Lists function template parameters
@@ -352,7 +352,12 @@ Basic type descriptors
 .. code-block:: llvm
 
   !4 = metadata !{
+<<<<<<< HEAD
     i32,      ;; Tag = 36 + LLVMDebugVersion (DW_TAG_base_type)
+=======
+    i32,      ;; Tag = 36 (DW_TAG_base_type)
+    metadata, ;; Source directory (including trailing slash) & file pair (may be null)
+>>>>>>> llvmtrunk/master
     metadata, ;; Reference to context
     metadata, ;; Name (may be "" for anonymous types)
     metadata, ;; Reference to file where defined (may be NULL)
@@ -396,6 +401,10 @@ Derived type descriptors
 
   !5 = metadata !{
     i32,      ;; Tag (see below)
+<<<<<<< HEAD
+=======
+    metadata, ;; Source directory (including trailing slash) & file pair (may be null)
+>>>>>>> llvmtrunk/master
     metadata, ;; Reference to context
     metadata, ;; Name (may be "" for anonymous types)
     metadata, ;; Reference to file where defined (may be NULL)
@@ -459,6 +468,10 @@ Composite type descriptors
 
   !6 = metadata !{
     i32,      ;; Tag (see below)
+<<<<<<< HEAD
+=======
+    metadata, ;; Source directory (including trailing slash) & file pair (may be null)
+>>>>>>> llvmtrunk/master
     metadata, ;; Reference to context
     metadata, ;; Name (may be "" for anonymous types)
     metadata, ;; Reference to file where defined (may be NULL)
@@ -469,7 +482,14 @@ Composite type descriptors
     i32,      ;; Flags
     metadata, ;; Reference to type derived from
     metadata, ;; Reference to array of member descriptors
+<<<<<<< HEAD
     i32       ;; Runtime languages
+=======
+    i32,      ;; Runtime languages
+    metadata, ;; Base type containing the vtable pointer for this type
+    metadata, ;; Template parameters
+    metadata  ;; A unique identifier for type uniquing purpose (may be null)
+>>>>>>> llvmtrunk/master
   }
 
 These descriptors are used to define types that are composed of 0 or more
@@ -654,6 +674,7 @@ Compiled to LLVM, this function would be represented like this:
 
 .. code-block:: llvm
 
+<<<<<<< HEAD
   define void @foo() nounwind ssp {
   entry:
     %X = alloca i32, align 4                        ; <i32*> [#uses=4]
@@ -707,6 +728,88 @@ Compiled to LLVM, this function would be represented like this:
   !16 = metadata !{i32 6, i32 5, metadata !13, null}
   !17 = metadata !{i32 8, i32 3, metadata !1, null}
   !18 = metadata !{i32 9, i32 1, metadata !2, null}
+=======
+  define void @foo() #0 {
+  entry:
+   %X = alloca i32, align 4
+    %Y = alloca i32, align 4
+    %Z = alloca i32, align 4
+    call void @llvm.dbg.declare(metadata !{i32* %X}, metadata !10), !dbg !12
+      ; [debug line = 2:7] [debug variable = X]
+    store i32 21, i32* %X, align 4, !dbg !12
+    call void @llvm.dbg.declare(metadata !{i32* %Y}, metadata !13), !dbg !14
+      ; [debug line = 3:7] [debug variable = Y]
+    store i32 22, i32* %Y, align 4, !dbg !14
+    call void @llvm.dbg.declare(metadata !{i32* %Z}, metadata !15), !dbg !17
+      ; [debug line = 5:9] [debug variable = Z]
+    store i32 23, i32* %Z, align 4, !dbg !17
+    %0 = load i32* %X, align 4, !dbg !18
+      [debug line = 6:5]
+    store i32 %0, i32* %Z, align 4, !dbg !18
+    %1 = load i32* %Y, align 4, !dbg !19
+      [debug line = 8:3]
+    store i32 %1, i32* %X, align 4, !dbg !19
+    ret void, !dbg !20
+  }
+
+  ; Function Attrs: nounwind readnone
+  declare void @llvm.dbg.declare(metadata, metadata) #1
+
+  attributes #0 = { nounwind ssp uwtable "less-precise-fpmad"="false"
+    "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf"
+    "no-infs-fp-math"="false" "no-nans-fp-math"="false"
+    "stack-protector-buffer-size"="8" "unsafe-fp-math"="false"
+    "use-soft-float"="false" }
+  attributes #1 = { nounwind readnone }
+
+  !llvm.dbg.cu = !{!0}
+  !llvm.module.flags = !{!8}
+  !llvm.ident = !{!9}
+
+  !0 = metadata !{i32 786449, metadata !1, i32 12,
+                  metadata !"clang version 3.4 (trunk 193128) (llvm/trunk 193139)",
+                  i1 false, metadata !"", i32 0, metadata !2, metadata !2, metadata !3,
+                  metadata !2, metadata !2, metadata !""} ; [ DW_TAG_compile_unit ] \
+                    [/private/tmp/foo.c] \
+                    [DW_LANG_C99]
+  !1 = metadata !{metadata !"t.c", metadata !"/private/tmp"}
+  !2 = metadata !{i32 0}
+  !3 = metadata !{metadata !4}
+  !4 = metadata !{i32 786478, metadata !1, metadata !5, metadata !"foo",
+                  metadata !"foo", metadata !"", i32 1, metadata !6,
+                  i1 false, i1 true, i32 0, i32 0, null, i32 0, i1 false,
+                  void ()* @foo, null, null, metadata !2, i32 1}
+                  ; [ DW_TAG_subprogram ] [line 1] [def] [foo]
+  !5 = metadata !{i32 786473, metadata !1}  ; [ DW_TAG_file_type ] \
+                    [/private/tmp/t.c]
+  !6 = metadata !{i32 786453, i32 0, null, metadata !"", i32 0, i64 0, i64 0,
+                  i64 0, i32 0, null, metadata !7, i32 0, null, null, null}
+                  ; [ DW_TAG_subroutine_type ] \
+                    [line 0, size 0, align 0, offset 0] [from ]
+  !7 = metadata !{null}
+  !8 = metadata !{i32 2, metadata !"Dwarf Version", i32 2}
+  !9 = metadata !{metadata !"clang version 3.4 (trunk 193128) (llvm/trunk 193139)"}
+  !10 = metadata !{i32 786688, metadata !4, metadata !"X", metadata !5, i32 2,
+                   metadata !11, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [X] \
+                     [line 2]
+  !11 = metadata !{i32 786468, null, null, metadata !"int", i32 0, i64 32,
+                   i64 32, i64 0, i32 0, i32 5} ; [ DW_TAG_base_type ] [int] \
+                     [line 0, size 32, align 32, offset 0, enc DW_ATE_signed]
+  !12 = metadata !{i32 2, i32 0, metadata !4, null}
+  !13 = metadata !{i32 786688, metadata !4, metadata !"Y", metadata !5, i32 3,
+                   metadata !11, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [Y] \
+                     [line 3]
+  !14 = metadata !{i32 3, i32 0, metadata !4, null}
+  !15 = metadata !{i32 786688, metadata !16, metadata !"Z", metadata !5, i32 5,
+                   metadata !11, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [Z] \
+                     [line 5]
+  !16 = metadata !{i32 786443, metadata !1, metadata !4, i32 4, i32 0, i32 0} \
+                   ; [ DW_TAG_lexical_block ] [/private/tmp/t.c]
+  !17 = metadata !{i32 5, i32 0, metadata !16, null}
+  !18 = metadata !{i32 6, i32 0, metadata !16, null}
+  !19 = metadata !{i32 8, i32 0, metadata !4, null} ; [ DW_TAG_imported_declaration ]
+  !20 = metadata !{i32 9, i32 0, metadata !4, null}
+>>>>>>> llvmtrunk/master
 
 This example illustrates a few important details about LLVM debugging
 information.  In particular, it shows how the ``llvm.dbg.declare`` intrinsic and
@@ -716,14 +819,23 @@ variable definitions, and the code used to implement the function.
 
 .. code-block:: llvm
 
+<<<<<<< HEAD
   call void @llvm.dbg.declare(metadata, metadata !0), !dbg !7
 
 The first intrinsic ``%llvm.dbg.declare`` encodes debugging information for the
 variable ``X``.  The metadata ``!dbg !7`` attached to the intrinsic provides
+=======
+  call void @llvm.dbg.declare(metadata !{i32* %X}, metadata !10), !dbg !12
+    ; [debug line = 2:7] [debug variable = X]
+
+The first intrinsic ``%llvm.dbg.declare`` encodes debugging information for the
+variable ``X``.  The metadata ``!dbg !12`` attached to the intrinsic provides
+>>>>>>> llvmtrunk/master
 scope information for the variable ``X``.
 
 .. code-block:: llvm
 
+<<<<<<< HEAD
   !7 = metadata !{i32 2, i32 7, metadata !1, null}
   !1 = metadata !{i32 458763, metadata !2}; [DW_TAG_lexical_block ]
   !2 = metadata !{i32 458798, i32 0, metadata !3, metadata !"foo",
@@ -731,6 +843,16 @@ scope information for the variable ``X``.
                   metadata !4, i1 false, i1 true}; [DW_TAG_subprogram ]
 
 Here ``!7`` is metadata providing location information.  It has four fields:
+=======
+  !12 = metadata !{i32 2, i32 0, metadata !4, null}
+  !4 = metadata !{i32 786478, metadata !1, metadata !5, metadata !"foo",
+                  metadata !"foo", metadata !"", i32 1, metadata !6,
+                  i1 false, i1 true, i32 0, i32 0, null, i32 0, i1 false,
+                  void ()* @foo, null, null, metadata !2, i32 1}
+                    ; [ DW_TAG_subprogram ] [line 1] [def] [foo]
+
+Here ``!12`` is metadata providing location information.  It has four fields:
+>>>>>>> llvmtrunk/master
 line number, column number, scope, and original scope.  The original scope
 represents inline location if this instruction is inlined inside a caller, and
 is null otherwise.  In this example, scope is encoded by ``!1``. ``!1``
@@ -751,12 +873,22 @@ scope information for the variable ``Z``.
 
 .. code-block:: llvm
 
+<<<<<<< HEAD
   !13 = metadata !{i32 458763, metadata !1}; [DW_TAG_lexical_block ]
   !14 = metadata !{i32 5, i32 9, metadata !13, null}
 
 Here ``!14`` indicates that ``Z`` is declared at line number 5 and
 column number 9 inside of lexical scope ``!13``.  The lexical scope itself
 resides inside of lexical scope ``!1`` described above.
+=======
+  !16 = metadata !{i32 786443, metadata !1, metadata !4, i32 4, i32 0, i32 0}
+                   ; [ DW_TAG_lexical_block ] [/private/tmp/t.c]
+  !17 = metadata !{i32 5, i32 0, metadata !16, null}
+
+Here ``!15`` indicates that ``Z`` is declared at line number 5 and
+column number 0 inside of lexical scope ``!16``.  The lexical scope itself
+resides inside of subprogram ``!4`` described above.
+>>>>>>> llvmtrunk/master
 
 The scope information attached with each instruction provides a straightforward
 way to find instructions covered by a scope.
@@ -2270,7 +2402,7 @@ stringWithCString:]``") and the basename is the selector only
 Mach-O Changes
 """"""""""""""
 
-The sections names for the apple hash tables are for non mach-o files.  For
+The sections names for the apple hash tables are for non-mach-o files.  For
 mach-o files, the sections should be contained in the ``__DWARF`` segment with
 names as follows:
 

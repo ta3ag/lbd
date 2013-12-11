@@ -23,6 +23,45 @@
 
 using namespace llvm;
 
+<<<<<<< HEAD
+=======
+static bool didCallAllocateCodeSection;
+
+static uint8_t *roundTripAllocateCodeSection(void *object, uintptr_t size,
+                                             unsigned alignment,
+                                             unsigned sectionID,
+                                             const char *sectionName) {
+  didCallAllocateCodeSection = true;
+  return static_cast<SectionMemoryManager*>(object)->allocateCodeSection(
+    size, alignment, sectionID, sectionName);
+}
+
+static uint8_t *roundTripAllocateDataSection(void *object, uintptr_t size,
+                                             unsigned alignment,
+                                             unsigned sectionID,
+                                             const char *sectionName,
+                                             LLVMBool isReadOnly) {
+  return static_cast<SectionMemoryManager*>(object)->allocateDataSection(
+    size, alignment, sectionID, sectionName, isReadOnly);
+}
+
+static LLVMBool roundTripFinalizeMemory(void *object, char **errMsg) {
+  std::string errMsgString;
+  bool result =
+    static_cast<SectionMemoryManager*>(object)->finalizeMemory(&errMsgString);
+  if (result) {
+    *errMsg = LLVMCreateMessage(errMsgString.c_str());
+    return 1;
+  }
+  return 0;
+}
+
+static void roundTripDestroy(void *object) {
+  delete static_cast<SectionMemoryManager*>(object);
+}
+
+namespace {
+>>>>>>> llvmtrunk/master
 class MCJITCAPITest : public testing::Test, public MCJITTestAPICommon {
 protected:
   MCJITCAPITest() {
@@ -63,7 +102,20 @@ TEST_F(MCJITCAPITest, simple_function) {
   LLVMVerifyModule(module, LLVMAbortProcessAction, &error);
   LLVMDisposeMessage(error);
   
+<<<<<<< HEAD
   LLVMDisposeBuilder(builder);
+=======
+  LLVMModuleRef Module;
+  LLVMValueRef Function;
+  LLVMMCJITCompilerOptions Options;
+  LLVMExecutionEngineRef Engine;
+  char *Error;
+};
+} // end anonymous namespace
+
+TEST_F(MCJITCAPITest, simple_function) {
+  SKIP_UNSUPPORTED_PLATFORM;
+>>>>>>> llvmtrunk/master
   
   LLVMMCJITCompilerOptions options;
   LLVMInitializeMCJITCompilerOptions(&options, sizeof(options));

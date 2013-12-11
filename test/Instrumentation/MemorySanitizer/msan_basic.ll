@@ -1,12 +1,32 @@
 ; RUN: opt < %s -msan -msan-check-access-address=0 -S | FileCheck %s
+<<<<<<< HEAD
 ; RUN: opt < %s -msan -msan-check-access-address=0 -msan-track-origins=1 -S | FileCheck -check-prefix=CHECK-ORIGINS %s
+=======
+; RUN: opt < %s -msan -msan-check-access-address=0 -msan-track-origins=1 -S | FileCheck -check-prefix=CHECK -check-prefix=CHECK-ORIGINS %s
+
+>>>>>>> llvmtrunk/master
 target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128"
 
 ; Check the presence of __msan_init
 ; CHECK: @llvm.global_ctors {{.*}} @__msan_init
 
+<<<<<<< HEAD
 ; Check the presence and the linkage type of __msan_track_origins
 ; CHECK: @__msan_track_origins = weak_odr constant i32 0
+=======
+; Check the presence and the linkage type of __msan_track_origins and
+; other interface symbols.
+; CHECK-NOT: @__msan_track_origins
+; CHECK-ORIGINS: @__msan_track_origins = weak_odr constant i32 1
+; CHECK-NOT: @__msan_keep_going = weak_odr constant i32 0
+; CHECK: @__msan_retval_tls = external thread_local(initialexec) global [{{.*}}]
+; CHECK: @__msan_retval_origin_tls = external thread_local(initialexec) global i32
+; CHECK: @__msan_param_tls = external thread_local(initialexec) global [{{.*}}]
+; CHECK: @__msan_param_origin_tls = external thread_local(initialexec) global [{{.*}}]
+; CHECK: @__msan_va_arg_tls = external thread_local(initialexec) global [{{.*}}]
+; CHECK: @__msan_va_arg_overflow_size_tls = external thread_local(initialexec) global i64
+; CHECK: @__msan_origin_tls = external thread_local(initialexec) global i32
+>>>>>>> llvmtrunk/master
 
 
 ; Check instrumentation of stores
@@ -19,20 +39,16 @@ entry:
 
 ; CHECK: @Store
 ; CHECK: load {{.*}} @__msan_param_tls
+; CHECK-ORIGINS: load {{.*}} @__msan_param_origin_tls
 ; CHECK: store
-; CHECK: store
-; CHECK: ret void
-; CHECK-ORIGINS: @Store
-; CHECK-ORIGINS: load {{.*}} @__msan_param_tls
-; CHECK-ORIGINS: store
 ; CHECK-ORIGINS: icmp
 ; CHECK-ORIGINS: br i1
 ; CHECK-ORIGINS: <label>
 ; CHECK-ORIGINS: store
 ; CHECK-ORIGINS: br label
 ; CHECK-ORIGINS: <label>
-; CHECK-ORIGINS: store
-; CHECK-ORIGINS: ret void
+; CHECK: store
+; CHECK: ret void
 
 
 ; Check instrumentation of aligned stores
@@ -47,20 +63,16 @@ entry:
 
 ; CHECK: @AlignedStore
 ; CHECK: load {{.*}} @__msan_param_tls
+; CHECK-ORIGINS: load {{.*}} @__msan_param_origin_tls
 ; CHECK: store {{.*}} align 32
-; CHECK: store {{.*}} align 32
-; CHECK: ret void
-; CHECK-ORIGINS: @AlignedStore
-; CHECK-ORIGINS: load {{.*}} @__msan_param_tls
-; CHECK-ORIGINS: store {{.*}} align 32
 ; CHECK-ORIGINS: icmp
 ; CHECK-ORIGINS: br i1
 ; CHECK-ORIGINS: <label>
 ; CHECK-ORIGINS: store {{.*}} align 32
 ; CHECK-ORIGINS: br label
 ; CHECK-ORIGINS: <label>
-; CHECK-ORIGINS: store {{.*}} align 32
-; CHECK-ORIGINS: ret void
+; CHECK: store {{.*}} align 32
+; CHECK: ret void
 
 
 ; load followed by cmp: check that we load the shadow and call __msan_warning.
@@ -238,16 +250,20 @@ declare void @llvm.memmove.p0i8.p0i8.i64(i8* nocapture, i8* nocapture, i64, i32,
 
 ; Check that we propagate shadow for "select"
 
-define i32 @Select(i32 %a, i32 %b, i32 %c) nounwind uwtable readnone sanitize_memory {
+define i32 @Select(i32 %a, i32 %b, i1 %c) nounwind uwtable readnone sanitize_memory {
 entry:
-  %tobool = icmp ne i32 %c, 0
-  %cond = select i1 %tobool, i32 %a, i32 %b
+  %cond = select i1 %c, i32 %a, i32 %b
   ret i32 %cond
 }
 
 ; CHECK: @Select
 ; CHECK: select
+; CHECK-NEXT: sext i1 {{.*}} to i32
+; CHECK-NEXT: or i32
 ; CHECK-NEXT: select
+; CHECK-ORIGINS: select
+; CHECK-ORIGINS: select
+; CHECK: select
 ; CHECK: ret i32
 
 
@@ -261,11 +277,55 @@ entry:
   ret <8 x i16> %cond
 }
 
-; CHECK-ORIGINS: @SelectVector
+; CHECK: @SelectVector
+; CHECK: select <8 x i1>
+; CHECK-NEXT: sext <8 x i1> {{.*}} to <8 x i16>
+; CHECK-NEXT: or <8 x i16>
 ; CHECK-ORIGINS: bitcast <8 x i1> {{.*}} to i8
-; CHECK-ORIGINS: icmp ne i8
+; CHECK-ORIGINS: icmp ne i8 {{.*}}, 0
+; CHECK-ORIGINS: bitcast <8 x i1> {{.*}} to i8
+; CHECK-ORIGINS: icmp ne i8 {{.*}}, 0
 ; CHECK-ORIGINS: select i1
-; CHECK-ORIGINS: ret <8 x i16>
+; CHECK-ORIGINS: select i1
+; CHECK: select <8 x i1>
+; CHECK: ret <8 x i16>
+
+
+
+; Check that we propagate origin for "select" with scalar condition and vector
+; arguments. Select condition shadow is sign-extended to the vector type and
+; mixed into the result shadow.
+
+define <8 x i16> @SelectVector2(<8 x i16> %a, <8 x i16> %b, i1 %c) nounwind uwtable readnone sanitize_memory {
+entry:
+  %cond = select i1 %c, <8 x i16> %a, <8 x i16> %b
+  ret <8 x i16> %cond
+}
+
+; CHECK: @SelectVector2
+; CHECK: select i1
+; CHECK: sext i1 {{.*}} to i128
+; CHECK: bitcast i128 {{.*}} to <8 x i16>
+; CHECK: or <8 x i16>
+; CHECK-ORIGINS: select i1
+; CHECK-ORIGINS: select i1
+; CHECK: select i1
+; CHECK: ret <8 x i16>
+
+
+define { i64, i64 } @SelectStruct(i1 zeroext %x, { i64, i64 } %a, { i64, i64 } %b) readnone sanitize_memory {
+entry:
+  %c = select i1 %x, { i64, i64 } %a, { i64, i64 } %b
+  ret { i64, i64 } %c
+}
+
+; CHECK: @SelectStruct
+; CHECK: select i1 {{.*}}, { i64, i64 }
+; CHECK-NEXT: select i1 {{.*}}, { i64, i64 } { i64 -1, i64 -1 }, { i64, i64 }
+; CHECK-ORIGINS: select i1
+; CHECK-ORIGINS: select i1
+; CHECK-NEXT: select i1 {{.*}}, { i64, i64 }
+; CHECK: ret { i64, i64 }
 
 
 define i8* @IntToPtr(i64 %x) nounwind uwtable readnone sanitize_memory {
@@ -276,9 +336,10 @@ entry:
 
 ; CHECK: @IntToPtr
 ; CHECK: load i64*{{.*}}__msan_param_tls
+; CHECK-ORIGINS-NEXT: load i32*{{.*}}__msan_param_origin_tls
 ; CHECK-NEXT: inttoptr
 ; CHECK-NEXT: store i64{{.*}}__msan_retval_tls
-; CHECK: ret i8
+; CHECK: ret i8*
 
 
 define i8* @IntToPtr_ZExt(i16 %x) nounwind uwtable readnone sanitize_memory {
@@ -288,9 +349,11 @@ entry:
 }
 
 ; CHECK: @IntToPtr_ZExt
+; CHECK: load i16*{{.*}}__msan_param_tls
 ; CHECK: zext
 ; CHECK-NEXT: inttoptr
-; CHECK: ret i8
+; CHECK-NEXT: store i64{{.*}}__msan_retval_tls
+; CHECK: ret i8*
 
 
 ; Check that we insert exactly one check on udiv
@@ -407,8 +470,8 @@ define i32 @ShadowLoadAlignmentLarge() nounwind uwtable sanitize_memory {
 }
 
 ; CHECK: @ShadowLoadAlignmentLarge
-; CHECK: load i32* {{.*}} align 64
 ; CHECK: load volatile i32* {{.*}} align 64
+; CHECK: load i32* {{.*}} align 64
 ; CHECK: ret i32
 
 define i32 @ShadowLoadAlignmentSmall() nounwind uwtable sanitize_memory {
@@ -418,15 +481,10 @@ define i32 @ShadowLoadAlignmentSmall() nounwind uwtable sanitize_memory {
 }
 
 ; CHECK: @ShadowLoadAlignmentSmall
-; CHECK: load i32* {{.*}} align 2
 ; CHECK: load volatile i32* {{.*}} align 2
-; CHECK: ret i32
-
-; CHECK-ORIGINS: @ShadowLoadAlignmentSmall
-; CHECK-ORIGINS: load i32* {{.*}} align 2
+; CHECK: load i32* {{.*}} align 2
 ; CHECK-ORIGINS: load i32* {{.*}} align 4
-; CHECK-ORIGINS: load volatile i32* {{.*}} align 2
-; CHECK-ORIGINS: ret i32
+; CHECK: ret i32
 
 
 ; Test vector manipulation instructions.
@@ -513,17 +571,13 @@ declare <16 x i8> @llvm.x86.sse3.ldu.dq(i8* %p) nounwind
 
 ; CHECK: @LoadIntrinsic
 ; CHECK: load <16 x i8>* {{.*}} align 1
+; CHECK-ORIGINS: [[ORIGIN:%[01-9a-z]+]] = load i32* {{.*}}
 ; CHECK-NOT: br
 ; CHECK-NOT: = or
 ; CHECK: call <16 x i8> @llvm.x86.sse3.ldu.dq
 ; CHECK: store <16 x i8> {{.*}} @__msan_retval_tls
-; CHECK: ret <16 x i8>
-
-; CHECK-ORIGINS: @LoadIntrinsic
-; CHECK-ORIGINS: [[ORIGIN:%[01-9a-z]+]] = load i32* {{.*}}
-; CHECK-ORIGINS: call <16 x i8> @llvm.x86.sse3.ldu.dq
 ; CHECK-ORIGINS: store i32 {{.*}}[[ORIGIN]], i32* @__msan_retval_origin_tls
-; CHECK-ORIGINS: ret <16 x i8>
+; CHECK: ret <16 x i8>
 
 
 ; Simple NoMem intrinsic
@@ -539,21 +593,17 @@ declare <8 x i16> @llvm.x86.sse2.padds.w(<8 x i16> %a, <8 x i16> %b) nounwind
 
 ; CHECK: @Paddsw128
 ; CHECK-NEXT: load <8 x i16>* {{.*}} @__msan_param_tls
+; CHECK-ORIGINS: load i32* {{.*}} @__msan_param_origin_tls
 ; CHECK-NEXT: load <8 x i16>* {{.*}} @__msan_param_tls
+; CHECK-ORIGINS: load i32* {{.*}} @__msan_param_origin_tls
 ; CHECK-NEXT: = or <8 x i16>
-; CHECK-NEXT: call <8 x i16> @llvm.x86.sse2.padds.w
-; CHECK-NEXT: store <8 x i16> {{.*}} @__msan_retval_tls
-; CHECK-NEXT: ret <8 x i16>
-
-; CHECK-ORIGINS: @Paddsw128
-; CHECK-ORIGINS: load i32* {{.*}} @__msan_param_origin_tls
-; CHECK-ORIGINS: load i32* {{.*}} @__msan_param_origin_tls
 ; CHECK-ORIGINS: = bitcast <8 x i16> {{.*}} to i128
 ; CHECK-ORIGINS-NEXT: = icmp ne i128 {{.*}}, 0
 ; CHECK-ORIGINS-NEXT: = select i1 {{.*}}, i32 {{.*}}, i32
-; CHECK-ORIGINS: call <8 x i16> @llvm.x86.sse2.padds.w
+; CHECK-NEXT: call <8 x i16> @llvm.x86.sse2.padds.w
+; CHECK-NEXT: store <8 x i16> {{.*}} @__msan_retval_tls
 ; CHECK-ORIGINS: store i32 {{.*}} @__msan_retval_origin_tls
-; CHECK-ORIGINS: ret <8 x i16>
+; CHECK-NEXT: ret <8 x i16>
 
 
 ; Test handling of vectors of pointers.
@@ -565,8 +615,8 @@ define <8 x i8*> @VectorOfPointers(<8 x i8*>* %p) nounwind uwtable sanitize_memo
 }
 
 ; CHECK: @VectorOfPointers
-; CHECK: load <8 x i64>*
 ; CHECK: load <8 x i8*>*
+; CHECK: load <8 x i64>*
 ; CHECK: store <8 x i64> {{.*}} @__msan_retval_tls
 ; CHECK: ret <8 x i8*>
 
@@ -581,6 +631,31 @@ define void @VACopy(i8* %p1, i8* %p2) nounwind uwtable sanitize_memory {
 
 ; CHECK: @VACopy
 ; CHECK: call void @llvm.memset.p0i8.i64({{.*}}, i8 0, i64 24, i32 8, i1 false)
+; CHECK: ret void
+
+
+; Test that va_start instrumentation does not use va_arg_tls*.
+; It should work with a local stack copy instead.
+
+%struct.__va_list_tag = type { i32, i32, i8*, i8* }
+declare void @llvm.va_start(i8*) nounwind
+
+; Function Attrs: nounwind uwtable
+define void @VAStart(i32 %x, ...) {
+entry:
+  %x.addr = alloca i32, align 4
+  %va = alloca [1 x %struct.__va_list_tag], align 16
+  store i32 %x, i32* %x.addr, align 4
+  %arraydecay = getelementptr inbounds [1 x %struct.__va_list_tag]* %va, i32 0, i32 0
+  %arraydecay1 = bitcast %struct.__va_list_tag* %arraydecay to i8*
+  call void @llvm.va_start(i8* %arraydecay1)
+  ret void
+}
+
+; CHECK: @VAStart
+; CHECK: call void @llvm.va_start
+; CHECK-NOT: @__msan_va_arg_tls
+; CHECK-NOT: @__msan_va_arg_overflow_size_tls
 ; CHECK: ret void
 
 
@@ -623,3 +698,81 @@ declare void @bar()
 ; CHECK: store {{.*}} @__msan_retval_tls
 ; CHECK-NOT: @__msan_warning
 ; CHECK: ret i32
+<<<<<<< HEAD
+=======
+
+
+; Test that stack allocations are unpoisoned in functions missing
+; sanitize_memory attribute
+
+define i32 @NoSanitizeMemoryAlloca() {
+entry:
+  %p = alloca i32, align 4
+  %x = call i32 @NoSanitizeMemoryAllocaHelper(i32* %p)
+  ret i32 %x
+}
+
+declare i32 @NoSanitizeMemoryAllocaHelper(i32* %p)
+
+; CHECK: @NoSanitizeMemoryAlloca
+; CHECK: call void @llvm.memset.p0i8.i64(i8* {{.*}}, i8 0, i64 4, i32 4, i1 false)
+; CHECK: call i32 @NoSanitizeMemoryAllocaHelper(i32*
+; CHECK: ret i32
+
+
+; Test that undef is unpoisoned in functions missing
+; sanitize_memory attribute
+
+define i32 @NoSanitizeMemoryUndef() {
+entry:
+  %x = call i32 @NoSanitizeMemoryUndefHelper(i32 undef)
+  ret i32 %x
+}
+
+declare i32 @NoSanitizeMemoryUndefHelper(i32 %x)
+
+; CHECK: @NoSanitizeMemoryAlloca
+; CHECK: store i32 0, i32* {{.*}} @__msan_param_tls
+; CHECK: call i32 @NoSanitizeMemoryUndefHelper(i32 undef)
+; CHECK: ret i32
+
+
+; Test argument shadow alignment
+
+define <2 x i64> @ArgumentShadowAlignment(i64 %a, <2 x i64> %b) sanitize_memory {
+entry:
+  ret <2 x i64> %b
+}
+
+; CHECK: @ArgumentShadowAlignment
+; CHECK: load <2 x i64>* {{.*}} @__msan_param_tls {{.*}}, align 8
+; CHECK: store <2 x i64> {{.*}} @__msan_retval_tls {{.*}}, align 8
+; CHECK: ret <2 x i64>
+
+
+; Test origin propagation for insertvalue
+
+define { i64, i32 } @make_pair_64_32(i64 %x, i32 %y) sanitize_memory {
+entry:
+  %a = insertvalue { i64, i32 } undef, i64 %x, 0
+  %b = insertvalue { i64, i32 } %a, i32 %y, 1
+  ret { i64, i32 } %b
+}
+
+; CHECK-ORIGINS: @make_pair_64_32
+; First element shadow
+; CHECK-ORIGINS: insertvalue { i64, i32 } { i64 -1, i32 -1 }, i64 {{.*}}, 0
+; First element origin
+; CHECK-ORIGINS: icmp ne i64
+; CHECK-ORIGINS: select i1
+; First element app value
+; CHECK-ORIGINS: insertvalue { i64, i32 } undef, i64 {{.*}}, 0
+; Second element shadow
+; CHECK-ORIGINS: insertvalue { i64, i32 } {{.*}}, i32 {{.*}}, 1
+; Second element origin
+; CHECK-ORIGINS: icmp ne i32
+; CHECK-ORIGINS: select i1
+; Second element app value
+; CHECK-ORIGINS: insertvalue { i64, i32 } {{.*}}, i32 {{.*}}, 1
+; CHECK-ORIGINS: ret { i64, i32 }
+>>>>>>> llvmtrunk/master

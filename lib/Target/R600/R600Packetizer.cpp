@@ -59,6 +59,8 @@ class R600PacketizerList : public VLIWPacketizerList {
 private:
   const R600InstrInfo *TII;
   const R600RegisterInfo &TRI;
+  bool VLIW5;
+  bool ConsideredInstUsesAlreadyWrittenVectorElement;
 
   enum BankSwizzle {
     ALU_VEC_012 = 0,
@@ -84,19 +86,38 @@ private:
     MachineBasicBlock::instr_iterator BI = I.getInstrIterator();
     if (I->isBundle())
       BI++;
+    int LastDstChan = -1;
     do {
+      bool isTrans = false;
+      int BISlot = getSlot(BI);
+      if (LastDstChan >= BISlot)
+        isTrans = true;
+      LastDstChan = BISlot;
       if (TII->isPredicated(BI))
         continue;
-      if (TII->isTransOnly(BI))
+      int OperandIdx = TII->getOperandIdx(BI->getOpcode(), AMDGPU::OpName::write);
+      if (OperandIdx > -1 && BI->getOperand(OperandIdx).getImm() == 0)
         continue;
-      int OperandIdx = TII->getOperandIdx(BI->getOpcode(), R600Operands::WRITE);
-      if (OperandIdx < 0)
+      int DstIdx = TII->getOperandIdx(BI->getOpcode(), AMDGPU::OpName::dst);
+      if (DstIdx == -1) {
         continue;
-      if (BI->getOperand(OperandIdx).getImm() == 0)
+      }
+      unsigned Dst = BI->getOperand(DstIdx).getReg();
+      if (isTrans || TII->isTransOnly(BI)) {
+        Result[Dst] = AMDGPU::PS;
         continue;
+<<<<<<< HEAD
       unsigned Dst = BI->getOperand(0).getReg();
       if (BI->getOpcode() == AMDGPU::DOT4_r600_real) {
+=======
+      }
+      if (BI->getOpcode() == AMDGPU::DOT4_r600 ||
+          BI->getOpcode() == AMDGPU::DOT4_eg) {
+>>>>>>> llvmtrunk/master
         Result[Dst] = AMDGPU::PV_X;
+        continue;
+      }
+      if (Dst == AMDGPU::OQAP) {
         continue;
       }
       unsigned PVReg = 0;
@@ -123,10 +144,10 @@ private:
 
   void substitutePV(MachineInstr *MI, const DenseMap<unsigned, unsigned> &PVs)
       const {
-    R600Operands::Ops Ops[] = {
-      R600Operands::SRC0,
-      R600Operands::SRC1,
-      R600Operands::SRC2
+    unsigned Ops[] = {
+      AMDGPU::OpName::src0,
+      AMDGPU::OpName::src1,
+      AMDGPU::OpName::src2
     };
     for (unsigned i = 0; i < 3; i++) {
       int OperandIdx = TII->getOperandIdx(MI->getOpcode(), Ops[i]);
@@ -144,10 +165,14 @@ public:
                         MachineDominatorTree &MDT)
   : VLIWPacketizerList(MF, MLI, MDT, true),
     TII (static_cast<const R600InstrInfo *>(MF.getTarget().getInstrInfo())),
-    TRI(TII->getRegisterInfo()) { }
+    TRI(TII->getRegisterInfo()) {
+    VLIW5 = !MF.getTarget().getSubtarget<AMDGPUSubtarget>().hasCaymanISA();
+  }
 
   // initPacketizerState - initialize some internal flags.
-  void initPacketizerState() { }
+  void initPacketizerState() {
+    ConsideredInstUsesAlreadyWrittenVectorElement = false;
+  }
 
   // ignorePseudoInstruction - Ignore bundling of pseudo instructions.
   bool ignorePseudoInstruction(MachineInstr *MI, MachineBasicBlock *MBB) {
@@ -161,9 +186,11 @@ public:
       return true;
     if (!TII->isALUInstr(MI->getOpcode()))
       return true;
-    if (TII->get(MI->getOpcode()).TSFlags & R600_InstFlag::TRANS_ONLY)
+    if (MI->getOpcode() == AMDGPU::GROUP_BARRIER)
       return true;
-    if (TII->isTransOnly(MI))
+    // XXX: This can be removed once the packetizer properly handles all the
+    // LDS instruction group restrictions.
+    if (TII->isLDSInstr(MI->getOpcode()))
       return true;
     return false;
   }
@@ -172,11 +199,11 @@ public:
   // together.
   bool isLegalToPacketizeTogether(SUnit *SUI, SUnit *SUJ) {
     MachineInstr *MII = SUI->getInstr(), *MIJ = SUJ->getInstr();
-    if (getSlot(MII) <= getSlot(MIJ))
-      return false;
+    if (getSlot(MII) == getSlot(MIJ))
+      ConsideredInstUsesAlreadyWrittenVectorElement = true;
     // Does MII and MIJ share the same pred_sel ?
-    int OpI = TII->getOperandIdx(MII->getOpcode(), R600Operands::PRED_SEL),
-        OpJ = TII->getOperandIdx(MIJ->getOpcode(), R600Operands::PRED_SEL);
+    int OpI = TII->getOperandIdx(MII->getOpcode(), AMDGPU::OpName::pred_sel),
+        OpJ = TII->getOperandIdx(MIJ->getOpcode(), AMDGPU::OpName::pred_sel);
     unsigned PredI = (OpI > -1)?MII->getOperand(OpI).getReg():0,
         PredJ = (OpJ > -1)?MIJ->getOperand(OpJ).getReg():0;
     if (PredI != PredJ)
@@ -194,6 +221,14 @@ public:
         return false;
       }
     }
+
+    bool ARDef = TII->definesAddressRegister(MII) ||
+                 TII->definesAddressRegister(MIJ);
+    bool ARUse = TII->usesAddressRegister(MII) ||
+                 TII->usesAddressRegister(MIJ);
+    if (ARDef && ARUse)
+      return false;
+
     return true;
   }
 
@@ -202,15 +237,34 @@ public:
   bool isLegalToPruneDependencies(SUnit *SUI, SUnit *SUJ) {return false;}
 
   void setIsLastBit(MachineInstr *MI, unsigned Bit) const {
-    unsigned LastOp = TII->getOperandIdx(MI->getOpcode(), R600Operands::LAST);
+    unsigned LastOp = TII->getOperandIdx(MI->getOpcode(), AMDGPU::OpName::last);
     MI->getOperand(LastOp).setImm(Bit);
   }
 
-  MachineBasicBlock::iterator addToPacket(MachineInstr *MI) {
+  bool isBundlableWithCurrentPMI(MachineInstr *MI,
+                                 const DenseMap<unsigned, unsigned> &PV,
+                                 std::vector<R600InstrInfo::BankSwizzle> &BS,
+                                 bool &isTransSlot) {
+    isTransSlot = TII->isTransOnly(MI);
+    assert (!isTransSlot || VLIW5);
+
+    // Is the dst reg sequence legal ?
+    if (!isTransSlot && !CurrentPacketMIs.empty()) {
+      if (getSlot(MI) <= getSlot(CurrentPacketMIs.back())) {
+        if (ConsideredInstUsesAlreadyWrittenVectorElement  &&
+            !TII->isVectorOnly(MI) && VLIW5) {
+          isTransSlot = true;
+          DEBUG(dbgs() << "Considering as Trans Inst :"; MI->dump(););
+        }
+        else
+          return false;
+      }
+    }
+
+    // Are the Constants limitations met ?
     CurrentPacketMIs.push_back(MI);
-    bool FitsConstLimits = TII->canBundle(CurrentPacketMIs);
-    DEBUG(
-      if (!FitsConstLimits) {
+    if (!TII->fitsConstReadLimitations(CurrentPacketMIs)) {
+      DEBUG(
         dbgs() << "Couldn't pack :\n";
         MI->dump();
         dbgs() << "with the following packets :\n";
@@ -219,12 +273,24 @@ public:
           dbgs() << "\n";
         }
         dbgs() << "because of Consts read limitations\n";
+<<<<<<< HEAD
       });
     const DenseMap<unsigned, unsigned> &PV =
         getPreviousVector(CurrentPacketMIs.front());
     bool FitsReadPortLimits = fitsReadPortLimitation(CurrentPacketMIs, PV);
     DEBUG(
       if (!FitsReadPortLimits) {
+=======
+      );
+      CurrentPacketMIs.pop_back();
+      return false;
+    }
+
+    // Is there a BankSwizzle set that meet Read Port limitations ?
+    if (!TII->fitsReadPortLimitations(CurrentPacketMIs,
+            PV, BS, isTransSlot)) {
+      DEBUG(
+>>>>>>> llvmtrunk/master
         dbgs() << "Couldn't pack :\n";
         MI->dump();
         dbgs() << "with the following packets :\n";
@@ -233,6 +299,7 @@ public:
           dbgs() << "\n";
         }
         dbgs() << "because of Read port limitations\n";
+<<<<<<< HEAD
       });
     bool isBundlable = FitsConstLimits && FitsReadPortLimits;
     CurrentPacketMIs.pop_back();
@@ -244,6 +311,51 @@ public:
     if (!CurrentPacketMIs.empty())
       setIsLastBit(CurrentPacketMIs.back(), 0);
     substitutePV(MI, PV);
+=======
+      );
+      CurrentPacketMIs.pop_back();
+      return false;
+    }
+
+    // We cannot read LDS source registrs from the Trans slot.
+    if (isTransSlot && TII->readsLDSSrcReg(MI))
+      return false;
+
+    CurrentPacketMIs.pop_back();
+    return true;
+  }
+
+  MachineBasicBlock::iterator addToPacket(MachineInstr *MI) {
+    MachineBasicBlock::iterator FirstInBundle =
+        CurrentPacketMIs.empty() ? MI : CurrentPacketMIs.front();
+    const DenseMap<unsigned, unsigned> &PV =
+        getPreviousVector(FirstInBundle);
+    std::vector<R600InstrInfo::BankSwizzle> BS;
+    bool isTransSlot;
+
+    if (isBundlableWithCurrentPMI(MI, PV, BS, isTransSlot)) {
+      for (unsigned i = 0, e = CurrentPacketMIs.size(); i < e; i++) {
+        MachineInstr *MI = CurrentPacketMIs[i];
+        unsigned Op = TII->getOperandIdx(MI->getOpcode(),
+            AMDGPU::OpName::bank_swizzle);
+        MI->getOperand(Op).setImm(BS[i]);
+      }
+      unsigned Op = TII->getOperandIdx(MI->getOpcode(),
+          AMDGPU::OpName::bank_swizzle);
+      MI->getOperand(Op).setImm(BS.back());
+      if (!CurrentPacketMIs.empty())
+        setIsLastBit(CurrentPacketMIs.back(), 0);
+      substitutePV(MI, PV);
+      MachineBasicBlock::iterator It = VLIWPacketizerList::addToPacket(MI);
+      if (isTransSlot) {
+        endPacket(llvm::next(It)->getParent(), llvm::next(It));
+      }
+      return It;
+    }
+    endPacket(MI->getParent(), MI);
+    if (TII->isTransOnly(MI))
+      return MI;
+>>>>>>> llvmtrunk/master
     return VLIWPacketizerList::addToPacket(MI);
   }
 private:
@@ -402,7 +514,8 @@ bool R600Packetizer::runOnMachineFunction(MachineFunction &Fn) {
     MachineBasicBlock::iterator End = MBB->end();
     MachineBasicBlock::iterator MI = MBB->begin();
     while (MI != End) {
-      if (MI->isKill()) {
+      if (MI->isKill() || MI->getOpcode() == AMDGPU::IMPLICIT_DEF ||
+          (MI->getOpcode() == AMDGPU::CF_ALU && !MI->getOperand(8).getImm())) {
         MachineBasicBlock::iterator DeleteMI = MI;
         ++MI;
         MBB->erase(DeleteMI);

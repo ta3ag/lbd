@@ -154,6 +154,7 @@ Options:\n\
   --targets-built   List of all targets currently built.\n\
   --host-target     Target triple used to configure LLVM.\n\
   --build-mode      Print build mode of LLVM tree (e.g. Debug or Release).\n\
+  --assertion-mode  Print assertion mode of LLVM tree (ON or OFF).\n\
 Typical components:\n\
   all               All LLVM libraries (default).\n\
   engine            Either a native JIT or a bitcode interpreter.\n";
@@ -161,11 +162,11 @@ Typical components:\n\
 }
 
 /// \brief Compute the path to the main executable.
-llvm::sys::Path GetExecutablePath(const char *Argv0) {
+std::string GetExecutablePath(const char *Argv0) {
   // This just needs to be some symbol in the binary; C++ doesn't
   // allow taking the address of ::main however.
   void *P = (void*) (intptr_t) GetExecutablePath;
-  return llvm::sys::Path::GetMainExecutable(Argv0, P);
+  return llvm::sys::fs::getMainExecutable(Argv0, P);
 }
 
 int main(int argc, char **argv) {
@@ -179,7 +180,7 @@ int main(int argc, char **argv) {
   // tree.
   bool IsInDevelopmentTree;
   enum { MakefileStyle, CMakeStyle, CMakeBuildModeStyle } DevelopmentTreeLayout;
-  llvm::SmallString<256> CurrentPath(GetExecutablePath(argv[0]).str());
+  llvm::SmallString<256> CurrentPath(GetExecutablePath(argv[0]));
   std::string CurrentExecPrefix;
   std::string ActiveObjRoot;
 
@@ -300,7 +301,18 @@ int main(int argc, char **argv) {
       } else if (Arg == "--host-target") {
         OS << LLVM_DEFAULT_TARGET_TRIPLE << '\n';
       } else if (Arg == "--build-mode") {
-        OS << LLVM_BUILDMODE << '\n';
+        char const *build_mode = LLVM_BUILDMODE;
+#if defined(CMAKE_CFG_INTDIR)
+        if (!(CMAKE_CFG_INTDIR[0] == '.' && CMAKE_CFG_INTDIR[1] == '\0'))
+          build_mode = CMAKE_CFG_INTDIR;
+#endif
+        OS << build_mode << '\n';
+      } else if (Arg == "--assertion-mode") {
+#if defined(NDEBUG)
+        OS << "OFF\n";
+#else
+        OS << "ON\n";
+#endif
       } else if (Arg == "--obj-root") {
         OS << LLVM_OBJ_ROOT << '\n';
       } else if (Arg == "--src-root") {

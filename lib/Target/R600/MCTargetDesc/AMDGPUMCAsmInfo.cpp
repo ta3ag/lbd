@@ -13,7 +13,6 @@
 using namespace llvm;
 AMDGPUMCAsmInfo::AMDGPUMCAsmInfo(const Target &T, StringRef &TT) : MCAsmInfo() {
   HasSingleParameterDotFile = false;
-  WeakDefDirective = 0;
   //===------------------------------------------------------------------===//
   HasSubsectionsViaSymbols = true;
   HasMachoZeroFillDirective = false;
@@ -21,20 +20,14 @@ AMDGPUMCAsmInfo::AMDGPUMCAsmInfo(const Target &T, StringRef &TT) : MCAsmInfo() {
   HasStaticCtorDtorReferenceInStaticMode = false;
   LinkerRequiresNonEmptyDwarfLines = true;
   MaxInstLength = 16;
-  PCSymbol = "$";
   SeparatorString = "\n";
   CommentColumn = 40;
   CommentString = ";";
   LabelSuffix = ":";
-  GlobalPrefix = "@";
-  PrivateGlobalPrefix = ";.";
   LinkerPrivateGlobalPrefix = "!";
   InlineAsmStart = ";#ASMSTART";
   InlineAsmEnd = ";#ASMEND";
   AssemblerDialect = 0;
-  AllowQuotesInName = false;
-  AllowNameToStartWithDigit = false;
-  AllowPeriodsInName = false;
 
   //===--- Data Emission Directives -------------------------------------===//
   ZeroDirective = ".zero";
@@ -47,7 +40,6 @@ AMDGPUMCAsmInfo::AMDGPUMCAsmInfo(const Target &T, StringRef &TT) : MCAsmInfo() {
   GPRel32Directive = 0;
   SunStyleELFSectionSwitchSyntax = true;
   UsesELFSectionDirectiveForBSS = true;
-  HasMicrosoftFastStdCallMangling = false;
 
   //===--- Alignment Information ----------------------------------------===//
   AlignDirective = ".align\t";
@@ -56,23 +48,15 @@ AMDGPUMCAsmInfo::AMDGPUMCAsmInfo(const Target &T, StringRef &TT) : MCAsmInfo() {
 
   //===--- Global Variable Emission Directives --------------------------===//
   GlobalDirective = ".global";
-  ExternDirective = ".extern";
   HasSetDirective = false;
   HasAggressiveSymbolFolding = true;
   COMMDirectiveAlignmentIsInBytes = false;
   HasDotTypeDotSizeDirective = false;
   HasNoDeadStrip = true;
-  HasSymbolResolver = false;
   WeakRefDirective = ".weakref\t";
-  LinkOnceDirective = 0;
   //===--- Dwarf Emission Directives -----------------------------------===//
   HasLEB128 = true;
   SupportsDebugInformation = true;
-}
-
-const char*
-AMDGPUMCAsmInfo::getDataASDirective(unsigned int Size, unsigned int AS) const {
-  return 0;
 }
 
 const MCSection*

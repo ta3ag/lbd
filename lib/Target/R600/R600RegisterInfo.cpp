@@ -20,15 +20,24 @@
 
 using namespace llvm;
 
+<<<<<<< HEAD
 R600RegisterInfo::R600RegisterInfo(AMDGPUTargetMachine &tm,
     const TargetInstrInfo &tii)
 : AMDGPURegisterInfo(tm, tii),
   TM(tm),
   TII(tii)
   { }
+=======
+R600RegisterInfo::R600RegisterInfo(AMDGPUTargetMachine &tm)
+: AMDGPURegisterInfo(tm),
+  TM(tm)
+  { RCW.RegWeight = 0; RCW.WeightLimit = 0;}
+>>>>>>> llvmtrunk/master
 
 BitVector R600RegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   BitVector Reserved(getNumRegs());
+
+  const R600InstrInfo *TII = static_cast<const R600InstrInfo*>(TM.getInstrInfo());
 
   Reserved.set(AMDGPU::ZERO);
   Reserved.set(AMDGPU::HALF);
@@ -43,25 +52,15 @@ BitVector R600RegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   Reserved.set(AMDGPU::PRED_SEL_OFF);
   Reserved.set(AMDGPU::PRED_SEL_ZERO);
   Reserved.set(AMDGPU::PRED_SEL_ONE);
+  Reserved.set(AMDGPU::INDIRECT_BASE_ADDR);
 
   for (TargetRegisterClass::iterator I = AMDGPU::R600_AddrRegClass.begin(),
                         E = AMDGPU::R600_AddrRegClass.end(); I != E; ++I) {
     Reserved.set(*I);
   }
 
-  for (TargetRegisterClass::iterator I = AMDGPU::TRegMemRegClass.begin(),
-                                     E = AMDGPU::TRegMemRegClass.end();
-                                     I !=  E; ++I) {
-    Reserved.set(*I);
-  }
+  TII->reserveIndirectRegisters(Reserved, MF);
 
-  const R600InstrInfo *RII = static_cast<const R600InstrInfo*>(&TII);
-  std::vector<unsigned> IndirectRegs = RII->getIndirectReservedRegs(MF);
-  for (std::vector<unsigned>::iterator I = IndirectRegs.begin(),
-                                       E = IndirectRegs.end();
-                                       I != E; ++I) {
-    Reserved.set(*I);
-  }
   return Reserved;
 }
 
@@ -79,6 +78,10 @@ unsigned R600RegisterInfo::getHWRegChan(unsigned reg) const {
   return this->getEncodingValue(reg) >> HW_CHAN_SHIFT;
 }
 
+unsigned R600RegisterInfo::getHWRegIndex(unsigned Reg) const {
+  return GET_REG_INDEX(getEncodingValue(Reg));
+}
+
 const TargetRegisterClass * R600RegisterInfo::getCFGStructurizerRegClass(
                                                                    MVT VT) const {
   switch(VT.SimpleTy) {
@@ -87,6 +90,7 @@ const TargetRegisterClass * R600RegisterInfo::getCFGStructurizerRegClass(
   }
 }
 
+<<<<<<< HEAD
 unsigned R600RegisterInfo::getSubRegFromChannel(unsigned Channel) const {
   switch (Channel) {
     default: assert(!"Invalid channel index"); return 0;
@@ -97,3 +101,22 @@ unsigned R600RegisterInfo::getSubRegFromChannel(unsigned Channel) const {
   }
 }
 
+=======
+const RegClassWeight &R600RegisterInfo::getRegClassWeight(
+  const TargetRegisterClass *RC) const {
+  return RCW;
+}
+
+bool R600RegisterInfo::isPhysRegLiveAcrossClauses(unsigned Reg) const {
+  assert(!TargetRegisterInfo::isVirtualRegister(Reg));
+
+  switch (Reg) {
+  case AMDGPU::OQAP:
+  case AMDGPU::OQBP:
+  case AMDGPU::AR_X:
+    return false;
+  default:
+    return true;
+  }
+}
+>>>>>>> llvmtrunk/master

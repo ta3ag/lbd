@@ -117,6 +117,15 @@ public:
                           MachineModuleInfo *MMI, unsigned Encoding,
                           MCStreamer &Streamer) const;
 
+  /// Return the MCSymbol for the specified global value.  This symbol is the
+  /// main label that is the address of the global
+  MCSymbol *getSymbol(Mangler &M, const GlobalValue *GV) const;
+
+  /// Return the MCSymbol for a private symbol with global value name as its
+  /// base, with the specified suffix.
+  MCSymbol *getSymbolWithGlobalValueBase(Mangler &M, const GlobalValue *GV,
+                                         StringRef Suffix) const;
+
   // getCFIPersonalitySymbol - The symbol that gets passed to .cfi_personality.
   virtual MCSymbol *
   getCFIPersonalitySymbol(const GlobalValue *GV, Mangler *Mang,
@@ -137,6 +146,10 @@ public:
     (void)Priority;
     return StaticDtorSection;
   }
+
+  /// \brief Create a symbol reference to describe the given TLS variable when
+  /// emitting the address in debug info.
+  virtual const MCExpr *getDebugThreadLocalSymbol(const MCSymbol *Sym) const;
 
 protected:
   virtual const MCSection *

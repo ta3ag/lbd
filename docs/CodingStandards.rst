@@ -796,7 +796,9 @@ In general, names should be in camel case (e.g. ``TextFileReader`` and
   
 As an exception, classes that mimic STL classes can have member names in STL's
 style of lower-case words separated by underscores (e.g. ``begin()``,
-``push_back()``, and ``empty()``).
+``push_back()``, and ``empty()``). Classes that provide multiple
+iterators should add a singular prefix to ``begin()`` and ``end()``
+(e.g. ``global_begin()`` and ``use_begin()``).
 
 Here are some examples of good and bad names:
 
@@ -842,7 +844,7 @@ Here are more examples:
 
 .. code-block:: c++
 
-  assert(Ty->isPointerType() && "Can't allocate a non pointer type!");
+  assert(Ty->isPointerType() && "Can't allocate a non-pointer type!");
 
   assert((Opcode == Shl || Opcode == Shr) && "ShiftInst Opcode invalid!");
 

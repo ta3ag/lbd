@@ -48,6 +48,24 @@ private:
   unsigned getMachineOpValue(const MCInst &MI, const MCOperand &MO,
                              SmallVectorImpl<MCFixup> &Fixups) const;
 
+<<<<<<< HEAD
+=======
+  // Called by the TableGen code to get the binary encoding of an address.
+  // The index or length, if any, is encoded first, followed by the base,
+  // followed by the displacement.  In a 20-bit displacement,
+  // the low 12 bits are encoded before the high 8 bits.
+  uint64_t getBDAddr12Encoding(const MCInst &MI, unsigned OpNum,
+                               SmallVectorImpl<MCFixup> &Fixups) const;
+  uint64_t getBDAddr20Encoding(const MCInst &MI, unsigned OpNum,
+                               SmallVectorImpl<MCFixup> &Fixups) const;
+  uint64_t getBDXAddr12Encoding(const MCInst &MI, unsigned OpNum,
+                                SmallVectorImpl<MCFixup> &Fixups) const;
+  uint64_t getBDXAddr20Encoding(const MCInst &MI, unsigned OpNum,
+                                SmallVectorImpl<MCFixup> &Fixups) const;
+  uint64_t getBDLAddr12Len8Encoding(const MCInst &MI, unsigned OpNum,
+                                    SmallVectorImpl<MCFixup> &Fixups) const;
+
+>>>>>>> llvmtrunk/master
   // Operand OpNum of MI needs a PC-relative fixup of kind Kind at
   // Offset bytes from the start of MI.  Add the fixup to Fixups
   // and return the in-place addend, which since we're a RELA target
@@ -64,6 +82,7 @@ private:
                               SmallVectorImpl<MCFixup> &Fixups) const {
     return getPCRelEncoding(MI, OpNum, Fixups, SystemZ::FK_390_PC32DBL, 2);
   }
+<<<<<<< HEAD
   unsigned getPLT16DBLEncoding(const MCInst &MI, unsigned int OpNum,
                                SmallVectorImpl<MCFixup> &Fixups) const {
     return getPCRelEncoding(MI, OpNum, Fixups, SystemZ::FK_390_PLT16DBL, 2);
@@ -72,6 +91,8 @@ private:
                                SmallVectorImpl<MCFixup> &Fixups) const {
     return getPCRelEncoding(MI, OpNum, Fixups, SystemZ::FK_390_PLT32DBL, 2);
   }
+=======
+>>>>>>> llvmtrunk/master
 };
 }
 
@@ -99,14 +120,68 @@ unsigned SystemZMCCodeEmitter::
 getMachineOpValue(const MCInst &MI, const MCOperand &MO,
                   SmallVectorImpl<MCFixup> &Fixups) const {
   if (MO.isReg())
-    return Ctx.getRegisterInfo().getEncodingValue(MO.getReg());
+    return Ctx.getRegisterInfo()->getEncodingValue(MO.getReg());
   if (MO.isImm())
     return static_cast<unsigned>(MO.getImm());
   llvm_unreachable("Unexpected operand type!");
 }
 
+<<<<<<< HEAD
 unsigned
 SystemZMCCodeEmitter::getPCRelEncoding(const MCInst &MI, unsigned int OpNum,
+=======
+uint64_t SystemZMCCodeEmitter::
+getBDAddr12Encoding(const MCInst &MI, unsigned OpNum,
+                    SmallVectorImpl<MCFixup> &Fixups) const {
+  uint64_t Base = getMachineOpValue(MI, MI.getOperand(OpNum), Fixups);
+  uint64_t Disp = getMachineOpValue(MI, MI.getOperand(OpNum + 1), Fixups);
+  assert(isUInt<4>(Base) && isUInt<12>(Disp));
+  return (Base << 12) | Disp;
+}
+
+uint64_t SystemZMCCodeEmitter::
+getBDAddr20Encoding(const MCInst &MI, unsigned OpNum,
+                    SmallVectorImpl<MCFixup> &Fixups) const {
+  uint64_t Base = getMachineOpValue(MI, MI.getOperand(OpNum), Fixups);
+  uint64_t Disp = getMachineOpValue(MI, MI.getOperand(OpNum + 1), Fixups);
+  assert(isUInt<4>(Base) && isInt<20>(Disp));
+  return (Base << 20) | ((Disp & 0xfff) << 8) | ((Disp & 0xff000) >> 12);
+}
+
+uint64_t SystemZMCCodeEmitter::
+getBDXAddr12Encoding(const MCInst &MI, unsigned OpNum,
+                     SmallVectorImpl<MCFixup> &Fixups) const {
+  uint64_t Base = getMachineOpValue(MI, MI.getOperand(OpNum), Fixups);
+  uint64_t Disp = getMachineOpValue(MI, MI.getOperand(OpNum + 1), Fixups);
+  uint64_t Index = getMachineOpValue(MI, MI.getOperand(OpNum + 2), Fixups);
+  assert(isUInt<4>(Base) && isUInt<12>(Disp) && isUInt<4>(Index));
+  return (Index << 16) | (Base << 12) | Disp;
+}
+
+uint64_t SystemZMCCodeEmitter::
+getBDXAddr20Encoding(const MCInst &MI, unsigned OpNum,
+                     SmallVectorImpl<MCFixup> &Fixups) const {
+  uint64_t Base = getMachineOpValue(MI, MI.getOperand(OpNum), Fixups);
+  uint64_t Disp = getMachineOpValue(MI, MI.getOperand(OpNum + 1), Fixups);
+  uint64_t Index = getMachineOpValue(MI, MI.getOperand(OpNum + 2), Fixups);
+  assert(isUInt<4>(Base) && isInt<20>(Disp) && isUInt<4>(Index));
+  return (Index << 24) | (Base << 20) | ((Disp & 0xfff) << 8)
+    | ((Disp & 0xff000) >> 12);
+}
+
+uint64_t SystemZMCCodeEmitter::
+getBDLAddr12Len8Encoding(const MCInst &MI, unsigned OpNum,
+                         SmallVectorImpl<MCFixup> &Fixups) const {
+  uint64_t Base = getMachineOpValue(MI, MI.getOperand(OpNum), Fixups);
+  uint64_t Disp = getMachineOpValue(MI, MI.getOperand(OpNum + 1), Fixups);
+  uint64_t Len  = getMachineOpValue(MI, MI.getOperand(OpNum + 2), Fixups) - 1;
+  assert(isUInt<4>(Base) && isUInt<12>(Disp) && isUInt<8>(Len));
+  return (Len << 16) | (Base << 12) | Disp;
+}
+
+uint64_t
+SystemZMCCodeEmitter::getPCRelEncoding(const MCInst &MI, unsigned OpNum,
+>>>>>>> llvmtrunk/master
                                        SmallVectorImpl<MCFixup> &Fixups,
                                        unsigned Kind, int64_t Offset) const {
   const MCOperand &MO = MI.getOperand(OpNum);

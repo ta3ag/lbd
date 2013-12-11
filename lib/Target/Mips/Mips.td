@@ -78,6 +78,8 @@ def FeatureDSP : SubtargetFeature<"dsp", "HasDSP", "true", "Mips DSP ASE">;
 def FeatureDSPR2 : SubtargetFeature<"dspr2", "HasDSPR2", "true",
                                     "Mips DSP-R2 ASE", [FeatureDSP]>;
 
+def FeatureMSA : SubtargetFeature<"msa", "HasMSA", "true", "Mips MSA ASE">;
+
 def FeatureMicroMips  : SubtargetFeature<"micromips", "InMicroMipsMode", "true",
                                          "microMips mode">;
 
@@ -94,13 +96,9 @@ def : Proc<"mips64", [FeatureMips64]>;
 def : Proc<"mips64r2", [FeatureMips64r2]>;
 def : Proc<"mips16", [FeatureMips16]>;
 
-def MipsAsmWriter : AsmWriter {
-  string AsmWriterClassName  = "InstPrinter";
-  bit isMCAsmWriter = 1;
-}
-
 def MipsAsmParser : AsmParser {
   let ShouldEmitMatchRegisterName = 0;
+  let MnemonicContainsDot = 1;
 }
 
 def MipsAsmParserVariant : AsmParserVariant {
@@ -113,6 +111,5 @@ def MipsAsmParserVariant : AsmParserVariant {
 def Mips : Target {
   let InstructionSet = MipsInstrInfo;
   let AssemblyParsers = [MipsAsmParser];
-  let AssemblyWriters = [MipsAsmWriter];
   let AssemblyParserVariants = [MipsAsmParserVariant];
 }

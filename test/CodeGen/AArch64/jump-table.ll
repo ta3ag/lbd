@@ -1,6 +1,5 @@
 ; RUN: llc -verify-machineinstrs < %s -mtriple=aarch64-none-linux-gnu | FileCheck %s
 ; RUN: llc -code-model=large -verify-machineinstrs < %s -mtriple=aarch64-none-linux-gnu | FileCheck --check-prefix=CHECK-LARGE %s
-; RUN: llc -verify-machineinstrs < %s -mtriple=aarch64-none-linux-gnu -filetype=obj | llvm-readobj -r | FileCheck %s -check-prefix=CHECK-ELF
 
 define i32 @test_jumptable(i32 %in) {
 ; CHECK: test_jumptable
@@ -48,6 +47,7 @@ lbl4:
 ; CHECK-NEXT: .xword
 ; CHECK-NEXT: .xword
 ; CHECK-NEXT: .xword
+<<<<<<< HEAD
 
 ; ELF tests:
 
@@ -64,3 +64,5 @@ lbl4:
 ; CHECK-ELF-NEXT:     0x{{[0-9,A-F]+}} R_AARCH64_ABS64 .text
 ; CHECK-ELF:        }
 ; CHECK-ELF:      ]
+=======
+>>>>>>> llvmtrunk/master

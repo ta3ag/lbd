@@ -25,6 +25,7 @@ AsmLexer::AsmLexer(const MCAsmInfo &_MAI) : MAI(_MAI)  {
   CurBuf = NULL;
   CurPtr = NULL;
   isAtStartOfLine = true;
+  AllowAtInIdentifier = !StringRef(MAI.getCommentString()).startswith("@");
 }
 
 AsmLexer::~AsmLexer() {
@@ -91,9 +92,57 @@ AsmToken AsmLexer::LexFloatLiteral() {
                   StringRef(TokStart, CurPtr - TokStart));
 }
 
-/// LexIdentifier: [a-zA-Z_.][a-zA-Z0-9_$.@]*
-static bool IsIdentifierChar(char c) {
-  return isalnum(c) || c == '_' || c == '$' || c == '.' || c == '@';
+/// LexHexFloatLiteral matches essentially (.[0-9a-fA-F]*)?[pP][+-]?[0-9a-fA-F]+
+/// while making sure there are enough actual digits around for the constant to
+/// be valid.
+///
+/// The leading "0x[0-9a-fA-F]*" (i.e. integer part) has already been consumed
+/// before we get here.
+AsmToken AsmLexer::LexHexFloatLiteral(bool NoIntDigits) {
+  assert((*CurPtr == 'p' || *CurPtr == 'P' || *CurPtr == '.') &&
+         "unexpected parse state in floating hex");
+  bool NoFracDigits = true;
+
+  // Skip the fractional part if there is one
+  if (*CurPtr == '.') {
+    ++CurPtr;
+
+    const char *FracStart = CurPtr;
+    while (isxdigit(*CurPtr))
+      ++CurPtr;
+
+    NoFracDigits = CurPtr == FracStart;
+  }
+
+  if (NoIntDigits && NoFracDigits)
+    return ReturnError(TokStart, "invalid hexadecimal floating-point constant: "
+                                 "expected at least one significand digit");
+
+  // Make sure we do have some kind of proper exponent part
+  if (*CurPtr != 'p' && *CurPtr != 'P')
+    return ReturnError(TokStart, "invalid hexadecimal floating-point constant: "
+                                 "expected exponent part 'p'");
+  ++CurPtr;
+
+  if (*CurPtr == '+' || *CurPtr == '-')
+    ++CurPtr;
+
+  // N.b. exponent digits are *not* hex
+  const char *ExpStart = CurPtr;
+  while (isdigit(*CurPtr))
+    ++CurPtr;
+
+  if (CurPtr == ExpStart)
+    return ReturnError(TokStart, "invalid hexadecimal floating-point constant: "
+                                 "expected at least one exponent digit");
+
+  return AsmToken(AsmToken::Real, StringRef(TokStart, CurPtr - TokStart));
+}
+
+/// LexIdentifier: [a-zA-Z_.][a-zA-Z0-9_$.@?]*
+static bool IsIdentifierChar(char c, bool AllowAt) {
+  return isalnum(c) || c == '_' || c == '$' || c == '.' ||
+         (c == '@' && AllowAt) || c == '?';
 }
 AsmToken AsmLexer::LexIdentifier() {
   // Check for floating point literals.
@@ -101,11 +150,12 @@ AsmToken AsmLexer::LexIdentifier() {
     // Disambiguate a .1243foo identifier from a floating literal.
     while (isdigit(*CurPtr))
       ++CurPtr;
-    if (*CurPtr == 'e' || *CurPtr == 'E' || !IsIdentifierChar(*CurPtr))
+    if (*CurPtr == 'e' || *CurPtr == 'E' ||
+        !IsIdentifierChar(*CurPtr, AllowAtInIdentifier))
       return LexFloatLiteral();
   }
 
-  while (IsIdentifierChar(*CurPtr))
+  while (IsIdentifierChar(*CurPtr, AllowAtInIdentifier))
     ++CurPtr;
 
   // Handle . as a special case.
@@ -265,7 +315,12 @@ AsmToken AsmLexer::LexDigit() {
     while (isxdigit(CurPtr[0]))
       ++CurPtr;
 
-    // Requires at least one hex digit.
+    // "0x.0p0" is valid, and "0x0p0" (but not "0xp0" for example, which will be
+    // diagnosed by LexHexFloatLiteral).
+    if (CurPtr[0] == '.' || CurPtr[0] == 'p' || CurPtr[0] == 'P')
+      return LexHexFloatLiteral(NumStart == CurPtr);
+
+    // Otherwise requires at least one hex digit.
     if (CurPtr == NumStart)
       return ReturnError(CurPtr-2, "invalid hexadecimal number");
 

@@ -57,9 +57,6 @@ extern "C" void LLVMInitializeNVPTXTarget() {
   RegisterTargetMachine<NVPTXTargetMachine32> X(TheNVPTXTarget32);
   RegisterTargetMachine<NVPTXTargetMachine64> Y(TheNVPTXTarget64);
 
-  RegisterMCAsmInfo<NVPTXMCAsmInfo> A(TheNVPTXTarget32);
-  RegisterMCAsmInfo<NVPTXMCAsmInfo> B(TheNVPTXTarget64);
-
   // FIXME: This pass is really intended to be invoked during IR optimization,
   // but it's very NVPTX-specific.
   initializeNVVMReflectPass(*PassRegistry::getPassRegistry());
@@ -105,6 +102,11 @@ public:
   virtual void addIRPasses();
   virtual bool addInstSelector();
   virtual bool addPreRegAlloc();
+  virtual bool addPostRegAlloc();
+
+  virtual FunctionPass *createTargetRegisterAllocator(bool) LLVM_OVERRIDE;
+  virtual void addFastRegAlloc(FunctionPass *RegAllocPass);
+  virtual void addOptimizedRegAlloc(FunctionPass *RegAllocPass);
 };
 }
 
@@ -114,6 +116,16 @@ TargetPassConfig *NVPTXTargetMachine::createPassConfig(PassManagerBase &PM) {
 }
 
 void NVPTXPassConfig::addIRPasses() {
+  // The following passes are known to not play well with virtual regs hanging
+  // around after register allocation (which in our case, is *all* registers).
+  // We explicitly disable them here.  We do, however, need some functionality
+  // of the PrologEpilogCodeInserter pass, so we emulate that behavior in the
+  // NVPTXPrologEpilog pass (see NVPTXPrologEpilogPass.cpp).
+  disablePass(&PrologEpilogCodeInserterID);
+  disablePass(&MachineCopyPropagationID);
+  disablePass(&BranchFolderPassID);
+  disablePass(&TailDuplicateID);
+
   TargetPassConfig::addIRPasses();
   addPass(createGenericToNVVMPass());
 }
@@ -127,3 +139,41 @@ bool NVPTXPassConfig::addInstSelector() {
 }
 
 bool NVPTXPassConfig::addPreRegAlloc() { return false; }
+bool NVPTXPassConfig::addPostRegAlloc() {
+  addPass(createNVPTXPrologEpilogPass());
+  return false;
+}
+
+FunctionPass *NVPTXPassConfig::createTargetRegisterAllocator(bool) {
+  return 0; // No reg alloc
+}
+
+void NVPTXPassConfig::addFastRegAlloc(FunctionPass *RegAllocPass) {
+  assert(!RegAllocPass && "NVPTX uses no regalloc!");
+  addPass(&PHIEliminationID);
+  addPass(&TwoAddressInstructionPassID);
+}
+
+void NVPTXPassConfig::addOptimizedRegAlloc(FunctionPass *RegAllocPass) {
+  assert(!RegAllocPass && "NVPTX uses no regalloc!");
+
+  addPass(&ProcessImplicitDefsID);
+  addPass(&LiveVariablesID);
+  addPass(&MachineLoopInfoID);
+  addPass(&PHIEliminationID);
+
+  addPass(&TwoAddressInstructionPassID);
+  addPass(&RegisterCoalescerID);
+
+  // PreRA instruction scheduling.
+  if (addPass(&MachineSchedulerID))
+    printAndVerify("After Machine Scheduling");
+
+
+  addPass(&StackSlotColoringID);
+
+  // FIXME: Needs physical registers
+  //addPass(&PostRAMachineLICMID);
+
+  printAndVerify("After StackSlotColoring");
+}

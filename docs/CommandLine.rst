@@ -925,7 +925,7 @@ This section describes the basic attributes that you can specify on options.
 
   .. code-block:: c++
 
-    cl::opt<**bool**> Quiet("quiet");
+    cl::opt<bool> Quiet("quiet");
 
 .. _cl::desc(...):
 
@@ -1275,7 +1275,7 @@ The ``cl::getRegisteredOptions`` function
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``cl::getRegisteredOptions`` function is designed to give a programmer
-access to declared non positional command line options so that how they appear
+access to declared non-positional command line options so that how they appear
 in ``-help`` can be modified prior to calling `cl::ParseCommandLineOptions`_.
 Note this method should not be called during any static initialisation because
 it cannot be guaranteed that all options will have been initialised. Hence it

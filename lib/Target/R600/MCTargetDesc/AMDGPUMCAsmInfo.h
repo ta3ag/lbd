@@ -22,8 +22,12 @@ class StringRef;
 
 class AMDGPUMCAsmInfo : public MCAsmInfo {
 public:
+<<<<<<< HEAD
   explicit AMDGPUMCAsmInfo(const Target &T, StringRef &TT);
   const char* getDataASDirective(unsigned int Size, unsigned int AS) const;
+=======
+  explicit AMDGPUMCAsmInfo(StringRef &TT);
+>>>>>>> llvmtrunk/master
   const MCSection* getNonexecutableStackSection(MCContext &CTX) const;
 };
 } // namespace llvm

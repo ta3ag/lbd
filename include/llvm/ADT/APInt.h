@@ -283,17 +283,31 @@ public:
 
   /// @brief Destructor.
   ~APInt() {
+<<<<<<< HEAD
     if (!isSingleWord())
       delete [] pVal;
+=======
+    if (needsCleanup())
+      delete[] pVal;
+>>>>>>> llvmtrunk/master
   }
 
   /// Default constructor that creates an uninitialized APInt.  This is useful
   ///  for object deserialization (pair this with the static method Read).
   explicit APInt() : BitWidth(1) {}
 
+<<<<<<< HEAD
   /// Profile - Used to insert APInt objects, or objects that contain APInt
   ///  objects, into FoldingSets.
   void Profile(FoldingSetNodeID& id) const;
+=======
+  /// \brief Returns whether this instance allocated memory.
+  bool needsCleanup() const { return !isSingleWord(); }
+
+  /// Used to insert APInt objects, or objects that contain APInt objects, into
+  ///  FoldingSets.
+  void Profile(FoldingSetNodeID &id) const;
+>>>>>>> llvmtrunk/master
 
   /// @}
   /// @name Value Tests
@@ -320,17 +334,28 @@ public:
   }
 
   /// This checks to see if the value has all bits of the APInt are set or not.
+<<<<<<< HEAD
   /// @brief Determine if all bits are set
   bool isAllOnesValue() const {
     return countPopulation() == BitWidth;
+=======
+  bool isAllOnesValue() const {
+    if (isSingleWord())
+      return VAL == ~integerPart(0) >> (APINT_BITS_PER_WORD - BitWidth);
+    return countPopulationSlowCase() == BitWidth;
+>>>>>>> llvmtrunk/master
   }
 
   /// This checks to see if the value of this APInt is the maximum unsigned
   /// value for the APInt's bit width.
+<<<<<<< HEAD
   /// @brief Determine if this is the largest unsigned value.
   bool isMaxValue() const {
     return countPopulation() == BitWidth;
   }
+=======
+  bool isMaxValue() const { return isAllOnesValue(); }
+>>>>>>> llvmtrunk/master
 
   /// This checks to see if the value of this APInt is the maximum signed
   /// value for the APInt's bit width.
@@ -702,7 +727,11 @@ public:
       return APInt(getBitWidth(), VAL & RHS.VAL);
     return AndSlowCase(RHS);
   }
+<<<<<<< HEAD
   APInt And(const APInt& RHS) const {
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT And(const APInt &RHS) const {
+>>>>>>> llvmtrunk/master
     return this->operator&(RHS);
   }
 
@@ -719,6 +748,21 @@ public:
     return this->operator|(RHS);
   }
 
+<<<<<<< HEAD
+=======
+  /// \brief Bitwise OR function.
+  ///
+  /// Performs a bitwise or on *this and RHS. This is implemented bny simply
+  /// calling operator|.
+  ///
+  /// \returns An APInt value representing the bitwise OR of *this and RHS.
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT Or(const APInt &RHS) const {
+    return this->operator|(RHS);
+  }
+
+  /// \brief Bitwise XOR operator.
+  ///
+>>>>>>> llvmtrunk/master
   /// Performs a bitwise XOR operation on *this and RHS.
   /// @returns An APInt value representing the bitwise XOR of *this and RHS.
   /// @brief Bitwise XOR operator.
@@ -732,6 +776,21 @@ public:
     return this->operator^(RHS);
   }
 
+<<<<<<< HEAD
+=======
+  /// \brief Bitwise XOR function.
+  ///
+  /// Performs a bitwise XOR operation on *this and RHS. This is implemented
+  /// through the usage of operator^.
+  ///
+  /// \returns An APInt value representing the bitwise XOR of *this and RHS.
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT Xor(const APInt &RHS) const {
+    return this->operator^(RHS);
+  }
+
+  /// \brief Multiplication operator.
+  ///
+>>>>>>> llvmtrunk/master
   /// Multiplies this APInt by RHS and returns the result.
   /// @brief Multiplication operator.
   APInt operator*(const APInt& RHS) const;
@@ -759,16 +818,28 @@ public:
   }
 
   /// Arithmetic right-shift this APInt by shiftAmt.
+<<<<<<< HEAD
   /// @brief Arithmetic right-shift function.
   APInt ashr(unsigned shiftAmt) const;
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT ashr(unsigned shiftAmt) const;
+>>>>>>> llvmtrunk/master
 
   /// Logical right-shift this APInt by shiftAmt.
+<<<<<<< HEAD
   /// @brief Logical right-shift function.
   APInt lshr(unsigned shiftAmt) const;
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT lshr(unsigned shiftAmt) const;
+>>>>>>> llvmtrunk/master
 
   /// Left-shift this APInt by shiftAmt.
+<<<<<<< HEAD
   /// @brief Left-shift function.
   APInt shl(unsigned shiftAmt) const {
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT shl(unsigned shiftAmt) const {
+>>>>>>> llvmtrunk/master
     assert(shiftAmt <= BitWidth && "Invalid shift amount");
     if (isSingleWord()) {
       if (shiftAmt >= BitWidth)
@@ -778,21 +849,38 @@ public:
     return shlSlowCase(shiftAmt);
   }
 
+<<<<<<< HEAD
   /// @brief Rotate left by rotateAmt.
   APInt rotl(unsigned rotateAmt) const;
 
   /// @brief Rotate right by rotateAmt.
   APInt rotr(unsigned rotateAmt) const;
+=======
+  /// \brief Rotate left by rotateAmt.
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT rotl(unsigned rotateAmt) const;
+
+  /// \brief Rotate right by rotateAmt.
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT rotr(unsigned rotateAmt) const;
+>>>>>>> llvmtrunk/master
 
   /// Arithmetic right-shift this APInt by shiftAmt.
+<<<<<<< HEAD
   /// @brief Arithmetic right-shift function.
   APInt ashr(const APInt &shiftAmt) const;
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT ashr(const APInt &shiftAmt) const;
+>>>>>>> llvmtrunk/master
 
   /// Logical right-shift this APInt by shiftAmt.
+<<<<<<< HEAD
   /// @brief Logical right-shift function.
   APInt lshr(const APInt &shiftAmt) const;
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT lshr(const APInt &shiftAmt) const;
+>>>>>>> llvmtrunk/master
 
   /// Left-shift this APInt by shiftAmt.
+<<<<<<< HEAD
   /// @brief Left-shift function.
   APInt shl(const APInt &shiftAmt) const;
 
@@ -801,29 +889,61 @@ public:
 
   /// @brief Rotate right by rotateAmt.
   APInt rotr(const APInt &rotateAmt) const;
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT shl(const APInt &shiftAmt) const;
+
+  /// \brief Rotate left by rotateAmt.
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT rotl(const APInt &rotateAmt) const;
+
+  /// \brief Rotate right by rotateAmt.
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT rotr(const APInt &rotateAmt) const;
+>>>>>>> llvmtrunk/master
 
   /// Perform an unsigned divide operation on this APInt by RHS. Both this and
   /// RHS are treated as unsigned quantities for purposes of this division.
+<<<<<<< HEAD
   /// @returns a new APInt value containing the division result
   /// @brief Unsigned division operation.
   APInt udiv(const APInt &RHS) const;
+=======
+  ///
+  /// \returns a new APInt value containing the division result
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT udiv(const APInt &RHS) const;
+>>>>>>> llvmtrunk/master
 
   /// Signed divide this APInt by APInt RHS.
+<<<<<<< HEAD
   /// @brief Signed division function for APInt.
   APInt sdiv(const APInt &RHS) const;
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT sdiv(const APInt &RHS) const;
+>>>>>>> llvmtrunk/master
 
   /// Perform an unsigned remainder operation on this APInt with RHS being the
   /// divisor. Both this and RHS are treated as unsigned quantities for purposes
+<<<<<<< HEAD
   /// of this operation. Note that this is a true remainder operation and not
   /// a modulo operation because the sign follows the sign of the dividend
   /// which is *this.
   /// @returns a new APInt value containing the remainder result
   /// @brief Unsigned remainder operation.
   APInt urem(const APInt &RHS) const;
+=======
+  /// of this operation. Note that this is a true remainder operation and not a
+  /// modulo operation because the sign follows the sign of the dividend which
+  /// is *this.
+  ///
+  /// \returns a new APInt value containing the remainder result
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT urem(const APInt &RHS) const;
+>>>>>>> llvmtrunk/master
 
   /// Signed remainder operation on APInt.
+<<<<<<< HEAD
   /// @brief Function for signed remainder operation.
   APInt srem(const APInt &RHS) const;
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT srem(const APInt &RHS) const;
+>>>>>>> llvmtrunk/master
 
   /// Sometimes it is convenient to divide two APInt values and obtain both the
   /// quotient and remainder. This function does both operations in the same
@@ -1049,41 +1169,69 @@ public:
   /// @{
   /// Truncate the APInt to a specified width. It is an error to specify a width
   /// that is greater than or equal to the current width.
+<<<<<<< HEAD
   /// @brief Truncate to new width.
   APInt trunc(unsigned width) const;
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT trunc(unsigned width) const;
+>>>>>>> llvmtrunk/master
 
   /// This operation sign extends the APInt to a new width. If the high order
   /// bit is set, the fill on the left will be done with 1 bits, otherwise zero.
   /// It is an error to specify a width that is less than or equal to the
   /// current width.
+<<<<<<< HEAD
   /// @brief Sign extend to a new width.
   APInt sext(unsigned width) const;
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT sext(unsigned width) const;
+>>>>>>> llvmtrunk/master
 
   /// This operation zero extends the APInt to a new width. The high order bits
   /// are filled with 0 bits.  It is an error to specify a width that is less
   /// than or equal to the current width.
+<<<<<<< HEAD
   /// @brief Zero extend to a new width.
   APInt zext(unsigned width) const;
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT zext(unsigned width) const;
+>>>>>>> llvmtrunk/master
 
   /// Make this APInt have the bit width given by \p width. The value is sign
   /// extended, truncated, or left alone to make it that width.
+<<<<<<< HEAD
   /// @brief Sign extend or truncate to width
   APInt sextOrTrunc(unsigned width) const;
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT sextOrTrunc(unsigned width) const;
+>>>>>>> llvmtrunk/master
 
   /// Make this APInt have the bit width given by \p width. The value is zero
   /// extended, truncated, or left alone to make it that width.
+<<<<<<< HEAD
   /// @brief Zero extend or truncate to width
   APInt zextOrTrunc(unsigned width) const;
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT zextOrTrunc(unsigned width) const;
+>>>>>>> llvmtrunk/master
 
   /// Make this APInt have the bit width given by \p width. The value is sign
   /// extended, or left alone to make it that width.
+<<<<<<< HEAD
   /// @brief Sign extend or truncate to width
   APInt sextOrSelf(unsigned width) const;
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT sextOrSelf(unsigned width) const;
+>>>>>>> llvmtrunk/master
 
   /// Make this APInt have the bit width given by \p width. The value is zero
   /// extended, or left alone to make it that width.
+<<<<<<< HEAD
   /// @brief Zero extend or truncate to width
   APInt zextOrSelf(unsigned width) const;
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT zextOrSelf(unsigned width) const;
+>>>>>>> llvmtrunk/master
 
   /// @}
   /// @name Bit Manipulation Operators
@@ -1303,9 +1451,14 @@ public:
   /// to the methods above to avoid thrashing the heap for the string.
   std::string toString(unsigned Radix, bool Signed) const;
 
+<<<<<<< HEAD
 
   /// @returns a byte-swapped representation of this APInt Value.
   APInt byteSwap() const;
+=======
+  /// \returns a byte-swapped representation of this APInt Value.
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT byteSwap() const;
+>>>>>>> llvmtrunk/master
 
   /// @brief Converts this APInt to a double value.
   double roundToDouble(bool isSigned) const;
@@ -1348,8 +1501,12 @@ public:
 
   /// The conversion does not do a translation from double to integer, it just
   /// re-interprets the bits of the double.
+<<<<<<< HEAD
   /// @brief Converts a double to APInt bits.
   static APInt doubleToBits(double V) {
+=======
+  static APInt LLVM_ATTRIBUTE_UNUSED_RESULT doubleToBits(double V) {
+>>>>>>> llvmtrunk/master
     union {
       uint64_t I;
       double D;
@@ -1360,8 +1517,12 @@ public:
 
   /// The conversion does not do a translation from float to integer, it just
   /// re-interprets the bits of the float.
+<<<<<<< HEAD
   /// @brief Converts a float to APInt bits.
   static APInt floatToBits(float V) {
+=======
+  static APInt LLVM_ATTRIBUTE_UNUSED_RESULT floatToBits(float V) {
+>>>>>>> llvmtrunk/master
     union {
       unsigned I;
       float F;
@@ -1392,12 +1553,21 @@ public:
     return logBase2();
   }
 
+<<<<<<< HEAD
   /// @brief Compute the square root
   APInt sqrt() const;
+=======
+  /// \brief Compute the square root
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT sqrt() const;
+>>>>>>> llvmtrunk/master
 
   /// If *this is < 0 then return -(*this), otherwise *this;
+<<<<<<< HEAD
   /// @brief Get the absolute value;
   APInt abs() const {
+=======
+  APInt LLVM_ATTRIBUTE_UNUSED_RESULT abs() const {
+>>>>>>> llvmtrunk/master
     if (isNegative())
       return -(*this);
     return *this;

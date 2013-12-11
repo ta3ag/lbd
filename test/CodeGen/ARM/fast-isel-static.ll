@@ -1,5 +1,12 @@
+<<<<<<< HEAD
 ; RUN: llc < %s -mtriple=thumbv7-apple-darwin -O0 -verify-machineinstrs -relocation-model=static -arm-long-calls | FileCheck -check-prefix=LONG %s
 ; RUN: llc < %s -mtriple=thumbv7-apple-darwin -O0 -verify-machineinstrs -relocation-model=static | FileCheck -check-prefix=NORM %s
+=======
+; RUN: llc < %s -mtriple=thumbv7-apple-darwin -O0 -verify-machineinstrs -fast-isel-abort -relocation-model=static -arm-long-calls | FileCheck -check-prefix=CHECK-LONG %s
+; RUN: llc < %s -mtriple=thumbv7-linux-gnueabi -O0 -verify-machineinstrs -fast-isel-abort -relocation-model=static -arm-long-calls | FileCheck -check-prefix=CHECK-LONG %s
+; RUN: llc < %s -mtriple=thumbv7-apple-darwin -O0 -verify-machineinstrs -fast-isel-abort -relocation-model=static | FileCheck -check-prefix=CHECK-NORM %s
+; RUN: llc < %s -mtriple=thumbv7-linux-gnueabi -O0 -verify-machineinstrs -fast-isel-abort -relocation-model=static | FileCheck -check-prefix=CHECK-NORM %s
+>>>>>>> llvmtrunk/master
 
 define void @myadd(float* %sum, float* %addend) nounwind {
 entry:

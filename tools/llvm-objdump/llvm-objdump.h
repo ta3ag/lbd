@@ -34,7 +34,9 @@ void DumpBytes(StringRef bytes);
 void DisassembleInputMachO(StringRef Filename);
 void printCOFFUnwindInfo(const object::COFFObjectFile* o);
 void printELFFileHeader(const object::ObjectFile *o);
+void printCOFFFileHeader(const object::ObjectFile *o);
 
+<<<<<<< HEAD
 class StringRefMemoryObject : public MemoryObject {
   virtual void anchor();
   StringRef Bytes;
@@ -53,5 +55,8 @@ public:
 };
 
 }
+=======
+} // end namespace llvm
+>>>>>>> llvmtrunk/master
 
 #endif

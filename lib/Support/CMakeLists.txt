@@ -52,6 +52,7 @@ add_llvm_library(LLVMSupport
   ToolOutputFile.cpp
   Triple.cpp
   Twine.cpp
+  Unicode.cpp
   YAMLParser.cpp
   YAMLTraits.cpp
   raw_os_ostream.cpp
@@ -72,7 +73,6 @@ add_llvm_library(LLVMSupport
   Memory.cpp
   Mutex.cpp
   Path.cpp
-  PathV2.cpp
   Process.cpp
   Program.cpp
   RWMutex.cpp
@@ -89,7 +89,6 @@ add_llvm_library(LLVMSupport
   Unix/Memory.inc
   Unix/Mutex.inc
   Unix/Path.inc
-  Unix/PathV2.inc
   Unix/Process.inc
   Unix/Program.inc
   Unix/RWMutex.inc
@@ -103,7 +102,6 @@ add_llvm_library(LLVMSupport
   Windows/Memory.inc
   Windows/Mutex.inc
   Windows/Path.inc
-  Windows/PathV2.inc
   Windows/Process.inc
   Windows/Program.inc
   Windows/RWMutex.inc

@@ -14,7 +14,7 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/DenseMapInfo.h"
 #include "llvm/ADT/SmallVector.h"
-#include "llvm/ADT/StringExtras.h"
+#include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/ADT/Twine.h"
@@ -44,6 +44,8 @@ template<class T>
 struct MappingTraits {
   // Must provide:
   // static void mapping(IO &io, T &fields);
+  // Optionally may provide:
+  // static StringRef validate(IO &io, T &fields);
 };
 
 
@@ -226,6 +228,23 @@ public:
   static bool const value = (sizeof(test<MappingTraits<T> >(0)) == 1);
 };
 
+// Test if MappingTraits<T>::validate() is defined on type T.
+template <class T>
+struct has_MappingValidateTraits
+{
+  typedef StringRef (*Signature_validate)(class IO&, T&);
+
+  template <typename U>
+  static char test(SameType<Signature_validate, &U::validate>*);
+
+  template <typename U>
+  static double test(...);
+
+public:
+  static bool const value = (sizeof(test<MappingTraits<T> >(0)) == 1);
+};
+
+
 
 // Test if SequenceTraits<T> is defined on type T.
 template <class T>
@@ -309,7 +328,15 @@ struct missingTraits : public  llvm::integral_constant<bool,
                                       && !has_SequenceTraits<T>::value
                                       && !has_DocumentListTraits<T>::value >  {};
 
+template<typename T>
+struct validatedMappingTraits : public  llvm::integral_constant<bool,
+                                       has_MappingTraits<T>::value
+                                    && has_MappingValidateTraits<T>::value> {};
 
+template<typename T>
+struct unvalidatedMappingTraits : public  llvm::integral_constant<bool,
+                                        has_MappingTraits<T>::value
+                                    && !has_MappingValidateTraits<T>::value> {};
 // Base class for Input and Output.
 class IO {
 public:
@@ -323,12 +350,14 @@ public:
   virtual bool preflightElement(unsigned, void *&) = 0;
   virtual void postflightElement(void*) = 0;
   virtual void endSequence() = 0;
+  virtual bool canElideEmptySequence() = 0;
 
   virtual unsigned beginFlowSequence() = 0;
   virtual bool preflightFlowElement(unsigned, void *&) = 0;
   virtual void postflightFlowElement(void*) = 0;
   virtual void endFlowSequence() = 0;
 
+  virtual bool mapTag(StringRef Tag, bool Default=false) = 0;
   virtual void beginMapping() = 0;
   virtual void endMapping() = 0;
   virtual bool preflightKey(const char*, bool, bool, bool &, void *&) = 0;
@@ -388,7 +417,7 @@ public:
   typename llvm::enable_if_c<has_SequenceTraits<T>::value,void>::type
   mapOptional(const char* Key, T& Val) {
     // omit key/value instead of outputting empty sequence
-    if ( this->outputting() && !(Val.begin() != Val.end()) )
+    if ( this->canElideEmptySequence() && !(Val.begin() != Val.end()) )
       return;
     this->processKey(Key, Val, false);
   }
@@ -403,8 +432,7 @@ public:
   void mapOptional(const char* Key, T& Val, const T& Default) {
     this->processKeyWithDefault(Key, Val, Default, false);
   }
-
-
+  
 private:
   template <typename T>
   void processKeyWithDefault(const char *Key, T &Val, const T& DefaultValue,
@@ -482,7 +510,27 @@ yamlize(IO &io, T &Val, bool) {
 
 
 template<typename T>
-typename llvm::enable_if_c<has_MappingTraits<T>::value, void>::type
+typename llvm::enable_if_c<validatedMappingTraits<T>::value, void>::type
+yamlize(IO &io, T &Val, bool) {
+  io.beginMapping();
+  if (io.outputting()) {
+    StringRef Err = MappingTraits<T>::validate(io, Val);
+    if (!Err.empty()) {
+      llvm::errs() << Err << "\n";
+      assert(Err.empty() && "invalid struct trying to be written as yaml");
+    }
+  }
+  MappingTraits<T>::mapping(io, Val);
+  if (!io.outputting()) {
+    StringRef Err = MappingTraits<T>::validate(io, Val);
+    if (!Err.empty())
+      io.setError(Err);
+  }
+  io.endMapping();
+}
+
+template<typename T>
+typename llvm::enable_if_c<unvalidatedMappingTraits<T>::value, void>::type
 yamlize(IO &io, T &Val, bool) {
   io.beginMapping();
   MappingTraits<T>::mapping(io, Val);
@@ -535,6 +583,12 @@ template<>
 struct ScalarTraits<StringRef> {
   static void output(const StringRef &, void*, llvm::raw_ostream &);
   static StringRef input(StringRef, void*, StringRef &);
+};
+ 
+template<>
+struct ScalarTraits<std::string> {
+  static void output(const std::string &, void*, llvm::raw_ostream &);
+  static StringRef input(StringRef, void*, std::string &);
 };
 
 template<>
@@ -683,18 +737,21 @@ private:
 ///
 class Input : public IO {
 public:
-  // Construct a yaml Input object from a StringRef and optional user-data.
-  Input(StringRef InputContent, void *Ctxt=NULL);
+  // Construct a yaml Input object from a StringRef and optional
+  // user-data. The DiagHandler can be specified to provide
+  // alternative error reporting.
+  Input(StringRef InputContent,
+        void *Ctxt = NULL,
+        SourceMgr::DiagHandlerTy DiagHandler = NULL,
+        void *DiagHandlerCtxt = NULL);
   ~Input();
-  
+
   // Check if there was an syntax or semantic error during parsing.
   llvm::error_code error();
 
-  // To set alternate error reporting.
-  void setDiagHandler(llvm::SourceMgr::DiagHandlerTy Handler, void *Ctxt = 0);
-
 private:
   virtual bool outputting();
+  virtual bool mapTag(StringRef, bool);
   virtual void beginMapping();
   virtual void endMapping();
   virtual bool preflightKey(const char *, bool, bool, bool &, void *&);
@@ -715,8 +772,10 @@ private:
   virtual void endBitSetScalar();
   virtual void scalarString(StringRef &);
   virtual void setError(const Twine &message);
+  virtual bool canElideEmptySequence();
 
   class HNode {
+    virtual void anchor();
   public:
     HNode(Node *n) : _node(n) { }
     virtual ~HNode() { }
@@ -726,9 +785,9 @@ private:
   };
 
   class EmptyHNode : public HNode {
+    virtual void anchor();
   public:
     EmptyHNode(Node *n) : HNode(n) { }
-    virtual ~EmptyHNode() {}
     static inline bool classof(const HNode *n) {
       return NullNode::classof(n->_node);
     }
@@ -736,9 +795,9 @@ private:
   };
 
   class ScalarHNode : public HNode {
+    virtual void anchor();
   public:
     ScalarHNode(Node *n, StringRef s) : HNode(n), _value(s) { }
-    virtual ~ScalarHNode() { }
 
     StringRef value() const { return _value; }
 
@@ -760,15 +819,7 @@ private:
     }
     static inline bool classof(const MapHNode *) { return true; }
 
-    struct StrMappingInfo {
-      static StringRef getEmptyKey() { return StringRef(); }
-      static StringRef getTombstoneKey() { return StringRef(" ", 0); }
-      static unsigned getHashValue(StringRef const val) {
-                                                return llvm::HashString(val); }
-      static bool isEqual(StringRef const lhs,
-                          StringRef const rhs) { return lhs.equals(rhs); }
-    };
-    typedef llvm::DenseMap<StringRef, HNode*, StrMappingInfo> NameToNode;
+    typedef llvm::StringMap<HNode*> NameToNode;
 
     bool isValidKey(StringRef key);
 
@@ -825,6 +876,7 @@ public:
   virtual ~Output();
 
   virtual bool outputting();
+  virtual bool mapTag(StringRef, bool);
   virtual void beginMapping();
   virtual void endMapping();
   virtual bool preflightKey(const char *key, bool, bool, bool &, void *&);
@@ -845,7 +897,7 @@ public:
   virtual void endBitSetScalar();
   virtual void scalarString(StringRef &);
   virtual void setError(const Twine &message);
-
+  virtual bool canElideEmptySequence();
 public:
   // These are only used by operator<<. They could be private
   // if that templated operator could be made a friend.
@@ -967,8 +1019,8 @@ template <typename T>
 inline
 typename llvm::enable_if_c<has_SequenceTraits<T>::value,Input &>::type
 operator>>(Input &yin, T &docSeq) {
-  yin.setCurrentDocument();
-  yamlize(yin, docSeq, true);
+  if (yin.setCurrentDocument())
+    yamlize(yin, docSeq, true);
   return yin;
 }
 

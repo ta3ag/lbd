@@ -1,4 +1,4 @@
-//===- tools/llvm-cov/llvm-cov.cpp - LLVM coverage tool -------------------===//
+//===- llvm-cov.cpp - LLVM coverage tool ----------------------------------===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -30,6 +30,8 @@ InputGCNO("gcno", cl::desc("<input gcno file>"), cl::init(""));
 static cl::opt<std::string>
 InputGCDA("gcda", cl::desc("<input gcda file>"), cl::init(""));
 
+static cl::opt<bool>
+AllBlocks("a", cl::init(false), cl::desc("display all block info"));
 
 //===----------------------------------------------------------------------===//
 int main(int argc, char **argv) {
@@ -38,7 +40,7 @@ int main(int argc, char **argv) {
   PrettyStackTraceProgram X(argc, argv);
   llvm_shutdown_obj Y;  // Call llvm_shutdown() on exit.
 
-  cl::ParseCommandLineOptions(argc, argv, "llvm cov\n");
+  cl::ParseCommandLineOptions(argc, argv, "llvm coverage tool\n");
 
   GCOVFile GF;
   if (InputGCNO.empty())
@@ -49,8 +51,8 @@ int main(int argc, char **argv) {
     errs() << InputGCNO << ": " << ec.message() << "\n";
     return 1;
   }
-  GCOVBuffer GCNO_GB(GCNO_Buff.take());
-  if (!GF.read(GCNO_GB)) {
+  GCOVBuffer GCNO_GB(GCNO_Buff.get());
+  if (!GF.readGCNO(GCNO_GB)) {
     errs() << "Invalid .gcno File!\n";
     return 1;
   }
@@ -61,18 +63,18 @@ int main(int argc, char **argv) {
       errs() << InputGCDA << ": " << ec.message() << "\n";
       return 1;
     }
-    GCOVBuffer GCDA_GB(GCDA_Buff.take());
-    if (!GF.read(GCDA_GB)) {
+    GCOVBuffer GCDA_GB(GCDA_Buff.get());
+    if (!GF.readGCDA(GCDA_GB)) {
       errs() << "Invalid .gcda File!\n";
       return 1;
     }
   }
-
 
   if (DumpGCOV)
     GF.dump();
 
   FileInfo FI;
   GF.collectLineCounts(FI);
+  FI.print(InputGCNO, InputGCDA, GCOVOptions(AllBlocks));
   return 0;
 }

@@ -1,5 +1,9 @@
+<<<<<<< HEAD:test/ExecutionEngine/MCJIT/test-common-symbols-remote.ll
 ; RUN: %lli_mcjit -remote-mcjit -O0 -disable-lazy-compilation=false %s
 ; XFAIL: arm, mips
+=======
+; RUN: %lli_mcjit -remote-mcjit -O0 -disable-lazy-compilation=false -mcjit-remote-process=lli-child-target %s
+>>>>>>> llvmtrunk/master:test/ExecutionEngine/MCJIT/remote/test-common-symbols-remote.ll
 
 ; The intention of this test is to verify that symbols mapped to COMMON in ELF
 ; work as expected.

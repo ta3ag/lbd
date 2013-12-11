@@ -39,6 +39,8 @@ namespace llvm {
     std::string Namespace;
 
   public:
+    uint16_t Size;
+    uint16_t Offset;
     const unsigned EnumValue;
     unsigned LaneMask;
 
@@ -75,6 +77,15 @@ namespace llvm {
       assert(A && B);
       std::pair<CompMap::iterator, bool> Ins =
         Composed.insert(std::make_pair(A, B));
+      // Synthetic subreg indices that aren't contiguous (for instance ARM
+      // register tuples) don't have a bit range, so it's OK to let
+      // B->Offset == -1. For the other cases, accumulate the offset and set
+      // the size here. Only do so if there is no offset yet though.
+      if ((Offset != (uint16_t)-1 && A->Offset != (uint16_t)-1) &&
+          (B->Offset == (uint16_t)-1)) {
+        B->Offset = Offset + A->Offset;
+        B->Size = A->Size;
+      }
       return (Ins.second || Ins.first->second == B) ? 0 : Ins.first->second;
     }
 
@@ -421,6 +432,10 @@ namespace llvm {
 
     std::string Name;
     std::vector<unsigned> Units;
+    unsigned Weight; // Cache the sum of all unit weights.
+    unsigned Order;  // Cache the sort key.
+
+    RegUnitSet() : Weight(0), Order(0) {}
   };
 
   // Base vector for identifying TopoSigs. The contents uniquely identify a
@@ -472,6 +487,9 @@ namespace llvm {
     // already exist for a register class, we create a new entry in this vector.
     std::vector<std::vector<unsigned> > RegClassUnitSets;
 
+    // Give each register unit set an order based on sorting criteria.
+    std::vector<unsigned> RegUnitSetOrder;
+
     // Add RC to *2RC maps.
     void addToMaps(CodeGenRegisterClass*);
 
@@ -522,10 +540,10 @@ namespace llvm {
     // Find or create a sub-register index representing the concatenation of
     // non-overlapping sibling indices.
     CodeGenSubRegIndex *
-      getConcatSubRegIndex(const SmallVector<CodeGenSubRegIndex*, 8>&);
+      getConcatSubRegIndex(const SmallVector<CodeGenSubRegIndex *, 8>&);
 
     void
-    addConcatSubRegIndex(const SmallVector<CodeGenSubRegIndex*, 8> &Parts,
+    addConcatSubRegIndex(const SmallVector<CodeGenSubRegIndex *, 8> &Parts,
                          CodeGenSubRegIndex *Idx) {
       ConcatIdx.insert(std::make_pair(Parts, Idx));
     }
@@ -610,6 +628,13 @@ namespace llvm {
       return Weight;
     }
 
+    unsigned getRegSetIDAt(unsigned Order) const {
+      return RegUnitSetOrder[Order];
+    }
+    const RegUnitSet &getRegSetAt(unsigned Order) const {
+      return RegUnitSets[RegUnitSetOrder[Order]];
+    }
+
     // Increase a RegUnitWeight.
     void increaseRegUnitWeight(unsigned RUID, unsigned Inc) {
       getRegUnit(RUID).Weight += Inc;
@@ -619,7 +644,7 @@ namespace llvm {
     unsigned getNumRegPressureSets() const { return RegUnitSets.size(); }
 
     // Get a set of register unit IDs for a given dimension of pressure.
-    RegUnitSet getRegPressureSet(unsigned Idx) const {
+    const RegUnitSet &getRegPressureSet(unsigned Idx) const {
       return RegUnitSets[Idx];
     }
 

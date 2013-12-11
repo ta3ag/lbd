@@ -58,6 +58,13 @@ static cl::opt<unsigned> AlignAllBlock("align-all-blocks",
                                                 "blocks in the function."),
                                        cl::init(0), cl::Hidden);
 
+// FIXME: Find a good default for this flag and remove the flag.
+static cl::opt<unsigned>
+ExitBlockBias("block-placement-exit-block-bias",
+              cl::desc("Block frequency percentage a loop exit block needs "
+                       "over the original exit to be considered the new exit."),
+              cl::init(0), cl::Hidden);
+
 namespace {
 class BlockChain;
 /// \brief Type for our function-wide basic block -> block chain mapping.
@@ -360,7 +367,8 @@ MachineBasicBlock *MachineBlockPlacement::selectBestSuccessor(
     // any CFG constraints.
     if (SuccChain.LoopPredecessors != 0) {
       if (SuccProb < HotProb) {
-        DEBUG(dbgs() << "    " << getBlockName(*SI) << " -> CFG conflict\n");
+        DEBUG(dbgs() << "    " << getBlockName(*SI) << " -> " << SuccProb
+                     << " (prob) (CFG conflict)\n");
         continue;
       }
 
@@ -383,8 +391,8 @@ MachineBasicBlock *MachineBlockPlacement::selectBestSuccessor(
         }
       }
       if (BadCFGConflict) {
-        DEBUG(dbgs() << "    " << getBlockName(*SI)
-                               << " -> non-cold CFG conflict\n");
+        DEBUG(dbgs() << "    " << getBlockName(*SI) << " -> " << SuccProb
+                     << " (prob) (non-cold CFG conflict)\n");
         continue;
       }
     }
@@ -691,13 +699,15 @@ MachineBlockPlacement::findBestLoopExit(MachineFunction &F,
       DEBUG(dbgs() << "    exiting: " << getBlockName(*I) << " -> "
                    << getBlockName(*SI) << " [L:" << SuccLoopDepth
                    << "] (" << ExitEdgeFreq << ")\n");
-      // Note that we slightly bias this toward an existing layout successor to
-      // retain incoming order in the absence of better information.
-      // FIXME: Should we bias this more strongly? It's pretty weak.
+      // Note that we bias this toward an existing layout successor to retain
+      // incoming order in the absence of better information. The exit must have
+      // a frequency higher than the current exit before we consider breaking
+      // the layout.
+      BranchProbability Bias(100 - ExitBlockBias, 100);
       if (!ExitingBB || BestExitLoopDepth < SuccLoopDepth ||
           ExitEdgeFreq > BestExitEdgeFreq ||
           ((*I)->isLayoutSuccessor(*SI) &&
-           !(ExitEdgeFreq < BestExitEdgeFreq))) {
+           !(ExitEdgeFreq < BestExitEdgeFreq * Bias))) {
         BestExitEdgeFreq = ExitEdgeFreq;
         ExitingBB = *I;
       }
@@ -939,7 +949,9 @@ void MachineBlockPlacement::buildCFGChains(MachineFunction &F) {
   BlockChain &FunctionChain = *BlockToChain[&F.front()];
   buildChain(&F.front(), FunctionChain, BlockWorkList);
 
+#ifndef NDEBUG
   typedef SmallPtrSet<MachineBasicBlock *, 16> FunctionBlockSetType;
+#endif
   DEBUG({
     // Crash at the end so we get all of the debugging output first.
     bool BadFunc = false;
@@ -991,6 +1003,28 @@ void MachineBlockPlacement::buildCFGChains(MachineFunction &F) {
     Cond.clear();
     MachineBasicBlock *TBB = 0, *FBB = 0; // For AnalyzeBranch.
     if (!TII->AnalyzeBranch(*PrevBB, TBB, FBB, Cond)) {
+      // The "PrevBB" is not yet updated to reflect current code layout, so,
+      //   o. it may fall-through to a block without explict "goto" instruction
+      //      before layout, and no longer fall-through it after layout; or 
+      //   o. just opposite.
+      // 
+      // AnalyzeBranch() may return erroneous value for FBB when these two
+      // situations take place. For the first scenario FBB is mistakenly set
+      // NULL; for the 2nd scenario, the FBB, which is expected to be NULL,
+      // is mistakenly pointing to "*BI".
+      //
+      bool needUpdateBr = true;
+      if (!Cond.empty() && (!FBB || FBB == *BI)) {
+        PrevBB->updateTerminator();
+        needUpdateBr = false;
+        Cond.clear();
+        TBB = FBB = 0;
+        if (TII->AnalyzeBranch(*PrevBB, TBB, FBB, Cond)) {
+          // FIXME: This should never take place.
+          TBB = FBB = 0;
+        }
+      }
+
       // If PrevBB has a two-way branch, try to re-order the branches
       // such that we branch to the successor with higher weight first.
       if (TBB && !Cond.empty() && FBB &&
@@ -1003,8 +1037,10 @@ void MachineBlockPlacement::buildCFGChains(MachineFunction &F) {
         DebugLoc dl;  // FIXME: this is nowhere
         TII->RemoveBranch(*PrevBB);
         TII->InsertBranch(*PrevBB, FBB, TBB, Cond, dl);
+        needUpdateBr = true;
       }
-      PrevBB->updateTerminator();
+      if (needUpdateBr)
+        PrevBB->updateTerminator();
     }
   }
 

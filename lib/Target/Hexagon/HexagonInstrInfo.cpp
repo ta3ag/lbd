@@ -26,7 +26,7 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/raw_ostream.h"
-#define GET_INSTRINFO_CTOR
+#define GET_INSTRINFO_CTOR_DTOR
 #define GET_INSTRMAP_INFO
 #include "HexagonGenInstrInfo.inc"
 #include "HexagonGenDFAPacketizer.inc"
@@ -55,10 +55,12 @@ const int Hexagon_MEMH_AUTOINC_MIN = -16;
 const int Hexagon_MEMB_AUTOINC_MAX = 7;
 const int Hexagon_MEMB_AUTOINC_MIN = -8;
 
+// Pin the vtable to this file.
+void HexagonInstrInfo::anchor() {}
 
 HexagonInstrInfo::HexagonInstrInfo(HexagonSubtarget &ST)
   : HexagonGenInstrInfo(Hexagon::ADJCALLSTACKDOWN, Hexagon::ADJCALLSTACKUP),
-    RI(ST, *this), Subtarget(ST) {
+    RI(ST), Subtarget(ST) {
 }
 
 
@@ -556,16 +558,6 @@ MachineInstr *HexagonInstrInfo::foldMemoryOperandImpl(MachineFunction &MF,
                                                     int FI) const {
   // Hexagon_TODO: Implement.
   return(0);
-}
-
-MachineInstr*
-HexagonInstrInfo::emitFrameIndexDebugValue(MachineFunction &MF,
-                                           int FrameIx, uint64_t Offset,
-                                           const MDNode *MDPtr,
-                                           DebugLoc DL) const {
-  MachineInstrBuilder MIB = BuildMI(MF, DL, get(Hexagon::DBG_VALUE))
-    .addImm(0).addImm(Offset).addMetadata(MDPtr);
-  return &*MIB;
 }
 
 unsigned HexagonInstrInfo::createVR(MachineFunction* MF, MVT VT) const {
@@ -2214,6 +2206,100 @@ bool HexagonInstrInfo::isDotNewInst (const MachineInstr* MI) const {
      (isPredicated(MI) && isPredicatedNew(MI)));
 }
 
+<<<<<<< HEAD
+=======
+// Returns the most basic instruction for the .new predicated instructions and
+// new-value stores.
+// For example, all of the following instructions will be converted back to the
+// same instruction:
+// 1) if (p0.new) memw(R0+#0) = R1.new  --->
+// 2) if (p0) memw(R0+#0)= R1.new      -------> if (p0) memw(R0+#0) = R1
+// 3) if (p0.new) memw(R0+#0) = R1      --->
+//
+
+int HexagonInstrInfo::GetDotOldOp(const int opc) const {
+  int NewOp = opc;
+  if (isPredicated(NewOp) && isPredicatedNew(NewOp)) { // Get predicate old form
+    NewOp = Hexagon::getPredOldOpcode(NewOp);
+    if (NewOp < 0)
+      assert(0 && "Couldn't change predicate new instruction to its old form.");
+  }
+
+  if (isNewValueStore(NewOp)) { // Convert into non-new-value format
+    NewOp = Hexagon::getNonNVStore(NewOp);
+    if (NewOp < 0)
+      assert(0 && "Couldn't change new-value store to its old form.");
+  }
+  return NewOp;
+}
+
+// Return the new value instruction for a given store.
+int HexagonInstrInfo::GetDotNewOp(const MachineInstr* MI) const {
+  int NVOpcode = Hexagon::getNewValueOpcode(MI->getOpcode());
+  if (NVOpcode >= 0) // Valid new-value store instruction.
+    return NVOpcode;
+
+  switch (MI->getOpcode()) {
+  default: llvm_unreachable("Unknown .new type");
+  // store new value byte
+  case Hexagon::STrib_shl_V4:
+    return Hexagon::STrib_shl_nv_V4;
+
+  case Hexagon::STrih_shl_V4:
+    return Hexagon::STrih_shl_nv_V4;
+
+  case Hexagon::STriw_f:
+    return Hexagon::STriw_nv_V4;
+
+  case Hexagon::STriw_indexed_f:
+    return Hexagon::STriw_indexed_nv_V4;
+
+  case Hexagon::STriw_shl_V4:
+    return Hexagon::STriw_shl_nv_V4;
+
+  }
+  return 0;
+}
+
+// Return .new predicate version for an instruction.
+int HexagonInstrInfo::GetDotNewPredOp(MachineInstr *MI,
+                                      const MachineBranchProbabilityInfo
+                                      *MBPI) const {
+
+  int NewOpcode = Hexagon::getPredNewOpcode(MI->getOpcode());
+  if (NewOpcode >= 0) // Valid predicate new instruction
+    return NewOpcode;
+
+  switch (MI->getOpcode()) {
+  default: llvm_unreachable("Unknown .new type");
+  // Condtional Jumps
+  case Hexagon::JMP_t:
+  case Hexagon::JMP_f:
+    return getDotNewPredJumpOp(MI, MBPI);
+
+  case Hexagon::JMPR_t:
+    return Hexagon::JMPR_tnew_tV3;
+
+  case Hexagon::JMPR_f:
+    return Hexagon::JMPR_fnew_tV3;
+
+  case Hexagon::JMPret_t:
+    return Hexagon::JMPret_tnew_tV3;
+
+  case Hexagon::JMPret_f:
+    return Hexagon::JMPret_fnew_tV3;
+
+
+  // Conditional combine
+  case Hexagon::COMBINE_rr_cPt :
+    return Hexagon::COMBINE_rr_cdnPt;
+  case Hexagon::COMBINE_rr_cNotPt :
+    return Hexagon::COMBINE_rr_cdnNotPt;
+  }
+}
+
+
+>>>>>>> llvmtrunk/master
 unsigned HexagonInstrInfo::getAddrMode(const MachineInstr* MI) const {
   const uint64_t F = MI->getDesc().TSFlags;
 

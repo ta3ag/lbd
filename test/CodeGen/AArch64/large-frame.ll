@@ -4,7 +4,12 @@ declare void @use_addr(i8*)
 @addr = global i8* null
 
 define void @test_bigframe() {
+<<<<<<< HEAD
 ; CHECK: test_bigframe:
+=======
+; CHECK-LABEL: test_bigframe:
+; CHECK: .cfi_startproc
+>>>>>>> llvmtrunk/master
 
   %var1 = alloca i8, i32 20000000
   %var2 = alloca i8, i32 16
@@ -45,7 +50,7 @@ define void @test_bigframe() {
 }
 
 define void @test_mediumframe() {
-; CHECK: test_mediumframe:
+; CHECK-LABEL: test_mediumframe:
   %var1 = alloca i8, i32 1000000
   %var2 = alloca i8, i32 16
   %var3 = alloca i8, i32 1000000
@@ -88,7 +93,7 @@ define void @test_mediumframe() {
 ; If temporary registers are allocated for adjustment, they should *not* clobber
 ; argument registers.
 define void @test_tempallocation([8 x i64] %val) nounwind {
-; CHECK: test_tempallocation:
+; CHECK-LABEL: test_tempallocation:
   %var = alloca i8, i32 1000000
 ; CHECK: sub sp, sp,
 

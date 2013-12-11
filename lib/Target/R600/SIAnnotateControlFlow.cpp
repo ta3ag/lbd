@@ -15,6 +15,8 @@
 #include "AMDGPU.h"
 #include "llvm/ADT/DepthFirstIterator.h"
 #include "llvm/Analysis/Dominators.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
@@ -29,13 +31,13 @@ typedef std::pair<BasicBlock *, Value *> StackEntry;
 typedef SmallVector<StackEntry, 16> StackVector;
 
 // Intrinsic names the control flow is annotated with
-static const char *IfIntrinsic = "llvm.SI.if";
-static const char *ElseIntrinsic = "llvm.SI.else";
-static const char *BreakIntrinsic = "llvm.SI.break";
-static const char *IfBreakIntrinsic = "llvm.SI.if.break";
-static const char *ElseBreakIntrinsic = "llvm.SI.else.break";
-static const char *LoopIntrinsic = "llvm.SI.loop";
-static const char *EndCfIntrinsic = "llvm.SI.end.cf";
+static const char *const IfIntrinsic = "llvm.SI.if";
+static const char *const ElseIntrinsic = "llvm.SI.else";
+static const char *const BreakIntrinsic = "llvm.SI.break";
+static const char *const IfBreakIntrinsic = "llvm.SI.if.break";
+static const char *const ElseBreakIntrinsic = "llvm.SI.else.break";
+static const char *const LoopIntrinsic = "llvm.SI.loop";
+static const char *const EndCfIntrinsic = "llvm.SI.end.cf";
 
 class SIAnnotateControlFlow : public FunctionPass {
 
@@ -203,7 +205,7 @@ void SIAnnotateControlFlow::insertElse(BranchInst *Term) {
 void SIAnnotateControlFlow::handleLoopCondition(Value *Cond) {
   if (PHINode *Phi = dyn_cast<PHINode>(Cond)) {
 
-    // Handle all non constant incoming values first
+    // Handle all non-constant incoming values first
     for (unsigned i = 0, e = Phi->getNumIncomingValues(); i != e; ++i) {
       Value *Incoming = Phi->getIncomingValue(i);
       if (isa<ConstantInt>(Incoming))
@@ -251,7 +253,7 @@ void SIAnnotateControlFlow::handleLoopCondition(Value *Cond) {
     PhiInserter.AddAvailableValue(Parent, Ret);
 
   } else {
-    assert(0 && "Unhandled loop condition!");
+    llvm_unreachable("Unhandled loop condition!");
   }
 }
 

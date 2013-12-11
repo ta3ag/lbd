@@ -15,12 +15,17 @@
 #define HexagonMCASMINFO_H
 
 #include "llvm/ADT/StringRef.h"
-#include "llvm/MC/MCAsmInfo.h"
+#include "llvm/MC/MCAsmInfoELF.h"
 
 namespace llvm {
+<<<<<<< HEAD
   class Target;
 
   class HexagonMCAsmInfo : public MCAsmInfo {
+=======
+  class HexagonMCAsmInfo : public MCAsmInfoELF {
+    virtual void anchor();
+>>>>>>> llvmtrunk/master
   public:
     explicit HexagonMCAsmInfo(const Target &T, StringRef TT);
   };

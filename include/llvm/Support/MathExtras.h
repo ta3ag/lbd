@@ -17,10 +17,231 @@
 #include "llvm/Support/SwapByteOrder.h"
 
 #ifdef _MSC_VER
-# include <intrin.h>
+#include <intrin.h>
+#include <limits>
 #endif
 
 namespace llvm {
+<<<<<<< HEAD
+=======
+/// \brief The behavior an operation has on an input of 0.
+enum ZeroBehavior {
+  /// \brief The returned value is undefined.
+  ZB_Undefined,
+  /// \brief The returned value is numeric_limits<T>::max()
+  ZB_Max,
+  /// \brief The returned value is numeric_limits<T>::digits
+  ZB_Width
+};
+
+/// \brief Count number of 0's from the least significant bit to the most
+///   stopping at the first 1.
+///
+/// Only unsigned integral types are allowed.
+///
+/// \param ZB the behavior on an input of 0. Only ZB_Width and ZB_Undefined are
+///   valid arguments.
+template <typename T>
+typename enable_if_c<std::numeric_limits<T>::is_integer &&
+                     !std::numeric_limits<T>::is_signed, std::size_t>::type
+countTrailingZeros(T Val, ZeroBehavior ZB = ZB_Width) {
+  (void)ZB;
+
+  if (!Val)
+    return std::numeric_limits<T>::digits;
+  if (Val & 0x1)
+    return 0;
+
+  // Bisection method.
+  std::size_t ZeroBits = 0;
+  T Shift = std::numeric_limits<T>::digits >> 1;
+  T Mask = std::numeric_limits<T>::max() >> Shift;
+  while (Shift) {
+    if ((Val & Mask) == 0) {
+      Val >>= Shift;
+      ZeroBits |= Shift;
+    }
+    Shift >>= 1;
+    Mask >>= Shift;
+  }
+  return ZeroBits;
+}
+
+// Disable signed.
+template <typename T>
+typename enable_if_c<std::numeric_limits<T>::is_integer &&
+                     std::numeric_limits<T>::is_signed, std::size_t>::type
+countTrailingZeros(T Val, ZeroBehavior ZB = ZB_Width) LLVM_DELETED_FUNCTION;
+
+#if __GNUC__ >= 4 || _MSC_VER
+template <>
+inline std::size_t countTrailingZeros<uint32_t>(uint32_t Val, ZeroBehavior ZB) {
+  if (ZB != ZB_Undefined && Val == 0)
+    return 32;
+
+#if __has_builtin(__builtin_ctz) || __GNUC_PREREQ(4, 0)
+  return __builtin_ctz(Val);
+#elif _MSC_VER
+  unsigned long Index;
+  _BitScanForward(&Index, Val);
+  return Index;
+#endif
+}
+
+#if !defined(_MSC_VER) || defined(_M_X64)
+template <>
+inline std::size_t countTrailingZeros<uint64_t>(uint64_t Val, ZeroBehavior ZB) {
+  if (ZB != ZB_Undefined && Val == 0)
+    return 64;
+
+#if __has_builtin(__builtin_ctzll) || __GNUC_PREREQ(4, 0)
+  return __builtin_ctzll(Val);
+#elif _MSC_VER
+  unsigned long Index;
+  _BitScanForward64(&Index, Val);
+  return Index;
+#endif
+}
+#endif
+#endif
+
+/// \brief Count number of 0's from the most significant bit to the least
+///   stopping at the first 1.
+///
+/// Only unsigned integral types are allowed.
+///
+/// \param ZB the behavior on an input of 0. Only ZB_Width and ZB_Undefined are
+///   valid arguments.
+template <typename T>
+typename enable_if_c<std::numeric_limits<T>::is_integer &&
+                     !std::numeric_limits<T>::is_signed, std::size_t>::type
+countLeadingZeros(T Val, ZeroBehavior ZB = ZB_Width) {
+  (void)ZB;
+
+  if (!Val)
+    return std::numeric_limits<T>::digits;
+
+  // Bisection method.
+  std::size_t ZeroBits = 0;
+  for (T Shift = std::numeric_limits<T>::digits >> 1; Shift; Shift >>= 1) {
+    T Tmp = Val >> Shift;
+    if (Tmp)
+      Val = Tmp;
+    else
+      ZeroBits |= Shift;
+  }
+  return ZeroBits;
+}
+
+// Disable signed.
+template <typename T>
+typename enable_if_c<std::numeric_limits<T>::is_integer &&
+                     std::numeric_limits<T>::is_signed, std::size_t>::type
+countLeadingZeros(T Val, ZeroBehavior ZB = ZB_Width) LLVM_DELETED_FUNCTION;
+
+#if __GNUC__ >= 4 || _MSC_VER
+template <>
+inline std::size_t countLeadingZeros<uint32_t>(uint32_t Val, ZeroBehavior ZB) {
+  if (ZB != ZB_Undefined && Val == 0)
+    return 32;
+
+#if __has_builtin(__builtin_clz) || __GNUC_PREREQ(4, 0)
+  return __builtin_clz(Val);
+#elif _MSC_VER
+  unsigned long Index;
+  _BitScanReverse(&Index, Val);
+  return Index ^ 31;
+#endif
+}
+
+#if !defined(_MSC_VER) || defined(_M_X64)
+template <>
+inline std::size_t countLeadingZeros<uint64_t>(uint64_t Val, ZeroBehavior ZB) {
+  if (ZB != ZB_Undefined && Val == 0)
+    return 64;
+
+#if __has_builtin(__builtin_clzll) || __GNUC_PREREQ(4, 0)
+  return __builtin_clzll(Val);
+#elif _MSC_VER
+  unsigned long Index;
+  _BitScanReverse64(&Index, Val);
+  return Index ^ 63;
+#endif
+}
+#endif
+#endif
+
+/// \brief Get the index of the first set bit starting from the least
+///   significant bit.
+///
+/// Only unsigned integral types are allowed.
+///
+/// \param ZB the behavior on an input of 0. Only ZB_Max and ZB_Undefined are
+///   valid arguments.
+template <typename T>
+typename enable_if_c<std::numeric_limits<T>::is_integer &&
+                     !std::numeric_limits<T>::is_signed, T>::type
+findFirstSet(T Val, ZeroBehavior ZB = ZB_Max) {
+  if (ZB == ZB_Max && Val == 0)
+    return std::numeric_limits<T>::max();
+
+  return countTrailingZeros(Val, ZB_Undefined);
+}
+
+// Disable signed.
+template <typename T>
+typename enable_if_c<std::numeric_limits<T>::is_integer &&
+                     std::numeric_limits<T>::is_signed, T>::type
+findFirstSet(T Val, ZeroBehavior ZB = ZB_Max) LLVM_DELETED_FUNCTION;
+
+/// \brief Get the index of the last set bit starting from the least
+///   significant bit.
+///
+/// Only unsigned integral types are allowed.
+///
+/// \param ZB the behavior on an input of 0. Only ZB_Max and ZB_Undefined are
+///   valid arguments.
+template <typename T>
+typename enable_if_c<std::numeric_limits<T>::is_integer &&
+                     !std::numeric_limits<T>::is_signed, T>::type
+findLastSet(T Val, ZeroBehavior ZB = ZB_Max) {
+  if (ZB == ZB_Max && Val == 0)
+    return std::numeric_limits<T>::max();
+
+  // Use ^ instead of - because both gcc and llvm can remove the associated ^
+  // in the __builtin_clz intrinsic on x86.
+  return countLeadingZeros(Val, ZB_Undefined) ^
+         (std::numeric_limits<T>::digits - 1);
+}
+
+// Disable signed.
+template <typename T>
+typename enable_if_c<std::numeric_limits<T>::is_integer &&
+                     std::numeric_limits<T>::is_signed, T>::type
+findLastSet(T Val, ZeroBehavior ZB = ZB_Max) LLVM_DELETED_FUNCTION;
+
+/// \brief Macro compressed bit reversal table for 256 bits.
+///
+/// http://graphics.stanford.edu/~seander/bithacks.html#BitReverseTable
+static const unsigned char BitReverseTable256[256] = {
+#define R2(n) n, n + 2 * 64, n + 1 * 64, n + 3 * 64
+#define R4(n) R2(n), R2(n + 2 * 16), R2(n + 1 * 16), R2(n + 3 * 16)
+#define R6(n) R4(n), R4(n + 2 * 4), R4(n + 1 * 4), R4(n + 3 * 4)
+  R6(0), R6(2), R6(1), R6(3)
+};
+
+/// \brief Reverse the bits in \p Val.
+template <typename T>
+T reverseBits(T Val) {
+  unsigned char in[sizeof(Val)];
+  unsigned char out[sizeof(Val)];
+  std::memcpy(in, &Val, sizeof(Val));
+  for (unsigned i = 0; i < sizeof(Val); ++i)
+    out[(sizeof(Val) - i) - 1] = BitReverseTable256[in[i]];
+  std::memcpy(&Val, out, sizeof(Val));
+  return Val;
+}
+>>>>>>> llvmtrunk/master
 
 // NOTE: The following support functions use the _32/_64 extensions instead of
 // type overloading so that signed and unsigned integers can be used without
@@ -496,6 +717,13 @@ inline int64_t SignExtend64(uint64_t X, unsigned B) {
   return int64_t(X << (64 - B)) >> (64 - B);
 }
 
+#if defined(_MSC_VER)
+  // Visual Studio defines the HUGE_VAL class of macros using purposeful
+  // constant arithmetic overflow, which it then warns on when encountered.
+  const float huge_valf = std::numeric_limits<float>::infinity();
+#else
+  const float huge_valf = HUGE_VALF;
+#endif
 } // End llvm namespace
 
 #endif

@@ -17,6 +17,10 @@ set -e
 release=""
 rc=""
 rebranch="no"
+<<<<<<< HEAD
+=======
+projects="llvm cfe dragonegg test-suite compiler-rt libcxx clang-tools-extra polly lldb lld"
+>>>>>>> llvmtrunk/master
 
 base_url="https://llvm.org/svn/llvm-project"
 
@@ -106,4 +110,4 @@ else
     tag_release_candidate
 fi
 
-exit 1
+exit 0

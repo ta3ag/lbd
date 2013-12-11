@@ -298,6 +298,7 @@ PPCCTRLoops::getCanonicalInductionVariable(MachineLoop *L,
   return;
 }
 
+<<<<<<< HEAD
 /// getTripCount - Return a loop-invariant LLVM value indicating the
 /// number of times the loop will be executed.  The trip count can
 /// be either a register or a constant value.  If the trip-count
@@ -429,6 +430,129 @@ CountValue *PPCCTRLoops::getTripCount(MachineLoop *L,
             int64_t(short(DefInstr->getOperand(1).getImm()));
           if ((count % iv_value) != 0) {
             return 0;
+=======
+      if (!TM)
+        return true;
+      const TargetLowering *TLI = TM->getTargetLowering();
+
+      if (Function *F = CI->getCalledFunction()) {
+        // Most intrinsics don't become function calls, but some might.
+        // sin, cos, exp and log are always calls.
+        unsigned Opcode;
+        if (F->getIntrinsicID() != Intrinsic::not_intrinsic) {
+          switch (F->getIntrinsicID()) {
+          default: continue;
+
+// VisualStudio defines setjmp as _setjmp
+#if defined(_MSC_VER) && defined(setjmp) && \
+                       !defined(setjmp_undefined_for_msvc)
+#  pragma push_macro("setjmp")
+#  undef setjmp
+#  define setjmp_undefined_for_msvc
+#endif
+
+          case Intrinsic::setjmp:
+
+#if defined(_MSC_VER) && defined(setjmp_undefined_for_msvc)
+ // let's return it to _setjmp state
+#  pragma pop_macro("setjmp")
+#  undef setjmp_undefined_for_msvc
+#endif
+
+          case Intrinsic::longjmp:
+
+          // Exclude eh_sjlj_setjmp; we don't need to exclude eh_sjlj_longjmp
+          // because, although it does clobber the counter register, the
+          // control can't then return to inside the loop unless there is also
+          // an eh_sjlj_setjmp.
+          case Intrinsic::eh_sjlj_setjmp:
+
+          case Intrinsic::memcpy:
+          case Intrinsic::memmove:
+          case Intrinsic::memset:
+          case Intrinsic::powi:
+          case Intrinsic::log:
+          case Intrinsic::log2:
+          case Intrinsic::log10:
+          case Intrinsic::exp:
+          case Intrinsic::exp2:
+          case Intrinsic::pow:
+          case Intrinsic::sin:
+          case Intrinsic::cos:
+            return true;
+          case Intrinsic::copysign:
+            if (CI->getArgOperand(0)->getType()->getScalarType()->
+                isPPC_FP128Ty())
+              return true;
+            else
+              continue; // ISD::FCOPYSIGN is never a library call.
+          case Intrinsic::sqrt:      Opcode = ISD::FSQRT;      break;
+          case Intrinsic::floor:     Opcode = ISD::FFLOOR;     break;
+          case Intrinsic::ceil:      Opcode = ISD::FCEIL;      break;
+          case Intrinsic::trunc:     Opcode = ISD::FTRUNC;     break;
+          case Intrinsic::rint:      Opcode = ISD::FRINT;      break;
+          case Intrinsic::nearbyint: Opcode = ISD::FNEARBYINT; break;
+          case Intrinsic::round:     Opcode = ISD::FROUND;     break;
+          }
+        }
+
+        // PowerPC does not use [US]DIVREM or other library calls for
+        // operations on regular types which are not otherwise library calls
+        // (i.e. soft float or atomics). If adapting for targets that do,
+        // additional care is required here.
+
+        LibFunc::Func Func;
+        if (!F->hasLocalLinkage() && F->hasName() && LibInfo &&
+            LibInfo->getLibFunc(F->getName(), Func) &&
+            LibInfo->hasOptimizedCodeGen(Func)) {
+          // Non-read-only functions are never treated as intrinsics.
+          if (!CI->onlyReadsMemory())
+            return true;
+
+          // Conversion happens only for FP calls.
+          if (!CI->getArgOperand(0)->getType()->isFloatingPointTy())
+            return true;
+
+          switch (Func) {
+          default: return true;
+          case LibFunc::copysign:
+          case LibFunc::copysignf:
+            continue; // ISD::FCOPYSIGN is never a library call.
+          case LibFunc::copysignl:
+            return true;
+          case LibFunc::fabs:
+          case LibFunc::fabsf:
+          case LibFunc::fabsl:
+            continue; // ISD::FABS is never a library call.
+          case LibFunc::sqrt:
+          case LibFunc::sqrtf:
+          case LibFunc::sqrtl:
+            Opcode = ISD::FSQRT; break;
+          case LibFunc::floor:
+          case LibFunc::floorf:
+          case LibFunc::floorl:
+            Opcode = ISD::FFLOOR; break;
+          case LibFunc::nearbyint:
+          case LibFunc::nearbyintf:
+          case LibFunc::nearbyintl:
+            Opcode = ISD::FNEARBYINT; break;
+          case LibFunc::ceil:
+          case LibFunc::ceilf:
+          case LibFunc::ceill:
+            Opcode = ISD::FCEIL; break;
+          case LibFunc::rint:
+          case LibFunc::rintf:
+          case LibFunc::rintl:
+            Opcode = ISD::FRINT; break;
+          case LibFunc::round:
+          case LibFunc::roundf:
+          case LibFunc::roundl:
+            Opcode = ISD::FROUND; break;
+          case LibFunc::trunc:
+          case LibFunc::truncf:
+          case LibFunc::truncl:
+            Opcode = ISD::FTRUNC; break;
+>>>>>>> llvmtrunk/master
           }
 
           OldInsts.push_back(DefInstr);
@@ -448,6 +572,43 @@ CountValue *PPCCTRLoops::getTripCount(MachineLoop *L,
         // division but we can handle some 2^n cases with shifts).
   
       }
+<<<<<<< HEAD
+=======
+
+      return true;
+    } else if (isa<BinaryOperator>(J) &&
+               J->getType()->getScalarType()->isPPC_FP128Ty()) {
+      // Most operations on ppc_f128 values become calls.
+      return true;
+    } else if (isa<UIToFPInst>(J) || isa<SIToFPInst>(J) ||
+               isa<FPToUIInst>(J) || isa<FPToSIInst>(J)) {
+      CastInst *CI = cast<CastInst>(J);
+      if (CI->getSrcTy()->getScalarType()->isPPC_FP128Ty() ||
+          CI->getDestTy()->getScalarType()->isPPC_FP128Ty() ||
+          (TT.isArch32Bit() &&
+           (CI->getSrcTy()->getScalarType()->isIntegerTy(64) ||
+            CI->getDestTy()->getScalarType()->isIntegerTy(64))
+          ))
+        return true;
+    } else if (TT.isArch32Bit() &&
+               J->getType()->getScalarType()->isIntegerTy(64) &&
+               (J->getOpcode() == Instruction::UDiv ||
+                J->getOpcode() == Instruction::SDiv ||
+                J->getOpcode() == Instruction::URem ||
+                J->getOpcode() == Instruction::SRem)) {
+      return true;
+    } else if (isa<IndirectBrInst>(J) || isa<InvokeInst>(J)) {
+      // On PowerPC, indirect jumps use the counter register.
+      return true;
+    } else if (SwitchInst *SI = dyn_cast<SwitchInst>(J)) {
+      if (!TM)
+        return true;
+      const TargetLowering *TLI = TM->getTargetLowering();
+
+      if (TLI->supportJumpTables() &&
+          SI->getNumCases()+1 >= (unsigned) TLI->getMinimumJumpTableEntries())
+        return true;
+>>>>>>> llvmtrunk/master
     }
   }
   return 0;
@@ -483,8 +644,54 @@ PPCCTRLoops::isInvalidLoopOperation(const MachineInstr *MI) const {
       return true;
     }
   }
+<<<<<<< HEAD
   return false;
 }
+=======
+#endif
+
+  // We don't want to spill/restore the counter register, and so we don't
+  // want to use the counter register if the loop contains calls.
+  for (Loop::block_iterator I = L->block_begin(), IE = L->block_end();
+       I != IE; ++I)
+    if (mightUseCTR(TT, *I))
+      return MadeChange;
+
+  SmallVector<BasicBlock*, 4> ExitingBlocks;
+  L->getExitingBlocks(ExitingBlocks);
+
+  BasicBlock *CountedExitBlock = 0;
+  const SCEV *ExitCount = 0;
+  BranchInst *CountedExitBranch = 0;
+  for (SmallVectorImpl<BasicBlock *>::iterator I = ExitingBlocks.begin(),
+       IE = ExitingBlocks.end(); I != IE; ++I) {
+    const SCEV *EC = SE->getExitCount(L, *I);
+    DEBUG(dbgs() << "Exit Count for " << *L << " from block " <<
+                    (*I)->getName() << ": " << *EC << "\n");
+    if (isa<SCEVCouldNotCompute>(EC))
+      continue;
+    if (const SCEVConstant *ConstEC = dyn_cast<SCEVConstant>(EC)) {
+      if (ConstEC->getValue()->isZero())
+        continue;
+    } else if (!SE->isLoopInvariant(EC, L))
+      continue;
+
+    if (SE->getTypeSizeInBits(EC->getType()) > (TT.isArch64Bit() ? 64 : 32))
+      continue;
+
+    // We now have a loop-invariant count of loop iterations (which is not the
+    // constant zero) for which we know that this loop will not exit via this
+    // exisiting block.
+
+    // We need to make sure that this block will run on every loop iteration.
+    // For this to be true, we must dominate all blocks with backedges. Such
+    // blocks are in-loop predecessors to the header block.
+    bool NotAlways = false;
+    for (pred_iterator PI = pred_begin(L->getHeader()),
+         PIE = pred_end(L->getHeader()); PI != PIE; ++PI) {
+      if (!L->contains(*PI))
+        continue;
+>>>>>>> llvmtrunk/master
 
 /// containsInvalidInstruction - Return true if the loop contains
 /// an instruction that inhibits the use of the CTR loop function.

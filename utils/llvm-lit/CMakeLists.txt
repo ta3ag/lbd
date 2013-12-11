@@ -1,12 +1,9 @@
+if (WIN32 AND NOT CYGWIN)
+  # llvm-lit needs suffix.py for multiprocess to find a main module.
+  set(suffix .py)
+endif ()
+
 configure_file(
   llvm-lit.in
-  ${LLVM_TOOLS_BINARY_DIR}/llvm-lit
-  )
-
-install(FILES
-  ${LLVM_TOOLS_BINARY_DIR}/llvm-lit
-  DESTINATION bin
-  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-              GROUP_READ GROUP_EXECUTE
-              WORLD_READ WORLD_EXECUTE
+  ${LLVM_TOOLS_BINARY_DIR}/llvm-lit${suffix}
   )

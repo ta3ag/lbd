@@ -32,10 +32,19 @@ entry:
   %tmp11 = sext i32 %tmp4 to i64
   %tmp12 = add i64 %tmp11, 5089792279245435153
 
+<<<<<<< HEAD
 ; CHECK:      addl	$2138875574, %e[[REGISTER_zext:[a-z]+]]
 ; CHECK-NEXT: movslq	%e[[REGISTER_zext]], [[REGISTER_tmp:%[a-z]+]]
 ; CHECK:      movq	[[REGISTER_tmp]], [[REGISTER_sext:%[a-z]+]]
 ; CHECK-NEXT: subq	%r[[REGISTER_zext]], [[REGISTER_sext]]
+=======
+; CHECK:      addl	$2138875574, %e[[REGISTER_zext:[a-z0-9]+]]
+; CHECK:      movslq	%e[[REGISTER_zext]], [[REGISTER_sext:%r[a-z0-9]+]]
+; CHECK:      cmpl	$-8608074, %e[[REGISTER_zext]]
+; CHECK-NOT:  [[REGISTER_zext]]
+; CHECK-DAG:  testl     %e[[REGISTER_zext]]
+; CHECK:      subq	%r[[REGISTER_zext]], [[REGISTER_sext]]
+>>>>>>> llvmtrunk/master
 
   %tmp13 = sub i64 %tmp12, 2138875574
   %tmp14 = zext i32 %tmp4 to i64

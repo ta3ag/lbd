@@ -346,6 +346,22 @@ public:
   DomTreeNodeBase<NodeT> *getRootNode() { return RootNode; }
   const DomTreeNodeBase<NodeT> *getRootNode() const { return RootNode; }
 
+  /// Get all nodes dominated by R, including R itself.
+  void getDescendants(NodeT *R, SmallVectorImpl<NodeT *> &Result) const {
+    Result.clear();
+    const DomTreeNodeBase<NodeT> *RN = getNode(R);
+    if (RN == NULL)
+      return; // If R is unreachable, it will not be present in the DOM tree.
+    SmallVector<const DomTreeNodeBase<NodeT> *, 8> WL;
+    WL.push_back(RN);
+
+    while (!WL.empty()) {
+      const DomTreeNodeBase<NodeT> *N = WL.pop_back_val();
+      Result.push_back(N->getBlock());
+      WL.append(N->begin(), N->end());
+    }
+  }
+
   /// properlyDominates - Returns true iff A dominates B and A != B.
   /// Note that this is not a constant time operation!
   ///
@@ -753,6 +769,12 @@ public:
 
   inline DomTreeNode *getRootNode() const {
     return DT->getRootNode();
+  }
+
+  /// Get all nodes dominated by R, including R itself.
+  void getDescendants(BasicBlock *R,
+                     SmallVectorImpl<BasicBlock *> &Result) const {
+    DT->getDescendants(R, Result);
   }
 
   /// compare - Return false if the other dominator tree matches this

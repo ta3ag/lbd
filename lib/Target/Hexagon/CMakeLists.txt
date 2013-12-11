@@ -9,8 +9,6 @@ tablegen(LLVM HexagonGenSubtargetInfo.inc -gen-subtarget)
 tablegen(LLVM HexagonGenDFAPacketizer.inc -gen-dfa-packetizer)
 add_public_tablegen_target(HexagonCommonTableGen)
 
-set(LLVM_COMMON_DEPENDS intrinsics_gen)
-
 add_llvm_target(HexagonCodeGen
   HexagonAsmPrinter.cpp
   HexagonCallingConvLower.cpp
@@ -19,6 +17,7 @@ add_llvm_target(HexagonCodeGen
   HexagonFrameLowering.cpp
   HexagonHardwareLoops.cpp
   HexagonFixupHwLoops.cpp
+  HexagonMachineFunctionInfo.cpp
   HexagonMachineScheduler.cpp
   HexagonMCInstLower.cpp
   HexagonInstrInfo.cpp

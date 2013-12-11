@@ -33,7 +33,7 @@ using namespace llvm;
 //===----------------------------------------------------------------------===//
 
 /// EmitSLEB128 - emit the specified signed leb128 value.
-void AsmPrinter::EmitSLEB128(int Value, const char *Desc) const {
+void AsmPrinter::EmitSLEB128(int64_t Value, const char *Desc) const {
   if (isVerbose() && Desc)
     OutStreamer.AddComment(Desc);
 
@@ -41,7 +41,7 @@ void AsmPrinter::EmitSLEB128(int Value, const char *Desc) const {
 }
 
 /// EmitULEB128 - emit the specified signed leb128 value.
-void AsmPrinter::EmitULEB128(unsigned Value, const char *Desc,
+void AsmPrinter::EmitULEB128(uint64_t Value, const char *Desc,
                              unsigned PadTo) const {
   if (isVerbose() && Desc)
     OutStreamer.AddComment(Desc);
@@ -52,9 +52,9 @@ void AsmPrinter::EmitULEB128(unsigned Value, const char *Desc,
 /// EmitCFAByte - Emit a .byte 42 directive for a DW_CFA_xxx value.
 void AsmPrinter::EmitCFAByte(unsigned Val) const {
   if (isVerbose()) {
-    if (Val >= dwarf::DW_CFA_offset && Val < dwarf::DW_CFA_offset+64)
+    if (Val >= dwarf::DW_CFA_offset && Val < dwarf::DW_CFA_offset + 64)
       OutStreamer.AddComment("DW_CFA_offset + Reg (" +
-                             Twine(Val-dwarf::DW_CFA_offset) + ")");
+                             Twine(Val - dwarf::DW_CFA_offset) + ")");
     else
       OutStreamer.AddComment(dwarf::CallFrameString(Val));
   }
@@ -63,30 +63,44 @@ void AsmPrinter::EmitCFAByte(unsigned Val) const {
 
 static const char *DecodeDWARFEncoding(unsigned Encoding) {
   switch (Encoding) {
-  case dwarf::DW_EH_PE_absptr: return "absptr";
-  case dwarf::DW_EH_PE_omit:   return "omit";
-  case dwarf::DW_EH_PE_pcrel:  return "pcrel";
-  case dwarf::DW_EH_PE_udata4: return "udata4";
-  case dwarf::DW_EH_PE_udata8: return "udata8";
-  case dwarf::DW_EH_PE_sdata4: return "sdata4";
-  case dwarf::DW_EH_PE_sdata8: return "sdata8";
-  case dwarf::DW_EH_PE_pcrel | dwarf::DW_EH_PE_udata4: return "pcrel udata4";
-  case dwarf::DW_EH_PE_pcrel | dwarf::DW_EH_PE_sdata4: return "pcrel sdata4";
-  case dwarf::DW_EH_PE_pcrel | dwarf::DW_EH_PE_udata8: return "pcrel udata8";
-  case dwarf::DW_EH_PE_pcrel | dwarf::DW_EH_PE_sdata8: return "pcrel sdata8";
-  case dwarf::DW_EH_PE_indirect | dwarf::DW_EH_PE_pcrel |dwarf::DW_EH_PE_udata4:
+  case dwarf::DW_EH_PE_absptr:
+    return "absptr";
+  case dwarf::DW_EH_PE_omit:
+    return "omit";
+  case dwarf::DW_EH_PE_pcrel:
+    return "pcrel";
+  case dwarf::DW_EH_PE_udata4:
+    return "udata4";
+  case dwarf::DW_EH_PE_udata8:
+    return "udata8";
+  case dwarf::DW_EH_PE_sdata4:
+    return "sdata4";
+  case dwarf::DW_EH_PE_sdata8:
+    return "sdata8";
+  case dwarf::DW_EH_PE_pcrel | dwarf::DW_EH_PE_udata4:
+    return "pcrel udata4";
+  case dwarf::DW_EH_PE_pcrel | dwarf::DW_EH_PE_sdata4:
+    return "pcrel sdata4";
+  case dwarf::DW_EH_PE_pcrel | dwarf::DW_EH_PE_udata8:
+    return "pcrel udata8";
+  case dwarf::DW_EH_PE_pcrel | dwarf::DW_EH_PE_sdata8:
+    return "pcrel sdata8";
+  case dwarf::DW_EH_PE_indirect | dwarf::DW_EH_PE_pcrel | dwarf::DW_EH_PE_udata4
+      :
     return "indirect pcrel udata4";
-  case dwarf::DW_EH_PE_indirect | dwarf::DW_EH_PE_pcrel |dwarf::DW_EH_PE_sdata4:
+  case dwarf::DW_EH_PE_indirect | dwarf::DW_EH_PE_pcrel | dwarf::DW_EH_PE_sdata4
+      :
     return "indirect pcrel sdata4";
-  case dwarf::DW_EH_PE_indirect | dwarf::DW_EH_PE_pcrel |dwarf::DW_EH_PE_udata8:
+  case dwarf::DW_EH_PE_indirect | dwarf::DW_EH_PE_pcrel | dwarf::DW_EH_PE_udata8
+      :
     return "indirect pcrel udata8";
-  case dwarf::DW_EH_PE_indirect | dwarf::DW_EH_PE_pcrel |dwarf::DW_EH_PE_sdata8:
+  case dwarf::DW_EH_PE_indirect | dwarf::DW_EH_PE_pcrel | dwarf::DW_EH_PE_sdata8
+      :
     return "indirect pcrel sdata8";
   }
 
   return "<unknown encoding>";
 }
-
 
 /// EmitEncodingByte - Emit a .byte 42 directive that corresponds to an
 /// encoding.  If verbose assembly output is enabled, we output comments
@@ -94,12 +108,11 @@ static const char *DecodeDWARFEncoding(unsigned Encoding) {
 /// encoding is specifying (e.g. "LSDA").
 void AsmPrinter::EmitEncodingByte(unsigned Val, const char *Desc) const {
   if (isVerbose()) {
-    if (Desc != 0)
-      OutStreamer.AddComment(Twine(Desc)+" Encoding = " +
+    if (Desc)
+      OutStreamer.AddComment(Twine(Desc) + " Encoding = " +
                              Twine(DecodeDWARFEncoding(Val)));
     else
-      OutStreamer.AddComment(Twine("Encoding = ") +
-                             DecodeDWARFEncoding(Val));
+      OutStreamer.AddComment(Twine("Encoding = ") + DecodeDWARFEncoding(Val));
   }
 
   OutStreamer.EmitIntValue(Val, 1);
@@ -111,11 +124,16 @@ unsigned AsmPrinter::GetSizeOfEncodedValue(unsigned Encoding) const {
     return 0;
 
   switch (Encoding & 0x07) {
-  default: llvm_unreachable("Invalid encoded value.");
-  case dwarf::DW_EH_PE_absptr: return TM.getDataLayout()->getPointerSize();
-  case dwarf::DW_EH_PE_udata2: return 2;
-  case dwarf::DW_EH_PE_udata4: return 4;
-  case dwarf::DW_EH_PE_udata8: return 8;
+  default:
+    llvm_unreachable("Invalid encoded value.");
+  case dwarf::DW_EH_PE_absptr:
+    return TM.getDataLayout()->getPointerSize();
+  case dwarf::DW_EH_PE_udata2:
+    return 2;
+  case dwarf::DW_EH_PE_udata4:
+    return 4;
+  case dwarf::DW_EH_PE_udata8:
+    return 8;
   }
 }
 
@@ -125,7 +143,7 @@ void AsmPrinter::EmitTTypeReference(const GlobalValue *GV,
     const TargetLoweringObjectFile &TLOF = getObjFileLowering();
 
     const MCExpr *Exp =
-      TLOF.getTTypeGlobalReference(GV, Mang, MMI, Encoding, OutStreamer);
+        TLOF.getTTypeGlobalReference(GV, Mang, MMI, Encoding, OutStreamer);
     OutStreamer.EmitValue(Exp, GetSizeOfEncodedValue(Encoding));
   } else
     OutStreamer.EmitIntValue(0, GetSizeOfEncodedValue(Encoding));
@@ -169,6 +187,7 @@ void AsmPrinter::EmitSectionOffset(const MCSymbol *Label,
 // Dwarf Lowering Routines
 //===----------------------------------------------------------------------===//
 
+<<<<<<< HEAD
 /// EmitCFIFrameMove - Emit a frame instruction.
 void AsmPrinter::EmitCFIFrameMove(const MachineMove &Move) const {
   const TargetRegisterInfo *RI = TM.getRegisterInfo();
@@ -192,5 +211,29 @@ void AsmPrinter::EmitCFIFrameMove(const MachineMove &Move) const {
     assert(!Dst.isReg() && "Machine move not supported yet.");
     OutStreamer.EmitCFIOffset(RI->getDwarfRegNum(Src.getReg(), true),
                               Dst.getOffset());
+=======
+void AsmPrinter::emitCFIInstruction(const MCCFIInstruction &Inst) const {
+  switch (Inst.getOperation()) {
+  default:
+    llvm_unreachable("Unexpected instruction");
+  case MCCFIInstruction::OpDefCfaOffset:
+    OutStreamer.EmitCFIDefCfaOffset(Inst.getOffset());
+    break;
+  case MCCFIInstruction::OpDefCfa:
+    OutStreamer.EmitCFIDefCfa(Inst.getRegister(), Inst.getOffset());
+    break;
+  case MCCFIInstruction::OpDefCfaRegister:
+    OutStreamer.EmitCFIDefCfaRegister(Inst.getRegister());
+    break;
+  case MCCFIInstruction::OpOffset:
+    OutStreamer.EmitCFIOffset(Inst.getRegister(), Inst.getOffset());
+    break;
+  case MCCFIInstruction::OpRegister:
+    OutStreamer.EmitCFIRegister(Inst.getRegister(), Inst.getRegister2());
+    break;
+  case MCCFIInstruction::OpWindowSave:
+    OutStreamer.EmitCFIWindowSave();
+    break;
+>>>>>>> llvmtrunk/master
   }
 }

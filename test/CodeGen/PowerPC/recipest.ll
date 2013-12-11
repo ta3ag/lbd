@@ -169,8 +169,14 @@ entry:
   ret double %r
 
 ; CHECK: @foo3
+<<<<<<< HEAD
 ; CHECK: frsqrte
 ; CHECK: fnmsub
+=======
+; CHECK: fcmpu
+; CHECK-DAG: frsqrte
+; CHECK-DAG: fnmsub
+>>>>>>> llvmtrunk/master
 ; CHECK: fmul
 ; CHECK: fmadd
 ; CHECK: fmul
@@ -195,8 +201,14 @@ entry:
   ret float %r
 
 ; CHECK: @goo3
+<<<<<<< HEAD
 ; CHECK: frsqrtes
 ; CHECK: fnmsubs
+=======
+; CHECK: fcmpu
+; CHECK-DAG: frsqrtes
+; CHECK-DAG: fnmsubs
+>>>>>>> llvmtrunk/master
 ; CHECK: fmuls
 ; CHECK: fmadds
 ; CHECK: fmuls
@@ -217,7 +229,8 @@ entry:
 
 ; CHECK: @hoo3
 ; CHECK: vrsqrtefp
-; CHECK: vrefp
+; CHECK-DAG: vrefp
+; CHECK-DAG: vcmpeqfp
 
 ; CHECK-SAFE: @hoo3
 ; CHECK-SAFE-NOT: vrsqrtefp

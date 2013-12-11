@@ -37,11 +37,17 @@ namespace llvm {
 
       FTOI,        // FP to Int within a FP register.
       ITOF,        // Int to FP within a FP register.
+      FTOX,        // FP to Int64 within a FP register.
+      XTOF,        // Int64 to FP within a FP register.
 
       CALL,        // A call instruction.
       RET_FLAG,    // Return with a flag operand.
-      GLOBAL_BASE_REG, // Global base reg for PIC
-      FLUSHW       // FLUSH register windows to stack
+      GLOBAL_BASE_REG, // Global base reg for PIC.
+      FLUSHW,      // FLUSH register windows to stack.
+
+      TLS_ADD,     // For Thread Local Storage (TLS).
+      TLS_LD,
+      TLS_CALL
     };
   }
 
@@ -68,10 +74,13 @@ namespace llvm {
 
     ConstraintType getConstraintType(const std::string &Constraint) const;
     std::pair<unsigned, const TargetRegisterClass*>
-    getRegForInlineAsmConstraint(const std::string &Constraint, EVT VT) const;
+    getRegForInlineAsmConstraint(const std::string &Constraint, MVT VT) const;
 
     virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
     virtual MVT getScalarShiftAmountTy(EVT LHSTy) const { return MVT::i32; }
+
+    /// getSetCCResultType - Return the ISD::SETCC ValueType
+    virtual EVT getSetCCResultType(LLVMContext &Context, EVT VT) const;
 
     virtual SDValue
       LowerFormalArguments(SDValue Chain,
@@ -119,13 +128,36 @@ namespace llvm {
                            DebugLoc DL, SelectionDAG &DAG) const;
 
     SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
+    SDValue LowerGlobalTLSAddress(SDValue Op, SelectionDAG &DAG) const;
     SDValue LowerConstantPool(SDValue Op, SelectionDAG &DAG) const;
+    SDValue LowerBlockAddress(SDValue Op, SelectionDAG &DAG) const;
 
     unsigned getSRetArgSize(SelectionDAG &DAG, SDValue Callee) const;
     SDValue withTargetFlags(SDValue Op, unsigned TF, SelectionDAG &DAG) const;
     SDValue makeHiLoPair(SDValue Op, unsigned HiTF, unsigned LoTF,
                          SelectionDAG &DAG) const;
     SDValue makeAddress(SDValue Op, SelectionDAG &DAG) const;
+
+    SDValue LowerF128_LibCallArg(SDValue Chain, ArgListTy &Args,
+                                 SDValue Arg, SDLoc DL,
+                                 SelectionDAG &DAG) const;
+    SDValue LowerF128Op(SDValue Op, SelectionDAG &DAG,
+                        const char *LibFuncName,
+                        unsigned numArgs) const;
+    SDValue LowerF128Compare(SDValue LHS, SDValue RHS,
+                             unsigned &SPCC,
+                             SDLoc DL,
+                             SelectionDAG &DAG) const;
+
+    bool ShouldShrinkFPConstant(EVT VT) const {
+      // Do not shrink FP constpool if VT == MVT::f128.
+      // (ldd, call _Q_fdtoq) is more expensive than two ldds.
+      return VT != MVT::f128;
+    }
+
+    virtual void ReplaceNodeResults(SDNode *N,
+                                    SmallVectorImpl<SDValue>& Results,
+                                    SelectionDAG &DAG) const;
   };
 } // end namespace llvm
 

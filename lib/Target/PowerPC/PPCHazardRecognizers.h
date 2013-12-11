@@ -21,21 +21,6 @@
 
 namespace llvm {
 
-/// PPCScoreboardHazardRecognizer - This class implements a scoreboard-based
-/// hazard recognizer for generic PPC processors.
-class PPCScoreboardHazardRecognizer : public ScoreboardHazardRecognizer {
-  const ScheduleDAG *DAG;
-public:
-  PPCScoreboardHazardRecognizer(const InstrItineraryData *ItinData,
-                         const ScheduleDAG *DAG_) :
-    ScoreboardHazardRecognizer(ItinData, DAG_), DAG(DAG_) {}
-
-  virtual HazardType getHazardType(SUnit *SU, int Stalls);
-  virtual void EmitInstruction(SUnit *SU);
-  virtual void AdvanceCycle();
-  virtual void Reset();
-};
-
 /// PPCHazardRecognizer970 - This class defines a finite state automata that
 /// models the dispatch logic on the PowerPC 970 (aka G5) processor.  This
 /// promotes good dispatch group formation and implements noop insertion to
@@ -43,7 +28,7 @@ public:
 /// setting the CTR register then branching through it within a dispatch group),
 /// or storing then loading from the same address within a dispatch group.
 class PPCHazardRecognizer970 : public ScheduleHazardRecognizer {
-  const TargetInstrInfo &TII;
+  const TargetMachine &TM;
 
   unsigned NumIssued;  // Number of insts issued, including advanced cycles.
 
@@ -64,7 +49,7 @@ class PPCHazardRecognizer970 : public ScheduleHazardRecognizer {
   unsigned NumStores;
 
 public:
-  PPCHazardRecognizer970(const TargetInstrInfo &TII);
+  PPCHazardRecognizer970(const TargetMachine &TM);
   virtual HazardType getHazardType(SUnit *SU, int Stalls);
   virtual void EmitInstruction(SUnit *SU);
   virtual void AdvanceCycle();

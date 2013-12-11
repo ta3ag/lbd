@@ -27,31 +27,31 @@ class ARMFReg<bits<16> Enc, string n> : Register<n> {
 
 // Subregister indices.
 let Namespace = "ARM" in {
-def qqsub_0 : SubRegIndex;
-def qqsub_1 : SubRegIndex;
+def qqsub_0 : SubRegIndex<256>;
+def qqsub_1 : SubRegIndex<256, 256>;
 
 // Note: Code depends on these having consecutive numbers.
-def qsub_0 : SubRegIndex;
-def qsub_1 : SubRegIndex;
-def qsub_2 : SubRegIndex<[qqsub_1, qsub_0]>;
-def qsub_3 : SubRegIndex<[qqsub_1, qsub_1]>;
+def qsub_0 : SubRegIndex<128>;
+def qsub_1 : SubRegIndex<128, 128>;
+def qsub_2 : ComposedSubRegIndex<qqsub_1, qsub_0>;
+def qsub_3 : ComposedSubRegIndex<qqsub_1, qsub_1>;
 
-def dsub_0 : SubRegIndex;
-def dsub_1 : SubRegIndex;
-def dsub_2 : SubRegIndex<[qsub_1, dsub_0]>;
-def dsub_3 : SubRegIndex<[qsub_1, dsub_1]>;
-def dsub_4 : SubRegIndex<[qsub_2, dsub_0]>;
-def dsub_5 : SubRegIndex<[qsub_2, dsub_1]>;
-def dsub_6 : SubRegIndex<[qsub_3, dsub_0]>;
-def dsub_7 : SubRegIndex<[qsub_3, dsub_1]>;
+def dsub_0 : SubRegIndex<64>;
+def dsub_1 : SubRegIndex<64, 64>;
+def dsub_2 : ComposedSubRegIndex<qsub_1, dsub_0>;
+def dsub_3 : ComposedSubRegIndex<qsub_1, dsub_1>;
+def dsub_4 : ComposedSubRegIndex<qsub_2, dsub_0>;
+def dsub_5 : ComposedSubRegIndex<qsub_2, dsub_1>;
+def dsub_6 : ComposedSubRegIndex<qsub_3, dsub_0>;
+def dsub_7 : ComposedSubRegIndex<qsub_3, dsub_1>;
 
-def ssub_0  : SubRegIndex;
-def ssub_1  : SubRegIndex;
-def ssub_2  : SubRegIndex<[dsub_1, ssub_0]>;
-def ssub_3  : SubRegIndex<[dsub_1, ssub_1]>;
+def ssub_0  : SubRegIndex<32>;
+def ssub_1  : SubRegIndex<32, 32>;
+def ssub_2  : ComposedSubRegIndex<dsub_1, ssub_0>;
+def ssub_3  : ComposedSubRegIndex<dsub_1, ssub_1>;
 
-def gsub_0  : SubRegIndex;
-def gsub_1  : SubRegIndex;
+def gsub_0  : SubRegIndex<32>;
+def gsub_1  : SubRegIndex<32, 32>;
 // Let TableGen synthesize the remaining 12 ssub_* indices.
 // We don't need to name them.
 }
@@ -168,10 +168,13 @@ def FPSCR_NZCV : ARMReg<3, "fpscr_nzcv"> {
 def ITSTATE    : ARMReg<4, "itstate">;
 
 // Special Registers - only available in privileged mode.
-def FPSID   : ARMReg<0, "fpsid">;
-def MVFR1   : ARMReg<6, "mvfr1">;
-def MVFR0   : ARMReg<7, "mvfr0">;
-def FPEXC   : ARMReg<8, "fpexc">;
+def FPSID   : ARMReg<0,  "fpsid">;
+def MVFR2   : ARMReg<5,  "mvfr2">;
+def MVFR1   : ARMReg<6,  "mvfr1">;
+def MVFR0   : ARMReg<7,  "mvfr0">;
+def FPEXC   : ARMReg<8,  "fpexc">;
+def FPINST  : ARMReg<9,  "fpinst">;
+def FPINST2 : ARMReg<10, "fpinst2">;
 
 // Register classes.
 //
@@ -207,6 +210,19 @@ def GPRnopc : RegisterClass<"ARM", [i32], 32, (sub GPR, PC)> {
   }];
 }
 
+<<<<<<< HEAD
+=======
+// GPRs without the PC but with APSR. Some instructions allow accessing the
+// APSR, while actually encoding PC in the register field. This is usefull
+// for assembly and disassembly only.
+def GPRwithAPSR : RegisterClass<"ARM", [i32], 32, (add (sub GPR, PC), APSR_NZCV)> {
+  let AltOrders = [(add LR, GPRnopc), (trunc GPRnopc, 8)];
+  let AltOrderSelect = [{
+      return 1 + MF.getTarget().getSubtarget<ARMSubtarget>().isThumb1Only();
+  }];
+}
+
+>>>>>>> llvmtrunk/master
 // GPRsp - Only the SP is legal. Used by Thumb1 instructions that want the
 // implied SP argument list.
 // FIXME: It would be better to not use this at all and refactor the
@@ -236,7 +252,7 @@ def hGPR : RegisterClass<"ARM", [i32], 32, (sub GPR, tGPR)>;
 // to the saved value before the tail call, which would clobber a call address.
 // Note, getMinimalPhysRegClass(R0) returns tGPR because of the names of
 // this class and the preceding one(!)  This is what we want.
-def tcGPR : RegisterClass<"ARM", [i32], 32, (add R0, R1, R2, R3, R9, R12)> {
+def tcGPR : RegisterClass<"ARM", [i32], 32, (add R0, R1, R2, R3, R12)> {
   let AltOrders = [(and tcGPR, tGPR)];
   let AltOrderSelect = [{
       return MF.getTarget().getSubtarget<ARMSubtarget>().isThumb1Only();

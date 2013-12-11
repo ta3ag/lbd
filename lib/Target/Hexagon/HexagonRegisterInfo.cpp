@@ -38,11 +38,9 @@
 using namespace llvm;
 
 
-HexagonRegisterInfo::HexagonRegisterInfo(HexagonSubtarget &st,
-                                     const HexagonInstrInfo &tii)
+HexagonRegisterInfo::HexagonRegisterInfo(HexagonSubtarget &st)
   : HexagonGenRegisterInfo(Hexagon::R31),
-    Subtarget(st),
-   TII(tii) {
+    Subtarget(st) {
 }
 
 const uint16_t* HexagonRegisterInfo::getCalleeSavedRegs(const MachineFunction
@@ -130,6 +128,8 @@ void HexagonRegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
 
   // Addressable stack objects are accessed using neg. offsets from %fp.
   MachineFunction &MF = *MI.getParent()->getParent();
+  const HexagonInstrInfo &TII =
+    *static_cast<const HexagonInstrInfo*>(MF.getTarget().getInstrInfo());
   int Offset = MF.getFrameInfo()->getObjectOffset(FrameIndex);
   MachineFrameInfo &MFI = *MF.getFrameInfo();
 
@@ -295,6 +295,7 @@ unsigned HexagonRegisterInfo::getStackRegister() const {
   return Hexagon::R29;
 }
 
+<<<<<<< HEAD
 void HexagonRegisterInfo::getInitialFrameState(std::vector<MachineMove>
                                                &Moves)  const
 {
@@ -313,5 +314,7 @@ unsigned HexagonRegisterInfo::getEHHandlerRegister() const {
   llvm_unreachable("What is the exception handler register");
 }
 
+=======
+>>>>>>> llvmtrunk/master
 #define GET_REGINFO_TARGET_DESC
 #include "HexagonGenRegisterInfo.inc"

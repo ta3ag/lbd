@@ -4,7 +4,13 @@
 declare void @bar()
 
 define void @test_w29_reserved() {
+<<<<<<< HEAD
 ; CHECK: test_w29_reserved:
+=======
+; CHECK-LABEL: test_w29_reserved:
+; CHECK: .cfi_startproc
+; CHECK: .cfi_def_cfa sp, 96
+>>>>>>> llvmtrunk/master
 ; CHECK: add x29, sp, #{{[0-9]+}}
 
   %val1 = load volatile i32* @var

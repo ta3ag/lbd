@@ -7,7 +7,7 @@
 
 ; Check unsigned comparison.
 define i64 @f1(i64 %src1) {
-; CHECK: f1:
+; CHECK-LABEL: f1:
 ; CHECK: clghrl %r2, g
 ; CHECK-NEXT: j{{g?}}l
 ; CHECK: br %r14
@@ -26,7 +26,7 @@ exit:
 
 ; Check signed comparison.
 define i64 @f2(i64 %src1) {
-; CHECK: f2:
+; CHECK-LABEL: f2:
 ; CHECK-NOT: clghrl
 ; CHECK: br %r14
 entry:
@@ -44,7 +44,7 @@ exit:
 
 ; Check equality.
 define i64 @f3(i64 %src1) {
-; CHECK: f3:
+; CHECK-LABEL: f3:
 ; CHECK: clghrl %r2, g
 ; CHECK-NEXT: j{{g?}}e
 ; CHECK: br %r14
@@ -63,7 +63,7 @@ exit:
 
 ; Check inequality.
 define i64 @f4(i64 %src1) {
-; CHECK: f4:
+; CHECK-LABEL: f4:
 ; CHECK: clghrl %r2, g
 ; CHECK-NEXT: j{{g?}}lh
 ; CHECK: br %r14
@@ -79,3 +79,45 @@ exit:
   %res = phi i64 [ %src1, %entry ], [ %mul, %mulb ]
   ret i64 %res
 }
+<<<<<<< HEAD
+=======
+
+; Repeat f1 with an unaligned address.
+define i64 @f5(i64 %src1) {
+; CHECK-LABEL: f5:
+; CHECK: lgrl [[REG:%r[0-5]]], h@GOT
+; CHECK: llgh [[VAL:%r[0-5]]], 0([[REG]])
+; CHECK: clgrjl %r2, [[VAL]],
+; CHECK: br %r14
+entry:
+  %val = load i16 *@h, align 1
+  %src2 = zext i16 %val to i64
+  %cond = icmp ult i64 %src1, %src2
+  br i1 %cond, label %exit, label %mulb
+mulb:
+  %mul = mul i64 %src1, %src1
+  br label %exit
+exit:
+  %res = phi i64 [ %src1, %entry ], [ %mul, %mulb ]
+  ret i64 %res
+}
+
+; Check the comparison can be reversed if that allows CLGHRL to be used.
+define i64 @f6(i64 %src2) {
+; CHECK-LABEL: f6:
+; CHECK: clghrl %r2, g
+; CHECK-NEXT: jh {{\.L.*}}
+; CHECK: br %r14
+entry:
+  %val = load i16 *@g
+  %src1 = zext i16 %val to i64
+  %cond = icmp ult i64 %src1, %src2
+  br i1 %cond, label %exit, label %mulb
+mulb:
+  %mul = mul i64 %src2, %src2
+  br label %exit
+exit:
+  %res = phi i64 [ %src2, %entry ], [ %mul, %mulb ]
+  ret i64 %res
+}
+>>>>>>> llvmtrunk/master

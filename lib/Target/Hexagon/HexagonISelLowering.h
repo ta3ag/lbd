@@ -95,6 +95,8 @@ namespace llvm {
     virtual bool isTruncateFree(Type *Ty1, Type *Ty2) const;
     virtual bool isTruncateFree(EVT VT1, EVT VT2) const;
 
+    virtual bool allowTruncateForTailCall(Type *Ty1, Type *Ty2) const;
+
     virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const;
 
     virtual const char *getTargetNodeName(unsigned Opcode) const;
@@ -139,8 +141,16 @@ namespace llvm {
 
     SDValue  LowerVASTART(SDValue Op, SelectionDAG &DAG) const;
     SDValue  LowerConstantPool(SDValue Op, SelectionDAG &DAG) const;
+<<<<<<< HEAD
     virtual EVT getSetCCResultType(EVT VT) const {
       return MVT::i1;
+=======
+    virtual EVT getSetCCResultType(LLVMContext &C, EVT VT) const {
+      if (!VT.isVector())
+        return MVT::i1;
+      else
+        return EVT::getVectorVT(C, MVT::i1, VT.getVectorNumElements());
+>>>>>>> llvmtrunk/master
     }
 
     virtual bool getPostIndexedAddressParts(SDNode *N, SDNode *Op,
@@ -150,7 +160,7 @@ namespace llvm {
 
     std::pair<unsigned, const TargetRegisterClass*>
     getRegForInlineAsmConstraint(const std::string &Constraint,
-                                 EVT VT) const;
+                                 MVT VT) const;
 
     // Intrinsics
     virtual SDValue LowerINTRINSIC_WO_CHAIN(SDValue Op,

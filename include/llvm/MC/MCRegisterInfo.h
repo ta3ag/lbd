@@ -148,6 +148,13 @@ public:
 
     bool operator<(DwarfLLVMRegPair RHS) const { return FromReg < RHS.FromReg; }
   };
+
+  /// SubRegCoveredBits - Emitted by tablegen: bit range covered by a subreg
+  /// index, -1 in any being invalid.
+  struct SubRegCoveredBits {
+    uint16_t Offset;
+    uint16_t Size;
+  };
 private:
   const MCRegisterDesc *Desc;                 // Pointer to the descriptor array
   unsigned NumRegs;                           // Number of entries in the array
@@ -161,6 +168,8 @@ private:
   const char *RegStrings;                     // Pointer to the string table.
   const uint16_t *SubRegIndices;              // Pointer to the subreg lookup
                                               // array.
+  const SubRegCoveredBits *SubRegIdxRanges;   // Pointer to the subreg covered
+                                              // bit ranges array.
   unsigned NumSubRegIndices;                  // Number of subreg indices.
   const uint16_t *RegEncodingTable;           // Pointer to array of register
                                               // encodings.
@@ -241,6 +250,7 @@ public:
                           const char *Strings,
                           const uint16_t *SubIndices,
                           unsigned NumIndices,
+                          const SubRegCoveredBits *SubIdxRanges,
                           const uint16_t *RET) {
     Desc = D;
     NumRegs = NR;
@@ -254,6 +264,7 @@ public:
     NumRegUnits = NRU;
     SubRegIndices = SubIndices;
     NumSubRegIndices = NumIndices;
+    SubRegIdxRanges = SubIdxRanges;
     RegEncodingTable = RET;
   }
 
@@ -331,6 +342,16 @@ public:
   /// if the second register is a sub-register of the first. Return zero
   /// otherwise.
   unsigned getSubRegIndex(unsigned RegNo, unsigned SubRegNo) const;
+
+  /// \brief Get the size of the bit range covered by a sub-register index.
+  /// If the index isn't continuous, return the sum of the sizes of its parts.
+  /// If the index is used to access subregisters of different sizes, return -1.
+  unsigned getSubRegIdxSize(unsigned Idx) const;
+
+  /// \brief Get the offset of the bit range covered by a sub-register index.
+  /// If an Offset doesn't make sense (the index isn't continuous, or is used to
+  /// access sub-registers at different offsets), return -1.
+  unsigned getSubRegIdxOffset(unsigned Idx) const;
 
   /// \brief Return the human-readable symbolic target-specific name for the
   /// specified physical register.

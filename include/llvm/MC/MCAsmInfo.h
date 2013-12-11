@@ -81,16 +81,20 @@ namespace llvm {
 
     /// LinkerRequiresNonEmptyDwarfLines - True if the linker has a bug and
     /// requires that the debug_line section be of a minimum size. In practice
-    /// such a linker requires a non empty line sequence if a file is present.
+    /// such a linker requires a non-empty line sequence if a file is present.
     bool LinkerRequiresNonEmptyDwarfLines; // Default to false.
 
     /// MaxInstLength - This is the maximum possible length of an instruction,
     /// which is needed to compute the size of an inline asm.
     unsigned MaxInstLength;                  // Defaults to 4.
 
-    /// PCSymbol - The symbol used to represent the current PC.  Used in PC
-    /// relative expressions.
-    const char *PCSymbol;                    // Defaults to "$".
+    /// MinInstAlignment - Every possible instruction length is a multiple of
+    /// this value.  Factored out in .debug_frame and .debug_line.
+    unsigned MinInstAlignment;                  // Defaults to 1.
+
+    /// DollarIsPC - The '$' token, when not referencing an identifier or
+    /// constant, refers to the current PC.
+    bool DollarIsPC;                         // Defaults to false.
 
     /// SeparatorString - This string, if specified, is used to separate
     /// instructions from each other when on the same line.
@@ -110,14 +114,14 @@ namespace llvm {
     /// LabelSuffix - This is appended to emitted labels.
     const char *DebugLabelSuffix;                 // Defaults to ":"
 
-    /// GlobalPrefix - If this is set to a non-empty string, it is prepended
-    /// onto all global symbols.  This is often used for "_" or ".".
-    const char *GlobalPrefix;                // Defaults to ""
+    /// If this is set to anything other than '\0', it is prepended
+    /// onto all global symbols.  This is often used for '_'.
+    char GlobalPrefix;                // Defaults to '\0'
 
-    /// PrivateGlobalPrefix - This prefix is used for globals like constant
-    /// pool entries that are completely private to the .s file and should not
-    /// have names in the .o file.  This is often "." or "L".
-    const char *PrivateGlobalPrefix;         // Defaults to "."
+    /// This prefix is used for globals like constant pool entries that are
+    /// completely private to the .s file and should not have names in the .o
+    /// file.
+    const char *PrivateGlobalPrefix;         // Defaults to "L"
 
     /// LinkerPrivateGlobalPrefix - This prefix is used for symbols that should
     /// be passed through the assembler but be removed by the linker.  This
@@ -139,21 +143,9 @@ namespace llvm {
     /// AssemblerDialect - Which dialect of an assembler variant to use.
     unsigned AssemblerDialect;               // Defaults to 0
 
-    /// AllowQuotesInName - This is true if the assembler allows for complex
-    /// symbol names to be surrounded in quotes.  This defaults to false.
-    bool AllowQuotesInName;
-
-    /// AllowNameToStartWithDigit - This is true if the assembler allows symbol
-    /// names to start with a digit (e.g., "0x0021").  This defaults to false.
-    bool AllowNameToStartWithDigit;
-
-    /// AllowPeriodsInName - This is true if the assembler allows periods in
-    /// symbol names.  This defaults to true.
-    bool AllowPeriodsInName;
-
-    /// AllowUTF8 - This is true if the assembler accepts UTF-8 input.
-    // FIXME: Make this a more general encoding setting?
-    bool AllowUTF8;
+    /// \brief This is true if the assembler allows @ characters in symbol
+    /// names. Defaults to false.
+    bool AllowAtInName;
 
     /// UseDataRegionDirectives - This is true if data region markers should
     /// be printed as ".data_region/.end_data_region" directives. If false,
@@ -195,13 +187,6 @@ namespace llvm {
     /// on Mips or .gprel32 on Alpha.
     const char *GPRel32Directive;            // Defaults to NULL.
 
-    /// getDataASDirective - Return the directive that should be used to emit
-    /// data of the specified size to the specified numeric address space.
-    virtual const char *getDataASDirective(unsigned Size, unsigned AS) const {
-      assert(AS != 0 && "Don't know the directives for default addr space");
-      return 0;
-    }
-
     /// SunStyleELFSectionSwitchSyntax - This is true if this target uses "Sun
     /// Style" syntax for section switching ("#alloc,#write" etc) instead of the
     /// normal ELF syntax (,"a,w") in .section directives.
@@ -242,11 +227,6 @@ namespace llvm {
     ///
     const char *GlobalDirective;             // Defaults to NULL.
 
-    /// ExternDirective - This is the directive used to declare external
-    /// globals.
-    ///
-    const char *ExternDirective;             // Defaults to NULL.
-
     /// HasSetDirective - True if the assembler supports the .set directive.
     bool HasSetDirective;                    // Defaults to true.
 
@@ -273,25 +253,28 @@ namespace llvm {
     /// .file directive, this is true for ELF targets.
     bool HasSingleParameterDotFile;          // Defaults to true.
 
+    /// hasIdentDirective - True if the target has a .ident directive, this is
+    /// true for ELF targets.
+    bool HasIdentDirective;                  // Defaults to false.
+
     /// HasNoDeadStrip - True if this target supports the MachO .no_dead_strip
     /// directive.
     bool HasNoDeadStrip;                     // Defaults to false.
-
-    /// HasSymbolResolver - True if this target supports the MachO
-    /// .symbol_resolver directive.
-    bool HasSymbolResolver;                     // Defaults to false.
 
     /// WeakRefDirective - This directive, if non-null, is used to declare a
     /// global as being a weak undefined symbol.
     const char *WeakRefDirective;            // Defaults to NULL.
 
-    /// WeakDefDirective - This directive, if non-null, is used to declare a
-    /// global as being a weak defined symbol.
-    const char *WeakDefDirective;            // Defaults to NULL.
+    /// True if we have a directive to declare a global as being a weak
+    /// defined symbol.
+    bool HasWeakDefDirective;                // Defaults to false.
 
-    /// LinkOnceDirective - This directive, if non-null is used to declare a
-    /// global as being a weak defined symbol.  This is used on cygwin/mingw.
-    const char *LinkOnceDirective;           // Defaults to NULL.
+    /// True if we have a directive to declare a global as being a weak
+    /// defined symbol that can be hidden (unexported).
+    bool HasWeakDefCanBeHiddenDirective;     // Defaults to false.
+
+    /// True if we have a .linkonce directive.  This is used on cygwin/mingw.
+    bool HasLinkOnceDirective;               // Defaults to false.
 
     /// HiddenVisibilityAttr - This attribute, if not MCSA_Invalid, is used to
     /// declare a symbol as having hidden visibility.
@@ -318,10 +301,6 @@ namespace llvm {
     /// SupportsExceptionHandling - True if target supports exception handling.
     ExceptionHandling::ExceptionsType ExceptionsType; // Defaults to None
 
-    /// DwarfUsesInlineInfoSection - True if DwarfDebugInlineSection is used to
-    /// encode inline subroutine information.
-    bool DwarfUsesInlineInfoSection;         // Defaults to false.
-
     /// DwarfUsesRelocationsAcrossSections - True if Dwarf2 output generally
     /// uses relocations for references to other .debug_* sections.
     bool DwarfUsesRelocationsAcrossSections;
@@ -329,6 +308,10 @@ namespace llvm {
     /// DwarfRegNumForCFI - True if dwarf register numbers are printed
     /// instead of symbolic register names in .cfi_* directives.
     bool DwarfRegNumForCFI;  // Defaults to false;
+
+    /// UseParensForSymbolVariant - True if target uses parens to indicate the
+    /// symbol variant instead of @. For example, foo(plt) instead of foo@plt.
+    bool UseParensForSymbolVariant; // Defaults to false;
 
     //===--- Prologue State ----------------------------------------------===//
 
@@ -339,8 +322,8 @@ namespace llvm {
     virtual ~MCAsmInfo();
 
     // FIXME: move these methods to DwarfPrinter when the JIT stops using them.
-    static unsigned getSLEB128Size(int Value);
-    static unsigned getULEB128Size(unsigned Value);
+    static unsigned getSLEB128Size(int64_t Value);
+    static unsigned getULEB128Size(uint64_t Value);
 
     /// getPointerSize - Get the pointer size in bytes.
     unsigned getPointerSize() const {
@@ -367,17 +350,17 @@ namespace llvm {
 
     // Data directive accessors.
     //
-    const char *getData8bitsDirective(unsigned AS = 0) const {
-      return AS == 0 ? Data8bitsDirective : getDataASDirective(8, AS);
+    const char *getData8bitsDirective() const {
+      return Data8bitsDirective;
     }
-    const char *getData16bitsDirective(unsigned AS = 0) const {
-      return AS == 0 ? Data16bitsDirective : getDataASDirective(16, AS);
+    const char *getData16bitsDirective() const {
+      return Data16bitsDirective;
     }
-    const char *getData32bitsDirective(unsigned AS = 0) const {
-      return AS == 0 ? Data32bitsDirective : getDataASDirective(32, AS);
+    const char *getData32bitsDirective() const {
+      return Data32bitsDirective;
     }
-    const char *getData64bitsDirective(unsigned AS = 0) const {
-      return AS == 0 ? Data64bitsDirective : getDataASDirective(64, AS);
+    const char *getData64bitsDirective() const {
+      return Data64bitsDirective;
     }
     const char *getGPRel64Directive() const { return GPRel64Directive; }
     const char *getGPRel32Directive() const { return GPRel32Directive; }
@@ -428,8 +411,11 @@ namespace llvm {
     unsigned getMaxInstLength() const {
       return MaxInstLength;
     }
-    const char *getPCSymbol() const {
-      return PCSymbol;
+    unsigned getMinInstAlignment() const {
+      return MinInstAlignment;
+    }
+    bool getDollarIsPC() const {
+      return DollarIsPC;
     }
     const char *getSeparatorString() const {
       return SeparatorString;
@@ -448,7 +434,7 @@ namespace llvm {
       return DebugLabelSuffix;
     }
 
-    const char *getGlobalPrefix() const {
+    char getGlobalPrefix() const {
       return GlobalPrefix;
     }
     const char *getPrivateGlobalPrefix() const {
@@ -475,17 +461,8 @@ namespace llvm {
     unsigned getAssemblerDialect() const {
       return AssemblerDialect;
     }
-    bool doesAllowQuotesInName() const {
-      return AllowQuotesInName;
-    }
-    bool doesAllowNameToStartWithDigit() const {
-      return AllowNameToStartWithDigit;
-    }
-    bool doesAllowPeriodsInName() const {
-      return AllowPeriodsInName;
-    }
-    bool doesAllowUTF8() const {
-      return AllowUTF8;
+    bool doesAllowAtInName() const {
+      return AllowAtInName;
     }
     bool doesSupportDataRegionDirectives() const {
       return UseDataRegionDirectives;
@@ -511,9 +488,6 @@ namespace llvm {
     const char *getGlobalDirective() const {
       return GlobalDirective;
     }
-    const char *getExternDirective() const {
-      return ExternDirective;
-    }
     bool hasSetDirective() const { return HasSetDirective; }
     bool hasAggressiveSymbolFolding() const {
       return HasAggressiveSymbolFolding;
@@ -526,11 +500,14 @@ namespace llvm {
     }
     bool hasDotTypeDotSizeDirective() const {return HasDotTypeDotSizeDirective;}
     bool hasSingleParameterDotFile() const { return HasSingleParameterDotFile; }
+    bool hasIdentDirective() const { return HasIdentDirective; }
     bool hasNoDeadStrip() const { return HasNoDeadStrip; }
-    bool hasSymbolResolver() const { return HasSymbolResolver; }
     const char *getWeakRefDirective() const { return WeakRefDirective; }
-    const char *getWeakDefDirective() const { return WeakDefDirective; }
-    const char *getLinkOnceDirective() const { return LinkOnceDirective; }
+    bool hasWeakDefDirective() const { return HasWeakDefDirective; }
+    bool hasWeakDefCanBeHiddenDirective() const {
+      return HasWeakDefCanBeHiddenDirective;
+    }
+    bool hasLinkOnceDirective() const { return HasLinkOnceDirective; }
 
     MCSymbolAttr getHiddenVisibilityAttr() const { return HiddenVisibilityAttr;}
     MCSymbolAttr getHiddenDeclarationVisibilityAttr() const {
@@ -557,14 +534,14 @@ namespace llvm {
          ExceptionsType == ExceptionHandling::ARM ||
          ExceptionsType == ExceptionHandling::Win64);
     }
-    bool doesDwarfUseInlineInfoSection() const {
-      return DwarfUsesInlineInfoSection;
-    }
     bool doesDwarfUseRelocationsAcrossSections() const {
       return DwarfUsesRelocationsAcrossSections;
     }
     bool useDwarfRegNumForCFI() const {
       return DwarfRegNumForCFI;
+    }
+    bool useParensForSymbolVariant() const {
+      return UseParensForSymbolVariant;
     }
 
     void addInitialFrameState(MCSymbol *label, const MachineLocation &D,

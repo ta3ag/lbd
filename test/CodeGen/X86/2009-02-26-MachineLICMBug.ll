@@ -1,6 +1,11 @@
 ; REQUIRES: asserts
+<<<<<<< HEAD
 ; RUN: llc < %s -march=x86-64 -mattr=+sse3,+sse41 -mcpu=penryn -stats 2>&1 | grep "5 machine-licm"
 ; RUN: llc < %s -march=x86-64 -mattr=+sse3,+sse41 -mcpu=penryn | FileCheck %s
+=======
+; RUN: llc < %s -march=x86-64 -mattr=+sse3,+sse4.1 -mcpu=penryn -stats 2>&1 | grep "4 machine-licm"
+; RUN: llc < %s -march=x86-64 -mattr=+sse3,+sse4.1 -mcpu=penryn | FileCheck %s
+>>>>>>> llvmtrunk/master
 ; rdar://6627786
 ; rdar://7792037
 
@@ -17,9 +22,13 @@ bb4:		; preds = %bb.i, %bb26, %bb4, %entry
 ; CHECK: %bb4
 ; CHECK: xorb
 ; CHECK: callq
-; CHECK: movq
 ; CHECK: xorl
+<<<<<<< HEAD
 ; CHECK: xorb
+=======
+; CHECK: xorl
+; CHECK: movq
+>>>>>>> llvmtrunk/master
 
 	%0 = call i32 (...)* @xxGetOffsetForCode(i32 undef) nounwind		; <i32> [#uses=0]
 	%ins = or i64 %p, 2097152		; <i64> [#uses=1]

@@ -14,29 +14,36 @@
 //
 //===----------------------------------------------------------------------===//
 
+<<<<<<< HEAD
 #include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringSwitch.h"
 #include "llvm/Support/COFF.h"
 #include "llvm/Support/Casting.h"
+=======
+#include "yaml2obj.h"
+#include "llvm/ADT/OwningPtr.h"
+>>>>>>> llvmtrunk/master
 #include "llvm/Support/CommandLine.h"
-#include "llvm/Support/Endian.h"
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/PrettyStackTrace.h"
 #include "llvm/Support/Signals.h"
+<<<<<<< HEAD
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/YAMLTraits.h"
+=======
+>>>>>>> llvmtrunk/master
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/system_error.h"
-#include <vector>
 
 using namespace llvm;
 
 static cl::opt<std::string>
   Input(cl::Positional, cl::desc("<input>"), cl::init("-"));
 
+<<<<<<< HEAD
 // The structure of the yaml files is not an exact 1:1 match to COFF. In order
 // to use yaml::IO, we use these structures which are closer to the source.
 namespace COFFYAML {
@@ -223,104 +230,29 @@ template <typename value_type>
 struct binary_le_impl {
   value_type Value;
   binary_le_impl(value_type V) : Value(V) {}
+=======
+// TODO: The "right" way to tell what kind of object file a given YAML file
+// corresponds to is to look at YAML "tags" (e.g. `!Foo`). Then, different
+// tags (`!ELF`, `!COFF`, etc.) would be used to discriminate between them.
+// Interpreting the tags is needed eventually for when writing test cases,
+// so that we can e.g. have `!Archive` contain a sequence of `!ELF`, and
+// just Do The Right Thing. However, interpreting these tags and acting on
+// them appropriately requires some work in the YAML parser and the YAMLIO
+// library.
+enum YAMLObjectFormat {
+  YOF_COFF,
+  YOF_ELF
+>>>>>>> llvmtrunk/master
 };
 
-template <typename value_type>
-raw_ostream &operator <<( raw_ostream &OS
-                        , const binary_le_impl<value_type> &BLE) {
-  char Buffer[sizeof(BLE.Value)];
-  support::endian::write<value_type, support::little, support::unaligned>(
-    Buffer, BLE.Value);
-  OS.write(Buffer, sizeof(BLE.Value));
-  return OS;
-}
+cl::opt<YAMLObjectFormat> Format(
+  "format",
+  cl::desc("Interpret input as this type of object file"),
+  cl::values(
+    clEnumValN(YOF_COFF, "coff", "COFF object file format"),
+    clEnumValN(YOF_ELF, "elf", "ELF object file format"),
+  clEnumValEnd));
 
-template <typename value_type>
-binary_le_impl<value_type> binary_le(value_type V) {
-  return binary_le_impl<value_type>(V);
-}
-
-static bool writeHexData(StringRef Data, raw_ostream &OS) {
-  unsigned Size = Data.size();
-  if (Size % 2)
-    return false;
-
-  for (unsigned I = 0; I != Size; I += 2) {
-    uint8_t Byte;
-    if (Data.substr(I,  2).getAsInteger(16, Byte))
-      return false;
-    OS.write(Byte);
-  }
-
-  return true;
-}
-
-bool writeCOFF(COFFParser &CP, raw_ostream &OS) {
-  OS << binary_le(CP.Obj.Header.Machine)
-     << binary_le(CP.Obj.Header.NumberOfSections)
-     << binary_le(CP.Obj.Header.TimeDateStamp)
-     << binary_le(CP.Obj.Header.PointerToSymbolTable)
-     << binary_le(CP.Obj.Header.NumberOfSymbols)
-     << binary_le(CP.Obj.Header.SizeOfOptionalHeader)
-     << binary_le(CP.Obj.Header.Characteristics);
-
-  // Output section table.
-  for (std::vector<COFFYAML::Section>::iterator i = CP.Obj.Sections.begin(),
-                                                e = CP.Obj.Sections.end();
-                                                i != e; ++i) {
-    OS.write(i->Header.Name, COFF::NameSize);
-    OS << binary_le(i->Header.VirtualSize)
-       << binary_le(i->Header.VirtualAddress)
-       << binary_le(i->Header.SizeOfRawData)
-       << binary_le(i->Header.PointerToRawData)
-       << binary_le(i->Header.PointerToRelocations)
-       << binary_le(i->Header.PointerToLineNumbers)
-       << binary_le(i->Header.NumberOfRelocations)
-       << binary_le(i->Header.NumberOfLineNumbers)
-       << binary_le(i->Header.Characteristics);
-  }
-
-  // Output section data.
-  for (std::vector<COFFYAML::Section>::iterator i = CP.Obj.Sections.begin(),
-                                                e = CP.Obj.Sections.end();
-                                                i != e; ++i) {
-    if (!i->SectionData.empty()) {
-      if (!writeHexData(i->SectionData, OS)) {
-        errs() << "SectionData must be a collection of pairs of hex bytes";
-        return false;
-      }
-    }
-    for (unsigned I2 = 0, E2 = i->Relocations.size(); I2 != E2; ++I2) {
-      const COFF::relocation &R = i->Relocations[I2];
-      OS << binary_le(R.VirtualAddress)
-         << binary_le(R.SymbolTableIndex)
-         << binary_le(R.Type);
-    }
-  }
-
-  // Output symbol table.
-
-  for (std::vector<COFFYAML::Symbol>::const_iterator i = CP.Obj.Symbols.begin(),
-                                                     e = CP.Obj.Symbols.end();
-                                                     i != e; ++i) {
-    OS.write(i->Header.Name, COFF::NameSize);
-    OS << binary_le(i->Header.Value)
-       << binary_le(i->Header.SectionNumber)
-       << binary_le(i->Header.Type)
-       << binary_le(i->Header.StorageClass)
-       << binary_le(i->Header.NumberOfAuxSymbols);
-    if (!i->AuxiliaryData.empty()) {
-      if (!writeHexData(i->AuxiliaryData, OS)) {
-        errs() << "AuxiliaryData must be a collection of pairs of hex bytes";
-        return false;
-      }
-    }
-  }
-
-  // Output string table.
-  OS.write(&CP.StringTable[0], CP.StringTable.size());
-  return true;
-}
 
 LLVM_YAML_IS_SEQUENCE_VECTOR(COFF::relocation)
 LLVM_YAML_IS_SEQUENCE_VECTOR(COFFYAML::Section)
@@ -654,27 +586,12 @@ int main(int argc, char **argv) {
   OwningPtr<MemoryBuffer> Buf;
   if (MemoryBuffer::getFileOrSTDIN(Input, Buf))
     return 1;
-
-  yaml::Input YIn(Buf->getBuffer());
-  COFFYAML::Object Doc;
-  YIn >> Doc;
-  if (YIn.error()) {
-    errs() << "yaml2obj: Failed to parse YAML file!\n";
-    return 1;
-  }
-
-  COFFParser CP(Doc);
-  if (!CP.parse()) {
-    errs() << "yaml2obj: Failed to parse YAML file!\n";
-    return 1;
-  }
-
-  if (!layoutCOFF(CP)) {
-    errs() << "yaml2obj: Failed to layout COFF file!\n";
-    return 1;
-  }
-  if (!writeCOFF(CP, outs())) {
-    errs() << "yaml2obj: Failed to write COFF file!\n";
+  if (Format == YOF_COFF) {
+    return yaml2coff(outs(), Buf.get());
+  } else if (Format == YOF_ELF) {
+    return yaml2elf(outs(), Buf.get());
+  } else {
+    errs() << "Not yet implemented\n";
     return 1;
   }
 }

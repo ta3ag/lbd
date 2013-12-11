@@ -234,7 +234,17 @@ public:
   /// getFrameMoves - Returns a reference to a list of moves done in the current
   /// function's prologue.  Used to construct frame maps for debug and exception
   /// handling comsumers.
+<<<<<<< HEAD
   std::vector<MachineMove> &getFrameMoves() { return FrameMoves; }
+=======
+  const std::vector<MCCFIInstruction> &getFrameInstructions() const {
+    return FrameInstructions;
+  }
+
+  void addFrameInst(const MCCFIInstruction &Inst) {
+    FrameInstructions.push_back(Inst);
+  }
+>>>>>>> llvmtrunk/master
 
   /// getCompactUnwindEncoding - Returns the compact unwind encoding for a
   /// function if the target supports the encoding. This encoding replaces a

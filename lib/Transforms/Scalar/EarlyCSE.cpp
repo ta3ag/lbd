@@ -26,7 +26,7 @@
 #include "llvm/Support/RecyclingAllocator.h"
 #include "llvm/Target/TargetLibraryInfo.h"
 #include "llvm/Transforms/Utils/Local.h"
-#include <deque>
+#include <vector>
 using namespace llvm;
 
 STATISTIC(NumSimplify, "Number of instructions simplified or DCE'd");
@@ -72,11 +72,6 @@ namespace {
 }
 
 namespace llvm {
-// SimpleValue is POD.
-template<> struct isPodLike<SimpleValue> {
-  static const bool value = true;
-};
-
 template<> struct DenseMapInfo<SimpleValue> {
   static inline SimpleValue getEmptyKey() {
     return DenseMapInfo<Instruction*>::getEmptyKey();
@@ -220,11 +215,6 @@ namespace {
 }
 
 namespace llvm {
-  // CallValue is POD.
-  template<> struct isPodLike<CallValue> {
-    static const bool value = true;
-  };
-
   template<> struct DenseMapInfo<CallValue> {
     static inline CallValue getEmptyKey() {
       return DenseMapInfo<Instruction*>::getEmptyKey();
@@ -562,7 +552,7 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
 
 
 bool EarlyCSE::runOnFunction(Function &F) {
-  std::deque<StackNode *> nodesToProcess;
+  std::vector<StackNode *> nodesToProcess;
 
   TD = getAnalysisIfAvailable<DataLayout>();
   TLI = &getAnalysis<TargetLibraryInfo>();
@@ -580,7 +570,7 @@ bool EarlyCSE::runOnFunction(Function &F) {
   bool Changed = false;
 
   // Process the root node.
-  nodesToProcess.push_front(
+  nodesToProcess.push_back(
       new StackNode(AvailableValues, AvailableLoads, AvailableCalls,
                     CurrentGeneration, DT->getRootNode(),
                     DT->getRootNode()->begin(),
@@ -593,7 +583,7 @@ bool EarlyCSE::runOnFunction(Function &F) {
   while (!nodesToProcess.empty()) {
     // Grab the first item off the stack. Set the current generation, remove
     // the node from the stack, and process it.
-    StackNode *NodeToProcess = nodesToProcess.front();
+    StackNode *NodeToProcess = nodesToProcess.back();
 
     // Initialize class members.
     CurrentGeneration = NodeToProcess->currentGeneration();
@@ -607,7 +597,7 @@ bool EarlyCSE::runOnFunction(Function &F) {
     } else if (NodeToProcess->childIter() != NodeToProcess->end()) {
       // Push the next child onto the stack.
       DomTreeNode *child = NodeToProcess->nextChild();
-      nodesToProcess.push_front(
+      nodesToProcess.push_back(
           new StackNode(AvailableValues,
                         AvailableLoads,
                         AvailableCalls,
@@ -617,7 +607,7 @@ bool EarlyCSE::runOnFunction(Function &F) {
       // It has been processed, and there are no more children to process,
       // so delete it and pop it off the stack.
       delete NodeToProcess;
-      nodesToProcess.pop_front();
+      nodesToProcess.pop_back();
     }
   } // while (!nodes...)
 

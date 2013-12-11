@@ -1,5 +1,9 @@
+<<<<<<< HEAD:test/ExecutionEngine/MCJIT/test-global-init-nonzero-remote.ll
 ; RUN: %lli_mcjit -remote-mcjit %s > /dev/null
 ; XFAIL: arm, mips
+=======
+; RUN: %lli_mcjit -remote-mcjit -mcjit-remote-process=lli-child-target %s > /dev/null
+>>>>>>> llvmtrunk/master:test/ExecutionEngine/MCJIT/remote/test-global-init-nonzero-remote.ll
 
 @count = global i32 1, align 4
 

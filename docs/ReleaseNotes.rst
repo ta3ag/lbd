@@ -1,15 +1,24 @@
 ======================
-LLVM 3.3 Release Notes
+LLVM 3.5 Release Notes
 ======================
 
 .. contents::
     :local:
 
+<<<<<<< HEAD
+=======
+.. warning::
+   These are in-progress notes for the upcoming LLVM 3.5 release.  You may
+   prefer the `LLVM 3.4 Release Notes <http://llvm.org/releases/3.4/docs
+   /ReleaseNotes.html>`_.
+
+
+>>>>>>> llvmtrunk/master
 Introduction
 ============
 
 This document contains the release notes for the LLVM Compiler Infrastructure,
-release 3.3.  Here we describe the status of LLVM, including major improvements
+release 3.5.  Here we describe the status of LLVM, including major improvements
 from the previous release, improvements in various subprojects of LLVM, and
 some of the current users of the code.  All LLVM releases may be downloaded
 from the `LLVM releases web site <http://llvm.org/releases/>`_.
@@ -28,6 +37,7 @@ page <http://llvm.org/releases/>`_.
 Non-comprehensive list of changes in this release
 =================================================
 
+<<<<<<< HEAD
 * The CellSPU port has been removed.  It can still be found in older versions.
 
 * The IR-level extended linker APIs (for example, to link bitcode files out of
@@ -304,6 +314,33 @@ to concurrency and offers many classical paradigms.
 combined with LLVM as backend to produce efficient native code. LDC targets
 x86/x86_64 systems like Linux, OS X and Windows and also Linux/PPC64. Ports to
 other architectures like ARM are underway.
+=======
+.. NOTE
+   For small 1-3 sentence descriptions, just add an entry at the end of
+   this list. If your description won't fit comfortably in one bullet
+   point (e.g. maybe you would like to give an example of the
+   functionality, or simply have a lot to talk about), see the `NOTE` below
+   for adding a new subsection.
+
+* ... next change ...
+
+.. NOTE
+   If you would like to document a larger change, then you can add a
+   subsection about it right here. You can copy the following boilerplate
+   and un-indent it (the indentation causes it to be inside this comment).
+
+   Special New Feature
+   -------------------
+
+   Makes programs 10x faster by doing Special New Thing.
+
+External Open Source Projects Using LLVM 3.5
+============================================
+
+An exciting aspect of LLVM is that it is used as an enabling technology for
+a lot of other language and tools projects. This section lists some of the
+projects that have already been updated to work with LLVM 3.5.
+>>>>>>> llvmtrunk/master
 
 
 Additional Information

@@ -48,7 +48,7 @@ private:
 
   static char ID;
   const R600InstrInfo *TII;
-  const R600RegisterInfo &TRI;
+  const R600RegisterInfo *TRI;
   unsigned MaxFetchInst;
   const AMDGPUSubtarget &ST;
 
@@ -64,7 +64,7 @@ private:
 
   const MCInstrDesc &getHWInstrDesc(ControlFlowInstruction CFI) const {
     unsigned Opcode = 0;
-    bool isEg = (ST.device()->getGeneration() >= AMDGPUDeviceInfo::HD5XXX);
+    bool isEg = (ST.getGeneration() >= AMDGPUSubtarget::EVERGREEN);
     switch (CFI) {
     case CF_TC:
       Opcode = isEg ? AMDGPU::CF_TC_EG : AMDGPU::CF_TC_R600;
@@ -97,7 +97,7 @@ private:
       Opcode = isEg ? AMDGPU::POP_EG : AMDGPU::POP_R600;
       break;
     case CF_END:
-      if (ST.device()->getDeviceFlag() == OCL_DEVICE_CAYMAN) {
+      if (ST.hasCaymanISA()) {
         Opcode = AMDGPU::CF_END_CM;
         break;
       }
@@ -109,28 +109,38 @@ private:
   }
 
   bool isCompatibleWithClause(const MachineInstr *MI,
-  std::set<unsigned> &DstRegs, std::set<unsigned> &SrcRegs) const {
+      std::set<unsigned> &DstRegs) const {
     unsigned DstMI, SrcMI;
     for (MachineInstr::const_mop_iterator I = MI->operands_begin(),
         E = MI->operands_end(); I != E; ++I) {
       const MachineOperand &MO = *I;
       if (!MO.isReg())
         continue;
+<<<<<<< HEAD
       if (MO.isDef())
         DstMI = MO.getReg();
+=======
+      if (MO.isDef()) {
+        unsigned Reg = MO.getReg();
+        if (AMDGPU::R600_Reg128RegClass.contains(Reg))
+          DstMI = Reg;
+        else
+          DstMI = TRI->getMatchingSuperReg(Reg,
+              TRI->getSubRegFromChannel(TRI->getHWRegChan(Reg)),
+              &AMDGPU::R600_Reg128RegClass);
+      }
+>>>>>>> llvmtrunk/master
       if (MO.isUse()) {
         unsigned Reg = MO.getReg();
         if (AMDGPU::R600_Reg128RegClass.contains(Reg))
           SrcMI = Reg;
         else
-          SrcMI = TRI.getMatchingSuperReg(Reg,
-              TRI.getSubRegFromChannel(TRI.getHWRegChan(Reg)),
+          SrcMI = TRI->getMatchingSuperReg(Reg,
+              TRI->getSubRegFromChannel(TRI->getHWRegChan(Reg)),
               &AMDGPU::R600_Reg128RegClass);
       }
     }
-    if ((DstRegs.find(SrcMI) == DstRegs.end()) &&
-        (SrcRegs.find(DstMI) == SrcRegs.end())) {
-      SrcRegs.insert(SrcMI);
+    if ((DstRegs.find(SrcMI) == DstRegs.end())) {
       DstRegs.insert(DstMI);
       return true;
     } else
@@ -144,7 +154,7 @@ private:
     std::vector<MachineInstr *> ClauseContent;
     unsigned AluInstCount = 0;
     bool IsTex = TII->usesTextureCache(ClauseHead);
-    std::set<unsigned> DstRegs, SrcRegs;
+    std::set<unsigned> DstRegs;
     for (MachineBasicBlock::iterator E = MBB.end(); I != E; ++I) {
       if (IsTrivialInst(I))
         continue;
@@ -153,7 +163,7 @@ private:
       if ((IsTex && !TII->usesTextureCache(I)) ||
           (!IsTex && !TII->usesVertexCache(I)))
         break;
-      if (!isCompatibleWithClause(I, DstRegs, SrcRegs))
+      if (!isCompatibleWithClause(I, DstRegs))
         break;
       AluInstCount ++;
       ClauseContent.push_back(I);
@@ -166,7 +176,7 @@ private:
   }
 
   void getLiteral(MachineInstr *MI, std::vector<int64_t> &Lits) const {
-    unsigned LiteralRegs[] = {
+    static const unsigned LiteralRegs[] = {
       AMDGPU::ALU_LITERAL_X,
       AMDGPU::ALU_LITERAL_Y,
       AMDGPU::ALU_LITERAL_Z,
@@ -252,6 +262,7 @@ private:
         ClauseContent.push_back(MILit);
       }
     }
+    assert(ClauseContent.size() < 128 && "ALU clause is too big");
     ClauseHead->getOperand(7).setImm(ClauseContent.size() - 1);
     return ClauseFile(ClauseHead, ClauseContent);
   }
@@ -272,6 +283,7 @@ private:
   void
   EmitALUClause(MachineBasicBlock::iterator InsertPos, ClauseFile &Clause,
       unsigned &CfCount) {
+    Clause.first->getOperand(0).setImm(0);
     CounterPropagateAddr(Clause.first, CfCount);
     MachineBasicBlock *BB = Clause.first->getParent();
     BuildMI(BB, InsertPos->getDebugLoc(), TII->get(AMDGPU::ALU_CLAUSE))
@@ -295,25 +307,26 @@ private:
   }
 
   unsigned getHWStackSize(unsigned StackSubEntry, bool hasPush) const {
-    switch (ST.device()->getGeneration()) {
-    case AMDGPUDeviceInfo::HD4XXX:
+    switch (ST.getGeneration()) {
+    case AMDGPUSubtarget::R600:
+    case AMDGPUSubtarget::R700:
       if (hasPush)
         StackSubEntry += 2;
       break;
-    case AMDGPUDeviceInfo::HD5XXX:
+    case AMDGPUSubtarget::EVERGREEN:
       if (hasPush)
         StackSubEntry ++;
-    case AMDGPUDeviceInfo::HD6XXX:
+    case AMDGPUSubtarget::NORTHERN_ISLANDS:
       StackSubEntry += 2;
       break;
+    default: llvm_unreachable("Not a VLIW4/VLIW5 GPU");
     }
     return (StackSubEntry + 3)/4; // Need ceil value of StackSubEntry/4
   }
 
 public:
   R600ControlFlowFinalizer(TargetMachine &tm) : MachineFunctionPass(ID),
-    TII (static_cast<const R600InstrInfo *>(tm.getInstrInfo())),
-    TRI(TII->getRegisterInfo()),
+    TII (0), TRI(0),
     ST(tm.getSubtarget<AMDGPUSubtarget>()) {
       const AMDGPUSubtarget &ST = tm.getSubtarget<AMDGPUSubtarget>();
       if (ST.device()->getGeneration() <= AMDGPUDeviceInfo::HD4XXX)
@@ -323,8 +336,12 @@ public:
   }
 
   virtual bool runOnMachineFunction(MachineFunction &MF) {
+    TII=static_cast<const R600InstrInfo *>(MF.getTarget().getInstrInfo());
+    TRI=static_cast<const R600RegisterInfo *>(MF.getTarget().getRegisterInfo());
+
     unsigned MaxStack = 0;
     unsigned CurrentStack = 0;
+    unsigned CurrentLoopDepth = 0;
     bool HasPush = false;
     for (MachineFunction::iterator MB = MF.begin(), ME = MF.end(); MB != ME;
         ++MB) {
@@ -340,6 +357,9 @@ public:
         MaxStack = 1;
       }
       std::vector<ClauseFile> FetchClauses, AluClauses;
+      std::vector<MachineInstr *> LastAlu(1);
+      std::vector<MachineInstr *> ToPopAfter;
+      
       for (MachineBasicBlock::iterator I = MBB.begin(), E = MBB.end();
           I != E;) {
         if (TII->usesTextureCache(I) || TII->usesVertexCache(I)) {
@@ -350,26 +370,32 @@ public:
         }
 
         MachineBasicBlock::iterator MI = I;
+        if (MI->getOpcode() != AMDGPU::ENDIF)
+          LastAlu.back() = 0;
+        if (MI->getOpcode() == AMDGPU::CF_ALU)
+          LastAlu.back() = MI;
         I++;
         switch (MI->getOpcode()) {
         case AMDGPU::CF_ALU_PUSH_BEFORE:
           CurrentStack++;
           MaxStack = std::max(MaxStack, CurrentStack);
           HasPush = true;
+          if (ST.hasCaymanISA() && CurrentLoopDepth > 1) {
+            BuildMI(MBB, MI, MBB.findDebugLoc(MI), TII->get(AMDGPU::CF_PUSH_CM))
+                .addImm(CfCount + 1)
+                .addImm(1);
+            MI->setDesc(TII->get(AMDGPU::CF_ALU));
+            CfCount++;
+          }
         case AMDGPU::CF_ALU:
           I = MI;
           AluClauses.push_back(MakeALUClause(MBB, I));
-        case AMDGPU::EG_ExportBuf:
-        case AMDGPU::EG_ExportSwz:
-        case AMDGPU::R600_ExportBuf:
-        case AMDGPU::R600_ExportSwz:
-        case AMDGPU::RAT_WRITE_CACHELESS_32_eg:
-        case AMDGPU::RAT_WRITE_CACHELESS_128_eg:
           DEBUG(dbgs() << CfCount << ":"; MI->dump(););
           CfCount++;
           break;
         case AMDGPU::WHILELOOP: {
           CurrentStack+=4;
+          CurrentLoopDepth++;
           MaxStack = std::max(MaxStack, CurrentStack);
           MachineInstr *MIb = BuildMI(MBB, MI, MBB.findDebugLoc(MI),
               getHWInstrDesc(CF_WHILE_LOOP))
@@ -384,6 +410,7 @@ public:
         }
         case AMDGPU::ENDLOOP: {
           CurrentStack-=4;
+          CurrentLoopDepth--;
           std::pair<unsigned, std::set<MachineInstr *> > Pair =
               LoopStack.back();
           LoopStack.pop_back();
@@ -395,6 +422,7 @@ public:
           break;
         }
         case AMDGPU::IF_PREDICATE_SET: {
+          LastAlu.push_back(0);
           MachineInstr *MIb = BuildMI(MBB, MI, MBB.findDebugLoc(MI),
               getHWInstrDesc(CF_JUMP))
               .addImm(0)
@@ -412,7 +440,7 @@ public:
           MachineInstr *MIb = BuildMI(MBB, MI, MBB.findDebugLoc(MI),
               getHWInstrDesc(CF_ELSE))
               .addImm(0)
-              .addImm(1);
+              .addImm(0);
           DEBUG(dbgs() << CfCount << ":"; MIb->dump(););
           IfThenElseStack.push_back(MIb);
           MI->eraseFromParent();
@@ -421,31 +449,31 @@ public:
         }
         case AMDGPU::ENDIF: {
           CurrentStack--;
+          if (LastAlu.back()) {
+            ToPopAfter.push_back(LastAlu.back());
+          } else {
+            MachineInstr *MIb = BuildMI(MBB, MI, MBB.findDebugLoc(MI),
+                getHWInstrDesc(CF_POP))
+                .addImm(CfCount + 1)
+                .addImm(1);
+            (void)MIb;
+            DEBUG(dbgs() << CfCount << ":"; MIb->dump(););
+            CfCount++;
+          }
+          
           MachineInstr *IfOrElseInst = IfThenElseStack.back();
           IfThenElseStack.pop_back();
-          CounterPropagateAddr(IfOrElseInst, CfCount + 1);
-          MachineInstr *MIb = BuildMI(MBB, MI, MBB.findDebugLoc(MI),
-              getHWInstrDesc(CF_POP))
-              .addImm(CfCount + 1)
-              .addImm(1);
-          (void)MIb;
-          DEBUG(dbgs() << CfCount << ":"; MIb->dump(););
+          CounterPropagateAddr(IfOrElseInst, CfCount);
+          IfOrElseInst->getOperand(1).setImm(1);
+          LastAlu.pop_back();
           MI->eraseFromParent();
-          CfCount++;
           break;
         }
-        case AMDGPU::PREDICATED_BREAK: {
-          CurrentStack--;
-          CfCount += 3;
-          BuildMI(MBB, MI, MBB.findDebugLoc(MI), getHWInstrDesc(CF_JUMP))
-              .addImm(CfCount)
-              .addImm(1);
+        case AMDGPU::BREAK: {
+          CfCount ++;
           MachineInstr *MIb = BuildMI(MBB, MI, MBB.findDebugLoc(MI),
               getHWInstrDesc(CF_LOOP_BREAK))
               .addImm(0);
-          BuildMI(MBB, MI, MBB.findDebugLoc(MI), getHWInstrDesc(CF_POP))
-              .addImm(CfCount)
-              .addImm(1);
           LoopStack.back().second.insert(MIb);
           MI->eraseFromParent();
           break;
@@ -473,8 +501,27 @@ public:
             EmitALUClause(I, AluClauses[i], CfCount);
         }
         default:
+          if (TII->isExport(MI->getOpcode())) {
+            DEBUG(dbgs() << CfCount << ":"; MI->dump(););
+            CfCount++;
+          }
           break;
         }
+      }
+      for (unsigned i = 0, e = ToPopAfter.size(); i < e; ++i) {
+        MachineInstr *Alu = ToPopAfter[i];
+        BuildMI(MBB, Alu, MBB.findDebugLoc((MachineBasicBlock::iterator)Alu),
+            TII->get(AMDGPU::CF_ALU_POP_AFTER))
+            .addImm(Alu->getOperand(0).getImm())
+            .addImm(Alu->getOperand(1).getImm())
+            .addImm(Alu->getOperand(2).getImm())
+            .addImm(Alu->getOperand(3).getImm())
+            .addImm(Alu->getOperand(4).getImm())
+            .addImm(Alu->getOperand(5).getImm())
+            .addImm(Alu->getOperand(6).getImm())
+            .addImm(Alu->getOperand(7).getImm())
+            .addImm(Alu->getOperand(8).getImm());
+        Alu->eraseFromParent();
       }
       MFI->StackSize = getHWStackSize(MaxStack, HasPush);
     }

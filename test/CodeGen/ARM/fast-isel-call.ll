@@ -1,9 +1,27 @@
+<<<<<<< HEAD
 ; RUN: llc < %s -O0 -fast-isel-abort -relocation-model=dynamic-no-pic -mtriple=armv7-apple-ios | FileCheck %s --check-prefix=ARM
 ; RUN: llc < %s -O0 -fast-isel-abort -relocation-model=dynamic-no-pic -mtriple=thumbv7-apple-ios | FileCheck %s --check-prefix=THUMB
 ; RUN: llc < %s -O0 -fast-isel-abort -relocation-model=dynamic-no-pic -mtriple=armv7-apple-ios -arm-long-calls | FileCheck %s --check-prefix=ARM-LONG
 ; RUN: llc < %s -O0 -fast-isel-abort -relocation-model=dynamic-no-pic -mtriple=thumbv7-apple-ios -arm-long-calls | FileCheck %s --check-prefix=THUMB-LONG
 ; RUN: llc < %s -O0 -relocation-model=dynamic-no-pic -mtriple=armv7-apple-ios -mattr=-vfp2 | FileCheck %s --check-prefix=ARM-NOVFP
 ; RUN: llc < %s -O0 -relocation-model=dynamic-no-pic -mtriple=thumbv7-apple-ios -mattr=-vfp2 | FileCheck %s --check-prefix=THUMB-NOVFP
+=======
+; RUN: llc < %s -O0 -verify-machineinstrs -fast-isel-abort -relocation-model=dynamic-no-pic -mtriple=armv7-apple-ios | FileCheck %s --check-prefix=ARM
+; RUN: llc < %s -O0 -verify-machineinstrs -fast-isel-abort -relocation-model=dynamic-no-pic -mtriple=armv7-linux-gnueabi | FileCheck %s --check-prefix=ARM
+; RUN: llc < %s -O0 -verify-machineinstrs -fast-isel-abort -relocation-model=dynamic-no-pic -mtriple=thumbv7-apple-ios | FileCheck %s --check-prefix=THUMB
+; RUN: llc < %s -O0 -verify-machineinstrs -fast-isel-abort -relocation-model=dynamic-no-pic -mtriple=armv7-apple-ios -arm-long-calls | FileCheck %s --check-prefix=ARM-LONG
+; RUN: llc < %s -O0 -verify-machineinstrs -fast-isel-abort -relocation-model=dynamic-no-pic -mtriple=armv7-linux-gnueabi -arm-long-calls | FileCheck %s --check-prefix=ARM-LONG
+; RUN: llc < %s -O0 -verify-machineinstrs -fast-isel-abort -relocation-model=dynamic-no-pic -mtriple=thumbv7-apple-ios -arm-long-calls | FileCheck %s --check-prefix=THUMB-LONG
+; RUN: llc < %s -O0 -verify-machineinstrs -fast-isel-abort -relocation-model=dynamic-no-pic -mtriple=armv7-apple-ios -mattr=-vfp2 | FileCheck %s --check-prefix=ARM-NOVFP
+; RUN: llc < %s -O0 -verify-machineinstrs -fast-isel-abort -relocation-model=dynamic-no-pic -mtriple=armv7-linux-gnueabi -mattr=-vfp2 | FileCheck %s --check-prefix=ARM-NOVFP
+; RUN: llc < %s -O0 -verify-machineinstrs -fast-isel-abort -relocation-model=dynamic-no-pic -mtriple=thumbv7-apple-ios -mattr=-vfp2 | FileCheck %s --check-prefix=THUMB-NOVFP
+
+; XFAIL: vg_leak
+
+; Note that some of these tests assume that relocations are either
+; movw/movt or constant pool loads. Different platforms will select
+; different approaches.
+>>>>>>> llvmtrunk/master
 
 define i32 @t0(i1 zeroext %a) nounwind {
   %1 = zext i1 %a to i32
@@ -44,9 +62,9 @@ define void @foo(i8 %a, i16 %b) nounwind {
 ; THUMB: sxtb	r2, r1
 ; THUMB: mov r0, r2
   %2 = call i32 @t1(i8 signext %a)
-; ARM: uxtb	r2, r1
+; ARM: and	r2, r1, #255
 ; ARM: mov r0, r2
-; THUMB: uxtb	r2, r1
+; THUMB: and	r2, r1, #255
 ; THUMB: mov r0, r2
   %3 = call i32 @t2(i8 zeroext %a)
 ; ARM: sxth	r2, r1
@@ -85,9 +103,10 @@ declare signext i8 @t7();
 declare zeroext i8 @t8();
 declare zeroext i1 @t9();
 
-define i32 @t10(i32 %argc, i8** nocapture %argv) {
+define i32 @t10() {
 entry:
 ; ARM: @t10
+<<<<<<< HEAD
 ; ARM: movw r0, #0
 ; ARM: movw r1, #248
 ; ARM: movw r2, #187
@@ -103,12 +122,30 @@ entry:
 ; ARM: uxtb r9, r12
 ; ARM: str r9, [sp, #4]
 ; ARM: bl _bar
+=======
+; ARM: movw [[R0:l?r[0-9]*]], #0
+; ARM: movw [[R1:l?r[0-9]*]], #248
+; ARM: movw [[R2:l?r[0-9]*]], #187
+; ARM: movw [[R3:l?r[0-9]*]], #28
+; ARM: movw [[R4:l?r[0-9]*]], #40
+; ARM: movw [[R5:l?r[0-9]*]], #186
+; ARM: and [[R0]], [[R0]], #255
+; ARM: and [[R1]], [[R1]], #255
+; ARM: and [[R2]], [[R2]], #255
+; ARM: and [[R3]], [[R3]], #255
+; ARM: and [[R4]], [[R4]], #255
+; ARM: str [[R4]], [sp]
+; ARM: and [[R4]], [[R5]], #255
+; ARM: str [[R4]], [sp, #4]
+; ARM: bl {{_?}}bar
+>>>>>>> llvmtrunk/master
 ; ARM-LONG: @t10
 ; ARM-LONG: movw lr, :lower16:L_bar$non_lazy_ptr
 ; ARM-LONG: movt lr, :upper16:L_bar$non_lazy_ptr
 ; ARM-LONG: ldr lr, [lr]
 ; ARM-LONG: blx lr
 ; THUMB: @t10
+<<<<<<< HEAD
 ; THUMB: movs r0, #0
 ; THUMB: movt r0, #0
 ; THUMB: movs r1, #248
@@ -130,6 +167,29 @@ entry:
 ; THUMB: uxtb.w r9, r12
 ; THUMB: str.w r9, [sp, #4]
 ; THUMB: bl _bar
+=======
+; THUMB: movs [[R0:l?r[0-9]*]], #0
+; THUMB: movt [[R0]], #0
+; THUMB: movs [[R1:l?r[0-9]*]], #248
+; THUMB: movt [[R1]], #0
+; THUMB: movs [[R2:l?r[0-9]*]], #187
+; THUMB: movt [[R2]], #0
+; THUMB: movs [[R3:l?r[0-9]*]], #28
+; THUMB: movt [[R3]], #0
+; THUMB: movw [[R4:l?r[0-9]*]], #40
+; THUMB: movt [[R4]], #0
+; THUMB: movw [[R5:l?r[0-9]*]], #186
+; THUMB: movt [[R5]], #0
+; THUMB: and [[R0]], [[R0]], #255
+; THUMB: and [[R1]], [[R1]], #255
+; THUMB: and [[R2]], [[R2]], #255
+; THUMB: and [[R3]], [[R3]], #255
+; THUMB: and [[R4]], [[R4]], #255
+; THUMB: str.w [[R4]], [sp]
+; THUMB: and [[R4]], [[R5]], #255
+; THUMB: str.w [[R4]], [sp, #4]
+; THUMB: bl {{_?}}bar
+>>>>>>> llvmtrunk/master
 ; THUMB-LONG: @t10
 ; THUMB-LONG: movw lr, :lower16:L_bar$non_lazy_ptr
 ; THUMB-LONG: movt lr, :upper16:L_bar$non_lazy_ptr

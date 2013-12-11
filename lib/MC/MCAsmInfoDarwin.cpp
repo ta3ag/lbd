@@ -23,10 +23,8 @@ void MCAsmInfoDarwin::anchor() { }
 MCAsmInfoDarwin::MCAsmInfoDarwin() {
   // Common settings for all Darwin targets.
   // Syntax:
-  GlobalPrefix = "_";
-  PrivateGlobalPrefix = "L";
+  GlobalPrefix = '_';
   LinkerPrivateGlobalPrefix = "l";
-  AllowQuotesInName = true;
   HasSingleParameterDotFile = false;
   HasSubsectionsViaSymbols = true;
 
@@ -37,7 +35,8 @@ MCAsmInfoDarwin::MCAsmInfoDarwin() {
   InlineAsmEnd = " InlineAsm End";
 
   // Directives:
-  WeakDefDirective = "\t.weak_definition ";
+  HasWeakDefDirective = true;
+  HasWeakDefCanBeHiddenDirective = true;
   WeakRefDirective = "\t.weak_reference ";
   ZeroDirective = "\t.space\t";  // ".space N" emits N zeros.
   HasMachoZeroFillDirective = true;  // Uses .zerofill
@@ -58,7 +57,6 @@ MCAsmInfoDarwin::MCAsmInfoDarwin() {
 
   HasDotTypeDotSizeDirective = false;
   HasNoDeadStrip = true;
-  HasSymbolResolver = true;
 
   DwarfUsesRelocationsAcrossSections = false;
 }

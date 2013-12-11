@@ -14,6 +14,7 @@
 
 // Some system headers or GCC predefined macros conflict with identifiers in
 // this file.  Undefine them here.
+#undef NetBSD
 #undef mips
 #undef sparc
 
@@ -53,6 +54,7 @@ public:
     msp430,  // MSP430: msp430
     ppc,     // PPC: powerpc
     ppc64,   // PPC64: powerpc64, ppu
+    ppc64le, // PPC64LE: powerpc64le
     r600,    // R600: AMD GPUs HD2XXX - HD6XXX
     sparc,   // Sparc: sparc
     sparcv9, // Sparcv9: Sparcv9
@@ -62,7 +64,6 @@ public:
     x86,     // X86: i[3-9]86
     x86_64,  // X86-64: amd64, x86_64
     xcore,   // XCore: xcore
-    mblaze,  // MBlaze: mblaze
     nvptx,   // NVPTX: 32-bit
     nvptx64, // NVPTX: 64-bit
     le32,    // le32: generic little-endian 32-bit CPU (PNaCl / Emscripten)
@@ -79,7 +80,8 @@ public:
     BGP,
     BGQ,
     Freescale,
-    IBM
+    IBM,
+    NVIDIA
   };
   enum OSType {
     UnknownOS,
@@ -105,7 +107,9 @@ public:
     NaCl,       // Native Client
     CNK,        // BG/P Compute-Node Kernel
     Bitrig,
-    AIX
+    AIX,
+    CUDA,       // NVIDIA CUDA
+    NVCL        // NVIDIA OpenCL
   };
   enum EnvironmentType {
     UnknownEnvironment,
@@ -313,7 +317,12 @@ public:
     return getOS() == Triple::Cygwin || getOS() == Triple::MinGW32;
   }
 
-  /// isOSWindows - Is this a "Windows" OS.
+  /// \brief Is this a "Windows" OS targeting a "MSVCRT.dll" environment.
+  bool isOSMSVCRT() const {
+    return getOS() == Triple::Win32 || getOS() == Triple::MinGW32;
+  }
+
+  /// \brief Tests whether the OS is Windows.
   bool isOSWindows() const {
     return getOS() == Triple::Win32 || isOSCygMing();
   }
@@ -323,19 +332,24 @@ public:
     return getOS() == Triple::NaCl;
   }
 
+  /// \brief Tests whether the OS is Linux.
+  bool isOSLinux() const {
+    return getOS() == Triple::Linux;
+  }
+
   /// \brief Tests whether the OS uses the ELF binary format.
   bool isOSBinFormatELF() const {
-    return !isOSDarwin() && !isOSWindows();
+    return !isOSBinFormatMachO() && !isOSBinFormatCOFF();
   }
 
   /// \brief Tests whether the OS uses the COFF binary format.
   bool isOSBinFormatCOFF() const {
-    return isOSWindows();
+    return getEnvironment() != Triple::ELF &&
+           getEnvironment() != Triple::MachO && isOSWindows();
   }
 
   /// \brief Tests whether the environment is MachO.
-  // FIXME: Should this be an OSBinFormat predicate?
-  bool isEnvironmentMachO() const {
+  bool isOSBinFormatMachO() const {
     return getEnvironment() == Triple::MachO || isOSDarwin();
   }
 

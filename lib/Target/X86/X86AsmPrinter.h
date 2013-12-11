@@ -16,6 +16,7 @@
 #include "llvm/CodeGen/AsmPrinter.h"
 #include "llvm/CodeGen/MachineModuleInfo.h"
 #include "llvm/CodeGen/ValueTypes.h"
+#include "llvm/CodeGen/StackMaps.h"
 #include "llvm/Support/Compiler.h"
 
 namespace llvm {
@@ -24,9 +25,11 @@ class MCStreamer;
 
 class LLVM_LIBRARY_VISIBILITY X86AsmPrinter : public AsmPrinter {
   const X86Subtarget *Subtarget;
+  StackMaps SM;
+
  public:
   explicit X86AsmPrinter(TargetMachine &TM, MCStreamer &Streamer)
-    : AsmPrinter(TM, Streamer) {
+    : AsmPrinter(TM, Streamer), SM(*this) {
     Subtarget = &TM.getSubtarget<X86Subtarget>();
   }
 
@@ -42,14 +45,6 @@ class LLVM_LIBRARY_VISIBILITY X86AsmPrinter : public AsmPrinter {
 
   virtual void EmitInstruction(const MachineInstr *MI) LLVM_OVERRIDE;
 
-  void printSymbolOperand(const MachineOperand &MO, raw_ostream &O);
-
-  // These methods are used by the tablegen'erated instruction printer.
-  void printOperand(const MachineInstr *MI, unsigned OpNo, raw_ostream &O,
-                    const char *Modifier = 0, unsigned AsmVariant = 0);
-  void printPCRelImm(const MachineInstr *MI, unsigned OpNo, raw_ostream &O);
-
-  bool printAsmMRegister(const MachineOperand &MO, char Mode, raw_ostream &O);
   virtual bool PrintAsmOperand(const MachineInstr *MI, unsigned OpNo,
                                unsigned AsmVariant, const char *ExtraCode,
                                raw_ostream &OS) LLVM_OVERRIDE;
@@ -57,21 +52,7 @@ class LLVM_LIBRARY_VISIBILITY X86AsmPrinter : public AsmPrinter {
                                      unsigned AsmVariant, const char *ExtraCode,
                                      raw_ostream &OS) LLVM_OVERRIDE;
 
-  void printMemReference(const MachineInstr *MI, unsigned Op, raw_ostream &O,
-                         const char *Modifier=NULL);
-  void printLeaMemReference(const MachineInstr *MI, unsigned Op, raw_ostream &O,
-                            const char *Modifier=NULL);
-
-  void printIntelMemReference(const MachineInstr *MI, unsigned Op,
-                              raw_ostream &O, const char *Modifier=NULL,
-                              unsigned AsmVariant = 1);
-
   virtual bool runOnMachineFunction(MachineFunction &F) LLVM_OVERRIDE;
-
-  void PrintDebugValueComment(const MachineInstr *MI, raw_ostream &OS);
-
-  virtual MachineLocation
-    getDebugValueLocation(const MachineInstr *MI) const LLVM_OVERRIDE;
 };
 
 } // end namespace llvm

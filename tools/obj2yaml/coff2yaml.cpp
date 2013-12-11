@@ -9,6 +9,12 @@
 
 #include "obj2yaml.h"
 #include "llvm/Object/COFF.h"
+<<<<<<< HEAD
+=======
+#include "llvm/Object/COFFYAML.h"
+#include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/YAMLTraits.h"
+>>>>>>> llvmtrunk/master
 
 using namespace llvm;
 
@@ -150,6 +156,7 @@ SymbolStorageClassPairs [] = {
   STRING_PAIR(IMAGE_SYM_CLASS_CLR_TOKEN),
 };
 
+<<<<<<< HEAD
 static const pod_pair<COFF::RelocationTypeX86, const char *>
 RelocationTypeX86Pairs [] = {
   STRING_PAIR(IMAGE_REL_I386_ABSOLUTE),
@@ -181,6 +188,14 @@ RelocationTypeX86Pairs [] = {
   STRING_PAIR(IMAGE_REL_AMD64_PAIR),
   STRING_PAIR(IMAGE_REL_AMD64_SSPAN32)
 };
+=======
+class COFFDumper {
+  const object::COFFObjectFile &Obj;
+  COFFYAML::Object YAMLObj;
+  void dumpHeader(const object::coff_file_header *Header);
+  void dumpSections(unsigned numSections);
+  void dumpSymbols(unsigned numSymbols);
+>>>>>>> llvmtrunk/master
 
 static const pod_pair<COFF::RelocationTypesARM, const char *>
 RelocationTypesARMPairs [] = {
@@ -222,6 +237,7 @@ static raw_ostream &writeBitMask(raw_ostream &Out,
   return Out;
 }
 
+<<<<<<< HEAD
 // Given an array of pod_pair<enum, const char *>, look up a value
 template <typename T, std::size_t N>
 const char *nameLookup(const pod_pair<T, const char *> (&Arr)[N],
@@ -231,6 +247,14 @@ const char *nameLookup(const pod_pair<T, const char *> (&Arr)[N],
     if (n == Arr[i].first)
       return Arr[i].second;
   return NotFound;
+=======
+COFFDumper::COFFDumper(const object::COFFObjectFile &Obj) : Obj(Obj) {
+  const object::coff_file_header *Header;
+  check(Obj.getCOFFHeader(Header));
+  dumpHeader(Header);
+  dumpSections(Header->NumberOfSections);
+  dumpSymbols(Header->NumberOfSymbols);
+>>>>>>> llvmtrunk/master
 }
 
 static void yamlCOFFHeader(const object::coff_file_header *Header,
@@ -251,6 +275,7 @@ static void yamlCOFFSections(object::COFFObjectFile &Obj,
        iter != Obj.end_sections(); iter.increment(ec)) {
     const object::coff_section *sect = Obj.getCOFFSection(iter);
 
+<<<<<<< HEAD
     Out << "  - !Section\n";
     Out << "    Name: ";
     writeName(Out, sect->Name, sizeof(sect->Name)) << '\n';
@@ -284,6 +309,25 @@ static void yamlCOFFSections(object::COFFObjectFile &Obj,
         Out << '\n';
       }
 
+=======
+    ArrayRef<uint8_t> sectionData;
+    Obj.getSectionContents(Sect, sectionData);
+    Sec.SectionData = object::yaml::BinaryRef(sectionData);
+
+    std::vector<COFFYAML::Relocation> Relocations;
+    for (object::relocation_iterator rIter = iter->begin_relocations();
+                       rIter != iter->end_relocations(); rIter.increment(ec)) {
+      const object::coff_relocation *reloc = Obj.getCOFFRelocation(rIter);
+      COFFYAML::Relocation Rel;
+      object::symbol_iterator Sym = rIter->getSymbol();
+      Sym->getName(Rel.SymbolName);
+      Rel.VirtualAddress = reloc->VirtualAddress;
+      Rel.Type = reloc->Type;
+      Relocations.push_back(Rel);
+    }
+    Sec.Relocations = Relocations;
+    Sections.push_back(Sec);
+>>>>>>> llvmtrunk/master
   }
 }
 
@@ -293,6 +337,7 @@ static void yamlCOFFSymbols(object::COFFObjectFile &Obj, std::size_t NumSymbols,
   Out << "symbols:\n";
   for (object::symbol_iterator iter = Obj.begin_symbols();
        iter != Obj.end_symbols(); iter.increment(ec)) {
+<<<<<<< HEAD
  // Gather all the info that we need
     StringRef str;
     const object::coff_symbol *symbol = Obj.getCOFFSymbol(iter);
@@ -334,6 +379,26 @@ static void yamlCOFFSymbols(object::COFFObjectFile &Obj, std::size_t NumSymbols,
   }
 }
 
+=======
+    check(ec);
+    const object::coff_symbol *Symbol = Obj.getCOFFSymbol(iter);
+    COFFYAML::Symbol Sym;
+    Obj.getSymbolName(Symbol, Sym.Name);
+    Sym.SimpleType = COFF::SymbolBaseType(Symbol->getBaseType());
+    Sym.ComplexType = COFF::SymbolComplexType(Symbol->getComplexType());
+    Sym.Header.StorageClass = Symbol->StorageClass;
+    Sym.Header.Value = Symbol->Value;
+    Sym.Header.SectionNumber = Symbol->SectionNumber;
+    Sym.Header.NumberOfAuxSymbols = Symbol->NumberOfAuxSymbols;
+    Sym.AuxiliaryData = object::yaml::BinaryRef(Obj.getSymbolAuxData(Symbol));
+    Symbols.push_back(Sym);
+  }
+}
+
+COFFYAML::Object &COFFDumper::getYAMLObj() {
+  return YAMLObj;
+}
+>>>>>>> llvmtrunk/master
 
 error_code coff2yaml(raw_ostream &Out, MemoryBuffer *TheObj) {
   error_code ec;

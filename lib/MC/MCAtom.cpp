@@ -13,6 +13,7 @@
 
 using namespace llvm;
 
+<<<<<<< HEAD
 void MCAtom::addInst(const MCInst &I, uint64_t Address, unsigned Size) {
   assert(Type == TextAtom && "Trying to add MCInst to a non-text atom!");
 
@@ -22,6 +23,13 @@ void MCAtom::addInst(const MCInst &I, uint64_t Address, unsigned Size) {
     Parent->remap(this, Begin, End+Size);
 
   Text.push_back(std::make_pair(Address, I));
+=======
+// Pin the vtable to this file.
+void MCAtom::anchor() {}
+
+void MCAtom::remap(uint64_t NewBegin, uint64_t NewEnd) {
+  Parent->remap(this, NewBegin, NewEnd);
+>>>>>>> llvmtrunk/master
 }
 
 void MCAtom::addData(const MCData &D) {
@@ -47,10 +55,18 @@ MCAtom *MCAtom::split(uint64_t SplitPt) {
   // Create a new atom for the higher atom.
   MCAtom *RightAtom = Parent->createAtom(Type, RightBegin, RightEnd);
 
+<<<<<<< HEAD
   // Split the contents of the original atom between it and the new one.  The
   // precise method depends on whether this is a data or a text atom.
   if (isDataAtom()) {
     std::vector<MCData>::iterator I = Data.begin() + (RightBegin - LeftBegin);
+=======
+void MCDataAtom::addData(const MCData &D) {
+  Data.push_back(D);
+  if (Data.size() > End + 1 - Begin)
+    remap(Begin, End + 1);
+}
+>>>>>>> llvmtrunk/master
 
     assert(I != Data.end() && "Split point not found in range!");
 
@@ -77,7 +93,16 @@ void MCAtom::truncate(uint64_t TruncPt) {
   assert((TruncPt >= Begin && TruncPt < End) &&
          "Truncation point not contained in atom!");
 
+<<<<<<< HEAD
   Parent->remap(this, Begin, TruncPt);
+=======
+void MCTextAtom::addInst(const MCInst &I, uint64_t Size) {
+  if (NextInstAddress + Size - 1 > End)
+    remap(Begin, NextInstAddress + Size - 1);
+  Insts.push_back(MCDecodedInst(I, NextInstAddress, Size));
+  NextInstAddress += Size;
+}
+>>>>>>> llvmtrunk/master
 
   if (isDataAtom()) {
     Data.resize(TruncPt - Begin + 1);
@@ -95,3 +120,24 @@ void MCAtom::truncate(uint64_t TruncPt) {
     llvm_unreachable("Unknown atom type!");
 }
 
+<<<<<<< HEAD
+=======
+MCTextAtom *MCTextAtom::split(uint64_t SplitPt) {
+  uint64_t LBegin, LEnd, RBegin, REnd;
+  remapForSplit(SplitPt, LBegin, LEnd, RBegin, REnd);
+
+  MCTextAtom *RightAtom = Parent->createTextAtom(RBegin, REnd);
+  RightAtom->setName(getName());
+
+  InstListTy::iterator I = Insts.begin();
+  while (I != Insts.end() && I->Address < SplitPt) ++I;
+  assert(I != Insts.end() && "Split point not found in disassembly!");
+  assert(I->Address == SplitPt &&
+         "Split point does not fall on instruction boundary!");
+
+  std::copy(I, Insts.end(), std::back_inserter(RightAtom->Insts));
+  Insts.erase(I, Insts.end());
+  Parent->splitBasicBlocksForAtom(this, RightAtom);
+  return RightAtom;
+}
+>>>>>>> llvmtrunk/master

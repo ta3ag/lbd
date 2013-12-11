@@ -1,5 +1,9 @@
+<<<<<<< HEAD:test/ExecutionEngine/MCJIT/test-fp-no-external-funcs-remote.ll
 ; RUN: %lli_mcjit -remote-mcjit %s > /dev/null
 ; XFAIL: arm, mips
+=======
+; RUN: %lli_mcjit -remote-mcjit -mcjit-remote-process=lli-child-target %s > /dev/null
+>>>>>>> llvmtrunk/master:test/ExecutionEngine/MCJIT/remote/test-fp-no-external-funcs-remote.ll
 
 define double @test(double* %DP, double %Arg) {
 	%D = load double* %DP		; <double> [#uses=1]

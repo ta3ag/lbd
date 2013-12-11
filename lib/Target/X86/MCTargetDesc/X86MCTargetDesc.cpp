@@ -366,7 +366,7 @@ static MCStreamer *createMCStreamer(const Target &T, StringRef TT,
   if (TheTriple.isOSWindows() && TheTriple.getEnvironment() != Triple::ELF)
     return createWinCOFFStreamer(Ctx, MAB, *_Emitter, _OS, RelaxAll);
 
-  return createELFStreamer(Ctx, MAB, _OS, _Emitter, RelaxAll, NoExecStack);
+  return createELFStreamer(Ctx, 0, MAB, _OS, _Emitter, RelaxAll, NoExecStack);
 }
 
 static MCInstPrinter *createX86MCInstPrinter(const Target &T,
@@ -382,6 +382,20 @@ static MCInstPrinter *createX86MCInstPrinter(const Target &T,
   return 0;
 }
 
+<<<<<<< HEAD
+=======
+static MCRelocationInfo *createX86MCRelocationInfo(StringRef TT,
+                                                   MCContext &Ctx) {
+  Triple TheTriple(TT);
+  if (TheTriple.isOSBinFormatMachO() && TheTriple.getArch() == Triple::x86_64)
+    return createX86_64MachORelocationInfo(Ctx);
+  else if (TheTriple.isOSBinFormatELF())
+    return createX86_64ELFRelocationInfo(Ctx);
+  // Default to the stock relocation info.
+  return llvm::createMCRelocationInfo(TT, Ctx);
+}
+
+>>>>>>> llvmtrunk/master
 static MCInstrAnalysis *createX86MCInstrAnalysis(const MCInstrInfo *Info) {
   return new MCInstrAnalysis(Info);
 }

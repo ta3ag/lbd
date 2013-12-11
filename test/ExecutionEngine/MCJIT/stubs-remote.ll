@@ -1,5 +1,11 @@
+<<<<<<< HEAD:test/ExecutionEngine/MCJIT/stubs-remote.ll
 ; RUN: %lli_mcjit -remote-mcjit -disable-lazy-compilation=false %s
 ; XFAIL: arm, mips
+=======
+; RUN: %lli_mcjit -remote-mcjit -disable-lazy-compilation=false -mcjit-remote-process=lli-child-target %s
+; XFAIL: *
+; This test should fail until remote symbol resolution is supported.
+>>>>>>> llvmtrunk/master:test/ExecutionEngine/MCJIT/remote/stubs-remote.ll
 
 define i32 @main() nounwind {
 entry:

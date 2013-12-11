@@ -10,14 +10,14 @@
 #ifndef SystemZTARGETASMINFO_H
 #define SystemZTARGETASMINFO_H
 
-#include "llvm/MC/MCAsmInfo.h"
+#include "llvm/MC/MCAsmInfoELF.h"
 #include "llvm/Support/Compiler.h"
 
 namespace llvm {
 class Target;
 class StringRef;
 
-class SystemZMCAsmInfo : public MCAsmInfo {
+class SystemZMCAsmInfo : public MCAsmInfoELF {
 public:
   explicit SystemZMCAsmInfo(const Target &T, StringRef TT);
 

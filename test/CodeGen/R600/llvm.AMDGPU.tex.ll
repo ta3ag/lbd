@@ -1,5 +1,6 @@
 ;RUN: llc < %s -march=r600 -mcpu=redwood | FileCheck %s
 
+<<<<<<< HEAD
 ;CHECK: TEX_SAMPLET{{[0-9]+\.XYZW, T[0-9]+\.XYZW}}, 0, 0, 1
 ;CHECK: TEX_SAMPLET{{[0-9]+\.XYZW, T[0-9]+\.XYZW}}, 0, 0, 2
 ;CHECK: TEX_SAMPLET{{[0-9]+\.XYZW, T[0-9]+\.XYZW}}, 0, 0, 3
@@ -16,6 +17,24 @@
 ;CHECK: TEX_SAMPLET{{[0-9]+\.XYZW, T[0-9]+\.XYZW}}, 0, 0, 14
 ;CHECK: TEX_SAMPLET{{[0-9]+\.XYZW, T[0-9]+\.XYZW}}, 0, 0, 15
 ;CHECK: TEX_SAMPLET{{[0-9]+\.XYZW, T[0-9]+\.XYZW}}, 0, 0, 16
+=======
+;CHECK: TEX_SAMPLE T{{[0-9]+\.XYZW, T[0-9]+\.XYZW}} RID:0 SID:0 CT:NNNN
+;CHECK: TEX_SAMPLE T{{[0-9]+\.XYZW, T[0-9]+\.XYZW}} RID:0 SID:0 CT:NNNN
+;CHECK: TEX_SAMPLE T{{[0-9]+\.XYZW, T[0-9]+\.XYZW}} RID:0 SID:0 CT:NNNN
+;CHECK: TEX_SAMPLE T{{[0-9]+\.XYZW, T[0-9]+\.XYZW}} RID:0 SID:0 CT:NNNN
+;CHECK: TEX_SAMPLE T{{[0-9]+\.XYZW, T[0-9]+\.XYZW}} RID:0 SID:0 CT:UUNN
+;CHECK: TEX_SAMPLE_C T{{[0-9]+\.XYZW, T[0-9]+\.XYZZ}} RID:0 SID:0 CT:NNNN
+;CHECK: TEX_SAMPLE_C T{{[0-9]+\.XYZW, T[0-9]+\.XYZZ}} RID:0 SID:0 CT:NNNN
+;CHECK: TEX_SAMPLE_C T{{[0-9]+\.XYZW, T[0-9]+\.XYZZ}} RID:0 SID:0 CT:UUNN
+;CHECK: TEX_SAMPLE T{{[0-9]+\.XYZW, T[0-9]+\.XYYW}} RID:0 SID:0 CT:NNUN
+;CHECK: TEX_SAMPLE T{{[0-9]+\.XYZW, T[0-9]+\.XYZW}} RID:0 SID:0 CT:NNUN
+;CHECK: TEX_SAMPLE_C T{{[0-9]+\.XYZW, T[0-9]+\.XYYZ}} RID:0 SID:0 CT:NNUN
+;CHECK: TEX_SAMPLE_C T{{[0-9]+\.XYZW, T[0-9]+\.XYZW}} RID:0 SID:0 CT:NNUN
+;CHECK: TEX_SAMPLE_C T{{[0-9]+\.XYZW, T[0-9]+\.XYZW}} RID:0 SID:0 CT:NNNN
+;CHECK: TEX_SAMPLE T{{[0-9]+\.XYZW, T[0-9]+\.XYZW}} RID:0 SID:0 CT:NNNN
+;CHECK: TEX_SAMPLE T{{[0-9]+\.XYZW, T[0-9]+\.XYZW}} RID:0 SID:0 CT:NNNN
+;CHECK: TEX_SAMPLE T{{[0-9]+\.XYZW, T[0-9]+\.XYZW}} RID:0 SID:0 CT:NNUN
+>>>>>>> llvmtrunk/master
 
 define void @test(<4 x float> addrspace(1)* %out, <4 x float> addrspace(1)* %in) {
    %addr = load <4 x float> addrspace(1)* %in

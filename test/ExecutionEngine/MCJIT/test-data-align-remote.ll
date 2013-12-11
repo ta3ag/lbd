@@ -1,5 +1,9 @@
+<<<<<<< HEAD:test/ExecutionEngine/MCJIT/test-data-align-remote.ll
 ; RUN:  %lli_mcjit -remote-mcjit -O0 %s
 ; XFAIL: armv7, mips
+=======
+; RUN:  %lli_mcjit -remote-mcjit -O0 -mcjit-remote-process=lli-child-target %s
+>>>>>>> llvmtrunk/master:test/ExecutionEngine/MCJIT/remote/test-data-align-remote.ll
 
 ; Check that a variable is always aligned as specified.
 

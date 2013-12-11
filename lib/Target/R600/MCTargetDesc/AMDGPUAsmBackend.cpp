@@ -91,7 +91,15 @@ public:
   }
 };
 
+<<<<<<< HEAD
 MCAsmBackend *llvm::createAMDGPUAsmBackend(const Target &T, StringRef TT,
+=======
+} // end anonymous namespace
+
+MCAsmBackend *llvm::createAMDGPUAsmBackend(const Target &T,
+                                           const MCRegisterInfo &MRI,
+                                           StringRef TT,
+>>>>>>> llvmtrunk/master
                                            StringRef CPU) {
   return new ELFAMDGPUAsmBackend(T);
 }

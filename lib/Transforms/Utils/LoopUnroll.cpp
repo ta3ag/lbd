@@ -19,6 +19,7 @@
 #define DEBUG_TYPE "loop-unroll"
 #include "llvm/Transforms/Utils/UnrollLoop.h"
 #include "llvm/ADT/Statistic.h"
+#include "llvm/Analysis/Dominators.h"
 #include "llvm/Analysis/InstructionSimplify.h"
 #include "llvm/Analysis/LoopIterator.h"
 #include "llvm/Analysis/LoopPass.h"
@@ -90,7 +91,8 @@ static BasicBlock *FoldBlockIntoPredecessor(BasicBlock *BB, LoopInfo* LI,
   // Move all definitions in the successor to the predecessor...
   OnlyPred->getInstList().splice(OnlyPred->end(), BB->getInstList());
 
-  std::string OldName = BB->getName();
+  // OldName will be valid until erased.
+  StringRef OldName = BB->getName();
 
   // Erase basic block from the function...
 
@@ -102,11 +104,12 @@ static BasicBlock *FoldBlockIntoPredecessor(BasicBlock *BB, LoopInfo* LI,
     }
   }
   LI->removeBlock(BB);
-  BB->eraseFromParent();
 
   // Inherit predecessor's name if it exists...
   if (!OldName.empty() && !OnlyPred->hasName())
     OnlyPred->setName(OldName);
+
+  BB->eraseFromParent();
 
   return OnlyPred;
 }
@@ -238,8 +241,6 @@ bool llvm::UnrollLoop(Loop *L, unsigned Count, unsigned TripCount,
     }
     DEBUG(dbgs() << "!\n");
   }
-
-  std::vector<BasicBlock*> LoopBlocks = L->getBlocks();
 
   bool ContinueOnTrue = L->contains(BI->getSuccessor(0));
   BasicBlock *LoopExit = BI->getSuccessor(ContinueOnTrue);

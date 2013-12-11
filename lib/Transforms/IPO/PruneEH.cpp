@@ -51,7 +51,7 @@ namespace {
 char PruneEH::ID = 0;
 INITIALIZE_PASS_BEGIN(PruneEH, "prune-eh",
                 "Remove unused exception handling info", false, false)
-INITIALIZE_AG_DEPENDENCY(CallGraph)
+INITIALIZE_PASS_DEPENDENCY(CallGraphWrapperPass)
 INITIALIZE_PASS_END(PruneEH, "prune-eh",
                 "Remove unused exception handling info", false, false)
 
@@ -60,7 +60,7 @@ Pass *llvm::createPruneEHPass() { return new PruneEH(); }
 
 bool PruneEH::runOnSCC(CallGraphSCC &SCC) {
   SmallPtrSet<CallGraphNode *, 8> SCCNodes;
-  CallGraph &CG = getAnalysis<CallGraph>();
+  CallGraph &CG = getAnalysis<CallGraphWrapperPass>().getCallGraph();
   bool MadeChange = false;
 
   // Fill SCCNodes with the elements of the SCC.  Used for quickly
@@ -145,15 +145,13 @@ bool PruneEH::runOnSCC(CallGraphSCC &SCC) {
         NewAttributes.addAttribute(Attribute::NoReturn);
 
       Function *F = (*I)->getFunction();
-      const AttributeSet &PAL = F->getAttributes();
-      const AttributeSet &NPAL =
-        PAL.addAttributes(F->getContext(), AttributeSet::FunctionIndex,
-                          AttributeSet::get(F->getContext(),
-                                            AttributeSet::FunctionIndex,
-                                            NewAttributes));
+      const AttributeSet &PAL = F->getAttributes().getFnAttributes();
+      const AttributeSet &NPAL = AttributeSet::get(
+          F->getContext(), AttributeSet::FunctionIndex, NewAttributes);
+
       if (PAL != NPAL) {
         MadeChange = true;
-        F->setAttributes(NPAL);
+        F->addAttributes(AttributeSet::FunctionIndex, NPAL);
       }
     }
 
@@ -236,7 +234,7 @@ bool PruneEH::SimplifyFunction(Function *F) {
 /// exist in the BB.
 void PruneEH::DeleteBasicBlock(BasicBlock *BB) {
   assert(pred_begin(BB) == pred_end(BB) && "BB is not dead!");
-  CallGraph &CG = getAnalysis<CallGraph>();
+  CallGraph &CG = getAnalysis<CallGraphWrapperPass>().getCallGraph();
 
   CallGraphNode *CGN = CG[BB->getParent()];
   for (BasicBlock::iterator I = BB->end(), E = BB->begin(); I != E; ) {
