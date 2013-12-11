@@ -31,15 +31,9 @@ dnl===
 dnl===-----------------------------------------------------------------------===
 dnl Initialize autoconf and define the package name, version number and
 dnl address for reporting bugs.
-<<<<<<< HEAD
-AC_INIT([LLVM],[3.3],[http://llvm.org/bugs/])
-AC_DEFINE([LLVM_VERSION_MAJOR], [3], [Major version of the LLVM API])
-AC_DEFINE([LLVM_VERSION_MINOR], [3], [Minor version of the LLVM API])
-=======
 AC_INIT([LLVM],[3.5svn],[http://llvm.org/bugs/])
 AC_DEFINE([LLVM_VERSION_MAJOR], [3], [Major version of the LLVM API])
 AC_DEFINE([LLVM_VERSION_MINOR], [5], [Minor version of the LLVM API])
->>>>>>> llvmtrunk/master
 
 dnl Provide a copyright substitution and ensure the copyright notice is included
 dnl in the output of --version option of the generated configure script.
@@ -849,11 +843,7 @@ if test "$enableval" = host-only ; then
   enableval=host
 fi
 case "$enableval" in
-<<<<<<< HEAD
-  all) TARGETS_TO_BUILD="X86 Sparc PowerPC AArch64 ARM Mips XCore MSP430 CppBackend MBlaze NVPTX Hexagon SystemZ" ;;
-=======
   all) TARGETS_TO_BUILD="X86 Sparc PowerPC AArch64 ARM Mips XCore MSP430 CppBackend NVPTX Hexagon SystemZ R600" ;;
->>>>>>> llvmtrunk/master
   *)for a_target in `echo $enableval|sed -e 's/,/ /g' ` ; do
       case "$a_target" in
         x86)      TARGETS_TO_BUILD="X86 $TARGETS_TO_BUILD" ;;
