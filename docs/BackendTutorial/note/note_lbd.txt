@@ -1,2 +1,34 @@
-git clone https://github.com/Jonathan2251/lbd.git
+1. web:
+  git clone https://github.com/Jonathan2251/lbd.git
+
+
+2. translate .dot to .png:
+  dot -Tpng /tmp/llvm_OHjeXR/dag.main.dot > 1.png
+  eog 1.png
+
+
+3. genpatch genexample:
+  118-165-70-242:lbd Jonathan$ cd LLVMBackendTutorialExampleCode
+  118-165-70-242:LLVMBackendTutorialExampleCode Jonathan$ cp -f ../genpatch.sh .
+  118-165-70-242:LLVMBackendTutorialExampleCode Jonathan$ rm -f `find . -name .DS_Store` && rm -f `find . -name *.rej` && rm -f `find . -name *.orig` && rm -f `find . -name *~`
+  118-165-70-242:LLVMBackendTutorialExampleCode Jonathan$ sh genpatch.sh 
+  118-165-70-242:LLVMBackendTutorialExampleCode Jonathan$ cp -f *.patch ../source_ExampleCode/.
+  118-165-70-242:LLVMBackendTutorialExampleCode Jonathan$ cd ..
+
+
+  118-165-70-242:lbd Jonathan$ rm -f `find . -name .DS_Store`
+  118-165-70-242:lbd Jonathan$ rm -f `find . -name *.rej`
+  118-165-70-242:lbd Jonathan$ make genexample
+
+
+4. co-works:
+  Wei-Ren github,
+
+  Here it is,
+   https://github.com/azru0512/lbd
+
+   You can also see my pull-request here on your github,
+   https://github.com/Jonathan2251/lbd/pull/10
+	
+    git clone https://github.com/azru0512/lbd.git
 
