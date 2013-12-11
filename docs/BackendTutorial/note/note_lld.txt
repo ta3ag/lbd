@@ -5,5 +5,3 @@ cd src/tools
 
 git clone http://llvm.org/git/lld.git lld
 
-// see all remote branch
-git remote show origin
