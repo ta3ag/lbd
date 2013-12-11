@@ -35,6 +35,12 @@
   $ git fetch llvmtrunk
   $ git merge llvmtrunk/master
 
+  Compare/switch between lbd and llvmtrunk
+  You can also do:
+
+  $ git fetch llvmtrunk
+  $ git diff llvmtrunk/master
+
 
 3. Branch operations:
 
