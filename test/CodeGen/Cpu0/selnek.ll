@@ -1,4 +1,4 @@
-; RUN: llc -march=mipsel -mcpu=mips16 -relocation-model=pic < %s | FileCheck %s -check-prefix=16
+; RUN: llc  -march=cpu0 -mcpu=cpu032I -relocation-model=pic %s -o - | FileCheck %s
 
 @t = global i32 10, align 4
 @f = global i32 199, align 4
@@ -10,7 +10,7 @@
 @z4 = common global i32 0, align 4
 @.str = private unnamed_addr constant [5 x i8] c"%i \0A\00", align 1
 
-define void @calc_z() nounwind "target-cpu"="mips16" "target-features"="+mips16,+o32" {
+define void @calc_z() nounwind {
 entry:
   %0 = load i32* @a, align 4
   %cmp = icmp ne i32 %0, 1
@@ -77,31 +77,30 @@ cond.end14:                                       ; preds = %cond.false13, %cond
 
 define i32 @main() nounwind "target-cpu"="mips16" "target-features"="+mips16,+o32" {
 entry:
-  call void @calc_z() "target-cpu"="mips16" "target-features"="+mips16,+o32"
+  call void @calc_z() 
   %0 = load i32* @z1, align 4
-  %call = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([5 x i8]* @.str, i32 0, i32 0), i32 %0) "target-cpu"="mips16" "target-features"="+mips16,+o32"
+  %call = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([5 x i8]* @.str, i32 0, i32 0), i32 %0)
   %1 = load i32* @z2, align 4
-  %call1 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([5 x i8]* @.str, i32 0, i32 0), i32 %1) "target-cpu"="mips16" "target-features"="+mips16,+o32"
+  %call1 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([5 x i8]* @.str, i32 0, i32 0), i32 %1)
   %2 = load i32* @z3, align 4
-  %call2 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([5 x i8]* @.str, i32 0, i32 0), i32 %2) "target-cpu"="mips16" "target-features"="+mips16,+o32"
+  %call2 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([5 x i8]* @.str, i32 0, i32 0), i32 %2)
   %3 = load i32* @z4, align 4
-  %call3 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([5 x i8]* @.str, i32 0, i32 0), i32 %3) "target-cpu"="mips16" "target-features"="+mips16,+o32"
+  %call3 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([5 x i8]* @.str, i32 0, i32 0), i32 %3)
   ret i32 0
 }
 
-declare i32 @printf(i8*, ...) "target-cpu"="mips16" "target-features"="+mips16,+o32"
+declare i32 @printf(i8*, ...) 
 
-attributes #0 = { nounwind "target-cpu"="mips16" "target-features"="+mips16,+o32" }
-attributes #1 = { "target-cpu"="mips16" "target-features"="+mips16,+o32" }
+; CHECK:  ld	$t9, %call16(calc_z)($gp)
+; CHECK:  jalr	$t9
 
-; 16:	cmpi	${{[0-9]+}}, 1 	# 16 bit inst
-; 16:	bteqz	$BB{{[0-9]+}}_{{[0-9]}}
+; CHECK:  ld	$[[T0:[0-9]+]], %call16(printf)($gp)
+; CHECK:  add	$t9, $zero, $[[T0]]
+; CHECK:  jalr	$t9
 
-; 16:	cmpi	${{[0-9]+}}, 1000
-; 16:	bteqz	$BB{{[0-9]+}}_{{[0-9]}}
+; CHECK:  add	$t9, $zero, ${{[0-9]+}}
+; CHECK:  jalr	$t9
 
-; 16:	cmpi	${{[0-9]+}}, 3 	# 16 bit inst
-; 16:	bteqz	$BB{{[0-9]+}}_{{[0-9]}}
+; CHECK:  add	$t9, $zero, ${{[0-9]+}}
+; CHECK:  jalr	$t9
 
-; 16:	cmpi	${{[0-9]+}}, 1000
-; 16:	bteqz	$BB{{[0-9]+}}_{{[0-9]}}

@@ -61,7 +61,12 @@ selgek.ll                                 v
 selgt.ll                                  v
 selle.ll                                  v
 selltk.ll                                 v
-sellne.ll                                 v
+selne.ll                                  v
+selnek.ll                                 v
+selpat.ll                                 x                   Not support select_cc at this point.
+selTBteqzCmpi.ll                          x                   Not support select_cc at this point.
+selTBtnezCmpi.ll                          x                   Not support select_cc at this point.
+selTBtnezSlti.ll                          x                   Not support select_cc at this point.
 
 seteq.ll                                  v
 seteqz.ll                                 v
