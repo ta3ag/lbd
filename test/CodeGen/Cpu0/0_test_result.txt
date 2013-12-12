@@ -10,7 +10,11 @@ ch4_2-mod.ll                              v
 ch4_2_2-mod.ll                            v
 ch4_3-div.ll                              v
 ch4_5-andorxornot.ll                      v
-ch4_5-setxx.ll                            v                   duplicate test with seteq.ll, seteqz.ll, ...
+ch4_5-setxx.ll                            v                   duplicate test with seteq.ll, seteqz.ll, ..., and selxx.ll
+ch6_1-global.ll                           v                   duplicate test with global-address.ll
+ch7_1-localpointer.ll                     v
+ch7_2-short-char.ll                       
+ch7_3-bool.ll                             v
 2008-06-05-Carry.ll                       v
 2008-07-03-SRet.ll                        v
 2008-07-15InternalConstant.ll             v
