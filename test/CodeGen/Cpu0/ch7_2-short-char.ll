@@ -1,4 +1,7 @@
-; RUN: llc -march=cpu0 -relocation-model=pic -filetype=asm < %s | FileCheck %s
+; RUN: llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=false -filetype=asm < %s | FileCheck %s -check-prefix=STATIC_LARGE
+; RUN: llc -march=cpu0 -relocation-model=static -cpu0-use-small-section=true -filetype=asm < %s | FileCheck %s -check-prefix=STATIC_SMALL
+; RUN: llc -march=cpu0 -relocation-model=pic -cpu0-use-small-section=false -filetype=asm < %s | FileCheck %s -check-prefix=STATIC_LARGE
+; RUN: llc -march=cpu0 -relocation-model=pic -cpu0-use-small-section=true -filetype=asm < %s | FileCheck %s -check-prefix=STATIC_SMALL
 
 ; ModuleID = 'ch7_2.bc'
 target datalayout = "E-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-n32-S64"
@@ -21,6 +24,31 @@ entry:
   store i8 %0, i8* %a, align 1
   %1 = load i8* getelementptr inbounds ([4 x i8]* @b, i32 0, i32 1), align 1
   store i8 %1, i8* %c, align 1
+; STATIC_LARGE:  lui	$[[T0:[0-9]+]], %hi(b)
+; STATIC_LARGE:  addiu	$[[T1:[0-9]+]], $[[T0]], %lo(b)
+; STATIC_LARGE:  lbu	$[[T3:[0-9]+]], 1($[[T2]])
+; STATIC_LARGE:  sb	$[[T3]]
+; STATIC_LARGE:  lbu	$[[T1:[0-9]+]], 1($[[T0:[0-9]+]])
+; STATIC_LARGE:  sb	$[[T1]]
+; STATIC_SMALL:  addiu	$[[T0:[0-9]+]], $gp, %gp_rel(b)
+; STATIC_SMALL:  lbu	$[[T1:[0-9]+]], 1($[[T0]])
+; STATIC_SMALL:  sb	$[[T2]]
+; STATIC_SMALL:  lbu	$[[T1:[0-9]+]], 1($[[T0:[0-9]+]])
+; STATIC_SMALL:  sb	$[[T1]]
+; PIC_LARGE:  .cpload	$t9
+; PIC_LARGE:  lui	$[[T0:[0-9]+]], %got_hi(b)
+; PIC_LARGE:  addu	$[[T1:[0-9]+]], $[[T0]], $gp
+; PIC_LARGE:  ld	$[[T2:[0-9]+]], %got_lo(b)($[[T1]])
+; PIC_LARGE:  lbu	$[[T3:[0-9]+]], 1($[[T2]])
+; PIC_LARGE:  sb	$[[T3]]
+; PIC_LARGE:  lbu	$[[T1:[0-9]+]], 1($[[T0:[0-9]+]])
+; PIC_LARGE:  sb	$[[T1]]
+; PIC_SMALL:  .cpload	$t9
+; PIC_SMALL:  ld	$[[T0:[0-9]+]], %got(b)($gp)
+; PIC_SMALL:  lbu	$[[T1:[0-9]+]], 1($[[T0]])
+; PIC_SMALL:  sb	$[[T2]]
+; PIC_SMALL:  lbu	$[[T1:[0-9]+]], 1($[[T0:[0-9]+]])
+; PIC_SMALL:  sb	$[[T1]]
   %2 = bitcast %struct.Date* %date1 to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* %2, i8* bitcast ({ i16, i8, i8, i8, i8, i8, i8 }* @_ZZ9test_charvE5date1 to i8*), i32 8, i32 2, i1 false)
   %month = getelementptr inbounds %struct.Date* %date1, i32 0, i32 1
