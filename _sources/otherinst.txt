@@ -3,7 +3,7 @@
 Arithmetic and logic lsupport
 ===============================
 
-This chapter adds more cpu0 arithmetic instructions support first.
+This chapter adds more Cpu0 arithmetic instructions support first.
 The logic operation **“not”** support and translation in 
 `section Operator “not” !`_. The `section Display llvm IR nodes with Graphviz`_ 
 will show you the DAG optimization steps and their corresponding ``llc`` 
@@ -870,12 +870,12 @@ Similarly, SMMUL get the high word of multiply result.
 
 .. _otherinst-f3:
 .. figure:: ../Fig/otherinst/3.png
-  :height: 702 px
-  :width: 687 px
+  :height: 743 px
+  :width: 684 px
   :scale: 100 %
   :align: center
 
-  Translate ch4_2.bc into cpu0 backend DAG
+  DAG for ch4_2.bc with ARM style SMMUL
 
 Follows is the result of run above changes with ch4_2.bc.
 
@@ -977,9 +977,9 @@ the $rb and imm16 to 0.
 
 .. _otherinst-f4:
 .. figure:: ../Fig/otherinst/4.png
-  :height: 807 px
-  :width: 309 px
-  :scale: 75 %
+  :height: 837 px
+  :width: 554 px
+  :scale: 90 %
   :align: center
 
   DAG for ch4_2.bc with Mips style MULT
@@ -1856,9 +1856,6 @@ this chapter and spend 360 lines of source code.
 .. _section Display llvm IR nodes with Graphviz:
   http://jonathan2251.github.com/lbd/otherinst.html#display-llvm-ir-nodes-
   with-graphviz
-
-.. _section Adjust cpu0 instructions:
-  http://jonathan2251.github.com/lbd/otherinst.html#adjust-cpu0-instructions
 
 .. _section Local variable pointer:
   http://jonathan2251.github.com/lbd/otherinst.html#local-variable-pointer

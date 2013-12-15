@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.10',
+        VERSION:     '3.3.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -56,7 +56,7 @@
 <span id="sec-controlflow"></span><h1>Control flow statements<a class="headerlink" href="#control-flow-statements" title="Permalink to this headline">¶</a></h1>
 <p>This chapter illustrates the corresponding IR for control flow statements, like
 <strong>“if else”</strong>, <strong>“while”</strong> and <strong>“for”</strong> loop statements in C, and how to
-translate these control flow statements of llvm IR into cpu0 instructions.</p>
+translate these control flow statements of llvm IR into Cpu0 instructions.</p>
 <div class="section" id="control-flow-statement">
 <h2>Control flow statement<a class="headerlink" href="#control-flow-statement" title="Permalink to this headline">¶</a></h2>
 <p>Run ch8_1_1.cpp with clang will get result as follows,</p>
@@ -269,7 +269,7 @@ entry:
 </div>
 <p>The <strong>“icmp ne”</strong> stand for integer compare NotEqual, <strong>“slt”</strong> stands for Set
 Less Than, <strong>“sle”</strong> stands for Set Less Equal.
-Run version Chapter6_2/ with <tt class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-view-isel-dags</span></tt> or <tt class="docutils literal"><span class="pre">-debug</span></tt> option, you
+Run version Chapter8_1/ with <tt class="docutils literal"><span class="pre">llc</span>&nbsp; <span class="pre">-view-isel-dags</span></tt> or <tt class="docutils literal"><span class="pre">-debug</span></tt> option, you
 can see it has translated <strong>if</strong> statement into
 (br (brcond (%1, setcc(%2, Constant&lt;c&gt;, setne)), BasicBlock_02), BasicBlock_01).
 Ignore %1, we get the form (br (brcond (setcc(%2, Constant&lt;c&gt;, setne)),
@@ -280,7 +280,7 @@ brcond %cond, BasicBlock_02
 br BasicBlock_01
 </pre></div>
 </div>
-<p>We want to translate them into cpu0 instructions DAG as follows,</p>
+<p>We want to translate them into Cpu0 instructions DAG as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>addiu %3, ZERO, Constant&lt;c&gt;
 cmp %2, %3
 jne BasicBlock_02
@@ -315,7 +315,7 @@ def JMP     : UncondBranch&lt;0x26, "jmp"&gt;;</pre>
 </div>
 <p>The pattern [(br bb:$imm24)] in class UncondBranch is translated into jmp
 machine instruction.
-The other two cpu0 instructions translation is more complicate than simple
+The other two Cpu0 instructions translation is more complicate than simple
 one-to-one IR to machine instruction translation we have experienced until now.
 To solve this chained IR to machine instructions translation, we define the
 following pattern,</p>
@@ -346,7 +346,7 @@ condition based on SW status as <a class="pageref" href="#ctrlflow-f1">Figure  1
 Since SW belongs to a different register class, it
 is correct even an instruction is inserted between CMP and JNE as follows,</p>
 <div class="figure align-center" id="ctrlflow-f1">
-<img alt="_images/11.png" src="_images/11.png" style="width: 446px; height: 465px;" />
+<img alt="_images/12.png" src="_images/12.png" style="width: 446px; height: 465px;" />
 <p class="caption">Figure 1: JNE (CMP $r2, $r3),</p>
 </div>
 <div class="highlight-c++"><pre>cmp %2, %3
@@ -812,7 +812,7 @@ RISC). Knowledge with RISC will make you satisfied in compiler design.
 List these two excellent books we have read which include the real RISC CPU
 knowledge needed for reference.
 Sure, there are many books in Computer Architecture, and some of them contain
-real RISC CPU knowledge needed, but these two are what we read.</p>
+real RISC CPU knowledge needed, but these two are what we have read.</p>
 <p>Computer Organization and Design: The Hardware/Software Interface (The Morgan
 Kaufmann Series in Computer Architecture and Design)</p>
 <p>Computer Architecture: A Quantitative Approach (The Morgan Kaufmann Series in

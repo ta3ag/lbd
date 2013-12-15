@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.10',
+        VERSION:     '3.3.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -91,8 +91,14 @@ project. They are:</p>
 </div>
 <div class="section" id="revision-history">
 <h2>Revision history<a class="headerlink" href="#revision-history" title="Permalink to this headline">¶</a></h2>
-<p>Version 3.3.11, Not release yet.</p>
+<p>Version 3.3.12, Not release yet.</p>
 <dl class="docutils">
+<dt>Version 3.3.11, Not release yet.</dt>
+<dd>Add Figure Code generation and execution flow in about.rst.
+Update backendstructure.rst.
+Correct otherinst.rst.
+Decoration.
+Correct typing error.</dd>
 <dt>Version 3.3.10, Released December 5, 2013</dt>
 <dd>Correct typing error.
 Dynamic linker in lld.rst.
@@ -295,6 +301,32 @@ these documents to get a deeper understanding of what the tutorial is teaching:<
 </div>
 <div class="section" id="outline-of-chapters">
 <h2>Outline of Chapters<a class="headerlink" href="#outline-of-chapters" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center" id="about-f1">
+<a class="reference internal image-reference" href="_images/1.png"><img alt="_images/1.png" src="_images/1.png" /></a>
+<p class="caption">Figure 2: Code generation and execution flow</p>
+</div>
+<p>The upper half of <a class="pageref" href="#about-f1">Figure  2</a> is the computer program generating
+and execution flow. IR stand for Intermediate Representation.
+The lower half is this book flow of the toolchain extended
+implementation based on llvm. The hex is the ascii from &#8216;0&#8217; to &#8216;f&#8217; for
+hexadecimal value representation (4 bits of binary code representation) since
+the verilog language machine use it as input file.</p>
+<p>This book include 10,000 lines of sources code for</p>
+<ol class="arabic simple">
+<li>Step by step, create an llvm backend for the Cpu0 which beginning from a
+CPU design for school teaching purpose in system programming. Chapter 2 to
+12.</li>
+<li>ELF linker for Cpu0 which extended from lld. Chapter 13.</li>
+<li>elf2hex extended from llvm-objump. Chapter 13.</li>
+<li>Cpu0 verilog source code. Chapter 11.</li>
+</ol>
+<p>With these code, reader can run the generated code from the result of Cpu0
+llvm backend compiler, linker and elf2hex and see how it run on your computer.
+The pdf and epub is also available in the web.
+It is a tutorial for llvm backend developer but not for an expert.
+It is also can be a material for those who have compiler and Computer
+Architecture book knowledge and like to know how to extend the llvm
+toolchain to support a new CPU.</p>
 <p><a class="reference internal" href="llvmstructure.html#sec-llvmstructure"><em>Cpu0 Instruction Set and LLVM Target Description</em></a>:</p>
 <p>This chapter introduces the Cpu0 architecture, a high-level view of LLVM, and how Cpu0
 will be targeted in in an LLVM backend. This chapter will run you through the initial

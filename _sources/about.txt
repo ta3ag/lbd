@@ -52,7 +52,14 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
+Version 3.3.12, Not release yet.
+
 Version 3.3.11, Not release yet.
+  Add Figure Code generation and execution flow in about.rst.
+  Update backendstructure.rst.
+  Correct otherinst.rst.
+  Decoration.
+  Correct typing error.
 
 Version 3.3.10, Released December 5, 2013
   Correct typing error.
@@ -278,6 +285,37 @@ these documents to get a deeper understanding of what the tutorial is teaching:
 
 Outline of Chapters
 -------------------
+
+.. _about-f1: 
+.. figure:: ../Fig/about/1.png
+  :scale: 100 %
+  :align: center
+
+  Code generation and execution flow
+
+The upper half of :num:`Figure #about-f1` is the computer program generating 
+and execution flow. IR stand for Intermediate Representation. 
+The lower half is this book flow of the toolchain extended 
+implementation based on llvm. The hex is the ascii from '0' to 'f' for 
+hexadecimal value representation (4 bits of binary code representation) since 
+the verilog language machine use it as input file.
+
+This book include 10,000 lines of sources code for
+
+1. Step by step, create an llvm backend for the Cpu0 which beginning from a 
+   CPU design for school teaching purpose in system programming. Chapter 2 to 
+   12.
+2. ELF linker for Cpu0 which extended from lld. Chapter 13.
+3. elf2hex extended from llvm-objump. Chapter 13.
+4. Cpu0 verilog source code. Chapter 11.
+
+With these code, reader can run the generated code from the result of Cpu0 
+llvm backend compiler, linker and elf2hex and see how it run on your computer. 
+The pdf and epub is also available in the web. 
+It is a tutorial for llvm backend developer but not for an expert. 
+It is also can be a material for those who have compiler and Computer 
+Architecture book knowledge and like to know how to extend the llvm 
+toolchain to support a new CPU.
 
 :ref:`sec-llvmstructure`:
 

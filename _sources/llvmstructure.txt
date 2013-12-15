@@ -772,7 +772,7 @@ The Cpu0RegisterInfo.td also defines that ``CPURegs`` is an instance of the clas
 
 .. end editing 1/23
 
-The cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
+The Cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
 
 .. rubric:: lbdex/Chapter2/Cpu0InstrInfo.td
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td

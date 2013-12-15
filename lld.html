@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.10',
+        VERSION:     '3.3.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -61,7 +61,7 @@ llvm-objdump driver is modified for support generate Hex file from ELF.
 With these two tools supported, the program with global variables of existed in
 section.data and .rodata can be accessed and transfered to Hex file which feed
 to Verilog Cpu0 machine and run on your PC/Laptop.</p>
-<p>LLD web site <a class="footnote-reference" href="#id7" id="id1">[1]</a>. LLD install requirement on Linux <a class="footnote-reference" href="#id8" id="id2">[2]</a>.
+<p>LLD web site <a class="footnote-reference" href="#id14" id="id1">[1]</a>. LLD install requirement on Linux <a class="footnote-reference" href="#id15" id="id2">[2]</a>.
 In spite of the requirement, we
 only can build with gcc4.7 above (clang will fail) on Linux.
 If you run with Virtual Machine (VM), please keep your phisical memory size
@@ -3845,7 +3845,7 @@ The Cpu0LinkingContext constructor will create it&#8217;s ELFLinkingContext part
 The std::unique_ptr came from c++11 standard.
 The unique_ptr objects automatically delete the object they manage (using a
 deleter) as soon as themselves are destroyed. Just like the Singlelten
-pattern in Design Pattern book or Smart Pointers in Effective C++ book. <a class="footnote-reference" href="#id9" id="id3">[3]</a></p>
+pattern in Design Pattern book or Smart Pointers in Effective C++ book. <a class="footnote-reference" href="#id16" id="id3">[3]</a></p>
 <div class="figure align-center" id="lld-f5">
 <a class="reference internal image-reference" href="_images/54.png"><img alt="_images/54.png" src="_images/54.png" /></a>
 <p class="caption">Figure 7: Cpu0LinkingContext get Cpu0TargetHandler through &amp;getTargetHandler()</p>
@@ -3860,14 +3860,14 @@ contructor function.</p>
 as follows.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>std::unique_ptr::get() <a class="footnote-reference" href="#id10" id="id4">[4]</a></p>
+<p>std::unique_ptr::get() <a class="footnote-reference" href="#id17" id="id4">[4]</a></p>
 <p>pointer get() const noexcept;</p>
 <p class="last">Get pointer
 Returns the stored pointer.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>std::move() <a class="footnote-reference" href="#id11" id="id5">[5]</a></p>
+<p>std::move() <a class="footnote-reference" href="#id18" id="id5">[5]</a></p>
 <dl class="last docutils">
 <dt>for example:</dt>
 <dd><p class="first">std::string bar = &#8220;bar-string&#8221;;
@@ -4794,10 +4794,10 @@ We spent 500 pages of pdf to explain these code. Open source code give
 programmers best opportunity to understand the code and enhance/extend the
 code function. But not enough, we believe the documentation is the next most
 important thing to improve the open source code development.
-The Open Source Fundation recognized this point before us and set
-Open Source Document Project years ago.
+The Open Source Organization recognized this point before us and set
+Open Source Document Project years ago <a class="footnote-reference" href="#id19" id="id7">[6]</a> <a class="footnote-reference" href="#id20" id="id8">[7]</a> <a class="footnote-reference" href="#id21" id="id9">[8]</a> <a class="footnote-reference" href="#id22" id="id10">[9]</a> <a class="footnote-reference" href="#id23" id="id11">[10]</a>.
 Open Source grows up and becomes a giant software infrastructure with the forces
-of company, school research team and countless talent engineers passion.
+of company <a class="footnote-reference" href="#id24" id="id12">[11]</a>  <a class="footnote-reference" href="#id25" id="id13">[12]</a>, school research team and countless talent engineers passion.
 It terminated the situation of everyone trying to re-invent wheels during 10
 years ago.
 Extend your software from the re-usable source code is the right way.
@@ -4806,6 +4806,12 @@ with business.
 Actually anyone can contribute back to open source through the learning process.
 We write this book through the process of learning llvm backend and contribute
 back to llvm open source project.
+We think this book cannot exists in traditional paper book form since only
+few number of readers interested to read this llvm backend book even
+there are many paper published books in theory of compiler.
+There are distance between the theory and the practice program implemenation.
+Keep note through learning a large complicate software is not enough
+such as this llvm backend study.
 We all learned the knowledge through books during school and after school.
 So, if you cannot find a good way to produce documents, you can consider to
 write document like this book. This book document use sphinx tool just
@@ -4813,34 +4819,76 @@ like the llvm development team. Appendix A tell you how to install sphinx tool.
 Documentation work will help yourself to re-examine your software and make your
 program better in structure, reliability and more important &#8220;Extend your code
 to somewhere you didn&#8217;t expect&#8221;.</p>
-<table class="docutils footnote" frame="void" id="id7" rules="none">
+<table class="docutils footnote" frame="void" id="id14" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://lld.llvm.org/">http://lld.llvm.org/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id8" rules="none">
+<table class="docutils footnote" frame="void" id="id15" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://lld.llvm.org/getting_started.html#on-unix-like-systems">http://lld.llvm.org/getting_started.html#on-unix-like-systems</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id9" rules="none">
+<table class="docutils footnote" frame="void" id="id16" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/">http://www.cplusplus.com/reference/memory/unique_ptr/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id10" rules="none">
+<table class="docutils footnote" frame="void" id="id17" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/get/">http://www.cplusplus.com/reference/memory/unique_ptr/get/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id11" rules="none">
+<table class="docutils footnote" frame="void" id="id18" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/utility/move/">http://www.cplusplus.com/reference/utility/move/</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id19" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id7">[6]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/BSD_Documentation_License">http://en.wikipedia.org/wiki/BSD_Documentation_License</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id20" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id8">[7]</a></td><td><a class="reference external" href="http://www.freebsd.org/docproj/">http://www.freebsd.org/docproj/</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id21" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id9">[8]</a></td><td><a class="reference external" href="http://www.freebsd.org/copyright/freebsd-doc-license.html">http://www.freebsd.org/copyright/freebsd-doc-license.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id22" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id10">[9]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/GNU_Free_Documentation_License">http://en.wikipedia.org/wiki/GNU_Free_Documentation_License</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id23" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id11">[10]</a></td><td><a class="reference external" href="http://www.gnu.org/copyleft/fdl.html">http://www.gnu.org/copyleft/fdl.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id24" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id12">[11]</a></td><td><a class="reference external" href="http://www.apple.com/opensource/">http://www.apple.com/opensource/</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id25" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id13">[12]</a></td><td><a class="reference external" href="https://www.ibm.com/developerworks/opensource/">https://www.ibm.com/developerworks/opensource/</a></td></tr>
 </tbody>
 </table>
 </div>

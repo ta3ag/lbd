@@ -1625,10 +1625,10 @@ We spent 500 pages of pdf to explain these code. Open source code give
 programmers best opportunity to understand the code and enhance/extend the 
 code function. But not enough, we believe the documentation is the next most 
 important thing to improve the open source code development. 
-The Open Source Fundation recognized this point before us and set 
-Open Source Document Project years ago.
+The Open Source Organization recognized this point before us and set 
+Open Source Document Project years ago [#]_ [#]_ [#]_ [#]_ [#]_.
 Open Source grows up and becomes a giant software infrastructure with the forces 
-of company, school research team and countless talent engineers passion. 
+of company [#]_  [#]_, school research team and countless talent engineers passion. 
 It terminated the situation of everyone trying to re-invent wheels during 10 
 years ago.
 Extend your software from the re-usable source code is the right way. 
@@ -1637,6 +1637,12 @@ with business.
 Actually anyone can contribute back to open source through the learning process. 
 We write this book through the process of learning llvm backend and contribute 
 back to llvm open source project.
+We think this book cannot exists in traditional paper book form since only 
+few number of readers interested to read this llvm backend book even 
+there are many paper published books in theory of compiler. 
+There are distance between the theory and the practice program implemenation. 
+Keep note through learning a large complicate software is not enough 
+such as this llvm backend study. 
 We all learned the knowledge through books during school and after school. 
 So, if you cannot find a good way to produce documents, you can consider to 
 write document like this book. This book document use sphinx tool just 
@@ -1656,4 +1662,16 @@ to somewhere you didn't expect".
 
 .. [#] http://www.cplusplus.com/reference/utility/move/
 
+.. [#] http://en.wikipedia.org/wiki/BSD_Documentation_License
 
+.. [#] http://www.freebsd.org/docproj/
+
+.. [#] http://www.freebsd.org/copyright/freebsd-doc-license.html
+
+.. [#] http://en.wikipedia.org/wiki/GNU_Free_Documentation_License
+
+.. [#] http://www.gnu.org/copyleft/fdl.html
+
+.. [#] http://www.apple.com/opensource/
+
+.. [#] https://www.ibm.com/developerworks/opensource/

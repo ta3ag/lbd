@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.10',
+        VERSION:     '3.3.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -863,7 +863,7 @@ If this program use absolute address and the loading address is known at load
 time, then this relocation record will be solved by loader at loading time.</p>
 <p>IsGlobalInSmallSection() return true or false depends on UseSmallSectionOpt.</p>
 <p>The code fragment of LowerGlobalAddress() as the following corresponding option
-<tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=true</span></tt> will translate DAG
+<tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model=static</span> <span class="pre">-cpu0-use-small-section=false</span></tt> will translate DAG
 (GlobalAddress&lt;i32* &#64;gI&gt; 0) into
 (add Cpu0ISD::Hi&lt;gI offset Hi16&gt; Cpu0ISD::Lo&lt;gI offset Lo16&gt;) in
 stage &#8220;Legalized selection DAG&#8221; as below.</p>
@@ -959,7 +959,7 @@ will translate DAG (add Cpu0ISD::Hi, Cpu0ISD::Lo) into Cpu0 instruction
 </div>
 <div class="section" id="sdata-or-sbss">
 <h4>sdata or sbss<a class="headerlink" href="#sdata-or-sbss" title="Permalink to this headline">¶</a></h4>
-<p>The sdata/sbss are 16 bits addressable areas which planed in ELF for fast access.
+<p>The sdata/sbss are 16 bits addressable areas which placed in ELF for fast access.
 Option cpu0-use-small-section=true will generate the following instructions.</p>
 <div class="highlight-bash"><div class="highlight"><pre>      addiu   <span class="nv">$2</span>, <span class="nv">$gp</span>, %gp_rel<span class="o">(</span>gI<span class="o">)</span>
       ld      <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
@@ -1078,15 +1078,15 @@ def : Pat&lt;(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)),
 ZERO, tglobaladdr:$in))&gt;; will translate (add $gp Cpu0ISD::GPRel tglobaladdr)
 into (add $gp, (addiu ZERO, tglobaladdr)).</p>
 <p>In this mode, the $gp content is assigned at compile/link time, changed only at
-program be loaded, and is fixed during the program running; while the
+program be loaded, and is fixed during the program running; on the contrary, when
 -relocation-model=pic the $gp can be changed during program running.
 For this example, if $gp is assigned to the start address of .sdata by loader
-when program ch6_1.cpu0.s is loaded, then linker can caculate %gp_rel(gI) =
-(the relative address distance between gI and start of .sdata section.
+when program ch6_1.cpu0.s is loaded, then linker can caculate %gp_rel(gI) (=
+the relative address distance between gI and start of .sdata section).
 Which meaning this relocation record can be solved at link time, that&#8217;s why it
 is static mode.</p>
-<p>In this mode, we reserve $gp to a specfic fixed address of both linker and
-loader agree to. So, the $gp cannot be allocated as a general purpose for
+<p>In this mode, we reserve $gp to a specfic fixed address of the program is
+loaded. As a result, the $gp cannot be allocated as a general purpose for
 variables. The following code tells llvm never allocate $gp for variables.</p>
 <p class="rubric">lbdex/Chapter6_1/Cpu0Subtarget.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0Subtarget</span><span class="o">::</span><span class="n">Cpu0Subtarget</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">CPU</span><span class="p">,</span>
@@ -1376,9 +1376,9 @@ instructions 09a00000 (offset 0) which equal to assembly
 &#8220;addiu $gp, $zero, %hi(_gp_disp)&#8221; and 09aa0000 (offset 8) which equal to
 assembly &#8220;addiu $gp, $gp, %lo(_gp_disp)&#8221; are relocated records depend on
 _gp_disp. The loader or OS can caculate _gp_disp by (x - start address of .data)
-when load the dynamic function into memory x, and adust these two
+when load the dynamic function into memory x, and adjust these two
 instructions offet correctly.
-Since shared function is loaded when this function be called, the relocation
+Since shared function is loaded when this function is called, the relocation
 record &#8220;ld $2, %got(gI)($gp)&#8221; cannot be resolved in link time.
 In spite of the reloation record is solved on load time, the name binding
 is static since linker deliver the memory address to loader and loader can solve
@@ -1466,14 +1466,14 @@ SelectionDAG has 15 nodes:
 </div>
 <p>Finally, the pattern Cpu0 instruction <strong>ld</strong> defined before in Cpu0InstrInfo.td
 will translate DAG (load EntryToken, (Cpu0ISD::Wrapper Register %GP,
-TargetGlobalAddress&lt;i32* &#64;gI&gt; 0)) into Cpu0 instruction as below.</p>
+TargetGlobalAddress&lt;i32* &#64;gI&gt; 0)) into Cpu0 instruction as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>...
     ld      <span class="nv">$2</span>, %got<span class="o">(</span>gI<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
 ...
 </pre></div>
 </div>
 <p>Remind in pic mode, Cpu0 use &#8221;.cpload&#8221; and &#8220;ld $2, %got(gI)($gp)&#8221; to access
-global variable. It take 5 instructions in Cpu0 and 4 instructions in Mips.
+global variable as Mips. It take 4 instructions in both Cpu0 and Mips.
 The cost came from we didn&#8217;t assume the register $gp is always assigned to
 address .sdata and fixed there. Even we reserve $gp in this function, the $gp
 register can be changed at other functions. In last sub-section, the $gp is
@@ -1690,7 +1690,7 @@ Cpu0ISelLowering.cpp for global variable printing operand function.</p>
 ordinary IR node translation, it has static (absolute address) and PIC mode.
 Backend deals this translation by create DAG nodes in function
 LowerGlobalAddress() which called by LowerOperation().
-Function LowerOperation() take care all Custom type of operation.
+Function LowerOperation() takes care all Custom type of operation.
 Backend set global address as Custom operation by
 <strong>”setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);”</strong> in
 Cpu0TargetLowering() constructor.
@@ -1702,12 +1702,13 @@ Except Custom, the other two maybe no need to coding.
 The section &#8220;Instruction Selector&#8221; of <a class="footnote-reference" href="#id8" id="id5">[3]</a> is the references.</p>
 <p>As shown in the section, the global variable can be laid in
 .sdata/.sbss by option -cpu0-use-small-section=true.
-It is possible, the small data section (16 bits
-addressable) is full out at link stage. When this happens, linker will highlight
+It is possible that the variables of small data section (16 bits
+addressable) are full out at link stage. When this happens, linker will highlight
 this error and force the toolchain user to fix it. The toolchain user, need to
-reconsider which global variables should be move from .sdata/.sbss to .data/.bss
+reconsider which global variables should be moved from .sdata/.sbss to .data/.bss
 by set option -cpu0-use-small-section=false for that global variables declared
-file. The rule for global variables allocation is &#8220;set the small and frequent
+file in Makefile.
+The rule for global variables allocation is &#8220;set the small and frequent
 variables in small 16 addressable area&#8221;.</p>
 <table class="docutils footnote" frame="void" id="id6" rules="none">
 <colgroup><col class="label" /><col /></colgroup>

@@ -610,7 +610,7 @@ time, then this relocation record will be solved by loader at loading time.
 IsGlobalInSmallSection() return true or false depends on UseSmallSectionOpt. 
 
 The code fragment of LowerGlobalAddress() as the following corresponding option 
-``llc -relocation-model=static -cpu0-use-small-section=true`` will translate DAG 
+``llc -relocation-model=static -cpu0-use-small-section=false`` will translate DAG 
 (GlobalAddress<i32* @gI> 0) into 
 (add Cpu0ISD::Hi<gI offset Hi16> Cpu0ISD::Lo<gI offset Lo16>) in 
 stage "Legalized selection DAG" as below.
@@ -718,7 +718,7 @@ will translate DAG (add Cpu0ISD::Hi, Cpu0ISD::Lo) into Cpu0 instruction
 sdata or sbss
 ++++++++++++++
 
-The sdata/sbss are 16 bits addressable areas which planed in ELF for fast access. 
+The sdata/sbss are 16 bits addressable areas which placed in ELF for fast access. 
 Option cpu0-use-small-section=true will generate the following instructions.
 
 .. code-block:: bash
@@ -851,16 +851,16 @@ ZERO, tglobaladdr:$in))>; will translate (add $gp Cpu0ISD::GPRel tglobaladdr)
 into (add $gp, (addiu ZERO, tglobaladdr)).
 
 In this mode, the $gp content is assigned at compile/link time, changed only at 
-program be loaded, and is fixed during the program running; while the 
+program be loaded, and is fixed during the program running; on the contrary, when 
 -relocation-model=pic the $gp can be changed during program running. 
 For this example, if $gp is assigned to the start address of .sdata by loader 
-when program ch6_1.cpu0.s is loaded, then linker can caculate %gp_rel(gI) = 
-(the relative address distance between gI and start of .sdata section. 
+when program ch6_1.cpu0.s is loaded, then linker can caculate %gp_rel(gI) (= 
+the relative address distance between gI and start of .sdata section). 
 Which meaning this relocation record can be solved at link time, that's why it 
 is static mode. 
 
-In this mode, we reserve $gp to a specfic fixed address of both linker and 
-loader agree to. So, the $gp cannot be allocated as a general purpose for 
+In this mode, we reserve $gp to a specfic fixed address of the program is 
+loaded. As a result, the $gp cannot be allocated as a general purpose for 
 variables. The following code tells llvm never allocate $gp for variables.
 
 .. rubric:: lbdex/Chapter6_1/Cpu0Subtarget.cpp
@@ -1064,9 +1064,9 @@ instructions 09a00000 (offset 0) which equal to assembly
 "addiu $gp, $zero, %hi(_gp_disp)" and 09aa0000 (offset 8) which equal to 
 assembly "addiu $gp, $gp, %lo(_gp_disp)" are relocated records depend on 
 _gp_disp. The loader or OS can caculate _gp_disp by (x - start address of .data) 
-when load the dynamic function into memory x, and adust these two 
+when load the dynamic function into memory x, and adjust these two 
 instructions offet correctly.
-Since shared function is loaded when this function be called, the relocation 
+Since shared function is loaded when this function is called, the relocation 
 record "ld $2, %got(gI)($gp)" cannot be resolved in link time. 
 In spite of the reloation record is solved on load time, the name binding 
 is static since linker deliver the memory address to loader and loader can solve 
@@ -1160,7 +1160,7 @@ in stage "Legalized selection DAG" as below.
 
 Finally, the pattern Cpu0 instruction **ld** defined before in Cpu0InstrInfo.td 
 will translate DAG (load EntryToken, (Cpu0ISD::Wrapper Register %GP, 
-TargetGlobalAddress<i32* @gI> 0)) into Cpu0 instruction as below.
+TargetGlobalAddress<i32* @gI> 0)) into Cpu0 instruction as follows,
 
 .. code-block:: bash
 
@@ -1169,7 +1169,7 @@ TargetGlobalAddress<i32* @gI> 0)) into Cpu0 instruction as below.
     ...
 
 Remind in pic mode, Cpu0 use ".cpload" and "ld $2, %got(gI)($gp)" to access 
-global variable. It take 5 instructions in Cpu0 and 4 instructions in Mips. 
+global variable as Mips. It take 4 instructions in both Cpu0 and Mips. 
 The cost came from we didn't assume the register $gp is always assigned to 
 address .sdata and fixed there. Even we reserve $gp in this function, the $gp
 register can be changed at other functions. In last sub-section, the $gp is
@@ -1365,7 +1365,7 @@ The global variable Instruction Selection for DAG translation is not like the
 ordinary IR node translation, it has static (absolute address) and PIC mode. 
 Backend deals this translation by create DAG nodes in function 
 LowerGlobalAddress() which called by LowerOperation(). 
-Function LowerOperation() take care all Custom type of operation. 
+Function LowerOperation() takes care all Custom type of operation. 
 Backend set global address as Custom operation by 
 **”setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);”** in 
 Cpu0TargetLowering() constructor. 
@@ -1379,12 +1379,13 @@ The section "Instruction Selector" of [#]_ is the references.
 
 As shown in the section, the global variable can be laid in 
 .sdata/.sbss by option -cpu0-use-small-section=true. 
-It is possible, the small data section (16 bits
-addressable) is full out at link stage. When this happens, linker will highlight
+It is possible that the variables of small data section (16 bits
+addressable) are full out at link stage. When this happens, linker will highlight
 this error and force the toolchain user to fix it. The toolchain user, need to
-reconsider which global variables should be move from .sdata/.sbss to .data/.bss
+reconsider which global variables should be moved from .sdata/.sbss to .data/.bss
 by set option -cpu0-use-small-section=false for that global variables declared
-file. The rule for global variables allocation is "set the small and frequent
+file in Makefile. 
+The rule for global variables allocation is "set the small and frequent
 variables in small 16 addressable area".
 
 

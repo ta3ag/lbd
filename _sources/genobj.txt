@@ -95,7 +95,7 @@ the immediate is 16 bits -56(=0xffc8), so it's correct.
 The third instruction **“st  $2, 52($fp)”** and it's corresponding obj 
 is 0x022b0034. The **st** opcode is **0x02**, $2 is 0x2, $fp is 0xb and 
 immediate is 52(0x0034). 
-Thanks to cpu0 instruction format which opcode, register operand and 
+Thanks to Cpu0 instruction format which opcode, register operand and 
 offset(imediate value) size are multiple of 4 bits. 
 Base on the 4 bits multiple, the obj format is easy to check by eyes. 
 The big endian (B0, B1, B2, B3) = (09, dd, ff, c8), objdump from B0 to B3 as 

@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.10',
+        VERSION:     '3.3.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -69,7 +69,7 @@ debugging (using gdb) our LLVM installations on a Fedora 17 system.  We will
 not be using an IDE for Linux, but once again, if you have experience building/
 debugging LLVM using Eclipse or other major IDEs, please contact the authors.
 For information on using <tt class="docutils literal"><span class="pre">cmake</span></tt> to build LLVM, please refer to the &#8220;Building
-LLVM with CMake&#8221; <a class="footnote-reference" href="#id16" id="id1">[1]</a> documentation for further information.
+LLVM with CMake&#8221; <a class="footnote-reference" href="#id17" id="id1">[1]</a> documentation for further information.
 We are using cmake version 2.8.9.</p>
 <p>We will install two llvm directories in this chapter. One is the directory
 llvm/release/ which contains the clang, clang++ compiler we will use to translate
@@ -94,7 +94,7 @@ program and without clang and clang++.</p>
 <p class="last">Fix centering for figure captions.</p>
 </div>
 <p>Please download LLVM latest release version 3.3 (llvm, clang, compiler-rf) from
-the &#8220;LLVM Download Page&#8221; <a class="footnote-reference" href="#id17" id="id2">[2]</a>. Then extract them using
+the &#8220;LLVM Download Page&#8221; <a class="footnote-reference" href="#id18" id="id2">[2]</a>. Then extract them using
 <tt class="docutils literal"><span class="pre">tar</span> <span class="pre">-zxvf</span> <span class="pre">{llvm-3.3.src.tar,</span> <span class="pre">clang-3.3.src.tar,</span> <span class="pre">compiler-rt-3.3.src.tar}</span></tt>,
 and change the llvm source code root directory into src.
 After that, move the clang source code to src/tools/clang, and move the
@@ -126,7 +126,7 @@ CMakeLists.txt  LLVMBuild.txt Makefile  compiler-rt sample
 terminal command <tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/Users/Jonathan/Downloads/src</span> <span class="pre">/Users/Jonathan/</span>
 <span class="pre">llvm/release/.</span></tt>.</p>
 <p>Install Xcode from the Mac App Store. Then install cmake, which can be found
-here: <a class="footnote-reference" href="#id18" id="id3">[3]</a>.
+here: <a class="footnote-reference" href="#id19" id="id3">[3]</a>.
 Before installing cmake, make sure you can install applications you download
 from the Internet.
 Open <em class="menuselection">System Preferences ‣ Security &amp; Privacy</em>. Click the
@@ -151,7 +151,7 @@ installer.</p>
 Now, will generate the LLVM.xcodeproj in this chapter.</p>
 <p>Currently, we cannot do debug by lldb with cmake graphic UI operations depicted
 in this section, but we can do debug by lldb with &#8220;section Create LLVM.xcodeproj
-of supporting cpu0 by terminal cmake command&#8221; <a class="footnote-reference" href="#id19" id="id4">[4]</a>.
+of supporting cpu0 by terminal cmake command&#8221; <a class="footnote-reference" href="#id20" id="id4">[4]</a>.
 Even with that, let&#8217;s build LLVM project with cmake graphic UI since this LLVM
 directory contains the release version for clang and clang++ execution file.
 First, create LLVM.xcodeproj as
@@ -247,7 +247,7 @@ export VIRTUALENVWRAPPER_VIRTUALENV_ARGS='--no-site-packages' # optional
 <p>We have installed llvm with clang on directory llvm/release/.
 Now, we want to install llvm with our cpu0 backend code on directory
 llvm/test/ in this section.</p>
-<p>In &#8220;section Create LLVM.xcodeproj by cmake Graphic UI&#8221; <a class="footnote-reference" href="#id20" id="id5">[5]</a>, we create
+<p>In &#8220;section Create LLVM.xcodeproj by cmake Graphic UI&#8221; <a class="footnote-reference" href="#id21" id="id5">[5]</a>, we create
 LLVM.xcodeproj by cmake graphic UI.
 We can create LLVM.xcodeproj by <tt class="docutils literal"><span class="pre">cmake</span></tt> command on terminal also.
 This book is on the process of merging into llvm trunk but not finished
@@ -309,7 +309,7 @@ Cpu0InstrFormats.td   Cpu0Subtarget.h         MCTargetDesc
 <tt class="docutils literal"><span class="pre">cmake</span> <span class="pre">-DCMAKE_CXX_COMPILER=clang++</span> <span class="pre">-DCMAKE_C_COMPILER=clang</span> <span class="pre">-DCMAKE_BUILD_TYPE</span>
 <span class="pre">=Debug</span> <span class="pre">-G</span> <span class="pre">&quot;Xcode&quot;</span> <span class="pre">../src/</span></tt> as follows.
 Remind, currently, the <tt class="docutils literal"><span class="pre">cmake</span></tt> terminal command can work with lldb debug, but
-the &#8220;section Create LLVM.xcodeproj by cmake Graphic UI&#8221; <a class="footnote-reference" href="#id20" id="id6">[5]</a> cannot.</p>
+the &#8220;section Create LLVM.xcodeproj by cmake Graphic UI&#8221; <a class="footnote-reference" href="#id21" id="id6">[5]</a> cannot.</p>
 <div class="highlight-bash"><pre>118-165-78-111:Target Jonathan$ cd ../../../../
 118-165-78-111:test Jonathan$ pwd
 /Users/Jonathan/llvm/test
@@ -402,11 +402,11 @@ Process 6058 stopped
 (lldb) quit
 118-165-65-128:InputFiles Jonathan$</pre>
 </div>
-<p>About the lldb debug command, please reference <a class="footnote-reference" href="#id21" id="id7">[6]</a> or lldb portal <a class="footnote-reference" href="#id22" id="id8">[7]</a>.</p>
+<p>About the lldb debug command, please reference <a class="footnote-reference" href="#id22" id="id7">[6]</a> or lldb portal <a class="footnote-reference" href="#id23" id="id8">[7]</a>.</p>
 </div>
 <div class="section" id="setup-llvm-lit-on-imac">
 <h3>Setup llvm-lit on iMac<a class="headerlink" href="#setup-llvm-lit-on-imac" title="Permalink to this headline">¶</a></h3>
-<p>The llvm-lit <a class="footnote-reference" href="#id23" id="id9">[8]</a> is the llvm regression test tool. You don&#8217;t need to set up it
+<p>The llvm-lit <a class="footnote-reference" href="#id24" id="id9">[8]</a> is the llvm regression test tool. You don&#8217;t need to set up it
 if you don&#8217;t want to do regression test even though this book do the regression
 test.
 To set it up correctly in iMac, you need move it from directory bin/llvm-lit to
@@ -441,7 +441,7 @@ Debug         llvm-lit
 <h3>Install other tools on iMac<a class="headerlink" href="#install-other-tools-on-imac" title="Permalink to this headline">¶</a></h3>
 <p>These tools mentioned in this section is for coding and debug.
 You can work even without these tools.
-Files compare tools Kdiff3 came from web site <a class="footnote-reference" href="#id24" id="id10">[9]</a>.
+Files compare tools Kdiff3 came from web site <a class="footnote-reference" href="#id25" id="id10">[9]</a>.
 FileMerge is a part of Xcode, you can type FileMerge in Finder – Applications
 as <a class="pageref" href="#install-f11">Figure  10</a> and drag it into the Dock as
 <a class="pageref" href="#install-f12">Figure  11</a>.</p>
@@ -454,7 +454,7 @@ as <a class="pageref" href="#install-f11">Figure  10</a> and drag it into the Do
 <p class="caption">Figure 11: Drag FileMege into the Dock</p>
 </div>
 <p>Download tool Graphviz for display llvm IR nodes in debugging,
-<a class="footnote-reference" href="#id25" id="id11">[10]</a>.
+<a class="footnote-reference" href="#id26" id="id11">[10]</a>.
 We choose mountainlion as <a class="pageref" href="#install-f13">Figure  12</a> since our iMac is Mountain
 Lion.</p>
 <div class="figure align-center" id="install-f13">
@@ -473,9 +473,9 @@ cmake_release_build/bin/Debug
 </div>
 <p>The Graphviz information for llvm is in
 the section &#8220;SelectionDAG Instruction Selection Process&#8221; of
-<a class="footnote-reference" href="#id26" id="id12">[11]</a> and
+<a class="footnote-reference" href="#id27" id="id12">[11]</a> and
 the section &#8220;Viewing graphs while debugging code&#8221; of
-<a class="footnote-reference" href="#id27" id="id13">[12]</a>.
+<a class="footnote-reference" href="#id28" id="id13">[12]</a>.
 TextWrangler is for edit file with line number display and dump binary file
 like the obj file, *.o, that will be generated in chapter of Generating object
 files if you havn&#8217;t gobjdump available.
@@ -488,7 +488,7 @@ Then select <strong>“Front document&#8217;s file”</strong> as <a class="page
 <p class="caption">Figure 13: Select Hex Dump menu</p>
 </div>
 <div class="figure align-center" id="install-f15">
-<img alt="_images/15.png" src="_images/15.png" />
+<img alt="_images/151.png" src="_images/151.png" />
 <p class="caption">Figure 14: Select Front document&#8217;s file in TextWrangler</p>
 </div>
 <p>Install binutils by command <tt class="docutils literal"><span class="pre">brew</span> <span class="pre">install</span> <span class="pre">binutils</span></tt> as follows,</p>
@@ -763,8 +763,8 @@ and click snapshot version link. Follow the INSTALL file guide to install it.</p
 </div>
 <div class="section" id="install-other-tools-on-linux">
 <h3>Install other tools on Linux<a class="headerlink" href="#install-other-tools-on-linux" title="Permalink to this headline">¶</a></h3>
-<p>Download Graphviz from <a class="footnote-reference" href="#id28" id="id14">[13]</a> according your
-Linux distribution. Files compare tools Kdiff3 came from web site <a class="footnote-reference" href="#id23" id="id15">[8]</a>.</p>
+<p>Download Graphviz from <a class="footnote-reference" href="#id29" id="id14">[13]</a> according your
+Linux distribution. Files compare tools Kdiff3 came from web site <a class="footnote-reference" href="#id24" id="id15">[8]</a>.</p>
 </div>
 </div>
 <div class="section" id="install-sphinx">
@@ -802,82 +802,127 @@ pdfjam.noarch                        2.08-3.fc17                         @fedora
 ...
 </pre></div>
 </div>
-<table class="docutils footnote" frame="void" id="id16" rules="none">
+</div>
+<div class="section" id="cpu0-regression-test">
+<h2>Cpu0 Regression Test<a class="headerlink" href="#cpu0-regression-test" title="Permalink to this headline">¶</a></h2>
+<p>LLVM has its test cases (regression test) for each backend to verify the code
+generation <a class="footnote-reference" href="#id30" id="id16">[14]</a>.
+For iMac, copy lbd/test/CodeGen/Cpu0 to ~/llvm/test/src/test/CodeGen/Cpu0.
+For Linux, copy lbd/test/CodeGen/Cpu0 to /usr/local/llvm/test/src/test/CodeGen/Cpu0.</p>
+<p>Then run as follows for single test case and the whole test cases on iMac.</p>
+<div class="highlight-bash"><div class="highlight"><pre>1-160-130-77:Cpu0 Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
+/Users/Jonathan/test/lbd/test/CodeGen/Cpu0
+1-160-130-77:Cpu0 Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/llvm-lit seteq.ll
+-- Testing: 1 tests, 1 threads --
+PASS: LLVM :: CodeGen/Cpu0/seteq.ll <span class="o">(</span>1 of 1<span class="o">)</span>
+Testing Time: 0.08s
+  Expected Passes    : 1
+1-160-130-77:Cpu0 Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/llvm-lit .|less
+
+-- Testing: 157 tests, 4 threads --
+...
+PASS: LLVM :: CodeGen/Cpu0/ch3-directive.ll <span class="o">(</span>28 of 157<span class="o">)</span>
+PASS: LLVM :: CodeGen/Cpu0/ch3-proepilog.ll <span class="o">(</span>29 of 157<span class="o">)</span>
+</pre></div>
+</div>
+<p>Run as follows for single test case and the whole test cases on Linux.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost Cpu0<span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
+/Users/Jonathan/test/lbd/test/CodeGen/Cpu0
+<span class="o">[</span>Gamma@localhost Cpu0<span class="o">]</span><span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/llvm-lit seteq.ll
+-- Testing: 1 tests, 1 threads --
+PASS: LLVM :: CodeGen/Cpu0/seteq.ll <span class="o">(</span>1 of 1<span class="o">)</span>
+Testing Time: 0.08s
+  Expected Passes    : 1
+<span class="o">[</span>Gamma@localhost Cpu0<span class="o">]</span><span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/llvm-lit .|less
+
+-- Testing: 157 tests, 4 threads --
+...
+PASS: LLVM :: CodeGen/Cpu0/ch3-directive.ll <span class="o">(</span>28 of 157<span class="o">)</span>
+PASS: LLVM :: CodeGen/Cpu0/ch3-proepilog.ll <span class="o">(</span>29 of 157<span class="o">)</span>
+</pre></div>
+</div>
+<table class="docutils footnote" frame="void" id="id17" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://llvm.org/docs/CMake.html?highlight=cmake">http://llvm.org/docs/CMake.html?highlight=cmake</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id17" rules="none">
+<table class="docutils footnote" frame="void" id="id18" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://llvm.org/releases/download.html#3.3">http://llvm.org/releases/download.html#3.3</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id18" rules="none">
+<table class="docutils footnote" frame="void" id="id19" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.cmake.org/cmake/resources/software.html">http://www.cmake.org/cmake/resources/software.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id19" rules="none">
+<table class="docutils footnote" frame="void" id="id20" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command">http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id20" rules="none">
+<table class="docutils footnote" frame="void" id="id21" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui">http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id21" rules="none">
+<table class="docutils footnote" frame="void" id="id22" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id7">[6]</a></td><td><a class="reference external" href="http://lldb.llvm.org/lldb-gdb.html">http://lldb.llvm.org/lldb-gdb.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id22" rules="none">
+<table class="docutils footnote" frame="void" id="id23" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id8">[7]</a></td><td><a class="reference external" href="http://lldb.llvm.org/">http://lldb.llvm.org/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id23" rules="none">
+<table class="docutils footnote" frame="void" id="id24" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id9">[8]</a></td><td><a class="reference external" href="http://llvm.org/docs/TestingGuide.html">http://llvm.org/docs/TestingGuide.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id24" rules="none">
+<table class="docutils footnote" frame="void" id="id25" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id10">[9]</a></td><td><a class="reference external" href="http://kdiff3.sourceforge.net">http://kdiff3.sourceforge.net</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id25" rules="none">
+<table class="docutils footnote" frame="void" id="id26" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id11">[10]</a></td><td><a class="reference external" href="http://www.graphviz.org/Download_macos.php">http://www.graphviz.org/Download_macos.php</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id26" rules="none">
+<table class="docutils footnote" frame="void" id="id27" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id12">[11]</a></td><td><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html">http://llvm.org/docs/CodeGenerator.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id27" rules="none">
+<table class="docutils footnote" frame="void" id="id28" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id13">[12]</a></td><td><a class="reference external" href="http://llvm.org/docs/ProgrammersManual.html">http://llvm.org/docs/ProgrammersManual.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id28" rules="none">
+<table class="docutils footnote" frame="void" id="id29" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id14">[13]</a></td><td><a class="reference external" href="http://www.graphviz.org/Download..php">http://www.graphviz.org/Download..php</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id30" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id16">[14]</a></td><td><a class="reference external" href="http://llvm.org/docs/TestingGuide.html">http://llvm.org/docs/TestingGuide.html</a></td></tr>
 </tbody>
 </table>
 </div>

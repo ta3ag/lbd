@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.10',
+        VERSION:     '3.3.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -54,7 +54,7 @@
         
   <div class="section" id="arithmetic-and-logic-lsupport">
 <span id="sec-addingmoresupport"></span><h1>Arithmetic and logic lsupport<a class="headerlink" href="#arithmetic-and-logic-lsupport" title="Permalink to this headline">¶</a></h1>
-<p>This chapter adds more cpu0 arithmetic instructions support first.
+<p>This chapter adds more Cpu0 arithmetic instructions support first.
 The logic operation <strong>“not”</strong> support and translation in
 <a class="reference external" href="http://jonathan2251.github.com/lbd/otherinst.html#operator-not">section Operator “not” !</a>. The <a class="reference external" href="http://jonathan2251.github.com/lbd/otherinst.html#display-llvm-ir-nodes-with-graphviz">section Display llvm IR nodes with Graphviz</a>
 will show you the DAG optimization steps and their corresponding <tt class="docutils literal"><span class="pre">llc</span></tt>
@@ -958,8 +958,8 @@ Chapter4_1/ as follows,</p>
 to get <a class="pageref" href="#otherinst-f3">Figure  3</a>.
 Similarly, SMMUL get the high word of multiply result.</p>
 <div class="figure align-center" id="otherinst-f3">
-<a class="reference internal image-reference" href="_images/35.png"><img alt="_images/35.png" src="_images/35.png" style="width: 687.0px; height: 702.0px;" /></a>
-<p class="caption">Figure 3: Translate ch4_2.bc into cpu0 backend DAG</p>
+<a class="reference internal image-reference" href="_images/35.png"><img alt="_images/35.png" src="_images/35.png" style="width: 684.0px; height: 743.0px;" /></a>
+<p class="caption">Figure 3: DAG for ch4_2.bc with ARM style SMMUL</p>
 </div>
 <p>Follows is the result of run above changes with ch4_2.bc.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
@@ -1049,7 +1049,7 @@ MFHI instruction is FL format and only use cpu0 field &#8220;a&#8221; register, 
 the $rb and imm16 to 0.
 <a class="pageref" href="#otherinst-f4">Figure  4</a> and ch4_2.cpu0.s are the result of compile ch4_2.bc.</p>
 <div class="figure align-center" id="otherinst-f4">
-<a class="reference internal image-reference" href="_images/45.png"><img alt="_images/45.png" src="_images/45.png" style="width: 231.75px; height: 605.25px;" /></a>
+<a class="reference internal image-reference" href="_images/45.png"><img alt="_images/45.png" src="_images/45.png" style="width: 498.6px; height: 753.3px;" /></a>
 <p class="caption">Figure 4: DAG for ch4_2.bc with Mips style MULT</p>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>cat ch4_2.cpu0.s

@@ -3,7 +3,7 @@
 Other data type
 =================
 
-Until now, we only handle the type int and long of 32 bits long. 
+Until now, we only handle the type int and long of 32 bits size. 
 This chapter introduce other type such as pointer, char, long long which are not
 32 bits size.
  
@@ -220,7 +220,7 @@ as following, but I don't know it well. Without it, the ch7_3.ll still works
 as below. 
 The IR input file ch7_3.ll is used in testing here since the c++ version
 need flow control which is not support here. File ch_run_backend.cpp include the
-test fragment as below.
+test fragment for bool as below.
 
 .. rubric:: include/llvm/Target/TargetLowering.h
 .. code-block:: c++
@@ -298,7 +298,7 @@ test fragment as below.
 long long
 ----------
 
-Cpu0 borrow the Mips ABI which long is 32-bits and long long is 64-bits for C 
+Cpu0 is like Mips which long is 32-bits and long long is 64-bits for C 
 language type. To support long long, we add the following code to 
 Chapter7_1/.
 
@@ -565,9 +565,9 @@ follows,
 
 
 For **“day = date.day”**, the correct one is **“ld $2, 8($2)”**, not 
-**“ld $2, 0($2)”**, since date.day is offset 8(date). 
-Type int is 4 bytes in cpu0, and the date.day has fields year and month before 
-it. 
+**“ld $2, 0($2)”**, since date.day is offset 8(date) (
+Type int is 4 bytes in Cpu0, and the date.day has fields year and month before 
+it). 
 Let use debug option in llc to see what's wrong,
 
 .. code-block:: bash
@@ -670,7 +670,7 @@ Let use debug option in llc to see what's wrong,
   ...
 
 
-By ``llc -debug``, you can see the DAG translation process. 
+Through ``llc -debug``, you can see the DAG translation process. 
 As above, the DAG list 
 for date.day (add GlobalAddress<[3 x i32]* @a> 0, Constant<8>) with 3 nodes is 
 replaced by 1 node GlobalAddress<%struct.Date* @date> + 8. 

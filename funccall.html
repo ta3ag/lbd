@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.10',
+        VERSION:     '3.3.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -87,7 +87,7 @@ registers reserved for function call. For example, Mips pass the first 4
 arguments in register $a0, $a1, $a2, $a3, and the other arguments in stack
 if it over 4 arguments. <a class="pageref" href="#funccall-f1">Figure  1</a> is the Mips stack frame.</p>
 <div class="figure align-center" id="funccall-f1">
-<a class="reference internal image-reference" href="_images/13.png"><img alt="_images/13.png" src="_images/13.png" style="width: 688.0px; height: 531.0px;" /></a>
+<a class="reference internal image-reference" href="_images/14.png"><img alt="_images/14.png" src="_images/14.png" style="width: 688.0px; height: 531.0px;" /></a>
 <p class="caption">Figure 1: Mips stack frame</p>
 </div>
 <p>Run <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-march=mips</span></tt> for ch9_1.bc, you will get the following result.
@@ -537,7 +537,7 @@ variable, which is the offset.</p>
 </pre></div>
 </div>
 <p>In addition to Calling Convention and LowerFormalArguments(), Chapter9_1/ add the
-following code for cpu0 instructions <strong>swi</strong> (Software Interrupt), <strong>jsub</strong> and
+following code for Cpu0 instructions <strong>swi</strong> (Software Interrupt), <strong>jsub</strong> and
 <strong>jalr</strong> (function call) definition and printing.</p>
 <p class="rubric">lbdex/Chapter9_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>def SDT_Cpu0JmpLink      : SDTypeProfile&lt;0, 1, [SDTCisVT&lt;0, iPTR&gt;]&gt;;
@@ -3733,7 +3733,7 @@ code with taking three instructions only.
 With this 95% more of code, it can translate tens of instructions, global
 variable, control flow statement and function call.
 Now the cpu0 backend is not just a toy.
-It can translate the C++ OOP language into cpu0 instructions without much
+It can translate the C++ OOP language into Cpu0 instructions without much
 effort.
 Because the most complex things in language, such as C++ syntex, is handled by
 front end.
