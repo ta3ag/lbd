@@ -1857,9 +1857,6 @@ this chapter and spend 360 lines of source code.
   http://jonathan2251.github.com/lbd/otherinst.html#display-llvm-ir-nodes-
   with-graphviz
 
-.. _section Adjust cpu0 instructions:
-  http://jonathan2251.github.com/lbd/otherinst.html#adjust-cpu0-instructions
-
 .. _section Local variable pointer:
   http://jonathan2251.github.com/lbd/otherinst.html#local-variable-pointer
 

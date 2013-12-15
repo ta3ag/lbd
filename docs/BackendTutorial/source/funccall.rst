@@ -370,7 +370,7 @@ variable, which is the offset.
                                       const TargetRegisterInfo *TRI) const;
 
 In addition to Calling Convention and LowerFormalArguments(), Chapter9_1/ add the 
-following code for cpu0 instructions **swi** (Software Interrupt), **jsub** and 
+following code for Cpu0 instructions **swi** (Software Interrupt), **jsub** and 
 **jalr** (function call) definition and printing.
     
 .. rubric:: lbdex/Chapter9_1/Cpu0InstrInfo.td
@@ -3114,7 +3114,7 @@ code with taking three instructions only.
 With this 95% more of code, it can translate tens of instructions, global 
 variable, control flow statement and function call.
 Now the cpu0 backend is not just a toy. 
-It can translate the C++ OOP language into cpu0 instructions without much 
+It can translate the C++ OOP language into Cpu0 instructions without much 
 effort.
 Because the most complex things in language, such as C++ syntex, is handled by 
 front end. 

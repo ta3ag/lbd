@@ -5,7 +5,7 @@ Control flow statements
 
 This chapter illustrates the corresponding IR for control flow statements, like 
 **“if else”**, **“while”** and **“for”** loop statements in C, and how to 
-translate these control flow statements of llvm IR into cpu0 instructions. 
+translate these control flow statements of llvm IR into Cpu0 instructions. 
 
 Control flow statement
 -----------------------
@@ -191,7 +191,7 @@ For explanation, We list the IR DAG as follows,
     brcond %cond, BasicBlock_02
     br BasicBlock_01
     
-We want to translate them into cpu0 instructions DAG as follows,
+We want to translate them into Cpu0 instructions DAG as follows,
 
 .. code-block:: bash
 
@@ -234,7 +234,7 @@ jmp BasicBlock_01 by the following pattern definition,
 
 The pattern [(br bb:$imm24)] in class UncondBranch is translated into jmp 
 machine instruction.
-The other two cpu0 instructions translation is more complicate than simple 
+The other two Cpu0 instructions translation is more complicate than simple 
 one-to-one IR to machine instruction translation we have experienced until now. 
 To solve this chained IR to machine instructions translation, we define the 
 following pattern,
@@ -709,7 +709,7 @@ RISC). Knowledge with RISC will make you satisfied in compiler design.
 List these two excellent books we have read which include the real RISC CPU 
 knowledge needed for reference. 
 Sure, there are many books in Computer Architecture, and some of them contain 
-real RISC CPU knowledge needed, but these two are what we read.
+real RISC CPU knowledge needed, but these two are what we have read.
 
 Computer Organization and Design: The Hardware/Software Interface (The Morgan 
 Kaufmann Series in Computer Architecture and Design)

@@ -13,7 +13,7 @@ In 1999 it was chosen as the standard binary file format for Unix and
 Unix-like systems on x86 by the x86open project. 
 Please reference [#]_.
 
-The binary encode of cpu0 instruction set in obj has been checked in the 
+The binary encode of Cpu0 instruction set in obj has been checked in the 
 previous chapters. 
 But we didn't dig into the ELF file format like elf header and relocation 
 record at that time. 
