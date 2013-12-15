@@ -57,6 +57,7 @@ Version 3.3.11, Not release yet.
   Update backendstructure.rst.
   Correct otherinst.rst.
   Decoration.
+  Correct typing error.
 
 Version 3.3.10, Released December 5, 2013
   Correct typing error.

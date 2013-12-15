@@ -3,7 +3,7 @@
 Arithmetic and logic lsupport
 ===============================
 
-This chapter adds more cpu0 arithmetic instructions support first.
+This chapter adds more Cpu0 arithmetic instructions support first.
 The logic operation **“not”** support and translation in 
 `section Operator “not” !`_. The `section Display llvm IR nodes with Graphviz`_ 
 will show you the DAG optimization steps and their corresponding ``llc`` 
