@@ -52,6 +52,8 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
+Version 3.3.12, Not release yet.
+
 Version 3.3.11, Not release yet.
   Add Figure Code generation and execution flow in about.rst.
   Update backendstructure.rst.
