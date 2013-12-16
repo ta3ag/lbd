@@ -794,8 +794,8 @@ follows.
 The ch7_5_2.cpp is for local variable initialization test. The result as 
 follows,
 
-.. rubric:: lbdex/InputFiles/ch7_5.cpp
-.. literalinclude:: ../lbdex/InputFiles/ch7_5.cpp
+.. rubric:: lbdex/InputFiles/ch7_5_2.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch7_5_2.cpp
     :start-after: /// start
 
 .. code-block:: bash
