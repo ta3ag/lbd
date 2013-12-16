@@ -36,7 +36,7 @@ let Namespace = "Cpu0" in {
   def A0   : Cpu0GPRReg<4,  "4">,    DwarfRegNum<[4]>;
   def A1   : Cpu0GPRReg<5,  "5">,    DwarfRegNum<[5]>;
   def T9   : Cpu0GPRReg<6,  "t9">,   DwarfRegNum<[6]>;
-  def T0   : Cpu0GPRReg<7,  "t0">,   DwarfRegNum<[7]>;
+  def T0   : Cpu0GPRReg<7,  "7">,    DwarfRegNum<[7]>;
   def S0   : Cpu0GPRReg<8,  "8">,    DwarfRegNum<[8]>;
   def S1   : Cpu0GPRReg<9,  "9">,    DwarfRegNum<[9]>;
   def S2   : Cpu0GPRReg<10, "10">,   DwarfRegNum<[10]>;
