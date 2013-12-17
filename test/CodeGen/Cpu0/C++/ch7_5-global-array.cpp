@@ -1,5 +1,5 @@
 // clang -target mips-unknown-linux-gnu -c ch7_5-global-array.cpp -emit-llvm -o ch7_5-global-array.bc
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_5-global-array.bc -o -
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llvm-dis ch7_5-global-array.bc -o ch7_5-global-array.ll
 
 /// start
 int a[3] = {2012, 10, 12};

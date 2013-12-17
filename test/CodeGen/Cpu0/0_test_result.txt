@@ -15,6 +15,14 @@ ch6_1-global.ll                           v                   duplicate test wit
 ch7_1-localpointer.ll                     v
 ch7_2-short-char.ll                       
 ch7_3-bool.ll                             v
+ch7_4-longlong-add.ll                     v
+ch7_4-longlong-sub.ll                     v
+ch7_4-signed-int-mul.ll                   v
+ch7_4-signed-longlong-mul.ll              v
+ch7_4-unsigned-int-mul.ll                 v
+ch7_4-unsigned-longlong-mul.ll            v
+ch7_5-global-array.ll                     v
+ch7_5-global-struct.ll                    v
 2008-06-05-Carry.ll                       v
 2008-07-03-SRet.ll                        v
 2008-07-15InternalConstant.ll             v
