@@ -1,7 +1,8 @@
-; RUN: llc -march=mipsel < %s | FileCheck %s
+; RUN: llc -march=cpu0 -relocation-model=static -filetype=asm < %s | FileCheck %s
+; RUN: llc -march=cpu0 -relocation-model=pic -filetype=asm < %s | FileCheck %s
 
-; CHECK: lui ${{[0-9]+}}, 49152
-; CHECK: lui ${{[0-9]+}}, 16384
+; CHECK: lui $[[T0:[0-9]+]], 49152
+; CHECK:  addiu	${{[0-9]+}}, $[[T0]], -{{[0-9]+}}
 define void @f() nounwind {
 entry:
   %a1 = alloca [1073741824 x i8], align 1

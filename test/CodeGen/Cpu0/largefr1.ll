@@ -1,4 +1,5 @@
-; RUN: llc -march=cpu0 -relocation-model=static < %s | FileCheck %s -check-prefix=1
+; RUN: llc -march=cpu0 -relocation-model=static < %s | FileCheck %s
+; RUN: llc -march=cpu0 -relocation-model=pic < %s | FileCheck %s
 
 @i = common global i32 0, align 4
 @j = common global i32 0, align 4
@@ -22,12 +23,12 @@ entry:
 
 define i32 @main() nounwind {
 entry:
-; 1: main: 
-; 1:            lui $[[T0:[0-9]+]], 65524
-; 1:            addiu $[[T0]], $[[T0]], -13616
-; 1:            addu $sp, $sp, $[[T0]]
-; 1:            lui	$[[T1:[0-9]+]], 6
-; 1:            ori	$[[T1]], $[[T1]], 6780
+; CHECK: main: 
+; CHECK:            lui $[[T0:[0-9]+]], 65524
+; CHECK:            addiu $[[T0]], $[[T0]], -{{[0-9]+}}
+; CHECK:            addu $sp, $sp, $[[T0]]
+; CHECK:            lui	$[[T1:[0-9]+]], {{[0-9]+}}
+; CHECK:            ori	$[[T1]], $[[T1]], {{[0-9]+}}
   %retval = alloca i32, align 4
   %one = alloca [100000 x i32], align 4
   %two = alloca [100000 x i32], align 4

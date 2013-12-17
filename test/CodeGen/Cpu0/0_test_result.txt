@@ -21,8 +21,9 @@ ch7_4-signed-int-mul.ll                   v
 ch7_4-signed-longlong-mul.ll              v
 ch7_4-unsigned-int-mul.ll                 v
 ch7_4-unsigned-longlong-mul.ll            v
-ch7_5-global-array.ll                     v
+ch7_5-global-array.ll                     v                   related test with largeimm1.ll, largeimmprinting.ll
 ch7_5-global-struct.ll                    v
+ch7_5_2-local-array.ll                    v
 2008-06-05-Carry.ll                       v
 2008-07-03-SRet.ll                        v
 2008-07-15InternalConstant.ll             v
@@ -63,7 +64,9 @@ indirectcall.ll                           v
 init-array.ll                             x                   Don't know the purpose.
 inlineasm-xxx.ll                          x                   No support tail inline asm, such as tail call i32 asm sideeffect "add $0,$1,$2", "=r,r,I"(i32 7, i32 -3)
 jstat.ll                                  x                   No support jump table (C/C++ corresponding statement ?)
-largeimm1.ll                              v                   Purpose ?
+largeimm1.ll                              v
+largeimmprinting.ll                       v
+largefr1.ll                               v
 
 module-asm.ll                             v
 
