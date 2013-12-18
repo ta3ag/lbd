@@ -23,7 +23,7 @@ int sum_i(int amount, ...)
   return sum; 
 }
 
-int main()
+int test_vararg()
 {
   int a = sum_i(6, 0, 1, 2, 3, 4, 5);
 	

@@ -17,10 +17,10 @@ int madd(int x, int y, int z)
   return add(z, multiply(x, y));
 }
 
-int main()
+int test_madd()
 {
   int cc = 5;
   int a = madd(1, 2, cc);
   
-  return a;
+  return a; // a = 7
 }

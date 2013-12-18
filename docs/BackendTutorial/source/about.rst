@@ -54,6 +54,7 @@ Revision history
 
 Version 3.3.12, Not release yet.
   Correct typing error.
+  Adjust Example Code.
 
 Version 3.3.11, Not release yet.
   Add Figure Code generation and execution flow in about.rst.

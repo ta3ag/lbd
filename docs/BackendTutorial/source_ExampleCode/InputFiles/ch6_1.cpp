@@ -14,7 +14,7 @@
 /// start
 int gStart = 3;
 int gI = 100;
-int fun()
+int test_global()
 {
   int c = 0;
 

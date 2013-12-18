@@ -3,43 +3,15 @@
 
 #include "print.h"
 
-extern int printf(const char *format, ...);
-extern int sprintf(char *out, const char *format, ...);
+#define PRINT_TEST
 
-struct Time
-{
-  int hour;
-  int minute;
-  int second;
-};
+extern "C" int printf(const char *format, ...);
+extern "C" int sprintf(char *out, const char *format, ...);
 
-struct Date
-{
-  int year;
-  int month;
-  int day;
-  int hour;
-  int minute;
-  int second;
-};
-
-int gI = 100;
-struct Date gDate = {2012, 10, 12, 1, 2, 3};
-
-int test_global()
-{
-  return gI;
-}
-
-struct Date copyDate(struct Date date)
-{ 
-  return date;
-}
-
-struct Time copyTime(struct Time time)
-{ 
-  return time;
-}
+#include "ch6_1.cpp"
+#include "ch9_2_1.cpp"
+#include "ch9_2_2.cpp"
+#include "ch9_3_2.cpp"
 
 int main(void)
 {
@@ -51,17 +23,13 @@ int main(void)
   char buf[80];
 
   int a = 0;
-  struct Time time1 = {1, 10, 12};
-  struct Time time2;
-  struct Date date;
 
   a = test_global();  // gI = 100
   printf("global variable gI = %d\n", a);
-  printf("time1 = %d %d %d\n", time1.hour, time1.minute, time1.second);
-  date = copyDate(gDate);
-  printf("date = %d %d %d %d %d %d\n", date.year, date.month, date.day, date.hour, date.minute, date.second);
-  time2 = copyTime(time1); // test return V0, V1, A0
-  printf("time2 = %d %d %d\n", time2.hour, time2.minute, time2.second);
+  a = test_func_arg_struct();
+  a = test_contructor();
+  a = test_template();
+  printf("test_template() = %d\n", a); // a = 15
 
   mi = (1 << (bs-1)) + 1;
   printf("%s\n", ptr);
@@ -87,4 +55,5 @@ int main(void)
 
   return 0;
 }
+
 

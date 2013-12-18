@@ -415,7 +415,8 @@ cmake_debug_build/bin/Debug/ is my build clang from source code.
   16777222
   51
   2147483647
-  -2147483648
+  -21474836487
+  7
   15
   RET to PC < 0, finished!
 

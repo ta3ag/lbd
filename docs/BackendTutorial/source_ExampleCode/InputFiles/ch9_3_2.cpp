@@ -24,7 +24,7 @@ T sum(T amount, ...)
   return sum; 
 }
 
-int main()
+int test_template()
 {
   int a = sum<int>(6, 0, 1, 2, 3, 4, 5);
 	
