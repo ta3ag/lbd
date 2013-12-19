@@ -2036,6 +2036,141 @@ Verify with the Cpu0 Epilogue instructions with sp = 0x10000000 and stack size =
 3. "addu $sp, $sp, $1" => $sp = (0x10000000 + 0x90008000) => $sp = 0xa0008000.
 
 
+Data operands DAGs
+---------------------
+
+From above or compiler book, you can see all the OP code is the internal node in 
+DAGs and operand is the leaf of DAGs. At least in most cases, the data operands 
+are leaves of DAGs, not internal nodes. To develop your backend, you can copy the 
+related data operands DAGs node from other backend since the IR data nodes are 
+take cared by all the backend. Few readers stuck on the data DAGs nodes defined 
+in Cpu0InstrInfo.td but we think it is needless. The rest of books will let you 
+know the other IR OP code DAGs nodes and how to translate them into Cpu0 backend 
+machine OP code DAGs. About the data DAGs nodes, you can understand some of them 
+from the Cpu0InstrInfo.td with spending a little more time to think or guess 
+about it. 
+Some data DAGs we know more, some we know a little and some remains unknown but 
+it's OK for us. 
+To program 
+on Linux OS, you program or write a driver but you don't know every details.
+To extend functions from a large software, you should find a way to reach the 
+goal and ignore the details not on your way. This book is not a compiler theory 
+book, it is a book for compiler extended implementation. Try to understand in 
+details of every line of source code is not realistic. That's not this book 
+intention. Of course, if there are more llvm backend book or documents, then 
+readers got the chance to know more about llvm by reading book or documents. 
+This book have break the backend function code and add code chapter by chapter.
+Don't try to understand everything in the text of book. The code added in each 
+chapter is a reading material too. Document cannot replace the source code 
+totally. Reading source code is a big opportunity in the open source 
+development.  
+
+List some of data DAGs we understand and have met until now as follows,
+
+
+.. rubric:: include/llvm/TargetSelectionDAG.td
+.. code-block:: c++
+  
+  // PatLeaf's are pattern fragments that have no operands.  This is just a helper
+  // to define immediates and other common things concisely.
+  class PatLeaf<dag frag, code pred = [{}], SDNodeXForm xform = NOOP_SDNodeXForm>
+   : PatFrag<(ops), frag, pred, xform>;
+
+.. rubric:: lbdex/Chapter3_5/Cpu0InstrInfo.td
+.. code-block:: c++
+
+  // Signed Operand
+  def simm16      : Operand<i32> {
+    let DecoderMethod= "DecodeSimm16";
+  }
+  
+  def shamt       : Operand<i32>;
+  
+  // Unsigned Operand
+  def uimm16      : Operand<i32> {
+    let PrintMethod = "printUnsignedImm";
+  }
+  
+  // Address operand
+  def mem : Operand<i32> {
+    let PrintMethod = "printMemOperand";
+    let MIOperandInfo = (ops CPURegs, simm16);
+    let EncoderMethod = "getMemEncoding";
+  }
+  
+  // Transformation Function - get the lower 16 bits.
+  def LO16 : SDNodeXForm<imm, [{
+    return getImm(N, N->getZExtValue() & 0xffff);
+  }]>;
+  
+  // Transformation Function - get the higher 16 bits.
+  def HI16 : SDNodeXForm<imm, [{
+    return getImm(N, (N->getZExtValue() >> 16) & 0xffff);
+  }]>; // lbd document - mark - def HI16
+
+  // Node immediate fits as 16-bit sign extended on target immediate.
+  // e.g. addi, andi
+  def immSExt16  : PatLeaf<(imm), [{ return isInt<16>(N->getSExtValue()); }]>;
+  
+  // Node immediate fits as 16-bit zero extended on target immediate.
+  // The LO16 param means that only the lower 16 bits of the node
+  // immediate are caught.
+  // e.g. addiu, sltiu
+  def immZExt16  : PatLeaf<(imm), [{
+    if (N->getValueType(0) == MVT::i32)
+      return (uint32_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
+    else
+      return (uint64_t)N->getZExtValue() == (unsigned short)N->getZExtValue();
+  }], LO16>;
+  
+  // Immediate can be loaded with LUi (32-bit int with lower 16-bit cleared).
+  def immLow16Zero : PatLeaf<(imm), [{
+    int64_t Val = N->getSExtValue();
+    return isInt<32>(Val) && !(Val & 0xffff);
+  }]>;
+  
+  // shamt field must fit in 5 bits.
+  def immZExt5 : ImmLeaf<i32, [{return Imm == (Imm & 0x1f);}]>;
+
+  // Cpu0 Address Mode! SDNode frameindex could possibily be a match
+  // since load and store instructions from stack used it.
+  def addr : ComplexPattern<iPTR, 2, "SelectAddr", [frameindex], [SDNPWantParent]>;
+
+  //===----------------------------------------------------------------------===//
+  // Pattern fragment for load/store
+  //===----------------------------------------------------------------------===//
+  
+  class AlignedLoad<PatFrag Node> :
+    PatFrag<(ops node:$ptr), (Node node:$ptr), [{
+    LoadSDNode *LD = cast<LoadSDNode>(N);
+    return LD->getMemoryVT().getSizeInBits()/8 <= LD->getAlignment();
+  }]>;
+  
+  class AlignedStore<PatFrag Node> :
+    PatFrag<(ops node:$val, node:$ptr), (Node node:$val, node:$ptr), [{
+    StoreSDNode *SD = cast<StoreSDNode>(N);
+    return SD->getMemoryVT().getSizeInBits()/8 <= SD->getAlignment();
+  }]>;
+  
+  // Load/Store PatFrags.
+  def load_a          : AlignedLoad<load>;
+  def store_a         : AlignedStore<store>;
+
+
+The immSExt16 is a data leaf DAG node and it will return true if its value is 
+in the range of signed 16 bits integer. The load_a, store_a and others are 
+similar.
+The addr is a data node from iPTR and belong to ComplexPattern. 
+It will call SelectAddr() function 
+in Cpu0ISelDAGToDAG.cpp which return Base and Offset variables for code 
+generation (IR to machine instruction DAG translation).
+The simm16, ...,  inherited from Operand<i32> because Cpu0 is 32 bits. 
+For C type of int, it's 32 bits in Cpu0 and we can check if it is in 16 bits range 
+for L type of instruction format immediate value. For example, IR 
+"add %0, %1, +0x7fff" is in range of Cpu0 L type instruction "addiu $2, $3, 0x7fff" 
+while "add %0, %1, +0x8000" is out of range.
+
+
 Summary of this Chapter
 -----------------------
 
