@@ -39,10 +39,10 @@ who make the book more accurate.
 Support
 --------
 
-We also get the kind help from LLVM development mail list, llvmdev@cs.uiuc.edu, 
+We get the kind help from LLVM development mail list, llvmdev@cs.uiuc.edu, 
 even we don't know them. So, our experience is you are not 
 alone and can get help from the development list members in working with the LLVM 
-project. They are:
+project. Some of them are:
 
 Akira Hatanaka <ahatanak@gmail.com> in va_arg question answer.
 
@@ -252,7 +252,7 @@ the Mips ABI as you progress through this tutorial.
 This document can be a tutorial of toolchain development for a new CPU 
 architecture. Many programmer gradutated from school with the knowledges of 
 Compiler as well as Computer architecture but is not an professional engineer 
-in compiler or CPU design. This document is a material for these engineer to 
+in compiler or CPU design. This document is a material for these engineers to 
 show them how to develop and real programming a toolchain as well as design a 
 CPU based on the LLVM Open source structure and open source tool without pay 
 any money to buy any software or hardware. Computer is the only device needed.
@@ -296,16 +296,17 @@ Outline of Chapters
 
   Code generation and execution flow
 
-The upper half of :num:`Figure #about-f1` is the computer program generating 
-and execution flow. IR stand for Intermediate Representation. 
-The lower half is this book flow of the toolchain extended 
-implementation based on llvm. The hex is the ascii from '0' to 'f' for 
+The upper half of :num:`Figure #about-f1` is the computer program generated 
+and executed flow. IR stands for Intermediate Representation. 
+The lower half is this book flow of the toolchain extended implementation 
+based on llvm. Except clang, the other blocks need to extended for a new 
+backend development. The hex is the ascii from '0' to 'f' for 
 hexadecimal value representation (4 bits of binary code representation) since 
 the verilog language machine use it as input file.
 
-This book include 10,000 lines of sources code for
+This book include 10,000 lines of source code for
 
-1. Step by step, create an llvm backend for the Cpu0 which beginning from a 
+1. Step-by-step, create an llvm backend for the Cpu0 which beginning from a 
    CPU design for school teaching purpose in system programming. Chapter 2 to 
    12.
 2. ELF linker for Cpu0 which extended from lld. Chapter 13.
@@ -314,10 +315,10 @@ This book include 10,000 lines of sources code for
 
 With these code, reader can run the generated code from the result of Cpu0 
 llvm backend compiler, linker and elf2hex and see how it run on your computer. 
-The pdf and epub is also available in the web. 
+The pdf and epub are also available in the web. 
 It is a tutorial for llvm backend developer but not for an expert. 
-It is also can be a material for those who have compiler and Computer 
-Architecture book knowledge and like to know how to extend the llvm 
+It also can be a material for those who have compiler and Computer 
+Architecture book knowledges and like to know how to extend the llvm 
 toolchain to support a new CPU.
 
 :ref:`sec-llvmstructure`:
@@ -334,7 +335,7 @@ This chapter highlights the structure of an LLVM backend using by UML graphs, an
 continue to build the Cpu0 backend. Around 2300 lines of source code are added, 
 most of which are common from one LLVM backends to another, regardless of the 
 target architecture. By the end of this chapter, the Cpu0 LLVM backend will support 
-three instructions to generate some initial assembly output. 
+less than ten instructions to generate some initial assembly output. 
 
 :ref:`sec-addingmoresupport`:
 
@@ -377,8 +378,8 @@ functions are introduced. Over 700 lines of source code are added.
 This chapter details Cpu0 support for the well-known ELF object file format. The ELF 
 format and binutils tools are not a part of LLVM, but are introduced.  This chapter 
 details how to use the ELF tools to verify and analyze the object files created by the 
-Cpu0 backend. The ``llvm-objdump -d`` support which translate elf into hex file 
-format is added in last section.
+Cpu0 backend. The ``llvm-objdump -d`` support for Cpu0 which translate elf into hex 
+file format is added in the last section.
 
 :ref:`sec-runbackend`:
 

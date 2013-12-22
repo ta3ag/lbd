@@ -277,6 +277,10 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
                                           // write memory complete
       endcase
       case (op)
+        LB  : if (R[a] > 8'h7f) R[a]=R[a]|32'hffffff80;
+        LH  : if (R[a] > 16'h7fff) R[a]=R[a]|32'hffff8000;
+      endcase
+      case (op)
       MULT, MULTu, DIV, DIVu, MTHI, MTLO, MTSW :
         if (`D)
           $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 

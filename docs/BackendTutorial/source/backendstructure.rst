@@ -316,10 +316,10 @@ TargetInstrInfo, TargetFrameLowering, TargetLowering and TargetSelectionDAGInfo.
 :num:`Figure #backendstructure-f1` shows Cpu0TargetMachine inherit tree and it's 
 Cpu0InstrInfo class inherit tree. 
 Cpu0TargetMachine contains Cpu0InstrInfo and ... other class. 
-Cpu0InstrInfo contains Cpu0RegisterInfo class, RI. Cpu0InstrInfo.td and 
-Cpu0RegisterInfo.td will generate Cpu0GenInstrInfo.inc and 
-Cpu0GenRegisterInfo.inc which contain some member functions implementation for 
-class Cpu0InstrInfo and Cpu0RegisterInfo.
+Cpu0InstrInfo contains Cpu0RegisterInfo class, RI. 
+With TableGen tool, Cpu0InstrInfo.td and Cpu0RegisterInfo.td will generate 
+Cpu0GenInstrInfo.inc and Cpu0GenRegisterInfo.inc which contain some member 
+functions implementation for class Cpu0InstrInfo and Cpu0RegisterInfo.
 
 :num:`Figure #backendstructure-f2` as below shows Cpu0TargetMachine contains 
 class 
@@ -407,7 +407,7 @@ After that, building Chapter3_1 by make as chapter 2 (of course, you should remo
 src/lib/Target/Cpu0 and replace them with src/lib/Target/Cpu0/lbdex/Chapter3_1/). 
 You can remove cmake_debug_build/lib/Target/Cpu0/\*.inc before do “make” to ensure your code 
 rebuild completely. 
-By remove \*.inc, all files those have included .inc will be rebuild, then your 
+With removing \*.inc, all files those have included .inc will be re-built, then your 
 Target library will be regenerated. 
 Command as follows,
 
@@ -416,7 +416,7 @@ Command as follows,
   118-165-78-230:cmake_debug_build Jonathan$ rm -rf lib/Target/Cpu0/*
 
 
-Now, let's build Chapter3_1 as the following command, 
+Now, let's build Chapter3_1 as the following commands, 
 
 .. code-block:: bash
 
@@ -432,15 +432,16 @@ Now, let's build Chapter3_1 as the following command,
   Assertion failed: (AsmInfo && "MCAsmInfo not initialized." 
   ...
 
-
-The errors say that we have not Target AsmPrinter. 
-Let's add it in next section.
+With Chapter3_1 implementation, the Chapter2 error message 
+"Could not allocate target machine!" has gone.
+The new errors say that we have not Target AsmPrinter. 
+We will add it in next section.
 
 
 Add AsmPrinter
 --------------
 
-Chapter3_2/cpu0 contains the Cpu0AsmPrinter definition. First, we add definitions in 
+Chapter3_2/ contains the Cpu0AsmPrinter definition. First, we add definitions in 
 Cpu0.td to support AssemblyWriter. 
 Cpu0.td is added with the following fragment,
 
@@ -490,7 +491,7 @@ Cpu0GenAsmWrite.inc has the implementation of
 Cpu0InstPrinter::printInstruction() and Cpu0InstPrinter::getRegisterName(). 
 Both of these functions can be auto-generated from the information we defined 
 in Cpu0InstrInfo.td and Cpu0RegisterInfo.td. 
-To let these two functions work in our code, the only thing need to do is add a 
+To let these two functions work in our code, the only thing needed is adding a 
 class Cpu0InstPrinter and include them as did in Chapter3_1.
 
 File Chapter3_1/Cpu0/InstPrinter/Cpu0InstPrinter.cpp include Cpu0GenAsmWrite.inc and 
@@ -756,12 +757,12 @@ Following is the llvm SSA instructions.
 
 We explain the code generation process as below. 
 If you don't feel comfortable, please check tricore_llvm.pdf section 4.2 first. 
-You can  read “The LLVM Target-Independent Code Generator” from [#]_ 
-and “LLVM Language Reference Manual” from [#]_ 
+You can  read “The LLVM Target-Independent Code Generator” from here [#]_ 
+and “LLVM Language Reference Manual” from here [#]_ 
 before go ahead, but we think read section 
 4.2 of tricore_llvm.pdf is enough. 
 We suggest you read the web site documents as above only when you are still not 
-quite understand, even though you have read the articles of this section and 
+quite understand, even if you have read the articles of this section and 
 next 2 sections for DAG and Instruction Selection.
 
 1. Instruction Selection
@@ -2058,12 +2059,7 @@ goal and ignore the details not on your way. This book is not a compiler theory
 book, it is a book for compiler extended implementation. Try to understand in 
 details of every line of source code is not realistic. That's not this book 
 intention. Of course, if there are more llvm backend book or documents, then 
-readers got the chance to know more about llvm by reading book or documents. 
-This book have break the backend function code and add code chapter by chapter.
-Don't try to understand everything in the text of book. The code added in each 
-chapter is a reading material too. Document cannot replace the source code 
-totally. Reading source code is a big opportunity in the open source 
-development.  
+readers got the chance to know more about llvm by reading book or documents.  
 
 List some of data DAGs we understand and have met until now as follows,
 
