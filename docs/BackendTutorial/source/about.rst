@@ -56,8 +56,10 @@ Version 3.3.12, Not release yet.
   Correct typing error.
   Adjust Example Code.
   Add section Data operands DAGs of backendstructure.rst.
+  Fix bug in instructions lb and lh of cpu0.v.
+  Fix bug in itoa.cpp.
 
-Version 3.3.11, Not release yet.
+Version 3.3.11, Released December 11, 2013
   Add Figure Code generation and execution flow in about.rst.
   Update backendstructure.rst.
   Correct otherinst.rst.
