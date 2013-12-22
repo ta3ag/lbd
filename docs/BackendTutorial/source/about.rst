@@ -63,6 +63,8 @@ Version 3.3.11, Not release yet.
   Correct otherinst.rst.
   Decoration.
   Correct typing error.
+  Fix bug in instructions lb and lh of cpu0.v.
+  Fix bug in itoa.cpp. 
 
 Version 3.3.10, Released December 5, 2013
   Correct typing error.

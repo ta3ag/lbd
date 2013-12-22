@@ -15,6 +15,10 @@ int test_local_pointer();
 int test_andorxornot();
 int test_setxx();
 bool test_load_bool();
+int test_signed_char();
+int test_unsigned_char();
+int test_signed_short();
+int test_unsigned_short();
 long long test_longlong();
 int test_control1();
 int test_madd();
@@ -35,6 +39,14 @@ int main()
   print_integer(a);
   a = test_setxx(); // a = 3
   print_integer(a);
+  a = test_signed_char();
+  print_integer(a); // a = -126
+  a = test_unsigned_char();
+  print_integer(a); // a = 130
+  a = test_signed_short();
+  print_integer(a); // a = -32766
+  a = test_unsigned_short();
+  print_integer(a); // a = 32770
   long long b = test_longlong(); // 0x800000002
   print_integer((int)(b >> 32)); // 393307
   print_integer((int)b); // 16777222
@@ -74,6 +86,7 @@ void print2_integer(int x)
 #include "ch4_3.cpp"
 #include "ch4_5.cpp"
 #include "ch7_1.cpp"
+#include "ch7_2_2.cpp"
 #include "ch7_3.cpp"
 #include "ch7_4.cpp"
 #include "ch8_1_1.cpp"
@@ -87,6 +100,10 @@ void print2_integer(int x)
 1
 14
 3
+-126
+130
+-32766
+32770
 393307
 16777222
 51
