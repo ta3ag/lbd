@@ -1,6 +1,8 @@
 // clang -target mips-unknown-linux-gnu -c ch7_2_2.cpp -emit-llvm -o ch7_2_2.bc
-// /Users/Jonathan//llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_2_2.bc -o -
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llvm-dis ch7_2_2.bc -o -
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_2_2.bc -o -
 
+/// start
 int test_signed_char()
 {
   char a =0x80;
