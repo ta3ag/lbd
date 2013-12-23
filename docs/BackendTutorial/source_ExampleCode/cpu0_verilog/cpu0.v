@@ -399,9 +399,9 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
         endcase
       end else
         data = 32'hZZZZZZZZ;
-  `ifdef DLINKER
-  `include "flashio.v"
-  `endif
+      `ifdef DLINKER
+      `include "flashio.v"
+      `endif
     end else 
       data = 32'hZZZZZZZZ;
   end

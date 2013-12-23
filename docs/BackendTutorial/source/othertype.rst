@@ -265,7 +265,9 @@ Run Chapter7_1/ with ch7_2_2.cpp will get the following result.
     ...
 
 As you can see lb/lh are for signed byte/short type while lbu/lhu are for unsigned 
-byte/short type.
+byte/short type. Since C type-cast or type-conversion feature, the char to int can 
+be finished with an Cpu0 lb efficient instruction. That's why the lb, lbu, lh and 
+lhu instructions exist. Their difference have explained in Chapter 2.
 
 To support load bool type, the following code added.
 
