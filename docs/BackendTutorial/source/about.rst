@@ -52,7 +52,9 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.3.12, Not release yet.
+Version 3.3.13, Not release yet.
+
+Version 3.3.12, Released December 25, 2013
   Correct typing error.
   Adjust Example Code.
   Add section Data operands DAGs of backendstructure.rst.
