@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.11',
+        VERSION:     '3.3.12',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -60,7 +60,11 @@ This chapter will deal global variable access translation.</p>
 translation we have now.
 It create DAG nodes at run time in our backend C++ code according the
 <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-relocation-model</span></tt> option while the others of DAG just do IR DAG to
-Machine DAG translation directly according the input file IR DAG.</p>
+Machine DAG translation directly according the input file IR DAG.
+Readers should focus on how to add code for create DAG nodes on run time and
+how to define the pattern match in td for the run time created DAG nodes.
+In addition, the machine instruction printing function for global variable
+related assembly directive (macro) should cared if your backend have it.</p>
 <div class="section" id="global-variable">
 <h2>Global variable<a class="headerlink" href="#global-variable" title="Permalink to this headline">¶</a></h2>
 <p>Chapter6_1/ support the global variable, let&#8217;s compile ch6_1.cpp with this version
@@ -68,7 +72,7 @@ first, and explain the code changes after that.</p>
 <p class="rubric">lbdex/InputFiles/ch6_1.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">gStart</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
 <span class="kt">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
-<span class="kt">int</span> <span class="n">fun</span><span class="p">()</span>
+<span class="kt">int</span> <span class="n">test_global</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
@@ -858,8 +862,8 @@ to any address and run well there.
 If this program use absolute address and will be loaded at a specific address
 known at link stage, the relocation record of gI variable access instruction
 such as &#8220;addiu $2, $zero, %hi(gI)&#8221; and &#8220;addiu   $2, $2, %lo(gI)&#8221; can be solved
-at link time.
-If this program use absolute address and the loading address is known at load
+at link time. The other hand,
+if this program use absolute address and the loading address is known at load
 time, then this relocation record will be solved by loader at loading time.</p>
 <p>IsGlobalInSmallSection() return true or false depends on UseSmallSectionOpt.</p>
 <p>The code fragment of LowerGlobalAddress() as the following corresponding option

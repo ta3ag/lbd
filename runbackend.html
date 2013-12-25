@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.11',
+        VERSION:     '3.3.12',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -68,6 +68,8 @@ backend on PC by feed the hex file and see the Cpu0 instructions execution
 result.</p>
 <div class="section" id="asmparser-support">
 <h2>AsmParser support<a class="headerlink" href="#asmparser-support" title="Permalink to this headline">¶</a></h2>
+<p>This section list all the AsmParser code for cpu0 backend but with only a few
+explanation. Please refer here <a class="footnote-reference" href="#id4" id="id1">[1]</a> for more AsmParser explanation.</p>
 <p>Run Chapter10_1/ with ch11_1.cpp will get the following error message.</p>
 <p class="rubric">lbdex/InputFiles/ch11_1.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld	$2, 8($sp)&quot;</span><span class="p">);</span>
@@ -1476,7 +1478,7 @@ and not displayed, such as &#8220;jeq 20&#8221; rather than &#8220;jeq $sw, 20&#
 <div class="section" id="verilog-of-cpu0">
 <h2>Verilog of CPU0<a class="headerlink" href="#verilog-of-cpu0" title="Permalink to this headline">¶</a></h2>
 <p>Verilog language is an IEEE standard in IC design. There are a lot of book and
-documents for this language. Web site <a class="footnote-reference" href="#id3" id="id1">[1]</a> has a pdf <a class="footnote-reference" href="#id4" id="id2">[2]</a> in this.
+documents for this language. Web site <a class="footnote-reference" href="#id5" id="id2">[2]</a> has a pdf <a class="footnote-reference" href="#id6" id="id3">[3]</a> in this.
 Example code lbdex/cpu0_verilog/cpu0.v is the
 cpu0 design in Verilog. In Appendix A, we have downloaded and installed Icarus
 Verilog tool both on iMac and Linux. The cpu0.v and cpu0Is.v is a simple design
@@ -1487,10 +1489,11 @@ use the same machine instructions. Verilog is C like language in syntex and
 this book is a compiler book, so we list the cpu0.v as well as the building
 command directly as below. We expect
 readers can understand the Verilog code just with a little patient and no need
-further explanation. There are two type of I/O. One is memory mapped I/O, the
-other is instruction I/O. CPU0 use memory mapped I/O, we set the memory address
-0x7000 as the output port. When meet the instruction <strong>&#8220;st $ra, cx($rb)&#8221;</strong>, where
-cx($rb) is 0x7000 (28672), CPU0 display the content as follows,</p>
+further explanation. According computer architecture, there are two type of I/O.
+One is memory mapped I/O, the other is instruction I/O.
+CPU0 use memory mapped I/O, we set the memory address 0x7000 as the output port.
+When meet the instruction <strong>&#8220;st $ra, cx($rb)&#8221;</strong>, where cx($rb) is
+0x7000 (28672), CPU0 display the content as follows,</p>
 <div class="highlight-c++"><pre>ST :
   if (R[b]+c16 == 28672)
     $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);</pre>
@@ -1775,6 +1778,10 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
                                           // write memory complete
       endcase
       case (op)
+        LB  : if (R[a] &gt; 8'h7f) R[a]=R[a]|32'hffffff80;
+        LH  : if (R[a] &gt; 16'h7fff) R[a]=R[a]|32'hffff8000;
+      endcase
+      case (op)
       MULT, MULTu, DIV, DIVu, MTHI, MTLO, MTSW :
         if (`D)
           $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
@@ -1893,9 +1900,9 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
         endcase
       end else
         data = 32'hZZZZZZZZ;
-  `ifdef DLINKER
-  `include "flashio.v"
-  `endif
+      `ifdef DLINKER
+      `include "flashio.v"
+      `endif
     end else 
       data = 32'hZZZZZZZZ;
   end
@@ -2013,7 +2020,8 @@ cpu0.v use 0x7000 bytes of memory.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/InputFiles/ch_run_backend.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;boot.cpp&quot;</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;debug.h&quot;</span>
+<span class="cp">#include &quot;boot.cpp&quot;</span>
 
 <span class="cp">#include &quot;print.h&quot;</span>
 
@@ -2023,9 +2031,14 @@ cpu0.v use 0x7000 bytes of memory.</p>
 <span class="kt">int</span> <span class="n">test_andorxornot</span><span class="p">();</span>
 <span class="kt">int</span> <span class="n">test_setxx</span><span class="p">();</span>
 <span class="kt">bool</span> <span class="n">test_load_bool</span><span class="p">();</span>
+<span class="kt">int</span> <span class="n">test_signed_char</span><span class="p">();</span>
+<span class="kt">int</span> <span class="n">test_unsigned_char</span><span class="p">();</span>
+<span class="kt">int</span> <span class="n">test_signed_short</span><span class="p">();</span>
+<span class="kt">int</span> <span class="n">test_unsigned_short</span><span class="p">();</span>
 <span class="kt">long</span> <span class="kt">long</span> <span class="n">test_longlong</span><span class="p">();</span>
 <span class="kt">int</span> <span class="n">test_control1</span><span class="p">();</span>
-<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...);</span>
+<span class="kt">int</span> <span class="n">test_madd</span><span class="p">();</span>
+<span class="kt">int</span> <span class="n">test_vararg</span><span class="p">();</span>
 
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
@@ -2042,6 +2055,14 @@ cpu0.v use 0x7000 bytes of memory.</p>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
   <span class="n">a</span> <span class="o">=</span> <span class="n">test_setxx</span><span class="p">();</span> <span class="c1">// a = 3</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_signed_char</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = -126</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_unsigned_char</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 130</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_signed_short</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = -32766</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_unsigned_short</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 32770</span>
   <span class="kt">long</span> <span class="kt">long</span> <span class="n">b</span> <span class="o">=</span> <span class="n">test_longlong</span><span class="p">();</span> <span class="c1">// 0x800000002</span>
   <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)(</span><span class="n">b</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">));</span> <span class="c1">// 393307</span>
   <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">b</span><span class="p">);</span> <span class="c1">// 16777222</span>
@@ -2049,8 +2070,10 @@ cpu0.v use 0x7000 bytes of memory.</p>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>	<span class="c1">// a = 51</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="mi">2147483647</span><span class="p">);</span> <span class="c1">// test mod % (mult) from itoa.cpp</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="o">-</span><span class="mi">2147483648</span><span class="p">);</span> <span class="c1">// test mod % (multu) from itoa.cpp</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>    <span class="c1">// a = 15</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_madd</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 7</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_vararg</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 15</span>
 
   <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
 <span class="p">}</span>
@@ -2075,48 +2098,44 @@ cpu0.v use 0x7000 bytes of memory.</p>
 <span class="c">}</span>
 <span class="cp">#endif</span>
 
-<span class="kt">bool</span> <span class="n">test_load_bool</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
-
-  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="cp">#include &lt;stdarg.h&gt;</span>
-<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-	
-  <span class="n">va_list</span> <span class="n">vl</span><span class="p">;</span>
-  <span class="n">va_start</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">amount</span><span class="p">);</span>
-  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">amount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="n">val</span> <span class="o">=</span> <span class="n">va_arg</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
-    <span class="n">sum</span> <span class="o">+=</span> <span class="n">val</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="n">va_end</span><span class="p">(</span><span class="n">vl</span><span class="p">);</span>
-  
-  <span class="k">return</span> <span class="n">sum</span><span class="p">;</span> 
-<span class="p">}</span>
-
 <span class="cp">#include &quot;ch4_1.cpp&quot;</span>
 <span class="cp">#include &quot;ch4_3.cpp&quot;</span>
 <span class="cp">#include &quot;ch4_5.cpp&quot;</span>
 <span class="cp">#include &quot;ch7_1.cpp&quot;</span>
+<span class="cp">#include &quot;ch7_2_2.cpp&quot;</span>
+<span class="cp">#include &quot;ch7_3.cpp&quot;</span>
 <span class="cp">#include &quot;ch7_4.cpp&quot;</span>
 <span class="cp">#include &quot;ch8_1_1.cpp&quot;</span>
+<span class="cp">#include &quot;ch9_1_4.cpp&quot;</span>
+<span class="cp">#include &quot;ch9_3.cpp&quot;</span>
+
+<span class="cm">/* result:</span>
+<span class="cm">74</span>
+<span class="cm">253</span>
+<span class="cm">3</span>
+<span class="cm">1</span>
+<span class="cm">14</span>
+<span class="cm">3</span>
+<span class="cm">-126</span>
+<span class="cm">130</span>
+<span class="cm">-32766</span>
+<span class="cm">32770</span>
+<span class="cm">393307</span>
+<span class="cm">16777222</span>
+<span class="cm">51</span>
+<span class="cm">2147483647</span>
+<span class="cm">-2147483648</span>
+<span class="cm">7</span>
+<span class="cm">15</span>
+<span class="cm">RET to PC &lt; 0, finished!</span>
+<span class="cm">*/</span>
 </pre></div>
 </div>
-<p>Let&#8217;s run the Chapter11_2/ with <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></tt> for input files
-ch_run_backend.cpp to generate the hex file
-and input to cpu0Is Verilog simulator to get the output result as below.
-Remind ch_run_backend.cpp have to
-compile with option <tt class="docutils literal"><span class="pre">clang</span> <span class="pre">-target</span> <span class="pre">mips-unknown-linux-gnu</span></tt> and use the clang of
+<p>Let&#8217;s run Chapter11_2/ with <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></tt> for input files
+ch_run_backend.cpp to generate the hex file of inputing to cpu0Is Verilog
+simulator to get the output result as below.
+Remind ch_run_backend.cpp have to be compiled with option
+<tt class="docutils literal"><span class="pre">clang</span> <span class="pre">-target</span> <span class="pre">mips-unknown-linux-gnu</span></tt> and use the clang of
 your build instead of download from Xcode on iMac. The ~/llvm/release/
 cmake_debug_build/bin/Debug/ is my build clang from source code.</p>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>~/llvm/release/cmake_debug_build/bin/
@@ -2139,11 +2158,16 @@ taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 1
 14
 3
+-126
+130
+-32766
+32770
 393307
 16777222
 51
 2147483647
--2147483648
+-21474836487
+7
 15
 RET to PC &lt; 0, finished!
 </pre></div>
@@ -2190,7 +2214,7 @@ _Z14print1_integeri:
 </pre></div>
 </div>
 <p>You can trace the memory binary code and destination
-register change at every instruction execution by the following change and
+register changed at every instruction execution by the following change and
 get the result as below,</p>
 <p class="rubric">lbdex/cpu0_verilog/cpu0Is.v</p>
 <div class="highlight-c++"><pre>`define TRACE</pre>
@@ -2223,22 +2247,28 @@ The first column is the nano seconds of timing. The second
 is instruction address. The third is instruction content.
 We have checked many example code is correct by print the variable with
 print_integer().</p>
-<p>This chapter show Verilog PC output by display the I/O memory mapped address but
+<p>This chapter shows Verilog PC output by display the I/O memory mapped address but
 didn&#8217;t implementing the output hardware interface or port.
 The real output hardware
 interface/port is hardware output device dependent, such as RS232, speaker,
 LED, .... You should implement the I/O interface/port when you want to program
 FPGA and wire I/O device to the I/O port.</p>
-<table class="docutils footnote" frame="void" id="id3" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://www.ece.umd.edu/courses/enee359a/">http://www.ece.umd.edu/courses/enee359a/</a></td></tr>
-</tbody>
-</table>
 <table class="docutils footnote" frame="void" id="id4" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf">http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://www.embecosm.com/appnotes/ean10/ean10-howto-llvmas-1.0.html">http://www.embecosm.com/appnotes/ean10/ean10-howto-llvmas-1.0.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://www.ece.umd.edu/courses/enee359a/">http://www.ece.umd.edu/courses/enee359a/</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf">http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf</a></td></tr>
 </tbody>
 </table>
 </div>

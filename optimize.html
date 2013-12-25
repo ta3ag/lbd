@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.11',
+        VERSION:     '3.3.12',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -56,11 +56,11 @@
 <span id="sec-optimize"></span><h1>Backend Optimization<a class="headerlink" href="#backend-optimization" title="Permalink to this headline">¶</a></h1>
 <p>This chapter introduce how to do backend optimization in LLVM first.
 Next we do optimization via extend instruction sets with hardware level to
-do optimization by create a efficient RISC CPU which aims to C/C++ high level
-language.</p>
+do optimization in a way of creating an efficient RISC CPU which aims to C/C++
+high level language.</p>
 <div class="section" id="cpu0-backend-optimization-remove-useless-jmp">
 <h2>Cpu0 backend Optimization: Remove useless JMP<a class="headerlink" href="#cpu0-backend-optimization-remove-useless-jmp" title="Permalink to this headline">¶</a></h2>
-<p>LLVM use functional pass in code generation and optimization.
+<p>LLVM uses functional pass in code generation and optimization.
 Following the 3 tiers of compiler architecture, LLVM did much optimization in
 middle tier of LLVM IR, SSA form.
 In addition of this middle tier optimization, there are opportunities in
@@ -68,13 +68,13 @@ optimization which depend on backend features.
 Mips fill delay slot is an example of backend optimization used in pipeline
 RISC machine.
 You can modify from Mips this part if your backend is a pipeline RISC with
-delay slot.
-We apply the &#8220;delete useless jmp&#8221; unconditional branch instruction in Cpu0
-backend optimization in this section.
+delay slot. In this section,
+we apply the &#8220;delete useless jmp&#8221; unconditional branch instruction in Cpu0
+backend optimization.
 This algorithm is simple and effective as a perfect tutorial in optimization.
 Through this example, you can understand how to add a optimization pass and
 design your complicate optimization algorithm on your backend in real project.</p>
-<p>Chapter12_1/ support &#8220;delete useless jmp&#8221; optimization algorithm which add
+<p>Chapter12_1/ supports &#8220;delete useless jmp&#8221; optimization algorithm which add
 codes as follows,</p>
 <p class="rubric">lbdex/Chapter12_1/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">add_llvm_target</span><span class="p">(</span><span class="n">Cpu0CodeGen</span>
@@ -216,7 +216,7 @@ its Operand is the next basic block.
 By getMBB() in MachineOperand, you can get the MBB address.
 For the member functions of MachineOperand, please check
 include/llvm/CodeGen/MachineOperand.h
-Let&#8217;s run Chapter12_1/ with ch12_1.cpp to explain it easier.</p>
+Let&#8217;s run Chapter12_1/ with ch12_1.cpp for explanation.</p>
 <p class="rubric">lbdex/InputFiles/ch12_1.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
@@ -331,7 +331,7 @@ main:
 because we set the &#8220;STATISTIC(NumDelJmp, &#8220;Number of useless jmp deleted&#8221;)&#8221; in
 code. It deletes 2 jmp instructions from block &#8220;# BB#0&#8221; and &#8220;$BB0_6&#8221;.
 You can check it by <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-enable-cpu0-del-useless-jmp=false</span></tt> option to see
-the difference from no optimization version.
+the difference to no optimization version.
 If you run with ch8_1_1.cpp, will find 10 jmp instructions are deleted in 100
 lines of assembly code, which meaning 10% improvement in speed and code size.</p>
 </div>
@@ -816,8 +816,8 @@ defm : SetgeImmPatsSlt&lt;CPURegs, SLTi, SLTiu&gt;;
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>As modified as listed above, the last Chapter instructions are work for cpu032I
-and the added instructions is for cpu032II.
+<p>As modified as listed above, the Chapter12_1 instructions are work for cpu032I
+and the added instructions in Chapter12_2 is for cpu032II.
 The llc will generate cpu032I cmp, jeq,
 ..., instructions when <cite>llc -mcpu=cpu032I</cite> while <cite>llc -mcpu=cpu032II</cite> will
 generate slt, beq when meet &#8220;if else&#8221;, &#8220;while&#8221; and &#8220;for&#8221; flow control
@@ -842,7 +842,8 @@ instructions, slt, beq and bne.</p>
 <p>Run Chapter12_2/ with ch_run_backend.cpp to get result as below.
 It match the output result as comments in ch_run_backend.cpp.</p>
 <p class="rubric">lbdex/InputFiles/ch_run_backend.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;boot.cpp&quot;</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;debug.h&quot;</span>
+<span class="cp">#include &quot;boot.cpp&quot;</span>
 
 <span class="cp">#include &quot;print.h&quot;</span>
 
@@ -852,9 +853,14 @@ It match the output result as comments in ch_run_backend.cpp.</p>
 <span class="kt">int</span> <span class="n">test_andorxornot</span><span class="p">();</span>
 <span class="kt">int</span> <span class="n">test_setxx</span><span class="p">();</span>
 <span class="kt">bool</span> <span class="n">test_load_bool</span><span class="p">();</span>
+<span class="kt">int</span> <span class="n">test_signed_char</span><span class="p">();</span>
+<span class="kt">int</span> <span class="n">test_unsigned_char</span><span class="p">();</span>
+<span class="kt">int</span> <span class="n">test_signed_short</span><span class="p">();</span>
+<span class="kt">int</span> <span class="n">test_unsigned_short</span><span class="p">();</span>
 <span class="kt">long</span> <span class="kt">long</span> <span class="n">test_longlong</span><span class="p">();</span>
 <span class="kt">int</span> <span class="n">test_control1</span><span class="p">();</span>
-<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...);</span>
+<span class="kt">int</span> <span class="n">test_madd</span><span class="p">();</span>
+<span class="kt">int</span> <span class="n">test_vararg</span><span class="p">();</span>
 
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
@@ -871,6 +877,14 @@ It match the output result as comments in ch_run_backend.cpp.</p>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
   <span class="n">a</span> <span class="o">=</span> <span class="n">test_setxx</span><span class="p">();</span> <span class="c1">// a = 3</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_signed_char</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = -126</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_unsigned_char</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 130</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_signed_short</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = -32766</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_unsigned_short</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 32770</span>
   <span class="kt">long</span> <span class="kt">long</span> <span class="n">b</span> <span class="o">=</span> <span class="n">test_longlong</span><span class="p">();</span> <span class="c1">// 0x800000002</span>
   <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)(</span><span class="n">b</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">));</span> <span class="c1">// 393307</span>
   <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">b</span><span class="p">);</span> <span class="c1">// 16777222</span>
@@ -878,8 +892,10 @@ It match the output result as comments in ch_run_backend.cpp.</p>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>	<span class="c1">// a = 51</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="mi">2147483647</span><span class="p">);</span> <span class="c1">// test mod % (mult) from itoa.cpp</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="o">-</span><span class="mi">2147483648</span><span class="p">);</span> <span class="c1">// test mod % (multu) from itoa.cpp</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>    <span class="c1">// a = 15</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_madd</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 7</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_vararg</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 15</span>
 
   <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
 <span class="p">}</span>
@@ -904,41 +920,37 @@ It match the output result as comments in ch_run_backend.cpp.</p>
 <span class="c">}</span>
 <span class="cp">#endif</span>
 
-<span class="kt">bool</span> <span class="n">test_load_bool</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
-
-  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="cp">#include &lt;stdarg.h&gt;</span>
-<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-	
-  <span class="n">va_list</span> <span class="n">vl</span><span class="p">;</span>
-  <span class="n">va_start</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">amount</span><span class="p">);</span>
-  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">amount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-  <span class="p">{</span>
-    <span class="n">val</span> <span class="o">=</span> <span class="n">va_arg</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="kt">int</span><span class="p">);</span>
-    <span class="n">sum</span> <span class="o">+=</span> <span class="n">val</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="n">va_end</span><span class="p">(</span><span class="n">vl</span><span class="p">);</span>
-  
-  <span class="k">return</span> <span class="n">sum</span><span class="p">;</span> 
-<span class="p">}</span>
-
 <span class="cp">#include &quot;ch4_1.cpp&quot;</span>
 <span class="cp">#include &quot;ch4_3.cpp&quot;</span>
 <span class="cp">#include &quot;ch4_5.cpp&quot;</span>
 <span class="cp">#include &quot;ch7_1.cpp&quot;</span>
+<span class="cp">#include &quot;ch7_2_2.cpp&quot;</span>
+<span class="cp">#include &quot;ch7_3.cpp&quot;</span>
 <span class="cp">#include &quot;ch7_4.cpp&quot;</span>
 <span class="cp">#include &quot;ch8_1_1.cpp&quot;</span>
+<span class="cp">#include &quot;ch9_1_4.cpp&quot;</span>
+<span class="cp">#include &quot;ch9_3.cpp&quot;</span>
+
+<span class="cm">/* result:</span>
+<span class="cm">74</span>
+<span class="cm">253</span>
+<span class="cm">3</span>
+<span class="cm">1</span>
+<span class="cm">14</span>
+<span class="cm">3</span>
+<span class="cm">-126</span>
+<span class="cm">130</span>
+<span class="cm">-32766</span>
+<span class="cm">32770</span>
+<span class="cm">393307</span>
+<span class="cm">16777222</span>
+<span class="cm">51</span>
+<span class="cm">2147483647</span>
+<span class="cm">-2147483648</span>
+<span class="cm">7</span>
+<span class="cm">15</span>
+<span class="cm">RET to PC &lt; 0, finished!</span>
+<span class="cm">*/</span>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
@@ -966,6 +978,10 @@ taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 1
 14
 3
+-126
+130
+-32766
+32770
 393307
 16777222
 51

@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.11',
+        VERSION:     '3.3.12',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -104,7 +104,6 @@ See comment <strong>&#8220;//&#8221;</strong>.</p>
 
 <span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span> 
-  <span class="kt">char</span> <span class="n">str</span><span class="p">[</span><span class="mi">81</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Hello world&quot;</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">);</span>  
   
   <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
@@ -1424,7 +1423,7 @@ $2 is not 0) as follows,</p>
   <span class="kt">int</span> <span class="n">day</span> <span class="o">=</span> <span class="n">date</span><span class="p">.</span><span class="n">day</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
 
-  <span class="k">return</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="n">day</span><span class="p">);</span> <span class="c1">// 12+2012=2024</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="n">day</span><span class="p">);</span> <span class="c1">// 10+12=22</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1621,7 +1620,7 @@ function and define eliminateCallFramePseudoInstr() as follows,</p>
 <p>With above definition, eliminateCallFramePseudoInstr() will be called when
 llvm meet pseudo instructions ADJCALLSTACKDOWN and ADJCALLSTACKUP.
 We just discard these 2 pseudo instructions.
-Run Chapter9_3/ with ch9_1.cpp will these two Pseudo hook instructions.</p>
+Run Chapter9_3/ with ch9_1.cpp will discard these two Pseudo hook instructions.</p>
 </div>
 <div class="section" id="handle-gp-register-in-pic-addressing-mode">
 <h3>Handle $gp register in PIC addressing mode<a class="headerlink" href="#handle-gp-register-in-pic-addressing-mode" title="Permalink to this headline">¶</a></h3>
@@ -1636,7 +1635,7 @@ Since share library can be loaded in different memory address, the global
 variable address it access cannot be decided at link time.
 But, we can caculate the distance between the global variable address and
 the start address of shared library function when it be loaded.</p>
-<p>Let&#8217;s run Chapter9_3/ with ch9_2.cpp to get the following correct result.
+<p>Let&#8217;s run Chapter9_3/ with ch9_1.cpp to get the following correct result.
 We putting the comments in the result for explanation.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch9_1.cpu0.s
 _Z5sum_iiiiiii:
@@ -1979,7 +1978,7 @@ instructions.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>
 obj ch9_1.bc -o ch9_1.cpu0.o
-118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>hexdump  ch9_2.cpu0.o
+118-165-76-131:InputFiles Jonathan<span class="nv">$ </span>hexdump  ch9_1.cpu0.o
 ...
 // .cprestore machine instruction “ 01 ad 00 18”
 00000d0 01 ad 00 18 09 20 00 00 01 2d 00 40 09 20 00 06
@@ -2367,62 +2366,74 @@ a:
 dynamic stack allocation.</p>
 <p>Run Chapter9_3 with ch9_2_1.cpp will get the error message as follows,</p>
 <p class="rubric">lbdex/InputFiles/ch9_2_1.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">year</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">month</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">day</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">hour</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">minute</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">second</span><span class="p">;</span>
-<span class="p">};</span>
-<span class="n">Date</span> <span class="n">gDate</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">};</span>
+<div class="highlight-c++"><pre>extern "C" int printf(const char *format, ...);
 
-<span class="k">struct</span> <span class="n">Time</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">hour</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">minute</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">second</span><span class="p">;</span>
-<span class="p">};</span>
-<span class="n">Time</span> <span class="n">gTime</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">};</span>
+struct Date
+{
+  int year;
+  int month;
+  int day;
+  int hour;
+  int minute;
+  int second;
+};
+Date gDate = {2012, 10, 12, 1, 2, 3};
 
-<span class="n">Date</span> <span class="n">getDate</span><span class="p">()</span>
-<span class="p">{</span> 
-  <span class="k">return</span> <span class="n">gDate</span><span class="p">;</span>
-<span class="p">}</span>
+struct Time
+{
+  int hour;
+  int minute;
+  int second;
+};
+Time gTime = {2, 20, 30};
 
-<span class="n">Date</span> <span class="n">copyDate</span><span class="p">(</span><span class="n">Date</span> <span class="n">date</span><span class="p">)</span>
-<span class="p">{</span> 
-  <span class="k">return</span> <span class="n">date</span><span class="p">;</span>
-<span class="p">}</span>
+Date getDate()
+{ 
+  return gDate;
+}
 
-<span class="n">Date</span> <span class="n">copyDate</span><span class="p">(</span><span class="n">Date</span><span class="o">*</span> <span class="n">date</span><span class="p">)</span>
-<span class="p">{</span> 
-  <span class="k">return</span> <span class="o">*</span><span class="n">date</span><span class="p">;</span>
-<span class="p">}</span>
+Date copyDate(Date date)
+{ 
+  return date;
+}
 
-<span class="n">Time</span> <span class="n">copyTime</span><span class="p">(</span><span class="n">Time</span> <span class="n">time</span><span class="p">)</span>
-<span class="p">{</span> 
-  <span class="k">return</span> <span class="n">time</span><span class="p">;</span>
-<span class="p">}</span>
+Date copyDate(Date* date)
+{ 
+  return *date;
+}
 
-<span class="n">Time</span> <span class="n">copyTime</span><span class="p">(</span><span class="n">Time</span><span class="o">*</span> <span class="n">time</span><span class="p">)</span>
-<span class="p">{</span> 
-  <span class="k">return</span> <span class="o">*</span><span class="n">time</span><span class="p">;</span>
-<span class="p">}</span>
+Time copyTime(Time time)
+{ 
+  return time;
+}
 
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="n">Time</span> <span class="n">time1</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
-  <span class="n">Date</span> <span class="n">date1</span> <span class="o">=</span> <span class="n">getDate</span><span class="p">();</span>
-  <span class="n">Date</span> <span class="n">date2</span> <span class="o">=</span> <span class="n">copyDate</span><span class="p">(</span><span class="n">date1</span><span class="p">);</span>
-  <span class="n">Date</span> <span class="n">date3</span> <span class="o">=</span> <span class="n">copyDate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">date1</span><span class="p">);</span>
-  <span class="n">Time</span> <span class="n">time2</span> <span class="o">=</span> <span class="n">copyTime</span><span class="p">(</span><span class="n">time1</span><span class="p">);</span>
-  <span class="n">Time</span> <span class="n">time3</span> <span class="o">=</span> <span class="n">copyTime</span><span class="p">(</span><span class="o">&amp;</span><span class="n">time1</span><span class="p">);</span>
+Time copyTime(Time* time)
+{ 
+  return *time;
+}
 
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
+int test_func_arg_struct()
+{
+  Time time1 = {1, 10, 12};
+  Date date1 = getDate();
+  Date date2 = copyDate(date1);
+  Date date3 = copyDate(&amp;date1);
+  Time time2 = copyTime(time1);
+  Time time3 = copyTime(&amp;time1);
+#ifdef PRINT_TEST
+  printf("date1 = %d %d %d %d %d %d\n", date1.year, date1.month, date1.day, \
+    date1.hour, date1.minute, date1.second); // date1 = 2012 10 12 1 2 3
+  printf("date2 = %d %d %d %d %d %d\n", date2.year, date2.month, date2.day, \ 
+    date2.hour, date2.minute, date2.second); // date2 = 2012 10 12 1 2 3
+  // time2 = 1 10 12
+  printf("time2 = %d %d %d\n", time2.hour, time2.minute, time2.second);
+  // time3 = 1 10 12
+  printf("time3 = %d %d %d\n", time3.hour, time3.minute, time3.second);
+#endif
+
+  return 0;
+}
+</pre>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
 ch9_2_1.cpp -emit-llvm -o ch9_2_1.bc
@@ -2459,7 +2470,7 @@ line 6712.
   <span class="k">return</span> <span class="n">sum</span><span class="p">;</span> 
 <span class="p">}</span>
 
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="kt">int</span> <span class="n">test_vararg</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
 	
@@ -2913,11 +2924,11 @@ _Z8copyTimeP4Time:
   .size _Z8copyTimeP4Time, <span class="o">(</span><span class="nv">$tmp10</span><span class="o">)</span>-_Z8copyTimeP4Time
   .cfi_endproc
 
-  .globl  main
+  .globl  _Z20test_func_arg_structv
   .align  2
-  .type main,@function
-  .ent  main                    <span class="c"># @main</span>
-main:
+  .type _Z20test_func_arg_structv,@function
+  .ent  _Z20test_func_arg_structv                    <span class="c"># @main</span>
+_Z20test_func_arg_structv:
   .cfi_startproc
   .frame  <span class="nv">$sp</span>,248,<span class="nv">$lr</span>
   .mask   0x00004180,-4
@@ -3035,9 +3046,9 @@ main:
   ret <span class="nv">$lr</span>
   .set  macro
   .set  reorder
-  .end  main
+  .end  _Z20test_func_arg_structv
 <span class="nv">$tmp17</span>:
-  .size main, <span class="o">(</span><span class="nv">$tmp17</span><span class="o">)</span>-main
+  .size _Z20test_func_arg_structv, <span class="o">(</span><span class="nv">$tmp17</span><span class="o">)</span>-_Z20test_func_arg_structv
   .cfi_endproc
 
   .type gDate,@object           <span class="c"># @gDate</span>
@@ -3062,14 +3073,14 @@ gTime:
   .4byte  30                      <span class="c"># 0x1e</span>
   .size gTime, 12
 
-  .type <span class="nv">$_ZZ4mainE5time1</span>,@object <span class="c"># @_ZZ4mainE5time1</span>
+  .type <span class="nv">$_Z20test_func_arg_structvE5time1</span>,@object <span class="c"># @_Z20test_func_arg_structvE5time1</span>
   .section  .rodata,<span class="s2">&quot;a&quot;</span>,@progbits
   .align  2
-<span class="nv">$_ZZ4mainE5time1</span>:
+<span class="nv">$_Z20test_func_arg_structvE5time1</span>:
   .4byte  1                       <span class="c"># 0x1</span>
   .4byte  10                      <span class="c"># 0xa</span>
   .4byte  12                      <span class="c"># 0xc</span>
-  .size <span class="nv">$_ZZ4mainE5time1</span>, 12
+  .size <span class="nv">$_Z20test_func_arg_structvE5time1</span>, 12
 </pre></div>
 </div>
 <p>In LowerCall(), Flags.isByVal() will be true if the outgoing arguments over 4
@@ -3171,7 +3182,10 @@ ld  <span class="nv">$t9</span>, %call16<span class="o">(</span>_Z8copyDate4Date
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-bash"><div class="highlight"><pre>  .globl  _Z8copyDateP4Date
+<div class="highlight-bash"><div class="highlight"><pre>  ...
+  .file       <span class="s2">&quot;ch9_2_1.bc&quot;</span>
+  ...
+  .globl  _Z8copyDateP4Date
   .align  2
   .type _Z8copyDateP4Date,@function
   .ent  _Z8copyDate4Date        <span class="c"># @_Z8copyDate4Date</span>
@@ -3207,8 +3221,12 @@ _Z8copyDate4Date:
 It can be translated into cpu0 backend too since the front end (clang in this
 example) translate them into C language form.
 You can also mark the &#8220;hasStructRetAttr() if&#8221; part from both of above functions,
-the output cpu0 code will use $3 instead of $2 as return register as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>  .globl  _Z8copyDateP4Date
+the output cpu0 code for ch9_2_1.cpp will use $3 instead of $2 as return
+register as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>  ...
+  .file       <span class="s2">&quot;ch9_2_1.bc&quot;</span>
+  ...
+  .globl  _Z8copyDateP4Date
   .align  2
   .type _Z8copyDateP4Date,@function
   .ent  _Z8copyDateP4Date       <span class="c"># @_Z8copyDateP4Date</span>
@@ -3315,11 +3333,11 @@ _Z5sum_iiz:
 <span class="nv">$tmp1</span>:
   .size _Z5sum_iiz, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-_Z5sum_iiz
 
-  .globl  main
+  .globl  _Z11test_varargv
   .align  2
-  .type main,@function
-  .ent  main                    <span class="c"># @main</span>
-main:
+  .type _Z11test_varargv,@function
+  .ent  _Z11test_varargv                    <span class="c"># @_Z11test_varargv</span>
+_Z11test_varargv:
   .frame  <span class="nv">$sp</span>,88,<span class="nv">$lr</span>
   .mask   0x00004000,-4
   .set  noreorder
@@ -3353,9 +3371,9 @@ main:
   ret <span class="nv">$lr</span>
   .set  macro
   .set  reorder
-  .end  main
+  .end  _Z11test_varargv
 <span class="nv">$tmp4</span>:
-  .size main, <span class="o">(</span><span class="nv">$tmp4</span><span class="o">)</span>-main
+  .size _Z11test_varargv, <span class="o">(</span><span class="nv">$tmp4</span><span class="o">)</span>-_Z11test_varargv
 </pre></div>
 </div>
 <p>The analysis of output ch9_3.cpu0.s as above in comment.
@@ -3475,7 +3493,7 @@ backend code too.</p>
   <span class="k">return</span> <span class="n">sum</span><span class="p">;</span> 
 <span class="p">}</span>
 
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="kt">int</span> <span class="n">test_template</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sum</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
 	
@@ -3745,7 +3763,7 @@ more and more.</p>
 <table class="docutils footnote" frame="void" id="id10" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/ctrlflow.html#risc-cpu-knowledge">http://jonathan2251.github.com/lbd/ctrlflow.html#risc-cpu-knowledge</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://jonathan2251.github.io/lbd/ctrlflow.html#risc-cpu-knowledge">http://jonathan2251.github.io/lbd/ctrlflow.html#risc-cpu-knowledge</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id11" rules="none">
@@ -3763,13 +3781,13 @@ more and more.</p>
 <table class="docutils footnote" frame="void" id="id13" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration">http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id14" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/globalvar.html#global-variable">http://jonathan2251.github.com/lbd/globalvar.html#global-variable</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://jonathan2251.github.io/lbd/globalvar.html#global-variable">http://jonathan2251.github.io/lbd/globalvar.html#global-variable</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id15" rules="none">

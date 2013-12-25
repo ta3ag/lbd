@@ -1218,7 +1218,7 @@ function and define eliminateCallFramePseudoInstr() as follows,
 With above definition, eliminateCallFramePseudoInstr() will be called when 
 llvm meet pseudo instructions ADJCALLSTACKDOWN and ADJCALLSTACKUP. 
 We just discard these 2 pseudo instructions. 
-Run Chapter9_3/ with ch9_1.cpp will these two Pseudo hook instructions.
+Run Chapter9_3/ with ch9_1.cpp will discard these two Pseudo hook instructions.
 
 Handle $gp register in PIC addressing mode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1235,7 +1235,7 @@ variable address it access cannot be decided at link time.
 But, we can caculate the distance between the global variable address and 
 the start address of shared library function when it be loaded.
 
-Let's run Chapter9_3/ with ch9_2.cpp to get the following correct result. 
+Let's run Chapter9_3/ with ch9_1.cpp to get the following correct result. 
 We putting the comments in the result for explanation.
 
 .. code-block:: bash
@@ -1476,7 +1476,7 @@ instructions.
   118-165-76-131:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=
   obj ch9_1.bc -o ch9_1.cpu0.o
-  118-165-76-131:InputFiles Jonathan$ hexdump  ch9_2.cpu0.o
+  118-165-76-131:InputFiles Jonathan$ hexdump  ch9_1.cpu0.o
   ...
   // .cprestore machine instruction “ 01 ad 00 18”
   00000d0 01 ad 00 18 09 20 00 00 01 2d 00 40 09 20 00 06
@@ -2269,11 +2269,11 @@ example.
     .size _Z8copyTimeP4Time, ($tmp10)-_Z8copyTimeP4Time
     .cfi_endproc
   
-    .globl  main
+    .globl  _Z20test_func_arg_structv
     .align  2
-    .type main,@function
-    .ent  main                    # @main
-  main:
+    .type _Z20test_func_arg_structv,@function
+    .ent  _Z20test_func_arg_structv                    # @main
+  _Z20test_func_arg_structv:
     .cfi_startproc
     .frame  $sp,248,$lr
     .mask   0x00004180,-4
@@ -2391,9 +2391,9 @@ example.
     ret $lr
     .set  macro
     .set  reorder
-    .end  main
+    .end  _Z20test_func_arg_structv
   $tmp17:
-    .size main, ($tmp17)-main
+    .size _Z20test_func_arg_structv, ($tmp17)-_Z20test_func_arg_structv
     .cfi_endproc
   
     .type gDate,@object           # @gDate
@@ -2418,14 +2418,14 @@ example.
     .4byte  30                      # 0x1e
     .size gTime, 12
   
-    .type $_ZZ4mainE5time1,@object # @_ZZ4mainE5time1
+    .type $_Z20test_func_arg_structvE5time1,@object # @_Z20test_func_arg_structvE5time1
     .section  .rodata,"a",@progbits
     .align  2
-  $_ZZ4mainE5time1:
+  $_Z20test_func_arg_structvE5time1:
     .4byte  1                       # 0x1
     .4byte  10                      # 0xa
     .4byte  12                      # 0xc
-    .size $_ZZ4mainE5time1, 12
+    .size $_Z20test_func_arg_structvE5time1, 12
 
 
 In LowerCall(), Flags.isByVal() will be true if the outgoing arguments over 4 
@@ -2537,6 +2537,9 @@ List the code and their effect as follows,
 
 .. code-block:: bash
 
+    ...
+    .file	"ch9_2_1.bc"
+    ...
     .globl  _Z8copyDateP4Date
     .align  2
     .type _Z8copyDateP4Date,@function
@@ -2572,10 +2575,14 @@ The ch9_2_2.cpp include C++ class "Date" implementation.
 It can be translated into cpu0 backend too since the front end (clang in this 
 example) translate them into C language form.
 You can also mark the "hasStructRetAttr() if" part from both of above functions, 
-the output cpu0 code will use $3 instead of $2 as return register as follows,
+the output cpu0 code for ch9_2_1.cpp will use $3 instead of $2 as return 
+register as follows,
 
 .. code-block:: bash
 
+    ...
+    .file	"ch9_2_1.bc"
+    ...
     .globl  _Z8copyDateP4Date
     .align  2
     .type _Z8copyDateP4Date,@function
@@ -2687,11 +2694,11 @@ Run Chapter9_4/ with ch9_3.cpp as well as clang option,
   $tmp1:
     .size _Z5sum_iiz, ($tmp1)-_Z5sum_iiz
   
-    .globl  main
+    .globl  _Z11test_varargv
     .align  2
-    .type main,@function
-    .ent  main                    # @main
-  main:
+    .type _Z11test_varargv,@function
+    .ent  _Z11test_varargv                    # @_Z11test_varargv
+  _Z11test_varargv:
     .frame  $sp,88,$lr
     .mask   0x00004000,-4
     .set  noreorder
@@ -2725,9 +2732,9 @@ Run Chapter9_4/ with ch9_3.cpp as well as clang option,
     ret $lr
     .set  macro
     .set  reorder
-    .end  main
+    .end  _Z11test_varargv
   $tmp4:
-    .size main, ($tmp4)-main
+    .size _Z11test_varargv, ($tmp4)-_Z11test_varargv
 
 
 The analysis of output ch9_3.cpu0.s as above in comment. 
@@ -3125,15 +3132,15 @@ And your backend will grow up automatically through the front end support langua
 more and more.
 
 
-.. [#] http://jonathan2251.github.com/lbd/ctrlflow.html#risc-cpu-knowledge
+.. [#] http://jonathan2251.github.io/lbd/ctrlflow.html#risc-cpu-knowledge
 
 .. [#] https://www.dropbox.com/sh/2pkh1fewlq2zag9/OHnrYn2nOs/doc/MIPSproAssemblyLanguageProgrammerGuide 
 
 .. [#] http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf
 
-.. [#] http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration
+.. [#] http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration
 
-.. [#] http://jonathan2251.github.com/lbd/globalvar.html#global-variable
+.. [#] http://jonathan2251.github.io/lbd/globalvar.html#global-variable
 
 .. [#] http://http://en.wikipedia.org/wiki/Tail_call
 

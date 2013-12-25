@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.11',
+        VERSION:     '3.3.12',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -257,6 +257,114 @@ b:
   .size <span class="nv">$_ZZ9test_charvE5date1</span>, 8
 </pre></div>
 </div>
+<p>Run Chapter7_1/ with ch7_2_2.cpp will get the following result.</p>
+<p class="rubric">lbdex/InputFiles/ch7_2_2.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">test_signed_char</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">char</span> <span class="n">a</span> <span class="o">=</span><span class="mh">0x80</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="kt">signed</span> <span class="kt">int</span><span class="p">)</span><span class="n">a</span><span class="p">;</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// i = (-128+2) = -126</span>
+
+  <span class="k">return</span> <span class="n">i</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">test_unsigned_char</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="mh">0x80</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">ui</span> <span class="o">=</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span><span class="p">)</span><span class="n">c</span><span class="p">;</span>
+  <span class="n">ui</span> <span class="o">=</span> <span class="n">ui</span> <span class="o">+</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// i = (128+2) = 130</span>
+
+  <span class="k">return</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">ui</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">test_signed_short</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">short</span> <span class="n">a</span> <span class="o">=</span><span class="mh">0x8000</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="p">(</span><span class="kt">signed</span> <span class="kt">int</span><span class="p">)</span><span class="n">a</span><span class="p">;</span>
+  <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// i = (-32768+2) = -32766</span>
+
+  <span class="k">return</span> <span class="n">i</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">test_unsigned_short</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">unsigned</span> <span class="kt">short</span> <span class="n">c</span> <span class="o">=</span> <span class="mh">0x8000</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">ui</span> <span class="o">=</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span><span class="p">)</span><span class="n">c</span><span class="p">;</span>
+  <span class="n">ui</span> <span class="o">=</span> <span class="n">ui</span> <span class="o">+</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// i = (32768+2) = 32770</span>
+
+  <span class="k">return</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">ui</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>1-160-136-236:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llvm-dis ch7_2_2.bc -o -
+  ...
+define i32 @_Z16test_signed_charv<span class="o">()</span> <span class="c">#0 {</span>
+  ...
+  %1 <span class="o">=</span> load i8* %a, align 1
+  %2 <span class="o">=</span> sext i8 %1 to i32
+  ...
+<span class="o">}</span>
+
+; Function Attrs: nounwind
+define i32 @_Z18test_unsigned_charv<span class="o">()</span> <span class="c">#0 {</span>
+  ...
+  %1 <span class="o">=</span> load i8* %c, align 1
+  %2 <span class="o">=</span> zext i8 %1 to i32
+  ...
+<span class="o">}</span>
+
+; Function Attrs: nounwind
+define i32 @_Z17test_signed_shortv<span class="o">()</span> <span class="c">#0 {</span>
+  ...
+  %1 <span class="o">=</span> load i16* %a, align 2
+  %2 <span class="o">=</span> sext i16 %1 to i32
+  ...
+<span class="o">}</span>
+
+; Function Attrs: nounwind
+define i32 @_Z19test_unsigned_shortv<span class="o">()</span> <span class="c">#0 {</span>
+  ...
+  %1 <span class="o">=</span> load i16* %c, align 2
+  %2 <span class="o">=</span> zext i16 %1 to i32
+  ...
+<span class="o">}</span>
+
+attributes <span class="c">#0 = { nounwind }</span>
+
+1-160-136-236:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch7_2_2.bc -o -
+  ...
+  .globl  _Z16test_signed_charv
+  ...
+  lb  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ...
+  .end  _Z16test_signed_charv
+
+  .globl  _Z18test_unsigned_charv
+  ...
+  lbu <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ...
+  .end  _Z18test_unsigned_charv
+
+  .globl  _Z17test_signed_shortv
+  ...
+  lh  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ...
+  .end  _Z17test_signed_shortv
+
+  .globl  _Z19test_unsigned_shortv
+  ...
+  lhu <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ...
+  .end  _Z19test_unsigned_shortv
+  ...
+</pre></div>
+</div>
+<p>As you can see lb/lh are for signed byte/short type while lbu/lhu are for unsigned
+byte/short type. Since C type-cast or type-conversion feature, the char to int can
+be finished with an Cpu0 lb efficient instruction. That&#8217;s why the lb, lbu, lh and
+lhu instructions exist. Their difference have explained in Chapter 2.</p>
 <p>To support load bool type, the following code added.</p>
 <p class="rubric">lbdex/Chapter7_1/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
@@ -560,7 +668,7 @@ For ch7_5.cpp, the llvm IR as follows,</p>
   <span class="kt">int</span> <span class="n">day</span> <span class="o">=</span> <span class="n">date</span><span class="p">.</span><span class="n">day</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
 
-  <span class="k">return</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="n">day</span><span class="p">);</span> <span class="c1">// 12+2012=2024</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="n">day</span><span class="p">);</span> <span class="c1">// 10+12=22</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -857,23 +965,12 @@ ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$2</sp
 </div>
 <p>The ch7_5_2.cpp is for local variable initialization test. The result as
 follows,</p>
-<p class="rubric">lbdex/InputFiles/ch7_5.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
+<p class="rubric">lbdex/InputFiles/ch7_5_2.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="kt">int</span> <span class="n">year</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">month</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">day</span><span class="p">;</span>
-<span class="p">};</span>
-
-<span class="n">Date</span> <span class="n">date</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
-<span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
-
-<span class="kt">int</span> <span class="n">test_struct</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">day</span> <span class="o">=</span> <span class="n">date</span><span class="p">.</span><span class="n">day</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
-
-  <span class="k">return</span> <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="n">day</span><span class="p">);</span> <span class="c1">// 12+2012=2024</span>
+  <span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">};</span>
+    
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>

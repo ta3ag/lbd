@@ -192,6 +192,82 @@ Run Chapter7_1/ with ch7_2.cpp will get the following result.
     .space  1
     .size $_ZZ9test_charvE5date1, 8
 
+Run Chapter7_1/ with ch7_2_2.cpp will get the following result.
+
+.. rubric:: lbdex/InputFiles/ch7_2_2.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch7_2_2.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+  
+  1-160-136-236:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llvm-dis ch7_2_2.bc -o -
+    ...
+  define i32 @_Z16test_signed_charv() #0 {
+    ...
+    %1 = load i8* %a, align 1
+    %2 = sext i8 %1 to i32
+    ...
+  }
+  
+  ; Function Attrs: nounwind
+  define i32 @_Z18test_unsigned_charv() #0 {
+    ...
+    %1 = load i8* %c, align 1
+    %2 = zext i8 %1 to i32
+    ...
+  }
+  
+  ; Function Attrs: nounwind
+  define i32 @_Z17test_signed_shortv() #0 {
+    ...
+    %1 = load i16* %a, align 2
+    %2 = sext i16 %1 to i32
+    ...
+  }
+  
+  ; Function Attrs: nounwind
+  define i32 @_Z19test_unsigned_shortv() #0 {
+    ...
+    %1 = load i16* %c, align 2
+    %2 = zext i16 %1 to i32
+    ...
+  }
+  
+  attributes #0 = { nounwind }
+  
+  1-160-136-236:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_2_2.bc -o -
+    ...
+    .globl  _Z16test_signed_charv
+    ...
+    lb  $2, 4($sp)
+    ...
+    .end  _Z16test_signed_charv
+  
+    .globl  _Z18test_unsigned_charv
+    ...
+    lbu $2, 4($sp)
+    ...
+    .end  _Z18test_unsigned_charv
+    
+    .globl  _Z17test_signed_shortv
+    ...
+    lh  $2, 4($sp)
+    ...
+    .end  _Z17test_signed_shortv
+    
+    .globl  _Z19test_unsigned_shortv
+    ...
+    lhu $2, 4($sp)
+    ...
+    .end  _Z19test_unsigned_shortv
+    ...
+
+As you can see lb/lh are for signed byte/short type while lbu/lhu are for unsigned 
+byte/short type. Since C type-cast or type-conversion feature, the char to int can 
+be finished with an Cpu0 lb efficient instruction. That's why the lb, lbu, lh and 
+lhu instructions exist. Their difference have explained in Chapter 2.
 
 To support load bool type, the following code added.
 
@@ -794,8 +870,8 @@ follows.
 The ch7_5_2.cpp is for local variable initialization test. The result as 
 follows,
 
-.. rubric:: lbdex/InputFiles/ch7_5.cpp
-.. literalinclude:: ../lbdex/InputFiles/ch7_5.cpp
+.. rubric:: lbdex/InputFiles/ch7_5_2.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch7_5_2.cpp
     :start-after: /// start
 
 .. code-block:: bash

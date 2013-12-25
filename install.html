@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.11',
+        VERSION:     '3.3.12',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -66,8 +66,9 @@ We cannot debug our LLVM builds within Xcode at the
 moment, but if you have experience with this, please contact us and help us
 build documentation that covers this.  For Linux machines, we are building and
 debugging (using gdb) our LLVM installations on a Fedora 17 system.  We will
-not be using an IDE for Linux, but once again, if you have experience building/
-debugging LLVM using Eclipse or other major IDEs, please contact the authors.
+not be using an IDE for Linux, but once again, if you have experience
+uilding/debugging LLVM using Eclipse or other major IDEs, please contact the
+authors.
 For information on using <tt class="docutils literal"><span class="pre">cmake</span></tt> to build LLVM, please refer to the &#8220;Building
 LLVM with CMake&#8221; <a class="footnote-reference" href="#id17" id="id1">[1]</a> documentation for further information.
 We are using cmake version 2.8.9.</p>
@@ -76,7 +77,9 @@ llvm/release/ which contains the clang, clang++ compiler we will use to translat
 the C/C++ input file into llvm IR.
 The other is the directory llvm/test/ which contains our cpu0 backend
 program and without clang and clang++.</p>
-<p>LLVM and this book use sphinx to generate html and pdf document. Sphinx install is included in this Chapter.</p>
+<p>LLVM and this book use sphinx to generate html document. This book use sphix to
+generate pdf and epub format document further.
+Sphinx install is included in this Chapter.</p>
 <div class="admonition-todo admonition" id="index-0">
 <p class="first admonition-title">Todo</p>
 <p class="last">Find information on debugging LLVM within Xcode for Macs.</p>
@@ -123,8 +126,8 @@ CMakeLists.txt  LLVMBuild.txt Makefile  compiler-rt sample
 </pre></div>
 </div>
 <p>Next, copy the LLVM source to /Users/Jonathan/llvm/release/src by executing the
-terminal command <tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/Users/Jonathan/Downloads/src</span> <span class="pre">/Users/Jonathan/</span>
-<span class="pre">llvm/release/.</span></tt>.</p>
+terminal command
+<tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/Users/Jonathan/Downloads/src</span> <span class="pre">/Users/Jonathan/llvm/release/.</span></tt>.</p>
 <p>Install Xcode from the Mac App Store. Then install cmake, which can be found
 here: <a class="footnote-reference" href="#id19" id="id3">[3]</a>.
 Before installing cmake, make sure you can install applications you download
@@ -525,7 +528,9 @@ gar   gelfedit  gobjcopy  granlib gsize   gstrip
 </div></blockquote>
 <p>Next, build with cmake command, <tt class="docutils literal"><span class="pre">cmake</span> <span class="pre">-DCMAKE_BUILD_TYPE=Release</span> <span class="pre">-DCLANG_BUILD</span>
 <span class="pre">_EXAMPLES=ON</span> <span class="pre">-DLLVM_BUILD_EXAMPLES=ON</span> <span class="pre">-G</span> <span class="pre">&quot;Unix</span> <span class="pre">Makefiles&quot;</span> <span class="pre">../src/</span></tt>, as follows.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost cmake_release_build<span class="o">]</span><span class="nv">$ </span>cmake -DCMAKE_BUILD_TYPE<span class="o">=</span>Release
+<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost cmake_release_build<span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
+/usr/local/llvm/release/cmake_release_build
+<span class="o">[</span>Gamma@localhost cmake_release_build<span class="o">]</span><span class="nv">$ </span>cmake -DCMAKE_BUILD_TYPE<span class="o">=</span>Release
 -DCLANG_BUILD_EXAMPLES<span class="o">=</span>ON -DLLVM_BUILD_EXAMPLES<span class="o">=</span>ON -G <span class="s2">&quot;Unix Makefiles&quot;</span> ../src/
 -- The C compiler identification is GNU 4.7.0
 ...
@@ -592,24 +597,23 @@ Cpu0 backend tutorial code.
 Steps as follows,</p>
 <p>The details of installing Cpu0 backend example code according the following
 list steps, and the corresponding commands shown as below,</p>
-<p>1) Enter /usr/local/llvm/test/ and
-get Cpu0 example code as well as the llvm 3.3.</p>
-<ol class="arabic simple" start="2">
+<ol class="arabic simple">
+<li>Enter /usr/local/llvm/test/ and
+get Cpu0 example code as well as the llvm 3.3.</li>
 <li>Make dir Cpu0 in src/lib/Target and download example code.</li>
-</ol>
-<p>3) Update my modified files to support cpu0 by command, <tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">/usr/local/llvm/</span>
-<span class="pre">test/src/lib/Target/Cpu0/lbdex/</span></tt>
-<tt class="docutils literal"><span class="pre">src_files_modify/modify/src</span> <span class="pre">.</span></tt>.</p>
-<p>4) Check step 3 is effective by command
-<tt class="docutils literal"><span class="pre">grep</span> <span class="pre">-R</span> <span class="pre">&quot;Cpu0&quot;</span> <span class="pre">.</span> <span class="pre">|</span> <span class="pre">more`</span></tt>. I add the Cpu0 backend support, so check with
-grep.</p>
-<p>5) Enter src/lib/Target/Cpu0/ and copy example code
+<li>Update llvm modified source files to support cpu0 by command
+<tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">src/lib/Target/Cpu0/lbdex/src_files_modify/modify/src/*</span> <span class="pre">src/.</span></tt>.</li>
+<li>Check step 3 is effective by command
+<tt class="docutils literal"><span class="pre">grep</span> <span class="pre">-R</span> <span class="pre">&quot;Cpu0&quot;</span> <span class="pre">.</span> <span class="pre">|</span> <span class="pre">more`</span></tt>. We add the Cpu0 backend support, so check with
+grep.</li>
+<li>Enter src/lib/Target/Cpu0/ and copy example code
 lbdex/2/Cpu0 to the directory by commands
 <tt class="docutils literal"><span class="pre">cd</span> <span class="pre">src/lib/Target/Cpu0/</span></tt> and
-<tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">lbdex/Chapter2/*</span> <span class="pre">../.</span></tt>.</p>
-<p>6) Remove clang from /usr/local/llvm/test/src/tools/clang, and mkdir
+<tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">lbdex/Chapter2/*</span> <span class="pre">../.</span></tt>.</li>
+<li>Remove clang from /usr/local/llvm/test/src/tools/clang, and mkdir
 test/cmake_debug_build. Without this you will waste extra time for
-command <tt class="docutils literal"><span class="pre">make</span></tt> in cpu0 example code build.</p>
+command <tt class="docutils literal"><span class="pre">make</span></tt> in cpu0 example code build.</li>
+</ol>
 <div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost llvm<span class="o">]</span><span class="nv">$ </span>mkdir <span class="nb">test</span>
 <span class="o">[</span>Gamma@localhost llvm<span class="o">]</span><span class="nv">$ </span><span class="nb">cd test</span>
 <span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
@@ -623,7 +627,7 @@ lbdex.tar.gz .
 ...
 <span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>mkdir src/lib/Target/Cpu0
 118-165-78-111:test Jonathan<span class="nv">$ </span>mv lbdex src/lib/Target/Cpu0/.
-<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>cp -rf lbdex/src_files_modify/
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>cp -rf src/lib/Target/Cpu0/lbdex/src_files_modify/
 modify/src/* src/.
 <span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>grep -R <span class="s2">&quot;cpu0&quot;</span> src/include
 src/include//llvm/ADT/Triple.h:    cpu0,    // For Tutorial Backend Cpu0
@@ -704,14 +708,13 @@ Scanning dependencies of target gtest_main
 /
 TestMain.cpp.o Linking CXX static library ../../lib/libgtest_main.a
 [100%] Built target gtest_main
-[Gamma@localhost cmake_debug_build]$
-
-Now, we are ready for the cpu0 backend development. We can run gdb debug as
+[Gamma@localhost cmake_debug_build]$</pre>
+</div>
+<p>Now, we are ready for the cpu0 backend development. We can run gdb debug as
 follows.
 If your setting has anything about gdb errors, please follow the errors indication
 (maybe need to download gdb again).
-Finally, try gdb as follows.</pre>
-</div>
+Finally, try gdb as follows.</p>
 <div class="highlight-bash"><pre>[Gamma@localhost InputFiles]$ pwd
 /usr/local/llvm/test/src/lib/Target/Cpu0/ExampleCode/
 lbdex/InputFiles
@@ -862,13 +865,13 @@ PASS: LLVM :: CodeGen/Cpu0/ch3-proepilog.ll <span class="o">(</span>29 of 157<sp
 <table class="docutils footnote" frame="void" id="id20" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command">http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://jonathan2251.github.io/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command">http://jonathan2251.github.io/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id21" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui">http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://jonathan2251.github.io/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui">http://jonathan2251.github.io/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id22" rules="none">

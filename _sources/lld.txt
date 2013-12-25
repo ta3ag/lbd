@@ -830,11 +830,11 @@ Run
 ~~~~
 
 File printf-stdarg.c came from internet download which is GPL2 license. GPL2 
-is more restricted than LLVM license. File printf-stdarg-2.c is modified from 
+is more restricted than LLVM license. File printf-stdarg-2.cpp is modified from 
 main() function of printf-stdarg.c and add some test function for 
 /demo/verification/debugpurpose on Cpu0 backend. 
 File printf-stdarg-1.c is the file for testing the printf()
-function implemented on PC OS platform. Let's run printf-stdarg-2.c on Cpu0 and
+function implemented on PC OS platform. Let's run printf-stdarg-2.cpp on Cpu0 and
 compare with the result of printf() function which implemented by PC OS as 
 below.
 
@@ -842,8 +842,8 @@ below.
 .. literalinclude:: ../lbdex/InputFiles/printf-stdarg-1.c
     :start-after: /// start
 
-.. rubric:: lbdex/InputFiles/printf-stdarg-2.c
-.. literalinclude:: ../lbdex/InputFiles/printf-stdarg-2.c
+.. rubric:: lbdex/InputFiles/printf-stdarg-2.cpp
+.. literalinclude:: ../lbdex/InputFiles/printf-stdarg-2.cpp
     :start-after: /// start
 
 .. rubric:: lbdex/InputFiles/printf-stdarg.c
@@ -868,7 +868,7 @@ below.
   /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
   gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
   /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
-  gnu -c printf-stdarg-2.c -emit-llvm -o printf-stdarg-2.bc
+  gnu -c printf-stdarg-2.cpp -emit-llvm -o printf-stdarg-2.bc
   ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
   start.bc -o start.cpu0.o
   ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
@@ -900,10 +900,14 @@ code as follows,
   [Gamma@localhost cpu0_verilog]$ bash clean.sh
   [Gamma@localhost InputFiles]$ cd ../InputFiles/
   [Gamma@localhost InputFiles]$ bash build-printf-stdarg-2.sh
-  printf-stdarg-2.c:85:19: warning: incomplete format specifier [-Wformat]
+  printf-stdarg-2.cpp:48:15: warning: conversion from string literal to 'char *' is deprecated
+        [-Wdeprecated-writable-strings]
+    char *ptr = "Hello world!";
+                ^
+  printf-stdarg-2.cpp:80:19: warning: incomplete format specifier [-Wformat]
     printf("%d %s(s)%", 0, "message");
                     ^
-  1 warning generated.
+  2 warnings generated.
   [Gamma@localhost InputFiles]$ cd ../cpu0_verilog/
   [Gamma@localhost cpu0_verilog]$ pwd
   /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
@@ -916,9 +920,13 @@ code as follows,
   the requested range [0:524287].
   taskInterrupt(001)
   global variable gI = 100
-  time1 = 1 10 12
-  date = 2012 10 12 1 2 3
+  date1 = 2012 10 12 1 2 3
+  date2 = 2012 10 12 1 2 3
   time2 = 1 10 12
+  time3 = 1 10 12
+  date1 = 2013 1 26 12 21 10
+  date2 = 2013 1 26 12 21 10
+  test_template() = 15
   Hello world!
   printf test
   (null) is null pointer
@@ -969,7 +977,9 @@ Let's check the result with PC program printf-stdarg-1.c output as follows,
   -3:   -3 right justif.
 
 They are same after the "Hello world!" of printf() function support.
-The cpu0I use cmp instruction. You can verify the slt 
+The cpu0I use cmp instruction. Before the "Hello world!" are for test cases 
+which needed the linker, such as global variable, C++ template, ... .
+You can verify the slt 
 instructions is work fine too by change cpu to cpu032II as follows,
 
 .. rubric:: lbdex/InputFiles/build-printf-stdarg-2.sh
@@ -1197,6 +1207,9 @@ exists to support dynamic linker.
 The following code ch_dynamiclinker.cpp and foobar.cpp is the example for 
 dynamic linker demostration. File dynamic_linker.cpp is what our implementaion
 to execute the dynamic linker function on Cpu0 Verilog machine.
+
+.. rubric:: lbdex/InputFiles/debug.h
+.. literalinclude:: ../lbdex/InputFiles/debug.h
 
 .. rubric:: lbdex/InputFiles/dynamic_linker.h
 .. literalinclude:: ../lbdex/InputFiles/dynamic_linker.h
@@ -1639,8 +1652,8 @@ We write this book through the process of learning llvm backend and contribute
 back to llvm open source project.
 We think this book cannot exists in traditional paper book form since only 
 few number of readers interested to read this llvm backend book even 
-there are many paper published books in theory of compiler. 
-There are distance between the theory and the practice program implemenation. 
+there are many paper published books in concept of compiler. 
+There are distance between the concept and the practice program implemenation. 
 Keep note through learning a large complicate software is not enough 
 such as this llvm backend study. 
 We all learned the knowledge through books during school and after school. 

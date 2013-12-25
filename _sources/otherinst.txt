@@ -4,16 +4,19 @@ Arithmetic and logic lsupport
 ===============================
 
 This chapter adds more Cpu0 arithmetic instructions support first.
-The logic operation **“not”** support and translation in 
-`section Operator “not” !`_. The `section Display llvm IR nodes with Graphviz`_ 
+The `section Display llvm IR nodes with Graphviz`_ 
 will show you the DAG optimization steps and their corresponding ``llc`` 
 display options. 
 These DAG optimization steps result can be displayed by the graphic tool of 
 Graphviz which supply very useful information with graphic view. 
 You will appreciate Graphviz support in debug, we think.  
-The `section Local variable pointer`_ introduce you the local variable pointer 
-translation.
-Finally, `section Operator mod, %`_ take care the C operator %.
+Logic instructions support will come after arithmetic section.
+Even llvm backend handle the IR only, we get the IR from the corresponding C 
+operators with C example code. Readers should focus on the mapping of C 
+operators and llvm IR and how define llvm backend in td to translate them into 
+backend instructions. HILO register class is defined in this chapter. Readers 
+should see why and how to handle other register class beyond general purpose 
+register class from this chapter.
 
 Arithmetic
 -----------
@@ -330,10 +333,8 @@ SRA, SRAV, SHR and SHRV are for **>>**.
 
 In RISC CPU like Mips, the multiply/divide function unit and add/sub/logic unit 
 are designed from two different hardware circuits, and more, their data path is 
-separate. We think the cpu0 is the same even though no explanation in it's web 
-site.
-So, these two function units can be executed at same time (instruction level 
-parallelism). Reference [#]_ for instruction itineraries.
+separate. Cpu0 is same, so these two function units can be executed at same 
+time (instruction level parallelism). Reference [#]_ for instruction itineraries.
 
 This version can process **+, -, \*, <<,** and **>>** operators in C 
 language. 
@@ -375,7 +376,7 @@ following meaning.
   <result> = lshr i8 -2, 1   ; yields {i8}:result = 0x7FFFFFFF 
   
 In llvm, IR node **sra** is defined for ashr IR instruction, node **srl** is 
-defined for lshr instruction (I don't know why don't use ashr and lshr as the 
+defined for lshr instruction (We don't know why don't use ashr and lshr as the 
 IR node name directly). Summary as the Table: C operator >> implementation.
 
 
@@ -694,8 +695,9 @@ follows,
 
 The -view-isel-dags is important and often used by an llvm backend writer 
 because it is the DAG before instruction selection. 
-The backend programmer need to know what is the DAG for writing the pattern 
-match instruction in target description file .td.
+The backend programmer need to know what is the specific DAG node for a specific 
+C operator in order to writing the pattern match instruction in target 
+description file .td.
 
 Operator % and /
 ~~~~~~~~~~~~~~~~~~
@@ -866,7 +868,7 @@ Chapter4_1/ as follows,
 
 Let's run above changes with ch4_2.cpp as well as ``llc -view-sched-dags`` option 
 to get :num:`Figure #otherinst-f3`. 
-Similarly, SMMUL get the high word of multiply result.
+Instruction SMMUL will get the high word of multiply result.
 
 .. _otherinst-f3:
 .. figure:: ../Fig/otherinst/3.png
@@ -877,7 +879,7 @@ Similarly, SMMUL get the high word of multiply result.
 
   DAG for ch4_2.bc with ARM style SMMUL
 
-Follows is the result of run above changes with ch4_2.bc.
+The following is the result of run above changes with ch4_2.bc.
 
 .. code-block:: bash
 
@@ -947,8 +949,8 @@ If you need the LO part of result, you can use Cpu0 MUL instruction which only
 get the LO part of result. 
 Chapter4_1/ is implemented with Mips MULT style. 
 We choose it as the implementation of this book to add instructions as less as 
-possible. This approach is better for Cpu0 to keep it as a tutorial architecture 
-for school teaching purpose material, and apply Cpu0 as an engineer learning 
+possible. This approach make Cpu0 better both as a tutorial architecture 
+for school teaching purpose material, and an engineer learning 
 materials in compiler, system program and verilog CPU hardware design.
 The MULT, MULTu, MFHI, MFLO, MTHI, MTLO added in Chapter4_1/Cpu0InstrInfo.td; 
 HI, LO register in Chapter4_1/Cpu0RegisterInfo.td and Chapter4_1/MCTargetDesc/
@@ -1030,9 +1032,9 @@ Full support %, and /
 The sensitive readers may find the llvm using **“multiplication”** instead 
 of **“div”** to get the **“%”** result just because our example use constant as 
 divider, **“(b+1)%12”** in our example. 
-If programmer use variable as the divider like **“(b+1)%a”**, then what will 
-happen in our code. 
-The answer is our code will has error to take care this. 
+If programmer use variable as the divider like **“(b+1)%a”**, then: what will 
+happen next? 
+The answer is our code will has error to handle this. 
 
 Cpu0 just like Mips use LO and HI registers to hold the **"quotient"** and 
 **"remainder"**. And 
@@ -1399,8 +1401,8 @@ Logic
 -------
 
 Chapter4_2 support logic operators **&, |, ^, !, ==, !=, <, <=, > and >=**.
-They are trivial and easy. Listing the added code with comment and table for 
-these operators IR, DAG and instructions as below. You check them with the
+They are trivial and easy. Listing the added code with comments and table for 
+these operators IR, DAG and instructions as below. Please check them with the
 run result of bc and asm instructions for ch4_5.cpp as below.
 
 .. rubric:: lbdex/Chapter4_2/Cpu0InstrInfo.cpp
@@ -1851,23 +1853,23 @@ this chapter and spend 360 lines of source code.
 
 
 .. _section Operator “not” !:
-  http://jonathan2251.github.com/lbd/otherinst.html#operator-not
+  http://jonathan2251.github.io/lbd/otherinst.html#operator-not
 
 .. _section Display llvm IR nodes with Graphviz:
-  http://jonathan2251.github.com/lbd/otherinst.html#display-llvm-ir-nodes-
+  http://jonathan2251.github.io/lbd/otherinst.html#display-llvm-ir-nodes-
   with-graphviz
 
 .. _section Local variable pointer:
-  http://jonathan2251.github.com/lbd/otherinst.html#local-variable-pointer
+  http://jonathan2251.github.io/lbd/otherinst.html#local-variable-pointer
 
 .. _section Operator mod, %:
-  http://jonathan2251.github.com/lbd/otherinst.html#operator-mod
+  http://jonathan2251.github.io/lbd/otherinst.html#operator-mod
 
 .. _section Install other tools on iMac:
-  http://jonathan2251.github.com/lbd/install.html#install-other-tools-on-imac
+  http://jonathan2251.github.io/lbd/install.html#install-other-tools-on-imac
 
 .. _section Support arithmetic instructions:
-  http://jonathan2251.github.com/lbd/otherinst.html#support-arithmetic-
+  http://jonathan2251.github.io/lbd/otherinst.html#support-arithmetic-
   instructions
 
 .. [#] http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html

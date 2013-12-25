@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.11',
+        VERSION:     '3.3.12',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -55,16 +55,19 @@
   <div class="section" id="arithmetic-and-logic-lsupport">
 <span id="sec-addingmoresupport"></span><h1>Arithmetic and logic lsupport<a class="headerlink" href="#arithmetic-and-logic-lsupport" title="Permalink to this headline">¶</a></h1>
 <p>This chapter adds more Cpu0 arithmetic instructions support first.
-The logic operation <strong>“not”</strong> support and translation in
-<a class="reference external" href="http://jonathan2251.github.com/lbd/otherinst.html#operator-not">section Operator “not” !</a>. The <a class="reference external" href="http://jonathan2251.github.com/lbd/otherinst.html#display-llvm-ir-nodes-with-graphviz">section Display llvm IR nodes with Graphviz</a>
+The <a class="reference external" href="http://jonathan2251.github.io/lbd/otherinst.html#display-llvm-ir-nodes-with-graphviz">section Display llvm IR nodes with Graphviz</a>
 will show you the DAG optimization steps and their corresponding <tt class="docutils literal"><span class="pre">llc</span></tt>
 display options.
 These DAG optimization steps result can be displayed by the graphic tool of
 Graphviz which supply very useful information with graphic view.
 You will appreciate Graphviz support in debug, we think.
-The <a class="reference external" href="http://jonathan2251.github.com/lbd/otherinst.html#local-variable-pointer">section Local variable pointer</a> introduce you the local variable pointer
-translation.
-Finally, <a class="reference external" href="http://jonathan2251.github.com/lbd/otherinst.html#operator-mod">section Operator mod, %</a> take care the C operator %.</p>
+Logic instructions support will come after arithmetic section.
+Even llvm backend handle the IR only, we get the IR from the corresponding C
+operators with C example code. Readers should focus on the mapping of C
+operators and llvm IR and how define llvm backend in td to translate them into
+backend instructions. HILO register class is defined in this chapter. Readers
+should see why and how to handle other register class beyond general purpose
+register class from this chapter.</p>
 <div class="section" id="arithmetic">
 <h2>Arithmetic<a class="headerlink" href="#arithmetic" title="Permalink to this headline">¶</a></h2>
 <p>The code added in Chapter4_1/ to support arithmetic instructions as follows,</p>
@@ -395,10 +398,8 @@ SHL (defined before) and SHLV are for <strong>&lt;&lt;</strong>.
 SRA, SRAV, SHR and SHRV are for <strong>&gt;&gt;</strong>.</p>
 <p>In RISC CPU like Mips, the multiply/divide function unit and add/sub/logic unit
 are designed from two different hardware circuits, and more, their data path is
-separate. We think the cpu0 is the same even though no explanation in it&#8217;s web
-site.
-So, these two function units can be executed at same time (instruction level
-parallelism). Reference <a class="footnote-reference" href="#id8" id="id1">[1]</a> for instruction itineraries.</p>
+separate. Cpu0 is same, so these two function units can be executed at same
+time (instruction level parallelism). Reference <a class="footnote-reference" href="#id8" id="id1">[1]</a> for instruction itineraries.</p>
 <p>This version can process <strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong> operators in C
 language.
 The corresponding llvm IR instructions are <strong>add, sub, mul,
@@ -440,7 +441,7 @@ following meaning.</p>
 &lt;result&gt; = lshr i8 -2, 1   ; yields {i8}:result = 0x7FFFFFFF</p>
 </div>
 <p>In llvm, IR node <strong>sra</strong> is defined for ashr IR instruction, node <strong>srl</strong> is
-defined for lshr instruction (I don&#8217;t know why don&#8217;t use ashr and lshr as the
+defined for lshr instruction (We don&#8217;t know why don&#8217;t use ashr and lshr as the
 IR node name directly). Summary as the Table: C operator &gt;&gt; implementation.</p>
 <table border="1" class="docutils">
 <caption>C operator &gt;&gt; implementation</caption>
@@ -741,7 +742,7 @@ _Z9test_mathv:
 <p>The previous section, display the DAG translation process in text on terminal
 by <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-debug</span></tt> option.
 The <tt class="docutils literal"><span class="pre">llc</span></tt> also support the graphic display.
-The <a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#install-other-tools-on-imac">section Install other tools on iMac</a> mentioned the web for <tt class="docutils literal"><span class="pre">llc</span></tt>
+The <a class="reference external" href="http://jonathan2251.github.io/lbd/install.html#install-other-tools-on-imac">section Install other tools on iMac</a> mentioned the web for <tt class="docutils literal"><span class="pre">llc</span></tt>
 graphic display information.
 The <tt class="docutils literal"><span class="pre">llc</span></tt> graphic display with tool Graphviz is introduced in this section.
 The graphic display is more readable by eye than display text in terminal.
@@ -802,8 +803,9 @@ follows,</p>
 </div>
 <p>The -view-isel-dags is important and often used by an llvm backend writer
 because it is the DAG before instruction selection.
-The backend programmer need to know what is the DAG for writing the pattern
-match instruction in target description file .td.</p>
+The backend programmer need to know what is the specific DAG node for a specific
+C operator in order to writing the pattern match instruction in target
+description file .td.</p>
 </div>
 <div class="section" id="operator-and">
 <h3>Operator % and /<a class="headerlink" href="#operator-and" title="Permalink to this headline">¶</a></h3>
@@ -956,12 +958,12 @@ Chapter4_1/ as follows,</p>
 </div>
 <p>Let&#8217;s run above changes with ch4_2.cpp as well as <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-view-sched-dags</span></tt> option
 to get <a class="pageref" href="#otherinst-f3">Figure  3</a>.
-Similarly, SMMUL get the high word of multiply result.</p>
+Instruction SMMUL will get the high word of multiply result.</p>
 <div class="figure align-center" id="otherinst-f3">
 <a class="reference internal image-reference" href="_images/35.png"><img alt="_images/35.png" src="_images/35.png" style="width: 684.0px; height: 743.0px;" /></a>
 <p class="caption">Figure 3: DAG for ch4_2.bc with ARM style SMMUL</p>
 </div>
-<p>Follows is the result of run above changes with ch4_2.bc.</p>
+<p>The following is the result of run above changes with ch4_2.bc.</p>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-66-82:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_
 debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
 ch4_2.bc -o -
@@ -1025,8 +1027,8 @@ If you need the LO part of result, you can use Cpu0 MUL instruction which only
 get the LO part of result.
 Chapter4_1/ is implemented with Mips MULT style.
 We choose it as the implementation of this book to add instructions as less as
-possible. This approach is better for Cpu0 to keep it as a tutorial architecture
-for school teaching purpose material, and apply Cpu0 as an engineer learning
+possible. This approach make Cpu0 better both as a tutorial architecture
+for school teaching purpose material, and an engineer learning
 materials in compiler, system program and verilog CPU hardware design.
 The MULT, MULTu, MFHI, MFLO, MTHI, MTLO added in Chapter4_1/Cpu0InstrInfo.td;
 HI, LO register in Chapter4_1/Cpu0RegisterInfo.td and Chapter4_1/MCTargetDesc/
@@ -1096,9 +1098,9 @@ _Z8test_modv:
 <p>The sensitive readers may find the llvm using <strong>“multiplication”</strong> instead
 of <strong>“div”</strong> to get the <strong>“%”</strong> result just because our example use constant as
 divider, <strong>“(b+1)%12”</strong> in our example.
-If programmer use variable as the divider like <strong>“(b+1)%a”</strong>, then what will
-happen in our code.
-The answer is our code will has error to take care this.</p>
+If programmer use variable as the divider like <strong>“(b+1)%a”</strong>, then: what will
+happen next?
+The answer is our code will has error to handle this.</p>
 <p>Cpu0 just like Mips use LO and HI registers to hold the <strong>&#8220;quotient&#8221;</strong> and
 <strong>&#8220;remainder&#8221;</strong>. And
 use instructions <strong>“mflo”</strong> and <strong>“mfhi”</strong> to get the result from LO or HI
@@ -1499,8 +1501,8 @@ to <strong>mfhi</strong>.</p>
 <div class="section" id="logic">
 <h2>Logic<a class="headerlink" href="#logic" title="Permalink to this headline">¶</a></h2>
 <p>Chapter4_2 support logic operators <strong>&amp;, |, ^, !, ==, !=, &lt;, &lt;=, &gt; and &gt;=</strong>.
-They are trivial and easy. Listing the added code with comment and table for
-these operators IR, DAG and instructions as below. You check them with the
+They are trivial and easy. Listing the added code with comments and table for
+these operators IR, DAG and instructions as below. Please check them with the
 run result of bc and asm instructions for ch4_5.cpp as below.</p>
 <p class="rubric">lbdex/Chapter4_2/Cpu0InstrInfo.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>

@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.11',
+        VERSION:     '3.3.12',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -74,14 +74,15 @@ You will learn the objdump, readelf, ..., tools and understand the ELF file
 format itself through using these tools to analyze the cpu0 generated obj in
 this chapter.
 LLVM has the llvm-objdump tool which like objdump. We will make cpu0 support
-llvm-objdump tool in this chapter.
-The binutils support other CPU ELF dump as a cross compiler tool chains.
+llvm-objdump tool further in this chapter.
+The binutils is a cross compiler tool chains include a couple of CPU ELF dump
+function support.
 Linux platform has binutils already and no need to install it further.
 We use Linux binutils in this chapter just because iMac will display Chinese
 text.
-The iMac corresponding binutils have no problem except it use add g in command.
+The iMac corresponding binutils have no problem except it add g in command name.
 For example, use gobjdump instead of objdump, and display with your area
-language instead of pure English.</p>
+language instead of pure English on iMac.</p>
 <p>The binutils tool we use is not a part of llvm tools, but it&#8217;s a powerful tool
 in ELF analysis.
 This chapter introduce the tool to readers since we think it is a valuable
@@ -115,7 +116,7 @@ So, there are two views in it as <a class="pageref" href="#elf-f1">Figure  1</a>
 <p>As <a class="pageref" href="#elf-f1">Figure  1</a>, the “Section header table” include sections .text, .rodata,
 ..., .data which are sections layout for code, read only data, ..., and
 read/write data.
-“Program header table” include segments include run time code and data.
+“Program header table” include segments for run time code and data.
 The definition of segments is run time layout for code and data while sections
 is link time layout for code and data.</p>
 </div>
@@ -187,7 +188,7 @@ There are no program headers in this file.
 execution.
 So, the segments is empty.
 Check ELF sections information as follows.
-It contains offset and size information for every section.</p>
+Every section contain offset and size information.</p>
 <div class="highlight-bash"><pre>[Gamma@localhost InputFiles]$ readelf -S ch6_1.cpu0.o
 There are 10 section headers, starting at offset 0xd4:
 
@@ -337,7 +338,7 @@ Relocation section '.rel.text' at offset 0x2f8 contains 3 entries:
 00000004  00000906 R_MIPS_LO16       00000000   _gp_disp
 0000001c  00000709 R_MIPS_GOT16      00000004   gI</pre>
 </div>
-<p>As depicted in <a class="reference external" href="http://jonathan2251.github.com/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode">section Handle $gp register in PIC addressing mode</a>, it
+<p>As depicted in <a class="reference external" href="http://jonathan2251.github.io/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode">section Handle $gp register in PIC addressing mode</a>, it
 translate <strong>“.cpload %reg”</strong> into the following.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Lower &quot;.cpload $reg&quot; to</span>
 <span class="c1">//  &quot;lui   $gp, %hi(_gp_disp)&quot;</span>
@@ -1091,7 +1092,7 @@ _Z13test_control1v:
 <table class="docutils footnote" frame="void" id="id8" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://jonathan2251.github.com/lbd/install.html#install-other-tools-on-imac">http://jonathan2251.github.com/lbd/install.html#install-other-tools-on-imac</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://jonathan2251.github.io/lbd/install.html#install-other-tools-on-imac">http://jonathan2251.github.io/lbd/install.html#install-other-tools-on-imac</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id9" rules="none">

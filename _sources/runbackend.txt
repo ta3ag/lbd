@@ -20,6 +20,9 @@ result.
 AsmParser support
 ------------------
 
+This section list all the AsmParser code for cpu0 backend but with only a few 
+explanation. Please refer here [#]_ for more AsmParser explanation.
+
 Run Chapter10_1/ with ch11_1.cpp will get the following error message.
 
 .. rubric:: lbdex/InputFiles/ch11_1.cpp
@@ -331,10 +334,11 @@ use the same machine instructions. Verilog is C like language in syntex and
 this book is a compiler book, so we list the cpu0.v as well as the building 
 command directly as below. We expect 
 readers can understand the Verilog code just with a little patient and no need 
-further explanation. There are two type of I/O. One is memory mapped I/O, the 
-other is instruction I/O. CPU0 use memory mapped I/O, we set the memory address 
-0x7000 as the output port. When meet the instruction **"st $ra, cx($rb)"**, where 
-cx($rb) is 0x7000 (28672), CPU0 display the content as follows,
+further explanation. According computer architecture, there are two type of I/O. 
+One is memory mapped I/O, the other is instruction I/O. 
+CPU0 use memory mapped I/O, we set the memory address 0x7000 as the output port. 
+When meet the instruction **"st $ra, cx($rb)"**, where cx($rb) is 
+0x7000 (28672), CPU0 display the content as follows,
 
 .. code-block:: c++
 
@@ -380,11 +384,11 @@ cpu0.v use 0x7000 bytes of memory.
 .. literalinclude:: ../lbdex/InputFiles/ch_run_backend.cpp
     :start-after: /// start
 
-Let's run the Chapter11_2/ with ``llvm-objdump -d`` for input files 
-ch_run_backend.cpp to generate the hex file 
-and input to cpu0Is Verilog simulator to get the output result as below. 
-Remind ch_run_backend.cpp have to
-compile with option ``clang -target mips-unknown-linux-gnu`` and use the clang of
+Let's run Chapter11_2/ with ``llvm-objdump -d`` for input files 
+ch_run_backend.cpp to generate the hex file of inputing to cpu0Is Verilog 
+simulator to get the output result as below. 
+Remind ch_run_backend.cpp have to be compiled with option 
+``clang -target mips-unknown-linux-gnu`` and use the clang of
 your build instead of download from Xcode on iMac. The ~/llvm/release/
 cmake_debug_build/bin/Debug/ is my build clang from source code.
 
@@ -411,11 +415,16 @@ cmake_debug_build/bin/Debug/ is my build clang from source code.
   1
   14
   3
+  -126
+  130
+  -32766
+  32770
   393307
   16777222
   51
   2147483647
-  -2147483648
+  -21474836487
+  7
   15
   RET to PC < 0, finished!
 
@@ -465,7 +474,7 @@ assumption that the stack size of print1_integer() is 8.
 
 
 You can trace the memory binary code and destination
-register change at every instruction execution by the following change and
+register changed at every instruction execution by the following change and
 get the result as below,
 
 .. rubric:: lbdex/cpu0_verilog/cpu0Is.v
@@ -508,7 +517,7 @@ is instruction address. The third is instruction content.
 We have checked many example code is correct by print the variable with 
 print_integer().
 
-This chapter show Verilog PC output by display the I/O memory mapped address but
+This chapter shows Verilog PC output by display the I/O memory mapped address but
 didn't implementing the output hardware interface or port. 
 The real output hardware 
 interface/port is hardware output device dependent, such as RS232, speaker, 
@@ -516,6 +525,7 @@ LED, .... You should implement the I/O interface/port when you want to program
 FPGA and wire I/O device to the I/O port.
 
 
+.. [#] http://www.embecosm.com/appnotes/ean10/ean10-howto-llvmas-1.0.html
 
 .. [#] http://www.ece.umd.edu/courses/enee359a/
 

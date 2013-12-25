@@ -622,79 +622,8 @@ Finally we list the code added for full support of control flow statement,
 
 The ch8_1_2.cpp is for **“nest if”** test. The ch8_1_3.cpp is the 
 **“for loop”** as well as **“while loop”**, **“continue”**, **“break”**, 
-**“goto”** test. The ch8_1_5.cpp is for **“goto”** test.
+**“goto”** test. The ch8_1_4.cpp is for **“goto”** test.
 You can run with them if you like to test more.
-
-
-The ch8_1_4.cpp is for test C operators **==, !=, &&, ||**. No code need to 
-add since we have take care them before. 
-But it can be test only when the control flow statement support is ready, as 
-follows,
-
-.. rubric:: lbdex/InputFiles/ch8_1_4.cpp
-.. literalinclude:: ../lbdex/InputFiles/ch8_1_4.cpp
-    :start-after: /// start
-
-.. code-block:: bash
-
-  118-165-78-230:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch8_1_4.cpp -emit-llvm -o ch8_1_4.bc
-  118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_1_4.bc -o 
-  ch8_1_4.cpu0.s
-  118-165-78-230:InputFiles Jonathan$ cat ch8_1_4.cpu0.s 
-    .section .mdebug.abi32
-    .previous
-    .file "ch8_1_4.bc"
-    .text
-    .globl  main
-    .align  2
-    .type main,@function
-    .ent  main                    # @main
-  main:
-    .cfi_startproc
-    .frame  $sp,16,$lr
-    .mask   0x00000000,0
-    .set  noreorder
-    .set  nomacro
-  # BB#0:
-    addiu $sp, $sp, -16
-  $tmp1:
-    .cfi_def_cfa_offset 16
-    addiu $3, $zero, 0
-    st  $3, 12($sp)
-    st  $3, 8($sp)
-    addiu $2, $zero, 1
-    st  $2, 4($sp)
-    addiu $2, $zero, 2
-    st  $2, 0($sp)
-    ld  $4, 8($sp)
-    cmp $4, $3
-    jne $BB0_2		// a != 0
-    jmp $BB0_1
-  $BB0_1:			// a == 0
-    ld  $3, 4($sp)
-    cmp $3, $2
-    jeq $BB0_3		// b == 2
-    jmp $BB0_2
-  $BB0_2:
-    ld  $3, 0($sp)
-    cmp $3, $2		// c == 2
-    jeq $BB0_4
-    jmp $BB0_3
-  $BB0_3:			// (a == 0 && b == 2) || (c != 2)
-    ld  $2, 8($sp)
-    addiu $2, $2, 1	// a++
-    st  $2, 8($sp)
-  $BB0_4:
-    addiu $sp, $sp, 16
-    ret $lr
-    .set  macro
-    .set  reorder
-    .end  main
-  $tmp2:
-    .size main, ($tmp2)-main
-    .cfi_endproc
 
 
 RISC CPU knowledge

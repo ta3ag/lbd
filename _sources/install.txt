@@ -16,8 +16,9 @@ We cannot debug our LLVM builds within Xcode at the
 moment, but if you have experience with this, please contact us and help us 
 build documentation that covers this.  For Linux machines, we are building and 
 debugging (using gdb) our LLVM installations on a Fedora 17 system.  We will 
-not be using an IDE for Linux, but once again, if you have experience building/
-debugging LLVM using Eclipse or other major IDEs, please contact the authors. 
+not be using an IDE for Linux, but once again, if you have experience 
+uilding/debugging LLVM using Eclipse or other major IDEs, please contact the 
+authors. 
 For information on using ``cmake`` to build LLVM, please refer to the "Building 
 LLVM with CMake" [#]_ documentation for further information. 
 We are using cmake version 2.8.9.
@@ -28,7 +29,9 @@ the C/C++ input file into llvm IR.
 The other is the directory llvm/test/ which contains our cpu0 backend 
 program and without clang and clang++.
 
-LLVM and this book use sphinx to generate html and pdf document. Sphinx install is included in this Chapter. 
+LLVM and this book use sphinx to generate html document. This book use sphix to 
+generate pdf and epub format document further.
+Sphinx install is included in this Chapter. 
 
 .. todo:: Find information on debugging LLVM within Xcode for Macs.
 .. todo:: Find information on building/debugging LLVM within Eclipse for Linux.
@@ -75,8 +78,8 @@ compiler-rt source to src/project/compiler-rt as shown as follows,
 
 
 Next, copy the LLVM source to /Users/Jonathan/llvm/release/src by executing the 
-terminal command ``cp -rf /Users/Jonathan/Downloads/src /Users/Jonathan/
-llvm/release/.``.
+terminal command 
+``cp -rf /Users/Jonathan/Downloads/src /Users/Jonathan/llvm/release/.``.
 
 Install Xcode from the Mac App Store. Then install cmake, which can be found 
 here: [#]_. 
@@ -564,6 +567,8 @@ _EXAMPLES=ON -DLLVM_BUILD_EXAMPLES=ON -G "Unix Makefiles" ../src/``, as follows.
 
 .. code-block:: bash
 
+  [Gamma@localhost cmake_release_build]$ pwd
+  /usr/local/llvm/release/cmake_release_build
   [Gamma@localhost cmake_release_build]$ cmake -DCMAKE_BUILD_TYPE=Release 
   -DCLANG_BUILD_EXAMPLES=ON -DLLVM_BUILD_EXAMPLES=ON -G "Unix Makefiles" ../src/
   -- The C compiler identification is GNU 4.7.0
@@ -636,26 +641,25 @@ The details of installing Cpu0 backend example code according the following
 list steps, and the corresponding commands shown as below,
 
 1) Enter /usr/local/llvm/test/ and 
-get Cpu0 example code as well as the llvm 3.3.
+   get Cpu0 example code as well as the llvm 3.3.
 
 2) Make dir Cpu0 in src/lib/Target and download example code.
 
-3) Update my modified files to support cpu0 by command, ``cp -rf /usr/local/llvm/
-test/src/lib/Target/Cpu0/lbdex/``
-``src_files_modify/modify/src .``.
+3) Update llvm modified source files to support cpu0 by command
+   ``cp -rf src/lib/Target/Cpu0/lbdex/src_files_modify/modify/src/* src/.``.
 
 4) Check step 3 is effective by command 
-``grep -R "Cpu0" . | more```. I add the Cpu0 backend support, so check with 
-grep.
+   ``grep -R "Cpu0" . | more```. We add the Cpu0 backend support, so check with 
+   grep.
 
 5) Enter src/lib/Target/Cpu0/ and copy example code 
-lbdex/2/Cpu0 to the directory by commands 
-``cd src/lib/Target/Cpu0/`` and 
-``cp -rf lbdex/Chapter2/* ../.``.
+   lbdex/2/Cpu0 to the directory by commands 
+   ``cd src/lib/Target/Cpu0/`` and 
+   ``cp -rf lbdex/Chapter2/* ../.``.
 
 6) Remove clang from /usr/local/llvm/test/src/tools/clang, and mkdir 
-test/cmake_debug_build. Without this you will waste extra time for 
-command ``make`` in cpu0 example code build.
+   test/cmake_debug_build. Without this you will waste extra time for 
+   command ``make`` in cpu0 example code build.
 
 .. code-block:: bash
 
@@ -672,7 +676,7 @@ command ``make`` in cpu0 example code build.
   ...
   [Gamma@localhost test]$ mkdir src/lib/Target/Cpu0
   118-165-78-111:test Jonathan$ mv lbdex src/lib/Target/Cpu0/.
-  [Gamma@localhost test]$ cp -rf lbdex/src_files_modify/
+  [Gamma@localhost test]$ cp -rf src/lib/Target/Cpu0/lbdex/src_files_modify/
   modify/src/* src/.
   [Gamma@localhost test]$ grep -R "cpu0" src/include
   src/include//llvm/ADT/Triple.h:    cpu0,    // For Tutorial Backend Cpu0
@@ -759,12 +763,12 @@ Then do make as follows,
   TestMain.cpp.o Linking CXX static library ../../lib/libgtest_main.a
   [100%] Built target gtest_main
   [Gamma@localhost cmake_debug_build]$
-  
-  Now, we are ready for the cpu0 backend development. We can run gdb debug as 
-  follows. 
-  If your setting has anything about gdb errors, please follow the errors indication 
-  (maybe need to download gdb again). 
-  Finally, try gdb as follows.
+
+Now, we are ready for the cpu0 backend development. We can run gdb debug as 
+follows. 
+If your setting has anything about gdb errors, please follow the errors indication 
+(maybe need to download gdb again). 
+Finally, try gdb as follows.
 
 .. code-block:: bash
 
@@ -927,9 +931,9 @@ Run as follows for single test case and the whole test cases on Linux.
 
 .. [#] http://www.cmake.org/cmake/resources/software.html
 
-.. [#] http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command
+.. [#] http://jonathan2251.github.io/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command
 
-.. [#] http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui
+.. [#] http://jonathan2251.github.io/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui
 
 .. [#] http://lldb.llvm.org/lldb-gdb.html
 

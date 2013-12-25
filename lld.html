@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.11',
+        VERSION:     '3.3.12',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -3055,11 +3055,11 @@ explantation.</p>
 <div class="section" id="run">
 <h3>Run<a class="headerlink" href="#run" title="Permalink to this headline">¶</a></h3>
 <p>File printf-stdarg.c came from internet download which is GPL2 license. GPL2
-is more restricted than LLVM license. File printf-stdarg-2.c is modified from
+is more restricted than LLVM license. File printf-stdarg-2.cpp is modified from
 main() function of printf-stdarg.c and add some test function for
 /demo/verification/debugpurpose on Cpu0 backend.
 File printf-stdarg-1.c is the file for testing the printf()
-function implemented on PC OS platform. Let&#8217;s run printf-stdarg-2.c on Cpu0 and
+function implemented on PC OS platform. Let&#8217;s run printf-stdarg-2.cpp on Cpu0 and
 compare with the result of printf() function which implemented by PC OS as
 below.</p>
 <p class="rubric">lbdex/InputFiles/printf-stdarg-1.c</p>
@@ -3166,46 +3166,18 @@ below.</p>
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/InputFiles/printf-stdarg-2.c</p>
+<p class="rubric">lbdex/InputFiles/printf-stdarg-2.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;print.h&quot;</span>
 
-<span class="k">extern</span> <span class="kt">int</span> <span class="n">printf</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">...);</span>
-<span class="k">extern</span> <span class="kt">int</span> <span class="n">sprintf</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">out</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">...);</span>
+<span class="cp">#define PRINT_TEST</span>
 
-<span class="k">struct</span> <span class="n">Time</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">hour</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">minute</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">second</span><span class="p">;</span>
-<span class="p">};</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">int</span> <span class="n">printf</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">...);</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">int</span> <span class="n">sprintf</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">out</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">...);</span>
 
-<span class="k">struct</span> <span class="n">Date</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">year</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">month</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">day</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">hour</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">minute</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">second</span><span class="p">;</span>
-<span class="p">};</span>
-
-<span class="kt">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
-<span class="k">struct</span> <span class="n">Date</span> <span class="n">gDate</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">};</span>
-
-<span class="kt">int</span> <span class="n">test_global</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="k">return</span> <span class="n">gI</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="k">struct</span> <span class="n">Date</span> <span class="n">copyDate</span><span class="p">(</span><span class="k">struct</span> <span class="n">Date</span> <span class="n">date</span><span class="p">)</span>
-<span class="p">{</span> 
-  <span class="k">return</span> <span class="n">date</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="k">struct</span> <span class="n">Time</span> <span class="n">copyTime</span><span class="p">(</span><span class="k">struct</span> <span class="n">Time</span> <span class="n">time</span><span class="p">)</span>
-<span class="p">{</span> 
-  <span class="k">return</span> <span class="n">time</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="cp">#include &quot;ch6_1.cpp&quot;</span>
+<span class="cp">#include &quot;ch9_2_1.cpp&quot;</span>
+<span class="cp">#include &quot;ch9_2_2.cpp&quot;</span>
+<span class="cp">#include &quot;ch9_3_2.cpp&quot;</span>
 
 <span class="kt">int</span> <span class="n">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
 <span class="p">{</span>
@@ -3217,17 +3189,13 @@ below.</p>
   <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mi">80</span><span class="p">];</span>
 
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="k">struct</span> <span class="n">Time</span> <span class="n">time1</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
-  <span class="k">struct</span> <span class="n">Time</span> <span class="n">time2</span><span class="p">;</span>
-  <span class="k">struct</span> <span class="n">Date</span> <span class="n">date</span><span class="p">;</span>
 
   <span class="n">a</span> <span class="o">=</span> <span class="n">test_global</span><span class="p">();</span>  <span class="c1">// gI = 100</span>
   <span class="n">printf</span><span class="p">(</span><span class="s">&quot;global variable gI = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;time1 = %d %d %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">time1</span><span class="p">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">time1</span><span class="p">.</span><span class="n">minute</span><span class="p">,</span> <span class="n">time1</span><span class="p">.</span><span class="n">second</span><span class="p">);</span>
-  <span class="n">date</span> <span class="o">=</span> <span class="n">copyDate</span><span class="p">(</span><span class="n">gDate</span><span class="p">);</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;date = %d %d %d %d %d %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">date</span><span class="p">.</span><span class="n">year</span><span class="p">,</span> <span class="n">date</span><span class="p">.</span><span class="n">month</span><span class="p">,</span> <span class="n">date</span><span class="p">.</span><span class="n">day</span><span class="p">,</span> <span class="n">date</span><span class="p">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">date</span><span class="p">.</span><span class="n">minute</span><span class="p">,</span> <span class="n">date</span><span class="p">.</span><span class="n">second</span><span class="p">);</span>
-  <span class="n">time2</span> <span class="o">=</span> <span class="n">copyTime</span><span class="p">(</span><span class="n">time1</span><span class="p">);</span> <span class="c1">// test return V0, V1, A0</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;time2 = %d %d %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">time2</span><span class="p">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">time2</span><span class="p">.</span><span class="n">minute</span><span class="p">,</span> <span class="n">time2</span><span class="p">.</span><span class="n">second</span><span class="p">);</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_func_arg_struct</span><span class="p">();</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_contructor</span><span class="p">();</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_template</span><span class="p">();</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;test_template() = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span> <span class="c1">// a = 15</span>
 
   <span class="n">mi</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">bs</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
   <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">ptr</span><span class="p">);</span>
@@ -3577,7 +3545,7 @@ gnu -c start.cpp -emit-llvm -o start.bc
 /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
 gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
 /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
-gnu -c printf-stdarg-2.c -emit-llvm -o printf-stdarg-2.bc
+gnu -c printf-stdarg-2.cpp -emit-llvm -o printf-stdarg-2.bc
 ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
 start.bc -o start.cpu0.o
 ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
@@ -3615,10 +3583,14 @@ code as follows,</p>
 <span class="o">[</span>Gamma@localhost cpu0_verilog<span class="o">]</span><span class="nv">$ </span>bash clean.sh
 <span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span><span class="nb">cd</span> ../InputFiles/
 <span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span>bash build-printf-stdarg-2.sh
-<span class="nb">printf</span>-stdarg-2.c:85:19: warning: incomplete format specifier <span class="o">[</span>-Wformat<span class="o">]</span>
+<span class="nb">printf</span>-stdarg-2.cpp:48:15: warning: conversion from string literal to <span class="s1">&#39;char *&#39;</span> is deprecated
+      <span class="o">[</span>-Wdeprecated-writable-strings<span class="o">]</span>
+  char *ptr <span class="o">=</span> <span class="s2">&quot;Hello world!&quot;</span>;
+              ^
+<span class="nb">printf</span>-stdarg-2.cpp:80:19: warning: incomplete format specifier <span class="o">[</span>-Wformat<span class="o">]</span>
   <span class="nb">printf</span><span class="o">(</span><span class="s2">&quot;%d %s(s)%&quot;</span>, 0, <span class="s2">&quot;message&quot;</span><span class="o">)</span>;
                   ^
-1 warning generated.
+2 warnings generated.
 <span class="o">[</span>Gamma@localhost InputFiles<span class="o">]</span><span class="nv">$ </span><span class="nb">cd</span> ../cpu0_verilog/
 <span class="o">[</span>Gamma@localhost cpu0_verilog<span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
 /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
@@ -3631,9 +3603,13 @@ WARNING: cpu0.v:365: <span class="nv">$readmemh</span><span class="o">(</span>cp
 the requested range <span class="o">[</span>0:524287<span class="o">]</span>.
 taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 global variable <span class="nv">gI</span> <span class="o">=</span> 100
-<span class="nv">time1</span> <span class="o">=</span> 1 10 12
-<span class="nv">date</span> <span class="o">=</span> 2012 10 12 1 2 3
+<span class="nv">date1</span> <span class="o">=</span> 2012 10 12 1 2 3
+<span class="nv">date2</span> <span class="o">=</span> 2012 10 12 1 2 3
 <span class="nv">time2</span> <span class="o">=</span> 1 10 12
+<span class="nv">time3</span> <span class="o">=</span> 1 10 12
+<span class="nv">date1</span> <span class="o">=</span> 2013 1 26 12 21 10
+<span class="nv">date2</span> <span class="o">=</span> 2013 1 26 12 21 10
+test_template<span class="o">()</span> <span class="o">=</span> 15
 Hello world!
 <span class="nb">printf test</span>
 <span class="o">(</span>null<span class="o">)</span> is null pointer
@@ -3683,7 +3659,9 @@ justif: <span class="s2">&quot;     right&quot;</span>
 </pre></div>
 </div>
 <p>They are same after the &#8220;Hello world!&#8221; of printf() function support.
-The cpu0I use cmp instruction. You can verify the slt
+The cpu0I use cmp instruction. Before the &#8220;Hello world!&#8221; are for test cases
+which needed the linker, such as global variable, C++ template, ... .
+You can verify the slt
 instructions is work fine too by change cpu to cpu032II as follows,</p>
 <p class="rubric">lbdex/InputFiles/build-printf-stdarg-2.sh</p>
 <div class="highlight-bash"><div class="highlight"><pre>...
@@ -4168,15 +4146,9 @@ exists to support dynamic linker.</p>
 <p>The following code ch_dynamiclinker.cpp and foobar.cpp is the example for
 dynamic linker demostration. File dynamic_linker.cpp is what our implementaion
 to execute the dynamic linker function on Cpu0 Verilog machine.</p>
-<p class="rubric">lbdex/InputFiles/dynamic_linker.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#ifndef _DYNAMIC_LINKER_H_</span>
-<span class="cp">#define _DYNAMIC_LINKER_H_</span>
-
-<span class="cp">#define DYNLINKER_INFO_ADDR  0x70000</span>
-<span class="cp">#define DYNENT_SIZE          4</span>
-<span class="cp">#define DYNPROGSTART         0x40000</span>
-<span class="cp">#define FLASHADDR            0xA0000</span>
-<span class="cp">#define GPADDR               0x7FFF0</span>
+<p class="rubric">lbdex/InputFiles/debug.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#ifndef _DEBUG_H_</span>
+<span class="cp">#define _DEBUG_H_</span>
 
 <span class="cp">#define STOP \</span>
 <span class="cp">  asm(&quot;lui $t9, 0xffff&quot;); \</span>
@@ -4192,6 +4164,21 @@ to execute the dynamic linker function on Cpu0 Verilog machine.</p>
 <span class="cp">  asm(&quot;mfsw $at&quot;); \</span>
 <span class="cp">  asm(&quot;andi $at, $at, 0xffdf&quot;); \</span>
 <span class="cp">  asm(&quot;mtsw $at&quot;);</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/InputFiles/dynamic_linker.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#ifndef _DYNAMIC_LINKER_H_</span>
+<span class="cp">#define _DYNAMIC_LINKER_H_</span>
+
+<span class="cp">#define DYNLINKER_INFO_ADDR  0x70000</span>
+<span class="cp">#define DYNENT_SIZE          4</span>
+<span class="cp">#define DYNPROGSTART         0x40000</span>
+<span class="cp">#define FLASHADDR            0xA0000</span>
+<span class="cp">#define GPADDR               0x7FFF0</span>
+
+<span class="cp">#include &quot;debug.h&quot;</span>
 
 <span class="k">struct</span> <span class="n">ProgAddr</span> <span class="p">{</span>
   <span class="kt">int</span> <span class="n">memAddr</span><span class="p">;</span>
@@ -4416,10 +4403,10 @@ to execute the dynamic linker function on Cpu0 Verilog machine.</p>
 <span class="p">}</span>
 
 <span class="cp">#if 0</span><span class="c"></span>
-<span class="c">int power(int x)</span>
+<span class="c">int factorial(int x)</span>
 <span class="c">{</span>
 <span class="c">  if (x &gt; 0)</span>
-<span class="c">    return x*power(x-1);</span>
+<span class="c">    return x*factorial(x-1);</span>
 <span class="c">  else</span>
 <span class="c">    return 1;</span>
 <span class="c">}</span>
@@ -4431,7 +4418,7 @@ to execute the dynamic linker function on Cpu0 Verilog machine.</p>
 <span class="c1">//  ENABLE_TRACE;</span>
   <span class="n">a</span> <span class="o">=</span> <span class="n">foo</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
   <span class="n">a</span> <span class="o">+=</span> <span class="n">la</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span> <span class="c1">// 4+7=11</span>
-<span class="c1">//  a += power(4); // 11+24=35</span>
+<span class="c1">//  a += factorial(4); // 11+24=35</span>
 
   <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
 <span class="p">}</span>
@@ -4808,8 +4795,8 @@ We write this book through the process of learning llvm backend and contribute
 back to llvm open source project.
 We think this book cannot exists in traditional paper book form since only
 few number of readers interested to read this llvm backend book even
-there are many paper published books in theory of compiler.
-There are distance between the theory and the practice program implemenation.
+there are many paper published books in concept of compiler.
+There are distance between the concept and the practice program implemenation.
 Keep note through learning a large complicate software is not enough
 such as this llvm backend study.
 We all learned the knowledge through books during school and after school.

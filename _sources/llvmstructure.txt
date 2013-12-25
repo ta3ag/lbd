@@ -20,25 +20,26 @@ you what is necessary to get your first backend functional and complete, and it
 should help you understand how to debug your backend when it produces incorrect machine 
 code using output provided by the compiler.
 
-This section details the Cpu0 instruction set and the structure of LLVM. 
+This chapter details the Cpu0 instruction set and the structure of LLVM. 
 The LLVM structure information is adapted from Chris Lattner's LLVM chapter of the 
 Architecture of Open Source Applications book [#aosa-book]_. You can read 
 the original article from the AOSA website if you prefer. Finally, you will begin to 
 create a new LLVM backend by writing register and instruction definitions in the 
-Target Description files which will be used in next section.
+Target Description files which will be used in next chapter.
 
 Cpu0 Processor Architecture Details
 -----------------------------------
 
-This subsection is based on materials available here [#cpu0-chinese]_ (Chinese)
+This section is based on materials available here [#cpu0-chinese]_ (Chinese)
 and [#cpu0-english]_ (English).
 
 Brief introduction
 ++++++++++++++++++
 
-Cpu0 is a 32-bit architecture. It has 16 general purpose registers (R0, ..., R15), the 
-Instruction Register (IR), the memory access registers MAR & MDR. Its structure is 
-illustrated in :num:`Figure #llvmstructure-f1` below.
+Cpu0 is a 32-bit architecture. It has 16 general purpose registers (R0, ..., 
+R15), the Instruction Register (IR), the memory access registers MAR & MDR, 
+MULT or DIV result registers HI & LO and Status Word Register SW. Its structure 
+is illustrated in :num:`Figure #llvmstructure-f1` below.
 
 .. _llvmstructure-f1: 
 .. figure:: ../Fig/llvmstructure/1.png
@@ -57,7 +58,7 @@ The registers are used for the following purposes:
   IR            Instruction register
   R0            Constant register, value is 0
   R1-R11        General-purpose registers
-  R12           Status Word register (SW)
+  R12           Frame Pointer register (FP)
   R13           Stack Pointer register (SP)
   R14           Link Register (LR)
   R15           Program Counter (PC)
@@ -120,13 +121,13 @@ The following table details the Cpu0 instruction set:
     - 03
     - Load byte
     - LB Ra, [Rb+Cx]
-    - Ra <= (byte)[Rb+Cx]
+    - Ra <= (byte)[Rb+Cx] [#lb-note]_
   * - L
     - LBu
     - 04
     - Load byte unsigned
     - LBu Ra, [Rb+Cx]
-    - Ra <= (byte)[Rb+Cx]
+    - Ra <= (byte)[Rb+Cx] [#lb-note]_
   * - L
     - SB
     - 05
@@ -136,15 +137,15 @@ The following table details the Cpu0 instruction set:
   * - A
     - LH
     - 06
-    - Load half word unsigned
+    - Load half word
     - LH Ra, [Rb+Cx]
-    - Ra <= (2bytes)[Rb+Cx]
+    - Ra <= (2bytes)[Rb+Cx] [#lb-note]_
   * - A
     - LHu
     - 07
-    - Load half word
+    - Load half word unsigned
     - LHu Ra, [Rb+Cx]
-    - Ra <= (2bytes)[Rb+Cx]
+    - Ra <= (2bytes)[Rb+Cx] [#lb-note]_
   * - A
     - SH
     - 08
@@ -421,8 +422,8 @@ The following table details the Cpu0 instruction set:
   Like Mips, the mathematic unsigned instructions except DIVU, such as ADDu and 
   SUBu, are no overflow exception instructions. 
   The ADDu and SUBu handle both signed and unsigned integers well. 
-  For example, (ADDu 1, -2) is -3; (ADDu 0x01, 
-  0xfffffffe) is 0xfffffffd = (4G - 1). If you treat the result is negative then
+  For example, (ADDu 1, -2) is -1; (ADDu 0x01, 
+  0xfffffffe) is 0xffffffff = (4G - 1). If you treat the result is negative then
   it is -1. Otherwise, if you treat the result is positive then it's (+4G - 1).
   
 
@@ -430,7 +431,7 @@ The Status Register
 +++++++++++++++++++
 
 The Cpu0 status word register (SW) contains the state of the Negative (N), Zero (Z), 
-Carry (C), Overflow (V), and Interrupt (I), Trap (T), and Mode (M) boolean flags. 
+Carry (C), Overflow (V), Debug (D), Mode (M), and Interrupt (I) flags. 
 The bit layout of the SW register is shown in :num:`Figure #llvmstructure-f3` below.
 
 .. _llvmstructure-f3: 
@@ -567,7 +568,7 @@ to contributing as much as possible.
 The most important aspect of its design is the LLVM Intermediate Representation 
 (IR), which is the form it uses to represent code in the compiler. 
 LLVM IR is designed to host mid-level analyses and transformations that you 
-find in the optimizer section of a compiler. 
+find in the optimizer chapter of a compiler. 
 It was designed with many specific goals in mind, including supporting 
 lightweight runtime optimizations, cross-function/interprocedural 
 optimizations, whole program analysis, and aggressive restructuring 
@@ -854,13 +855,19 @@ value as follows,
     let isReMaterializable = 1;
   }
   
-  So,
-  op = 0x09
-  instr_asm = “addiu”
-  OpNode = add
-  Od = simm16
-  imm_type = immSExt16
-  RC = CPURegs
+So,
+
+op = 0x09
+
+instr_asm = “addiu”
+
+OpNode = add
+
+Od = simm16
+
+imm_type = immSExt16
+
+RC = CPURegs
 
 Expand with FL further,
 
@@ -885,22 +892,36 @@ Expand with FL further,
     let Inst{15-0}  = imm16; 
   }
   
-  So,
-  op = 0x09
-  outs = CPURegs:$ra
-  ins = CPURegs:$rb,simm16:$imm16
-  asmstr = "addiu\t$ra, $rb, $imm16"
-  pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]
-  itin = IIAlu
-  
-  Members are,
-  ra = CPURegs:$ra
-  rb = CPURegs:$rb
-  imm16 = simm16:$imm16
-  Opcode = 0x09;
-  Inst{23-20} = CPURegs:$ra; 
-  Inst{19-16} = CPURegs:$rb; 
-  Inst{15-0}  = simm16:$imm16; 
+So,
+
+op = 0x09
+
+outs = CPURegs:$ra
+
+ins = CPURegs:$rb,simm16:$imm16
+
+asmstr = "addiu\t$ra, $rb, $imm16"
+
+pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]
+
+itin = IIAlu
+
+Members are,
+
+ra = CPURegs:$ra
+
+rb = CPURegs:$rb
+
+imm16 = simm16:$imm16
+
+Opcode = 0x09;
+
+Inst{23-20} = CPURegs:$ra; 
+
+Inst{19-16} = CPURegs:$rb; 
+
+Inst{15-0}  = simm16:$imm16; 
+
 
 Expand with Cpu0Inst further,
 
@@ -944,41 +965,71 @@ Expand with Cpu0Inst further,
     field bits<32> SoftFail = 0; 
   }
   
-  So,
-  outs = CPURegs:$ra
-  ins = CPURegs:$rb,simm16:$imm16
-  asmstr = "addiu\t$ra, $rb, $imm16"
-  pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]
-  itin = IIAlu
-  f =  FrmL
+So,
+
+outs = CPURegs:$ra
+
+ins = CPURegs:$rb,simm16:$imm16
+
+asmstr = "addiu\t$ra, $rb, $imm16"
+
+pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]
+
+itin = IIAlu
+
+f =  FrmL
+
+Members are,
+
+Inst{31-24} = 0x09; 
+
+OutOperandList = CPURegs:$ra 
+
+InOperandList  = CPURegs:$rb,simm16:$imm16
+
+AsmString = "addiu\t$ra, $rb, $imm16"
+
+Pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]
+
+Itinerary = IIAlu
   
-  Members are,
-  Inst{31-24} = 0x09; 
-  OutOperandList = CPURegs:$ra 
-  InOperandList  = CPURegs:$rb,simm16:$imm16
-  AsmString = "addiu\t$ra, $rb, $imm16"
-  Pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]
-  Itinerary = IIAlu
-  
-  Summary with all members are, 
-  // Inherited from parent like Instruction
-  Namespace = "Cpu0";
-  DecoderNamespace = "Cpu0";
-  Inst{31-24} = 0x08; 
-  Inst{23-20} = CPURegs:$ra; 
-  Inst{19-16} = CPURegs:$rb; 
-  Inst{15-0}  = simm16:$imm16; 
-  OutOperandList = CPURegs:$ra 
-  InOperandList  = CPURegs:$rb,simm16:$imm16
-  AsmString = "addiu\t$ra, $rb, $imm16"
-  Pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]
-  Itinerary = IIAlu
-  // From Cpu0Inst
-  Opcode = 0x09;
-  // From FL
-  ra = CPURegs:$ra
-  rb = CPURegs:$rb
-  imm16 = simm16:$imm16
+Summary with all members are, 
+
+// Inherited from parent like Instruction
+
+Namespace = "Cpu0";
+
+DecoderNamespace = "Cpu0";
+
+Inst{31-24} = 0x08; 
+
+Inst{23-20} = CPURegs:$ra; 
+
+Inst{19-16} = CPURegs:$rb; 
+
+Inst{15-0}  = simm16:$imm16; 
+
+OutOperandList = CPURegs:$ra 
+
+InOperandList  = CPURegs:$rb,simm16:$imm16
+
+AsmString = "addiu\t$ra, $rb, $imm16"
+
+Pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]
+
+Itinerary = IIAlu
+
+// From Cpu0Inst
+
+Opcode = 0x09;
+
+// From FL
+
+ra = CPURegs:$ra
+
+rb = CPURegs:$rb
+
+imm16 = simm16:$imm16
 
 It's a lousy process. 
 Similarly, LD and ST instruction definition can be expanded in this way. 
@@ -1045,12 +1096,20 @@ contents as follows,
     :start-after: Cpu0AsmPrinter
 
 
-CMakeLists.txt is the make information for cmake, # is comment.
+CMakeLists.txt is the make information for cmake and # is comment.
 LLVMBuild.txt files are written in a simple variant of the INI or configuration 
 file format. 
 Comments are prefixed by ``#`` in both files. 
 We explain the setting for these 2 files in comments. 
-Please spend a little time to read it.
+Please spend a little time to read it. 
+This book has broken the backend function code, add code chapter by chapter and 
+even in section by section.
+Don't try to understand everything in the text of book, the code added in each 
+chapter is a reading material too. 
+To understand the computer related knowledge in concept can ignore source code 
+but implementation based on an existed open software cannot. 
+In programming, documentation cannot replace the source code totally. 
+Reading source code is a big opportunity in the open source development. 
 
 Both CMakeLists.txt and LLVMBuild.txt coexist in sub-directories 
 ``MCTargetDesc`` and ``TargetInfo``. 
@@ -1159,9 +1218,9 @@ Build libraries and td
 ----------------------
 
 The llvm source code is put in /Users/Jonathan/llvm/release/src and have llvm 
-release-build in /Users/Jonathan/llvm/release/configure_release_build. 
+release-build in /Users/Jonathan/llvm/release/cmake_release_build. 
 About how to build llvm, please refer [#clang]_. 
-We made a copy from /Users/Jonathan/llvm/release/src to 
+In appendix A, we made a copy from /Users/Jonathan/llvm/release/src to 
 /Users/Jonathan/llvm/test/src for working with my Cpu0 target back end.
 Sub-directories src is for source code and cmake_debug_build is for debug 
 build directory.
@@ -1175,8 +1234,8 @@ command,
 
 .. code-block:: bash
 
-  cp -rf lbdex/src_files_modified/src_files_modified/src/
-  * yourllvm/workingcopy/sourcedir/.
+  cp -rf lbdex/src_files_modified/src_files_modified/src/* 
+  yourllvm/workingcopy/sourcedir/.
   
   118-165-78-230:test Jonathan$ pwd
   /Users/Jonathan/test
@@ -1196,8 +1255,8 @@ for my setting),
 
 .. code-block:: bash
 
-  118-165-78-230:test Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_
-  C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug  -G "Unix Makefiles" ../src/
+  118-165-78-230:cmake_debug_build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++ 
+  -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Debug  -G "Unix Makefiles" ../src/
   
   -- Targeting Cpu0 
   ...
@@ -1207,14 +1266,14 @@ for my setting),
   -- Build files have been written to: /Users/Jonathan/llvm/test/cmake_debug
   _build 
   
-  118-165-78-230:test Jonathan$
+  118-165-78-230:cmake_debug_build Jonathan$
 
 After build, you can type command ``llc –version`` to find the cpu0 backend,
 
 .. code-block:: bash
 
-  118-165-78-230:test Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/bin/
-  Debug/llc --version
+  118-165-78-230:cmake_debug_build Jonathan$ /Users/Jonathan/llvm/test/
+  cmake_debug_build/bin/Debug/llc --version
   LLVM (http://llvm.org/):
   ...
     Registered Targets: 
@@ -1252,7 +1311,7 @@ Let's build lbdex/Chapter2 code as follows,
   -- Generating done
   -- Build files have been written to: /Users/Jonathan/llvm/test/cmake_debug_build
 
-Now try to do ``llc`` command to compile input file ch3.cpp as follows,
+Now try to run  command ``llc`` to compile input file ch3.cpp as follows,
 
 .. rubric:: lbdex/InputFiles/ch3.cpp
 .. literalinclude:: ../lbdex/InputFiles/ch3.cpp
@@ -1263,6 +1322,8 @@ First step, compile it with clang and get output ch3.bc as follows,
 
 .. code-block:: bash
 
+  118-165-78-230:InputFiles Jonathan$ pwd
+  /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/lbdex/InputFiles
   118-165-78-230:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch3.cpp -emit-llvm -o ch3.bc
 
@@ -1298,16 +1359,22 @@ Now, compile ch3.bc into ch3.cpu0.s, we get the error message as follows,
   function main, file /Users/Jonathan/llvm/test/src/tools/llc/llc.cpp, 
   ...
 
+At this point, we finish the Target Registration for Cpu0 backend. 
+The backend compiler command llc can recognize cpu0 backend now. 
 Currently we just define target td files (Cpu0.td, Cpu0RegisterInfo.td, ...). 
 According to LLVM structure, we need to define our target machine and include 
 those td related files. 
 The error message say we didn't define our target machine.
-
+This book is a step-by-step backend delvelopment. 
+You can review the houndreds lines of Chapter2 example code to see how to do 
+the Target Registration. 
 
 
 .. [#cpu0-chinese] Original Cpu0 architecture and ISA details (Chinese). http://ccckmit.wikidot.com/ocs:cpu0
 
 .. [#cpu0-english] English translation of Cpu0 description. http://translate.google.com.tw/translate?js=n&prev=_t&hl=zh-TW&ie=UTF-8&layout=2&eotf=1&sl=zh-CN&tl=en&u=http://ccckmit.wikidot.com/ocs:cpu0
+
+.. [#lb-note] The difference between LB and LBu is signed and unsigned byte value expand to a word size. For example, After LB Ra, [Rb+Cx], Ra is 0xffffff80(= -128) if byte [Rb+Cx] is 0x80; Ra is 0x0000007f(= 127) if byte [Rb+Cx] is 0x7f. After LBu Ra, [Rb+Cx], Ra is 0x00000080(= 128) if byte [Rb+Cx] is 0x80; Ra is 0x0000007f(= 127) if byte [Rb+Cx] is 0x7f. Difference between LH and LHu is similar.
 
 .. [#cond-note] Conditions include the following comparisons: >, >=, ==, !=, <=, <. SW is actually set by the subtraction of the two register operands, and the flags indicate which conditions are present.
 
@@ -1327,4 +1394,4 @@ The error message say we didn't define our target machine.
 
 .. [#clang] http://clang.llvm.org/get_started.html
 
-.. [#asadasd] http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration
+.. [#asadasd] http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration

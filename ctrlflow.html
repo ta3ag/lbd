@@ -17,7 +17,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '3.3.11',
+        VERSION:     '3.3.12',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -725,81 +725,8 @@ def jmptarget    : Operand&lt;OtherVT&gt; {
 </div>
 <p>The ch8_1_2.cpp is for <strong>“nest if”</strong> test. The ch8_1_3.cpp is the
 <strong>“for loop”</strong> as well as <strong>“while loop”</strong>, <strong>“continue”</strong>, <strong>“break”</strong>,
-<strong>“goto”</strong> test. The ch8_1_5.cpp is for <strong>“goto”</strong> test.
+<strong>“goto”</strong> test. The ch8_1_4.cpp is for <strong>“goto”</strong> test.
 You can run with them if you like to test more.</p>
-<p>The ch8_1_4.cpp is for test C operators <strong>==, !=, &amp;&amp;, ||</strong>. No code need to
-add since we have take care them before.
-But it can be test only when the control flow statement support is ready, as
-follows,</p>
-<p class="rubric">lbdex/InputFiles/ch8_1_4.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">};</span>
-    
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
-ch8_1_4.cpp -emit-llvm -o ch8_1_4.bc
-118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch8_1_4.bc -o
-ch8_1_4.cpu0.s
-118-165-78-230:InputFiles Jonathan<span class="nv">$ </span>cat ch8_1_4.cpu0.s
-  .section .mdebug.abi32
-  .previous
-  .file <span class="s2">&quot;ch8_1_4.bc&quot;</span>
-  .text
-  .globl  main
-  .align  2
-  .type main,@function
-  .ent  main                    <span class="c"># @main</span>
-main:
-  .cfi_startproc
-  .frame  <span class="nv">$sp</span>,16,<span class="nv">$lr</span>
-  .mask   0x00000000,0
-  .set  noreorder
-  .set  nomacro
-<span class="c"># BB#0:</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
-<span class="nv">$tmp1</span>:
-  .cfi_def_cfa_offset 16
-  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
-  st  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
-  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  ld  <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  cmp <span class="nv">$4</span>, <span class="nv">$3</span>
-  jne <span class="nv">$BB0_2</span>          // a !<span class="o">=</span> 0
-  jmp <span class="nv">$BB0_1</span>
-<span class="nv">$BB0_1</span>:                       // <span class="nv">a</span> <span class="o">==</span> 0
-  ld  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  cmp <span class="nv">$3</span>, <span class="nv">$2</span>
-  jeq <span class="nv">$BB0_3</span>          // <span class="nv">b</span> <span class="o">==</span> 2
-  jmp <span class="nv">$BB0_2</span>
-<span class="nv">$BB0_2</span>:
-  ld  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  cmp <span class="nv">$3</span>, <span class="nv">$2</span>          // <span class="nv">c</span> <span class="o">==</span> 2
-  jeq <span class="nv">$BB0_4</span>
-  jmp <span class="nv">$BB0_3</span>
-<span class="nv">$BB0_3</span>:                       // <span class="o">(</span><span class="nv">a</span> <span class="o">==</span> 0 <span class="o">&amp;&amp;</span> <span class="nv">b</span> <span class="o">==</span> 2<span class="o">)</span> <span class="o">||</span> <span class="o">(</span>c !<span class="o">=</span> 2<span class="o">)</span>
-  ld  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1     // a++
-  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-<span class="nv">$BB0_4</span>:
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
-  ret <span class="nv">$lr</span>
-  .set  macro
-  .set  reorder
-  .end  main
-<span class="nv">$tmp2</span>:
-  .size main, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-main
-  .cfi_endproc
-</pre></div>
-</div>
 </div>
 <div class="section" id="risc-cpu-knowledge">
 <h2>RISC CPU knowledge<a class="headerlink" href="#risc-cpu-knowledge" title="Permalink to this headline">¶</a></h2>
