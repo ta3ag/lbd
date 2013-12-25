@@ -20,6 +20,9 @@ result.
 AsmParser support
 ------------------
 
+This section list all the AsmParser code for cpu0 backend but with only a few 
+explanation. Please refer here [#]_ for more AsmParser explanation.
+
 Run Chapter10_1/ with ch11_1.cpp will get the following error message.
 
 .. rubric:: lbdex/InputFiles/ch11_1.cpp
@@ -517,6 +520,7 @@ LED, .... You should implement the I/O interface/port when you want to program
 FPGA and wire I/O device to the I/O port.
 
 
+.. [#] http://www.embecosm.com/appnotes/ean10/ean10-howto-llvmas-1.0.html
 
 .. [#] http://www.ece.umd.edu/courses/enee359a/
 
