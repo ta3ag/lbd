@@ -5,13 +5,13 @@ Backend Optimization
 
 This chapter introduce how to do backend optimization in LLVM first. 
 Next we do optimization via extend instruction sets with hardware level to 
-do optimization by create a efficient RISC CPU which aims to C/C++ high level 
-language.
+do optimization in a way of creating an efficient RISC CPU which aims to C/C++ 
+high level language.
 
 Cpu0 backend Optimization: Remove useless JMP
 ---------------------------------------------
 
-LLVM use functional pass in code generation and optimization. 
+LLVM uses functional pass in code generation and optimization. 
 Following the 3 tiers of compiler architecture, LLVM did much optimization in 
 middle tier of LLVM IR, SSA form. 
 In addition of this middle tier optimization, there are opportunities in 
@@ -19,14 +19,14 @@ optimization which depend on backend features.
 Mips fill delay slot is an example of backend optimization used in pipeline 
 RISC machine.
 You can modify from Mips this part if your backend is a pipeline RISC with 
-delay slot.
-We apply the "delete useless jmp" unconditional branch instruction in Cpu0 
-backend optimization in this section. 
+delay slot. In this section, 
+we apply the "delete useless jmp" unconditional branch instruction in Cpu0 
+backend optimization. 
 This algorithm is simple and effective as a perfect tutorial in optimization. 
 Through this example, you can understand how to add a optimization pass and 
 design your complicate optimization algorithm on your backend in real project.
 
-Chapter12_1/ support "delete useless jmp" optimization algorithm which add 
+Chapter12_1/ supports "delete useless jmp" optimization algorithm which add 
 codes as follows,
 
 .. rubric:: lbdex/Chapter12_1/CMakeLists.txt
@@ -74,7 +74,7 @@ its Operand is the next basic block.
 By getMBB() in MachineOperand, you can get the MBB address. 
 For the member functions of MachineOperand, please check 
 include/llvm/CodeGen/MachineOperand.h
-Let's run Chapter12_1/ with ch12_1.cpp to explain it easier.
+Let's run Chapter12_1/ with ch12_1.cpp for explanation.
 
 .. rubric:: lbdex/InputFiles/ch12_1.cpp
 .. literalinclude:: ../lbdex/InputFiles/ch12_1.cpp
@@ -172,7 +172,7 @@ The terminal display "Number of useless jmp deleted" by ``llc -stats`` option
 because we set the "STATISTIC(NumDelJmp, "Number of useless jmp deleted")" in 
 code. It deletes 2 jmp instructions from block "# BB#0" and "$BB0_6".
 You can check it by ``llc -enable-cpu0-del-useless-jmp=false`` option to see 
-the difference from no optimization version.
+the difference to no optimization version.
 If you run with ch8_1_1.cpp, will find 10 jmp instructions are deleted in 100 
 lines of assembly code, which meaning 10\% improvement in speed and code size.
 
@@ -664,8 +664,8 @@ Chapter12_2/ include the changes for new instruction sets as follows,
   }
 
 
-As modified as listed above, the last Chapter instructions are work for cpu032I 
-and the added instructions is for cpu032II. 
+As modified as listed above, the Chapter12_1 instructions are work for cpu032I 
+and the added instructions in Chapter12_2 is for cpu032II. 
 The llc will generate cpu032I cmp, jeq, 
 ..., instructions when `llc -mcpu=cpu032I` while `llc -mcpu=cpu032II` will
 generate slt, beq when meet "if else", "while" and "for" flow control 
@@ -719,6 +719,10 @@ It match the output result as comments in ch_run_backend.cpp.
   1
   14
   3
+  -126
+  130
+  -32766
+  32770
   393307
   16777222
   51
