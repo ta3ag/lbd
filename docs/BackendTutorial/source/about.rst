@@ -59,6 +59,7 @@ Version 3.3.12, Not release yet.
   Fix bug in instructions lb and lh of cpu0.v.
   Fix bug in itoa.cpp.
   Add ch7_2_2.cpp for othertype.rst.
+  Add AsmParser reference web.
 
 Version 3.3.11, Released December 11, 2013
   Add Figure Code generation and execution flow in about.rst.
