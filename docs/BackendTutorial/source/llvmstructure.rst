@@ -1106,8 +1106,8 @@ This book has broken the backend function code, add code chapter by chapter and
 even in section by section.
 Don't try to understand everything in the text of book, the code added in each 
 chapter is a reading material too. 
-To understand the computer related theory can ignore source code but 
-implementation based on an existed open software cannot. 
+To understand the computer related knowledge in concept can ignore source code 
+but implementation based on an existed open software cannot. 
 In programming, documentation cannot replace the source code totally. 
 Reading source code is a big opportunity in the open source development. 
 
@@ -1394,4 +1394,4 @@ the Target Registration.
 
 .. [#clang] http://clang.llvm.org/get_started.html
 
-.. [#asadasd] http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration
+.. [#asadasd] http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration

@@ -11,6 +11,10 @@ translation we have now.
 It create DAG nodes at run time in our backend C++ code according the 
 ``llc -relocation-model`` option while the others of DAG just do IR DAG to 
 Machine DAG translation directly according the input file IR DAG.
+Readers should focus on how to add code for create DAG nodes on run time and 
+how to define the pattern match in td for the run time created DAG nodes. 
+In addition, the machine instruction printing function for global variable 
+related assembly directive (macro) should cared if your backend have it.
 
 
 Global variable
@@ -603,8 +607,8 @@ to any address and run well there.
 If this program use absolute address and will be loaded at a specific address 
 known at link stage, the relocation record of gI variable access instruction 
 such as "addiu $2, $zero, %hi(gI)" and "addiu	$2, $2, %lo(gI)" can be solved 
-at link time.
-If this program use absolute address and the loading address is known at load 
+at link time. The other hand, 
+if this program use absolute address and the loading address is known at load 
 time, then this relocation record will be solved by loader at loading time. 
 
 IsGlobalInSmallSection() return true or false depends on UseSmallSectionOpt. 
@@ -1391,10 +1395,10 @@ variables in small 16 addressable area".
 
 
 .. _section Global variable:
-    http://jonathan2251.github.com/lbd/globalvar.html#global-variable
+    http://jonathan2251.github.io/lbd/globalvar.html#global-variable
 
 .. _section Array and struct support:
-    http://jonathan2251.github.com/lbd/globalvar.html#array-and-struct-support
+    http://jonathan2251.github.io/lbd/globalvar.html#array-and-struct-support
 
 .. [#] http://llvm.org/docs/CommandLine.html
 

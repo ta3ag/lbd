@@ -13,7 +13,7 @@ Authors
 Chen Chung-Shu
 	gamma_chen@yahoo.com.tw
 	
-	http://jonathan2251.github.com/web/index.html
+	http://jonathan2251.github.io/web/index.html
 
 Anoushe Jamshidi
 	ajamshidi@gmail.com
@@ -238,7 +238,7 @@ We will use the Cpu0 architecture as an example to build our new backend. Cpu0
 is a simple RISC architecture that has been designed for educational purposes. 
 More information about Cpu0, including its instruction set, is available 
 `here <http://ccckmit.wikidot.com/ocs:cpu0>`_. The Cpu0 example code referenced in
-this book can be found `here <http://jonathan2251.github.com/lbd/LLVMBackendTutorialExampleCode.tar.gz>`_.
+this book can be found `here <http://jonathan2251.github.io/lbd/LLVMBackendTutorialExampleCode.tar.gz>`_.
 As you progress from one chapter to the next, you will incrementally build the 
 backend's functionality.
 

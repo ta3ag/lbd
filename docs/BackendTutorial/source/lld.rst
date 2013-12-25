@@ -1652,8 +1652,8 @@ We write this book through the process of learning llvm backend and contribute
 back to llvm open source project.
 We think this book cannot exists in traditional paper book form since only 
 few number of readers interested to read this llvm backend book even 
-there are many paper published books in theory of compiler. 
-There are distance between the theory and the practice program implemenation. 
+there are many paper published books in concept of compiler. 
+There are distance between the concept and the practice program implemenation. 
 Keep note through learning a large complicate software is not enough 
 such as this llvm backend study. 
 We all learned the knowledge through books during school and after school. 

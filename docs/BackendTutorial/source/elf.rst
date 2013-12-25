@@ -24,14 +24,15 @@ You will learn the objdump, readelf, ..., tools and understand the ELF file
 format itself through using these tools to analyze the cpu0 generated obj in 
 this chapter. 
 LLVM has the llvm-objdump tool which like objdump. We will make cpu0 support 
-llvm-objdump tool in this chapter. 
-The binutils support other CPU ELF dump as a cross compiler tool chains. 
+llvm-objdump tool further in this chapter. 
+The binutils is a cross compiler tool chains include a couple of CPU ELF dump 
+function support. 
 Linux platform has binutils already and no need to install it further.
 We use Linux binutils in this chapter just because iMac will display Chinese 
 text. 
-The iMac corresponding binutils have no problem except it use add g in command. 
+The iMac corresponding binutils have no problem except it add g in command name. 
 For example, use gobjdump instead of objdump, and display with your area 
-language instead of pure English.
+language instead of pure English on iMac.
 
 The binutils tool we use is not a part of llvm tools, but it's a powerful tool 
 in ELF analysis. 
@@ -77,7 +78,7 @@ So, there are two views in it as :num:`Figure #elf-f1`.
 As :num:`Figure #elf-f1`, the “Section header table” include sections .text, .rodata, 
 ..., .data which are sections layout for code, read only data, ..., and 
 read/write data. 
-“Program header table” include segments include run time code and data. 
+“Program header table” include segments for run time code and data. 
 The definition of segments is run time layout for code and data while sections 
 is link time layout for code and data.
 
@@ -158,7 +159,7 @@ The result is in expectation because cpu0 obj is for link only, not for
 execution. 
 So, the segments is empty. 
 Check ELF sections information as follows. 
-It contains offset and size information for every section.
+Every section contain offset and size information.
 
 .. code-block:: bash
 
@@ -757,12 +758,12 @@ the following result.
 
 
 .. _section Handle $gp register in PIC addressing mode:
-	http://jonathan2251.github.com/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode
+	http://jonathan2251.github.io/lbd/funccall.html#handle-gp-register-in-pic-addressing-mode
 
 
 .. [#] http://en.wikipedia.org/wiki/Executable_and_Linkable_Format
 
-.. [#] http://jonathan2251.github.com/lbd/install.html#install-other-tools-on-imac
+.. [#] http://jonathan2251.github.io/lbd/install.html#install-other-tools-on-imac
 
 .. [#] Leland Beck, System Software: An Introduction to Systems Programming. 
 

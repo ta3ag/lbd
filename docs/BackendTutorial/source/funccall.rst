@@ -3132,15 +3132,15 @@ And your backend will grow up automatically through the front end support langua
 more and more.
 
 
-.. [#] http://jonathan2251.github.com/lbd/ctrlflow.html#risc-cpu-knowledge
+.. [#] http://jonathan2251.github.io/lbd/ctrlflow.html#risc-cpu-knowledge
 
 .. [#] https://www.dropbox.com/sh/2pkh1fewlq2zag9/OHnrYn2nOs/doc/MIPSproAssemblyLanguageProgrammerGuide 
 
 .. [#] http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf
 
-.. [#] http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration
+.. [#] http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration
 
-.. [#] http://jonathan2251.github.com/lbd/globalvar.html#global-variable
+.. [#] http://jonathan2251.github.io/lbd/globalvar.html#global-variable
 
 .. [#] http://http://en.wikipedia.org/wiki/Tail_call
 

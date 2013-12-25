@@ -396,4 +396,4 @@ in Chapter4_2/ code for assembly file generated support.
 
 
 
-.. [#] http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration
+.. [#] http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration

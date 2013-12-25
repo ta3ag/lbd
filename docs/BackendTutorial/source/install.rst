@@ -931,9 +931,9 @@ Run as follows for single test case and the whole test cases on Linux.
 
 .. [#] http://www.cmake.org/cmake/resources/software.html
 
-.. [#] http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command
+.. [#] http://jonathan2251.github.io/lbd/install.html#create-llvm-xcodeproj-of-supporting-cpu0-by-terminal-cmake-command
 
-.. [#] http://jonathan2251.github.com/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui
+.. [#] http://jonathan2251.github.io/lbd/install.html#create-llvm-xcodeproj-by-cmake-graphic-ui
 
 .. [#] http://lldb.llvm.org/lldb-gdb.html
 

@@ -403,8 +403,9 @@ CMakeLists.txt  modified with those new added \*.cpp as follows,
     :end-before: # Should match with "subdirectories =  MCTargetDesc TargetInfo" in LLVMBuild.txt
 
 Please take a look for Chapter3_1 code. 
-After that, building Chapter3_1 by make as chapter 2 (of course, you should remove old 
-src/lib/Target/Cpu0 and replace them with src/lib/Target/Cpu0/lbdex/Chapter3_1/). 
+After that, building Chapter3_1 by make as chapter 2 (of course, you should 
+remove old files and sub-directories from src/lib/Target/Cpu0 and replace them 
+with src/lib/Target/Cpu0/lbdex/Chapter3_1/\*). 
 You can remove cmake_debug_build/lib/Target/Cpu0/\*.inc before do “make” to ensure your code 
 rebuild completely. 
 With removing \*.inc, all files those have included .inc will be re-built, then your 
@@ -845,8 +846,8 @@ sequences from :num:`Figure #backendstructure-f5` are in the
 **'DAG->DAG Pattern Instruction Selection'** of the ``llc -debug-pass=Structure`` 
 displayed. The order of Peephole Optimizations and Prologue/Epilogue Insertion
 is inconsistent in them (please check the * in the following). 
-No need to bother since the the LLVM is under development and changed all the 
-time. 
+No need to be bothered since the the LLVM is under development and changed from  
+time to time. 
 
 .. code-block:: bash
 
@@ -1051,15 +1052,15 @@ previous chapter. List them again as follows,
   ...
   def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
 
-:num:`Figure #backendstructure-f9` show how the pattern match work in the IR node 
-**add** and instruction ADDiu defined in Cpu0InstrInfo.td. This example 
+:num:`Figure #backendstructure-f9` shows how the pattern match work in the IR 
+node **add** and instruction ADDiu defined in Cpu0InstrInfo.td. This example 
 IR node "add %a, 5", will be translated to "addiu %r1, 5" since the IR 
 pattern[(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))] is set in ADDiu and the
 2nd operand is signed immediate which matched "%a, 5". In addition to pattern 
 match, the .td also set assembly string "addiu" and op code 0x09. 
 With this information, the LLVM TableGen will generate instruction both in 
 assembly and binary automatically (the binary instruction in obj file of ELF 
-format which will shown at later chapter). 
+format which will be shown at later chapter). 
 Similarly, the machine instruction DAG node LD and ST can be got from IR DAG 
 node **load** and **store**.
  
@@ -1234,7 +1235,7 @@ selection stage.
     :start-after: return getGlobalBaseReg();
 
 
-This version adding the following code in Cpu0InstInfo.cpp to enable debug 
+Chapter3_3 adding the following code in Cpu0InstInfo.cpp to enable debug 
 information which called by llvm at proper time.
 
 .. rubric:: lbdex/Chapter3_3/Cpu0InstrInfo.h
@@ -1952,7 +1953,7 @@ the 32 bits stack size adjustments.
   def : Pat<(i32 imm:$imm),
             (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
 
-The Cpu0AnalyzeImmediate.cpp written in recursive and a little complicate in 
+The Cpu0AnalyzeImmediate.cpp written in recursive with a little complicate in 
 logic. Anyway, the recursive
 skills is used in the front end compile book, you should fimiliar with it.
 Instead tracking the code, listing the stack size and the instructions 
@@ -1981,7 +1982,7 @@ replace addiu and shl with lui instruction as below),
   ====================  ================  ==================================  ==================================
 
 Since the Cpu0 stack is 8 bytes alignment, the 0x7ff9 to 0x7fff is impossible 
-to exist.
+existing.
 
 Assume sp = 0xa0008000 and stack size = 0x90008000, then (0xa0008000 - 
 0x90008000) => 0x10000000. Verify with the Cpu0 Prologue instructions as 
@@ -2040,9 +2041,10 @@ Verify with the Cpu0 Epilogue instructions with sp = 0x10000000 and stack size =
 Data operands DAGs
 ---------------------
 
-From above or compiler book, you can see all the OP code is the internal node in 
-DAGs and operand is the leaf of DAGs. At least in most cases, the data operands 
-are leaves of DAGs, not internal nodes. To develop your backend, you can copy the 
+From above or compiler book, you can see all the OP code are the internal nodes 
+in DAGs and operands are the leaf of DAGs. 
+At least in most cases, the data operands are leaves of DAGs, not internal 
+nodes. To develop your backend, you can copy the 
 related data operands DAGs node from other backend since the IR data nodes are 
 take cared by all the backend. Few readers stuck on the data DAGs nodes defined 
 in Cpu0InstrInfo.td but we think it is needless. The rest of books will let you 
@@ -2053,7 +2055,7 @@ about it.
 Some data DAGs we know more, some we know a little and some remains unknown but 
 it's OK for us. 
 To program 
-on Linux OS, you program or write a driver but you don't know every details.
+on Linux OS, you program or write a driver without knowing every details.
 To extend functions from a large software, you should find a way to reach the 
 goal and ignore the details not on your way. This book is not a compiler theory 
 book, it is a book for compiler extended implementation. Try to understand in 
@@ -2158,10 +2160,10 @@ in the range of signed 16 bits integer. The load_a, store_a and others are
 similar.
 The addr is a data node from iPTR and belong to ComplexPattern. 
 It will call SelectAddr() function 
-in Cpu0ISelDAGToDAG.cpp which return Base and Offset variables for code 
+in Cpu0ISelDAGToDAG.cpp which return variables, Base and Offset, for code 
 generation (IR to machine instruction DAG translation).
 The simm16, ...,  inherited from Operand<i32> because Cpu0 is 32 bits. 
-For C type of int, it's 32 bits in Cpu0 and we can check if it is in 16 bits range 
+For C type of int, it's 32-bits in Cpu0 and we can check if it is in 16-bits range 
 for L type of instruction format immediate value. For example, IR 
 "add %0, %1, +0x7fff" is in range of Cpu0 L type instruction "addiu $2, $3, 0x7fff" 
 while "add %0, %1, +0x8000" is out of range.
@@ -2248,7 +2250,7 @@ as 123.
 
 .. [#] http://llvm.org/docs/WritingAnLLVMBackend.html#target-machine
 
-.. [#] http://jonathan2251.github.com/lbd/llvmstructure.html#target-registration
+.. [#] http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration
 
 .. [#] http://llvm.org/docs/CodeGenerator.html
 
