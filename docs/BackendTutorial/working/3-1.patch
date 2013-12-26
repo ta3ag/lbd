@@ -832,7 +832,7 @@ diff -Naur Chapter2/Cpu0Subtarget.h Chapter3_1/Cpu0Subtarget.h
 diff -Naur Chapter2/Cpu0TargetMachine.cpp Chapter3_1/Cpu0TargetMachine.cpp
 --- Chapter2/Cpu0TargetMachine.cpp	2013-11-15 23:24:09.000000000 +0800
 +++ Chapter3_1/Cpu0TargetMachine.cpp	2013-11-15 23:24:09.000000000 +0800
-@@ -11,9 +11,80 @@
+@@ -11,9 +11,81 @@
  //
  //===----------------------------------------------------------------------===//
  
@@ -873,6 +873,7 @@ diff -Naur Chapter2/Cpu0TargetMachine.cpp Chapter3_1/Cpu0TargetMachine.cpp
 +    InstrInfo(*this),
 +    FrameLowering(Subtarget), 
 +    TLInfo(*this), TSInfo(*this) {
++  initAsmInfo();
 +}
 +
 +void Cpu0ebTargetMachine::anchor() { }

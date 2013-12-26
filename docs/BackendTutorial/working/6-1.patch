@@ -526,7 +526,7 @@ diff -Naur Chapter5_1/Cpu0MCInstLower.cpp Chapter6_1/Cpu0MCInstLower.cpp
 +
 +  switch (MOTy) {
 +  case MachineOperand::MO_GlobalAddress:
-+    Symbol = Mang->getSymbol(MO.getGlobal());
++    Symbol = AsmPrinter.getSymbol(MO.getGlobal());
 +    break;
 +
 +  default:
@@ -596,7 +596,7 @@ diff -Naur Chapter5_1/Cpu0MCInstLower.h Chapter6_1/Cpu0MCInstLower.h
 +++ Chapter6_1/Cpu0MCInstLower.h	2013-11-17 16:58:21.413353962 +0800
 @@ -33,7 +33,10 @@
    Cpu0MCInstLower(Cpu0AsmPrinter &asmprinter);
-   void Initialize(Mangler *mang, MCContext* C);
+   void Initialize(MCContext* C);
    void Lower(const MachineInstr *MI, MCInst &OutMI) const;
 +  void LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts);
  private:

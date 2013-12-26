@@ -174,7 +174,7 @@ diff -Naur Chapter7_1/Cpu0MCInstLower.cpp Chapter8_1/Cpu0MCInstLower.cpp
 --- Chapter7_1/Cpu0MCInstLower.cpp	2013-11-17 22:01:14.000000000 +0800
 +++ Chapter8_1/Cpu0MCInstLower.cpp	2013-11-17 22:01:14.000000000 +0800
 @@ -63,6 +63,15 @@
-     Symbol = Mang->getSymbol(MO.getGlobal());
+     Symbol = AsmPrinter.getSymbol(MO.getGlobal());
      break;
  
 +  case MachineOperand::MO_MachineBasicBlock:

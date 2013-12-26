@@ -425,7 +425,7 @@ diff -Naur Chapter3_1/Cpu0ISelLowering.cpp Chapter3_2/Cpu0ISelLowering.cpp
 diff -Naur Chapter3_1/Cpu0MCInstLower.cpp Chapter3_2/Cpu0MCInstLower.cpp
 --- Chapter3_1/Cpu0MCInstLower.cpp	1970-01-01 08:00:00.000000000 +0800
 +++ Chapter3_2/Cpu0MCInstLower.cpp	2013-12-26 20:25:23.000000000 +0800
-@@ -0,0 +1,67 @@
+@@ -0,0 +1,66 @@
 +//===-- Cpu0MCInstLower.cpp - Convert Cpu0 MachineInstr to MCInst ---------===//
 +//
 +//                     The LLVM Compiler Infrastructure
@@ -457,8 +457,7 @@ diff -Naur Chapter3_1/Cpu0MCInstLower.cpp Chapter3_2/Cpu0MCInstLower.cpp
 +Cpu0MCInstLower::Cpu0MCInstLower(Cpu0AsmPrinter &asmprinter)
 +  : AsmPrinter(asmprinter) {}
 +
-+void Cpu0MCInstLower::Initialize(Mangler *M, MCContext* C) {
-+  Mang = M;
++void Cpu0MCInstLower::Initialize(MCContext* C) {
 +  Ctx = C;
 +} // lbd document - mark - Initialize
 +
@@ -496,7 +495,7 @@ diff -Naur Chapter3_1/Cpu0MCInstLower.cpp Chapter3_2/Cpu0MCInstLower.cpp
 diff -Naur Chapter3_1/Cpu0MCInstLower.h Chapter3_2/Cpu0MCInstLower.h
 --- Chapter3_1/Cpu0MCInstLower.h	1970-01-01 08:00:00.000000000 +0800
 +++ Chapter3_2/Cpu0MCInstLower.h	2013-12-26 20:25:23.000000000 +0800
-@@ -0,0 +1,41 @@
+@@ -0,0 +1,39 @@
 +//===-- Cpu0MCInstLower.h - Lower MachineInstr to MCInst -------*- C++ -*--===//
 +//
 +//                     The LLVM Compiler Infrastructure
@@ -518,7 +517,6 @@ diff -Naur Chapter3_1/Cpu0MCInstLower.h Chapter3_2/Cpu0MCInstLower.h
 +  class MCOperand;
 +  class MachineInstr;
 +  class MachineFunction;
-+  class Mangler;
 +  class Cpu0AsmPrinter;
 +
 +/// Cpu0MCInstLower - This class is used to lower an MachineInstr into an
@@ -526,11 +524,10 @@ diff -Naur Chapter3_1/Cpu0MCInstLower.h Chapter3_2/Cpu0MCInstLower.h
 +class LLVM_LIBRARY_VISIBILITY Cpu0MCInstLower {
 +  typedef MachineOperand::MachineOperandType MachineOperandType;
 +  MCContext *Ctx;
-+  Mangler *Mang;
 +  Cpu0AsmPrinter &AsmPrinter;
 +public:
 +  Cpu0MCInstLower(Cpu0AsmPrinter &asmprinter);
-+  void Initialize(Mangler *mang, MCContext* C);
++  void Initialize(MCContext* C);
 +  void Lower(const MachineInstr *MI, MCInst &OutMI) const;
 +private:
 +  MCOperand LowerOperand(const MachineOperand& MO, unsigned offset = 0) const;
