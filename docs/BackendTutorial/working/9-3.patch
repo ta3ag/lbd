@@ -256,9 +256,9 @@ diff -Naur Chapter9_2/Cpu0ISelLowering.cpp Chapter9_3/Cpu0ISelLowering.cpp
    // Chain is the output chain of the last Load/Store or CopyToReg node.
 @@ -614,8 +617,40 @@
                                  const SmallVectorImpl<SDValue> &OutVals,
-                                 DebugLoc dl, SelectionDAG &DAG) const {
+                                 SDLoc DL, SelectionDAG &DAG) const {
  
--    return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
+-    return DAG.getNode(Cpu0ISD::Ret, DL, MVT::Other,
 -                       Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
 +  // CCValAssign - represent the assignment of
 +  // the return value to a location
@@ -279,7 +279,7 @@ diff -Naur Chapter9_2/Cpu0ISelLowering.cpp Chapter9_3/Cpu0ISelLowering.cpp
 +    CCValAssign &VA = RVLocs[i];
 +    assert(VA.isRegLoc() && "Can only return in registers!");
 +
-+    Chain = DAG.getCopyToReg(Chain, dl, VA.getLocReg(), OutVals[i], Flag);
++    Chain = DAG.getCopyToReg(Chain, DL, VA.getLocReg(), OutVals[i], Flag);
 +
 +    // Guarantee that all emitted copies are stuck together with flags.
 +    Flag = Chain.getValue(1);
@@ -293,7 +293,7 @@ diff -Naur Chapter9_2/Cpu0ISelLowering.cpp Chapter9_3/Cpu0ISelLowering.cpp
 +    RetOps.push_back(Flag);
 +
 +  // Return on Cpu0 is always a "ret $lr"
-+  return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other, &RetOps[0], RetOps.size());
++  return DAG.getNode(Cpu0ISD::Ret, DL, MVT::Other, &RetOps[0], RetOps.size());
  }
  
  bool // lbd document - mark - isOffsetFoldingLegal

@@ -203,7 +203,7 @@ diff -Naur Chapter3_5/Cpu0ISelDAGToDAG.cpp Chapter4_1/Cpu0ISelDAGToDAG.cpp
  
    SDNode *getGlobalBaseReg();
  
-+  std::pair<SDNode*, SDNode*> SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl,
++  std::pair<SDNode*, SDNode*> SelectMULT(SDNode *N, unsigned Opc, SDLoc DL,
 +                                         EVT Ty, bool HasLo, bool HasHi);
 +
    SDNode *Select(SDNode *N);
@@ -215,20 +215,20 @@ diff -Naur Chapter3_5/Cpu0ISelDAGToDAG.cpp Chapter4_1/Cpu0ISelDAGToDAG.cpp
  
 +/// Select multiply instructions.
 +std::pair<SDNode*, SDNode*>
-+Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
++Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, SDLoc DL, EVT Ty,
 +                             bool HasLo, bool HasHi) {
 +  SDNode *Lo = 0, *Hi = 0;
-+  SDNode *Mul = CurDAG->getMachineNode(Opc, dl, MVT::Glue, N->getOperand(0),
++  SDNode *Mul = CurDAG->getMachineNode(Opc, DL, MVT::Glue, N->getOperand(0),
 +                                       N->getOperand(1));
 +  SDValue InFlag = SDValue(Mul, 0);
 +
 +  if (HasLo) {
-+    Lo = CurDAG->getMachineNode(Cpu0::MFLO, dl,
++    Lo = CurDAG->getMachineNode(Cpu0::MFLO, DL,
 +                                Ty, MVT::Glue, InFlag);
 +    InFlag = SDValue(Lo, 1);
 +  }
 +  if (HasHi)
-+    Hi = CurDAG->getMachineNode(Cpu0::MFHI, dl,
++    Hi = CurDAG->getMachineNode(Cpu0::MFHI, DL,
 +                                Ty, InFlag);
 +
 +  return std::make_pair(Lo, Hi);
@@ -238,7 +238,7 @@ diff -Naur Chapter3_5/Cpu0ISelDAGToDAG.cpp Chapter4_1/Cpu0ISelDAGToDAG.cpp
  /// expanded, promoted and normal instructions
  SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
    unsigned Opcode = Node->getOpcode();
-+  DebugLoc dl = Node->getDebugLoc();
++  SDLoc DL(Node);
  
    // Dump information about the Node being selected
    DEBUG(errs() << "Selecting: "; Node->dump(CurDAG); errs() << "\n");
@@ -255,7 +255,7 @@ diff -Naur Chapter3_5/Cpu0ISelDAGToDAG.cpp Chapter4_1/Cpu0ISelDAGToDAG.cpp
 +  case ISD::MULHS:
 +  case ISD::MULHU: {
 +    MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
-+    return SelectMULT(Node, MultOpc, dl, NodeTy, false, true).second;
++    return SelectMULT(Node, MultOpc, DL, NodeTy, false, true).second;
 +  }
 +
    case ISD::Constant: {
@@ -294,16 +294,16 @@ diff -Naur Chapter3_5/Cpu0ISelLowering.cpp Chapter4_1/Cpu0ISelLowering.cpp
 +  unsigned HI = Cpu0::HI;
 +  unsigned opc = N->getOpcode() == ISD::SDIVREM ? Cpu0ISD::DivRem :
 +                                                  Cpu0ISD::DivRemU;
-+  DebugLoc dl = N->getDebugLoc();
++  SDLoc DL(N);
 +
-+  SDValue DivRem = DAG.getNode(opc, dl, MVT::Glue,
++  SDValue DivRem = DAG.getNode(opc, DL, MVT::Glue,
 +                               N->getOperand(0), N->getOperand(1));
 +  SDValue InChain = DAG.getEntryNode();
 +  SDValue InGlue = DivRem;
 +
 +  // insert MFLO
 +  if (N->hasAnyUseOfValue(0)) {
-+    SDValue CopyFromLo = DAG.getCopyFromReg(InChain, dl, LO, Ty,
++    SDValue CopyFromLo = DAG.getCopyFromReg(InChain, DL, LO, Ty,
 +                                            InGlue);
 +    DAG.ReplaceAllUsesOfValueWith(SDValue(N, 0), CopyFromLo);
 +    InChain = CopyFromLo.getValue(1);
@@ -312,7 +312,7 @@ diff -Naur Chapter3_5/Cpu0ISelLowering.cpp Chapter4_1/Cpu0ISelLowering.cpp
 +
 +  // insert MFHI
 +  if (N->hasAnyUseOfValue(1)) {
-+    SDValue CopyFromHi = DAG.getCopyFromReg(InChain, dl,
++    SDValue CopyFromHi = DAG.getCopyFromReg(InChain, DL,
 +                                            HI, Ty, InGlue);
 +    DAG.ReplaceAllUsesOfValueWith(SDValue(N, 1), CopyFromHi);
 +  }

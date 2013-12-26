@@ -52,11 +52,11 @@ diff -Naur Chapter6_1/Cpu0ISelDAGToDAG.cpp Chapter7_1/Cpu0ISelDAGToDAG.cpp
 +    SDValue RHS = Node->getOperand(1);
 +
 +    EVT VT = LHS.getValueType();
-+    SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, dl, VT, Ops);
++    SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
 +    SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
-+    SDNode *Carry = CurDAG->getMachineNode(Cpu0::ANDi, dl, VT, 
++    SDNode *Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
 +                                           SDValue(StatusWord,0), Constant1);
-+    SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, dl, VT,
++    SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, DL, VT,
 +                                              SDValue(Carry,0), RHS);
 +
 +    return CurDAG->SelectNodeTo(Node, MOp, VT, MVT::Glue,
@@ -69,7 +69,7 @@ diff -Naur Chapter6_1/Cpu0ISelDAGToDAG.cpp Chapter7_1/Cpu0ISelDAGToDAG.cpp
 +    if (NodeTy == MVT::i32)
 +      MultOpc = (Opcode == ISD::UMUL_LOHI ? Cpu0::MULTu : Cpu0::MULT);
 +
-+    std::pair<SDNode*, SDNode*> LoHi = SelectMULT(Node, MultOpc, dl, NodeTy,
++    std::pair<SDNode*, SDNode*> LoHi = SelectMULT(Node, MultOpc, DL, NodeTy,
 +                                                  true, true);
 +
 +    if (!SDValue(Node, 0).use_empty())
@@ -105,7 +105,7 @@ diff -Naur Chapter6_1/Cpu0ISelLowering.cpp Chapter7_1/Cpu0ISelLowering.cpp
    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
  
 @@ -283,3 +293,9 @@
-     return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other,
+     return DAG.getNode(Cpu0ISD::Ret, DL, MVT::Other,
                         Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
  }
 +
@@ -120,7 +120,7 @@ diff -Naur Chapter6_1/Cpu0ISelLowering.h Chapter7_1/Cpu0ISelLowering.h
 @@ -105,6 +105,8 @@
                    const SmallVectorImpl<ISD::OutputArg> &Outs,
                    const SmallVectorImpl<SDValue> &OutVals,
-                   DebugLoc dl, SelectionDAG &DAG) const;
+                   SDLoc DL, SelectionDAG &DAG) const;
 +
 +    virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
    };
