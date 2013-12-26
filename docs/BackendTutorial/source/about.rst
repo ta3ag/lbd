@@ -53,6 +53,8 @@ Revision history
 ----------------
 
 Version 3.3.13, Not release yet.
+  Update section Install sphinx on install.rst.
+  Add Fig/llvmstructure/cpu0_arch.odp.
 
 Version 3.3.12, Released December 25, 2013
   Correct typing error.
@@ -69,8 +71,6 @@ Version 3.3.11, Released December 11, 2013
   Correct otherinst.rst.
   Decoration.
   Correct typing error.
-  Fix bug in instructions lb and lh of cpu0.v.
-  Fix bug in itoa.cpp. 
 
 Version 3.3.10, Released December 5, 2013
   Correct typing error.

@@ -843,6 +843,10 @@ On iMac or linux you can install as follows,
 Above installaton can generate html document but not for pdf. 
 To support pdf/latex document generated as follows,
 
+On iMac, install MacTex.pkg from http://www.tug.org/mactex/
+
+On Linux, install texlive as follows,
+
 .. code-block:: bash
 
   sudo apt-get install texlive texlive-latex-extra
