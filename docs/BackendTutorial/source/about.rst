@@ -52,7 +52,9 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.3.13, Not release yet.
+Version 3.3.14, Not release yet.
+
+Version 3.3.13, Released December 27, 2013
   Update section Install sphinx on install.rst.
   Add Fig/llvmstructure/cpu0_arch.odp.
 
