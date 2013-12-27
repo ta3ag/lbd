@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -16,8 +14,8 @@
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
-        VERSION:     '3.3.12',
+        URL_ROOT:    './',
+        VERSION:     '3.3.13',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -95,14 +93,14 @@ See comment <strong>&#8220;//&#8221;</strong>.</p>
 <p class="rubric">lbdex/InputFiles/ch9_1.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">gI</span> <span class="o">=</span> <span class="mi">100</span><span class="p">;</span>
 
-<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">x1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x2</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x3</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x4</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x5</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x6</span><span class="p">)</span>
+<span class="kt">int</span> <span class="nf">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">x1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x2</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x3</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x4</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x5</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x6</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">gI</span> <span class="o">+</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">x2</span> <span class="o">+</span> <span class="n">x3</span> <span class="o">+</span> <span class="n">x4</span> <span class="o">+</span> <span class="n">x5</span> <span class="o">+</span> <span class="n">x6</span><span class="p">;</span>
   
   <span class="k">return</span> <span class="n">sum</span><span class="p">;</span> 
 <span class="p">}</span>
 
-<span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
 <span class="p">{</span> 
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">);</span>  
   
@@ -334,7 +332,7 @@ We define it as follows,</p>
 
   <span class="c1">// Assign locations to all of the incoming arguments.</span>
   <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">CCValAssign</span><span class="p">,</span> <span class="mi">16</span><span class="o">&gt;</span> <span class="n">ArgLocs</span><span class="p">;</span>
-  <span class="n">CCState</span> <span class="n">CCInfo</span><span class="p">(</span><span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">(),</span>
+  <span class="n">CCState</span> <span class="nf">CCInfo</span><span class="p">(</span><span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">(),</span>
                  <span class="n">getTargetMachine</span><span class="p">(),</span> <span class="n">ArgLocs</span><span class="p">,</span> <span class="o">*</span><span class="n">DAG</span><span class="p">.</span><span class="n">getContext</span><span class="p">());</span>
 
   <span class="n">CCInfo</span><span class="p">.</span><span class="n">AnalyzeFormalArguments</span><span class="p">(</span><span class="n">Ins</span><span class="p">,</span> <span class="n">CC_Cpu0</span><span class="p">);</span>
@@ -359,13 +357,13 @@ We define it as follows,</p>
 
     <span class="c1">// The stack pointer offset is relative to the caller stack frame.</span>
     <span class="n">LastFI</span> <span class="o">=</span> <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">CreateFixedObject</span><span class="p">(</span><span class="n">ValVT</span><span class="p">.</span><span class="n">getSizeInBits</span><span class="p">()</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span>
-                                    <span class="n">VA</span><span class="p">.</span><span class="n">getLocMemOffset</span><span class="p">(),</span> <span class="kc">true</span><span class="p">);</span>
+                                    <span class="n">VA</span><span class="p">.</span><span class="n">getLocMemOffset</span><span class="p">(),</span> <span class="nb">true</span><span class="p">);</span>
 
     <span class="c1">// Create load nodes to retrieve arguments from the stack</span>
     <span class="n">SDValue</span> <span class="n">FIN</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getFrameIndex</span><span class="p">(</span><span class="n">LastFI</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">());</span>
     <span class="n">InVals</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getLoad</span><span class="p">(</span><span class="n">ValVT</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">Chain</span><span class="p">,</span> <span class="n">FIN</span><span class="p">,</span>
                                  <span class="n">MachinePointerInfo</span><span class="o">::</span><span class="n">getFixedStack</span><span class="p">(</span><span class="n">LastFI</span><span class="p">),</span>
-                                 <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span>
+                                 <span class="nb">false</span><span class="p">,</span> <span class="nb">false</span><span class="p">,</span> <span class="nb">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span>
   <span class="p">}</span>
   <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">setLastInArgFI</span><span class="p">(</span><span class="n">LastFI</span><span class="p">);</span>
   <span class="c1">// All stores are grouped in one node to allow the matching between</span>
@@ -417,7 +415,7 @@ define the loadRegFromStackSlot() to issue the machine instruction
 GetMemOperand(..., FI, ...) return the Memory location of the frame index
 variable, which is the offset.</p>
 <p class="rubric">lbdex/Chapter9_1/Cpu0InstrInfo.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="n">MachineMemOperand</span><span class="o">*</span> <span class="n">GetMemOperand</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="kt">int</span> <span class="n">FI</span><span class="p">,</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="n">MachineMemOperand</span><span class="o">*</span> <span class="nf">GetMemOperand</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="kt">int</span> <span class="n">FI</span><span class="p">,</span>
                                         <span class="kt">unsigned</span> <span class="n">Flag</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span> <span class="o">=</span> <span class="o">*</span><span class="n">MBB</span><span class="p">.</span><span class="n">getParent</span><span class="p">();</span>
   <span class="n">MachineFrameInfo</span> <span class="o">&amp;</span><span class="n">MFI</span> <span class="o">=</span> <span class="o">*</span><span class="n">MF</span><span class="p">.</span><span class="n">getFrameInfo</span><span class="p">();</span>
@@ -466,7 +464,7 @@ variable, which is the offset.</p>
 
 <span class="n">MachineInstr</span><span class="o">*</span>
 <span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">emitFrameIndexDebugValue</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span> <span class="kt">int</span> <span class="n">FrameIx</span><span class="p">,</span>
-                                        <span class="n">uint64_t</span> <span class="n">Offset</span><span class="p">,</span> <span class="k">const</span> <span class="n">MDNode</span> <span class="o">*</span><span class="n">MDPtr</span><span class="p">,</span>
+                                        <span class="kt">uint64_t</span> <span class="n">Offset</span><span class="p">,</span> <span class="k">const</span> <span class="n">MDNode</span> <span class="o">*</span><span class="n">MDPtr</span><span class="p">,</span>
                                         <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="n">MachineInstrBuilder</span> <span class="n">MIB</span> <span class="o">=</span> <span class="n">BuildMI</span><span class="p">(</span><span class="n">MF</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">DBG_VALUE</span><span class="p">))</span>
     <span class="p">.</span><span class="n">addFrameIndex</span><span class="p">(</span><span class="n">FrameIx</span><span class="p">).</span><span class="n">addImm</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">addImm</span><span class="p">(</span><span class="n">Offset</span><span class="p">).</span><span class="n">addMetadata</span><span class="p">(</span><span class="n">MDPtr</span><span class="p">);</span>
@@ -479,15 +477,15 @@ variable, which is the offset.</p>
   <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span> <span class="o">=</span> <span class="o">*</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">();</span>
 
   <span class="k">switch</span><span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getDesc</span><span class="p">().</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
-  <span class="k">default</span><span class="o">:</span>
-    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">RetLR:</span>
+  <span class="nl">default:</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">RetLR</span><span class="o">:</span>
     <span class="n">ExpandRetLR</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MI</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">RET</span><span class="p">);</span>
     <span class="k">break</span><span class="p">;</span>
   <span class="p">}</span>
 
   <span class="n">MBB</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">MI</span><span class="p">);</span>
-  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
 <span class="p">}</span>
 
 <span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">ExpandRetLR</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
@@ -497,7 +495,7 @@ variable, which is the offset.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="n">MachineMemOperand</span><span class="o">*</span> <span class="n">GetMemOperand</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="kt">int</span> <span class="n">FI</span><span class="p">,</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="n">MachineMemOperand</span><span class="o">*</span> <span class="nf">GetMemOperand</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="kt">int</span> <span class="n">FI</span><span class="p">,</span>
                                         <span class="kt">unsigned</span> <span class="n">Flag</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span> <span class="o">=</span> <span class="o">*</span><span class="n">MBB</span><span class="p">.</span><span class="n">getParent</span><span class="p">();</span>
   <span class="n">MachineFrameInfo</span> <span class="o">&amp;</span><span class="n">MFI</span> <span class="o">=</span> <span class="o">*</span><span class="n">MF</span><span class="p">.</span><span class="n">getFrameInfo</span><span class="p">();</span>
@@ -581,10 +579,10 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
 ...</pre>
 </div>
 <p class="rubric">lbdex/Chapter9_1/InstPrinter/Cpu0InstPrinter.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="n">printExpr</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="p">{</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="kt">void</span> <span class="nf">printExpr</span><span class="p">(</span><span class="k">const</span> <span class="n">MCExpr</span> <span class="o">*</span><span class="n">Expr</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">Kind</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">...</span>
-  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="nl">VK_Cpu0_GOT_CALL:</span>  <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;%call16(&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_GOT_CALL</span><span class="o">:</span>  <span class="n">OS</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;%call16(&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
   <span class="p">...</span>
   <span class="p">}</span>
 <span class="p">...</span>
@@ -596,11 +594,11 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
                                               <span class="n">MachineOperandType</span> <span class="n">MOTy</span><span class="p">,</span>
                                               <span class="kt">unsigned</span> <span class="n">Offset</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="p">...</span>
-  <span class="k">case</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="nl">MO_GOT_CALL:</span>  <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT_CALL</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_GOT_CALL</span><span class="o">:</span>  <span class="n">Kind</span> <span class="o">=</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="n">VK_Cpu0_GOT_CALL</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
   <span class="p">...</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">MOTy</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">...</span>
-  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_ExternalSymbol:</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span>:<span class="o">:</span><span class="n">MO_ExternalSymbol</span><span class="o">:</span>
     <span class="n">Symbol</span> <span class="o">=</span> <span class="n">AsmPrinter</span><span class="p">.</span><span class="n">GetExternalSymbolSymbol</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getSymbolName</span><span class="p">());</span>
     <span class="n">Offset</span> <span class="o">+=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getOffset</span><span class="p">();</span>
     <span class="k">break</span><span class="p">;</span>
@@ -614,8 +612,8 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
   <span class="p">...</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">MOTy</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">...</span>
-  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_ExternalSymbol:</span>
-  <span class="k">case</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="nl">MO_BlockAddress:</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span>:<span class="o">:</span><span class="n">MO_ExternalSymbol</span><span class="o">:</span>
+  <span class="k">case</span> <span class="n">MachineOperand</span>:<span class="o">:</span><span class="n">MO_BlockAddress</span><span class="o">:</span>
     <span class="k">return</span> <span class="n">LowerSymbolOperand</span><span class="p">(</span><span class="n">MO</span><span class="p">,</span> <span class="n">MOTy</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
   <span class="p">...</span>
  <span class="p">}</span>
@@ -624,11 +622,11 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter9_1/MCTargetDesc/Cpu0AsmBackend.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">fixup_Cpu0_CALL16:</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">fixup_Cpu0_CALL16</span><span class="o">:</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter9_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">fixup_Cpu0_CALL16:</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">fixup_Cpu0_CALL16</span><span class="o">:</span>
   <span class="n">Type</span> <span class="o">=</span> <span class="n">ELF</span><span class="o">::</span><span class="n">R_CPU0_CALL16</span><span class="p">;</span>
   <span class="k">break</span><span class="p">;</span>
 </pre></div>
@@ -646,7 +644,7 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
   <span class="k">if</span> <span class="p">(</span><span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JSUB</span> <span class="o">||</span> <span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JMP</span><span class="p">)</span>
     <span class="n">Fixups</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MCFixup</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span>
                                      <span class="n">MCFixupKind</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_PC24</span><span class="p">)));</span>
-  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SWI</span><span class="p">)</span>
+  <span class="k">else</span> <span class="nf">if</span> <span class="p">(</span><span class="n">Opcode</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SWI</span><span class="p">)</span>
     <span class="n">Fixups</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">MCFixup</span><span class="o">::</span><span class="n">Create</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Expr</span><span class="p">,</span>
                                      <span class="n">MCFixupKind</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_24</span><span class="p">)));</span>
   <span class="p">...</span>
@@ -658,7 +656,7 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
 <span class="p">...</span>
   <span class="k">switch</span><span class="p">(</span><span class="n">cast</span><span class="o">&lt;</span><span class="n">MCSymbolRefExpr</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Expr</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">getKind</span><span class="p">())</span> <span class="p">{</span>
   <span class="p">...</span>
-  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="nl">VK_Cpu0_GOT_CALL:</span>
+  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_GOT_CALL</span><span class="o">:</span>
     <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_CALL16</span><span class="p">;</span>
     <span class="k">break</span><span class="p">;</span>
   <span class="p">...</span>
@@ -670,7 +668,7 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
 <span class="n">getMachineOpValue</span><span class="p">(</span><span class="k">const</span> <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">MI</span><span class="p">,</span> <span class="k">const</span> <span class="n">MCOperand</span> <span class="o">&amp;</span><span class="n">MO</span><span class="p">,</span>
                   <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCFixup</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Fixups</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="p">...</span>
-  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span><span class="o">::</span><span class="nl">VK_Cpu0_GOT_CALL:</span>
+  <span class="k">case</span> <span class="n">MCSymbolRefExpr</span>:<span class="o">:</span><span class="n">VK_Cpu0_GOT_CALL</span><span class="o">:</span>
     <span class="n">FixupKind</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">fixup_Cpu0_CALL16</span><span class="p">;</span>
     <span class="k">break</span><span class="p">;</span>
   <span class="p">...</span>
@@ -693,7 +691,7 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
   <span class="k">mutable</span> <span class="kt">int</span> <span class="n">DynAllocFI</span><span class="p">;</span> <span class="c1">// Frame index of dynamically allocated stack area.</span>
   <span class="p">...</span>
 
-<span class="k">public</span><span class="o">:</span>
+<span class="nl">public:</span>
   <span class="n">Cpu0FunctionInfo</span><span class="p">(</span><span class="n">MachineFunction</span><span class="o">&amp;</span> <span class="n">MF</span><span class="p">)</span>
   <span class="o">:</span> <span class="p">...</span>
     <span class="n">VarArgsFrameIndex</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">InArgFIRange</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
@@ -722,7 +720,7 @@ def : Pat&lt;(Cpu0JmpLink (i32 texternalsym:$dst)),
   <span class="c1">// allocated stack area.</span>
   <span class="kt">int</span> <span class="n">getDynAllocFI</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
     <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">DynAllocFI</span><span class="p">)</span>
-      <span class="n">DynAllocFI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getFrameInfo</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">CreateFixedObject</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+      <span class="n">DynAllocFI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getFrameInfo</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">CreateFixedObject</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
 
     <span class="k">return</span> <span class="n">DynAllocFI</span><span class="p">;</span>
   <span class="p">}</span>
@@ -856,7 +854,7 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
   <span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span> <span class="n">CallConv</span>              <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">CallConv</span><span class="p">;</span>
   <span class="kt">bool</span> <span class="n">isVarArg</span>                         <span class="o">=</span> <span class="n">CLI</span><span class="p">.</span><span class="n">IsVarArg</span><span class="p">;</span>
   <span class="c1">// Cpu0 target does not yet support tail call optimization.</span>
-  <span class="n">isTailCall</span>                            <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="n">isTailCall</span>                            <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
 
   <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">();</span>
   <span class="n">MachineFrameInfo</span> <span class="o">*</span><span class="n">MFI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getFrameInfo</span><span class="p">();</span>
@@ -866,7 +864,7 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
 
   <span class="c1">// Analyze operands of the call, assigning locations to each operand.</span>
   <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">CCValAssign</span><span class="p">,</span> <span class="mi">16</span><span class="o">&gt;</span> <span class="n">ArgLocs</span><span class="p">;</span>
-  <span class="n">CCState</span> <span class="n">CCInfo</span><span class="p">(</span><span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">(),</span>
+  <span class="n">CCState</span> <span class="nf">CCInfo</span><span class="p">(</span><span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">(),</span>
                  <span class="n">getTargetMachine</span><span class="p">(),</span> <span class="n">ArgLocs</span><span class="p">,</span> <span class="o">*</span><span class="n">DAG</span><span class="p">.</span><span class="n">getContext</span><span class="p">());</span>
 
   <span class="n">CCInfo</span><span class="p">.</span><span class="n">AnalyzeCallOperands</span><span class="p">(</span><span class="n">Outs</span><span class="p">,</span> <span class="n">CC_Cpu0</span><span class="p">);</span>
@@ -877,7 +875,7 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
   <span class="c1">// If this is the first call, create a stack frame object that points to</span>
   <span class="c1">// a location to which .cprestore saves $gp.</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">IsPIC</span> <span class="o">&amp;&amp;</span> <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">globalBaseRegFixed</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getGPFI</span><span class="p">())</span>
-    <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">setGPFI</span><span class="p">(</span><span class="n">MFI</span><span class="o">-&gt;</span><span class="n">CreateFixedObject</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">true</span><span class="p">));</span>
+    <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">setGPFI</span><span class="p">(</span><span class="n">MFI</span><span class="o">-&gt;</span><span class="n">CreateFixedObject</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">true</span><span class="p">));</span>
   <span class="c1">// Get the frame index of the stack frame object that points to the location</span>
   <span class="c1">// of dynamically allocated area on the stack.</span>
   <span class="kt">int</span> <span class="n">DynAllocFI</span> <span class="o">=</span> <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getDynAllocFI</span><span class="p">();</span>
@@ -900,7 +898,7 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
   <span class="c1">// ByValChain is the output chain of the last Memcpy node created for copying</span>
   <span class="c1">// byval arguments to the stack.</span>
   <span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span> <span class="n">CallSeqStart</span><span class="p">,</span> <span class="n">ByValChain</span><span class="p">;</span>
-  <span class="n">SDValue</span> <span class="n">NextStackOffsetVal</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getIntPtrConstant</span><span class="p">(</span><span class="n">NextStackOffset</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+  <span class="n">SDValue</span> <span class="n">NextStackOffsetVal</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getIntPtrConstant</span><span class="p">(</span><span class="n">NextStackOffset</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
   <span class="n">Chain</span> <span class="o">=</span> <span class="n">CallSeqStart</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCALLSEQ_START</span><span class="p">(</span><span class="n">InChain</span><span class="p">,</span> <span class="n">NextStackOffsetVal</span><span class="p">);</span>
   <span class="n">ByValChain</span> <span class="o">=</span> <span class="n">InChain</span><span class="p">;</span>
 
@@ -929,16 +927,16 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
 
     <span class="c1">// Promote the value if needed.</span>
     <span class="k">switch</span> <span class="p">(</span><span class="n">VA</span><span class="p">.</span><span class="n">getLocInfo</span><span class="p">())</span> <span class="p">{</span>
-    <span class="k">default</span><span class="o">:</span> <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Unknown loc info!&quot;</span><span class="p">);</span>
-    <span class="k">case</span> <span class="n">CCValAssign</span><span class="o">::</span><span class="nl">Full:</span>
+    <span class="nl">default:</span> <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Unknown loc info!&quot;</span><span class="p">);</span>
+    <span class="k">case</span> <span class="n">CCValAssign</span>:<span class="o">:</span><span class="n">Full</span><span class="o">:</span>
       <span class="k">break</span><span class="p">;</span>
-    <span class="k">case</span> <span class="n">CCValAssign</span><span class="o">::</span><span class="nl">SExt:</span>
+    <span class="k">case</span> <span class="n">CCValAssign</span>:<span class="o">:</span><span class="n">SExt</span><span class="o">:</span>
       <span class="n">Arg</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">SIGN_EXTEND</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">LocVT</span><span class="p">,</span> <span class="n">Arg</span><span class="p">);</span>
       <span class="k">break</span><span class="p">;</span>
-    <span class="k">case</span> <span class="n">CCValAssign</span><span class="o">::</span><span class="nl">ZExt:</span>
+    <span class="k">case</span> <span class="n">CCValAssign</span>:<span class="o">:</span><span class="n">ZExt</span><span class="o">:</span>
       <span class="n">Arg</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">ZERO_EXTEND</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">LocVT</span><span class="p">,</span> <span class="n">Arg</span><span class="p">);</span>
       <span class="k">break</span><span class="p">;</span>
-    <span class="k">case</span> <span class="n">CCValAssign</span><span class="o">::</span><span class="nl">AExt:</span>
+    <span class="k">case</span> <span class="n">CCValAssign</span>:<span class="o">:</span><span class="n">AExt</span><span class="o">:</span>
       <span class="n">Arg</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">ANY_EXTEND</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">LocVT</span><span class="p">,</span> <span class="n">Arg</span><span class="p">);</span>
       <span class="k">break</span><span class="p">;</span>
     <span class="p">}</span>
@@ -954,13 +952,13 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
 
     <span class="c1">// Create the frame index object for this incoming parameter</span>
     <span class="n">LastFI</span> <span class="o">=</span> <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">CreateFixedObject</span><span class="p">(</span><span class="n">ValVT</span><span class="p">.</span><span class="n">getSizeInBits</span><span class="p">()</span><span class="o">/</span><span class="mi">8</span><span class="p">,</span>
-                                    <span class="n">VA</span><span class="p">.</span><span class="n">getLocMemOffset</span><span class="p">(),</span> <span class="kc">true</span><span class="p">);</span>
+                                    <span class="n">VA</span><span class="p">.</span><span class="n">getLocMemOffset</span><span class="p">(),</span> <span class="nb">true</span><span class="p">);</span>
     <span class="n">SDValue</span> <span class="n">PtrOff</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getFrameIndex</span><span class="p">(</span><span class="n">LastFI</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">());</span>
 
     <span class="c1">// emit ISD::STORE whichs stores the</span>
     <span class="c1">// parameter value to a stack Location</span>
     <span class="n">MemOpChains</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getStore</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">Arg</span><span class="p">,</span> <span class="n">PtrOff</span><span class="p">,</span>
-                                       <span class="n">MachinePointerInfo</span><span class="p">(),</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span>
+                                       <span class="n">MachinePointerInfo</span><span class="p">(),</span> <span class="nb">false</span><span class="p">,</span> <span class="nb">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span>
   <span class="p">}</span>
 
   <span class="c1">// Extend range of indices of frame objects for outgoing arguments that were</span>
@@ -986,14 +984,14 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
   <span class="c1">// node so that legalize doesn&#39;t hack it.</span>
   <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">OpFlag</span><span class="p">;</span>
   <span class="kt">bool</span> <span class="n">IsPICCall</span> <span class="o">=</span> <span class="n">IsPIC</span><span class="p">;</span> <span class="c1">// true if calls are translated to jalr $25</span>
-  <span class="kt">bool</span> <span class="n">GlobalOrExternal</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="n">GlobalOrExternal</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
   <span class="n">SDValue</span> <span class="n">CalleeLo</span><span class="p">;</span>
 
   <span class="k">if</span> <span class="p">(</span><span class="n">GlobalAddressSDNode</span> <span class="o">*</span><span class="n">G</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">GlobalAddressSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Callee</span><span class="p">))</span> <span class="p">{</span>
     <span class="n">OpFlag</span> <span class="o">=</span> <span class="n">IsPICCall</span> <span class="o">?</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_GOT_CALL</span> <span class="o">:</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_NO_FLAG</span><span class="p">;</span>
     <span class="n">Callee</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetGlobalAddress</span><span class="p">(</span><span class="n">G</span><span class="o">-&gt;</span><span class="n">getGlobal</span><span class="p">(),</span> <span class="n">dl</span><span class="p">,</span>
                                           <span class="n">getPointerTy</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">OpFlag</span><span class="p">);</span>
-    <span class="n">GlobalOrExternal</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="n">GlobalOrExternal</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
   <span class="p">}</span>
   <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">ExternalSymbolSDNode</span> <span class="o">*</span><span class="n">S</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">ExternalSymbolSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Callee</span><span class="p">))</span> <span class="p">{</span>
     <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">IsPIC</span><span class="p">)</span> <span class="c1">// static</span>
@@ -1002,7 +1000,7 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
       <span class="n">OpFlag</span> <span class="o">=</span> <span class="n">Cpu0II</span><span class="o">::</span><span class="n">MO_GOT_CALL</span><span class="p">;</span>
     <span class="n">Callee</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetExternalSymbol</span><span class="p">(</span><span class="n">S</span><span class="o">-&gt;</span><span class="n">getSymbol</span><span class="p">(),</span> <span class="n">getPointerTy</span><span class="p">(),</span>
                                          <span class="n">OpFlag</span><span class="p">);</span>
-    <span class="n">GlobalOrExternal</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="n">GlobalOrExternal</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
   <span class="p">}</span>
 
   <span class="n">SDValue</span> <span class="n">InFlag</span><span class="p">;</span>
@@ -1015,7 +1013,7 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
                            <span class="n">getGlobalReg</span><span class="p">(</span><span class="n">DAG</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">()),</span> <span class="n">Callee</span><span class="p">);</span>
       <span class="n">SDValue</span> <span class="n">LoadValue</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getLoad</span><span class="p">(</span><span class="n">getPointerTy</span><span class="p">(),</span> <span class="n">dl</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getEntryNode</span><span class="p">(),</span>
                                       <span class="n">Callee</span><span class="p">,</span> <span class="n">MachinePointerInfo</span><span class="o">::</span><span class="n">getGOT</span><span class="p">(),</span>
-                                      <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+                                      <span class="nb">false</span><span class="p">,</span> <span class="nb">false</span><span class="p">,</span> <span class="nb">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
 
       <span class="c1">// Use GOT+LO if callee has internal linkage.</span>
       <span class="k">if</span> <span class="p">(</span><span class="n">CalleeLo</span><span class="p">.</span><span class="n">getNode</span><span class="p">())</span> <span class="p">{</span>
@@ -1053,7 +1051,7 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
 
   <span class="c1">// Add a register mask operand representing the call-preserved registers.</span>
   <span class="k">const</span> <span class="n">TargetRegisterInfo</span> <span class="o">*</span><span class="n">TRI</span> <span class="o">=</span> <span class="n">getTargetMachine</span><span class="p">().</span><span class="n">getRegisterInfo</span><span class="p">();</span>
-  <span class="k">const</span> <span class="n">uint32_t</span> <span class="o">*</span><span class="n">Mask</span> <span class="o">=</span> <span class="n">TRI</span><span class="o">-&gt;</span><span class="n">getCallPreservedMask</span><span class="p">(</span><span class="n">CallConv</span><span class="p">);</span>
+  <span class="k">const</span> <span class="kt">uint32_t</span> <span class="o">*</span><span class="n">Mask</span> <span class="o">=</span> <span class="n">TRI</span><span class="o">-&gt;</span><span class="n">getCallPreservedMask</span><span class="p">(</span><span class="n">CallConv</span><span class="p">);</span>
   <span class="n">assert</span><span class="p">(</span><span class="n">Mask</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Missing call preserved mask for calling convention&quot;</span><span class="p">);</span>
   <span class="n">Ops</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getRegisterMask</span><span class="p">(</span><span class="n">Mask</span><span class="p">));</span>
 
@@ -1065,13 +1063,13 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
 
   <span class="c1">// Create the CALLSEQ_END node.</span>
   <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCALLSEQ_END</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span>
-                             <span class="n">DAG</span><span class="p">.</span><span class="n">getIntPtrConstant</span><span class="p">(</span><span class="n">NextStackOffset</span><span class="p">,</span> <span class="kc">true</span><span class="p">),</span>
-                             <span class="n">DAG</span><span class="p">.</span><span class="n">getIntPtrConstant</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">true</span><span class="p">),</span> <span class="n">InFlag</span><span class="p">);</span>
+                             <span class="n">DAG</span><span class="p">.</span><span class="n">getIntPtrConstant</span><span class="p">(</span><span class="n">NextStackOffset</span><span class="p">,</span> <span class="nb">true</span><span class="p">),</span>
+                             <span class="n">DAG</span><span class="p">.</span><span class="n">getIntPtrConstant</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">true</span><span class="p">),</span> <span class="n">InFlag</span><span class="p">);</span>
   <span class="n">InFlag</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
 
   <span class="c1">// Handle result values, copying them out of physregs into vregs that we</span>
   <span class="c1">// return.</span>
-  <span class="k">return</span> <span class="n">LowerCallResult</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">InFlag</span><span class="p">,</span> <span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span>
+  <span class="k">return</span> <span class="nf">LowerCallResult</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">InFlag</span><span class="p">,</span> <span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span>
                          <span class="n">Ins</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">DAG</span><span class="p">,</span> <span class="n">InVals</span><span class="p">);</span>
 <span class="p">}</span>
 
@@ -1085,7 +1083,7 @@ LowerCall() is responsible to do this. The implementation as follows,</p>
                                     <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="c1">// Assign locations to each value returned by this call.</span>
   <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">CCValAssign</span><span class="p">,</span> <span class="mi">16</span><span class="o">&gt;</span> <span class="n">RVLocs</span><span class="p">;</span>
-  <span class="n">CCState</span> <span class="n">CCInfo</span><span class="p">(</span><span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">(),</span>
+  <span class="n">CCState</span> <span class="nf">CCInfo</span><span class="p">(</span><span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">(),</span>
 		 <span class="n">getTargetMachine</span><span class="p">(),</span> <span class="n">RVLocs</span><span class="p">,</span> <span class="o">*</span><span class="n">DAG</span><span class="p">.</span><span class="n">getContext</span><span class="p">());</span>
 
   <span class="n">CCInfo</span><span class="p">.</span><span class="n">AnalyzeCallResult</span><span class="p">(</span><span class="n">Ins</span><span class="p">,</span> <span class="n">RetCC_Cpu0</span><span class="p">);</span>
@@ -1303,7 +1301,7 @@ initialize string (char str[81] = &#8220;Hello world&#8221; in this case). For s
 the &#8220;call memcpy&#8221; is translated into &#8220;store with contant&#8221; in stages of
 optimization.</p>
 <p class="rubric">lbdex/InputFiles/ch9_1_2.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="n">main</span><span class="p">()</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">char</span> <span class="n">str</span><span class="p">[</span><span class="mi">81</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Hello world&quot;</span><span class="p">;</span>
   <span class="kt">char</span> <span class="n">s</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;Hello&quot;</span><span class="p">;</span>
@@ -1418,7 +1416,7 @@ $2 is not 0) as follows,</p>
 <span class="n">Date</span> <span class="n">date</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
 <span class="kt">int</span> <span class="n">a</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2012</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span>
 
-<span class="kt">int</span> <span class="n">test_struct</span><span class="p">()</span>
+<span class="kt">int</span> <span class="nf">test_struct</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">day</span> <span class="o">=</span> <span class="n">date</span><span class="p">.</span><span class="n">day</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
@@ -1504,7 +1502,7 @@ arguments into spOffset($sp) (Chapter9_2/ set them to pOffset+stackSize($sp).</p
       <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">isDynAllocFI</span><span class="p">(</span><span class="n">FrameIndex</span><span class="p">))</span>
     <span class="n">Offset</span> <span class="o">=</span> <span class="n">spOffset</span><span class="p">;</span>
   <span class="k">else</span>
-    <span class="n">Offset</span> <span class="o">=</span> <span class="n">spOffset</span> <span class="o">+</span> <span class="p">(</span><span class="n">int64_t</span><span class="p">)</span><span class="n">stackSize</span><span class="p">;</span>
+    <span class="n">Offset</span> <span class="o">=</span> <span class="n">spOffset</span> <span class="o">+</span> <span class="p">(</span><span class="kt">int64_t</span><span class="p">)</span><span class="n">stackSize</span><span class="p">;</span>
   <span class="n">Offset</span>    <span class="o">+=</span> <span class="n">MI</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">).</span><span class="n">getImm</span><span class="p">();</span>
   <span class="p">...</span>
 <span class="p">}</span>
@@ -1723,7 +1721,7 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.</p
                     <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">FS</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetOptions</span> <span class="o">&amp;</span><span class="n">Options</span><span class="p">,</span>
                     <span class="n">Reloc</span><span class="o">::</span><span class="n">Model</span> <span class="n">RM</span><span class="p">,</span> <span class="n">CodeModel</span><span class="o">::</span><span class="n">Model</span> <span class="n">CM</span><span class="p">,</span>
                     <span class="n">CodeGenOpt</span><span class="o">::</span><span class="n">Level</span> <span class="n">OL</span><span class="p">)</span>
-  <span class="o">:</span> <span class="n">Cpu0TargetMachine</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">TT</span><span class="p">,</span> <span class="n">CPU</span><span class="p">,</span> <span class="n">FS</span><span class="p">,</span> <span class="n">Options</span><span class="p">,</span> <span class="n">RM</span><span class="p">,</span> <span class="n">CM</span><span class="p">,</span> <span class="n">OL</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{}</span>
+  <span class="o">:</span> <span class="n">Cpu0TargetMachine</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">TT</span><span class="p">,</span> <span class="n">CPU</span><span class="p">,</span> <span class="n">FS</span><span class="p">,</span> <span class="n">Options</span><span class="p">,</span> <span class="n">RM</span><span class="p">,</span> <span class="n">CM</span><span class="p">,</span> <span class="n">OL</span><span class="p">,</span> <span class="nb">true</span><span class="p">)</span> <span class="p">{}</span>
 <span class="k">namespace</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">addPreRegAlloc</span><span class="p">();</span>
@@ -1735,12 +1733,12 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.</p
   <span class="c1">// In N32/64, $gp is a callee-saved register.</span>
 
   <span class="n">addPass</span><span class="p">(</span><span class="n">createCpu0EmitGPRestorePass</span><span class="p">(</span><span class="n">getCpu0TargetMachine</span><span class="p">()));</span>
-  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter9_3/Cpu0.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">FunctionPass</span> <span class="o">*</span><span class="n">createCpu0EmitGPRestorePass</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">FunctionPass</span> <span class="o">*</span><span class="nf">createCpu0EmitGPRestorePass</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter9_3/Cpu0FrameLowering.cpp</p>
@@ -1837,9 +1835,9 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
 
   <span class="k">if</span> <span class="p">((</span><span class="n">TM</span><span class="p">.</span><span class="n">getRelocationModel</span><span class="p">()</span> <span class="o">!=</span> <span class="n">Reloc</span><span class="o">::</span><span class="n">PIC_</span><span class="p">)</span> <span class="o">||</span>
       <span class="p">(</span><span class="o">!</span><span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">globalBaseRegFixed</span><span class="p">()))</span>
-    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
 
-  <span class="kt">bool</span> <span class="n">Changed</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="n">Changed</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">FI</span> <span class="o">=</span> <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getGPFI</span><span class="p">();</span>
 
   <span class="k">for</span> <span class="p">(</span><span class="n">MachineFunction</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MFI</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">MFE</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
@@ -1860,7 +1858,7 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
       <span class="n">DebugLoc</span> <span class="n">dl</span> <span class="o">=</span> <span class="n">I</span> <span class="o">!=</span> <span class="n">MBB</span><span class="p">.</span><span class="n">end</span><span class="p">()</span> <span class="o">?</span> <span class="n">I</span><span class="o">-&gt;</span><span class="n">getDebugLoc</span><span class="p">()</span> <span class="o">:</span> <span class="n">DebugLoc</span><span class="p">();</span>
       <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LD</span><span class="p">),</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">GP</span><span class="p">).</span><span class="n">addFrameIndex</span><span class="p">(</span><span class="n">FI</span><span class="p">)</span>
                                                        <span class="p">.</span><span class="n">addImm</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
-      <span class="n">Changed</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+      <span class="n">Changed</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
     <span class="p">}</span>
 
     <span class="k">while</span> <span class="p">(</span><span class="n">I</span> <span class="o">!=</span> <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">end</span><span class="p">())</span> <span class="p">{</span>
@@ -1873,7 +1871,7 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
       <span class="c1">// emit lw $gp, ($gp save slot on stack) after jalr</span>
       <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="o">++</span><span class="n">I</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">TII</span><span class="o">-&gt;</span><span class="n">get</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LD</span><span class="p">),</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">GP</span><span class="p">).</span><span class="n">addFrameIndex</span><span class="p">(</span><span class="n">FI</span><span class="p">)</span>
                                                          <span class="p">.</span><span class="n">addImm</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
-      <span class="n">Changed</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+      <span class="n">Changed</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
     <span class="p">}</span>
   <span class="p">}</span>
 
@@ -1908,10 +1906,10 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
   <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;</span> <span class="n">MCInsts</span><span class="p">;</span>
 
   <span class="k">switch</span> <span class="p">(</span><span class="n">Opc</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">CPRESTORE:</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">CPRESTORE</span><span class="o">:</span> <span class="p">{</span>
     <span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
     <span class="n">assert</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isImm</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;CPRESTORE&#39;s operand must be an immediate.&quot;</span><span class="p">);</span>
-    <span class="n">int64_t</span> <span class="n">Offset</span> <span class="o">=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+    <span class="kt">int64_t</span> <span class="n">Offset</span> <span class="o">=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
 
     <span class="k">if</span> <span class="p">(</span><span class="n">OutStreamer</span><span class="p">.</span><span class="n">hasRawTextSupport</span><span class="p">())</span> <span class="p">{</span>
       <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Offset</span><span class="p">))</span> <span class="p">{</span>
@@ -1930,7 +1928,7 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
 
     <span class="k">break</span><span class="p">;</span>
   <span class="p">}</span>
-  <span class="k">default</span><span class="o">:</span>
+  <span class="nl">default:</span>
     <span class="k">break</span><span class="p">;</span>
   <span class="p">}</span>
   <span class="p">...</span>
@@ -1939,7 +1937,7 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
 </div>
 <p class="rubric">lbdex/Chapter9_3/Cpu0MCInstLower.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Lower &quot;.cprestore offset&quot; to &quot;st $gp, offset($sp)&quot;.</span>
-<span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerCPRESTORE</span><span class="p">(</span><span class="n">int64_t</span> <span class="n">Offset</span><span class="p">,</span>
+<span class="kt">void</span> <span class="n">Cpu0MCInstLower</span><span class="o">::</span><span class="n">LowerCPRESTORE</span><span class="p">(</span><span class="kt">int64_t</span> <span class="n">Offset</span><span class="p">,</span>
                                      <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;&amp;</span> <span class="n">MCInsts</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">assert</span><span class="p">(</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">32</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Offset</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">Offset</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
          <span class="s">&quot;Imm operand of .cprestore must be a non-negative 32-bit value.&quot;</span><span class="p">);</span>
@@ -1968,7 +1966,7 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter9_3/Cpu0MCInstLower.h</p>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="kt">void</span> <span class="n">LowerCPRESTORE</span><span class="p">(</span><span class="n">int64_t</span> <span class="n">Offset</span><span class="p">,</span> <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;&amp;</span> <span class="n">MCInsts</span><span class="p">);</span>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="kt">void</span> <span class="nf">LowerCPRESTORE</span><span class="p">(</span><span class="kt">int64_t</span> <span class="n">Offset</span><span class="p">,</span> <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;&amp;</span> <span class="n">MCInsts</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>The added code of Cpu0AsmPrinter.cpp as above will call the LowerCPRESTORE() when
@@ -2037,7 +2035,7 @@ The ch9_1_3.cpp and ch9_1_4.cpp are example code more for test.</p>
   <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">CCValAssign</span><span class="p">,</span> <span class="mi">16</span><span class="o">&gt;</span> <span class="n">RVLocs</span><span class="p">;</span>
 
   <span class="c1">// CCState - Info about the registers and stack slot.</span>
-  <span class="n">CCState</span> <span class="n">CCInfo</span><span class="p">(</span><span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">(),</span>
+  <span class="n">CCState</span> <span class="nf">CCInfo</span><span class="p">(</span><span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">(),</span>
 		 <span class="n">getTargetMachine</span><span class="p">(),</span> <span class="n">RVLocs</span><span class="p">,</span> <span class="o">*</span><span class="n">DAG</span><span class="p">.</span><span class="n">getContext</span><span class="p">());</span>
 
   <span class="c1">// Analize return values.</span>
@@ -2075,7 +2073,7 @@ The ch9_1_3.cpp and ch9_1_4.cpp are example code more for test.</p>
 <div class="highlight-c++"><div class="highlight"><pre>  <span class="c1">/// Expand Pseudo instructions into real backend instructions</span>
   <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">expandPostRAPseudo</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
 
-<span class="k">private</span><span class="o">:</span>
+<span class="nl">private:</span>
   <span class="kt">void</span> <span class="n">ExpandRetLR</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span>
                    <span class="kt">unsigned</span> <span class="n">Opc</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
 </pre></div>
@@ -2087,15 +2085,15 @@ The ch9_1_3.cpp and ch9_1_4.cpp are example code more for test.</p>
   <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span> <span class="o">=</span> <span class="o">*</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">();</span>
 
   <span class="k">switch</span><span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getDesc</span><span class="p">().</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
-  <span class="k">default</span><span class="o">:</span>
-    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">Cpu0</span><span class="o">::</span><span class="nl">RetLR:</span>
+  <span class="nl">default:</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">RetLR</span><span class="o">:</span>
     <span class="n">ExpandRetLR</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MI</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">RET</span><span class="p">);</span>
     <span class="k">break</span><span class="p">;</span>
   <span class="p">}</span>
 
   <span class="n">MBB</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">MI</span><span class="p">);</span>
-  <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
 <span class="p">}</span>
 
 <span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">ExpandRetLR</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
@@ -2452,13 +2450,13 @@ line 6712.
 <p class="rubric">lbdex/InputFiles/ch9_3.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &lt;stdarg.h&gt;</span>
 
-<span class="kt">int</span> <span class="n">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
+<span class="kt">int</span> <span class="nf">sum_i</span><span class="p">(</span><span class="kt">int</span> <span class="n">amount</span><span class="p">,</span> <span class="p">...)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 	
-  <span class="n">va_list</span> <span class="n">vl</span><span class="p">;</span>
+  <span class="kt">va_list</span> <span class="n">vl</span><span class="p">;</span>
   <span class="n">va_start</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">amount</span><span class="p">);</span>
   <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">amount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
   <span class="p">{</span>
@@ -2470,7 +2468,7 @@ line 6712.
   <span class="k">return</span> <span class="n">sum</span><span class="p">;</span> 
 <span class="p">}</span>
 
-<span class="kt">int</span> <span class="n">test_vararg</span><span class="p">()</span>
+<span class="kt">int</span> <span class="nf">test_vararg</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">sum_i</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
 	
@@ -2492,14 +2490,14 @@ In <span class="k">function</span>: _Z5sum_iiz
 <p class="rubric">lbdex/InputFiles/ch9_4.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &lt;alloca.h&gt;</span>
 
-<span class="kt">int</span> <span class="n">sum</span><span class="p">(</span><span class="kt">int</span> <span class="n">x1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x2</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x3</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x4</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x5</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x6</span><span class="p">)</span>
+<span class="kt">int</span> <span class="nf">sum</span><span class="p">(</span><span class="kt">int</span> <span class="n">x1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x2</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x3</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x4</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x5</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x6</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">sum</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">x2</span> <span class="o">+</span> <span class="n">x3</span> <span class="o">+</span> <span class="n">x4</span> <span class="o">+</span> <span class="n">x5</span> <span class="o">+</span> <span class="n">x6</span><span class="p">;</span>
   
   <span class="k">return</span> <span class="n">sum</span><span class="p">;</span> 
 <span class="p">}</span>
 
-<span class="kt">int</span> <span class="n">weight_sum</span><span class="p">(</span><span class="kt">int</span> <span class="n">x1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x2</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x3</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x4</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x5</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x6</span><span class="p">)</span>
+<span class="kt">int</span> <span class="nf">weight_sum</span><span class="p">(</span><span class="kt">int</span> <span class="n">x1</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x2</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x3</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x4</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x5</span><span class="p">,</span> <span class="kt">int</span> <span class="n">x6</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="o">*</span><span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">)</span><span class="n">alloca</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="o">*</span> <span class="n">x1</span><span class="p">);</span>
   <span class="o">*</span><span class="n">b</span> <span class="o">=</span> <span class="mi">1111</span><span class="p">;</span>
@@ -2508,7 +2506,7 @@ In <span class="k">function</span>: _Z5sum_iiz
   <span class="k">return</span> <span class="n">weight</span><span class="p">;</span> 
 <span class="p">}</span>
 
-<span class="kt">int</span> <span class="n">test_alloc</span><span class="p">()</span>
+<span class="kt">int</span> <span class="nf">test_alloc</span><span class="p">()</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">weight_sum</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">);</span> <span class="c1">// 31</span>
   
@@ -2548,7 +2546,7 @@ function call.</p>
 <span class="c1">// MachineFunction as a live in value.  It also creates a corresponding</span>
 <span class="c1">// virtual register for it.</span>
 <span class="k">static</span> <span class="kt">unsigned</span>
-<span class="n">AddLiveIn</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">PReg</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span><span class="n">RC</span><span class="p">)</span>
+<span class="nf">AddLiveIn</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">PReg</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span><span class="n">RC</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="n">assert</span><span class="p">(</span><span class="n">RC</span><span class="o">-&gt;</span><span class="n">contains</span><span class="p">(</span><span class="n">PReg</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Not the correct regclass!&quot;</span><span class="p">);</span>
   <span class="kt">unsigned</span> <span class="n">VReg</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getRegInfo</span><span class="p">().</span><span class="n">createVirtualRegister</span><span class="p">(</span><span class="n">RC</span><span class="p">);</span>
@@ -2562,13 +2560,13 @@ function call.</p>
 
 <span class="k">static</span> <span class="k">const</span> <span class="kt">unsigned</span> <span class="n">IntRegsSize</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
 
-<span class="k">static</span> <span class="k">const</span> <span class="n">uint16_t</span> <span class="n">IntRegs</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+<span class="k">static</span> <span class="k">const</span> <span class="kt">uint16_t</span> <span class="n">IntRegs</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
   <span class="n">Cpu0</span><span class="o">::</span><span class="n">A0</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">A1</span>
 <span class="p">};</span>
 
 <span class="c1">// Write ByVal Arg to arg registers and stack.</span>
 <span class="k">static</span> <span class="kt">void</span>
-<span class="n">WriteByValArg</span><span class="p">(</span><span class="n">SDValue</span><span class="o">&amp;</span> <span class="n">ByValChain</span><span class="p">,</span> <span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">dl</span><span class="p">,</span>
+<span class="nf">WriteByValArg</span><span class="p">(</span><span class="n">SDValue</span><span class="o">&amp;</span> <span class="n">ByValChain</span><span class="p">,</span> <span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">dl</span><span class="p">,</span>
         <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">unsigned</span><span class="p">,</span> <span class="n">SDValue</span><span class="o">&gt;</span><span class="p">,</span> <span class="mi">16</span><span class="o">&gt;&amp;</span> <span class="n">RegsToPass</span><span class="p">,</span>
         <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="p">,</span> <span class="mi">8</span><span class="o">&gt;&amp;</span> <span class="n">MemOpChains</span><span class="p">,</span> <span class="kt">int</span><span class="o">&amp;</span> <span class="n">LastFI</span><span class="p">,</span>
         <span class="n">MachineFrameInfo</span> <span class="o">*</span><span class="n">MFI</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">,</span> <span class="n">SDValue</span> <span class="n">Arg</span><span class="p">,</span>
@@ -2576,7 +2574,7 @@ function call.</p>
         <span class="n">MVT</span> <span class="n">PtrType</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">isLittle</span><span class="p">)</span> <span class="p">{</span>
   <span class="kt">unsigned</span> <span class="n">LocMemOffset</span> <span class="o">=</span> <span class="n">VA</span><span class="p">.</span><span class="n">getLocMemOffset</span><span class="p">();</span>
   <span class="kt">unsigned</span> <span class="n">Offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="n">uint32_t</span> <span class="n">RemainingSize</span> <span class="o">=</span> <span class="n">Flags</span><span class="p">.</span><span class="n">getByValSize</span><span class="p">();</span>
+  <span class="kt">uint32_t</span> <span class="n">RemainingSize</span> <span class="o">=</span> <span class="n">Flags</span><span class="p">.</span><span class="n">getByValSize</span><span class="p">();</span>
   <span class="kt">unsigned</span> <span class="n">ByValAlign</span> <span class="o">=</span> <span class="n">Flags</span><span class="p">.</span><span class="n">getByValAlign</span><span class="p">();</span>
 
   <span class="k">if</span> <span class="p">(</span><span class="n">RemainingSize</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
@@ -2586,12 +2584,12 @@ function call.</p>
   <span class="c1">// remaining part of byval arg to it using memcpy.</span>
   <span class="n">SDValue</span> <span class="n">Src</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span> <span class="n">Arg</span><span class="p">,</span>
               <span class="n">DAG</span><span class="p">.</span><span class="n">getConstant</span><span class="p">(</span><span class="n">Offset</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">));</span>
-  <span class="n">LastFI</span> <span class="o">=</span> <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">CreateFixedObject</span><span class="p">(</span><span class="n">RemainingSize</span><span class="p">,</span> <span class="n">LocMemOffset</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+  <span class="n">LastFI</span> <span class="o">=</span> <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">CreateFixedObject</span><span class="p">(</span><span class="n">RemainingSize</span><span class="p">,</span> <span class="n">LocMemOffset</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
   <span class="n">SDValue</span> <span class="n">Dst</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getFrameIndex</span><span class="p">(</span><span class="n">LastFI</span><span class="p">,</span> <span class="n">PtrType</span><span class="p">);</span>
   <span class="n">ByValChain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMemcpy</span><span class="p">(</span><span class="n">ByValChain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">Dst</span><span class="p">,</span> <span class="n">Src</span><span class="p">,</span>
                              <span class="n">DAG</span><span class="p">.</span><span class="n">getConstant</span><span class="p">(</span><span class="n">RemainingSize</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">),</span>
                              <span class="n">std</span><span class="o">::</span><span class="n">min</span><span class="p">(</span><span class="n">ByValAlign</span><span class="p">,</span> <span class="p">(</span><span class="kt">unsigned</span><span class="p">)</span><span class="mi">4</span><span class="p">),</span>
-                             <span class="cm">/*isVolatile=*/</span><span class="kc">false</span><span class="p">,</span> <span class="cm">/*AlwaysInline=*/</span><span class="kc">false</span><span class="p">,</span>
+                             <span class="cm">/*isVolatile=*/</span><span class="nb">false</span><span class="p">,</span> <span class="cm">/*AlwaysInline=*/</span><span class="nb">false</span><span class="p">,</span>
                              <span class="n">MachinePointerInfo</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">MachinePointerInfo</span><span class="p">(</span><span class="mi">0</span><span class="p">));</span>
 <span class="p">}</span>
 <span class="p">...</span>
@@ -2638,7 +2636,7 @@ function call.</p>
                                    <span class="n">DAG</span><span class="p">.</span><span class="n">getConstant</span><span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">));</span>
     <span class="n">SDValue</span> <span class="n">Store</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getStore</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">Reg</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">),</span>
                                  <span class="n">StorePtr</span><span class="p">,</span> <span class="n">MachinePointerInfo</span><span class="p">(</span><span class="n">FuncArg</span><span class="p">,</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">4</span><span class="p">),</span>
-                                 <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+                                 <span class="nb">false</span><span class="p">,</span> <span class="nb">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
   <span class="n">OutChains</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Store</span><span class="p">);</span>
   <span class="p">}</span>
 <span class="p">}</span> <span class="c1">// lbd document - mark - ReadByValArg</span>
@@ -2659,7 +2657,7 @@ function call.</p>
          <span class="s">&quot;ByVal args of size 0 should have been ignored by front-end.&quot;</span><span class="p">);</span>
       <span class="kt">unsigned</span> <span class="n">NumWords</span> <span class="o">=</span> <span class="p">(</span><span class="n">Flags</span><span class="p">.</span><span class="n">getByValSize</span><span class="p">()</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span><span class="p">;</span>
       <span class="n">LastFI</span> <span class="o">=</span> <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">CreateFixedObject</span><span class="p">(</span><span class="n">NumWords</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span> <span class="n">VA</span><span class="p">.</span><span class="n">getLocMemOffset</span><span class="p">(),</span>
-                      <span class="kc">true</span><span class="p">);</span>
+                      <span class="nb">true</span><span class="p">);</span>
       <span class="n">SDValue</span> <span class="n">FIN</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getFrameIndex</span><span class="p">(</span><span class="n">LastFI</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">());</span>
       <span class="n">InVals</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">FIN</span><span class="p">);</span>
       <span class="n">ReadByValArg</span><span class="p">(</span><span class="n">MF</span><span class="p">,</span> <span class="n">Chain</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">OutChains</span><span class="p">,</span> <span class="n">DAG</span><span class="p">,</span> <span class="n">NumWords</span><span class="p">,</span> <span class="n">FIN</span><span class="p">,</span> <span class="n">VA</span><span class="p">,</span> <span class="n">Flags</span><span class="p">,</span>
@@ -3391,7 +3389,7 @@ backend code too.</p>
 <p class="rubric">lbdex/Chapter9_4/Cpu0ISelLowering.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Cpu0TargetLowering</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TargetLowering</span>  <span class="p">{</span>
 <span class="p">...</span>
-<span class="k">private</span><span class="o">:</span>
+<span class="nl">private:</span>
   <span class="p">...</span>
   <span class="n">SDValue</span> <span class="n">LowerVASTART</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
   <span class="p">...</span>
@@ -3421,7 +3419,7 @@ backend code too.</p>
   <span class="k">switch</span> <span class="p">(</span><span class="n">Op</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">())</span>
   <span class="p">{</span>
   <span class="p">...</span>
-  <span class="k">case</span> <span class="n">ISD</span><span class="o">::</span><span class="nl">VASTART:</span>            <span class="k">return</span> <span class="n">LowerVASTART</span><span class="p">(</span><span class="n">Op</span><span class="p">,</span> <span class="n">DAG</span><span class="p">);</span>
+  <span class="k">case</span> <span class="n">ISD</span>:<span class="o">:</span><span class="n">VASTART</span><span class="o">:</span>            <span class="k">return</span> <span class="n">LowerVASTART</span><span class="p">(</span><span class="n">Op</span><span class="p">,</span> <span class="n">DAG</span><span class="p">);</span>
   <span class="p">}</span>
   <span class="k">return</span> <span class="n">SDValue</span><span class="p">();</span>
 <span class="p">}</span>
@@ -3439,7 +3437,7 @@ backend code too.</p>
   <span class="c1">// memory location argument.</span>
   <span class="k">const</span> <span class="n">Value</span> <span class="o">*</span><span class="n">SV</span> <span class="o">=</span> <span class="n">cast</span><span class="o">&lt;</span><span class="n">SrcValueSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Op</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span><span class="o">-&gt;</span><span class="n">getValue</span><span class="p">();</span>
   <span class="k">return</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getStore</span><span class="p">(</span><span class="n">Op</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">dl</span><span class="p">,</span> <span class="n">FI</span><span class="p">,</span> <span class="n">Op</span><span class="p">.</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
-            <span class="n">MachinePointerInfo</span><span class="p">(</span><span class="n">SV</span><span class="p">),</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+            <span class="n">MachinePointerInfo</span><span class="p">(</span><span class="n">SV</span><span class="p">),</span> <span class="nb">false</span><span class="p">,</span> <span class="nb">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
 <span class="p">}</span>
 <span class="p">...</span>
 <span class="n">SDValue</span>
@@ -3464,7 +3462,7 @@ backend code too.</p>
 
     <span class="c1">// Record the frame index of the first variable argument</span>
     <span class="c1">// which is a value necessary to VASTART.</span>
-    <span class="n">LastFI</span> <span class="o">=</span> <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">CreateFixedObject</span><span class="p">(</span><span class="n">RegSize</span><span class="p">,</span> <span class="n">FirstVaArgOffset</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+    <span class="n">LastFI</span> <span class="o">=</span> <span class="n">MFI</span><span class="o">-&gt;</span><span class="n">CreateFixedObject</span><span class="p">(</span><span class="n">RegSize</span><span class="p">,</span> <span class="n">FirstVaArgOffset</span><span class="p">,</span> <span class="nb">true</span><span class="p">);</span>
     <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">setVarArgsFrameIndex</span><span class="p">(</span><span class="n">LastFI</span><span class="p">);</span>
   <span class="p">}</span>
   <span class="p">...</span>
@@ -3481,7 +3479,7 @@ backend code too.</p>
   <span class="n">T</span> <span class="n">val</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
   <span class="n">T</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 	
-  <span class="n">va_list</span> <span class="n">vl</span><span class="p">;</span>
+  <span class="kt">va_list</span> <span class="n">vl</span><span class="p">;</span>
   <span class="n">va_start</span><span class="p">(</span><span class="n">vl</span><span class="p">,</span> <span class="n">amount</span><span class="p">);</span>
   <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">amount</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
   <span class="p">{</span>
@@ -3827,7 +3825,7 @@ more and more.</p>
 
     <div class="footer">
         &copy; Copyright 2013, LLVM.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.
     </div>
   </body>
 </html>
