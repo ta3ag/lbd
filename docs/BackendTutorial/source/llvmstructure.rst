@@ -377,8 +377,8 @@ The following table details the Cpu0 instruction set:
   * - L
     - DIVU
     - 44
-    - Divide
-    - DIV Ra, Rb
+    - Divide unsigned
+    - DIVU Ra, Rb
     - HI<=Ra%Rb, LO<=Ra/Rb
   * - L
     - MFHI
