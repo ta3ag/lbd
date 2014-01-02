@@ -49,8 +49,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   `define Z    SW[1]  // Zero
   `define N    SW[0]  // Negative flag
   // Instruction Opcode 
-  parameter [7:0] LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,LH=8'h06,
-  LHu=8'h07,SH=8'h08,ADDiu=8'h09,ANDi=8'h0C,ORi=8'h0D,
+  parameter [7:0] NOP=8'h00,LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,
+  LH=8'h06,LHu=8'h07,SH=8'h08,ADDiu=8'h09,ANDi=8'h0C,ORi=8'h0D,
   XORi=8'h0E,LUi=8'h0F,
   CMP=8'h10,
   ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,MUL=8'h17,
@@ -175,6 +175,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
     end
     Execute: begin // Tick 3 : instruction execution
       case (op)
+      NOP:   ;
       // load and store instructions
       LD:    memReadStart(Rb+c16, `INT32);      // LD Ra,[Rb+Cx]; Ra<=[Rb+Cx]
       ST:    memWriteStart(Rb+c16, Ra, `INT32); // ST Ra,[Rb+Cx]; Ra=>[Rb+Cx]

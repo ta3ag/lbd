@@ -53,6 +53,7 @@ Revision history
 ----------------
 
 Version 3.3.14, Not release yet.
+  lld support on iMac.
 
 Version 3.3.13, Released December 27, 2013
   Update section Install sphinx on install.rst.
