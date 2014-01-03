@@ -12,8 +12,8 @@ section .data and .rodata can be accessed and transfered to Hex file which feed
 to Verilog Cpu0 machine and run on your PC/Laptop.
 
 LLD web site [#]_. LLD install requirement on Linux [#]_. 
-In spite of the requirement, we
-only can build with gcc4.7 above (clang will fail) on Linux. 
+In spite of the requirement, we only can build with gcc4.7 above (clang will 
+fail) on Linux. On iMac, clang can build successfully.
 If you run with Virtual Machine (VM), please keep your phisical memory size 
 setting over 1GB to avoid insufficient memory link error.
 
@@ -97,7 +97,7 @@ Next, update llvm 2013/12/10 source code to support Cpu0 as follows,
   1-160-136-173:Target Jonathan$ mkdir Cpu0
   1-160-136-173:Target Jonathan$ cd Cpu0/
   1-160-136-173:Cpu0 Jonathan$ cp -rf ~/test/lbd/docs/BackendTutorial/
-  lbdex/3.4_0830_Chapter12_2/* . 
+  lbdex/3.4_Chapter12_2/* . 
   1-160-136-173:Cpu0 Jonathan$ ls
   AsmParser                 Cpu0InstrInfo.h           Cpu0SelectionDAGInfo.h
   CMakeLists.txt            Cpu0InstrInfo.td          Cpu0Subtarget.cpp
@@ -739,12 +739,10 @@ will be called by lld driver to finish the address binding in linker stage.
 
   cpu=cpu032I
 
-  /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
-  gnu -c start.cpp -emit-llvm -o start.bc
-  /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
-  gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
-  /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
-  gnu -c ch_hello.c -emit-llvm -o ch_hello.bc
+  clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
+  clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o 
+  printf-stdarg.bc
+  clang -target mips-unknown-linux-gnu -c ch_hello.c -emit-llvm -o ch_hello.bc
   ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
   start.bc -o start.cpu0.o
   ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
