@@ -1366,15 +1366,17 @@ To handle IR ret, these code in Cpu0InstrInfo.td do things as below.
 Build Chapter3_4 and run with it, finding the error message in Chapter3_3 is 
 gone. The new error message for Chapter3_4 as follows,
 
+.. code-block:: bash
+
   118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
   ch3.cpu0.s
   ...
   Target didn't implement TargetInstrInfo::storeRegToStackSlot!
+  ...
   1.  Running pass 'Function Pass Manager' on module 'ch3.bc'.
   2.  Running pass 'Prologue/Epilogue Insertion & Frame Finalization' on function 
-  '@main'
-  ...
+  '@main' ...
 
 Add Prologue/Epilogue functions
 -------------------------------

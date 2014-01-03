@@ -7,16 +7,16 @@ This chapter adds more Cpu0 arithmetic instructions support first.
 The `section Display llvm IR nodes with Graphviz`_ 
 will show you the DAG optimization steps and their corresponding ``llc`` 
 display options. 
-These DAG optimization steps result can be displayed by the graphic tool of 
-Graphviz which supply very useful information with graphic view. 
+These DAGs translation in each optimization step can be displayed by the 
+graphic tool of Graphviz which supply very useful information with graphic view. 
 You will appreciate Graphviz support in debug, we think.  
 Logic instructions support will come after arithmetic section.
 Even llvm backend handle the IR only, we get the IR from the corresponding C 
-operators with C example code. Readers should focus on the mapping of C 
-operators and llvm IR and how define llvm backend in td to translate them into 
-backend instructions. HILO register class is defined in this chapter. Readers 
-should see why and how to handle other register class beyond general purpose 
-register class from this chapter.
+operators with designed C example code. Readers should focus on the mapping of C 
+operators and llvm IR and how defining llvm backend in td to translate them into 
+target backend instructions. HILO register class is defined in this chapter. 
+Readers should see why and how to handle other register class beyond general 
+purpose register class from this chapter.
 
 Arithmetic
 -----------
