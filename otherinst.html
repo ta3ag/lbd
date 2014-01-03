@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.3.13',
+        VERSION:     '3.3.14',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -56,16 +56,18 @@
 The <a class="reference external" href="http://jonathan2251.github.io/lbd/otherinst.html#display-llvm-ir-nodes-with-graphviz">section Display llvm IR nodes with Graphviz</a>
 will show you the DAG optimization steps and their corresponding <tt class="docutils literal"><span class="pre">llc</span></tt>
 display options.
-These DAG optimization steps result can be displayed by the graphic tool of
-Graphviz which supply very useful information with graphic view.
+These DAGs translation in each optimization step can be displayed by the
+graphic tool of Graphviz which supply very useful information with graphic view.
 You will appreciate Graphviz support in debug, we think.
 Logic instructions support will come after arithmetic section.
 Even llvm backend handle the IR only, we get the IR from the corresponding C
-operators with C example code. Readers should focus on the mapping of C
-operators and llvm IR and how define llvm backend in td to translate them into
-backend instructions. HILO register class is defined in this chapter. Readers
-should see why and how to handle other register class beyond general purpose
-register class from this chapter.</p>
+operators with designed C example code. Instead of the classes relationship
+in this backend structure at the previous chapter, readers should focus on the
+mapping of C
+operators and llvm IR and how defining llvm backend in td to translate them into
+target backend instructions. HILO register class is defined in this chapter.
+Readers should see why and how to handle other register class beyond general
+purpose register class from this chapter.</p>
 <div class="section" id="arithmetic">
 <h2>Arithmetic<a class="headerlink" href="#arithmetic" title="Permalink to this headline">¶</a></h2>
 <p>The code added in Chapter4_1/ to support arithmetic instructions as follows,</p>
@@ -539,13 +541,13 @@ both signed and unsigned integer of x, we need these two instructions,
 </tbody>
 </table>
 <p>Again, consider the x &lt;&lt; 1 definition is x = x*2.
-From Table: C operator &lt;&lt; implementation, we see <strong>lshr</strong> satisfy the unsigned
-x=1G but failed on signed x=1G. It&#8217;s fine since the 2G is out of 32 bits signed
-integer range (-2G ~ 2G-1).
+From Table: C operator &lt;&lt; implementation, we see <strong>lshr</strong> satisfy &#8220;unsigned
+x=1G&#8221; but fails on signed x=1G.
+It&#8217;s fine since 2G is out of 32 bits signed integer range (-2G ~ 2G-1).
 For the overflow case, no way to keep the correct result in register. So, any
-value in register is OK. You can check the <strong>lshr</strong> satisfy x = x*2 for x &lt;&lt; 1
-when the x result is not out of range, no matter operand x is signed or unsigned
-integer.</p>
+value in register is OK. You can check the <strong>lshr</strong> satisfy x = x*2 for all
+x &lt;&lt; 1 and when the x result is not out of range, no matter operand x is signed
+or unsigned integer.</p>
 <p>Micorsoft implementation references as <a class="footnote-reference" href="#id9" id="id2">[2]</a>.</p>
 <p>The sub-section &#8220;‘ashr‘ Instruction&#8221; and sub-section &#8220;‘lshr‘ Instruction&#8221; of
 <a class="footnote-reference" href="#id10" id="id3">[3]</a>.</p>
