@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #TOOLDIR=/home/Gamma/test/lld/cmake_debug_build/bin
 #TOOLDIR=/home/cschen/test/lld/cmake_debug_build/bin
-TOOLDIR=~/test/1/cmake_debug_build/bin/Debug
+TOOLDIR=~/test/lld/cmake_debug_build/bin/Debug
 
 cpu=cpu032I
 

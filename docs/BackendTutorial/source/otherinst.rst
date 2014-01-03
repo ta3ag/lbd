@@ -12,7 +12,9 @@ graphic tool of Graphviz which supply very useful information with graphic view.
 You will appreciate Graphviz support in debug, we think.  
 Logic instructions support will come after arithmetic section.
 Even llvm backend handle the IR only, we get the IR from the corresponding C 
-operators with designed C example code. Readers should focus on the mapping of C 
+operators with designed C example code. Instead of the classes relationship 
+in this backend structure at the previous chapter, readers should focus on the 
+mapping of C 
 operators and llvm IR and how defining llvm backend in td to translate them into 
 target backend instructions. HILO register class is defined in this chapter. 
 Readers should see why and how to handle other register class beyond general 
@@ -429,13 +431,13 @@ both signed and unsigned integer of x, we need these two instructions,
   ======================================= ======================
 
 Again, consider the x << 1 definition is x = x*2. 
-From Table: C operator << implementation, we see **lshr** satisfy the unsigned 
-x=1G but failed on signed x=1G. It's fine since the 2G is out of 32 bits signed 
-integer range (-2G ~ 2G-1). 
+From Table: C operator << implementation, we see **lshr** satisfy "unsigned 
+x=1G" but fails on signed x=1G. 
+It's fine since 2G is out of 32 bits signed integer range (-2G ~ 2G-1). 
 For the overflow case, no way to keep the correct result in register. So, any 
-value in register is OK. You can check the **lshr** satisfy x = x*2 for x << 1 
-when the x result is not out of range, no matter operand x is signed or unsigned 
-integer.
+value in register is OK. You can check the **lshr** satisfy x = x*2 for all 
+x << 1 and when the x result is not out of range, no matter operand x is signed 
+or unsigned integer.
 
 Micorsoft implementation references as [#]_.
 

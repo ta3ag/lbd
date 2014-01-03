@@ -8,7 +8,7 @@ the program with global variables can be allocated in ELF file format layout.
 Meaning the relocation records of global variables can be solved. In addition, 
 llvm-objdump driver is modified for support generate Hex file from ELF.
 With these two tools supported, the program with global variables of existed in 
-section.data and .rodata can be accessed and transfered to Hex file which feed 
+section .data and .rodata can be accessed and transfered to Hex file which feed 
 to Verilog Cpu0 machine and run on your PC/Laptop.
 
 LLD web site [#]_. LLD install requirement on Linux [#]_. 
@@ -22,48 +22,39 @@ Install lld
 -------------
 
 LLD project is underdevelopment and can be compiled only with c++11 standard (C++
-2011 year announced standard). Currently, we only know how to build lld with 
-llvm on Linux platform or Linux VM. Please let us know if you know how to build
-it on iMac with Xcode. So, if you got iMac only, please install VM (such as 
-Virtual Box). We porting lld Cpu0 at 2013/10/30, so please checkout the
-commit id 99a43d3b8f5cf86b333055a56220c6965fd9ece4(llvm) and
-5d1737ac704352357fd28cfe3b2daf9aa308fb86(lld) which commited at 2013/10/30 as 
-follows,
+2011 year announced standard). For iMac, our software is OS X version 10.9.1 and 
+Xcode version 5.0.2. For old iMac software version, you can install VM (such as 
+Virtual Box) and build lld as Linux platform. The latest version that 
+we porting lld Cpu0 at 2013/12/10, so please checkout branch release_34(llvm) and
+commit id 5d1737ac704352357fd28cfe3b2daf9aa308fb86(lld) which commited at 
+2013/12/10 as follows,
 
 .. code-block:: bash
 
-  [Gamma@localhost test]$ mkdir lld
-  [Gamma@localhost test]$ cd lld
-  [Gamma@localhost lld]$ git clone http://llvm.org/git/llvm.git src
+  1-160-136-173:test Jonathan$ mkdir lld
+  1-160-136-173:test Jonathan$ cd lld
+  1-160-136-173:test Jonathan$ git clone http://llvm.org/git/llvm.git src
   Cloning into 'src'...
   remote: Counting objects: 780029, done.
   remote: Compressing objects: 100% (153947/153947), done.
   remote: Total 780029 (delta 637206), reused 764781 (delta 622170)
   Receiving objects: 100% (780029/780029), 125.74 MiB | 243 KiB/s, done.
   Resolving deltas: 100% (637206/637206), done.
-  [Gamma@localhost lld]$ cd src/
+  1-160-136-173:src Jonathan$ cd src/
 
-  [Gamma@localhost src]$ git checkout 99a43d3b8f5cf86b333055a56220c6965fd9ece4
-  Note: checking out '99a43d3b8f5cf86b333055a56220c6965fd9ece4'.
+  1-160-136-173:src Jonathan$ git checkout release_34
+  ...
+  1-160-136-173:src Jonathan$ git branch
+    master
+  * release_34
 
-  You are in 'detached HEAD' state. You can look around, make experimental
-  changes and commit them, and you can discard any commits you make in this
-  state without impacting any branches by performing another checkout.
-
-  If you want to create a new branch to retain commits you create, you may
-  do so (now or later) by using -b with the checkout command again. Example:
-
-    git checkout -b new_branch_name
-
-  HEAD is now at da44b4f... CMake: polish the Windows packaging rules
-
-  [Gamma@localhost src]$ cd tools/
-  [Gamma@localhost tools]$ git clone http://llvm.org/git/lld.git lld
+  1-160-136-173:src Jonathan$ cd tools/
+  1-160-136-173:tools Jonathan$ git clone http://llvm.org/git/lld.git lld
   ...
   Resolving deltas: 100% (6422/6422), done.
-  [Gamma@localhost tools]$ cd lld/
-  [Gamma@localhost lld]$ git checkout 5d1737ac704352357fd28cfe3b2daf9aa308fb86
-  Note: checking out '5d1737ac704352357fd28cfe3b2daf9aa308fb86'.
+  1-160-136-173:tools Jonathan$ cd lld/
+  1-160-136-173:tools Jonathan$ git checkout e5581693ee8a9b071031df0da868fbc8c180a8e6
+  Note: checking out 'e5581693ee8a9b071031df0da868fbc8c180a8e6'.
 
   You are in 'detached HEAD' state. You can look around, make experimental
   changes and commit them, and you can discard any commits you make in this
@@ -77,23 +68,23 @@ follows,
   HEAD is now at 014d684... [PECOFF] Handle "--" option explicitly
 
 
-Next, update llvm 2013/10/30 source code to support Cpu0 as follows,
+Next, update llvm 2013/12/10 source code to support Cpu0 as follows,
 
 .. code-block:: bash
 
-  [Gamma@localhost src]$ pwd
-  /home/Gamma/test/lld/src
-  [Gamma@localhost src]$ cp -rf ~/test/lbd/docs/BackendTutorial/
-  lbdex/3.4_1030_src_files_modify/modify/src/* .
-  [Gamma@localhost src]$ grep -R "cpu0" include/
+  1-160-136-173:src Jonathan$ pwd
+  /Users/Jonathan/test/lld/src
+  1-160-136-173:src Jonathan$ cp -rf ~/test/lbd/docs/BackendTutorial/
+  lbdex/3.4_src_files_modify/modify/src/* .
+  1-160-136-173:src Jonathan$ grep -R "cpu0" include/
   include/llvm/ADT/Triple.h:#undef cpu0
   include/llvm/ADT/Triple.h:    cpu0,    // For Tutorial Backend Cpu0
   include/llvm/ADT/Triple.h:    cpu0el,
   include/llvm/Object/ELFObjectFile.h:           Triple::cpu0el : Triple::cpu0;
   include/llvm/Support/ELF.h:  EF_CPU0_ARCH_32R2 = 0x70000000, // cpu032r2
   include/llvm/Support/ELF.h:  EF_CPU0_ARCH_64R2 = 0x80000000, // cpu064r2
-  [Gamma@localhost src]$ cd lib/Target/
-  [Gamma@localhost Target]$ ls
+  1-160-136-173:src Jonathan$ cd lib/Target/
+  1-160-136-173:src Jonathan$ ls
   AArch64         MSP430                   TargetJITInfo.cpp
   ARM             NVPTX                    TargetLibraryInfo.cpp
   CMakeLists.txt  PowerPC                  TargetLoweringObjectFile.cpp
@@ -103,11 +94,11 @@ Next, update llvm 2013/10/30 source code to support Cpu0 as follows,
   Makefile        SystemZ                  X86
   Mangler.cpp     Target.cpp               XCore
   Mips            TargetIntrinsicInfo.cpp
-  [Gamma@localhost Target]$ mkdir Cpu0
-  [Gamma@localhost Target]$ cd Cpu0/
-  [Gamma@localhost Cpu0]$ cp -rf ~/test/lbd/docs/BackendTutorial/
+  1-160-136-173:Target Jonathan$ mkdir Cpu0
+  1-160-136-173:Target Jonathan$ cd Cpu0/
+  1-160-136-173:Cpu0 Jonathan$ cp -rf ~/test/lbd/docs/BackendTutorial/
   lbdex/3.4_0830_Chapter12_2/* . 
-  [Gamma@localhost Cpu0]$ ls
+  1-160-136-173:Cpu0 Jonathan$ ls
   AsmParser                 Cpu0InstrInfo.h           Cpu0SelectionDAGInfo.h
   CMakeLists.txt            Cpu0InstrInfo.td          Cpu0Subtarget.cpp
   Cpu0AnalyzeImmediate.cpp  Cpu0ISelDAGToDAG.cpp      Cpu0Subtarget.h
@@ -128,33 +119,48 @@ Next, copy lld Cpu0 architecture ELF support as follows,
 
 .. code-block:: bash
 
-  [Gamma@localhost Cpu0]$ cd ../../../tools/lld/lib/ReaderWriter/ELF/
-  [Gamma@localhost ELF]$ pwd
-  /home/Gamma/test/lld/src/tools/lld/lib/ReaderWriter/ELF
-  [Gamma@localhost ELF]$ cp -rf ~/test/lbd/docs/BackendTutorial/
-  lbdex/Cpu0_lld_1030/Cpu0 .
-  [Gamma@localhost ELF]$ cp -f ~/test/lbd/docs/BackendTutorial/
-  lbdex/Cpu0_lld_1030/CMakeLists.txt .
-  [Gamma@localhost ELF]$ cp -f ~/test/lbd/docs/BackendTutorial/
-  lbdex/Cpu0_lld_1030/ELFLinkingContext.cpp .
-  [Gamma@localhost ELF]$ cp -f ~/test/lbd/docs/BackendTutorial/
-  lbdex/Cpu0_lld_1030/Targets.h .
-  [Gamma@localhost ELF]$ cp -f ~/test/lbd/docs/BackendTutorial/
-  lbdex/Cpu0_lld_1030/Resolver.cpp ../../Core/.
+  1-160-136-173:Cpu0 Jonathan$ cd ../../../tools/lld/lib/ReaderWriter/ELF/
+  1-160-136-173:ELF Jonathan$ pwd
+  /Users/Jonathan/test/lld/src/tools/lld/lib/ReaderWriter/ELF
+  1-160-136-173:ELF Jonathan$ cp -rf ~/test/lbd/docs/BackendTutorial/
+  lbdex/Cpu0_lld_1210/Cpu0 .
+  1-160-136-173:ELF Jonathan$ cp -f ~/test/lbd/docs/BackendTutorial/
+  lbdex/Cpu0_lld_1210/CMakeLists.txt .
+  1-160-136-173:ELF Jonathan$ cp -f ~/test/lbd/docs/BackendTutorial/
+  lbdex/Cpu0_lld_1210/ELFLinkingContext.cpp .
+  1-160-136-173:ELF Jonathan$ cp -f ~/test/lbd/docs/BackendTutorial/
+  lbdex/Cpu0_lld_1210/Targets.h .
+  1-160-136-173:ELF Jonathan$ cp -f ~/test/lbd/docs/BackendTutorial/
+  lbdex/Cpu0_lld_1210/Resolver.cpp ../../Core/.
 
 
 Finally, update llvm-objdump to support convert ELF file to Hex file as follows,
 
 .. code-block:: bash
 
-  [Gamma@localhost ELF]$ cd ../../../../llvm-objdump/
-  [Gamma@localhost llvm-objdump]$ pwd
-  /home/Gamma/test/lld/src/tools/llvm-objdump
-  [Gamma@localhost llvm-objdump]$ cp -rf ~/test/lbd/docs/BackendTutorial/
+  1-160-136-173:ELF Jonathan$ cd ../../../../llvm-objdump/
+  1-160-136-173:llvm-objdump Jonathan$ pwd
+  /Users/Jonathan/test/lld/src/tools/llvm-objdump
+  1-160-136-173:llvm-objdump Jonathan$ cp -rf ~/test/lbd/docs/BackendTutorial/
   lbdex/llvm-objdump/* .
 
 Now, build llvm/lld with Cpu0 support as follows,
 
+.. code-block:: bash
+
+  1-160-136-173:cmake_debug_build Jonathan$ cmake -DCMAKE_CXX_COMPILER=clang++ -
+  DCMAKE_C_COMPILER=clang -DCMAKE_CXX_FLAGS=-std=c++11 -DCMAKE_BUILD_TYPE=Debug
+  -G "Xcode" ../src
+  -- The C compiler identification is Clang 5.0.0
+  -- The CXX compiler identification is Clang 5.0.0
+  ...
+  -- Targeting Cpu0
+  ...
+  -- Configuring done
+  -- Generating done
+  -- Build files have been written to: /Users/Jonathan/test/lld/cmake_debug_build
+
+If use VM (guest machine is Linux) or Linux, build as follows,
 
 .. code-block:: bash
 
@@ -177,7 +183,7 @@ Cpu0 lld souce code
 The code added on lld to support Cpu0 ELF as follows,
 
 
-.. rubric:: lbdex/Cpu0_lld_1030/CMakeLists.txt
+.. rubric:: lbdex/Cpu0_lld_1210/CMakeLists.txt
 .. code-block:: c++
 
   target_link_libraries(lldELF
@@ -186,7 +192,7 @@ The code added on lld to support Cpu0 ELF as follows,
     )
 
 
-.. rubric:: lbdex/Cpu0_lld_1030/ELFLinkingContext.cpp
+.. rubric:: lbdex/Cpu0_lld_1210/ELFLinkingContext.cpp
 .. code-block:: c++
 
   uint16_t ELFLinkingContext::getOutputMachine() const {
@@ -198,12 +204,12 @@ The code added on lld to support Cpu0 ELF as follows,
     }
   }
 
-.. rubric:: lbdex/Cpu0_lld_1030/Targets.h
+.. rubric:: lbdex/Cpu0_lld_1210/Targets.h
 .. code-block:: c++
 
   #include "Cpu0/Cpu0Target.h"
 
-.. rubric:: lbdex/Cpu0_lld_1030/Resolver.cpp
+.. rubric:: lbdex/Cpu0_lld_1210/Resolver.cpp
 .. code-block:: c++
 
   bool Resolver::checkUndefines(bool final) {
@@ -218,38 +224,38 @@ The code added on lld to support Cpu0 ELF as follows,
     ...
   }
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/CMakeLists.txt
-.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/CMakeLists.txt
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/CMakeLists.txt
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.h
-.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.h
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.h
+.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.h
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp
-.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.cpp
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.h
-.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.h
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationHandler.h
+.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationHandler.h
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp
-.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationHandler.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationHandler.cpp
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.h
-.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.h
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.h
+.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.h
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
-.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.cpp
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp
-.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.cpp
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.cpp
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0Target.h
-.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0Target.h
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0Target.h
+.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0Target.h
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.h
-.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.h
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0TargetHandler.h
+.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0TargetHandler.h
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp
-.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0TargetHandler.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0TargetHandler.cpp
 
 
 Above code in Cpu0 lld support both the static and dynamic link. 
@@ -626,8 +632,8 @@ didn't indicate this.
 
 The following code will register a pass when the lld backend code is up. 
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
-.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.cpp
     :start-after: } // end anon namespace
 
 
@@ -690,7 +696,7 @@ Generate Output File
 After register a relocation pass, lld backend hook function "applyRelocation()" 
 will be called by lld driver to finish the address binding in linker stage.
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationHandler.cpp
 .. code-block:: c++
 
   ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
@@ -802,9 +808,9 @@ elf2hex must keeps them as the same address of elf.
 
 .. code-block:: bash
 
-  [Gamma@localhost InputFiles]$ bash build-hello.sh
-  [Gamma@localhost InputFiles]$ /home/Gamma/test/lld/cmake_debug_build/bin/
-  llvm-objdump -s a.out
+  1-160-136-173:InputFiles Jonathan$ bash build-hello.sh
+  1-160-136-173:InputFiles Jonathan$ /Users/Jonathan/test/lld/cmake_debug_build/
+  bin/Debug/llvm-objdump -s a.out
   ...                .
   Contents of section .plt:
    0140 3600000c 36000004 36000004 36fffffc  6...6...6...6...
@@ -859,16 +865,16 @@ below.
 
   #!/usr/bin/env bash
   #TOOLDIR=/home/Gamma/test/lld/cmake_debug_build/bin
-  TOOLDIR=/home/cschen/test/lld/cmake_debug_build/bin
+  #TOOLDIR=/home/cschen/test/lld/cmake_debug_build/bin
+  TOOLDIR=~/test/lld/cmake_debug_build/bin/Debug
   
   cpu=cpu032I
   
-  /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
-  gnu -c start.cpp -emit-llvm -o start.bc
-  /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
-  gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
-  /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
-  gnu -c printf-stdarg-2.cpp -emit-llvm -o printf-stdarg-2.bc
+  clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
+  clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o 
+  printf-stdarg.bc
+  clang -target mips-unknown-linux-gnu -c printf-stdarg-2.cpp -emit-llvm -o 
+  printf-stdarg-2.bc
   ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
   start.bc -o start.cpu0.o
   ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
@@ -895,27 +901,34 @@ code as follows,
 
 .. code-block:: bash
 
-  [Gamma@localhost cpu0_verilog]$ pwd
-  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
-  [Gamma@localhost cpu0_verilog]$ bash clean.sh
-  [Gamma@localhost InputFiles]$ cd ../InputFiles/
-  [Gamma@localhost InputFiles]$ bash build-printf-stdarg-2.sh
-  printf-stdarg-2.cpp:48:15: warning: conversion from string literal to 'char *' is deprecated
-        [-Wdeprecated-writable-strings]
+  1-160-136-173:cpu0_verilog Jonathan$ pwd
+  /Users/Jonathan/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
+  1-160-136-173:cpu0_verilog Jonathan$ bash clean.sh
+  1-160-136-173:cpu0_verilog Jonathan$ cd ../InputFiles/
+  1-160-136-173:InputFiles Jonathan$ bash build-printf-stdarg-2.sh
+  1-160-136-173:InputFiles Jonathan$ bash build-printf-stdarg-2.sh 
+  In file included from printf-stdarg-2.cpp:12:
+  ./ch9_2_1.cpp:62:78: warning: backslash and newline separated by space 
+  [-Wbackslash-newline-escape]
+    printf("date2 = %d %d %d %d %d %d\n", date2.year, date2.month, date2.day, \ 
+                                                                               ^
+  printf-stdarg-2.cpp:18:15: warning: conversion from string literal to 'char *' 
+  is deprecated [-Wdeprecated-writable-strings]
     char *ptr = "Hello world!";
                 ^
-  printf-stdarg-2.cpp:80:19: warning: incomplete format specifier [-Wformat]
+  printf-stdarg-2.cpp:44:19: warning: incomplete format specifier [-Wformat]
     printf("%d %s(s)%", 0, "message");
                     ^
-  2 warnings generated.
-  [Gamma@localhost InputFiles]$ cd ../cpu0_verilog/
-  [Gamma@localhost cpu0_verilog]$ pwd
-  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
-  [Gamma@localhost cpu0_verilog]$ iverilog -o cpu0IIs cpu0IIs.v 
-  [Gamma@localhost cpu0_verilog]$ ls
+  3 warnings generated.
+
+  1-160-136-173:InputFiles Jonathan$ cd ../cpu0_verilog/
+  1-160-136-173:cpu0_verilog Jonathan$ pwd
+  /Users/Jonathan/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
+  1-160-136-173:cpu0_verilog Jonathan$ iverilog -o cpu0IIs cpu0IIs.v 
+  1-160-136-173:cpu0_verilog Jonathan$ ls
   clean.sh  cpu0Id.v  cpu0IId.v  cpu0IIs  cpu0IIs.v  cpu0Is.v  cpu0.v  dynlinker.v  
   flashio.v
-  [Gamma@localhost cpu0_verilog]$ ./cpu0IIs 
+  1-160-136-173:cpu0_verilog Jonathan$ ./cpu0IIs 
   WARNING: cpu0.v:365: $readmemh(cpu0s.hex): Not enough words in the file for 
   the requested range [0:524287].
   taskInterrupt(001)
@@ -949,13 +962,12 @@ Let's check the result with PC program printf-stdarg-1.c output as follows,
 
 .. code-block:: bash
 
-  [Gamma@localhost InputFiles]$ gcc printf-stdarg-1.c
-  /usr/lib/gcc/x86_64-redhat-linux/4.7.2/../../../../lib64/crt1.o: In function 
-  `_start':
-  (.text+0x20): undefined reference to `main'
-  collect2: error: ld returned 1 exit status
-  [Gamma@localhost InputFiles]$ gcc printf-stdarg-1.c
-  [Gamma@localhost InputFiles]$ ./a.out
+  1-160-136-173:InputFiles Jonathan$ clang printf-stdarg-1.c
+  printf-stdarg-1.c:58:19: warning: incomplete format specifier [-Wformat]
+    printf("%d %s(s)%", 0, "message");
+                    ^
+  1 warning generated.
+  1-160-136-173:InputFiles Jonathan$ ./a.out
   Hello world!
   printf test
   (null) is null pointer
@@ -992,16 +1004,14 @@ instructions is work fine too by change cpu to cpu032II as follows,
 
 .. code-block:: bash
 
-  [Gamma@localhost cpu0_verilog]$ pwd
-  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
-  [Gamma@localhost cpu0_verilog]$ bash clean.sh
-  [Gamma@localhost InputFiles]$ cd ../InputFiles/
-  [Gamma@localhost InputFiles]$ bash build-printf-stdarg-2.sh
-  printf-stdarg.c:102:19: warning: incomplete format specifier [-Wformat]
-    printf("%d %s(s)\%", 0, "message");
-                    ^
-  1 warning generated.
-  [Gamma@localhost cpu0_verilog]$ ./cpu0IIs 
+  1-160-136-173:cpu0_verilog Jonathan$ pwd
+  /Users/Jonathan/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
+  1-160-136-173:cpu0_verilog Jonathan$ bash clean.sh
+  1-160-136-173:InputFiles Jonathan$ cd ../InputFiles/
+  1-160-136-173:InputFiles Jonathan$ bash build-printf-stdarg-2.sh
+  ...
+  1-160-136-173:InputFiles Jonathan$ cd ../cpu0_verilog/
+  1-160-136-173:cpu0_verilog Jonathan$ ./cpu0IIs 
 
 The verilog machine cpu0IIs include all instructions (cmp, jeq, ... 
 are included also) of cpu032I and add Chapter12_2 slt, beq, ..., instructions.
@@ -1032,7 +1042,7 @@ The Cpu0LinkingContext include the context information for those input obj
 files and output elf file you want to link.
 When do linking, the following code will create Cpu0LinkingContext.
 
-.. rubric:: lbdex/Cpu0_lld_1030/ELFLinkingContext.h
+.. rubric:: lbdex/Cpu0_lld_1210/ELFLinkingContext.h
 .. code-block:: c++
 
   class ELFLinkingContext : public LinkingContext {
@@ -1042,7 +1052,7 @@ When do linking, the following code will create Cpu0LinkingContext.
     ...
   }
 
-.. rubric:: lbdex/Cpu0_lld_1030/ELFLinkingContext.cpp
+.. rubric:: lbdex/Cpu0_lld_1210/ELFLinkingContext.cpp
 .. code-block:: c++
 
   std::unique_ptr<ELFLinkingContext>
@@ -1061,7 +1071,7 @@ While Cpu0LinkingContext is created by lld ELF driver as above, the following
 code in Cpu0LinkingContext constructor will create Cpu0TargetHandler and passing
 the Cpu0LinkingContext object pointer to Cpu0TargeHandler.
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0LinkingContext.h
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.h
 .. code-block:: c++
 
   class Cpu0LinkingContext LLVM_FINAL : public ELFLinkingContext {
@@ -1076,7 +1086,7 @@ Finally, the Cpu0TargeHandler constructor will create other related objects
 and set up the relation reference object pointers as :num:`Figure #lld-f1`
 depicted by the following code.
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.cpp
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0TargetHandler.cpp
 .. code-block:: c++
 
   Cpu0TargetHandler::Cpu0TargetHandler(Cpu0LinkingContext &context)
@@ -1088,8 +1098,8 @@ According chapter ELF, the linker stands for resolve the relocation records.
 The following code give the chance to let lld system call our relocation 
 function at proper time.
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
-.. literalinclude:: ../lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationPass.cpp
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.cpp
     :start-after: } // end anon namespace
 
 The "#ifdef DLINKER" part is for dynamic linker which will be used in next 
@@ -1100,7 +1110,7 @@ Now the following code of Cpu0TargetRelocationHandler::applyRelocation()
 will be called through 
 Cpu0TargetHandler by lld ELF driver when it meets each relocation record.
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0RelocationHandler.cpp
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationHandler.cpp
 .. code-block:: c++
 
   ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
@@ -1121,7 +1131,7 @@ Cpu0TargetHandler by lld ELF driver when it meets each relocation record.
     return error_code::success();
   }
 
-.. rubric:: lbdex/Cpu0_lld_1030/Cpu0/Cpu0TargetHandler.h
+.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0TargetHandler.h
 .. code-block:: c++
 
   class Cpu0TargetHandler LLVM_FINAL
@@ -1231,18 +1241,17 @@ to execute the dynamic linker function on Cpu0 Verilog machine.
   
   #!/usr/bin/env bash
   #TOOLDIR=/home/Gamma/test/lld/cmake_debug_build/bin
-  TOOLDIR=/home/cschen/test/lld/cmake_debug_build/bin
+  #TOOLDIR=/home/cschen/test/lld/cmake_debug_build/bin
+  TOOLDIR=~/test/lld/cmake_debug_build/bin/Debug
   
   cpu=cpu032I
   
-  /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
-  gnu -c start.cpp -emit-llvm -o start.bc
-  /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
-  gnu -c dynamic_linker.cpp -emit-llvm -o dynamic_linker.cpu0.bc
-  /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
-  gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
-  /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
-  gnu -c foobar.cpp -emit-llvm -o foobar.cpu0.bc
+  clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
+  clang -target mips-unknown-linux-gnu -c dynamic_linker.cpp -emit-llvm -o 
+  dynamic_linker.cpu0.bc
+  clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o 
+  printf-stdarg.bc
+  clang -target mips-unknown-linux-gnu -c foobar.cpp -emit-llvm -o foobar.cpu0.bc
   ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
   -cpu0-reserve-gp=true dynamic_linker.cpu0.bc -o dynamic_linker.cpu0.o
   ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
@@ -1270,19 +1279,19 @@ Run
 
 .. code-block:: bash
 
-  [Gamma@localhost cpu0_verilog]$ pwd
-  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
-  [Gamma@localhost cpu0_verilog]$ bash clean.sh
-  [Gamma@localhost InputFiles]$ cd ../InputFiles/
-  [Gamma@localhost InputFiles]$ bash build-dlinker.sh
-  [Gamma@localhost InputFiles]$ cd ../cpu0_verilog/
-  [Gamma@localhost cpu0_verilog]$ pwd
-  /home/Gamma/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
-  [Gamma@localhost cpu0_verilog]$ iverilog -o cpu0IId cpu0IId.v 
-  [Gamma@localhost cpu0_verilog]$ ls
+  1-160-136-173:cpu0_verilog Jonathan$ pwd
+  /Users/Jonathan/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
+  1-160-136-173:cpu0_verilog Jonathan$ bash clean.sh
+  1-160-136-173:cpu0_verilog Jonathan$ cd ../InputFiles/
+  1-160-136-173:InputFiles Jonathan$ bash build-dlinker.sh
+  1-160-136-173:InputFiles Jonathan$ cd ../cpu0_verilog/
+  1-160-136-173:cpu0_verilog Jonathan$ pwd
+  /Users/Jonathan/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
+  1-160-136-173:cpu0_verilog Jonathan$ iverilog -o cpu0IId cpu0IId.v 
+  1-160-136-173:cpu0_verilog Jonathan$ ls
   clean.sh  cpu0Id  cpu0Id.v  cpu0IId.v  cpu0IIs.v  cpu0Is.v  cpu0.v  dynlinker.v  
   flashio.v
-  [Gamma@localhost cpu0_verilog]$ ./cpu0Id 
+  1-160-136-173:cpu0_verilog Jonathan$ ./cpu0Id 
   WARNING: ./cpu0.v:371: $readmemh(cpu0.hex): Not enough words in the file for 
   the requested range [0:524287].
   WARNING: ./dynlinker.v:185: $readmemh(libso.hex): Not enough words in the 
@@ -1398,9 +1407,8 @@ After run build-dlinker.sh, the following files are created.
 .. rubric:: lbdex/InputFiles/libfoobar.cpu0.so
 .. code-block:: bash
 
-  cschen@cschen-BM6835-BM6635-BP6335:~/test/lbd/docs/BackendTutorial/lbdex/
-  InputFiles$ /home/cschen/test/lld/cmake_debug_build/bin/llvm-objdump -s 
-  libfoobar.cpu0.so 
+  1-160-136-173:InputFiles Jonathan$ ~/test/lld/cmake_debug_build/bin/Debug/
+  llvm-objdump -s libfoobar.cpu0.so 
 
   libfoobar.cpu0.so:	file format ELF32-CPU0
 
@@ -1424,8 +1432,8 @@ After run build-dlinker.sh, the following files are created.
 .. rubric:: lbdex/InputFiles/a.out
 .. code-block:: bash
 
-  cschen@cschen-BM6835-BM6635-BP6335:~/test/lbd/docs/BackendTutorial/lbdex/
-  InputFiles$ /home/cschen/test/lld/cmake_debug_build/bin/llvm-objdump -s a.out
+  1-160-136-173:InputFiles Jonathan$ ~/test/lld/cmake_debug_build/bin/Debug/
+  llvm-objdump -s a.out
 
   a.out:	file format ELF32-CPU0
 

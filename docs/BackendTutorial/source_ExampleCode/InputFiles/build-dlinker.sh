@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #TOOLDIR=/home/Gamma/test/lld/cmake_debug_build/bin
 #TOOLDIR=/home/cschen/test/lld/cmake_debug_build/bin
-TOOLDIR=~/test/1/cmake_debug_build/bin/Debug
+TOOLDIR=~/test/lld/cmake_debug_build/bin/Debug
 
-cpu=cpu032II
+cpu=cpu032I
 
 clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
 clang -target mips-unknown-linux-gnu -c dynamic_linker.cpp -emit-llvm -o dynamic_linker.cpu0.bc
