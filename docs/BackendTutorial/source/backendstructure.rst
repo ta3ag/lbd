@@ -2059,16 +2059,6 @@ from the Cpu0InstrInfo.td with spending a little more time to think or guess
 about it. 
 Some data DAGs we know more, some we know a little and some remains unknown but 
 it's OK for us. 
-To program 
-on Linux OS, you program or write a driver without knowing every details.
-To extend functions from a large software, you should find a way to reach the 
-goal and ignore the details not on your way. This book is not a compiler book 
-in concept, it is a book for compiler extended implementation. 
-Try to understand in details of every line of source code is not realistic. 
-That's not this book intention. 
-Of course, if there are more llvm backend book or documents, then 
-readers got the chance to know more about llvm by reading book or documents.  
-
 List some of data DAGs we understand and have met until now as follows,
 
 

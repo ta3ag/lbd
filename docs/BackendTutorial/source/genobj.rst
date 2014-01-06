@@ -103,10 +103,10 @@ The big endian (B0, B1, B2, B3) = (09, dd, ff, c8), objdump from B0 to B3 as
 objdump from B0 to B3 as 0xc8ffdd09. 
 
 
-Backend Target Registration Structure
---------------------------------------
+ELF obj related code
+----------------------
 
-To support elf obj generated, the following code changed  and added to 
+To support elf obj generated, the following code changed and added to 
 Chapter5_1.
 
 .. rubric:: lbdex/Chapter5_1/MCTargetDesc/CMakeLists.txt
@@ -233,6 +233,66 @@ Chapter5_1.
   :end-before: // Defines symbolic names for Cpu0 registers.
 
 
+The applyFixup() of Cpu0AsmBackend.cpp will fix up the **jeq**, **jub**, ... 
+instruction address in control flow statement or function call statement. 
+Although they are not used in here, part of code are added in here of Chapter5_1.
+
+When emit elf obj format instruction, the EncodeInstruction() of 
+Cpu0MCCodeEmitter.cpp will be called since it override the same name of 
+function in parent class MCCodeEmitter. 
+The getMemEncoding() of Cpu0MCCodeEmitter.cpp will be called when generate Cpu0 
+**ld** or **st** instructions since the following code defined in 
+Cpu0InstrInfo.td.
+
+.. code-block:: c++
+
+  // Address operand
+  def mem : Operand<i32> {
+    let PrintMethod = "printMemOperand";
+    let MIOperandInfo = (ops CPURegs, simm16);
+    let EncoderMethod = "getMemEncoding";
+  }
+  ...
+  // Memory Load/Store
+  let canFoldAsLoad = 1 in
+  class LoadM<bits<8> op, string instr_asm, PatFrag OpNode, RegisterClass RC,
+              Operand MemOpnd, bit Pseudo>:
+    FMem<op, (outs RC:$ra), (ins MemOpnd:$addr),
+       !strconcat(instr_asm, "\t$ra, $addr"),
+       [(set RC:$ra, (OpNode addr:$addr))], IILoad> {
+    let isPseudo = Pseudo;
+  }
+
+  class StoreM<bits<8> op, string instr_asm, PatFrag OpNode, RegisterClass RC,
+               Operand MemOpnd, bit Pseudo>:
+    FMem<op, (outs), (ins RC:$ra, MemOpnd:$addr),
+       !strconcat(instr_asm, "\t$ra, $addr"),
+       [(OpNode RC:$ra, addr:$addr)], IIStore> {
+    let isPseudo = Pseudo;
+  }
+
+  // 32-bit load.
+  multiclass LoadM32<bits<8> op, string instr_asm, PatFrag OpNode,
+                     bit Pseudo = 0> {
+    def #NAME# : LoadM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
+  }
+
+  // 32-bit store.
+  multiclass StoreM32<bits<8> op, string instr_asm, PatFrag OpNode,
+                      bit Pseudo = 0> {
+    def #NAME# : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
+  }
+
+The "let EncoderMethod = "getMemEncoding";" in Cpu0InstrInfo.td as above will 
+make the getMemEncoding() is called when Cpu0 **ld** or **st** instructions 
+are issued in elf obj since these two instructions use **mem** Operand.
+
+The other functions in Cpu0MCCodeEmitter.cpp are called by these two functions.
+
+
+Backend Target Registration Structure
+--------------------------------------
+
 Now, let's examine Cpu0MCTargetDesc.cpp.
 Cpu0MCTargetDesc.cpp do the target registration as mentioned in 
 "section Target Registration" [#]_ of the last chapter. 
@@ -338,6 +398,9 @@ Drawing the register function and those class it registered in
 
 	MCELFStreamer inherit tree
 
+:num:`Figure #genobj-f1` to :num:`Figure #genobj-f4` have been defined 
+before in Chapter4_2/ for assembly file generated support.
+
 In :num:`Figure #genobj-f1`, registering the object of class Cpu0AsmInfo for 
 target TheCpu0Target and TheCpu0elTarget. 
 TheCpu0Target is for big endian and TheCpu0elTarget is for little endian. 
@@ -392,7 +455,7 @@ Cpu0.td information.
 :num:`Figure #genobj-f9`, instancing Cpu0InstPrinter to take care printing 
 function for instructions. 
 Like :num:`Figure #genobj-f1` to :num:`Figure #genobj-f4`, it has been defined 
-in Chapter4_2/ code for assembly file generated support.
+before in Chapter4_2/ code for assembly file generated support.
 
 
 

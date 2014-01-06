@@ -271,6 +271,22 @@ show them how to develop and real programming a toolchain as well as design a
 CPU based on the LLVM Open source structure and open source tool without pay 
 any money to buy any software or hardware. Computer is the only device needed.
 
+Finally, this book is not a compiler book in concept. It is for those readers 
+have interested in extend compiler toolchain to support a new CPU based on llvm 
+structure. To program 
+on Linux OS, you program or write a driver without knowing every details. 
+For example in a specific USB device driver programm on Linux plateform, he 
+or she will try to understand the USB spec., linux USB subsystem and common 
+device driver working model and api. 
+In the same way, to extend functions from a large software like llvm umbrella 
+project, you should find a way to reach the goal and ignore the details not on 
+your way. 
+Try to understand in details of every line of source code is not realistic if 
+your project is extended function from a well defined software structure. 
+It only make sense in rewriting the whole software structure.
+Of course, if there are more llvm backend book or documents, then 
+readers got the chance to know more about llvm by reading book or documents. 
+
 
 Prerequisites
 -------------
