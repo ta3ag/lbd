@@ -12,8 +12,8 @@ section .data and .rodata can be accessed and transfered to Hex file which feed
 to Verilog Cpu0 machine and run on your PC/Laptop.
 
 LLD web site [#]_. LLD install requirement on Linux [#]_. 
-In spite of the requirement, we only can build with gcc4.7 above (clang will 
-fail) on Linux. On iMac, clang can build successfully.
+The gcc and clang 3.4 can build lld on Linux. 
+On iMac, clang can build successfully.
 If you run with Virtual Machine (VM), please keep your phisical memory size 
 setting over 1GB to avoid insufficient memory link error.
 
@@ -88,8 +88,8 @@ If use VM (guest machine is Linux) or Linux, build as follows,
   [Gamma@localhost cmake_debug_build]$ cmake -DCMAKE_CXX_COMPILER=g++ -
   DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_FLAGS=-std=c++11 -DCMAKE_BUILD_TYPE=Debug
   -G "Unix Makefiles" ../src
-  -- The C compiler identification is GNU 4.7.2
-  -- The CXX compiler identification is GNU 4.7.2
+  -- The C compiler identification is Clang 3.4.0
+  -- The CXX compiler identification is Clang 3.4.0
   ...
   -- Targeting Cpu0
   ...
