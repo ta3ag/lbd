@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
-#TOOLDIR=~/test/llvm/cmake_debug_build/bin/Debug
+#TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
+TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
 
 cpu=cpu032I
 

@@ -40,17 +40,22 @@ Sphinx install is included in this Chapter.
 Setting Up Your Mac
 -------------------
 
+The Xcode include clang and llvm already. The following three sub-sections are 
+needless. List them just for readers who like to build clang and llvm with 
+cmake GUI interface.
+
 Installing LLVM, Xcode and cmake
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. todo:: Fix centering for figure captions.
 
-Please download LLVM latest release version 3.4 (llvm, clang, compiler-rf) from 
+Please download LLVM latest release version 3.4 (llvm, clang) from 
 the "LLVM Download Page" [#]_. Then extract them using 
 ``tar -zxvf {llvm-3.4.src.tar, clang-3.4.src.tar, compiler-rt-3.4.src.tar}``,
 and change the llvm source code root directory into src. 
-After that, move the clang source code to src/tools/clang, and move the 
-compiler-rt source to src/project/compiler-rt as shown as follows,
+After that, move the clang source code to src/tools/clang as shown as follows. 
+The compiler-rt should not installed in iMac OS X 10.9 and Xcode 5.x. If you 
+did as clang installation web document, it will has compiler error.
 
 .. code-block:: bash
 
