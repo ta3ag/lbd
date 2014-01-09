@@ -432,7 +432,7 @@ Now, let's build Chapter3_1 as the following commands,
   118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
   ch3.cpu0.s
-  Assertion failed: (AsmInfo && "MCAsmInfo not initialized." 
+  ... Assertion `AsmInfo && "MCAsmInfo not initialized. " 
   ...
 
 With Chapter3_1 implementation, the Chapter2 error message 
