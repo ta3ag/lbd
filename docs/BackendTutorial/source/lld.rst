@@ -25,8 +25,8 @@ LLD project is underdevelopment and can be compiled only with c++11 standard (C+
 2011 year announced standard). For iMac, our software is OS X version 10.9.1 and 
 Xcode version 5.0.2. For old iMac software version, you can install VM (such as 
 Virtual Box) and build lld as Linux platform. Please download lld from llvm web 
-and put lld souce code on {llvm-src}/tools/lld like we download llvm and clang 
-as shown in Appendex A.
+[#]_ and put lld souce code on {llvm-src}/tools/lld like we download llvm and 
+clang as shown in Appendex A.
 
 .. code-block:: bash
 
@@ -1592,6 +1592,8 @@ to somewhere you didn't expect".
 .. [#] http://lld.llvm.org/
 
 .. [#] http://lld.llvm.org/getting_started.html#on-unix-like-systems
+
+.. [#] http://llvm.org/releases/download.html#3.4
 
 .. [#] http://www.cplusplus.com/reference/memory/unique_ptr/
 
