@@ -18,8 +18,8 @@ If you run with Virtual Machine (VM), please keep your phisical memory size
 setting over 1GB to avoid insufficient memory link error.
 
 
-Install lld
--------------
+Install lld and build with Cpu0 lld
+------------------------------------
 
 LLD project is underdevelopment and can be compiled only with c++11 standard (C++
 2011 year announced standard). For iMac, our software is OS X version 10.9.1 and 
@@ -31,7 +31,7 @@ clang as shown in Appendex A.
 .. code-block:: bash
 
   1-160-136-173:tools Jonathan$ pwd
-  /Users/Jonathan/llvm/test/lld/src/tools
+  /Users/Jonathan/llvm/test/src/tools
   1-160-136-173:tools Jonathan$ ls
   ...
   lld              llvm-config      llvm-extract    llvm-nm           llvm-stress   obj2yaml
@@ -42,7 +42,7 @@ Next, copy lld Cpu0 architecture ELF support as follows,
 
   1-160-136-173:Cpu0 Jonathan$ cd ../../../tools/lld/lib/ReaderWriter/ELF/
   1-160-136-173:ELF Jonathan$ pwd
-  /Users/Jonathan/test/lld/src/tools/lld/lib/ReaderWriter/ELF
+  /Users/Jonathan/llvm/test/src/tools/lld/lib/ReaderWriter/ELF
   1-160-136-173:ELF Jonathan$ cp -rf ~/test/lbd/docs/BackendTutorial/
   lbdex/Cpu0_lld/Cpu0 .
   1-160-136-173:ELF Jonathan$ cp -f ~/test/lbd/docs/BackendTutorial/
@@ -61,7 +61,7 @@ Finally, update llvm-objdump to support convert ELF file to Hex file as follows,
 
   1-160-136-173:ELF Jonathan$ cd ../../../../llvm-objdump/
   1-160-136-173:llvm-objdump Jonathan$ pwd
-  /Users/Jonathan/test/lld/src/tools/llvm-objdump
+  /Users/Jonathan/llvm/test/src/tools/llvm-objdump
   1-160-136-173:llvm-objdump Jonathan$ cp -rf ~/test/lbd/docs/BackendTutorial/
   lbdex/llvm-objdump/* .
 
@@ -79,7 +79,7 @@ Now, build llvm/lld with Cpu0 support as follows,
   ...
   -- Configuring done
   -- Generating done
-  -- Build files have been written to: /Users/Jonathan/test/lld/cmake_debug_build
+  -- Build files have been written to: /Users/Jonathan/llvm/test/cmake_debug_build
 
 If use VM (guest machine is Linux) or Linux, build as follows,
 
@@ -95,7 +95,7 @@ If use VM (guest machine is Linux) or Linux, build as follows,
   ...
   -- Configuring done
   -- Generating done
-  -- Build files have been written to: /home/Gamma/test/lld/cmake_debug_build
+  -- Build files have been written to: /usr/local/llvm/test/cmake_debug_build
 
 
 Cpu0 lld souce code
@@ -384,7 +384,7 @@ Parsing input files
     .. rubric:: lld/lib/ReaderWriter/Reader.cpp
     .. code-block:: c++
 
-      ~/test/lld/src/tools/lld/lib/ReaderWriter$ cat Reader.cpp
+      ~/llvm/test/src/tools/lld/lib/ReaderWriter$ cat Reader.cpp
       ...
       #include "lld/ReaderWriter/Reader.h"
 
@@ -401,7 +401,7 @@ Parsing input files
     .. rubric:: lld/lib/ReaderWriter/ELF/Reader.cpp
     .. code-block:: c++
 
-      ~/test/lld/src/tools/lld/lib/ReaderWriter/ELF$ cat Reader.cpp 
+      ~/llvm/test/src/tools/lld/lib/ReaderWriter/ELF$ cat Reader.cpp 
       namespace lld {
       namespace elf {
       ...
@@ -574,7 +574,7 @@ Generate Output File
   .. rubric:: lld/lib/ReaderWriter
   .. code-block:: c++
 
-    ~/test/lld/src/tools/lld/lib/ReaderWriter$ cat Writer.cpp
+    ~/llvm/test/src/tools/lld/lib/ReaderWriter$ cat Writer.cpp
     ...
     #include "lld/Core/File.h"
     #include "lld/ReaderWriter/Writer.h"
@@ -594,7 +594,7 @@ Generate Output File
   .. rubric:: lld/lib/ReaderWriter
   .. code-block:: c++
 
-    ~/test/lld/src/tools/lld/lib/ReaderWriter/ELF$ cat Writer.cpp 
+    ~/llvm/test/src/tools/lld/lib/ReaderWriter/ELF$ cat Writer.cpp 
     namespace lld {
 
     std::unique_ptr<Writer> createWriterELF(const ELFLinkingContext &info) {
@@ -728,7 +728,7 @@ elf2hex must keeps them as the same address of elf.
 .. code-block:: bash
 
   1-160-136-173:InputFiles Jonathan$ bash build-hello.sh
-  1-160-136-173:InputFiles Jonathan$ /Users/Jonathan/test/lld/cmake_debug_build/
+  1-160-136-173:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llvm-objdump -s a.out
   ...                .
   Contents of section .plt:
@@ -783,9 +783,8 @@ below.
 .. code-block:: c++
 
   #!/usr/bin/env bash
-  #TOOLDIR=/home/Gamma/test/lld/cmake_debug_build/bin
-  #TOOLDIR=/home/cschen/test/lld/cmake_debug_build/bin
-  TOOLDIR=~/test/lld/cmake_debug_build/bin/Debug
+  TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
+  #TOOLDIR=~/test/llvm/cmake_debug_build/bin/Debug
   
   cpu=cpu032I
   
@@ -1159,9 +1158,8 @@ to execute the dynamic linker function on Cpu0 Verilog machine.
 .. code-block:: c++
   
   #!/usr/bin/env bash
-  #TOOLDIR=/home/Gamma/test/lld/cmake_debug_build/bin
-  #TOOLDIR=/home/cschen/test/lld/cmake_debug_build/bin
-  TOOLDIR=~/test/lld/cmake_debug_build/bin/Debug
+  TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
+  #TOOLDIR=~/test/llvm/cmake_debug_build/bin/Debug
   
   cpu=cpu032I
   
@@ -1326,7 +1324,7 @@ After run build-dlinker.sh, the following files are created.
 .. rubric:: lbdex/InputFiles/libfoobar.cpu0.so
 .. code-block:: bash
 
-  1-160-136-173:InputFiles Jonathan$ ~/test/lld/cmake_debug_build/bin/Debug/
+  1-160-136-173:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/
   llvm-objdump -s libfoobar.cpu0.so 
 
   libfoobar.cpu0.so:	file format ELF32-CPU0
@@ -1351,7 +1349,7 @@ After run build-dlinker.sh, the following files are created.
 .. rubric:: lbdex/InputFiles/a.out
 .. code-block:: bash
 
-  1-160-136-173:InputFiles Jonathan$ ~/test/lld/cmake_debug_build/bin/Debug/
+  1-160-136-173:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/
   llvm-objdump -s a.out
 
   a.out:	file format ELF32-CPU0
