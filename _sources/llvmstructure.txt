@@ -1355,8 +1355,8 @@ Now, compile ch3.bc into ch3.cpu0.s, we get the error message as follows,
   118-165-78-230:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch3.bc -o 
   ch3.cpu0.s
-  Assertion failed: (target.get() && "Could not allocate target machine!"), 
-  function main, file /Users/Jonathan/llvm/test/src/tools/llc/llc.cpp, 
+  ...
+  ... Assertion `target.get() && "Could not allocate target machine!"' failed 
   ...
 
 At this point, we finish the Target Registration for Cpu0 backend. 

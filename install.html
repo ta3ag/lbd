@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.3.14',
+        VERSION:     '3.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -54,11 +54,11 @@
 <span id="sec-appendix-installing"></span><h1>Appendix A: Getting Started: Installing LLVM and the Cpu0 example code<a class="headerlink" href="#appendix-a-getting-started-installing-llvm-and-the-cpu0-example-code" title="Permalink to this headline">¶</a></h1>
 <p>This book is in the process of merging into llvm trunk but not finished
 yet.
-The merged llvm trunk version on my git hub is LLVM 3.3 released.
-The Cpu0 example code based on llvm 3.3.</p>
+The merged llvm trunk version on my git hub is LLVM 3.4 released.
+The Cpu0 example code based on llvm 3.4.</p>
 <p>In this chapter, we will run through how to set up LLVM using if you are using
 Mac OS X or Linux.  When discussing Mac OS X, we are using Apple&#8217;s Xcode IDE
-(version 4.5.1) running on Mac OS X Mountain Lion (version 10.8) to modify and
+(version 5.0.2) running on Mac OS X Mavericks (version 10.9.1) to modify and
 build LLVM from source, and we will be debugging using lldb.
 We cannot debug our LLVM builds within Xcode at the
 moment, but if you have experience with this, please contact us and help us
@@ -88,29 +88,33 @@ Sphinx install is included in this Chapter.</p>
 </div>
 <div class="section" id="setting-up-your-mac">
 <h2>Setting Up Your Mac<a class="headerlink" href="#setting-up-your-mac" title="Permalink to this headline">¶</a></h2>
+<p>The Xcode include clang and llvm already. The following three sub-sections are
+needless. List them just for readers who like to build clang and llvm with
+cmake GUI interface.</p>
 <div class="section" id="installing-llvm-xcode-and-cmake">
 <h3>Installing LLVM, Xcode and cmake<a class="headerlink" href="#installing-llvm-xcode-and-cmake" title="Permalink to this headline">¶</a></h3>
 <div class="admonition-todo admonition" id="index-2">
 <p class="first admonition-title">Todo</p>
 <p class="last">Fix centering for figure captions.</p>
 </div>
-<p>Please download LLVM latest release version 3.3 (llvm, clang, compiler-rf) from
+<p>Please download LLVM latest release version 3.4 (llvm, clang) from
 the &#8220;LLVM Download Page&#8221; <a class="footnote-reference" href="#id18" id="id2">[2]</a>. Then extract them using
-<tt class="docutils literal"><span class="pre">tar</span> <span class="pre">-zxvf</span> <span class="pre">{llvm-3.3.src.tar,</span> <span class="pre">clang-3.3.src.tar,</span> <span class="pre">compiler-rt-3.3.src.tar}</span></tt>,
+<tt class="docutils literal"><span class="pre">tar</span> <span class="pre">-zxvf</span> <span class="pre">{llvm-3.4.src.tar,</span> <span class="pre">clang-3.4.src.tar,</span> <span class="pre">compiler-rt-3.4.src.tar}</span></tt>,
 and change the llvm source code root directory into src.
-After that, move the clang source code to src/tools/clang, and move the
-compiler-rt source to src/project/compiler-rt as shown as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-111:Downloads Jonathan<span class="nv">$ </span>tar -zxvf clang-3.3.src.tar.gz
-118-165-78-111:Downloads Jonathan<span class="nv">$ </span>tar -zxvf compiler-rt-3.3.src.tar.gz
-118-165-78-111:Downloads Jonathan<span class="nv">$ </span>tar -zxvf llvm-3.3.src.tar.gz
-118-165-78-111:Downloads Jonathan<span class="nv">$ </span>mv llvm-3.3.src src
-118-165-78-111:Downloads Jonathan<span class="nv">$ </span>mv clang-3.3.src src/tools/clang
-118-165-78-111:Downloads Jonathan<span class="nv">$ </span>mv compiler-rt-3.3.src src/projects/compiler-rt
+After that, move the clang source code to src/tools/clang as shown as follows.
+The compiler-rt should not installed in iMac OS X 10.9 and Xcode 5.x. If you
+did as clang installation web document, it will has compiler error.</p>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-111:Downloads Jonathan<span class="nv">$ </span>tar -zxvf clang-3.4.src.tar.gz
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>tar -zxvf compiler-rt-3.4.src.tar.gz
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>tar -zxvf llvm-3.4.src.tar.gz
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>mv llvm-3.4.src src
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>mv clang-3.4.src src/tools/clang
+118-165-78-111:Downloads Jonathan<span class="nv">$ </span>mv compiler-rt-3.4.src src/projects/compiler-rt
 118-165-78-111:Downloads Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
 /Users/Jonathan/Downloads
 118-165-78-111:Downloads Jonathan<span class="nv">$ </span>ls
-clang-3.3.src.tar.gz        llvm-3.3.src.tar.gz
-compiler-rt-3.3.src.tar.gz  src
+clang-3.4.src.tar.gz        llvm-3.4.src.tar.gz
+compiler-rt-3.4.src.tar.gz  src
 118-165-78-111:Downloads Jonathan<span class="nv">$ </span>ls src/tools/
 CMakeLists.txt  clang       llvm-as         llvm-dis        llvm-mcmarkup
 llvm-readobj    llvm-stub   LLVMBuild.txt   gold            llvm-bcanalyzer
@@ -253,9 +257,9 @@ LLVM.xcodeproj by cmake graphic UI.
 We can create LLVM.xcodeproj by <tt class="docutils literal"><span class="pre">cmake</span></tt> command on terminal also.
 This book is on the process of merging into llvm trunk but not finished
 yet.
-The merged llvm trunk version on lbd git hub is LLVM 3.3 released version.
-The lbd of Cpu0 example code is also based on llvm 3.3.
-So, please install the llvm 3.3 debug version as the llvm release 3.3
+The merged llvm trunk version on lbd git hub is LLVM 3.4 released version.
+The lbd of Cpu0 example code is also based on llvm 3.4.
+So, please install the llvm 3.4 debug version as the llvm release 3.4
 installation, but without clang since the clang will waste time in build the
 Cpu0 backend tutorial code.
 Steps as follows,</p>
@@ -264,9 +268,9 @@ Steps as follows,</p>
 118-165-78-111:llvm Jonathan$ cd test
 118-165-78-111:test Jonathan$ pwd
 /Users/Jonathan/llvm/test
-118-165-78-111:test Jonathan$ cp /Users/Jonathan/Downloads/llvm-3.3.src.tar.gz .
-118-165-78-111:test Jonathan$ tar -zxvf llvm-3.3.src.tar.gz
-118-165-78-111:test Jonathan$ mv llvm-3.3.src src
+118-165-78-111:test Jonathan$ cp /Users/Jonathan/Downloads/llvm-3.4.src.tar.gz .
+118-165-78-111:test Jonathan$ tar -zxvf llvm-3.4.src.tar.gz
+118-165-78-111:test Jonathan$ mv llvm-3.4.src src
 118-165-78-111:test Jonathan$ cp /Users/Jonathan/Downloads/
 lbdex.tar.gz .
 118-165-78-111:test Jonathan$ tar -zxvf lbdex.tar.gz
@@ -514,8 +518,8 @@ gar   gelfedit  gobjcopy  granlib gsize   gstrip
 </div>
 <div class="section" id="setting-up-your-linux-machine">
 <h2>Setting Up Your Linux Machine<a class="headerlink" href="#setting-up-your-linux-machine" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="install-llvm-3-3-release-build-on-linux">
-<h3>Install LLVM 3.3 release build on Linux<a class="headerlink" href="#install-llvm-3-3-release-build-on-linux" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="install-llvm-3-4-release-build-on-linux">
+<h3>Install LLVM 3.4 release build on Linux<a class="headerlink" href="#install-llvm-3-4-release-build-on-linux" title="Permalink to this headline">¶</a></h3>
 <p>First, install the llvm release build by,</p>
 <blockquote>
 <div><ol class="arabic simple">
@@ -533,19 +537,9 @@ gar   gelfedit  gobjcopy  granlib gsize   gstrip
 -- The C compiler identification is GNU 4.7.0
 ...
 -- Constructing LLVMBuild project information
--- Targeting ARM
--- Targeting CellSPU
--- Targeting CppBackend
--- Targeting Hexagon
--- Targeting Mips
--- Targeting MBlaze
--- Targeting MSP430
--- Targeting PowerPC
--- Targeting PTX
--- Targeting Sparc
--- Targeting X86
+...
 -- Targeting XCore
--- Clang version: 3.3
+-- Clang version: 3.4
 -- Found Subversion: /usr/bin/svn <span class="o">(</span>found version <span class="s2">&quot;1.7.6&quot;</span><span class="o">)</span>
 -- Configuring <span class="k">done</span>
 -- Generating <span class="k">done</span>
@@ -587,9 +581,9 @@ chain/bin:/home/Gamma/.local/bin:/home/Gamma/bin:/usr/local/sphinx/bin:/usr/
 <h3>Install cpu0 debug build on Linux<a class="headerlink" href="#install-cpu0-debug-build-on-linux" title="Permalink to this headline">¶</a></h3>
 <p>This book is on the process of merging into llvm trunk but not finished
 yet.
-The merged llvm trunk version on lbd git hub is LLVM 3.3 released version.
-The Cpu0 example code is also based on llvm 3.3.
-So, please install the llvm 3.3 debug version as the llvm release 3.3
+The merged llvm trunk version on lbd git hub is LLVM 3.4 released version.
+The Cpu0 example code is also based on llvm 3.4.
+So, please install the llvm 3.4 debug version as the llvm release 3.4
 installation, but without clang since the clang will waste time in build the
 Cpu0 backend tutorial code.
 Steps as follows,</p>
@@ -597,7 +591,7 @@ Steps as follows,</p>
 list steps, and the corresponding commands shown as below,</p>
 <ol class="arabic simple">
 <li>Enter /usr/local/llvm/test/ and
-get Cpu0 example code as well as the llvm 3.3.</li>
+get Cpu0 example code as well as the llvm 3.4.</li>
 <li>Make dir Cpu0 in src/lib/Target and download example code.</li>
 <li>Update llvm modified source files to support cpu0 by command
 <tt class="docutils literal"><span class="pre">cp</span> <span class="pre">-rf</span> <span class="pre">src/lib/Target/Cpu0/lbdex/src_files_modify/modify/src/*</span> <span class="pre">src/.</span></tt>.</li>
@@ -616,9 +610,9 @@ command <tt class="docutils literal"><span class="pre">make</span></tt> in cpu0 
 <span class="o">[</span>Gamma@localhost llvm<span class="o">]</span><span class="nv">$ </span><span class="nb">cd test</span>
 <span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
 /usr/local/llvm/test
-<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>cp /home/Gamma/Downloads/llvm-3.3.src.tar.gz .
-<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>tar -zxvf llvm-3.3.src.tar.gz
-<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>mv llvm-3.3.src src
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>cp /home/Gamma/Downloads/llvm-3.4.src.tar.gz .
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>tar -zxvf llvm-3.4.src.tar.gz
+<span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>mv llvm-3.4.src src
 <span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>cp /Users/Jonathan/Downloads/
 lbdex.tar.gz .
 <span class="o">[</span>Gamma@localhost <span class="nb">test</span><span class="o">]</span><span class="nv">$ </span>tar -zxvf lbdex.tar.gz
@@ -659,8 +653,8 @@ as follows,</p>
 [Gamma@localhost cmake_debug_build]$ cmake
 -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang
 -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ../src/
--- The C compiler identification is Clang 3.3.0
--- The CXX compiler identification is Clang 3.3.0
+-- The C compiler identification is Clang 3.4.0
+-- The CXX compiler identification is Clang 3.4.0
 -- Check for working C compiler: /usr/local/llvm/release/cmake_release_build/bin/
 clang
 -- Check for working C compiler: /usr/local/llvm/release/cmake_release_build/bin/
@@ -789,12 +783,11 @@ To support pdf/latex document generated as follows,</p>
 <p>In Fedora 17, the texlive-latex-extra is missing. We install the package which
 include the pdflatex instead. For instance, we install pdfjam on Fedora 17 as
 follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>root@localhost BackendTutorial<span class="o">]</span><span class="c"># yum list pdfjam</span>
+<div class="highlight-bash"><pre>[root@localhost BackendTutorial]$ yum list pdfjam
 Loaded plugins: langpacks, presto, refresh-packagekit
 Installed Packages
 pdfjam.noarch                        2.08-3.fc17                         @fedora
-<span class="o">[</span>root@localhost BackendTutorial<span class="o">]</span><span class="c">#</span>
-</pre></div>
+[root@localhost BackendTutorial]$</pre>
 </div>
 <p>Now, this book html/pdf can be generated by the following commands.</p>
 <div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost BackendTutorial<span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
@@ -853,7 +846,7 @@ PASS: LLVM :: CodeGen/Cpu0/ch3-proepilog.ll <span class="o">(</span>29 of 157<sp
 <table class="docutils footnote" frame="void" id="id18" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://llvm.org/releases/download.html#3.3">http://llvm.org/releases/download.html#3.3</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://llvm.org/releases/download.html#3.4">http://llvm.org/releases/download.html#3.4</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id19" rules="none">

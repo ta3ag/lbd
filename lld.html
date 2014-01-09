@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.3.14',
+        VERSION:     '3.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -59,121 +59,46 @@ llvm-objdump driver is modified for support generate Hex file from ELF.
 With these two tools supported, the program with global variables of existed in
 section .data and .rodata can be accessed and transfered to Hex file which feed
 to Verilog Cpu0 machine and run on your PC/Laptop.</p>
-<p>LLD web site <a class="footnote-reference" href="#id14" id="id1">[1]</a>. LLD install requirement on Linux <a class="footnote-reference" href="#id15" id="id2">[2]</a>.
-In spite of the requirement, we only can build with gcc4.7 above (clang will
-fail) on Linux. On iMac, clang can build successfully.
+<p>LLD web site <a class="footnote-reference" href="#id15" id="id1">[1]</a>. LLD install requirement on Linux <a class="footnote-reference" href="#id16" id="id2">[2]</a>.
+The gcc and clang 3.4 can build lld on Linux.
+On iMac, clang can build successfully.
 If you run with Virtual Machine (VM), please keep your phisical memory size
 setting over 1GB to avoid insufficient memory link error.</p>
-<div class="section" id="install-lld">
-<h2>Install lld<a class="headerlink" href="#install-lld" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="install-lld-and-build-with-cpu0-lld">
+<h2>Install lld and build with Cpu0 lld<a class="headerlink" href="#install-lld-and-build-with-cpu0-lld" title="Permalink to this headline">¶</a></h2>
 <p>LLD project is underdevelopment and can be compiled only with c++11 standard (C++
 2011 year announced standard). For iMac, our software is OS X version 10.9.1 and
 Xcode version 5.0.2. For old iMac software version, you can install VM (such as
-Virtual Box) and build lld as Linux platform. The latest version that
-we porting lld Cpu0 at 2013/12/10, so please checkout branch release_34(llvm) and
-commit id 5d1737ac704352357fd28cfe3b2daf9aa308fb86(lld) which commited at
-2013/12/10 as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>1-160-136-173:test Jonathan<span class="nv">$ </span>mkdir lld
-1-160-136-173:test Jonathan<span class="nv">$ </span><span class="nb">cd </span>lld
-1-160-136-173:test Jonathan<span class="nv">$ </span>git clone http://llvm.org/git/llvm.git src
-Cloning into <span class="s1">&#39;src&#39;</span>...
-remote: Counting objects: 780029, <span class="k">done</span>.
-remote: Compressing objects: 100% <span class="o">(</span>153947/153947<span class="o">)</span>, <span class="k">done</span>.
-remote: Total 780029 <span class="o">(</span>delta 637206<span class="o">)</span>, reused 764781 <span class="o">(</span>delta 622170<span class="o">)</span>
-Receiving objects: 100% <span class="o">(</span>780029/780029<span class="o">)</span>, 125.74 MiB | 243 KiB/s, <span class="k">done</span>.
-Resolving deltas: 100% <span class="o">(</span>637206/637206<span class="o">)</span>, <span class="k">done</span>.
-1-160-136-173:src Jonathan<span class="nv">$ </span><span class="nb">cd </span>src/
-
-1-160-136-173:src Jonathan<span class="nv">$ </span>git checkout release_34
+Virtual Box) and build lld as Linux platform. Please download lld from llvm web
+<a class="footnote-reference" href="#id17" id="id3">[3]</a> and put lld souce code on {llvm-src}/tools/lld like we download llvm and
+clang as shown in Appendex A.</p>
+<div class="highlight-bash"><div class="highlight"><pre>1-160-136-173:tools Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
+/Users/Jonathan/llvm/test/src/tools
+1-160-136-173:tools Jonathan<span class="nv">$ </span>ls
 ...
-1-160-136-173:src Jonathan<span class="nv">$ </span>git branch
-  master
-* release_34
-
-1-160-136-173:src Jonathan<span class="nv">$ </span><span class="nb">cd </span>tools/
-1-160-136-173:tools Jonathan<span class="nv">$ </span>git clone http://llvm.org/git/lld.git lld
-...
-Resolving deltas: 100% <span class="o">(</span>6422/6422<span class="o">)</span>, <span class="k">done</span>.
-1-160-136-173:tools Jonathan<span class="nv">$ </span><span class="nb">cd </span>lld/
-1-160-136-173:tools Jonathan<span class="nv">$ </span>git checkout e5581693ee8a9b071031df0da868fbc8c180a8e6
-Note: checking out <span class="s1">&#39;e5581693ee8a9b071031df0da868fbc8c180a8e6&#39;</span>.
-
-You are in <span class="s1">&#39;detached HEAD&#39;</span> state. You can look around, make experimental
-changes and commit them, and you can discard any commits you make in this
-state without impacting any branches by performing another checkout.
-
-If you want to create a new branch to retain commits you create, you may
-<span class="k">do </span>so <span class="o">(</span>now or later<span class="o">)</span> by using -b with the checkout <span class="nb">command </span>again. Example:
-
-  git checkout -b new_branch_name
-
-HEAD is now at 014d684... <span class="o">[</span>PECOFF<span class="o">]</span> Handle <span class="s2">&quot;--&quot;</span> option explicitly
-</pre></div>
-</div>
-<p>Next, update llvm 2013/12/10 source code to support Cpu0 as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>1-160-136-173:src Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
-/Users/Jonathan/test/lld/src
-1-160-136-173:src Jonathan<span class="nv">$ </span>cp -rf ~/test/lbd/docs/BackendTutorial/
-lbdex/3.4_src_files_modify/modify/src/* .
-1-160-136-173:src Jonathan<span class="nv">$ </span>grep -R <span class="s2">&quot;cpu0&quot;</span> include/
-include/llvm/ADT/Triple.h:#undef cpu0
-include/llvm/ADT/Triple.h:    cpu0,    // For Tutorial Backend Cpu0
-include/llvm/ADT/Triple.h:    cpu0el,
-include/llvm/Object/ELFObjectFile.h:           Triple::cpu0el : Triple::cpu0;
-include/llvm/Support/ELF.h:  <span class="nv">EF_CPU0_ARCH_32R2</span> <span class="o">=</span> 0x70000000, // cpu032r2
-include/llvm/Support/ELF.h:  <span class="nv">EF_CPU0_ARCH_64R2</span> <span class="o">=</span> 0x80000000, // cpu064r2
-1-160-136-173:src Jonathan<span class="nv">$ </span><span class="nb">cd </span>lib/Target/
-1-160-136-173:src Jonathan<span class="nv">$ </span>ls
-AArch64         MSP430                   TargetJITInfo.cpp
-ARM             NVPTX                    TargetLibraryInfo.cpp
-CMakeLists.txt  PowerPC                  TargetLoweringObjectFile.cpp
-CppBackend      R600                     TargetMachineC.cpp
-Hexagon         README.txt               TargetMachine.cpp
-LLVMBuild.txt   Sparc                    TargetSubtargetInfo.cpp
-Makefile        SystemZ                  X86
-Mangler.cpp     Target.cpp               XCore
-Mips            TargetIntrinsicInfo.cpp
-1-160-136-173:Target Jonathan<span class="nv">$ </span>mkdir Cpu0
-1-160-136-173:Target Jonathan<span class="nv">$ </span><span class="nb">cd </span>Cpu0/
-1-160-136-173:Cpu0 Jonathan<span class="nv">$ </span>cp -rf ~/test/lbd/docs/BackendTutorial/
-lbdex/3.4_Chapter12_2/* .
-1-160-136-173:Cpu0 Jonathan<span class="nv">$ </span>ls
-AsmParser                 Cpu0InstrInfo.h           Cpu0SelectionDAGInfo.h
-CMakeLists.txt            Cpu0InstrInfo.td          Cpu0Subtarget.cpp
-Cpu0AnalyzeImmediate.cpp  Cpu0ISelDAGToDAG.cpp      Cpu0Subtarget.h
-Cpu0AnalyzeImmediate.h    Cpu0ISelLowering.cpp      Cpu0TargetMachine.cpp
-Cpu0AsmPrinter.cpp        Cpu0ISelLowering.h        Cpu0TargetMachine.h
-Cpu0AsmPrinter.h          Cpu0MachineFunction.cpp   Cpu0TargetObjectFile.cpp
-Cpu0CallingConv.td        Cpu0MachineFunction.h     Cpu0TargetObjectFile.h
-Cpu0DelUselessJMP.cpp     Cpu0MCInstLower.cpp       Cpu0.td
-Cpu0EmitGPRestore.cpp     Cpu0MCInstLower.h         Disassembler
-Cpu0FrameLowering.cpp     Cpu0RegisterInfo.cpp      InstPrinter
-Cpu0FrameLowering.h       Cpu0RegisterInfo.h        LLVMBuild.txt
-Cpu0.h                    Cpu0RegisterInfo.td       MCTargetDesc
-Cpu0InstrFormats.td       Cpu0Schedule.td           TargetInfo
-Cpu0InstrInfo.cpp         Cpu0SelectionDAGInfo.cpp
+lld              llvm-config      llvm-extract    llvm-nm           llvm-stress   obj2yaml
 </pre></div>
 </div>
 <p>Next, copy lld Cpu0 architecture ELF support as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>1-160-136-173:Cpu0 Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../../../tools/lld/lib/ReaderWriter/ELF/
 1-160-136-173:ELF Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
-/Users/Jonathan/test/lld/src/tools/lld/lib/ReaderWriter/ELF
+/Users/Jonathan/llvm/test/src/tools/lld/lib/ReaderWriter/ELF
 1-160-136-173:ELF Jonathan<span class="nv">$ </span>cp -rf ~/test/lbd/docs/BackendTutorial/
-lbdex/Cpu0_lld_1210/Cpu0 .
+lbdex/Cpu0_lld/Cpu0 .
 1-160-136-173:ELF Jonathan<span class="nv">$ </span>cp -f ~/test/lbd/docs/BackendTutorial/
-lbdex/Cpu0_lld_1210/CMakeLists.txt .
+lbdex/Cpu0_lld/CMakeLists.txt .
 1-160-136-173:ELF Jonathan<span class="nv">$ </span>cp -f ~/test/lbd/docs/BackendTutorial/
-lbdex/Cpu0_lld_1210/ELFLinkingContext.cpp .
+lbdex/Cpu0_lld/ELFLinkingContext.cpp .
 1-160-136-173:ELF Jonathan<span class="nv">$ </span>cp -f ~/test/lbd/docs/BackendTutorial/
-lbdex/Cpu0_lld_1210/Targets.h .
+lbdex/Cpu0_lld/Targets.h .
 1-160-136-173:ELF Jonathan<span class="nv">$ </span>cp -f ~/test/lbd/docs/BackendTutorial/
-lbdex/Cpu0_lld_1210/Resolver.cpp ../../Core/.
+lbdex/Cpu0_lld/Resolver.cpp ../../Core/.
 </pre></div>
 </div>
 <p>Finally, update llvm-objdump to support convert ELF file to Hex file as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>1-160-136-173:ELF Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../../../../llvm-objdump/
 1-160-136-173:llvm-objdump Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
-/Users/Jonathan/test/lld/src/tools/llvm-objdump
+/Users/Jonathan/llvm/test/src/tools/llvm-objdump
 1-160-136-173:llvm-objdump Jonathan<span class="nv">$ </span>cp -rf ~/test/lbd/docs/BackendTutorial/
 lbdex/llvm-objdump/* .
 </pre></div>
@@ -189,35 +114,35 @@ lbdex/llvm-objdump/* .
 ...
 -- Configuring <span class="k">done</span>
 -- Generating <span class="k">done</span>
--- Build files have been written to: /Users/Jonathan/test/lld/cmake_debug_build
+-- Build files have been written to: /Users/Jonathan/llvm/test/cmake_debug_build
 </pre></div>
 </div>
 <p>If use VM (guest machine is Linux) or Linux, build as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost cmake_debug_build<span class="o">]</span><span class="nv">$ </span>cmake -DCMAKE_CXX_COMPILER<span class="o">=</span>g++ -
 <span class="nv">DCMAKE_C_COMPILER</span><span class="o">=</span>gcc -DCMAKE_CXX_FLAGS<span class="o">=</span>-std<span class="o">=</span>c++11 -DCMAKE_BUILD_TYPE<span class="o">=</span>Debug
 -G <span class="s2">&quot;Unix Makefiles&quot;</span> ../src
--- The C compiler identification is GNU 4.7.2
--- The CXX compiler identification is GNU 4.7.2
+-- The C compiler identification is Clang 3.4.0
+-- The CXX compiler identification is Clang 3.4.0
 ...
 -- Targeting Cpu0
 ...
 -- Configuring <span class="k">done</span>
 -- Generating <span class="k">done</span>
--- Build files have been written to: /home/Gamma/test/lld/cmake_debug_build
+-- Build files have been written to: /usr/local/llvm/test/cmake_debug_build
 </pre></div>
 </div>
 </div>
 <div class="section" id="cpu0-lld-souce-code">
 <h2>Cpu0 lld souce code<a class="headerlink" href="#cpu0-lld-souce-code" title="Permalink to this headline">¶</a></h2>
 <p>The code added on lld to support Cpu0 ELF as follows,</p>
-<p class="rubric">lbdex/Cpu0_lld_1210/CMakeLists.txt</p>
+<p class="rubric">lbdex/Cpu0_lld/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">target_link_libraries</span><span class="p">(</span><span class="n">lldELF</span>
   <span class="p">...</span>
   <span class="n">lldCpu0ELFTarget</span>
   <span class="p">)</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Cpu0_lld_1210/ELFLinkingContext.cpp</p>
+<p class="rubric">lbdex/Cpu0_lld/ELFLinkingContext.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">uint16_t</span> <span class="n">ELFLinkingContext</span><span class="o">::</span><span class="n">getOutputMachine</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">getTriple</span><span class="p">().</span><span class="n">getArch</span><span class="p">())</span> <span class="p">{</span>
   <span class="p">...</span>
@@ -228,11 +153,11 @@ lbdex/llvm-objdump/* .
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Cpu0_lld_1210/Targets.h</p>
+<p class="rubric">lbdex/Cpu0_lld/Targets.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;Cpu0/Cpu0Target.h&quot;</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Cpu0_lld_1210/Resolver.cpp</p>
+<p class="rubric">lbdex/Cpu0_lld/Resolver.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="kt">bool</span> <span class="n">Resolver</span><span class="o">::</span><span class="n">checkUndefines</span><span class="p">(</span><span class="kt">bool</span> <span class="n">final</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">...</span>
       <span class="k">if</span> <span class="p">(</span><span class="n">_context</span><span class="p">.</span><span class="n">printRemainingUndefines</span><span class="p">())</span> <span class="p">{</span>
@@ -246,7 +171,7 @@ lbdex/llvm-objdump/* .
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/CMakeLists.txt</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">add_lld_library</span><span class="p">(</span><span class="n">lldCpu0ELFTarget</span>
   <span class="n">Cpu0LinkingContext</span><span class="p">.</span><span class="n">cpp</span>
   <span class="n">Cpu0TargetHandler</span><span class="p">.</span><span class="n">cpp</span>
@@ -259,7 +184,7 @@ lbdex/llvm-objdump/* .
   <span class="p">)</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.h</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0LinkingContext.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0LinkingContext.h ---------------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                             The LLVM Linker</span>
@@ -353,7 +278,7 @@ lbdex/llvm-objdump/* .
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.cpp</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0LinkingContext.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0LinkingContext.cpp -------------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                             The LLVM Linker</span>
@@ -517,7 +442,7 @@ lbdex/llvm-objdump/* .
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationHandler.h</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0RelocationHandler.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0RelocationHandler.h</span>
 <span class="c1">//------------------===//</span>
 <span class="c1">//</span>
@@ -562,7 +487,7 @@ lbdex/llvm-objdump/* .
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationHandler.cpp</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0RelocationHandler.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0RelocationHandler.cpp ------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                             The LLVM Linker</span>
@@ -807,7 +732,7 @@ lbdex/llvm-objdump/* .
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.h</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0RelocationPass.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0RelocationPass.h -----------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                             The LLVM Linker</span>
@@ -842,7 +767,7 @@ lbdex/llvm-objdump/* .
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.cpp</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0RelocationPass.cpp</p>
 <div class="highlight-c++"><pre>//===- lib/ReaderWriter/ELF/Cpu0/Cpu0RelocationPass.cpp ---------------===//
 //
 //                             The LLVM Linker
@@ -1326,7 +1251,7 @@ lld::elf::createCpu0RelocationPass(const Cpu0LinkingContext &amp;ctx) {
 }
 </pre>
 </div>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.cpp</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0LinkingContext.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0LinkingContext.cpp -------------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                             The LLVM Linker</span>
@@ -1490,7 +1415,7 @@ lld::elf::createCpu0RelocationPass(const Cpu0LinkingContext &amp;ctx) {
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0Target.h</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0Target.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0Target.h -------------------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                             The LLVM Linker</span>
@@ -1503,7 +1428,7 @@ lld::elf::createCpu0RelocationPass(const Cpu0LinkingContext &amp;ctx) {
 <span class="cp">#include &quot;Cpu0LinkingContext.h&quot;</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0TargetHandler.h</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0TargetHandler.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0TargetHandler.h ------------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                             The LLVM Linker</span>
@@ -1564,7 +1489,7 @@ lld::elf::createCpu0RelocationPass(const Cpu0LinkingContext &amp;ctx) {
 <span class="cp">#endif</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0TargetHandler.cpp</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0TargetHandler.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===- lib/ReaderWriter/ELF/Cpu0/Cpu0TargetHandler.cpp ----------------===//</span>
 <span class="c1">//</span>
 <span class="c1">//                             The LLVM Linker</span>
@@ -2661,7 +2586,7 @@ file into an Atom graph</li>
 <ul>
 <li><p class="first">The base class lld::reader and the elf specific file format reader as follows,</p>
 <p class="rubric">lld/lib/ReaderWriter/Reader.cpp</p>
-<div class="highlight-c++"><pre>~/test/lld/src/tools/lld/lib/ReaderWriter$ cat Reader.cpp
+<div class="highlight-c++"><pre>~/llvm/test/src/tools/lld/lib/ReaderWriter$ cat Reader.cpp
 ...
 #include "lld/ReaderWriter/Reader.h"
 
@@ -2676,7 +2601,7 @@ Reader::~Reader() {
 } // end namespace lld</pre>
 </div>
 <p class="rubric">lld/lib/ReaderWriter/ELF/Reader.cpp</p>
-<div class="highlight-c++"><pre>~/test/lld/src/tools/lld/lib/ReaderWriter/ELF$ cat Reader.cpp
+<div class="highlight-c++"><pre>~/llvm/test/src/tools/lld/lib/ReaderWriter/ELF$ cat Reader.cpp
 namespace lld {
 namespace elf {
 ...
@@ -2840,7 +2765,7 @@ Based on this understanding, we believe the &#8220;applyRelocation()&#8221; is a
 of Generate output file rather than Passes/Optimization even LLD web document
 didn&#8217;t indicate this.</p>
 <p>The following code will register a pass when the lld backend code is up.</p>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.cpp</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0RelocationPass.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Pass</span><span class="o">&gt;</span>
 <span class="n">lld</span><span class="o">::</span><span class="n">elf</span><span class="o">::</span><span class="n">createCpu0RelocationPass</span><span class="p">(</span><span class="k">const</span> <span class="n">Cpu0LinkingContext</span> <span class="o">&amp;</span><span class="n">ctx</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">getOutputELFType</span><span class="p">())</span> <span class="p">{</span>
@@ -2880,7 +2805,7 @@ file from an Atom graph.</p>
 </li>
 <li><p class="first">Writer</p>
 <p class="rubric">lld/lib/ReaderWriter</p>
-<div class="highlight-c++"><pre>~/test/lld/src/tools/lld/lib/ReaderWriter$ cat Writer.cpp
+<div class="highlight-c++"><pre>~/llvm/test/src/tools/lld/lib/ReaderWriter$ cat Writer.cpp
 ...
 #include "lld/Core/File.h"
 #include "lld/ReaderWriter/Writer.h"
@@ -2898,7 +2823,7 @@ bool Writer::createImplicitFiles(std::vector&lt;std::unique_ptr&lt;File&gt; &gt;
 } // end namespace lld</pre>
 </div>
 <p class="rubric">lld/lib/ReaderWriter</p>
-<div class="highlight-c++"><pre>~/test/lld/src/tools/lld/lib/ReaderWriter/ELF$ cat Writer.cpp
+<div class="highlight-c++"><pre>~/llvm/test/src/tools/lld/lib/ReaderWriter/ELF$ cat Writer.cpp
 namespace lld {
 
 std::unique_ptr&lt;Writer&gt; createWriterELF(const ELFLinkingContext &amp;info) {
@@ -2921,7 +2846,7 @@ std::unique_ptr&lt;Writer&gt; createWriterELF(const ELFLinkingContext &amp;info)
 </ul>
 <p>After register a relocation pass, lld backend hook function &#8220;applyRelocation()&#8221;
 will be called by lld driver to finish the address binding in linker stage.</p>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationHandler.cpp</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0RelocationHandler.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">ErrorOr</span><span class="o">&lt;</span><span class="kt">void</span><span class="o">&gt;</span> <span class="n">Cpu0TargetRelocationHandler</span><span class="o">::</span><span class="n">applyRelocation</span><span class="p">(</span>
     <span class="n">ELFWriter</span> <span class="o">&amp;</span><span class="n">writer</span><span class="p">,</span> <span class="n">llvm</span><span class="o">::</span><span class="n">FileOutputBuffer</span> <span class="o">&amp;</span><span class="n">buf</span><span class="p">,</span> <span class="k">const</span> <span class="n">lld</span><span class="o">::</span><span class="n">AtomLayout</span> <span class="o">&amp;</span><span class="n">atom</span><span class="p">,</span>
     <span class="k">const</span> <span class="n">Reference</span> <span class="o">&amp;</span><span class="n">ref</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -3031,7 +2956,7 @@ relative distance between text and plt sections just like the Cpu0 elf2hex.h did
 The .rodata and other data sections are binding with absolute address, Cpu0
 elf2hex must keeps them as the same address of elf.</p>
 <div class="highlight-bash"><div class="highlight"><pre>1-160-136-173:InputFiles Jonathan<span class="nv">$ </span>bash build-hello.sh
-1-160-136-173:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/test/lld/cmake_debug_build/
+1-160-136-173:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llvm-objdump -s a.out
 ...                .
 Contents of section .plt:
@@ -3536,9 +3461,8 @@ below.</p>
 </div>
 <p class="rubric">lbdex/InputFiles/build-printf-stdarg-2.sh</p>
 <div class="highlight-c++"><pre>#!/usr/bin/env bash
-#TOOLDIR=/home/Gamma/test/lld/cmake_debug_build/bin
-#TOOLDIR=/home/cschen/test/lld/cmake_debug_build/bin
-TOOLDIR=~/test/lld/cmake_debug_build/bin/Debug
+TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
+#TOOLDIR=~/test/llvm/cmake_debug_build/bin/Debug
 
 cpu=cpu032I
 
@@ -3679,7 +3603,7 @@ instructions is work fine too by change cpu to cpu032II as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>1-160-136-173:cpu0_verilog Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
 /Users/Jonathan/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
 1-160-136-173:cpu0_verilog Jonathan<span class="nv">$ </span>bash clean.sh
-1-160-136-173:InputFiles Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../InputFiles/
+1-160-136-173:InputFiles Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../InputFil
 1-160-136-173:InputFiles Jonathan<span class="nv">$ </span>bash build-printf-stdarg-2.sh
 ...
 1-160-136-173:InputFiles Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../cpu0_verilog/
@@ -3706,7 +3630,7 @@ it without any problem.</p>
 <p>The Cpu0LinkingContext include the context information for those input obj
 files and output elf file you want to link.
 When do linking, the following code will create Cpu0LinkingContext.</p>
-<p class="rubric">lbdex/Cpu0_lld_1210/ELFLinkingContext.h</p>
+<p class="rubric">lbdex/Cpu0_lld/ELFLinkingContext.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">ELFLinkingContext</span> <span class="o">:</span> <span class="k">public</span> <span class="n">LinkingContext</span> <span class="p">{</span>
 <span class="nl">public:</span>
   <span class="p">...</span>
@@ -3715,7 +3639,7 @@ When do linking, the following code will create Cpu0LinkingContext.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Cpu0_lld_1210/ELFLinkingContext.cpp</p>
+<p class="rubric">lbdex/Cpu0_lld/ELFLinkingContext.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">ELFLinkingContext</span><span class="o">&gt;</span>
 <span class="n">ELFLinkingContext</span><span class="o">::</span><span class="n">create</span><span class="p">(</span><span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span> <span class="n">triple</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">triple</span><span class="p">.</span><span class="n">getArch</span><span class="p">())</span> <span class="p">{</span>
@@ -3732,7 +3656,7 @@ When do linking, the following code will create Cpu0LinkingContext.</p>
 <p>While Cpu0LinkingContext is created by lld ELF driver as above, the following
 code in Cpu0LinkingContext constructor will create Cpu0TargetHandler and passing
 the Cpu0LinkingContext object pointer to Cpu0TargeHandler.</p>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.h</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0LinkingContext.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Cpu0LinkingContext</span> <span class="n">LLVM_FINAL</span> <span class="o">:</span> <span class="k">public</span> <span class="n">ELFLinkingContext</span> <span class="p">{</span>
 <span class="nl">public:</span>
   <span class="n">Cpu0LinkingContext</span><span class="p">(</span><span class="n">llvm</span><span class="o">::</span><span class="n">Triple</span> <span class="n">triple</span><span class="p">)</span>
@@ -3745,7 +3669,7 @@ the Cpu0LinkingContext object pointer to Cpu0TargeHandler.</p>
 <p>Finally, the Cpu0TargeHandler constructor will create other related objects
 and set up the relation reference object pointers as <a class="pageref" href="#lld-f1">Figure  4</a>
 depicted by the following code.</p>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0TargetHandler.cpp</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0TargetHandler.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetHandler</span><span class="o">::</span><span class="n">Cpu0TargetHandler</span><span class="p">(</span><span class="n">Cpu0LinkingContext</span> <span class="o">&amp;</span><span class="n">context</span><span class="p">)</span>
     <span class="o">:</span> <span class="n">DefaultTargetHandler</span><span class="p">(</span><span class="n">context</span><span class="p">),</span> <span class="n">_gotFile</span><span class="p">(</span><span class="k">new</span> <span class="n">GOTFile</span><span class="p">(</span><span class="n">context</span><span class="p">)),</span>
       <span class="n">_relocationHandler</span><span class="p">(</span><span class="n">context</span><span class="p">),</span> <span class="n">_targetLayout</span><span class="p">(</span><span class="n">context</span><span class="p">)</span> <span class="p">{}</span>
@@ -3754,7 +3678,7 @@ depicted by the following code.</p>
 <p>According chapter ELF, the linker stands for resolve the relocation records.
 The following code give the chance to let lld system call our relocation
 function at proper time.</p>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.cpp</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0RelocationPass.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Pass</span><span class="o">&gt;</span>
 <span class="n">lld</span><span class="o">::</span><span class="n">elf</span><span class="o">::</span><span class="n">createCpu0RelocationPass</span><span class="p">(</span><span class="k">const</span> <span class="n">Cpu0LinkingContext</span> <span class="o">&amp;</span><span class="n">ctx</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">ctx</span><span class="p">.</span><span class="n">getOutputELFType</span><span class="p">())</span> <span class="p">{</span>
@@ -3786,7 +3710,7 @@ For static linker, a StaticRelocationPass object is created and return.</p>
 <p>Now the following code of Cpu0TargetRelocationHandler::applyRelocation()
 will be called through
 Cpu0TargetHandler by lld ELF driver when it meets each relocation record.</p>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationHandler.cpp</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0RelocationHandler.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">ErrorOr</span><span class="o">&lt;</span><span class="kt">void</span><span class="o">&gt;</span> <span class="n">Cpu0TargetRelocationHandler</span><span class="o">::</span><span class="n">applyRelocation</span><span class="p">(</span>
     <span class="n">ELFWriter</span> <span class="o">&amp;</span><span class="n">writer</span><span class="p">,</span> <span class="n">llvm</span><span class="o">::</span><span class="n">FileOutputBuffer</span> <span class="o">&amp;</span><span class="n">buf</span><span class="p">,</span> <span class="k">const</span> <span class="n">lld</span><span class="o">::</span><span class="n">AtomLayout</span> <span class="o">&amp;</span><span class="n">atom</span><span class="p">,</span>
     <span class="k">const</span> <span class="n">Reference</span> <span class="o">&amp;</span><span class="n">ref</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
@@ -3806,7 +3730,7 @@ Cpu0TargetHandler by lld ELF driver when it meets each relocation record.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Cpu0_lld_1210/Cpu0/Cpu0TargetHandler.h</p>
+<p class="rubric">lbdex/Cpu0_lld/Cpu0/Cpu0TargetHandler.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Cpu0TargetHandler</span> <span class="n">LLVM_FINAL</span>
     <span class="o">:</span> <span class="k">public</span> <span class="n">DefaultTargetHandler</span><span class="o">&lt;</span><span class="n">Cpu0ELFType</span><span class="o">&gt;</span> <span class="p">{</span>
 <span class="nl">public:</span>
@@ -3828,7 +3752,7 @@ The Cpu0LinkingContext constructor will create it&#8217;s ELFLinkingContext part
 The std::unique_ptr came from c++11 standard.
 The unique_ptr objects automatically delete the object they manage (using a
 deleter) as soon as themselves are destroyed. Just like the Singlelten
-pattern in Design Pattern book or Smart Pointers in Effective C++ book. <a class="footnote-reference" href="#id16" id="id3">[3]</a></p>
+pattern in Design Pattern book or Smart Pointers in Effective C++ book. <a class="footnote-reference" href="#id18" id="id4">[4]</a></p>
 <div class="figure align-center" id="lld-f5">
 <a class="reference internal image-reference" href="_images/54.png"><img alt="_images/54.png" src="_images/54.png" /></a>
 <p class="caption">Figure 7: Cpu0LinkingContext get Cpu0TargetHandler through &amp;getTargetHandler()</p>
@@ -3843,14 +3767,14 @@ contructor function.</p>
 as follows.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>std::unique_ptr::get() <a class="footnote-reference" href="#id17" id="id4">[4]</a></p>
+<p>std::unique_ptr::get() <a class="footnote-reference" href="#id19" id="id5">[5]</a></p>
 <p>pointer get() const noexcept;</p>
 <p class="last">Get pointer
 Returns the stored pointer.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>std::move() <a class="footnote-reference" href="#id18" id="id5">[5]</a></p>
+<p>std::move() <a class="footnote-reference" href="#id20" id="id6">[6]</a></p>
 <dl class="last docutils">
 <dt>for example:</dt>
 <dd><p class="first">std::string bar = &#8220;bar-string&#8221;;
@@ -4431,9 +4355,8 @@ to execute the dynamic linker function on Cpu0 Verilog machine.</p>
 </div>
 <p class="rubric">lbdex/InputFiles/build-dlinker.sh</p>
 <div class="highlight-c++"><pre>#!/usr/bin/env bash
-#TOOLDIR=/home/Gamma/test/lld/cmake_debug_build/bin
-#TOOLDIR=/home/cschen/test/lld/cmake_debug_build/bin
-TOOLDIR=~/test/lld/cmake_debug_build/bin/Debug
+TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
+#TOOLDIR=~/test/llvm/cmake_debug_build/bin/Debug
 
 cpu=cpu032I
 
@@ -4464,8 +4387,8 @@ cpu0_verilog/libso.hex
 ${TOOLDIR}/llvm-objdump -elf2hex -cpu0linkso a.out &gt; ../cpu0_verilog/cpu0.hex
 cp dynstr dynsym so_func_offset global_offset ../cpu0_verilog/.</pre>
 </div>
-<div class="section" id="id6">
-<h3>Run<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id7">
+<h3>Run<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-bash"><div class="highlight"><pre>1-160-136-173:cpu0_verilog Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
 /Users/Jonathan/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
 1-160-136-173:cpu0_verilog Jonathan<span class="nv">$ </span>bash clean.sh
@@ -4582,7 +4505,7 @@ get the same result.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/InputFiles/libfoobar.cpu0.so</p>
-<div class="highlight-bash"><div class="highlight"><pre>1-160-136-173:InputFiles Jonathan<span class="nv">$ </span>~/test/lld/cmake_debug_build/bin/Debug/
+<div class="highlight-bash"><div class="highlight"><pre>1-160-136-173:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/
 llvm-objdump -s libfoobar.cpu0.so
 
 libfoobar.cpu0.so:    file format ELF32-CPU0
@@ -4606,7 +4529,7 @@ Contents of section .dynstr:
 </pre></div>
 </div>
 <p class="rubric">lbdex/InputFiles/a.out</p>
-<div class="highlight-bash"><div class="highlight"><pre>1-160-136-173:InputFiles Jonathan<span class="nv">$ </span>~/test/lld/cmake_debug_build/bin/Debug/
+<div class="highlight-bash"><div class="highlight"><pre>1-160-136-173:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/
 llvm-objdump -s a.out
 
 a.out:        file format ELF32-CPU0
@@ -4785,9 +4708,9 @@ programmers best opportunity to understand the code and enhance/extend the
 code function. But not enough, we believe the documentation is the next most
 important thing to improve the open source code development.
 The Open Source Organization recognized this point before us and set
-Open Source Document Project years ago <a class="footnote-reference" href="#id19" id="id7">[6]</a> <a class="footnote-reference" href="#id20" id="id8">[7]</a> <a class="footnote-reference" href="#id21" id="id9">[8]</a> <a class="footnote-reference" href="#id22" id="id10">[9]</a> <a class="footnote-reference" href="#id23" id="id11">[10]</a>.
+Open Source Document Project years ago <a class="footnote-reference" href="#id21" id="id8">[7]</a> <a class="footnote-reference" href="#id22" id="id9">[8]</a> <a class="footnote-reference" href="#id23" id="id10">[9]</a> <a class="footnote-reference" href="#id24" id="id11">[10]</a> <a class="footnote-reference" href="#id25" id="id12">[11]</a>.
 Open Source grows up and becomes a giant software infrastructure with the forces
-of company <a class="footnote-reference" href="#id24" id="id12">[11]</a>  <a class="footnote-reference" href="#id25" id="id13">[12]</a>, school research team and countless talent engineers passion.
+of company <a class="footnote-reference" href="#id26" id="id13">[12]</a>  <a class="footnote-reference" href="#id27" id="id14">[13]</a>, school research team and countless talent engineers passion.
 It terminated the situation of everyone trying to re-invent wheels during 10
 years ago.
 Extend your software from the re-usable source code is the right way.
@@ -4809,76 +4732,82 @@ like the llvm development team. Appendix A tell you how to install sphinx tool.
 Documentation work will help yourself to re-examine your software and make your
 program better in structure, reliability and more important &#8220;Extend your code
 to somewhere you didn&#8217;t expect&#8221;.</p>
-<table class="docutils footnote" frame="void" id="id14" rules="none">
+<table class="docutils footnote" frame="void" id="id15" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://lld.llvm.org/">http://lld.llvm.org/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id15" rules="none">
+<table class="docutils footnote" frame="void" id="id16" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://lld.llvm.org/getting_started.html#on-unix-like-systems">http://lld.llvm.org/getting_started.html#on-unix-like-systems</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id16" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/">http://www.cplusplus.com/reference/memory/unique_ptr/</a></td></tr>
-</tbody>
-</table>
 <table class="docutils footnote" frame="void" id="id17" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/get/">http://www.cplusplus.com/reference/memory/unique_ptr/get/</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://llvm.org/releases/download.html#3.4">http://llvm.org/releases/download.html#3.4</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id18" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/utility/move/">http://www.cplusplus.com/reference/utility/move/</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/">http://www.cplusplus.com/reference/memory/unique_ptr/</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id19" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id7">[6]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/BSD_Documentation_License">http://en.wikipedia.org/wiki/BSD_Documentation_License</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/get/">http://www.cplusplus.com/reference/memory/unique_ptr/get/</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id20" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id8">[7]</a></td><td><a class="reference external" href="http://www.freebsd.org/docproj/">http://www.freebsd.org/docproj/</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id6">[6]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/utility/move/">http://www.cplusplus.com/reference/utility/move/</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id21" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id9">[8]</a></td><td><a class="reference external" href="http://www.freebsd.org/copyright/freebsd-doc-license.html">http://www.freebsd.org/copyright/freebsd-doc-license.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id8">[7]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/BSD_Documentation_License">http://en.wikipedia.org/wiki/BSD_Documentation_License</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id22" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id10">[9]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/GNU_Free_Documentation_License">http://en.wikipedia.org/wiki/GNU_Free_Documentation_License</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id9">[8]</a></td><td><a class="reference external" href="http://www.freebsd.org/docproj/">http://www.freebsd.org/docproj/</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id23" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id11">[10]</a></td><td><a class="reference external" href="http://www.gnu.org/copyleft/fdl.html">http://www.gnu.org/copyleft/fdl.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id10">[9]</a></td><td><a class="reference external" href="http://www.freebsd.org/copyright/freebsd-doc-license.html">http://www.freebsd.org/copyright/freebsd-doc-license.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id24" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id12">[11]</a></td><td><a class="reference external" href="http://www.apple.com/opensource/">http://www.apple.com/opensource/</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id11">[10]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/GNU_Free_Documentation_License">http://en.wikipedia.org/wiki/GNU_Free_Documentation_License</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id25" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id13">[12]</a></td><td><a class="reference external" href="https://www.ibm.com/developerworks/opensource/">https://www.ibm.com/developerworks/opensource/</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id12">[11]</a></td><td><a class="reference external" href="http://www.gnu.org/copyleft/fdl.html">http://www.gnu.org/copyleft/fdl.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id26" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id13">[12]</a></td><td><a class="reference external" href="http://www.apple.com/opensource/">http://www.apple.com/opensource/</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id27" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id14">[13]</a></td><td><a class="reference external" href="https://www.ibm.com/developerworks/opensource/">https://www.ibm.com/developerworks/opensource/</a></td></tr>
 </tbody>
 </table>
 </div>

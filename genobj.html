@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.3.14',
+        VERSION:     '3.4.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -144,9 +144,9 @@ The big endian (B0, B1, B2, B3) = (09, dd, ff, c8), objdump from B0 to B3 as
 0x09ddffc8 and the little endian is (B3, B2, B1, B0) = (09, dd, ff, c8),
 objdump from B0 to B3 as 0xc8ffdd09.</p>
 </div>
-<div class="section" id="backend-target-registration-structure">
-<h2>Backend Target Registration Structure<a class="headerlink" href="#backend-target-registration-structure" title="Permalink to this headline">¶</a></h2>
-<p>To support elf obj generated, the following code changed  and added to
+<div class="section" id="elf-obj-related-code">
+<h2>ELF obj related code<a class="headerlink" href="#elf-obj-related-code" title="Permalink to this headline">¶</a></h2>
+<p>To support elf obj generated, the following code changed and added to
 Chapter5_1.</p>
 <p class="rubric">lbdex/Chapter5_1/MCTargetDesc/CMakeLists.txt</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">add_llvm_library</span><span class="p">(</span><span class="n">LLVMCpu0Desc</span>
@@ -1016,6 +1016,59 @@ Chapter5_1.</p>
 <span class="p">}</span> <span class="c1">// End llvm namespace</span>
 </pre></div>
 </div>
+<p>The applyFixup() of Cpu0AsmBackend.cpp will fix up the <strong>jeq</strong>, <strong>jub</strong>, ...
+instruction address in control flow statement or function call statement.
+Although they are not used in here, part of code are added in here of Chapter5_1.</p>
+<p>When emit elf obj format instruction, the EncodeInstruction() of
+Cpu0MCCodeEmitter.cpp will be called since it override the same name of
+function in parent class MCCodeEmitter.
+The getMemEncoding() of Cpu0MCCodeEmitter.cpp will be called when generate Cpu0
+<strong>ld</strong> or <strong>st</strong> instructions since the following code defined in
+Cpu0InstrInfo.td.</p>
+<div class="highlight-c++"><pre>// Address operand
+def mem : Operand&lt;i32&gt; {
+  let PrintMethod = "printMemOperand";
+  let MIOperandInfo = (ops CPURegs, simm16);
+  let EncoderMethod = "getMemEncoding";
+}
+...
+// Memory Load/Store
+let canFoldAsLoad = 1 in
+class LoadM&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode, RegisterClass RC,
+            Operand MemOpnd, bit Pseudo&gt;:
+  FMem&lt;op, (outs RC:$ra), (ins MemOpnd:$addr),
+     !strconcat(instr_asm, "\t$ra, $addr"),
+     [(set RC:$ra, (OpNode addr:$addr))], IILoad&gt; {
+  let isPseudo = Pseudo;
+}
+
+class StoreM&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode, RegisterClass RC,
+             Operand MemOpnd, bit Pseudo&gt;:
+  FMem&lt;op, (outs), (ins RC:$ra, MemOpnd:$addr),
+     !strconcat(instr_asm, "\t$ra, $addr"),
+     [(OpNode RC:$ra, addr:$addr)], IIStore&gt; {
+  let isPseudo = Pseudo;
+}
+
+// 32-bit load.
+multiclass LoadM32&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode,
+                   bit Pseudo = 0&gt; {
+  def #NAME# : LoadM&lt;op, instr_asm, OpNode, CPURegs, mem, Pseudo&gt;;
+}
+
+// 32-bit store.
+multiclass StoreM32&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode,
+                    bit Pseudo = 0&gt; {
+  def #NAME# : StoreM&lt;op, instr_asm, OpNode, CPURegs, mem, Pseudo&gt;;
+}</pre>
+</div>
+<p>The &#8220;let EncoderMethod = &#8220;getMemEncoding&#8221;;&#8221; in Cpu0InstrInfo.td as above will
+make the getMemEncoding() is called when Cpu0 <strong>ld</strong> or <strong>st</strong> instructions
+are issued in elf obj since these two instructions use <strong>mem</strong> Operand.</p>
+<p>The other functions in Cpu0MCCodeEmitter.cpp are called by these two functions.</p>
+</div>
+<div class="section" id="backend-target-registration-structure">
+<h2>Backend Target Registration Structure<a class="headerlink" href="#backend-target-registration-structure" title="Permalink to this headline">¶</a></h2>
 <p>Now, let&#8217;s examine Cpu0MCTargetDesc.cpp.
 Cpu0MCTargetDesc.cpp do the target registration as mentioned in
 &#8220;section Target Registration&#8221; <a class="footnote-reference" href="#id2" id="id1">[1]</a> of the last chapter.
@@ -1061,6 +1114,8 @@ Drawing the register function and those class it registered in
 <a class="reference internal image-reference" href="_images/101.png"><img alt="_images/101.png" src="_images/101.png" style="width: 783.0px; height: 596.0px;" /></a>
 <p class="caption">Figure 10: MCELFStreamer inherit tree</p>
 </div>
+<p><a class="pageref" href="#genobj-f1">Figure  1</a> to <a class="pageref" href="#genobj-f4">Figure  4</a> have been defined
+before in Chapter4_2/ for assembly file generated support.</p>
 <p>In <a class="pageref" href="#genobj-f1">Figure  1</a>, registering the object of class Cpu0AsmInfo for
 target TheCpu0Target and TheCpu0elTarget.
 TheCpu0Target is for big endian and TheCpu0elTarget is for little endian.
@@ -1108,7 +1163,7 @@ Cpu0.td information.
 <a class="pageref" href="#genobj-f9">Figure  9</a>, instancing Cpu0InstPrinter to take care printing
 function for instructions.
 Like <a class="pageref" href="#genobj-f1">Figure  1</a> to <a class="pageref" href="#genobj-f4">Figure  4</a>, it has been defined
-in Chapter4_2/ code for assembly file generated support.</p>
+before in Chapter4_2/ code for assembly file generated support.</p>
 <table class="docutils footnote" frame="void" id="id2" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
