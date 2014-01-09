@@ -30,8 +30,11 @@ clang as shown in Appendex A.
 
 .. code-block:: bash
 
-  1-160-136-173:src Jonathan$ pwd
-  /Users/Jonathan/test/lld/src
+  1-160-136-173:tools Jonathan$ pwd
+  /Users/Jonathan/llvm/test/lld/src/tools
+  1-160-136-173:tools Jonathan$ ls
+  ...
+  lld              llvm-config      llvm-extract    llvm-nm           llvm-stress   obj2yaml
 
 Next, copy lld Cpu0 architecture ELF support as follows,
 
