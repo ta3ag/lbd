@@ -24,96 +24,14 @@ Install lld
 LLD project is underdevelopment and can be compiled only with c++11 standard (C++
 2011 year announced standard). For iMac, our software is OS X version 10.9.1 and 
 Xcode version 5.0.2. For old iMac software version, you can install VM (such as 
-Virtual Box) and build lld as Linux platform. The latest version that 
-we porting lld Cpu0 at 2013/12/10, so please checkout branch release_34(llvm) and
-commit id 5d1737ac704352357fd28cfe3b2daf9aa308fb86(lld) which commited at 
-2013/12/10 as follows,
-
-.. code-block:: bash
-
-  1-160-136-173:test Jonathan$ mkdir lld
-  1-160-136-173:test Jonathan$ cd lld
-  1-160-136-173:test Jonathan$ git clone http://llvm.org/git/llvm.git src
-  Cloning into 'src'...
-  remote: Counting objects: 780029, done.
-  remote: Compressing objects: 100% (153947/153947), done.
-  remote: Total 780029 (delta 637206), reused 764781 (delta 622170)
-  Receiving objects: 100% (780029/780029), 125.74 MiB | 243 KiB/s, done.
-  Resolving deltas: 100% (637206/637206), done.
-  1-160-136-173:src Jonathan$ cd src/
-
-  1-160-136-173:src Jonathan$ git checkout release_34
-  ...
-  1-160-136-173:src Jonathan$ git branch
-    master
-  * release_34
-
-  1-160-136-173:src Jonathan$ cd tools/
-  1-160-136-173:tools Jonathan$ git clone http://llvm.org/git/lld.git lld
-  ...
-  Resolving deltas: 100% (6422/6422), done.
-  1-160-136-173:tools Jonathan$ cd lld/
-  1-160-136-173:tools Jonathan$ git checkout e5581693ee8a9b071031df0da868fbc8c180a8e6
-  Note: checking out 'e5581693ee8a9b071031df0da868fbc8c180a8e6'.
-
-  You are in 'detached HEAD' state. You can look around, make experimental
-  changes and commit them, and you can discard any commits you make in this
-  state without impacting any branches by performing another checkout.
-
-  If you want to create a new branch to retain commits you create, you may
-  do so (now or later) by using -b with the checkout command again. Example:
-
-    git checkout -b new_branch_name
-
-  HEAD is now at 014d684... [PECOFF] Handle "--" option explicitly
-
-
-Next, update llvm 2013/12/10 source code to support Cpu0 as follows,
+Virtual Box) and build lld as Linux platform. Please download lld from llvm web 
+and put lld souce code on {llvm-src}/tools/lld like we download llvm and clang 
+as shown in Appendex A.
 
 .. code-block:: bash
 
   1-160-136-173:src Jonathan$ pwd
   /Users/Jonathan/test/lld/src
-  1-160-136-173:src Jonathan$ cp -rf ~/test/lbd/docs/BackendTutorial/
-  lbdex/3.4_src_files_modify/modify/src/* .
-  1-160-136-173:src Jonathan$ grep -R "cpu0" include/
-  include/llvm/ADT/Triple.h:#undef cpu0
-  include/llvm/ADT/Triple.h:    cpu0,    // For Tutorial Backend Cpu0
-  include/llvm/ADT/Triple.h:    cpu0el,
-  include/llvm/Object/ELFObjectFile.h:           Triple::cpu0el : Triple::cpu0;
-  include/llvm/Support/ELF.h:  EF_CPU0_ARCH_32R2 = 0x70000000, // cpu032r2
-  include/llvm/Support/ELF.h:  EF_CPU0_ARCH_64R2 = 0x80000000, // cpu064r2
-  1-160-136-173:src Jonathan$ cd lib/Target/
-  1-160-136-173:src Jonathan$ ls
-  AArch64         MSP430                   TargetJITInfo.cpp
-  ARM             NVPTX                    TargetLibraryInfo.cpp
-  CMakeLists.txt  PowerPC                  TargetLoweringObjectFile.cpp
-  CppBackend      R600                     TargetMachineC.cpp
-  Hexagon         README.txt               TargetMachine.cpp
-  LLVMBuild.txt   Sparc                    TargetSubtargetInfo.cpp
-  Makefile        SystemZ                  X86
-  Mangler.cpp     Target.cpp               XCore
-  Mips            TargetIntrinsicInfo.cpp
-  1-160-136-173:Target Jonathan$ mkdir Cpu0
-  1-160-136-173:Target Jonathan$ cd Cpu0/
-  1-160-136-173:Cpu0 Jonathan$ cp -rf ~/test/lbd/docs/BackendTutorial/
-  lbdex/3.4_Chapter12_2/* . 
-  1-160-136-173:Cpu0 Jonathan$ ls
-  AsmParser                 Cpu0InstrInfo.h           Cpu0SelectionDAGInfo.h
-  CMakeLists.txt            Cpu0InstrInfo.td          Cpu0Subtarget.cpp
-  Cpu0AnalyzeImmediate.cpp  Cpu0ISelDAGToDAG.cpp      Cpu0Subtarget.h
-  Cpu0AnalyzeImmediate.h    Cpu0ISelLowering.cpp      Cpu0TargetMachine.cpp
-  Cpu0AsmPrinter.cpp        Cpu0ISelLowering.h        Cpu0TargetMachine.h
-  Cpu0AsmPrinter.h          Cpu0MachineFunction.cpp   Cpu0TargetObjectFile.cpp
-  Cpu0CallingConv.td        Cpu0MachineFunction.h     Cpu0TargetObjectFile.h
-  Cpu0DelUselessJMP.cpp     Cpu0MCInstLower.cpp       Cpu0.td
-  Cpu0EmitGPRestore.cpp     Cpu0MCInstLower.h         Disassembler
-  Cpu0FrameLowering.cpp     Cpu0RegisterInfo.cpp      InstPrinter
-  Cpu0FrameLowering.h       Cpu0RegisterInfo.h        LLVMBuild.txt
-  Cpu0.h                    Cpu0RegisterInfo.td       MCTargetDesc
-  Cpu0InstrFormats.td       Cpu0Schedule.td           TargetInfo
-  Cpu0InstrInfo.cpp         Cpu0SelectionDAGInfo.cpp
-
 
 Next, copy lld Cpu0 architecture ELF support as follows,
 
@@ -123,15 +41,15 @@ Next, copy lld Cpu0 architecture ELF support as follows,
   1-160-136-173:ELF Jonathan$ pwd
   /Users/Jonathan/test/lld/src/tools/lld/lib/ReaderWriter/ELF
   1-160-136-173:ELF Jonathan$ cp -rf ~/test/lbd/docs/BackendTutorial/
-  lbdex/Cpu0_lld_1210/Cpu0 .
+  lbdex/Cpu0_lld/Cpu0 .
   1-160-136-173:ELF Jonathan$ cp -f ~/test/lbd/docs/BackendTutorial/
-  lbdex/Cpu0_lld_1210/CMakeLists.txt .
+  lbdex/Cpu0_lld/CMakeLists.txt .
   1-160-136-173:ELF Jonathan$ cp -f ~/test/lbd/docs/BackendTutorial/
-  lbdex/Cpu0_lld_1210/ELFLinkingContext.cpp .
+  lbdex/Cpu0_lld/ELFLinkingContext.cpp .
   1-160-136-173:ELF Jonathan$ cp -f ~/test/lbd/docs/BackendTutorial/
-  lbdex/Cpu0_lld_1210/Targets.h .
+  lbdex/Cpu0_lld/Targets.h .
   1-160-136-173:ELF Jonathan$ cp -f ~/test/lbd/docs/BackendTutorial/
-  lbdex/Cpu0_lld_1210/Resolver.cpp ../../Core/.
+  lbdex/Cpu0_lld/Resolver.cpp ../../Core/.
 
 
 Finally, update llvm-objdump to support convert ELF file to Hex file as follows,
@@ -183,7 +101,7 @@ Cpu0 lld souce code
 The code added on lld to support Cpu0 ELF as follows,
 
 
-.. rubric:: lbdex/Cpu0_lld_1210/CMakeLists.txt
+.. rubric:: lbdex/Cpu0_lld/CMakeLists.txt
 .. code-block:: c++
 
   target_link_libraries(lldELF
@@ -192,7 +110,7 @@ The code added on lld to support Cpu0 ELF as follows,
     )
 
 
-.. rubric:: lbdex/Cpu0_lld_1210/ELFLinkingContext.cpp
+.. rubric:: lbdex/Cpu0_lld/ELFLinkingContext.cpp
 .. code-block:: c++
 
   uint16_t ELFLinkingContext::getOutputMachine() const {
@@ -204,12 +122,12 @@ The code added on lld to support Cpu0 ELF as follows,
     }
   }
 
-.. rubric:: lbdex/Cpu0_lld_1210/Targets.h
+.. rubric:: lbdex/Cpu0_lld/Targets.h
 .. code-block:: c++
 
   #include "Cpu0/Cpu0Target.h"
 
-.. rubric:: lbdex/Cpu0_lld_1210/Resolver.cpp
+.. rubric:: lbdex/Cpu0_lld/Resolver.cpp
 .. code-block:: c++
 
   bool Resolver::checkUndefines(bool final) {
@@ -224,38 +142,38 @@ The code added on lld to support Cpu0 ELF as follows,
     ...
   }
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/CMakeLists.txt
-.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/CMakeLists.txt
+.. rubric:: lbdex/Cpu0_lld/Cpu0/CMakeLists.txt
+.. literalinclude:: ../lbdex/Cpu0_lld/Cpu0/CMakeLists.txt
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.h
-.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.h
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0LinkingContext.h
+.. literalinclude:: ../lbdex/Cpu0_lld/Cpu0/Cpu0LinkingContext.h
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.cpp
-.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.cpp
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0LinkingContext.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld/Cpu0/Cpu0LinkingContext.cpp
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationHandler.h
-.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationHandler.h
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0RelocationHandler.h
+.. literalinclude:: ../lbdex/Cpu0_lld/Cpu0/Cpu0RelocationHandler.h
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationHandler.cpp
-.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationHandler.cpp
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0RelocationHandler.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld/Cpu0/Cpu0RelocationHandler.cpp
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.h
-.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.h
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0RelocationPass.h
+.. literalinclude:: ../lbdex/Cpu0_lld/Cpu0/Cpu0RelocationPass.h
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.cpp
-.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.cpp
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0RelocationPass.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld/Cpu0/Cpu0RelocationPass.cpp
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.cpp
-.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.cpp
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0LinkingContext.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld/Cpu0/Cpu0LinkingContext.cpp
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0Target.h
-.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0Target.h
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0Target.h
+.. literalinclude:: ../lbdex/Cpu0_lld/Cpu0/Cpu0Target.h
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0TargetHandler.h
-.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0TargetHandler.h
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0TargetHandler.h
+.. literalinclude:: ../lbdex/Cpu0_lld/Cpu0/Cpu0TargetHandler.h
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0TargetHandler.cpp
-.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0TargetHandler.cpp
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0TargetHandler.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld/Cpu0/Cpu0TargetHandler.cpp
 
 
 Above code in Cpu0 lld support both the static and dynamic link. 
@@ -632,8 +550,8 @@ didn't indicate this.
 
 The following code will register a pass when the lld backend code is up. 
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.cpp
-.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.cpp
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0RelocationPass.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld/Cpu0/Cpu0RelocationPass.cpp
     :start-after: } // end anon namespace
 
 
@@ -696,7 +614,7 @@ Generate Output File
 After register a relocation pass, lld backend hook function "applyRelocation()" 
 will be called by lld driver to finish the address binding in linker stage.
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationHandler.cpp
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0RelocationHandler.cpp
 .. code-block:: c++
 
   ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
@@ -1005,7 +923,7 @@ instructions is work fine too by change cpu to cpu032II as follows,
   1-160-136-173:cpu0_verilog Jonathan$ pwd
   /Users/Jonathan/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
   1-160-136-173:cpu0_verilog Jonathan$ bash clean.sh
-  1-160-136-173:InputFiles Jonathan$ cd ../InputFiles/
+  1-160-136-173:InputFiles Jonathan$ cd ../InputFil
   1-160-136-173:InputFiles Jonathan$ bash build-printf-stdarg-2.sh
   ...
   1-160-136-173:InputFiles Jonathan$ cd ../cpu0_verilog/
@@ -1040,7 +958,7 @@ The Cpu0LinkingContext include the context information for those input obj
 files and output elf file you want to link.
 When do linking, the following code will create Cpu0LinkingContext.
 
-.. rubric:: lbdex/Cpu0_lld_1210/ELFLinkingContext.h
+.. rubric:: lbdex/Cpu0_lld/ELFLinkingContext.h
 .. code-block:: c++
 
   class ELFLinkingContext : public LinkingContext {
@@ -1050,7 +968,7 @@ When do linking, the following code will create Cpu0LinkingContext.
     ...
   }
 
-.. rubric:: lbdex/Cpu0_lld_1210/ELFLinkingContext.cpp
+.. rubric:: lbdex/Cpu0_lld/ELFLinkingContext.cpp
 .. code-block:: c++
 
   std::unique_ptr<ELFLinkingContext>
@@ -1069,7 +987,7 @@ While Cpu0LinkingContext is created by lld ELF driver as above, the following
 code in Cpu0LinkingContext constructor will create Cpu0TargetHandler and passing
 the Cpu0LinkingContext object pointer to Cpu0TargeHandler.
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0LinkingContext.h
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0LinkingContext.h
 .. code-block:: c++
 
   class Cpu0LinkingContext LLVM_FINAL : public ELFLinkingContext {
@@ -1084,7 +1002,7 @@ Finally, the Cpu0TargeHandler constructor will create other related objects
 and set up the relation reference object pointers as :num:`Figure #lld-f1`
 depicted by the following code.
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0TargetHandler.cpp
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0TargetHandler.cpp
 .. code-block:: c++
 
   Cpu0TargetHandler::Cpu0TargetHandler(Cpu0LinkingContext &context)
@@ -1096,8 +1014,8 @@ According chapter ELF, the linker stands for resolve the relocation records.
 The following code give the chance to let lld system call our relocation 
 function at proper time.
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.cpp
-.. literalinclude:: ../lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationPass.cpp
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0RelocationPass.cpp
+.. literalinclude:: ../lbdex/Cpu0_lld/Cpu0/Cpu0RelocationPass.cpp
     :start-after: } // end anon namespace
 
 The "#ifdef DLINKER" part is for dynamic linker which will be used in next 
@@ -1108,7 +1026,7 @@ Now the following code of Cpu0TargetRelocationHandler::applyRelocation()
 will be called through 
 Cpu0TargetHandler by lld ELF driver when it meets each relocation record.
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0RelocationHandler.cpp
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0RelocationHandler.cpp
 .. code-block:: c++
 
   ErrorOr<void> Cpu0TargetRelocationHandler::applyRelocation(
@@ -1129,7 +1047,7 @@ Cpu0TargetHandler by lld ELF driver when it meets each relocation record.
     return error_code::success();
   }
 
-.. rubric:: lbdex/Cpu0_lld_1210/Cpu0/Cpu0TargetHandler.h
+.. rubric:: lbdex/Cpu0_lld/Cpu0/Cpu0TargetHandler.h
 .. code-block:: c++
 
   class Cpu0TargetHandler LLVM_FINAL

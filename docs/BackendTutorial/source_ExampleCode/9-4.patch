@@ -1,6 +1,6 @@
 diff -Naur Chapter9_3/Cpu0CallingConv.td Chapter9_4/Cpu0CallingConv.td
---- Chapter9_3/Cpu0CallingConv.td	2013-11-17 22:39:45.000000000 +0800
-+++ Chapter9_4/Cpu0CallingConv.td	2013-11-17 22:39:45.000000000 +0800
+--- Chapter9_3/Cpu0CallingConv.td	2013-12-27 15:52:01.289977132 +0800
++++ Chapter9_4/Cpu0CallingConv.td	2013-12-27 15:52:01.312977131 +0800
 @@ -14,8 +14,8 @@
    CCIf<!strconcat("State.getTarget().getSubtarget<Cpu0Subtarget>().", F), A>;
  
@@ -13,8 +13,8 @@ diff -Naur Chapter9_3/Cpu0CallingConv.td Chapter9_4/Cpu0CallingConv.td
  
  //===----------------------------------------------------------------------===//
 diff -Naur Chapter9_3/Cpu0FrameLowering.cpp Chapter9_4/Cpu0FrameLowering.cpp
---- Chapter9_3/Cpu0FrameLowering.cpp	2013-11-17 22:39:45.000000000 +0800
-+++ Chapter9_4/Cpu0FrameLowering.cpp	2013-11-17 22:39:45.000000000 +0800
+--- Chapter9_3/Cpu0FrameLowering.cpp	2013-12-27 15:52:01.276977133 +0800
++++ Chapter9_4/Cpu0FrameLowering.cpp	2013-12-27 15:52:01.306977131 +0800
 @@ -133,6 +133,10 @@
    DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
    unsigned SP = Cpu0::SP;
@@ -26,7 +26,7 @@ diff -Naur Chapter9_3/Cpu0FrameLowering.cpp Chapter9_4/Cpu0FrameLowering.cpp
    unsigned ADDiu = Cpu0::ADDiu;
    // First, compute final stack size.
    unsigned StackAlign = getStackAlignment();
-@@ -197,12 +201,26 @@
+@@ -195,12 +199,25 @@
      }
    }
    
@@ -39,9 +39,8 @@ diff -Naur Chapter9_3/Cpu0FrameLowering.cpp Chapter9_4/Cpu0FrameLowering.cpp
 +    MCSymbol *SetFPLabel = MMI.getContext().CreateTempSymbol();
 +    BuildMI(MBB, MBBI, dl,
 +            TII.get(TargetOpcode::PROLOG_LABEL)).addSym(SetFPLabel);
-+    DstML = MachineLocation(FP);
-+    SrcML = MachineLocation(MachineLocation::VirtualFP);
-+    Moves.push_back(MachineMove(SetFPLabel, DstML, SrcML));
++    MMI.addFrameInst(MCCFIInstruction::createDefCfaRegister(
++        SetFPLabel, MRI->getDwarfRegNum(FP, true)));
 +  }
 +
    // Restore GP from the saved stack location
@@ -54,7 +53,7 @@ diff -Naur Chapter9_3/Cpu0FrameLowering.cpp Chapter9_4/Cpu0FrameLowering.cpp
  }
  
  void Cpu0FrameLowering::emitEpilogue(MachineFunction &MF,
-@@ -215,8 +233,24 @@
+@@ -213,8 +230,24 @@
    DebugLoc dl = MBBI->getDebugLoc();
    unsigned SP = Cpu0::SP;
   // lbd document - mark - emitEpilogue() Cpu0::SP
@@ -79,7 +78,7 @@ diff -Naur Chapter9_3/Cpu0FrameLowering.cpp Chapter9_4/Cpu0FrameLowering.cpp
    // Get the number of bytes from FrameInfo
    uint64_t StackSize = MFI->getStackSize();
  
-@@ -232,6 +266,37 @@
+@@ -230,6 +263,37 @@
    }
  }
  
@@ -117,7 +116,7 @@ diff -Naur Chapter9_3/Cpu0FrameLowering.cpp Chapter9_4/Cpu0FrameLowering.cpp
  // This function eliminate ADJCALLSTACKDOWN,
  // ADJCALLSTACKUP pseudo instructions
  void Cpu0FrameLowering::
-@@ -267,6 +332,12 @@
+@@ -265,6 +329,12 @@
  processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
                                       RegScavenger *RS) const {
    MachineRegisterInfo& MRI = MF.getRegInfo();
@@ -131,8 +130,8 @@ diff -Naur Chapter9_3/Cpu0FrameLowering.cpp Chapter9_4/Cpu0FrameLowering.cpp
    // FIXME: remove this code if register allocator can correctly mark
    //        $fp and $ra used or unused.
 diff -Naur Chapter9_3/Cpu0FrameLowering.h Chapter9_4/Cpu0FrameLowering.h
---- Chapter9_3/Cpu0FrameLowering.h	2013-11-17 22:39:45.000000000 +0800
-+++ Chapter9_4/Cpu0FrameLowering.h	2013-11-17 22:39:45.000000000 +0800
+--- Chapter9_3/Cpu0FrameLowering.h	2013-12-27 15:52:01.290977132 +0800
++++ Chapter9_4/Cpu0FrameLowering.h	2013-12-27 15:52:01.313977131 +0800
 @@ -38,6 +38,10 @@
    void eliminateCallFramePseudoInstr(MachineFunction &MF,
                                       MachineBasicBlock &MBB,
@@ -145,8 +144,8 @@ diff -Naur Chapter9_3/Cpu0FrameLowering.h Chapter9_4/Cpu0FrameLowering.h
                                              RegScavenger *RS) const;
  };
 diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
---- Chapter9_3/Cpu0ISelLowering.cpp	2013-11-17 22:39:45.000000000 +0800
-+++ Chapter9_4/Cpu0ISelLowering.cpp	2013-11-17 22:39:45.000000000 +0800
+--- Chapter9_3/Cpu0ISelLowering.cpp	2013-12-27 15:52:01.272977133 +0800
++++ Chapter9_4/Cpu0ISelLowering.cpp	2013-12-27 15:52:01.304977132 +0800
 @@ -141,6 +141,7 @@
    // Cpu0 Custom Operations
    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
@@ -213,14 +212,14 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
 +  MachineFunction &MF = DAG.getMachineFunction();
 +  Cpu0FunctionInfo *FuncInfo = MF.getInfo<Cpu0FunctionInfo>();
 +
-+  DebugLoc dl = Op.getDebugLoc();
++  SDLoc DL = SDLoc(Op);
 +  SDValue FI = DAG.getFrameIndex(FuncInfo->getVarArgsFrameIndex(),
 +                                 getPointerTy());
 +
 +  // vastart just stores the address of the VarArgsFrameIndex slot into the
 +  // memory location argument.
 +  const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
-+  return DAG.getStore(Op.getOperand(0), dl, FI, Op.getOperand(1),
++  return DAG.getStore(Op.getOperand(0), DL, FI, Op.getOperand(1),
 +                      MachinePointerInfo(SV), false, false, 0);
 +}
 +
@@ -238,7 +237,7 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
 +
 +// Write ByVal Arg to arg registers and stack.
 +static void
-+WriteByValArg(SDValue& ByValChain, SDValue Chain, DebugLoc dl,
++WriteByValArg(SDValue& ByValChain, SDValue Chain, SDLoc DL,
 +              SmallVector<std::pair<unsigned, SDValue>, 16>& RegsToPass,
 +              SmallVector<SDValue, 8>& MemOpChains, int& LastFI,
 +              MachineFrameInfo *MFI, SelectionDAG &DAG, SDValue Arg,
@@ -254,11 +253,11 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
 +
 +  // Create a fixed object on stack at offset LocMemOffset and copy
 +  // remaining part of byval arg to it using memcpy.
-+  SDValue Src = DAG.getNode(ISD::ADD, dl, MVT::i32, Arg,
++  SDValue Src = DAG.getNode(ISD::ADD, DL, MVT::i32, Arg,
 +                            DAG.getConstant(Offset, MVT::i32));
 +  LastFI = MFI->CreateFixedObject(RemainingSize, LocMemOffset, true);
 +  SDValue Dst = DAG.getFrameIndex(LastFI, PtrType);
-+  ByValChain = DAG.getMemcpy(ByValChain, dl, Dst, Src,
++  ByValChain = DAG.getMemcpy(ByValChain, DL, Dst, Src,
 +                             DAG.getConstant(RemainingSize, MVT::i32),
 +                             std::min(ByValAlign, (unsigned)4),
 +                             /*isVolatile=*/false, /*AlwaysInline=*/false,
@@ -272,7 +271,7 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
        assert("!!!Error!!!, Flags.isByVal()==true");
        assert(Flags.getByValSize() &&
               "ByVal args of size 0 should have been ignored by front-end.");
-+      WriteByValArg(ByValChain, Chain, dl, RegsToPass, MemOpChains, LastFI,
++      WriteByValArg(ByValChain, Chain, DL, RegsToPass, MemOpChains, LastFI,
 +                    MFI, DAG, Arg, VA, Flags, getPointerTy(),
 +                    Subtarget->isLittle());
        continue;
@@ -285,7 +284,7 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
 +//===----------------------------------------------------------------------===//
 +//             Formal Arguments Calling Convention Implementation
 +//===----------------------------------------------------------------------===//
-+static void ReadByValArg(MachineFunction &MF, SDValue Chain, DebugLoc dl,
++static void ReadByValArg(MachineFunction &MF, SDValue Chain, SDLoc DL,
 +                         std::vector<SDValue>& OutChains,
 +                         SelectionDAG &DAG, unsigned NumWords, SDValue FIN,
 +                         const CCValAssign &VA, const ISD::ArgFlagsTy& Flags,
@@ -301,9 +300,9 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
 +
 +    unsigned SrcReg = IntRegs[CurWord];
 +    unsigned Reg = AddLiveIn(MF, SrcReg, &Cpu0::CPURegsRegClass);
-+    SDValue StorePtr = DAG.getNode(ISD::ADD, dl, MVT::i32, FIN,
++    SDValue StorePtr = DAG.getNode(ISD::ADD, DL, MVT::i32, FIN,
 +                                   DAG.getConstant(i * 4, MVT::i32));
-+    SDValue Store = DAG.getStore(Chain, dl, DAG.getRegister(Reg, MVT::i32),
++    SDValue Store = DAG.getStore(Chain, DL, DAG.getRegister(Reg, MVT::i32),
 +                                 StorePtr, MachinePointerInfo(FuncArg, i * 4),
 +                                 false, false, 0);
 +    OutChains.push_back(Store);
@@ -313,7 +312,7 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
  /// LowerFormalArguments - transform physical registers into virtual registers
  /// and generate load operations for arguments places on the stack.
  SDValue
-@@ -580,8 +688,16 @@
+@@ -579,8 +687,16 @@
      if (Flags.isByVal()) {
        assert(Flags.getByValSize() &&
               "ByVal args of size 0 should have been ignored by front-end."); 
@@ -322,7 +321,7 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
 +                                      true);
 +      SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
 +      InVals.push_back(FIN);
-+      ReadByValArg(MF, Chain, dl, OutChains, DAG, NumWords, FIN, VA, Flags,
++      ReadByValArg(MF, Chain, DL, OutChains, DAG, NumWords, FIN, VA, Flags,
 +                   &*FuncArg);
        continue;
      }
@@ -330,7 +329,7 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
      // sanity check
      assert(VA.isMemLoc());
  
-@@ -595,6 +711,38 @@
+@@ -594,6 +710,37 @@
                                   MachinePointerInfo::getFixedStack(LastFI),
                                   false, false, false, 0));
    }
@@ -345,13 +344,12 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
 +      Reg = MF.getRegInfo().createVirtualRegister(getRegClassFor(MVT::i32));
 +      Cpu0FI->setSRetReturnReg(Reg);
 +    }
-+    SDValue Copy = DAG.getCopyToReg(DAG.getEntryNode(), dl, Reg, InVals[0]);
-+    Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other, Copy, Chain);
++    SDValue Copy = DAG.getCopyToReg(DAG.getEntryNode(), DL, Reg, InVals[0]);
++    Chain = DAG.getNode(ISD::TokenFactor, DL, MVT::Other, Copy, Chain);
 +  }
 +#endif
 +
 +  if (isVarArg) {
-+    unsigned NumOfRegs = 0;
 +    int FirstRegSlotOffset = 0; // offset of $a0's slot.
 +    unsigned RegSize = Cpu0::CPURegsRegClass.getSize();
 +    int RegSlotOffset = FirstRegSlotOffset + ArgLocs.size() * RegSize;
@@ -369,7 +367,7 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
    Cpu0FI->setLastInArgFI(LastFI);
    // All stores are grouped in one node to allow the matching between
    // the size of Ins and InVals. This only happens when on varg functions
-@@ -642,7 +790,27 @@
+@@ -641,7 +788,27 @@
      Flag = Chain.getValue(1);
      RetOps.push_back(DAG.getRegister(VA.getLocReg(), VA.getLocVT()));
    }
@@ -387,9 +385,9 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
 +
 +    if (!Reg)
 +      llvm_unreachable("sret virtual register not created in the entry block");
-+    SDValue Val = DAG.getCopyFromReg(Chain, dl, Reg, getPointerTy());
++    SDValue Val = DAG.getCopyFromReg(Chain, DL, Reg, getPointerTy());
 +
-+    Chain = DAG.getCopyToReg(Chain, dl, Cpu0::V0, Val, Flag);
++    Chain = DAG.getCopyToReg(Chain, DL, Cpu0::V0, Val, Flag);
 +    Flag = Chain.getValue(1);
 +    RetOps.push_back(DAG.getRegister(Cpu0::V0, getPointerTy()));
 +  }
@@ -399,8 +397,8 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
  
    // Add the flag if we have it.
 diff -Naur Chapter9_3/Cpu0ISelLowering.h Chapter9_4/Cpu0ISelLowering.h
---- Chapter9_3/Cpu0ISelLowering.h	2013-11-17 22:39:45.000000000 +0800
-+++ Chapter9_4/Cpu0ISelLowering.h	2013-11-17 22:39:45.000000000 +0800
+--- Chapter9_3/Cpu0ISelLowering.h	2013-12-27 15:52:01.276977133 +0800
++++ Chapter9_4/Cpu0ISelLowering.h	2013-12-27 15:52:01.312977131 +0800
 @@ -96,6 +96,7 @@
      // Lower Operand specifics
      SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
@@ -410,8 +408,8 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.h Chapter9_4/Cpu0ISelLowering.h
  	//- must be exist without function all
      virtual SDValue
 diff -Naur Chapter9_3/Cpu0RegisterInfo.cpp Chapter9_4/Cpu0RegisterInfo.cpp
---- Chapter9_3/Cpu0RegisterInfo.cpp	2013-11-17 22:39:45.000000000 +0800
-+++ Chapter9_4/Cpu0RegisterInfo.cpp	2013-11-17 22:39:45.000000000 +0800
+--- Chapter9_3/Cpu0RegisterInfo.cpp	2013-12-27 15:52:01.290977132 +0800
++++ Chapter9_4/Cpu0RegisterInfo.cpp	2013-12-27 15:52:01.313977131 +0800
 @@ -77,6 +77,11 @@
    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
      Reserved.set(ReservedCPURegs[I]);

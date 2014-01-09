@@ -52,9 +52,12 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.3.15, Not release yet.
+Version 3.4.1, Not release yet.
 
-Version 3.3.14, Released January 4 , 2014
+Version 3.4.0, Released January 9, 2014
+  Porting to llvm 3.4 release.
+
+Version 3.3.14, Released January 4, 2014
   lld support on iMac.
   Correct typing.
 

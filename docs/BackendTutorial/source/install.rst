@@ -5,12 +5,12 @@ Appendix A: Getting Started: Installing LLVM and the Cpu0 example code
 
 This book is in the process of merging into llvm trunk but not finished 
 yet. 
-The merged llvm trunk version on my git hub is LLVM 3.3 released.
-The Cpu0 example code based on llvm 3.3.
+The merged llvm trunk version on my git hub is LLVM 3.4 released.
+The Cpu0 example code based on llvm 3.4.
 
 In this chapter, we will run through how to set up LLVM using if you are using 
 Mac OS X or Linux.  When discussing Mac OS X, we are using Apple's Xcode IDE 
-(version 4.5.1) running on Mac OS X Mountain Lion (version 10.8) to modify and 
+(version 5.0.2) running on Mac OS X Mavericks (version 10.9.1) to modify and 
 build LLVM from source, and we will be debugging using lldb.  
 We cannot debug our LLVM builds within Xcode at the 
 moment, but if you have experience with this, please contact us and help us 
@@ -45,26 +45,26 @@ Installing LLVM, Xcode and cmake
 
 .. todo:: Fix centering for figure captions.
 
-Please download LLVM latest release version 3.3 (llvm, clang, compiler-rf) from 
+Please download LLVM latest release version 3.4 (llvm, clang, compiler-rf) from 
 the "LLVM Download Page" [#]_. Then extract them using 
-``tar -zxvf {llvm-3.3.src.tar, clang-3.3.src.tar, compiler-rt-3.3.src.tar}``,
+``tar -zxvf {llvm-3.4.src.tar, clang-3.4.src.tar, compiler-rt-3.4.src.tar}``,
 and change the llvm source code root directory into src. 
 After that, move the clang source code to src/tools/clang, and move the 
 compiler-rt source to src/project/compiler-rt as shown as follows,
 
 .. code-block:: bash
 
-  118-165-78-111:Downloads Jonathan$ tar -zxvf clang-3.3.src.tar.gz 
-  118-165-78-111:Downloads Jonathan$ tar -zxvf compiler-rt-3.3.src.tar.gz 
-  118-165-78-111:Downloads Jonathan$ tar -zxvf llvm-3.3.src.tar.gz 
-  118-165-78-111:Downloads Jonathan$ mv llvm-3.3.src src
-  118-165-78-111:Downloads Jonathan$ mv clang-3.3.src src/tools/clang
-  118-165-78-111:Downloads Jonathan$ mv compiler-rt-3.3.src src/projects/compiler-rt
+  118-165-78-111:Downloads Jonathan$ tar -zxvf clang-3.4.src.tar.gz 
+  118-165-78-111:Downloads Jonathan$ tar -zxvf compiler-rt-3.4.src.tar.gz 
+  118-165-78-111:Downloads Jonathan$ tar -zxvf llvm-3.4.src.tar.gz 
+  118-165-78-111:Downloads Jonathan$ mv llvm-3.4.src src
+  118-165-78-111:Downloads Jonathan$ mv clang-3.4.src src/tools/clang
+  118-165-78-111:Downloads Jonathan$ mv compiler-rt-3.4.src src/projects/compiler-rt
   118-165-78-111:Downloads Jonathan$ pwd
   /Users/Jonathan/Downloads
   118-165-78-111:Downloads Jonathan$ ls
-  clang-3.3.src.tar.gz        llvm-3.3.src.tar.gz
-  compiler-rt-3.3.src.tar.gz  src
+  clang-3.4.src.tar.gz        llvm-3.4.src.tar.gz
+  compiler-rt-3.4.src.tar.gz  src
   118-165-78-111:Downloads Jonathan$ ls src/tools/
   CMakeLists.txt  clang       llvm-as         llvm-dis        llvm-mcmarkup 
   llvm-readobj    llvm-stub   LLVMBuild.txt   gold            llvm-bcanalyzer 
@@ -245,9 +245,9 @@ LLVM.xcodeproj by cmake graphic UI.
 We can create LLVM.xcodeproj by ``cmake`` command on terminal also. 
 This book is on the process of merging into llvm trunk but not finished 
 yet.
-The merged llvm trunk version on lbd git hub is LLVM 3.3 released version.
-The lbd of Cpu0 example code is also based on llvm 3.3.
-So, please install the llvm 3.3 debug version as the llvm release 3.3 
+The merged llvm trunk version on lbd git hub is LLVM 3.4 released version.
+The lbd of Cpu0 example code is also based on llvm 3.4.
+So, please install the llvm 3.4 debug version as the llvm release 3.4 
 installation, but without clang since the clang will waste time in build the
 Cpu0 backend tutorial code.
 Steps as follows,
@@ -260,9 +260,9 @@ The details of installing Cpu0 backend example code as follows,
   118-165-78-111:llvm Jonathan$ cd test
   118-165-78-111:test Jonathan$ pwd
   /Users/Jonathan/llvm/test
-  118-165-78-111:test Jonathan$ cp /Users/Jonathan/Downloads/llvm-3.3.src.tar.gz .
-  118-165-78-111:test Jonathan$ tar -zxvf llvm-3.3.src.tar.gz 
-  118-165-78-111:test Jonathan$ mv llvm-3.3.src src
+  118-165-78-111:test Jonathan$ cp /Users/Jonathan/Downloads/llvm-3.4.src.tar.gz .
+  118-165-78-111:test Jonathan$ tar -zxvf llvm-3.4.src.tar.gz 
+  118-165-78-111:test Jonathan$ mv llvm-3.4.src src
   118-165-78-111:test Jonathan$ cp /Users/Jonathan/Downloads/
   lbdex.tar.gz .
   118-165-78-111:test Jonathan$ tar -zxvf lbdex.tar.gz
@@ -550,7 +550,7 @@ Install binutils by command ``brew install binutils`` as follows,
 Setting Up Your Linux Machine
 -----------------------------
 
-Install LLVM 3.3 release build on Linux
+Install LLVM 3.4 release build on Linux
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 First, install the llvm release build by,
@@ -574,19 +574,9 @@ _EXAMPLES=ON -DLLVM_BUILD_EXAMPLES=ON -G "Unix Makefiles" ../src/``, as follows.
   -- The C compiler identification is GNU 4.7.0
   ...
   -- Constructing LLVMBuild project information
-  -- Targeting ARM
-  -- Targeting CellSPU
-  -- Targeting CppBackend
-  -- Targeting Hexagon
-  -- Targeting Mips
-  -- Targeting MBlaze
-  -- Targeting MSP430
-  -- Targeting PowerPC
-  -- Targeting PTX
-  -- Targeting Sparc
-  -- Targeting X86
+  ...
   -- Targeting XCore
-  -- Clang version: 3.3
+  -- Clang version: 3.4
   -- Found Subversion: /usr/bin/svn (found version "1.7.6") 
   -- Configuring done
   -- Generating done
@@ -630,9 +620,9 @@ Install cpu0 debug build on Linux
 
 This book is on the process of merging into llvm trunk but not finished 
 yet.
-The merged llvm trunk version on lbd git hub is LLVM 3.3 released version.
-The Cpu0 example code is also based on llvm 3.3.
-So, please install the llvm 3.3 debug version as the llvm release 3.3 
+The merged llvm trunk version on lbd git hub is LLVM 3.4 released version.
+The Cpu0 example code is also based on llvm 3.4.
+So, please install the llvm 3.4 debug version as the llvm release 3.4 
 installation, but without clang since the clang will waste time in build the
 Cpu0 backend tutorial code.
 Steps as follows,
@@ -641,7 +631,7 @@ The details of installing Cpu0 backend example code according the following
 list steps, and the corresponding commands shown as below,
 
 1) Enter /usr/local/llvm/test/ and 
-   get Cpu0 example code as well as the llvm 3.3.
+   get Cpu0 example code as well as the llvm 3.4.
 
 2) Make dir Cpu0 in src/lib/Target and download example code.
 
@@ -667,9 +657,9 @@ list steps, and the corresponding commands shown as below,
   [Gamma@localhost llvm]$ cd test
   [Gamma@localhost test]$ pwd
   /usr/local/llvm/test
-  [Gamma@localhost test]$ cp /home/Gamma/Downloads/llvm-3.3.src.tar.gz .
-  [Gamma@localhost test]$ tar -zxvf llvm-3.3.src.tar.gz 
-  [Gamma@localhost test]$ mv llvm-3.3.src src
+  [Gamma@localhost test]$ cp /home/Gamma/Downloads/llvm-3.4.src.tar.gz .
+  [Gamma@localhost test]$ tar -zxvf llvm-3.4.src.tar.gz 
+  [Gamma@localhost test]$ mv llvm-3.4.src src
   [Gamma@localhost test]$ cp /Users/Jonathan/Downloads/
   lbdex.tar.gz .
   [Gamma@localhost test]$ tar -zxvf lbdex.tar.gz
@@ -712,8 +702,8 @@ as follows,
   [Gamma@localhost cmake_debug_build]$ cmake 
   -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang
   -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ../src/
-  -- The C compiler identification is Clang 3.3.0
-  -- The CXX compiler identification is Clang 3.3.0
+  -- The C compiler identification is Clang 3.4.0
+  -- The CXX compiler identification is Clang 3.4.0
   -- Check for working C compiler: /usr/local/llvm/release/cmake_release_build/bin/
   clang
   -- Check for working C compiler: /usr/local/llvm/release/cmake_release_build/bin/
@@ -931,7 +921,7 @@ Run as follows for single test case and the whole test cases on Linux.
 
 .. [#] http://llvm.org/docs/CMake.html?highlight=cmake
 
-.. [#] http://llvm.org/releases/download.html#3.3
+.. [#] http://llvm.org/releases/download.html#3.4
 
 .. [#] http://www.cmake.org/cmake/resources/software.html
 

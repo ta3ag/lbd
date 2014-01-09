@@ -1,6 +1,6 @@
 diff -Naur Chapter4_2/MCTargetDesc/CMakeLists.txt Chapter5_1/MCTargetDesc/CMakeLists.txt
---- Chapter4_2/MCTargetDesc/CMakeLists.txt	2013-11-17 16:58:21.380353961 +0800
-+++ Chapter5_1/MCTargetDesc/CMakeLists.txt	2013-11-17 16:58:21.408353962 +0800
+--- Chapter4_2/MCTargetDesc/CMakeLists.txt	2013-12-27 15:52:01.032977142 +0800
++++ Chapter5_1/MCTargetDesc/CMakeLists.txt	2013-12-27 15:52:01.070977141 +0800
 @@ -1,7 +1,10 @@
  # MCTargetDesc/CMakeLists.txt
  add_llvm_library(LLVMCpu0Desc
@@ -14,8 +14,8 @@ diff -Naur Chapter4_2/MCTargetDesc/CMakeLists.txt Chapter5_1/MCTargetDesc/CMakeL
  add_dependencies(LLVMCpu0Desc Cpu0CommonTableGen)
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0AsmBackend.cpp Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp
 --- Chapter4_2/MCTargetDesc/Cpu0AsmBackend.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-11-17 16:58:21.407353962 +0800
-@@ -0,0 +1,208 @@
++++ Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp	2013-12-27 15:52:01.070977141 +0800
+@@ -0,0 +1,212 @@
 +//===-- Cpu0ASMBackend.cpp - Cpu0 Asm Backend  ----------------------------===//
 +//
 +//                     The LLVM Compiler Infrastructure
@@ -212,21 +212,25 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0AsmBackend.cpp Chapter5_1/MCTargetDesc/Cp
 +} // namespace
 +
 +// MCAsmBackend
-+MCAsmBackend *llvm::createCpu0AsmBackendEL32(const Target &T, StringRef TT,
++MCAsmBackend *llvm::createCpu0AsmBackendEL32(const Target &T,
++                                             const MCRegisterInfo &MRI,
++                                             StringRef TT,
 +                                             StringRef CPU) {
 +  return new Cpu0AsmBackend(T, Triple(TT).getOS(),
 +                            /*IsLittle*/true);
 +}
 +
-+MCAsmBackend *llvm::createCpu0AsmBackendEB32(const Target &T, StringRef TT,
++MCAsmBackend *llvm::createCpu0AsmBackendEB32(const Target &T,
++                                             const MCRegisterInfo &MRI,
++                                             StringRef TT,
 +                                             StringRef CPU) {
 +  return new Cpu0AsmBackend(T, Triple(TT).getOS(),
 +                            /*IsLittle*/false);
 +}
 +
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h
---- Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h	2013-11-17 16:58:21.380353961 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h	2013-11-17 16:58:21.407353962 +0800
+--- Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h	2013-12-27 15:52:01.047977142 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h	2013-12-27 15:52:01.070977141 +0800
 @@ -14,6 +14,7 @@
  #ifndef CPU0BASEINFO_H
  #define CPU0BASEINFO_H
@@ -333,7 +337,7 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h Chapter5_1/MCTargetDesc/Cpu0Ba
  #endif
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
 --- Chapter4_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-11-17 16:58:21.408353962 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2013-12-27 15:52:01.070977141 +0800
 @@ -0,0 +1,226 @@
 +//===-- Cpu0ELFObjectWriter.cpp - Cpu0 ELF Writer -------------------------===//
 +//
@@ -563,7 +567,7 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter5_1/MCTargetDe
 +}
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0FixupKinds.h Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h
 --- Chapter4_2/MCTargetDesc/Cpu0FixupKinds.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h	2013-11-17 16:58:21.407353962 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h	2013-12-27 15:52:01.070977141 +0800
 @@ -0,0 +1,65 @@
 +//===-- Cpu0FixupKinds.h - Cpu0 Specific Fixup Entries ----------*- C++ -*-===//
 +//
@@ -632,7 +636,7 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0FixupKinds.h Chapter5_1/MCTargetDesc/Cpu0
 +#endif // LLVM_CPU0_CPU0FIXUPKINDS_H
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 --- Chapter4_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-11-17 16:58:21.407353962 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2013-12-27 15:52:01.070977141 +0800
 @@ -0,0 +1,176 @@
 +//===-- Cpu0MCCodeEmitter.cpp - Convert Cpu0 Code to Machine Code ---------===//
 +//
@@ -811,27 +815,36 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter5_1/MCTargetDesc
 +#include "Cpu0GenMCCodeEmitter.inc"
 +
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
---- Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-17 16:58:21.380353961 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-11-17 16:58:21.407353962 +0800
-@@ -115,6 +115,17 @@
+--- Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-12-27 15:52:01.047977142 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp	2013-12-27 15:52:01.070977141 +0800
+@@ -120,6 +120,26 @@
    return new Cpu0InstPrinter(MAI, MII, MRI);
  } // lbd document - mark - createCpu0MCInstPrinter
  
 +static MCStreamer *createMCStreamer(const Target &T, StringRef TT,
-+                                    MCContext &Ctx, MCAsmBackend &MAB,
-+                                    raw_ostream &_OS,
-+                                    MCCodeEmitter *_Emitter,
-+                                    bool RelaxAll,
-+                                    bool NoExecStack) {
-+  Triple TheTriple(TT);
++                                    MCContext &Context, MCAsmBackend &MAB,
++                                    raw_ostream &OS, MCCodeEmitter *Emitter,
++                                    bool RelaxAll, bool NoExecStack) {
++  MCTargetStreamer *S = new MCTargetStreamer();
++  return createELFStreamer(Context, S, MAB, OS, Emitter, RelaxAll, NoExecStack);
++}
 +
-+  return createELFStreamer(Ctx, MAB, _OS, _Emitter, RelaxAll, NoExecStack);
++static MCStreamer *
++createMCAsmStreamer(MCContext &Ctx, formatted_raw_ostream &OS,
++                    bool isVerboseAsm, bool useLoc, bool useCFI,
++                    bool useDwarfDirectory, MCInstPrinter *InstPrint,
++                    MCCodeEmitter *CE, MCAsmBackend *TAB, bool ShowInst) {
++  MCTargetStreamer *S = new MCTargetStreamer();
++
++  return llvm::createAsmStreamer(Ctx, S, OS, isVerboseAsm, useLoc, useCFI,
++                                 useDwarfDirectory, InstPrint, CE, TAB,
++                                 ShowInst);
 +} // lbd document - mark - createMCStreamer
 +
  extern "C" void LLVMInitializeCpu0TargetMC() {
    // Register the MC asm info.
    RegisterMCAsmInfoFn X(TheCpu0Target, createCpu0MCAsmInfo);
-@@ -133,6 +144,21 @@
+@@ -138,6 +158,25 @@
    TargetRegistry::RegisterMCRegInfo(TheCpu0Target, createCpu0MCRegisterInfo);
    TargetRegistry::RegisterMCRegInfo(TheCpu0elTarget, createCpu0MCRegisterInfo);
  
@@ -845,6 +858,10 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp Chapter5_1/MCTargetDesc/
 +  TargetRegistry::RegisterMCObjectStreamer(TheCpu0Target, createMCStreamer);
 +  TargetRegistry::RegisterMCObjectStreamer(TheCpu0elTarget, createMCStreamer);
 +
++  // Register the asm streamer.
++  TargetRegistry::RegisterAsmStreamer(TheCpu0Target, createMCAsmStreamer);
++  TargetRegistry::RegisterAsmStreamer(TheCpu0elTarget, createMCAsmStreamer);
++
 +  // Register the asm backend.
 +  TargetRegistry::RegisterMCAsmBackend(TheCpu0Target,
 +                                       createCpu0AsmBackendEB32);
@@ -854,8 +871,8 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp Chapter5_1/MCTargetDesc/
    TargetRegistry::RegisterMCSubtargetInfo(TheCpu0Target,
                                            createCpu0MCSubtargetInfo);
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.h Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h
---- Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.h	2013-11-17 16:58:21.380353961 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h	2013-11-17 16:58:21.407353962 +0800
+--- Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.h	2013-12-27 15:52:01.047977142 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h	2013-12-27 15:52:01.070977141 +0800
 @@ -22,6 +22,7 @@
  class MCContext;
  class MCInstrInfo;
@@ -868,6 +885,10 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.h Chapter5_1/MCTargetDesc/Cp
  extern Target TheCpu0Target;
  extern Target TheCpu0elTarget;
  
+-MCAsmBackend *createCpu0AsmBackendEB32(const Target &T, StringRef TT,
+-                                       StringRef CPU);
+-MCAsmBackend *createCpu0AsmBackendEL32(const Target &T, StringRef TT,
+-                                       StringRef CPU);
 +MCCodeEmitter *createCpu0MCCodeEmitterEB(const MCInstrInfo &MCII,
 +                                         const MCRegisterInfo &MRI,
 +                                         const MCSubtargetInfo &STI,
@@ -878,10 +899,10 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.h Chapter5_1/MCTargetDesc/Cp
 +                                         MCContext &Ctx);
 +// lbd document - mark - createCpu0MCCodeEmitterEL
 +
- MCAsmBackend *createCpu0AsmBackendEB32(const Target &T, StringRef TT,
-                                        StringRef CPU);
- MCAsmBackend *createCpu0AsmBackendEL32(const Target &T, StringRef TT,
-                                        StringRef CPU);
++MCAsmBackend *createCpu0AsmBackendEB32(const Target &T, const MCRegisterInfo &MRI,
++                                       StringRef TT, StringRef CPU);
++MCAsmBackend *createCpu0AsmBackendEL32(const Target &T, const MCRegisterInfo &MRI,
++                                       StringRef TT, StringRef CPU);
  // lbd document - mark - createCpu0AsmBackendEL32
 +
 +MCObjectWriter *createCpu0ELFObjectWriter(raw_ostream &OS,
