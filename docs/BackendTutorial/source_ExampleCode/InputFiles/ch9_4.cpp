@@ -1,8 +1,14 @@
-// clang -target mips-unknown-linux-gnu -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/usr/include/ -c ch9_4.cpp -emit-llvm -o ch9_4.bc
+// Don't use -target mips-unknown-linux-gnu option in clang since my PC is 64 bits computer.
+
+// clang -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/include/ -c ch9_4.cpp -emit-llvm -o ch9_4.bc
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_4.bc -o -
 
+// clang -c ch9_4.cpp -emit-llvm -o ch9_4.bc
+// /usr/local/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=pic -filetype=asm ch9_4.bc -o -
+
 /// start
-#include <alloca.h>
+//#include <alloca.h>
+#include <stdlib.h>
 
 int sum(int x1, int x2, int x3, int x4, int x5, int x6)
 {

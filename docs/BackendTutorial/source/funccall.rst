@@ -2933,9 +2933,9 @@ Run Chapter9_4 with ch9_4.cpp will get the following correct result.
 
 .. code-block:: bash
 
-  118-165-72-242:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -I/
-  Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/
-  SDKs/MacOSX10.8.sdk/usr/include/ -c ch9_4.cpp -emit-llvm -o ch9_4.bc
+  118-165-72-242:InputFiles Jonathan$ clang -I/Applications/Xcode.app/Contents/
+  Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/include/ 
+  -c ch9_4.cpp -emit-llvm -o ch9_4.bc
   118-165-72-242:InputFiles Jonathan$ llvm-dis ch9_4.bc -o ch9_4.ll
   118-165-72-242:InputFiles Jonathan$ cat ch9_4.ll
   ; ModuleID = 'ch9_4.bc'

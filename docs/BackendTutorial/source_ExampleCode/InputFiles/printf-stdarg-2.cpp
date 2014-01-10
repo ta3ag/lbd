@@ -7,6 +7,7 @@
 
 extern "C" int printf(const char *format, ...);
 extern "C" int sprintf(char *out, const char *format, ...);
+extern int test_alloc();
 
 #include "ch6_1.cpp"
 #include "ch9_2_1.cpp"
@@ -24,6 +25,8 @@ int main(void)
 
   int a = 0;
 
+  a = test_alloc();  // 31
+  printf("test_alloc() = %d\n", a);
   a = test_global();  // gI = 100
   printf("global variable gI = %d\n", a);
   a = test_func_arg_struct();
