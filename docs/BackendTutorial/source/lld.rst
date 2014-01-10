@@ -857,6 +857,7 @@ code as follows,
   WARNING: cpu0.v:365: $readmemh(cpu0s.hex): Not enough words in the file for 
   the requested range [0:524287].
   taskInterrupt(001)
+  test_alloc() = 31
   global variable gI = 100
   date1 = 2012 10 12 1 2 3
   date2 = 2012 10 12 1 2 3

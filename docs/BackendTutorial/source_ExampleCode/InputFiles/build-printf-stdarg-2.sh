@@ -2,8 +2,8 @@
 #TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
 TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
 
-INC_PATH= -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/include/
 #INCPATH= 
+INC_PATH= -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/include/
 
 cpu=cpu032I
 
