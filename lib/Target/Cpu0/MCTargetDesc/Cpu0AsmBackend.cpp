@@ -200,13 +200,17 @@ public:
 } // namespace
 
 // MCAsmBackend
-MCAsmBackend *llvm::createCpu0AsmBackendEL32(const Target &T, StringRef TT,
+MCAsmBackend *llvm::createCpu0AsmBackendEL32(const Target &T,
+                                             const MCRegisterInfo &MRI,
+                                             StringRef TT,
                                              StringRef CPU) {
   return new Cpu0AsmBackend(T, Triple(TT).getOS(),
                             /*IsLittle*/true);
 }
 
-MCAsmBackend *llvm::createCpu0AsmBackendEB32(const Target &T, StringRef TT,
+MCAsmBackend *llvm::createCpu0AsmBackendEB32(const Target &T,
+                                             const MCRegisterInfo &MRI,
+                                             StringRef TT,
                                              StringRef CPU) {
   return new Cpu0AsmBackend(T, Triple(TT).getOS(),
                             /*IsLittle*/false);

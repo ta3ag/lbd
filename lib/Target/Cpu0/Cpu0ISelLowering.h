@@ -90,7 +90,7 @@ namespace llvm {
     SDValue LowerCallResult(SDValue Chain, SDValue InFlag,
                             CallingConv::ID CallConv, bool isVarArg,
                             const SmallVectorImpl<ISD::InputArg> &Ins,
-                            DebugLoc dl, SelectionDAG &DAG,
+                            SDLoc DL, SelectionDAG &DAG,
                             SmallVectorImpl<SDValue> &InVals) const;
 
     // Lower Operand specifics
@@ -103,7 +103,7 @@ namespace llvm {
       LowerFormalArguments(SDValue Chain,
                            CallingConv::ID CallConv, bool isVarArg,
                            const SmallVectorImpl<ISD::InputArg> &Ins,
-                           DebugLoc dl, SelectionDAG &DAG,
+                           SDLoc DL, SelectionDAG &DAG,
                            SmallVectorImpl<SDValue> &InVals) const;
   // LowerFormalArguments: incoming arguments
 
@@ -118,7 +118,7 @@ namespace llvm {
                   CallingConv::ID CallConv, bool isVarArg,
                   const SmallVectorImpl<ISD::OutputArg> &Outs,
                   const SmallVectorImpl<SDValue> &OutVals,
-                  DebugLoc dl, SelectionDAG &DAG) const;
+                  SDLoc DL, SelectionDAG &DAG) const;
 
     virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
   };

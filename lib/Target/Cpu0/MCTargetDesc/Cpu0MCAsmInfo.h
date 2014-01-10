@@ -23,7 +23,7 @@ namespace llvm {
   class Cpu0MCAsmInfo : public MCAsmInfo {
     virtual void anchor();
   public:
-    explicit Cpu0MCAsmInfo(const Target &T, StringRef TT);
+    explicit Cpu0MCAsmInfo(StringRef TT);
   };
 
 } // namespace llvm

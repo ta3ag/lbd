@@ -18,7 +18,7 @@ using namespace llvm;
 
 void Cpu0MCAsmInfo::anchor() { }
 
-Cpu0MCAsmInfo::Cpu0MCAsmInfo(const Target &T, StringRef TT) {
+Cpu0MCAsmInfo::Cpu0MCAsmInfo(StringRef TT) {
   Triple TheTriple(TT);
   if ((TheTriple.getArch() == Triple::cpu0))
     IsLittleEndian = false;

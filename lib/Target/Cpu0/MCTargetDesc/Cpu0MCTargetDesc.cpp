@@ -16,11 +16,16 @@
 #include "InstPrinter/Cpu0InstPrinter.h"
 #include "llvm/MC/MachineLocation.h"
 #include "llvm/MC/MCCodeGenInfo.h"
+#include "llvm/MC/MCELF.h"
+#include "llvm/MC/MCELFStreamer.h"
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/MC/MCSubtargetInfo.h"
+#include "llvm/MC/MCSymbol.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/FormattedStream.h"
 #include "llvm/Support/TargetRegistry.h"
 
 #define GET_INSTRINFO_MC_DESC
@@ -86,12 +91,12 @@ static MCSubtargetInfo *createCpu0MCSubtargetInfo(StringRef TT, StringRef CPU,
   return X;
 }
 
-static MCAsmInfo *createCpu0MCAsmInfo(const Target &T, StringRef TT) {
-  MCAsmInfo *MAI = new Cpu0MCAsmInfo(T, TT);
+static MCAsmInfo *createCpu0MCAsmInfo(const MCRegisterInfo &MRI, StringRef TT) {
+  MCAsmInfo *MAI = new Cpu0MCAsmInfo(TT);
 
-  MachineLocation Dst(MachineLocation::VirtualFP);
-  MachineLocation Src(Cpu0::SP, 0);
-  MAI->addInitialFrameState(0, Dst, Src);
+  unsigned SP = MRI.getDwarfRegNum(Cpu0::SP, true);
+  MCCFIInstruction Inst = MCCFIInstruction::createDefCfa(0, SP, 0);
+  MAI->addInitialFrameState(Inst);
 
   return MAI;
 }
@@ -118,14 +123,23 @@ static MCInstPrinter *createCpu0MCInstPrinter(const Target &T,
 } // lbd document - mark - createCpu0MCInstPrinter
 
 static MCStreamer *createMCStreamer(const Target &T, StringRef TT,
-                                    MCContext &Ctx, MCAsmBackend &MAB,
-                                    raw_ostream &_OS,
-                                    MCCodeEmitter *_Emitter,
-                                    bool RelaxAll,
-                                    bool NoExecStack) {
-  Triple TheTriple(TT);
+                                    MCContext &Context, MCAsmBackend &MAB,
+                                    raw_ostream &OS, MCCodeEmitter *Emitter,
+                                    bool RelaxAll, bool NoExecStack) {
+  MCTargetStreamer *S = new MCTargetStreamer();
+  return createELFStreamer(Context, S, MAB, OS, Emitter, RelaxAll, NoExecStack);
+}
 
-  return createELFStreamer(Ctx, MAB, _OS, _Emitter, RelaxAll, NoExecStack);
+static MCStreamer *
+createMCAsmStreamer(MCContext &Ctx, formatted_raw_ostream &OS,
+                    bool isVerboseAsm, bool useLoc, bool useCFI,
+                    bool useDwarfDirectory, MCInstPrinter *InstPrint,
+                    MCCodeEmitter *CE, MCAsmBackend *TAB, bool ShowInst) {
+  MCTargetStreamer *S = new MCTargetStreamer();
+
+  return llvm::createAsmStreamer(Ctx, S, OS, isVerboseAsm, useLoc, useCFI,
+                                 useDwarfDirectory, InstPrint, CE, TAB,
+                                 ShowInst);
 } // lbd document - mark - createMCStreamer
 
 extern "C" void LLVMInitializeCpu0TargetMC() {
@@ -155,6 +169,10 @@ extern "C" void LLVMInitializeCpu0TargetMC() {
   // Register the object streamer.
   TargetRegistry::RegisterMCObjectStreamer(TheCpu0Target, createMCStreamer);
   TargetRegistry::RegisterMCObjectStreamer(TheCpu0elTarget, createMCStreamer);
+
+  // Register the asm streamer.
+  TargetRegistry::RegisterAsmStreamer(TheCpu0Target, createMCAsmStreamer);
+  TargetRegistry::RegisterAsmStreamer(TheCpu0elTarget, createMCAsmStreamer);
 
   // Register the asm backend.
   TargetRegistry::RegisterMCAsmBackend(TheCpu0Target,

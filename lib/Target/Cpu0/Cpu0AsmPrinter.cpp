@@ -225,7 +225,7 @@ void Cpu0AsmPrinter::EmitFunctionEntryLabel() {
 /// EmitFunctionBodyStart - Targets can override this to emit stuff before
 /// the first basic block in the function.
 void Cpu0AsmPrinter::EmitFunctionBodyStart() {
-  MCInstLowering.Initialize(Mang, &MF->getContext());
+  MCInstLowering.Initialize(&MF->getContext());
 
   emitFrameDirective();
   bool EmitCPLoad = (MF->getTarget().getRelocationModel() == Reloc::PIC_) &&

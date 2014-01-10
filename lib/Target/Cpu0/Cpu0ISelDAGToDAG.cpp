@@ -85,7 +85,7 @@ private:
 
   SDNode *getGlobalBaseReg();
 
-  std::pair<SDNode*, SDNode*> SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl,
+  std::pair<SDNode*, SDNode*> SelectMULT(SDNode *N, unsigned Opc, SDLoc DL,
                                          EVT Ty, bool HasLo, bool HasHi);
 
   SDNode *Select(SDNode *N);
@@ -109,7 +109,7 @@ bool Cpu0DAGToDAGISel::runOnMachineFunction(MachineFunction &MF) {
 /// GOT address into a register.
 SDNode *Cpu0DAGToDAGISel::getGlobalBaseReg() {
   unsigned GlobalBaseReg = MF->getInfo<Cpu0FunctionInfo>()->getGlobalBaseReg();
-  return CurDAG->getRegister(GlobalBaseReg, TLI.getPointerTy()).getNode();
+  return CurDAG->getRegister(GlobalBaseReg, getTargetLowering()->getPointerTy()).getNode();
 } // lbd document - mark - getGlobalBaseReg()
 
 /// ComplexPattern used on Cpu0InstrInfo
@@ -126,7 +126,7 @@ SelectAddr(SDNode *Parent, SDValue Addr, SDValue &Base, SDValue &Offset) {
     EVT VT = LS->getMemoryVT();
 
     if (VT.getSizeInBits() / 8 > LS->getAlignment()) {
-      assert(TLI.allowsUnalignedMemoryAccesses(VT) &&
+      assert(getTargetLowering()->allowsUnalignedMemoryAccesses(VT) &&
              "Unaligned loads/stores not supported for this type.");
       if (VT == MVT::f32)
         return false;
@@ -177,20 +177,20 @@ SelectAddr(SDNode *Parent, SDValue Addr, SDValue &Base, SDValue &Offset) {
 
 /// Select multiply instructions.
 std::pair<SDNode*, SDNode*>
-Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
+Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, SDLoc DL, EVT Ty,
                              bool HasLo, bool HasHi) {
   SDNode *Lo = 0, *Hi = 0;
-  SDNode *Mul = CurDAG->getMachineNode(Opc, dl, MVT::Glue, N->getOperand(0),
+  SDNode *Mul = CurDAG->getMachineNode(Opc, DL, MVT::Glue, N->getOperand(0),
                                        N->getOperand(1));
   SDValue InFlag = SDValue(Mul, 0);
 
   if (HasLo) {
-    Lo = CurDAG->getMachineNode(Cpu0::MFLO, dl,
+    Lo = CurDAG->getMachineNode(Cpu0::MFLO, DL,
                                 Ty, MVT::Glue, InFlag);
     InFlag = SDValue(Lo, 1);
   }
   if (HasHi)
-    Hi = CurDAG->getMachineNode(Cpu0::MFHI, dl,
+    Hi = CurDAG->getMachineNode(Cpu0::MFHI, DL,
                                 Ty, InFlag);
 
   return std::make_pair(Lo, Hi);
@@ -200,7 +200,7 @@ Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
 /// expanded, promoted and normal instructions
 SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
   unsigned Opcode = Node->getOpcode();
-  DebugLoc dl = Node->getDebugLoc();
+  SDLoc DL(Node);
 
   // Dump information about the Node being selected
   DEBUG(errs() << "Selecting: "; Node->dump(CurDAG); errs() << "\n");
@@ -248,14 +248,14 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
     const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
     SDNode *Carry;
     if (Subtarget.hasCpu032II())
-      Carry = CurDAG->getMachineNode(Cpu0::SLTu, dl, VT, Ops);
+      Carry = CurDAG->getMachineNode(Cpu0::SLTu, DL, VT, Ops);
     else {
-      SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, dl, VT, Ops);
+      SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
       SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
-      Carry = CurDAG->getMachineNode(Cpu0::ANDi, dl, VT, 
+      Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
                                              SDValue(StatusWord,0), Constant1);
     }
-    SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, dl, VT,
+    SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, DL, VT,
                                               SDValue(Carry,0), RHS);
 
     return CurDAG->SelectNodeTo(Node, MOp, VT, MVT::Glue,
@@ -268,7 +268,7 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
     if (NodeTy == MVT::i32)
       MultOpc = (Opcode == ISD::UMUL_LOHI ? Cpu0::MULTu : Cpu0::MULT);
 
-    std::pair<SDNode*, SDNode*> LoHi = SelectMULT(Node, MultOpc, dl, NodeTy,
+    std::pair<SDNode*, SDNode*> LoHi = SelectMULT(Node, MultOpc, DL, NodeTy,
                                                   true, true);
 
     if (!SDValue(Node, 0).use_empty())
@@ -283,7 +283,7 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
   case ISD::MULHS:
   case ISD::MULHU: {
     MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
-    return SelectMULT(Node, MultOpc, dl, NodeTy, false, true).second;
+    return SelectMULT(Node, MultOpc, DL, NodeTy, false, true).second;
   }
 
   // Get target GOT address.

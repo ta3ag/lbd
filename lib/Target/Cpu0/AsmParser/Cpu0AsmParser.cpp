@@ -115,7 +115,8 @@ class Cpu0AsmParser : public MCTargetAsmParser {
   unsigned getReg(int RC,int RegNo);
 
 public:
-  Cpu0AsmParser(MCSubtargetInfo &sti, MCAsmParser &parser)
+  Cpu0AsmParser(MCSubtargetInfo &sti, MCAsmParser &parser,
+                const MCInstrInfo &MII)
     : MCTargetAsmParser(), STI(sti), Parser(parser) {
     // Initialize the set of available features.
     setAvailableFeatures(ComputeAvailableFeatures(STI.getFeatureBits()));
@@ -497,7 +498,7 @@ int Cpu0AsmParser::matchRegisterName(StringRef Name) {
 }
 
 unsigned Cpu0AsmParser::getReg(int RC,int RegNo) {
-  return *(getContext().getRegisterInfo().getRegClass(RC).begin() + RegNo);
+  return *(getContext().getRegisterInfo()->getRegClass(RC).begin() + RegNo);
 }
 
 int Cpu0AsmParser::matchRegisterByNumber(unsigned RegNum, StringRef Mnemonic) {

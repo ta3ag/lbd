@@ -15,7 +15,7 @@
 #include "Cpu0TargetMachine.h"
 #include "Cpu0MachineFunction.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
-#define GET_INSTRINFO_CTOR
+#define GET_INSTRINFO_CTOR_DTOR
 #include "Cpu0GenInstrInfo.inc"
 
 using namespace llvm;

@@ -29,8 +29,7 @@ using namespace llvm;
 Cpu0MCInstLower::Cpu0MCInstLower(Cpu0AsmPrinter &asmprinter)
   : AsmPrinter(asmprinter) {}
 
-void Cpu0MCInstLower::Initialize(Mangler *M, MCContext* C) {
-  Mang = M;
+void Cpu0MCInstLower::Initialize(MCContext* C) {
   Ctx = C;
 } // lbd document - mark - Initialize
 
@@ -61,7 +60,7 @@ MCOperand Cpu0MCInstLower::LowerSymbolOperand(const MachineOperand &MO,
 
   switch (MOTy) {
   case MachineOperand::MO_GlobalAddress:
-    Symbol = Mang->getSymbol(MO.getGlobal());
+    Symbol = AsmPrinter.getSymbol(MO.getGlobal());
     break;
 
   case MachineOperand::MO_MachineBasicBlock:

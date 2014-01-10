@@ -155,7 +155,7 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   if (StackSize == 0 && !MFI->adjustsStack()) return;
 
   MachineModuleInfo &MMI = MF.getMMI();
-  std::vector<MachineMove> &Moves = MMI.getFrameMoves();
+  const MCRegisterInfo *MRI = MMI.getContext().getRegisterInfo();
   MachineLocation DstML, SrcML;
 
   // Adjust stack.
@@ -170,9 +170,8 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
   MCSymbol *AdjustSPLabel = MMI.getContext().CreateTempSymbol();
   BuildMI(MBB, MBBI, dl,
           TII.get(TargetOpcode::PROLOG_LABEL)).addSym(AdjustSPLabel);
-  DstML = MachineLocation(MachineLocation::VirtualFP);
-  SrcML = MachineLocation(MachineLocation::VirtualFP, -StackSize);
-  Moves.push_back(MachineMove(AdjustSPLabel, DstML, SrcML));
+  MMI.addFrameInst(
+      MCCFIInstruction::createDefCfaOffset(AdjustSPLabel, -StackSize));
 
   const std::vector<CalleeSavedInfo> &CSI = MFI->getCalleeSavedInfo();
 
@@ -193,10 +192,9 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
       int64_t Offset = MFI->getObjectOffset(I->getFrameIdx());
       unsigned Reg = I->getReg();
       {
-        // Reg is either in CPURegs or FGR32.
-        DstML = MachineLocation(MachineLocation::VirtualFP, Offset);
-        SrcML = MachineLocation(Reg);
-        Moves.push_back(MachineMove(CSLabel, DstML, SrcML));
+        // Reg is in CPURegs.
+        MMI.addFrameInst(MCCFIInstruction::createOffset(
+            CSLabel, MRI->getDwarfRegNum(Reg, 1), Offset));
       }
     }
   }
@@ -210,9 +208,8 @@ void Cpu0FrameLowering::emitPrologue(MachineFunction &MF) const {
     MCSymbol *SetFPLabel = MMI.getContext().CreateTempSymbol();
     BuildMI(MBB, MBBI, dl,
             TII.get(TargetOpcode::PROLOG_LABEL)).addSym(SetFPLabel);
-    DstML = MachineLocation(FP);
-    SrcML = MachineLocation(MachineLocation::VirtualFP);
-    Moves.push_back(MachineMove(SetFPLabel, DstML, SrcML));
+    MMI.addFrameInst(MCCFIInstruction::createDefCfaRegister(
+        SetFPLabel, MRI->getDwarfRegNum(FP, true)));
   }
 
   // Restore GP from the saved stack location

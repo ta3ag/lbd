@@ -48,6 +48,7 @@ Cpu0TargetMachine(const Target &T, StringRef TT,
     InstrInfo(*this),
     FrameLowering(Subtarget), 
     TLInfo(*this), TSInfo(*this) {
+  initAsmInfo();
 }
 
 void Cpu0ebTargetMachine::anchor() { }
