@@ -1,6 +1,37 @@
 
 /// start
 
+#include "print.cpp"
+
+void print1_integer(int x)
+{
+  asm("ld $at, 8($sp)");
+  asm("st $at, 28672($0)");
+
+  return;
+}
+
+#if 0
+// For instruction IO
+void print2_integer(int x)
+{
+  asm("ld $at, 8($sp)");
+  asm("outw $tat");
+  return;
+}
+#endif
+
+#include "ch4_1.cpp"
+#include "ch4_3.cpp"
+#include "ch4_5.cpp"
+#include "ch7_1.cpp"
+#include "ch7_2_2.cpp"
+#include "ch7_3.cpp"
+#include "ch7_4.cpp"
+#include "ch8_1_1.cpp"
+#include "ch9_1_4.cpp"
+#include "ch9_3.cpp"
+
 int test_nolld()
 {
   bool pass = true;
@@ -39,7 +70,7 @@ int test_nolld()
   print_integer((int)(b >> 32)); // 393307
   if ((int)(b >> 32) != 393307) pass = false;
   print_integer((int)b); // 16777222
-  if ((int)(b >> 32) != 16777222) pass = false;
+  if ((int)(b) != 16777222) pass = false;
   a = test_control1();
   print_integer(a);	// a = 51
   if (a != 51) pass = false;
@@ -52,39 +83,8 @@ int test_nolld()
   print_integer(a); // a = 15
   if (a != 15) pass = false;
 
-  return a;
+  return pass;
 }
-
-#include "print.cpp"
-
-void print1_integer(int x)
-{
-  asm("ld $at, 8($sp)");
-  asm("st $at, 28672($0)");
-
-  return;
-}
-
-#if 0
-// For instruction IO
-void print2_integer(int x)
-{
-  asm("ld $at, 8($sp)");
-  asm("outw $tat");
-  return;
-}
-#endif
-
-#include "ch4_1.cpp"
-#include "ch4_3.cpp"
-#include "ch4_5.cpp"
-#include "ch7_1.cpp"
-#include "ch7_2_2.cpp"
-#include "ch7_3.cpp"
-#include "ch7_4.cpp"
-#include "ch8_1_1.cpp"
-#include "ch9_1_4.cpp"
-#include "ch9_3.cpp"
 
 /* result:
 74

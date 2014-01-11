@@ -7,7 +7,6 @@ cpu=cpu032I
 bash rminput.sh
 
 clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
-clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
 clang -target mips-unknown-linux-gnu -c printf-stdarg-2.cpp -emit-llvm -o printf-stdarg-2.bc
 ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj start.bc -o start.cpu0.o
 ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj printf-stdarg-2.bc -o printf-stdarg-2.cpu0.o

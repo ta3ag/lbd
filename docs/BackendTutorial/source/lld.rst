@@ -790,28 +790,19 @@ below.
   #TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
   TOOLDIR=~/test/llvm/cmake_debug_build/bin/Debug
   
-  INC_PATH= -I/Applications/Xcode.app/Contents/Developer/Platforms/
-  MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/include/
-  #INCPATH= 
-
   cpu=cpu032I
   
   clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
-  clang ${INCPATH} -c ch9_4.cpp -emit-llvm -o ch9_4.bc
-  clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o 
-  printf-stdarg.bc
   clang -target mips-unknown-linux-gnu -c printf-stdarg-2.cpp -emit-llvm -o 
   printf-stdarg-2.bc
   ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
   start.bc -o start.cpu0.o
   ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
-  ch9_4.bc -o ch9_4.cpu0.o
-  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
-  printf-stdarg.bc -o printf-stdarg.cpu0.o
-  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
   printf-stdarg-2.bc -o printf-stdarg-2.cpu0.o
+  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
+  lib_cpu0.ll -o lib_cpu0.o
   ${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o 
-  ch9_4.cpu0.o printf-stdarg.cpu0.o printf-stdarg-2.cpu0.o -o a.out
+  printf-stdarg-2.cpu0.o lib_cpu0.o -o a.out
   ${TOOLDIR}/llvm-objdump -elf2hex a.out > ../cpu0_verilog/cpu0.hex
 
 The cpu0_verilog/cpu0Is.v support cmp instruction and static linker as follows,
@@ -835,37 +826,14 @@ code as follows,
   1-160-136-173:cpu0_verilog Jonathan$ bash clean.sh
   1-160-136-173:cpu0_verilog Jonathan$ cd ../InputFiles/
   1-160-136-173:InputFiles Jonathan$ bash build-printf-stdarg-2.sh
-  printf-stdarg-2.cpp:20:15: warning: conversion from string literal to 'char *' 
+  In file included from printf-stdarg-2.cpp:11:
+  ./printf-stdarg.c:206:15: warning: conversion from string literal to 'char *' 
   is deprecated [-Wdeprecated-writable-strings]
     char *ptr = "Hello world!";
                 ^
-  printf-stdarg-2.cpp:61:19: warning: incomplete format specifier [-Wformat]
-    printf("%d %s(s)%", 0, "message");
-                    ^
-  2 warnings generated.
+  1 warning generated.
   
   1-160-136-173:InputFiles Jonathan$ cd ../cpu0_verilog/
-  1-160-136-173:cpu0_verilog Jonathan$ pwd
-  /Users/Jonathan/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
-  1-160-136-173:cpu0_verilog Jonathan$ iverilog -o cpu0IIs cpu0IIs.v 
-  1-160-136-173:cpu0_verilog Jonathan$ ls
-  clean.sh  cpu0Id.v  cpu0IId.v  cpu0IIs  cpu0IIs.v  cpu0Is.v  cpu0.v  dynlinker.v  
-  flashio.v
-  1-160-136-173:cpu0_verilog Jonathan$ ./cpu0IIs 
-  WARNING: cpu0.v:365: $readmemh(cpu0s.hex): Not enough words in the file for 
-  the requested range [0:524287].
-  taskInterrupt(001)
-  test_alloc() = 31, PASS
-  global variable gI = 100, PASS
-  date1 = 2012 10 12 1 2 3, PASS
-  date2 = 2012 10 12 1 2 3, PASS
-  time2 = 1 10 12, PASS
-  time3 = 1 10 12, PASS
-  date1 = 2013 1 26 12 21 10, PASS
-  date2 = 2013 1 26 12 21 10, PASS
-  test_template() = 15, PASS
-  
-  
   Hello world!
   printf test
   (null) is null pointer
@@ -914,11 +882,8 @@ Let's check the result with PC program printf-stdarg-1.c output as follows,
   -3: -3   left justif.
   -3:   -3 right justif.
 
-They are same after the "Hello world!" of printf() function support.
-The cpu0I use cmp instruction. Before the "Hello world!" are for test cases 
-which needed the linker, such as global variable, C++ template, ... .
-You can verify the slt 
-instructions is work fine too by change cpu to cpu032II as follows,
+They are same. You can verify the slt instructions is work fine too by change 
+variable cpu from cpu032I to cpu032II as follows,
 
 .. rubric:: lbdex/InputFiles/build-printf-stdarg-2.sh
 
@@ -933,7 +898,7 @@ instructions is work fine too by change cpu to cpu032II as follows,
   1-160-136-173:cpu0_verilog Jonathan$ pwd
   /Users/Jonathan/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
   1-160-136-173:cpu0_verilog Jonathan$ bash clean.sh
-  1-160-136-173:InputFiles Jonathan$ cd ../InputFil
+  1-160-136-173:InputFiles Jonathan$ cd ../InputFiles
   1-160-136-173:InputFiles Jonathan$ bash build-printf-stdarg-2.sh
   ...
   1-160-136-173:InputFiles Jonathan$ cd ../cpu0_verilog/
@@ -945,6 +910,104 @@ Run build-printf-stdarg-2.sh with cpu=cpu032II will generate slt, beq and bne
 instructions instead of cmp, jeq, ... instructions. Since cpu0IIs include both
 slt, cmp, ... instructions, the slt and cmp both code generated can be run on
 it without any problem.
+
+With the printf() GPL source code, we can use it to programming more test code 
+to verify the previous Cpu0 backend generated program. The following code is 
+for this purpose.
+
+.. rubric:: lbdex/InputFiles/ch_lld_staticlink.h
+.. literalinclude:: ../lbdex/InputFiles/ch_lld_staticlink.h
+    :start-after: /// start
+
+.. rubric:: lbdex/InputFiles/ch_lld_staticlink.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch_lld_staticlink.cpp
+    :start-after: /// start
+
+.. rubric:: lbdex/InputFiles/ch_slinker.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch_slinker.cpp
+    :start-after: /// start
+
+.. rubric:: lbdex/InputFiles/build-printf-stdarg-2.sh
+.. code-block:: bash
+  
+  #!/usr/bin/env bash
+  #TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
+  TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
+  
+  cpu=cpu032I
+  
+  bash rminput.sh
+  
+  clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
+  clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o 
+  printf-stdarg.bc
+  clang -c ch9_4.cpp -emit-llvm -o ch9_4.bc
+  clang -target mips-unknown-linux-gnu -c ch_slinker.cpp -emit-llvm -o 
+  ch_slinker.bc
+  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
+  start.bc -o start.cpu0.o
+  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
+  printf-stdarg.bc -o printf-stdarg.cpu0.o
+  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
+  ch9_4.bc -o ch9_4.cpu0.o
+  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
+  ch_slinker.bc -o ch_slinker.cpu0.o
+  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
+  lib_cpu0.ll -o lib_cpu0.o
+  ${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o 
+  printf-stdarg.cpu0.o ch9_4.cpu0.o ch_slinker.cpu0.o lib_cpu0.o -o a.out
+  ${TOOLDIR}/llvm-objdump -elf2hex a.out > ../cpu0_verilog/cpu0.hex
+
+.. code-block:: bash
+
+  114-37-148-111:InputFiles Jonathan$ bash build-slinker.sh 
+  ...
+  In file included from ch_slinker.cpp:23:
+  ./ch_lld_staticlink.cpp:8:15: warning: conversion from string literal to 
+  'char *' is deprecated
+        [-Wdeprecated-writable-strings]
+    char *ptr = "Hello world!";
+                ^
+  1 warning generated.
+  114-37-148-111:InputFiles Jonathan$ cd ../cpu0_verilog/
+  114-37-148-111:cpu0_verilog Jonathan$ ./cpu0Is
+  WARNING: ./cpu0.v:369: $readmemh(cpu0.hex): Not enough words in the file for 
+  the requested range [0:524287].
+  taskInterrupt(001)
+  74
+  253
+  3
+  1
+  14
+  3
+  -126
+  130
+  -32766
+  32770
+  393307
+  16777222
+  51
+  2147483647
+  -2147483648
+  7
+  15
+  test_nolld(): PASS
+  test_alloc() = 31, PASS
+  global variable gI = 100, PASS
+  date1 = 2012 10 12 1 2 3, PASS
+  date2 = 2012 10 12 1 2 3, PASS
+  time2 = 1 10 12, PASS
+  time3 = 1 10 12, PASS
+  date1 = 2013 1 26 12 21 10, PASS
+  date2 = 2013 1 26 12 21 10, PASS
+  test_template() = 15, PASS
+  RET to PC < 0, finished!
+
+As above, take the open source code advantage, Cpu0 got the more stable printf() 
+program. When Cpu0 backend can generate printf() function from the open source C 
+printf() program, it meaning Cpu0 backend is more stable itself. Plus the 
+quality code of open source printf() program, the Cpu0 toolchain extended from 
+compiler backend to C std library support.
 
 
 Cpu0 lld structure
