@@ -710,8 +710,8 @@ It match the output result as comments in ch_run_backend.cpp.
   ../cpu0_verilog/redesign/cpu0.hex
   
   JonathantekiiMac:InputFiles Jonathan$ cd ../cpu0_verilog/
-  JonathantekiiMac:redesign Jonathan$ iverilog -o cpu0IIs cpu0IIs.v 
-  JonathantekiiMac:redesign Jonathan$ ./cpu0IIs
+  JonathantekiiMac:cpu0_verilog Jonathan$ iverilog -o cpu0IIs cpu0IIs.v 
+  JonathantekiiMac:cpu0_verilog Jonathan$ ./cpu0IIs
   taskInterrupt(001)
   74
   253

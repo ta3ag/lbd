@@ -784,26 +784,7 @@ below.
     :start-after: /// start
     
 .. rubric:: lbdex/InputFiles/build-printf-stdarg-2.sh
-.. code-block:: c++
-
-  #!/usr/bin/env bash
-  #TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
-  TOOLDIR=~/test/llvm/cmake_debug_build/bin/Debug
-  
-  cpu=cpu032I
-  
-  clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
-  clang -target mips-unknown-linux-gnu -c printf-stdarg-2.cpp -emit-llvm -o 
-  printf-stdarg-2.bc
-  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
-  start.bc -o start.cpu0.o
-  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
-  printf-stdarg-2.bc -o printf-stdarg-2.cpu0.o
-  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
-  lib_cpu0.ll -o lib_cpu0.o
-  ${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o 
-  printf-stdarg-2.cpu0.o lib_cpu0.o -o a.out
-  ${TOOLDIR}/llvm-objdump -elf2hex a.out > ../cpu0_verilog/cpu0.hex
+.. literalinclude:: ../lbdex/InputFiles/build-printf-stdarg-2.sh
 
 The cpu0_verilog/cpu0Is.v support cmp instruction and static linker as follows,
 
@@ -927,37 +908,9 @@ for this purpose.
 .. literalinclude:: ../lbdex/InputFiles/ch_slinker.cpp
     :start-after: /// start
 
-.. rubric:: lbdex/InputFiles/build-printf-stdarg-2.sh
-.. code-block:: bash
+.. rubric:: lbdex/InputFiles/build-slinker.sh
+.. literalinclude:: ../lbdex/InputFiles/build-slinker.sh
   
-  #!/usr/bin/env bash
-  #TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
-  TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
-  
-  cpu=cpu032I
-  
-  bash rminput.sh
-  
-  clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
-  clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o 
-  printf-stdarg.bc
-  clang -c ch9_4.cpp -emit-llvm -o ch9_4.bc
-  clang -target mips-unknown-linux-gnu -c ch_slinker.cpp -emit-llvm -o 
-  ch_slinker.bc
-  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
-  start.bc -o start.cpu0.o
-  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
-  printf-stdarg.bc -o printf-stdarg.cpu0.o
-  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
-  ch9_4.bc -o ch9_4.cpu0.o
-  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
-  ch_slinker.bc -o ch_slinker.cpu0.o
-  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
-  lib_cpu0.ll -o lib_cpu0.o
-  ${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o 
-  printf-stdarg.cpu0.o ch9_4.cpu0.o ch_slinker.cpu0.o lib_cpu0.o -o a.out
-  ${TOOLDIR}/llvm-objdump -elf2hex a.out > ../cpu0_verilog/cpu0.hex
-
 .. code-block:: bash
 
   114-37-148-111:InputFiles Jonathan$ bash build-slinker.sh 
@@ -1007,7 +960,8 @@ As above, take the open source code advantage, Cpu0 got the more stable printf()
 program. When Cpu0 backend can generate printf() function from the open source C 
 printf() program, it meaning Cpu0 backend is more stable itself. Plus the 
 quality code of open source printf() program, the Cpu0 toolchain extended from 
-compiler backend to C std library support.
+compiler backend to C std library support. (Some GPL open source code are not 
+quality code, but some are.)
 
 
 Cpu0 lld structure
@@ -1226,41 +1180,8 @@ to execute the dynamic linker function on Cpu0 Verilog machine.
     :start-after: /// start
 
 .. rubric:: lbdex/InputFiles/build-dlinker.sh
-.. code-block:: c++
+.. literalinclude:: ../lbdex/InputFiles/build-dlinker.sh
   
-  #!/usr/bin/env bash
-  #TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
-  TOOLDIR=~/test/llvm/cmake_debug_build/bin/Debug
-  
-  cpu=cpu032I
-  
-  clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
-  clang -target mips-unknown-linux-gnu -c dynamic_linker.cpp -emit-llvm -o 
-  dynamic_linker.cpu0.bc
-  clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o 
-  printf-stdarg.bc
-  clang -target mips-unknown-linux-gnu -c foobar.cpp -emit-llvm -o foobar.cpu0.bc
-  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
-  -cpu0-reserve-gp=true dynamic_linker.cpu0.bc -o dynamic_linker.cpu0.o
-  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
-  -cpu0-reserve-gp=true printf-stdarg.bc -o printf-stdarg.cpu0.o
-  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=pic -filetype=obj 
-  -cpu0-reserve-gp=true -cpu0-no-cpload=true foobar.cpu0.bc -o foobar.cpu0.o
-  ${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu -shared -o 
-  libfoobar.cpu0.so foobar.cpu0.o
-  ${TOOLDIR}/llc -mcpu=${cpu} -march=cpu0 -relocation-model=static -filetype=obj 
-  -cpu0-reserve-gp=true start.bc -o start.cpu0.o
-  /usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
-  gnu -c ch_dynamiclinker.cpp -emit-llvm -o ch_dynamiclinker.cpu0.bc
-  ${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj 
-  -cpu0-reserve-gp=true ch_dynamiclinker.cpu0.bc -o ch_dynamiclinker.cpu0.o
-  ${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o printf-
-  stdarg.cpu0.o dynamic_linker.cpu0.o ch_dynamiclinker.cpu0.o libfoobar.cpu0.so
-  ${TOOLDIR}/llvm-objdump -elf2hex -cpu0dumpso libfoobar.cpu0.so > ../
-  cpu0_verilog/libso.hex
-  ${TOOLDIR}/llvm-objdump -elf2hex -cpu0linkso a.out > ../cpu0_verilog/cpu0.hex
-  cp dynstr dynsym so_func_offset global_offset ../cpu0_verilog/.
-
 
 Run
 ~~~~

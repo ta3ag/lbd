@@ -392,6 +392,9 @@ cpu0.v use 0x7000 bytes of memory.
 .. literalinclude:: ../lbdex/InputFiles/ch_run_backend.cpp
     :start-after: /// start
 
+.. rubric:: lbdex/InputFiles/build-run_backend.sh
+.. literalinclude:: ../lbdex/InputFiles/build-run_backend.sh
+
 Let's run Chapter11_2/ with ``llvm-objdump -d`` for input files 
 ch_run_backend.cpp to generate the hex file of inputing to cpu0Is Verilog 
 simulator to get the output result as below. 
@@ -403,18 +406,9 @@ cmake_debug_build/bin/Debug/ is my build clang from source code.
 
 .. code-block:: bash
 
-  JonathantekiiMac:InputFiles Jonathan$ ~/llvm/release/cmake_debug_build/bin/
-  Debug/clang -target mips-unknown-linux-gnu -c ch_run_backend.cpp -emit-llvm 
-  -o ch_run_backend.bc
-  JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-  build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=obj 
-  ch_run_backend.bc -o ch_run_backend.cpu0.o
-  JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_
-  build/bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk '{print "/* " 
-  $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" " $9" " $10 "\t*/"}'
-   > ../cpu0_verilog/raw/cpu0.hex
-   
-  JonathantekiiMac:raw Jonathan$ ./cpu0Is
+  JonathantekiiMac:InputFiles Jonathan$ bash build-run_backend.sh
+  JonathantekiiMac:InputFiles Jonathan$ cd ../cpu0_verilog
+  JonathantekiiMac:cpu0_verilog Jonathan$ ./cpu0Is
   WARNING: cpu0Is.v:386: $readmemh(cpu0.hex): Not enough words in the file for the 
   taskInterrupt(001)
   74
