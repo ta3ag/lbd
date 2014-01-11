@@ -779,6 +779,10 @@ below.
 .. literalinclude:: ../lbdex/InputFiles/start.cpp
     :start-after: /// start
 
+.. rubric:: lbdex/InputFiles/lib_cpu0.ll
+.. literalinclude:: ../lbdex/InputFiles/lib_cpu0.ll
+    :start-after: /// start
+    
 .. rubric:: lbdex/InputFiles/build-printf-stdarg-2.sh
 .. code-block:: c++
 
@@ -831,21 +835,15 @@ code as follows,
   1-160-136-173:cpu0_verilog Jonathan$ bash clean.sh
   1-160-136-173:cpu0_verilog Jonathan$ cd ../InputFiles/
   1-160-136-173:InputFiles Jonathan$ bash build-printf-stdarg-2.sh
-  1-160-136-173:InputFiles Jonathan$ bash build-printf-stdarg-2.sh 
-  In file included from printf-stdarg-2.cpp:12:
-  ./ch9_2_1.cpp:62:78: warning: backslash and newline separated by space 
-  [-Wbackslash-newline-escape]
-    printf("date2 = %d %d %d %d %d %d\n", date2.year, date2.month, date2.day, \ 
-                                                                               ^
-  printf-stdarg-2.cpp:18:15: warning: conversion from string literal to 'char *' 
+  printf-stdarg-2.cpp:20:15: warning: conversion from string literal to 'char *' 
   is deprecated [-Wdeprecated-writable-strings]
     char *ptr = "Hello world!";
                 ^
-  printf-stdarg-2.cpp:44:19: warning: incomplete format specifier [-Wformat]
+  printf-stdarg-2.cpp:61:19: warning: incomplete format specifier [-Wformat]
     printf("%d %s(s)%", 0, "message");
                     ^
-  3 warnings generated.
-
+  2 warnings generated.
+  
   1-160-136-173:InputFiles Jonathan$ cd ../cpu0_verilog/
   1-160-136-173:cpu0_verilog Jonathan$ pwd
   /Users/Jonathan/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
@@ -857,15 +855,17 @@ code as follows,
   WARNING: cpu0.v:365: $readmemh(cpu0s.hex): Not enough words in the file for 
   the requested range [0:524287].
   taskInterrupt(001)
-  test_alloc() = 31
-  global variable gI = 100
-  date1 = 2012 10 12 1 2 3
-  date2 = 2012 10 12 1 2 3
-  time2 = 1 10 12
-  time3 = 1 10 12
-  date1 = 2013 1 26 12 21 10
-  date2 = 2013 1 26 12 21 10
-  test_template() = 15
+  test_alloc() = 31, PASS
+  global variable gI = 100, PASS
+  date1 = 2012 10 12 1 2 3, PASS
+  date2 = 2012 10 12 1 2 3, PASS
+  time2 = 1 10 12, PASS
+  time3 = 1 10 12, PASS
+  date1 = 2013 1 26 12 21 10, PASS
+  date2 = 2013 1 26 12 21 10, PASS
+  test_template() = 15, PASS
+  
+  
   Hello world!
   printf test
   (null) is null pointer

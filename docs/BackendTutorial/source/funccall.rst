@@ -251,7 +251,7 @@ We define it as follows,
                                            CallingConv::ID CallConv,
                                            bool isVarArg,
                                         const SmallVectorImpl<ISD::InputArg> &Ins,
-                                           DebugLoc dl, SelectionDAG &DAG,
+                                           SDLoc DL, SelectionDAG &DAG,
                                            SmallVectorImpl<SDValue> &InVals)
                                             const {
     MachineFunction &MF = DAG.getMachineFunction();
@@ -294,7 +294,7 @@ We define it as follows,
 
       // Create load nodes to retrieve arguments from the stack
       SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
-      InVals.push_back(DAG.getLoad(ValVT, dl, Chain, FIN,
+      InVals.push_back(DAG.getLoad(ValVT, DL, Chain, FIN,
                                    MachinePointerInfo::getFixedStack(LastFI),
                                    false, false, false, 0));
     }
@@ -303,7 +303,7 @@ We define it as follows,
     // the size of Ins and InVals. This only happens when on varg functions
     if (!OutChains.empty()) {
       OutChains.push_back(Chain);
-      Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
+      Chain = DAG.getNode(ISD::TokenFactor, DL, MVT::Other,
                           &OutChains[0], OutChains.size());
     }
     return Chain;
@@ -335,7 +335,7 @@ In **“for loop”**, it create each frame index object by LastFI =
 MFI->CreateFixedObject(ValVT.getSizeInBits()/8,VA.getLocMemOffset(), true) and 
 FIN = DAG.getFrameIndex(LastFI, getPointerTy()). 
 And then create IR DAG load node and put the load node into vector InVals by 
-InVals.push_back(DAG.getLoad(ValVT, dl, Chain, FIN, 
+InVals.push_back(DAG.getLoad(ValVT, DL, Chain, FIN, 
 MachinePointerInfo::getFixedStack(LastFI), false, false, false, 0)). 
 Cpu0FI->setVarArgsFrameIndex(0) and Cpu0FI->setLastInArgFI(LastFI) are called 
 when before and after above work. In ch9_1.cpp example, LowerFormalArguments() 
@@ -704,7 +704,7 @@ LowerCall() is responsible to do this. The implementation as follows,
     :end-before: if (Cpu0FI->needGPSaveRestore())
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
     :start-after: MFI->setObjectOffset(Cpu0FI->getGPFI(), NextStackOffset);
-    :end-before: WriteByValArg(ByValChain, Chain, dl, RegsToPass, MemOpChains, LastFI,
+    :end-before: WriteByValArg(ByValChain, Chain, DL, RegsToPass, MemOpChains, LastFI,
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
     :start-after: Subtarget->isLittle());
     :end-before: //===----------------------------------------------------------------------===//
@@ -1595,9 +1595,9 @@ Above code do the following:
    create DAGs (Cpu0ISD::Ret (CopyToReg %X, %V0, %Y), %V0, Flag). Since the the 
    V0 register is assigned in CopyToReg and Cpu0ISD::Ret use V0, the CopyToReg
    with V0 register will live out and won't be removed in any later optimization
-   step. Remember, if use "return DAG.getNode(Cpu0ISD::Ret, dl, MVT::Other, 
+   step. Remember, if use "return DAG.getNode(Cpu0ISD::Ret, DL, MVT::Other, 
    Chain, DAG.getRegister(Cpu0::LR, MVT::i32));" instead of "return DAG.getNode
-   (Cpu0ISD::Ret, dl, MVT::Other, &RetOps[0], RetOps.size());" the V0 register
+   (Cpu0ISD::Ret, DL, MVT::Other, &RetOps[0], RetOps.size());" the V0 register
    won't be live out, the previous DAG (CopyToReg %X, %V0, %Y) will be removed
    in later optimization stage. Then the result is same with Chapter9_2
    which the return value is error. 
@@ -1908,7 +1908,7 @@ function call.
   
   // Write ByVal Arg to arg registers and stack.
   static void
-  WriteByValArg(SDValue& ByValChain, SDValue Chain, DebugLoc dl,
+  WriteByValArg(SDValue& ByValChain, SDValue Chain, SDLoc DL,
           SmallVector<std::pair<unsigned, SDValue>, 16>& RegsToPass,
           SmallVector<SDValue, 8>& MemOpChains, int& LastFI,
           MachineFrameInfo *MFI, SelectionDAG &DAG, SDValue Arg,
@@ -1924,11 +1924,11 @@ function call.
   
     // Create a fixed object on stack at offset LocMemOffset and copy
     // remaining part of byval arg to it using memcpy.
-    SDValue Src = DAG.getNode(ISD::ADD, dl, MVT::i32, Arg,
+    SDValue Src = DAG.getNode(ISD::ADD, DL, MVT::i32, Arg,
                 DAG.getConstant(Offset, MVT::i32));
     LastFI = MFI->CreateFixedObject(RemainingSize, LocMemOffset, true);
     SDValue Dst = DAG.getFrameIndex(LastFI, PtrType);
-    ByValChain = DAG.getMemcpy(ByValChain, dl, Dst, Src,
+    ByValChain = DAG.getMemcpy(ByValChain, DL, Dst, Src,
                                DAG.getConstant(RemainingSize, MVT::i32),
                                std::min(ByValAlign, (unsigned)4),
                                /*isVolatile=*/false, /*AlwaysInline=*/false,
@@ -1945,7 +1945,7 @@ function call.
       // ByVal Arg.
       if (Flags.isByVal()) {
         ...
-        WriteByValArg(ByValChain, Chain, dl, RegsToPass, MemOpChains, LastFI,
+        WriteByValArg(ByValChain, Chain, DL, RegsToPass, MemOpChains, LastFI,
               MFI, DAG, Arg, VA, Flags, getPointerTy(),
               Subtarget->isLittle());
         ...
@@ -1958,7 +1958,7 @@ function call.
   //===----------------------------------------------------------------------===//
   //             Formal Arguments Calling Convention Implementation
   //===----------------------------------------------------------------------===//
-  static void ReadByValArg(MachineFunction &MF, SDValue Chain, DebugLoc dl,
+  static void ReadByValArg(MachineFunction &MF, SDValue Chain, SDLoc DL,
                std::vector<SDValue>& OutChains,
                SelectionDAG &DAG, unsigned NumWords, SDValue FIN,
                const CCValAssign &VA, const ISD::ArgFlagsTy& Flags,
@@ -1974,9 +1974,9 @@ function call.
   
       unsigned SrcReg = IntRegs[CurWord];
       unsigned Reg = AddLiveIn(MF, SrcReg, &Cpu0::CPURegsRegClass);
-      SDValue StorePtr = DAG.getNode(ISD::ADD, dl, MVT::i32, FIN,
+      SDValue StorePtr = DAG.getNode(ISD::ADD, DL, MVT::i32, FIN,
                                      DAG.getConstant(i * 4, MVT::i32));
-      SDValue Store = DAG.getStore(Chain, dl, DAG.getRegister(Reg, MVT::i32),
+      SDValue Store = DAG.getStore(Chain, DL, DAG.getRegister(Reg, MVT::i32),
                                    StorePtr, MachinePointerInfo(FuncArg, i * 4),
                                    false, false, 0);
     OutChains.push_back(Store);
@@ -1988,7 +1988,7 @@ function call.
                        CallingConv::ID CallConv,
                        bool isVarArg,
                       const SmallVectorImpl<ISD::InputArg> &Ins,
-                       DebugLoc dl, SelectionDAG &DAG,
+                       SDLoc DL, SelectionDAG &DAG,
                        SmallVectorImpl<SDValue> &InVals)
                         const {
     ...
@@ -2002,7 +2002,7 @@ function call.
                         true);
         SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
         InVals.push_back(FIN);
-        ReadByValArg(MF, Chain, dl, OutChains, DAG, NumWords, FIN, VA, Flags,
+        ReadByValArg(MF, Chain, DL, OutChains, DAG, NumWords, FIN, VA, Flags,
                &*FuncArg);
         continue;
       }
@@ -2017,8 +2017,8 @@ function call.
         Reg = MF.getRegInfo().createVirtualRegister(getRegClassFor(MVT::i32));
         Cpu0FI->setSRetReturnReg(Reg);
       }
-      SDValue Copy = DAG.getCopyToReg(DAG.getEntryNode(), dl, Reg, InVals[0]);
-      Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other, Copy, Chain);
+      SDValue Copy = DAG.getCopyToReg(DAG.getEntryNode(), DL, Reg, InVals[0]);
+      Chain = DAG.getNode(ISD::TokenFactor, DL, MVT::Other, Copy, Chain);
     }
     ...
   }
@@ -2028,7 +2028,7 @@ function call.
                   CallingConv::ID CallConv, bool isVarArg,
                   const SmallVectorImpl<ISD::OutputArg> &Outs,
                   const SmallVectorImpl<SDValue> &OutVals,
-                  DebugLoc dl, SelectionDAG &DAG) const {
+                  SDLoc DL, SelectionDAG &DAG) const {
     ...
     // The cpu0 ABIs for returning structs by value requires that we copy
     // the sret argument into $v0 for the return. We saved the argument into
@@ -2041,9 +2041,9 @@ function call.
   
       if (!Reg)
         llvm_unreachable("sret virtual register not created in the entry block");
-      SDValue Val = DAG.getCopyFromReg(Chain, dl, Reg, getPointerTy());
+      SDValue Val = DAG.getCopyFromReg(Chain, DL, Reg, getPointerTy());
   
-      Chain = DAG.getCopyToReg(Chain, dl, Cpu0::V0, Val, Flag);
+      Chain = DAG.getCopyToReg(Chain, DL, Cpu0::V0, Val, Flag);
       Flag = Chain.getValue(1);
       RetOps.push_back(DAG.getRegister(Cpu0::V0, getPointerTy()));
     }
@@ -2477,7 +2477,7 @@ List the code and their effect as follows,
                        CallingConv::ID CallConv,
                        bool isVarArg,
                       const SmallVectorImpl<ISD::InputArg> &Ins,
-                       DebugLoc dl, SelectionDAG &DAG,
+                       SDLoc DL, SelectionDAG &DAG,
                        SmallVectorImpl<SDValue> &InVals)
                         const {
     ...
@@ -2490,8 +2490,8 @@ List the code and their effect as follows,
         Reg = MF.getRegInfo().createVirtualRegister(getRegClassFor(MVT::i32));
         Cpu0FI->setSRetReturnReg(Reg);
       }
-      SDValue Copy = DAG.getCopyToReg(DAG.getEntryNode(), dl, Reg, InVals[0]);
-      Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other, Copy, Chain);
+      SDValue Copy = DAG.getCopyToReg(DAG.getEntryNode(), DL, Reg, InVals[0]);
+      Chain = DAG.getNode(ISD::TokenFactor, DL, MVT::Other, Copy, Chain);
     }
     ...
   }
@@ -2513,7 +2513,7 @@ List the code and their effect as follows,
                   CallingConv::ID CallConv, bool isVarArg,
                   const SmallVectorImpl<ISD::OutputArg> &Outs,
                   const SmallVectorImpl<SDValue> &OutVals,
-                  DebugLoc dl, SelectionDAG &DAG) const {
+                  SDLoc DL, SelectionDAG &DAG) const {
     ...
     // The cpu0 ABIs for returning structs by value requires that we copy
     // the sret argument into $v0 for the return. We saved the argument into
@@ -2526,9 +2526,9 @@ List the code and their effect as follows,
     
       if (!Reg)
         llvm_unreachable("sret virtual register not created in the entry block");
-      SDValue Val = DAG.getCopyFromReg(Chain, dl, Reg, getPointerTy());
+      SDValue Val = DAG.getCopyFromReg(Chain, DL, Reg, getPointerTy());
     
-      Chain = DAG.getCopyToReg(Chain, dl, Cpu0::V0, Val, Flag);
+      Chain = DAG.getCopyToReg(Chain, DL, Cpu0::V0, Val, Flag);
       Flag = Chain.getValue(1);
       RetOps.push_back(DAG.getRegister(Cpu0::V0, getPointerTy()));
     }
@@ -2797,14 +2797,14 @@ backend code too.
     MachineFunction &MF = DAG.getMachineFunction();
     Cpu0FunctionInfo *FuncInfo = MF.getInfo<Cpu0FunctionInfo>();
   
-    DebugLoc dl = Op.getDebugLoc();
+    SDLoc DL = SDLoc(Op);
     SDValue FI = DAG.getFrameIndex(FuncInfo->getVarArgsFrameIndex(),
                    getPointerTy());
   
     // vastart just stores the address of the VarArgsFrameIndex slot into the
     // memory location argument.
     const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
-    return DAG.getStore(Op.getOperand(0), dl, FI, Op.getOperand(1),
+    return DAG.getStore(Op.getOperand(0), DL, FI, Op.getOperand(1),
               MachinePointerInfo(SV), false, false, 0);
   }
   ...
@@ -2813,7 +2813,7 @@ backend code too.
                        CallingConv::ID CallConv,
                        bool isVarArg,
                       const SmallVectorImpl<ISD::InputArg> &Ins,
-                       DebugLoc dl, SelectionDAG &DAG,
+                       SDLoc DL, SelectionDAG &DAG,
                        SmallVectorImpl<SDValue> &InVals)
                         const {
     ...

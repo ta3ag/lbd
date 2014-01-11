@@ -52,8 +52,9 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.4.1, Not release yet.
+Version 3.4.1, Not release yet
   Add ch9_4.cpp to lld test.
+  Fix the wrong reference in lbd/lib/Target/Cpu0 code.
 
 Version 3.4.0, Released January 9, 2014
   Porting to llvm 3.4 release.

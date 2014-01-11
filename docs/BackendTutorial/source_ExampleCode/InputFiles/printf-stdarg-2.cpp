@@ -1,6 +1,7 @@
 
 /// start
 
+#include "debug.h"
 #include "print.h"
 
 #define PRINT_TEST
@@ -26,14 +27,27 @@ int main(void)
   int a = 0;
 
   a = test_alloc();  // 31
-  printf("test_alloc() = %d\n", a);
+  printf("test_alloc() = %d", a);
+  if (a == 31)
+    printf(", PASS\n");
+  else
+    printf(", FAIL\n");
   a = test_global();  // gI = 100
-  printf("global variable gI = %d\n", a);
+  printf("global variable gI = %d", a);
+  if (a == 100)
+    printf(", PASS\n");
+  else
+    printf(", FAIL\n");
   a = test_func_arg_struct();
   a = test_contructor();
   a = test_template();
-  printf("test_template() = %d\n", a); // a = 15
+  printf("test_template() = %d", a); // a = 15
+  if (a == 15)
+    printf(", PASS\n");
+  else
+    printf(", FAIL\n");
 
+  printf("\n\n");
   mi = (1 << (bs-1)) + 1;
   printf("%s\n", ptr);
   printf("printf test\n");

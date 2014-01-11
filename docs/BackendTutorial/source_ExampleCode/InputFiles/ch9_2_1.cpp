@@ -57,14 +57,32 @@ int test_func_arg_struct()
   Time time2 = copyTime(time1);
   Time time3 = copyTime(&time1);
 #ifdef PRINT_TEST
-  printf("date1 = %d %d %d %d %d %d\n", date1.year, date1.month, date1.day, \
+  printf("date1 = %d %d %d %d %d %d", date1.year, date1.month, date1.day,
     date1.hour, date1.minute, date1.second); // date1 = 2012 10 12 1 2 3
-  printf("date2 = %d %d %d %d %d %d\n", date2.year, date2.month, date2.day, \ 
+  if (date1.year == 2012 && date1.month == 10 && date1.day == 12 && date1.hour 
+      == 1 && date1.minute == 2 && date1.second == 3)
+    printf(", PASS\n");
+  else
+    printf(", FAIL\n");
+  printf("date2 = %d %d %d %d %d %d", date2.year, date2.month, date2.day,
     date2.hour, date2.minute, date2.second); // date2 = 2012 10 12 1 2 3
+  if (date2.year == 2012 && date2.month == 10 && date2.day == 12 && date2.hour 
+      == 1 && date2.minute == 2 && date2.second == 3)
+    printf(", PASS\n");
+  else
+    printf(", FAIL\n");
   // time2 = 1 10 12
-  printf("time2 = %d %d %d\n", time2.hour, time2.minute, time2.second);
+  printf("time2 = %d %d %d", time2.hour, time2.minute, time2.second);
+  if (time2.hour == 1 && time2.minute == 10 && time2.second == 12)
+    printf(", PASS\n");
+  else
+    printf(", FAIL\n");
   // time3 = 1 10 12
-  printf("time3 = %d %d %d\n", time3.hour, time3.minute, time3.second);
+  printf("time3 = %d %d %d", time3.hour, time3.minute, time3.second);
+  if (time3.hour == 1 && time3.minute == 10 && time3.second == 12)
+    printf(", PASS\n");
+  else
+    printf(", FAIL\n");
 #endif
 
   return 0;

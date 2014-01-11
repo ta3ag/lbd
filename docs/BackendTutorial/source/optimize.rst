@@ -636,11 +636,11 @@ Chapter12_2/ include the changes for new instruction sets as follows,
       const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
       SDNode *Carry;
       if (Subtarget.hasCpu032II())
-        Carry = CurDAG->getMachineNode(Cpu0::SLTu, dl, VT, Ops);
+        Carry = CurDAG->getMachineNode(Cpu0::SLTu, DL, VT, Ops);
       else {
-        SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, dl, VT, Ops);
+        SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
         SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
-        Carry = CurDAG->getMachineNode(Cpu0::ANDi, dl, VT, 
+        Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
                                                SDValue(StatusWord,0), Constant1);
       }
       ...
