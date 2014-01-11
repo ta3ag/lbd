@@ -47,7 +47,7 @@ void start() {
 }
 
 // For memory IO
-extern "C" int putchar(const char c)
+extern "C" int putchar(int c)
 {
   char *p = (char*)OUT_MEM;
   *p = c;
