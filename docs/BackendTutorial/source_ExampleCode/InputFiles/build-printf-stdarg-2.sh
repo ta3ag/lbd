@@ -4,6 +4,8 @@ TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
 
 cpu=cpu032I
 
+bash rminput.sh
+
 clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
 clang -c ch9_4.cpp -emit-llvm -o ch9_4.bc
 clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o printf-stdarg.bc
