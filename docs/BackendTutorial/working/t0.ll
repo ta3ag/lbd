@@ -16,7 +16,7 @@ entry:
 ; CHECK: sw  $[[T3]], 0($[[T1]])
 
   %l1 = alloca i32, align 4
-  call void asm "sw $1, $0", "=*m,r"(i32* %l1, i32 %x) nounwind
+  call void asm "st $1, $0", "=*m,r"(i32* %l1, i32 %x) nounwind
   ret i32 0
 }
 
