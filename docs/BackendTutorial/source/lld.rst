@@ -934,6 +934,7 @@ for this purpose.
   date1 = 2013 1 26 12 21 10, PASS
   date2 = 2013 1 26 12 21 10, PASS
   test_template() = 15, PASS
+  test_inlineasm() = 27, PASS
   RET to PC < 0, finished!
 
 As above, take the open source code advantage, Cpu0 got the more stable printf() 

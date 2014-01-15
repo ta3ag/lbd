@@ -388,6 +388,94 @@ Run Chapter11_2 with ch11_2.cpp will get the following result.
   
   1-160-129-73:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch11_2.cpp -emit-llvm -o ch11_2.bc
+
+  1-160-129-73:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/
+  llvm-dis ch11_2.bc -o -
+  ; ModuleID = 'ch11_2.bc'
+  target datalayout = "E-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-
+  f32:32:32-f64:64:64-v64:64:64-n32-S64"
+  target triple = "mips-unknown-linux-gnu"
+  
+  @g = global [3 x i32] [i32 1, i32 2, i32 3], align 4
+  
+  ; Function Attrs: nounwind
+  define i32 @_Z14inlineasm_adduv() #0 {
+    %foo = alloca i32, align 4
+    %bar = alloca i32, align 4
+    store i32 10, i32* %foo, align 4
+    store i32 15, i32* %bar, align 4
+    %1 = load i32* %foo, align 4
+    %2 = load i32* %bar, align 4
+    %3 = call i32 asm sideeffect "addu $0,$1,$2", "=r,r,r"(i32 %1, i32 %2) #0, 
+    !srcloc !0
+    store i32 %3, i32* %foo, align 4
+    %4 = load i32* %foo, align 4
+    ret i32 %4
+  }
+  
+  ; Function Attrs: nounwind
+  define i32 @_Z13inlineasm_argii(i32 %u, i32 %v) #0 {
+    %1 = alloca i32, align 4
+    %2 = alloca i32, align 4
+    %w = alloca i32, align 4
+    store i32 %u, i32* %1, align 4
+    store i32 %v, i32* %2, align 4
+    %3 = load i32* %1, align 4
+    %4 = load i32* %2, align 4
+    %5 = call i32 asm sideeffect "subu $0,$1,$2", "=r,r,r"(i32 %3, i32 %4) #0, 
+    !srcloc !1
+    store i32 %5, i32* %w, align 4
+    %6 = load i32* %w, align 4
+    ret i32 %6
+  }
+  
+  ; Function Attrs: nounwind
+  define i32 @_Z16inlineasm_globalv() #0 {
+    %d = alloca i32, align 4
+    %1 = load i32* getelementptr inbounds ([3 x i32]* @g, i32 0, i32 2), align 4
+    %2 = call i32 asm sideeffect "addiu $0,$1,1", "=r,r"(i32 %1) #0, !srcloc !2
+    store i32 %2, i32* %d, align 4
+    %3 = load i32* %d, align 4
+    ret i32 %3
+  }
+  
+  ; Function Attrs: nounwind
+  define i32 @_Z14test_inlineasmv() #0 {
+    %a = alloca i32, align 4
+    %b = alloca i32, align 4
+    %c = alloca i32, align 4
+    %d = alloca i32, align 4
+    %e = alloca i32, align 4
+    %1 = call i32 @_Z14inlineasm_adduv()
+    store i32 %1, i32* %a, align 4
+    %2 = call i32 @_Z13inlineasm_argii(i32 1, i32 10)
+    store i32 %2, i32* %b, align 4
+    %3 = call i32 @_Z13inlineasm_argii(i32 6, i32 3)
+    store i32 %3, i32* %c, align 4
+    %4 = load i32* %c, align 4
+    %5 = call i32 asm sideeffect "addiu $0,$1,1", "=r,r"(i32 %4) #0, !srcloc !3
+    store i32 %5, i32* %d, align 4
+    %6 = call i32 @_Z16inlineasm_globalv()
+    store i32 %6, i32* %e, align 4
+    %7 = load i32* %a, align 4
+    %8 = load i32* %b, align 4
+    %9 = add nsw i32 %7, %8
+    %10 = load i32* %c, align 4
+    %11 = add nsw i32 %9, %10
+    %12 = load i32* %d, align 4
+    %13 = add nsw i32 %11, %12
+    %14 = load i32* %e, align 4
+    %15 = add nsw i32 %13, %14
+    ret i32 %15
+  }
+  
+  attributes #0 = { nounwind }
+  
+  !0 = metadata !{i32 397}
+  !1 = metadata !{i32 601}
+  !2 = metadata !{i32 808}
+  !3 = metadata !{i32 1499}
+
   1-160-129-73:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llc 
   -march=cpu0 -relocation-model=static -filetype=asm ch11_2.bc -o -
     .section .mdebug.abi32
@@ -534,6 +622,10 @@ Run Chapter11_2 with ch11_2.cpp will get the following result.
     .4byte  2                       # 0x2
     .4byte  3                       # 0x3
     .size g, 12
+
+The clang translate gcc style inline assembly __asm__  into llvm IR Inline 
+Assembler Expressions [#]_ and replace the variable registers of SSA form to 
+physical registers in llc register allocation stage.
 
 
 Verilog of CPU0
@@ -747,6 +839,8 @@ FPGA and wire I/O device to the I/O port.
 .. [#] http://www.embecosm.com/appnotes/ean10/ean10-howto-llvmas-1.0.html
 
 .. [#] http://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html
+
+.. [#] http://llvm.org/docs/LangRef.html#inline-assembler-expressions
 
 .. [#] http://www.ece.umd.edu/courses/enee359a/
 
