@@ -96,6 +96,10 @@ private:
     return CurDAG->getTargetConstant(Imm, Node->getValueType(0));
   }
   void InitGlobalBaseReg(MachineFunction &MF);
+
+  virtual bool SelectInlineAsmMemoryOperand(const SDValue &Op,
+                                            char ConstraintCode,
+                                            std::vector<SDValue> &OutOps);
 };
 }
 
@@ -315,6 +319,15 @@ SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
     DEBUG(ResNode->dump(CurDAG));
   DEBUG(errs() << "\n");
   return ResNode;
+}
+
+// lbd document - mark - inlineasm begin
+bool Cpu0DAGToDAGISel::
+SelectInlineAsmMemoryOperand(const SDValue &Op, char ConstraintCode,
+                             std::vector<SDValue> &OutOps) {
+  assert(ConstraintCode == 'm' && "unexpected asm memory constraint");
+  OutOps.push_back(Op);
+  return false;
 }
 
 /// createCpu0ISelDag - This pass converts a legalized DAG into a

@@ -58,6 +58,13 @@ public:
   virtual void EmitFunctionEntryLabel();
   virtual void EmitFunctionBodyStart();
   virtual void EmitFunctionBodyEnd();
+  bool PrintAsmOperand(const MachineInstr *MI, unsigned OpNo,
+                       unsigned AsmVariant, const char *ExtraCode,
+                       raw_ostream &O);
+  bool PrintAsmMemoryOperand(const MachineInstr *MI, unsigned OpNum,
+                             unsigned AsmVariant, const char *ExtraCode,
+                             raw_ostream &O);
+  void printOperand(const MachineInstr *MI, int opNum, raw_ostream &O);
   void EmitStartOfAsmFile(Module &M);
   virtual MachineLocation getDebugValueLocation(const MachineInstr *MI) const;
   void PrintDebugValueComment(const MachineInstr *MI, raw_ostream &OS);

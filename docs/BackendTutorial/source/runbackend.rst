@@ -319,6 +319,70 @@ chapter) to hide the $sw printed in these instructions (set $sw to implicit
 and not displayed, such as "jeq 20" rather than "jeq $sw, 20").
 
 
+Inline assembly
+------------------
+
+Run Chapter11_1 with ch11_2 will get the following error.
+
+.. rubric:: lbdex/InputFiles/ch11_2.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch11_2.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+  
+  1-160-129-73:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llc 
+  -march=cpu0 -relocation-model=static -filetype=asm ch11_2.bc -o -
+    .section .mdebug.abi32
+    .previous
+    .file "ch11_2.bc"
+  error: couldn't allocate output register for constraint 'r'
+
+The ch11_2.cpp is the inline assembly example. The clang support inline 
+assembly like gcc. The inline assembly is be used in C/C++ which need access 
+the allocated register or memory for the C/C++ variable. For example, the 
+variable foo of ch11_2.cpp can be allocated by compiler to register $2, $3 
+or other. The inline assembly fill the gap between high level language and 
+assembly language. Reference here [#]_. Chapter11_2 support inline assembly 
+as follows,
+
+.. rubric:: lbdex/Chapter11_2/Cpu0AsmPrinter.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.h
+    :start-after: virtual void EmitFunctionBodyEnd();
+    :end-before: void EmitStartOfAsmFile(Module &M);
+
+.. rubric:: lbdex/Chapter11_2/Cpu0AsmPrinter.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
+    :start-after: // Print out an operand for an inline asm expression.
+    :end-before: MachineLocation
+
+.. rubric:: lbdex/Chapter11_2/Cpu0InstrInfo.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.h
+    :start-after: bool KillSrc) const;
+    :end-before: virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
+
+.. rubric:: lbdex/Chapter11_2/Cpu0InstrInfo.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+    :start-after: /// Return the number of bytes of code the specified instruction may be.
+
+.. rubric:: lbdex/Chapter11_2/Cpu0ISelDAGToDAG.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
+    :start-after: void InitGlobalBaseReg(MachineFunction &MF);
+    :end-before: };
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
+    :start-after: // lbd document - mark - inlineasm begin
+    :end-before: /// createCpu0ISelDag - This pass converts a legalized DAG into a
+
+.. rubric:: lbdex/Chapter11_2/Cpu0ISelLowering.h
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
+    :start-after: SDLoc DL, SelectionDAG &DAG) const;
+    :end-before: virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
+
+.. rubric:: lbdex/Chapter11_2/Cpu0ISelLowering.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: // lbd document - mark - inlineasm begin
+    :end-before: bool // lbd document - mark - isOffsetFoldingLegal
+
+
 Verilog of CPU0
 ------------------
 
@@ -528,6 +592,8 @@ FPGA and wire I/O device to the I/O port.
 
 
 .. [#] http://www.embecosm.com/appnotes/ean10/ean10-howto-llvmas-1.0.html
+
+.. [#] http://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html
 
 .. [#] http://www.ece.umd.edu/courses/enee359a/
 

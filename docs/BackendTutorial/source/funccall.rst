@@ -1531,7 +1531,7 @@ The LowerReturn() modified in Chapter9_3/ as follows,
     :end-before: // structure return begin
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
     :start-after: // structure return end
-    :end-before: // lbd document - mark - isOffsetFoldingLegal
+    :end-before: //===----------------------------------------------------------------------===//
 
 The LowerReturn work with RET defined in Chapter3_4 as follows,
 

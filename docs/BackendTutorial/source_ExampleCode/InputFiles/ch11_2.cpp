@@ -1,5 +1,6 @@
 // clang -target mips-unknown-linux-gnu -c ch11_2.cpp -emit-llvm -o ch11_2.bc
-// /usr/local/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm 2.bc -o -
+// ~/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch11_2.bc -o -
+// /usr/local/llvm/test/cmake_debug_build/bin/llc -march=cpu0 -relocation-model=static -filetype=asm ch11_2.bc -o -
 
 /// start
 int inlineasm_addu(void)
@@ -63,18 +64,18 @@ int test_inlineasm()
   int a, b, c, d, e;
 
   a = inlineasm_addu(); // 25
-  printf("a = %d\n", a);
+//  printf("a = %d\n", a);
   b = inlineasm_arg(1, 10); // -9
-  printf("b = %d\n", b);
+//  printf("b = %d\n", b);
   c = inlineasm_arg(6, 3); // 3
-  printf("c = %d\n", c);
+//  printf("c = %d\n", c);
   __asm__ __volatile__("addiu %0,%1,1"
                        :"=r"(d) // d=4
                        :"r"(c)
                        );
-  printf("d = %d\n", d);
+//  printf("d = %d\n", d);
   e = inlineasm_global(); // 4
-  printf("e = %d\n", e);
+//  printf("e = %d\n", e);
 
   return (a+b+c+d+e); // 25-9+3+4+4=27
 }

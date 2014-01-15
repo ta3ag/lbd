@@ -41,6 +41,9 @@ public:
                            unsigned DestReg, unsigned SrcReg,
                            bool KillSrc) const;
 
+  /// Return the number of bytes of code the specified instruction may be.
+  unsigned GetInstSizeInBytes(const MachineInstr *MI) const;
+
   virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
                                    MachineBasicBlock::iterator MBBI,
                                    unsigned SrcReg, bool isKill, int FrameIndex,

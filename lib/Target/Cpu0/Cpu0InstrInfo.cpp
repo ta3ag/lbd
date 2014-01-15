@@ -153,3 +153,17 @@ void Cpu0InstrInfo::ExpandRetLR(MachineBasicBlock &MBB,
                                 unsigned Opc) const {
   BuildMI(MBB, I, I->getDebugLoc(), get(Opc)).addReg(Cpu0::LR);
 }
+
+/// Return the number of bytes of code the specified instruction may be.
+unsigned Cpu0InstrInfo::GetInstSizeInBytes(const MachineInstr *MI) const {
+  switch (MI->getOpcode()) {
+  default:
+    return MI->getDesc().getSize();
+  case  TargetOpcode::INLINEASM: {       // Inline Asm: Variable size.
+    const MachineFunction *MF = MI->getParent()->getParent();
+    const char *AsmStr = MI->getOperand(0).getSymbolName();
+    return getInlineAsmLength(AsmStr, *MF->getTarget().getMCAsmInfo());
+  }
+  }
+}
+
