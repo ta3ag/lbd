@@ -338,8 +338,8 @@ Run Chapter11_1 with ch11_2 will get the following error.
   error: couldn't allocate output register for constraint 'r'
 
 The ch11_2.cpp is the inline assembly example. The clang support inline 
-assembly like gcc. The inline assembly is be used in C/C++ which need access 
-the allocated register or memory for the C/C++ variable. For example, the 
+assembly like gcc. The inline assembly used in C/C++ when need access the 
+specific allocated register or memory for the C/C++ variable. For example, the 
 variable foo of ch11_2.cpp can be allocated by compiler to register $2, $3 
 or other. The inline assembly fill the gap between high level language and 
 assembly language. Reference here [#]_. Chapter11_2 support inline assembly 
@@ -381,6 +381,159 @@ as follows,
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
     :start-after: // lbd document - mark - inlineasm begin
     :end-before: bool // lbd document - mark - isOffsetFoldingLegal
+
+Run Chapter11_2 with ch11_2.cpp will get the following result.
+
+.. code-block:: bash
+  
+  1-160-129-73:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch11_2.cpp -emit-llvm -o ch11_2.bc
+  1-160-129-73:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llc 
+  -march=cpu0 -relocation-model=static -filetype=asm ch11_2.bc -o -
+    .section .mdebug.abi32
+    .previous
+    .file "ch11_2.bc"
+    .text
+    .globl  _Z14inlineasm_adduv
+    .align  2
+    .type _Z14inlineasm_adduv,@function
+    .ent  _Z14inlineasm_adduv     # @_Z14inlineasm_adduv
+  _Z14inlineasm_adduv:
+    .frame  $sp,8,$lr
+    .mask   0x00000000,0
+    .set  noreorder
+    .set  nomacro
+  # BB#0:
+    addiu $sp, $sp, -8
+    addiu $2, $zero, 10
+    st  $2, 4($sp)
+    addiu $2, $zero, 15
+    st  $2, 0($sp)
+    ld  $3, 4($sp)
+    #APP
+    addu $2,$3,$2
+    #NO_APP
+    st  $2, 4($sp)
+    addiu $sp, $sp, 8
+    ret $lr
+    .set  macro
+    .set  reorder
+    .end  _Z14inlineasm_adduv
+  $tmp1:
+    .size _Z14inlineasm_adduv, ($tmp1)-_Z14inlineasm_adduv
+  
+    .globl  _Z13inlineasm_argii
+    .align  2
+    .type _Z13inlineasm_argii,@function
+    .ent  _Z13inlineasm_argii     # @_Z13inlineasm_argii
+  _Z13inlineasm_argii:
+    .frame  $sp,16,$lr
+    .mask   0x00000000,0
+    .set  noreorder
+    .set  nomacro
+  # BB#0:
+    addiu $sp, $sp, -16
+    ld  $2, 16($sp)
+    st  $2, 12($sp)
+    ld  $2, 20($sp)
+    st  $2, 8($sp)
+    ld  $3, 12($sp)
+    #APP
+    subu $2,$3,$2
+    #NO_APP
+    st  $2, 4($sp)
+    addiu $sp, $sp, 16
+    ret $lr
+    .set  macro
+    .set  reorder
+    .end  _Z13inlineasm_argii
+  $tmp3:
+    .size _Z13inlineasm_argii, ($tmp3)-_Z13inlineasm_argii
+  
+    .globl  _Z16inlineasm_globalv
+    .align  2
+    .type _Z16inlineasm_globalv,@function
+    .ent  _Z16inlineasm_globalv   # @_Z16inlineasm_globalv
+  _Z16inlineasm_globalv:
+    .frame  $sp,8,$lr
+    .mask   0x00000000,0
+    .set  noreorder
+    .set  nomacro
+  # BB#0:
+    addiu $sp, $sp, -8
+    lui $2, %hi(g)
+    addiu $2, $2, %lo(g)
+    ld  $2, 8($2)
+    #APP
+    addiu $2,$2,1
+    #NO_APP
+    st  $2, 4($sp)
+    addiu $sp, $sp, 8
+    ret $lr
+    .set  macro
+    .set  reorder
+    .end  _Z16inlineasm_globalv
+  $tmp5:
+    .size _Z16inlineasm_globalv, ($tmp5)-_Z16inlineasm_globalv
+  
+    .globl  _Z14test_inlineasmv
+    .align  2
+    .type _Z14test_inlineasmv,@function
+    .ent  _Z14test_inlineasmv     # @_Z14test_inlineasmv
+  _Z14test_inlineasmv:
+    .frame  $sp,40,$lr
+    .mask   0x00004000,-4
+    .set  noreorder
+    .set  nomacro
+  # BB#0:
+    addiu $sp, $sp, -40
+    st  $lr, 36($sp)            # 4-byte Folded Spill
+    jsub  _Z14inlineasm_adduv
+    st  $2, 32($sp)
+    addiu $2, $zero, 10
+    st  $2, 4($sp)
+    addiu $2, $zero, 1
+    st  $2, 0($sp)
+    jsub  _Z13inlineasm_argii
+    st  $2, 28($sp)
+    addiu $2, $zero, 3
+    st  $2, 4($sp)
+    addiu $2, $zero, 6
+    st  $2, 0($sp)
+    jsub  _Z13inlineasm_argii
+    st  $2, 24($sp)
+    #APP
+    addiu $2,$2,1
+    #NO_APP
+    st  $2, 20($sp)
+    jsub  _Z16inlineasm_globalv
+    st  $2, 16($sp)
+    ld  $3, 28($sp)
+    ld  $4, 32($sp)
+    addu  $3, $4, $3
+    ld  $4, 24($sp)
+    addu  $3, $3, $4
+    ld  $4, 20($sp)
+    addu  $3, $3, $4
+    addu  $2, $3, $2
+    ld  $lr, 36($sp)            # 4-byte Folded Reload
+    addiu $sp, $sp, 40
+    ret $lr
+    .set  macro
+    .set  reorder
+    .end  _Z14test_inlineasmv
+  $tmp8:
+    .size _Z14test_inlineasmv, ($tmp8)-_Z14test_inlineasmv
+  
+    .type g,@object               # @g
+    .data
+    .globl  g
+    .align  2
+  g:
+    .4byte  1                       # 0x1
+    .4byte  2                       # 0x2
+    .4byte  3                       # 0x3
+    .size g, 12
 
 
 Verilog of CPU0
