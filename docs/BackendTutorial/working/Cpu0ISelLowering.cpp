@@ -831,6 +831,21 @@ getConstraintType(const std::string &Constraint) const
   if (Constraint.size() == 1) {
     switch (Constraint[0]) {
       default : break;
+#if 0
+      case 'd':
+      case 'y':
+      case 'f':
+#endif
+      case 'c':
+#if 0
+      case 'l':
+      case 'x':
+#endif
+        return C_RegisterClass;
+#if 1
+      case 'R':
+        return C_Memory;
+#endif
     }
   }
   return TargetLowering::getConstraintType(Constraint);
@@ -854,14 +869,18 @@ Cpu0TargetLowering::getSingleConstraintMatchWeight(
   default:
     weight = TargetLowering::getSingleConstraintMatchWeight(info, constraint);
     break;
+#if 0
   case 'd':
   case 'y':
     if (type->isIntegerTy())
       weight = CW_Register;
     break;
+#endif
   case 'c': // $25 for indirect jumps
+#if 0
   case 'l': // lo register
   case 'x': // hilo register pair
+#endif
     if (type->isIntegerTy())
       weight = CW_SpecificReg;
     break;
@@ -918,44 +937,10 @@ parseRegForInlineAsmConstraint(const StringRef &C, MVT VT) const {
 
   if (!R.first)
     return std::make_pair((unsigned)0, (const TargetRegisterClass*)0);
-#if 0
-  if ((Prefix == "hi" || Prefix == "lo")) { // Parse hi/lo.
-    // No numeric characters follow "hi" or "lo".
-    if (R.second)
-      return std::make_pair((unsigned)0, (const TargetRegisterClass*)0);
-
-    RC = TRI->getRegClass(Prefix == "hi" ?
-                          Cpu0::HI32RegClassID : Cpu0::LO32RegClassID);
-    return std::make_pair(*(RC->begin()), RC);
-  } else if (Prefix.compare(0, 4, "$msa") == 0) {
-    // Parse $msa(ir|csr|access|save|modify|request|map|unmap)
-
-    // No numeric characters follow the name.
-    if (R.second)
-      return std::make_pair((unsigned)0, (const TargetRegisterClass *)0);
-
-    Reg = StringSwitch<unsigned long long>(Prefix)
-              .Case("$msair", Cpu0::MSAIR)
-              .Case("$msacsr", Cpu0::MSACSR)
-              .Case("$msaaccess", Cpu0::MSAAccess)
-              .Case("$msasave", Cpu0::MSASave)
-              .Case("$msamodify", Cpu0::MSAModify)
-              .Case("$msarequest", Cpu0::MSARequest)
-              .Case("$msamap", Cpu0::MSAMap)
-              .Case("$msaunmap", Cpu0::MSAUnmap)
-              .Default(0);
-
-    if (!Reg)
-      return std::make_pair((unsigned)0, (const TargetRegisterClass *)0);
-
-    RC = TRI->getRegClass(Cpu0::MSACtrlRegClassID);
-    return std::make_pair(Reg, RC);
-  }
-#endif
   if (!R.second)
     return std::make_pair((unsigned)0, (const TargetRegisterClass*)0);
 
- // Parse $0-$31.
+ // Parse $0-$15.
   assert(Prefix == "$");
   RC = getRegClassFor((VT == MVT::Other) ? MVT::i32 : VT);
 
@@ -979,6 +964,10 @@ getRegForInlineAsmConstraint(const std::string &Constraint, MVT VT) const
         return std::make_pair(0U, &Cpu0::CPURegsRegClass);
       // This will generate an error message
       return std::make_pair(0u, static_cast<const TargetRegisterClass*>(0));
+    case 'c': // register suitable for indirect jump
+      if (VT == MVT::i32)
+        return std::make_pair((unsigned)Cpu0::T9, &Cpu0::CPURegsRegClass);
+      assert("Unexpected type.");
     }
   }
 
