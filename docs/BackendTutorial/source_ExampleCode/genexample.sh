@@ -59,8 +59,11 @@ cp -rf Chapter10_1 ${GEN_DIR}/.
 patch -fp0 < 11-1.patch
 mv Chapter10_1 Chapter11_1
 cp -rf Chapter11_1 ${GEN_DIR}/.
+patch -fp0 < 11-2.patch
+mv Chapter11_1 Chapter11_2
+cp -rf Chapter11_2 ${GEN_DIR}/.
 patch -fp0 < 12-1.patch
-mv Chapter11_1 Chapter12_1
+mv Chapter11_2 Chapter12_1
 cp -rf Chapter12_1 ${GEN_DIR}/.
 patch -fp0 < 12-2.patch
 mv Chapter12_1 Chapter12_2

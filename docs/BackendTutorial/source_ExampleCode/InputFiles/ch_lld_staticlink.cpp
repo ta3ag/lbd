@@ -34,6 +34,12 @@ int test_staticlink()
     printf(", PASS\n");
   else
     printf(", FAIL\n");
+  a = test_inlineasm();
+  printf("test_inlineasm() = %d", a); // a = 27
+  if (a == 27)
+    printf(", PASS\n");
+  else
+    printf(", FAIL\n");
 
   return 0;
 }

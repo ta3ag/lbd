@@ -831,21 +831,10 @@ getConstraintType(const std::string &Constraint) const
   if (Constraint.size() == 1) {
     switch (Constraint[0]) {
       default : break;
-#if 0
-      case 'd':
-      case 'y':
-      case 'f':
-#endif
       case 'c':
-#if 0
-      case 'l':
-      case 'x':
-#endif
         return C_RegisterClass;
-#if 1
       case 'R':
         return C_Memory;
-#endif
     }
   }
   return TargetLowering::getConstraintType(Constraint);
@@ -869,18 +858,7 @@ Cpu0TargetLowering::getSingleConstraintMatchWeight(
   default:
     weight = TargetLowering::getSingleConstraintMatchWeight(info, constraint);
     break;
-#if 0
-  case 'd':
-  case 'y':
-    if (type->isIntegerTy())
-      weight = CW_Register;
-    break;
-#endif
   case 'c': // $25 for indirect jumps
-#if 0
-  case 'l': // lo register
-  case 'x': // hilo register pair
-#endif
     if (type->isIntegerTy())
       weight = CW_SpecificReg;
     break;

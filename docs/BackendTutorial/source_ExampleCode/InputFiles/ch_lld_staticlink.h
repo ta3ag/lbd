@@ -14,3 +14,4 @@ extern int test_staticlink();
 #include "ch9_2_1.cpp"
 #include "ch9_2_2.cpp"
 #include "ch9_3_2.cpp"
+#include "ch11_2.cpp"
