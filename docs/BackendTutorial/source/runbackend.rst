@@ -337,11 +337,11 @@ Run Chapter11_1 with ch11_2 will get the following error.
     .file "ch11_2.bc"
   error: couldn't allocate output register for constraint 'r'
 
-The ch11_2.cpp is the inline assembly example. The clang support inline 
+The ch11_2.cpp is a inline assembly example. The clang support inline 
 assembly like gcc. The inline assembly used in C/C++ when need access the 
 specific allocated register or memory for the C/C++ variable. For example, the 
 variable foo of ch11_2.cpp can be allocated by compiler to register $2, $3 
-or other. The inline assembly fill the gap between high level language and 
+or other. The inline assembly fills the gap between high level language and 
 assembly language. Reference here [#]_. Chapter11_2 support inline assembly 
 as follows,
 
