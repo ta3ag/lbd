@@ -1,7 +1,7 @@
 diff -Naur Chapter11_1/Cpu0AsmPrinter.cpp Chapter11_2/Cpu0AsmPrinter.cpp
---- Chapter11_1/Cpu0AsmPrinter.cpp	2014-01-15 21:20:04.000000000 +0800
-+++ Chapter11_2/Cpu0AsmPrinter.cpp	2014-01-15 21:20:04.000000000 +0800
-@@ -289,6 +289,187 @@
+--- Chapter11_1/Cpu0AsmPrinter.cpp	2014-01-16 23:01:01.000000000 +0800
++++ Chapter11_2/Cpu0AsmPrinter.cpp	2014-01-16 22:57:30.000000000 +0800
+@@ -289,6 +289,140 @@
      OutStreamer.EmitRawText(StringRef("\t.previous"));
  }
  
@@ -49,50 +49,6 @@ diff -Naur Chapter11_1/Cpu0AsmPrinter.cpp Chapter11_2/Cpu0AsmPrinter.cpp
 +        O << "$0";
 +      return false;
 +    }
-+    case 'D': // Second part of a double word register operand
-+    case 'L': // Low order register of a double word register operand
-+    case 'M': // High order register of a double word register operand
-+    {
-+      if (OpNum == 0)
-+        return true;
-+      const MachineOperand &FlagsOP = MI->getOperand(OpNum - 1);
-+      if (!FlagsOP.isImm())
-+        return true;
-+      unsigned Flags = FlagsOP.getImm();
-+      unsigned NumVals = InlineAsm::getNumOperandRegisters(Flags);
-+      // Number of registers represented by this operand. We are looking
-+      // for 2 for 32 bit mode.
-+      if (NumVals != 2) {
-+        return true;
-+      }
-+
-+      unsigned RegOp = OpNum;
-+      // Endianess reverses which register holds the high or low value
-+      // between M and L.
-+      switch(ExtraCode[0]) {
-+      case 'M':
-+        RegOp = (Subtarget->isLittle()) ? OpNum + 1 : OpNum;
-+        break;
-+      case 'L':
-+        RegOp = (Subtarget->isLittle()) ? OpNum : OpNum + 1;
-+        break;
-+      case 'D': // Always the second part
-+        RegOp = OpNum + 1;
-+      }
-+      if (RegOp >= MI->getNumOperands())
-+        return true;
-+      const MachineOperand &MO = MI->getOperand(RegOp);
-+      if (!MO.isReg())
-+        return true;
-+      unsigned Reg = MO.getReg();
-+      O << '$' << Cpu0InstPrinter::getRegisterName(Reg);
-+      return false;
-+    }
-+    case 'w':
-+      // Print MSA registers for the 'f' constraint
-+      // In LLVM, the 'w' modifier doesn't need to do anything.
-+      // We can just call printOperand as normal.
-+      break;
 +    }
 +  }
 +
@@ -107,10 +63,7 @@ diff -Naur Chapter11_1/Cpu0AsmPrinter.cpp Chapter11_2/Cpu0AsmPrinter.cpp
 +  int Offset = 0;
 +  // Currently we are expecting either no ExtraCode or 'D'
 +  if (ExtraCode) {
-+    if (ExtraCode[0] == 'D')
-+      Offset = 4;
-+    else
-+      return true; // Unknown modifier.
++    return true; // Unknown modifier.
 +  }
 +
 +  const MachineOperand &MO = MI->getOperand(OpNum);
@@ -190,8 +143,8 @@ diff -Naur Chapter11_1/Cpu0AsmPrinter.cpp Chapter11_2/Cpu0AsmPrinter.cpp
  Cpu0AsmPrinter::getDebugValueLocation(const MachineInstr *MI) const {
    // Handles frame addresses emitted in Cpu0InstrInfo::emitFrameIndexDebugValue.
 diff -Naur Chapter11_1/Cpu0AsmPrinter.h Chapter11_2/Cpu0AsmPrinter.h
---- Chapter11_1/Cpu0AsmPrinter.h	2014-01-15 21:20:04.000000000 +0800
-+++ Chapter11_2/Cpu0AsmPrinter.h	2014-01-15 21:20:04.000000000 +0800
+--- Chapter11_1/Cpu0AsmPrinter.h	2014-01-16 23:01:01.000000000 +0800
++++ Chapter11_2/Cpu0AsmPrinter.h	2014-01-16 23:01:01.000000000 +0800
 @@ -58,6 +58,13 @@
    virtual void EmitFunctionEntryLabel();
    virtual void EmitFunctionBodyStart();
@@ -207,8 +160,8 @@ diff -Naur Chapter11_1/Cpu0AsmPrinter.h Chapter11_2/Cpu0AsmPrinter.h
    virtual MachineLocation getDebugValueLocation(const MachineInstr *MI) const;
    void PrintDebugValueComment(const MachineInstr *MI, raw_ostream &OS);
 diff -Naur Chapter11_1/Cpu0ISelDAGToDAG.cpp Chapter11_2/Cpu0ISelDAGToDAG.cpp
---- Chapter11_1/Cpu0ISelDAGToDAG.cpp	2014-01-15 21:20:04.000000000 +0800
-+++ Chapter11_2/Cpu0ISelDAGToDAG.cpp	2014-01-15 22:17:14.000000000 +0800
+--- Chapter11_1/Cpu0ISelDAGToDAG.cpp	2014-01-16 23:01:01.000000000 +0800
++++ Chapter11_2/Cpu0ISelDAGToDAG.cpp	2014-01-16 23:01:01.000000000 +0800
 @@ -96,6 +96,10 @@
      return CurDAG->getTargetConstant(Imm, Node->getValueType(0));
    }
@@ -237,8 +190,8 @@ diff -Naur Chapter11_1/Cpu0ISelDAGToDAG.cpp Chapter11_2/Cpu0ISelDAGToDAG.cpp
  /// CPU0-specific DAG, ready for instruction scheduling.
  FunctionPass *llvm::createCpu0ISelDag(Cpu0TargetMachine &TM) {
 diff -Naur Chapter11_1/Cpu0ISelLowering.cpp Chapter11_2/Cpu0ISelLowering.cpp
---- Chapter11_1/Cpu0ISelLowering.cpp	2014-01-15 21:20:04.000000000 +0800
-+++ Chapter11_2/Cpu0ISelLowering.cpp	2014-01-15 22:15:28.000000000 +0800
+--- Chapter11_1/Cpu0ISelLowering.cpp	2014-01-16 23:01:01.000000000 +0800
++++ Chapter11_2/Cpu0ISelLowering.cpp	2014-01-15 22:29:03.000000000 +0800
 @@ -818,6 +818,260 @@
    // Return on Cpu0 is always a "ret $lr"
    return DAG.getNode(Cpu0ISD::Ret, DL, MVT::Other, &RetOps[0], RetOps.size());
@@ -501,8 +454,8 @@ diff -Naur Chapter11_1/Cpu0ISelLowering.cpp Chapter11_2/Cpu0ISelLowering.cpp
  bool // lbd document - mark - isOffsetFoldingLegal
  Cpu0TargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
 diff -Naur Chapter11_1/Cpu0ISelLowering.h Chapter11_2/Cpu0ISelLowering.h
---- Chapter11_1/Cpu0ISelLowering.h	2014-01-15 21:20:04.000000000 +0800
-+++ Chapter11_2/Cpu0ISelLowering.h	2014-01-15 21:20:04.000000000 +0800
+--- Chapter11_1/Cpu0ISelLowering.h	2014-01-16 23:01:01.000000000 +0800
++++ Chapter11_2/Cpu0ISelLowering.h	2014-01-16 23:01:01.000000000 +0800
 @@ -120,6 +120,34 @@
                    const SmallVectorImpl<SDValue> &OutVals,
                    SDLoc DL, SelectionDAG &DAG) const;
@@ -539,8 +492,8 @@ diff -Naur Chapter11_1/Cpu0ISelLowering.h Chapter11_2/Cpu0ISelLowering.h
    };
  }
 diff -Naur Chapter11_1/Cpu0InstrInfo.cpp Chapter11_2/Cpu0InstrInfo.cpp
---- Chapter11_1/Cpu0InstrInfo.cpp	2014-01-15 21:20:04.000000000 +0800
-+++ Chapter11_2/Cpu0InstrInfo.cpp	2014-01-15 21:20:04.000000000 +0800
+--- Chapter11_1/Cpu0InstrInfo.cpp	2014-01-16 23:01:01.000000000 +0800
++++ Chapter11_2/Cpu0InstrInfo.cpp	2014-01-16 23:01:01.000000000 +0800
 @@ -148,3 +148,17 @@
                                  unsigned Opc) const {
    BuildMI(MBB, I, I->getDebugLoc(), get(Opc)).addReg(Cpu0::LR);
@@ -560,8 +513,8 @@ diff -Naur Chapter11_1/Cpu0InstrInfo.cpp Chapter11_2/Cpu0InstrInfo.cpp
 +}
 +
 diff -Naur Chapter11_1/Cpu0InstrInfo.h Chapter11_2/Cpu0InstrInfo.h
---- Chapter11_1/Cpu0InstrInfo.h	2014-01-15 21:20:04.000000000 +0800
-+++ Chapter11_2/Cpu0InstrInfo.h	2014-01-15 21:20:04.000000000 +0800
+--- Chapter11_1/Cpu0InstrInfo.h	2014-01-16 23:01:01.000000000 +0800
++++ Chapter11_2/Cpu0InstrInfo.h	2014-01-16 23:01:01.000000000 +0800
 @@ -41,6 +41,9 @@
                             unsigned DestReg, unsigned SrcReg,
                             bool KillSrc) const;

@@ -382,6 +382,20 @@ as follows,
     :start-after: // lbd document - mark - inlineasm begin
     :end-before: bool // lbd document - mark - isOffsetFoldingLegal
 
+Same as backend structure above inline assembly functions can divide by file 
+name as Table: inline assembly functions.
+
+.. table:: inline assembly functions
+
+  =============================  ================================== 
+  File                           Function 
+  =============================  ================================== 
+  Cpu0ISelLowering.cpp           inline asm DAG node create
+  Cpu0IselDAGToDAG.cpp           inline asm DAG node selection 
+  Cpu0AsmPrinter.cpp,            inline asm instructions printing    
+  Cpu0InstrInfo.cpp              -                              
+  =============================  ================================== 
+  
 Run Chapter11_2 with ch11_2.cpp will get the following result.
 
 .. code-block:: bash
@@ -625,7 +639,39 @@ Run Chapter11_2 with ch11_2.cpp will get the following result.
 
 The clang translate gcc style inline assembly __asm__  into llvm IR Inline 
 Assembler Expressions [#]_ and replace the variable registers of SSA form to 
-physical registers in llc register allocation stage.
+physical registers in llc register allocation stage. From above example, 
+functions LowerAsmOperandForConstraint() and getSingleConstraintMatchWeight() 
+of Cpu0ISelLowering.cpp will create different range of const operand or 
+register operand by the I, J, K, L, N, O, P or r. For instance, the 
+
+.. code-block:: c++
+
+  __asm__ __volatile__("addiu %0,%1,%2"
+                       :"=r"(foo) // 15
+                       :"r"(foo), "I"(n_5)
+                       );
+
+  %2 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,I"(i32 %1, i32 -5) #0, !srcloc !1
+
+  __asm__ __volatile__("addiu %0,%1,%2"
+                       :"=r"(foo) // 15
+                       :"r"(foo), "N"(n_65531)
+                       );
+
+  %10 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,N"(i32 %9, i32 -65531) #0, !srcloc !5
+  
+  __asm__ __volatile__("addiu %0,%1,%2"
+                       :"=r"(foo) // 15
+                       :"r"(foo), "P"(un5)
+                       );
+
+  %14 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,P"(i32 %13, i32 5) #0, !srcloc !7
+
+The r in __asm__ will generate register (%1 for example) in llvm IR asm while I 
+in __asm__ will generate const operand (-5 for example) in llvm IR asm. Remind, 
+the LowerAsmOperandForConstraint() limit the positive or negative const operand 
+value range to 16 bits. The N is -65535 to -1 and P is 65535 to 1. Any out of 
+value the code in LowerAsmOperandForConstraint() will make it as error.
 
 
 Verilog of CPU0

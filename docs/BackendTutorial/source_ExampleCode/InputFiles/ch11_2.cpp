@@ -64,11 +64,6 @@ int inlineasm_addiu(void)
                        :"r"(foo), "P"(un5)
                        );
 
-  __asm__ __volatile__("addiu %0,%1,%2"
-                       :"=r"(foo) // 10
-                       :"r"(foo), "n"(n_5)
-                       );
-
   return foo;
 }
 
@@ -140,6 +135,6 @@ int test_inlineasm()
   printf("e=%d\n", e);
   f = inlineasm_global(); // 4
   printf("f=%d\n", f);
-  return (a+b+c+d+e+f); // 25+10-9+3+4+4=37
+  return (a+b+c+d+e+f); // 25+15-9+3+4+4=42
 }
 
