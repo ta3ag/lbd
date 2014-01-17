@@ -68,7 +68,7 @@ int inlineasm_constraint(void)
                        );
 
   __asm__ __volatile__("ori %0,%1,%2"
-                       :"=r"(foo) // 65546
+                       :"=r"(foo) // 10
                        :"r"(foo), "L"(n65536) // 0x10000 = 65536
                        );
 

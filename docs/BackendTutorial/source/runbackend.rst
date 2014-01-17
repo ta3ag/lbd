@@ -513,7 +513,8 @@ Run Chapter11_2 with ch11_2.cpp will get the following result.
     store i32 %v, i32* %2, align 4
     %3 = load i32* %1, align 4
     %4 = load i32* %2, align 4
-    %5 = call i32 asm sideeffect "subu $0,$1,$2", "=r,r,r"(i32 %3, i32 %4) #1, !srcloc !11
+    %5 = call i32 asm sideeffect "subu $0,$1,$2", "=r,r,r"(i32 %3, i32 %4) #1, 
+    !srcloc !11
     store i32 %5, i32* %w, align 4
     %6 = load i32* %w, align 4
     ret i32 %6
@@ -523,7 +524,8 @@ Run Chapter11_2 with ch11_2.cpp will get the following result.
   define i32 @_Z16inlineasm_globalv() #0 {
     %c = alloca i32, align 4
     %d = alloca i32, align 4
-    %1 = call i32 asm sideeffect "ld $0,$1", "=r,*m"(i32* getelementptr inbounds ([3 x i32]* @g, i32 0, i32 2)) #1, !srcloc !12
+    %1 = call i32 asm sideeffect "ld $0,$1", "=r,*m"(i32* getelementptr inbounds 
+    ([3 x i32]* @g, i32 0, i32 2)) #1, !srcloc !12
     store i32 %1, i32* %c, align 4
     %2 = load i32* %c, align 4
     %3 = call i32 asm sideeffect "addiu $0,$1,1", "=r,r"(i32 %2) #1, !srcloc !13
