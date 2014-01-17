@@ -382,7 +382,7 @@ as follows,
     :start-after: // lbd document - mark - inlineasm begin
     :end-before: bool // lbd document - mark - isOffsetFoldingLegal
 
-Same as backend structure above inline assembly functions can divide by file 
+Same with backend structure inline assembly functions can be divided by file 
 name as Table: inline assembly functions.
 
 .. table:: inline assembly functions
@@ -391,10 +391,17 @@ name as Table: inline assembly functions.
   File                           Function 
   =============================  ================================== 
   Cpu0ISelLowering.cpp           inline asm DAG node create
-  Cpu0IselDAGToDAG.cpp           inline asm DAG node selection 
+  Cpu0ISelDAGToDAG.cpp           save OP code 
   Cpu0AsmPrinter.cpp,            inline asm instructions printing    
   Cpu0InstrInfo.cpp              -                              
   =============================  ================================== 
+
+Except Cpu0ISelDAGToDAG.cpp, the others function are same with backend. 
+The Cpu0ISelLowering.cpp inline asm is explained after the ch11_2.cpp 
+running result. Cpu0ISelDAGToDAG.cpp just save OP code in 
+SelectInlineAsmMemoryOperand(). Since the the OP code is Cpu0 inline 
+assembly instruction, no llvm IR DAG translation needed further. Save OP 
+directly and return false to notiy llvm system that Cpu0 backend has handled it.
   
 Run Chapter11_2 with ch11_2.cpp will get the following result.
 
@@ -405,13 +412,11 @@ Run Chapter11_2 with ch11_2.cpp will get the following result.
 
   1-160-129-73:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/
   llvm-dis ch11_2.bc -o -
-  ; ModuleID = 'ch11_2.bc'
-  target datalayout = "E-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:64:64-
-  f32:32:32-f64:64:64-v64:64:64-n32-S64"
+  ...
   target triple = "mips-unknown-linux-gnu"
-  
+
   @g = global [3 x i32] [i32 1, i32 2, i32 3], align 4
-  
+
   ; Function Attrs: nounwind
   define i32 @_Z14inlineasm_adduv() #0 {
     %foo = alloca i32, align 4
@@ -419,14 +424,86 @@ Run Chapter11_2 with ch11_2.cpp will get the following result.
     store i32 10, i32* %foo, align 4
     store i32 15, i32* %bar, align 4
     %1 = load i32* %foo, align 4
-    %2 = load i32* %bar, align 4
-    %3 = call i32 asm sideeffect "addu $0,$1,$2", "=r,r,r"(i32 %1, i32 %2) #0, 
-    !srcloc !0
-    store i32 %3, i32* %foo, align 4
-    %4 = load i32* %foo, align 4
-    ret i32 %4
+    %2 = call i32 asm sideeffect "addu $0,$1,$2", "=r,r,r"(i32 %1, i32 15) #1, 
+    !srcloc !1
+    store i32 %2, i32* %foo, align 4
+    %3 = load i32* %foo, align 4
+    ret i32 %3
   }
-  
+
+  ; Function Attrs: nounwind
+  define i32 @_Z18inlineasm_longlongv() #0 {
+    %a = alloca i32, align 4
+    %b = alloca i32, align 4
+    %bar = alloca i64, align 8
+    %p = alloca i32*, align 4
+    %q = alloca i32*, align 4
+    store i64 21474836486, i64* %bar, align 8
+    %1 = bitcast i64* %bar to i32*
+    store i32* %1, i32** %p, align 4
+    %2 = load i32** %p, align 4
+    %3 = call i32 asm sideeffect "ld $0,$1", "=r,*m"(i32* %2) #1, !srcloc !2
+    store i32 %3, i32* %a, align 4
+    %4 = load i32** %p, align 4
+    %5 = getelementptr inbounds i32* %4, i32 1
+    store i32* %5, i32** %q, align 4
+    %6 = load i32** %q, align 4
+    %7 = call i32 asm sideeffect "ld $0,$1", "=r,*m"(i32* %6) #1, !srcloc !3
+    store i32 %7, i32* %b, align 4
+    %8 = load i32* %a, align 4
+    %9 = load i32* %b, align 4
+    %10 = add nsw i32 %8, %9
+    ret i32 %10
+  }
+
+  ; Function Attrs: nounwind
+  define i32 @_Z20inlineasm_constraintv() #0 {
+    %foo = alloca i32, align 4
+    %n_5 = alloca i32, align 4
+    %n5 = alloca i32, align 4
+    %n0 = alloca i32, align 4
+    %un5 = alloca i32, align 4
+    %n65536 = alloca i32, align 4
+    %n_65531 = alloca i32, align 4
+    store i32 10, i32* %foo, align 4
+    store i32 -5, i32* %n_5, align 4
+    store i32 5, i32* %n5, align 4
+    store i32 0, i32* %n0, align 4
+    store i32 5, i32* %un5, align 4
+    store i32 65536, i32* %n65536, align 4
+    store i32 -65531, i32* %n_65531, align 4
+    %1 = load i32* %foo, align 4
+    %2 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,I"(i32 %1, i32 -5) #1, 
+    !srcloc !4
+    store i32 %2, i32* %foo, align 4
+    %3 = load i32* %foo, align 4
+    %4 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,J"(i32 %3, i32 0) #1, 
+    !srcloc !5
+    store i32 %4, i32* %foo, align 4
+    %5 = load i32* %foo, align 4
+    %6 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,K"(i32 %5, i32 5) #1, 
+    !srcloc !6
+    store i32 %6, i32* %foo, align 4
+    %7 = load i32* %foo, align 4
+    %8 = call i32 asm sideeffect "ori $0,$1,$2", "=r,r,L"(i32 %7, i32 65536) #1, 
+    !srcloc !7
+    store i32 %8, i32* %foo, align 4
+    %9 = load i32* %foo, align 4
+    %10 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,N"(i32 %9, i32 -65531) 
+    #1, !srcloc !8
+    store i32 %10, i32* %foo, align 4
+    %11 = load i32* %foo, align 4
+    %12 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,O"(i32 %11, i32 -5) #1, 
+    !srcloc !9
+    store i32 %12, i32* %foo, align 4
+    %13 = load i32* %foo, align 4
+    %14 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,P"(i32 %13, i32 5) #1, 
+    !srcloc !10
+    store i32 %14, i32* %foo, align 4
+    %15 = load i32* %foo, align 4
+    ret i32 %15
+  }
+
   ; Function Attrs: nounwind
   define i32 @_Z13inlineasm_argii(i32 %u, i32 %v) #0 {
     %1 = alloca i32, align 4
@@ -436,23 +513,25 @@ Run Chapter11_2 with ch11_2.cpp will get the following result.
     store i32 %v, i32* %2, align 4
     %3 = load i32* %1, align 4
     %4 = load i32* %2, align 4
-    %5 = call i32 asm sideeffect "subu $0,$1,$2", "=r,r,r"(i32 %3, i32 %4) #0, 
-    !srcloc !1
+    %5 = call i32 asm sideeffect "subu $0,$1,$2", "=r,r,r"(i32 %3, i32 %4) #1, !srcloc !11
     store i32 %5, i32* %w, align 4
     %6 = load i32* %w, align 4
     ret i32 %6
   }
-  
+
   ; Function Attrs: nounwind
   define i32 @_Z16inlineasm_globalv() #0 {
+    %c = alloca i32, align 4
     %d = alloca i32, align 4
-    %1 = load i32* getelementptr inbounds ([3 x i32]* @g, i32 0, i32 2), align 4
-    %2 = call i32 asm sideeffect "addiu $0,$1,1", "=r,r"(i32 %1) #0, !srcloc !2
-    store i32 %2, i32* %d, align 4
-    %3 = load i32* %d, align 4
-    ret i32 %3
+    %1 = call i32 asm sideeffect "ld $0,$1", "=r,*m"(i32* getelementptr inbounds ([3 x i32]* @g, i32 0, i32 2)) #1, !srcloc !12
+    store i32 %1, i32* %c, align 4
+    %2 = load i32* %c, align 4
+    %3 = call i32 asm sideeffect "addiu $0,$1,1", "=r,r"(i32 %2) #1, !srcloc !13
+    store i32 %3, i32* %d, align 4
+    %4 = load i32* %d, align 4
+    ret i32 %4
   }
-  
+
   ; Function Attrs: nounwind
   define i32 @_Z14test_inlineasmv() #0 {
     %a = alloca i32, align 4
@@ -460,189 +539,330 @@ Run Chapter11_2 with ch11_2.cpp will get the following result.
     %c = alloca i32, align 4
     %d = alloca i32, align 4
     %e = alloca i32, align 4
+    %f = alloca i32, align 4
+    %g = alloca i32, align 4
     %1 = call i32 @_Z14inlineasm_adduv()
     store i32 %1, i32* %a, align 4
-    %2 = call i32 @_Z13inlineasm_argii(i32 1, i32 10)
+    %2 = call i32 @_Z18inlineasm_longlongv()
     store i32 %2, i32* %b, align 4
-    %3 = call i32 @_Z13inlineasm_argii(i32 6, i32 3)
+    %3 = call i32 @_Z20inlineasm_constraintv()
     store i32 %3, i32* %c, align 4
-    %4 = load i32* %c, align 4
-    %5 = call i32 asm sideeffect "addiu $0,$1,1", "=r,r"(i32 %4) #0, !srcloc !3
-    store i32 %5, i32* %d, align 4
-    %6 = call i32 @_Z16inlineasm_globalv()
-    store i32 %6, i32* %e, align 4
-    %7 = load i32* %a, align 4
-    %8 = load i32* %b, align 4
-    %9 = add nsw i32 %7, %8
-    %10 = load i32* %c, align 4
+    %4 = call i32 @_Z13inlineasm_argii(i32 1, i32 10)
+    store i32 %4, i32* %d, align 4
+    %5 = call i32 @_Z13inlineasm_argii(i32 6, i32 3)
+    store i32 %5, i32* %e, align 4
+    %6 = load i32* %e, align 4
+    %7 = call i32 asm sideeffect "addiu $0,$1,1", "=r,r"(i32 %6) #1, !srcloc !14
+    store i32 %7, i32* %f, align 4
+    %8 = call i32 @_Z16inlineasm_globalv()
+    store i32 %8, i32* %g, align 4
+    %9 = load i32* %a, align 4
+    %10 = load i32* %b, align 4
     %11 = add nsw i32 %9, %10
-    %12 = load i32* %d, align 4
+    %12 = load i32* %c, align 4
     %13 = add nsw i32 %11, %12
-    %14 = load i32* %e, align 4
+    %14 = load i32* %d, align 4
     %15 = add nsw i32 %13, %14
-    ret i32 %15
+    %16 = load i32* %e, align 4
+    %17 = add nsw i32 %15, %16
+    %18 = load i32* %f, align 4
+    %19 = add nsw i32 %17, %18
+    %20 = load i32* %g, align 4
+    %21 = add nsw i32 %19, %20
+    ret i32 %21
   }
-  
-  attributes #0 = { nounwind }
-  
-  !0 = metadata !{i32 397}
-  !1 = metadata !{i32 601}
-  !2 = metadata !{i32 808}
-  !3 = metadata !{i32 1499}
-
+  ...
   1-160-129-73:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llc 
-  -march=cpu0 -relocation-model=static -filetype=asm ch11_2.bc -o -
-    .section .mdebug.abi32
-    .previous
-    .file "ch11_2.bc"
-    .text
-    .globl  _Z14inlineasm_adduv
-    .align  2
-    .type _Z14inlineasm_adduv,@function
-    .ent  _Z14inlineasm_adduv     # @_Z14inlineasm_adduv
+    -march=cpu0 -relocation-model=static -filetype=asm ch11_2.bc -o -
+	  .section .mdebug.abi32
+	  .previous
+	  .file	"ch11_2.bc"
+	  .text
+	  .globl	_Z14inlineasm_adduv
+	  .align	2
+	  .type	_Z14inlineasm_adduv,@function
+	  .ent	_Z14inlineasm_adduv     # @_Z14inlineasm_adduv
   _Z14inlineasm_adduv:
-    .frame  $sp,8,$lr
-    .mask   0x00000000,0
-    .set  noreorder
-    .set  nomacro
+	  .frame	$fp,16,$lr
+	  .mask 	0x00001000,-4
+	  .set	noreorder
+	  .set	nomacro
   # BB#0:
-    addiu $sp, $sp, -8
-    addiu $2, $zero, 10
-    st  $2, 4($sp)
-    addiu $2, $zero, 15
-    st  $2, 0($sp)
-    ld  $3, 4($sp)
-    #APP
-    addu $2,$3,$2
-    #NO_APP
-    st  $2, 4($sp)
-    addiu $sp, $sp, 8
-    ret $lr
-    .set  macro
-    .set  reorder
-    .end  _Z14inlineasm_adduv
-  $tmp1:
-    .size _Z14inlineasm_adduv, ($tmp1)-_Z14inlineasm_adduv
-  
-    .globl  _Z13inlineasm_argii
-    .align  2
-    .type _Z13inlineasm_argii,@function
-    .ent  _Z13inlineasm_argii     # @_Z13inlineasm_argii
-  _Z13inlineasm_argii:
-    .frame  $sp,16,$lr
-    .mask   0x00000000,0
-    .set  noreorder
-    .set  nomacro
-  # BB#0:
-    addiu $sp, $sp, -16
-    ld  $2, 16($sp)
-    st  $2, 12($sp)
-    ld  $2, 20($sp)
-    st  $2, 8($sp)
-    ld  $3, 12($sp)
-    #APP
-    subu $2,$3,$2
-    #NO_APP
-    st  $2, 4($sp)
-    addiu $sp, $sp, 16
-    ret $lr
-    .set  macro
-    .set  reorder
-    .end  _Z13inlineasm_argii
+	  addiu	$sp, $sp, -16
+	  st	$fp, 12($sp)            # 4-byte Folded Spill
+	  addu	$fp, $sp, $zero
+	  addiu	$2, $zero, 10
+	  st	$2, 8($fp)
+	  addiu	$2, $zero, 15
+	  st	$2, 4($fp)
+	  ld	$3, 8($fp)
+	  #APP
+	  addu $2,$3,$2
+	  #NO_APP
+	  st	$2, 8($fp)
+	  addu	$sp, $fp, $zero
+	  ld	$fp, 12($sp)            # 4-byte Folded Reload
+	  addiu	$sp, $sp, 16
+	  ret	$lr
+	  .set	macro
+	  .set	reorder
+	  .end	_Z14inlineasm_adduv
   $tmp3:
-    .size _Z13inlineasm_argii, ($tmp3)-_Z13inlineasm_argii
-  
-    .globl  _Z16inlineasm_globalv
-    .align  2
-    .type _Z16inlineasm_globalv,@function
-    .ent  _Z16inlineasm_globalv   # @_Z16inlineasm_globalv
+	  .size	_Z14inlineasm_adduv, ($tmp3)-_Z14inlineasm_adduv
+
+	  .globl	_Z18inlineasm_longlongv
+	  .align	2
+	  .type	_Z18inlineasm_longlongv,@function
+	  .ent	_Z18inlineasm_longlongv # @_Z18inlineasm_longlongv
+  _Z18inlineasm_longlongv:
+	  .frame	$fp,32,$lr
+	  .mask 	0x00001000,-4
+	  .set	noreorder
+	  .set	nomacro
+  # BB#0:
+	  addiu	$sp, $sp, -32
+	  st	$fp, 28($sp)            # 4-byte Folded Spill
+	  addu	$fp, $sp, $zero
+	  addiu	$2, $zero, 6
+	  st	$2, 12($fp)
+	  addiu	$2, $zero, 5
+	  st	$2, 8($fp)
+	  addiu	$2, $fp, 8
+	  st	$2, 4($fp)
+	  #APP
+	  ld $2,0($2)
+	  #NO_APP
+	  st	$2, 24($fp)
+	  ld	$2, 4($fp)
+	  addiu	$2, $2, 4
+	  st	$2, 0($fp)
+	  #APP
+	  ld $2,0($2)
+	  #NO_APP
+	  st	$2, 20($fp)
+	  ld	$3, 24($fp)
+	  addu	$2, $3, $2
+	  addu	$sp, $fp, $zero
+	  ld	$fp, 28($sp)            # 4-byte Folded Reload
+	  addiu	$sp, $sp, 32
+	  ret	$lr
+	  .set	macro
+	  .set	reorder
+	  .end	_Z18inlineasm_longlongv
+  $tmp7:
+	  .size	_Z18inlineasm_longlongv, ($tmp7)-_Z18inlineasm_longlongv
+
+	  .globl	_Z20inlineasm_constraintv
+	  .align	2
+	  .type	_Z20inlineasm_constraintv,@function
+	  .ent	_Z20inlineasm_constraintv # @_Z20inlineasm_constraintv
+  _Z20inlineasm_constraintv:
+	  .frame	$fp,32,$lr
+	  .mask 	0x00001000,-4
+	  .set	noreorder
+	  .set	nomacro
+  # BB#0:
+	  addiu	$sp, $sp, -32
+	  st	$fp, 28($sp)            # 4-byte Folded Spill
+	  addu	$fp, $sp, $zero
+	  addiu	$2, $zero, 10
+	  st	$2, 24($fp)
+	  addiu	$2, $zero, -5
+	  st	$2, 20($fp)
+	  addiu	$2, $zero, 5
+	  st	$2, 16($fp)
+	  addiu	$3, $zero, 0
+	  st	$3, 12($fp)
+	  st	$2, 8($fp)
+	  lui	$2, 1
+	  st	$2, 4($fp)
+	  lui	$2, 65535
+	  ori	$2, $2, 5
+	  st	$2, 0($fp)
+	  ld	$2, 24($fp)
+	  #APP
+	  addiu $2,$2,-5
+	  #NO_APP
+	  st	$2, 24($fp)
+	  #APP
+	  addiu $2,$2,0
+	  #NO_APP
+	  st	$2, 24($fp)
+	  #APP
+	  addiu $2,$2,5
+	  #NO_APP
+	  st	$2, 24($fp)
+	  #APP
+	  ori $2,$2,65536
+	  #NO_APP
+	  st	$2, 24($fp)
+	  #APP
+	  addiu $2,$2,-65531
+	  #NO_APP
+	  st	$2, 24($fp)
+	  #APP
+	  addiu $2,$2,-5
+	  #NO_APP
+	  st	$2, 24($fp)
+	  #APP
+	  addiu $2,$2,5
+	  #NO_APP
+	  st	$2, 24($fp)
+	  addu	$sp, $fp, $zero
+	  ld	$fp, 28($sp)            # 4-byte Folded Reload
+	  addiu	$sp, $sp, 32
+	  ret	$lr
+	  .set	macro
+	  .set	reorder
+	  .end	_Z20inlineasm_constraintv
+  $tmp11:
+	  .size	_Z20inlineasm_constraintv, ($tmp11)-_Z20inlineasm_constraintv
+
+	  .globl	_Z13inlineasm_argii
+	  .align	2
+	  .type	_Z13inlineasm_argii,@function
+	  .ent	_Z13inlineasm_argii     # @_Z13inlineasm_argii
+  _Z13inlineasm_argii:
+	  .frame	$fp,16,$lr
+	  .mask 	0x00001000,-4
+	  .set	noreorder
+	  .set	nomacro
+  # BB#0:
+	  addiu	$sp, $sp, -16
+	  st	$fp, 12($sp)            # 4-byte Folded Spill
+	  addu	$fp, $sp, $zero
+	  ld	$2, 16($fp)
+	  st	$2, 8($fp)
+	  ld	$2, 20($fp)
+	  st	$2, 4($fp)
+	  ld	$3, 8($fp)
+	  #APP
+	  subu $2,$3,$2
+	  #NO_APP
+	  st	$2, 0($fp)
+	  addu	$sp, $fp, $zero
+	  ld	$fp, 12($sp)            # 4-byte Folded Reload
+	  addiu	$sp, $sp, 16
+	  ret	$lr
+	  .set	macro
+	  .set	reorder
+	  .end	_Z13inlineasm_argii
+  $tmp15:
+	  .size	_Z13inlineasm_argii, ($tmp15)-_Z13inlineasm_argii
+
+	  .globl	_Z16inlineasm_globalv
+	  .align	2
+	  .type	_Z16inlineasm_globalv,@function
+	  .ent	_Z16inlineasm_globalv   # @_Z16inlineasm_globalv
   _Z16inlineasm_globalv:
-    .frame  $sp,8,$lr
-    .mask   0x00000000,0
-    .set  noreorder
-    .set  nomacro
+	  .frame	$fp,16,$lr
+	  .mask 	0x00001000,-4
+	  .set	noreorder
+	  .set	nomacro
   # BB#0:
-    addiu $sp, $sp, -8
-    lui $2, %hi(g)
-    addiu $2, $2, %lo(g)
-    ld  $2, 8($2)
-    #APP
-    addiu $2,$2,1
-    #NO_APP
-    st  $2, 4($sp)
-    addiu $sp, $sp, 8
-    ret $lr
-    .set  macro
-    .set  reorder
-    .end  _Z16inlineasm_globalv
-  $tmp5:
-    .size _Z16inlineasm_globalv, ($tmp5)-_Z16inlineasm_globalv
-  
-    .globl  _Z14test_inlineasmv
-    .align  2
-    .type _Z14test_inlineasmv,@function
-    .ent  _Z14test_inlineasmv     # @_Z14test_inlineasmv
+	  addiu	$sp, $sp, -16
+	  st	$fp, 12($sp)            # 4-byte Folded Spill
+	  addu	$fp, $sp, $zero
+	  lui	$2, %hi(g)
+	  addiu	$2, $2, %lo(g)
+	  addiu	$2, $2, 8
+	  #APP
+	  ld $2,0($2)
+	  #NO_APP
+	  st	$2, 8($fp)
+	  #APP
+	  addiu $2,$2,1
+	  #NO_APP
+	  st	$2, 4($fp)
+	  addu	$sp, $fp, $zero
+	  ld	$fp, 12($sp)            # 4-byte Folded Reload
+	  addiu	$sp, $sp, 16
+	  ret	$lr
+	  .set	macro
+	  .set	reorder
+	  .end	_Z16inlineasm_globalv
+  $tmp19:
+	  .size	_Z16inlineasm_globalv, ($tmp19)-_Z16inlineasm_globalv
+
+	  .globl	_Z14test_inlineasmv
+	  .align	2
+	  .type	_Z14test_inlineasmv,@function
+	  .ent	_Z14test_inlineasmv     # @_Z14test_inlineasmv
   _Z14test_inlineasmv:
-    .frame  $sp,40,$lr
-    .mask   0x00004000,-4
-    .set  noreorder
-    .set  nomacro
+	  .frame	$fp,48,$lr
+	  .mask 	0x00005000,-4
+	  .set	noreorder
+	  .set	nomacro
   # BB#0:
-    addiu $sp, $sp, -40
-    st  $lr, 36($sp)            # 4-byte Folded Spill
-    jsub  _Z14inlineasm_adduv
-    st  $2, 32($sp)
-    addiu $2, $zero, 10
-    st  $2, 4($sp)
-    addiu $2, $zero, 1
-    st  $2, 0($sp)
-    jsub  _Z13inlineasm_argii
-    st  $2, 28($sp)
-    addiu $2, $zero, 3
-    st  $2, 4($sp)
-    addiu $2, $zero, 6
-    st  $2, 0($sp)
-    jsub  _Z13inlineasm_argii
-    st  $2, 24($sp)
-    #APP
-    addiu $2,$2,1
-    #NO_APP
-    st  $2, 20($sp)
-    jsub  _Z16inlineasm_globalv
-    st  $2, 16($sp)
-    ld  $3, 28($sp)
-    ld  $4, 32($sp)
-    addu  $3, $4, $3
-    ld  $4, 24($sp)
-    addu  $3, $3, $4
-    ld  $4, 20($sp)
-    addu  $3, $3, $4
-    addu  $2, $3, $2
-    ld  $lr, 36($sp)            # 4-byte Folded Reload
-    addiu $sp, $sp, 40
-    ret $lr
-    .set  macro
-    .set  reorder
-    .end  _Z14test_inlineasmv
-  $tmp8:
-    .size _Z14test_inlineasmv, ($tmp8)-_Z14test_inlineasmv
-  
-    .type g,@object               # @g
-    .data
-    .globl  g
-    .align  2
+	  addiu	$sp, $sp, -48
+	  st	$lr, 44($sp)            # 4-byte Folded Spill
+	  st	$fp, 40($sp)            # 4-byte Folded Spill
+	  addu	$fp, $sp, $zero
+	  jsub	_Z14inlineasm_adduv
+	  st	$2, 36($fp)
+	  jsub	_Z18inlineasm_longlongv
+	  st	$2, 32($fp)
+	  jsub	_Z20inlineasm_constraintv
+	  st	$2, 28($fp)
+	  addiu	$2, $zero, 10
+	  st	$2, 4($sp)
+	  addiu	$2, $zero, 1
+	  st	$2, 0($sp)
+	  jsub	_Z13inlineasm_argii
+	  st	$2, 24($fp)
+	  addiu	$2, $zero, 3
+	  st	$2, 4($sp)
+	  addiu	$2, $zero, 6
+	  st	$2, 0($sp)
+	  jsub	_Z13inlineasm_argii
+	  st	$2, 20($fp)
+	  #APP
+	  addiu $2,$2,1
+	  #NO_APP
+	  st	$2, 16($fp)
+	  jsub	_Z16inlineasm_globalv
+	  st	$2, 12($fp)
+	  ld	$3, 32($fp)
+	  ld	$4, 36($fp)
+	  addu	$3, $4, $3
+	  ld	$4, 28($fp)
+	  addu	$3, $3, $4
+	  ld	$4, 24($fp)
+	  addu	$3, $3, $4
+	  ld	$4, 20($fp)
+	  addu	$3, $3, $4
+	  ld	$4, 16($fp)
+	  addu	$3, $3, $4
+	  addu	$2, $3, $2
+	  addu	$sp, $fp, $zero
+	  ld	$fp, 40($sp)            # 4-byte Folded Reload
+	  ld	$lr, 44($sp)            # 4-byte Folded Reload
+	  addiu	$sp, $sp, 48
+	  ret	$lr
+	  .set	macro
+	  .set	reorder
+	  .end	_Z14test_inlineasmv
+  $tmp23:
+	  .size	_Z14test_inlineasmv, ($tmp23)-_Z14test_inlineasmv
+
+	  .type	g,@object               # @g
+	  .data
+	  .globl	g
+	  .align	2
   g:
-    .4byte  1                       # 0x1
-    .4byte  2                       # 0x2
-    .4byte  3                       # 0x3
-    .size g, 12
+	  .4byte	1                       # 0x1
+	  .4byte	2                       # 0x2
+	  .4byte	3                       # 0x3
+	  .size	g, 12
+
 
 The clang translate gcc style inline assembly __asm__  into llvm IR Inline 
 Assembler Expressions [#]_ and replace the variable registers of SSA form to 
 physical registers in llc register allocation stage. From above example, 
 functions LowerAsmOperandForConstraint() and getSingleConstraintMatchWeight() 
-of Cpu0ISelLowering.cpp will create different range of const operand or 
-register operand by the I, J, K, L, N, O, P or r. For instance, the 
+of Cpu0ISelLowering.cpp will create different range of const operand by I, J, 
+K, L, N, O, P or r, and register operand by r . For instance, the following 
+code.
 
 .. code-block:: c++
 
@@ -667,11 +887,13 @@ register operand by the I, J, K, L, N, O, P or r. For instance, the
 
   %14 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,P"(i32 %13, i32 5) #0, !srcloc !7
 
-The r in __asm__ will generate register (%1 for example) in llvm IR asm while I 
-in __asm__ will generate const operand (-5 for example) in llvm IR asm. Remind, 
+The r in __asm__ will generate register, \%1, in llvm IR asm while I 
+in __asm__ will generate const operand, -5, in llvm IR asm. Remind, 
 the LowerAsmOperandForConstraint() limit the positive or negative const operand 
-value range to 16 bits. The N is -65535 to -1 and P is 65535 to 1. Any out of 
-value the code in LowerAsmOperandForConstraint() will make it as error.
+value range to 16 bits since FL type immediate operand is 16 bits in Cpu0 
+instruction. The N is -65535 to -1 and P is 65535 to 1. Any value out of 
+the range, the code in LowerAsmOperandForConstraint() will treat it as error 
+since FL instruction format has 16 bits limitation.
 
 
 Verilog of CPU0

@@ -333,50 +333,6 @@ bool Cpu0AsmPrinter::PrintAsmOperand(const MachineInstr *MI, unsigned OpNum,
         O << "$0";
       return false;
     }
-    case 'D': // Second part of a double word register operand
-    case 'L': // Low order register of a double word register operand
-    case 'M': // High order register of a double word register operand
-    {
-      if (OpNum == 0)
-        return true;
-      const MachineOperand &FlagsOP = MI->getOperand(OpNum - 1);
-      if (!FlagsOP.isImm())
-        return true;
-      unsigned Flags = FlagsOP.getImm();
-      unsigned NumVals = InlineAsm::getNumOperandRegisters(Flags);
-      // Number of registers represented by this operand. We are looking
-      // for 2 for 32 bit mode.
-      if (NumVals != 2) {
-        return true;
-      }
-
-      unsigned RegOp = OpNum;
-      // Endianess reverses which register holds the high or low value
-      // between M and L.
-      switch(ExtraCode[0]) {
-      case 'M':
-        RegOp = (Subtarget->isLittle()) ? OpNum + 1 : OpNum;
-        break;
-      case 'L':
-        RegOp = (Subtarget->isLittle()) ? OpNum : OpNum + 1;
-        break;
-      case 'D': // Always the second part
-        RegOp = OpNum + 1;
-      }
-      if (RegOp >= MI->getNumOperands())
-        return true;
-      const MachineOperand &MO = MI->getOperand(RegOp);
-      if (!MO.isReg())
-        return true;
-      unsigned Reg = MO.getReg();
-      O << '$' << Cpu0InstPrinter::getRegisterName(Reg);
-      return false;
-    }
-    case 'w':
-      // Print MSA registers for the 'f' constraint
-      // In LLVM, the 'w' modifier doesn't need to do anything.
-      // We can just call printOperand as normal.
-      break;
     }
   }
 
@@ -391,10 +347,7 @@ bool Cpu0AsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
   int Offset = 0;
   // Currently we are expecting either no ExtraCode or 'D'
   if (ExtraCode) {
-    if (ExtraCode[0] == 'D')
-      Offset = 4;
-    else
-      return true; // Unknown modifier.
+    return true; // Unknown modifier.
   }
 
   const MachineOperand &MO = MI->getOperand(OpNum);

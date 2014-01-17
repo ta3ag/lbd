@@ -9,7 +9,7 @@ int inlineasm_addu(void)
   int foo = 10;
   const int bar = 15;
 
-//  %3 = call i32 asm sideeffect "addu $0,$1,$2", "=r,r,r"(i32 %1, i32 %2) #1, !srcloc !1
+//  call i32 asm sideeffect "addu $0,$1,$2", "=r,r,r"(i32 %1, i32 %2) #1, !srcloc !1
   __asm__ __volatile__("addu %0,%1,%2"
                        :"=r"(foo) // 5
                        :"r"(foo), "r"(bar)
@@ -18,7 +18,30 @@ int inlineasm_addu(void)
   return foo;
 }
 
-int inlineasm_addiu(void)
+int inlineasm_longlong(void)
+{
+  int a, b;
+  const long long bar = 0x0000000500000006;
+  int* p = (int*)&bar;
+//  int* q = (p+1); // Do not set q here.
+
+//  call i32 asm sideeffect "ld $0,$1", "=r,*m"(i32* %2) #2, !srcloc !2
+  __asm__ __volatile__("ld %0,%1"
+                       :"=r"(a) // 0x700070007000700b
+                       :"m"(*p)
+                       );
+  int* q = (p+1); // Set q just before inline asm refer to avoid register clobbered. 
+//  call i32 asm sideeffect "ld $0,$1", "=r,*m"(i32* %6) #2, !srcloc !3
+  __asm__ __volatile__("ld %0,%1"
+                       :"=r"(b) // 11
+                       :"m"(*q)
+//              Or use :"m"(*(p+1)) to avoid register clobbered. 
+                       );
+
+  return (a+b);
+}
+
+int inlineasm_constraint(void)
 {
   int foo = 10;
   const int n_5 = -5;
@@ -28,7 +51,7 @@ int inlineasm_addiu(void)
   const int n65536 = 0x10000;
   const int n_65531 = -65531;
 
-//   %2 = call i32 asm sideeffect "addu $0,$1,$2", "=r,r,I"(i32 %1, i32 15) #1, !srcloc !2
+//   call i32 asm sideeffect "addu $0,$1,$2", "=r,r,I"(i32 %1, i32 15) #1, !srcloc !2
   __asm__ __volatile__("addiu %0,%1,%2"
                        :"=r"(foo) // 15
                        :"r"(foo), "I"(n_5)
@@ -118,23 +141,28 @@ int inlineasm_float()
 
 int test_inlineasm()
 {
-  int a, b, c, d, e, f;
+  int a, b, c, d, e, f, g;
 
   a = inlineasm_addu(); // 25
-  printf("a=%d\n", a);
-  b = inlineasm_addiu(); // -5
-  printf("b=%d\n", b);
-  c = inlineasm_arg(1, 10); // -9
-  printf("c=%d\n", c);
-  d = inlineasm_arg(6, 3); // 3
-  printf("d=%d\n", d);
+  b = inlineasm_longlong(); // 11
+  c = inlineasm_constraint(); // 15
+  d = inlineasm_arg(1, 10); // -9
+  e = inlineasm_arg(6, 3); // 3
   __asm__ __volatile__("addiu %0,%1,1"
-                       :"=r"(e) // e=4
-                       :"r"(d)
+                       :"=r"(f) // e=4
+                       :"r"(e)
                        );
+  g = inlineasm_global(); // 4
+#if 0
+  printf("a=%d\n", a);
+  printf("b=%d\n", b);
+  printf("c=%d\n", c);
+  printf("d=%d\n", d);
   printf("e=%d\n", e);
-  f = inlineasm_global(); // 4
   printf("f=%d\n", f);
-  return (a+b+c+d+e+f); // 25+15-9+3+4+4=42
+  printf("g=%d\n", g);
+#endif
+
+  return (a+b+c+d+e+f+g); // 25+11+15-9+3+4+4=53
 }
 
