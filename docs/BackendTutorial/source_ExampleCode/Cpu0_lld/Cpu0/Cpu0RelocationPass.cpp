@@ -33,7 +33,7 @@ namespace {
 
 // .plt value (entry 0)
 const uint8_t cpu0BootAtomContent[16] = {
-  0x36, 0xff, 0xff, 0xfc, // jmp _start
+  0x36, 0xff, 0xff, 0xfc, // jmp start
   0x36, 0x00, 0x00, 0x04, // jmp 4
   0x36, 0x00, 0x00, 0x04, // jmp 4
   0x36, 0xff, 0xff, 0xfc // jmp -4
@@ -243,12 +243,12 @@ public:
       auto it = atomRange.begin();
       bool find = false;
       for (it = atomRange.begin(); it < atomRange.end(); it++) {
-        if ((*it)->name() == "_Z5startv") {
+        if ((*it)->name() == "start") {
           find = true;
           break;
         }
       }
-      assert(find && "not found _Z5startv\n");
+      assert(find && "not found start\n");
       _boot->addReference(R_CPU0_PC24, 0, *it, -3);
       _boot->setOrdinal(ordinal++);
       mf->addAtom(*_boot);

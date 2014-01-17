@@ -56,6 +56,7 @@ Version 3.4.1, Not release yet
   Add ch9_4.cpp to lld test.
   Fix the wrong reference in lbd/lib/Target/Cpu0 code.
   inlineasm.
+  First instruction jmp X, where X changed from _Z5startv to start.
 
 Version 3.4.0, Released January 9, 2014
   Porting to llvm 3.4 release.

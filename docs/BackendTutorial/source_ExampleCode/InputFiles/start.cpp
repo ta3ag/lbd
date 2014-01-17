@@ -34,8 +34,11 @@ extern int main();
   asm("addiu $10,	$ZERO, 0"); \
   asm("addiu $fp, $ZERO, 0");
 
+
+// Real entry (first instruction) is from cpu0BootAtomContent of 
+// Cpu0RelocationPass.cpp jump to asm("start:") of start.cpp.
 void start() {
-//  asm("boot:");
+  asm("start:");
   asm("lui   $1,  0x7");
   asm("ori   $1,  $1, 0xfff0");
   asm("ld    $gp, 0($1)"); // load $gp($11) value from 0x7fff0
