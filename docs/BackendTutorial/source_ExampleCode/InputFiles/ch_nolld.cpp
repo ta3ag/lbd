@@ -3,24 +3,6 @@
 
 #include "print.cpp"
 
-void print1_integer(int x)
-{
-  asm("ld $at, 8($sp)");
-  asm("st $at, 28672($0)");
-
-  return;
-}
-
-#if 0
-// For instruction IO
-void print2_integer(int x)
-{
-  asm("ld $at, 8($sp)");
-  asm("outw $tat");
-  return;
-}
-#endif
-
 #include "ch4_1.cpp"
 #include "ch4_3.cpp"
 #include "ch4_5.cpp"

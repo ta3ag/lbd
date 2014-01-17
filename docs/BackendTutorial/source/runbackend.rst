@@ -915,16 +915,16 @@ command directly as below. We expect
 readers can understand the Verilog code just with a little patient and no need 
 further explanation. According computer architecture, there are two type of I/O. 
 One is memory mapped I/O, the other is instruction I/O. 
-CPU0 use memory mapped I/O, we set the memory address 0x7000 as the output port. 
+Cpu0 use memory mapped I/O where memory address 0x80000 as the output port. 
 When meet the instruction **"st $ra, cx($rb)"**, where cx($rb) is 
-0x7000 (28672), CPU0 display the content as follows,
+0x80000, Cpu0 display the content as follows,
 
 .. code-block:: c++
 
-        ST :
-          if (R[b]+c16 == 28672)
-            $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);
-
+      ST : begin
+        ...
+        if (R[b]+c16 == `IOADDR) begin
+          outw(R[a]);
 
 .. rubric:: lbdex/cpu0_verilog/cpu0.v
 .. literalinclude:: ../lbdex/cpu0_verilog/cpu0.v
@@ -943,9 +943,9 @@ When meet the instruction **"st $ra, cx($rb)"**, where cx($rb) is
 Run program on CPU0 machine
 ---------------------------
 
-Now let's compile ch_run_backend.cpp as below. Since code size grows up from low to high 
-address and stack grows up from high to low address. We set $sp at 0x6ffc because 
-cpu0.v use 0x7000 bytes of memory.
+Now let's compile ch_run_backend.cpp as below. Since code size grows up from 
+low to high address and stack grows up from high to low address. We set $sp 
+at 0x6ffc because assuming cpu0.v use 0x7000 bytes of memory.
 
 .. rubric:: lbdex/InputFiles/InitRegs.cpp
 .. literalinclude:: ../lbdex/InputFiles/InitRegs.cpp
@@ -1009,12 +1009,6 @@ cmake_debug_build/bin/Debug/ is my build clang from source code.
   15
   RET to PC < 0, finished!
 
-
-From the result as below, you can find the print_integer() which implemented by C 
-language has more instructions while the print1_integer() which implemented by 
-assembly has less instructions. But the C version is better in portability since 
-the assembly version is binding with machine assembly language and make the 
-assumption that the stack size of print1_integer() is 8.
 
 .. code-block:: bash
 
