@@ -1,5 +1,4 @@
-; RUN: llc -march=mips < %s | FileCheck %s
-; RUN: llc -march=mips64el -mcpu=mips64r2 -mattr=n64 < %s | FileCheck %s
+; RUN: llc -march=cpu0 < %s | FileCheck %s
 
 %struct.DWstruct = type { i32, i32 }
 
@@ -18,10 +17,6 @@ entry:
 @gi2 = external global i32
 @gi1 = external global i32
 @gi0 = external global i32
-@gf0 = external global float
-@gf1 = external global float
-@gd0 = external global double
-@gd1 = external global double
 
 define void @foo0() nounwind {
 entry:
