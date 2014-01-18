@@ -51,7 +51,7 @@ int inlineasm_constraint(void)
   const int n65536 = 0x10000;
   const int n_65531 = -65531;
 
-//   call i32 asm sideeffect "addu $0,$1,$2", "=r,r,I"(i32 %1, i32 15) #1, !srcloc !2
+//   call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,I"(i32 %1, i32 15) #1, !srcloc !2
   __asm__ __volatile__("addiu %0,%1,%2"
                        :"=r"(foo) // 15
                        :"r"(foo), "I"(n_5)
