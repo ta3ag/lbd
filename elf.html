@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.0',
+        VERSION:     '3.4.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -746,7 +746,7 @@ add_dependencies(LLVMCpu0Disassembler Cpu0CommonTableGen)
   <span class="kt">uint8_t</span> <span class="n">Bytes</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
 
   <span class="c1">// We want to read exactly 4 Bytes of data.</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">region</span><span class="p">.</span><span class="n">readBytes</span><span class="p">(</span><span class="n">address</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="p">(</span><span class="kt">uint8_t</span><span class="o">*</span><span class="p">)</span><span class="n">Bytes</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">region</span><span class="p">.</span><span class="n">readBytes</span><span class="p">(</span><span class="n">address</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">Bytes</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">size</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
     <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Fail</span><span class="p">;</span>
   <span class="p">}</span>

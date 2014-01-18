@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.0',
+        VERSION:     '3.4.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -787,11 +787,11 @@ defm : SetgeImmPatsSlt&lt;CPURegs, SLTi, SLTiu&gt;;
     <span class="k">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">Subtarget</span> <span class="o">=</span> <span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">();</span>
     <span class="n">SDNode</span> <span class="o">*</span><span class="n">Carry</span><span class="p">;</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">Subtarget</span><span class="p">.</span><span class="n">hasCpu032II</span><span class="p">())</span>
-      <span class="n">Carry</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">SLTu</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span> <span class="n">Ops</span><span class="p">);</span>
+      <span class="n">Carry</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">SLTu</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span> <span class="n">Ops</span><span class="p">);</span>
     <span class="k">else</span> <span class="p">{</span>
-      <span class="n">SDNode</span> <span class="o">*</span><span class="n">StatusWord</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CMP</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span> <span class="n">Ops</span><span class="p">);</span>
+      <span class="n">SDNode</span> <span class="o">*</span><span class="n">StatusWord</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CMP</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span> <span class="n">Ops</span><span class="p">);</span>
       <span class="n">SDValue</span> <span class="n">Constant1</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getTargetConstant</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">VT</span><span class="p">);</span>
-      <span class="n">Carry</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ANDi</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span>
+      <span class="n">Carry</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ANDi</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span>
                                              <span class="n">SDValue</span><span class="p">(</span><span class="n">StatusWord</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">Constant1</span><span class="p">);</span>
     <span class="p">}</span>
     <span class="p">...</span>
@@ -840,115 +840,17 @@ instructions, slt, beq and bne.</p>
 <p>Run Chapter12_2/ with ch_run_backend.cpp to get result as below.
 It match the output result as comments in ch_run_backend.cpp.</p>
 <p class="rubric">lbdex/InputFiles/ch_run_backend.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;debug.h&quot;</span>
-<span class="cp">#include &quot;boot.cpp&quot;</span>
-
-<span class="cp">#include &quot;print.h&quot;</span>
-
-<span class="kt">int</span> <span class="nf">test_math</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_div</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_local_pointer</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_andorxornot</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_setxx</span><span class="p">();</span>
-<span class="kt">bool</span> <span class="nf">test_load_bool</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_signed_char</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_unsigned_char</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_signed_short</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_unsigned_short</span><span class="p">();</span>
-<span class="kt">long</span> <span class="kt">long</span> <span class="nf">test_longlong</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_control1</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_madd</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_vararg</span><span class="p">();</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;ch_nolld.h&quot;</span>
 
 <span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
 <span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_math</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="c1">// a = 74</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_div</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="c1">// a = 253</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_local_pointer</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="c1">// a = 3</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">test_load_bool</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="c1">// a = 1</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_andorxornot</span><span class="p">();</span> <span class="c1">// a = 14</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_setxx</span><span class="p">();</span> <span class="c1">// a = 3</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_signed_char</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = -126</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_unsigned_char</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 130</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_signed_short</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = -32766</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_unsigned_short</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 32770</span>
-  <span class="kt">long</span> <span class="kt">long</span> <span class="n">b</span> <span class="o">=</span> <span class="n">test_longlong</span><span class="p">();</span> <span class="c1">// 0x800000002</span>
-  <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)(</span><span class="n">b</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">));</span> <span class="c1">// 393307</span>
-  <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">b</span><span class="p">);</span> <span class="c1">// 16777222</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_control1</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>	<span class="c1">// a = 51</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="mi">2147483647</span><span class="p">);</span> <span class="c1">// test mod % (mult) from itoa.cpp</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="o">-</span><span class="mi">2147483648</span><span class="p">);</span> <span class="c1">// test mod % (multu) from itoa.cpp</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_madd</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 7</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_vararg</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 15</span>
+  <span class="kt">bool</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="n">pass</span> <span class="o">=</span> <span class="n">test_nolld</span><span class="p">();</span>
 
-  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">pass</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="cp">#include &quot;print.cpp&quot;</span>
-
-<span class="kt">void</span> <span class="nf">print1_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span>
-<span class="p">{</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld $at, 8($sp)&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;st $at, 28672($0)&quot;</span><span class="p">);</span>
-
-  <span class="k">return</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="cp">#if 0</span><span class="c"></span>
-<span class="c">// For instruction IO</span>
-<span class="c">void print2_integer(int x)</span>
-<span class="c">{</span>
-<span class="c">  asm(&quot;ld $at, 8($sp)&quot;);</span>
-<span class="c">  asm(&quot;outw $tat&quot;);</span>
-<span class="c">  return;</span>
-<span class="c">}</span>
-<span class="cp">#endif</span>
-
-<span class="cp">#include &quot;ch4_1.cpp&quot;</span>
-<span class="cp">#include &quot;ch4_3.cpp&quot;</span>
-<span class="cp">#include &quot;ch4_5.cpp&quot;</span>
-<span class="cp">#include &quot;ch7_1.cpp&quot;</span>
-<span class="cp">#include &quot;ch7_2_2.cpp&quot;</span>
-<span class="cp">#include &quot;ch7_3.cpp&quot;</span>
-<span class="cp">#include &quot;ch7_4.cpp&quot;</span>
-<span class="cp">#include &quot;ch8_1_1.cpp&quot;</span>
-<span class="cp">#include &quot;ch9_1_4.cpp&quot;</span>
-<span class="cp">#include &quot;ch9_3.cpp&quot;</span>
-
-<span class="cm">/* result:</span>
-<span class="cm">74</span>
-<span class="cm">253</span>
-<span class="cm">3</span>
-<span class="cm">1</span>
-<span class="cm">14</span>
-<span class="cm">3</span>
-<span class="cm">-126</span>
-<span class="cm">130</span>
-<span class="cm">-32766</span>
-<span class="cm">32770</span>
-<span class="cm">393307</span>
-<span class="cm">16777222</span>
-<span class="cm">51</span>
-<span class="cm">2147483647</span>
-<span class="cm">-2147483648</span>
-<span class="cm">7</span>
-<span class="cm">15</span>
-<span class="cm">RET to PC &lt; 0, finished!</span>
-<span class="cm">*/</span>
+<span class="cp">#include &quot;ch_nolld.cpp&quot;</span>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-77-203:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
@@ -967,8 +869,8 @@ bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk <span class="s
 ../cpu0_verilog/redesign/cpu0.hex
 
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../cpu0_verilog/
-JonathantekiiMac:redesign Jonathan<span class="nv">$ </span>iverilog -o cpu0IIs cpu0IIs.v
-JonathantekiiMac:redesign Jonathan<span class="nv">$ </span>./cpu0IIs
+JonathantekiiMac:cpu0_verilog Jonathan<span class="nv">$ </span>iverilog -o cpu0IIs cpu0IIs.v
+JonathantekiiMac:cpu0_verilog Jonathan<span class="nv">$ </span>./cpu0IIs
 taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 74
 253

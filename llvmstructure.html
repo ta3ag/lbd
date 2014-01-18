@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.0',
+        VERSION:     '3.4.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -893,7 +893,7 @@ are not modified by instructions during execution.</p>
   <span class="n">def</span> <span class="n">A0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">4</span><span class="p">,</span>  <span class="s">&quot;4&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">A1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">5</span><span class="p">,</span>  <span class="s">&quot;5&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">T9</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">6</span><span class="p">,</span>  <span class="s">&quot;t9&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">T0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">7</span><span class="p">,</span>  <span class="s">&quot;t0&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">T0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">7</span><span class="p">,</span>  <span class="s">&quot;7&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">S0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">,</span>  <span class="s">&quot;8&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">S1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">9</span><span class="p">,</span>  <span class="s">&quot;9&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">S2</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">10</span><span class="p">,</span> <span class="s">&quot;10&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
@@ -1802,11 +1802,16 @@ the empty initialize function since we register nothing in them for this moment.
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;llvm/MC/MachineLocation.h&quot;</span>
 <span class="cp">#include &quot;llvm/MC/MCCodeGenInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCELF.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCELFStreamer.h&quot;</span>
 <span class="cp">#include &quot;llvm/MC/MCInstrInfo.h&quot;</span>
 <span class="cp">#include &quot;llvm/MC/MCRegisterInfo.h&quot;</span>
 <span class="cp">#include &quot;llvm/MC/MCStreamer.h&quot;</span>
 <span class="cp">#include &quot;llvm/MC/MCSubtargetInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/MC/MCSymbol.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/CommandLine.h&quot;</span>
 <span class="cp">#include &quot;llvm/Support/ErrorHandling.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/FormattedStream.h&quot;</span>
 <span class="cp">#include &quot;llvm/Support/TargetRegistry.h&quot;</span>
 
 <span class="cp">#define GET_INSTRINFO_MC_DESC</span>

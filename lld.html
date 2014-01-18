@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.0',
+        VERSION:     '3.4.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -91,8 +91,6 @@ lbdex/Cpu0_lld/CMakeLists.txt .
 lbdex/Cpu0_lld/ELFLinkingContext.cpp .
 1-160-136-173:ELF Jonathan<span class="nv">$ </span>cp -f ~/test/lbd/docs/BackendTutorial/
 lbdex/Cpu0_lld/Targets.h .
-1-160-136-173:ELF Jonathan<span class="nv">$ </span>cp -f ~/test/lbd/docs/BackendTutorial/
-lbdex/Cpu0_lld/Resolver.cpp ../../Core/.
 </pre></div>
 </div>
 <p>Finally, update llvm-objdump to support convert ELF file to Hex file as follows,</p>
@@ -803,7 +801,7 @@ namespace {
 
 // .plt value (entry 0)
 const uint8_t cpu0BootAtomContent[16] = {
-  0x36, 0xff, 0xff, 0xfc, // jmp _start
+  0x36, 0xff, 0xff, 0xfc, // jmp start
   0x36, 0x00, 0x00, 0x04, // jmp 4
   0x36, 0x00, 0x00, 0x04, // jmp 4
   0x36, 0xff, 0xff, 0xfc // jmp -4
@@ -1013,12 +1011,12 @@ public:
       auto it = atomRange.begin();
       bool find = false;
       for (it = atomRange.begin(); it &lt; atomRange.end(); it++) {
-        if ((*it)-&gt;name() == "_Z5startv") {
+        if ((*it)-&gt;name() == "start") {
           find = true;
           break;
         }
       }
-      assert(find &amp;&amp; "not found _Z5startv\n");
+      assert(find &amp;&amp; "not found start\n");
       _boot-&gt;addReference(R_CPU0_PC24, 0, *it, -3);
       _boot-&gt;setOrdinal(ordinal++);
       mf-&gt;addAtom(*_boot);
@@ -2889,23 +2887,25 @@ will be called by lld driver to finish the address binding in linker stage.</p>
 <p class="rubric">lbdex/InputFiles/build-hello.sh</p>
 <div class="highlight-c++"><pre>#!/usr/bin/env bash
 #TOOLDIR=/home/Gamma/test/lld/cmake_debug_build/bin
-TOOLDIR=/home/cschen/test/lld/cmake_debug_build/bin
+#TOOLDIR=/home/cschen/test/lld/cmake_debug_build/bin
+TOOLDIR=~/test/lld/cmake_debug_build/bin/Debug
 
 cpu=cpu032I
 
 clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
-clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o
-printf-stdarg.bc
+clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm \
+-o printf-stdarg.bc
 clang -target mips-unknown-linux-gnu -c ch_hello.c -emit-llvm -o ch_hello.bc
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
 start.bc -o start.cpu0.o
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
 printf-stdarg.bc -o printf-stdarg.cpu0.o
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
 ch_hello.bc -o ch_hello.cpu0.o
-${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o
+${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o \
 printf-stdarg.cpu0.o ch_hello.cpu0.o -o a.out
-${TOOLDIR}/llvm-objdump -elf2hex a.out &gt; ../cpu0_verilog/cpu0.hex</pre>
+${TOOLDIR}/llvm-objdump -elf2hex a.out &gt; ../cpu0_verilog/cpu0.hex
+</pre>
 </div>
 <p class="rubric">lbdex/cpu0_verilog/Cpu0.hex</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
@@ -3093,60 +3093,14 @@ below.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/InputFiles/printf-stdarg-2.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;print.h&quot;</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;debug.h&quot;</span>
+<span class="cp">#include &quot;print.h&quot;</span>
 
-<span class="cp">#define PRINT_TEST</span>
+<span class="cp">#define TEST_PRINTF</span>
 
-<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">int</span> <span class="n">printf</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">...);</span>
-<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">int</span> <span class="n">sprintf</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">out</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">...);</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">int</span> <span class="n">putchar</span><span class="p">(</span><span class="kt">int</span> <span class="n">c</span><span class="p">);</span> 
 
-<span class="cp">#include &quot;ch6_1.cpp&quot;</span>
-<span class="cp">#include &quot;ch9_2_1.cpp&quot;</span>
-<span class="cp">#include &quot;ch9_2_2.cpp&quot;</span>
-<span class="cp">#include &quot;ch9_3_2.cpp&quot;</span>
-
-<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
-<span class="p">{</span>
-  <span class="kt">char</span> <span class="o">*</span><span class="n">ptr</span> <span class="o">=</span> <span class="s">&quot;Hello world!&quot;</span><span class="p">;</span>
-  <span class="kt">char</span> <span class="o">*</span><span class="n">np</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
-  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">bs</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="o">*</span><span class="mi">8</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">mi</span><span class="p">;</span>
-  <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mi">80</span><span class="p">];</span>
-
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_global</span><span class="p">();</span>  <span class="c1">// gI = 100</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;global variable gI = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_func_arg_struct</span><span class="p">();</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_contructor</span><span class="p">();</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_template</span><span class="p">();</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;test_template() = %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span> <span class="c1">// a = 15</span>
-
-  <span class="n">mi</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">bs</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">ptr</span><span class="p">);</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;printf test</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s is null pointer</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">np</span><span class="p">);</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d = 5</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">);</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d = - max int</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">mi</span><span class="p">);</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;char %c = &#39;a&#39;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="sc">&#39;a&#39;</span><span class="p">);</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;hex %x = ff</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mh">0xff</span><span class="p">);</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;hex %02x = 00</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;signed %d = unsigned %u = hex %x</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">);</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d %s(s)%&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;message&quot;</span><span class="p">);</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d %s(s) with %%</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&quot;message&quot;</span><span class="p">);</span>
-  <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;justif: </span><span class="se">\&quot;</span><span class="s">%-10s</span><span class="se">\&quot;\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="s">&quot;left&quot;</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
-  <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;justif: </span><span class="se">\&quot;</span><span class="s">%10s</span><span class="se">\&quot;\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="s">&quot;right&quot;</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
-  <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot; 3: %04d zero padded</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
-  <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot; 3: %-4d left justif.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
-  <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot; 3: %4d right justif.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
-  <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;-3: %04d zero padded</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
-  <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;-3: %-4d left justif.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
-  <span class="n">sprintf</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s">&quot;-3: %4d right justif.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">);</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
-
-  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="cp">#include &quot;printf-stdarg.c&quot;</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/InputFiles/printf-stdarg.c</p>
@@ -3425,32 +3379,40 @@ below.</p>
 <span class="k">extern</span> <span class="kt">int</span> <span class="nf">main</span><span class="p">();</span>
 
 <span class="cp">#define initRegs() \</span>
-<span class="cp">  asm(&quot;addiu $1,	$ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $2,	$ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $3,	$ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $4,	$ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $5,	$ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $6,	$ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $7,	$ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $8,	$ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $9,	$ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $10,	$ZERO, 0&quot;); \</span>
+<span class="cp">  asm(&quot;addiu $1,  $ZERO, 0&quot;); \</span>
+<span class="cp">  asm(&quot;addiu $2,  $ZERO, 0&quot;); \</span>
+<span class="cp">  asm(&quot;addiu $3,  $ZERO, 0&quot;); \</span>
+<span class="cp">  asm(&quot;addiu $4,  $ZERO, 0&quot;); \</span>
+<span class="cp">  asm(&quot;addiu $5,  $ZERO, 0&quot;); \</span>
+<span class="cp">  asm(&quot;addiu $6,  $ZERO, 0&quot;); \</span>
+<span class="cp">  asm(&quot;addiu $7,  $ZERO, 0&quot;); \</span>
+<span class="cp">  asm(&quot;addiu $8,  $ZERO, 0&quot;); \</span>
+<span class="cp">  asm(&quot;addiu $9,  $ZERO, 0&quot;); \</span>
+<span class="cp">  asm(&quot;addiu $10, $ZERO, 0&quot;); \</span>
 <span class="cp">  asm(&quot;addiu $fp, $ZERO, 0&quot;);</span>
 
+
+<span class="c1">// Real entry (first instruction) is from cpu0BootAtomContent of </span>
+<span class="c1">// Cpu0RelocationPass.cpp jump to asm(&quot;start:&quot;) of start.cpp.</span>
 <span class="kt">void</span> <span class="nf">start</span><span class="p">()</span> <span class="p">{</span>
-<span class="c1">//  asm(&quot;boot:&quot;);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui   $1,  0x7&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ori   $1,  $1, 0xfff0&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld    $gp, 0($1)&quot;</span><span class="p">);</span> <span class="c1">// load $gp($11) value from 0x7fff0</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;start:&quot;</span><span class="p">);</span>
+  
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;lui $sp, 0x6&quot;</span><span class="p">);</span>
+  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $sp, 0xfffc&quot;</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="o">*</span><span class="n">gpaddr</span><span class="p">;</span>
+  <span class="n">gpaddr</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">)</span><span class="n">GPADDR</span><span class="p">;</span>
+  <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;ld  $gp, %0&quot;</span>
+                       <span class="o">:</span> <span class="c1">// no output register, specify output register to $gp</span>
+                       <span class="o">:</span><span class="s">&quot;m&quot;</span><span class="p">(</span><span class="o">*</span><span class="n">gpaddr</span><span class="p">)</span>
+                       <span class="p">);</span>
   <span class="n">initRegs</span><span class="p">();</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $sp, $zero, 0x6ffc&quot;</span><span class="p">);</span>
   <span class="n">main</span><span class="p">();</span>
   <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $lr, $ZERO, -1&quot;</span><span class="p">);</span>
   <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ret $lr&quot;</span><span class="p">);</span>
 <span class="p">}</span>
 
 <span class="c1">// For memory IO</span>
-<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">int</span> <span class="n">putchar</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="n">c</span><span class="p">)</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">int</span> <span class="n">putchar</span><span class="p">(</span><span class="kt">int</span> <span class="n">c</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">char</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="n">OUT_MEM</span><span class="p">;</span>
   <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="n">c</span><span class="p">;</span>
@@ -3459,27 +3421,48 @@ below.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
+<p class="rubric">lbdex/InputFiles/lib_cpu0.ll</p>
+<div class="highlight-c++"><pre>; The @_start() exist to prevent lld linker error.
+; Real entry (first instruction) is from cpu0BootAtomContent of 
+; Cpu0RelocationPass.cpp jump to asm("start:") of start.cpp.
+define void @_start() nounwind {
+entry:
+  ret void
+}
+
+define void @__stack_chk_fail() nounwind {
+entry:
+  ret void
+}
+
+define void @__stack_chk_guard() nounwind {
+entry:
+  ret void
+}
+</pre>
+</div>
 <p class="rubric">lbdex/InputFiles/build-printf-stdarg-2.sh</p>
 <div class="highlight-c++"><pre>#!/usr/bin/env bash
-TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
-#TOOLDIR=~/test/llvm/cmake_debug_build/bin/Debug
+#TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
+TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
 
 cpu=cpu032I
 
+bash rminput.sh
+
 clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
-clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o
-printf-stdarg.bc
-clang -target mips-unknown-linux-gnu -c printf-stdarg-2.cpp -emit-llvm -o
+clang -target mips-unknown-linux-gnu -c printf-stdarg-2.cpp -emit-llvm -o \
 printf-stdarg-2.bc
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
 start.bc -o start.cpu0.o
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
-printf-stdarg.bc -o printf-stdarg.cpu0.o
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
 printf-stdarg-2.bc -o printf-stdarg-2.cpu0.o
-${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o
-printf-stdarg.cpu0.o printf-stdarg-2.cpu0.o -o a.out
-${TOOLDIR}/llvm-objdump -elf2hex a.out &gt; ../cpu0_verilog/cpu0.hex</pre>
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+lib_cpu0.ll -o lib_cpu0.o
+${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o \
+printf-stdarg-2.cpu0.o lib_cpu0.o -o a.out
+${TOOLDIR}/llvm-objdump -elf2hex a.out &gt; ../cpu0_verilog/cpu0.hex
+</pre>
 </div>
 <p>The cpu0_verilog/cpu0Is.v support cmp instruction and static linker as follows,</p>
 <p class="rubric">lbdex/cpu0_verilog/cpu0Is.v</p>
@@ -3508,40 +3491,14 @@ code as follows,</p>
 1-160-136-173:cpu0_verilog Jonathan<span class="nv">$ </span>bash clean.sh
 1-160-136-173:cpu0_verilog Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../InputFiles/
 1-160-136-173:InputFiles Jonathan<span class="nv">$ </span>bash build-printf-stdarg-2.sh
-1-160-136-173:InputFiles Jonathan<span class="nv">$ </span>bash build-printf-stdarg-2.sh
-In file included from <span class="nb">printf</span>-stdarg-2.cpp:12:
-./ch9_2_1.cpp:62:78: warning: backslash and newline separated by space
-<span class="o">[</span>-Wbackslash-newline-escape<span class="o">]</span>
-  <span class="nb">printf</span><span class="o">(</span><span class="s2">&quot;date2 = %d %d %d %d %d %d\n&quot;</span>, date2.year, date2.month, date2.day, <span class="se">\</span>
-                                                                             ^
-<span class="nb">printf</span>-stdarg-2.cpp:18:15: warning: conversion from string literal to <span class="s1">&#39;char *&#39;</span>
+In file included from <span class="nb">printf</span>-stdarg-2.cpp:11:
+./printf-stdarg.c:206:15: warning: conversion from string literal to <span class="s1">&#39;char *&#39;</span>
 is deprecated <span class="o">[</span>-Wdeprecated-writable-strings<span class="o">]</span>
   char *ptr <span class="o">=</span> <span class="s2">&quot;Hello world!&quot;</span>;
               ^
-<span class="nb">printf</span>-stdarg-2.cpp:44:19: warning: incomplete format specifier <span class="o">[</span>-Wformat<span class="o">]</span>
-  <span class="nb">printf</span><span class="o">(</span><span class="s2">&quot;%d %s(s)%&quot;</span>, 0, <span class="s2">&quot;message&quot;</span><span class="o">)</span>;
-                  ^
-3 warnings generated.
+1 warning generated.
 
 1-160-136-173:InputFiles Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../cpu0_verilog/
-1-160-136-173:cpu0_verilog Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
-/Users/Jonathan/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
-1-160-136-173:cpu0_verilog Jonathan<span class="nv">$ </span>iverilog -o cpu0IIs cpu0IIs.v
-1-160-136-173:cpu0_verilog Jonathan<span class="nv">$ </span>ls
-clean.sh  cpu0Id.v  cpu0IId.v  cpu0IIs  cpu0IIs.v  cpu0Is.v  cpu0.v  dynlinker.v
-flashio.v
-1-160-136-173:cpu0_verilog Jonathan<span class="nv">$ </span>./cpu0IIs
-WARNING: cpu0.v:365: <span class="nv">$readmemh</span><span class="o">(</span>cpu0s.hex<span class="o">)</span>: Not enough words in the file <span class="k">for</span>
-the requested range <span class="o">[</span>0:524287<span class="o">]</span>.
-taskInterrupt<span class="o">(</span>001<span class="o">)</span>
-global variable <span class="nv">gI</span> <span class="o">=</span> 100
-<span class="nv">date1</span> <span class="o">=</span> 2012 10 12 1 2 3
-<span class="nv">date2</span> <span class="o">=</span> 2012 10 12 1 2 3
-<span class="nv">time2</span> <span class="o">=</span> 1 10 12
-<span class="nv">time3</span> <span class="o">=</span> 1 10 12
-<span class="nv">date1</span> <span class="o">=</span> 2013 1 26 12 21 10
-<span class="nv">date2</span> <span class="o">=</span> 2013 1 26 12 21 10
-test_template<span class="o">()</span> <span class="o">=</span> 15
 Hello world!
 <span class="nb">printf test</span>
 <span class="o">(</span>null<span class="o">)</span> is null pointer
@@ -3589,11 +3546,8 @@ justif: <span class="s2">&quot;     right&quot;</span>
 -3:   -3 right justif.
 </pre></div>
 </div>
-<p>They are same after the &#8220;Hello world!&#8221; of printf() function support.
-The cpu0I use cmp instruction. Before the &#8220;Hello world!&#8221; are for test cases
-which needed the linker, such as global variable, C++ template, ... .
-You can verify the slt
-instructions is work fine too by change cpu to cpu032II as follows,</p>
+<p>They are same. You can verify the slt instructions is work fine too by change
+variable cpu from cpu032I to cpu032II as follows,</p>
 <p class="rubric">lbdex/InputFiles/build-printf-stdarg-2.sh</p>
 <div class="highlight-bash"><div class="highlight"><pre>...
 <span class="nv">cpu</span><span class="o">=</span>cpu032II
@@ -3603,7 +3557,7 @@ instructions is work fine too by change cpu to cpu032II as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre>1-160-136-173:cpu0_verilog Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
 /Users/Jonathan/test/lbd/docs/BackendTutorial/source_ExampleCode/cpu0_verilog
 1-160-136-173:cpu0_verilog Jonathan<span class="nv">$ </span>bash clean.sh
-1-160-136-173:InputFiles Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../InputFil
+1-160-136-173:InputFiles Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../InputFiles
 1-160-136-173:InputFiles Jonathan<span class="nv">$ </span>bash build-printf-stdarg-2.sh
 ...
 1-160-136-173:InputFiles Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../cpu0_verilog/
@@ -3616,6 +3570,174 @@ Run build-printf-stdarg-2.sh with cpu=cpu032II will generate slt, beq and bne
 instructions instead of cmp, jeq, ... instructions. Since cpu0IIs include both
 slt, cmp, ... instructions, the slt and cmp both code generated can be run on
 it without any problem.</p>
+<p>With the printf() GPL source code, we can use it to programming more test code
+to verify the previous Cpu0 backend generated program. The following code is
+for this purpose.</p>
+<p class="rubric">lbdex/InputFiles/ch_lld_staticlink.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;debug.h&quot;</span>
+<span class="cp">#include &quot;print.h&quot;</span>
+
+<span class="cp">#define PRINT_TEST</span>
+
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">int</span> <span class="n">printf</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">...);</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">int</span> <span class="n">sprintf</span><span class="p">(</span><span class="kt">char</span> <span class="o">*</span><span class="n">out</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">...);</span>
+<span class="k">extern</span> <span class="kt">int</span> <span class="nf">test_staticlink</span><span class="p">();</span>
+
+<span class="cp">#include &quot;ch6_1.cpp&quot;</span>
+<span class="cp">#include &quot;ch9_2_1.cpp&quot;</span>
+<span class="cp">#include &quot;ch9_2_2.cpp&quot;</span>
+<span class="cp">#include &quot;ch9_3_2.cpp&quot;</span>
+<span class="cp">#include &quot;ch11_2.cpp&quot;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/InputFiles/ch_lld_staticlink.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">extern</span> <span class="kt">int</span> <span class="nf">test_alloc</span><span class="p">();</span>
+
+<span class="kt">int</span> <span class="nf">test_staticlink</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">ptr</span> <span class="o">=</span> <span class="s">&quot;Hello world!&quot;</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="o">*</span><span class="n">np</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">bs</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="o">*</span><span class="mi">8</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">mi</span><span class="p">;</span>
+  <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mi">80</span><span class="p">];</span>
+
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_alloc</span><span class="p">();</span>  <span class="c1">// 31</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;test_alloc() = %d&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">31</span><span class="p">)</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;, PASS</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+  <span class="k">else</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;, FAIL</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_global</span><span class="p">();</span>  <span class="c1">// gI = 100</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;global variable gI = %d&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">100</span><span class="p">)</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;, PASS</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+  <span class="k">else</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;, FAIL</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_func_arg_struct</span><span class="p">();</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_contructor</span><span class="p">();</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_template</span><span class="p">();</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;test_template() = %d&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span> <span class="c1">// a = 15</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">15</span><span class="p">)</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;, PASS</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+  <span class="k">else</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;, FAIL</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_inlineasm</span><span class="p">();</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;test_inlineasm() = %d&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span> <span class="c1">// a = 53</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">53</span><span class="p">)</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;, PASS</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+  <span class="k">else</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;, FAIL</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/InputFiles/ch_slinker.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;ch_nolld.h&quot;</span>
+<span class="cp">#include &quot;ch_lld_staticlink.h&quot;</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">bool</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="n">pass</span> <span class="o">=</span> <span class="n">test_nolld</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">pass</span><span class="p">)</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;test_nolld(): PASS</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+  <span class="k">else</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;test_nolld(): FAIL</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+  <span class="n">pass</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="n">pass</span> <span class="o">=</span> <span class="n">test_staticlink</span><span class="p">();</span>
+
+  <span class="k">return</span> <span class="n">pass</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cp">#include &quot;ch_nolld.cpp&quot;</span>
+<span class="cp">#include &quot;ch_lld_staticlink.cpp&quot;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/InputFiles/build-slinker.sh</p>
+<div class="highlight-c++"><pre>#!/usr/bin/env bash
+#TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
+TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
+
+cpu=cpu032I
+
+bash rminput.sh
+
+clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
+clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm \
+-o printf-stdarg.bc
+clang -c ch9_4.cpp -emit-llvm -o ch9_4.bc
+clang -target mips-unknown-linux-gnu -c ch_slinker.cpp -emit-llvm \
+-o ch_slinker.bc
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+start.bc -o start.cpu0.o
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+printf-stdarg.bc -o printf-stdarg.cpu0.o
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+ch9_4.bc -o ch9_4.cpu0.o
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+ch_slinker.bc -o ch_slinker.cpu0.o
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+lib_cpu0.ll -o lib_cpu0.o
+${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o \
+printf-stdarg.cpu0.o ch9_4.cpu0.o ch_slinker.cpu0.o lib_cpu0.o -o a.out
+${TOOLDIR}/llvm-objdump -elf2hex a.out &gt; ../cpu0_verilog/cpu0.hex
+</pre>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>114-37-148-111:InputFiles Jonathan<span class="nv">$ </span>bash build-slinker.sh
+...
+In file included from ch_slinker.cpp:23:
+./ch_lld_staticlink.cpp:8:15: warning: conversion from string literal to
+<span class="s1">&#39;char *&#39;</span> is deprecated
+      <span class="o">[</span>-Wdeprecated-writable-strings<span class="o">]</span>
+  char *ptr <span class="o">=</span> <span class="s2">&quot;Hello world!&quot;</span>;
+              ^
+1 warning generated.
+114-37-148-111:InputFiles Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../cpu0_verilog/
+114-37-148-111:cpu0_verilog Jonathan<span class="nv">$ </span>./cpu0Is
+WARNING: ./cpu0.v:369: <span class="nv">$readmemh</span><span class="o">(</span>cpu0.hex<span class="o">)</span>: Not enough words in the file <span class="k">for</span>
+the requested range <span class="o">[</span>0:524287<span class="o">]</span>.
+taskInterrupt<span class="o">(</span>001<span class="o">)</span>
+74
+253
+3
+1
+14
+3
+-126
+130
+-32766
+32770
+393307
+16777222
+51
+2147483647
+-2147483648
+7
+15
+test_nolld<span class="o">()</span>: PASS
+test_alloc<span class="o">()</span> <span class="o">=</span> 31, PASS
+global variable <span class="nv">gI</span> <span class="o">=</span> 100, PASS
+<span class="nv">date1</span> <span class="o">=</span> 2012 10 12 1 2 3, PASS
+<span class="nv">date2</span> <span class="o">=</span> 2012 10 12 1 2 3, PASS
+<span class="nv">time2</span> <span class="o">=</span> 1 10 12, PASS
+<span class="nv">time3</span> <span class="o">=</span> 1 10 12, PASS
+<span class="nv">date1</span> <span class="o">=</span> 2013 1 26 12 21 10, PASS
+<span class="nv">date2</span> <span class="o">=</span> 2013 1 26 12 21 10, PASS
+test_template<span class="o">()</span> <span class="o">=</span> 15, PASS
+test_inlineasm<span class="o">()</span> <span class="o">=</span> 53, PASS
+RET to PC &lt; 0, finished!
+</pre></div>
+</div>
+<p>As above, take the open source code advantage, Cpu0 got the more stable printf()
+program. When Cpu0 backend can generate printf() function from the open source C
+printf() program, it meaning Cpu0 backend is more stable itself. Plus the
+quality code of open source printf() program, the Cpu0 toolchain extended from
+compiler backend to C std library support. (Some GPL open source code are not
+quality code, but some are.)</p>
 </div>
 <div class="section" id="cpu0-lld-structure">
 <h3>Cpu0 lld structure<a class="headerlink" href="#cpu0-lld-structure" title="Permalink to this headline">¶</a></h3>
@@ -4355,37 +4477,45 @@ to execute the dynamic linker function on Cpu0 Verilog machine.</p>
 </div>
 <p class="rubric">lbdex/InputFiles/build-dlinker.sh</p>
 <div class="highlight-c++"><pre>#!/usr/bin/env bash
-TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
-#TOOLDIR=~/test/llvm/cmake_debug_build/bin/Debug
+#TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
+TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
 
 cpu=cpu032I
 
+bash rminput.sh
+
 clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
-clang -target mips-unknown-linux-gnu -c dynamic_linker.cpp -emit-llvm -o
-dynamic_linker.cpu0.bc
-clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm -o
-printf-stdarg.bc
+clang -target mips-unknown-linux-gnu -c dynamic_linker.cpp -emit-llvm \
+-o dynamic_linker.cpu0.bc
+clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm \
+-o printf-stdarg.bc
 clang -target mips-unknown-linux-gnu -c foobar.cpp -emit-llvm -o foobar.cpu0.bc
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
 -cpu0-reserve-gp=true dynamic_linker.cpu0.bc -o dynamic_linker.cpu0.o
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
 -cpu0-reserve-gp=true printf-stdarg.bc -o printf-stdarg.cpu0.o
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=pic -filetype=obj
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=pic -filetype=obj \
 -cpu0-reserve-gp=true -cpu0-no-cpload=true foobar.cpu0.bc -o foobar.cpu0.o
-${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu -shared -o
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+lib_cpu0.ll -o lib_cpu0.o
+${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu -shared -o \
 libfoobar.cpu0.so foobar.cpu0.o
-${TOOLDIR}/llc -mcpu=${cpu} -march=cpu0 -relocation-model=static -filetype=obj
+${TOOLDIR}/llc -mcpu=${cpu} -march=cpu0 -relocation-model=static -filetype=obj \
 -cpu0-reserve-gp=true start.bc -o start.cpu0.o
-/usr/local/llvm/release/cmake_debug_build/bin/clang -target mips-unknown-linux-
-gnu -c ch_dynamiclinker.cpp -emit-llvm -o ch_dynamiclinker.cpu0.bc
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj
+clang -target mips-unknown-linux-gnu -c ch_dynamiclinker.cpp -emit-llvm \
+-o ch_dynamiclinker.cpu0.bc
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
 -cpu0-reserve-gp=true ch_dynamiclinker.cpu0.bc -o ch_dynamiclinker.cpu0.o
-${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o printf-
-stdarg.cpu0.o dynamic_linker.cpu0.o ch_dynamiclinker.cpu0.o libfoobar.cpu0.so
-${TOOLDIR}/llvm-objdump -elf2hex -cpu0dumpso libfoobar.cpu0.so &gt; ../
-cpu0_verilog/libso.hex
-${TOOLDIR}/llvm-objdump -elf2hex -cpu0linkso a.out &gt; ../cpu0_verilog/cpu0.hex
-cp dynstr dynsym so_func_offset global_offset ../cpu0_verilog/.</pre>
+${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o \
+printf-stdarg.cpu0.o dynamic_linker.cpu0.o ch_dynamiclinker.cpu0.o \
+libfoobar.cpu0.so lib_cpu0.o
+${TOOLDIR}/llvm-objdump -elf2hex -cpu0dumpso libfoobar.cpu0.so \
+&gt; ../cpu0_verilog/libso.hex
+${TOOLDIR}/llvm-objdump -elf2hex -cpu0linkso a.out \
+&gt; ../cpu0_verilog/cpu0.hex
+cp dynstr dynsym so_func_offset global_offset ../cpu0_verilog/.
+
+</pre>
 </div>
 <div class="section" id="id7">
 <h3>Run<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>

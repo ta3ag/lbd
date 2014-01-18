@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.0',
+        VERSION:     '3.4.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -67,7 +67,7 @@ result.</p>
 <div class="section" id="asmparser-support">
 <h2>AsmParser support<a class="headerlink" href="#asmparser-support" title="Permalink to this headline">¶</a></h2>
 <p>This section list all the AsmParser code for cpu0 backend but with only a few
-explanation. Please refer here <a class="footnote-reference" href="#id4" id="id1">[1]</a> for more AsmParser explanation.</p>
+explanation. Please refer here <a class="footnote-reference" href="#id6" id="id1">[1]</a> for more AsmParser explanation.</p>
 <p>Run Chapter10_1/ with ch11_1.cpp will get the following error message.</p>
 <p class="rubric">lbdex/InputFiles/ch11_1.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld	$2, 8($sp)&quot;</span><span class="p">);</span>
@@ -239,7 +239,8 @@ The Chapter11_1/ include AsmParser implementation as follows,</p>
   <span class="kt">unsigned</span> <span class="nf">getReg</span><span class="p">(</span><span class="kt">int</span> <span class="n">RC</span><span class="p">,</span><span class="kt">int</span> <span class="n">RegNo</span><span class="p">);</span>
 
 <span class="nl">public:</span>
-  <span class="n">Cpu0AsmParser</span><span class="p">(</span><span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">sti</span><span class="p">,</span> <span class="n">MCAsmParser</span> <span class="o">&amp;</span><span class="n">parser</span><span class="p">)</span>
+  <span class="n">Cpu0AsmParser</span><span class="p">(</span><span class="n">MCSubtargetInfo</span> <span class="o">&amp;</span><span class="n">sti</span><span class="p">,</span> <span class="n">MCAsmParser</span> <span class="o">&amp;</span><span class="n">parser</span><span class="p">,</span>
+                <span class="k">const</span> <span class="n">MCInstrInfo</span> <span class="o">&amp;</span><span class="n">MII</span><span class="p">)</span>
     <span class="o">:</span> <span class="n">MCTargetAsmParser</span><span class="p">(),</span> <span class="n">STI</span><span class="p">(</span><span class="n">sti</span><span class="p">),</span> <span class="n">Parser</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span> <span class="p">{</span>
     <span class="c1">// Initialize the set of available features.</span>
     <span class="n">setAvailableFeatures</span><span class="p">(</span><span class="n">ComputeAvailableFeatures</span><span class="p">(</span><span class="n">STI</span><span class="p">.</span><span class="n">getFeatureBits</span><span class="p">()));</span>
@@ -621,7 +622,7 @@ The Chapter11_1/ include AsmParser implementation as follows,</p>
 <span class="p">}</span>
 
 <span class="kt">unsigned</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">getReg</span><span class="p">(</span><span class="kt">int</span> <span class="n">RC</span><span class="p">,</span><span class="kt">int</span> <span class="n">RegNo</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="o">*</span><span class="p">(</span><span class="n">getContext</span><span class="p">().</span><span class="n">getRegisterInfo</span><span class="p">().</span><span class="n">getRegClass</span><span class="p">(</span><span class="n">RC</span><span class="p">).</span><span class="n">begin</span><span class="p">()</span> <span class="o">+</span> <span class="n">RegNo</span><span class="p">);</span>
+  <span class="k">return</span> <span class="o">*</span><span class="p">(</span><span class="n">getContext</span><span class="p">().</span><span class="n">getRegisterInfo</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getRegClass</span><span class="p">(</span><span class="n">RC</span><span class="p">).</span><span class="n">begin</span><span class="p">()</span> <span class="o">+</span> <span class="n">RegNo</span><span class="p">);</span>
 <span class="p">}</span>
 
 <span class="kt">int</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span><span class="n">matchRegisterByNumber</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">RegNum</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">Mnemonic</span><span class="p">)</span> <span class="p">{</span>
@@ -1379,7 +1380,7 @@ number encode.</p>
   <span class="n">def</span> <span class="n">A0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">4</span><span class="p">,</span>  <span class="s">&quot;4&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">A1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">5</span><span class="p">,</span>  <span class="s">&quot;5&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">T9</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">6</span><span class="p">,</span>  <span class="s">&quot;t9&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">T0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">7</span><span class="p">,</span>  <span class="s">&quot;t0&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">T0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">7</span><span class="p">,</span>  <span class="s">&quot;7&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">S0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">,</span>  <span class="s">&quot;8&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">S1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">9</span><span class="p">,</span>  <span class="s">&quot;9&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">S2</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">10</span><span class="p">,</span> <span class="s">&quot;10&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
@@ -1473,10 +1474,1188 @@ and disassembly. You can change code in AsmParser and Dissassembly (the last
 chapter) to hide the $sw printed in these instructions (set $sw to implicit
 and not displayed, such as &#8220;jeq 20&#8221; rather than &#8220;jeq $sw, 20&#8221;).</p>
 </div>
+<div class="section" id="inline-assembly">
+<h2>Inline assembly<a class="headerlink" href="#inline-assembly" title="Permalink to this headline">¶</a></h2>
+<p>Run Chapter11_1 with ch11_2 will get the following error.</p>
+<p class="rubric">lbdex/InputFiles/ch11_2.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">int</span> <span class="n">printf</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">format</span><span class="p">,</span> <span class="p">...);</span>
+<span class="kt">int</span> <span class="nf">inlineasm_addu</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">foo</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+  <span class="k">const</span> <span class="kt">int</span> <span class="n">bar</span> <span class="o">=</span> <span class="mi">15</span><span class="p">;</span>
+
+<span class="c1">//  call i32 asm sideeffect &quot;addu $0,$1,$2&quot;, &quot;=r,r,r&quot;(i32 %1, i32 %2) #1, !srcloc !1</span>
+  <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;addu %0,%1,%2&quot;</span>
+                       <span class="o">:</span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span> <span class="c1">// 5</span>
+                       <span class="o">:</span><span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">foo</span><span class="p">),</span> <span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span>
+                       <span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">foo</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">inlineasm_longlong</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">;</span>
+  <span class="k">const</span> <span class="kt">long</span> <span class="kt">long</span> <span class="n">bar</span> <span class="o">=</span> <span class="mh">0x0000000500000006</span><span class="p">;</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">p</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">bar</span><span class="p">;</span>
+<span class="c1">//  int* q = (p+1); // Do not set q here.</span>
+
+<span class="c1">//  call i32 asm sideeffect &quot;ld $0,$1&quot;, &quot;=r,*m&quot;(i32* %2) #2, !srcloc !2</span>
+  <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;ld %0,%1&quot;</span>
+                       <span class="o">:</span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="c1">// 0x700070007000700b</span>
+                       <span class="o">:</span><span class="s">&quot;m&quot;</span><span class="p">(</span><span class="o">*</span><span class="n">p</span><span class="p">)</span>
+                       <span class="p">);</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">q</span> <span class="o">=</span> <span class="p">(</span><span class="n">p</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span> <span class="c1">// Set q just before inline asm refer to avoid register clobbered. </span>
+<span class="c1">//  call i32 asm sideeffect &quot;ld $0,$1&quot;, &quot;=r,*m&quot;(i32* %6) #2, !srcloc !3</span>
+  <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;ld %0,%1&quot;</span>
+                       <span class="o">:</span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="c1">// 11</span>
+                       <span class="o">:</span><span class="s">&quot;m&quot;</span><span class="p">(</span><span class="o">*</span><span class="n">q</span><span class="p">)</span>
+<span class="c1">//              Or use :&quot;m&quot;(*(p+1)) to avoid register clobbered. </span>
+                       <span class="p">);</span>
+
+  <span class="k">return</span> <span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">inlineasm_constraint</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">foo</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+  <span class="k">const</span> <span class="kt">int</span> <span class="n">n_5</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span><span class="p">;</span>
+  <span class="k">const</span> <span class="kt">int</span> <span class="n">n5</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+  <span class="k">const</span> <span class="kt">int</span> <span class="n">n0</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">const</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">un5</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+  <span class="k">const</span> <span class="kt">int</span> <span class="n">n65536</span> <span class="o">=</span> <span class="mh">0x10000</span><span class="p">;</span>
+  <span class="k">const</span> <span class="kt">int</span> <span class="n">n_65531</span> <span class="o">=</span> <span class="o">-</span><span class="mi">65531</span><span class="p">;</span>
+
+<span class="c1">//   call i32 asm sideeffect &quot;addiu $0,$1,$2&quot;, &quot;=r,r,I&quot;(i32 %1, i32 15) #1, !srcloc !2</span>
+  <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;addiu %0,%1,%2&quot;</span>
+                       <span class="o">:</span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span> <span class="c1">// 15</span>
+                       <span class="o">:</span><span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">foo</span><span class="p">),</span> <span class="s">&quot;I&quot;</span><span class="p">(</span><span class="n">n_5</span><span class="p">)</span>
+                       <span class="p">);</span>
+
+  <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;addiu %0,%1,%2&quot;</span>
+                       <span class="o">:</span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span> <span class="c1">// 15</span>
+                       <span class="o">:</span><span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">foo</span><span class="p">),</span> <span class="s">&quot;J&quot;</span><span class="p">(</span><span class="n">n0</span><span class="p">)</span>
+                       <span class="p">);</span>
+
+  <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;addiu %0,%1,%2&quot;</span>
+                       <span class="o">:</span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span> <span class="c1">// 10</span>
+                       <span class="o">:</span><span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">foo</span><span class="p">),</span> <span class="s">&quot;K&quot;</span><span class="p">(</span><span class="n">n5</span><span class="p">)</span>
+                       <span class="p">);</span>
+
+  <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;ori %0,%1,%2&quot;</span>
+                       <span class="o">:</span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span> <span class="c1">// 10</span>
+                       <span class="o">:</span><span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">foo</span><span class="p">),</span> <span class="s">&quot;L&quot;</span><span class="p">(</span><span class="n">n65536</span><span class="p">)</span> <span class="c1">// 0x10000 = 65536</span>
+                       <span class="p">);</span>
+
+  <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;addiu %0,%1,%2&quot;</span>
+                       <span class="o">:</span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span> <span class="c1">// 15</span>
+                       <span class="o">:</span><span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">foo</span><span class="p">),</span> <span class="s">&quot;N&quot;</span><span class="p">(</span><span class="n">n_65531</span><span class="p">)</span>
+                       <span class="p">);</span>
+
+  <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;addiu %0,%1,%2&quot;</span>
+                       <span class="o">:</span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span> <span class="c1">// 10</span>
+                       <span class="o">:</span><span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">foo</span><span class="p">),</span> <span class="s">&quot;O&quot;</span><span class="p">(</span><span class="n">n_5</span><span class="p">)</span>
+                       <span class="p">);</span>
+
+  <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;addiu %0,%1,%2&quot;</span>
+                       <span class="o">:</span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span> <span class="c1">// 15</span>
+                       <span class="o">:</span><span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">foo</span><span class="p">),</span> <span class="s">&quot;P&quot;</span><span class="p">(</span><span class="n">un5</span><span class="p">)</span>
+                       <span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">foo</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">inlineasm_arg</span><span class="p">(</span><span class="kt">int</span> <span class="n">u</span><span class="p">,</span> <span class="kt">int</span> <span class="n">v</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">w</span><span class="p">;</span>
+
+  <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;subu %0,%1,%2&quot;</span>
+                       <span class="o">:</span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+                       <span class="o">:</span><span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                       <span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">w</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">g</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">};</span>
+
+<span class="kt">int</span> <span class="nf">inlineasm_global</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">;</span>
+  <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;ld %0,%1&quot;</span>
+                       <span class="o">:</span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="c1">// c=3</span>
+                       <span class="o">:</span><span class="s">&quot;m&quot;</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                       <span class="p">);</span>
+
+  <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;addiu %0,%1,1&quot;</span>
+                       <span class="o">:</span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="c1">// d=4</span>
+                       <span class="o">:</span><span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+                       <span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">d</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cp">#ifdef TESTSOFTFLOATLIB</span>
+<span class="c1">// test_float() will call soft float library</span>
+<span class="kt">int</span> <span class="nf">inlineasm_float</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">float</span> <span class="n">a</span> <span class="o">=</span> <span class="mf">2.2</span><span class="p">;</span>
+  <span class="kt">float</span> <span class="n">b</span> <span class="o">=</span> <span class="mf">3.3</span><span class="p">;</span>
+  
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">);</span>
+
+  <span class="kt">int</span> <span class="n">d</span><span class="p">;</span>
+  <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;addiu %0,%1,1&quot;</span>
+                       <span class="o">:</span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+                       <span class="o">:</span><span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+                       <span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">d</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
+
+<span class="kt">int</span> <span class="nf">test_inlineasm</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span><span class="p">;</span>
+
+  <span class="n">a</span> <span class="o">=</span> <span class="n">inlineasm_addu</span><span class="p">();</span> <span class="c1">// 25</span>
+  <span class="n">b</span> <span class="o">=</span> <span class="n">inlineasm_longlong</span><span class="p">();</span> <span class="c1">// 11</span>
+  <span class="n">c</span> <span class="o">=</span> <span class="n">inlineasm_constraint</span><span class="p">();</span> <span class="c1">// 15</span>
+  <span class="n">d</span> <span class="o">=</span> <span class="n">inlineasm_arg</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">);</span> <span class="c1">// -9</span>
+  <span class="n">e</span> <span class="o">=</span> <span class="n">inlineasm_arg</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span> <span class="c1">// 3</span>
+  <span class="n">__asm__</span> <span class="n">__volatile__</span><span class="p">(</span><span class="s">&quot;addiu %0,%1,1&quot;</span>
+                       <span class="o">:</span><span class="s">&quot;=r&quot;</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="c1">// e=4</span>
+                       <span class="o">:</span><span class="s">&quot;r&quot;</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                       <span class="p">);</span>
+  <span class="n">g</span> <span class="o">=</span> <span class="n">inlineasm_global</span><span class="p">();</span> <span class="c1">// 4</span>
+<span class="cp">#if 0</span><span class="c"></span>
+<span class="c">  printf(&quot;a=%d\n&quot;, a);</span>
+<span class="c">  printf(&quot;b=%d\n&quot;, b);</span>
+<span class="c">  printf(&quot;c=%d\n&quot;, c);</span>
+<span class="c">  printf(&quot;d=%d\n&quot;, d);</span>
+<span class="c">  printf(&quot;e=%d\n&quot;, e);</span>
+<span class="c">  printf(&quot;f=%d\n&quot;, f);</span>
+<span class="c">  printf(&quot;g=%d\n&quot;, g);</span>
+<span class="cp">#endif</span>
+
+  <span class="k">return</span> <span class="p">(</span><span class="n">a</span><span class="o">+</span><span class="n">b</span><span class="o">+</span><span class="n">c</span><span class="o">+</span><span class="n">d</span><span class="o">+</span><span class="n">e</span><span class="o">+</span><span class="n">f</span><span class="o">+</span><span class="n">g</span><span class="p">);</span> <span class="c1">// 25+11+15-9+3+4+4=53</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><pre>1-160-129-73:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llc
+-march=cpu0 -relocation-model=static -filetype=asm ch11_2.bc -o -
+  .section .mdebug.abi32
+  .previous
+  .file "ch11_2.bc"
+error: couldn't allocate output register for constraint 'r'</pre>
+</div>
+<p>The ch11_2.cpp is a inline assembly example. The clang support inline
+assembly like gcc. The inline assembly used in C/C++ when need access the
+specific allocated register or memory for the C/C++ variable. For example, the
+variable foo of ch11_2.cpp can be allocated by compiler to register $2, $3
+or other. The inline assembly fills the gap between high level language and
+assembly language. Reference here <a class="footnote-reference" href="#id7" id="id2">[2]</a>. Chapter11_2 support inline assembly
+as follows,</p>
+<p class="rubric">lbdex/Chapter11_2/Cpu0AsmPrinter.h</p>
+<div class="highlight-c++"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre>  <span class="kt">bool</span> <span class="nf">PrintAsmOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNo</span><span class="p">,</span>
+                       <span class="kt">unsigned</span> <span class="n">AsmVariant</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">ExtraCode</span><span class="p">,</span>
+                       <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">);</span>
+  <span class="kt">bool</span> <span class="nf">PrintAsmMemoryOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNum</span><span class="p">,</span>
+                             <span class="kt">unsigned</span> <span class="n">AsmVariant</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">ExtraCode</span><span class="p">,</span>
+                             <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">);</span>
+  <span class="kt">void</span> <span class="nf">printOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="kt">int</span> <span class="n">opNum</span><span class="p">,</span> <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">);</span>
+</pre></div>
+</td></tr></table></div>
+<p class="rubric">lbdex/Chapter11_2/Cpu0AsmPrinter.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">bool</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">PrintAsmOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">OpNum</span><span class="p">,</span>
+                                     <span class="kt">unsigned</span> <span class="n">AsmVariant</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">ExtraCode</span><span class="p">,</span>
+                                     <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// Does this asm operand have a single letter operand modifier?</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">ExtraCode</span> <span class="o">&amp;&amp;</span> <span class="n">ExtraCode</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ExtraCode</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="nb">true</span><span class="p">;</span> <span class="c1">// Unknown modifier.</span>
+
+    <span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="n">OpNum</span><span class="p">);</span>
+    <span class="k">switch</span> <span class="p">(</span><span class="n">ExtraCode</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">{</span>
+    <span class="nl">default:</span>
+      <span class="c1">// See if this is a generic print operand</span>
+      <span class="k">return</span> <span class="n">AsmPrinter</span><span class="o">::</span><span class="n">PrintAsmOperand</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span><span class="n">OpNum</span><span class="p">,</span><span class="n">AsmVariant</span><span class="p">,</span><span class="n">ExtraCode</span><span class="p">,</span><span class="n">O</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;X&#39;</span>: <span class="c1">// hex const int</span>
+      <span class="k">if</span> <span class="p">((</span><span class="n">MO</span><span class="p">.</span><span class="n">getType</span><span class="p">())</span> <span class="o">!=</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="n">MO_Immediate</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+      <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;0x&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">StringRef</span><span class="p">(</span><span class="n">utohexstr</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">())).</span><span class="n">lower</span><span class="p">();</span>
+      <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+    <span class="k">case</span> <span class="sc">&#39;x&#39;</span>: <span class="c1">// hex const int (low 16 bits)</span>
+      <span class="k">if</span> <span class="p">((</span><span class="n">MO</span><span class="p">.</span><span class="n">getType</span><span class="p">())</span> <span class="o">!=</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="n">MO_Immediate</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+      <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;0x&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">StringRef</span><span class="p">(</span><span class="n">utohexstr</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">()</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">)).</span><span class="n">lower</span><span class="p">();</span>
+      <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+    <span class="k">case</span> <span class="sc">&#39;d&#39;</span>: <span class="c1">// decimal const int</span>
+      <span class="k">if</span> <span class="p">((</span><span class="n">MO</span><span class="p">.</span><span class="n">getType</span><span class="p">())</span> <span class="o">!=</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="n">MO_Immediate</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+      <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+      <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+    <span class="k">case</span> <span class="sc">&#39;m&#39;</span>: <span class="c1">// decimal const int minus 1</span>
+      <span class="k">if</span> <span class="p">((</span><span class="n">MO</span><span class="p">.</span><span class="n">getType</span><span class="p">())</span> <span class="o">!=</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="n">MO_Immediate</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+      <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+      <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+    <span class="k">case</span> <span class="sc">&#39;z&#39;</span>: <span class="p">{</span>
+      <span class="c1">// $0 if zero, regular printing otherwise</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getType</span><span class="p">()</span> <span class="o">!=</span> <span class="n">MachineOperand</span><span class="o">::</span><span class="n">MO_Immediate</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+      <span class="kt">int64_t</span> <span class="n">Val</span> <span class="o">=</span> <span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">Val</span><span class="p">)</span>
+        <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="n">Val</span><span class="p">;</span>
+      <span class="k">else</span>
+        <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;$0&quot;</span><span class="p">;</span>
+      <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="n">printOperand</span><span class="p">(</span><span class="n">MI</span><span class="p">,</span> <span class="n">OpNum</span><span class="p">,</span> <span class="n">O</span><span class="p">);</span>
+  <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">PrintAsmMemoryOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span>
+                                           <span class="kt">unsigned</span> <span class="n">OpNum</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">AsmVariant</span><span class="p">,</span>
+                                           <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">ExtraCode</span><span class="p">,</span>
+                                           <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">Offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="c1">// Currently we are expecting either no ExtraCode or &#39;D&#39;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">ExtraCode</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span> <span class="c1">// Unknown modifier.</span>
+  <span class="p">}</span>
+
+  <span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="n">OpNum</span><span class="p">);</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">isReg</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;unexpected inline asm memory operand&quot;</span><span class="p">);</span>
+  <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="n">Offset</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;($&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">Cpu0InstPrinter</span><span class="o">::</span><span class="n">getRegisterName</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getReg</span><span class="p">())</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;)&quot;</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">printOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">,</span> <span class="kt">int</span> <span class="n">opNum</span><span class="p">,</span>
+                                  <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">O</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">MachineOperand</span> <span class="o">&amp;</span><span class="n">MO</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="n">opNum</span><span class="p">);</span>
+  <span class="kt">bool</span> <span class="n">closeP</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getTargetFlags</span><span class="p">())</span>
+    <span class="n">closeP</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+
+  <span class="k">switch</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getTargetFlags</span><span class="p">())</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_GPREL</span><span class="o">:</span>    <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;%gp_rel(&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_GOT_CALL</span><span class="o">:</span> <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;%call16(&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_GOT16</span><span class="o">:</span>    <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;%got16(&quot;</span><span class="p">;</span>  <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_GOT</span><span class="o">:</span>      <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;%got(&quot;</span><span class="p">;</span>    <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_ABS_HI</span><span class="o">:</span>   <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;%hi(&quot;</span><span class="p">;</span>     <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_ABS_LO</span><span class="o">:</span>   <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;%lo(&quot;</span><span class="p">;</span>     <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_GOT_HI16</span><span class="o">:</span> <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;%got_hi16(&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="n">Cpu0II</span>:<span class="o">:</span><span class="n">MO_GOT_LO16</span><span class="o">:</span> <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;%got_lo16(&quot;</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">switch</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getType</span><span class="p">())</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">MachineOperand</span>:<span class="o">:</span><span class="n">MO_Register</span><span class="o">:</span>
+      <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="sc">&#39;$&#39;</span>
+        <span class="o">&lt;&lt;</span> <span class="n">StringRef</span><span class="p">(</span><span class="n">Cpu0InstPrinter</span><span class="o">::</span><span class="n">getRegisterName</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getReg</span><span class="p">())).</span><span class="n">lower</span><span class="p">();</span>
+      <span class="k">break</span><span class="p">;</span>
+
+    <span class="k">case</span> <span class="n">MachineOperand</span>:<span class="o">:</span><span class="n">MO_Immediate</span><span class="o">:</span>
+      <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="n">MO</span><span class="p">.</span><span class="n">getImm</span><span class="p">();</span>
+      <span class="k">break</span><span class="p">;</span>
+
+    <span class="k">case</span> <span class="n">MachineOperand</span>:<span class="o">:</span><span class="n">MO_MachineBasicBlock</span><span class="o">:</span>
+      <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="o">*</span><span class="n">MO</span><span class="p">.</span><span class="n">getMBB</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getSymbol</span><span class="p">();</span>
+      <span class="k">return</span><span class="p">;</span>
+
+    <span class="k">case</span> <span class="n">MachineOperand</span>:<span class="o">:</span><span class="n">MO_GlobalAddress</span><span class="o">:</span>
+      <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="o">*</span><span class="n">getSymbol</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getGlobal</span><span class="p">());</span>
+      <span class="k">break</span><span class="p">;</span>
+
+    <span class="k">case</span> <span class="n">MachineOperand</span>:<span class="o">:</span><span class="n">MO_BlockAddress</span><span class="o">:</span> <span class="p">{</span>
+      <span class="n">MCSymbol</span> <span class="o">*</span><span class="n">BA</span> <span class="o">=</span> <span class="n">GetBlockAddressSymbol</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getBlockAddress</span><span class="p">());</span>
+      <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="n">BA</span><span class="o">-&gt;</span><span class="n">getName</span><span class="p">();</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">case</span> <span class="n">MachineOperand</span>:<span class="o">:</span><span class="n">MO_ExternalSymbol</span><span class="o">:</span>
+      <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="o">*</span><span class="n">GetExternalSymbolSymbol</span><span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getSymbolName</span><span class="p">());</span>
+      <span class="k">break</span><span class="p">;</span>
+
+    <span class="k">case</span> <span class="n">MachineOperand</span>:<span class="o">:</span><span class="n">MO_JumpTableIndex</span><span class="o">:</span>
+      <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="n">MAI</span><span class="o">-&gt;</span><span class="n">getPrivateGlobalPrefix</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;JTI&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">getFunctionNumber</span><span class="p">()</span>
+        <span class="o">&lt;&lt;</span> <span class="sc">&#39;_&#39;</span> <span class="o">&lt;&lt;</span> <span class="n">MO</span><span class="p">.</span><span class="n">getIndex</span><span class="p">();</span>
+      <span class="k">break</span><span class="p">;</span>
+
+    <span class="k">case</span> <span class="n">MachineOperand</span>:<span class="o">:</span><span class="n">MO_ConstantPoolIndex</span><span class="o">:</span>
+      <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="n">MAI</span><span class="o">-&gt;</span><span class="n">getPrivateGlobalPrefix</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;CPI&quot;</span>
+        <span class="o">&lt;&lt;</span> <span class="n">getFunctionNumber</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;_&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">MO</span><span class="p">.</span><span class="n">getIndex</span><span class="p">();</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">MO</span><span class="p">.</span><span class="n">getOffset</span><span class="p">())</span>
+        <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;+&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">MO</span><span class="p">.</span><span class="n">getOffset</span><span class="p">();</span>
+      <span class="k">break</span><span class="p">;</span>
+
+    <span class="nl">default:</span>
+      <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;&lt;unknown operand type&gt;&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">closeP</span><span class="p">)</span> <span class="n">O</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;)&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter11_2/Cpu0InstrInfo.h</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="c1">/// Return the number of bytes of code the specified instruction may be.</span>
+  <span class="kt">unsigned</span> <span class="n">GetInstSizeInBytes</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter11_2/Cpu0InstrInfo.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">GetInstSizeInBytes</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
+  <span class="nl">default:</span>
+    <span class="k">return</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getDesc</span><span class="p">().</span><span class="n">getSize</span><span class="p">();</span>
+  <span class="k">case</span>  <span class="n">TargetOpcode</span>:<span class="o">:</span><span class="n">INLINEASM</span><span class="o">:</span> <span class="p">{</span>       <span class="c1">// Inline Asm: Variable size.</span>
+    <span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">*</span><span class="n">MF</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">();</span>
+    <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">AsmStr</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">getSymbolName</span><span class="p">();</span>
+    <span class="k">return</span> <span class="nf">getInlineAsmLength</span><span class="p">(</span><span class="n">AsmStr</span><span class="p">,</span> <span class="o">*</span><span class="n">MF</span><span class="o">-&gt;</span><span class="n">getTarget</span><span class="p">().</span><span class="n">getMCAsmInfo</span><span class="p">());</span>
+  <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter11_2/Cpu0ISelDAGToDAG.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="k">virtual</span> <span class="kt">bool</span> <span class="nf">SelectInlineAsmMemoryOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">SDValue</span> <span class="o">&amp;</span><span class="n">Op</span><span class="p">,</span>
+                                            <span class="kt">char</span> <span class="n">ConstraintCode</span><span class="p">,</span>
+                                            <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">OutOps</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">bool</span> <span class="n">Cpu0DAGToDAGISel</span><span class="o">::</span>
+<span class="n">SelectInlineAsmMemoryOperand</span><span class="p">(</span><span class="k">const</span> <span class="n">SDValue</span> <span class="o">&amp;</span><span class="n">Op</span><span class="p">,</span> <span class="kt">char</span> <span class="n">ConstraintCode</span><span class="p">,</span>
+                             <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">OutOps</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">ConstraintCode</span> <span class="o">==</span> <span class="sc">&#39;m&#39;</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;unexpected asm memory constraint&quot;</span><span class="p">);</span>
+  <span class="n">OutOps</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Op</span><span class="p">);</span>
+  <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter11_2/Cpu0ISelLowering.h</p>
+<div class="highlight-c++"><div class="highlight"><pre>    <span class="c1">// Inline asm support</span>
+    <span class="n">ConstraintType</span> <span class="n">getConstraintType</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">Constraint</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+
+    <span class="c1">/// Examine constraint string and operand type and determine a weight value.</span>
+    <span class="c1">/// The operand object must already have been set up with the operand type.</span>
+    <span class="n">ConstraintWeight</span> <span class="n">getSingleConstraintMatchWeight</span><span class="p">(</span>
+      <span class="n">AsmOperandInfo</span> <span class="o">&amp;</span><span class="n">info</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">constraint</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+
+    <span class="c1">/// This function parses registers that appear in inline-asm constraints.</span>
+    <span class="c1">/// It returns pair (0, 0) on failure.</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">unsigned</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*&gt;</span>
+    <span class="n">parseRegForInlineAsmConstraint</span><span class="p">(</span><span class="k">const</span> <span class="n">StringRef</span> <span class="o">&amp;</span><span class="n">C</span><span class="p">,</span> <span class="n">MVT</span> <span class="n">VT</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+
+    <span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">unsigned</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetRegisterClass</span><span class="o">*&gt;</span>
+              <span class="n">getRegForInlineAsmConstraint</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">Constraint</span><span class="p">,</span>
+                                           <span class="n">MVT</span> <span class="n">VT</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+
+    <span class="c1">/// LowerAsmOperandForConstraint - Lower the specified operand into the Ops</span>
+    <span class="c1">/// vector.  If it is invalid, don&#39;t add anything to Ops. If hasMemory is</span>
+    <span class="c1">/// true it means one of the asm constraint of the inline asm instruction</span>
+    <span class="c1">/// being processed is &#39;m&#39;.</span>
+    <span class="k">virtual</span> <span class="kt">void</span> <span class="n">LowerAsmOperandForConstraint</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span>
+                                              <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">Constraint</span><span class="p">,</span>
+                                              <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Ops</span><span class="p">,</span>
+                                              <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+
+    <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">isLegalAddressingMode</span><span class="p">(</span><span class="k">const</span> <span class="n">AddrMode</span> <span class="o">&amp;</span><span class="n">AM</span><span class="p">,</span> <span class="n">Type</span> <span class="o">*</span><span class="n">Ty</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter11_2/Cpu0ISelLowering.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//                           Cpu0 Inline Assembly Support</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="c1">/// getConstraintType - Given a constraint letter, return the type of</span>
+<span class="c1">/// constraint it is for this target.</span>
+<span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">ConstraintType</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">getConstraintType</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">Constraint</span><span class="p">)</span> <span class="k">const</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Constraint</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">switch</span> <span class="p">(</span><span class="n">Constraint</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">{</span>
+      <span class="k">default</span> <span class="o">:</span> <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="sc">&#39;c&#39;</span>:
+        <span class="k">return</span> <span class="n">C_RegisterClass</span><span class="p">;</span>
+      <span class="k">case</span> <span class="sc">&#39;R&#39;</span>:
+        <span class="k">return</span> <span class="n">C_Memory</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">TargetLowering</span><span class="o">::</span><span class="n">getConstraintType</span><span class="p">(</span><span class="n">Constraint</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">/// Examine constraint type and operand type and determine a weight value.</span>
+<span class="c1">/// This object must already have been set up with the operand type</span>
+<span class="c1">/// and the current alternative constraint selected.</span>
+<span class="n">TargetLowering</span><span class="o">::</span><span class="n">ConstraintWeight</span>
+<span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">getSingleConstraintMatchWeight</span><span class="p">(</span>
+    <span class="n">AsmOperandInfo</span> <span class="o">&amp;</span><span class="n">info</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">constraint</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">ConstraintWeight</span> <span class="n">weight</span> <span class="o">=</span> <span class="n">CW_Invalid</span><span class="p">;</span>
+  <span class="n">Value</span> <span class="o">*</span><span class="n">CallOperandVal</span> <span class="o">=</span> <span class="n">info</span><span class="p">.</span><span class="n">CallOperandVal</span><span class="p">;</span>
+    <span class="c1">// If we don&#39;t have a value, we can&#39;t do a match,</span>
+    <span class="c1">// but allow it at the lowest weight.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">CallOperandVal</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">CW_Default</span><span class="p">;</span>
+  <span class="n">Type</span> <span class="o">*</span><span class="n">type</span> <span class="o">=</span> <span class="n">CallOperandVal</span><span class="o">-&gt;</span><span class="n">getType</span><span class="p">();</span>
+  <span class="c1">// Look at the constraint type.</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="o">*</span><span class="n">constraint</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nl">default:</span>
+    <span class="n">weight</span> <span class="o">=</span> <span class="n">TargetLowering</span><span class="o">::</span><span class="n">getSingleConstraintMatchWeight</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">constraint</span><span class="p">);</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="sc">&#39;c&#39;</span>: <span class="c1">// $25 for indirect jumps</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">type</span><span class="o">-&gt;</span><span class="n">isIntegerTy</span><span class="p">())</span>
+      <span class="n">weight</span> <span class="o">=</span> <span class="n">CW_SpecificReg</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="sc">&#39;I&#39;</span>: <span class="c1">// signed 16 bit immediate</span>
+  <span class="k">case</span> <span class="sc">&#39;J&#39;</span>: <span class="c1">// integer zero</span>
+  <span class="k">case</span> <span class="sc">&#39;K&#39;</span>: <span class="c1">// unsigned 16 bit immediate</span>
+  <span class="k">case</span> <span class="sc">&#39;L&#39;</span>: <span class="c1">// signed 32 bit immediate where lower 16 bits are 0</span>
+  <span class="k">case</span> <span class="sc">&#39;N&#39;</span>: <span class="c1">// immediate in the range of -65535 to -1 (inclusive)</span>
+  <span class="k">case</span> <span class="sc">&#39;O&#39;</span>: <span class="c1">// signed 15 bit immediate (+- 16383)</span>
+  <span class="k">case</span> <span class="sc">&#39;P&#39;</span>: <span class="c1">// immediate in the range of 65535 to 1 (inclusive)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">isa</span><span class="o">&lt;</span><span class="n">ConstantInt</span><span class="o">&gt;</span><span class="p">(</span><span class="n">CallOperandVal</span><span class="p">))</span>
+      <span class="n">weight</span> <span class="o">=</span> <span class="n">CW_Constant</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="sc">&#39;R&#39;</span>:
+    <span class="n">weight</span> <span class="o">=</span> <span class="n">CW_Memory</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">weight</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">/// This is a helper function to parse a physical register string and split it</span>
+<span class="c1">/// into non-numeric and numeric parts (Prefix and Reg). The first boolean flag</span>
+<span class="c1">/// that is returned indicates whether parsing was successful. The second flag</span>
+<span class="c1">/// is true if the numeric part exists.</span>
+<span class="k">static</span> <span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">bool</span><span class="p">,</span> <span class="kt">bool</span><span class="o">&gt;</span>
+<span class="n">parsePhysicalReg</span><span class="p">(</span><span class="k">const</span> <span class="n">StringRef</span> <span class="o">&amp;</span><span class="n">C</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">Prefix</span><span class="p">,</span>
+                 <span class="kt">unsigned</span> <span class="kt">long</span> <span class="kt">long</span> <span class="o">&amp;</span><span class="n">Reg</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">C</span><span class="p">.</span><span class="n">front</span><span class="p">()</span> <span class="o">!=</span> <span class="sc">&#39;{&#39;</span> <span class="o">||</span> <span class="n">C</span><span class="p">.</span><span class="n">back</span><span class="p">()</span> <span class="o">!=</span> <span class="sc">&#39;}&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">(</span><span class="nb">false</span><span class="p">,</span> <span class="nb">false</span><span class="p">);</span>
+
+  <span class="c1">// Search for the first numeric character.</span>
+  <span class="n">StringRef</span><span class="o">::</span><span class="n">const_iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">B</span> <span class="o">=</span> <span class="n">C</span><span class="p">.</span><span class="n">begin</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">E</span> <span class="o">=</span> <span class="n">C</span><span class="p">.</span><span class="n">end</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="n">I</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">find_if</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">ptr_fun</span><span class="p">(</span><span class="n">isdigit</span><span class="p">));</span>
+
+  <span class="n">Prefix</span><span class="p">.</span><span class="n">assign</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">I</span> <span class="o">-</span> <span class="n">B</span><span class="p">);</span>
+
+  <span class="c1">// The second flag is set to false if no numeric characters were found.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">I</span> <span class="o">==</span> <span class="n">E</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">(</span><span class="nb">true</span><span class="p">,</span> <span class="nb">false</span><span class="p">);</span>
+
+  <span class="c1">// Parse the numeric characters.</span>
+  <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">(</span><span class="o">!</span><span class="n">getAsUnsignedInteger</span><span class="p">(</span><span class="n">StringRef</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="n">E</span> <span class="o">-</span> <span class="n">I</span><span class="p">),</span> <span class="mi">10</span><span class="p">,</span> <span class="n">Reg</span><span class="p">),</span>
+                        <span class="nb">true</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">unsigned</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*&gt;</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">parseRegForInlineAsmConstraint</span><span class="p">(</span><span class="k">const</span> <span class="n">StringRef</span> <span class="o">&amp;</span><span class="n">C</span><span class="p">,</span> <span class="n">MVT</span> <span class="n">VT</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="n">TargetRegisterInfo</span> <span class="o">*</span><span class="n">TRI</span> <span class="o">=</span> <span class="n">getTargetMachine</span><span class="p">().</span><span class="n">getRegisterInfo</span><span class="p">();</span>
+  <span class="k">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*</span><span class="n">RC</span><span class="p">;</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">Prefix</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="kt">long</span> <span class="kt">long</span> <span class="n">Reg</span><span class="p">;</span>
+
+  <span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">bool</span><span class="p">,</span> <span class="kt">bool</span><span class="o">&gt;</span> <span class="n">R</span> <span class="o">=</span> <span class="n">parsePhysicalReg</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">Prefix</span><span class="p">,</span> <span class="n">Reg</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">R</span><span class="p">.</span><span class="n">first</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">((</span><span class="kt">unsigned</span><span class="p">)</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="k">const</span> <span class="n">TargetRegisterClass</span><span class="o">*</span><span class="p">)</span><span class="mi">0</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">R</span><span class="p">.</span><span class="n">second</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">((</span><span class="kt">unsigned</span><span class="p">)</span><span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="k">const</span> <span class="n">TargetRegisterClass</span><span class="o">*</span><span class="p">)</span><span class="mi">0</span><span class="p">);</span>
+
+ <span class="c1">// Parse $0-$15.</span>
+  <span class="n">assert</span><span class="p">(</span><span class="n">Prefix</span> <span class="o">==</span> <span class="s">&quot;$&quot;</span><span class="p">);</span>
+  <span class="n">RC</span> <span class="o">=</span> <span class="n">getRegClassFor</span><span class="p">((</span><span class="n">VT</span> <span class="o">==</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">)</span> <span class="o">?</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span> <span class="o">:</span> <span class="n">VT</span><span class="p">);</span>
+
+  <span class="n">assert</span><span class="p">(</span><span class="n">Reg</span> <span class="o">&lt;</span> <span class="n">RC</span><span class="o">-&gt;</span><span class="n">getNumRegs</span><span class="p">());</span>
+  <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">RC</span><span class="o">-&gt;</span><span class="n">begin</span><span class="p">()</span> <span class="o">+</span> <span class="n">Reg</span><span class="p">),</span> <span class="n">RC</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">/// Given a register class constraint, like &#39;r&#39;, if this corresponds directly</span>
+<span class="c1">/// to an LLVM register class, return a register of 0 and the register class</span>
+<span class="c1">/// pointer.</span>
+<span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">unsigned</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetRegisterClass</span><span class="o">*&gt;</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">getRegForInlineAsmConstraint</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">Constraint</span><span class="p">,</span> <span class="n">MVT</span> <span class="n">VT</span><span class="p">)</span> <span class="k">const</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Constraint</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">switch</span> <span class="p">(</span><span class="n">Constraint</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="sc">&#39;r&#39;</span>:
+      <span class="k">if</span> <span class="p">(</span><span class="n">VT</span> <span class="o">==</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span> <span class="o">||</span> <span class="n">VT</span> <span class="o">==</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i16</span> <span class="o">||</span> <span class="n">VT</span> <span class="o">==</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i8</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">(</span><span class="mi">0U</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">);</span>
+      <span class="p">}</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">VT</span> <span class="o">==</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i64</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">(</span><span class="mi">0U</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">);</span>
+      <span class="c1">// This will generate an error message</span>
+      <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">(</span><span class="mi">0u</span><span class="p">,</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="k">const</span> <span class="n">TargetRegisterClass</span><span class="o">*&gt;</span><span class="p">(</span><span class="mi">0</span><span class="p">));</span>
+    <span class="k">case</span> <span class="sc">&#39;c&#39;</span>: <span class="c1">// register suitable for indirect jump</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">VT</span> <span class="o">==</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">make_pair</span><span class="p">((</span><span class="kt">unsigned</span><span class="p">)</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">T9</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">);</span>
+      <span class="n">assert</span><span class="p">(</span><span class="s">&quot;Unexpected type.&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="kt">unsigned</span><span class="p">,</span> <span class="k">const</span> <span class="n">TargetRegisterClass</span> <span class="o">*&gt;</span> <span class="n">R</span><span class="p">;</span>
+  <span class="n">R</span> <span class="o">=</span> <span class="n">parseRegForInlineAsmConstraint</span><span class="p">(</span><span class="n">Constraint</span><span class="p">,</span> <span class="n">VT</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">R</span><span class="p">.</span><span class="n">second</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">R</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="n">TargetLowering</span><span class="o">::</span><span class="n">getRegForInlineAsmConstraint</span><span class="p">(</span><span class="n">Constraint</span><span class="p">,</span> <span class="n">VT</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">/// LowerAsmOperandForConstraint - Lower the specified operand into the Ops</span>
+<span class="c1">/// vector.  If it is invalid, don&#39;t add anything to Ops.</span>
+<span class="kt">void</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerAsmOperandForConstraint</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span>
+                                                     <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">Constraint</span><span class="p">,</span>
+                                                     <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;&amp;</span><span class="n">Ops</span><span class="p">,</span>
+                                                     <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="n">SDValue</span> <span class="n">Result</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+
+  <span class="c1">// Only support length 1 constraints for now.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Constraint</span><span class="p">.</span><span class="n">length</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
+
+  <span class="kt">char</span> <span class="n">ConstraintLetter</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">ConstraintLetter</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nl">default:</span> <span class="k">break</span><span class="p">;</span> <span class="c1">// This will fall through to the generic implementation</span>
+  <span class="k">case</span> <span class="sc">&#39;I&#39;</span>: <span class="c1">// Signed 16 bit constant</span>
+    <span class="c1">// If this fails, the parent routine will give an error</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ConstantSDNode</span> <span class="o">*</span><span class="n">C</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">ConstantSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Op</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">EVT</span> <span class="n">Type</span> <span class="o">=</span> <span class="n">Op</span><span class="p">.</span><span class="n">getValueType</span><span class="p">();</span>
+      <span class="kt">int64_t</span> <span class="n">Val</span> <span class="o">=</span> <span class="n">C</span><span class="o">-&gt;</span><span class="n">getSExtValue</span><span class="p">();</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Val</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">Result</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetConstant</span><span class="p">(</span><span class="n">Val</span><span class="p">,</span> <span class="n">Type</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="k">case</span> <span class="sc">&#39;J&#39;</span>: <span class="c1">// integer zero</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ConstantSDNode</span> <span class="o">*</span><span class="n">C</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">ConstantSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Op</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">EVT</span> <span class="n">Type</span> <span class="o">=</span> <span class="n">Op</span><span class="p">.</span><span class="n">getValueType</span><span class="p">();</span>
+      <span class="kt">int64_t</span> <span class="n">Val</span> <span class="o">=</span> <span class="n">C</span><span class="o">-&gt;</span><span class="n">getZExtValue</span><span class="p">();</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">Val</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Result</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetConstant</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Type</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="k">case</span> <span class="sc">&#39;K&#39;</span>: <span class="c1">// unsigned 16 bit immediate</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ConstantSDNode</span> <span class="o">*</span><span class="n">C</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">ConstantSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Op</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">EVT</span> <span class="n">Type</span> <span class="o">=</span> <span class="n">Op</span><span class="p">.</span><span class="n">getValueType</span><span class="p">();</span>
+      <span class="kt">uint64_t</span> <span class="n">Val</span> <span class="o">=</span> <span class="p">(</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">C</span><span class="o">-&gt;</span><span class="n">getZExtValue</span><span class="p">();</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">isUInt</span><span class="o">&lt;</span><span class="mi">16</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Val</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">Result</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetConstant</span><span class="p">(</span><span class="n">Val</span><span class="p">,</span> <span class="n">Type</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="k">case</span> <span class="sc">&#39;L&#39;</span>: <span class="c1">// signed 32 bit immediate where lower 16 bits are 0</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ConstantSDNode</span> <span class="o">*</span><span class="n">C</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">ConstantSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Op</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">EVT</span> <span class="n">Type</span> <span class="o">=</span> <span class="n">Op</span><span class="p">.</span><span class="n">getValueType</span><span class="p">();</span>
+      <span class="kt">int64_t</span> <span class="n">Val</span> <span class="o">=</span> <span class="n">C</span><span class="o">-&gt;</span><span class="n">getSExtValue</span><span class="p">();</span>
+      <span class="k">if</span> <span class="p">((</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">32</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Val</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="p">((</span><span class="n">Val</span> <span class="o">&amp;</span> <span class="mh">0xffff</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)){</span>
+        <span class="n">Result</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetConstant</span><span class="p">(</span><span class="n">Val</span><span class="p">,</span> <span class="n">Type</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="k">case</span> <span class="sc">&#39;N&#39;</span>: <span class="c1">// immediate in the range of -65535 to -1 (inclusive)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ConstantSDNode</span> <span class="o">*</span><span class="n">C</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">ConstantSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Op</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">EVT</span> <span class="n">Type</span> <span class="o">=</span> <span class="n">Op</span><span class="p">.</span><span class="n">getValueType</span><span class="p">();</span>
+      <span class="kt">int64_t</span> <span class="n">Val</span> <span class="o">=</span> <span class="n">C</span><span class="o">-&gt;</span><span class="n">getSExtValue</span><span class="p">();</span>
+      <span class="k">if</span> <span class="p">((</span><span class="n">Val</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mi">65535</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">Val</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">Result</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetConstant</span><span class="p">(</span><span class="n">Val</span><span class="p">,</span> <span class="n">Type</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="k">case</span> <span class="sc">&#39;O&#39;</span>: <span class="c1">// signed 15 bit immediate</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ConstantSDNode</span> <span class="o">*</span><span class="n">C</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">ConstantSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Op</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">EVT</span> <span class="n">Type</span> <span class="o">=</span> <span class="n">Op</span><span class="p">.</span><span class="n">getValueType</span><span class="p">();</span>
+      <span class="kt">int64_t</span> <span class="n">Val</span> <span class="o">=</span> <span class="n">C</span><span class="o">-&gt;</span><span class="n">getSExtValue</span><span class="p">();</span>
+      <span class="k">if</span> <span class="p">((</span><span class="n">isInt</span><span class="o">&lt;</span><span class="mi">15</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Val</span><span class="p">)))</span> <span class="p">{</span>
+        <span class="n">Result</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetConstant</span><span class="p">(</span><span class="n">Val</span><span class="p">,</span> <span class="n">Type</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="k">case</span> <span class="sc">&#39;P&#39;</span>: <span class="c1">// immediate in the range of 1 to 65535 (inclusive)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ConstantSDNode</span> <span class="o">*</span><span class="n">C</span> <span class="o">=</span> <span class="n">dyn_cast</span><span class="o">&lt;</span><span class="n">ConstantSDNode</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Op</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">EVT</span> <span class="n">Type</span> <span class="o">=</span> <span class="n">Op</span><span class="p">.</span><span class="n">getValueType</span><span class="p">();</span>
+      <span class="kt">int64_t</span> <span class="n">Val</span> <span class="o">=</span> <span class="n">C</span><span class="o">-&gt;</span><span class="n">getSExtValue</span><span class="p">();</span>
+      <span class="k">if</span> <span class="p">((</span><span class="n">Val</span> <span class="o">&lt;=</span> <span class="mi">65535</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">Val</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">Result</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getTargetConstant</span><span class="p">(</span><span class="n">Val</span><span class="p">,</span> <span class="n">Type</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">Result</span><span class="p">.</span><span class="n">getNode</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">Ops</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Result</span><span class="p">);</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">TargetLowering</span><span class="o">::</span><span class="n">LowerAsmOperandForConstraint</span><span class="p">(</span><span class="n">Op</span><span class="p">,</span> <span class="n">Constraint</span><span class="p">,</span> <span class="n">Ops</span><span class="p">,</span> <span class="n">DAG</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">isLegalAddressingMode</span><span class="p">(</span><span class="k">const</span> <span class="n">AddrMode</span> <span class="o">&amp;</span><span class="n">AM</span><span class="p">,</span>
+                                               <span class="n">Type</span> <span class="o">*</span><span class="n">Ty</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
+  <span class="c1">// No global is ever allowed as a base.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">AM</span><span class="p">.</span><span class="n">BaseGV</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+
+  <span class="k">switch</span> <span class="p">(</span><span class="n">AM</span><span class="p">.</span><span class="n">Scale</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="mi">0</span>: <span class="c1">// &quot;r+i&quot; or just &quot;i&quot;, depending on HasBaseReg.</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="mi">1</span>:
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">AM</span><span class="p">.</span><span class="n">HasBaseReg</span><span class="p">)</span> <span class="c1">// allow &quot;r+i&quot;.</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span> <span class="c1">// disallow &quot;r+r&quot; or &quot;r+r+i&quot;.</span>
+  <span class="nl">default:</span>
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Same with backend structure inline assembly functions can be divided by file
+name as Table: inline assembly functions.</p>
+<table border="1" class="docutils">
+<caption>inline assembly functions</caption>
+<colgroup>
+<col width="46%" />
+<col width="54%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">File</th>
+<th class="head">Function</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Cpu0ISelLowering.cpp</td>
+<td>inline asm DAG node create</td>
+</tr>
+<tr class="row-odd"><td>Cpu0ISelDAGToDAG.cpp</td>
+<td>save OP code</td>
+</tr>
+<tr class="row-even"><td>Cpu0AsmPrinter.cpp,</td>
+<td>inline asm instructions printing</td>
+</tr>
+<tr class="row-odd"><td>Cpu0InstrInfo.cpp</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Except Cpu0ISelDAGToDAG.cpp, the others function are same with backend.
+The Cpu0ISelLowering.cpp inline asm is explained after the ch11_2.cpp
+running result. Cpu0ISelDAGToDAG.cpp just save OP code in
+SelectInlineAsmMemoryOperand(). Since the the OP code is Cpu0 inline
+assembly instruction, no llvm IR DAG translation needed further. Save OP
+directly and return false to notiy llvm system that Cpu0 backend has handled it.</p>
+<p>Run Chapter11_2 with ch11_2.cpp will get the following result.</p>
+<div class="highlight-bash"><div class="highlight"><pre>1-160-129-73:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
+ch11_2.cpp -emit-llvm -o ch11_2.bc
+
+1-160-129-73:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/
+llvm-dis ch11_2.bc -o -
+...
+target <span class="nv">triple</span> <span class="o">=</span> <span class="s2">&quot;mips-unknown-linux-gnu&quot;</span>
+
+@g <span class="o">=</span> global <span class="o">[</span>3 x i32<span class="o">]</span> <span class="o">[</span>i32 1, i32 2, i32 3<span class="o">]</span>, align 4
+
+; Function Attrs: nounwind
+define i32 @_Z14inlineasm_adduv<span class="o">()</span> <span class="c">#0 {</span>
+  %foo <span class="o">=</span> alloca i32, align 4
+  %bar <span class="o">=</span> alloca i32, align 4
+  store i32 10, i32* %foo, align 4
+  store i32 15, i32* %bar, align 4
+  %1 <span class="o">=</span> load i32* %foo, align 4
+  %2 <span class="o">=</span> call i32 asm sideeffect <span class="s2">&quot;addu $0,$1,$2&quot;</span>, <span class="s2">&quot;=r,r,r&quot;</span><span class="o">(</span>i32 %1, i32 15<span class="o">)</span> <span class="c">#1,</span>
+  !srcloc !1
+  store i32 %2, i32* %foo, align 4
+  %3 <span class="o">=</span> load i32* %foo, align 4
+  ret i32 %3
+<span class="o">}</span>
+
+; Function Attrs: nounwind
+define i32 @_Z18inlineasm_longlongv<span class="o">()</span> <span class="c">#0 {</span>
+  %a <span class="o">=</span> alloca i32, align 4
+  %b <span class="o">=</span> alloca i32, align 4
+  %bar <span class="o">=</span> alloca i64, align 8
+  %p <span class="o">=</span> alloca i32*, align 4
+  %q <span class="o">=</span> alloca i32*, align 4
+  store i64 21474836486, i64* %bar, align 8
+  %1 <span class="o">=</span> bitcast i64* %bar to i32*
+  store i32* %1, i32** %p, align 4
+  %2 <span class="o">=</span> load i32** %p, align 4
+  %3 <span class="o">=</span> call i32 asm sideeffect <span class="s2">&quot;ld $0,$1&quot;</span>, <span class="s2">&quot;=r,*m&quot;</span><span class="o">(</span>i32* %2<span class="o">)</span> <span class="c">#1, !srcloc !2</span>
+  store i32 %3, i32* %a, align 4
+  %4 <span class="o">=</span> load i32** %p, align 4
+  %5 <span class="o">=</span> getelementptr inbounds i32* %4, i32 1
+  store i32* %5, i32** %q, align 4
+  %6 <span class="o">=</span> load i32** %q, align 4
+  %7 <span class="o">=</span> call i32 asm sideeffect <span class="s2">&quot;ld $0,$1&quot;</span>, <span class="s2">&quot;=r,*m&quot;</span><span class="o">(</span>i32* %6<span class="o">)</span> <span class="c">#1, !srcloc !3</span>
+  store i32 %7, i32* %b, align 4
+  %8 <span class="o">=</span> load i32* %a, align 4
+  %9 <span class="o">=</span> load i32* %b, align 4
+  %10 <span class="o">=</span> add nsw i32 %8, %9
+  ret i32 %10
+<span class="o">}</span>
+
+; Function Attrs: nounwind
+define i32 @_Z20inlineasm_constraintv<span class="o">()</span> <span class="c">#0 {</span>
+  %foo <span class="o">=</span> alloca i32, align 4
+  %n_5 <span class="o">=</span> alloca i32, align 4
+  %n5 <span class="o">=</span> alloca i32, align 4
+  %n0 <span class="o">=</span> alloca i32, align 4
+  %un5 <span class="o">=</span> alloca i32, align 4
+  %n65536 <span class="o">=</span> alloca i32, align 4
+  %n_65531 <span class="o">=</span> alloca i32, align 4
+  store i32 10, i32* %foo, align 4
+  store i32 -5, i32* %n_5, align 4
+  store i32 5, i32* %n5, align 4
+  store i32 0, i32* %n0, align 4
+  store i32 5, i32* %un5, align 4
+  store i32 65536, i32* %n65536, align 4
+  store i32 -65531, i32* %n_65531, align 4
+  %1 <span class="o">=</span> load i32* %foo, align 4
+  %2 <span class="o">=</span> call i32 asm sideeffect <span class="s2">&quot;addiu $0,$1,$2&quot;</span>, <span class="s2">&quot;=r,r,I&quot;</span><span class="o">(</span>i32 %1, i32 -5<span class="o">)</span> <span class="c">#1,</span>
+  !srcloc !4
+  store i32 %2, i32* %foo, align 4
+  %3 <span class="o">=</span> load i32* %foo, align 4
+  %4 <span class="o">=</span> call i32 asm sideeffect <span class="s2">&quot;addiu $0,$1,$2&quot;</span>, <span class="s2">&quot;=r,r,J&quot;</span><span class="o">(</span>i32 %3, i32 0<span class="o">)</span> <span class="c">#1,</span>
+  !srcloc !5
+  store i32 %4, i32* %foo, align 4
+  %5 <span class="o">=</span> load i32* %foo, align 4
+  %6 <span class="o">=</span> call i32 asm sideeffect <span class="s2">&quot;addiu $0,$1,$2&quot;</span>, <span class="s2">&quot;=r,r,K&quot;</span><span class="o">(</span>i32 %5, i32 5<span class="o">)</span> <span class="c">#1,</span>
+  !srcloc !6
+  store i32 %6, i32* %foo, align 4
+  %7 <span class="o">=</span> load i32* %foo, align 4
+  %8 <span class="o">=</span> call i32 asm sideeffect <span class="s2">&quot;ori $0,$1,$2&quot;</span>, <span class="s2">&quot;=r,r,L&quot;</span><span class="o">(</span>i32 %7, i32 65536<span class="o">)</span> <span class="c">#1,</span>
+  !srcloc !7
+  store i32 %8, i32* %foo, align 4
+  %9 <span class="o">=</span> load i32* %foo, align 4
+  %10 <span class="o">=</span> call i32 asm sideeffect <span class="s2">&quot;addiu $0,$1,$2&quot;</span>, <span class="s2">&quot;=r,r,N&quot;</span><span class="o">(</span>i32 %9, i32 -65531<span class="o">)</span>
+  <span class="c">#1, !srcloc !8</span>
+  store i32 %10, i32* %foo, align 4
+  %11 <span class="o">=</span> load i32* %foo, align 4
+  %12 <span class="o">=</span> call i32 asm sideeffect <span class="s2">&quot;addiu $0,$1,$2&quot;</span>, <span class="s2">&quot;=r,r,O&quot;</span><span class="o">(</span>i32 %11, i32 -5<span class="o">)</span> <span class="c">#1,</span>
+  !srcloc !9
+  store i32 %12, i32* %foo, align 4
+  %13 <span class="o">=</span> load i32* %foo, align 4
+  %14 <span class="o">=</span> call i32 asm sideeffect <span class="s2">&quot;addiu $0,$1,$2&quot;</span>, <span class="s2">&quot;=r,r,P&quot;</span><span class="o">(</span>i32 %13, i32 5<span class="o">)</span> <span class="c">#1,</span>
+  !srcloc !10
+  store i32 %14, i32* %foo, align 4
+  %15 <span class="o">=</span> load i32* %foo, align 4
+  ret i32 %15
+<span class="o">}</span>
+
+; Function Attrs: nounwind
+define i32 @_Z13inlineasm_argii<span class="o">(</span>i32 %u, i32 %v<span class="o">)</span> <span class="c">#0 {</span>
+  %1 <span class="o">=</span> alloca i32, align 4
+  %2 <span class="o">=</span> alloca i32, align 4
+  %w <span class="o">=</span> alloca i32, align 4
+  store i32 %u, i32* %1, align 4
+  store i32 %v, i32* %2, align 4
+  %3 <span class="o">=</span> load i32* %1, align 4
+  %4 <span class="o">=</span> load i32* %2, align 4
+  %5 <span class="o">=</span> call i32 asm sideeffect <span class="s2">&quot;subu $0,$1,$2&quot;</span>, <span class="s2">&quot;=r,r,r&quot;</span><span class="o">(</span>i32 %3, i32 %4<span class="o">)</span> <span class="c">#1,</span>
+  !srcloc !11
+  store i32 %5, i32* %w, align 4
+  %6 <span class="o">=</span> load i32* %w, align 4
+  ret i32 %6
+<span class="o">}</span>
+
+; Function Attrs: nounwind
+define i32 @_Z16inlineasm_globalv<span class="o">()</span> <span class="c">#0 {</span>
+  %c <span class="o">=</span> alloca i32, align 4
+  %d <span class="o">=</span> alloca i32, align 4
+  %1 <span class="o">=</span> call i32 asm sideeffect <span class="s2">&quot;ld $0,$1&quot;</span>, <span class="s2">&quot;=r,*m&quot;</span><span class="o">(</span>i32* getelementptr inbounds
+  <span class="o">([</span>3 x i32<span class="o">]</span>* @g, i32 0, i32 2<span class="o">))</span> <span class="c">#1, !srcloc !12</span>
+  store i32 %1, i32* %c, align 4
+  %2 <span class="o">=</span> load i32* %c, align 4
+  %3 <span class="o">=</span> call i32 asm sideeffect <span class="s2">&quot;addiu $0,$1,1&quot;</span>, <span class="s2">&quot;=r,r&quot;</span><span class="o">(</span>i32 %2<span class="o">)</span> <span class="c">#1, !srcloc !13</span>
+  store i32 %3, i32* %d, align 4
+  %4 <span class="o">=</span> load i32* %d, align 4
+  ret i32 %4
+<span class="o">}</span>
+
+; Function Attrs: nounwind
+define i32 @_Z14test_inlineasmv<span class="o">()</span> <span class="c">#0 {</span>
+  %a <span class="o">=</span> alloca i32, align 4
+  %b <span class="o">=</span> alloca i32, align 4
+  %c <span class="o">=</span> alloca i32, align 4
+  %d <span class="o">=</span> alloca i32, align 4
+  %e <span class="o">=</span> alloca i32, align 4
+  %f <span class="o">=</span> alloca i32, align 4
+  %g <span class="o">=</span> alloca i32, align 4
+  %1 <span class="o">=</span> call i32 @_Z14inlineasm_adduv<span class="o">()</span>
+  store i32 %1, i32* %a, align 4
+  %2 <span class="o">=</span> call i32 @_Z18inlineasm_longlongv<span class="o">()</span>
+  store i32 %2, i32* %b, align 4
+  %3 <span class="o">=</span> call i32 @_Z20inlineasm_constraintv<span class="o">()</span>
+  store i32 %3, i32* %c, align 4
+  %4 <span class="o">=</span> call i32 @_Z13inlineasm_argii<span class="o">(</span>i32 1, i32 10<span class="o">)</span>
+  store i32 %4, i32* %d, align 4
+  %5 <span class="o">=</span> call i32 @_Z13inlineasm_argii<span class="o">(</span>i32 6, i32 3<span class="o">)</span>
+  store i32 %5, i32* %e, align 4
+  %6 <span class="o">=</span> load i32* %e, align 4
+  %7 <span class="o">=</span> call i32 asm sideeffect <span class="s2">&quot;addiu $0,$1,1&quot;</span>, <span class="s2">&quot;=r,r&quot;</span><span class="o">(</span>i32 %6<span class="o">)</span> <span class="c">#1, !srcloc !14</span>
+  store i32 %7, i32* %f, align 4
+  %8 <span class="o">=</span> call i32 @_Z16inlineasm_globalv<span class="o">()</span>
+  store i32 %8, i32* %g, align 4
+  %9 <span class="o">=</span> load i32* %a, align 4
+  %10 <span class="o">=</span> load i32* %b, align 4
+  %11 <span class="o">=</span> add nsw i32 %9, %10
+  %12 <span class="o">=</span> load i32* %c, align 4
+  %13 <span class="o">=</span> add nsw i32 %11, %12
+  %14 <span class="o">=</span> load i32* %d, align 4
+  %15 <span class="o">=</span> add nsw i32 %13, %14
+  %16 <span class="o">=</span> load i32* %e, align 4
+  %17 <span class="o">=</span> add nsw i32 %15, %16
+  %18 <span class="o">=</span> load i32* %f, align 4
+  %19 <span class="o">=</span> add nsw i32 %17, %18
+  %20 <span class="o">=</span> load i32* %g, align 4
+  %21 <span class="o">=</span> add nsw i32 %19, %20
+  ret i32 %21
+<span class="o">}</span>
+...
+1-160-129-73:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/llc
+  -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch11_2.bc -o -
+        .section .mdebug.abi32
+        .previous
+        .file <span class="s2">&quot;ch11_2.bc&quot;</span>
+        .text
+        .globl        _Z14inlineasm_adduv
+        .align        2
+        .type _Z14inlineasm_adduv,@function
+        .ent  _Z14inlineasm_adduv     <span class="c"># @_Z14inlineasm_adduv</span>
+_Z14inlineasm_adduv:
+        .frame        <span class="nv">$fp</span>,16,<span class="nv">$lr</span>
+        .mask         0x00001000,-4
+        .set  noreorder
+        .set  nomacro
+<span class="c"># BB#0:</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+        st    <span class="nv">$fp</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 10
+        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 15
+        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        <span class="c">#APP</span>
+        addu <span class="nv">$2</span>,<span class="nv">$3</span>,<span class="nv">$2</span>
+        <span class="c">#NO_APP</span>
+        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
+        ld    <span class="nv">$fp</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
+        ret   <span class="nv">$lr</span>
+        .set  macro
+        .set  reorder
+        .end  _Z14inlineasm_adduv
+<span class="nv">$tmp3</span>:
+        .size _Z14inlineasm_adduv, <span class="o">(</span><span class="nv">$tmp3</span><span class="o">)</span>-_Z14inlineasm_adduv
+
+        .globl        _Z18inlineasm_longlongv
+        .align        2
+        .type _Z18inlineasm_longlongv,@function
+        .ent  _Z18inlineasm_longlongv <span class="c"># @_Z18inlineasm_longlongv</span>
+_Z18inlineasm_longlongv:
+        .frame        <span class="nv">$fp</span>,32,<span class="nv">$lr</span>
+        .mask         0x00001000,-4
+        .set  noreorder
+        .set  nomacro
+<span class="c"># BB#0:</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -32
+        st    <span class="nv">$fp</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 6
+        st    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
+        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$fp</span>, 8
+        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        <span class="c">#APP</span>
+        ld <span class="nv">$2</span>,0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+        <span class="c">#NO_APP</span>
+        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 4
+        st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        <span class="c">#APP</span>
+        ld <span class="nv">$2</span>,0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+        <span class="c">#NO_APP</span>
+        st    <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
+        ld    <span class="nv">$fp</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 32
+        ret   <span class="nv">$lr</span>
+        .set  macro
+        .set  reorder
+        .end  _Z18inlineasm_longlongv
+<span class="nv">$tmp7</span>:
+        .size _Z18inlineasm_longlongv, <span class="o">(</span><span class="nv">$tmp7</span><span class="o">)</span>-_Z18inlineasm_longlongv
+
+        .globl        _Z20inlineasm_constraintv
+        .align        2
+        .type _Z20inlineasm_constraintv,@function
+        .ent  _Z20inlineasm_constraintv <span class="c"># @_Z20inlineasm_constraintv</span>
+_Z20inlineasm_constraintv:
+        .frame        <span class="nv">$fp</span>,32,<span class="nv">$lr</span>
+        .mask         0x00001000,-4
+        .set  noreorder
+        .set  nomacro
+<span class="c"># BB#0:</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -32
+        st    <span class="nv">$fp</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 10
+        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, -5
+        st    <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
+        st    <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
+        st    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        lui   <span class="nv">$2</span>, 1
+        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        lui   <span class="nv">$2</span>, 65535
+        ori   <span class="nv">$2</span>, <span class="nv">$2</span>, 5
+        st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        <span class="c">#APP</span>
+        addiu <span class="nv">$2</span>,<span class="nv">$2</span>,-5
+        <span class="c">#NO_APP</span>
+        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        <span class="c">#APP</span>
+        addiu <span class="nv">$2</span>,<span class="nv">$2</span>,0
+        <span class="c">#NO_APP</span>
+        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        <span class="c">#APP</span>
+        addiu <span class="nv">$2</span>,<span class="nv">$2</span>,5
+        <span class="c">#NO_APP</span>
+        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        <span class="c">#APP</span>
+        ori <span class="nv">$2</span>,<span class="nv">$2</span>,65536
+        <span class="c">#NO_APP</span>
+        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        <span class="c">#APP</span>
+        addiu <span class="nv">$2</span>,<span class="nv">$2</span>,-65531
+        <span class="c">#NO_APP</span>
+        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        <span class="c">#APP</span>
+        addiu <span class="nv">$2</span>,<span class="nv">$2</span>,-5
+        <span class="c">#NO_APP</span>
+        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        <span class="c">#APP</span>
+        addiu <span class="nv">$2</span>,<span class="nv">$2</span>,5
+        <span class="c">#NO_APP</span>
+        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
+        ld    <span class="nv">$fp</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 32
+        ret   <span class="nv">$lr</span>
+        .set  macro
+        .set  reorder
+        .end  _Z20inlineasm_constraintv
+<span class="nv">$tmp11</span>:
+        .size _Z20inlineasm_constraintv, <span class="o">(</span><span class="nv">$tmp11</span><span class="o">)</span>-_Z20inlineasm_constraintv
+
+        .globl        _Z13inlineasm_argii
+        .align        2
+        .type _Z13inlineasm_argii,@function
+        .ent  _Z13inlineasm_argii     <span class="c"># @_Z13inlineasm_argii</span>
+_Z13inlineasm_argii:
+        .frame        <span class="nv">$fp</span>,16,<span class="nv">$lr</span>
+        .mask         0x00001000,-4
+        .set  noreorder
+        .set  nomacro
+<span class="c"># BB#0:</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+        st    <span class="nv">$fp</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
+        ld    <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        <span class="c">#APP</span>
+        subu <span class="nv">$2</span>,<span class="nv">$3</span>,<span class="nv">$2</span>
+        <span class="c">#NO_APP</span>
+        st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
+        ld    <span class="nv">$fp</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
+        ret   <span class="nv">$lr</span>
+        .set  macro
+        .set  reorder
+        .end  _Z13inlineasm_argii
+<span class="nv">$tmp15</span>:
+        .size _Z13inlineasm_argii, <span class="o">(</span><span class="nv">$tmp15</span><span class="o">)</span>-_Z13inlineasm_argii
+
+        .globl        _Z16inlineasm_globalv
+        .align        2
+        .type _Z16inlineasm_globalv,@function
+        .ent  _Z16inlineasm_globalv   <span class="c"># @_Z16inlineasm_globalv</span>
+_Z16inlineasm_globalv:
+        .frame        <span class="nv">$fp</span>,16,<span class="nv">$lr</span>
+        .mask         0x00001000,-4
+        .set  noreorder
+        .set  nomacro
+<span class="c"># BB#0:</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+        st    <span class="nv">$fp</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
+        lui   <span class="nv">$2</span>, %hi<span class="o">(</span>g<span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span>g<span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 8
+        <span class="c">#APP</span>
+        ld <span class="nv">$2</span>,0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+        <span class="c">#NO_APP</span>
+        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        <span class="c">#APP</span>
+        addiu <span class="nv">$2</span>,<span class="nv">$2</span>,1
+        <span class="c">#NO_APP</span>
+        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
+        ld    <span class="nv">$fp</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
+        ret   <span class="nv">$lr</span>
+        .set  macro
+        .set  reorder
+        .end  _Z16inlineasm_globalv
+<span class="nv">$tmp19</span>:
+        .size _Z16inlineasm_globalv, <span class="o">(</span><span class="nv">$tmp19</span><span class="o">)</span>-_Z16inlineasm_globalv
+
+        .globl        _Z14test_inlineasmv
+        .align        2
+        .type _Z14test_inlineasmv,@function
+        .ent  _Z14test_inlineasmv     <span class="c"># @_Z14test_inlineasmv</span>
+_Z14test_inlineasmv:
+        .frame        <span class="nv">$fp</span>,48,<span class="nv">$lr</span>
+        .mask         0x00005000,-4
+        .set  noreorder
+        .set  nomacro
+<span class="c"># BB#0:</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -48
+        st    <span class="nv">$lr</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+        st    <span class="nv">$fp</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+        addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
+        jsub  _Z14inlineasm_adduv
+        st    <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        jsub  _Z18inlineasm_longlongv
+        st    <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        jsub  _Z20inlineasm_constraintv
+        st    <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 10
+        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+        st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+        jsub  _Z13inlineasm_argii
+        st    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
+        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 6
+        st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+        jsub  _Z13inlineasm_argii
+        st    <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        <span class="c">#APP</span>
+        addiu <span class="nv">$2</span>,<span class="nv">$2</span>,1
+        <span class="c">#NO_APP</span>
+        st    <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        jsub  _Z16inlineasm_globalv
+        st    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$4</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+        ld    <span class="nv">$4</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        ld    <span class="nv">$4</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        ld    <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        ld    <span class="nv">$4</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
+        ld    <span class="nv">$fp</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+        ld    <span class="nv">$lr</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 48
+        ret   <span class="nv">$lr</span>
+        .set  macro
+        .set  reorder
+        .end  _Z14test_inlineasmv
+<span class="nv">$tmp23</span>:
+        .size _Z14test_inlineasmv, <span class="o">(</span><span class="nv">$tmp23</span><span class="o">)</span>-_Z14test_inlineasmv
+
+        .type g,@object               <span class="c"># @g</span>
+        .data
+        .globl        g
+        .align        2
+g:
+        .4byte        1                       <span class="c"># 0x1</span>
+        .4byte        2                       <span class="c"># 0x2</span>
+        .4byte        3                       <span class="c"># 0x3</span>
+        .size g, 12
+</pre></div>
+</div>
+<p>The clang translate gcc style inline assembly __asm__  into llvm IR Inline
+Assembler Expressions <a class="footnote-reference" href="#id8" id="id3">[3]</a> and replace the variable registers of SSA form to
+physical registers in llc register allocation stage. From above example,
+functions LowerAsmOperandForConstraint() and getSingleConstraintMatchWeight()
+of Cpu0ISelLowering.cpp will create different range of const operand by I, J,
+K, L, N, O, P or r, and register operand by r . For instance, the following
+code.</p>
+<div class="highlight-c++"><pre>__asm__ __volatile__("addiu %0,%1,%2"
+                     :"=r"(foo) // 15
+                     :"r"(foo), "I"(n_5)
+                     );
+
+%2 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,I"(i32 %1, i32 -5) #0, !srcloc !1
+
+__asm__ __volatile__("addiu %0,%1,%2"
+                     :"=r"(foo) // 15
+                     :"r"(foo), "N"(n_65531)
+                     );
+
+%10 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,N"(i32 %9, i32 -65531) #0, !srcloc !5
+
+__asm__ __volatile__("addiu %0,%1,%2"
+                     :"=r"(foo) // 15
+                     :"r"(foo), "P"(un5)
+                     );
+
+%14 = call i32 asm sideeffect "addiu $0,$1,$2", "=r,r,P"(i32 %13, i32 5) #0, !srcloc !7</pre>
+</div>
+<p>The r in __asm__ will generate register, %1, in llvm IR asm while I
+in __asm__ will generate const operand, -5, in llvm IR asm. Remind,
+the LowerAsmOperandForConstraint() limit the positive or negative const operand
+value range to 16 bits since FL type immediate operand is 16 bits in Cpu0
+instruction. The N is -65535 to -1 and P is 65535 to 1. Any value out of
+the range, the code in LowerAsmOperandForConstraint() will treat it as error
+since FL instruction format has 16 bits limitation.</p>
+</div>
 <div class="section" id="verilog-of-cpu0">
 <h2>Verilog of CPU0<a class="headerlink" href="#verilog-of-cpu0" title="Permalink to this headline">¶</a></h2>
 <p>Verilog language is an IEEE standard in IC design. There are a lot of book and
-documents for this language. Web site <a class="footnote-reference" href="#id5" id="id2">[2]</a> has a pdf <a class="footnote-reference" href="#id6" id="id3">[3]</a> in this.
+documents for this language. Web site <a class="footnote-reference" href="#id9" id="id4">[4]</a> has a pdf <a class="footnote-reference" href="#id10" id="id5">[5]</a> in this.
 Example code lbdex/cpu0_verilog/cpu0.v is the
 cpu0 design in Verilog. In Appendix A, we have downloaded and installed Icarus
 Verilog tool both on iMac and Linux. The cpu0.v and cpu0Is.v is a simple design
@@ -1489,12 +2668,13 @@ command directly as below. We expect
 readers can understand the Verilog code just with a little patient and no need
 further explanation. According computer architecture, there are two type of I/O.
 One is memory mapped I/O, the other is instruction I/O.
-CPU0 use memory mapped I/O, we set the memory address 0x7000 as the output port.
+Cpu0 use memory mapped I/O where memory address 0x80000 as the output port.
 When meet the instruction <strong>&#8220;st $ra, cx($rb)&#8221;</strong>, where cx($rb) is
-0x7000 (28672), CPU0 display the content as follows,</p>
-<div class="highlight-c++"><pre>ST :
-  if (R[b]+c16 == 28672)
-    $display("%4dns %8x : %8x OUTPUT=%-d", $stime, pc0, ir, R[a]);</pre>
+0x80000, Cpu0 display the content as follows,</p>
+<div class="highlight-c++"><pre>ST : begin
+  ...
+  if (R[b]+c16 == `IOADDR) begin
+    outw(R[a]);</pre>
 </div>
 <p class="rubric">lbdex/cpu0_verilog/cpu0.v</p>
 <div class="highlight-c++"><pre>`define MEMSIZE   'h80000
@@ -1950,9 +3130,9 @@ JonathantekiiMac:raw Jonathan<span class="nv">$ </span>iverilog -o cpu0Is cpu0Is
 </div>
 <div class="section" id="run-program-on-cpu0-machine">
 <h2>Run program on CPU0 machine<a class="headerlink" href="#run-program-on-cpu0-machine" title="Permalink to this headline">¶</a></h2>
-<p>Now let&#8217;s compile ch_run_backend.cpp as below. Since code size grows up from low to high
-address and stack grows up from high to low address. We set $sp at 0x6ffc because
-cpu0.v use 0x7000 bytes of memory.</p>
+<p>Now let&#8217;s compile ch_run_backend.cpp as below. Since code size grows up from
+low to high address and stack grows up from high to low address. We set $sp
+at 0x6ffc because assuming cpu0.v use 0x7000 bytes of memory.</p>
 <p class="rubric">lbdex/InputFiles/InitRegs.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $1,	$ZERO, 0&quot;</span><span class="p">);</span>
 <span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $2,	$ZERO, 0&quot;</span><span class="p">);</span>
@@ -2018,84 +3198,17 @@ cpu0.v use 0x7000 bytes of memory.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/InputFiles/ch_run_backend.cpp</p>
+<p class="rubric">lbdex/InputFiles/ch_nolld.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;debug.h&quot;</span>
 <span class="cp">#include &quot;boot.cpp&quot;</span>
 
 <span class="cp">#include &quot;print.h&quot;</span>
 
-<span class="kt">int</span> <span class="nf">test_math</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_div</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_local_pointer</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_andorxornot</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_setxx</span><span class="p">();</span>
-<span class="kt">bool</span> <span class="nf">test_load_bool</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_signed_char</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_unsigned_char</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_signed_short</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_unsigned_short</span><span class="p">();</span>
-<span class="kt">long</span> <span class="kt">long</span> <span class="nf">test_longlong</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_control1</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_madd</span><span class="p">();</span>
-<span class="kt">int</span> <span class="nf">test_vararg</span><span class="p">();</span>
-
-<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
-<span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_math</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="c1">// a = 74</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_div</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="c1">// a = 253</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_local_pointer</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="c1">// a = 3</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">test_load_bool</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="c1">// a = 1</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_andorxornot</span><span class="p">();</span> <span class="c1">// a = 14</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_setxx</span><span class="p">();</span> <span class="c1">// a = 3</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_signed_char</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = -126</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_unsigned_char</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 130</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_signed_short</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = -32766</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_unsigned_short</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 32770</span>
-  <span class="kt">long</span> <span class="kt">long</span> <span class="n">b</span> <span class="o">=</span> <span class="n">test_longlong</span><span class="p">();</span> <span class="c1">// 0x800000002</span>
-  <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)(</span><span class="n">b</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">));</span> <span class="c1">// 393307</span>
-  <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">b</span><span class="p">);</span> <span class="c1">// 16777222</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_control1</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>	<span class="c1">// a = 51</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="mi">2147483647</span><span class="p">);</span> <span class="c1">// test mod % (mult) from itoa.cpp</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="o">-</span><span class="mi">2147483648</span><span class="p">);</span> <span class="c1">// test mod % (multu) from itoa.cpp</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_madd</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 7</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">test_vararg</span><span class="p">();</span>
-  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 15</span>
-
-  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="cp">#include &quot;print.cpp&quot;</span>
-
-<span class="kt">void</span> <span class="nf">print1_integer</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span>
-<span class="p">{</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;ld $at, 8($sp)&quot;</span><span class="p">);</span>
-  <span class="k">asm</span><span class="p">(</span><span class="s">&quot;st $at, 28672($0)&quot;</span><span class="p">);</span>
-
-  <span class="k">return</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="cp">#if 0</span><span class="c"></span>
-<span class="c">// For instruction IO</span>
-<span class="c">void print2_integer(int x)</span>
-<span class="c">{</span>
-<span class="c">  asm(&quot;ld $at, 8($sp)&quot;);</span>
-<span class="c">  asm(&quot;outw $tat&quot;);</span>
-<span class="c">  return;</span>
-<span class="c">}</span>
-<span class="cp">#endif</span>
+<span class="kt">int</span> <span class="nf">test_nolld</span><span class="p">();</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/InputFiles/ch_nolld.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;print.cpp&quot;</span>
 
 <span class="cp">#include &quot;ch4_1.cpp&quot;</span>
 <span class="cp">#include &quot;ch4_3.cpp&quot;</span>
@@ -2107,6 +3220,60 @@ cpu0.v use 0x7000 bytes of memory.</p>
 <span class="cp">#include &quot;ch8_1_1.cpp&quot;</span>
 <span class="cp">#include &quot;ch9_1_4.cpp&quot;</span>
 <span class="cp">#include &quot;ch9_3.cpp&quot;</span>
+
+<span class="kt">int</span> <span class="nf">test_nolld</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">bool</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_math</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="c1">// a = 74</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">74</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_div</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="c1">// a = 253</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">253</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_local_pointer</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="c1">// a = 3</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">test_load_bool</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="c1">// a = 1</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_andorxornot</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 14</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">14</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_setxx</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 3</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_signed_char</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = -126</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">126</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_unsigned_char</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 130</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">130</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_signed_short</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = -32766</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">32766</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_unsigned_short</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 32770</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">32770</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="kt">long</span> <span class="kt">long</span> <span class="n">b</span> <span class="o">=</span> <span class="n">test_longlong</span><span class="p">();</span> <span class="c1">// 0x800000002</span>
+  <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)(</span><span class="n">b</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">));</span> <span class="c1">// 393307</span>
+  <span class="k">if</span> <span class="p">((</span><span class="kt">int</span><span class="p">)(</span><span class="n">b</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">393307</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">print_integer</span><span class="p">((</span><span class="kt">int</span><span class="p">)</span><span class="n">b</span><span class="p">);</span> <span class="c1">// 16777222</span>
+  <span class="k">if</span> <span class="p">((</span><span class="kt">int</span><span class="p">)(</span><span class="n">b</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">16777222</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_control1</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>	<span class="c1">// a = 51</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">51</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="mi">2147483647</span><span class="p">);</span> <span class="c1">// test mod % (mult) from itoa.cpp</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="o">-</span><span class="mi">2147483648</span><span class="p">);</span> <span class="c1">// test mod % (multu) from itoa.cpp</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_madd</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 7</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">7</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_vararg</span><span class="p">();</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 15</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">15</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="n">pass</span><span class="p">;</span>
+<span class="p">}</span>
 
 <span class="cm">/* result:</span>
 <span class="cm">74</span>
@@ -2130,6 +3297,36 @@ cpu0.v use 0x7000 bytes of memory.</p>
 <span class="cm">*/</span>
 </pre></div>
 </div>
+<p class="rubric">lbdex/InputFiles/ch_run_backend.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;ch_nolld.h&quot;</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">bool</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="n">pass</span> <span class="o">=</span> <span class="n">test_nolld</span><span class="p">();</span>
+
+  <span class="k">return</span> <span class="n">pass</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cp">#include &quot;ch_nolld.cpp&quot;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/InputFiles/build-run_backend.sh</p>
+<div class="highlight-c++"><pre>#!/usr/bin/env bash
+#TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
+TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
+
+cpu=cpu032I
+
+clang -target mips-unknown-linux-gnu -c ch_run_backend.cpp -emit-llvm -o \
+ch_run_backend.bc
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+ch_run_backend.bc -o ch_run_backend.cpu0.o
+${TOOLDIR}/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk \
+'{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" \
+" $9" " $10 "\t*/"}' &gt; ../cpu0_verilog/cpu0.hex
+</pre>
+</div>
 <p>Let&#8217;s run Chapter11_2/ with <tt class="docutils literal"><span class="pre">llvm-objdump</span> <span class="pre">-d</span></tt> for input files
 ch_run_backend.cpp to generate the hex file of inputing to cpu0Is Verilog
 simulator to get the output result as below.
@@ -2137,18 +3334,9 @@ Remind ch_run_backend.cpp have to be compiled with option
 <tt class="docutils literal"><span class="pre">clang</span> <span class="pre">-target</span> <span class="pre">mips-unknown-linux-gnu</span></tt> and use the clang of
 your build instead of download from Xcode on iMac. The ~/llvm/release/
 cmake_debug_build/bin/Debug/ is my build clang from source code.</p>
-<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>~/llvm/release/cmake_debug_build/bin/
-Debug/clang -target mips-unknown-linux-gnu -c ch_run_backend.cpp -emit-llvm
--o ch_run_backend.bc
-JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
-build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>obj
-ch_run_backend.bc -o ch_run_backend.cpu0.o
-JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_
-build/bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk <span class="s1">&#39;{print &quot;/* &quot;</span>
-<span class="s1">$1 &quot; */\t&quot; $2 &quot; &quot; $3 &quot; &quot; $4 &quot; &quot; $5 &quot;\t/* &quot; $6&quot;\t&quot; $7&quot; &quot; $8&quot; &quot; $9&quot; &quot; $10 &quot;\t*/&quot;}&#39;</span>
- &gt; ../cpu0_verilog/raw/cpu0.hex
-
-JonathantekiiMac:raw Jonathan<span class="nv">$ </span>./cpu0Is
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>bash build-run_backend.sh
+JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../cpu0_verilog
+JonathantekiiMac:cpu0_verilog Jonathan<span class="nv">$ </span>./cpu0Is
 WARNING: cpu0Is.v:386: <span class="nv">$readmemh</span><span class="o">(</span>cpu0.hex<span class="o">)</span>: Not enough words in the file <span class="k">for </span>the
 taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 74
@@ -2171,11 +3359,6 @@ taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 RET to PC &lt; 0, finished!
 </pre></div>
 </div>
-<p>From the result as below, you can find the print_integer() which implemented by C
-language has more instructions while the print1_integer() which implemented by
-assembly has less instructions. But the C version is better in portability since
-the assembly version is binding with machine assembly language and make the
-assumption that the stack size of print1_integer() is 8.</p>
 <div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:raw Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../../InputFiles/
 JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build
 /bin/Debug/llvm-objdump -d ch_run_backend.cpu0.o
@@ -2252,22 +3435,34 @@ The real output hardware
 interface/port is hardware output device dependent, such as RS232, speaker,
 LED, .... You should implement the I/O interface/port when you want to program
 FPGA and wire I/O device to the I/O port.</p>
-<table class="docutils footnote" frame="void" id="id4" rules="none">
+<table class="docutils footnote" frame="void" id="id6" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://www.embecosm.com/appnotes/ean10/ean10-howto-llvmas-1.0.html">http://www.embecosm.com/appnotes/ean10/ean10-howto-llvmas-1.0.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id5" rules="none">
+<table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://www.ece.umd.edu/courses/enee359a/">http://www.ece.umd.edu/courses/enee359a/</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html">http://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id6" rules="none">
+<table class="docutils footnote" frame="void" id="id8" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf">http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://llvm.org/docs/LangRef.html#inline-assembler-expressions">http://llvm.org/docs/LangRef.html#inline-assembler-expressions</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id9" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://www.ece.umd.edu/courses/enee359a/">http://www.ece.umd.edu/courses/enee359a/</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id10" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf">http://www.ece.umd.edu/courses/enee359a/verilog_tutorial.pdf</a></td></tr>
 </tbody>
 </table>
 </div>

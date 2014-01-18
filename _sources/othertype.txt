@@ -412,11 +412,11 @@ Chapter7_1/.
       SDValue RHS = Node->getOperand(1);
   
       EVT VT = LHS.getValueType();
-      SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, dl, VT, Ops);
+      SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
       SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
-      SDNode *Carry = CurDAG->getMachineNode(Cpu0::ANDi, dl, VT, 
+      SDNode *Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
                                              SDValue(StatusWord,0), Constant1);
-      SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, dl, VT,
+      SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, DL, VT,
                                                 SDValue(Carry,0), RHS);
   
       return CurDAG->SelectNodeTo(Node, MOp, VT, MVT::Glue,
@@ -429,7 +429,7 @@ Chapter7_1/.
       if (NodeTy == MVT::i32)
         MultOpc = (Opcode == ISD::UMUL_LOHI ? Cpu0::MULTu : Cpu0::MULT);
   
-      std::pair<SDNode*, SDNode*> LoHi = SelectMULT(Node, MultOpc, dl, NodeTy,
+      std::pair<SDNode*, SDNode*> LoHi = SelectMULT(Node, MultOpc, DL, NodeTy,
                                                     true, true);
   
       if (!SDValue(Node, 0).use_empty())
@@ -829,13 +829,13 @@ Constant<8>) by the following code in Cpu0ISelLowering.cpp.
                                       SelectionDAG &DAG) const {
     ...
       // %hi/%lo relocation
-      SDValue GAHi = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+      SDValue GAHi = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
                                                 Cpu0II::MO_ABS_HI);
-      SDValue GALo = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+      SDValue GALo = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
                                                 Cpu0II::MO_ABS_LO);
-      SDValue HiPart = DAG.getNode(Cpu0ISD::Hi, dl, VTs, &GAHi, 1);
-      SDValue Lo = DAG.getNode(Cpu0ISD::Lo, dl, MVT::i32, GALo);
-      return DAG.getNode(ISD::ADD, dl, MVT::i32, HiPart, Lo);
+      SDValue HiPart = DAG.getNode(Cpu0ISD::Hi, DL, VTs, &GAHi, 1);
+      SDValue Lo = DAG.getNode(Cpu0ISD::Lo, DL, MVT::i32, GALo);
+      return DAG.getNode(ISD::ADD, DL, MVT::i32, HiPart, Lo);
     ...
   }
 

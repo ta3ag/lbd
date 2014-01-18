@@ -399,7 +399,7 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
   }
 
   SDValue Cpu0TargetLowering::getAddrLocal(SDValue Op, SelectionDAG &DAG) const {
-    DebugLoc DL = Op.getDebugLoc();
+    SDLoc DL = SDLoc(Op);
     EVT Ty = Op.getValueType();
     unsigned GOTFlag = Cpu0II::MO_GOT;
     SDValue GOT = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
@@ -414,7 +414,7 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
 
   SDValue Cpu0TargetLowering::getAddrGlobal(SDValue Op, SelectionDAG &DAG,
                                             unsigned Flag) const {
-    DebugLoc DL = Op.getDebugLoc();
+    SDLoc DL = SDLoc(Op);
     EVT Ty = Op.getValueType();
     SDValue Tgt = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
                               getTargetNode(Op, DAG, Flag));
@@ -425,7 +425,7 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
   SDValue Cpu0TargetLowering::getAddrGlobalLargeGOT(SDValue Op, SelectionDAG &DAG,
                                                     unsigned HiFlag,
                                                     unsigned LoFlag) const {
-    DebugLoc DL = Op.getDebugLoc();
+    SDLoc DL = SDLoc(Op);
     EVT Ty = Op.getValueType();
     SDValue Hi = DAG.getNode(Cpu0ISD::Hi, DL, Ty, getTargetNode(Op, DAG, HiFlag));
     Hi = DAG.getNode(ISD::ADD, DL, Ty, Hi, getGlobalReg(DAG, Ty));
@@ -480,7 +480,7 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
   SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
                                                  SelectionDAG &DAG) const {
     // FIXME there isn't actually debug info here
-    DebugLoc dl = Op.getDebugLoc();
+    SDLoc DL = SDLoc(Op);
     const GlobalValue *GV = cast<GlobalAddressSDNode>(Op)->getGlobal();
     
     if (getTargetMachine().getRelocationModel() != Reloc::PIC_) {
@@ -490,20 +490,20 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
     
       // %gp_rel relocation
       if (TLOF.IsGlobalInSmallSection(GV, getTargetMachine())) {
-        SDValue GA = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+        SDValue GA = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
                                                 Cpu0II::MO_GPREL);
-        SDValue GPRelNode = DAG.getNode(Cpu0ISD::GPRel, dl, VTs, &GA, 1);
+        SDValue GPRelNode = DAG.getNode(Cpu0ISD::GPRel, DL, VTs, &GA, 1);
         SDValue GOT = DAG.getGLOBAL_OFFSET_TABLE(MVT::i32);
-        return DAG.getNode(ISD::ADD, dl, MVT::i32, GOT, GPRelNode);
+        return DAG.getNode(ISD::ADD, DL, MVT::i32, GOT, GPRelNode);
       }
       // %hi/%lo relocation
-      SDValue GAHi = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+      SDValue GAHi = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
                                                 Cpu0II::MO_ABS_HI);
-      SDValue GALo = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+      SDValue GALo = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
                                                 Cpu0II::MO_ABS_LO);
-      SDValue HiPart = DAG.getNode(Cpu0ISD::Hi, dl, VTs, &GAHi, 1);
-      SDValue Lo = DAG.getNode(Cpu0ISD::Lo, dl, MVT::i32, GALo);
-      return DAG.getNode(ISD::ADD, dl, MVT::i32, HiPart, Lo);
+      SDValue HiPart = DAG.getNode(Cpu0ISD::Hi, DL, VTs, &GAHi, 1);
+      SDValue Lo = DAG.getNode(Cpu0ISD::Lo, DL, MVT::i32, GALo);
+      return DAG.getNode(ISD::ADD, DL, MVT::i32, HiPart, Lo);
     }
     
     if (GV->hasInternalLinkage() || (GV->hasLocalLinkage() && !isa<Function>(GV)))
@@ -625,13 +625,13 @@ stage "Legalized selection DAG" as below.
     //  Cpu0ISelLowering.cpp
     ...
         // %hi/%lo relocation
-        SDValue GAHi = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+        SDValue GAHi = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
                                                   Cpu0II::MO_ABS_HI);
-        SDValue GALo = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+        SDValue GALo = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
                                                   Cpu0II::MO_ABS_LO);
-        SDValue HiPart = DAG.getNode(Cpu0ISD::Hi, dl, VTs, &GAHi, 1);
-        SDValue Lo = DAG.getNode(Cpu0ISD::Lo, dl, MVT::i32, GALo);
-        return DAG.getNode(ISD::ADD, dl, MVT::i32, HiPart, Lo);
+        SDValue HiPart = DAG.getNode(Cpu0ISD::Hi, DL, VTs, &GAHi, 1);
+        SDValue Lo = DAG.getNode(Cpu0ISD::Lo, DL, MVT::i32, GALo);
+        return DAG.getNode(ISD::ADD, DL, MVT::i32, HiPart, Lo);
 
 
 .. code-block:: bash
@@ -759,11 +759,11 @@ stage "Legalized selection DAG" as below.
       ...
       // %gp_rel relocation
       if (TLOF.IsGlobalInSmallSection(GV, getTargetMachine())) {
-        SDValue GA = DAG.getTargetGlobalAddress(GV, dl, MVT::i32, 0,
+        SDValue GA = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
                                                 Cpu0II::MO_GPREL);
-        SDValue GPRelNode = DAG.getNode(Cpu0ISD::GPRel, dl, VTs, &GA, 1);
+        SDValue GPRelNode = DAG.getNode(Cpu0ISD::GPRel, DL, VTs, &GA, 1);
         SDValue GOT = DAG.getGLOBAL_OFFSET_TABLE(MVT::i32);
-        return DAG.getNode(ISD::ADD, dl, MVT::i32, GOT, GPRelNode);
+        return DAG.getNode(ISD::ADD, DL, MVT::i32, GOT, GPRelNode);
       }
 
 .. code-block:: bash
@@ -1089,7 +1089,7 @@ in stage "Legalized selection DAG" as below.
 
   SDValue Cpu0TargetLowering::getAddrGlobal(SDValue Op, SelectionDAG &DAG,
                                             unsigned Flag) const {
-    DebugLoc DL = Op.getDebugLoc();
+    SDLoc DL = SDLoc(Op);
     EVT Ty = Op.getValueType();
     SDValue Tgt = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
                               getTargetNode(Op, DAG, Flag));
@@ -1209,7 +1209,7 @@ in stage "Legalized selection DAG" as below.
   SDValue Cpu0TargetLowering::getAddrGlobalLargeGOT(SDValue Op, SelectionDAG &DAG,
                                                     unsigned HiFlag,
                                                     unsigned LoFlag) const {
-    DebugLoc DL = Op.getDebugLoc();
+    SDLoc DL = SDLoc(Op);
     EVT Ty = Op.getValueType();
     SDValue Hi = DAG.getNode(Cpu0ISD::Hi, DL, Ty, getTargetNode(Op, DAG, HiFlag));
     Hi = DAG.getNode(ISD::ADD, DL, Ty, Hi, getGlobalReg(DAG, Ty));

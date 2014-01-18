@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.0',
+        VERSION:     '3.4.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -364,13 +364,17 @@ Chapter5_1.</p>
 <span class="p">}</span> <span class="c1">// namespace</span>
 
 <span class="c1">// MCAsmBackend</span>
-<span class="n">MCAsmBackend</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0AsmBackendEL32</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">TT</span><span class="p">,</span>
+<span class="n">MCAsmBackend</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0AsmBackendEL32</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span>
+                                             <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
+                                             <span class="n">StringRef</span> <span class="n">TT</span><span class="p">,</span>
                                              <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0AsmBackend</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">Triple</span><span class="p">(</span><span class="n">TT</span><span class="p">).</span><span class="n">getOS</span><span class="p">(),</span>
                             <span class="cm">/*IsLittle*/</span><span class="nb">true</span><span class="p">);</span>
 <span class="p">}</span>
 
-<span class="n">MCAsmBackend</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0AsmBackendEB32</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">TT</span><span class="p">,</span>
+<span class="n">MCAsmBackend</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0AsmBackendEB32</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span>
+                                             <span class="k">const</span> <span class="n">MCRegisterInfo</span> <span class="o">&amp;</span><span class="n">MRI</span><span class="p">,</span>
+                                             <span class="n">StringRef</span> <span class="n">TT</span><span class="p">,</span>
                                              <span class="n">StringRef</span> <span class="n">CPU</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">return</span> <span class="k">new</span> <span class="n">Cpu0AsmBackend</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">Triple</span><span class="p">(</span><span class="n">TT</span><span class="p">).</span><span class="n">getOS</span><span class="p">(),</span>
                             <span class="cm">/*IsLittle*/</span><span class="nb">false</span><span class="p">);</span>
@@ -962,14 +966,23 @@ Chapter5_1.</p>
 </div>
 <p class="rubric">lbdex/Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="n">MCStreamer</span> <span class="o">*</span><span class="nf">createMCStreamer</span><span class="p">(</span><span class="k">const</span> <span class="n">Target</span> <span class="o">&amp;</span><span class="n">T</span><span class="p">,</span> <span class="n">StringRef</span> <span class="n">TT</span><span class="p">,</span>
-                                    <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">,</span> <span class="n">MCAsmBackend</span> <span class="o">&amp;</span><span class="n">MAB</span><span class="p">,</span>
-                                    <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">_OS</span><span class="p">,</span>
-                                    <span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">_Emitter</span><span class="p">,</span>
-                                    <span class="kt">bool</span> <span class="n">RelaxAll</span><span class="p">,</span>
-                                    <span class="kt">bool</span> <span class="n">NoExecStack</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">Triple</span> <span class="n">TheTriple</span><span class="p">(</span><span class="n">TT</span><span class="p">);</span>
+                                    <span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Context</span><span class="p">,</span> <span class="n">MCAsmBackend</span> <span class="o">&amp;</span><span class="n">MAB</span><span class="p">,</span>
+                                    <span class="n">raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span> <span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">Emitter</span><span class="p">,</span>
+                                    <span class="kt">bool</span> <span class="n">RelaxAll</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">NoExecStack</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">MCTargetStreamer</span> <span class="o">*</span><span class="n">S</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MCTargetStreamer</span><span class="p">();</span>
+  <span class="k">return</span> <span class="n">createELFStreamer</span><span class="p">(</span><span class="n">Context</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">MAB</span><span class="p">,</span> <span class="n">OS</span><span class="p">,</span> <span class="n">Emitter</span><span class="p">,</span> <span class="n">RelaxAll</span><span class="p">,</span> <span class="n">NoExecStack</span><span class="p">);</span>
+<span class="p">}</span>
 
-  <span class="k">return</span> <span class="n">createELFStreamer</span><span class="p">(</span><span class="n">Ctx</span><span class="p">,</span> <span class="n">MAB</span><span class="p">,</span> <span class="n">_OS</span><span class="p">,</span> <span class="n">_Emitter</span><span class="p">,</span> <span class="n">RelaxAll</span><span class="p">,</span> <span class="n">NoExecStack</span><span class="p">);</span>
+<span class="k">static</span> <span class="n">MCStreamer</span> <span class="o">*</span>
+<span class="nf">createMCAsmStreamer</span><span class="p">(</span><span class="n">MCContext</span> <span class="o">&amp;</span><span class="n">Ctx</span><span class="p">,</span> <span class="n">formatted_raw_ostream</span> <span class="o">&amp;</span><span class="n">OS</span><span class="p">,</span>
+                    <span class="kt">bool</span> <span class="n">isVerboseAsm</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">useLoc</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">useCFI</span><span class="p">,</span>
+                    <span class="kt">bool</span> <span class="n">useDwarfDirectory</span><span class="p">,</span> <span class="n">MCInstPrinter</span> <span class="o">*</span><span class="n">InstPrint</span><span class="p">,</span>
+                    <span class="n">MCCodeEmitter</span> <span class="o">*</span><span class="n">CE</span><span class="p">,</span> <span class="n">MCAsmBackend</span> <span class="o">*</span><span class="n">TAB</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">ShowInst</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">MCTargetStreamer</span> <span class="o">*</span><span class="n">S</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MCTargetStreamer</span><span class="p">();</span>
+
+  <span class="k">return</span> <span class="n">llvm</span><span class="o">::</span><span class="n">createAsmStreamer</span><span class="p">(</span><span class="n">Ctx</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">OS</span><span class="p">,</span> <span class="n">isVerboseAsm</span><span class="p">,</span> <span class="n">useLoc</span><span class="p">,</span> <span class="n">useCFI</span><span class="p">,</span>
+                                 <span class="n">useDwarfDirectory</span><span class="p">,</span> <span class="n">InstPrint</span><span class="p">,</span> <span class="n">CE</span><span class="p">,</span> <span class="n">TAB</span><span class="p">,</span>
+                                 <span class="n">ShowInst</span><span class="p">);</span>
 <span class="p">}</span> <span class="c1">// lbd document - mark - createMCStreamer</span>
 
 <span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="kt">void</span> <span class="n">LLVMInitializeCpu0TargetMC</span><span class="p">()</span> <span class="p">{</span>
@@ -984,6 +997,10 @@ Chapter5_1.</p>
   <span class="c1">// Register the object streamer.</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCObjectStreamer</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createMCStreamer</span><span class="p">);</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCObjectStreamer</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createMCStreamer</span><span class="p">);</span>
+
+  <span class="c1">// Register the asm streamer.</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterAsmStreamer</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span> <span class="n">createMCAsmStreamer</span><span class="p">);</span>
+  <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterAsmStreamer</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">,</span> <span class="n">createMCAsmStreamer</span><span class="p">);</span>
 
   <span class="c1">// Register the asm backend.</span>
   <span class="n">TargetRegistry</span><span class="o">::</span><span class="n">RegisterMCAsmBackend</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">,</span>

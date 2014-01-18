@@ -156,25 +156,25 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
 .. rubric:: lbdex/Chapter4_1/Cpu0ISelDAGToDAG.cpp
 .. code-block:: c++
 
-    std::pair<SDNode*, SDNode*> SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl,
+    std::pair<SDNode*, SDNode*> SelectMULT(SDNode *N, unsigned Opc, SDLoc DL,
                                            EVT Ty, bool HasLo, bool HasHi);
     ...
   /// Select multiply instructions.
   std::pair<SDNode*, SDNode*>
-  Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
+  Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, SDLoc DL, EVT Ty,
                 bool HasLo, bool HasHi) {
   SDNode *Lo = 0, *Hi = 0;
-  SDNode *Mul = CurDAG->getMachineNode(Opc, dl, MVT::Glue, N->getOperand(0),
+  SDNode *Mul = CurDAG->getMachineNode(Opc, DL, MVT::Glue, N->getOperand(0),
                       N->getOperand(1));
   SDValue InFlag = SDValue(Mul, 0);
   
   if (HasLo) {
-    Lo = CurDAG->getMachineNode(Cpu0::MFLO, dl,
+    Lo = CurDAG->getMachineNode(Cpu0::MFLO, DL,
                   Ty, MVT::Glue, InFlag);
     InFlag = SDValue(Lo, 1);
   }
   if (HasHi)
-    Hi = CurDAG->getMachineNode(Cpu0::MFHI, dl,
+    Hi = CurDAG->getMachineNode(Cpu0::MFHI, DL,
                   Ty, InFlag);
   
   return std::make_pair(Lo, Hi);
@@ -184,7 +184,7 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
   /// expanded, promoted and normal instructions
   SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
   unsigned Opcode = Node->getOpcode();
-  DebugLoc dl = Node->getDebugLoc();
+  SDLoc DL(Node);
   ...
   EVT NodeTy = Node->getValueType(0);
   unsigned MultOpc;
@@ -194,7 +194,7 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
   case ISD::MULHS:
   case ISD::MULHU: {
     MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
-    return SelectMULT(Node, MultOpc, dl, NodeTy, false, true).second;
+    return SelectMULT(Node, MultOpc, DL, NodeTy, false, true).second;
   }
   ...
   }
@@ -228,7 +228,7 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
     unsigned HI = Cpu0::HI;
     unsigned opc = N->getOpcode() == ISD::SDIVREM ? Cpu0ISD::DivRem :
                 Cpu0ISD::DivRemU;
-    DebugLoc dl = N->getDebugLoc();
+    SDLoc DL = SDLoc(Op);
     
     SDValue DivRem = DAG.getNode(opc, dl, MVT::Glue,
              N->getOperand(0), N->getOperand(1));
@@ -831,20 +831,20 @@ Chapter4_1/ as follows,
   #if 0
   /// Select multiply instructions.
   std::pair<SDNode*, SDNode*>
-  Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, DebugLoc dl, EVT Ty,
+  Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, SDLoc DL, EVT Ty,
                                bool HasLo, bool HasHi) {
     SDNode *Lo = 0, *Hi = 0;
-    SDNode *Mul = CurDAG->getMachineNode(Opc, dl, MVT::Glue, N->getOperand(0),
+    SDNode *Mul = CurDAG->getMachineNode(Opc, DL, MVT::Glue, N->getOperand(0),
                                          N->getOperand(1));
     SDValue InFlag = SDValue(Mul, 0);
 
     if (HasLo) {
-      Lo = CurDAG->getMachineNode(Cpu0::MFLO, dl,
+      Lo = CurDAG->getMachineNode(Cpu0::MFLO, DL,
                                   Ty, MVT::Glue, InFlag);
       InFlag = SDValue(Lo, 1);
     }
     if (HasHi)
-      Hi = CurDAG->getMachineNode(Cpu0::MFHI, dl,
+      Hi = CurDAG->getMachineNode(Cpu0::MFHI, DL,
                                   Ty, InFlag);
 
     return std::make_pair(Lo, Hi);
@@ -861,7 +861,7 @@ Chapter4_1/ as follows,
     case ISD::MULHS:
     case ISD::MULHU: {
       MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
-      return SelectMULT(Node, MultOpc, dl, NodeTy, false, true).second;
+      return SelectMULT(Node, MultOpc, DL, NodeTy, false, true).second;
     }
   #endif
    ...

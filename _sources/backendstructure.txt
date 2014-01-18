@@ -1227,9 +1227,9 @@ selection stage.
     :end-before: /// Select multiply instructions.
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
     :start-after: // lbd document - mark - SelectMULT
-    :end-before: DebugLoc dl = Node->getDebugLoc();
+    :end-before: SDLoc DL(Node);
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
-    :start-after: DebugLoc dl = Node->getDebugLoc();
+    :start-after: SDLoc DL(Node);
     :end-before: EVT NodeTy = Node->getValueType(0);
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
     :start-after: unsigned MultOpc;
