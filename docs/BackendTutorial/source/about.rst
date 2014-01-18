@@ -52,7 +52,9 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.4.1, Not release yet
+Version 3.4.2, Not release yet
+
+Version 3.4.1, Released January 18, 2014
   Add ch9_4.cpp to lld test.
   Fix the wrong reference in lbd/lib/Target/Cpu0 code.
   inlineasm.

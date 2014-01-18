@@ -24,12 +24,16 @@ extern int main();
 // Cpu0RelocationPass.cpp jump to asm("start:") of start.cpp.
 void start() {
   asm("start:");
-  asm("lui   $1,  0x7");
-  asm("ori   $1,  $1, 0xfff0");
-  asm("ld    $gp, 0($1)"); // load $gp from 0x7fff0
-  initRegs();
+  
   asm("lui $sp, 0x6");
   asm("addiu $sp, $sp, 0xfffc");
+  int *gpaddr;
+  gpaddr = (int*)GPADDR;
+  __asm__ __volatile__("ld  $gp, %0"
+                       : // no output register, specify output register to $gp
+                       :"m"(*gpaddr)
+                       );
+  initRegs();
   main();
   asm("addiu $lr, $ZERO, -1");
   asm("ret $lr");

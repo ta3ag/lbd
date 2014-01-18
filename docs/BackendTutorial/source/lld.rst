@@ -51,8 +51,6 @@ Next, copy lld Cpu0 architecture ELF support as follows,
   lbdex/Cpu0_lld/ELFLinkingContext.cpp .
   1-160-136-173:ELF Jonathan$ cp -f ~/test/lbd/docs/BackendTutorial/
   lbdex/Cpu0_lld/Targets.h .
-  1-160-136-173:ELF Jonathan$ cp -f ~/test/lbd/docs/BackendTutorial/
-  lbdex/Cpu0_lld/Resolver.cpp ../../Core/.
 
 
 Finally, update llvm-objdump to support convert ELF file to Hex file as follows,

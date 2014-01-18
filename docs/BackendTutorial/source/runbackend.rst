@@ -347,6 +347,7 @@ as follows,
 
 .. rubric:: lbdex/Chapter11_2/Cpu0AsmPrinter.h
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.h
+    :linenos:
     :start-after: virtual void EmitFunctionBodyEnd();
     :end-before: void EmitStartOfAsmFile(Module &M);
 
