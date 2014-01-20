@@ -2,5 +2,5 @@ http://lldb.llvm.org/build.html
 
 1. Remember to copy clang on src/tools/clang.
 
-2. cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DLLVM_ENABLE_CXX11=ON -DCMAKE_BUILD_TYPE=Debug -G "Xcode" ../src
+2. cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DLLVM_ENABLE_CXX11=ON -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ../src
 
