@@ -1548,14 +1548,17 @@ We write this book through the process of learning llvm backend and contribute
 back to llvm open source project.
 We think this book cannot exists in traditional paper book form since only 
 few number of readers interested to read this llvm backend book even 
-there are many paper published books in concept of compiler. 
+there are many paper published books in concept of compiler. So, this book 
+is published via electric media form and try to match the Open Document License 
+Expection [#]_.
 There are distance between the concept and the practice program implemenation. 
 Keep note through learning a large complicate software is not enough 
 such as this llvm backend study. 
 We all learned the knowledge through books during school and after school. 
 So, if you cannot find a good way to produce documents, you can consider to 
 write document like this book. This book document use sphinx tool just 
-like the llvm development team. Appendix A tell you how to install sphinx tool. 
+like the llvm development team. 
+Appendix A tell you how to install sphinx tool. 
 Documentation work will help yourself to re-examine your software and make your 
 program better in structure, reliability and more important "Extend your code 
 to somewhere you didn't expect".
@@ -1586,3 +1589,6 @@ to somewhere you didn't expect".
 .. [#] http://www.apple.com/opensource/
 
 .. [#] https://www.ibm.com/developerworks/opensource/
+
+.. [#] http://www.gnu.org/philosophy/free-doc.en.html
+
