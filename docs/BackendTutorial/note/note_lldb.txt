@@ -1,6 +1,8 @@
 http://lldb.llvm.org/build.html
 
-1. Remember to copy clang on src/tools/clang.
+1. Remember to copy clang on src/tools/clang since lldb depend on clang.
 
-2. cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_FLAGS=-std=c++11 -DLLVM_ENABLE_CXX11=ON -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ../src
+2. 
+version 3.4:
+cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_FLAGS=-std=c++11 -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ../src
 
