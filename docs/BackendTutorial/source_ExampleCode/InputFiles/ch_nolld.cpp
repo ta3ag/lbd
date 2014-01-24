@@ -13,6 +13,7 @@
 #include "ch8_1_1.cpp"
 #include "ch9_1_4.cpp"
 #include "ch9_3.cpp"
+#include "ch12_1.cpp"
 
 int test_nolld()
 {
@@ -64,6 +65,9 @@ int test_nolld()
   a = test_vararg();
   print_integer(a); // a = 15
   if (a != 15) pass = false;
+  a = test_DelUselessJMP(1, -2, 3);
+  print_integer(a); // a = 2
+  if (a != 2) pass = false;
 
   return pass;
 }

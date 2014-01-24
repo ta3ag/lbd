@@ -351,7 +351,7 @@ variable, which is the offset.
 
 .. rubric:: lbdex/Chapter9_1/Cpu0InstrInfo.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
-    :start-after: // lbd document - mark - copyPhysReg
+    :start-after: #include "Cpu0TargetMachine.h"
     :end-before: #include "llvm/CodeGen/MachineInstrBuilder.h"
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
     :start-after: // lbd document - mark - copyPhysReg

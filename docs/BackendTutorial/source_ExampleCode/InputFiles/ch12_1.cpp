@@ -3,21 +3,20 @@
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm -stats ch12_1.bc -o -
 
 /// start
-int main()
+int test_DelUselessJMP(int a, int b, int c)
 {
-  int a = 0;
-  int b = 1;
-  int c = 2;
-  
   if (a == 0) {
     a++;
   }
   if (b == 0) {
-    a = a + b;
+    a = a + 3;
+    b++;
   } else if (b < 0) {
-    a = a--;
+    a = a + b;
+    b--;
   }
   if (c > 0) {
+    a = a + c;
     c++;
   }
   

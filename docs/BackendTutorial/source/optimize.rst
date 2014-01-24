@@ -4,27 +4,27 @@ Backend Optimization
 ====================
 
 This chapter introduce how to do backend optimization in LLVM first. 
-Next we do optimization via extend instruction sets with hardware level to 
+Next we do optimization via extend instruction sets in hardware level to 
 do optimization in a way of creating an efficient RISC CPU which aims to C/C++ 
 high level language.
 
 Cpu0 backend Optimization: Remove useless JMP
 ---------------------------------------------
 
-LLVM uses functional pass in code generation and optimization. 
+LLVM uses functional pass both in code generation and optimization. 
 Following the 3 tiers of compiler architecture, LLVM did much optimization in 
 middle tier of LLVM IR, SSA form. 
-In addition of this middle tier optimization, there are opportunities in 
+Beyond middle tier optimization, there are opportunities in 
 optimization which depend on backend features. 
 Mips fill delay slot is an example of backend optimization used in pipeline 
 RISC machine.
-You can modify from Mips this part if your backend is a pipeline RISC with 
-delay slot. In this section, 
-we apply the "delete useless jmp" unconditional branch instruction in Cpu0 
+You can migrate from Mips if your backend is a pipeline RISC with 
+delay slot. 
+In this section, we apply the "delete useless jmp" in Cpu0 
 backend optimization. 
 This algorithm is simple and effective as a perfect tutorial in optimization. 
-Through this example, you can understand how to add a optimization pass and 
-design your complicate optimization algorithm on your backend in real project.
+Through this example, you can understand how to add an optimization pass and 
+coding your complicate optimization algorithm on your backend in real project.
 
 Chapter12_1/ supports "delete useless jmp" optimization algorithm which add 
 codes as follows,
@@ -68,13 +68,13 @@ codes as follows,
 As above code, except Cpu0DelUselessJMP.cpp, other files changed for register 
 class DelJmp as a functional pass. 
 As the comment of above code, MBB is the current 
-block and MBBN is the next block. For the last instruction of every MBB, we 
+block and MBBN is the next block. For each last instruction of every MBB, we 
 check if it is the JMP instruction as well as 
 its Operand is the next basic block. 
 By getMBB() in MachineOperand, you can get the MBB address. 
 For the member functions of MachineOperand, please check 
 include/llvm/CodeGen/MachineOperand.h
-Let's run Chapter12_1/ with ch12_1.cpp for explanation.
+Now, let's run Chapter12_1/ with ch12_1.cpp for explanation.
 
 .. rubric:: lbdex/InputFiles/ch12_1.cpp
 .. literalinclude:: ../lbdex/InputFiles/ch12_1.cpp
@@ -87,79 +87,88 @@ Let's run Chapter12_1/ with ch12_1.cpp for explanation.
   118-165-78-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm -stats 
   ch12_1.bc -o -
-  
 	  .section .mdebug.abi32
 	  .previous
 	  .file	"ch12_1.bc"
 	  .text
-	  .globl	main
+	  .globl	_Z18test_DelUselessJMPiii
 	  .align	2
-	  .type	main,@function
-	  .ent	main                    # @main
-  main:
-	  .frame	$fp,24,$lr
+	  .type	_Z18test_DelUselessJMPiii,@function
+	  .ent	_Z18test_DelUselessJMPiii # @_Z18test_DelUselessJMPiii
+  _Z18test_DelUselessJMPiii:
+	  .frame	$fp,16,$lr
 	  .mask 	0x00001000,-4
 	  .set	noreorder
 	  .set	nomacro
-  # BB#0:                                 # %entry
-	  addiu	$sp, $sp, -24
-	  st	$fp, 20($sp)            # 4-byte Folded Spill
+  # BB#0:
+	  addiu	$sp, $sp, -16
+	  st	$fp, 12($sp)            # 4-byte Folded Spill
 	  addu	$fp, $sp, $zero
-	  addiu	$3, $zero, 0
-	  st	$3, 16($fp)
-	  st	$3, 12($fp)
-	  addiu	$2, $zero, 1
+	  ld	$2, 16($fp)
 	  st	$2, 8($fp)
-	  addiu	$4, $zero, 2
-	  st	$4, 4($fp)
-	  ld	$4, 12($fp)
-	  cmp	$sw, $4, $3
-	  jne	$sw, $BB0_2
-  # BB#1:                                 # %if.then
-	  ld	$4, 12($fp)
-	  addiu	$4, $4, 1
-	  st	$4, 12($fp)
-  $BB0_2:                                 # %if.end
-	  ld	$4, 8($fp)
-	  cmp	$sw, $4, $3
-	  jne	$sw, $BB0_4
-	  jmp	$BB0_3
-  $BB0_4:                                 # %if.else
-	  addiu	$3, $zero, -1
-	  ld	$4, 8($fp)
-	  cmp	$sw, $4, $3
-	  jgt	$sw, $BB0_6
-	  jmp	$BB0_5
-  $BB0_3:                                 # %if.then2
+	  ld	$2, 20($fp)
+	  st	$2, 4($fp)
+	  ld	$2, 24($fp)
+	  st	$2, 0($fp)
+	  addiu	$2, $zero, 0
 	  ld	$3, 8($fp)
-	  ld	$4, 12($fp)
-	  addu	$3, $4, $3
-	  st	$3, 12($fp)
-	  jmp	$BB0_6
-  $BB0_5:                                 # %if.then4
-	  ld	$3, 12($fp)
-	  addiu	$4, $3, -1
-	  st	$4, 12($fp)
-	  st	$3, 12($fp)
-  $BB0_6:                                 # %if.end6
+	  cmp	$sw, $3, $2
+	  jne	$sw, $BB0_2
+  # BB#1:
+	  ld	$3, 8($fp)
+	  addiu	$3, $3, 1
+	  st	$3, 8($fp)
+  $BB0_2:
 	  ld	$3, 4($fp)
 	  cmp	$sw, $3, $2
-	  jlt	$sw, $BB0_8
-  # BB#7:                                 # %if.then8
+	  jne	$sw, $BB0_4
+	  jmp	$BB0_3
+  $BB0_4:
+	  addiu	$2, $zero, -1
+	  ld	$3, 4($fp)
+	  cmp	$sw, $3, $2
+	  jgt	$sw, $BB0_6
+	  jmp	$BB0_5
+  $BB0_3:
+	  ld	$2, 8($fp)
+	  addiu	$2, $2, 3
+	  st	$2, 8($fp)
 	  ld	$2, 4($fp)
 	  addiu	$2, $2, 1
 	  st	$2, 4($fp)
-  $BB0_8:                                 # %if.end10
-	  ld	$2, 12($fp)
+	  jmp	$BB0_6
+  $BB0_5:
+	  ld	$2, 4($fp)
+	  ld	$3, 8($fp)
+	  addu	$2, $3, $2
+	  st	$2, 8($fp)
+	  ld	$2, 4($fp)
+	  addiu	$2, $2, -1
+	  st	$2, 4($fp)
+  $BB0_6:
+	  addiu	$2, $zero, 1
+	  ld	$3, 0($fp)
+	  cmp	$sw, $3, $2
+	  jlt	$sw, $BB0_8
+  # BB#7:
+	  ld	$2, 0($fp)
+	  ld	$3, 8($fp)
+	  addu	$2, $3, $2
+	  st	$2, 8($fp)
+	  ld	$2, 0($fp)
+	  addiu	$2, $2, 1
+	  st	$2, 0($fp)
+  $BB0_8:
+	  ld	$2, 8($fp)
 	  addu	$sp, $fp, $zero
-	  ld	$fp, 20($sp)            # 4-byte Folded Reload
-	  addiu	$sp, $sp, 24
+	  ld	$fp, 12($sp)            # 4-byte Folded Reload
+	  addiu	$sp, $sp, 16
 	  ret	$lr
 	  .set	macro
 	  .set	reorder
-	  .end	main
+	  .end	_Z18test_DelUselessJMPiii
   $tmp3:
-	  .size	main, ($tmp3)-main
+	  .size	_Z18test_DelUselessJMPiii, ($tmp3)-_Z18test_DelUselessJMPiii
   ...
   ===-------------------------------------------------------------------------===
                             ... Statistics Collected ...
@@ -172,9 +181,10 @@ The terminal display "Number of useless jmp deleted" by ``llc -stats`` option
 because we set the "STATISTIC(NumDelJmp, "Number of useless jmp deleted")" in 
 code. It deletes 2 jmp instructions from block "# BB#0" and "$BB0_6".
 You can check it by ``llc -enable-cpu0-del-useless-jmp=false`` option to see 
-the difference to no optimization version.
+the difference to non-optimization version.
 If you run with ch8_1_1.cpp, will find 10 jmp instructions are deleted in 100 
-lines of assembly code, which meaning 10\% improvement in speed and code size.
+lines of assembly code, which meaning 10\% improvement in speed and code size 
+[#]_.
 
 
 Cpu0 Optimization: Extends instruction sets
@@ -184,7 +194,7 @@ If you compare the cpu0 and Mips instruction sets, you will find that Mips use
 SLT, BEQ and set the status in explicit/general register while Cpu0 use CMP, 
 JEQ and set status in implicit/specific register.
 
-According RISC spirits, this section will replace CMP, JEQ with Mips style 
+Follow RISC principle, this section will replace CMP, JEQ with Mips style 
 instructions.
 Mips style BEQ instructions will reduce the number of branch instructions too. 
 Which means optimization in speed and code size.
@@ -671,6 +681,64 @@ The llc will generate cpu032I cmp, jeq,
 generate slt, beq when meet "if else", "while" and "for" flow control 
 statements.
 
+.. rubric:: lbdex/InputFiles/ch12_2.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch12_2.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+
+  118-165-78-10:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -O2 
+  -c ch12_2.cpp -emit-llvm -o ch12_2.bc
+  118-165-78-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
+  ch12_2.bc -o -
+    ...
+	  addiu	$sp, $sp, -8
+	  addiu	$2, $zero, 2
+	  ld	$3, 12($sp)
+	  cmp	$sw, $3, $2
+	  st	$sw, 4($sp)             # 4-byte Folded Spill
+	  addiu	$2, $zero, 1
+	  ld	$3, 8($sp)
+	  cmp	$sw, $3, $2
+	  mfsw	$2
+	  andi	$2, $2, 1
+	  ld	$sw, 4($sp)             # 4-byte Folded Reload
+	  mfsw	$3
+	  andi	$3, $3, 1
+	  addu	$2, $3, $2
+	  addiu	$sp, $sp, 8
+	  ret	$lr
+    ...
+  118-165-78-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
+  ch12_2.bc -o -
+    ...
+	  ld	$2, 0($sp)
+	  slti	$2, $2, 1
+	  ld	$3, 4($sp)
+	  slti	$3, $3, 2
+	  addu	$2, $3, $2
+	  ret	$lr
+    ...
+
+Run these two `llc -mcpu` option for Chapter12_2 with ch12_2.cpp get the 
+above result. Ignore the move between \$sw and general purpose register in 
+`llc -mcpu=cpu032I`, the two cmp instructions in it will has hazard in 
+instruction reorder since both of them use \$sw register while  
+`llc -mcpu=cpu032II` has not. The slti version can reorder as follows,
+
+.. code-block:: bash
+
+    ...
+	  ld	$3, 4($sp)
+	  slti	$3, $3, 2
+	  ld	$2, 0($sp)
+	  slti	$2, $2, 1
+	  addu	$2, $3, $2
+	  ret	$lr
+    ...
+
 
 Cpu0 Verilog language changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -729,6 +797,7 @@ It match the output result as comments in ch_run_backend.cpp.
   2147483647
   -2147483648
   15
+  2
   RET to PC < 0, finished!
 
 Run with ch8_1_1.cpp, it reduces some branches from pair instructions "CMP, JXX" 
@@ -897,4 +966,7 @@ to 1 single instruction ether is BEQ or BNE, as follows,
 
 The ch12_3.cpp is written in assembly for AsmParser test. You can check if it 
 will generate the obj.
+
+.. [#] On a platform with cache and DRAM, the cache miss cost serveral tens time of instruction cycle. The compiler engineers work in the vendor of platform solution spend much effort try to reduce the cache miss for speed. Reduce code size will cut down the cache miss frequency too.
+
 

@@ -97,8 +97,7 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
 
   unsigned Opc = 0;
 
-  if (Cpu0::CPURegsRegClass.hasSubClassEq(RC))
-    Opc = Cpu0::ST;
+  Opc = Cpu0::ST;
   assert(Opc && "Register class not handled!");
   BuildMI(MBB, I, DL, get(Opc)).addReg(SrcReg, getKillRegState(isKill))
     .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
@@ -115,8 +114,7 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   MachineMemOperand *MMO = GetMemOperand(MBB, FI, MachineMemOperand::MOLoad);
   unsigned Opc = 0;
 
-  if (Cpu0::CPURegsRegClass.hasSubClassEq(RC))
-    Opc = Cpu0::LD;
+  Opc = Cpu0::LD;
   assert(Opc && "Register class not handled!");
   BuildMI(MBB, I, DL, get(Opc), DestReg).addFrameIndex(FI).addImm(0)
     .addMemOperand(MMO);
