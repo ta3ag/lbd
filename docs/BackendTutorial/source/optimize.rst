@@ -726,7 +726,7 @@ Run these two `llc -mcpu` option for Chapter12_2 with ch12_2.cpp get the
 above result. Ignore the move between \$sw and general purpose register in 
 `llc -mcpu=cpu032I`, the two cmp instructions in it will has hazard in 
 instruction reorder since both of them use \$sw register while  
-`llc -mcpu=cpu032II` has not. The slti version can reorder as follows,
+`llc -mcpu=cpu032II` has not [#]_. The slti version can reorder as follows,
 
 .. code-block:: bash
 
@@ -968,6 +968,12 @@ to 1 single instruction ether is BEQ or BNE, as follows,
 The ch12_3.cpp is written in assembly for AsmParser test. You can check if it 
 will generate the obj.
 
-.. [#] On a platform with cache and DRAM, the cache miss cost serveral tens time of instruction cycle. The compiler engineers work in the vendor of platform solution spend much effort try to reduce the cache miss for speed. Reduce code size will cut down the cache miss frequency too.
+.. [#] On a platform with cache and DRAM, the cache miss cost serveral tens 
+       time of instruction cycle. The compiler engineers work in the vendor of 
+       platform solution spend much effort try to reduce the cache miss for 
+       speed. Reduce code size will cut down the cache miss frequency too.
+
+.. [#] See book Computer Architecture: A Quantitative Approach (The Morgan 
+       Kaufmann Series in Computer Architecture and Design) 
 
 
