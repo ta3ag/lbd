@@ -923,6 +923,7 @@ for this purpose.
   7
   15
   2
+  1
   test_nolld(): PASS
   test_alloc() = 31, PASS
   global variable gI = 100, PASS

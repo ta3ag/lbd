@@ -798,6 +798,7 @@ It match the output result as comments in ch_run_backend.cpp.
   -2147483648
   15
   2
+  1
   RET to PC < 0, finished!
 
 Run with ch8_1_1.cpp, it reduces some branches from pair instructions "CMP, JXX" 

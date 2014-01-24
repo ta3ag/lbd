@@ -14,6 +14,7 @@
 #include "ch9_1_4.cpp"
 #include "ch9_3.cpp"
 #include "ch12_1.cpp"
+#include "ch12_2.cpp"
 
 int test_nolld()
 {
@@ -68,6 +69,10 @@ int test_nolld()
   a = test_DelUselessJMP(1, -2, 3);
   print_integer(a); // a = 2
   if (a != 2) pass = false;
+  a = test_OptSlt(1, -2, 3);
+  print_integer(a); // a = 1
+  if (a != 1) pass = false;
+
 
   return pass;
 }
@@ -90,5 +95,7 @@ int test_nolld()
 -2147483648
 7
 15
+2
+1
 RET to PC < 0, finished!
 */
