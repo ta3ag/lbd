@@ -1,6 +1,6 @@
 diff -Naur Chapter4_1/Cpu0InstrInfo.cpp Chapter4_2/Cpu0InstrInfo.cpp
---- Chapter4_1/Cpu0InstrInfo.cpp	2014-01-24 16:00:49.926429117 +0800
-+++ Chapter4_2/Cpu0InstrInfo.cpp	2014-01-24 16:00:49.922429117 +0800
+--- Chapter4_1/Cpu0InstrInfo.cpp	2014-01-24 18:32:50.202428031 +0800
++++ Chapter4_2/Cpu0InstrInfo.cpp	2014-01-24 18:32:50.198428030 +0800
 @@ -42,12 +42,16 @@
        Opc = Cpu0::MFHI, SrcReg = 0;
      else if (SrcReg == Cpu0::LO)
@@ -19,8 +19,8 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.cpp Chapter4_2/Cpu0InstrInfo.cpp
  
    assert(Opc && "Cannot copy registers");
 diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
---- Chapter4_1/Cpu0InstrInfo.td	2014-01-24 16:00:49.926429117 +0800
-+++ Chapter4_2/Cpu0InstrInfo.td	2014-01-24 16:00:49.922429117 +0800
+--- Chapter4_1/Cpu0InstrInfo.td	2014-01-24 18:32:50.198428030 +0800
++++ Chapter4_2/Cpu0InstrInfo.td	2014-01-24 18:32:50.198428030 +0800
 @@ -132,6 +132,16 @@
    let isReMaterializable = 1;
  }
@@ -160,8 +160,8 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +defm : SetgtPatsCmp<CPURegs>;
 +defm : SetgePatsCmp<CPURegs>;
 diff -Naur Chapter4_1/Cpu0ISelLowering.cpp Chapter4_2/Cpu0ISelLowering.cpp
---- Chapter4_1/Cpu0ISelLowering.cpp	2014-01-24 16:00:49.926429117 +0800
-+++ Chapter4_2/Cpu0ISelLowering.cpp	2014-01-24 16:00:49.922429117 +0800
+--- Chapter4_1/Cpu0ISelLowering.cpp	2014-01-24 18:32:50.198428030 +0800
++++ Chapter4_2/Cpu0ISelLowering.cpp	2014-01-24 18:32:50.198428030 +0800
 @@ -43,6 +43,9 @@
    // Set up the register classes
    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);

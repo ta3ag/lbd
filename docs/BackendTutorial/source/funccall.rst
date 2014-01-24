@@ -762,13 +762,9 @@ store outgoing arguments to stack frame offset.
     :end-before: // lbd document - mark - before loadRegFromStackSlot
 
 .. rubric:: lbdex/Chapter9_2/Cpu0InstrInfo.h
-.. code-block:: c++
-
-    virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
-                                     MachineBasicBlock::iterator MBBI,
-                                     unsigned SrcReg, bool isKill, int FrameIndex,
-                                     const TargetRegisterClass *RC,
-                                     const TargetRegisterInfo *TRI) const;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.h
+    :start-after:  unsigned GetInstSizeInBytes(const MachineInstr *MI) const;
+    :end-before: loadRegFromStackSlot
 
 
 .. code-block:: bash
@@ -1862,59 +1858,15 @@ Chapter9_4/ with the following code added to support the structure type in
 function call. 
 
 .. rubric:: lbdex/Chapter9_4/Cpu0ISelLowering.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: //  Lower helper functions
+    :end-before: //  Misc Lower Operation implementation
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: #include "Cpu0GenCallingConv.inc"
+    :end-before: // lbd document - mark - before LowerCall
+
 .. code-block:: c++
 
-  // AddLiveIn - This helper function adds the specified physical register to the
-  // MachineFunction as a live in value.  It also creates a corresponding
-  // virtual register for it.
-  static unsigned
-  AddLiveIn(MachineFunction &MF, unsigned PReg, const TargetRegisterClass *RC)
-  {
-    assert(RC->contains(PReg) && "Not the correct regclass!");
-    unsigned VReg = MF.getRegInfo().createVirtualRegister(RC);
-    MF.getRegInfo().addLiveIn(PReg, VReg);
-    return VReg;
-  }
-  ...
-  //===----------------------------------------------------------------------===//
-  //                  Call Calling Convention Implementation
-  //===----------------------------------------------------------------------===//
-  
-  static const unsigned IntRegsSize = 2;
-  
-  static const uint16_t IntRegs[] = {
-    Cpu0::A0, Cpu0::A1
-  };
-  
-  // Write ByVal Arg to arg registers and stack.
-  static void
-  WriteByValArg(SDValue& ByValChain, SDValue Chain, SDLoc DL,
-          SmallVector<std::pair<unsigned, SDValue>, 16>& RegsToPass,
-          SmallVector<SDValue, 8>& MemOpChains, int& LastFI,
-          MachineFrameInfo *MFI, SelectionDAG &DAG, SDValue Arg,
-          const CCValAssign &VA, const ISD::ArgFlagsTy& Flags,
-          MVT PtrType, bool isLittle) {
-    unsigned LocMemOffset = VA.getLocMemOffset();
-    unsigned Offset = 0;
-    uint32_t RemainingSize = Flags.getByValSize();
-    unsigned ByValAlign = Flags.getByValAlign();
-  
-    if (RemainingSize == 0)
-      return;
-  
-    // Create a fixed object on stack at offset LocMemOffset and copy
-    // remaining part of byval arg to it using memcpy.
-    SDValue Src = DAG.getNode(ISD::ADD, DL, MVT::i32, Arg,
-                DAG.getConstant(Offset, MVT::i32));
-    LastFI = MFI->CreateFixedObject(RemainingSize, LocMemOffset, true);
-    SDValue Dst = DAG.getFrameIndex(LastFI, PtrType);
-    ByValChain = DAG.getMemcpy(ByValChain, DL, Dst, Src,
-                               DAG.getConstant(RemainingSize, MVT::i32),
-                               std::min(ByValAlign, (unsigned)4),
-                               /*isVolatile=*/false, /*AlwaysInline=*/false,
-                               MachinePointerInfo(0), MachinePointerInfo(0));
-  }
-  ...
   SDValue
   Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                   SmallVectorImpl<SDValue> &InVals) const {
@@ -1934,34 +1886,13 @@ function call.
     }
     ...
   }
-  ...
-  //===----------------------------------------------------------------------===//
-  //             Formal Arguments Calling Convention Implementation
-  //===----------------------------------------------------------------------===//
-  static void ReadByValArg(MachineFunction &MF, SDValue Chain, SDLoc DL,
-               std::vector<SDValue>& OutChains,
-               SelectionDAG &DAG, unsigned NumWords, SDValue FIN,
-               const CCValAssign &VA, const ISD::ArgFlagsTy& Flags,
-               const Argument *FuncArg) {
-    unsigned LocMem = VA.getLocMemOffset();
-    unsigned FirstWord = LocMem / 4;
-  
-    // copy register A0 - A1 to frame object
-    for (unsigned i = 0; i < NumWords; ++i) {
-      unsigned CurWord = FirstWord + i;
-      if (CurWord >= IntRegsSize)
-        break;
-  
-      unsigned SrcReg = IntRegs[CurWord];
-      unsigned Reg = AddLiveIn(MF, SrcReg, &Cpu0::CPURegsRegClass);
-      SDValue StorePtr = DAG.getNode(ISD::ADD, DL, MVT::i32, FIN,
-                                     DAG.getConstant(i * 4, MVT::i32));
-      SDValue Store = DAG.getStore(Chain, DL, DAG.getRegister(Reg, MVT::i32),
-                                   StorePtr, MachinePointerInfo(FuncArg, i * 4),
-                                   false, false, 0);
-    OutChains.push_back(Store);
-    }
-  } // lbd document - mark - ReadByValArg
+
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: Formal Arguments Calling Convention Implementation
+    :end-before: /// LowerFormalArguments - transform physical registers into 
+
+.. code-block:: c++
+
   ...
   SDValue
   Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,

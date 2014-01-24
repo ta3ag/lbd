@@ -1,6 +1,6 @@
 diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
---- Chapter6_1/Cpu0InstrInfo.td	2014-01-24 16:00:49.906429117 +0800
-+++ Chapter7_1/Cpu0InstrInfo.td	2014-01-24 16:00:49.930429117 +0800
+--- Chapter6_1/Cpu0InstrInfo.td	2014-01-24 18:32:50.182428031 +0800
++++ Chapter7_1/Cpu0InstrInfo.td	2014-01-24 18:32:50.202428031 +0800
 @@ -71,6 +71,12 @@
    let EncoderMethod = "getMemEncoding";
  }
@@ -92,8 +92,8 @@ diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
  multiclass SeteqPatsCmp<RegisterClass RC> {
  // a == b
 diff -Naur Chapter6_1/Cpu0ISelDAGToDAG.cpp Chapter7_1/Cpu0ISelDAGToDAG.cpp
---- Chapter6_1/Cpu0ISelDAGToDAG.cpp	2014-01-24 16:00:49.906429117 +0800
-+++ Chapter7_1/Cpu0ISelDAGToDAG.cpp	2014-01-24 16:00:49.930429117 +0800
+--- Chapter6_1/Cpu0ISelDAGToDAG.cpp	2014-01-24 18:32:50.182428031 +0800
++++ Chapter7_1/Cpu0ISelDAGToDAG.cpp	2014-01-24 18:32:50.206428031 +0800
 @@ -152,6 +152,23 @@
          Addr.getOpcode() == ISD::TargetGlobalAddress))
        return false;
@@ -178,8 +178,8 @@ diff -Naur Chapter6_1/Cpu0ISelDAGToDAG.cpp Chapter7_1/Cpu0ISelDAGToDAG.cpp
    case ISD::MULHU: {
      MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
 diff -Naur Chapter6_1/Cpu0ISelLowering.cpp Chapter7_1/Cpu0ISelLowering.cpp
---- Chapter6_1/Cpu0ISelLowering.cpp	2014-01-24 16:00:49.906429117 +0800
-+++ Chapter7_1/Cpu0ISelLowering.cpp	2014-01-24 16:00:49.930429117 +0800
+--- Chapter6_1/Cpu0ISelLowering.cpp	2014-01-24 18:32:50.182428031 +0800
++++ Chapter7_1/Cpu0ISelLowering.cpp	2014-01-24 18:32:50.202428031 +0800
 @@ -122,6 +122,16 @@
    // Set up the register classes
    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
@@ -208,8 +208,8 @@ diff -Naur Chapter6_1/Cpu0ISelLowering.cpp Chapter7_1/Cpu0ISelLowering.cpp
 +  return false;
 +}
 diff -Naur Chapter6_1/Cpu0ISelLowering.h Chapter7_1/Cpu0ISelLowering.h
---- Chapter6_1/Cpu0ISelLowering.h	2014-01-24 16:00:49.906429117 +0800
-+++ Chapter7_1/Cpu0ISelLowering.h	2014-01-24 16:00:49.930429117 +0800
+--- Chapter6_1/Cpu0ISelLowering.h	2014-01-24 18:32:50.182428031 +0800
++++ Chapter7_1/Cpu0ISelLowering.h	2014-01-24 18:32:50.202428031 +0800
 @@ -105,6 +105,8 @@
                    const SmallVectorImpl<ISD::OutputArg> &Outs,
                    const SmallVectorImpl<SDValue> &OutVals,
@@ -220,8 +220,8 @@ diff -Naur Chapter6_1/Cpu0ISelLowering.h Chapter7_1/Cpu0ISelLowering.h
  }
  
 diff -Naur Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp	2014-01-24 16:00:49.906429117 +0800
-+++ Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp	2014-01-24 16:00:49.930429117 +0800
+--- Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp	2014-01-24 18:32:50.182428031 +0800
++++ Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp	2014-01-24 18:32:50.202428031 +0800
 @@ -118,3 +118,12 @@
    O << ")";
  }
@@ -236,8 +236,8 @@ diff -Naur Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp Chapter7_1/InstPrinter/Cpu
 +  return;
 +}
 diff -Naur Chapter6_1/InstPrinter/Cpu0InstPrinter.h Chapter7_1/InstPrinter/Cpu0InstPrinter.h
---- Chapter6_1/InstPrinter/Cpu0InstPrinter.h	2014-01-24 16:00:49.906429117 +0800
-+++ Chapter7_1/InstPrinter/Cpu0InstPrinter.h	2014-01-24 16:00:49.930429117 +0800
+--- Chapter6_1/InstPrinter/Cpu0InstPrinter.h	2014-01-24 18:32:50.182428031 +0800
++++ Chapter7_1/InstPrinter/Cpu0InstPrinter.h	2014-01-24 18:32:50.202428031 +0800
 @@ -39,6 +39,7 @@
    void printOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
    void printUnsignedImm(const MCInst *MI, int opNum, raw_ostream &O);
