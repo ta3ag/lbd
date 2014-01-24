@@ -53,6 +53,8 @@ Revision history
 ----------------
 
 Version 3.4.2, Not release yet
+  Add ch12_2.cpp for slt instruction explanation and fix bug in Cpu0InstrInfo.cpp.
+  Correct typing.
 
 Version 3.4.1, Released January 18, 2014
   Add ch9_4.cpp to lld test.
@@ -60,7 +62,6 @@ Version 3.4.1, Released January 18, 2014
   inlineasm.
   First instruction jmp X, where X changed from _Z5startv to start.
   Correct typing.
-  Add ch12_2.cpp for slt instruction explanation and fix bug in Cpu0InstrInfo.cpp.
 
 Version 3.4.0, Released January 9, 2014
   Porting to llvm 3.4 release.

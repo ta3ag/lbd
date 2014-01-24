@@ -1,9 +1,9 @@
 diff -Naur Chapter9_1/Cpu0InstrInfo.cpp Chapter9_2/Cpu0InstrInfo.cpp
---- Chapter9_1/Cpu0InstrInfo.cpp	2014-01-24 16:00:49.922429117 +0800
-+++ Chapter9_2/Cpu0InstrInfo.cpp	2014-01-24 16:00:49.922429117 +0800
+--- Chapter9_1/Cpu0InstrInfo.cpp	2014-01-24 18:06:38.722428216 +0800
++++ Chapter9_2/Cpu0InstrInfo.cpp	2014-01-24 18:07:37.946428209 +0800
 @@ -79,6 +79,24 @@
                                   MFI.getObjectSize(FI), Align);
- }
+ } // lbd document - mark - GetMemOperand
  
 +//- st SrcReg, MMO(FI)
 +void Cpu0InstrInfo::
@@ -23,12 +23,12 @@ diff -Naur Chapter9_1/Cpu0InstrInfo.cpp Chapter9_2/Cpu0InstrInfo.cpp
 +    .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
 +} // lbd document - mark - storeRegToStackSlot
 +
- void Cpu0InstrInfo::
+ void Cpu0InstrInfo:: // lbd document - mark - before loadRegFromStackSlot
  loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                       unsigned DestReg, int FI,
 diff -Naur Chapter9_1/Cpu0InstrInfo.h Chapter9_2/Cpu0InstrInfo.h
---- Chapter9_1/Cpu0InstrInfo.h	2014-01-24 16:00:49.922429117 +0800
-+++ Chapter9_2/Cpu0InstrInfo.h	2014-01-24 16:00:49.922429117 +0800
+--- Chapter9_1/Cpu0InstrInfo.h	2014-01-24 17:59:17.546428269 +0800
++++ Chapter9_2/Cpu0InstrInfo.h	2014-01-24 17:59:17.530428269 +0800
 @@ -41,6 +41,12 @@
                             unsigned DestReg, unsigned SrcReg,
                             bool KillSrc) const;
@@ -43,8 +43,8 @@ diff -Naur Chapter9_1/Cpu0InstrInfo.h Chapter9_2/Cpu0InstrInfo.h
                                      MachineBasicBlock::iterator MBBI,
                                      unsigned DestReg, int FrameIndex,
 diff -Naur Chapter9_1/Cpu0InstrInfo.td Chapter9_2/Cpu0InstrInfo.td
---- Chapter9_1/Cpu0InstrInfo.td	2014-01-24 16:00:49.922429117 +0800
-+++ Chapter9_2/Cpu0InstrInfo.td	2014-01-24 16:00:49.922429117 +0800
+--- Chapter9_1/Cpu0InstrInfo.td	2014-01-24 17:59:17.546428269 +0800
++++ Chapter9_2/Cpu0InstrInfo.td	2014-01-24 17:59:17.530428269 +0800
 @@ -28,6 +28,9 @@
  
  def SDT_Cpu0JmpLink      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
@@ -90,8 +90,8 @@ diff -Naur Chapter9_1/Cpu0InstrInfo.td Chapter9_2/Cpu0InstrInfo.td
  //===----------------------------------------------------------------------===//
  
 diff -Naur Chapter9_1/Cpu0ISelLowering.cpp Chapter9_2/Cpu0ISelLowering.cpp
---- Chapter9_1/Cpu0ISelLowering.cpp	2014-01-24 16:00:49.922429117 +0800
-+++ Chapter9_2/Cpu0ISelLowering.cpp	2014-01-24 16:00:49.922429117 +0800
+--- Chapter9_1/Cpu0ISelLowering.cpp	2014-01-24 17:59:17.546428269 +0800
++++ Chapter9_2/Cpu0ISelLowering.cpp	2014-01-24 17:59:17.530428269 +0800
 @@ -285,7 +285,257 @@
  SDValue
  Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
@@ -357,8 +357,8 @@ diff -Naur Chapter9_1/Cpu0ISelLowering.cpp Chapter9_2/Cpu0ISelLowering.cpp
  }
 +
 diff -Naur Chapter9_1/Cpu0ISelLowering.h Chapter9_2/Cpu0ISelLowering.h
---- Chapter9_1/Cpu0ISelLowering.h	2014-01-24 16:00:49.922429117 +0800
-+++ Chapter9_2/Cpu0ISelLowering.h	2014-01-24 16:00:49.922429117 +0800
+--- Chapter9_1/Cpu0ISelLowering.h	2014-01-24 17:59:17.546428269 +0800
++++ Chapter9_2/Cpu0ISelLowering.h	2014-01-24 17:59:17.530428269 +0800
 @@ -85,6 +85,13 @@
    private:
      // Subtarget Info

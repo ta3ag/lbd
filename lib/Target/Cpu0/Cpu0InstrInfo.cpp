@@ -83,7 +83,7 @@ static MachineMemOperand* GetMemOperand(MachineBasicBlock &MBB, int FI,
 
   return MF.getMachineMemOperand(MachinePointerInfo::getFixedStack(FI), Flag,
                                  MFI.getObjectSize(FI), Align);
-}
+} // lbd document - mark - GetMemOperand
 
 //- st SrcReg, MMO(FI)
 void Cpu0InstrInfo::
@@ -103,7 +103,7 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
     .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
 } // lbd document - mark - storeRegToStackSlot
 
-void Cpu0InstrInfo::
+void Cpu0InstrInfo:: // lbd document - mark - before loadRegFromStackSlot
 loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                      unsigned DestReg, int FI,
                      const TargetRegisterClass *RC,

@@ -757,29 +757,9 @@ Like load incoming arguments, we need to implement storeRegToStackSlot() for
 store outgoing arguments to stack frame offset.
     
 .. rubric:: lbdex/Chapter9_2/Cpu0InstrInfo.cpp
-.. code-block:: c++
-    
-  //- st SrcReg, MMO(FI)
-  void Cpu0InstrInfo::
-  storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
-                      unsigned SrcReg, bool isKill, int FI,
-                      const TargetRegisterClass *RC,
-                      const TargetRegisterInfo *TRI) const {
-    DebugLoc DL;
-    if (I != MBB.end()) DL = I->getDebugLoc();
-    MachineMemOperand *MMO = GetMemOperand(MBB, FI, MachineMemOperand::MOStore);
-    
-    unsigned Opc = 0;
-    
-    if (RC == Cpu0::CPURegsRegisterClass)
-      Opc = Cpu0::ST;
-    assert(Opc && "Register class not handled!");
-    BuildMI(MBB, I, DL, get(Opc)).addReg(SrcReg, getKillRegState(isKill))
-      .addFrameIndex(FI).addImm(0).addMemOperand(MMO);
-  } // lbd document - mark - storeRegToStackSlot
-
-Now, let's run Chapter9_2/ with ch9_1.cpp to get result as follows (see comment 
-//),
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
+    :start-after:  // lbd document - mark - GetMemOperand
+    :end-before: // lbd document - mark - before loadRegFromStackSlot
 
 .. rubric:: lbdex/Chapter9_2/Cpu0InstrInfo.h
 .. code-block:: c++
