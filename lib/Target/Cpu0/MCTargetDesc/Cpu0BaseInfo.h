@@ -135,7 +135,7 @@ inline static unsigned getCpu0RegisterNumbering(unsigned RegEnum)
     return 8;
   case Cpu0::S1:
     return 9;
-  case Cpu0::S2:
+  case Cpu0::SW:
     return 10;
   case Cpu0::GP:
     return 11;
@@ -151,8 +151,6 @@ inline static unsigned getCpu0RegisterNumbering(unsigned RegEnum)
     return 18;
   case Cpu0::LO:
     return 19;
-  case Cpu0::SW:
-    return 20;
   default: llvm_unreachable("Unknown register number!");
   }
 }

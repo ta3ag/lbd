@@ -39,12 +39,6 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
   :end-before: const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
   :start-after: const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
-  :end-before: if (!Subtarget.hasCpu032II()) {
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
-  :start-after: // lbd document - mark - if (!Subtarget.hasCpu032II()) 1
-  :end-before:  // lbd document - mark - 2
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
-  :start-after:  // lbd document - mark - if (!Subtarget.hasCpu032II()) 2
   :end-before: static MachineMemOperand* GetMemOperand
 
 .. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.h
@@ -1407,28 +1401,6 @@ They are trivial and easy. Listing the added code with comments and table for
 these operators IR, DAG and instructions as below. Please check them with the
 run result of bc and asm instructions for ch4_5.cpp as below.
 
-.. rubric:: lbdex/Chapter4_2/Cpu0InstrInfo.cpp
-.. code-block:: c++
-
-  void Cpu0InstrInfo::
-  copyPhysReg(MachineBasicBlock &MBB,
-              MachineBasicBlock::iterator I, DebugLoc DL,
-              unsigned DestReg, unsigned SrcReg,
-              bool KillSrc) const {
-    ...
-    if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
-      ...
-      if (SrcReg == Cpu0::SW)
-        Opc = Cpu0::MFSW, SrcReg = 0;
-    }
-    else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
-      ...
-      if (DestReg == Cpu0::SW)
-        Opc = Cpu0::MTSW, DestReg = 0;
-    }
-    ...
-  }
-
 .. rubric:: lbdex/Chapter4_2/Cpu0InstrInfo.td
 .. code-block:: c++
 
@@ -1440,28 +1412,6 @@ run result of bc and asm instructions for ch4_5.cpp as below.
     let rc = 0;
     let shamt = 0;
     let isCommutable = isComm;
-  }
-  ...
-  // Move from SW
-  class MoveFromSW<bits<8> op, string instr_asm, RegisterClass RC,
-                     list<Register> UseRegs>:
-    FL<op, (outs RC:$ra), (ins),
-       !strconcat(instr_asm, "\t$ra"), [], IIAlu> {
-    let rb = 0;
-    let imm16 = 0;
-    let Uses = UseRegs;
-    let neverHasSideEffects = 1;
-  }
-  
-  // Move to SW
-  class MoveToSW<bits<8> op, string instr_asm, RegisterClass RC,
-                   list<Register> DefRegs>:
-    FL<op, (outs), (ins RC:$ra),
-       !strconcat(instr_asm, "\t$ra"), [], IIAlu> {
-    let rb = 0;
-    let imm16 = 0;
-    let Defs = DefRegs;
-    let neverHasSideEffects = 1;
   }
   ...
   /// Arithmetic Instructions (ALU Immediate)
@@ -1476,9 +1426,6 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   def AND     : ArithLogicR<0x18, "and", and, IIAlu, CPURegs, 1>;
   def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
   def XOR     : ArithLogicR<0x1a, "xor", xor, IIAlu, CPURegs, 1>;
-  ...
-  def MFSW    : MoveFromSW<0x50, "mfsw", CPURegs, [SW]>;
-  def MTSW    : MoveToSW<0x51, "mtsw", CPURegs, [SW]>;
   ...
   def : Pat<(not CPURegs:$in),
   // 1: in == 0; 0: in != 0
@@ -1670,39 +1617,43 @@ run result of bc and asm instructions for ch4_5.cpp as below.
     .type _Z16test_andorxornotv,@function
     .ent  _Z16test_andorxornotv   # @_Z16test_andorxornotv
   _Z16test_andorxornotv:
-    .frame  $fp,24,$lr
+    .frame  $sp,24,$lr
     .mask   0x00000000,0
     .set  noreorder
     .set  nomacro
-  # BB#0:                                 # %entry
+  # BB#0:
     addiu $sp, $sp, -24
     addiu $2, $zero, 5
-    st  $2, 20($fp)
+    st  $2, 20($sp)
     addiu $2, $zero, 3
-    st  $2, 16($fp)
+    st  $2, 16($sp)
     addiu $2, $zero, 0
-    st  $2, 12($fp)
-    st  $2, 8($fp)
-    st  $2, 4($fp)
-    ld  $3, 16($fp)
-    ld  $4, 20($fp)
+    st  $2, 12($sp)
+    st  $2, 8($sp)
+    st  $2, 4($sp)
+    ld  $3, 16($sp)
+    ld  $4, 20($sp)
     and $3, $4, $3
-    st  $3, 12($fp)
-    ld  $3, 16($fp)
-    ld  $4, 20($fp)
+    st  $3, 12($sp)
+    ld  $3, 16($sp)
+    ld  $4, 20($sp)
     or  $3, $4, $3
-    st  $3, 8($fp)
-    ld  $3, 16($fp)
-    ld  $4, 20($fp)
+    st  $3, 8($sp)
+    ld  $3, 16($sp)
+    ld  $4, 20($sp)
     xor $3, $4, $3
-    st  $3, 4($fp)
-    ld  $3, 20($fp)
+    st  $3, 4($sp)
+    ld  $3, 20($sp)
     cmp $sw, $3, $2
-    mfsw  $2
-    andi  $2, $2, 2
+    andi  $2, $sw, 2
     shr $2, $2, 1
-    andi  $2, $2, 1
-    st  $2, 16($fp)
+    st  $2, 16($sp)
+    ld  $3, 8($sp)
+    ld  $4, 12($sp)
+    addu  $3, $4, $3
+    ld  $4, 4($sp)
+    addu  $3, $3, $4
+    addu  $2, $3, $2
     addiu $sp, $sp, 24
     ret $lr
     .set  macro
@@ -1716,62 +1667,60 @@ run result of bc and asm instructions for ch4_5.cpp as below.
     .type _Z10test_setxxv,@function
     .ent  _Z10test_setxxv         # @_Z10test_setxxv
   _Z10test_setxxv:
-    .frame  $fp,32,$lr
+    .frame  $sp,32,$lr
     .mask   0x00000000,0
     .set  noreorder
     .set  nomacro
-  # BB#0:                                 # %entry
+  # BB#0:
     addiu $sp, $sp, -32
     addiu $2, $zero, 5
-    st  $2, 28($fp)
+    st  $2, 28($sp)
     addiu $2, $zero, 3
-    st  $2, 24($fp)
-    ld  $3, 28($fp)
+    st  $2, 24($sp)
+    ld  $3, 28($sp)
     cmp $sw, $3, $2
-    mfsw  $2
-    andi  $2, $2, 2
+    andi  $2, $sw, 2
     shr $2, $2, 1
-    andi  $2, $2, 1
-    st  $2, 20($fp)
-    ld  $2, 24($fp)
-    ld  $3, 28($fp)
+    st  $2, 20($sp)
+    ld  $2, 24($sp)
+    ld  $3, 28($sp)
     cmp $sw, $3, $2
-    mfsw  $2
-    andi  $2, $2, 2
+    andi  $2, $sw, 2
     shr $2, $2, 1
     xori  $2, $2, 1
-    andi  $2, $2, 1
-    st  $2, 16($fp)
-    ld  $2, 24($fp)
-    ld  $3, 28($fp)
+    st  $2, 16($sp)
+    ld  $2, 24($sp)
+    ld  $3, 28($sp)
     cmp $sw, $3, $2
-    mfsw  $2
-    andi  $2, $2, 1
-    andi  $2, $2, 1
-    st  $2, 12($fp)
-    ld  $2, 28($fp)
-    ld  $3, 24($fp)
+    andi  $2, $sw, 1
+    st  $2, 12($sp)
+    ld  $2, 28($sp)
+    ld  $3, 24($sp)
     cmp $sw, $3, $2
-    mfsw  $2
-    andi  $2, $2, 1
+    andi  $2, $sw, 1
     xori  $2, $2, 1
-    andi  $2, $2, 1
-    st  $2, 8($fp)
-    ld  $2, 28($fp)
-    ld  $3, 24($fp)
+    st  $2, 8($sp)
+    ld  $2, 28($sp)
+    ld  $3, 24($sp)
     cmp $sw, $3, $2
-    mfsw  $2
-    andi  $2, $2, 1
-    andi  $2, $2, 1
-    st  $2, 4($fp)
-    ld  $2, 24($fp)
-    ld  $3, 28($fp)
+    andi  $2, $sw, 1
+    st  $2, 4($sp)
+    ld  $2, 24($sp)
+    ld  $3, 28($sp)
     cmp $sw, $3, $2
-    mfsw  $2
-    andi  $2, $2, 1
+    andi  $2, $sw, 1
     xori  $2, $2, 1
-    andi  $2, $2, 1
-    st  $2, 0($fp)
+    st  $2, 0($sp)
+    ld  $3, 16($sp)
+    ld  $4, 20($sp)
+    addu  $3, $4, $3
+    ld  $4, 12($sp)
+    addu  $3, $3, $4
+    ld  $4, 8($sp)
+    addu  $3, $3, $4
+    ld  $4, 4($sp)
+    addu  $3, $3, $4
+    addu  $2, $3, $2
     addiu $sp, $sp, 32
     ret $lr
     .set  macro
@@ -1793,26 +1742,20 @@ run result of bc and asm instructions for ch4_5.cpp as below.
               - %lnot = xor i1 %tobool, true     - %conv = (and %lnot, 1)
               - %conv = zext i1 %lnot to i32     - 
   ==          - %cmp = icmp eq i32 %0, %1        - (setcc %0, %1, seteq)               - cmp $sw, $3, $2
-                                                                                       - mfsw  $2
-              - %conv = zext i1 %cmp to i32                                            - andi  $2, $2, 2
+              - %conv = zext i1 %cmp to i32                                            - andi  $2, $sw, 2
                                                                                        - shr $2, $2, 1
   !=          - %cmp = icmp ne i32 %0, %1        - (setcc %0, %1, setne)               - cmp $sw, $3, $2
-                                                                                       - mfsw  $2
-              - %conv = zext i1 %cmp to i32                                            - andi  $2, $2, 2
+              - %conv = zext i1 %cmp to i32                                            - andi  $2, $sw, 2
                                                                                        - shr $2, $2, 1
   <           - %cmp = icmp lt i32 %0, %1        - (setcc %0, %1, setlt)               - cmp $sw, $3, $2
-                                                                                       - mfsw  $2
-              - %conv = zext i1 %cmp to i32                                            - andi  $2, $2, 2
+              - %conv = zext i1 %cmp to i32                                            - andi  $2, $sw, 2
   <=          - %cmp = icmp le i32 %0, %1        - (setcc %0, %1, setle)               - cmp $sw, $2, $3
-                                                                                       - mfsw  $2
-              - %conv = zext i1 %cmp to i32                                            - andi  $2, $2, 1
+              - %conv = zext i1 %cmp to i32                                            - andi  $2, $sw, 1
                                                                                        - xori  $2, $2, 1
   >           - %cmp = icmp gt i32 %0, %1        - (setcc %0, %1, setgt)               - cmp $sw, $2, $3
-                                                                                       - mfsw  $2
-              - %conv = zext i1 %cmp to i32                                            - andi  $2, $2, 2
+              - %conv = zext i1 %cmp to i32                                            - andi  $2, $sw, 2
   >=          - %cmp = icmp le i32 %0, %1        - (setcc %0, %1, setle)               - cmp $sw, $3, $2
-                                                                                       - mfsw  $2
-              - %conv = zext i1 %cmp to i32                                            - andi  $2, $2, 1
+              - %conv = zext i1 %cmp to i32                                            - andi  $2, $sw, 1
                                                                                        - xori  $2, $2, 1
   ==========  =================================  ====================================  =======================
 

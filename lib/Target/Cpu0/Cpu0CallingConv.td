@@ -45,5 +45,5 @@ def RetCC_Cpu0 : CallingConv<[
 ]>; // lbd document - mark - def RetCC_Cpu0
 
 def CSR_O32 : CalleeSavedRegs<(add LR, FP,
-                                   (sequence "S%u", 2, 0))>;
+                                   (sequence "S%u", 1, 0))>;
 

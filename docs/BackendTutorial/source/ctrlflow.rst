@@ -311,8 +311,9 @@ function code we defined before,
 
 Although the following definition in Cpu0RegisterInfo.td has no real effect in 
 Reserved Registers, you should comment the Reserved Registers in it for 
-readability. Setting SW into another register class to prevent the SW register 
-allocated to the register used by other instruction. 
+readability. Setting SW both in register class CPURegs and SR to allow the SW 
+to be accessed by RISC instructions like ``andi`` and allow programmer use 
+traditional assembly instruction ``cmp``. 
 The copyPhysReg() is called when DestReg and SrcReg belong to different Register 
 Class. 
 
@@ -331,7 +332,7 @@ Class.
     // Not preserved across procedure calls
     T9, T0,
     // Callee save
-    S0, S1, S2, 
+    S0, S1, SW, 
     // Reserved
     GP, FP, 
     SP, LR, PC)>;
@@ -339,29 +340,6 @@ Class.
   // Status Registers
   def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
   
-
-.. rubric:: lbdex/Chapter4_2/Cpu0InstrInfo.cpp
-.. code-block:: c++
-
-  //- Called when DestReg and SrcReg belong to different Register Class.
-  void Cpu0InstrInfo::
-  copyPhysReg(MachineBasicBlock &MBB,
-        MachineBasicBlock::iterator I, DebugLoc DL,
-        unsigned DestReg, unsigned SrcReg,
-        bool KillSrc) const {
-    unsigned Opc = 0, ZeroReg = 0;
-  
-    if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
-      ...
-      if (SrcReg == Cpu0::SW)
-        Opc = Cpu0::MFSW, SrcReg = 0;
-    }
-    else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
-    ...
-      if (DestReg == Cpu0::SW)
-        Opc = Cpu0::MTSW, DestReg = 0
-    }
-
 
 Chapter8_1/ include support for control flow statement. 
 Run with it as well as the following ``llc`` option, you can get the obj file 

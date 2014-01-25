@@ -465,77 +465,97 @@ Run Chapter7_1 with ch7_4.cpp to get the result as follows,
     .type _Z13test_longlongv,@function
     .ent  _Z13test_longlongv      # @_Z13test_longlongv
   _Z13test_longlongv:
-    .frame  $fp,56,$lr
-    .mask   0x00000000,0
+    .frame  $sp,64,$lr
+    .mask   0x00000100,-4
     .set  noreorder
     .set  nomacro
-  # BB#0:                                 # %entry
-    addiu $sp, $sp, -56
+  # BB#0:
+    addiu $sp, $sp, -64
+    st  $8, 60($sp)             # 4-byte Folded Spill
     addiu $2, $zero, 2
-    st  $2, 52($fp)
+    st  $2, 52($sp)
     addiu $2, $zero, 3
-    st  $2, 48($fp)
+    st  $2, 48($sp)
     addiu $2, $zero, 1
-    st  $2, 44($fp)
-    st  $2, 40($fp)
+    st  $2, 44($sp)
+    st  $2, 40($sp)
     lui $2, 768
     ori $2, $2, 4096
-    st  $2, 36($fp)
+    st  $2, 36($sp)
     lui $2, 512
     ori $2, $2, 4096
-    st  $2, 32($fp)
-    ld  $3, 44($fp)
-    ld  $2, 52($fp)
-    addu  $5, $2, $3
-    ld  $2, 48($fp)
-    ld  $4, 40($fp)
-    st  $5, 28($fp)
-    cmp $sw, $5, $3
-    mfsw  $3
-    andi  $3, $3, 1
-    addu  $3, $3, $4
-    addu  $2, $2, $3
-    st  $2, 24($fp)
-    ld  $3, 44($fp)
-    ld  $4, 52($fp)
-    subu  $t9, $4, $3
-    ld  $2, 48($fp)
-    ld  $5, 40($fp)
-    st  $t9, 20($fp)
-    cmp $sw, $4, $3
-    mfsw  $3
-    andi  $3, $3, 1
-    addu  $3, $3, $5
-    subu  $2, $2, $3
-    st  $2, 16($fp)
-    ld  $2, 44($fp)
-    ld  $3, 52($fp)
+    st  $2, 32($sp)
+    ld  $2, 44($sp)
+    ld  $3, 52($sp)
+    addu  $3, $3, $2
+    ld  $4, 48($sp)
+    ld  $5, 40($sp)
+    st  $3, 28($sp)
+    cmp $sw, $3, $2
+    andi  $2, $sw, 1
+    addu  $2, $2, $5
+    addu  $2, $4, $2
+    st  $2, 24($sp)
+    ld  $2, 44($sp)
+    ld  $3, 52($sp)
+    subu  $4, $3, $2
+    ld  $5, 48($sp)
+    ld  $t9, 40($sp)
+    st  $4, 20($sp)
+    cmp $sw, $3, $2
+    andi  $2, $sw, 1
+    addu  $2, $2, $t9
+    subu  $2, $5, $2
+    st  $2, 16($sp)
+    ld  $2, 44($sp)
+    ld  $3, 52($sp)
     multu $3, $2
-    mflo  $t9
-    mfhi  $4
-    ld  $5, 48($fp)
-    ld  $t0, 40($fp)
-    st  $t9, 12($fp)
-    mul $3, $3, $t0
-    addu  $3, $4, $3
-    mul $2, $5, $2
+    mflo  $4
+    mfhi  $5
+    ld  $t9, 48($sp)
+    ld  $7, 40($sp)
+    st  $4, 12($sp)
+    mul $3, $3, $7
+    addu  $3, $5, $3
+    mul $2, $t9, $2
     addu  $2, $3, $2
-    st  $2, 8($fp)
-    ld  $2, 32($fp)
-    ld  $3, 36($fp)
+    st  $2, 8($sp)
+    ld  $2, 32($sp)
+    ld  $3, 36($sp)
     mult  $3, $2
     mflo  $2
-    mfhi  $3
-    st  $2, 4($fp)
-    st  $3, 0($fp)
-    addiu $sp, $sp, 56
+    mfhi  $4
+    st  $2, 4($sp)
+    st  $4, 0($sp)
+    ld  $5, 20($sp)
+    ld  $3, 28($sp)
+    addu  $t9, $3, $5
+    ld  $7, 12($sp)
+    addu  $8, $t9, $7
+    addu  $3, $8, $2
+    cmp $sw, $3, $2
+    andi  $2, $sw, 1
+    addu  $2, $2, $4
+    cmp $sw, $8, $7
+    andi  $4, $sw, 1
+    ld  $7, 8($sp)
+    addu  $4, $4, $7
+    cmp $sw, $t9, $5
+    andi  $5, $sw, 1
+    ld  $t9, 16($sp)
+    addu  $5, $5, $t9
+    ld  $t9, 24($sp)
+    addu  $5, $t9, $5
+    addu  $4, $5, $4
+    addu  $2, $4, $2
+    ld  $8, 60($sp)             # 4-byte Folded Reload
+    addiu $sp, $sp, 64
     ret $lr
     .set  macro
     .set  reorder
     .end  _Z13test_longlongv
-  $tmp1:
-    .size _Z13test_longlongv, ($tmp1)-_Z13test_longlongv
-
+  $tmp2:
+    .size _Z13test_longlongv, ($tmp2)-_Z13test_longlongv
 
 
 float and double

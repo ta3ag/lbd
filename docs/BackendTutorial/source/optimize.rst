@@ -403,35 +403,6 @@ Chapter12_2/ include the changes for new instruction sets as follows,
   def : Proc<"cpu032III", [FeatureCpu032III]>;
 
 
-.. rubric:: lbdex/Chapter12_2/Cpu0InstrInfo.cpp
-.. code-block:: c++
-
-  // Cpu0InstrInfo::copyPhysReg()
-  void Cpu0InstrInfo::
-  copyPhysReg(MachineBasicBlock &MBB,
-              MachineBasicBlock::iterator I, DebugLoc DL,
-              unsigned DestReg, unsigned SrcReg,
-              bool KillSrc) const {
-    ...
-    const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
-
-    if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
-      ...
-      if (!Subtarget.hasCpu032II()) {
-        if (SrcReg == Cpu0::SW)
-          Opc = Cpu0::MFSW, SrcReg = 0;
-      }
-    } // lbd document - mark - if (!Subtarget.hasCpu032II()) 1
-    else if (Cpu0::CPURegsRegClass.contains(SrcReg)) { // Copy from CPU Reg.
-      ...
-      if (!Subtarget.hasCpu032II()) { // lbd document - mark - 2
-        if (DestReg == Cpu0::SW)
-          Opc = Cpu0::MTSW, DestReg = 0;
-      } // lbd document - mark - if (!Subtarget.hasCpu032II()) 2
-    }
-    ...
-  }
-
 .. rubric:: lbdex/Chapter12_2/Cpu0InstrInfo.td
 .. code-block:: c++
 
@@ -693,33 +664,31 @@ statements.
   bin/Debug/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
   ch12_2.bc -o -
     ...
-	  addiu	$sp, $sp, -8
-	  addiu	$2, $zero, 2
-	  ld	$3, 12($sp)
-	  cmp	$sw, $3, $2
-	  st	$sw, 4($sp)             # 4-byte Folded Spill
-	  addiu	$2, $zero, 1
-	  ld	$3, 8($sp)
-	  cmp	$sw, $3, $2
-	  mfsw	$2
-	  andi	$2, $2, 1
-	  ld	$sw, 4($sp)             # 4-byte Folded Reload
-	  mfsw	$3
-	  andi	$3, $3, 1
-	  addu	$2, $3, $2
-	  addiu	$sp, $sp, 8
-	  ret	$lr
+    addiu $sp, $sp, -8
+    addiu $2, $zero, 2
+    ld  $3, 12($sp)
+    cmp $sw, $3, $2
+    st  $sw, 4($sp)             # 4-byte Folded Spill
+    addiu $2, $zero, 1
+    ld  $3, 8($sp)
+    cmp $sw, $3, $2
+    andi  $2, $sw, 1
+    ld  $sw, 4($sp)             # 4-byte Folded Reload
+    andi  $3, $sw, 1
+    addu  $2, $3, $2
+    addiu $sp, $sp, 8
+    ret $lr
     ...
   118-165-78-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
   ch12_2.bc -o -
     ...
-	  ld	$2, 0($sp)
-	  slti	$2, $2, 1
-	  ld	$3, 4($sp)
-	  slti	$3, $3, 2
-	  addu	$2, $3, $2
-	  ret	$lr
+    ld  $2, 0($sp)
+    slti  $2, $2, 1
+    ld  $3, 4($sp)
+    slti  $3, $3, 2
+    addu  $2, $3, $2
+    ret $lr
     ...
 
 Run these two `llc -mcpu` option for Chapter12_2 with ch12_2.cpp get the 
@@ -731,12 +700,12 @@ instruction reorder since both of them use \$sw register while
 .. code-block:: bash
 
     ...
-	  ld	$3, 4($sp)
-	  slti	$3, $3, 2
-	  ld	$2, 0($sp)
-	  slti	$2, $2, 1
-	  addu	$2, $3, $2
-	  ret	$lr
+    ld  $3, 4($sp)
+    slti  $3, $3, 2
+    ld  $2, 0($sp)
+    slti  $2, $2, 1
+    addu  $2, $3, $2
+    ret $lr
     ...
 
 

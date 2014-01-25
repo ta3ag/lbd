@@ -7,14 +7,10 @@
   asm("ret $t9");
 
 #define ENABLE_TRACE \
-  asm("mfsw $at"); \
-  asm("ori $at, $at, 0x0020"); \
-  asm("mtsw $at");
+  asm("ori $sw, $sw, 0x0020");
 
 #define DISABLE_TRACE \
-  asm("mfsw $at"); \
-  asm("andi $at, $at, 0xffdf"); \
-  asm("mtsw $at");
+  asm("andi $sw, $sw, 0xffdf");
 
 #endif
 

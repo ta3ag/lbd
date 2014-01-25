@@ -480,7 +480,7 @@ int Cpu0AsmParser::matchRegisterName(StringRef Name) {
       .Case("t0",  Cpu0::T0)
       .Case("s0",  Cpu0::S0)
       .Case("s1",  Cpu0::S1)
-      .Case("s2",  Cpu0::S2)
+      .Case("sw",  Cpu0::SW)
       .Case("gp",  Cpu0::GP)
       .Case("fp",  Cpu0::FP)
       .Case("sp",  Cpu0::SP)

@@ -1,6 +1,6 @@
 diff -Naur Chapter10_1/AsmParser/CMakeLists.txt Chapter11_1/AsmParser/CMakeLists.txt
 --- Chapter10_1/AsmParser/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter11_1/AsmParser/CMakeLists.txt	2014-01-24 18:32:50.190428028 +0800
++++ Chapter11_1/AsmParser/CMakeLists.txt	2014-01-25 21:50:02.000000000 +0800
 @@ -0,0 +1,6 @@
 +include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
 +add_llvm_library(LLVMCpu0AsmParser
@@ -10,7 +10,7 @@ diff -Naur Chapter10_1/AsmParser/CMakeLists.txt Chapter11_1/AsmParser/CMakeLists
 +add_dependencies(LLVMCpu0AsmParser Cpu0CommonTableGen)
 diff -Naur Chapter10_1/AsmParser/Cpu0AsmParser.cpp Chapter11_1/AsmParser/Cpu0AsmParser.cpp
 --- Chapter10_1/AsmParser/Cpu0AsmParser.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter11_1/AsmParser/Cpu0AsmParser.cpp	2014-01-24 18:32:50.190428028 +0800
++++ Chapter11_1/AsmParser/Cpu0AsmParser.cpp	2014-01-25 21:50:02.000000000 +0800
 @@ -0,0 +1,1030 @@
 +//===-- Cpu0AsmParser.cpp - Parse Cpu0 assembly to MCInst instructions ----===//
 +//
@@ -494,7 +494,7 @@ diff -Naur Chapter10_1/AsmParser/Cpu0AsmParser.cpp Chapter11_1/AsmParser/Cpu0Asm
 +      .Case("t0",  Cpu0::T0)
 +      .Case("s0",  Cpu0::S0)
 +      .Case("s1",  Cpu0::S1)
-+      .Case("s2",  Cpu0::S2)
++      .Case("sw",  Cpu0::SW)
 +      .Case("gp",  Cpu0::GP)
 +      .Case("fp",  Cpu0::FP)
 +      .Case("sp",  Cpu0::SP)
@@ -1044,7 +1044,7 @@ diff -Naur Chapter10_1/AsmParser/Cpu0AsmParser.cpp Chapter11_1/AsmParser/Cpu0Asm
 +
 diff -Naur Chapter10_1/AsmParser/LLVMBuild.txt Chapter11_1/AsmParser/LLVMBuild.txt
 --- Chapter10_1/AsmParser/LLVMBuild.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter11_1/AsmParser/LLVMBuild.txt	2014-01-24 18:32:50.190428028 +0800
++++ Chapter11_1/AsmParser/LLVMBuild.txt	2014-01-25 21:50:02.000000000 +0800
 @@ -0,0 +1,23 @@
 +;===- ./lib/Target/Mips/AsmParser/LLVMBuild.txt ----------------*- Conf -*--===;
 +;
@@ -1070,8 +1070,8 @@ diff -Naur Chapter10_1/AsmParser/LLVMBuild.txt Chapter11_1/AsmParser/LLVMBuild.t
 +required_libraries = MC MCParser Support MipsDesc MipsInfo
 +add_to_library_groups = Cpu0
 diff -Naur Chapter10_1/CMakeLists.txt Chapter11_1/CMakeLists.txt
---- Chapter10_1/CMakeLists.txt	2014-01-24 18:32:50.190428028 +0800
-+++ Chapter11_1/CMakeLists.txt	2014-01-24 18:32:50.186428029 +0800
+--- Chapter10_1/CMakeLists.txt	2014-01-25 21:50:02.000000000 +0800
++++ Chapter11_1/CMakeLists.txt	2014-01-25 21:50:02.000000000 +0800
 @@ -17,6 +17,7 @@
  tablegen(LLVM Cpu0GenDAGISel.inc -gen-dag-isel)
  tablegen(LLVM Cpu0GenCallingConv.inc -gen-callingconv)
@@ -1085,75 +1085,9 @@ diff -Naur Chapter10_1/CMakeLists.txt Chapter11_1/CMakeLists.txt
  add_subdirectory(TargetInfo)
  add_subdirectory(MCTargetDesc)
 +add_subdirectory(AsmParser)
-diff -Naur Chapter10_1/Cpu0InstrFormats.td Chapter11_1/Cpu0InstrFormats.td
---- Chapter10_1/Cpu0InstrFormats.td	2014-01-24 18:32:50.194428028 +0800
-+++ Chapter11_1/Cpu0InstrFormats.td	2014-01-24 18:32:50.190428028 +0800
-@@ -76,6 +76,15 @@
-   let isPseudo = 1;
- }
- 
-+// Pseudo-instructions for alternate assembly syntax (never used by codegen).
-+// These are aliases that require C++ handling to convert to the target
-+// instruction, while InstAliases can be handled directly by tblgen.
-+class Cpu0AsmPseudoInst<dag outs, dag ins, string asmstr>:
-+  Cpu0Inst<outs, ins, asmstr, [], IIPseudo, Pseudo> {
-+  let isPseudo = 1;
-+  let Pattern = [];
-+} // lbd document - mark - class Cpu0AsmPseudoInst
-+
- //===----------------------------------------------------------------------===//
- // Format A instruction class in Cpu0 : <|opcode|ra|rb|rc|cx|>
- //===----------------------------------------------------------------------===//
-diff -Naur Chapter10_1/Cpu0InstrInfo.td Chapter11_1/Cpu0InstrInfo.td
---- Chapter10_1/Cpu0InstrInfo.td	2014-01-24 18:32:50.190428028 +0800
-+++ Chapter11_1/Cpu0InstrInfo.td	2014-01-24 18:32:50.186428029 +0800
-@@ -98,11 +98,17 @@
-   let PrintMethod = "printUnsignedImm";
- }
- 
-+def Cpu0MemAsmOperand : AsmOperandClass {
-+  let Name = "Mem";
-+  let ParserMethod = "parseMemOperand";
-+} // lbd document - mark - def Cpu0MemAsmOperand
-+
- // Address operand
- def mem : Operand<i32> {
-   let PrintMethod = "printMemOperand";
-   let MIOperandInfo = (ops CPURegs, simm16);
-   let EncoderMethod = "getMemEncoding";
-+  let ParserMatchClass = Cpu0MemAsmOperand;
- }
- 
- def mem_ea : Operand<i32> {
-@@ -437,6 +443,25 @@
- //===----------------------------------------------------------------------===//
- 
- //===----------------------------------------------------------------------===//
-+// Pseudo Instruction definition
-+//===----------------------------------------------------------------------===//
-+
-+class LoadImm32< string instr_asm, Operand Od, RegisterClass RC> :
-+  Cpu0AsmPseudoInst<(outs RC:$ra), (ins Od:$imm32),
-+                     !strconcat(instr_asm, "\t$ra, $imm32")> ;
-+def LoadImm32Reg : LoadImm32<"li", shamt, CPURegs>;
-+
-+class LoadAddress<string instr_asm, Operand MemOpnd, RegisterClass RC> :
-+  Cpu0AsmPseudoInst<(outs RC:$ra), (ins MemOpnd:$addr),
-+                     !strconcat(instr_asm, "\t$ra, $addr")> ;
-+def LoadAddr32Reg : LoadAddress<"la", mem, CPURegs>;
-+
-+class LoadAddressImm<string instr_asm, Operand Od, RegisterClass RC> :
-+  Cpu0AsmPseudoInst<(outs RC:$ra), (ins Od:$imm32),
-+                     !strconcat(instr_asm, "\t$ra, $imm32")> ;
-+def LoadAddr32Imm : LoadAddressImm<"la", shamt, CPURegs>;
-+
-+//===----------------------------------------------------------------------===//
- // Cpu0 Instructions
- //===----------------------------------------------------------------------===//
- 
 diff -Naur Chapter10_1/Cpu0.td Chapter11_1/Cpu0.td
---- Chapter10_1/Cpu0.td	2014-01-24 18:32:50.194428028 +0800
-+++ Chapter11_1/Cpu0.td	2014-01-24 18:32:50.190428028 +0800
+--- Chapter10_1/Cpu0.td	2014-01-25 21:50:02.000000000 +0800
++++ Chapter11_1/Cpu0.td	2014-01-25 21:50:02.000000000 +0800
 @@ -49,6 +49,17 @@
    bit isMCAsmWriter = 1;
  }
@@ -1180,9 +1114,75 @@ diff -Naur Chapter10_1/Cpu0.td Chapter11_1/Cpu0.td
    let AssemblyWriters = [Cpu0AsmWriter];
 +  let AssemblyParserVariants = [Cpu0AsmParserVariant];
  }
+diff -Naur Chapter10_1/Cpu0InstrFormats.td Chapter11_1/Cpu0InstrFormats.td
+--- Chapter10_1/Cpu0InstrFormats.td	2014-01-25 21:50:02.000000000 +0800
++++ Chapter11_1/Cpu0InstrFormats.td	2014-01-25 21:50:02.000000000 +0800
+@@ -76,6 +76,15 @@
+   let isPseudo = 1;
+ }
+ 
++// Pseudo-instructions for alternate assembly syntax (never used by codegen).
++// These are aliases that require C++ handling to convert to the target
++// instruction, while InstAliases can be handled directly by tblgen.
++class Cpu0AsmPseudoInst<dag outs, dag ins, string asmstr>:
++  Cpu0Inst<outs, ins, asmstr, [], IIPseudo, Pseudo> {
++  let isPseudo = 1;
++  let Pattern = [];
++} // lbd document - mark - class Cpu0AsmPseudoInst
++
+ //===----------------------------------------------------------------------===//
+ // Format A instruction class in Cpu0 : <|opcode|ra|rb|rc|cx|>
+ //===----------------------------------------------------------------------===//
+diff -Naur Chapter10_1/Cpu0InstrInfo.td Chapter11_1/Cpu0InstrInfo.td
+--- Chapter10_1/Cpu0InstrInfo.td	2014-01-25 21:50:02.000000000 +0800
++++ Chapter11_1/Cpu0InstrInfo.td	2014-01-25 21:50:02.000000000 +0800
+@@ -98,11 +98,17 @@
+   let PrintMethod = "printUnsignedImm";
+ }
+ 
++def Cpu0MemAsmOperand : AsmOperandClass {
++  let Name = "Mem";
++  let ParserMethod = "parseMemOperand";
++} // lbd document - mark - def Cpu0MemAsmOperand
++
+ // Address operand
+ def mem : Operand<i32> {
+   let PrintMethod = "printMemOperand";
+   let MIOperandInfo = (ops CPURegs, simm16);
+   let EncoderMethod = "getMemEncoding";
++  let ParserMatchClass = Cpu0MemAsmOperand;
+ }
+ 
+ def mem_ea : Operand<i32> {
+@@ -415,6 +421,25 @@
+ //===----------------------------------------------------------------------===//
+ 
+ //===----------------------------------------------------------------------===//
++// Pseudo Instruction definition
++//===----------------------------------------------------------------------===//
++
++class LoadImm32< string instr_asm, Operand Od, RegisterClass RC> :
++  Cpu0AsmPseudoInst<(outs RC:$ra), (ins Od:$imm32),
++                     !strconcat(instr_asm, "\t$ra, $imm32")> ;
++def LoadImm32Reg : LoadImm32<"li", shamt, CPURegs>;
++
++class LoadAddress<string instr_asm, Operand MemOpnd, RegisterClass RC> :
++  Cpu0AsmPseudoInst<(outs RC:$ra), (ins MemOpnd:$addr),
++                     !strconcat(instr_asm, "\t$ra, $addr")> ;
++def LoadAddr32Reg : LoadAddress<"la", mem, CPURegs>;
++
++class LoadAddressImm<string instr_asm, Operand Od, RegisterClass RC> :
++  Cpu0AsmPseudoInst<(outs RC:$ra), (ins Od:$imm32),
++                     !strconcat(instr_asm, "\t$ra, $imm32")> ;
++def LoadAddr32Imm : LoadAddressImm<"la", shamt, CPURegs>;
++
++//===----------------------------------------------------------------------===//
+ // Cpu0 Instructions
+ //===----------------------------------------------------------------------===//
+ 
 diff -Naur Chapter10_1/LLVMBuild.txt Chapter11_1/LLVMBuild.txt
---- Chapter10_1/LLVMBuild.txt	2014-01-24 18:32:50.194428028 +0800
-+++ Chapter11_1/LLVMBuild.txt	2014-01-24 18:32:50.190428028 +0800
+--- Chapter10_1/LLVMBuild.txt	2014-01-25 21:50:02.000000000 +0800
++++ Chapter11_1/LLVMBuild.txt	2014-01-25 21:50:02.000000000 +0800
 @@ -19,6 +19,7 @@
  
  [common]

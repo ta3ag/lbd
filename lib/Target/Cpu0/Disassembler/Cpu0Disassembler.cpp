@@ -54,7 +54,7 @@ private:
 static const unsigned CPURegsTable[] = {
   Cpu0::ZERO, Cpu0::AT, Cpu0::V0, Cpu0::V1,
   Cpu0::A0, Cpu0::A1, Cpu0::T9, Cpu0::T0, 
-  Cpu0::S0, Cpu0::S1, Cpu0::S2, Cpu0::GP, 
+  Cpu0::S0, Cpu0::S1, Cpu0::SW, Cpu0::GP, 
   Cpu0::FP, Cpu0::SP, Cpu0::LR, Cpu0::PC
 };
 

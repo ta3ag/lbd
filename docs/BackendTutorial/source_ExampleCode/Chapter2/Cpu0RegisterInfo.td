@@ -39,7 +39,7 @@ let Namespace = "Cpu0" in {
   def T0   : Cpu0GPRReg<7,  "7">,    DwarfRegNum<[7]>;
   def S0   : Cpu0GPRReg<8,  "8">,    DwarfRegNum<[8]>;
   def S1   : Cpu0GPRReg<9,  "9">,    DwarfRegNum<[9]>;
-  def S2   : Cpu0GPRReg<10, "10">,   DwarfRegNum<[10]>;
+  def SW   : Cpu0GPRReg<10, "sw">,   DwarfRegNum<[10]>;
   def GP   : Cpu0GPRReg<11, "gp">,   DwarfRegNum<[11]>;
   def FP   : Cpu0GPRReg<12, "fp">,   DwarfRegNum<[12]>;
   def SP   : Cpu0GPRReg<13, "sp">,   DwarfRegNum<[13]>;
@@ -47,8 +47,6 @@ let Namespace = "Cpu0" in {
   def PC   : Cpu0GPRReg<15, "pc">,   DwarfRegNum<[15]>;
 //  def MAR  : Register< 16, "mar">,  DwarfRegNum<[16]>;
 //  def MDR  : Register< 17, "mdr">,  DwarfRegNum<[17]>;
-
-  def SW   : Register<"sw">, DwarfRegNum<[20]>;
 }
 
 //===----------------------------------------------------------------------===//
@@ -63,7 +61,7 @@ def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
   // Not preserved across procedure calls
   T9, T0,
   // Callee save
-  S0, S1, S2, 
+  S0, S1, SW, 
   // Reserved
   GP, FP, 
   SP, LR, PC)>;

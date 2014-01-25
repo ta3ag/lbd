@@ -57,7 +57,9 @@ The registers are used for the following purposes:
   ============  ===========
   IR            Instruction register
   R0            Constant register, value is 0
-  R1-R11        General-purpose registers
+  R1-R9         General-purpose registers
+  R10           Status Word Register (SW)
+  R11           Global Pointer register (GP)
   R12           Frame Pointer register (FP)
   R13           Stack Pointer register (SP)
   R14           Link Register (LR)
@@ -66,7 +68,6 @@ The registers are used for the following purposes:
   MDR           Memory Data Register (MDR)
   HI            High part of MULT result
   LO            Low part of MULT result
-  SW            Status Word Register
   ============  ===========
 
 The Cpu0 Instruction Set
@@ -404,18 +405,6 @@ The following table details the Cpu0 instruction set:
     - Move GPR to LO
     - MTLO Ra
     - LO <= Ra
-  * - L
-    - MFSW
-    - 50
-    - Move SW to GPR
-    - MFSW Ra
-    - Ra <= SW
-  * - L
-    - MTSW
-    - 51
-    - Move GPR to SW
-    - MTSW Ra
-    - SW <= Ra
 
 .. note:: **Cpu0 unsigned instructions**
 

@@ -31,23 +31,24 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   `define PC   R[15]   // Program Counter
   `define LR   R[14]   // Link Register
   `define SP   R[13]   // Stack Pointer
+  `define SW   R[10]   // Stack Pointer
   // SW Flage
-  `define I2   SW[16] // Hardware Interrupt 1, IO1 interrupt, status, 
+  `define I2   `SW[16] // Hardware Interrupt 1, IO1 interrupt, status, 
                       // 1: in interrupt
-  `define I1   SW[15] // Hardware Interrupt 0, timer interrupt, status, 
+  `define I1   `SW[15] // Hardware Interrupt 0, timer interrupt, status, 
                       // 1: in interrupt
-  `define I0   SW[14] // Software interrupt, status, 1: in interrupt
-  `define I    SW[13] // Interrupt, 1: in interrupt
-  `define I2E  SW[12]  // Hardware Interrupt 1, IO1 interrupt, Enable
-  `define I1E  SW[11]  // Hardware Interrupt 0, timer interrupt, Enable
-  `define I0E  SW[10]  // Software Interrupt Enable
-  `define IE   SW[9]  // Interrupt Enable
-  `define M    SW[8:6]  // Mode bits, itype
-  `define D    SW[5]  // Debug Trace
-  `define V    SW[3]  // Overflow
-  `define C    SW[2]  // Carry
-  `define Z    SW[1]  // Zero
-  `define N    SW[0]  // Negative flag
+  `define I0   `SW[14] // Software interrupt, status, 1: in interrupt
+  `define I    `SW[13] // Interrupt, 1: in interrupt
+  `define I2E  `SW[12]  // Hardware Interrupt 1, IO1 interrupt, Enable
+  `define I1E  `SW[11]  // Hardware Interrupt 0, timer interrupt, Enable
+  `define I0E  `SW[10]  // Software Interrupt Enable
+  `define IE   `SW[9]  // Interrupt Enable
+  `define M    `SW[8:6]  // Mode bits, itype
+  `define D    `SW[5]  // Debug Trace
+  `define V    `SW[3]  // Overflow
+  `define C    `SW[2]  // Carry
+  `define Z    `SW[1]  // Zero
+  `define N    `SW[0]  // Negative flag
   // Instruction Opcode 
   parameter [7:0] NOP=8'h00,LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,
   LH=8'h06,LHu=8'h07,SH=8'h08,ADDiu=8'h09,ANDi=8'h0C,ORi=8'h0D,
@@ -65,8 +66,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   JMP=8'h36,
   SWI=8'h3A,JSUB=8'h3B,RET=8'h3C,IRET=8'h3D,JALR=8'h3E,
   MULT=8'h41,MULTu=8'h42,DIV=8'h43,DIVu=8'h44,
-  MFHI=8'h46,MFLO=8'h47,MTHI=8'h48,MTLO=8'h49,
-  MFSW=8'h50,MTSW=8'h51;
+  MFHI=8'h46,MFLO=8'h47,MTHI=8'h48,MTLO=8'h49;
 
   reg [0:0] inInt = 0;
   reg [2:0] state, next_state; 
@@ -133,7 +133,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   if (inInt == 0) begin
     case (iMode)
       `RESET: begin 
-        `PC = 0; tick = 0; R[0] = 0; SW = 0; `LR = -1;
+        `PC = 0; tick = 0; R[0] = 0; `SW = 0; `LR = -1;
         `IE = 0; `I0E = 0; `I1E = 0; `I2E = 0; `I = 0; `I0 = 0; `I1 = 0; 
         `I2 = 0;
       end
@@ -230,8 +230,6 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       MFHI:  regSet(a, HI);         // MFHI Ra; Ra<=HI
       MTLO:  LO = Ra;               // MTLO Ra; LO<=Ra
       MTHI:  HI = Ra;               // MTHI Ra; HI<=Ra
-      MFSW:  regSet(a, SW);         // MFSW Ra; Ra<=SW
-      MTSW:  SW = Ra;               // MTSW Ra; SW<=Ra
       MULT:  {HI, LO}=Ra*Rb;        // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
                                     // LO<=((Ra*Rb) and 0x00000000ffffffff);
                                     // with exception overflow
@@ -282,14 +280,14 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
         LH  : if (R[a] > 16'h7fff) R[a]=R[a]|32'hffff8000;
       endcase
       case (op)
-      MULT, MULTu, DIV, DIVu, MTHI, MTLO, MTSW :
+      MULT, MULTu, DIV, DIVu, MTHI, MTLO :
         if (`D)
           $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
         LO, SW);
       ST : begin
         if (`D)
           $display("%4dns %8x : %8x m[%-04d+%-04d]=%8x  SW=%8x", $stime, pc0, ir, 
-          R[b], c16, R[a], SW);
+          R[b], c16, R[a], `SW);
         if (R[b]+c16 == `IOADDR) begin
           outw(R[a]);
         end
@@ -297,7 +295,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       SB : begin
         if (`D)
           $display("%4dns %8x : %8x m[%-04d+%-04d]=%c  SW=%8x", $stime, pc0, ir, 
-        R[b], c16, R[a][7:0], SW);
+        R[b], c16, R[a][7:0], `SW);
         if (R[b]+c16 == `IOADDR) begin
           outc(R[a][7:0]);
         end
@@ -305,7 +303,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       default :
         if (`D) // Display the written register content
           $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, 
-          a, R[a], R[a], SW);
+          a, R[a], R[a], `SW);
       endcase
       if (`PC < 0) begin
         $display("RET to PC < 0, finished!");
