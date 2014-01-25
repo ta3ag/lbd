@@ -1294,10 +1294,12 @@ Handle return register lr
 .. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
     :start-after: // lbd document - mark - emitFrameIndexDebugValue
+    :end-before: /// Return the number of bytes
 
 To handle IR ret, these code in Cpu0InstrInfo.td do things as below.
 
-1. Declare a pseudo node to take care the IR Cpu0ISD::Ret by the following code,
+1. Declare a pseudo node Cpu0::RetLR to take care the IR Cpu0ISD::Ret by the 
+following code,
 
 .. rubric:: lbdex/Chapter3_3/Cpu0InstrInfo.td
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td

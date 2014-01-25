@@ -5,15 +5,17 @@ LLD for Cpu0
 
 This chapter add Cpu0 backend in lld. With this lld Cpu0 for ELF linker support,
 the program with global variables can be allocated in ELF file format layout. 
-Meaning the relocation records of global variables can be solved. In addition, 
+Meaning the relocation records of global variables is resolved. In addition, 
 llvm-objdump driver is modified for support generate Hex file from ELF.
 With these two tools supported, the program with global variables of existed in 
 section .data and .rodata can be accessed and transfered to Hex file which feed 
 to Verilog Cpu0 machine and run on your PC/Laptop.
 
-LLD web site [#]_. LLD install requirement on Linux [#]_. 
-The gcc and clang 3.4 can build lld on Linux. 
-On iMac, clang can build successfully.
+About lld please refer LLD web site here [#]_ and LLD install requirement on 
+Linux here [#]_. 
+Currently, lld can be built by gcc and clang 3.4 compiler on Linux. 
+On iMac, lld can be built by clang with the OS X and Xcode version as the next 
+sub section.
 If you run with Virtual Machine (VM), please keep your phisical memory size 
 setting over 1GB to avoid insufficient memory link error.
 
@@ -25,8 +27,8 @@ LLD project is underdevelopment and can be compiled only with c++11 standard (C+
 2011 year announced standard). For iMac, our software is OS X version 10.9.1 and 
 Xcode version 5.0.2. For old iMac software version, you can install VM (such as 
 Virtual Box) and build lld as Linux platform. Please download lld from llvm web 
-[#]_ and put lld souce code on {llvm-src}/tools/lld like we download llvm and 
-clang as shown in Appendex A.
+[#]_ and put lld souce code on {llvm-src}/tools/lld as follows like we download 
+llvm and clang as shown in Appendex A.
 
 .. code-block:: bash
 
@@ -199,7 +201,8 @@ backend as follows,
     :start-after: // 2 llvm-objdump -elf2hex code update begin:
     :end-before: // 2 llvm-objdump -elf2hex code udpate end:
 
-The code included "if (DumpSo)" and "if (LinkSo)" are for dynamic linker support.
+The code included in "if (DumpSo)" and "if (LinkSo)" are for dynamic linker 
+support.
 Others are used in both static and dynamic link execution file dump.
 
 
@@ -208,7 +211,7 @@ LLD introduction
 
 In general, linker do the Relocation Records Resolve as Chapter ELF support 
 depicted and optimization for those cannot finish in compiler stage. One of 
-the optimization opportunity in linker is Dead Code Stripping which will 
+the optimization opportunities in linker is Dead Code Stripping which will 
 explained in this section. List the LLD project status as follows,
 
 - The lld project aims to to be the built-in linker for clang/llvm.
@@ -230,11 +233,10 @@ explained in this section. List the LLD project status as follows,
 This whole book focus on backend design, and this chapter is same. 
 To help readers 
 understand the lld document, first we list the linking steps from lld web. 
-After that, explain each step with the class of source code which came from 
-lld source and more with what kind of Cpu0 lld backend implementation needed 
-in each step. 
-Please read the lld design web document first, http://lld.llvm.org/design.html, 
-then reading the following to 
+After that, explain each step with the class of source code and what kind of 
+Cpu0 lld backend implementation needed in each step. 
+Please read the lld design web document first (only a few pages), 
+http://lld.llvm.org/design.html, then reading the following to 
 ensure you agree to our understanding from lld design document.
 Because some of the following came from our understanding.
 
@@ -486,7 +488,7 @@ mark and swip in graph for Dead Code Stripping.
 As above example, the foo2() is an isolated node without any reference. It's 
 dead code and can be removed in linker optimization. We test this example by 
 build-ch13_1.sh and find foo2() cannot be removed. 
-There are two possibilities. One is we did trigger lld dead code stripping 
+There are two possibilities. One is we do not trigger lld dead code stripping 
 optimization in command (the default is not do it). The other is lld didn't 
 implement it at this point. It's reasonable since the 
 lld is in its early stages of development. We didn't dig it more, since the 
@@ -524,9 +526,9 @@ Passes/Optimizations
 
 The Cpu0RelocationPass.cpp and Cpu0RelocationPass.h are example code for lld 
 backend Passes. The Relocation Pass structure shown as :num:`Figure #lld-f3`. 
-The Cpu0 backend has two Releocation Pass and both of them are children of 
+The Cpu0 backend has two Relocation Pass and both of them are children of 
 RelocationPass. The StaticRelocationPass is for static linker and 
-DynamicRelocationPass is for dynamic linker. We will see how to register 
+DynamicRelocationPass is for dynamic linker. We will see how to register a 
 relocation pass according the staic or dynamic linker you like to do in
 next section.
 
