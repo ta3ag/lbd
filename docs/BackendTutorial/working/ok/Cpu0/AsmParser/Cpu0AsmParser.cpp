@@ -55,6 +55,12 @@ class Cpu0AsmParser : public MCTargetAsmParser {
 #define GET_ASSEMBLER_HEADER
 #include "Cpu0GenAsmMatcher.inc"
 
+  unsigned MatchInstructionImpl_R(
+                           const SmallVectorImpl<MCParsedAsmOperand*> &Operands,
+                                MCInst &Inst,
+                                unsigned &ErrorInfo, bool matchingInlineAsm,
+                                unsigned VariantID = 0);
+
   bool MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                                SmallVectorImpl<MCParsedAsmOperand*> &Operands,
                                MCStreamer &Out, unsigned &ErrorInfo,
@@ -427,7 +433,7 @@ MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                         MCStreamer &Out, unsigned &ErrorInfo,
                         bool MatchingInlineAsm) {
   MCInst Inst;
-  unsigned MatchResult = MatchInstructionImpl(Operands, Inst, ErrorInfo,
+  unsigned MatchResult = MatchInstructionImpl_R(Operands, Inst, ErrorInfo,
                                               MatchingInlineAsm);
 
   switch (MatchResult) {
@@ -1027,4 +1033,186 @@ extern "C" void LLVMInitializeCpu0AsmParser() {
 #define GET_REGISTER_MATCHER
 #define GET_MATCHER_IMPLEMENTATION
 #include "Cpu0GenAsmMatcher.inc"
+
+static const MatchEntry MatchTable0_R[] = {
+  { 0 /* add */, Cpu0::ADD, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+  { 4 /* addiu */, Cpu0::ADDiu, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+  { 10 /* addu */, Cpu0::ADDu, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+  { 15 /* and */, Cpu0::AND, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+  { 19 /* andi */, Cpu0::ANDi, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+  { 24 /* beq */, Cpu0::BEQ, Convert__Reg1_0__Reg1_1__Imm1_2, Feature_HasCpu032II, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+  { 28 /* bne */, Cpu0::BNE, Convert__Reg1_0__Reg1_1__Imm1_2, Feature_HasCpu032II, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+  { 32 /* cmp */, Cpu0::CMP, Convert__Reg1_0__Reg1_1__Reg1_2, Feature_NotCpu032II, { MCK_SR, MCK_CPURegs, MCK_CPURegs }, },
+  { 36 /* div */, Cpu0::SDIV, Convert__Reg1_0__Reg1_1, 0, { MCK_CPURegs, MCK_CPURegs }, },
+  { 40 /* divu */, Cpu0::UDIV, Convert__Reg1_0__Reg1_1, 0, { MCK_CPURegs, MCK_CPURegs }, },
+  { 45 /* iret */, Cpu0::IRET, Convert__Reg1_0, 0, { MCK_CPURegs }, },
+  { 50 /* jalr */, Cpu0::JALR, Convert__Reg1_0, 0, { MCK_CPURegs }, },
+  { 55 /* jeq */, Cpu0::JEQ, Convert__Reg1_0__Imm1_1, Feature_NotCpu032II, { MCK_SR, MCK_Imm }, },
+  { 59 /* jge */, Cpu0::JGE, Convert__Reg1_0__Imm1_1, Feature_NotCpu032II, { MCK_SR, MCK_Imm }, },
+  { 63 /* jgt */, Cpu0::JGT, Convert__Reg1_0__Imm1_1, Feature_NotCpu032II, { MCK_SR, MCK_Imm }, },
+  { 67 /* jle */, Cpu0::JLE, Convert__Reg1_0__Imm1_1, Feature_NotCpu032II, { MCK_SR, MCK_Imm }, },
+  { 71 /* jlt */, Cpu0::JLT, Convert__Reg1_0__Imm1_1, Feature_NotCpu032II, { MCK_SR, MCK_Imm }, },
+  { 75 /* jmp */, Cpu0::JMP, Convert__Imm1_0, 0, { MCK_Imm }, },
+  { 79 /* jne */, Cpu0::JNE, Convert__Reg1_0__Imm1_1, Feature_NotCpu032II, { MCK_SR, MCK_Imm }, },
+  { 83 /* jsub */, Cpu0::JSUB, Convert__Imm1_0, 0, { MCK_Imm }, },
+  { 88 /* la */, Cpu0::LoadAddr32Reg, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+  { 88 /* la */, Cpu0::LoadAddr32Imm, Convert__Reg1_0__Imm1_1, 0, { MCK_CPURegs, MCK_Imm }, },
+  { 91 /* lb */, Cpu0::LB, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+  { 94 /* lbu */, Cpu0::LBu, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+  { 98 /* ld */, Cpu0::LD, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+  { 101 /* lh */, Cpu0::LH, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+  { 104 /* lhu */, Cpu0::LHu, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+  { 108 /* li */, Cpu0::LoadImm32Reg, Convert__Reg1_0__Imm1_1, 0, { MCK_CPURegs, MCK_Imm }, },
+  { 111 /* lui */, Cpu0::LUi, Convert__Reg1_0__Imm1_1, 0, { MCK_CPURegs, MCK_Imm }, },
+  { 115 /* mfhi */, Cpu0::MFHI, Convert__Reg1_0, 0, { MCK_CPURegs }, },
+  { 120 /* mflo */, Cpu0::MFLO, Convert__Reg1_0, 0, { MCK_CPURegs }, },
+  { 125 /* mthi */, Cpu0::MTHI, Convert__Reg1_0, 0, { MCK_CPURegs }, },
+  { 130 /* mtlo */, Cpu0::MTLO, Convert__Reg1_0, 0, { MCK_CPURegs }, },
+  { 135 /* mul */, Cpu0::MUL, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+  { 139 /* mult */, Cpu0::MULT, Convert__Reg1_0__Reg1_1, 0, { MCK_CPURegs, MCK_CPURegs }, },
+  { 144 /* multu */, Cpu0::MULTu, Convert__Reg1_0__Reg1_1, 0, { MCK_CPURegs, MCK_CPURegs }, },
+  { 150 /* nop */, Cpu0::NOP, Convert_NoOperands, 0, {  }, },
+  { 154 /* or */, Cpu0::OR, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+  { 157 /* ori */, Cpu0::ORi, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+  { 161 /* ret */, Cpu0::JR, Convert__Reg1_0, 0, { MCK_CPURegs }, },
+  { 165 /* rol */, Cpu0::ROL, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+  { 169 /* ror */, Cpu0::ROR, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+  { 173 /* sb */, Cpu0::SB, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+  { 176 /* sh */, Cpu0::SH, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+  { 179 /* shl */, Cpu0::SHL, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+  { 183 /* shlv */, Cpu0::SHLV, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+  { 188 /* shr */, Cpu0::SHR, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+  { 192 /* shrv */, Cpu0::SHRV, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+  { 197 /* slt */, Cpu0::SLT, Convert__Reg1_0__Reg1_1__Reg1_2, Feature_HasCpu032II, { MCK_GPROut, MCK_CPURegs, MCK_CPURegs }, },
+  { 201 /* slti */, Cpu0::SLTi, Convert__Reg1_0__Reg1_1__Imm1_2, Feature_HasCpu032II, { MCK_GPROut, MCK_CPURegs, MCK_Imm }, },
+  { 206 /* sltiu */, Cpu0::SLTiu, Convert__Reg1_0__Reg1_1__Imm1_2, Feature_HasCpu032II, { MCK_GPROut, MCK_CPURegs, MCK_Imm }, },
+  { 212 /* sltu */, Cpu0::SLTu, Convert__Reg1_0__Reg1_1__Reg1_2, Feature_HasCpu032II, { MCK_GPROut, MCK_CPURegs, MCK_CPURegs }, },
+  { 217 /* sra */, Cpu0::SRA, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+  { 221 /* srav */, Cpu0::SRAV, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+  { 226 /* st */, Cpu0::ST, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+  { 229 /* sub */, Cpu0::SUB, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+  { 233 /* subu */, Cpu0::SUBu, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+  { 238 /* swi */, Cpu0::SWI, Convert__Imm1_0, 0, { MCK_Imm }, },
+  { 242 /* xor */, Cpu0::XOR, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+  { 246 /* xori */, Cpu0::XORi, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+};
+
+unsigned Cpu0AsmParser::
+MatchInstructionImpl_R(const SmallVectorImpl<MCParsedAsmOperand*> &Operands,
+                     MCInst &Inst,
+unsigned &ErrorInfo, bool matchingInlineAsm, unsigned VariantID) {
+  // Eliminate obvious mismatches.
+  if (Operands.size() > 4) {
+    ErrorInfo = 4;
+    return Match_InvalidOperand;
+  }
+
+  // Get the current feature set.
+  unsigned AvailableFeatures = getAvailableFeatures();
+
+  // Get the instruction mnemonic, which is the first token.
+  StringRef Mnemonic = ((Cpu0Operand*)Operands[0])->getToken();
+
+  // Some state to try to produce better error messages.
+  bool HadMatchOtherThanFeatures = false;
+  bool HadMatchOtherThanPredicate = false;
+  unsigned RetCode = Match_InvalidOperand;
+  unsigned MissingFeatures = ~0U;
+  // Set ErrorInfo to the operand that mismatches if it is
+  // wrong for all instances of the instruction.
+  ErrorInfo = ~0U;
+  // Find the appropriate table for this asm variant.
+  const MatchEntry *Start, *End;
+  switch (VariantID) {
+  default: // unreachable
+  case 0: Start = MatchTable0_R; End = array_endof(MatchTable0_R); break;
+  }
+  // Search the table.
+  std::pair<const MatchEntry*, const MatchEntry*> MnemonicRange =
+    std::equal_range(Start, End, Mnemonic, LessOpcode());
+
+  // Return a more specific error code if no mnemonics match.
+  if (MnemonicRange.first == MnemonicRange.second)
+    return Match_MnemonicFail;
+
+  for (const MatchEntry *it = MnemonicRange.first, *ie = MnemonicRange.second;
+       it != ie; ++it) {
+    // equal_range guarantees that instruction mnemonic matches.
+    assert(Mnemonic == it->getMnemonic());
+    bool OperandsValid = true;
+    for (unsigned i = 0; i != 3; ++i) {
+      if (i + 1 >= Operands.size()) {
+        OperandsValid = (it->Classes[i] == InvalidMatchClass);
+        if (!OperandsValid) ErrorInfo = i + 1;
+        break;
+      }
+      unsigned Diag = validateOperandClass(Operands[i+1],
+                                           (MatchClassKind)it->Classes[i]);
+      if (Diag == Match_Success)
+        continue;
+      // If the generic handler indicates an invalid operand
+      // failure, check for a special case.
+      if (Diag == Match_InvalidOperand) {
+        Diag = validateTargetOperandClass(Operands[i+1],
+                                           (MatchClassKind)it->Classes[i]);
+        if (Diag == Match_Success)
+          continue;
+      }
+      // If this operand is broken for all of the instances of this
+      // mnemonic, keep track of it so we can report loc info.
+      // If we already had a match that only failed due to a
+      // target predicate, that diagnostic is preferred.
+      if (!HadMatchOtherThanPredicate &&
+          (it == MnemonicRange.first || ErrorInfo <= i+1)) {
+        ErrorInfo = i+1;
+        // InvalidOperand is the default. Prefer specificity.
+        if (Diag != Match_InvalidOperand)
+          RetCode = Diag;
+      }
+      // Otherwise, just reject this instance of the mnemonic.
+      OperandsValid = false;
+      break;
+    }
+
+    if (!OperandsValid) continue;
+    if ((AvailableFeatures & it->RequiredFeatures) != it->RequiredFeatures) {
+      HadMatchOtherThanFeatures = true;
+      unsigned NewMissingFeatures = it->RequiredFeatures & ~AvailableFeatures;
+      if (CountPopulation_32(NewMissingFeatures) <=
+          CountPopulation_32(MissingFeatures))
+        MissingFeatures = NewMissingFeatures;
+      continue;
+    }
+
+    if (matchingInlineAsm) {
+      Inst.setOpcode(it->Opcode);
+      convertToMapAndConstraints(it->ConvertFn, Operands);
+      return Match_Success;
+    }
+
+    // We have selected a definite instruction, convert the parsed
+    // operands into the appropriate MCInst.
+    convertToMCInst(it->ConvertFn, Inst, it->Opcode, Operands);
+
+    // We have a potential match. Check the target predicate to
+    // handle any context sensitive constraints.
+    unsigned MatchResult;
+    if ((MatchResult = checkTargetMatchPredicate(Inst)) != Match_Success) {
+      Inst.clear();
+      RetCode = MatchResult;
+      HadMatchOtherThanPredicate = true;
+      continue;
+    }
+
+    return Match_Success;
+  }
+
+  // Okay, we had no match.  Try to return a useful error code.
+  if (HadMatchOtherThanPredicate || !HadMatchOtherThanFeatures)
+    return RetCode;
+
+  // Missing feature matches return which features were missing
+  ErrorInfo = MissingFeatures;
+  return Match_MissingFeature;
+}
 

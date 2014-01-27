@@ -225,9 +225,9 @@ def store_a         : AlignedStore<store>;
 // Arithmetic and logical instructions with 3 register operands.
 class ArithLogicR<bits<8> op, string instr_asm, SDNode OpNode,
                   InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
-  FA<op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
+  FA<op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
      !strconcat(instr_asm, "\t$ra, $rb, $rc"),
-     [(set RC:$ra, (OpNode RC:$rb, RC:$rc))], itin> {
+     [(set GPROut:$ra, (OpNode RC:$rb, RC:$rc))], itin> {
   let shamt = 0;
   let isCommutable = isComm;	// e.g. add rb rc =  add rc rb
   let isReMaterializable = 1;
@@ -235,16 +235,16 @@ class ArithLogicR<bits<8> op, string instr_asm, SDNode OpNode,
 
 class ArithOverflowR<bits<8> op, string instr_asm,
                     InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
-  FA<op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
+  FA<op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
      !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], itin> {
   let shamt = 0;
   let isCommutable = isComm;
 }
 
 class CmpInstr<bits<8> op, string instr_asm, 
-               InstrItinClass itin, RegisterClass RC, RegisterClass RD, 
+               InstrItinClass itin, RegisterClass RC, RegisterClass RO, 
                bit isComm = 0>:
-  FA<op, (outs RD:$rc), (ins RC:$ra, RC:$rb),
+  FA<op, (outs RO:$rc), (ins RC:$ra, RC:$rb),
      !strconcat(instr_asm, "\t$rc, $ra, $rb"), [], itin> {
   let rc = 0;
   let shamt = 0;
@@ -255,10 +255,11 @@ class CmpInstr<bits<8> op, string instr_asm,
 
 // Arithmetic and logical instructions with 2 register operands.
 class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
-                  Operand Od, PatLeaf imm_type, RegisterClass RC> :
-  FL<op, (outs RC:$ra), (ins RC:$rb, Od:$imm16),
+                  Operand Od, PatLeaf imm_type, RegisterClass RC, 
+                  RegisterClass RO> :
+  FL<op, (outs RO:$ra), (ins RC:$rb, Od:$imm16),
      !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
-     [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu> {
+     [(set RO:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu> {
   let isReMaterializable = 1;
 }
 
@@ -287,8 +288,8 @@ class shift_rotate_reg<bits<8> op, bits<4> isRotate, string instr_asm,
 }
 
 // Load Upper Imediate
-class LoadUpper<bits<8> op, string instr_asm, RegisterClass RC, Operand Imm>:
-  FL<op, (outs RC:$ra), (ins Imm:$imm16),
+class LoadUpper<bits<8> op, string instr_asm, RegisterClass RO, Operand Imm>:
+  FL<op, (outs RO:$ra), (ins Imm:$imm16),
      !strconcat(instr_asm, "\t$ra, $imm16"), [], IIAlu> {
   let rb = 0;
   let neverHasSideEffects = 1;
@@ -305,11 +306,11 @@ class FMem<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern,
 
 // Memory Load/Store
 let canFoldAsLoad = 1 in
-class LoadM<bits<8> op, string instr_asm, PatFrag OpNode, RegisterClass RC,
+class LoadM<bits<8> op, string instr_asm, PatFrag OpNode, RegisterClass RO,
             Operand MemOpnd, bit Pseudo>:
-  FMem<op, (outs RC:$ra), (ins MemOpnd:$addr),
+  FMem<op, (outs RO:$ra), (ins MemOpnd:$addr),
      !strconcat(instr_asm, "\t$ra, $addr"),
-     [(set RC:$ra, (OpNode addr:$addr))], IILoad> {
+     [(set RO:$ra, (OpNode addr:$addr))], IILoad> {
   let isPseudo = Pseudo;
 }
 
@@ -324,7 +325,7 @@ class StoreM<bits<8> op, string instr_asm, PatFrag OpNode, RegisterClass RC,
 // 32-bit load.
 multiclass LoadM32<bits<8> op, string instr_asm, PatFrag OpNode,
                    bit Pseudo = 0> {
-  def #NAME# : LoadM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
+  def #NAME# : LoadM<op, instr_asm, OpNode, GPROut, mem, Pseudo>;
 }
 
 // 32-bit store.
@@ -361,18 +362,18 @@ class CBranch16<bits<8> op, string instr_asm, PatFrag cond_op, RegisterClass RC>
 // SetCC
 class SetCC_R<bits<8> op, string instr_asm, PatFrag cond_op,
               RegisterClass RC>:
-  FA<op, (outs CPURegs:$ra), (ins RC:$rb, RC:$rc),
+  FA<op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
      !strconcat(instr_asm, "\t$ra, $rb, $rc"),
-     [(set CPURegs:$ra, (cond_op RC:$rb, RC:$rc))],
+     [(set GPROut:$ra, (cond_op RC:$rb, RC:$rc))],
      IIAlu>, Requires<[HasCpu032II]> {
   let shamt = 0;
 }
 
 class SetCC_I<bits<8> op, string instr_asm, PatFrag cond_op, Operand Od,
               PatLeaf imm_type, RegisterClass RC>:
-  FL<op, (outs CPURegs:$ra), (ins RC:$rb, Od:$imm16),
+  FL<op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
      !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
-     [(set CPURegs:$ra, (cond_op RC:$rb, imm_type:$imm16))],
+     [(set GPROut:$ra, (cond_op RC:$rb, imm_type:$imm16))],
      IIAlu>, Requires<[HasCpu032II]> {
 }
 
@@ -504,20 +505,20 @@ def CPRESTORE : Cpu0Pseudo<(outs), (ins i32imm:$loc, CPURegs:$gp),
 // Pseudo Instruction definition
 //===----------------------------------------------------------------------===//
 
-class LoadImm32< string instr_asm, Operand Od, RegisterClass RC> :
-  Cpu0AsmPseudoInst<(outs RC:$ra), (ins Od:$imm32),
+class LoadImm32< string instr_asm, Operand Od, RegisterClass RO> :
+  Cpu0AsmPseudoInst<(outs RO:$ra), (ins Od:$imm32),
                      !strconcat(instr_asm, "\t$ra, $imm32")> ;
-def LoadImm32Reg : LoadImm32<"li", shamt, CPURegs>;
+def LoadImm32Reg : LoadImm32<"li", shamt, GPROut>;
 
-class LoadAddress<string instr_asm, Operand MemOpnd, RegisterClass RC> :
-  Cpu0AsmPseudoInst<(outs RC:$ra), (ins MemOpnd:$addr),
+class LoadAddress<string instr_asm, Operand MemOpnd, RegisterClass RO> :
+  Cpu0AsmPseudoInst<(outs RO:$ra), (ins MemOpnd:$addr),
                      !strconcat(instr_asm, "\t$ra, $addr")> ;
-def LoadAddr32Reg : LoadAddress<"la", mem, CPURegs>;
+def LoadAddr32Reg : LoadAddress<"la", mem, GPROut>;
 
-class LoadAddressImm<string instr_asm, Operand Od, RegisterClass RC> :
-  Cpu0AsmPseudoInst<(outs RC:$ra), (ins Od:$imm32),
+class LoadAddressImm<string instr_asm, Operand Od, RegisterClass RO> :
+  Cpu0AsmPseudoInst<(outs RO:$ra), (ins Od:$imm32),
                      !strconcat(instr_asm, "\t$ra, $imm32")> ;
-def LoadAddr32Imm : LoadAddressImm<"la", shamt, CPURegs>;
+def LoadAddr32Imm : LoadAddressImm<"la", shamt, GPROut>;
 
 //===----------------------------------------------------------------------===//
 // Cpu0 Instructions
@@ -536,11 +537,11 @@ defm SH     : StoreM32<0x08, "sh", truncstorei16_a>;
 
 /// Arithmetic Instructions (ALU Immediate)
 // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
-def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
-def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs>;
-def ORi     : ArithLogicI<0x0d, "ori", or, uimm16, immZExt16, CPURegs>;
-def XORi    : ArithLogicI<0x0e, "xori", xor, uimm16, immZExt16, CPURegs>;
-def LUi     : LoadUpper<0x0f, "lui", CPURegs, uimm16>;
+def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs, GPROut>;
+def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs, GPROut>;
+def ORi     : ArithLogicI<0x0d, "ori", or, uimm16, immZExt16, CPURegs, GPROut>;
+def XORi    : ArithLogicI<0x0e, "xori", xor, uimm16, immZExt16, CPURegs, GPROut>;
+def LUi     : LoadUpper<0x0f, "lui", GPROut, uimm16>;
 
 /// Arithmetic Instructions (3-Operand, R-Type)
 def CMP     : CmpInstr<0x10, "cmp", IIAlu, CPURegs, SR, 0>;

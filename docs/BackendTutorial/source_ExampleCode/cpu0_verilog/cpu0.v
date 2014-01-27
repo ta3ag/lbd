@@ -31,7 +31,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   `define PC   R[15]   // Program Counter
   `define LR   R[14]   // Link Register
   `define SP   R[13]   // Stack Pointer
-  `define SW   R[10]   // Stack Pointer
+  `define SW   R[10]   // Status Word
   // SW Flage
   `define I2   `SW[16] // Hardware Interrupt 1, IO1 interrupt, status, 
                       // 1: in interrupt
