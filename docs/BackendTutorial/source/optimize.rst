@@ -650,7 +650,19 @@ and the added instructions in Chapter12_2 is for cpu032II.
 The llc will generate cpu032I cmp, jeq, 
 ..., instructions when `llc -mcpu=cpu032I` while `llc -mcpu=cpu032II` will
 generate slt, beq when meet "if else", "while" and "for" flow control 
-statements.
+statements. Please notify the Cpu0ArchVersion must be initialized as the 
+following code, otherwise the Cpu0ArchVersion can be any value and the functions 
+hasCpu032I() and hasCpu032II() which support `llc -mcpu=cpu032I` and 
+`llc -mcpu=cpu032II` will has trouble.
+
+.. rubric:: lbdex/Chapter3_1/Cpu0Subtarget.cpp
+.. code-block:: c++
+  
+  Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
+                               const std::string &FS, bool little, 
+                               Reloc::Model _RM) :
+    Cpu0GenSubtargetInfo(TT, CPU, FS),
+    Cpu0ArchVersion(Cpu032I), ...
 
 .. rubric:: lbdex/InputFiles/ch12_2.cpp
 .. literalinclude:: ../lbdex/InputFiles/ch12_2.cpp
