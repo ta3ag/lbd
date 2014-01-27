@@ -436,9 +436,13 @@ MatchAndEmitInstruction(SMLoc IDLoc, unsigned &Opcode,
                         MCStreamer &Out, unsigned &ErrorInfo,
                         bool MatchingInlineAsm) {
   MCInst Inst;
+#ifndef ASM_EASY_PORTING
   unsigned MatchResult = MatchInstructionImpl_R(Operands, Inst, ErrorInfo,
                                               MatchingInlineAsm);
-
+#else
+  unsigned MatchResult = MatchInstructionImpl(Operands, Inst, ErrorInfo,
+                                              MatchingInlineAsm);
+#endif
   switch (MatchResult) {
   default: break;
   case Match_Success: {
