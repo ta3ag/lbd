@@ -66,7 +66,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   JMP=8'h36,
   SWI=8'h3A,JSUB=8'h3B,RET=8'h3C,IRET=8'h3D,JALR=8'h3E,
   MULT=8'h41,MULTu=8'h42,DIV=8'h43,DIVu=8'h44,
-  MFHI=8'h46,MFLO=8'h47,MTHI=8'h48,MTLO=8'h49;
+  MFHI=8'h46,MFLO=8'h47,MTHI=8'h48,MTLO=8'h49,
+  MFSW=8'h50,MTSW=8'h51;
 
   reg [0:0] inInt = 0;
   reg [2:0] state, next_state; 
@@ -230,6 +231,8 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       MFHI:  regSet(a, HI);         // MFHI Ra; Ra<=HI
       MTLO:  LO = Ra;               // MTLO Ra; LO<=Ra
       MTHI:  HI = Ra;               // MTHI Ra; HI<=Ra
+      MFSW:  regSet(a, SW);         // MFSW Ra; Ra<=SW
+      MTSW:  SW = Ra;               // MTSW Ra; SW<=Ra
       MULT:  {HI, LO}=Ra*Rb;        // MULT Ra,Rb; HI<=((Ra*Rb)>>32); 
                                     // LO<=((Ra*Rb) and 0x00000000ffffffff);
                                     // with exception overflow

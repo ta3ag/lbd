@@ -20,7 +20,6 @@
   asm("st $7, 20($at)");        \
   asm("st $8, 24($at)");        \
   asm("st $9, 28($at)");        \
-  asm("st $sw, 32($at)");       \
   asm("st $11, 36($at)");
 
 #define RESTORE_REGISTERS       \
@@ -34,7 +33,6 @@
   asm("ld $7, 20($at)");        \
   asm("ld $8, 24($at)");        \
   asm("ld $9, 28($at)");        \
-  asm("ld $sw, 32($at)");       \
   asm("ld $11, 36($at)");
 
 

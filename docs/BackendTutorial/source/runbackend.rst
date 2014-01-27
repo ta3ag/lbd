@@ -131,17 +131,17 @@ LLVMBuild.txt as follows,
   class LoadImm32< string instr_asm, Operand Od, RegisterClass RC> :
     Cpu0AsmPseudoInst<(outs RC:$ra), (ins Od:$imm32),
              !strconcat(instr_asm, "\t$ra, $imm32")> ;
-  def LoadImm32Reg : LoadImm32<"li", shamt, CPURegs>;
+  def LoadImm32Reg : LoadImm32<"li", shamt, GPROut>;
   
   class LoadAddress<string instr_asm, Operand MemOpnd, RegisterClass RC> :
     Cpu0AsmPseudoInst<(outs RC:$ra), (ins MemOpnd:$addr),
              !strconcat(instr_asm, "\t$ra, $addr")> ;
-  def LoadAddr32Reg : LoadAddress<"la", mem, CPURegs>;
+  def LoadAddr32Reg : LoadAddress<"la", mem, GPROut>;
   
   class LoadAddressImm<string instr_asm, Operand Od, RegisterClass RC> :
     Cpu0AsmPseudoInst<(outs RC:$ra), (ins Od:$imm32),
              !strconcat(instr_asm, "\t$ra, $imm32")> ;
-  def LoadAddr32Imm : LoadAddressImm<"la", shamt, CPURegs>;
+  def LoadAddr32Imm : LoadAddressImm<"la", shamt, GPROut>;
 
 
 Above declare the **ParserMethod = "parseMemOperand"** and implement the 
@@ -232,7 +232,7 @@ LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,
               MCStreamer &Out, unsigned &ErrorInfo,
               bool MatchingInlineAsm) {
     MCInst Inst;
-    unsigned MatchResult = MatchInstructionImpl(Operands, Inst, ErrorInfo,
+    unsigned MatchResult = MatchInstructionImpl_R(Operands, Inst, ErrorInfo,
                           MatchingInlineAsm);
   
     switch (MatchResult) {
@@ -246,6 +246,51 @@ LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,
     ...
   }
 
+  #define GET_REGISTER_MATCHER
+  #define GET_MATCHER_IMPLEMENTATION
+  #include "Cpu0GenAsmMatcher.inc"
+
+  #ifndef ASM_EASY_PORTING
+  // Adjust here the Cpu0InstrInfo.td changed.
+  static const MatchEntry MatchTable0_R[] = {
+    { 0 /* add */, Cpu0::ADD, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, 
+  MCK_CPURegs, MCK_CPURegs }, },
+  ...
+
+  unsigned Cpu0AsmParser::
+  MatchInstructionImpl_R(const SmallVectorImpl<MCParsedAsmOperand*> &Operands,
+                       MCInst &Inst,
+  unsigned &ErrorInfo, bool matchingInlineAsm, unsigned VariantID) {
+    ...
+    switch (VariantID) {
+    default: // unreachable
+    case 0: Start = MatchTable0_R; End = array_endof(MatchTable0_R); break;
+    ...
+  }
+  #endif
+
+Above code use MatchInstructionImpl_R() instead MatchInstructionImpl() since 
+to prevent register SW to be allocated as general purpose output register, we 
+use GPROut register class which exclude SW as most output operand defined in 
+Cpu0InstrInfo.td. Of course, the TableGen created file Cpu0GenAsmMatcher.inc 
+as follows,
+
+.. rubric:: cmake_debug_build/lib/Target/Cpu0/Cpu0AsmParser.cpp
+.. code-block:: c++
+
+  static const MatchEntry MatchTable0[] = {
+    { 0 /* add */, Cpu0::ADD, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_GPROut, 
+  MCK_CPURegs, MCK_CPURegs }, },
+
+Above keyword MCK_GPROut will limit AsmParser use GPROut register class as 
+output register. To allow programmer use \$sw as output register such as 
+"add \$sw, \$zero, \$zero" the code must be modified as above. This solution 
+has the problem that need keeping MatchTable0_R[] up to date when 
+file Cpu0InstrInfo.td has changed or the TableGen version is changed.
+If programmer are not allowed to use \$sw as output register (Cpu0 supply 
+instruction MFSW and MFTW to move from/to SW to/from general purpose register), 
+then we can use MatchTable0[] instead of MatchTable0_R[]. 
+The condition compiler flag ASM_EASY_PORTING stands for this purpose.
 
 Finally, remind the CPURegs as below must 
 follow the order of register number because AsmParser use this when do register 

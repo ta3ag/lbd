@@ -409,7 +409,7 @@ following code for Cpu0 instructions **swi** (Software Interrupt), **jsub** and
   def SWI  : JumpLink<0x2a, "swi">;
   def JSUB : JumpLink<0x2b, "jsub">;
   ...
-  def JALR    : JumpLinkReg<0x2e, "jalr", CPURegs>;
+  def JALR    : JumpLinkReg<0x2e, "jalr", GPROut>;
   ...
   def : Pat<(Cpu0JmpLink (i32 tglobaladdr:$dst)),
             (JSUB tglobaladdr:$dst)>;

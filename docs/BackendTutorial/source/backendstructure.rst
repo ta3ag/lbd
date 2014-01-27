@@ -1018,7 +1018,7 @@ For example, (+ ri, rj), (- ri, 1) are lists for IR DAG; (ADD ri, rj),
 Now, let's recall the ADDiu instruction defined on Cpu0InstrInfo.td in the 
 previous chapter. List them again as follows,
 
-.. rubric:: lbdex/Chapter3_2/Cpu0InstrFormats.td
+.. rubric:: lbdex/Chapter2/Cpu0InstrFormats.td
 .. code-block:: c++
 
   //===----------------------------------------------------------------------===//
@@ -1040,15 +1040,15 @@ previous chapter. List them again as follows,
   }
 
 
-.. rubric:: lbdex/Chapter3_2/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter2/Cpu0InstrInfo.td
 .. code-block:: c++
 
   // Arithmetic and logical instructions with 2 register operands.
   class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
                     Operand Od, PatLeaf imm_type, RegisterClass RC> :
-    FL<op, (outs RC:$ra), (ins RC:$rb, Od:$imm16),
+    FL<op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
        !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
-       [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu> {
+       [(set GPROut:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu> {
     let isReMaterializable = 1;
   }
   ...
@@ -1159,7 +1159,7 @@ As above, ch3.ll use the IR DAG node **store**, **ret**. Actually, it also use
 So, the definitions in Cpu0InstrInfo.td as follows is enough. 
 IR DAG is defined in file  include/llvm/Target/TargetSelectionDAG.td.
 
-.. rubric:: lbdex/Chapter3_2/Cpu0InstrInfo.td
+.. rubric:: lbdex/Chapter2/Cpu0InstrInfo.td
 .. code-block:: c++
 
   //===----------------------------------------------------------------------===//
@@ -1173,12 +1173,10 @@ IR DAG is defined in file  include/llvm/Target/TargetSelectionDAG.td.
   // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
   def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
 
-  let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
-      isBarrier=1, hasCtrlDep=1 in
-    def RET : FJ <0x3c, (outs), (ins CPURegs:$target),
-                  "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch>;
-
-  //===----------------------------------------------------------------------===//
+  let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
+  def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
+  
+  def RET     : RetBase<GPROut>;
 
 
 Add class Cpu0DAGToDAGISel (Cpu0ISelDAGToDAG.cpp) to CMakeLists.txt, and add 
@@ -1625,9 +1623,9 @@ functions.
   // Arithmetic and logical instructions with 3 register operands.
   class ArithLogicR<bits<8> op, string instr_asm, SDNode OpNode,
                     InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
-    FA<op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
+    FA<op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
        !strconcat(instr_asm, "\t$ra, $rb, $rc"),
-       [(set RC:$ra, (OpNode RC:$rb, RC:$rc))], itin> {
+       [(set GPROut:$ra, (OpNode RC:$rb, RC:$rc))], itin> {
     let shamt = 0;
     let isCommutable = isComm;	// e.g. add rb rc =  add rc rb
     let isReMaterializable = 1;
@@ -1637,9 +1635,9 @@ functions.
   class shift_rotate_imm<bits<8> op, bits<4> isRotate, string instr_asm,
                          SDNode OpNode, PatFrag PF, Operand ImmOpnd,
                          RegisterClass RC>:
-    FA<op, (outs RC:$ra), (ins RC:$rb, ImmOpnd:$shamt),
+    FA<op, (outs GPROut:$ra), (ins RC:$rb, ImmOpnd:$shamt),
        !strconcat(instr_asm, "\t$ra, $rb, $shamt"),
-       [(set RC:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu> {
+       [(set GPROut:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu> {
     let rc = 0;
     let shamt = shamt;
   }

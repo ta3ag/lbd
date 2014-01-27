@@ -1,19 +1,6 @@
-diff -Naur Chapter4_1/Cpu0ISelLowering.cpp Chapter4_2/Cpu0ISelLowering.cpp
---- Chapter4_1/Cpu0ISelLowering.cpp	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter4_2/Cpu0ISelLowering.cpp	2014-01-25 21:50:02.000000000 +0800
-@@ -43,6 +43,9 @@
-   // Set up the register classes
-   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
- 
-+  // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
-+  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
-+
-   setOperationAction(ISD::SDIV, MVT::i32, Expand);
-   setOperationAction(ISD::SREM, MVT::i32, Expand);
-   setOperationAction(ISD::UDIV, MVT::i32, Expand);
 diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
---- Chapter4_1/Cpu0InstrInfo.td	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter4_2/Cpu0InstrInfo.td	2014-01-25 21:50:02.000000000 +0800
+--- Chapter4_1/Cpu0InstrInfo.td	2014-01-27 13:13:28.250399385 +0800
++++ Chapter4_2/Cpu0InstrInfo.td	2014-01-27 13:13:28.250399385 +0800
 @@ -132,6 +132,16 @@
    let isReMaterializable = 1;
  }
@@ -38,7 +25,7 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs>;
  def ORi     : ArithLogicI<0x0d, "ori", or, uimm16, immZExt16, CPURegs>;
 +def XORi    : ArithLogicI<0x0e, "xori", xor, uimm16, immZExt16, CPURegs>;
- def LUi     : LoadUpper<0x0f, "lui", CPURegs, uimm16>;
+ def LUi     : LoadUpper<0x0f, "lui", GPROut, uimm16>;
  
  /// Arithmetic Instructions (3-Operand, R-Type)
 +def CMP     : CmpInstr<0x10, "cmp", IIAlu, CPURegs, SR, 0>;
@@ -114,3 +101,16 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +defm : SetlePatsCmp<CPURegs>;
 +defm : SetgtPatsCmp<CPURegs>;
 +defm : SetgePatsCmp<CPURegs>;
+diff -Naur Chapter4_1/Cpu0ISelLowering.cpp Chapter4_2/Cpu0ISelLowering.cpp
+--- Chapter4_1/Cpu0ISelLowering.cpp	2014-01-27 13:13:28.250399385 +0800
++++ Chapter4_2/Cpu0ISelLowering.cpp	2014-01-27 13:13:28.250399385 +0800
+@@ -43,6 +43,9 @@
+   // Set up the register classes
+   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
+ 
++  // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
++  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
++
+   setOperationAction(ISD::SDIV, MVT::i32, Expand);
+   setOperationAction(ISD::SREM, MVT::i32, Expand);
+   setOperationAction(ISD::UDIV, MVT::i32, Expand);

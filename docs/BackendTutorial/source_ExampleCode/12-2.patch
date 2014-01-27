@@ -1,58 +1,6 @@
-diff -Naur Chapter12_1/Cpu0.td Chapter12_2/Cpu0.td
---- Chapter12_1/Cpu0.td	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter12_2/Cpu0.td	2014-01-25 21:50:02.000000000 +0800
-@@ -35,6 +35,12 @@
- def FeatureCpu032I     : SubtargetFeature<"cpu032I", "Cpu0ArchVersion", 
-         "Cpu032I", "Cpu032I ISA Support">;
- 
-+def FeatureCpu032II    : SubtargetFeature<"cpu032II", "Cpu0ArchVersion",                      
-+         "Cpu032II", "Cpu032II ISA Support (use instruction slt)">;
-+
-+def FeatureCpu032III   : SubtargetFeature<"cpu032III", "Cpu0ArchVersion",                      
-+         "Cpu032III", "Cpu032III ISA Support (use instruction slt)">;
-+
- //===----------------------------------------------------------------------===//
- // Cpu0 processors supported.
- //===----------------------------------------------------------------------===//
-@@ -42,7 +48,9 @@
- class Proc<string Name, list<SubtargetFeature> Features>
-  : Processor<Name, Cpu0GenericItineraries, Features>;
- 
--def : Proc<"cpu032I", [FeatureCpu032I]>;
-+def : Proc<"cpu032I",  [FeatureCpu032I]>;
-+def : Proc<"cpu032II", [FeatureCpu032II]>;
-+def : Proc<"cpu032III", [FeatureCpu032III]>;
- 
- def Cpu0AsmWriter : AsmWriter {
-   string AsmWriterClassName  = "InstPrinter";
-diff -Naur Chapter12_1/Cpu0ISelDAGToDAG.cpp Chapter12_2/Cpu0ISelDAGToDAG.cpp
---- Chapter12_1/Cpu0ISelDAGToDAG.cpp	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter12_2/Cpu0ISelDAGToDAG.cpp	2014-01-25 21:50:02.000000000 +0800
-@@ -248,10 +248,17 @@
-     SDValue RHS = Node->getOperand(1);
- 
-     EVT VT = LHS.getValueType();
--    SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
--    SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
--    SDNode *Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
--                                           SDValue(StatusWord,0), Constant1);
-+    const Cpu0TargetMachine &TM = getTargetMachine();
-+    const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
-+    SDNode *Carry;
-+    if (Subtarget.hasCpu032II())
-+      Carry = CurDAG->getMachineNode(Cpu0::SLTu, DL, VT, Ops);
-+    else {
-+      SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
-+      SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
-+      Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
-+                                             SDValue(StatusWord,0), Constant1);
-+    }
-     SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, DL, VT,
-                                               SDValue(Carry,0), RHS);
- 
 diff -Naur Chapter12_1/Cpu0InstrInfo.cpp Chapter12_2/Cpu0InstrInfo.cpp
---- Chapter12_1/Cpu0InstrInfo.cpp	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter12_2/Cpu0InstrInfo.cpp	2014-01-25 21:50:02.000000000 +0800
+--- Chapter12_1/Cpu0InstrInfo.cpp	2014-01-27 13:13:28.254399385 +0800
++++ Chapter12_2/Cpu0InstrInfo.cpp	2014-01-27 13:13:28.254399385 +0800
 @@ -37,6 +37,7 @@
              bool KillSrc) const {
    unsigned Opc = 0, ZeroReg = 0;
@@ -62,8 +10,8 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.cpp Chapter12_2/Cpu0InstrInfo.cpp
      if (Cpu0::CPURegsRegClass.contains(SrcReg))
        Opc = Cpu0::ADD, ZeroReg = Cpu0::ZERO;
 diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
---- Chapter12_1/Cpu0InstrInfo.td	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter12_2/Cpu0InstrInfo.td	2014-01-25 21:50:02.000000000 +0800
+--- Chapter12_1/Cpu0InstrInfo.td	2014-01-27 13:13:28.254399385 +0800
++++ Chapter12_2/Cpu0InstrInfo.td	2014-01-27 13:13:28.254399385 +0800
 @@ -63,11 +63,50 @@
  // Cpu0 Instruction Predicate Definitions.
  //===----------------------------------------------------------------------===//
@@ -121,7 +69,7 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
  
 +class ArithOverflowR<bits<8> op, string instr_asm,
 +                    InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
-+  FA<op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
++  FA<op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
 +     !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], itin> {
 +  let shamt = 0;
 +  let isCommutable = isComm;
@@ -166,18 +114,18 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
 +// SetCC
 +class SetCC_R<bits<8> op, string instr_asm, PatFrag cond_op,
 +              RegisterClass RC>:
-+  FA<op, (outs CPURegs:$ra), (ins RC:$rb, RC:$rc),
++  FA<op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
 +     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
-+     [(set CPURegs:$ra, (cond_op RC:$rb, RC:$rc))],
++     [(set GPROut:$ra, (cond_op RC:$rb, RC:$rc))],
 +     IIAlu>, Requires<[HasCpu032II]> {
 +  let shamt = 0;
 +}
 +
 +class SetCC_I<bits<8> op, string instr_asm, PatFrag cond_op, Operand Od,
 +              PatLeaf imm_type, RegisterClass RC>:
-+  FL<op, (outs CPURegs:$ra), (ins RC:$rb, Od:$imm16),
++  FL<op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
 +     !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
-+     [(set CPURegs:$ra, (cond_op RC:$rb, imm_type:$imm16))],
++     [(set GPROut:$ra, (cond_op RC:$rb, imm_type:$imm16))],
 +     IIAlu>, Requires<[HasCpu032II]> {
  }
  
@@ -206,8 +154,8 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
  def JLE     : CBranch24<0x34, "jle", SR, [SW]>;
  def JGE     : CBranch24<0x35, "jge", SR, [SW]>;
  
-+def BEQ     : CBranch16<0x37, "beq", seteq, CPURegs>;
-+def BNE     : CBranch16<0x38, "bne", setne, CPURegs>;
++def BEQ     : CBranch16<0x37, "beq", seteq, GPROut>;
++def BNE     : CBranch16<0x38, "bne", setne, GPROut>;
 +
  def JMP     : UncondBranch<0x36, "jmp">;
  
@@ -330,9 +278,34 @@ diff -Naur Chapter12_1/Cpu0InstrInfo.td Chapter12_2/Cpu0InstrInfo.td
 +defm : SetgePatsSlt<CPURegs, SLT, SLTu>;
 +defm : SetgeImmPatsSlt<CPURegs, SLTi, SLTiu>;
 +}
+diff -Naur Chapter12_1/Cpu0ISelDAGToDAG.cpp Chapter12_2/Cpu0ISelDAGToDAG.cpp
+--- Chapter12_1/Cpu0ISelDAGToDAG.cpp	2014-01-27 13:13:28.254399385 +0800
++++ Chapter12_2/Cpu0ISelDAGToDAG.cpp	2014-01-27 13:13:28.254399385 +0800
+@@ -248,10 +248,17 @@
+     SDValue RHS = Node->getOperand(1);
+ 
+     EVT VT = LHS.getValueType();
+-    SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
+-    SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
+-    SDNode *Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
+-                                           SDValue(StatusWord,0), Constant1);
++    const Cpu0TargetMachine &TM = getTargetMachine();
++    const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
++    SDNode *Carry;
++    if (Subtarget.hasCpu032II())
++      Carry = CurDAG->getMachineNode(Cpu0::SLTu, DL, VT, Ops);
++    else {
++      SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
++      SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
++      Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
++                                             SDValue(StatusWord,0), Constant1);
++    }
+     SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, DL, VT,
+                                               SDValue(Carry,0), RHS);
+ 
 diff -Naur Chapter12_1/Cpu0Subtarget.h Chapter12_2/Cpu0Subtarget.h
---- Chapter12_1/Cpu0Subtarget.h	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter12_2/Cpu0Subtarget.h	2014-01-25 21:50:02.000000000 +0800
+--- Chapter12_1/Cpu0Subtarget.h	2014-01-27 13:13:28.254399385 +0800
++++ Chapter12_2/Cpu0Subtarget.h	2014-01-27 13:13:28.254399385 +0800
 @@ -38,6 +38,8 @@
  protected:
    enum Cpu0ArchEnum {
@@ -351,10 +324,37 @@ diff -Naur Chapter12_1/Cpu0Subtarget.h Chapter12_2/Cpu0Subtarget.h
    bool useSmallSection() const { return UseSmallSection; }
  };
  } // End llvm namespace
+diff -Naur Chapter12_1/Cpu0.td Chapter12_2/Cpu0.td
+--- Chapter12_1/Cpu0.td	2014-01-27 13:13:28.254399385 +0800
++++ Chapter12_2/Cpu0.td	2014-01-27 13:13:28.254399385 +0800
+@@ -35,6 +35,12 @@
+ def FeatureCpu032I     : SubtargetFeature<"cpu032I", "Cpu0ArchVersion", 
+         "Cpu032I", "Cpu032I ISA Support">;
+ 
++def FeatureCpu032II    : SubtargetFeature<"cpu032II", "Cpu0ArchVersion",                      
++         "Cpu032II", "Cpu032II ISA Support (use instruction slt)">;
++
++def FeatureCpu032III   : SubtargetFeature<"cpu032III", "Cpu0ArchVersion",                      
++         "Cpu032III", "Cpu032III ISA Support (use instruction slt)">;
++
+ //===----------------------------------------------------------------------===//
+ // Cpu0 processors supported.
+ //===----------------------------------------------------------------------===//
+@@ -42,7 +48,9 @@
+ class Proc<string Name, list<SubtargetFeature> Features>
+  : Processor<Name, Cpu0GenericItineraries, Features>;
+ 
+-def : Proc<"cpu032I", [FeatureCpu032I]>;
++def : Proc<"cpu032I",  [FeatureCpu032I]>;
++def : Proc<"cpu032II", [FeatureCpu032II]>;
++def : Proc<"cpu032III", [FeatureCpu032III]>;
+ 
+ def Cpu0AsmWriter : AsmWriter {
+   string AsmWriterClassName  = "InstPrinter";
 diff -Naur Chapter12_1/Disassembler/Cpu0Disassembler.cpp Chapter12_2/Disassembler/Cpu0Disassembler.cpp
---- Chapter12_1/Disassembler/Cpu0Disassembler.cpp	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter12_2/Disassembler/Cpu0Disassembler.cpp	2014-01-25 21:50:02.000000000 +0800
-@@ -67,6 +67,11 @@
+--- Chapter12_1/Disassembler/Cpu0Disassembler.cpp	2014-01-27 13:13:28.254399385 +0800
++++ Chapter12_2/Disassembler/Cpu0Disassembler.cpp	2014-01-27 13:13:28.254399385 +0800
+@@ -78,6 +78,11 @@
                                         uint64_t Address,
                                         const void *Decoder);
  // lbd document - mark - declare DecodeCMPInstruction
@@ -366,7 +366,7 @@ diff -Naur Chapter12_1/Disassembler/Cpu0Disassembler.cpp Chapter12_2/Disassemble
  static DecodeStatus DecodeBranch24Target(MCInst &Inst,
                                         unsigned Insn,
                                         uint64_t Address,
-@@ -239,6 +244,17 @@
+@@ -261,6 +266,17 @@
    return MCDisassembler::Success;
  } // lbd document - mark - DecodeCMPInstruction
  
@@ -385,8 +385,8 @@ diff -Naur Chapter12_1/Disassembler/Cpu0Disassembler.cpp Chapter12_2/Disassemble
  operand 1 (operand 0 is $ra and operand 1 is imm24), so we Create register 
  operand first and create imm24 next, as follows,
 diff -Naur Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter12_2/MCTargetDesc/Cpu0AsmBackend.cpp
---- Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter12_2/MCTargetDesc/Cpu0AsmBackend.cpp	2014-01-25 21:50:02.000000000 +0800
+--- Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-01-27 13:13:28.254399385 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0AsmBackend.cpp	2014-01-27 13:13:28.254399385 +0800
 @@ -39,6 +39,7 @@
    case Cpu0::fixup_Cpu0_LO16:
    case Cpu0::fixup_Cpu0_GOT_LO16:
@@ -404,8 +404,8 @@ diff -Naur Chapter12_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter12_2/MCTargetDesc/
        { "fixup_Cpu0_CALL16",         0,     16,   0 },
        { "fixup_Cpu0_GOT_HI16",       0,     16,   0 },
 diff -Naur Chapter12_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter12_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp
---- Chapter12_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter12_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-01-25 21:50:02.000000000 +0800
+--- Chapter12_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-01-27 13:13:28.254399385 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-01-27 13:13:28.254399385 +0800
 @@ -120,6 +120,9 @@
    case Cpu0::fixup_Cpu0_GOT_Local:
      Type = ELF::R_CPU0_GOT16;
@@ -417,8 +417,8 @@ diff -Naur Chapter12_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter12_2/MCTarget
      Type = ELF::R_CPU0_PC24;
      break;
 diff -Naur Chapter12_1/MCTargetDesc/Cpu0FixupKinds.h Chapter12_2/MCTargetDesc/Cpu0FixupKinds.h
---- Chapter12_1/MCTargetDesc/Cpu0FixupKinds.h	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter12_2/MCTargetDesc/Cpu0FixupKinds.h	2014-01-25 21:50:02.000000000 +0800
+--- Chapter12_1/MCTargetDesc/Cpu0FixupKinds.h	2014-01-27 13:13:28.254399385 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0FixupKinds.h	2014-01-27 13:13:28.254399385 +0800
 @@ -44,6 +44,10 @@
      // Local symbol fixup resulting in - R_CPU0_GOT16.
      fixup_Cpu0_GOT_Local,
@@ -431,8 +431,8 @@ diff -Naur Chapter12_1/MCTargetDesc/Cpu0FixupKinds.h Chapter12_2/MCTargetDesc/Cp
      // cpu0 PC24, e.g. jeq, jmp
      fixup_Cpu0_PC24,
 diff -Naur Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter12_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter12_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-01-25 21:50:02.000000000 +0800
+--- Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-01-27 13:13:28.254399385 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-01-27 13:13:28.254399385 +0800
 @@ -72,6 +72,13 @@
    uint64_t getBinaryCodeForInstr(const MCInst &MI,
                                   SmallVectorImpl<MCFixup> &Fixups) const;
@@ -474,8 +474,8 @@ diff -Naur Chapter12_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter12_2/MCTargetDe
  /// target operand. If the machine operand requires relocation,
  /// record the relocation and return zero.
 diff -Naur Chapter12_1/MCTargetDesc/Cpu0MCTargetDesc.cpp Chapter12_2/MCTargetDesc/Cpu0MCTargetDesc.cpp
---- Chapter12_1/MCTargetDesc/Cpu0MCTargetDesc.cpp	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter12_2/MCTargetDesc/Cpu0MCTargetDesc.cpp	2014-01-25 21:50:02.000000000 +0800
+--- Chapter12_1/MCTargetDesc/Cpu0MCTargetDesc.cpp	2014-01-27 13:13:28.254399385 +0800
++++ Chapter12_2/MCTargetDesc/Cpu0MCTargetDesc.cpp	2014-01-27 13:13:28.254399385 +0800
 @@ -58,6 +58,8 @@
    if (TheTriple == "cpu0" || TheTriple == "cpu0el") {
      if (CPU.empty() || CPU == "cpu032I") {

@@ -78,9 +78,9 @@ def store_a         : AlignedStore<store>;
 // Arithmetic and logical instructions with 2 register operands.
 class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
                   Operand Od, PatLeaf imm_type, RegisterClass RC> :
-  FL<op, (outs RC:$ra), (ins RC:$rb, Od:$imm16),
+  FL<op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
      !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
-     [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu> {
+     [(set GPROut:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu> {
   let isReMaterializable = 1;
 }
 
@@ -113,7 +113,7 @@ class StoreM<bits<8> op, string instr_asm, PatFrag OpNode, RegisterClass RC,
 // 32-bit load.
 multiclass LoadM32<bits<8> op, string instr_asm, PatFrag OpNode,
                    bit Pseudo = 0> {
-  def #NAME# : LoadM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
+  def #NAME# : LoadM<op, instr_asm, OpNode, GPROut, mem, Pseudo>;
 }
 
 // 32-bit store.
@@ -156,7 +156,7 @@ defm ST     : StoreM32<0x02, "st",  store_a>;
 // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
 def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
 
-def RET     : RetBase<CPURegs>;
+def RET     : RetBase<GPROut>;
 
 //===----------------------------------------------------------------------===//
 //  Arbitrary patterns that map to one or more instructions

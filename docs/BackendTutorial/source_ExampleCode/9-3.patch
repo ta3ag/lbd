@@ -1,6 +1,6 @@
 diff -Naur Chapter9_2/CMakeLists.txt Chapter9_3/CMakeLists.txt
---- Chapter9_2/CMakeLists.txt	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter9_3/CMakeLists.txt	2014-01-25 21:50:03.000000000 +0800
+--- Chapter9_2/CMakeLists.txt	2014-01-27 13:13:28.246399385 +0800
++++ Chapter9_3/CMakeLists.txt	2014-01-27 13:13:28.246399385 +0800
 @@ -25,6 +25,7 @@
  add_llvm_target(Cpu0CodeGen
    Cpu0AnalyzeImmediate.cpp
@@ -9,20 +9,9 @@ diff -Naur Chapter9_2/CMakeLists.txt Chapter9_3/CMakeLists.txt
    Cpu0InstrInfo.cpp
    Cpu0ISelDAGToDAG.cpp
    Cpu0ISelLowering.cpp
-diff -Naur Chapter9_2/Cpu0.h Chapter9_3/Cpu0.h
---- Chapter9_2/Cpu0.h	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter9_3/Cpu0.h	2014-01-25 21:50:03.000000000 +0800
-@@ -23,6 +23,7 @@
-   class FunctionPass;
- 
-   FunctionPass *createCpu0ISelDag(Cpu0TargetMachine &TM);
-+  FunctionPass *createCpu0EmitGPRestorePass(Cpu0TargetMachine &TM);
- 
- } // end namespace llvm;
- 
 diff -Naur Chapter9_2/Cpu0AsmPrinter.cpp Chapter9_3/Cpu0AsmPrinter.cpp
---- Chapter9_2/Cpu0AsmPrinter.cpp	2014-01-25 21:50:03.000000000 +0800
-+++ Chapter9_3/Cpu0AsmPrinter.cpp	2014-01-25 21:50:03.000000000 +0800
+--- Chapter9_2/Cpu0AsmPrinter.cpp	2014-01-27 13:13:28.250399385 +0800
++++ Chapter9_3/Cpu0AsmPrinter.cpp	2014-01-27 13:13:28.246399385 +0800
 @@ -40,6 +40,19 @@
  
  using namespace llvm;
@@ -83,7 +72,7 @@ diff -Naur Chapter9_2/Cpu0AsmPrinter.cpp Chapter9_3/Cpu0AsmPrinter.cpp
  }
 diff -Naur Chapter9_2/Cpu0EmitGPRestore.cpp Chapter9_3/Cpu0EmitGPRestore.cpp
 --- Chapter9_2/Cpu0EmitGPRestore.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter9_3/Cpu0EmitGPRestore.cpp	2014-01-25 21:50:03.000000000 +0800
++++ Chapter9_3/Cpu0EmitGPRestore.cpp	2014-01-27 13:13:28.246399385 +0800
 @@ -0,0 +1,99 @@
 +//===-- Cpu0EmitGPRestore.cpp - Emit GP Restore Instruction ---------------===//
 +//
@@ -185,8 +174,8 @@ diff -Naur Chapter9_2/Cpu0EmitGPRestore.cpp Chapter9_3/Cpu0EmitGPRestore.cpp
 +}
 +
 diff -Naur Chapter9_2/Cpu0FrameLowering.cpp Chapter9_3/Cpu0FrameLowering.cpp
---- Chapter9_2/Cpu0FrameLowering.cpp	2014-01-25 21:50:03.000000000 +0800
-+++ Chapter9_3/Cpu0FrameLowering.cpp	2014-01-25 21:50:03.000000000 +0800
+--- Chapter9_2/Cpu0FrameLowering.cpp	2014-01-27 13:13:28.250399385 +0800
++++ Chapter9_3/Cpu0FrameLowering.cpp	2014-01-27 13:13:28.246399385 +0800
 @@ -136,7 +136,10 @@
    unsigned ADDiu = Cpu0::ADDiu;
    // First, compute final stack size.
@@ -229,8 +218,8 @@ diff -Naur Chapter9_2/Cpu0FrameLowering.cpp Chapter9_3/Cpu0FrameLowering.cpp
  //  physical registers used to determine what callee saved registers should be 
  //  spilled. This method is optional. 
 diff -Naur Chapter9_2/Cpu0FrameLowering.h Chapter9_3/Cpu0FrameLowering.h
---- Chapter9_2/Cpu0FrameLowering.h	2014-01-25 21:50:03.000000000 +0800
-+++ Chapter9_3/Cpu0FrameLowering.h	2014-01-25 21:50:03.000000000 +0800
+--- Chapter9_2/Cpu0FrameLowering.h	2014-01-27 13:13:28.250399385 +0800
++++ Chapter9_3/Cpu0FrameLowering.h	2014-01-27 13:13:28.246399385 +0800
 @@ -35,6 +35,9 @@
    void emitPrologue(MachineFunction &MF) const;
    void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const;
@@ -241,9 +230,57 @@ diff -Naur Chapter9_2/Cpu0FrameLowering.h Chapter9_3/Cpu0FrameLowering.h
    void processFunctionBeforeCalleeSavedScan(MachineFunction &MF,
                                              RegScavenger *RS) const;
  };
+diff -Naur Chapter9_2/Cpu0.h Chapter9_3/Cpu0.h
+--- Chapter9_2/Cpu0.h	2014-01-27 13:13:28.250399385 +0800
++++ Chapter9_3/Cpu0.h	2014-01-27 13:13:28.246399385 +0800
+@@ -23,6 +23,7 @@
+   class FunctionPass;
+ 
+   FunctionPass *createCpu0ISelDag(Cpu0TargetMachine &TM);
++  FunctionPass *createCpu0EmitGPRestorePass(Cpu0TargetMachine &TM);
+ 
+ } // end namespace llvm;
+ 
+diff -Naur Chapter9_2/Cpu0InstrInfo.cpp Chapter9_3/Cpu0InstrInfo.cpp
+--- Chapter9_2/Cpu0InstrInfo.cpp	2014-01-27 13:13:28.250399385 +0800
++++ Chapter9_3/Cpu0InstrInfo.cpp	2014-01-27 13:13:28.246399385 +0800
+@@ -22,6 +22,7 @@
+ 
+ Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
+   : 
++    Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
+     TM(tm),
+     RI(*TM.getSubtargetImpl(), *this) {}
+ 
+diff -Naur Chapter9_2/Cpu0InstrInfo.td Chapter9_3/Cpu0InstrInfo.td
+--- Chapter9_2/Cpu0InstrInfo.td	2014-01-27 13:13:28.250399385 +0800
++++ Chapter9_3/Cpu0InstrInfo.td	2014-01-27 13:13:28.246399385 +0800
+@@ -400,6 +400,14 @@
+                                   [(callseq_end timm:$amt1, timm:$amt2)]>;
+ }
+ 
++// When handling PIC code the assembler needs .cpload and .cprestore
++// directives. If the real instructions corresponding these directives
++// are used, we have the same behavior, but get also a bunch of warnings
++// from the assembler.
++let neverHasSideEffects = 1 in
++def CPRESTORE : Cpu0Pseudo<(outs), (ins i32imm:$loc, CPURegs:$gp),
++                           ".cprestore\t$loc", []>;
++
+ //===----------------------------------------------------------------------===//
+ // Instruction definition
+ //===----------------------------------------------------------------------===//
+@@ -468,6 +476,7 @@
+   def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
+ 
+ def RET     : RetBase<GPROut>;
++def IRET    : JumpFR<0x3d, "iret", GPROut>;
+ 
+ def JALR    : JumpLinkReg<0x3e, "jalr", GPROut>;
+ 
 diff -Naur Chapter9_2/Cpu0ISelLowering.cpp Chapter9_3/Cpu0ISelLowering.cpp
---- Chapter9_2/Cpu0ISelLowering.cpp	2014-01-25 21:50:03.000000000 +0800
-+++ Chapter9_3/Cpu0ISelLowering.cpp	2014-01-25 21:50:03.000000000 +0800
+--- Chapter9_2/Cpu0ISelLowering.cpp	2014-01-27 13:13:28.246399385 +0800
++++ Chapter9_3/Cpu0ISelLowering.cpp	2014-01-27 13:13:28.246399385 +0800
 @@ -333,6 +333,9 @@
      NextStackOffset = (NextStackOffset + StackAlignment - 1) /
                        StackAlignment * StackAlignment;
@@ -297,95 +334,9 @@ diff -Naur Chapter9_2/Cpu0ISelLowering.cpp Chapter9_3/Cpu0ISelLowering.cpp
  }
  
  bool // lbd document - mark - isOffsetFoldingLegal
-diff -Naur Chapter9_2/Cpu0InstrInfo.cpp Chapter9_3/Cpu0InstrInfo.cpp
---- Chapter9_2/Cpu0InstrInfo.cpp	2014-01-25 21:50:03.000000000 +0800
-+++ Chapter9_3/Cpu0InstrInfo.cpp	2014-01-25 21:50:03.000000000 +0800
-@@ -22,6 +22,7 @@
- 
- Cpu0InstrInfo::Cpu0InstrInfo(Cpu0TargetMachine &tm)
-   : 
-+    Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
-     TM(tm),
-     RI(*TM.getSubtargetImpl(), *this) {}
- 
-diff -Naur Chapter9_2/Cpu0InstrInfo.td Chapter9_3/Cpu0InstrInfo.td
---- Chapter9_2/Cpu0InstrInfo.td	2014-01-25 21:50:03.000000000 +0800
-+++ Chapter9_3/Cpu0InstrInfo.td	2014-01-25 21:50:03.000000000 +0800
-@@ -400,6 +400,14 @@
-                                   [(callseq_end timm:$amt1, timm:$amt2)]>;
- }
- 
-+// When handling PIC code the assembler needs .cpload and .cprestore
-+// directives. If the real instructions corresponding these directives
-+// are used, we have the same behavior, but get also a bunch of warnings
-+// from the assembler.
-+let neverHasSideEffects = 1 in
-+def CPRESTORE : Cpu0Pseudo<(outs), (ins i32imm:$loc, CPURegs:$gp),
-+                           ".cprestore\t$loc", []>;
-+
- //===----------------------------------------------------------------------===//
- // Instruction definition
- //===----------------------------------------------------------------------===//
-@@ -468,6 +476,7 @@
-   def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
- 
- def RET     : RetBase<CPURegs>;
-+def IRET    : JumpFR<0x3d, "iret", CPURegs>;
- 
- def JALR    : JumpLinkReg<0x3e, "jalr", CPURegs>;
- 
-diff -Naur Chapter9_2/Cpu0MCInstLower.cpp Chapter9_3/Cpu0MCInstLower.cpp
---- Chapter9_2/Cpu0MCInstLower.cpp	2014-01-25 21:50:03.000000000 +0800
-+++ Chapter9_3/Cpu0MCInstLower.cpp	2014-01-25 21:50:03.000000000 +0800
-@@ -127,6 +127,34 @@
-   CreateMCInst(MCInsts[2], Cpu0::ADD, GPReg, GPReg, T9Reg);
- } // lbd document - mark - LowerCPLOAD
- 
-+// Lower ".cprestore offset" to "st $gp, offset($sp)".
-+void Cpu0MCInstLower::LowerCPRESTORE(int64_t Offset,
-+                                     SmallVector<MCInst, 4>& MCInsts) {
-+  assert(isInt<32>(Offset) && (Offset >= 0) &&
-+         "Imm operand of .cprestore must be a non-negative 32-bit value.");
-+
-+  MCOperand SPReg = MCOperand::CreateReg(Cpu0::SP), BaseReg = SPReg;
-+  MCOperand GPReg = MCOperand::CreateReg(Cpu0::GP);
-+  MCOperand ZEROReg = MCOperand::CreateReg(Cpu0::ZERO);
-+
-+  if (!isInt<16>(Offset)) {
-+    unsigned Hi = ((Offset + 0x8000) >> 16) & 0xffff;
-+    Offset &= 0xffff;
-+    MCOperand ATReg = MCOperand::CreateReg(Cpu0::AT);
-+    BaseReg = ATReg;
-+
-+    // lui   at,hi
-+    // add   at,at,sp
-+    MCInsts.resize(2);
-+    CreateMCInst(MCInsts[0], Cpu0::LUi, ATReg, ZEROReg, MCOperand::CreateImm(Hi));
-+    CreateMCInst(MCInsts[1], Cpu0::ADD, ATReg, ATReg, SPReg);
-+  }
-+
-+  MCInst St;
-+  CreateMCInst(St, Cpu0::ST, GPReg, BaseReg, MCOperand::CreateImm(Offset));
-+  MCInsts.push_back(St);
-+} // lbd document - mark - LowerCPRESTORE
-+
- MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand& MO,
-                                         unsigned offset) const {
-   MachineOperandType MOTy = MO.getType();
-diff -Naur Chapter9_2/Cpu0MCInstLower.h Chapter9_3/Cpu0MCInstLower.h
---- Chapter9_2/Cpu0MCInstLower.h	2014-01-25 21:50:03.000000000 +0800
-+++ Chapter9_3/Cpu0MCInstLower.h	2014-01-25 21:50:03.000000000 +0800
-@@ -32,6 +32,7 @@
-   void Initialize(MCContext* C);
-   void Lower(const MachineInstr *MI, MCInst &OutMI) const;
-   void LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts);
-+  void LowerCPRESTORE(int64_t Offset, SmallVector<MCInst, 4>& MCInsts);
- private:
-   MCOperand LowerSymbolOperand(const MachineOperand &MO,
-                                MachineOperandType MOTy, unsigned Offset) const;
 diff -Naur Chapter9_2/Cpu0MachineFunction.h Chapter9_3/Cpu0MachineFunction.h
---- Chapter9_2/Cpu0MachineFunction.h	2014-01-25 21:50:03.000000000 +0800
-+++ Chapter9_3/Cpu0MachineFunction.h	2014-01-25 21:50:03.000000000 +0800
+--- Chapter9_2/Cpu0MachineFunction.h	2014-01-27 13:13:28.250399385 +0800
++++ Chapter9_3/Cpu0MachineFunction.h	2014-01-27 13:13:28.246399385 +0800
 @@ -26,6 +26,11 @@
    virtual void anchor();
    MachineFunction& MF;
@@ -427,9 +378,58 @@ diff -Naur Chapter9_2/Cpu0MachineFunction.h Chapter9_3/Cpu0MachineFunction.h
    bool globalBaseRegFixed() const;
    bool globalBaseRegSet() const;
    unsigned getGlobalBaseReg();
+diff -Naur Chapter9_2/Cpu0MCInstLower.cpp Chapter9_3/Cpu0MCInstLower.cpp
+--- Chapter9_2/Cpu0MCInstLower.cpp	2014-01-27 13:13:28.246399385 +0800
++++ Chapter9_3/Cpu0MCInstLower.cpp	2014-01-27 13:13:28.246399385 +0800
+@@ -127,6 +127,34 @@
+   CreateMCInst(MCInsts[2], Cpu0::ADD, GPReg, GPReg, T9Reg);
+ } // lbd document - mark - LowerCPLOAD
+ 
++// Lower ".cprestore offset" to "st $gp, offset($sp)".
++void Cpu0MCInstLower::LowerCPRESTORE(int64_t Offset,
++                                     SmallVector<MCInst, 4>& MCInsts) {
++  assert(isInt<32>(Offset) && (Offset >= 0) &&
++         "Imm operand of .cprestore must be a non-negative 32-bit value.");
++
++  MCOperand SPReg = MCOperand::CreateReg(Cpu0::SP), BaseReg = SPReg;
++  MCOperand GPReg = MCOperand::CreateReg(Cpu0::GP);
++  MCOperand ZEROReg = MCOperand::CreateReg(Cpu0::ZERO);
++
++  if (!isInt<16>(Offset)) {
++    unsigned Hi = ((Offset + 0x8000) >> 16) & 0xffff;
++    Offset &= 0xffff;
++    MCOperand ATReg = MCOperand::CreateReg(Cpu0::AT);
++    BaseReg = ATReg;
++
++    // lui   at,hi
++    // add   at,at,sp
++    MCInsts.resize(2);
++    CreateMCInst(MCInsts[0], Cpu0::LUi, ATReg, ZEROReg, MCOperand::CreateImm(Hi));
++    CreateMCInst(MCInsts[1], Cpu0::ADD, ATReg, ATReg, SPReg);
++  }
++
++  MCInst St;
++  CreateMCInst(St, Cpu0::ST, GPReg, BaseReg, MCOperand::CreateImm(Offset));
++  MCInsts.push_back(St);
++} // lbd document - mark - LowerCPRESTORE
++
+ MCOperand Cpu0MCInstLower::LowerOperand(const MachineOperand& MO,
+                                         unsigned offset) const {
+   MachineOperandType MOTy = MO.getType();
+diff -Naur Chapter9_2/Cpu0MCInstLower.h Chapter9_3/Cpu0MCInstLower.h
+--- Chapter9_2/Cpu0MCInstLower.h	2014-01-27 13:13:28.250399385 +0800
++++ Chapter9_3/Cpu0MCInstLower.h	2014-01-27 13:13:28.246399385 +0800
+@@ -32,6 +32,7 @@
+   void Initialize(MCContext* C);
+   void Lower(const MachineInstr *MI, MCInst &OutMI) const;
+   void LowerCPLOAD(SmallVector<MCInst, 4>& MCInsts);
++  void LowerCPRESTORE(int64_t Offset, SmallVector<MCInst, 4>& MCInsts);
+ private:
+   MCOperand LowerSymbolOperand(const MachineOperand &MO,
+                                MachineOperandType MOTy, unsigned Offset) const;
 diff -Naur Chapter9_2/Cpu0RegisterInfo.cpp Chapter9_3/Cpu0RegisterInfo.cpp
---- Chapter9_2/Cpu0RegisterInfo.cpp	2014-01-25 21:50:03.000000000 +0800
-+++ Chapter9_3/Cpu0RegisterInfo.cpp	2014-01-25 21:50:03.000000000 +0800
+--- Chapter9_2/Cpu0RegisterInfo.cpp	2014-01-27 13:13:28.250399385 +0800
++++ Chapter9_3/Cpu0RegisterInfo.cpp	2014-01-27 13:13:28.246399385 +0800
 @@ -96,6 +96,7 @@
    MachineInstr &MI = *II;
    MachineFunction &MF = *MI.getParent()->getParent();
@@ -463,8 +463,8 @@ diff -Naur Chapter9_2/Cpu0RegisterInfo.cpp Chapter9_3/Cpu0RegisterInfo.cpp
    Offset    += MI.getOperand(i+1).getImm();
  
 diff -Naur Chapter9_2/Cpu0TargetMachine.cpp Chapter9_3/Cpu0TargetMachine.cpp
---- Chapter9_2/Cpu0TargetMachine.cpp	2014-01-25 21:50:03.000000000 +0800
-+++ Chapter9_3/Cpu0TargetMachine.cpp	2014-01-25 21:50:03.000000000 +0800
+--- Chapter9_2/Cpu0TargetMachine.cpp	2014-01-27 13:13:28.250399385 +0800
++++ Chapter9_3/Cpu0TargetMachine.cpp	2014-01-27 13:13:28.246399385 +0800
 @@ -83,6 +83,7 @@
      return *getCpu0TargetMachine().getSubtargetImpl();
    } // lbd document - mark - getCpu0Subtarget()

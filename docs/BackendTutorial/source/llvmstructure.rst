@@ -405,6 +405,18 @@ The following table details the Cpu0 instruction set:
     - Move GPR to LO
     - MTLO Ra
     - LO <= Ra
+  * - L
+    - MFSW
+    - 50
+    - Move SW to GPR
+    - MFSW Ra
+    - Ra <= SW
+  * - L
+    - MTSW
+    - 51
+    - Move GPR to SW
+    - MTSW Ra
+    - SW <= Ra
 
 .. note:: **Cpu0 unsigned instructions**
 
@@ -807,14 +819,14 @@ The Cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
     :start-after: // lbd document - mark - class UncondBranch
     :end-before: // Jump and Link (Call)
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
-    :start-after: def LoadAddr32Imm : LoadAddressImm<"la", shamt, CPURegs>;
+    :start-after: def LoadAddr32Imm : LoadAddressImm<"la", shamt, GPROut>;
     :end-before: defm LB     : LoadM32<0x03, "lb",  sextloadi8>;
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
     :start-after: defm SH     : StoreM32<0x08, "sh", truncstorei16_a>;
     :end-before: def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs>;
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
     :start-after: def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
-    :end-before: def IRET    : JumpFR<0x3d, "iret", CPURegs>;
+    :end-before: def IRET    : JumpFR<0x3d, "iret", GPROut>;
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
     :start-after: // lbd document - mark - def LEA_ADDiu
     :end-before: def : Pat<(i32 immZExt16:$in),
@@ -838,9 +850,9 @@ value as follows,
   /// Arithmetic and logical instructions with 2 register operands.
   class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
             Operand Od, PatLeaf imm_type, RegisterClass RC> :
-    FL<op, (outs RC:$ra), (ins RC:$rb, Od:$imm16),
+    FL<op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
      !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
-     [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu> {
+     [(set GPROut:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu> {
     let isReMaterializable = 1;
   }
   
@@ -863,9 +875,9 @@ Expand with FL further,
 
 .. code-block:: c++
 
-   :  FL<op, (outs RC:$ra), (ins RC:$rb, Od:$imm16),
+   :  FL<op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
      !strconcat(instr_asm, "\t$ra, $rb, $imm16"), 
-     [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu>
+     [(set GPROut:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu>
   
   class FL<bits<8> op, dag outs, dag ins, string asmstr, list<dag> pattern, 
        InstrItinClass itin>: Cpu0Inst<outs, ins, asmstr, pattern, itin, FrmL>
@@ -885,19 +897,19 @@ So,
 
 op = 0x09
 
-outs = CPURegs:$ra
+outs = GPROut:$ra
 
 ins = CPURegs:$rb,simm16:$imm16
 
 asmstr = "addiu\t$ra, $rb, $imm16"
 
-pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]
+pattern = [(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]
 
 itin = IIAlu
 
 Members are,
 
-ra = CPURegs:$ra
+ra = GPROut:$ra
 
 rb = CPURegs:$rb
 
@@ -905,7 +917,7 @@ imm16 = simm16:$imm16
 
 Opcode = 0x09;
 
-Inst{23-20} = CPURegs:$ra; 
+Inst{23-20} = GPROut:$ra; 
 
 Inst{19-16} = CPURegs:$rb; 
 
@@ -962,7 +974,7 @@ ins = CPURegs:$rb,simm16:$imm16
 
 asmstr = "addiu\t$ra, $rb, $imm16"
 
-pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]
+pattern = [(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]
 
 itin = IIAlu
 
@@ -972,13 +984,13 @@ Members are,
 
 Inst{31-24} = 0x09; 
 
-OutOperandList = CPURegs:$ra 
+OutOperandList = GPROut:$ra 
 
 InOperandList  = CPURegs:$rb,simm16:$imm16
 
 AsmString = "addiu\t$ra, $rb, $imm16"
 
-Pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]
+Pattern = [(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]
 
 Itinerary = IIAlu
   
@@ -992,7 +1004,7 @@ DecoderNamespace = "Cpu0";
 
 Inst{31-24} = 0x08; 
 
-Inst{23-20} = CPURegs:$ra; 
+Inst{23-20} = GPROut:$ra; 
 
 Inst{19-16} = CPURegs:$rb; 
 
@@ -1004,7 +1016,7 @@ InOperandList  = CPURegs:$rb,simm16:$imm16
 
 AsmString = "addiu\t$ra, $rb, $imm16"
 
-Pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]
+Pattern = [(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]
 
 Itinerary = IIAlu
 
@@ -1023,7 +1035,7 @@ imm16 = simm16:$imm16
 It's a lousy process. 
 Similarly, LD and ST instruction definition can be expanded in this way. 
 Please notify the Pattern =  
-[(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))] which include keyword 
+[(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))] which include keyword 
 **“add”**. 
 We will use it in DAG transformations later. 
 

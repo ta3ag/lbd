@@ -1,6 +1,6 @@
 diff -Naur Chapter3_2/CMakeLists.txt Chapter3_3/CMakeLists.txt
---- Chapter3_2/CMakeLists.txt	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter3_3/CMakeLists.txt	2014-01-25 21:50:02.000000000 +0800
+--- Chapter3_2/CMakeLists.txt	2014-01-27 13:13:28.246399385 +0800
++++ Chapter3_3/CMakeLists.txt	2014-01-27 13:13:28.246399385 +0800
 @@ -25,6 +25,7 @@
  add_llvm_target(Cpu0CodeGen
    Cpu0AsmPrinter.cpp
@@ -9,9 +9,49 @@ diff -Naur Chapter3_2/CMakeLists.txt Chapter3_3/CMakeLists.txt
    Cpu0ISelLowering.cpp
    Cpu0FrameLowering.cpp
    Cpu0MCInstLower.cpp
+diff -Naur Chapter3_2/Cpu0InstrInfo.cpp Chapter3_3/Cpu0InstrInfo.cpp
+--- Chapter3_2/Cpu0InstrInfo.cpp	2014-01-27 13:13:28.246399385 +0800
++++ Chapter3_3/Cpu0InstrInfo.cpp	2014-01-27 13:13:28.246399385 +0800
+@@ -13,6 +13,7 @@
+ 
+ #include "Cpu0InstrInfo.h"
+ #include "Cpu0TargetMachine.h"
++#include "llvm/CodeGen/MachineInstrBuilder.h"
+ #define GET_INSTRINFO_CTOR_DTOR
+ #include "Cpu0GenInstrInfo.inc"
+ 
+@@ -27,3 +28,12 @@
+   return RI;
+ } // lbd document - mark - getRegisterInfo()
+ 
++MachineInstr*
++Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
++                                        uint64_t Offset, const MDNode *MDPtr,
++                                        DebugLoc DL) const {
++  MachineInstrBuilder MIB = BuildMI(MF, DL, get(Cpu0::DBG_VALUE))
++    .addFrameIndex(FrameIx).addImm(0).addImm(Offset).addMetadata(MDPtr);
++  return &*MIB;
++} // lbd document - mark - emitFrameIndexDebugValue
++
+diff -Naur Chapter3_2/Cpu0InstrInfo.h Chapter3_3/Cpu0InstrInfo.h
+--- Chapter3_2/Cpu0InstrInfo.h	2014-01-27 13:13:28.246399385 +0800
++++ Chapter3_3/Cpu0InstrInfo.h	2014-01-27 13:13:28.246399385 +0800
+@@ -35,6 +35,12 @@
+   /// always be able to get register info as well (through this method).
+   ///
+   virtual const Cpu0RegisterInfo &getRegisterInfo() const;
++
++  virtual MachineInstr* emitFrameIndexDebugValue(MachineFunction &MF,
++                                                 int FrameIx, uint64_t Offset,
++                                                 const MDNode *MDPtr,
++                                                 DebugLoc DL) const;
++  // lbd document - mark - emitFrameIndexDebugValue
+ };
+ }
+ 
 diff -Naur Chapter3_2/Cpu0ISelDAGToDAG.cpp Chapter3_3/Cpu0ISelDAGToDAG.cpp
 --- Chapter3_2/Cpu0ISelDAGToDAG.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_3/Cpu0ISelDAGToDAG.cpp	2014-01-25 21:50:02.000000000 +0800
++++ Chapter3_3/Cpu0ISelDAGToDAG.cpp	2014-01-27 13:13:28.246399385 +0800
 @@ -0,0 +1,183 @@
 +//===-- Cpu0ISelDAGToDAG.cpp - A Dag to Dag Inst Selector for Cpu0 --------===//
 +//
@@ -196,49 +236,9 @@ diff -Naur Chapter3_2/Cpu0ISelDAGToDAG.cpp Chapter3_3/Cpu0ISelDAGToDAG.cpp
 +FunctionPass *llvm::createCpu0ISelDag(Cpu0TargetMachine &TM) {
 +  return new Cpu0DAGToDAGISel(TM);
 +}
-diff -Naur Chapter3_2/Cpu0InstrInfo.cpp Chapter3_3/Cpu0InstrInfo.cpp
---- Chapter3_2/Cpu0InstrInfo.cpp	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter3_3/Cpu0InstrInfo.cpp	2014-01-25 21:50:02.000000000 +0800
-@@ -13,6 +13,7 @@
- 
- #include "Cpu0InstrInfo.h"
- #include "Cpu0TargetMachine.h"
-+#include "llvm/CodeGen/MachineInstrBuilder.h"
- #define GET_INSTRINFO_CTOR_DTOR
- #include "Cpu0GenInstrInfo.inc"
- 
-@@ -27,3 +28,12 @@
-   return RI;
- } // lbd document - mark - getRegisterInfo()
- 
-+MachineInstr*
-+Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
-+                                        uint64_t Offset, const MDNode *MDPtr,
-+                                        DebugLoc DL) const {
-+  MachineInstrBuilder MIB = BuildMI(MF, DL, get(Cpu0::DBG_VALUE))
-+    .addFrameIndex(FrameIx).addImm(0).addImm(Offset).addMetadata(MDPtr);
-+  return &*MIB;
-+} // lbd document - mark - emitFrameIndexDebugValue
-+
-diff -Naur Chapter3_2/Cpu0InstrInfo.h Chapter3_3/Cpu0InstrInfo.h
---- Chapter3_2/Cpu0InstrInfo.h	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter3_3/Cpu0InstrInfo.h	2014-01-25 21:50:02.000000000 +0800
-@@ -35,6 +35,12 @@
-   /// always be able to get register info as well (through this method).
-   ///
-   virtual const Cpu0RegisterInfo &getRegisterInfo() const;
-+
-+  virtual MachineInstr* emitFrameIndexDebugValue(MachineFunction &MF,
-+                                                 int FrameIx, uint64_t Offset,
-+                                                 const MDNode *MDPtr,
-+                                                 DebugLoc DL) const;
-+  // lbd document - mark - emitFrameIndexDebugValue
- };
- }
- 
 diff -Naur Chapter3_2/Cpu0TargetMachine.cpp Chapter3_3/Cpu0TargetMachine.cpp
---- Chapter3_2/Cpu0TargetMachine.cpp	2014-01-25 21:50:02.000000000 +0800
-+++ Chapter3_3/Cpu0TargetMachine.cpp	2014-01-25 21:50:02.000000000 +0800
+--- Chapter3_2/Cpu0TargetMachine.cpp	2014-01-27 13:13:28.246399385 +0800
++++ Chapter3_3/Cpu0TargetMachine.cpp	2014-01-27 13:13:28.246399385 +0800
 @@ -82,6 +82,7 @@
    const Cpu0Subtarget &getCpu0Subtarget() const {
      return *getCpu0TargetMachine().getSubtargetImpl();

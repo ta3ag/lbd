@@ -447,7 +447,7 @@ Chapter12_2/ include the changes for new instruction sets as follows,
   ...
   class ArithOverflowR<bits<8> op, string instr_asm,
                       InstrItinClass itin, RegisterClass RC, bit isComm = 0>:
-    FA<op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
+    FA<op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
        !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], itin> {
     let shamt = 0;
     let isCommutable = isComm;
@@ -483,18 +483,18 @@ Chapter12_2/ include the changes for new instruction sets as follows,
   // SetCC
   class SetCC_R<bits<8> op, string instr_asm, PatFrag cond_op,
                 RegisterClass RC>:
-    FA<op, (outs CPURegs:$ra), (ins RC:$rb, RC:$rc),
+    FA<op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
        !strconcat(instr_asm, "\t$ra, $rb, $rc"),
-       [(set CPURegs:$ra, (cond_op RC:$rb, RC:$rc))],
+       [(set GPROut:$ra, (cond_op RC:$rb, RC:$rc))],
        IIAlu>, Requires<[HasCpu032II]> {
     let shamt = 0;
   }
   
   class SetCC_I<bits<8> op, string instr_asm, PatFrag cond_op, Operand Od,
                 PatLeaf imm_type, RegisterClass RC>:
-    FL<op, (outs CPURegs:$ra), (ins RC:$rb, Od:$imm16),
+    FL<op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
        !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
-       [(set CPURegs:$ra, (cond_op RC:$rb, imm_type:$imm16))],
+       [(set GPROut:$ra, (cond_op RC:$rb, imm_type:$imm16))],
        IIAlu>, Requires<[HasCpu032II]> {
   }
   ...

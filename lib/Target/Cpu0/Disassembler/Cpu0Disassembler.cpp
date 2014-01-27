@@ -58,7 +58,18 @@ static const unsigned CPURegsTable[] = {
   Cpu0::FP, Cpu0::SP, Cpu0::LR, Cpu0::PC
 };
 
+static const unsigned GPROutTable[] = {
+  Cpu0::ZERO, Cpu0::AT, Cpu0::V0, Cpu0::V1,
+  Cpu0::A0, Cpu0::A1, Cpu0::T9, Cpu0::T0, 
+  Cpu0::S0, Cpu0::S1, Cpu0::GP, 
+  Cpu0::FP, Cpu0::SP, Cpu0::LR, Cpu0::PC
+};
+
 static DecodeStatus DecodeCPURegsRegisterClass(MCInst &Inst,
+                                               unsigned RegNo,
+                                               uint64_t Address,
+                                               const void *Decoder);
+static DecodeStatus DecodeGPROutRegisterClass(MCInst &Inst,
                                                unsigned RegNo,
                                                uint64_t Address,
                                                const void *Decoder);
@@ -188,6 +199,17 @@ static DecodeStatus DecodeCPURegsRegisterClass(MCInst &Inst,
     return MCDisassembler::Fail;
 
   Inst.addOperand(MCOperand::CreateReg(CPURegsTable[RegNo]));
+  return MCDisassembler::Success;
+}
+
+static DecodeStatus DecodeGPROutRegisterClass(MCInst &Inst,
+                                               unsigned RegNo,
+                                               uint64_t Address,
+                                               const void *Decoder) {
+  if (RegNo > 16)
+    return MCDisassembler::Fail;
+
+  Inst.addOperand(MCOperand::CreateReg(GPROutTable[RegNo]));
   return MCDisassembler::Success;
 }
 
