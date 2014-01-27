@@ -269,8 +269,9 @@ LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,
   }
   #endif
 
-Above code use MatchInstructionImpl_R() instead MatchInstructionImpl() since 
-to prevent register SW to be allocated as general purpose output register, we 
+As above code, when ASM_EASY_PORTING is defined, it will use 
+MatchInstructionImpl_R() instead MatchInstructionImpl(). 
+To prevent register SW is allocated as general purpose output register, we 
 use GPROut register class which exclude SW as most output operand defined in 
 Cpu0InstrInfo.td. Of course, the TableGen created file Cpu0GenAsmMatcher.inc 
 as follows,
@@ -284,12 +285,14 @@ as follows,
 
 Above keyword MCK_GPROut will limit AsmParser use GPROut register class as 
 output register. To allow programmer use \$sw as output register such as 
-"add \$sw, \$zero, \$zero" the code must be modified as above. This solution 
-has the problem that need keeping MatchTable0_R[] up to date when 
-file Cpu0InstrInfo.td has changed or the TableGen version is changed.
-If programmer are not allowed to use \$sw as output register (Cpu0 supply 
-instruction MFSW and MFTW to move from/to SW to/from general purpose register), 
-then we can use MatchTable0[] instead of MatchTable0_R[]. 
+"add \$sw, \$zero, \$zero" the code must be modified as above of 
+ASM_EASY_PORTING defined. 
+This solution has the problem that need keeping MatchTable0_R[] up to date by 
+hand when file Cpu0InstrInfo.td has been changed or the TableGen version is 
+changed.
+If we limit programmers that are not allowed to use \$sw as output register 
+(Cpu0 supply instruction MFSW and MFTW to move from/to SW to/from general 
+purpose register), then we can use MatchTable0[] instead of MatchTable0_R[]. 
 The condition compiler flag ASM_EASY_PORTING stands for this purpose.
 
 Finally, remind the CPURegs as below must 
