@@ -653,7 +653,7 @@ generate slt, beq when meet "if else", "while" and "for" flow control
 statements. Please notify the Cpu0ArchVersion must be initialized as the 
 following code, otherwise the Cpu0ArchVersion can be any value and the functions 
 hasCpu032I() and hasCpu032II() which support `llc -mcpu=cpu032I` and 
-`llc -mcpu=cpu032II` will has trouble.
+`llc -mcpu=cpu032II` will have trouble.
 
 .. rubric:: lbdex/Chapter3_1/Cpu0Subtarget.cpp
 .. code-block:: c++
