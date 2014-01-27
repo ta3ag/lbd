@@ -255,11 +255,10 @@ class CmpInstr<bits<8> op, string instr_asm,
 
 // Arithmetic and logical instructions with 2 register operands.
 class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
-                  Operand Od, PatLeaf imm_type, RegisterClass RC, 
-                  RegisterClass RO> :
-  FL<op, (outs RO:$ra), (ins RC:$rb, Od:$imm16),
+                  Operand Od, PatLeaf imm_type, RegisterClass RC> :
+  FL<op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
      !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
-     [(set RO:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu> {
+     [(set GPROut:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu> {
   let isReMaterializable = 1;
 }
 
@@ -267,9 +266,9 @@ class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
 class shift_rotate_imm<bits<8> op, bits<4> isRotate, string instr_asm,
                        SDNode OpNode, PatFrag PF, Operand ImmOpnd,
                        RegisterClass RC>:
-  FA<op, (outs RC:$ra), (ins RC:$rb, ImmOpnd:$shamt),
+  FA<op, (outs GPROut:$ra), (ins RC:$rb, ImmOpnd:$shamt),
      !strconcat(instr_asm, "\t$ra, $rb, $shamt"),
-     [(set RC:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu> {
+     [(set GPROut:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu> {
   let rc = 0;
   let shamt = shamt;
 }
@@ -281,9 +280,9 @@ class shift_rotate_imm32<bits<8> op, bits<4> isRotate, string instr_asm,
 
 class shift_rotate_reg<bits<8> op, bits<4> isRotate, string instr_asm,
                        SDNode OpNode, RegisterClass RC>:
-  FA<op, (outs RC:$ra), (ins CPURegs:$rb, RC:$rc),
+  FA<op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
      !strconcat(instr_asm, "\t$ra, $rb, $rc"),
-     [(set RC:$ra, (OpNode RC:$rb, CPURegs:$rc))], IIAlu> {
+     [(set GPROut:$ra, (OpNode RC:$rb, RC:$rc))], IIAlu> {
   let shamt = 0;
 }
 
@@ -537,10 +536,10 @@ defm SH     : StoreM32<0x08, "sh", truncstorei16_a>;
 
 /// Arithmetic Instructions (ALU Immediate)
 // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
-def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs, GPROut>;
-def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs, GPROut>;
-def ORi     : ArithLogicI<0x0d, "ori", or, uimm16, immZExt16, CPURegs, GPROut>;
-def XORi    : ArithLogicI<0x0e, "xori", xor, uimm16, immZExt16, CPURegs, GPROut>;
+def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
+def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs>;
+def ORi     : ArithLogicI<0x0d, "ori", or, uimm16, immZExt16, CPURegs>;
+def XORi    : ArithLogicI<0x0e, "xori", xor, uimm16, immZExt16, CPURegs>;
 def LUi     : LoadUpper<0x0f, "lui", GPROut, uimm16>;
 
 /// Arithmetic Instructions (3-Operand, R-Type)
@@ -579,23 +578,23 @@ def JGT     : CBranch24<0x33, "jgt", SR, [SW]>;
 def JLE     : CBranch24<0x34, "jle", SR, [SW]>;
 def JGE     : CBranch24<0x35, "jge", SR, [SW]>;
 
-def BEQ     : CBranch16<0x37, "beq", seteq, CPURegs>;
-def BNE     : CBranch16<0x38, "bne", setne, CPURegs>;
+def BEQ     : CBranch16<0x37, "beq", seteq, GPROut>;
+def BNE     : CBranch16<0x38, "bne", setne, GPROut>;
 
 def JMP     : UncondBranch<0x36, "jmp">;
 
 /// Jump & link and Return Instructions
 def SWI     : JumpLink<0x3a, "swi">;
 def JSUB    : JumpLink<0x3b, "jsub">;
-def JR      : JumpFR<0x3c, "ret", CPURegs>;
+def JR      : JumpFR<0x3c, "ret", GPROut>;
 
 let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
   def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
 
-def RET     : RetBase<CPURegs>;
-def IRET    : JumpFR<0x3d, "iret", CPURegs>;
+def RET     : RetBase<GPROut>;
+def IRET    : JumpFR<0x3d, "iret", GPROut>;
 
-def JALR    : JumpLinkReg<0x3e, "jalr", CPURegs>;
+def JALR    : JumpLinkReg<0x3e, "jalr", GPROut>;
 
 /// Multiply and Divide Instructions.
 def MULT    : Mult32<0x41, "mult", IIImul>;
