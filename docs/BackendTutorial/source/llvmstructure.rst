@@ -819,6 +819,9 @@ The Cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
     :start-after: // lbd document - mark - class UncondBranch
     :end-before: // Jump and Link (Call)
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
+    :start-after: ".cprestore\t$loc", []>;
+    :end-before: // Pseudo Instruction definition
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
     :start-after: def LoadAddr32Imm : LoadAddressImm<"la", shamt, GPROut>;
     :end-before: defm LB     : LoadM32<0x03, "lb",  sextloadi8>;
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
