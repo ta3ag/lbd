@@ -725,7 +725,7 @@ diff -Naur Chapter2/Cpu0Subtarget.cpp Chapter3_1/Cpu0Subtarget.cpp
 +                             const std::string &FS, bool little, 
 +                             Reloc::Model _RM) :
 +  Cpu0GenSubtargetInfo(TT, CPU, FS),
-+  Cpu0ABI(UnknownABI), IsLittle(little), RM(_RM)
++  Cpu0ArchVersion(Cpu032I), Cpu0ABI(UnknownABI), IsLittle(little), RM(_RM)
 +{
 +  std::string CPUName = CPU;
 +  if (CPUName.empty())
