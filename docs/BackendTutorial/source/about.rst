@@ -57,6 +57,7 @@ Version 3.4.2, Not release yet
   Correct typing.
   Move Cpu0 Status Register from Number 20 to Number 10.
   Fix llc -mcpu option problem.
+  Update example code build shell script.
 
 Version 3.4.1, Released January 18, 2014
   Add ch9_4.cpp to lld test.
