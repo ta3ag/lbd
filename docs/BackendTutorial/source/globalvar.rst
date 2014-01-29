@@ -1379,7 +1379,7 @@ mechanism, pattern match, in the Instruction Selection stage.
 
 There are three type for setXXXAction(), Promote, Expand and Custom. 
 Except Custom, the other two maybe no need to coding. 
-The section "Instruction Selector" of [#]_ is the references.
+Here [#]_ is the references.
 
 As shown in the section, the global variable can be laid in 
 .sdata/.sbss by option -cpu0-use-small-section=true. 
@@ -1404,4 +1404,4 @@ variables in small 16 addressable area".
 
 .. [#] http://www.linux-mips.org/pub/linux/mips/doc/ABI/mipsabi.pdf
 
-.. [#] http://llvm.org/docs/WritingAnLLVMBackend.html
+.. [#] http://llvm.org/docs/WritingAnLLVMBackend.html#the-selectiondag-legalize-phase

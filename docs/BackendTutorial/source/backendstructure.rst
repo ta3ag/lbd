@@ -1104,7 +1104,7 @@ Now, for the following basic block notation IR and llvm SSA IR code,
   ...
 
 The llvm SelectionDAG Optimization Phase (is part of Instruction Selection 
-Process) prefered to translate this 2 IR DAG node (fmul %a, %b) (fadd %d, %c) 
+Process) prefered to translate this 2 IR DAG node (fmul %a, %c) (fadd %d, %b) 
 into one machine instruction DAG node (**fmadd** %a, %c, %b), than translate 
 them into 2 machine instruction nodes **fmul** and **fadd**.
 
