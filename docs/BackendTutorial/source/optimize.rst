@@ -1172,9 +1172,7 @@ instructions number.
   114-37-150-209:InputFiles Jonathan$ bash build-optimize.sh 
   OS = Darwin
   CPU = cpu032I
-  ~/test/lbd/docs/BackendTutorial/source_ExampleCode/InputFiles ~/test/lbd/docs/
-  BackendTutorial/source_ExampleCode/InputFiles
-  ~/test/lbd/docs/BackendTutorial/source_ExampleCode/InputFiles
+  ...
   114-37-150-209:InputFiles Jonathan$ cd ../cpu0_verilog/
   114-37-150-209:cpu0_verilog Jonathan$ iverilog -o cpu0Is cpu0Is.v
   114-37-150-209:cpu0_verilog Jonathan$ ./cpu0Is
@@ -1185,15 +1183,13 @@ instructions number.
   RET to PC < 0, finished!
   
   114-37-150-209:cpu0_verilog Jonathan$ cd ../InputFiles/
-  114-37-150-209:InputFiles Jonathan$ bash build-optimize.sh 
+  114-37-150-209:InputFiles Jonathan$ bash build-optimize.sh cpu032II
   OS = Darwin
   CPU = cpu032II
-  ~/test/lbd/docs/BackendTutorial/source_ExampleCode/InputFiles ~/test/lbd/docs/
-  BackendTutorial/source_ExampleCode/InputFiles
-  ~/test/lbd/docs/BackendTutorial/source_ExampleCode/InputFiles
+  ...
   114-37-150-209:InputFiles Jonathan$ cd ../cpu0_verilog/
-  114-37-150-209:cpu0_verilog Jonathan$ iverilog -o cpu0Is cpu0Is.v
-  114-37-150-209:cpu0_verilog Jonathan$ ./cpu0Is
+  114-37-150-209:cpu0_verilog Jonathan$ iverilog -o cpu0IIs cpu0IIs.v
+  114-37-150-209:cpu0_verilog Jonathan$ ./cpu0IIs
   WARNING: ./cpu0.v:373: $readmemh(cpu0.hex): Not enough words in the file for 
   the requested range [0:524287].
   taskInterrupt(001)
