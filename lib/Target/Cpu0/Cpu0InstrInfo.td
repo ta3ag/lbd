@@ -847,3 +847,6 @@ defm : SetgtPatsSlt<CPURegs, SLT, SLTu>;
 defm : SetgePatsSlt<CPURegs, SLT, SLTu>;
 defm : SetgeImmPatsSlt<CPURegs, SLTi, SLTiu>;
 }
+
+include "Cpu0CondMov.td"
+

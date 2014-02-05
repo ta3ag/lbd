@@ -950,6 +950,67 @@ The ch12_3.cpp is written in assembly for AsmParser test. You can check if it
 will generate the obj.
 
 
+Conditional instruction
+------------------------
+
+Since the clang optimization option O1 above will generate **select** and 
+**select_cc** to support conditional instruction, we add this feature in Cpu0 
+backend too. Chapter12_3 support **select** with the following code added and 
+changed.
+
+
+.. rubric:: lbdex/Chapter12_3/AsmParser/Cpu0AsmParser.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/Cpu0AsmParser.cpp
+    :start-after: #define GET_REGISTER_MATCHER
+    :end-before: unsigned Cpu0AsmParser::
+
+.. rubric:: lbdex/Chapter12_3/Cpu0InstInfo.td
+.. code-block:: c++
+
+  include "Cpu0CondMov.td"
+
+.. rubric:: lbdex/Chapter12_3/Cpu0CondMov.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0CondMov.td
+
+
+.. rubric:: lbdex/Chapter12_3/Cpu0ISelLowering.h
+.. code-block:: c++
+
+    SDValue lowerSELECT(SDValue Op, SelectionDAG &DAG) const;
+
+
+.. rubric:: lbdex/Chapter12_3/Cpu0ISelLowering.h
+.. code-block:: c++
+
+  Cpu0TargetLowering::
+  Cpu0TargetLowering(Cpu0TargetMachine &TM)
+    : TargetLowering(TM, new Cpu0TargetObjectFile()),
+      Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
+    ...
+    setOperationAction(ISD::SELECT,             MVT::i32,   Custom);
+    ...  
+    setOperationAction(ISD::SELECT_CC,         MVT::Other, Expand);
+    ...
+  }
+  ...
+  SDValue Cpu0TargetLowering::
+  LowerOperation(SDValue Op, SelectionDAG &DAG) const
+  {
+    switch (Op.getOpcode())
+    {
+      ...
+      case ISD::SELECT:             return lowerSELECT(Op, DAG);
+      ...
+    }
+    return SDValue();
+  }
+  ...
+  SDValue Cpu0TargetLowering::
+  lowerSELECT(SDValue Op, SelectionDAG &DAG) const
+  {
+    return Op;
+  }
+
 
 .. [#] On a platform with cache and DRAM, the cache miss cost serveral tens 
        time of instruction cycle. The compiler engineers work in the vendor of 

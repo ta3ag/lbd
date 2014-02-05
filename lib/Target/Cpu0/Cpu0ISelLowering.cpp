@@ -140,6 +140,7 @@ Cpu0TargetLowering(Cpu0TargetMachine &TM)
 
   // Cpu0 Custom Operations
   setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
+  setOperationAction(ISD::SELECT,             MVT::i32,   Custom);
   setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
   setOperationAction(ISD::VASTART,            MVT::Other, Custom);
 
@@ -153,6 +154,7 @@ Cpu0TargetLowering(Cpu0TargetMachine &TM)
 
   // Operations not directly supported by Cpu0.
   setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
+  setOperationAction(ISD::SELECT_CC,         MVT::Other, Expand);
   setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i32,  Expand);
 
   // Support va_arg(): variable numbers (not fixed numbers) of arguments 
@@ -234,6 +236,7 @@ LowerOperation(SDValue Op, SelectionDAG &DAG) const
   {
     case ISD::BRCOND:             return LowerBRCOND(Op, DAG);
     case ISD::GlobalAddress:      return LowerGlobalAddress(Op, DAG);
+    case ISD::SELECT:             return lowerSELECT(Op, DAG);
     case ISD::VASTART:            return LowerVASTART(Op, DAG);
   }
   return SDValue();
@@ -260,6 +263,12 @@ AddLiveIn(MachineFunction &MF, unsigned PReg, const TargetRegisterClass *RC)
 //===----------------------------------------------------------------------===//
 SDValue Cpu0TargetLowering::
 LowerBRCOND(SDValue Op, SelectionDAG &DAG) const
+{
+  return Op;
+}
+
+SDValue Cpu0TargetLowering::
+lowerSELECT(SDValue Op, SelectionDAG &DAG) const
 {
   return Op;
 }
