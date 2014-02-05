@@ -1,3 +1,5 @@
+`define JIT
+`define JITADDR   'hf0000
 `define MEMSIZE   'h80000
 `define MEMEMPTY   8'hFF
 `define NULL       8'h00
@@ -75,6 +77,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   parameter Reset=3'h0, Fetch=3'h1, Decode=3'h2, Execute=3'h3, WriteBack=3'h4;
   integer i;
 
+`ifdef JIT
   // Read Memory Word
   task memReadStart(input [31:0] addr, input [1:0] size); begin 
     mar = addr;     // read(m[addr])
@@ -82,12 +85,29 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
     m_en = 1;     // Enable read
     m_size = size;
   end endtask
+`else
+  // Read Memory Word
+  task memReadStart(input [31:0] addr, input [1:0] size); begin 
+    mar = addr;     // read(m[addr])
+    m_rw = 1;     // Access Mode: read 
+    m_en = 1;     // Enable read
+    m_size = size;
+  end endtask
+`endif
 
+`ifdef JIT
   task memReadEnd(output [31:0] data); begin // Read Memory Finish, get data
     mdr = dbus; // get momory, dbus = m[addr]
     data = mdr; // return to data
     m_en = 0; // read complete
   end endtask
+`else
+  task memReadEnd(output [31:0] data); begin // Read Memory Finish, get data
+    mdr = dbus; // get momory, dbus = m[addr]
+    data = mdr; // return to data
+    m_en = 0; // read complete
+  end endtask
+`endif
 
   // Write memory -- addr: address to write, data: date to write
   task memWriteStart(input [31:0] addr, input [31:0] data, input [1:0] size); 
@@ -342,6 +362,7 @@ endmodule
 module memory0(input clock, reset, en, rw, input [1:0] m_size, 
                 input [31:0] abus, dbus_in, output [31:0] dbus_out);
   reg [7:0] m [0:`MEMSIZE-1];
+  reg [7:0] ibuf [0:3];
 `ifdef DLINKER
   reg [7:0] flash [0:`MEMSIZE-1];
   reg [7:0] dsym [0:192-1];
@@ -407,6 +428,20 @@ module memory0(input clock, reset, en, rw, input [1:0] m_size,
       `ifdef DLINKER
       `include "flashio.v"
       `endif
+`ifdef JIT
+    end else if (abus == JITADDR && en == 1 && rw == 1) begin
+    // erase memory
+      for (i=0; i < 3; i=i+1) begin
+         ibuf[i] = `MEMEMPTY;
+      end
+      $readmemh("ibuf.hex", ibuf);
+      case (m_size)
+      `BYTE:  data = {8'h00  , 8'h00,   8'h00,   ibuf[abus]      };
+      `INT16: data = {8'h00  , 8'h00,   ibuf[abus], ibuf[abus+1]    };
+      `INT24: data = {8'h00  , ibuf[abus], ibuf[abus+1], ibuf[abus+2]  };
+      `INT32: data = {ibuf[abus], ibuf[abus+1], ibuf[abus+2], ibuf[abus+3]};
+      endcase
+`endif
     end else 
       data = 32'hZZZZZZZZ;
   end

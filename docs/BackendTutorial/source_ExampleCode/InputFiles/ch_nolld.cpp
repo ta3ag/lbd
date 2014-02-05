@@ -73,7 +73,6 @@ int test_nolld()
   print_integer(a); // a = 1
   if (a != 1) pass = false;
 
-
   return pass;
 }
 

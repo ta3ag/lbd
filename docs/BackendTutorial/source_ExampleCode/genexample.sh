@@ -4,7 +4,7 @@ rm -rf Chapter3_1 Chapter3_2 Chapter3_2 Chapter3_4 Chapter3_5
 rm -rf Chapter4_1 Chapter4_2 
 rm -rf Chapter5_1 Chapter6_1 Chapter7_1 Chapter8_1
 rm -rf Chapter9_1 Chapter9_2 Chapter9_3 Chapter9_4
-rm -rf Chapter10_1 Chapter11_1 Chapter11_2 Chapter12_1 Chapter12_2
+rm -rf Chapter10_1 Chapter11_1 Chapter11_2 Chapter12_1 Chapter12_2 Chapter12_3
 rm -rf ${GEN_DIR}
 mkdir ${GEN_DIR}
 cp -rf Chapter2 ${GEN_DIR}/.
@@ -68,7 +68,10 @@ cp -rf Chapter12_1 ${GEN_DIR}/.
 patch -fp0 < 12-2.patch
 mv Chapter12_1 Chapter12_2
 cp -rf Chapter12_2 ${GEN_DIR}/.
-rm -rf Chapter12_2
+patch -fp0 < 12-3.patch
+mv Chapter12_2 Chapter12_3
+cp -rf Chapter12_3 ${GEN_DIR}/.
+rm -rf Chapter12_3
 cp -rf ${GEN_DIR}/Chapter2 .
 cp -rf InputFiles src_files_modify ${GEN_DIR}/.
 cp -rf src_files_modify Cpu0_lld llvm-objdump ${GEN_DIR}/.

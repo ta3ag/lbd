@@ -1056,7 +1056,7 @@ diff -Naur Chapter10_1/AsmParser/Cpu0AsmParser.cpp Chapter11_1/AsmParser/Cpu0Asm
 +#include "Cpu0GenAsmMatcher.inc"
 +
 +#ifndef ASM_EASY_PORTING
-+// Adjust here the Cpu0InstrInfo.td changed.
++// Adjust here when Cpu0InstrInfo.td changed.
 +static const MatchEntry MatchTable0_R[] = {
 +  { 0 /* add */, Cpu0::ADD, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
 +  { 4 /* addiu */, Cpu0::ADDiu, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
