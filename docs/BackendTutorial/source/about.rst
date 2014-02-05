@@ -59,6 +59,7 @@ Version 3.4.2, Not release yet
   Fix llc -mcpu option problem.
   Update example code build shell script.
   Add condition move instruction.
+  Fix bug of branch pattern match in Cpu0InstrInfo.td.
 
 Version 3.4.1, Released January 18, 2014
   Add ch9_4.cpp to lld test.

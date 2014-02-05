@@ -47,6 +47,81 @@ The Chapter11_1/ include AsmParser implementation as follows,
 
 .. rubric:: lbdex/Chapter11_1/AsmParser/Cpu0AsmParser.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/Cpu0AsmParser.cpp
+    :end-before: #define GET_REGISTER_MATCHER
+.. code-block:: c++
+
+  #define GET_REGISTER_MATCHER
+  #define GET_MATCHER_IMPLEMENTATION
+  #include "Cpu0GenAsmMatcher.inc"
+  
+  #ifndef ASM_EASY_PORTING
+  // Adjust here when Cpu0InstrInfo.td changed.
+  static const MatchEntry MatchTable0_R[] = {
+    { 0 /* add */, Cpu0::ADD, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+    { 4 /* addiu */, Cpu0::ADDiu, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+    { 10 /* addu */, Cpu0::ADDu, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+    { 15 /* and */, Cpu0::AND, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+    { 19 /* andi */, Cpu0::ANDi, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+    { 24 /* beq */, Cpu0::BEQ, Convert__Reg1_0__Reg1_1__Imm1_2, Feature_HasCpu032II, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+    { 28 /* bne */, Cpu0::BNE, Convert__Reg1_0__Reg1_1__Imm1_2, Feature_HasCpu032II, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+    { 32 /* cmp */, Cpu0::CMP, Convert__Reg1_0__Reg1_1__Reg1_2, Feature_NotCpu032II, { MCK_SR, MCK_CPURegs, MCK_CPURegs }, },
+    { 36 /* div */, Cpu0::SDIV, Convert__Reg1_0__Reg1_1, 0, { MCK_CPURegs, MCK_CPURegs }, },
+    { 40 /* divu */, Cpu0::UDIV, Convert__Reg1_0__Reg1_1, 0, { MCK_CPURegs, MCK_CPURegs }, },
+    { 45 /* iret */, Cpu0::IRET, Convert__Reg1_0, 0, { MCK_CPURegs }, },
+    { 50 /* jalr */, Cpu0::JALR, Convert__Reg1_0, 0, { MCK_CPURegs }, },
+    { 55 /* jeq */, Cpu0::JEQ, Convert__Reg1_0__Imm1_1, Feature_NotCpu032II, { MCK_SR, MCK_Imm }, },
+    { 59 /* jge */, Cpu0::JGE, Convert__Reg1_0__Imm1_1, Feature_NotCpu032II, { MCK_SR, MCK_Imm }, },
+    { 63 /* jgt */, Cpu0::JGT, Convert__Reg1_0__Imm1_1, Feature_NotCpu032II, { MCK_SR, MCK_Imm }, },
+    { 67 /* jle */, Cpu0::JLE, Convert__Reg1_0__Imm1_1, Feature_NotCpu032II, { MCK_SR, MCK_Imm }, },
+    { 71 /* jlt */, Cpu0::JLT, Convert__Reg1_0__Imm1_1, Feature_NotCpu032II, { MCK_SR, MCK_Imm }, },
+    { 75 /* jmp */, Cpu0::JMP, Convert__Imm1_0, 0, { MCK_Imm }, },
+    { 79 /* jne */, Cpu0::JNE, Convert__Reg1_0__Imm1_1, Feature_NotCpu032II, { MCK_SR, MCK_Imm }, },
+    { 83 /* jsub */, Cpu0::JSUB, Convert__Imm1_0, 0, { MCK_Imm }, },
+    { 88 /* la */, Cpu0::LoadAddr32Reg, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+    { 88 /* la */, Cpu0::LoadAddr32Imm, Convert__Reg1_0__Imm1_1, 0, { MCK_CPURegs, MCK_Imm }, },
+    { 91 /* lb */, Cpu0::LB, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+    { 94 /* lbu */, Cpu0::LBu, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+    { 98 /* ld */, Cpu0::LD, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+    { 101 /* lh */, Cpu0::LH, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+    { 104 /* lhu */, Cpu0::LHu, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+    { 108 /* li */, Cpu0::LoadImm32Reg, Convert__Reg1_0__Imm1_1, 0, { MCK_CPURegs, MCK_Imm }, },
+    { 111 /* lui */, Cpu0::LUi, Convert__Reg1_0__Imm1_1, 0, { MCK_CPURegs, MCK_Imm }, },
+    { 115 /* mfhi */, Cpu0::MFHI, Convert__Reg1_0, 0, { MCK_CPURegs }, },
+    { 120 /* mflo */, Cpu0::MFLO, Convert__Reg1_0, 0, { MCK_CPURegs }, },
+    { 125 /* mthi */, Cpu0::MTHI, Convert__Reg1_0, 0, { MCK_CPURegs }, },
+    { 130 /* mtlo */, Cpu0::MTLO, Convert__Reg1_0, 0, { MCK_CPURegs }, },
+    { 135 /* mul */, Cpu0::MUL, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+    { 139 /* mult */, Cpu0::MULT, Convert__Reg1_0__Reg1_1, 0, { MCK_CPURegs, MCK_CPURegs }, },
+    { 144 /* multu */, Cpu0::MULTu, Convert__Reg1_0__Reg1_1, 0, { MCK_CPURegs, MCK_CPURegs }, },
+    { 150 /* nop */, Cpu0::NOP, Convert_NoOperands, 0, {  }, },
+    { 154 /* or */, Cpu0::OR, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+    { 157 /* ori */, Cpu0::ORi, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+    { 161 /* ret */, Cpu0::JR, Convert__Reg1_0, 0, { MCK_CPURegs }, },
+    { 165 /* rol */, Cpu0::ROL, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+    { 169 /* ror */, Cpu0::ROR, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+    { 173 /* sb */, Cpu0::SB, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+    { 176 /* sh */, Cpu0::SH, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+    { 179 /* shl */, Cpu0::SHL, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+    { 183 /* shlv */, Cpu0::SHLV, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+    { 188 /* shr */, Cpu0::SHR, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+    { 192 /* shrv */, Cpu0::SHRV, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+    { 197 /* slt */, Cpu0::SLT, Convert__Reg1_0__Reg1_1__Reg1_2, Feature_HasCpu032II, { MCK_GPROut, MCK_CPURegs, MCK_CPURegs }, },
+    { 201 /* slti */, Cpu0::SLTi, Convert__Reg1_0__Reg1_1__Imm1_2, Feature_HasCpu032II, { MCK_GPROut, MCK_CPURegs, MCK_Imm }, },
+    { 206 /* sltiu */, Cpu0::SLTiu, Convert__Reg1_0__Reg1_1__Imm1_2, Feature_HasCpu032II, { MCK_GPROut, MCK_CPURegs, MCK_Imm }, },
+    { 212 /* sltu */, Cpu0::SLTu, Convert__Reg1_0__Reg1_1__Reg1_2, Feature_HasCpu032II, { MCK_GPROut, MCK_CPURegs, MCK_CPURegs }, },
+    { 217 /* sra */, Cpu0::SRA, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+    { 221 /* srav */, Cpu0::SRAV, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+    { 226 /* st */, Cpu0::ST, Convert__Reg1_0__Mem2_1, 0, { MCK_CPURegs, MCK_Mem }, },
+    { 229 /* sub */, Cpu0::SUB, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+    { 233 /* subu */, Cpu0::SUBu, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+    { 238 /* swi */, Cpu0::SWI, Convert__Imm1_0, 0, { MCK_Imm }, },
+    { 242 /* xor */, Cpu0::XOR, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
+    { 246 /* xori */, Cpu0::XORi, Convert__Reg1_0__Reg1_1__Imm1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_Imm }, },
+  };
+
+
+.. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/Cpu0AsmParser.cpp
+    :start-after: // lbd document - mark - MatchInstructionImpl_R
 
 .. rubric:: lbdex/Chapter11_1/AsmParser/CMakeLists.txt
 .. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/CMakeLists.txt

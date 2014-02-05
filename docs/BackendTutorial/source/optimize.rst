@@ -953,10 +953,10 @@ will generate the obj.
 Conditional instruction
 ------------------------
 
-Since the clang optimization option O1 above will generate **select** and 
-**select_cc** to support conditional instruction, we add this feature in Cpu0 
-backend too. Chapter12_3 support **select** with the following code added and 
-changed.
+Since the clang optimization level O1 or above level will generate **select** 
+and **select_cc** to support conditional instruction, we add this feature in 
+Cpu0 backend too. 
+Chapter12_3 support **select** with the following code added and changed.
 
 
 .. rubric:: lbdex/Chapter12_3/AsmParser/Cpu0AsmParser.cpp
@@ -1010,6 +1010,171 @@ changed.
   {
     return Op;
   }
+
+Set ISD::SELECT_CC to Expand will change IR SELECT_CC into one or more IRs 
+which include IR ISD::SELECT. And the LowerSELECT() return ISD::SELECT as 
+Op code directly. Finally the pattern define in Cpu0CondMov.td will 
+translate the SELECT op code into **movz** or **movn** conditional instruction. 
+Let's run Chapter12_3 with ch12_4.cpp and ch_optimize.cpp to get the following 
+result. 
+Again, the cpu032II use **slt** instead of **cmp** has a little improved in 
+instructions number.
+
+.. rubric:: lbdex/InputFiles/ch12_4.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch12_4.cpp
+    :start-after: /// start
+
+.. rubric:: lbdex/InputFiles/ch_optimize.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch_optimize.cpp
+    :start-after: /// start
+
+.. rubric:: lbdex/InputFiles/build_optimize.sh
+.. literalinclude:: ../lbdex/InputFiles/build_optimize.sh
+
+.. code-block:: bash
+
+  114-37-150-209:InputFiles Jonathan$ clang -O1 -target mips-unknown-linux-gnu 
+  -c ch12_4.cpp -emit-llvm -o ch12_4.bc
+  114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llc 
+  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch12_4.bc -o -
+  	.section .mdebug.abi32
+  	.previous
+  	.file	"ch12_4.bc"
+  	.text
+  	.globl	_Z8select_1ii
+  	.align	2
+  	.type	_Z8select_1ii,@function
+  	.ent	_Z8select_1ii           # @_Z8select_1ii
+  _Z8select_1ii:
+  	.frame	$sp,0,$lr
+  	.mask 	0x00000000,0
+  	.set	noreorder
+  	.set	nomacro
+  # BB#0:
+  	ld	$2, 4($sp)
+  	ld	$3, 0($sp)
+  	cmp	$sw, $3, $2
+  	andi	$3, $sw, 1
+  	addiu	$2, $zero, 2
+  	addiu	$4, $zero, 1
+  	movn	$2, $4, $3
+  	ret	$lr
+  	.set	macro
+  	.set	reorder
+  	.end	_Z8select_1ii
+  $tmp0:
+  	.size	_Z8select_1ii, ($tmp0)-_Z8select_1ii
+  
+  	.globl	_Z8select_2i
+  	.align	2
+  	.type	_Z8select_2i,@function
+  	.ent	_Z8select_2i            # @_Z8select_2i
+  _Z8select_2i:
+  	.frame	$sp,0,$lr
+  	.mask 	0x00000000,0
+  	.set	noreorder
+  	.set	nomacro
+  # BB#0:
+  	addiu	$2, $zero, 1
+  	ld	$3, 0($sp)
+  	addiu	$4, $zero, 3
+  	movz	$2, $4, $3
+  	ret	$lr
+  	.set	macro
+  	.set	reorder
+  	.end	_Z8select_2i
+  $tmp1:
+  	.size	_Z8select_2i, ($tmp1)-_Z8select_2i
+  
+  	.globl	_Z11test_selectii
+  	.align	2
+  	.type	_Z11test_selectii,@function
+  	.ent	_Z11test_selectii       # @_Z11test_selectii
+  _Z11test_selectii:
+  	.frame	$sp,32,$lr
+  	.mask 	0x00004300,-4
+  	.set	noreorder
+  	.set	nomacro
+  # BB#0:
+  	addiu	$sp, $sp, -32
+  	st	$lr, 28($sp)            # 4-byte Folded Spill
+  	st	$9, 24($sp)             # 4-byte Folded Spill
+  	st	$8, 20($sp)             # 4-byte Folded Spill
+  	ld	$2, 36($sp)
+  	st	$2, 4($sp)
+  	ld	$9, 32($sp)
+  	st	$9, 0($sp)
+  	jsub	_Z8select_1ii
+  	add	$8, $zero, $2
+  	st	$9, 0($sp)
+  	jsub	_Z8select_2i
+  	addu	$2, $2, $8
+  	ld	$8, 20($sp)             # 4-byte Folded Reload
+  	ld	$9, 24($sp)             # 4-byte Folded Reload
+  	ld	$lr, 28($sp)            # 4-byte Folded Reload
+  	addiu	$sp, $sp, 32
+  	ret	$lr
+  	.set	macro
+  	.set	reorder
+  	.end	_Z11test_selectii
+  $tmp4:
+  	.size	_Z11test_selectii, ($tmp4)-_Z11test_selectii
+  	
+  114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llc 
+  -march=cpu0 -mcpu=cpu032II -relocation-model=static -filetype=asm ch12_4.bc -o -
+  	.section .mdebug.abi32
+  	.previous
+  	.file	"ch12_4.bc"
+  	.text
+  	.globl	_Z8select_1ii
+  	.align	2
+  	.type	_Z8select_1ii,@function
+  	.ent	_Z8select_1ii           # @_Z8select_1ii
+  _Z8select_1ii:
+  	.frame	$sp,0,$lr
+  	.mask 	0x00000000,0
+  	.set	noreorder
+  	.set	nomacro
+  # BB#0:
+  	ld	$2, 4($sp)
+  	ld	$3, 0($sp)
+  	slt	$3, $3, $2
+  	addiu	$2, $zero, 2
+  	addiu	$4, $zero, 1
+  	movn	$2, $4, $3
+  	ret	$lr
+  	...
+  
+  114-37-150-209:InputFiles Jonathan$ bash build-optimize.sh 
+  OS = Darwin
+  CPU = cpu032I
+  ~/test/lbd/docs/BackendTutorial/source_ExampleCode/InputFiles ~/test/lbd/docs/
+  BackendTutorial/source_ExampleCode/InputFiles
+  ~/test/lbd/docs/BackendTutorial/source_ExampleCode/InputFiles
+  114-37-150-209:InputFiles Jonathan$ cd ../cpu0_verilog/
+  114-37-150-209:cpu0_verilog Jonathan$ iverilog -o cpu0Is cpu0Is.v
+  114-37-150-209:cpu0_verilog Jonathan$ ./cpu0Is
+  WARNING: ./cpu0.v:373: $readmemh(cpu0.hex): Not enough words in the file for 
+  the requested range [0:524287].
+  taskInterrupt(001)
+  2
+  RET to PC < 0, finished!
+  
+  114-37-150-209:cpu0_verilog Jonathan$ cd ../InputFiles/
+  114-37-150-209:InputFiles Jonathan$ bash build-optimize.sh 
+  OS = Darwin
+  CPU = cpu032II
+  ~/test/lbd/docs/BackendTutorial/source_ExampleCode/InputFiles ~/test/lbd/docs/
+  BackendTutorial/source_ExampleCode/InputFiles
+  ~/test/lbd/docs/BackendTutorial/source_ExampleCode/InputFiles
+  114-37-150-209:InputFiles Jonathan$ cd ../cpu0_verilog/
+  114-37-150-209:cpu0_verilog Jonathan$ iverilog -o cpu0Is cpu0Is.v
+  114-37-150-209:cpu0_verilog Jonathan$ ./cpu0Is
+  WARNING: ./cpu0.v:373: $readmemh(cpu0.hex): Not enough words in the file for 
+  the requested range [0:524287].
+  taskInterrupt(001)
+  2
+  RET to PC < 0, finished!
 
 
 .. [#] On a platform with cache and DRAM, the cache miss cost serveral tens 

@@ -689,9 +689,9 @@ def : Pat<(brcond (i32 (setgt RC:$lhs, RC:$rhs)), bb:$dst),
 def : Pat<(brcond (i32 (setugt RC:$lhs, RC:$rhs)), bb:$dst),
           (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
 def : Pat<(brcond (i32 (setle RC:$lhs, RC:$rhs)), bb:$dst),
-          (JLEOp (CMPOp RC:$rhs, RC:$lhs), bb:$dst)>;
+          (JLEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
 def : Pat<(brcond (i32 (setule RC:$lhs, RC:$rhs)), bb:$dst),
-          (JLEOp (CMPOp RC:$rhs, RC:$lhs), bb:$dst)>;
+          (JLEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
 def : Pat<(brcond (i32 (setge RC:$lhs, RC:$rhs)), bb:$dst),
           (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
 def : Pat<(brcond (i32 (setuge RC:$lhs, RC:$rhs)), bb:$dst),
