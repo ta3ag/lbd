@@ -707,7 +707,7 @@ Run these two `llc -mcpu` option for Chapter12_2 with ch12_2.cpp get the
 above result. Ignore the move between \$sw and general purpose register in 
 `llc -mcpu=cpu032I`, the two cmp instructions in it will has hazard in 
 instruction reorder since both of them use \$sw register while  
-`llc -mcpu=cpu032II` has not [#]_. The slti version can reorder as follows,
+`llc -mcpu=cpu032II` has not [#Quantitative]_. The slti version can reorder as follows,
 
 .. code-block:: bash
 
@@ -1028,13 +1028,37 @@ instructions number.
 .. literalinclude:: ../lbdex/InputFiles/ch_optimize.cpp
     :start-after: /// start
 
-.. rubric:: lbdex/InputFiles/build_optimize.sh
-.. literalinclude:: ../lbdex/InputFiles/build_optimize.sh
+.. rubric:: lbdex/InputFiles/build-optimize.sh
+.. literalinclude:: ../lbdex/InputFiles/build-optimize.sh
 
 .. code-block:: bash
 
   114-37-150-209:InputFiles Jonathan$ clang -O1 -target mips-unknown-linux-gnu 
   -c ch12_4.cpp -emit-llvm -o ch12_4.bc
+  114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llvm-dis ch12_4.bc -o -
+  ...
+  define i32 @_Z8select_1ii(i32 %a, i32 %b) #0 {
+    %1 = icmp slt i32 %a, %b
+    %. = select i1 %1, i32 1, i32 2
+    ret i32 %.
+  }
+  
+  ; Function Attrs: nounwind readnone
+  define i32 @_Z8select_2i(i32 %a) #0 {
+    %1 = icmp eq i32 %a, 0
+    %. = select i1 %1, i32 3, i32 1
+    ret i32 %.
+  }
+  
+  ; Function Attrs: nounwind readnone
+  define i32 @_Z11test_selectii(i32 %a, i32 %b) #0 {
+    %1 = tail call i32 @_Z8select_1ii(i32 %a, i32 %b)
+    %2 = tail call i32 @_Z8select_2i(i32 %a)
+    %3 = add nsw i32 %2, %1
+    ret i32 %3
+  }
+  ...
+
   114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llc 
   -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch12_4.bc -o -
   	.section .mdebug.abi32
@@ -1177,12 +1201,93 @@ instructions number.
   RET to PC < 0, finished!
 
 
+Compare to the non-optimize version which don't use conditional move 
+instructions as the following. The clang use **select** IR in small basic block 
+to reduce the branch cost in pipeline machine since the branch will make the 
+pipeline stall. 
+But it needs the conditional instruction support [#Quantitative]_.
+ 
+.. code-block:: bash
+
+  114-37-150-209:InputFiles Jonathan$ clang -O0 -target mips-unknown-linux-gnu 
+  -c ch12_4.cpp -emit-llvm -o ch12_4.bc
+  
+  114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/
+  llvm-dis ch12_4.bc -o -
+  ...
+  define i32 @_Z8select_1ii(i32 %a, i32 %b) #0 {
+    %1 = alloca i32, align 4
+    %2 = alloca i32, align 4
+    %3 = alloca i32, align 4
+    %c = alloca i32, align 4
+    store i32 %a, i32* %2, align 4
+    store i32 %b, i32* %3, align 4
+    store i32 0, i32* %c, align 4
+    %4 = load i32* %2, align 4
+    %5 = load i32* %3, align 4
+    %6 = icmp slt i32 %4, %5
+    br i1 %6, label %7, label %8
+  
+  ; <label>:7                                       ; preds = %0
+    store i32 1, i32* %1
+    br label %9
+  
+  ; <label>:8                                       ; preds = %0
+    store i32 2, i32* %1
+    br label %9
+  
+  ; <label>:9                                       ; preds = %8, %7
+    %10 = load i32* %1
+    ret i32 %10
+  }
+  ...
+  
+  114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llc 
+  -march=cpu0 -mcpu=cpu032II -relocation-model=static -filetype=asm ch12_4.bc -o -
+    .section .mdebug.abi32
+    .previous
+    .file "ch12_4.bc"
+    .text
+    .globl  _Z8select_1ii
+    .align  2
+    .type _Z8select_1ii,@function
+    .ent  _Z8select_1ii           # @_Z8select_1ii
+  _Z8select_1ii:
+    .frame  $sp,16,$lr
+    .mask   0x00000000,0
+    .set  noreorder
+    .set  nomacro
+  # BB#0:
+    addiu $sp, $sp, -16
+    ld  $2, 16($sp)
+    st  $2, 8($sp)
+    ld  $2, 20($sp)
+    st  $2, 4($sp)
+    addiu $2, $zero, 0
+    st  $2, 0($sp)
+    ld  $2, 4($sp)
+    ld  $3, 8($sp)
+    slt $2, $3, $2
+    beq $2, $zero, $BB0_2
+  # BB#1:
+    addiu $2, $zero, 1
+    st  $2, 12($sp)
+    jmp $BB0_3
+  $BB0_2:
+    addiu $2, $zero, 2
+    st  $2, 12($sp)
+  $BB0_3:
+    ld  $2, 12($sp)
+    addiu $sp, $sp, 16
+    ret $lr
+
+
 .. [#] On a platform with cache and DRAM, the cache miss cost serveral tens 
        time of instruction cycle. The compiler engineers work in the vendor of 
        platform solution spend much effort try to reduce the cache miss for 
        speed. Reduce code size will cut down the cache miss frequency too.
 
-.. [#] See book Computer Architecture: A Quantitative Approach (The Morgan 
+.. [#Quantitative] See book Computer Architecture: A Quantitative Approach (The Morgan 
        Kaufmann Series in Computer Architecture and Design) 
 
 
