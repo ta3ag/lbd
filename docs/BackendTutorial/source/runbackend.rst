@@ -1071,8 +1071,8 @@ Now let's compile ch_run_backend.cpp as below. Since code size grows up from
 low to high address and stack grows up from high to low address. We set $sp 
 at 0x6ffc because assuming cpu0.v use 0x7000 bytes of memory.
 
-.. rubric:: lbdex/InputFiles/InitRegs.cpp
-.. literalinclude:: ../lbdex/InputFiles/InitRegs.cpp
+.. rubric:: lbdex/InputFiles/start.h
+.. literalinclude:: ../lbdex/InputFiles/start.h
     :start-after: /// start
 
 .. rubric:: lbdex/InputFiles/print.h

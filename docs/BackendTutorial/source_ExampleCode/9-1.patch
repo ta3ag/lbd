@@ -1,6 +1,6 @@
 diff -Naur Chapter8_1/Cpu0CallingConv.td Chapter9_1/Cpu0CallingConv.td
---- Chapter8_1/Cpu0CallingConv.td	2014-01-27 13:13:28.242399385 +0800
-+++ Chapter9_1/Cpu0CallingConv.td	2014-01-27 13:13:28.250399385 +0800
+--- Chapter8_1/Cpu0CallingConv.td	2014-02-06 17:01:44.691913724 +0800
++++ Chapter9_1/Cpu0CallingConv.td	2014-02-06 17:01:44.699913724 +0800
 @@ -13,6 +13,37 @@
  class CCIfSubtarget<string F, CCAction A>:
    CCIf<!strconcat("State.getTarget().getSubtarget<Cpu0Subtarget>().", F), A>;
@@ -40,8 +40,8 @@ diff -Naur Chapter8_1/Cpu0CallingConv.td Chapter9_1/Cpu0CallingConv.td
                                     (sequence "S%u", 1, 0))>;
  
 diff -Naur Chapter8_1/Cpu0InstrInfo.cpp Chapter9_1/Cpu0InstrInfo.cpp
---- Chapter8_1/Cpu0InstrInfo.cpp	2014-01-27 13:13:28.242399385 +0800
-+++ Chapter9_1/Cpu0InstrInfo.cpp	2014-01-27 13:13:28.250399385 +0800
+--- Chapter8_1/Cpu0InstrInfo.cpp	2014-02-06 17:01:44.691913724 +0800
++++ Chapter9_1/Cpu0InstrInfo.cpp	2014-02-06 17:01:44.699913724 +0800
 @@ -13,6 +13,7 @@
  
  #include "Cpu0InstrInfo.h"
@@ -85,8 +85,8 @@ diff -Naur Chapter8_1/Cpu0InstrInfo.cpp Chapter9_1/Cpu0InstrInfo.cpp
  Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
                                          uint64_t Offset, const MDNode *MDPtr,
 diff -Naur Chapter8_1/Cpu0InstrInfo.h Chapter9_1/Cpu0InstrInfo.h
---- Chapter8_1/Cpu0InstrInfo.h	2014-01-27 13:13:28.242399385 +0800
-+++ Chapter9_1/Cpu0InstrInfo.h	2014-01-27 13:13:28.250399385 +0800
+--- Chapter8_1/Cpu0InstrInfo.h	2014-02-06 17:01:44.691913724 +0800
++++ Chapter9_1/Cpu0InstrInfo.h	2014-02-06 17:01:44.699913724 +0800
 @@ -41,6 +41,12 @@
                             unsigned DestReg, unsigned SrcReg,
                             bool KillSrc) const;
@@ -101,8 +101,8 @@ diff -Naur Chapter8_1/Cpu0InstrInfo.h Chapter9_1/Cpu0InstrInfo.h
                                                   int FrameIx, uint64_t Offset,
                                                   const MDNode *MDPtr,
 diff -Naur Chapter8_1/Cpu0InstrInfo.td Chapter9_1/Cpu0InstrInfo.td
---- Chapter8_1/Cpu0InstrInfo.td	2014-01-27 13:13:28.242399385 +0800
-+++ Chapter9_1/Cpu0InstrInfo.td	2014-01-27 13:13:28.250399385 +0800
+--- Chapter8_1/Cpu0InstrInfo.td	2014-02-06 17:01:44.691913724 +0800
++++ Chapter9_1/Cpu0InstrInfo.td	2014-02-06 17:01:44.699913724 +0800
 @@ -26,6 +26,13 @@
                                           [SDTCisInt<0>,
                                            SDTCisSameAs<0, 1>]>;
@@ -153,7 +153,7 @@ diff -Naur Chapter8_1/Cpu0InstrInfo.td Chapter9_1/Cpu0InstrInfo.td
  // Mul, Div
  class Mult<bits<8> op, string instr_asm, InstrItinClass itin,
             RegisterClass RC, list<Register> DefRegs>:
-@@ -408,11 +437,17 @@
+@@ -430,11 +459,17 @@
  
  def JMP     : UncondBranch<0x36, "jmp">;
  
@@ -171,7 +171,7 @@ diff -Naur Chapter8_1/Cpu0InstrInfo.td Chapter9_1/Cpu0InstrInfo.td
  /// Multiply and Divide Instructions.
  def MULT    : Mult32<0x41, "mult", IIImul>;
  def MULTu   : Mult32<0x42, "multu", IIImul>;
-@@ -460,6 +495,11 @@
+@@ -484,6 +519,11 @@
  def : Pat<(addc  CPURegs:$src, immSExt16:$imm),
            (ADDiu CPURegs:$src, imm:$imm)>;
  
@@ -184,8 +184,8 @@ diff -Naur Chapter8_1/Cpu0InstrInfo.td Chapter9_1/Cpu0InstrInfo.td
  def : Pat<(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>;
  def : Pat<(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
 diff -Naur Chapter8_1/Cpu0ISelLowering.cpp Chapter9_1/Cpu0ISelLowering.cpp
---- Chapter8_1/Cpu0ISelLowering.cpp	2014-01-27 13:13:28.242399385 +0800
-+++ Chapter9_1/Cpu0ISelLowering.cpp	2014-01-27 13:13:28.250399385 +0800
+--- Chapter8_1/Cpu0ISelLowering.cpp	2014-02-06 17:01:44.691913724 +0800
++++ Chapter9_1/Cpu0ISelLowering.cpp	2014-02-06 17:01:44.699913724 +0800
 @@ -282,6 +282,12 @@
  
  #include "Cpu0GenCallingConv.inc"
@@ -258,8 +258,8 @@ diff -Naur Chapter8_1/Cpu0ISelLowering.cpp Chapter9_1/Cpu0ISelLowering.cpp
  }
  
 diff -Naur Chapter8_1/Cpu0ISelLowering.h Chapter9_1/Cpu0ISelLowering.h
---- Chapter8_1/Cpu0ISelLowering.h	2014-01-27 13:13:28.242399385 +0800
-+++ Chapter9_1/Cpu0ISelLowering.h	2014-01-27 13:13:28.250399385 +0800
+--- Chapter8_1/Cpu0ISelLowering.h	2014-02-06 17:01:44.691913724 +0800
++++ Chapter9_1/Cpu0ISelLowering.h	2014-02-06 17:01:44.699913724 +0800
 @@ -99,6 +99,11 @@
                             SmallVectorImpl<SDValue> &InVals) const;
    // LowerFormalArguments: incoming arguments
@@ -273,8 +273,8 @@ diff -Naur Chapter8_1/Cpu0ISelLowering.h Chapter9_1/Cpu0ISelLowering.h
      virtual SDValue
        LowerReturn(SDValue Chain,
 diff -Naur Chapter8_1/Cpu0MachineFunction.h Chapter9_1/Cpu0MachineFunction.h
---- Chapter8_1/Cpu0MachineFunction.h	2014-01-27 13:13:28.242399385 +0800
-+++ Chapter9_1/Cpu0MachineFunction.h	2014-01-27 13:13:28.250399385 +0800
+--- Chapter8_1/Cpu0MachineFunction.h	2014-02-06 17:01:44.691913724 +0800
++++ Chapter9_1/Cpu0MachineFunction.h	2014-02-06 17:01:44.699913724 +0800
 @@ -30,7 +30,18 @@
    /// use as the global base register. This is used for PIC in some PIC
    /// relocation models.
@@ -342,8 +342,8 @@ diff -Naur Chapter8_1/Cpu0MachineFunction.h Chapter9_1/Cpu0MachineFunction.h
    void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
    bool getEmitNOAT() const { return EmitNOAT; }
 diff -Naur Chapter8_1/Cpu0MCInstLower.cpp Chapter9_1/Cpu0MCInstLower.cpp
---- Chapter8_1/Cpu0MCInstLower.cpp	2014-01-27 13:13:28.242399385 +0800
-+++ Chapter9_1/Cpu0MCInstLower.cpp	2014-01-27 13:13:28.250399385 +0800
+--- Chapter8_1/Cpu0MCInstLower.cpp	2014-02-06 17:01:44.691913724 +0800
++++ Chapter9_1/Cpu0MCInstLower.cpp	2014-02-06 17:01:44.699913724 +0800
 @@ -47,6 +47,7 @@
  //  format=false (global var in .sdata).
    case Cpu0II::MO_GPREL:     Kind = MCSymbolRefExpr::VK_Cpu0_GPREL; break;
@@ -373,8 +373,8 @@ diff -Naur Chapter8_1/Cpu0MCInstLower.cpp Chapter9_1/Cpu0MCInstLower.cpp
      return LowerSymbolOperand(MO, MOTy, offset);
    case MachineOperand::MO_RegisterMask:
 diff -Naur Chapter8_1/InstPrinter/Cpu0InstPrinter.cpp Chapter9_1/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter8_1/InstPrinter/Cpu0InstPrinter.cpp	2014-01-27 13:13:28.242399385 +0800
-+++ Chapter9_1/InstPrinter/Cpu0InstPrinter.cpp	2014-01-27 13:13:28.250399385 +0800
+--- Chapter8_1/InstPrinter/Cpu0InstPrinter.cpp	2014-02-06 17:01:44.691913724 +0800
++++ Chapter9_1/InstPrinter/Cpu0InstPrinter.cpp	2014-02-06 17:01:44.699913724 +0800
 @@ -58,6 +58,7 @@
    case MCSymbolRefExpr::VK_None:           break;
  // Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static
@@ -384,8 +384,8 @@ diff -Naur Chapter8_1/InstPrinter/Cpu0InstPrinter.cpp Chapter9_1/InstPrinter/Cpu
    case MCSymbolRefExpr::VK_Cpu0_GOT:       OS << "%got(";    break;
    case MCSymbolRefExpr::VK_Cpu0_ABS_HI:    OS << "%hi(";     break;
 diff -Naur Chapter8_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter9_1/MCTargetDesc/Cpu0AsmBackend.cpp
---- Chapter8_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-01-27 13:13:28.242399385 +0800
-+++ Chapter9_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-01-27 13:13:28.250399385 +0800
+--- Chapter8_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-02-06 17:01:44.691913724 +0800
++++ Chapter9_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-02-06 17:01:44.699913724 +0800
 @@ -35,6 +35,7 @@
      return 0;
    case FK_GPRel_4:
@@ -403,8 +403,8 @@ diff -Naur Chapter8_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter9_1/MCTargetDesc/Cp
        { "fixup_Cpu0_GOT_LO16",       0,     16,   0 }
      };
 diff -Naur Chapter8_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter9_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
---- Chapter8_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-01-27 13:13:28.242399385 +0800
-+++ Chapter9_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-01-27 13:13:28.250399385 +0800
+--- Chapter8_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-02-06 17:01:44.691913724 +0800
++++ Chapter9_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-02-06 17:01:44.699913724 +0800
 @@ -113,6 +113,9 @@
    case Cpu0::fixup_Cpu0_GPREL16:
      Type = ELF::R_CPU0_GPREL16;
@@ -416,8 +416,8 @@ diff -Naur Chapter8_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter9_1/MCTargetDe
    case Cpu0::fixup_Cpu0_GOT_Local:
      Type = ELF::R_CPU0_GOT16;
 diff -Naur Chapter8_1/MCTargetDesc/Cpu0FixupKinds.h Chapter9_1/MCTargetDesc/Cpu0FixupKinds.h
---- Chapter8_1/MCTargetDesc/Cpu0FixupKinds.h	2014-01-27 13:13:28.242399385 +0800
-+++ Chapter9_1/MCTargetDesc/Cpu0FixupKinds.h	2014-01-27 13:13:28.250399385 +0800
+--- Chapter8_1/MCTargetDesc/Cpu0FixupKinds.h	2014-02-06 17:01:44.691913724 +0800
++++ Chapter9_1/MCTargetDesc/Cpu0FixupKinds.h	2014-02-06 17:01:44.699913724 +0800
 @@ -47,6 +47,9 @@
      // PC relative branch fixup resulting in - R_CPU0_PC24.
      // cpu0 PC24, e.g. jeq, jmp
@@ -429,8 +429,8 @@ diff -Naur Chapter8_1/MCTargetDesc/Cpu0FixupKinds.h Chapter9_1/MCTargetDesc/Cpu0
      // resulting in - R_CPU0_GOT_HI16
      fixup_Cpu0_GOT_HI16,
 diff -Naur Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter9_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-01-27 13:13:28.242399385 +0800
-+++ Chapter9_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-01-27 13:13:28.250399385 +0800
+--- Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-02-06 17:01:44.691913724 +0800
++++ Chapter9_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-02-06 17:01:44.699913724 +0800
 @@ -175,9 +175,12 @@
    assert(MO.isExpr() && "getJumpTargetOpValue expects only expressions");
  

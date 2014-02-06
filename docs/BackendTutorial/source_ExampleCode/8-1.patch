@@ -1,6 +1,6 @@
 diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
---- Chapter7_1/Cpu0InstrInfo.td	2014-01-27 13:13:28.254399385 +0800
-+++ Chapter8_1/Cpu0InstrInfo.td	2014-01-27 13:13:28.242399385 +0800
+--- Chapter7_1/Cpu0InstrInfo.td	2014-02-06 17:01:44.703913724 +0800
++++ Chapter8_1/Cpu0InstrInfo.td	2014-02-06 17:01:44.691913724 +0800
 @@ -51,6 +51,20 @@
  //===----------------------------------------------------------------------===//
  // Cpu0 Operand, Complex Patterns and Transformations Definitions.
@@ -51,7 +51,7 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
  let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
      isIndirectBranch = 1 in
  class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
-@@ -362,6 +398,16 @@
+@@ -384,6 +420,16 @@
  def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
  def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
  
@@ -68,7 +68,7 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
  let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
    def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
  
-@@ -433,6 +479,41 @@
+@@ -457,6 +503,41 @@
  def : Pat<(i32 (extloadi8  addr:$src)), (LBu addr:$src)>;
  def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
  
@@ -111,8 +111,8 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
  multiclass SeteqPatsCmp<RegisterClass RC> {
  // a == b
 diff -Naur Chapter7_1/Cpu0ISelLowering.cpp Chapter8_1/Cpu0ISelLowering.cpp
---- Chapter7_1/Cpu0ISelLowering.cpp	2014-01-27 13:13:28.254399385 +0800
-+++ Chapter8_1/Cpu0ISelLowering.cpp	2014-01-27 13:13:28.242399385 +0800
+--- Chapter7_1/Cpu0ISelLowering.cpp	2014-02-06 17:01:44.703913724 +0800
++++ Chapter8_1/Cpu0ISelLowering.cpp	2014-02-06 17:01:44.691913724 +0800
 @@ -132,8 +132,15 @@
    setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
    setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
@@ -160,8 +160,8 @@ diff -Naur Chapter7_1/Cpu0ISelLowering.cpp Chapter8_1/Cpu0ISelLowering.cpp
  SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
                                                 SelectionDAG &DAG) const {
 diff -Naur Chapter7_1/Cpu0ISelLowering.h Chapter8_1/Cpu0ISelLowering.h
---- Chapter7_1/Cpu0ISelLowering.h	2014-01-27 13:13:28.254399385 +0800
-+++ Chapter8_1/Cpu0ISelLowering.h	2014-01-27 13:13:28.242399385 +0800
+--- Chapter7_1/Cpu0ISelLowering.h	2014-02-06 17:01:44.703913724 +0800
++++ Chapter8_1/Cpu0ISelLowering.h	2014-02-06 17:01:44.691913724 +0800
 @@ -87,6 +87,7 @@
      const Cpu0Subtarget *Subtarget;
  
@@ -171,8 +171,8 @@ diff -Naur Chapter7_1/Cpu0ISelLowering.h Chapter8_1/Cpu0ISelLowering.h
  
  	//- must be exist without function all
 diff -Naur Chapter7_1/Cpu0MCInstLower.cpp Chapter8_1/Cpu0MCInstLower.cpp
---- Chapter7_1/Cpu0MCInstLower.cpp	2014-01-27 13:13:28.254399385 +0800
-+++ Chapter8_1/Cpu0MCInstLower.cpp	2014-01-27 13:13:28.242399385 +0800
+--- Chapter7_1/Cpu0MCInstLower.cpp	2014-02-06 17:01:44.703913724 +0800
++++ Chapter8_1/Cpu0MCInstLower.cpp	2014-02-06 17:01:44.691913724 +0800
 @@ -62,6 +62,15 @@
      Symbol = AsmPrinter.getSymbol(MO.getGlobal());
      break;
@@ -200,8 +200,8 @@ diff -Naur Chapter7_1/Cpu0MCInstLower.cpp Chapter8_1/Cpu0MCInstLower.cpp
    case MachineOperand::MO_RegisterMask:
      break;
 diff -Naur Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-01-27 13:13:28.254399385 +0800
-+++ Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-01-27 13:13:28.242399385 +0800
+--- Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-02-06 17:01:44.703913724 +0800
++++ Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-02-06 17:01:44.691913724 +0800
 @@ -71,6 +71,21 @@
    // binary encoding for an instruction.
    uint64_t getBinaryCodeForInstr(const MCInst &MI,
