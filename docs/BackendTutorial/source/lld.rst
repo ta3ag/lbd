@@ -1537,8 +1537,8 @@ Finally, 10 thousands lines of source code in Cpu0 backend is very small in UI
 program. But it's quite complex in system program which based on llvm. 
 We spent 500 pages of pdf to explain these code. Open source code give 
 programmers best opportunity to understand the code and enhance/extend the 
-code function. But not enough, we believe the documentation is the next most 
-important thing to improve the open source code development. 
+code function. But it can be better, we believe the documentation is the next 
+most important thing to improve the open source code development. 
 The Open Source Organization recognized this point before us and set 
 Open Source Document Project years ago [#]_ [#]_ [#]_ [#]_ [#]_.
 Open Source grows up and becomes a giant software infrastructure with the forces 
@@ -1552,7 +1552,7 @@ Actually anyone can contribute back to open source through the learning process.
 We write this book through the process of learning llvm backend and contribute 
 back to llvm open source project.
 We think this book cannot exists in traditional paper book form since only 
-few number of readers interested to read this llvm backend book even 
+few number of readers interested in study llvm backend even 
 there are many paper published books in concept of compiler. So, this book 
 is published via electric media form and try to match the Open Document License 
 Expection [#]_.

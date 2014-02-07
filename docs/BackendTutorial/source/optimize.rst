@@ -956,6 +956,90 @@ Conditional instruction
 Since the clang optimization level O1 or above level will generate **select** 
 and **select_cc** to support conditional instruction, we add this feature in 
 Cpu0 backend too. 
+
+.. rubric:: lbdex/InputFiles/ch12_4.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch12_4.cpp
+    :start-after: /// start
+
+If you run Chapter12_2 with ch12_4.cpp will get the following result.
+
+.. code-block:: bash
+
+  114-37-150-209:InputFiles Jonathan$ clang -O1 -target mips-unknown-linux-gnu 
+  -c ch12_4.cpp -emit-llvm -o ch12_4.bc
+  114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/
+  llvm-dis ch12_4.bc -o -
+  ...
+  define i32 @_Z8select_1ii(i32 %a, i32 %b) #0 {
+    %1 = icmp slt i32 %a, %b
+    %. = select i1 %1, i32 1, i32 2
+    ret i32 %.
+  }
+  
+  ; Function Attrs: nounwind readnone
+  define i32 @_Z8select_2i(i32 %a) #0 {
+    %1 = icmp eq i32 %a, 0
+    %. = select i1 %1, i32 3, i32 1
+    ret i32 %.
+  }
+  
+  ; Function Attrs: nounwind readnone
+  define i32 @_Z11test_selectii(i32 %a, i32 %b) #0 {
+    %1 = tail call i32 @_Z8select_1ii(i32 %a, i32 %b)
+    %2 = tail call i32 @_Z8select_2i(i32 %a)
+    %3 = add nsw i32 %2, %1
+    ret i32 %3
+  }
+  ...
+
+  114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/
+  llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch12_4.bc 
+  -debug -o -
+  ...
+  === _Z8select_1ii
+  Initial selection DAG: BB#0 '_Z8select_1ii:'
+  SelectionDAG has 14 nodes:
+    ...
+          0x39f3fc0: ch = setlt
+
+        0x39f40c0: i1 = setcc 0x39f3cc0, 0x39f3ec0, 0x39f3fc0 [ORD=1]
+
+        0x39f41c0: i32 = Constant<1>
+
+        0x39f42c0: i32 = Constant<2>
+
+      0x39f43c0: i32 = select 0x39f40c0, 0x39f41c0, 0x39f42c0 [ORD=2]
+    ...
+
+  Replacing.3 0x39f43c0: i32 = select 0x39f40c0, 0x39f41c0, 0x39f42c0 [ORD=2]
+
+  With: 0x39f47c0: i32 = select_cc 0x39f3cc0, 0x39f3ec0, 0x39f41c0, 0x39f42c0, 
+  0x39f3fc0 [ORD=2]
+  ...
+  Optimized lowered selection DAG: BB#0 '_Z8select_1ii:'
+  SelectionDAG has 13 nodes:
+    ...
+        0x39f41c0: i32 = Constant<1>
+
+        0x39f42c0: i32 = Constant<2>
+
+        0x39f3fc0: ch = setlt
+
+      0x39f47c0: i32 = select_cc 0x39f3cc0, 0x39f3ec0, 0x39f41c0, 0x39f42c0, 
+      0x39f3fc0 [ORD=2]
+    ...
+  LLVM ERROR: Cannot select: 0x39f47c0: i32 = select_cc 0x39f3cc0, 0x39f3ec0, 
+  0x39f41c0, 0x39f42c0, 0x39f3fc0 [ORD=2] [ID=10]
+
+
+As llvm IR of ch12_4.bc as above, clang generate **select** IR for small 
+basic control block (if statement only include one assign statement). 
+This **select** IR is optimization result for CPU which has conditional 
+instructions support. 
+And from above llc command debug trace message, IR **select** is changed to 
+**select_cc** during DAG optimization stages.
+
+
 Chapter12_3 support **select** with the following code added and changed.
 
 
@@ -1011,53 +1095,48 @@ Chapter12_3 support **select** with the following code added and changed.
     return Op;
   }
 
-Set ISD::SELECT_CC to Expand will change IR SELECT_CC into one or more IRs 
-which include IR ISD::SELECT. And the LowerSELECT() return ISD::SELECT as 
+Set ISD::SELECT_CC to Expand will stop llvm optimization to merge setcc and 
+select into one IR select_cc [#]_. Next the LowerSELECT() return ISD::SELECT as 
 Op code directly. Finally the pattern define in Cpu0CondMov.td will 
-translate the SELECT op code into **movz** or **movn** conditional instruction. 
+translate the **select** IR into **movz** or **movn** conditional instruction. 
 Let's run Chapter12_3 with ch12_4.cpp and ch_optimize.cpp to get the following 
 result. 
 Again, the cpu032II use **slt** instead of **cmp** has a little improved in 
 instructions number.
 
-.. rubric:: lbdex/InputFiles/ch12_4.cpp
-.. literalinclude:: ../lbdex/InputFiles/ch12_4.cpp
-    :start-after: /// start
-
-.. rubric:: lbdex/InputFiles/ch_optimize.cpp
-.. literalinclude:: ../lbdex/InputFiles/ch_optimize.cpp
-    :start-after: /// start
-
-.. rubric:: lbdex/InputFiles/build-optimize.sh
-.. literalinclude:: ../lbdex/InputFiles/build-optimize.sh
-
 .. code-block:: bash
 
-  114-37-150-209:InputFiles Jonathan$ clang -O1 -target mips-unknown-linux-gnu 
-  -c ch12_4.cpp -emit-llvm -o ch12_4.bc
-  114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llvm-dis ch12_4.bc -o -
+  114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llc 
+  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch12_4.bc -debug 
+  -o -
   ...
-  define i32 @_Z8select_1ii(i32 %a, i32 %b) #0 {
-    %1 = icmp slt i32 %a, %b
-    %. = select i1 %1, i32 1, i32 2
-    ret i32 %.
-  }
-  
-  ; Function Attrs: nounwind readnone
-  define i32 @_Z8select_2i(i32 %a) #0 {
-    %1 = icmp eq i32 %a, 0
-    %. = select i1 %1, i32 3, i32 1
-    ret i32 %.
-  }
-  
-  ; Function Attrs: nounwind readnone
-  define i32 @_Z11test_selectii(i32 %a, i32 %b) #0 {
-    %1 = tail call i32 @_Z8select_1ii(i32 %a, i32 %b)
-    %2 = tail call i32 @_Z8select_2i(i32 %a)
-    %3 = add nsw i32 %2, %1
-    ret i32 %3
-  }
-  ...
+  === _Z8select_1ii
+  Initial selection DAG: BB#0 '_Z8select_1ii:'
+  SelectionDAG has 14 nodes:
+    ...
+          0x3d87fc0: ch = setlt
+
+        0x3d880c0: i1 = setcc 0x3d87cc0, 0x3d87ec0, 0x3d87fc0 [ORD=1]
+
+        0x3d881c0: i32 = Constant<1>
+
+        0x3d882c0: i32 = Constant<2>
+
+      0x3d883c0: i32 = select 0x3d880c0, 0x3d881c0, 0x3d882c0 [ORD=2]
+    ...
+  Optimized lowered selection DAG: BB#0 '_Z8select_1ii:'
+  SelectionDAG has 14 nodes:
+    ...
+          0x3d87fc0: ch = setlt
+
+        0x3d880c0: i1 = setcc 0x3d87cc0, 0x3d87ec0, 0x3d87fc0 [ORD=1]
+
+        0x3d881c0: i32 = Constant<1>
+
+        0x3d882c0: i32 = Constant<2>
+
+      0x3d883c0: i32 = select 0x3d880c0, 0x3d881c0, 0x3d882c0 [ORD=2]
+    ...
 
   114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llc 
   -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch12_4.bc -o -
@@ -1169,6 +1248,15 @@ instructions number.
   	ret	$lr
   	...
   
+.. rubric:: lbdex/InputFiles/ch_optimize.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch_optimize.cpp
+    :start-after: /// start
+
+.. rubric:: lbdex/InputFiles/build-optimize.sh
+.. literalinclude:: ../lbdex/InputFiles/build-optimize.sh
+
+.. code-block:: bash
+
   114-37-150-209:InputFiles Jonathan$ bash build-optimize.sh 
   OS = Darwin
   CPU = cpu032I
@@ -1201,7 +1289,22 @@ Compare to the non-optimize version which don't use conditional move
 instructions as the following. The clang use **select** IR in small basic block 
 to reduce the branch cost in pipeline machine since the branch will make the 
 pipeline stall. 
-But it needs the conditional instruction support [#Quantitative]_.
+But it needs the conditional instruction support [#Quantitative]_. 
+If your backend has no conditional instruction and want the clang compiler with 
+optimization option **O1** level above, you can change clang to force it 
+generate traditional branch basic block instead of IR **select**.
+RISC CPU came from pipeline advantage and add more and more instruction as time 
+passed. Compare Mips and ARM, the Mips has only **movz** and **movn** two 
+instructions while ARM has many. We create Cpu0 instructions as a RISC pipeline 
+machine as well as simple instructions for compiler toolchain tutorial. 
+Anyway the **cmp** instruction hired because many programmer used 
+it in pass and now (ARM use it). It match the thinking in assembly programming. 
+But the **slt** instruction is more efficient in RISC pipleline.
+If you designed a backend aimed for C/C++ highlevel language, you should 
+consider **slt** instead **cmp**. Assembly is rare case in programming and 
+the assembly programmer can accept **slt** too since usually they are 
+professional.
+
  
 .. code-block:: bash
 
@@ -1282,6 +1385,8 @@ But it needs the conditional instruction support [#Quantitative]_.
        time of instruction cycle. The compiler engineers work in the vendor of 
        platform solution spend much effort try to reduce the cache miss for 
        speed. Reduce code size will cut down the cache miss frequency too.
+
+.. [#] http://llvm.org/docs/WritingAnLLVMBackend.html#expand
 
 .. [#Quantitative] See book Computer Architecture: A Quantitative Approach (The Morgan 
        Kaufmann Series in Computer Architecture and Design) 
