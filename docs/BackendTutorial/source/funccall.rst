@@ -3053,7 +3053,7 @@ more and more.
 
 .. [#] http://jonathan2251.github.io/lbd/globalvar.html#global-variable
 
-.. [#] http://http://en.wikipedia.org/wiki/Tail_call
+.. [#] http://en.wikipedia.org/wiki/Tail_call
 
 .. [#] http://developer.mips.com/clang-llvm/
 

@@ -506,11 +506,10 @@ For example, we install the Graphviz in directory
   /Applications/Graphviz.app/Contents/MacOS/:/Users/Jonathan/llvm/release/
   cmake_release_build/bin/Debug
 
-The Graphviz information for llvm is in 
-the section "SelectionDAG Instruction Selection Process" of 
-[#]_ and 
-the section "Viewing graphs while debugging code" of 
-[#]_.
+The Graphviz information for llvm is at section "SelectionDAG Instruction 
+Selection Process" " of "The LLVM Target-Independent Code Generator" here [#]_ 
+and at section "Viewing graphs while debugging code" of "LLVM Programmer’s 
+Manual" here [#]_.
 TextWrangler is for edit file with line number display and dump binary file 
 like the obj file, \*.o, that will be generated in chapter of Generating object 
 files if you havn't gobjdump available. 
@@ -944,9 +943,9 @@ Run as follows for single test case and the whole test cases on Linux.
 
 .. [#] http://www.graphviz.org/Download_macos.php
 
-.. [#] http://llvm.org/docs/CodeGenerator.html
+.. [#] http://llvm.org/docs/CodeGenerator.html#selectiondag-instruction-selection-process
 
-.. [#] http://llvm.org/docs/ProgrammersManual.html
+.. [#] http://llvm.org/docs/ProgrammersManual.html#viewing-graphs-while-debugging-code
 
 .. [#] http://www.graphviz.org/Download..php
 

@@ -571,7 +571,7 @@ Array and struct support
 -------------------------
 
 LLVM use getelementptr to represent the array and struct type in C. 
-Please reference section getelementptr of [#]_. 
+Please reference here [#]_. 
 For ch7_5.cpp, the llvm IR as follows,
 
 .. rubric:: lbdex/InputFiles/ch7_5.cpp
@@ -957,4 +957,4 @@ follows,
 	  .size	$_ZZ4mainE1a, 12
 
 
-.. [#] http://llvm.org/docs/LangRef.html
+.. [#] http://llvm.org/docs/LangRef.html#getelementptr-instruction

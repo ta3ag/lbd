@@ -433,10 +433,9 @@ value in register is OK. You can check the **lshr** satisfy x = x*2 for all
 x << 1 and when the x result is not out of range, no matter operand x is signed 
 or unsigned integer.
 
-Micorsoft implementation references as [#]_.
+Micorsoft implementation references here [#]_.
 
-The sub-section "‘ashr‘ Instruction" and sub-section "‘lshr‘ Instruction" of 
-[#]_.
+The ‘ashr‘ Instruction" reference here [#]_, ‘lshr‘ reference here [#]_.
 
 The srav, shlv and shrv are for two virtual registers instructions while the 
 sra, ... are for 1 virtual registers and 1 constant input operands.
@@ -618,7 +617,8 @@ The graphic display is more readable by eye than display text in terminal.
 It's not necessary, but helps a lot especially when you are tired in tracking 
 the DAG translation process. 
 List the ``llc`` graphic support options from the sub-section "SelectionDAG 
-Instruction Selection Process" of web [#]_ as follows,
+Instruction Selection Process" of web "The LLVM Target-Independent Code Generator" 
+[#]_ as follows,
 
 .. note:: The ``llc`` Graphviz DAG display options
 
@@ -1821,9 +1821,11 @@ this chapter and spend 360 lines of source code.
 
 .. [#] http://msdn.microsoft.com/en-us/library/336xbhcz%28v=vs.80%29.aspx
 
-.. [#] http://llvm.org/docs/LangRef.html.
+.. [#] http://llvm.org/docs/LangRef.html#ashr-instruction
 
-.. [#] http://llvm.org/docs/CodeGenerator.html
+.. [#] http://llvm.org/docs/LangRef.html#lshr-instruction
+
+.. [#] http://llvm.org/docs/CodeGenerator.html#selectiondag-instruction-selection-process
 
 .. [#] http://llvm.org/docs/WritingAnLLVMBackend.html#expand
 
