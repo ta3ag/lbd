@@ -52,7 +52,9 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.4.2, Not release yet
+Version 3.4.3, Not release yet
+
+Version 3.4.2, Released February 9, 2014
   Add ch12_2.cpp for slt instruction explanation and fix bug in Cpu0InstrInfo.cpp.
   Correct typing.
   Move Cpu0 Status Register from Number 20 to Number 10.
