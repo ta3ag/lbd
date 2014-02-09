@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.1',
+        VERSION:     '3.4.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -401,7 +401,7 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
 </pre></div>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">CSR_O32</span> <span class="o">:</span> <span class="n">CalleeSavedRegs</span><span class="o">&lt;</span><span class="p">(</span><span class="n">add</span> <span class="n">LR</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span>
-                                   <span class="p">(</span><span class="n">sequence</span> <span class="s">&quot;S%u&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span><span class="o">&gt;</span><span class="p">;</span>
+                                   <span class="p">(</span><span class="n">sequence</span> <span class="s">&quot;S%u&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter3_1/Cpu0FrameLowering.h</p>
@@ -1058,7 +1058,7 @@ The Cpu0TargetMachine contents and it&#8217;s own class as follows,</p>
                              <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">FS</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">little</span><span class="p">,</span> 
                              <span class="n">Reloc</span><span class="o">::</span><span class="n">Model</span> <span class="n">_RM</span><span class="p">)</span> <span class="o">:</span>
   <span class="n">Cpu0GenSubtargetInfo</span><span class="p">(</span><span class="n">TT</span><span class="p">,</span> <span class="n">CPU</span><span class="p">,</span> <span class="n">FS</span><span class="p">),</span>
-  <span class="n">Cpu0ABI</span><span class="p">(</span><span class="n">UnknownABI</span><span class="p">),</span> <span class="n">IsLittle</span><span class="p">(</span><span class="n">little</span><span class="p">),</span> <span class="n">RM</span><span class="p">(</span><span class="n">_RM</span><span class="p">)</span>
+  <span class="n">Cpu0ArchVersion</span><span class="p">(</span><span class="n">Cpu032I</span><span class="p">),</span> <span class="n">Cpu0ABI</span><span class="p">(</span><span class="n">UnknownABI</span><span class="p">),</span> <span class="n">IsLittle</span><span class="p">(</span><span class="n">little</span><span class="p">),</span> <span class="n">RM</span><span class="p">(</span><span class="n">_RM</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">CPUName</span> <span class="o">=</span> <span class="n">CPU</span><span class="p">;</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">CPUName</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span>
@@ -1851,7 +1851,7 @@ sub-directory MCTargetDesc as follows,</p>
     <span class="k">return</span> <span class="mi">8</span><span class="p">;</span>
   <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">S1</span><span class="o">:</span>
     <span class="k">return</span> <span class="mi">9</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">S2</span><span class="o">:</span>
+  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">SW</span><span class="o">:</span>
     <span class="k">return</span> <span class="mi">10</span><span class="p">;</span>
   <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">GP</span><span class="o">:</span>
     <span class="k">return</span> <span class="mi">11</span><span class="p">;</span>
@@ -1865,9 +1865,7 @@ sub-directory MCTargetDesc as follows,</p>
     <span class="k">return</span> <span class="mi">15</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">SW</span><span class="o">:</span>
-    <span class="k">return</span> <span class="mi">20</span><span class="p">;</span>
-  <span class="nl">default:</span> <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Unknown register number!&quot;</span><span class="p">);</span>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="nl">default:</span> <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;Unknown register number!&quot;</span><span class="p">);</span>
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -2962,7 +2960,7 @@ For example, (+ ri, rj), (- ri, 1) are lists for IR DAG; (ADD ri, rj),
 (SUBI ri, 1) are lists for machine instruction DAG.</p>
 <p>Now, let&#8217;s recall the ADDiu instruction defined on Cpu0InstrInfo.td in the
 previous chapter. List them again as follows,</p>
-<p class="rubric">lbdex/Chapter3_2/Cpu0InstrFormats.td</p>
+<p class="rubric">lbdex/Chapter2/Cpu0InstrFormats.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">// Format L instruction class in Cpu0 : &lt;|opcode|ra|rb|cx|&gt;</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
@@ -2982,13 +2980,13 @@ previous chapter. List them again as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Chapter3_2/Cpu0InstrInfo.td</p>
+<p class="rubric">lbdex/Chapter2/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// Arithmetic and logical instructions with 2 register operands.
 class ArithLogicI&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
                   Operand Od, PatLeaf imm_type, RegisterClass RC&gt; :
-  FL&lt;op, (outs RC:$ra), (ins RC:$rb, Od:$imm16),
+  FL&lt;op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
      !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
-     [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu&gt; {
+     [(set GPROut:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu&gt; {
   let isReMaterializable = 1;
 }
 ...
@@ -3034,7 +3032,7 @@ F4RC:$FRB))] is the pattern which include node <strong>fmul</strong> and node <s
 </pre></div>
 </div>
 <p>The llvm SelectionDAG Optimization Phase (is part of Instruction Selection
-Process) prefered to translate this 2 IR DAG node (fmul %a, %b) (fadd %d, %c)
+Process) prefered to translate this 2 IR DAG node (fmul %a, %c) (fadd %d, %b)
 into one machine instruction DAG node (<strong>fmadd</strong> %a, %c, %b), than translate
 them into 2 machine instruction nodes <strong>fmul</strong> and <strong>fadd</strong>.</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="o">%</span><span class="n">e</span> <span class="o">=</span> <span class="n">fmadd</span> <span class="o">%</span><span class="n">a</span><span class="p">,</span> <span class="o">%</span><span class="n">c</span><span class="p">,</span> <span class="o">%</span><span class="n">b</span>
@@ -3076,24 +3074,23 @@ ret i32 0
 <strong>add</strong> for sp (stack point) register adjust.
 So, the definitions in Cpu0InstrInfo.td as follows is enough.
 IR DAG is defined in file  include/llvm/Target/TargetSelectionDAG.td.</p>
-<p class="rubric">lbdex/Chapter3_2/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><pre>//===----------------------------------------------------------------------===//
+<p class="rubric">lbdex/Chapter2/Cpu0InstrInfo.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
 
-/// Load and Store Instructions
-///  aligned
-defm LD     : LoadM32&lt;0x01,  "ld",  load_a&gt;;
-defm ST     : StoreM32&lt;0x02, "st",  store_a&gt;;
+<span class="c1">/// Load and Store Instructions</span>
+<span class="c1">///  aligned</span>
+<span class="n">defm</span> <span class="n">LD</span>     <span class="o">:</span> <span class="n">LoadM32</span><span class="o">&lt;</span><span class="mh">0x01</span><span class="p">,</span>  <span class="s">&quot;ld&quot;</span><span class="p">,</span>  <span class="n">load_a</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="n">defm</span> <span class="n">ST</span>     <span class="o">:</span> <span class="n">StoreM32</span><span class="o">&lt;</span><span class="mh">0x02</span><span class="p">,</span> <span class="s">&quot;st&quot;</span><span class="p">,</span>  <span class="n">store_a</span><span class="o">&gt;</span><span class="p">;</span>
 
-/// Arithmetic Instructions (ALU Immediate)
-// IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
-def ADDiu   : ArithLogicI&lt;0x09, "addiu", add, simm16, immSExt16, CPURegs&gt;;
+<span class="c1">/// Arithmetic Instructions (ALU Immediate)</span>
+<span class="c1">// IR &quot;add&quot; defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).</span>
+<span class="n">def</span> <span class="n">ADDiu</span>   <span class="o">:</span> <span class="n">ArithLogicI</span><span class="o">&lt;</span><span class="mh">0x09</span><span class="p">,</span> <span class="s">&quot;addiu&quot;</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="n">simm16</span><span class="p">,</span> <span class="n">immSExt16</span><span class="p">,</span> <span class="n">CPURegs</span><span class="o">&gt;</span><span class="p">;</span>
 
-let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
-    isBarrier=1, hasCtrlDep=1 in
-  def RET : FJ &lt;0x3c, (outs), (ins CPURegs:$target),
-                "ret\t$target", [(Cpu0Ret CPURegs:$target)], IIBranch&gt;;
+<span class="n">let</span> <span class="n">isReturn</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">isTerminator</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hasDelaySlot</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">isBarrier</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hasCtrlDep</span><span class="o">=</span><span class="mi">1</span> <span class="n">in</span>
+<span class="n">def</span> <span class="n">RetLR</span> <span class="o">:</span> <span class="n">Cpu0Pseudo</span><span class="o">&lt;</span><span class="p">(</span><span class="n">outs</span><span class="p">),</span> <span class="p">(</span><span class="n">ins</span><span class="p">),</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="p">[(</span><span class="n">Cpu0Ret</span><span class="p">)]</span><span class="o">&gt;</span><span class="p">;</span>
 
-//===----------------------------------------------------------------------===//</pre>
+<span class="n">def</span> <span class="n">RET</span>     <span class="o">:</span> <span class="n">RetBase</span><span class="o">&lt;</span><span class="n">GPROut</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
 </div>
 <p>Add class Cpu0DAGToDAGISel (Cpu0ISelDAGToDAG.cpp) to CMakeLists.txt, and add
 following fragment to Cpu0TargetMachine.cpp,</p>
@@ -3420,25 +3417,11 @@ LLVM ERROR: Cannot <span class="k">select</span>: 0x7f80f182d310: <span class="n
                                 <span class="kt">unsigned</span> <span class="n">Opc</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">I</span><span class="o">-&gt;</span><span class="n">getDebugLoc</span><span class="p">(),</span> <span class="n">get</span><span class="p">(</span><span class="n">Opc</span><span class="p">)).</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">);</span>
 <span class="p">}</span>
-
-<span class="c1">/// Return the number of bytes of code the specified instruction may be.</span>
-<span class="kt">unsigned</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">GetInstSizeInBytes</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
-  <span class="nl">default:</span>
-    <span class="k">return</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getDesc</span><span class="p">().</span><span class="n">getSize</span><span class="p">();</span>
-  <span class="k">case</span>  <span class="n">TargetOpcode</span>:<span class="o">:</span><span class="n">INLINEASM</span><span class="o">:</span> <span class="p">{</span>       <span class="c1">// Inline Asm: Variable size.</span>
-    <span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">*</span><span class="n">MF</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">();</span>
-    <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">AsmStr</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">getSymbolName</span><span class="p">();</span>
-    <span class="k">return</span> <span class="nf">getInlineAsmLength</span><span class="p">(</span><span class="n">AsmStr</span><span class="p">,</span> <span class="o">*</span><span class="n">MF</span><span class="o">-&gt;</span><span class="n">getTarget</span><span class="p">().</span><span class="n">getMCAsmInfo</span><span class="p">());</span>
-  <span class="p">}</span>
-  <span class="p">}</span>
-<span class="p">}</span>
 </pre></div>
 </div>
 <p>To handle IR ret, these code in Cpu0InstrInfo.td do things as below.</p>
-<ol class="arabic simple">
-<li>Declare a pseudo node to take care the IR Cpu0ISD::Ret by the following code,</li>
-</ol>
+<p>1. Declare a pseudo node Cpu0::RetLR to take care the IR Cpu0ISD::Ret by the
+following code,</p>
 <p class="rubric">lbdex/Chapter3_3/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Return</span>
 <span class="n">def</span> <span class="n">Cpu0Ret</span> <span class="o">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s">&quot;Cpu0ISD::Ret&quot;</span><span class="p">,</span> <span class="n">SDTNone</span><span class="p">,</span>
@@ -3505,7 +3488,7 @@ class RetBase&lt;RegisterClass RC&gt;: JumpFR&lt;0x3c, "ret", RC&gt; {
 
 </pre>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">RET</span>     <span class="o">:</span> <span class="n">RetBase</span><span class="o">&lt;</span><span class="n">CPURegs</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">RET</span>     <span class="o">:</span> <span class="n">RetBase</span><span class="o">&lt;</span><span class="n">GPROut</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 <table border="1" class="docutils">
@@ -4187,9 +4170,9 @@ def immZExt5 : ImmLeaf&lt;i32, [{return Imm == (Imm &amp; 0x1f);}]&gt;;
 // Arithmetic and logical instructions with 3 register operands.
 class ArithLogicR&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
                   InstrItinClass itin, RegisterClass RC, bit isComm = 0&gt;:
-  FA&lt;op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
+  FA&lt;op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
      !strconcat(instr_asm, "\t$ra, $rb, $rc"),
-     [(set RC:$ra, (OpNode RC:$rb, RC:$rc))], itin&gt; {
+     [(set GPROut:$ra, (OpNode RC:$rb, RC:$rc))], itin&gt; {
   let shamt = 0;
   let isCommutable = isComm;  // e.g. add rb rc =  add rc rb
   let isReMaterializable = 1;
@@ -4199,9 +4182,9 @@ class ArithLogicR&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
 class shift_rotate_imm&lt;bits&lt;8&gt; op, bits&lt;4&gt; isRotate, string instr_asm,
                        SDNode OpNode, PatFrag PF, Operand ImmOpnd,
                        RegisterClass RC&gt;:
-  FA&lt;op, (outs RC:$ra), (ins RC:$rb, ImmOpnd:$shamt),
+  FA&lt;op, (outs GPROut:$ra), (ins RC:$rb, ImmOpnd:$shamt),
      !strconcat(instr_asm, "\t$ra, $rb, $shamt"),
-     [(set RC:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu&gt; {
+     [(set GPROut:$ra, (OpNode RC:$rb, PF:$shamt))], IIAlu&gt; {
   let rc = 0;
   let shamt = shamt;
 }

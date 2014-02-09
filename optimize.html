@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.1',
+        VERSION:     '3.4.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -53,25 +53,25 @@
   <div class="section" id="backend-optimization">
 <span id="sec-optimize"></span><h1>Backend Optimization<a class="headerlink" href="#backend-optimization" title="Permalink to this headline">¶</a></h1>
 <p>This chapter introduce how to do backend optimization in LLVM first.
-Next we do optimization via extend instruction sets with hardware level to
+Next we do optimization via extend instruction sets in hardware level to
 do optimization in a way of creating an efficient RISC CPU which aims to C/C++
 high level language.</p>
 <div class="section" id="cpu0-backend-optimization-remove-useless-jmp">
 <h2>Cpu0 backend Optimization: Remove useless JMP<a class="headerlink" href="#cpu0-backend-optimization-remove-useless-jmp" title="Permalink to this headline">¶</a></h2>
-<p>LLVM uses functional pass in code generation and optimization.
+<p>LLVM uses functional pass both in code generation and optimization.
 Following the 3 tiers of compiler architecture, LLVM did much optimization in
 middle tier of LLVM IR, SSA form.
-In addition of this middle tier optimization, there are opportunities in
+Beyond middle tier optimization, there are opportunities in
 optimization which depend on backend features.
 Mips fill delay slot is an example of backend optimization used in pipeline
 RISC machine.
-You can modify from Mips this part if your backend is a pipeline RISC with
-delay slot. In this section,
-we apply the &#8220;delete useless jmp&#8221; unconditional branch instruction in Cpu0
+You can migrate from Mips if your backend is a pipeline RISC with
+delay slot.
+In this section, we apply the &#8220;delete useless jmp&#8221; in Cpu0
 backend optimization.
 This algorithm is simple and effective as a perfect tutorial in optimization.
-Through this example, you can understand how to add a optimization pass and
-design your complicate optimization algorithm on your backend in real project.</p>
+Through this example, you can understand how to add an optimization pass and
+coding your complicate optimization algorithm on your backend in real project.</p>
 <p>Chapter12_1/ supports &#8220;delete useless jmp&#8221; optimization algorithm which add
 codes as follows,</p>
 <p class="rubric">lbdex/Chapter12_1/CMakeLists.txt</p>
@@ -208,29 +208,28 @@ codes as follows,</p>
 <p>As above code, except Cpu0DelUselessJMP.cpp, other files changed for register
 class DelJmp as a functional pass.
 As the comment of above code, MBB is the current
-block and MBBN is the next block. For the last instruction of every MBB, we
+block and MBBN is the next block. For each last instruction of every MBB, we
 check if it is the JMP instruction as well as
 its Operand is the next basic block.
 By getMBB() in MachineOperand, you can get the MBB address.
 For the member functions of MachineOperand, please check
 include/llvm/CodeGen/MachineOperand.h
-Let&#8217;s run Chapter12_1/ with ch12_1.cpp for explanation.</p>
+Now, let&#8217;s run Chapter12_1/ with ch12_1.cpp for explanation.</p>
 <p class="rubric">lbdex/InputFiles/ch12_1.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_DelUselessJMP</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">,</span> <span class="kt">int</span> <span class="n">c</span><span class="p">)</span>
 <span class="p">{</span>
-  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-  
   <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">a</span><span class="o">++</span><span class="p">;</span>
   <span class="p">}</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">3</span><span class="p">;</span>
+    <span class="n">b</span><span class="o">++</span><span class="p">;</span>
   <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="o">--</span><span class="p">;</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
+    <span class="n">b</span><span class="o">--</span><span class="p">;</span>
   <span class="p">}</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">c</span><span class="p">;</span>
     <span class="n">c</span><span class="o">++</span><span class="p">;</span>
   <span class="p">}</span>
   
@@ -243,79 +242,88 @@ Let&#8217;s run Chapter12_1/ with ch12_1.cpp for explanation.</p>
 118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
 bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm -stats
 ch12_1.bc -o -
-
         .section .mdebug.abi32
         .previous
         .file <span class="s2">&quot;ch12_1.bc&quot;</span>
         .text
-        .globl        main
+        .globl        _Z18test_DelUselessJMPiii
         .align        2
-        .type main,@function
-        .ent  main                    <span class="c"># @main</span>
-main:
-        .frame        <span class="nv">$fp</span>,24,<span class="nv">$lr</span>
+        .type _Z18test_DelUselessJMPiii,@function
+        .ent  _Z18test_DelUselessJMPiii <span class="c"># @_Z18test_DelUselessJMPiii</span>
+_Z18test_DelUselessJMPiii:
+        .frame        <span class="nv">$fp</span>,16,<span class="nv">$lr</span>
         .mask         0x00001000,-4
         .set  noreorder
         .set  nomacro
-<span class="c"># BB#0:                                 # %entry</span>
-        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
-        st    <span class="nv">$fp</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+<span class="c"># BB#0:</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+        st    <span class="nv">$fp</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
         addu  <span class="nv">$fp</span>, <span class="nv">$sp</span>, <span class="nv">$zero</span>
-        addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
-        st    <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        st    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+        ld    <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 2
-        st    <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        cmp   <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-        jne   <span class="nv">$sw</span>, <span class="nv">$BB0_2</span>
-<span class="c"># BB#1:                                 # %if.then</span>
-        ld    <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
-        st    <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-<span class="nv">$BB0_2</span>:                                 <span class="c"># %if.end</span>
-        ld    <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        cmp   <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-        jne   <span class="nv">$sw</span>, <span class="nv">$BB0_4</span>
-        jmp   <span class="nv">$BB0_3</span>
-<span class="nv">$BB0_4</span>:                                 <span class="c"># %if.else</span>
-        addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, -1
-        ld    <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        cmp   <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-        jgt   <span class="nv">$sw</span>, <span class="nv">$BB0_6</span>
-        jmp   <span class="nv">$BB0_5</span>
-<span class="nv">$BB0_3</span>:                                 <span class="c"># %if.then2</span>
+        ld    <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
         ld    <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        ld    <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addu  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-        st    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        jmp   <span class="nv">$BB0_6</span>
-<span class="nv">$BB0_5</span>:                                 <span class="c"># %if.then4</span>
-        ld    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        addiu <span class="nv">$4</span>, <span class="nv">$3</span>, -1
-        st    <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-        st    <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-<span class="nv">$BB0_6</span>:                                 <span class="c"># %if.end6</span>
+        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        jne   <span class="nv">$sw</span>, <span class="nv">$BB0_2</span>
+<span class="c"># BB#1:</span>
+        ld    <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$3</span>, <span class="nv">$3</span>, 1
+        st    <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+<span class="nv">$BB0_2</span>:
         ld    <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-        jlt   <span class="nv">$sw</span>, <span class="nv">$BB0_8</span>
-<span class="c"># BB#7:                                 # %if.then8</span>
+        jne   <span class="nv">$sw</span>, <span class="nv">$BB0_4</span>
+        jmp   <span class="nv">$BB0_3</span>
+<span class="nv">$BB0_4</span>:
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, -1
+        ld    <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        jgt   <span class="nv">$sw</span>, <span class="nv">$BB0_6</span>
+        jmp   <span class="nv">$BB0_5</span>
+<span class="nv">$BB0_3</span>:
+        ld    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 3
+        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         ld    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
         st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-<span class="nv">$BB0_8</span>:                                 <span class="c"># %if.end10</span>
-        ld    <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        jmp   <span class="nv">$BB0_6</span>
+<span class="nv">$BB0_5</span>:
+        ld    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$2</span>, -1
+        st    <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+<span class="nv">$BB0_6</span>:
+        addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+        ld    <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        cmp   <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        jlt   <span class="nv">$sw</span>, <span class="nv">$BB0_8</span>
+<span class="c"># BB#7:</span>
+        ld    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+        st    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        ld    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+        addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+        st    <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+<span class="nv">$BB0_8</span>:
+        ld    <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
         addu  <span class="nv">$sp</span>, <span class="nv">$fp</span>, <span class="nv">$zero</span>
-        ld    <span class="nv">$fp</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
-        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 24
+        ld    <span class="nv">$fp</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+        addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
         ret   <span class="nv">$lr</span>
         .set  macro
         .set  reorder
-        .end  main
+        .end  _Z18test_DelUselessJMPiii
 <span class="nv">$tmp3</span>:
-        .size main, <span class="o">(</span><span class="nv">$tmp3</span><span class="o">)</span>-main
+        .size _Z18test_DelUselessJMPiii, <span class="o">(</span><span class="nv">$tmp3</span><span class="o">)</span>-_Z18test_DelUselessJMPiii
 ...
 <span class="o">===</span>-------------------------------------------------------------------------<span class="o">===</span>
                           ... Statistics Collected ...
@@ -329,16 +337,17 @@ main:
 because we set the &#8220;STATISTIC(NumDelJmp, &#8220;Number of useless jmp deleted&#8221;)&#8221; in
 code. It deletes 2 jmp instructions from block &#8220;# BB#0&#8221; and &#8220;$BB0_6&#8221;.
 You can check it by <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-enable-cpu0-del-useless-jmp=false</span></tt> option to see
-the difference to no optimization version.
+the difference to non-optimization version.
 If you run with ch8_1_1.cpp, will find 10 jmp instructions are deleted in 100
-lines of assembly code, which meaning 10% improvement in speed and code size.</p>
+lines of assembly code, which meaning 10% improvement in speed and code size
+<a class="footnote-reference" href="#id5" id="id1">[1]</a>.</p>
 </div>
 <div class="section" id="cpu0-optimization-extends-instruction-sets">
 <h2>Cpu0 Optimization: Extends instruction sets<a class="headerlink" href="#cpu0-optimization-extends-instruction-sets" title="Permalink to this headline">¶</a></h2>
 <p>If you compare the cpu0 and Mips instruction sets, you will find that Mips use
 SLT, BEQ and set the status in explicit/general register while Cpu0 use CMP,
 JEQ and set status in implicit/specific register.</p>
-<p>According RISC spirits, this section will replace CMP, JEQ with Mips style
+<p>Follow RISC principle, this section will replace CMP, JEQ with Mips style
 instructions.
 Mips style BEQ instructions will reduce the number of branch instructions too.
 Which means optimization in speed and code size.</p>
@@ -549,34 +558,6 @@ Which means optimization in speed and code size.</p>
 <span class="n">def</span> <span class="o">:</span> <span class="n">Proc</span><span class="o">&lt;</span><span class="s">&quot;cpu032III&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">FeatureCpu032III</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Chapter12_2/Cpu0InstrInfo.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0InstrInfo::copyPhysReg()</span>
-<span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
-<span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
-            <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
-            <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
-            <span class="kt">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="k">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">Subtarget</span> <span class="o">=</span> <span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">();</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">DestReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy to CPU Reg.</span>
-    <span class="p">...</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Subtarget</span><span class="p">.</span><span class="n">hasCpu032II</span><span class="p">())</span> <span class="p">{</span>
-      <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>
-        <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFSW</span><span class="p">,</span> <span class="n">SrcReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="p">}</span>
-  <span class="p">}</span> <span class="c1">// lbd document - mark - if (!Subtarget.hasCpu032II()) 1</span>
-  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy from CPU Reg.</span>
-    <span class="p">...</span>
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Subtarget</span><span class="p">.</span><span class="n">hasCpu032II</span><span class="p">())</span> <span class="p">{</span> <span class="c1">// lbd document - mark - 2</span>
-      <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>
-        <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTSW</span><span class="p">,</span> <span class="n">DestReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="p">}</span> <span class="c1">// lbd document - mark - if (!Subtarget.hasCpu032II()) 2</span>
-  <span class="p">}</span>
-  <span class="p">...</span>
-<span class="p">}</span>
-</pre></div>
-</div>
 <p class="rubric">lbdex/Chapter12_2/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>def NotCpu032II :     Predicate&lt;"!Subtarget.hasCpu032II()"&gt;,
                       AssemblerPredicate&lt;"FeatureCpu032I"&gt;;
@@ -619,7 +600,7 @@ def brtarget16    : Operand&lt;OtherVT&gt; {
 ...
 class ArithOverflowR&lt;bits&lt;8&gt; op, string instr_asm,
                     InstrItinClass itin, RegisterClass RC, bit isComm = 0&gt;:
-  FA&lt;op, (outs RC:$ra), (ins RC:$rb, RC:$rc),
+  FA&lt;op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
      !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], itin&gt; {
   let shamt = 0;
   let isCommutable = isComm;
@@ -655,18 +636,18 @@ class CBranch16&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op, Register
 // SetCC
 class SetCC_R&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op,
               RegisterClass RC&gt;:
-  FA&lt;op, (outs CPURegs:$ra), (ins RC:$rb, RC:$rc),
+  FA&lt;op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
      !strconcat(instr_asm, "\t$ra, $rb, $rc"),
-     [(set CPURegs:$ra, (cond_op RC:$rb, RC:$rc))],
+     [(set GPROut:$ra, (cond_op RC:$rb, RC:$rc))],
      IIAlu&gt;, Requires&lt;[HasCpu032II]&gt; {
   let shamt = 0;
 }
 
 class SetCC_I&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op, Operand Od,
               PatLeaf imm_type, RegisterClass RC&gt;:
-  FL&lt;op, (outs CPURegs:$ra), (ins RC:$rb, Od:$imm16),
+  FL&lt;op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
      !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
-     [(set CPURegs:$ra, (cond_op RC:$rb, imm_type:$imm16))],
+     [(set GPROut:$ra, (cond_op RC:$rb, imm_type:$imm16))],
      IIAlu&gt;, Requires&lt;[HasCpu032II]&gt; {
 }
 ...
@@ -819,7 +800,80 @@ and the added instructions in Chapter12_2 is for cpu032II.
 The llc will generate cpu032I cmp, jeq,
 ..., instructions when <cite>llc -mcpu=cpu032I</cite> while <cite>llc -mcpu=cpu032II</cite> will
 generate slt, beq when meet &#8220;if else&#8221;, &#8220;while&#8221; and &#8220;for&#8221; flow control
-statements.</p>
+statements. Please notify the Cpu0ArchVersion must be initialized as the
+following code, otherwise the Cpu0ArchVersion can be any value and the functions
+hasCpu032I() and hasCpu032II() which support <cite>llc -mcpu=cpu032I</cite> and
+<cite>llc -mcpu=cpu032II</cite> will have trouble.</p>
+<p class="rubric">lbdex/Chapter3_1/Cpu0Subtarget.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0Subtarget</span><span class="o">::</span><span class="n">Cpu0Subtarget</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">TT</span><span class="p">,</span> <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">CPU</span><span class="p">,</span>
+                             <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">FS</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">little</span><span class="p">,</span>
+                             <span class="n">Reloc</span><span class="o">::</span><span class="n">Model</span> <span class="n">_RM</span><span class="p">)</span> <span class="o">:</span>
+  <span class="n">Cpu0GenSubtargetInfo</span><span class="p">(</span><span class="n">TT</span><span class="p">,</span> <span class="n">CPU</span><span class="p">,</span> <span class="n">FS</span><span class="p">),</span>
+  <span class="n">Cpu0ArchVersion</span><span class="p">(</span><span class="n">Cpu032I</span><span class="p">),</span> <span class="p">...</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/InputFiles/ch12_2.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_OptSlt</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">,</span> <span class="kt">int</span> <span class="n">c</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">f</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="n">d</span> <span class="o">=</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="n">e</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">);</span>
+  <span class="n">f</span> <span class="o">=</span> <span class="n">d</span> <span class="o">+</span> <span class="n">e</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -O2
+-c ch12_2.cpp -emit-llvm -o ch12_2.bc
+118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm
+ch12_2.bc -o -
+  ...
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -8
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
+  ld  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  st  <span class="nv">$sw</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             <span class="c"># 4-byte Folded Spill</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
+  ld  <span class="nv">$sw</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             <span class="c"># 4-byte Folded Reload</span>
+  andi  <span class="nv">$3</span>, <span class="nv">$sw</span>, 1
+  addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 8
+  ret <span class="nv">$lr</span>
+  ...
+118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm
+ch12_2.bc -o -
+  ...
+  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  slti  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+  ld  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  slti  <span class="nv">$3</span>, <span class="nv">$3</span>, 2
+  addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  ret <span class="nv">$lr</span>
+  ...
+</pre></div>
+</div>
+<p>Run these two <cite>llc -mcpu</cite> option for Chapter12_2 with ch12_2.cpp get the
+above result. Ignore the move between $sw and general purpose register in
+<cite>llc -mcpu=cpu032I</cite>, the two cmp instructions in it will has hazard in
+instruction reorder since both of them use $sw register while
+<cite>llc -mcpu=cpu032II</cite> has not <a class="footnote-reference" href="#quantitative" id="id2">[3]</a>. The slti version can reorder as follows,</p>
+<div class="highlight-bash"><div class="highlight"><pre>...
+ld  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+slti  <span class="nv">$3</span>, <span class="nv">$3</span>, 2
+ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+slti  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+ret <span class="nv">$lr</span>
+...
+</pre></div>
+</div>
 </div>
 <div class="section" id="cpu0-verilog-language-changes">
 <h3>Cpu0 Verilog language changes<a class="headerlink" href="#cpu0-verilog-language-changes" title="Permalink to this headline">¶</a></h3>
@@ -888,6 +942,8 @@ taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 2147483647
 -2147483648
 15
+2
+1
 RET to PC &lt; 0, finished!
 </pre></div>
 </div>
@@ -1055,6 +1111,663 @@ _Z13test_control1v:
 <p>The ch12_3.cpp is written in assembly for AsmParser test. You can check if it
 will generate the obj.</p>
 </div>
+</div>
+<div class="section" id="conditional-instruction">
+<h2>Conditional instruction<a class="headerlink" href="#conditional-instruction" title="Permalink to this headline">¶</a></h2>
+<p>Since the clang optimization level O1 or above level will generate <strong>select</strong>
+and <strong>select_cc</strong> to support conditional instruction, we add this feature in
+Cpu0 backend too.</p>
+<p class="rubric">lbdex/InputFiles/ch12_4.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">select_1</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="k">else</span>
+    <span class="k">return</span> <span class="mi">2</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">select_2</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="k">else</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">test_select</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  
+  <span class="n">c</span> <span class="o">=</span> <span class="n">select_1</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">);</span>
+  <span class="n">c</span> <span class="o">+=</span> <span class="n">select_2</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+  
+  <span class="k">return</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If you run Chapter12_2 with ch12_4.cpp will get the following result.</p>
+<div class="highlight-bash"><div class="highlight"><pre>114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>clang -O1 -target mips-unknown-linux-gnu
+-c ch12_4.cpp -emit-llvm -o ch12_4.bc
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/
+llvm-dis ch12_4.bc -o -
+...
+define i32 @_Z8select_1ii<span class="o">(</span>i32 %a, i32 %b<span class="o">)</span> <span class="c">#0 {</span>
+  %1 <span class="o">=</span> icmp slt i32 %a, %b
+  %. <span class="o">=</span> <span class="k">select </span>i1 %1, i32 1, i32 2
+  ret i32 %.
+<span class="o">}</span>
+
+; Function Attrs: nounwind readnone
+define i32 @_Z8select_2i<span class="o">(</span>i32 %a<span class="o">)</span> <span class="c">#0 {</span>
+  %1 <span class="o">=</span> icmp eq i32 %a, 0
+  %. <span class="o">=</span> <span class="k">select </span>i1 %1, i32 3, i32 1
+  ret i32 %.
+<span class="o">}</span>
+
+; Function Attrs: nounwind readnone
+define i32 @_Z11test_selectii<span class="o">(</span>i32 %a, i32 %b<span class="o">)</span> <span class="c">#0 {</span>
+  %1 <span class="o">=</span> tail call i32 @_Z8select_1ii<span class="o">(</span>i32 %a, i32 %b<span class="o">)</span>
+  %2 <span class="o">=</span> tail call i32 @_Z8select_2i<span class="o">(</span>i32 %a<span class="o">)</span>
+  %3 <span class="o">=</span> add nsw i32 %2, %1
+  ret i32 %3
+<span class="o">}</span>
+...
+
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/
+llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch12_4.bc
+-debug -o -
+...
+<span class="o">===</span> _Z8select_1ii
+Initial selection DAG: BB#0 <span class="s1">&#39;_Z8select_1ii:&#39;</span>
+SelectionDAG has 14 nodes:
+  ...
+        0x39f3fc0: <span class="nv">ch</span> <span class="o">=</span> setlt
+
+      0x39f40c0: <span class="nv">i1</span> <span class="o">=</span> setcc 0x39f3cc0, 0x39f3ec0, 0x39f3fc0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+
+      0x39f41c0: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;1&gt;
+
+      0x39f42c0: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;2&gt;
+
+    0x39f43c0: <span class="nv">i32</span> <span class="o">=</span> <span class="k">select </span>0x39f40c0, 0x39f41c0, 0x39f42c0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+  ...
+
+Replacing.3 0x39f43c0: <span class="nv">i32</span> <span class="o">=</span> <span class="k">select </span>0x39f40c0, 0x39f41c0, 0x39f42c0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+
+With: 0x39f47c0: <span class="nv">i32</span> <span class="o">=</span> select_cc 0x39f3cc0, 0x39f3ec0, 0x39f41c0, 0x39f42c0,
+0x39f3fc0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+...
+Optimized lowered selection DAG: BB#0 <span class="s1">&#39;_Z8select_1ii:&#39;</span>
+SelectionDAG has 13 nodes:
+  ...
+      0x39f41c0: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;1&gt;
+
+      0x39f42c0: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;2&gt;
+
+      0x39f3fc0: <span class="nv">ch</span> <span class="o">=</span> setlt
+
+    0x39f47c0: <span class="nv">i32</span> <span class="o">=</span> select_cc 0x39f3cc0, 0x39f3ec0, 0x39f41c0, 0x39f42c0,
+    0x39f3fc0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+  ...
+LLVM ERROR: Cannot <span class="k">select</span>: 0x39f47c0: <span class="nv">i32</span> <span class="o">=</span> select_cc 0x39f3cc0, 0x39f3ec0,
+0x39f41c0, 0x39f42c0, 0x39f3fc0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>10<span class="o">]</span>
+</pre></div>
+</div>
+<p>As llvm IR of ch12_4.bc as above, clang generate <strong>select</strong> IR for small
+basic control block (if statement only include one assign statement).
+This <strong>select</strong> IR is optimization result for CPU which has conditional
+instructions support.
+And from above llc command debug trace message, IR <strong>select</strong> is changed to
+<strong>select_cc</strong> during DAG optimization stages.</p>
+<p>Chapter12_3 support <strong>select</strong> with the following code added and changed.</p>
+<p class="rubric">lbdex/Chapter12_3/AsmParser/Cpu0AsmParser.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#define GET_MATCHER_IMPLEMENTATION</span>
+<span class="cp">#include &quot;Cpu0GenAsmMatcher.inc&quot;</span>
+
+<span class="cp">#ifndef ASM_EASY_PORTING</span>
+<span class="c1">// Adjust here when Cpu0InstrInfo.td changed.</span>
+<span class="k">static</span> <span class="k">const</span> <span class="n">MatchEntry</span> <span class="n">MatchTable0_R</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="p">{</span> <span class="mi">0</span> <span class="cm">/* add */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">4</span> <span class="cm">/* addiu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">10</span> <span class="cm">/* addu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">15</span> <span class="cm">/* and */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">AND</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">19</span> <span class="cm">/* andi */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ANDi</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">24</span> <span class="cm">/* beq */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">BEQ</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="n">Feature_HasCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">28</span> <span class="cm">/* bne */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">BNE</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="n">Feature_HasCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">32</span> <span class="cm">/* cmp */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">CMP</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="n">Feature_NotCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_SR</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">36</span> <span class="cm">/* div */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SDIV</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">40</span> <span class="cm">/* divu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">UDIV</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">45</span> <span class="cm">/* iret */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">IRET</span><span class="p">,</span> <span class="n">Convert__Reg1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">50</span> <span class="cm">/* jalr */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JALR</span><span class="p">,</span> <span class="n">Convert__Reg1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">55</span> <span class="cm">/* jeq */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JEQ</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="n">Feature_NotCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_SR</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">59</span> <span class="cm">/* jge */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JGE</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="n">Feature_NotCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_SR</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">63</span> <span class="cm">/* jgt */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JGT</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="n">Feature_NotCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_SR</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">67</span> <span class="cm">/* jle */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JLE</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="n">Feature_NotCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_SR</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">71</span> <span class="cm">/* jlt */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JLT</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="n">Feature_NotCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_SR</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">75</span> <span class="cm">/* jmp */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JMP</span><span class="p">,</span> <span class="n">Convert__Imm1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">79</span> <span class="cm">/* jne */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JNE</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="n">Feature_NotCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_SR</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">83</span> <span class="cm">/* jsub */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JSUB</span><span class="p">,</span> <span class="n">Convert__Imm1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">88</span> <span class="cm">/* la */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LoadAddr32Reg</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">88</span> <span class="cm">/* la */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LoadAddr32Imm</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">91</span> <span class="cm">/* lb */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LB</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">94</span> <span class="cm">/* lbu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LBu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">98</span> <span class="cm">/* ld */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LD</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">101</span> <span class="cm">/* lh */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LH</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">104</span> <span class="cm">/* lhu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LHu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">108</span> <span class="cm">/* li */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LoadImm32Reg</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">111</span> <span class="cm">/* lui */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">115</span> <span class="cm">/* mfhi */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFHI</span><span class="p">,</span> <span class="n">Convert__Reg1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">120</span> <span class="cm">/* mflo */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFLO</span><span class="p">,</span> <span class="n">Convert__Reg1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">125</span> <span class="cm">/* mfsw */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFSW</span><span class="p">,</span> <span class="n">Convert__Reg1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">130</span> <span class="cm">/* movn */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MOVN_I_I</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2__Tie0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">135</span> <span class="cm">/* movz */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MOVZ_I_I</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2__Tie0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">140</span> <span class="cm">/* mthi */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTHI</span><span class="p">,</span> <span class="n">Convert__Reg1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">145</span> <span class="cm">/* mtlo */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTLO</span><span class="p">,</span> <span class="n">Convert__Reg1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">150</span> <span class="cm">/* mtsw */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTSW</span><span class="p">,</span> <span class="n">Convert__Reg1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">155</span> <span class="cm">/* mul */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MUL</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_GPROut</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">159</span> <span class="cm">/* mult */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MULT</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">164</span> <span class="cm">/* multu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MULTu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">170</span> <span class="cm">/* nop */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">NOP</span><span class="p">,</span> <span class="n">Convert_NoOperands</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span>  <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">174</span> <span class="cm">/* or */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">OR</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">177</span> <span class="cm">/* ori */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ORi</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">181</span> <span class="cm">/* ret */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JR</span><span class="p">,</span> <span class="n">Convert__Reg1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_GPROut</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">185</span> <span class="cm">/* rol */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ROL</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">189</span> <span class="cm">/* ror */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ROR</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">193</span> <span class="cm">/* sb */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SB</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">196</span> <span class="cm">/* sh */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SH</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">199</span> <span class="cm">/* shl */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SHL</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">203</span> <span class="cm">/* shlv */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SHLV</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">208</span> <span class="cm">/* shr */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SHR</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">212</span> <span class="cm">/* shrv */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SHRV</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">217</span> <span class="cm">/* slt */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SLT</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="n">Feature_HasCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_GPROut</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">221</span> <span class="cm">/* slti */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SLTi</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="n">Feature_HasCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_GPROut</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">226</span> <span class="cm">/* sltiu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SLTiu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="n">Feature_HasCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_GPROut</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">232</span> <span class="cm">/* sltu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SLTu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="n">Feature_HasCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_GPROut</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">237</span> <span class="cm">/* sra */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SRA</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">241</span> <span class="cm">/* srav */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SRAV</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">246</span> <span class="cm">/* st */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ST</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">249</span> <span class="cm">/* sub */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SUB</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">253</span> <span class="cm">/* subu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SUBu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">258</span> <span class="cm">/* swi */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SWI</span><span class="p">,</span> <span class="n">Convert__Imm1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">262</span> <span class="cm">/* xor */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">XOR</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">266</span> <span class="cm">/* xori */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">XORi</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+<span class="p">};</span>
+
+<span class="c1">// lbd document - mark - MatchInstructionImpl_R</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter12_3/Cpu0InstInfo.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">include</span> <span class="s">&quot;Cpu0CondMov.td&quot;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter12_3/Cpu0CondMov.td</p>
+<div class="highlight-c++"><pre>//===-- Cpu0CondMov.td - Describe Cpu0 Conditional Moves --*- tablegen -*--===//
+//
+//                     The LLVM Compiler Infrastructure
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This is the Conditional Moves implementation.
+//
+//===----------------------------------------------------------------------===//
+
+// Conditional moves:
+// These instructions are expanded in
+// Cpu0ISelLowering::EmitInstrWithCustomInserter if target does not have
+// conditional move instructions.
+// cond:int, data:int
+class CondMovIntInt&lt;RegisterClass CRC, RegisterClass DRC, bits&lt;8&gt; op,
+                    string instr_asm&gt; :
+  FA&lt;op, (outs DRC:$ra), (ins DRC:$rb, CRC:$rc, DRC:$F),
+     !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], IIAlu&gt; {
+  let shamt = 0;
+  let Constraints = "$F = $ra";
+}
+
+// select patterns
+multiclass MovzPats0Slt&lt;RegisterClass CRC, RegisterClass DRC,
+                     Instruction MOVZInst, Instruction SLTOp,
+                     Instruction SLTuOp, Instruction SLTiOp,
+                     Instruction SLTiuOp&gt; {
+  def : Pat&lt;(select (i32 (setge CRC:$lhs, CRC:$rhs)), DRC:$T, DRC:$F),
+            (MOVZInst DRC:$T, (SLTOp CRC:$lhs, CRC:$rhs), DRC:$F)&gt;;
+  def : Pat&lt;(select (i32 (setuge CRC:$lhs, CRC:$rhs)), DRC:$T, DRC:$F),
+            (MOVZInst DRC:$T, (SLTuOp CRC:$lhs, CRC:$rhs), DRC:$F)&gt;;
+  def : Pat&lt;(select (i32 (setge CRC:$lhs, immSExt16:$rhs)), DRC:$T, DRC:$F),
+            (MOVZInst DRC:$T, (SLTiOp CRC:$lhs, immSExt16:$rhs), DRC:$F)&gt;;
+  def : Pat&lt;(select (i32 (setuge CRC:$lh, immSExt16:$rh)), DRC:$T, DRC:$F),
+            (MOVZInst DRC:$T, (SLTiuOp CRC:$lh, immSExt16:$rh), DRC:$F)&gt;;
+  def : Pat&lt;(select (i32 (setle CRC:$lhs, CRC:$rhs)), DRC:$T, DRC:$F),
+            (MOVZInst DRC:$T, (SLTOp CRC:$rhs, CRC:$lhs), DRC:$F)&gt;;
+  def : Pat&lt;(select (i32 (setule CRC:$lhs, CRC:$rhs)), DRC:$T, DRC:$F),
+            (MOVZInst DRC:$T, (SLTuOp CRC:$rhs, CRC:$lhs), DRC:$F)&gt;;
+}
+
+multiclass MovzPats1&lt;RegisterClass CRC, RegisterClass DRC,
+                     Instruction MOVZInst, Instruction XOROp&gt; {
+  def : Pat&lt;(select (i32 (seteq CRC:$lhs, CRC:$rhs)), DRC:$T, DRC:$F),
+            (MOVZInst DRC:$T, (XOROp CRC:$lhs, CRC:$rhs), DRC:$F)&gt;;
+  def : Pat&lt;(select (i32 (seteq CRC:$lhs, 0)), DRC:$T, DRC:$F),
+            (MOVZInst DRC:$T, CRC:$lhs, DRC:$F)&gt;;
+}
+
+multiclass MovnPats&lt;RegisterClass CRC, RegisterClass DRC, Instruction MOVNInst,
+                    Instruction XOROp&gt; {
+  def : Pat&lt;(select (i32 (setne CRC:$lhs, CRC:$rhs)), DRC:$T, DRC:$F),
+            (MOVNInst DRC:$T, (XOROp CRC:$lhs, CRC:$rhs), DRC:$F)&gt;;
+  def : Pat&lt;(select CRC:$cond, DRC:$T, DRC:$F),
+            (MOVNInst DRC:$T, CRC:$cond, DRC:$F)&gt;;
+  def : Pat&lt;(select (i32 (setne CRC:$lhs, 0)),DRC:$T, DRC:$F),
+            (MOVNInst DRC:$T, CRC:$lhs, DRC:$F)&gt;;
+}
+
+// Instantiation of instructions.
+def MOVZ_I_I     : CondMovIntInt&lt;CPURegs, CPURegs, 0x0a, "movz"&gt;;
+
+def MOVN_I_I     : CondMovIntInt&lt;CPURegs, CPURegs, 0x0b, "movn"&gt;;
+
+// Instantiation of conditional move patterns.
+let Predicates = [HasCpu032II] in {
+defm : MovzPats0Slt&lt;CPURegs, CPURegs, MOVZ_I_I, SLT, SLTu, SLTi, SLTiu&gt;;
+}
+
+defm : MovzPats1&lt;CPURegs, CPURegs, MOVZ_I_I, XOR&gt;;
+
+defm : MovnPats&lt;CPURegs, CPURegs, MOVN_I_I, XOR&gt;;
+
+</pre>
+</div>
+<p class="rubric">lbdex/Chapter12_3/Cpu0ISelLowering.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">SDValue</span> <span class="n">lowerSELECT</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter12_3/Cpu0ISelLowering.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
+  <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">Cpu0TargetObjectFile</span><span class="p">()),</span>
+    <span class="n">Subtarget</span><span class="p">(</span><span class="o">&amp;</span><span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">())</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">SELECT</span><span class="p">,</span>             <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span>   <span class="n">Custom</span><span class="p">);</span>
+  <span class="p">...</span>
+  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">SELECT_CC</span><span class="p">,</span>         <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span> <span class="n">Expand</span><span class="p">);</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">LowerOperation</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span>
+<span class="p">{</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">Op</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">())</span>
+  <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="k">case</span> <span class="n">ISD</span>:<span class="o">:</span><span class="n">SELECT</span><span class="o">:</span>             <span class="k">return</span> <span class="n">lowerSELECT</span><span class="p">(</span><span class="n">Op</span><span class="p">,</span> <span class="n">DAG</span><span class="p">);</span>
+    <span class="p">...</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">SDValue</span><span class="p">();</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">lowerSELECT</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span>
+<span class="p">{</span>
+  <span class="k">return</span> <span class="n">Op</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Set ISD::SELECT_CC to Expand will stop llvm optimization to merge setcc and
+select into one IR select_cc <a class="footnote-reference" href="#id6" id="id3">[2]</a>. Next the LowerSELECT() return ISD::SELECT as
+Op code directly. Finally the pattern define in Cpu0CondMov.td will
+translate the <strong>select</strong> IR into <strong>movz</strong> or <strong>movn</strong> conditional instruction.
+Let&#8217;s run Chapter12_3 with ch12_4.cpp and ch_optimize.cpp to get the following
+result.
+Again, the cpu032II use <strong>slt</strong> instead of <strong>cmp</strong> has a little improved in
+instructions number.</p>
+<div class="highlight-bash"><div class="highlight"><pre>114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/llc
+-march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch12_4.bc -debug
+-o -
+...
+<span class="o">===</span> _Z8select_1ii
+Initial selection DAG: BB#0 <span class="s1">&#39;_Z8select_1ii:&#39;</span>
+SelectionDAG has 14 nodes:
+  ...
+        0x3d87fc0: <span class="nv">ch</span> <span class="o">=</span> setlt
+
+      0x3d880c0: <span class="nv">i1</span> <span class="o">=</span> setcc 0x3d87cc0, 0x3d87ec0, 0x3d87fc0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+
+      0x3d881c0: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;1&gt;
+
+      0x3d882c0: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;2&gt;
+
+    0x3d883c0: <span class="nv">i32</span> <span class="o">=</span> <span class="k">select </span>0x3d880c0, 0x3d881c0, 0x3d882c0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+  ...
+Optimized lowered selection DAG: BB#0 <span class="s1">&#39;_Z8select_1ii:&#39;</span>
+SelectionDAG has 14 nodes:
+  ...
+        0x3d87fc0: <span class="nv">ch</span> <span class="o">=</span> setlt
+
+      0x3d880c0: <span class="nv">i1</span> <span class="o">=</span> setcc 0x3d87cc0, 0x3d87ec0, 0x3d87fc0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+
+      0x3d881c0: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;1&gt;
+
+      0x3d882c0: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;2&gt;
+
+    0x3d883c0: <span class="nv">i32</span> <span class="o">=</span> <span class="k">select </span>0x3d880c0, 0x3d881c0, 0x3d882c0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+  ...
+
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/llc
+-march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch12_4.bc -o -
+      .section .mdebug.abi32
+      .previous
+      .file   <span class="s2">&quot;ch12_4.bc&quot;</span>
+      .text
+      .globl  _Z8select_1ii
+      .align  2
+      .type   _Z8select_1ii,@function
+      .ent    _Z8select_1ii           <span class="c"># @_Z8select_1ii</span>
+_Z8select_1ii:
+      .frame  <span class="nv">$sp</span>,0,<span class="nv">$lr</span>
+      .mask   0x00000000,0
+      .set    noreorder
+      .set    nomacro
+<span class="c"># BB#0:</span>
+      ld      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      ld      <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      cmp     <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+      andi    <span class="nv">$3</span>, <span class="nv">$sw</span>, 1
+      addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
+      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 1
+      movn    <span class="nv">$2</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+      ret     <span class="nv">$lr</span>
+      .set    macro
+      .set    reorder
+      .end    _Z8select_1ii
+<span class="nv">$tmp0</span>:
+      .size   _Z8select_1ii, <span class="o">(</span><span class="nv">$tmp0</span><span class="o">)</span>-_Z8select_1ii
+
+      .globl  _Z8select_2i
+      .align  2
+      .type   _Z8select_2i,@function
+      .ent    _Z8select_2i            <span class="c"># @_Z8select_2i</span>
+_Z8select_2i:
+      .frame  <span class="nv">$sp</span>,0,<span class="nv">$lr</span>
+      .mask   0x00000000,0
+      .set    noreorder
+      .set    nomacro
+<span class="c"># BB#0:</span>
+      addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+      ld      <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 3
+      movz    <span class="nv">$2</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+      ret     <span class="nv">$lr</span>
+      .set    macro
+      .set    reorder
+      .end    _Z8select_2i
+<span class="nv">$tmp1</span>:
+      .size   _Z8select_2i, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-_Z8select_2i
+
+      .globl  _Z11test_selectii
+      .align  2
+      .type   _Z11test_selectii,@function
+      .ent    _Z11test_selectii       <span class="c"># @_Z11test_selectii</span>
+_Z11test_selectii:
+      .frame  <span class="nv">$sp</span>,32,<span class="nv">$lr</span>
+      .mask   0x00004300,-4
+      .set    noreorder
+      .set    nomacro
+<span class="c"># BB#0:</span>
+      addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, -32
+      st      <span class="nv">$lr</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Spill</span>
+      st      <span class="nv">$9</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             <span class="c"># 4-byte Folded Spill</span>
+      st      <span class="nv">$8</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             <span class="c"># 4-byte Folded Spill</span>
+      ld      <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      st      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      ld      <span class="nv">$9</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      st      <span class="nv">$9</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      jsub    _Z8select_1ii
+      add     <span class="nv">$8</span>, <span class="nv">$zero</span>, <span class="nv">$2</span>
+      st      <span class="nv">$9</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      jsub    _Z8select_2i
+      addu    <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$8</span>
+      ld      <span class="nv">$8</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             <span class="c"># 4-byte Folded Reload</span>
+      ld      <span class="nv">$9</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             <span class="c"># 4-byte Folded Reload</span>
+      ld      <span class="nv">$lr</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>            <span class="c"># 4-byte Folded Reload</span>
+      addiu   <span class="nv">$sp</span>, <span class="nv">$sp</span>, 32
+      ret     <span class="nv">$lr</span>
+      .set    macro
+      .set    reorder
+      .end    _Z11test_selectii
+<span class="nv">$tmp4</span>:
+      .size   _Z11test_selectii, <span class="o">(</span><span class="nv">$tmp4</span><span class="o">)</span>-_Z11test_selectii
+
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/llc
+-march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032II -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch12_4.bc -o -
+      .section .mdebug.abi32
+      .previous
+      .file   <span class="s2">&quot;ch12_4.bc&quot;</span>
+      .text
+      .globl  _Z8select_1ii
+      .align  2
+      .type   _Z8select_1ii,@function
+      .ent    _Z8select_1ii           <span class="c"># @_Z8select_1ii</span>
+_Z8select_1ii:
+      .frame  <span class="nv">$sp</span>,0,<span class="nv">$lr</span>
+      .mask   0x00000000,0
+      .set    noreorder
+      .set    nomacro
+<span class="c"># BB#0:</span>
+      ld      <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      ld      <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+      slt     <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+      addiu   <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
+      addiu   <span class="nv">$4</span>, <span class="nv">$zero</span>, 1
+      movn    <span class="nv">$2</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+      ret     <span class="nv">$lr</span>
+      ...
+</pre></div>
+</div>
+<p class="rubric">lbdex/InputFiles/ch_optimize.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;debug.h&quot;</span>
+<span class="cp">#include &quot;boot.cpp&quot;</span>
+
+<span class="cp">#include &quot;print.h&quot;</span>
+
+<span class="kt">int</span> <span class="nf">test_select</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">);</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">test_select</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span> <span class="c1">// 4</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="c1">// a = 4</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cp">#include &quot;print.cpp&quot;</span>
+
+<span class="cp">#include &quot;ch12_4.cpp&quot;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/InputFiles/build-optimize.sh</p>
+<div class="highlight-c++"><pre>#!/usr/bin/env bash
+OS=`uname -s`
+echo "OS =" ${OS}
+
+if [ "$OS" == "Linux" ]; then
+  TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
+else
+  TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
+fi
+
+if [ "$1" != "" ] &amp;&amp; [ $1 != cpu032I ] &amp;&amp; [ $1 != cpu032II ]; then
+  echo "1st argument is cpu032I (default) or cpu032II"
+  exit 1
+fi
+if [ "$1" == "" ]; then
+  CPU=cpu032I
+else
+  CPU=$1
+fi
+echo "CPU =" "${CPU}"
+
+bash rminput.sh
+
+clang -O1 -target mips-unknown-linux-gnu -c ch_optimize.cpp -emit-llvm -o \
+ch_optimize.bc
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+ch_optimize.bc -o ch_optimize.cpu0.o
+${TOOLDIR}/llvm-objdump -d ch_optimize.cpu0.o | tail -n +6| awk \
+'{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" \
+" $9" " $10 "\t*/"}' &gt; ../cpu0_verilog/cpu0.hex
+</pre>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>bash build-optimize.sh
+<span class="nv">OS</span> <span class="o">=</span> Darwin
+<span class="nv">CPU</span> <span class="o">=</span> cpu032I
+...
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../cpu0_verilog/
+114-37-150-209:cpu0_verilog Jonathan<span class="nv">$ </span>iverilog -o cpu0Is cpu0Is.v
+114-37-150-209:cpu0_verilog Jonathan<span class="nv">$ </span>./cpu0Is
+WARNING: ./cpu0.v:373: <span class="nv">$readmemh</span><span class="o">(</span>cpu0.hex<span class="o">)</span>: Not enough words in the file <span class="k">for</span>
+the requested range <span class="o">[</span>0:524287<span class="o">]</span>.
+taskInterrupt<span class="o">(</span>001<span class="o">)</span>
+2
+RET to PC &lt; 0, finished!
+
+114-37-150-209:cpu0_verilog Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../InputFiles/
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>bash build-optimize.sh cpu032II
+<span class="nv">OS</span> <span class="o">=</span> Darwin
+<span class="nv">CPU</span> <span class="o">=</span> cpu032II
+...
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../cpu0_verilog/
+114-37-150-209:cpu0_verilog Jonathan<span class="nv">$ </span>iverilog -o cpu0IIs cpu0IIs.v
+114-37-150-209:cpu0_verilog Jonathan<span class="nv">$ </span>./cpu0IIs
+WARNING: ./cpu0.v:373: <span class="nv">$readmemh</span><span class="o">(</span>cpu0.hex<span class="o">)</span>: Not enough words in the file <span class="k">for</span>
+the requested range <span class="o">[</span>0:524287<span class="o">]</span>.
+taskInterrupt<span class="o">(</span>001<span class="o">)</span>
+2
+RET to PC &lt; 0, finished!
+</pre></div>
+</div>
+<p>Compare to the non-optimize version which don&#8217;t use conditional move
+instructions as the following. The clang use <strong>select</strong> IR in small basic block
+to reduce the branch cost in pipeline machine since the branch will make the
+pipeline stall.
+But it needs the conditional instruction support <a class="footnote-reference" href="#quantitative" id="id4">[3]</a>.
+If your backend has no conditional instruction and want the clang compiler with
+optimization option <strong>O1</strong> level above, you can change clang to force it
+generate traditional branch basic block instead of IR <strong>select</strong>.
+RISC CPU came from pipeline advantage and add more and more instruction as time
+passed. Compare Mips and ARM, the Mips has only <strong>movz</strong> and <strong>movn</strong> two
+instructions while ARM has many. We create Cpu0 instructions as a RISC pipeline
+machine as well as simple instructions for compiler toolchain tutorial.
+Anyway the <strong>cmp</strong> instruction hired because many programmer used
+it in pass and now (ARM use it). It match the thinking in assembly programming.
+But the <strong>slt</strong> instruction is more efficient in RISC pipleline.
+If you designed a backend aimed for C/C++ highlevel language, you should
+consider <strong>slt</strong> instead <strong>cmp</strong>. Assembly is rare case in programming and
+the assembly programmer can accept <strong>slt</strong> too since usually they are
+professional.</p>
+<div class="highlight-bash"><div class="highlight"><pre>114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>clang -O0 -target mips-unknown-linux-gnu
+-c ch12_4.cpp -emit-llvm -o ch12_4.bc
+
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/
+llvm-dis ch12_4.bc -o -
+...
+define i32 @_Z8select_1ii<span class="o">(</span>i32 %a, i32 %b<span class="o">)</span> <span class="c">#0 {</span>
+  %1 <span class="o">=</span> alloca i32, align 4
+  %2 <span class="o">=</span> alloca i32, align 4
+  %3 <span class="o">=</span> alloca i32, align 4
+  %c <span class="o">=</span> alloca i32, align 4
+  store i32 %a, i32* %2, align 4
+  store i32 %b, i32* %3, align 4
+  store i32 0, i32* %c, align 4
+  %4 <span class="o">=</span> load i32* %2, align 4
+  %5 <span class="o">=</span> load i32* %3, align 4
+  %6 <span class="o">=</span> icmp slt i32 %4, %5
+  br i1 %6, label %7, label %8
+
+; &lt;label&gt;:7                                       ; <span class="nv">preds</span> <span class="o">=</span> %0
+  store i32 1, i32* %1
+  br label %9
+
+; &lt;label&gt;:8                                       ; <span class="nv">preds</span> <span class="o">=</span> %0
+  store i32 2, i32* %1
+  br label %9
+
+; &lt;label&gt;:9                                       ; <span class="nv">preds</span> <span class="o">=</span> %8, %7
+  %10 <span class="o">=</span> load i32* %1
+  ret i32 %10
+<span class="o">}</span>
+...
+
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/llc
+-march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032II -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch12_4.bc -o -
+  .section .mdebug.abi32
+  .previous
+  .file <span class="s2">&quot;ch12_4.bc&quot;</span>
+  .text
+  .globl  _Z8select_1ii
+  .align  2
+  .type _Z8select_1ii,@function
+  .ent  _Z8select_1ii           <span class="c"># @_Z8select_1ii</span>
+_Z8select_1ii:
+  .frame  <span class="nv">$sp</span>,16,<span class="nv">$lr</span>
+  .mask   0x00000000,0
+  .set  noreorder
+  .set  nomacro
+<span class="c"># BB#0:</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+  ld  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  slt <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  beq <span class="nv">$2</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_2</span>
+<span class="c"># BB#1:</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  jmp <span class="nv">$BB0_3</span>
+<span class="nv">$BB0_2</span>:
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
+  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_3</span>:
+  ld  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
+  ret <span class="nv">$lr</span>
+</pre></div>
+</div>
+<table class="docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>On a platform with cache and DRAM, the cache miss cost serveral tens
+time of instruction cycle. The compiler engineers work in the vendor of
+platform solution spend much effort try to reduce the cache miss for
+speed. Reduce code size will cut down the cache miss frequency too.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[2]</a></td><td><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#expand">http://llvm.org/docs/WritingAnLLVMBackend.html#expand</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="quantitative" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[3]</td><td><em>(<a class="fn-backref" href="#id2">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> See book Computer Architecture: A Quantitative Approach (The Morgan
+Kaufmann Series in Computer Architecture and Design)</td></tr>
+</tbody>
+</table>
 </div>
 </div>
 

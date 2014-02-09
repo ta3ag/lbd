@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.1',
+        VERSION:     '3.4.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -54,14 +54,16 @@
 <span id="sec-lld"></span><h1>LLD for Cpu0<a class="headerlink" href="#lld-for-cpu0" title="Permalink to this headline">¶</a></h1>
 <p>This chapter add Cpu0 backend in lld. With this lld Cpu0 for ELF linker support,
 the program with global variables can be allocated in ELF file format layout.
-Meaning the relocation records of global variables can be solved. In addition,
+Meaning the relocation records of global variables is resolved. In addition,
 llvm-objdump driver is modified for support generate Hex file from ELF.
 With these two tools supported, the program with global variables of existed in
 section .data and .rodata can be accessed and transfered to Hex file which feed
 to Verilog Cpu0 machine and run on your PC/Laptop.</p>
-<p>LLD web site <a class="footnote-reference" href="#id15" id="id1">[1]</a>. LLD install requirement on Linux <a class="footnote-reference" href="#id16" id="id2">[2]</a>.
-The gcc and clang 3.4 can build lld on Linux.
-On iMac, clang can build successfully.
+<p>About lld please refer LLD web site here <a class="footnote-reference" href="#id16" id="id1">[1]</a> and LLD install requirement on
+Linux here <a class="footnote-reference" href="#id17" id="id2">[2]</a>.
+Currently, lld can be built by gcc and clang 3.4 compiler on Linux.
+On iMac, lld can be built by clang with the OS X and Xcode version as the next
+sub section.
 If you run with Virtual Machine (VM), please keep your phisical memory size
 setting over 1GB to avoid insufficient memory link error.</p>
 <div class="section" id="install-lld-and-build-with-cpu0-lld">
@@ -70,8 +72,8 @@ setting over 1GB to avoid insufficient memory link error.</p>
 2011 year announced standard). For iMac, our software is OS X version 10.9.1 and
 Xcode version 5.0.2. For old iMac software version, you can install VM (such as
 Virtual Box) and build lld as Linux platform. Please download lld from llvm web
-<a class="footnote-reference" href="#id17" id="id3">[3]</a> and put lld souce code on {llvm-src}/tools/lld like we download llvm and
-clang as shown in Appendex A.</p>
+<a class="footnote-reference" href="#id18" id="id3">[3]</a> and put lld souce code on {llvm-src}/tools/lld as follows like we download
+llvm and clang as shown in Appendex A.</p>
 <div class="highlight-bash"><div class="highlight"><pre>1-160-136-173:tools Jonathan<span class="nv">$ </span><span class="nb">pwd</span>
 /Users/Jonathan/llvm/test/src/tools
 1-160-136-173:tools Jonathan<span class="nv">$ </span>ls
@@ -2413,14 +2415,15 @@ backend as follows,</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The code included &#8220;if (DumpSo)&#8221; and &#8220;if (LinkSo)&#8221; are for dynamic linker support.
+<p>The code included in &#8220;if (DumpSo)&#8221; and &#8220;if (LinkSo)&#8221; are for dynamic linker
+support.
 Others are used in both static and dynamic link execution file dump.</p>
 </div>
 <div class="section" id="lld-introduction">
 <h2>LLD introduction<a class="headerlink" href="#lld-introduction" title="Permalink to this headline">¶</a></h2>
 <p>In general, linker do the Relocation Records Resolve as Chapter ELF support
 depicted and optimization for those cannot finish in compiler stage. One of
-the optimization opportunity in linker is Dead Code Stripping which will
+the optimization opportunities in linker is Dead Code Stripping which will
 explained in this section. List the LLD project status as follows,</p>
 <ul class="simple">
 <li>The lld project aims to to be the built-in linker for clang/llvm.
@@ -2440,11 +2443,10 @@ Currently, clang must invoke the system linker to produce executables.</li>
 <p>This whole book focus on backend design, and this chapter is same.
 To help readers
 understand the lld document, first we list the linking steps from lld web.
-After that, explain each step with the class of source code which came from
-lld source and more with what kind of Cpu0 lld backend implementation needed
-in each step.
-Please read the lld design web document first, <a class="reference external" href="http://lld.llvm.org/design.html">http://lld.llvm.org/design.html</a>,
-then reading the following to
+After that, explain each step with the class of source code and what kind of
+Cpu0 lld backend implementation needed in each step.
+Please read the lld design web document first (only a few pages),
+<a class="reference external" href="http://lld.llvm.org/design.html">http://lld.llvm.org/design.html</a>, then reading the following to
 ensure you agree to our understanding from lld design document.
 Because some of the following came from our understanding.</p>
 <div class="section" id="how-lld-do-the-linker-job">
@@ -2713,7 +2715,7 @@ mark and swip in graph for Dead Code Stripping.</p>
 <p>As above example, the foo2() is an isolated node without any reference. It&#8217;s
 dead code and can be removed in linker optimization. We test this example by
 build-ch13_1.sh and find foo2() cannot be removed.
-There are two possibilities. One is we did trigger lld dead code stripping
+There are two possibilities. One is we do not trigger lld dead code stripping
 optimization in command (the default is not do it). The other is lld didn&#8217;t
 implement it at this point. It&#8217;s reasonable since the
 lld is in its early stages of development. We didn&#8217;t dig it more, since the
@@ -2742,9 +2744,9 @@ while the IR linker hasn&#8217;t.</p>
 </ul>
 <p>The Cpu0RelocationPass.cpp and Cpu0RelocationPass.h are example code for lld
 backend Passes. The Relocation Pass structure shown as <a class="pageref" href="#lld-f3">Figure  3</a>.
-The Cpu0 backend has two Releocation Pass and both of them are children of
+The Cpu0 backend has two Relocation Pass and both of them are children of
 RelocationPass. The StaticRelocationPass is for static linker and
-DynamicRelocationPass is for dynamic linker. We will see how to register
+DynamicRelocationPass is for dynamic linker. We will see how to register a
 relocation pass according the staic or dynamic linker you like to do in
 next section.</p>
 <div class="figure align-center" id="lld-f3">
@@ -3373,24 +3375,12 @@ below.</p>
 </pre></div>
 </div>
 <p class="rubric">lbdex/InputFiles/start.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;print.h&quot;</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;Cpu0Config.h&quot;</span>
+<span class="cp">#include &quot;print.h&quot;</span>
 <span class="cp">#include &quot;dynamic_linker.h&quot;</span>
+<span class="cp">#include &quot;start.h&quot;</span>
 
 <span class="k">extern</span> <span class="kt">int</span> <span class="nf">main</span><span class="p">();</span>
-
-<span class="cp">#define initRegs() \</span>
-<span class="cp">  asm(&quot;addiu $1,  $ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $2,  $ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $3,  $ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $4,  $ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $5,  $ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $6,  $ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $7,  $ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $8,  $ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $9,  $ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $10, $ZERO, 0&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $fp, $ZERO, 0&quot;);</span>
-
 
 <span class="c1">// Real entry (first instruction) is from cpu0BootAtomContent of </span>
 <span class="c1">// Cpu0RelocationPass.cpp jump to asm(&quot;start:&quot;) of start.cpp.</span>
@@ -3443,10 +3433,25 @@ entry:
 </div>
 <p class="rubric">lbdex/InputFiles/build-printf-stdarg-2.sh</p>
 <div class="highlight-c++"><pre>#!/usr/bin/env bash
-#TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
-TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
+OS=`uname -s`
+echo "OS =" ${OS}
 
-cpu=cpu032I
+if [ "$OS" == "Linux" ]; then
+  TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
+else
+  TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
+fi
+
+if [ "$1" != "" ] &amp;&amp; [ $1 != cpu032I ] &amp;&amp; [ $1 != cpu032II ]; then
+  echo "1st argument is cpu032I (default) or cpu032II"
+  exit 1
+fi
+if [ "$1" == "" ]; then
+  CPU=cpu032I
+else
+  CPU=$1
+fi
+echo "CPU =" "${CPU}"
 
 bash rminput.sh
 
@@ -3592,6 +3597,7 @@ for this purpose.</p>
 </div>
 <p class="rubric">lbdex/InputFiles/ch_lld_staticlink.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">extern</span> <span class="kt">int</span> <span class="nf">test_alloc</span><span class="p">();</span>
+<span class="k">extern</span> <span class="kt">int</span> <span class="nf">test_select</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">);</span>
 
 <span class="kt">int</span> <span class="nf">test_staticlink</span><span class="p">()</span>
 <span class="p">{</span>
@@ -3630,13 +3636,21 @@ for this purpose.</p>
     <span class="n">printf</span><span class="p">(</span><span class="s">&quot;, PASS</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
   <span class="k">else</span>
     <span class="n">printf</span><span class="p">(</span><span class="s">&quot;, FAIL</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_select</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span> <span class="c1">// 2</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;test_select() = %d&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span> <span class="c1">// a = 2</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;, PASS</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+  <span class="k">else</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;, FAIL</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
 
   <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/InputFiles/ch_slinker.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;ch_nolld.h&quot;</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//#define TEST_SELECT</span>
+
+<span class="cp">#include &quot;ch_nolld.h&quot;</span>
 <span class="cp">#include &quot;ch_lld_staticlink.h&quot;</span>
 
 <span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
@@ -3659,10 +3673,25 @@ for this purpose.</p>
 </div>
 <p class="rubric">lbdex/InputFiles/build-slinker.sh</p>
 <div class="highlight-c++"><pre>#!/usr/bin/env bash
-#TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
-TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
+OS=`uname -s`
+echo "OS =" ${OS}
 
-cpu=cpu032I
+if [ "$OS" == "Linux" ]; then
+  TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
+else
+  TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
+fi
+
+if [ "$1" != "" ] &amp;&amp; [ $1 != cpu032I ] &amp;&amp; [ $1 != cpu032II ]; then
+  echo "1st argument is cpu032I (default) or cpu032II"
+  exit 1
+fi
+if [ "$1" == "" ]; then
+  CPU=cpu032I
+else
+  CPU=$1
+fi
+echo "CPU =" "${CPU}"
 
 bash rminput.sh
 
@@ -3670,20 +3699,24 @@ clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
 clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm \
 -o printf-stdarg.bc
 clang -c ch9_4.cpp -emit-llvm -o ch9_4.bc
+clang -O1 -target mips-unknown-linux-gnu -c ch12_4.cpp -emit-llvm -o ch12_4.bc
 clang -target mips-unknown-linux-gnu -c ch_slinker.cpp -emit-llvm \
 -o ch_slinker.bc
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+${TOOLDIR}/llc -march=cpu0 -mcpu=${CPU} -relocation-model=static -filetype=obj \
 start.bc -o start.cpu0.o
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+${TOOLDIR}/llc -march=cpu0 -mcpu=${CPU} -relocation-model=static -filetype=obj \
 printf-stdarg.bc -o printf-stdarg.cpu0.o
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+${TOOLDIR}/llc -march=cpu0 -mcpu=${CPU} -relocation-model=static -filetype=obj \
 ch9_4.bc -o ch9_4.cpu0.o
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+${TOOLDIR}/llc -march=cpu0 -mcpu=${CPU} -relocation-model=static -filetype=obj \
+ch12_4.bc -o ch12_4.cpu0.o
+${TOOLDIR}/llc -march=cpu0 -mcpu=${CPU} -relocation-model=static -filetype=obj \
 ch_slinker.bc -o ch_slinker.cpu0.o
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+${TOOLDIR}/llc -march=cpu0 -mcpu=${CPU} -relocation-model=static -filetype=obj \
 lib_cpu0.ll -o lib_cpu0.o
 ${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o \
-printf-stdarg.cpu0.o ch9_4.cpu0.o ch_slinker.cpu0.o lib_cpu0.o -o a.out
+printf-stdarg.cpu0.o ch9_4.cpu0.o ch12_4.cpu0.o ch_slinker.cpu0.o lib_cpu0.o \
+-o a.out
 ${TOOLDIR}/llvm-objdump -elf2hex a.out &gt; ../cpu0_verilog/cpu0.hex
 </pre>
 </div>
@@ -3718,6 +3751,8 @@ taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 -2147483648
 7
 15
+2
+1
 test_nolld<span class="o">()</span>: PASS
 test_alloc<span class="o">()</span> <span class="o">=</span> 31, PASS
 global variable <span class="nv">gI</span> <span class="o">=</span> 100, PASS
@@ -3729,6 +3764,7 @@ global variable <span class="nv">gI</span> <span class="o">=</span> 100, PASS
 <span class="nv">date2</span> <span class="o">=</span> 2013 1 26 12 21 10, PASS
 test_template<span class="o">()</span> <span class="o">=</span> 15, PASS
 test_inlineasm<span class="o">()</span> <span class="o">=</span> 53, PASS
+test_select<span class="o">()</span> <span class="o">=</span> 2, PASS
 RET to PC &lt; 0, finished!
 </pre></div>
 </div>
@@ -3874,7 +3910,7 @@ The Cpu0LinkingContext constructor will create it&#8217;s ELFLinkingContext part
 The std::unique_ptr came from c++11 standard.
 The unique_ptr objects automatically delete the object they manage (using a
 deleter) as soon as themselves are destroyed. Just like the Singlelten
-pattern in Design Pattern book or Smart Pointers in Effective C++ book. <a class="footnote-reference" href="#id18" id="id4">[4]</a></p>
+pattern in Design Pattern book or Smart Pointers in Effective C++ book. <a class="footnote-reference" href="#id19" id="id4">[4]</a></p>
 <div class="figure align-center" id="lld-f5">
 <a class="reference internal image-reference" href="_images/54.png"><img alt="_images/54.png" src="_images/54.png" /></a>
 <p class="caption">Figure 7: Cpu0LinkingContext get Cpu0TargetHandler through &amp;getTargetHandler()</p>
@@ -3889,14 +3925,14 @@ contructor function.</p>
 as follows.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>std::unique_ptr::get() <a class="footnote-reference" href="#id19" id="id5">[5]</a></p>
+<p>std::unique_ptr::get() <a class="footnote-reference" href="#id20" id="id5">[5]</a></p>
 <p>pointer get() const noexcept;</p>
 <p class="last">Get pointer
 Returns the stored pointer.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>std::move() <a class="footnote-reference" href="#id20" id="id6">[6]</a></p>
+<p>std::move() <a class="footnote-reference" href="#id21" id="id6">[6]</a></p>
 <dl class="last docutils">
 <dt>for example:</dt>
 <dd><p class="first">std::string bar = &#8220;bar-string&#8221;;
@@ -4198,26 +4234,39 @@ exists to support dynamic linker.</p>
 dynamic linker demostration. File dynamic_linker.cpp is what our implementaion
 to execute the dynamic linker function on Cpu0 Verilog machine.</p>
 <p class="rubric">lbdex/InputFiles/debug.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#ifndef _DEBUG_H_</span>
-<span class="cp">#define _DEBUG_H_</span>
+<div class="highlight-c++"><pre>#ifndef _DEBUG_H_
+#define _DEBUG_H_
 
-<span class="cp">#define STOP \</span>
-<span class="cp">  asm(&quot;lui $t9, 0xffff&quot;); \</span>
-<span class="cp">  asm(&quot;addiu $t9, $zero, 0xffff&quot;); \</span>
-<span class="cp">  asm(&quot;ret $t9&quot;);</span>
+#include "Cpu0Config.h"
 
-<span class="cp">#define ENABLE_TRACE \</span>
-<span class="cp">  asm(&quot;mfsw $at&quot;); \</span>
-<span class="cp">  asm(&quot;ori $at, $at, 0x0020&quot;); \</span>
-<span class="cp">  asm(&quot;mtsw $at&quot;);</span>
+#define STOP \
+  asm("lui $t9, 0xffff"); \
+  asm("addiu $t9, $zero, 0xffff"); \
+  asm("ret $t9");
 
-<span class="cp">#define DISABLE_TRACE \</span>
-<span class="cp">  asm(&quot;mfsw $at&quot;); \</span>
-<span class="cp">  asm(&quot;andi $at, $at, 0xffdf&quot;); \</span>
-<span class="cp">  asm(&quot;mtsw $at&quot;);</span>
+#ifdef ASM_EASY_PORTING
+  #define ENABLE_TRACE \
+    asm("mfsw $at"); \
+    asm("ori $at, $at, 0x0020"); \
+    asm("mtsw $at");
+#else
+  #define ENABLE_TRACE \
+    asm("ori $sw, $sw, 0x0020");
+#endif
 
-<span class="cp">#endif</span>
-</pre></div>
+#ifdef ASM_EASY_PORTING
+  #define DISABLE_TRACE \
+    asm("mfsw $at"); \
+    asm("andi $at, $at, 0xffdf"); \
+    asm("mtsw $at");
+#else
+  #define DISABLE_TRACE \
+    asm("andi $sw, $sw, 0xffdf");
+#endif
+
+#endif
+
+</pre>
 </div>
 <p class="rubric">lbdex/InputFiles/dynamic_linker.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#ifndef _DYNAMIC_LINKER_H_</span>
@@ -4260,7 +4309,6 @@ to execute the dynamic linker function on Cpu0 Verilog machine.</p>
 <span class="cp">  asm(&quot;st $7, 20($at)&quot;);        \</span>
 <span class="cp">  asm(&quot;st $8, 24($at)&quot;);        \</span>
 <span class="cp">  asm(&quot;st $9, 28($at)&quot;);        \</span>
-<span class="cp">  asm(&quot;st $10, 32($at)&quot;);       \</span>
 <span class="cp">  asm(&quot;st $11, 36($at)&quot;);</span>
 
 <span class="cp">#define RESTORE_REGISTERS       \</span>
@@ -4274,7 +4322,6 @@ to execute the dynamic linker function on Cpu0 Verilog machine.</p>
 <span class="cp">  asm(&quot;ld $7, 20($at)&quot;);        \</span>
 <span class="cp">  asm(&quot;ld $8, 24($at)&quot;);        \</span>
 <span class="cp">  asm(&quot;ld $9, 28($at)&quot;);        \</span>
-<span class="cp">  asm(&quot;ld $10, 32($at)&quot;);       \</span>
 <span class="cp">  asm(&quot;ld $11, 36($at)&quot;);</span>
 
 
@@ -4477,10 +4524,25 @@ to execute the dynamic linker function on Cpu0 Verilog machine.</p>
 </div>
 <p class="rubric">lbdex/InputFiles/build-dlinker.sh</p>
 <div class="highlight-c++"><pre>#!/usr/bin/env bash
-#TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
-TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
+OS=`uname -s`
+echo "OS =" ${OS}
 
-cpu=cpu032I
+if [ "$OS" == "Linux" ]; then
+  TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
+else
+  TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
+fi
+
+if [ "$1" != "" ] &amp;&amp; [ $1 != cpu032I ] &amp;&amp; [ $1 != cpu032II ]; then
+  echo "1st argument is cpu032I (default) or cpu032II"
+  exit 1
+fi
+if [ "$1" == "" ]; then
+  CPU=cpu032I
+else
+  CPU=$1
+fi
+echo "CPU =" "${CPU}"
 
 bash rminput.sh
 
@@ -4835,12 +4897,12 @@ architecture.</p>
 program. But it&#8217;s quite complex in system program which based on llvm.
 We spent 500 pages of pdf to explain these code. Open source code give
 programmers best opportunity to understand the code and enhance/extend the
-code function. But not enough, we believe the documentation is the next most
-important thing to improve the open source code development.
+code function. But it can be better, we believe the documentation is the next
+most important thing to improve the open source code development.
 The Open Source Organization recognized this point before us and set
-Open Source Document Project years ago <a class="footnote-reference" href="#id21" id="id8">[7]</a> <a class="footnote-reference" href="#id22" id="id9">[8]</a> <a class="footnote-reference" href="#id23" id="id10">[9]</a> <a class="footnote-reference" href="#id24" id="id11">[10]</a> <a class="footnote-reference" href="#id25" id="id12">[11]</a>.
+Open Source Document Project years ago <a class="footnote-reference" href="#id22" id="id8">[7]</a> <a class="footnote-reference" href="#id23" id="id9">[8]</a> <a class="footnote-reference" href="#id24" id="id10">[9]</a> <a class="footnote-reference" href="#id25" id="id11">[10]</a> <a class="footnote-reference" href="#id26" id="id12">[11]</a>.
 Open Source grows up and becomes a giant software infrastructure with the forces
-of company <a class="footnote-reference" href="#id26" id="id13">[12]</a>  <a class="footnote-reference" href="#id27" id="id14">[13]</a>, school research team and countless talent engineers passion.
+of company <a class="footnote-reference" href="#id27" id="id13">[12]</a>  <a class="footnote-reference" href="#id28" id="id14">[13]</a>, school research team and countless talent engineers passion.
 It terminated the situation of everyone trying to re-invent wheels during 10
 years ago.
 Extend your software from the re-usable source code is the right way.
@@ -4850,94 +4912,103 @@ Actually anyone can contribute back to open source through the learning process.
 We write this book through the process of learning llvm backend and contribute
 back to llvm open source project.
 We think this book cannot exists in traditional paper book form since only
-few number of readers interested to read this llvm backend book even
-there are many paper published books in concept of compiler.
+few number of readers interested in study llvm backend even
+there are many paper published books in concept of compiler. So, this book
+is published via electric media form and try to match the Open Document License
+Expection <a class="footnote-reference" href="#id29" id="id15">[14]</a>.
 There are distance between the concept and the practice program implemenation.
 Keep note through learning a large complicate software is not enough
 such as this llvm backend study.
 We all learned the knowledge through books during school and after school.
 So, if you cannot find a good way to produce documents, you can consider to
 write document like this book. This book document use sphinx tool just
-like the llvm development team. Appendix A tell you how to install sphinx tool.
+like the llvm development team.
+Appendix A tell you how to install sphinx tool.
 Documentation work will help yourself to re-examine your software and make your
 program better in structure, reliability and more important &#8220;Extend your code
 to somewhere you didn&#8217;t expect&#8221;.</p>
-<table class="docutils footnote" frame="void" id="id15" rules="none">
+<table class="docutils footnote" frame="void" id="id16" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://lld.llvm.org/">http://lld.llvm.org/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id16" rules="none">
+<table class="docutils footnote" frame="void" id="id17" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://lld.llvm.org/getting_started.html#on-unix-like-systems">http://lld.llvm.org/getting_started.html#on-unix-like-systems</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id17" rules="none">
+<table class="docutils footnote" frame="void" id="id18" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://llvm.org/releases/download.html#3.4">http://llvm.org/releases/download.html#3.4</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id18" rules="none">
+<table class="docutils footnote" frame="void" id="id19" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/">http://www.cplusplus.com/reference/memory/unique_ptr/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id19" rules="none">
+<table class="docutils footnote" frame="void" id="id20" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/memory/unique_ptr/get/">http://www.cplusplus.com/reference/memory/unique_ptr/get/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id20" rules="none">
+<table class="docutils footnote" frame="void" id="id21" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id6">[6]</a></td><td><a class="reference external" href="http://www.cplusplus.com/reference/utility/move/">http://www.cplusplus.com/reference/utility/move/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id21" rules="none">
+<table class="docutils footnote" frame="void" id="id22" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id8">[7]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/BSD_Documentation_License">http://en.wikipedia.org/wiki/BSD_Documentation_License</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id22" rules="none">
+<table class="docutils footnote" frame="void" id="id23" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id9">[8]</a></td><td><a class="reference external" href="http://www.freebsd.org/docproj/">http://www.freebsd.org/docproj/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id23" rules="none">
+<table class="docutils footnote" frame="void" id="id24" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id10">[9]</a></td><td><a class="reference external" href="http://www.freebsd.org/copyright/freebsd-doc-license.html">http://www.freebsd.org/copyright/freebsd-doc-license.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id24" rules="none">
+<table class="docutils footnote" frame="void" id="id25" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id11">[10]</a></td><td><a class="reference external" href="http://en.wikipedia.org/wiki/GNU_Free_Documentation_License">http://en.wikipedia.org/wiki/GNU_Free_Documentation_License</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id25" rules="none">
+<table class="docutils footnote" frame="void" id="id26" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id12">[11]</a></td><td><a class="reference external" href="http://www.gnu.org/copyleft/fdl.html">http://www.gnu.org/copyleft/fdl.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id26" rules="none">
+<table class="docutils footnote" frame="void" id="id27" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id13">[12]</a></td><td><a class="reference external" href="http://www.apple.com/opensource/">http://www.apple.com/opensource/</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id27" rules="none">
+<table class="docutils footnote" frame="void" id="id28" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id14">[13]</a></td><td><a class="reference external" href="https://www.ibm.com/developerworks/opensource/">https://www.ibm.com/developerworks/opensource/</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id29" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id15">[14]</a></td><td><a class="reference external" href="http://www.gnu.org/philosophy/free-doc.en.html">http://www.gnu.org/philosophy/free-doc.en.html</a></td></tr>
 </tbody>
 </table>
 </div>

@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.1',
+        VERSION:     '3.4.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -377,8 +377,9 @@ function code we defined before,</p>
 </div>
 <p>Although the following definition in Cpu0RegisterInfo.td has no real effect in
 Reserved Registers, you should comment the Reserved Registers in it for
-readability. Setting SW into another register class to prevent the SW register
-allocated to the register used by other instruction.
+readability. Setting SW both in register class CPURegs and SR to allow the SW
+to be accessed by RISC instructions like <tt class="docutils literal"><span class="pre">andi</span></tt> and allow programmer use
+traditional assembly instruction <tt class="docutils literal"><span class="pre">cmp</span></tt>.
 The copyPhysReg() is called when DestReg and SrcReg belong to different Register
 Class.</p>
 <p class="rubric">lbdex/Chapter2/Cpu0RegisterInfo.td</p>
@@ -394,34 +395,13 @@ Class.</p>
   <span class="c1">// Not preserved across procedure calls</span>
   <span class="n">T9</span><span class="p">,</span> <span class="n">T0</span><span class="p">,</span>
   <span class="c1">// Callee save</span>
-  <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">S2</span><span class="p">,</span>
+  <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span>
   <span class="c1">// Reserved</span>
   <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span>
   <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="p">...</span>
 <span class="c1">// Status Registers</span>
 <span class="n">def</span> <span class="n">SR</span>   <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="n">SW</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
-</pre></div>
-</div>
-<p class="rubric">lbdex/Chapter4_2/Cpu0InstrInfo.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//- Called when DestReg and SrcReg belong to different Register Class.</span>
-<span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
-<span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
-      <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
-      <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
-      <span class="kt">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="kt">unsigned</span> <span class="n">Opc</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">ZeroReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-
-  <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">DestReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy to CPU Reg.</span>
-    <span class="p">...</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>
-      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFSW</span><span class="p">,</span> <span class="n">SrcReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy from CPU Reg.</span>
-  <span class="p">...</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>
-      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTSW</span><span class="p">,</span> <span class="n">DestReg</span> <span class="o">=</span> <span class="mi">0</span>
-  <span class="p">}</span>
 </pre></div>
 </div>
 <p>Chapter8_1/ include support for control flow statement.

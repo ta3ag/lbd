@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.1',
+        VERSION:     '3.4.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -106,8 +106,14 @@ is illustrated in <a class="pageref" href="#llvmstructure-f1">Figure  1</a> belo
 <tr class="row-odd"><td>R0</td>
 <td>Constant register, value is 0</td>
 </tr>
-<tr class="row-even"><td>R1-R11</td>
+<tr class="row-even"><td>R1-R9</td>
 <td>General-purpose registers</td>
+</tr>
+<tr class="row-odd"><td>R10</td>
+<td>Status Word Register (SW)</td>
+</tr>
+<tr class="row-even"><td>R11</td>
+<td>Global Pointer register (GP)</td>
 </tr>
 <tr class="row-odd"><td>R12</td>
 <td>Frame Pointer register (FP)</td>
@@ -132,9 +138,6 @@ is illustrated in <a class="pageref" href="#llvmstructure-f1">Figure  1</a> belo
 </tr>
 <tr class="row-even"><td>LO</td>
 <td>Low part of MULT result</td>
-</tr>
-<tr class="row-odd"><td>SW</td>
-<td>Status Word Register</td>
 </tr>
 </tbody>
 </table>
@@ -896,7 +899,7 @@ are not modified by instructions during execution.</p>
   <span class="n">def</span> <span class="n">T0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">7</span><span class="p">,</span>  <span class="s">&quot;7&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">S0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">,</span>  <span class="s">&quot;8&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">S1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">9</span><span class="p">,</span>  <span class="s">&quot;9&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">S2</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">10</span><span class="p">,</span> <span class="s">&quot;10&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">SW</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">10</span><span class="p">,</span> <span class="s">&quot;sw&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">GP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">11</span><span class="p">,</span> <span class="s">&quot;gp&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">FP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">12</span><span class="p">,</span> <span class="s">&quot;fp&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">SP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">13</span><span class="p">,</span> <span class="s">&quot;sp&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
@@ -906,8 +909,7 @@ are not modified by instructions during execution.</p>
 <span class="c1">//  def MDR  : Register&lt; 17, &quot;mdr&quot;&gt;,  DwarfRegNum&lt;[17]&gt;;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="n">def</span> <span class="n">SW</span>   <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;sw&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">20</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="p">}</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">// Register Classes</span>
@@ -921,7 +923,20 @@ are not modified by instructions during execution.</p>
   <span class="c1">// Not preserved across procedure calls</span>
   <span class="n">T9</span><span class="p">,</span> <span class="n">T0</span><span class="p">,</span>
   <span class="c1">// Callee save</span>
-  <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">S2</span><span class="p">,</span> 
+  <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> 
+  <span class="c1">// Reserved</span>
+  <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> 
+  <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="n">def</span> <span class="n">GPROut</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span>
+  <span class="c1">// Reserved</span>
+  <span class="n">ZERO</span><span class="p">,</span> <span class="n">AT</span><span class="p">,</span> 
+  <span class="c1">// Return Values and Arguments</span>
+  <span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">A0</span><span class="p">,</span> <span class="n">A1</span><span class="p">,</span> 
+  <span class="c1">// Not preserved across procedure calls</span>
+  <span class="n">T9</span><span class="p">,</span> <span class="n">T0</span><span class="p">,</span>
+  <span class="c1">// Callee save</span>
+  <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> 
   <span class="c1">// Reserved</span>
   <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> 
   <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
@@ -1070,9 +1085,9 @@ class AlignedStore&lt;PatFrag Node&gt; :
 // Arithmetic and logical instructions with 2 register operands.
 class ArithLogicI&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
                   Operand Od, PatLeaf imm_type, RegisterClass RC&gt; :
-  FL&lt;op, (outs RC:$ra), (ins RC:$rb, Od:$imm16),
+  FL&lt;op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
      !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
-     [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu&gt; {
+     [(set GPROut:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu&gt; {
   let isReMaterializable = 1;
 }
 
@@ -1108,7 +1123,7 @@ class StoreM&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode, RegisterClas
 // 32-bit load.
 multiclass LoadM32&lt;bits&lt;8&gt; op, string instr_asm, PatFrag OpNode,
                    bit Pseudo = 0&gt; {
-  def #NAME# : LoadM&lt;op, instr_asm, OpNode, CPURegs, mem, Pseudo&gt;;
+  def #NAME# : LoadM&lt;op, instr_asm, OpNode, GPROut, mem, Pseudo&gt;;
 }
 
 // 32-bit store.
@@ -1140,6 +1155,13 @@ class RetBase&lt;RegisterClass RC&gt;: JumpFR&lt;0x3c, "ret", RC&gt; {
 </pre>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Instruction definition</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">// Cpu0 Instructions</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 
@@ -1154,7 +1176,7 @@ class RetBase&lt;RegisterClass RC&gt;: JumpFR&lt;0x3c, "ret", RC&gt; {
 <span class="n">def</span> <span class="n">ADDiu</span>   <span class="o">:</span> <span class="n">ArithLogicI</span><span class="o">&lt;</span><span class="mh">0x09</span><span class="p">,</span> <span class="s">&quot;addiu&quot;</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="n">simm16</span><span class="p">,</span> <span class="n">immSExt16</span><span class="p">,</span> <span class="n">CPURegs</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">RET</span>     <span class="o">:</span> <span class="n">RetBase</span><span class="o">&lt;</span><span class="n">CPURegs</span><span class="o">&gt;</span><span class="p">;</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">RET</span>     <span class="o">:</span> <span class="n">RetBase</span><span class="o">&lt;</span><span class="n">GPROut</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 <div class="highlight-c++"><pre>
@@ -1302,9 +1324,9 @@ value as follows,</p>
 /// Arithmetic and logical instructions with 2 register operands.
 class ArithLogicI&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
           Operand Od, PatLeaf imm_type, RegisterClass RC&gt; :
-  FL&lt;op, (outs RC:$ra), (ins RC:$rb, Od:$imm16),
+  FL&lt;op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
    !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
-   [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu&gt; {
+   [(set GPROut:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu&gt; {
   let isReMaterializable = 1;
 }</pre>
 </div>
@@ -1316,9 +1338,9 @@ class ArithLogicI&lt;bits&lt;8&gt; op, string instr_asm, SDNode OpNode,
 <p>imm_type = immSExt16</p>
 <p>RC = CPURegs</p>
 <p>Expand with FL further,</p>
-<div class="highlight-c++"><pre> :  FL&lt;op, (outs RC:$ra), (ins RC:$rb, Od:$imm16),
+<div class="highlight-c++"><pre> :  FL&lt;op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
    !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
-   [(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu&gt;
+   [(set GPROut:$ra, (OpNode RC:$rb, imm_type:$imm16))], IIAlu&gt;
 
 class FL&lt;bits&lt;8&gt; op, dag outs, dag ins, string asmstr, list&lt;dag&gt; pattern,
      InstrItinClass itin&gt;: Cpu0Inst&lt;outs, ins, asmstr, pattern, itin, FrmL&gt;
@@ -1336,17 +1358,17 @@ class FL&lt;bits&lt;8&gt; op, dag outs, dag ins, string asmstr, list&lt;dag&gt; 
 </div>
 <p>So,</p>
 <p>op = 0x09</p>
-<p>outs = CPURegs:$ra</p>
+<p>outs = GPROut:$ra</p>
 <p>ins = CPURegs:$rb,simm16:$imm16</p>
 <p>asmstr = &#8220;addiut$ra, $rb, $imm16&#8221;</p>
-<p>pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]</p>
+<p>pattern = [(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]</p>
 <p>itin = IIAlu</p>
 <p>Members are,</p>
-<p>ra = CPURegs:$ra</p>
+<p>ra = GPROut:$ra</p>
 <p>rb = CPURegs:$rb</p>
 <p>imm16 = simm16:$imm16</p>
 <p>Opcode = 0x09;</p>
-<p>Inst{23-20} = CPURegs:$ra;</p>
+<p>Inst{23-20} = GPROut:$ra;</p>
 <p>Inst{19-16} = CPURegs:$rb;</p>
 <p>Inst{15-0}  = simm16:$imm16;</p>
 <p>Expand with Cpu0Inst further,</p>
@@ -1393,28 +1415,28 @@ class FL&lt;bits&lt;8&gt; op, dag outs, dag ins, string asmstr, list&lt;dag&gt; 
 <p>outs = CPURegs:$ra</p>
 <p>ins = CPURegs:$rb,simm16:$imm16</p>
 <p>asmstr = &#8220;addiut$ra, $rb, $imm16&#8221;</p>
-<p>pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]</p>
+<p>pattern = [(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]</p>
 <p>itin = IIAlu</p>
 <p>f =  FrmL</p>
 <p>Members are,</p>
 <p>Inst{31-24} = 0x09;</p>
-<p>OutOperandList = CPURegs:$ra</p>
+<p>OutOperandList = GPROut:$ra</p>
 <p>InOperandList  = CPURegs:$rb,simm16:$imm16</p>
 <p>AsmString = &#8220;addiut$ra, $rb, $imm16&#8221;</p>
-<p>Pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]</p>
+<p>Pattern = [(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]</p>
 <p>Itinerary = IIAlu</p>
 <p>Summary with all members are,</p>
 <p>// Inherited from parent like Instruction</p>
 <p>Namespace = &#8220;Cpu0&#8221;;</p>
 <p>DecoderNamespace = &#8220;Cpu0&#8221;;</p>
 <p>Inst{31-24} = 0x08;</p>
-<p>Inst{23-20} = CPURegs:$ra;</p>
+<p>Inst{23-20} = GPROut:$ra;</p>
 <p>Inst{19-16} = CPURegs:$rb;</p>
 <p>Inst{15-0}  = simm16:$imm16;</p>
 <p>OutOperandList = CPURegs:$ra</p>
 <p>InOperandList  = CPURegs:$rb,simm16:$imm16</p>
 <p>AsmString = &#8220;addiut$ra, $rb, $imm16&#8221;</p>
-<p>Pattern = [(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))]</p>
+<p>Pattern = [(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]</p>
 <p>Itinerary = IIAlu</p>
 <p>// From Cpu0Inst</p>
 <p>Opcode = 0x09;</p>
@@ -1425,7 +1447,7 @@ class FL&lt;bits&lt;8&gt; op, dag outs, dag ins, string asmstr, list&lt;dag&gt; 
 <p>It&#8217;s a lousy process.
 Similarly, LD and ST instruction definition can be expanded in this way.
 Please notify the Pattern =
-[(set CPURegs:$ra, (add RC:$rb, immSExt16:$imm16))] which include keyword
+[(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))] which include keyword
 <strong>“add”</strong>.
 We will use it in DAG transformations later.</p>
 <p>File Cpu0Schedule.td include the function units and pipeline stages information

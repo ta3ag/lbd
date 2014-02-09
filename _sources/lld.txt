@@ -5,15 +5,17 @@ LLD for Cpu0
 
 This chapter add Cpu0 backend in lld. With this lld Cpu0 for ELF linker support,
 the program with global variables can be allocated in ELF file format layout. 
-Meaning the relocation records of global variables can be solved. In addition, 
+Meaning the relocation records of global variables is resolved. In addition, 
 llvm-objdump driver is modified for support generate Hex file from ELF.
 With these two tools supported, the program with global variables of existed in 
 section .data and .rodata can be accessed and transfered to Hex file which feed 
 to Verilog Cpu0 machine and run on your PC/Laptop.
 
-LLD web site [#]_. LLD install requirement on Linux [#]_. 
-The gcc and clang 3.4 can build lld on Linux. 
-On iMac, clang can build successfully.
+About lld please refer LLD web site here [#]_ and LLD install requirement on 
+Linux here [#]_. 
+Currently, lld can be built by gcc and clang 3.4 compiler on Linux. 
+On iMac, lld can be built by clang with the OS X and Xcode version as the next 
+sub section.
 If you run with Virtual Machine (VM), please keep your phisical memory size 
 setting over 1GB to avoid insufficient memory link error.
 
@@ -25,8 +27,8 @@ LLD project is underdevelopment and can be compiled only with c++11 standard (C+
 2011 year announced standard). For iMac, our software is OS X version 10.9.1 and 
 Xcode version 5.0.2. For old iMac software version, you can install VM (such as 
 Virtual Box) and build lld as Linux platform. Please download lld from llvm web 
-[#]_ and put lld souce code on {llvm-src}/tools/lld like we download llvm and 
-clang as shown in Appendex A.
+[#]_ and put lld souce code on {llvm-src}/tools/lld as follows like we download 
+llvm and clang as shown in Appendex A.
 
 .. code-block:: bash
 
@@ -199,7 +201,8 @@ backend as follows,
     :start-after: // 2 llvm-objdump -elf2hex code update begin:
     :end-before: // 2 llvm-objdump -elf2hex code udpate end:
 
-The code included "if (DumpSo)" and "if (LinkSo)" are for dynamic linker support.
+The code included in "if (DumpSo)" and "if (LinkSo)" are for dynamic linker 
+support.
 Others are used in both static and dynamic link execution file dump.
 
 
@@ -208,7 +211,7 @@ LLD introduction
 
 In general, linker do the Relocation Records Resolve as Chapter ELF support 
 depicted and optimization for those cannot finish in compiler stage. One of 
-the optimization opportunity in linker is Dead Code Stripping which will 
+the optimization opportunities in linker is Dead Code Stripping which will 
 explained in this section. List the LLD project status as follows,
 
 - The lld project aims to to be the built-in linker for clang/llvm.
@@ -230,11 +233,10 @@ explained in this section. List the LLD project status as follows,
 This whole book focus on backend design, and this chapter is same. 
 To help readers 
 understand the lld document, first we list the linking steps from lld web. 
-After that, explain each step with the class of source code which came from 
-lld source and more with what kind of Cpu0 lld backend implementation needed 
-in each step. 
-Please read the lld design web document first, http://lld.llvm.org/design.html, 
-then reading the following to 
+After that, explain each step with the class of source code and what kind of 
+Cpu0 lld backend implementation needed in each step. 
+Please read the lld design web document first (only a few pages), 
+http://lld.llvm.org/design.html, then reading the following to 
 ensure you agree to our understanding from lld design document.
 Because some of the following came from our understanding.
 
@@ -486,7 +488,7 @@ mark and swip in graph for Dead Code Stripping.
 As above example, the foo2() is an isolated node without any reference. It's 
 dead code and can be removed in linker optimization. We test this example by 
 build-ch13_1.sh and find foo2() cannot be removed. 
-There are two possibilities. One is we did trigger lld dead code stripping 
+There are two possibilities. One is we do not trigger lld dead code stripping 
 optimization in command (the default is not do it). The other is lld didn't 
 implement it at this point. It's reasonable since the 
 lld is in its early stages of development. We didn't dig it more, since the 
@@ -524,9 +526,9 @@ Passes/Optimizations
 
 The Cpu0RelocationPass.cpp and Cpu0RelocationPass.h are example code for lld 
 backend Passes. The Relocation Pass structure shown as :num:`Figure #lld-f3`. 
-The Cpu0 backend has two Releocation Pass and both of them are children of 
+The Cpu0 backend has two Relocation Pass and both of them are children of 
 RelocationPass. The StaticRelocationPass is for static linker and 
-DynamicRelocationPass is for dynamic linker. We will see how to register 
+DynamicRelocationPass is for dynamic linker. We will see how to register a 
 relocation pass according the staic or dynamic linker you like to do in
 next section.
 
@@ -922,6 +924,8 @@ for this purpose.
   -2147483648
   7
   15
+  2
+  1
   test_nolld(): PASS
   test_alloc() = 31, PASS
   global variable gI = 100, PASS
@@ -933,6 +937,7 @@ for this purpose.
   date2 = 2013 1 26 12 21 10, PASS
   test_template() = 15, PASS
   test_inlineasm() = 53, PASS
+  test_select() = 2, PASS
   RET to PC < 0, finished!
 
 As above, take the open source code advantage, Cpu0 got the more stable printf() 
@@ -1532,8 +1537,8 @@ Finally, 10 thousands lines of source code in Cpu0 backend is very small in UI
 program. But it's quite complex in system program which based on llvm. 
 We spent 500 pages of pdf to explain these code. Open source code give 
 programmers best opportunity to understand the code and enhance/extend the 
-code function. But not enough, we believe the documentation is the next most 
-important thing to improve the open source code development. 
+code function. But it can be better, we believe the documentation is the next 
+most important thing to improve the open source code development. 
 The Open Source Organization recognized this point before us and set 
 Open Source Document Project years ago [#]_ [#]_ [#]_ [#]_ [#]_.
 Open Source grows up and becomes a giant software infrastructure with the forces 
@@ -1547,15 +1552,18 @@ Actually anyone can contribute back to open source through the learning process.
 We write this book through the process of learning llvm backend and contribute 
 back to llvm open source project.
 We think this book cannot exists in traditional paper book form since only 
-few number of readers interested to read this llvm backend book even 
-there are many paper published books in concept of compiler. 
+few number of readers interested in study llvm backend even 
+there are many paper published books in concept of compiler. So, this book 
+is published via electric media form and try to match the Open Document License 
+Expection [#]_.
 There are distance between the concept and the practice program implemenation. 
 Keep note through learning a large complicate software is not enough 
 such as this llvm backend study. 
 We all learned the knowledge through books during school and after school. 
 So, if you cannot find a good way to produce documents, you can consider to 
 write document like this book. This book document use sphinx tool just 
-like the llvm development team. Appendix A tell you how to install sphinx tool. 
+like the llvm development team. 
+Appendix A tell you how to install sphinx tool. 
 Documentation work will help yourself to re-examine your software and make your 
 program better in structure, reliability and more important "Extend your code 
 to somewhere you didn't expect".
@@ -1586,3 +1594,6 @@ to somewhere you didn't expect".
 .. [#] http://www.apple.com/opensource/
 
 .. [#] https://www.ibm.com/developerworks/opensource/
+
+.. [#] http://www.gnu.org/philosophy/free-doc.en.html
+

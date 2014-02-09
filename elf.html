@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.1',
+        VERSION:     '3.4.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -672,11 +672,22 @@ add_dependencies(LLVMCpu0Disassembler Cpu0CommonTableGen)
 <span class="k">static</span> <span class="k">const</span> <span class="kt">unsigned</span> <span class="n">CPURegsTable</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
   <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">V0</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">V1</span><span class="p">,</span>
   <span class="n">Cpu0</span><span class="o">::</span><span class="n">A0</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">A1</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">T9</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">T0</span><span class="p">,</span> 
-  <span class="n">Cpu0</span><span class="o">::</span><span class="n">S0</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">S1</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">S2</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">GP</span><span class="p">,</span> 
+  <span class="n">Cpu0</span><span class="o">::</span><span class="n">S0</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">S1</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">GP</span><span class="p">,</span> 
+  <span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">PC</span>
+<span class="p">};</span>
+
+<span class="k">static</span> <span class="k">const</span> <span class="kt">unsigned</span> <span class="n">GPROutTable</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="n">Cpu0</span><span class="o">::</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">AT</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">V0</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">V1</span><span class="p">,</span>
+  <span class="n">Cpu0</span><span class="o">::</span><span class="n">A0</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">A1</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">T9</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">T0</span><span class="p">,</span> 
+  <span class="n">Cpu0</span><span class="o">::</span><span class="n">S0</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">S1</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">GP</span><span class="p">,</span> 
   <span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">PC</span>
 <span class="p">};</span>
 
 <span class="k">static</span> <span class="n">DecodeStatus</span> <span class="nf">DecodeCPURegsRegisterClass</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                               <span class="kt">unsigned</span> <span class="n">RegNo</span><span class="p">,</span>
+                                               <span class="kt">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                               <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">);</span>
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="nf">DecodeGPROutRegisterClass</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
                                                <span class="kt">unsigned</span> <span class="n">RegNo</span><span class="p">,</span>
                                                <span class="kt">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
                                                <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">);</span>
@@ -802,6 +813,17 @@ add_dependencies(LLVMCpu0Disassembler Cpu0CommonTableGen)
     <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Fail</span><span class="p">;</span>
 
   <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">CPURegsTable</span><span class="p">[</span><span class="n">RegNo</span><span class="p">]));</span>
+  <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Success</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="n">DecodeStatus</span> <span class="n">DecodeGPROutRegisterClass</span><span class="p">(</span><span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                               <span class="kt">unsigned</span> <span class="n">RegNo</span><span class="p">,</span>
+                                               <span class="kt">uint64_t</span> <span class="n">Address</span><span class="p">,</span>
+                                               <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">Decoder</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">RegNo</span> <span class="o">&gt;</span> <span class="mi">16</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Fail</span><span class="p">;</span>
+
+  <span class="n">Inst</span><span class="p">.</span><span class="n">addOperand</span><span class="p">(</span><span class="n">MCOperand</span><span class="o">::</span><span class="n">CreateReg</span><span class="p">(</span><span class="n">GPROutTable</span><span class="p">[</span><span class="n">RegNo</span><span class="p">]));</span>
   <span class="k">return</span> <span class="n">MCDisassembler</span><span class="o">::</span><span class="n">Success</span><span class="p">;</span>
 <span class="p">}</span>
 

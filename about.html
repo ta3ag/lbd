@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.1',
+        VERSION:     '3.4.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -89,8 +89,16 @@ project. Some of them are:</p>
 </div>
 <div class="section" id="revision-history">
 <h2>Revision history<a class="headerlink" href="#revision-history" title="Permalink to this headline">¶</a></h2>
-<p>Version 3.4.2, Not release yet</p>
+<p>Version 3.4.3, Not release yet</p>
 <dl class="docutils">
+<dt>Version 3.4.2, Released February 9, 2014</dt>
+<dd>Add ch12_2.cpp for slt instruction explanation and fix bug in Cpu0InstrInfo.cpp.
+Correct typing.
+Move Cpu0 Status Register from Number 20 to Number 10.
+Fix llc -mcpu option problem.
+Update example code build shell script.
+Add condition move instruction.
+Fix bug of branch pattern match in Cpu0InstrInfo.td.</dd>
 <dt>Version 3.4.1, Released January 18, 2014</dt>
 <dd>Add ch9_4.cpp to lld test.
 Fix the wrong reference in lbd/lib/Target/Cpu0 code.

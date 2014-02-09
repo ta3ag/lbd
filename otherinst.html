@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.1',
+        VERSION:     '3.4.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -94,17 +94,13 @@ purpose register class from this chapter.</p>
       <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFHI</span><span class="p">,</span> <span class="n">SrcReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
     <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LO</span><span class="p">)</span>
       <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFLO</span><span class="p">,</span> <span class="n">SrcReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-</pre></div>
-</div>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="p">}</span>
+  <span class="p">}</span>
   <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy from CPU Reg.</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">HI</span><span class="p">)</span>
       <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTHI</span><span class="p">,</span> <span class="n">DestReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
     <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LO</span><span class="p">)</span>
       <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTLO</span><span class="p">,</span> <span class="n">DestReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-</pre></div>
-</div>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="p">}</span>
+  <span class="p">}</span>
 
   <span class="n">assert</span><span class="p">(</span><span class="n">Opc</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Cannot copy registers&quot;</span><span class="p">);</span>
 
@@ -402,7 +398,7 @@ SRA, SRAV, SHR and SHRV are for <strong>&gt;&gt;</strong>.</p>
 <p>In RISC CPU like Mips, the multiply/divide function unit and add/sub/logic unit
 are designed from two different hardware circuits, and more, their data path is
 separate. Cpu0 is same, so these two function units can be executed at same
-time (instruction level parallelism). Reference <a class="footnote-reference" href="#id8" id="id1">[1]</a> for instruction itineraries.</p>
+time (instruction level parallelism). Reference <a class="footnote-reference" href="#id9" id="id1">[1]</a> for instruction itineraries.</p>
 <p>This version can process <strong>+, -, *, &lt;&lt;,</strong> and <strong>&gt;&gt;</strong> operators in C
 language.
 The corresponding llvm IR instructions are <strong>add, sub, mul,
@@ -551,9 +547,8 @@ For the overflow case, no way to keep the correct result in register. So, any
 value in register is OK. You can check the <strong>lshr</strong> satisfy x = x*2 for all
 x &lt;&lt; 1 and when the x result is not out of range, no matter operand x is signed
 or unsigned integer.</p>
-<p>Micorsoft implementation references as <a class="footnote-reference" href="#id9" id="id2">[2]</a>.</p>
-<p>The sub-section &#8220;‘ashr‘ Instruction&#8221; and sub-section &#8220;‘lshr‘ Instruction&#8221; of
-<a class="footnote-reference" href="#id10" id="id3">[3]</a>.</p>
+<p>Micorsoft implementation references here <a class="footnote-reference" href="#id10" id="id2">[2]</a>.</p>
+<p>The ‘ashr‘ Instruction&#8221; reference here <a class="footnote-reference" href="#id11" id="id3">[3]</a>, ‘lshr‘ reference here <a class="footnote-reference" href="#id12" id="id4">[4]</a>.</p>
 <p>The srav, shlv and shrv are for two virtual registers instructions while the
 sra, ... are for 1 virtual registers and 1 constant input operands.</p>
 <p>Now, let&#8217;s build Chapter4_1/ and run with input file ch4_1.cpp as follows,</p>
@@ -752,7 +747,8 @@ The graphic display is more readable by eye than display text in terminal.
 It&#8217;s not necessary, but helps a lot especially when you are tired in tracking
 the DAG translation process.
 List the <tt class="docutils literal"><span class="pre">llc</span></tt> graphic support options from the sub-section &#8220;SelectionDAG
-Instruction Selection Process&#8221; of web <a class="footnote-reference" href="#id11" id="id4">[4]</a> as follows,</p>
+Instruction Selection Process&#8221; of web &#8220;The LLVM Target-Independent Code Generator&#8221;
+<a class="footnote-reference" href="#id13" id="id5">[5]</a> as follows,</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p>The <tt class="docutils literal"><span class="pre">llc</span></tt> Graphviz DAG display options</p>
@@ -845,7 +841,7 @@ define i32 @main<span class="o">()</span> nounwind ssp <span class="o">{</span>
 </pre></div>
 </div>
 <p>LLVM <strong>srem</strong> is the IR corresponding <strong>“%”</strong>, reference sub-section
-&#8220;srem instruction&#8221; of <a class="footnote-reference" href="#id10" id="id5">[3]</a>.
+&#8220;srem instruction&#8221; of <a class="footnote-reference" href="#id11" id="id6">[3]</a>.
 Copy the reference as follows,</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -1484,7 +1480,7 @@ translation and pattern match for C operator %.</p>
 </table>
 <p>Item 2 as above, is triggered by code
 &#8220;setOperationAction(ISD::SREM, MVT::i32, Expand);&#8221; in Cpu0ISelLowering.cpp.
-About <strong>Expand</strong> please ref. <a class="footnote-reference" href="#id12" id="id6">[5]</a> and <a class="footnote-reference" href="#id13" id="id7">[6]</a>. Item 3 is triggered by code
+About <strong>Expand</strong> please ref. <a class="footnote-reference" href="#id14" id="id7">[6]</a> and <a class="footnote-reference" href="#id15" id="id8">[7]</a>. Item 3 is triggered by code
 &#8220;setTargetDAGCombine(ISD::SDIVREM);&#8221; in Cpu0ISelLowering.cpp.
 Item 4 is did by PerformDivRemCombine() which called by PerformDAGCombine()
 since the <strong>%</strong> corresponding <strong>srem</strong>
@@ -1507,27 +1503,6 @@ to <strong>mfhi</strong>.</p>
 They are trivial and easy. Listing the added code with comments and table for
 these operators IR, DAG and instructions as below. Please check them with the
 run result of bc and asm instructions for ch4_5.cpp as below.</p>
-<p class="rubric">lbdex/Chapter4_2/Cpu0InstrInfo.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span>
-<span class="n">copyPhysReg</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
-            <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span> <span class="n">DebugLoc</span> <span class="n">DL</span><span class="p">,</span>
-            <span class="kt">unsigned</span> <span class="n">DestReg</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">SrcReg</span><span class="p">,</span>
-            <span class="kt">bool</span> <span class="n">KillSrc</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">DestReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy to CPU Reg.</span>
-    <span class="p">...</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">SrcReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>
-      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFSW</span><span class="p">,</span> <span class="n">SrcReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CPURegsRegClass</span><span class="p">.</span><span class="n">contains</span><span class="p">(</span><span class="n">SrcReg</span><span class="p">))</span> <span class="p">{</span> <span class="c1">// Copy from CPU Reg.</span>
-    <span class="p">...</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">DestReg</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>
-      <span class="n">Opc</span> <span class="o">=</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTSW</span><span class="p">,</span> <span class="n">DestReg</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="p">...</span>
-<span class="p">}</span>
-</pre></div>
-</div>
 <p class="rubric">lbdex/Chapter4_2/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>class CmpInstr&lt;bits&lt;8&gt; op, string instr_asm,
                InstrItinClass itin, RegisterClass RC, RegisterClass RD,
@@ -1537,28 +1512,6 @@ run result of bc and asm instructions for ch4_5.cpp as below.</p>
   let rc = 0;
   let shamt = 0;
   let isCommutable = isComm;
-}
-...
-// Move from SW
-class MoveFromSW&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
-                   list&lt;Register&gt; UseRegs&gt;:
-  FL&lt;op, (outs RC:$ra), (ins),
-     !strconcat(instr_asm, "\t$ra"), [], IIAlu&gt; {
-  let rb = 0;
-  let imm16 = 0;
-  let Uses = UseRegs;
-  let neverHasSideEffects = 1;
-}
-
-// Move to SW
-class MoveToSW&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
-                 list&lt;Register&gt; DefRegs&gt;:
-  FL&lt;op, (outs), (ins RC:$ra),
-     !strconcat(instr_asm, "\t$ra"), [], IIAlu&gt; {
-  let rb = 0;
-  let imm16 = 0;
-  let Defs = DefRegs;
-  let neverHasSideEffects = 1;
 }
 ...
 /// Arithmetic Instructions (ALU Immediate)
@@ -1573,9 +1526,6 @@ def CMP     : CmpInstr&lt;0x10, "cmp", IIAlu, CPURegs, SR, 0&gt;;
 def AND     : ArithLogicR&lt;0x18, "and", and, IIAlu, CPURegs, 1&gt;;
 def OR      : ArithLogicR&lt;0x19, "or", or, IIAlu, CPURegs, 1&gt;;
 def XOR     : ArithLogicR&lt;0x1a, "xor", xor, IIAlu, CPURegs, 1&gt;;
-...
-def MFSW    : MoveFromSW&lt;0x50, "mfsw", CPURegs, [SW]&gt;;
-def MTSW    : MoveToSW&lt;0x51, "mtsw", CPURegs, [SW]&gt;;
 ...
 def : Pat&lt;(not CPURegs:$in),
 // 1: in == 0; 0: in != 0
@@ -1792,39 +1742,43 @@ defm : SetgePats&lt;CPURegs&gt;;</pre>
    .type _Z16test_andorxornotv,@function
    .ent  _Z16test_andorxornotv   <span class="c"># @_Z16test_andorxornotv</span>
  _Z16test_andorxornotv:
-   .frame  <span class="nv">$fp</span>,24,<span class="nv">$lr</span>
+   .frame  <span class="nv">$sp</span>,24,<span class="nv">$lr</span>
    .mask   0x00000000,0
    .set  noreorder
    .set  nomacro
- <span class="c"># BB#0:                                 # %entry</span>
+ <span class="c"># BB#0:</span>
    addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -24
    addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
-   st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
    addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
-   st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
    addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-   st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
    and <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-   st  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   st  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
    or  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-   st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
    xor <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-   st  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   st  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
    cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-   mfsw  <span class="nv">$2</span>
-   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+   andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 2
    shr <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-   st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   addu  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+   ld  <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+   addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
    addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 24
    ret <span class="nv">$lr</span>
    .set  macro
@@ -1838,62 +1792,60 @@ defm : SetgePats&lt;CPURegs&gt;;</pre>
    .type _Z10test_setxxv,@function
    .ent  _Z10test_setxxv         <span class="c"># @_Z10test_setxxv</span>
  _Z10test_setxxv:
-   .frame  <span class="nv">$fp</span>,32,<span class="nv">$lr</span>
+   .frame  <span class="nv">$sp</span>,32,<span class="nv">$lr</span>
    .mask   0x00000000,0
    .set  noreorder
    .set  nomacro
- <span class="c"># BB#0:                                 # %entry</span>
+ <span class="c"># BB#0:</span>
    addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -32
    addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 5
-   st  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   st  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
    addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
-   st  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   st  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
    cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-   mfsw  <span class="nv">$2</span>
-   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+   andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 2
    shr <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-   st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   st  <span class="nv">$2</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
    cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-   mfsw  <span class="nv">$2</span>
-   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 2
+   andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 2
    shr <span class="nv">$2</span>, <span class="nv">$2</span>, 1
    xori  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-   st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
    cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-   mfsw  <span class="nv">$2</span>
-   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-   st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
+   st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
    cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-   mfsw  <span class="nv">$2</span>
-   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
    xori  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-   st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$2</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
    cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-   mfsw  <span class="nv">$2</span>
-   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-   st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-   ld  <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
+   st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
    cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-   mfsw  <span class="nv">$2</span>
-   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+   andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
    xori  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-   andi  <span class="nv">$2</span>, <span class="nv">$2</span>, 1
-   st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+   st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$3</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   ld  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   addu  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+   ld  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+   ld  <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+   ld  <span class="nv">$4</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+   addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
+   addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
    addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 32
    ret <span class="nv">$lr</span>
    .set  macro
@@ -1964,8 +1916,7 @@ defm : SetgePats&lt;CPURegs&gt;;</pre>
 </td>
 <td><ul class="first last simple">
 <li>cmp $sw, $3, $2</li>
-<li>mfsw  $2</li>
-<li>andi  $2, $2, 2</li>
+<li>andi  $2, $sw, 2</li>
 <li>shr $2, $2, 1</li>
 </ul>
 </td>
@@ -1982,8 +1933,7 @@ defm : SetgePats&lt;CPURegs&gt;;</pre>
 </td>
 <td><ul class="first last simple">
 <li>cmp $sw, $3, $2</li>
-<li>mfsw  $2</li>
-<li>andi  $2, $2, 2</li>
+<li>andi  $2, $sw, 2</li>
 <li>shr $2, $2, 1</li>
 </ul>
 </td>
@@ -2000,8 +1950,7 @@ defm : SetgePats&lt;CPURegs&gt;;</pre>
 </td>
 <td><ul class="first last simple">
 <li>cmp $sw, $3, $2</li>
-<li>mfsw  $2</li>
-<li>andi  $2, $2, 2</li>
+<li>andi  $2, $sw, 2</li>
 </ul>
 </td>
 </tr>
@@ -2017,8 +1966,7 @@ defm : SetgePats&lt;CPURegs&gt;;</pre>
 </td>
 <td><ul class="first last simple">
 <li>cmp $sw, $2, $3</li>
-<li>mfsw  $2</li>
-<li>andi  $2, $2, 1</li>
+<li>andi  $2, $sw, 1</li>
 <li>xori  $2, $2, 1</li>
 </ul>
 </td>
@@ -2035,8 +1983,7 @@ defm : SetgePats&lt;CPURegs&gt;;</pre>
 </td>
 <td><ul class="first last simple">
 <li>cmp $sw, $2, $3</li>
-<li>mfsw  $2</li>
-<li>andi  $2, $2, 2</li>
+<li>andi  $2, $sw, 2</li>
 </ul>
 </td>
 </tr>
@@ -2052,8 +1999,7 @@ defm : SetgePats&lt;CPURegs&gt;;</pre>
 </td>
 <td><ul class="first last simple">
 <li>cmp $sw, $3, $2</li>
-<li>mfsw  $2</li>
-<li>andi  $2, $2, 1</li>
+<li>andi  $2, $sw, 1</li>
 <li>xori  $2, $2, 1</li>
 </ul>
 </td>
@@ -2191,40 +2137,46 @@ this chapter and spend 360 lines of source code.</p>
 </tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id8" rules="none">
+<table class="docutils footnote" frame="void" id="id9" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html">http://llvm.org/docs/doxygen/html/structllvm_1_1InstrStage.html</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id9" rules="none">
+<table class="docutils footnote" frame="void" id="id10" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://msdn.microsoft.com/en-us/library/336xbhcz%28v=vs.80%29.aspx">http://msdn.microsoft.com/en-us/library/336xbhcz%28v=vs.80%29.aspx</a></td></tr>
 </tbody>
 </table>
-<table class="docutils footnote" frame="void" id="id10" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://llvm.org/docs/LangRef.html">http://llvm.org/docs/LangRef.html</a>.</td></tr>
-</tbody>
-</table>
 <table class="docutils footnote" frame="void" id="id11" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html">http://llvm.org/docs/CodeGenerator.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td><a class="reference external" href="http://llvm.org/docs/LangRef.html#ashr-instruction">http://llvm.org/docs/LangRef.html#ashr-instruction</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id12" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id6">[5]</a></td><td><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#expand">http://llvm.org/docs/WritingAnLLVMBackend.html#expand</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td><a class="reference external" href="http://llvm.org/docs/LangRef.html#lshr-instruction">http://llvm.org/docs/LangRef.html#lshr-instruction</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id13" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id7">[6]</a></td><td><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase">http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html#selectiondag-instruction-selection-process">http://llvm.org/docs/CodeGenerator.html#selectiondag-instruction-selection-process</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id14" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id7">[6]</a></td><td><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#expand">http://llvm.org/docs/WritingAnLLVMBackend.html#expand</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id15" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id8">[7]</a></td><td><a class="reference external" href="http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase">http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase</a></td></tr>
 </tbody>
 </table>
 </div>

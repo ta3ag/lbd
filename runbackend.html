@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.1',
+        VERSION:     '3.4.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -131,6 +131,7 @@ The Chapter11_1/ include AsmParser implementation as follows,</p>
 <span class="c1">//</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 
+<span class="cp">#include &quot;Cpu0Config.h&quot;</span>
 <span class="cp">#include &quot;MCTargetDesc/Cpu0MCTargetDesc.h&quot;</span>
 <span class="cp">#include &quot;Cpu0RegisterInfo.h&quot;</span>
 <span class="cp">#include &quot;llvm/ADT/StringSwitch.h&quot;</span>
@@ -178,6 +179,14 @@ The Chapter11_1/ include AsmParser implementation as follows,</p>
 
 <span class="cp">#define GET_ASSEMBLER_HEADER</span>
 <span class="cp">#include &quot;Cpu0GenAsmMatcher.inc&quot;</span>
+
+<span class="cp">#ifndef ASM_EASY_PORTING</span>
+  <span class="kt">unsigned</span> <span class="nf">MatchInstructionImpl_R</span><span class="p">(</span>
+                           <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">,</span>
+                                <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+                                <span class="kt">unsigned</span> <span class="o">&amp;</span><span class="n">ErrorInfo</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">matchingInlineAsm</span><span class="p">,</span>
+                                <span class="kt">unsigned</span> <span class="n">VariantID</span> <span class="o">=</span> <span class="mi">0</span><span class="p">);</span>
+<span class="cp">#endif</span>
 
   <span class="kt">bool</span> <span class="nf">MatchAndEmitInstruction</span><span class="p">(</span><span class="n">SMLoc</span> <span class="n">IDLoc</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="o">&amp;</span><span class="n">Opcode</span><span class="p">,</span>
                                <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">,</span>
@@ -551,9 +560,13 @@ The Chapter11_1/ include AsmParser implementation as follows,</p>
                         <span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">Out</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="o">&amp;</span><span class="n">ErrorInfo</span><span class="p">,</span>
                         <span class="kt">bool</span> <span class="n">MatchingInlineAsm</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">MCInst</span> <span class="n">Inst</span><span class="p">;</span>
+<span class="cp">#ifndef ASM_EASY_PORTING</span>
+  <span class="kt">unsigned</span> <span class="n">MatchResult</span> <span class="o">=</span> <span class="n">MatchInstructionImpl_R</span><span class="p">(</span><span class="n">Operands</span><span class="p">,</span> <span class="n">Inst</span><span class="p">,</span> <span class="n">ErrorInfo</span><span class="p">,</span>
+                                              <span class="n">MatchingInlineAsm</span><span class="p">);</span>
+<span class="cp">#else</span>
   <span class="kt">unsigned</span> <span class="n">MatchResult</span> <span class="o">=</span> <span class="n">MatchInstructionImpl</span><span class="p">(</span><span class="n">Operands</span><span class="p">,</span> <span class="n">Inst</span><span class="p">,</span> <span class="n">ErrorInfo</span><span class="p">,</span>
                                               <span class="n">MatchingInlineAsm</span><span class="p">);</span>
-
+<span class="cp">#endif</span>
   <span class="k">switch</span> <span class="p">(</span><span class="n">MatchResult</span><span class="p">)</span> <span class="p">{</span>
   <span class="nl">default:</span> <span class="k">break</span><span class="p">;</span>
   <span class="k">case</span> <span class="n">Match_Success</span>: <span class="p">{</span>
@@ -604,7 +617,7 @@ The Chapter11_1/ include AsmParser implementation as follows,</p>
       <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;t0&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">T0</span><span class="p">)</span>
       <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;s0&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">S0</span><span class="p">)</span>
       <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;s1&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">S1</span><span class="p">)</span>
-      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;s2&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">S2</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;sw&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">SW</span><span class="p">)</span>
       <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;gp&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">GP</span><span class="p">)</span>
       <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;fp&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">FP</span><span class="p">)</span>
       <span class="p">.</span><span class="n">Case</span><span class="p">(</span><span class="s">&quot;sp&quot;</span><span class="p">,</span>  <span class="n">Cpu0</span><span class="o">::</span><span class="n">SP</span><span class="p">)</span>
@@ -1147,10 +1160,197 @@ The Chapter11_1/ include AsmParser implementation as follows,</p>
   <span class="n">RegisterMCAsmParser</span><span class="o">&lt;</span><span class="n">Cpu0AsmParser</span><span class="o">&gt;</span> <span class="n">X</span><span class="p">(</span><span class="n">TheCpu0Target</span><span class="p">);</span>
   <span class="n">RegisterMCAsmParser</span><span class="o">&lt;</span><span class="n">Cpu0AsmParser</span><span class="o">&gt;</span> <span class="n">Y</span><span class="p">(</span><span class="n">TheCpu0elTarget</span><span class="p">);</span>
 <span class="p">}</span>
-
-<span class="cp">#define GET_REGISTER_MATCHER</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#define GET_REGISTER_MATCHER</span>
 <span class="cp">#define GET_MATCHER_IMPLEMENTATION</span>
 <span class="cp">#include &quot;Cpu0GenAsmMatcher.inc&quot;</span>
+
+<span class="cp">#ifndef ASM_EASY_PORTING</span>
+<span class="c1">// Adjust here when Cpu0InstrInfo.td changed.</span>
+<span class="k">static</span> <span class="k">const</span> <span class="n">MatchEntry</span> <span class="n">MatchTable0_R</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="p">{</span> <span class="mi">0</span> <span class="cm">/* add */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">4</span> <span class="cm">/* addiu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDiu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">10</span> <span class="cm">/* addu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">15</span> <span class="cm">/* and */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">AND</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">19</span> <span class="cm">/* andi */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ANDi</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">24</span> <span class="cm">/* beq */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">BEQ</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="n">Feature_HasCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">28</span> <span class="cm">/* bne */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">BNE</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="n">Feature_HasCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">32</span> <span class="cm">/* cmp */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">CMP</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="n">Feature_NotCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_SR</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">36</span> <span class="cm">/* div */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SDIV</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">40</span> <span class="cm">/* divu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">UDIV</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">45</span> <span class="cm">/* iret */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">IRET</span><span class="p">,</span> <span class="n">Convert__Reg1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">50</span> <span class="cm">/* jalr */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JALR</span><span class="p">,</span> <span class="n">Convert__Reg1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">55</span> <span class="cm">/* jeq */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JEQ</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="n">Feature_NotCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_SR</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">59</span> <span class="cm">/* jge */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JGE</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="n">Feature_NotCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_SR</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">63</span> <span class="cm">/* jgt */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JGT</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="n">Feature_NotCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_SR</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">67</span> <span class="cm">/* jle */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JLE</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="n">Feature_NotCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_SR</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">71</span> <span class="cm">/* jlt */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JLT</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="n">Feature_NotCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_SR</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">75</span> <span class="cm">/* jmp */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JMP</span><span class="p">,</span> <span class="n">Convert__Imm1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">79</span> <span class="cm">/* jne */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JNE</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="n">Feature_NotCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_SR</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">83</span> <span class="cm">/* jsub */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JSUB</span><span class="p">,</span> <span class="n">Convert__Imm1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">88</span> <span class="cm">/* la */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LoadAddr32Reg</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">88</span> <span class="cm">/* la */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LoadAddr32Imm</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">91</span> <span class="cm">/* lb */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LB</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">94</span> <span class="cm">/* lbu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LBu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">98</span> <span class="cm">/* ld */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LD</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">101</span> <span class="cm">/* lh */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LH</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">104</span> <span class="cm">/* lhu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LHu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">108</span> <span class="cm">/* li */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LoadImm32Reg</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">111</span> <span class="cm">/* lui */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">LUi</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Imm1_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">115</span> <span class="cm">/* mfhi */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFHI</span><span class="p">,</span> <span class="n">Convert__Reg1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">120</span> <span class="cm">/* mflo */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MFLO</span><span class="p">,</span> <span class="n">Convert__Reg1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">125</span> <span class="cm">/* mthi */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTHI</span><span class="p">,</span> <span class="n">Convert__Reg1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">130</span> <span class="cm">/* mtlo */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MTLO</span><span class="p">,</span> <span class="n">Convert__Reg1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">135</span> <span class="cm">/* mul */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MUL</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">139</span> <span class="cm">/* mult */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MULT</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">144</span> <span class="cm">/* multu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">MULTu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">150</span> <span class="cm">/* nop */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">NOP</span><span class="p">,</span> <span class="n">Convert_NoOperands</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span>  <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">154</span> <span class="cm">/* or */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">OR</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">157</span> <span class="cm">/* ori */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ORi</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">161</span> <span class="cm">/* ret */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JR</span><span class="p">,</span> <span class="n">Convert__Reg1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">165</span> <span class="cm">/* rol */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ROL</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">169</span> <span class="cm">/* ror */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ROR</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">173</span> <span class="cm">/* sb */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SB</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">176</span> <span class="cm">/* sh */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SH</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">179</span> <span class="cm">/* shl */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SHL</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">183</span> <span class="cm">/* shlv */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SHLV</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">188</span> <span class="cm">/* shr */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SHR</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">192</span> <span class="cm">/* shrv */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SHRV</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">197</span> <span class="cm">/* slt */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SLT</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="n">Feature_HasCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_GPROut</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">201</span> <span class="cm">/* slti */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SLTi</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="n">Feature_HasCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_GPROut</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">206</span> <span class="cm">/* sltiu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SLTiu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="n">Feature_HasCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_GPROut</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">212</span> <span class="cm">/* sltu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SLTu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="n">Feature_HasCpu032II</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_GPROut</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">217</span> <span class="cm">/* sra */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SRA</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">221</span> <span class="cm">/* srav */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SRAV</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">226</span> <span class="cm">/* st */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ST</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Mem2_1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Mem</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">229</span> <span class="cm">/* sub */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SUB</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">233</span> <span class="cm">/* subu */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SUBu</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">238</span> <span class="cm">/* swi */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">SWI</span><span class="p">,</span> <span class="n">Convert__Imm1_0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">242</span> <span class="cm">/* xor */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">XOR</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+  <span class="p">{</span> <span class="mi">246</span> <span class="cm">/* xori */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">XORi</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Imm1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_Imm</span> <span class="p">},</span> <span class="p">},</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">unsigned</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span>
+<span class="n">MatchInstructionImpl_R</span><span class="p">(</span><span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">,</span>
+                     <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+<span class="kt">unsigned</span> <span class="o">&amp;</span><span class="n">ErrorInfo</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">matchingInlineAsm</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">VariantID</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// Eliminate obvious mismatches.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">Operands</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">ErrorInfo</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">Match_InvalidOperand</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="c1">// Get the current feature set.</span>
+  <span class="kt">unsigned</span> <span class="n">AvailableFeatures</span> <span class="o">=</span> <span class="n">getAvailableFeatures</span><span class="p">();</span>
+
+  <span class="c1">// Get the instruction mnemonic, which is the first token.</span>
+  <span class="n">StringRef</span> <span class="n">Mnemonic</span> <span class="o">=</span> <span class="p">((</span><span class="n">Cpu0Operand</span><span class="o">*</span><span class="p">)</span><span class="n">Operands</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">-&gt;</span><span class="n">getToken</span><span class="p">();</span>
+
+  <span class="c1">// Some state to try to produce better error messages.</span>
+  <span class="kt">bool</span> <span class="n">HadMatchOtherThanFeatures</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="kt">bool</span> <span class="n">HadMatchOtherThanPredicate</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="n">RetCode</span> <span class="o">=</span> <span class="n">Match_InvalidOperand</span><span class="p">;</span>
+  <span class="kt">unsigned</span> <span class="n">MissingFeatures</span> <span class="o">=</span> <span class="o">~</span><span class="mi">0U</span><span class="p">;</span>
+  <span class="c1">// Set ErrorInfo to the operand that mismatches if it is</span>
+  <span class="c1">// wrong for all instances of the instruction.</span>
+  <span class="n">ErrorInfo</span> <span class="o">=</span> <span class="o">~</span><span class="mi">0U</span><span class="p">;</span>
+  <span class="c1">// Find the appropriate table for this asm variant.</span>
+  <span class="k">const</span> <span class="n">MatchEntry</span> <span class="o">*</span><span class="n">Start</span><span class="p">,</span> <span class="o">*</span><span class="n">End</span><span class="p">;</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">VariantID</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nl">default:</span> <span class="c1">// unreachable</span>
+  <span class="k">case</span> <span class="mi">0</span>: <span class="n">Start</span> <span class="o">=</span> <span class="n">MatchTable0_R</span><span class="p">;</span> <span class="n">End</span> <span class="o">=</span> <span class="n">array_endof</span><span class="p">(</span><span class="n">MatchTable0_R</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="c1">// Search the table.</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">pair</span><span class="o">&lt;</span><span class="k">const</span> <span class="n">MatchEntry</span><span class="o">*</span><span class="p">,</span> <span class="k">const</span> <span class="n">MatchEntry</span><span class="o">*&gt;</span> <span class="n">MnemonicRange</span> <span class="o">=</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">equal_range</span><span class="p">(</span><span class="n">Start</span><span class="p">,</span> <span class="n">End</span><span class="p">,</span> <span class="n">Mnemonic</span><span class="p">,</span> <span class="n">LessOpcode</span><span class="p">());</span>
+
+  <span class="c1">// Return a more specific error code if no mnemonics match.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">MnemonicRange</span><span class="p">.</span><span class="n">first</span> <span class="o">==</span> <span class="n">MnemonicRange</span><span class="p">.</span><span class="n">second</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Match_MnemonicFail</span><span class="p">;</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="k">const</span> <span class="n">MatchEntry</span> <span class="o">*</span><span class="n">it</span> <span class="o">=</span> <span class="n">MnemonicRange</span><span class="p">.</span><span class="n">first</span><span class="p">,</span> <span class="o">*</span><span class="n">ie</span> <span class="o">=</span> <span class="n">MnemonicRange</span><span class="p">.</span><span class="n">second</span><span class="p">;</span>
+       <span class="n">it</span> <span class="o">!=</span> <span class="n">ie</span><span class="p">;</span> <span class="o">++</span><span class="n">it</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// equal_range guarantees that instruction mnemonic matches.</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">Mnemonic</span> <span class="o">==</span> <span class="n">it</span><span class="o">-&gt;</span><span class="n">getMnemonic</span><span class="p">());</span>
+    <span class="kt">bool</span> <span class="n">OperandsValid</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&gt;=</span> <span class="n">Operands</span><span class="p">.</span><span class="n">size</span><span class="p">())</span> <span class="p">{</span>
+        <span class="n">OperandsValid</span> <span class="o">=</span> <span class="p">(</span><span class="n">it</span><span class="o">-&gt;</span><span class="n">Classes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">InvalidMatchClass</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">OperandsValid</span><span class="p">)</span> <span class="n">ErrorInfo</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="kt">unsigned</span> <span class="n">Diag</span> <span class="o">=</span> <span class="n">validateOperandClass</span><span class="p">(</span><span class="n">Operands</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span>
+                                           <span class="p">(</span><span class="n">MatchClassKind</span><span class="p">)</span><span class="n">it</span><span class="o">-&gt;</span><span class="n">Classes</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">Diag</span> <span class="o">==</span> <span class="n">Match_Success</span><span class="p">)</span>
+        <span class="k">continue</span><span class="p">;</span>
+      <span class="c1">// If the generic handler indicates an invalid operand</span>
+      <span class="c1">// failure, check for a special case.</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">Diag</span> <span class="o">==</span> <span class="n">Match_InvalidOperand</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">Diag</span> <span class="o">=</span> <span class="n">validateTargetOperandClass</span><span class="p">(</span><span class="n">Operands</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span>
+                                           <span class="p">(</span><span class="n">MatchClassKind</span><span class="p">)</span><span class="n">it</span><span class="o">-&gt;</span><span class="n">Classes</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">Diag</span> <span class="o">==</span> <span class="n">Match_Success</span><span class="p">)</span>
+          <span class="k">continue</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="c1">// If this operand is broken for all of the instances of this</span>
+      <span class="c1">// mnemonic, keep track of it so we can report loc info.</span>
+      <span class="c1">// If we already had a match that only failed due to a</span>
+      <span class="c1">// target predicate, that diagnostic is preferred.</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">HadMatchOtherThanPredicate</span> <span class="o">&amp;&amp;</span>
+          <span class="p">(</span><span class="n">it</span> <span class="o">==</span> <span class="n">MnemonicRange</span><span class="p">.</span><span class="n">first</span> <span class="o">||</span> <span class="n">ErrorInfo</span> <span class="o">&lt;=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span> <span class="p">{</span>
+        <span class="n">ErrorInfo</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
+        <span class="c1">// InvalidOperand is the default. Prefer specificity.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">Diag</span> <span class="o">!=</span> <span class="n">Match_InvalidOperand</span><span class="p">)</span>
+          <span class="n">RetCode</span> <span class="o">=</span> <span class="n">Diag</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="c1">// Otherwise, just reject this instance of the mnemonic.</span>
+      <span class="n">OperandsValid</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">OperandsValid</span><span class="p">)</span> <span class="k">continue</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">((</span><span class="n">AvailableFeatures</span> <span class="o">&amp;</span> <span class="n">it</span><span class="o">-&gt;</span><span class="n">RequiredFeatures</span><span class="p">)</span> <span class="o">!=</span> <span class="n">it</span><span class="o">-&gt;</span><span class="n">RequiredFeatures</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">HadMatchOtherThanFeatures</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+      <span class="kt">unsigned</span> <span class="n">NewMissingFeatures</span> <span class="o">=</span> <span class="n">it</span><span class="o">-&gt;</span><span class="n">RequiredFeatures</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">AvailableFeatures</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">CountPopulation_32</span><span class="p">(</span><span class="n">NewMissingFeatures</span><span class="p">)</span> <span class="o">&lt;=</span>
+          <span class="n">CountPopulation_32</span><span class="p">(</span><span class="n">MissingFeatures</span><span class="p">))</span>
+        <span class="n">MissingFeatures</span> <span class="o">=</span> <span class="n">NewMissingFeatures</span><span class="p">;</span>
+      <span class="k">continue</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">matchingInlineAsm</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">Inst</span><span class="p">.</span><span class="n">setOpcode</span><span class="p">(</span><span class="n">it</span><span class="o">-&gt;</span><span class="n">Opcode</span><span class="p">);</span>
+      <span class="n">convertToMapAndConstraints</span><span class="p">(</span><span class="n">it</span><span class="o">-&gt;</span><span class="n">ConvertFn</span><span class="p">,</span> <span class="n">Operands</span><span class="p">);</span>
+      <span class="k">return</span> <span class="n">Match_Success</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// We have selected a definite instruction, convert the parsed</span>
+    <span class="c1">// operands into the appropriate MCInst.</span>
+    <span class="n">convertToMCInst</span><span class="p">(</span><span class="n">it</span><span class="o">-&gt;</span><span class="n">ConvertFn</span><span class="p">,</span> <span class="n">Inst</span><span class="p">,</span> <span class="n">it</span><span class="o">-&gt;</span><span class="n">Opcode</span><span class="p">,</span> <span class="n">Operands</span><span class="p">);</span>
+
+    <span class="c1">// We have a potential match. Check the target predicate to</span>
+    <span class="c1">// handle any context sensitive constraints.</span>
+    <span class="kt">unsigned</span> <span class="n">MatchResult</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">((</span><span class="n">MatchResult</span> <span class="o">=</span> <span class="n">checkTargetMatchPredicate</span><span class="p">(</span><span class="n">Inst</span><span class="p">))</span> <span class="o">!=</span> <span class="n">Match_Success</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">Inst</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+      <span class="n">RetCode</span> <span class="o">=</span> <span class="n">MatchResult</span><span class="p">;</span>
+      <span class="n">HadMatchOtherThanPredicate</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+      <span class="k">continue</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">Match_Success</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="c1">// Okay, we had no match.  Try to return a useful error code.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">HadMatchOtherThanPredicate</span> <span class="o">||</span> <span class="o">!</span><span class="n">HadMatchOtherThanFeatures</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">RetCode</span><span class="p">;</span>
+
+  <span class="c1">// Missing feature matches return which features were missing</span>
+  <span class="n">ErrorInfo</span> <span class="o">=</span> <span class="n">MissingFeatures</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">Match_MissingFeature</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter11_1/AsmParser/CMakeLists.txt</p>
@@ -1256,17 +1456,17 @@ def mem : Operand&lt;i32&gt; {
 class LoadImm32&lt; string instr_asm, Operand Od, RegisterClass RC&gt; :
   Cpu0AsmPseudoInst&lt;(outs RC:$ra), (ins Od:$imm32),
            !strconcat(instr_asm, "\t$ra, $imm32")&gt; ;
-def LoadImm32Reg : LoadImm32&lt;"li", shamt, CPURegs&gt;;
+def LoadImm32Reg : LoadImm32&lt;"li", shamt, GPROut&gt;;
 
 class LoadAddress&lt;string instr_asm, Operand MemOpnd, RegisterClass RC&gt; :
   Cpu0AsmPseudoInst&lt;(outs RC:$ra), (ins MemOpnd:$addr),
            !strconcat(instr_asm, "\t$ra, $addr")&gt; ;
-def LoadAddr32Reg : LoadAddress&lt;"la", mem, CPURegs&gt;;
+def LoadAddr32Reg : LoadAddress&lt;"la", mem, GPROut&gt;;
 
 class LoadAddressImm&lt;string instr_asm, Operand Od, RegisterClass RC&gt; :
   Cpu0AsmPseudoInst&lt;(outs RC:$ra), (ins Od:$imm32),
            !strconcat(instr_asm, "\t$ra, $imm32")&gt; ;
-def LoadAddr32Imm : LoadAddressImm&lt;"la", shamt, CPURegs&gt;;</pre>
+def LoadAddr32Imm : LoadAddressImm&lt;"la", shamt, GPROut&gt;;</pre>
 </div>
 <p>Above declare the <strong>ParserMethod = &#8220;parseMemOperand&#8221;</strong> and implement the
 parseMemOperand() in Cpu0AsmParser.cpp to handle the <strong>&#8220;mem&#8221;</strong> operand which
@@ -1350,7 +1550,7 @@ LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,</p>
             <span class="n">MCStreamer</span> <span class="o">&amp;</span><span class="n">Out</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="o">&amp;</span><span class="n">ErrorInfo</span><span class="p">,</span>
             <span class="kt">bool</span> <span class="n">MatchingInlineAsm</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">MCInst</span> <span class="n">Inst</span><span class="p">;</span>
-  <span class="kt">unsigned</span> <span class="n">MatchResult</span> <span class="o">=</span> <span class="n">MatchInstructionImpl</span><span class="p">(</span><span class="n">Operands</span><span class="p">,</span> <span class="n">Inst</span><span class="p">,</span> <span class="n">ErrorInfo</span><span class="p">,</span>
+  <span class="kt">unsigned</span> <span class="n">MatchResult</span> <span class="o">=</span> <span class="n">MatchInstructionImpl_R</span><span class="p">(</span><span class="n">Operands</span><span class="p">,</span> <span class="n">Inst</span><span class="p">,</span> <span class="n">ErrorInfo</span><span class="p">,</span>
                         <span class="n">MatchingInlineAsm</span><span class="p">);</span>
 
   <span class="k">switch</span> <span class="p">(</span><span class="n">MatchResult</span><span class="p">)</span> <span class="p">{</span>
@@ -1363,8 +1563,54 @@ LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,</p>
   <span class="p">}</span>
   <span class="p">...</span>
 <span class="p">}</span>
+
+<span class="cp">#define GET_REGISTER_MATCHER</span>
+<span class="cp">#define GET_MATCHER_IMPLEMENTATION</span>
+<span class="cp">#include &quot;Cpu0GenAsmMatcher.inc&quot;</span>
+
+<span class="cp">#ifndef ASM_EASY_PORTING</span>
+<span class="c1">// Adjust here the Cpu0InstrInfo.td changed.</span>
+<span class="k">static</span> <span class="k">const</span> <span class="n">MatchEntry</span> <span class="n">MatchTable0_R</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="p">{</span> <span class="mi">0</span> <span class="cm">/* add */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_CPURegs</span><span class="p">,</span>
+<span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+<span class="p">...</span>
+
+<span class="kt">unsigned</span> <span class="n">Cpu0AsmParser</span><span class="o">::</span>
+<span class="n">MatchInstructionImpl_R</span><span class="p">(</span><span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">MCParsedAsmOperand</span><span class="o">*&gt;</span> <span class="o">&amp;</span><span class="n">Operands</span><span class="p">,</span>
+                     <span class="n">MCInst</span> <span class="o">&amp;</span><span class="n">Inst</span><span class="p">,</span>
+<span class="kt">unsigned</span> <span class="o">&amp;</span><span class="n">ErrorInfo</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">matchingInlineAsm</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="n">VariantID</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">VariantID</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nl">default:</span> <span class="c1">// unreachable</span>
+  <span class="k">case</span> <span class="mi">0</span>: <span class="n">Start</span> <span class="o">=</span> <span class="n">MatchTable0_R</span><span class="p">;</span> <span class="n">End</span> <span class="o">=</span> <span class="n">array_endof</span><span class="p">(</span><span class="n">MatchTable0_R</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
 </pre></div>
 </div>
+<p>As above code, when ASM_EASY_PORTING is defined, it will use
+MatchInstructionImpl_R() instead MatchInstructionImpl().
+To prevent register SW is allocated as general purpose output register, we
+use GPROut register class which exclude SW as most output operand defined in
+Cpu0InstrInfo.td. Of course, the TableGen created file Cpu0GenAsmMatcher.inc
+as follows,</p>
+<p class="rubric">cmake_debug_build/lib/Target/Cpu0/Cpu0AsmParser.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">static</span> <span class="k">const</span> <span class="n">MatchEntry</span> <span class="n">MatchTable0</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="p">{</span> <span class="mi">0</span> <span class="cm">/* add */</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">ADD</span><span class="p">,</span> <span class="n">Convert__Reg1_0__Reg1_1__Reg1_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">{</span> <span class="n">MCK_GPROut</span><span class="p">,</span>
+<span class="n">MCK_CPURegs</span><span class="p">,</span> <span class="n">MCK_CPURegs</span> <span class="p">},</span> <span class="p">},</span>
+</pre></div>
+</div>
+<p>Above keyword MCK_GPROut will limit AsmParser use GPROut register class as
+output register. To allow programmer use $sw as output register such as
+&#8220;add $sw, $zero, $zero&#8221; the code must be modified as above of
+ASM_EASY_PORTING defined.
+This solution has the problem that need keeping MatchTable0_R[] up to date by
+hand when file Cpu0InstrInfo.td has been changed or the TableGen version is
+changed.
+If we limit programmers that are not allowed to use $sw as output register
+(Cpu0 supply instruction MFSW and MFTW to move from/to SW to/from general
+purpose register), then we can use MatchTable0[] instead of MatchTable0_R[].
+The condition compiler flag ASM_EASY_PORTING stands for this purpose.</p>
 <p>Finally, remind the CPURegs as below must
 follow the order of register number because AsmParser use this when do register
 number encode.</p>
@@ -1383,7 +1629,7 @@ number encode.</p>
   <span class="n">def</span> <span class="n">T0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">7</span><span class="p">,</span>  <span class="s">&quot;7&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">S0</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">,</span>  <span class="s">&quot;8&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">S1</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">9</span><span class="p">,</span>  <span class="s">&quot;9&quot;</span><span class="o">&gt;</span><span class="p">,</span>    <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">S2</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">10</span><span class="p">,</span> <span class="s">&quot;10&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
+  <span class="n">def</span> <span class="n">SW</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">10</span><span class="p">,</span> <span class="s">&quot;sw&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">GP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">11</span><span class="p">,</span> <span class="s">&quot;gp&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">FP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">12</span><span class="p">,</span> <span class="s">&quot;fp&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">SP</span>   <span class="o">:</span> <span class="n">Cpu0GPRReg</span><span class="o">&lt;</span><span class="mi">13</span><span class="p">,</span> <span class="s">&quot;sp&quot;</span><span class="o">&gt;</span><span class="p">,</span>   <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
@@ -1395,7 +1641,6 @@ number encode.</p>
   <span class="c1">// Hi/Lo registers number and name</span>
   <span class="n">def</span> <span class="n">HI</span>   <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;hi&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">18</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
   <span class="n">def</span> <span class="n">LO</span>   <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;lo&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">19</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-  <span class="n">def</span> <span class="n">SW</span>   <span class="o">:</span> <span class="n">Register</span><span class="o">&lt;</span><span class="s">&quot;sw&quot;</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DwarfRegNum</span><span class="o">&lt;</span><span class="p">[</span><span class="mi">20</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
 <span class="p">}</span>
 
 <span class="c1">//===----------------------------------------------------------------------===//</span>
@@ -1410,7 +1655,20 @@ number encode.</p>
   <span class="c1">// Not preserved across procedure calls</span>
   <span class="n">T9</span><span class="p">,</span> <span class="n">T0</span><span class="p">,</span>
   <span class="c1">// Callee save</span>
-  <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">S2</span><span class="p">,</span> 
+  <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> 
+  <span class="c1">// Reserved</span>
+  <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> 
+  <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+
+<span class="n">def</span> <span class="n">GPROut</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span>
+  <span class="c1">// Reserved</span>
+  <span class="n">ZERO</span><span class="p">,</span> <span class="n">AT</span><span class="p">,</span> 
+  <span class="c1">// Return Values and Arguments</span>
+  <span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">A0</span><span class="p">,</span> <span class="n">A1</span><span class="p">,</span> 
+  <span class="c1">// Not preserved across procedure calls</span>
+  <span class="n">T9</span><span class="p">,</span> <span class="n">T0</span><span class="p">,</span>
+  <span class="c1">// Callee save</span>
+  <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> 
   <span class="c1">// Reserved</span>
   <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> 
   <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
@@ -2710,27 +2968,28 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   `define PC   R[15]   // Program Counter
   `define LR   R[14]   // Link Register
   `define SP   R[13]   // Stack Pointer
+  `define SW   R[10]   // Status Word
   // SW Flage
-  `define I2   SW[16] // Hardware Interrupt 1, IO1 interrupt, status, 
+  `define I2   `SW[16] // Hardware Interrupt 1, IO1 interrupt, status, 
                       // 1: in interrupt
-  `define I1   SW[15] // Hardware Interrupt 0, timer interrupt, status, 
+  `define I1   `SW[15] // Hardware Interrupt 0, timer interrupt, status, 
                       // 1: in interrupt
-  `define I0   SW[14] // Software interrupt, status, 1: in interrupt
-  `define I    SW[13] // Interrupt, 1: in interrupt
-  `define I2E  SW[12]  // Hardware Interrupt 1, IO1 interrupt, Enable
-  `define I1E  SW[11]  // Hardware Interrupt 0, timer interrupt, Enable
-  `define I0E  SW[10]  // Software Interrupt Enable
-  `define IE   SW[9]  // Interrupt Enable
-  `define M    SW[8:6]  // Mode bits, itype
-  `define D    SW[5]  // Debug Trace
-  `define V    SW[3]  // Overflow
-  `define C    SW[2]  // Carry
-  `define Z    SW[1]  // Zero
-  `define N    SW[0]  // Negative flag
+  `define I0   `SW[14] // Software interrupt, status, 1: in interrupt
+  `define I    `SW[13] // Interrupt, 1: in interrupt
+  `define I2E  `SW[12]  // Hardware Interrupt 1, IO1 interrupt, Enable
+  `define I1E  `SW[11]  // Hardware Interrupt 0, timer interrupt, Enable
+  `define I0E  `SW[10]  // Software Interrupt Enable
+  `define IE   `SW[9]  // Interrupt Enable
+  `define M    `SW[8:6]  // Mode bits, itype
+  `define D    `SW[5]  // Debug Trace
+  `define V    `SW[3]  // Overflow
+  `define C    `SW[2]  // Carry
+  `define Z    `SW[1]  // Zero
+  `define N    `SW[0]  // Negative flag
   // Instruction Opcode 
   parameter [7:0] NOP=8'h00,LD=8'h01,ST=8'h02,LB=8'h03,LBu=8'h04,SB=8'h05,
-  LH=8'h06,LHu=8'h07,SH=8'h08,ADDiu=8'h09,ANDi=8'h0C,ORi=8'h0D,
-  XORi=8'h0E,LUi=8'h0F,
+  LH=8'h06,LHu=8'h07,SH=8'h08,ADDiu=8'h09,MOVZ=8'h0A,MOVN=8'h0B,ANDi=8'h0C,
+  ORi=8'h0D,XORi=8'h0E,LUi=8'h0F,
   CMP=8'h10,
   ADDu=8'h11,SUBu=8'h12,ADD=8'h13,SUB=8'h14,MUL=8'h17,
   AND=8'h18,OR=8'h19,XOR=8'h1A,
@@ -2812,7 +3071,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
   if (inInt == 0) begin
     case (iMode)
       `RESET: begin 
-        `PC = 0; tick = 0; R[0] = 0; SW = 0; `LR = -1;
+        `PC = 0; tick = 0; R[0] = 0; `SW = 0; `LR = -1;
         `IE = 0; `I0E = 0; `I1E = 0; `I2E = 0; `I = 0; `I0 = 0; `I1 = 0; 
         `I2 = 0;
       end
@@ -2868,6 +3127,9 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       LHu:   memReadStart(Rb+c16, `INT16); // LHu Ra,[Rb+Cx]; Ra&lt;=(2bytes)[Rb+Cx]
       // SH Ra,[Rb+Cx]; Ra=&gt;(2bytes)[Rb+Cx]
       SH:    memWriteStart(Rb+c16, Ra, `INT16);
+      // Conditional move
+      MOVZ:  if (Rc==0) R[a]=Rb;             // move if Rc equal to 0
+      MOVN:  if (Rc!=0) R[a]=Rb;             // move if Rc not equal to 0
       // Mathematic 
       ADDiu: R[a] = Rb+c16;                   // ADDiu Ra, Rb+Cx; Ra&lt;=Rb+Cx
       CMP:   begin `N=(Ra-Rb&lt;0);`Z=(Ra-Rb==0); end // CMP Ra, Rb; SW=(Ra &gt;=&lt; Rb)
@@ -2961,14 +3223,14 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
         LH  : if (R[a] &gt; 16'h7fff) R[a]=R[a]|32'hffff8000;
       endcase
       case (op)
-      MULT, MULTu, DIV, DIVu, MTHI, MTLO, MTSW :
+      MULT, MULTu, DIV, DIVu, MTHI, MTLO :
         if (`D)
           $display("%4dns %8x : %8x HI=%8x LO=%8x SW=%8x", $stime, pc0, ir, HI, 
         LO, SW);
       ST : begin
         if (`D)
           $display("%4dns %8x : %8x m[%-04d+%-04d]=%8x  SW=%8x", $stime, pc0, ir, 
-          R[b], c16, R[a], SW);
+          R[b], c16, R[a], `SW);
         if (R[b]+c16 == `IOADDR) begin
           outw(R[a]);
         end
@@ -2976,7 +3238,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       SB : begin
         if (`D)
           $display("%4dns %8x : %8x m[%-04d+%-04d]=%c  SW=%8x", $stime, pc0, ir, 
-        R[b], c16, R[a][7:0], SW);
+        R[b], c16, R[a][7:0], `SW);
         if (R[b]+c16 == `IOADDR) begin
           outc(R[a][7:0]);
         end
@@ -2984,7 +3246,7 @@ module cpu0(input clock, reset, input [2:0] itype, output reg [2:0] tick,
       default :
         if (`D) // Display the written register content
           $display("%4dns %8x : %8x R[%02d]=%-8x=%-d SW=%8x", $stime, pc0, ir, 
-          a, R[a], R[a], SW);
+          a, R[a], R[a], `SW);
       endcase
       if (`PC &lt; 0) begin
         $display("RET to PC &lt; 0, finished!");
@@ -3133,21 +3395,31 @@ JonathantekiiMac:raw Jonathan<span class="nv">$ </span>iverilog -o cpu0Is cpu0Is
 <p>Now let&#8217;s compile ch_run_backend.cpp as below. Since code size grows up from
 low to high address and stack grows up from high to low address. We set $sp
 at 0x6ffc because assuming cpu0.v use 0x7000 bytes of memory.</p>
-<p class="rubric">lbdex/InputFiles/InitRegs.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $1,	$ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $2,	$ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $3,	$ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $4,	$ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $5,	$ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $6,	$ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $7,	$ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $8,	$ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $9,	$ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $10, $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $gp, $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $fp, $ZERO, 0&quot;</span><span class="p">);</span>
-<span class="k">asm</span><span class="p">(</span><span class="s">&quot;addiu $lr, $ZERO, -1&quot;</span><span class="p">);</span>
-</pre></div>
+<p class="rubric">lbdex/InputFiles/start.h</p>
+<div class="highlight-c++"><pre>#ifdef ASM_EASY_PORTING
+  #define CLEAR_SW \
+  asm("mfsw $at"); \
+  asm("addiu $at, $ZERO, 0"); \
+  asm("mtsw $at");
+#else
+  #define CLEAR_SW \
+  asm("andi $sw, $ZERO, 0");
+#endif
+
+#define initRegs() \
+  asm("addiu $1,  $ZERO, 0"); \
+  asm("addiu $2,  $ZERO, 0"); \
+  asm("addiu $3,  $ZERO, 0"); \
+  asm("addiu $4,  $ZERO, 0"); \
+  asm("addiu $5,  $ZERO, 0"); \
+  asm("addiu $6,  $ZERO, 0"); \
+  asm("addiu $7,  $ZERO, 0"); \
+  asm("addiu $8,  $ZERO, 0"); \
+  asm("addiu $9,  $ZERO, 0"); \
+  CLEAR_SW; \
+  asm("addiu $fp, $ZERO, 0");
+
+</pre>
 </div>
 <p class="rubric">lbdex/InputFiles/print.h</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="cp">#ifndef _PRINT_H_</span>
@@ -3220,6 +3492,8 @@ at 0x6ffc because assuming cpu0.v use 0x7000 bytes of memory.</p>
 <span class="cp">#include &quot;ch8_1_1.cpp&quot;</span>
 <span class="cp">#include &quot;ch9_1_4.cpp&quot;</span>
 <span class="cp">#include &quot;ch9_3.cpp&quot;</span>
+<span class="cp">#include &quot;ch12_1.cpp&quot;</span>
+<span class="cp">#include &quot;ch12_2.cpp&quot;</span>
 
 <span class="kt">int</span> <span class="nf">test_nolld</span><span class="p">()</span>
 <span class="p">{</span>
@@ -3271,6 +3545,12 @@ at 0x6ffc because assuming cpu0.v use 0x7000 bytes of memory.</p>
   <span class="n">a</span> <span class="o">=</span> <span class="n">test_vararg</span><span class="p">();</span>
   <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 15</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">15</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_DelUselessJMP</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 2</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">test_OptSlt</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span> <span class="c1">// a = 1</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)</span> <span class="n">pass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
 
   <span class="k">return</span> <span class="n">pass</span><span class="p">;</span>
 <span class="p">}</span>
@@ -3293,6 +3573,8 @@ at 0x6ffc because assuming cpu0.v use 0x7000 bytes of memory.</p>
 <span class="cm">-2147483648</span>
 <span class="cm">7</span>
 <span class="cm">15</span>
+<span class="cm">2</span>
+<span class="cm">1</span>
 <span class="cm">RET to PC &lt; 0, finished!</span>
 <span class="cm">*/</span>
 </pre></div>
@@ -3313,10 +3595,27 @@ at 0x6ffc because assuming cpu0.v use 0x7000 bytes of memory.</p>
 </div>
 <p class="rubric">lbdex/InputFiles/build-run_backend.sh</p>
 <div class="highlight-c++"><pre>#!/usr/bin/env bash
-#TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
-TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
+OS=`uname -s`
+echo "OS =" ${OS}
 
-cpu=cpu032I
+if [ "$OS" == "Linux" ]; then
+  TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
+else
+  TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
+fi
+
+if [ "$1" != "" ] &amp;&amp; [ $1 != cpu032I ] &amp;&amp; [ $1 != cpu032II ]; then
+  echo "1st argument is cpu032I (default) or cpu032II"
+  exit 1
+fi
+if [ "$1" == "" ]; then
+  CPU=cpu032I
+else
+  CPU=$1
+fi
+echo "CPU =" "${CPU}"
+
+bash rminput.sh
 
 clang -target mips-unknown-linux-gnu -c ch_run_backend.cpp -emit-llvm -o \
 ch_run_backend.bc
@@ -3356,6 +3655,8 @@ taskInterrupt<span class="o">(</span>001<span class="o">)</span>
 -21474836487
 7
 15
+2
+1
 RET to PC &lt; 0, finished!
 </pre></div>
 </div>

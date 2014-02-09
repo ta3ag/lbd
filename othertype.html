@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.1',
+        VERSION:     '3.4.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -565,76 +565,97 @@ bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o
   .type _Z13test_longlongv,@function
   .ent  _Z13test_longlongv      <span class="c"># @_Z13test_longlongv</span>
 _Z13test_longlongv:
-  .frame  <span class="nv">$fp</span>,56,<span class="nv">$lr</span>
-  .mask   0x00000000,0
+  .frame  <span class="nv">$sp</span>,64,<span class="nv">$lr</span>
+  .mask   0x00000100,-4
   .set  noreorder
   .set  nomacro
-<span class="c"># BB#0:                                 # %entry</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -56
+<span class="c"># BB#0:</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -64
+  st  <span class="nv">$8</span>, 60<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             <span class="c"># 4-byte Folded Spill</span>
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
-  st  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 3
-  st  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
-  st  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  st  <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   lui <span class="nv">$2</span>, 768
   ori <span class="nv">$2</span>, <span class="nv">$2</span>, 4096
-  st  <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   lui <span class="nv">$2</span>, 512
   ori <span class="nv">$2</span>, <span class="nv">$2</span>, 4096
-  st  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 44<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$2</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  addu  <span class="nv">$5</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-  ld  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$4</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  st  <span class="nv">$5</span>, 28<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  cmp <span class="nv">$sw</span>, <span class="nv">$5</span>, <span class="nv">$3</span>
-  mfsw  <span class="nv">$3</span>
-  andi  <span class="nv">$3</span>, <span class="nv">$3</span>, 1
-  addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$4</span>
-  addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-  st  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 44<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$4</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  subu  <span class="nv">$t9</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-  ld  <span class="nv">$2</span>, 48<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$5</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  st  <span class="nv">$t9</span>, 20<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  cmp <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-  mfsw  <span class="nv">$3</span>
-  andi  <span class="nv">$3</span>, <span class="nv">$3</span>, 1
-  addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$5</span>
-  subu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
-  st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 52<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addu  <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  ld  <span class="nv">$4</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$5</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
+  addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$5</span>
+  addu  <span class="nv">$2</span>, <span class="nv">$4</span>, <span class="nv">$2</span>
+  st  <span class="nv">$2</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  subu  <span class="nv">$4</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  ld  <span class="nv">$5</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$t9</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$4</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
+  addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$t9</span>
+  subu  <span class="nv">$2</span>, <span class="nv">$5</span>, <span class="nv">$2</span>
+  st  <span class="nv">$2</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 44<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 52<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   multu <span class="nv">$3</span>, <span class="nv">$2</span>
-  mflo  <span class="nv">$t9</span>
-  mfhi  <span class="nv">$4</span>
-  ld  <span class="nv">$5</span>, 48<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$t0</span>, 40<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  st  <span class="nv">$t9</span>, 12<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  mul <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$t0</span>
-  addu  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
-  mul <span class="nv">$2</span>, <span class="nv">$5</span>, <span class="nv">$2</span>
+  mflo  <span class="nv">$4</span>
+  mfhi  <span class="nv">$5</span>
+  ld  <span class="nv">$t9</span>, 48<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$7</span>, 40<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  mul <span class="nv">$3</span>, <span class="nv">$3</span>, <span class="nv">$7</span>
+  addu  <span class="nv">$3</span>, <span class="nv">$5</span>, <span class="nv">$3</span>
+  mul <span class="nv">$2</span>, <span class="nv">$t9</span>, <span class="nv">$2</span>
   addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
-  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  ld  <span class="nv">$3</span>, 36<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
+  st  <span class="nv">$2</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 32<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 36<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
   mult  <span class="nv">$3</span>, <span class="nv">$2</span>
   mflo  <span class="nv">$2</span>
-  mfhi  <span class="nv">$3</span>
-  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  st  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$fp</span><span class="o">)</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 56
+  mfhi  <span class="nv">$4</span>
+  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  st  <span class="nv">$4</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$5</span>, 20<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 28<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addu  <span class="nv">$t9</span>, <span class="nv">$3</span>, <span class="nv">$5</span>
+  ld  <span class="nv">$7</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addu  <span class="nv">$8</span>, <span class="nv">$t9</span>, <span class="nv">$7</span>
+  addu  <span class="nv">$3</span>, <span class="nv">$8</span>, <span class="nv">$2</span>
+  cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  andi  <span class="nv">$2</span>, <span class="nv">$sw</span>, 1
+  addu  <span class="nv">$2</span>, <span class="nv">$2</span>, <span class="nv">$4</span>
+  cmp <span class="nv">$sw</span>, <span class="nv">$8</span>, <span class="nv">$7</span>
+  andi  <span class="nv">$4</span>, <span class="nv">$sw</span>, 1
+  ld  <span class="nv">$7</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addu  <span class="nv">$4</span>, <span class="nv">$4</span>, <span class="nv">$7</span>
+  cmp <span class="nv">$sw</span>, <span class="nv">$t9</span>, <span class="nv">$5</span>
+  andi  <span class="nv">$5</span>, <span class="nv">$sw</span>, 1
+  ld  <span class="nv">$t9</span>, 16<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addu  <span class="nv">$5</span>, <span class="nv">$5</span>, <span class="nv">$t9</span>
+  ld  <span class="nv">$t9</span>, 24<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addu  <span class="nv">$5</span>, <span class="nv">$t9</span>, <span class="nv">$5</span>
+  addu  <span class="nv">$4</span>, <span class="nv">$5</span>, <span class="nv">$4</span>
+  addu  <span class="nv">$2</span>, <span class="nv">$4</span>, <span class="nv">$2</span>
+  ld  <span class="nv">$8</span>, 60<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>             <span class="c"># 4-byte Folded Reload</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 64
   ret <span class="nv">$lr</span>
   .set  macro
   .set  reorder
   .end  _Z13test_longlongv
-<span class="nv">$tmp1</span>:
-  .size _Z13test_longlongv, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-_Z13test_longlongv
+<span class="nv">$tmp2</span>:
+  .size _Z13test_longlongv, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-_Z13test_longlongv
 </pre></div>
 </div>
 </div>
@@ -648,7 +669,7 @@ call.</p>
 <div class="section" id="array-and-struct-support">
 <h2>Array and struct support<a class="headerlink" href="#array-and-struct-support" title="Permalink to this headline">¶</a></h2>
 <p>LLVM use getelementptr to represent the array and struct type in C.
-Please reference section getelementptr of <a class="footnote-reference" href="#id2" id="id1">[1]</a>.
+Please reference here <a class="footnote-reference" href="#id2" id="id1">[1]</a>.
 For ch7_5.cpp, the llvm IR as follows,</p>
 <p class="rubric">lbdex/InputFiles/ch7_5.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="k">struct</span> <span class="n">Date</span>
@@ -1036,7 +1057,7 @@ main:
 <table class="docutils footnote" frame="void" id="id2" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://llvm.org/docs/LangRef.html">http://llvm.org/docs/LangRef.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference external" href="http://llvm.org/docs/LangRef.html#getelementptr-instruction">http://llvm.org/docs/LangRef.html#getelementptr-instruction</a></td></tr>
 </tbody>
 </table>
 </div>
