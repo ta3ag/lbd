@@ -148,120 +148,48 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
 
 
 .. rubric:: lbdex/Chapter4_1/Cpu0ISelDAGToDAG.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
+    :start-after: SDNode *getGlobalBaseReg();
+    :end-before: SDNode *Select(SDNode *N);
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelDAGToDAG.cpp
+    :start-after: // lbd document - mark - SelectAddr
+    :end-before: /// Select instructions not customized! Used for
 .. code-block:: c++
-
-    std::pair<SDNode*, SDNode*> SelectMULT(SDNode *N, unsigned Opc, SDLoc DL,
-                                           EVT Ty, bool HasLo, bool HasHi);
-    ...
-  /// Select multiply instructions.
-  std::pair<SDNode*, SDNode*>
-  Cpu0DAGToDAGISel::SelectMULT(SDNode *N, unsigned Opc, SDLoc DL, EVT Ty,
-                bool HasLo, bool HasHi) {
-  SDNode *Lo = 0, *Hi = 0;
-  SDNode *Mul = CurDAG->getMachineNode(Opc, DL, MVT::Glue, N->getOperand(0),
-                      N->getOperand(1));
-  SDValue InFlag = SDValue(Mul, 0);
-  
-  if (HasLo) {
-    Lo = CurDAG->getMachineNode(Cpu0::MFLO, DL,
-                  Ty, MVT::Glue, InFlag);
-    InFlag = SDValue(Lo, 1);
-  }
-  if (HasHi)
-    Hi = CurDAG->getMachineNode(Cpu0::MFHI, DL,
-                  Ty, InFlag);
-  
-  return std::make_pair(Lo, Hi);
-  }
   
   /// Select instructions not customized! Used for
   /// expanded, promoted and normal instructions
   SDNode* Cpu0DAGToDAGISel::Select(SDNode *Node) {
-  unsigned Opcode = Node->getOpcode();
-  SDLoc DL(Node);
-  ...
-  EVT NodeTy = Node->getValueType(0);
-  unsigned MultOpc;
-  switch(Opcode) {
-  default: break;
-  
-  case ISD::MULHS:
-  case ISD::MULHU: {
-    MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
-    return SelectMULT(Node, MultOpc, DL, NodeTy, false, true).second;
-  }
-  ...
+    unsigned Opcode = Node->getOpcode();
+    SDLoc DL(Node);
+    ...
+    EVT NodeTy = Node->getValueType(0);
+    unsigned MultOpc;
+    switch(Opcode) {
+    ...
+    case ISD::MULHS:
+    case ISD::MULHU: {
+      MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
+      return SelectMULT(Node, MultOpc, DL, NodeTy, false, true).second;
+    }
+    ...
   }
 
 .. rubric:: lbdex/Chapter4_1/Cpu0ISelLowering.cpp
-.. code-block:: c++
-
-  Cpu0TargetLowering::
-  Cpu0TargetLowering(Cpu0TargetMachine &TM)
-  : TargetLowering(TM, new TargetLoweringObjectFileELF()),
-  Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
-    ...
-    setOperationAction(ISD::SDIV, MVT::i32, Expand);
-    setOperationAction(ISD::SREM, MVT::i32, Expand);
-    setOperationAction(ISD::UDIV, MVT::i32, Expand);
-    setOperationAction(ISD::UREM, MVT::i32, Expand);
-    
-    setTargetDAGCombine(ISD::SDIVREM);
-    setTargetDAGCombine(ISD::UDIVREM);
-    ...
-  }
-  ...
-  static SDValue PerformDivRemCombine(SDNode *N, SelectionDAG& DAG,
-          TargetLowering::DAGCombinerInfo &DCI,
-          const Cpu0Subtarget* Subtarget) {
-    if (DCI.isBeforeLegalizeOps())
-      return SDValue();
-    
-    EVT Ty = N->getValueType(0);
-    unsigned LO = Cpu0::LO;
-    unsigned HI = Cpu0::HI;
-    unsigned opc = N->getOpcode() == ISD::SDIVREM ? Cpu0ISD::DivRem :
-                Cpu0ISD::DivRemU;
-    SDLoc DL = SDLoc(Op);
-    
-    SDValue DivRem = DAG.getNode(opc, dl, MVT::Glue,
-             N->getOperand(0), N->getOperand(1));
-    SDValue InChain = DAG.getEntryNode();
-    SDValue InGlue = DivRem;
-    
-    // insert MFLO
-    if (N->hasAnyUseOfValue(0)) {
-      SDValue CopyFromLo = DAG.getCopyFromReg(InChain, dl, LO, Ty,
-                InGlue);
-      DAG.ReplaceAllUsesOfValueWith(SDValue(N, 0), CopyFromLo);
-      InChain = CopyFromLo.getValue(1);
-      InGlue = CopyFromLo.getValue(2);
-    }
-    
-    // insert MFHI
-    if (N->hasAnyUseOfValue(1)) {
-      SDValue CopyFromHi = DAG.getCopyFromReg(InChain, dl,
-                HI, Ty, InGlue);
-      DAG.ReplaceAllUsesOfValueWith(SDValue(N, 1), CopyFromHi);
-    }
-    
-    return SDValue();
-  }
-  
-  SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI)
-    const {
-      SelectionDAG &DAG = DCI.DAG;
-      unsigned opc = N->getOpcode();
-      
-      switch (opc) {
-      default: break;
-      case ISD::SDIVREM:
-      case ISD::UDIVREM:
-      return PerformDivRemCombine(N, DAG, DCI, Subtarget);
-    }
-    
-    return SDValue();
-  }
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: // lbd document - mark - Cpu0TargetLowering(Cpu0TargetMachine &TM) - begin
+    :end-before: // Set up the register classes
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
+    :end-before: // Operations not directly supported by Cpu0.
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: setOperationAction(ISD::VAEND,             MVT::Other, Expand);
+    :end-before: //- Set .align 2
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: computeRegisterProperties();
+    :end-before: static SDValue PerformDivRemCombine(SDNode *N, SelectionDAG& DAG,
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: } // lbd document - mark - Cpu0TargetLowering(Cpu0TargetMachine &TM)
+    :end-before: // lbd document - mark - LowerOperation - begin
   
 .. rubric:: lbdex/Chapter4_1/Cpu0ISelLowering.h
 .. code-block:: c++

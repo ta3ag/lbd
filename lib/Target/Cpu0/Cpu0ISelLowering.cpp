@@ -114,7 +114,7 @@ const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
   }
 } // lbd document - mark - getTargetNodeName
 
-// lbd document - mark - Cpu0TargetLowering(Cpu0TargetMachine &TM)
+// lbd document - mark - Cpu0TargetLowering(Cpu0TargetMachine &TM) - begin
 Cpu0TargetLowering::
 Cpu0TargetLowering(Cpu0TargetMachine &TM)
   : TargetLowering(TM, new Cpu0TargetObjectFile()),
@@ -176,7 +176,7 @@ Cpu0TargetLowering(Cpu0TargetMachine &TM)
 // must, computeRegisterProperties - Once all of the register classes are 
 //  added, this allows us to compute derived properties we expose.
   computeRegisterProperties();
-}
+} // lbd document - mark - Cpu0TargetLowering(Cpu0TargetMachine &TM)
 
 static SDValue PerformDivRemCombine(SDNode *N, SelectionDAG& DAG,
                                     TargetLowering::DAGCombinerInfo &DCI,
@@ -230,6 +230,7 @@ SDValue Cpu0TargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI)
   return SDValue();
 }
 
+// lbd document - mark - LowerOperation - begin
 SDValue Cpu0TargetLowering::
 LowerOperation(SDValue Op, SelectionDAG &DAG) const
 {

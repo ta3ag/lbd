@@ -364,7 +364,7 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
 
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
     :start-after: using namespace llvm;
-    :end-before: // lbd document - mark - Cpu0TargetLowering(Cpu0TargetMachine &TM)
+    :end-before: // lbd document - mark - Cpu0TargetLowering(Cpu0TargetMachine &TM) - begin
 
 .. code-block:: c++
 

@@ -177,7 +177,7 @@ SelectAddr(SDNode *Parent, SDValue Addr, SDValue &Base, SDValue &Offset) {
   Base   = Addr;
   Offset = CurDAG->getTargetConstant(0, ValTy);
   return true;
-}
+} // lbd document - mark - SelectAddr
 
 /// Select multiply instructions.
 std::pair<SDNode*, SDNode*>

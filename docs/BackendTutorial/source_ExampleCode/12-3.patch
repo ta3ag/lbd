@@ -1,6 +1,6 @@
 diff -Naur Chapter12_2/AsmParser/Cpu0AsmParser.cpp Chapter12_3/AsmParser/Cpu0AsmParser.cpp
---- Chapter12_2/AsmParser/Cpu0AsmParser.cpp	2014-02-10 13:36:25.394823144 +0800
-+++ Chapter12_3/AsmParser/Cpu0AsmParser.cpp	2014-02-10 13:36:25.394823144 +0800
+--- Chapter12_2/AsmParser/Cpu0AsmParser.cpp	2014-02-10 19:39:53.983441724 +0800
++++ Chapter12_3/AsmParser/Cpu0AsmParser.cpp	2014-02-10 19:39:53.987441724 +0800
 @@ -1049,59 +1049,68 @@
    { 10 /* addu */, Cpu0::ADDu, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
    { 15 /* and */, Cpu0::AND, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, MCK_CPURegs, MCK_CPURegs }, },
@@ -123,7 +123,7 @@ diff -Naur Chapter12_2/AsmParser/Cpu0AsmParser.cpp Chapter12_3/AsmParser/Cpu0Asm
                       MCInst &Inst,
 diff -Naur Chapter12_2/Cpu0CondMov.td Chapter12_3/Cpu0CondMov.td
 --- Chapter12_2/Cpu0CondMov.td	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter12_3/Cpu0CondMov.td	2014-02-10 13:36:25.394823144 +0800
++++ Chapter12_3/Cpu0CondMov.td	2014-02-10 19:39:53.987441724 +0800
 @@ -0,0 +1,77 @@
 +//===-- Cpu0CondMov.td - Describe Cpu0 Conditional Moves --*- tablegen -*--===//
 +//
@@ -203,8 +203,8 @@ diff -Naur Chapter12_2/Cpu0CondMov.td Chapter12_3/Cpu0CondMov.td
 +defm : MovnPats<CPURegs, CPURegs, MOVN_I_I, XOR>;
 +
 diff -Naur Chapter12_2/Cpu0InstrInfo.td Chapter12_3/Cpu0InstrInfo.td
---- Chapter12_2/Cpu0InstrInfo.td	2014-02-10 13:36:25.390823144 +0800
-+++ Chapter12_3/Cpu0InstrInfo.td	2014-02-10 13:36:25.394823144 +0800
+--- Chapter12_2/Cpu0InstrInfo.td	2014-02-10 19:39:53.983441724 +0800
++++ Chapter12_3/Cpu0InstrInfo.td	2014-02-10 19:39:53.987441724 +0800
 @@ -871,3 +871,6 @@
  defm : SetgePatsSlt<CPURegs, SLT, SLTu>;
  defm : SetgeImmPatsSlt<CPURegs, SLTi, SLTiu>;
@@ -213,8 +213,8 @@ diff -Naur Chapter12_2/Cpu0InstrInfo.td Chapter12_3/Cpu0InstrInfo.td
 +include "Cpu0CondMov.td"
 +
 diff -Naur Chapter12_2/Cpu0ISelLowering.cpp Chapter12_3/Cpu0ISelLowering.cpp
---- Chapter12_2/Cpu0ISelLowering.cpp	2014-02-10 13:36:25.390823144 +0800
-+++ Chapter12_3/Cpu0ISelLowering.cpp	2014-02-10 13:36:25.394823144 +0800
+--- Chapter12_2/Cpu0ISelLowering.cpp	2014-02-10 19:39:53.983441724 +0800
++++ Chapter12_3/Cpu0ISelLowering.cpp	2014-02-10 19:39:53.987441724 +0800
 @@ -141,6 +141,7 @@
  
    // Cpu0 Custom Operations
@@ -231,7 +231,7 @@ diff -Naur Chapter12_2/Cpu0ISelLowering.cpp Chapter12_3/Cpu0ISelLowering.cpp
    setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i32,  Expand);
  
    // Support va_arg(): variable numbers (not fixed numbers) of arguments 
-@@ -235,6 +237,7 @@
+@@ -236,6 +238,7 @@
    {
      case ISD::BRCOND:             return LowerBRCOND(Op, DAG);
      case ISD::GlobalAddress:      return LowerGlobalAddress(Op, DAG);
@@ -239,7 +239,7 @@ diff -Naur Chapter12_2/Cpu0ISelLowering.cpp Chapter12_3/Cpu0ISelLowering.cpp
      case ISD::VASTART:            return LowerVASTART(Op, DAG);
    }
    return SDValue();
-@@ -265,6 +268,12 @@
+@@ -266,6 +269,12 @@
    return Op;
  }
  
@@ -253,8 +253,8 @@ diff -Naur Chapter12_2/Cpu0ISelLowering.cpp Chapter12_3/Cpu0ISelLowering.cpp
                                                 SelectionDAG &DAG) const {
    // FIXME there isn't actually debug info here
 diff -Naur Chapter12_2/Cpu0ISelLowering.h Chapter12_3/Cpu0ISelLowering.h
---- Chapter12_2/Cpu0ISelLowering.h	2014-02-10 13:36:25.390823144 +0800
-+++ Chapter12_3/Cpu0ISelLowering.h	2014-02-10 13:36:25.394823144 +0800
+--- Chapter12_2/Cpu0ISelLowering.h	2014-02-10 19:39:53.983441724 +0800
++++ Chapter12_3/Cpu0ISelLowering.h	2014-02-10 19:39:53.987441724 +0800
 @@ -95,6 +95,7 @@
  
      // Lower Operand specifics
