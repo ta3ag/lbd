@@ -114,6 +114,7 @@ const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
   }
 } // lbd document - mark - getTargetNodeName
 
+// lbd document - mark - Cpu0TargetLowering(Cpu0TargetMachine &TM)
 Cpu0TargetLowering::
 Cpu0TargetLowering(Cpu0TargetMachine &TM)
   : TargetLowering(TM, new Cpu0TargetObjectFile()),
@@ -271,7 +272,7 @@ SDValue Cpu0TargetLowering::
 lowerSELECT(SDValue Op, SelectionDAG &DAG) const
 {
   return Op;
-}
+} // lbd document - mark - lowerSELECT
 
 SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
                                                SelectionDAG &DAG) const {

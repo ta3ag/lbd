@@ -321,23 +321,10 @@ About the **cl::opt** command line variable, you can refer to [#]_ further.
 
   #include "llvm/Support/CommandLine.h"
   ...
-  static cl::opt<bool>
-  UseSmallSectionOpt("cpu0-use-small-section", cl::Hidden, cl::init(false),
-                   cl::desc("Use small section. Only work with -relocation-model="
-                   "static. pic always not use small section."));
-  
-  static cl::opt<bool>
-  ReserveGPOpt("cpu0-reserve-gp", cl::Hidden, cl::init(false),
-                   cl::desc("Never allocate $gp to variable"));
-  
-  static cl::opt<bool>
-  NoCploadOpt("cpu0-no-cpload", cl::Hidden, cl::init(false),
-                   cl::desc("No issue .cpload"));
-  
-  bool Cpu0ReserveGP;
-  bool Cpu0NoCpload;
-  
-  extern bool FixGlobalBaseReg;
+
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.cpp
+    :start-after: using namespace llvm;
+    :end-before: void Cpu0Subtarget::anchor()
 
 The ReserveGPOpt and NoCploadOpt are used in Cpu0 linker at later Chapter.
 Next add file Cpu0TargetObjectFile.h, Cpu0TargetObjectFile.cpp and the 
@@ -373,81 +360,13 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
   #include "MCTargetDesc/Cpu0BaseInfo.h"
   ...
   #include "llvm/Support/CommandLine.h"
-  SDValue Cpu0TargetLowering::getGlobalReg(SelectionDAG &DAG, EVT Ty) const {
-    Cpu0FunctionInfo *FI = DAG.getMachineFunction().getInfo<Cpu0FunctionInfo>();
-    return DAG.getRegister(FI->getGlobalBaseReg(), Ty);
-  }
+  ...
 
-  static SDValue getTargetNode(SDValue Op, SelectionDAG &DAG, unsigned Flag) {
-    EVT Ty = Op.getValueType();
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: using namespace llvm;
+    :end-before: // lbd document - mark - Cpu0TargetLowering(Cpu0TargetMachine &TM)
 
-    if (GlobalAddressSDNode *N = dyn_cast<GlobalAddressSDNode>(Op))
-      return DAG.getTargetGlobalAddress(N->getGlobal(), Op.getDebugLoc(), Ty, 0,
-                                        Flag);
-    if (ExternalSymbolSDNode *N = dyn_cast<ExternalSymbolSDNode>(Op))
-      return DAG.getTargetExternalSymbol(N->getSymbol(), Ty, Flag);
-    if (BlockAddressSDNode *N = dyn_cast<BlockAddressSDNode>(Op))
-      return DAG.getTargetBlockAddress(N->getBlockAddress(), Ty, 0, Flag);
-    if (JumpTableSDNode *N = dyn_cast<JumpTableSDNode>(Op))
-      return DAG.getTargetJumpTable(N->getIndex(), Ty, Flag);
-    if (ConstantPoolSDNode *N = dyn_cast<ConstantPoolSDNode>(Op))
-      return DAG.getTargetConstantPool(N->getConstVal(), Ty, N->getAlignment(),
-                                       N->getOffset(), Flag);
-
-    llvm_unreachable("Unexpected node type.");
-    return SDValue();
-  }
-
-  SDValue Cpu0TargetLowering::getAddrLocal(SDValue Op, SelectionDAG &DAG) const {
-    SDLoc DL = SDLoc(Op);
-    EVT Ty = Op.getValueType();
-    unsigned GOTFlag = Cpu0II::MO_GOT;
-    SDValue GOT = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
-                              getTargetNode(Op, DAG, GOTFlag));
-    SDValue Load = DAG.getLoad(Ty, DL, DAG.getEntryNode(), GOT,
-                               MachinePointerInfo::getGOT(), false, false, false,
-                               0);
-    unsigned LoFlag = Cpu0II::MO_ABS_LO;
-    SDValue Lo = DAG.getNode(Cpu0ISD::Lo, DL, Ty, getTargetNode(Op, DAG, LoFlag));
-    return DAG.getNode(ISD::ADD, DL, Ty, Load, Lo);
-  }
-
-  SDValue Cpu0TargetLowering::getAddrGlobal(SDValue Op, SelectionDAG &DAG,
-                                            unsigned Flag) const {
-    SDLoc DL = SDLoc(Op);
-    EVT Ty = Op.getValueType();
-    SDValue Tgt = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, getGlobalReg(DAG, Ty),
-                              getTargetNode(Op, DAG, Flag));
-    return DAG.getLoad(Ty, DL, DAG.getEntryNode(), Tgt,
-                       MachinePointerInfo::getGOT(), false, false, false, 0);
-  }
-
-  SDValue Cpu0TargetLowering::getAddrGlobalLargeGOT(SDValue Op, SelectionDAG &DAG,
-                                                    unsigned HiFlag,
-                                                    unsigned LoFlag) const {
-    SDLoc DL = SDLoc(Op);
-    EVT Ty = Op.getValueType();
-    SDValue Hi = DAG.getNode(Cpu0ISD::Hi, DL, Ty, getTargetNode(Op, DAG, HiFlag));
-    Hi = DAG.getNode(ISD::ADD, DL, Ty, Hi, getGlobalReg(DAG, Ty));
-    SDValue Wrapper = DAG.getNode(Cpu0ISD::Wrapper, DL, Ty, Hi,
-                                  getTargetNode(Op, DAG, LoFlag));
-    return DAG.getLoad(Ty, DL, DAG.getEntryNode(), Wrapper,
-                       MachinePointerInfo::getGOT(), false, false, false, 0);
-  }
-
-  const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
-    switch (Opcode) {
-    case Cpu0ISD::JmpLink:           return "Cpu0ISD::JmpLink";
-    case Cpu0ISD::Hi:                return "Cpu0ISD::Hi";
-    case Cpu0ISD::Lo:                return "Cpu0ISD::Lo";
-    case Cpu0ISD::GPRel:             return "Cpu0ISD::GPRel";
-    case Cpu0ISD::Ret:               return "Cpu0ISD::Ret";
-    case Cpu0ISD::DivRem:            return "Cpu0ISD::DivRem";
-    case Cpu0ISD::DivRemU:           return "Cpu0ISD::DivRemU";
-    case Cpu0ISD::Wrapper:           return "Cpu0ISD::Wrapper";
-    default:                         return NULL;
-    }
-  }
+.. code-block:: c++
 
   Cpu0TargetLowering::
   Cpu0TargetLowering(Cpu0TargetMachine &TM)
@@ -476,45 +395,10 @@ following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
   //===----------------------------------------------------------------------===//
   //  Misc Lower Operation implementation
   //===----------------------------------------------------------------------===//
-    
-  SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
-                                                 SelectionDAG &DAG) const {
-    // FIXME there isn't actually debug info here
-    SDLoc DL = SDLoc(Op);
-    const GlobalValue *GV = cast<GlobalAddressSDNode>(Op)->getGlobal();
-    
-    if (getTargetMachine().getRelocationModel() != Reloc::PIC_) {
-      SDVTList VTs = DAG.getVTList(MVT::i32);
-    
-      Cpu0TargetObjectFile &TLOF = (Cpu0TargetObjectFile&)getObjFileLowering();
-    
-      // %gp_rel relocation
-      if (TLOF.IsGlobalInSmallSection(GV, getTargetMachine())) {
-        SDValue GA = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
-                                                Cpu0II::MO_GPREL);
-        SDValue GPRelNode = DAG.getNode(Cpu0ISD::GPRel, DL, VTs, &GA, 1);
-        SDValue GOT = DAG.getGLOBAL_OFFSET_TABLE(MVT::i32);
-        return DAG.getNode(ISD::ADD, DL, MVT::i32, GOT, GPRelNode);
-      }
-      // %hi/%lo relocation
-      SDValue GAHi = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
-                                                Cpu0II::MO_ABS_HI);
-      SDValue GALo = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
-                                                Cpu0II::MO_ABS_LO);
-      SDValue HiPart = DAG.getNode(Cpu0ISD::Hi, DL, VTs, &GAHi, 1);
-      SDValue Lo = DAG.getNode(Cpu0ISD::Lo, DL, MVT::i32, GALo);
-      return DAG.getNode(ISD::ADD, DL, MVT::i32, HiPart, Lo);
-    }
-    
-    if (GV->hasInternalLinkage() || (GV->hasLocalLinkage() && !isa<Function>(GV)))
-      return getAddrLocal(Op, DAG);
 
-    if (TLOF.IsGlobalInSmallSection(GV, getTargetMachine()))
-      return getAddrGlobal(Op, DAG, Cpu0II::MO_GOT16);
-    else
-      return getAddrGlobalLargeGOT(Op, DAG, Cpu0II::MO_GOT_HI16,
-                                   Cpu0II::MO_GOT_LO16);
-  }
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: // lbd document - mark - lowerSELECT
+    :end-before: SDValue Cpu0TargetLowering::LowerVASTART
 
 The setOperationAction(ISD::GlobalAddress, MVT::i32, Custom) tells ``llc`` that 
 we implement global address operation in C++ function 

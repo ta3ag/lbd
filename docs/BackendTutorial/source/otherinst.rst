@@ -437,8 +437,8 @@ Micorsoft implementation references here [#]_.
 
 The ‘ashr‘ Instruction" reference here [#]_, ‘lshr‘ reference here [#]_.
 
-The srav, shlv and shrv are for two virtual registers instructions while the 
-sra, ... are for 1 virtual registers and 1 constant input operands.
+The srav, shlv and shrv are for two virtual input registers instructions while 
+the sra, ... are for 1 virtual input registers and 1 constant input operands.
 
 Now, let's build Chapter4_1/ and run with input file ch4_1.cpp as follows,
 
@@ -727,7 +727,7 @@ corresponding llvm IR, as follows,
 
 
 LLVM **srem** is the IR corresponding **“%”**, reference sub-section 
-"srem instruction" of [3]_. 
+"srem instruction" of "LLVM Language Reference Manual" here [#]_. 
 Copy the reference as follows,
 
 .. note:: **'srem'** Instruction 
@@ -1826,6 +1826,8 @@ this chapter and spend 360 lines of source code.
 .. [#] http://llvm.org/docs/LangRef.html#lshr-instruction
 
 .. [#] http://llvm.org/docs/CodeGenerator.html#selectiondag-instruction-selection-process
+
+.. [#] http://llvm.org/docs/LangRef.html#srem-instruction
 
 .. [#] http://llvm.org/docs/WritingAnLLVMBackend.html#expand
 
