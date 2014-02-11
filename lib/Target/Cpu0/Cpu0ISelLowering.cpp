@@ -736,7 +736,7 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
     SDValue Copy = DAG.getCopyToReg(DAG.getEntryNode(), DL, Reg, InVals[0]);
     Chain = DAG.getNode(ISD::TokenFactor, DL, MVT::Other, Copy, Chain);
   }
-#endif
+#endif // lbd document - mark - endif - hasStructRetAttr()
 
   if (isVarArg) {
     int FirstRegSlotOffset = 0; // offset of $a0's slot.
@@ -752,7 +752,7 @@ Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
     // which is a value necessary to VASTART.
     LastFI = MFI->CreateFixedObject(RegSize, FirstVaArgOffset, true);
     Cpu0FI->setVarArgsFrameIndex(LastFI);
-  }
+  } // lbd document - mark - if (isVarArg)
   Cpu0FI->setLastInArgFI(LastFI);
   // All stores are grouped in one node to allow the matching between
   // the size of Ins and InVals. This only happens when on varg functions

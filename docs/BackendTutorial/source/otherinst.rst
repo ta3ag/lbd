@@ -176,7 +176,7 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
 
 .. rubric:: lbdex/Chapter4_1/Cpu0ISelLowering.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: // lbd document - mark - Cpu0TargetLowering(Cpu0TargetMachine &TM) - begin
+    :start-after: } // lbd document - mark - getTargetNodeName
     :end-before: // Set up the register classes
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
     :start-after: setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);

@@ -1,6 +1,6 @@
 diff -Naur Chapter4_2/MCTargetDesc/CMakeLists.txt Chapter5_1/MCTargetDesc/CMakeLists.txt
---- Chapter4_2/MCTargetDesc/CMakeLists.txt	2014-02-10 19:39:53.979441724 +0800
-+++ Chapter5_1/MCTargetDesc/CMakeLists.txt	2014-02-10 19:39:53.967441724 +0800
+--- Chapter4_2/MCTargetDesc/CMakeLists.txt	2014-02-10 19:46:19.971448970 +0800
++++ Chapter5_1/MCTargetDesc/CMakeLists.txt	2014-02-10 19:46:19.963448970 +0800
 @@ -1,7 +1,10 @@
  # MCTargetDesc/CMakeLists.txt
  add_llvm_library(LLVMCpu0Desc
@@ -14,7 +14,7 @@ diff -Naur Chapter4_2/MCTargetDesc/CMakeLists.txt Chapter5_1/MCTargetDesc/CMakeL
  add_dependencies(LLVMCpu0Desc Cpu0CommonTableGen)
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0AsmBackend.cpp Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp
 --- Chapter4_2/MCTargetDesc/Cpu0AsmBackend.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-02-10 19:39:53.967441724 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-02-10 19:46:19.963448970 +0800
 @@ -0,0 +1,212 @@
 +//===-- Cpu0ASMBackend.cpp - Cpu0 Asm Backend  ----------------------------===//
 +//
@@ -229,8 +229,8 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0AsmBackend.cpp Chapter5_1/MCTargetDesc/Cp
 +}
 +
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h
---- Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h	2014-02-10 19:39:53.979441724 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h	2014-02-10 19:39:53.967441724 +0800
+--- Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h	2014-02-10 19:46:19.971448970 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h	2014-02-11 13:10:10.826934328 +0800
 @@ -14,6 +14,7 @@
  #ifndef CPU0BASEINFO_H
  #define CPU0BASEINFO_H
@@ -301,10 +301,14 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h Chapter5_1/MCTargetDesc/Cpu0Ba
    enum {
      //===------------------------------------------------------------------===//
      // Instruction encodings.  These are the standard/most common forms for
-@@ -95,6 +151,33 @@
+@@ -93,8 +149,35 @@
+     return 19;
+   default: llvm_unreachable("Unknown register number!");
    }
- }
+-}
++} // lbd document - mark - getCpu0RegisterNumbering
  
+-}
 +inline static std::pair<const MCSymbolRefExpr*, int64_t>
 +Cpu0GetSymAndOffset(const MCFixup &Fixup) {
 +  MCFixupKind FixupKind = Fixup.getKind();
@@ -332,12 +336,12 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0BaseInfo.h Chapter5_1/MCTargetDesc/Cpu0Ba
 +
 +  return std::make_pair(cast<MCSymbolRefExpr>(Expr), 0);
 +} // Cpu0GetSymAndOffset
- }
++} // lbd document - mark - namespace llvm - end
  
  #endif
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
 --- Chapter4_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-02-10 19:39:53.967441724 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-02-10 19:46:19.963448970 +0800
 @@ -0,0 +1,226 @@
 +//===-- Cpu0ELFObjectWriter.cpp - Cpu0 ELF Writer -------------------------===//
 +//
@@ -567,7 +571,7 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter5_1/MCTargetDe
 +}
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0FixupKinds.h Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h
 --- Chapter4_2/MCTargetDesc/Cpu0FixupKinds.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h	2014-02-10 19:39:53.967441724 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0FixupKinds.h	2014-02-10 19:46:19.963448970 +0800
 @@ -0,0 +1,65 @@
 +//===-- Cpu0FixupKinds.h - Cpu0 Specific Fixup Entries ----------*- C++ -*-===//
 +//
@@ -636,7 +640,7 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0FixupKinds.h Chapter5_1/MCTargetDesc/Cpu0
 +#endif // LLVM_CPU0_CPU0FIXUPKINDS_H
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
 --- Chapter4_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-02-10 19:39:53.967441724 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-02-10 19:46:19.963448970 +0800
 @@ -0,0 +1,176 @@
 +//===-- Cpu0MCCodeEmitter.cpp - Convert Cpu0 Code to Machine Code ---------===//
 +//
@@ -815,8 +819,8 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter5_1/MCTargetDesc
 +#include "Cpu0GenMCCodeEmitter.inc"
 +
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
---- Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp	2014-02-10 19:39:53.979441724 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp	2014-02-10 19:39:53.967441724 +0800
+--- Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp	2014-02-10 19:46:19.971448970 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.cpp	2014-02-10 19:46:19.963448970 +0800
 @@ -120,6 +120,26 @@
    return new Cpu0InstPrinter(MAI, MII, MRI);
  } // lbd document - mark - createCpu0MCInstPrinter
@@ -871,8 +875,8 @@ diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.cpp Chapter5_1/MCTargetDesc/
    TargetRegistry::RegisterMCSubtargetInfo(TheCpu0Target,
                                            createCpu0MCSubtargetInfo);
 diff -Naur Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.h Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h
---- Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.h	2014-02-10 19:39:53.979441724 +0800
-+++ Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h	2014-02-10 19:39:53.967441724 +0800
+--- Chapter4_2/MCTargetDesc/Cpu0MCTargetDesc.h	2014-02-10 19:46:19.971448970 +0800
++++ Chapter5_1/MCTargetDesc/Cpu0MCTargetDesc.h	2014-02-10 19:46:19.963448970 +0800
 @@ -22,6 +22,7 @@
  class MCContext;
  class MCInstrInfo;

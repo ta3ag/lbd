@@ -153,7 +153,7 @@ inline static unsigned getCpu0RegisterNumbering(unsigned RegEnum)
     return 19;
   default: llvm_unreachable("Unknown register number!");
   }
-}
+} // lbd document - mark - getCpu0RegisterNumbering
 
 inline static std::pair<const MCSymbolRefExpr*, int64_t>
 Cpu0GetSymAndOffset(const MCFixup &Fixup) {
@@ -182,6 +182,6 @@ Cpu0GetSymAndOffset(const MCFixup &Fixup) {
 
   return std::make_pair(cast<MCSymbolRefExpr>(Expr), 0);
 } // Cpu0GetSymAndOffset
-}
+} // lbd document - mark - namespace llvm - end
 
 #endif

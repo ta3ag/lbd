@@ -272,24 +272,15 @@ lhu instructions exist. Their difference have explained in Chapter 2.
 To support load bool type, the following code added.
 
 .. rubric:: lbdex/Chapter7_1/Cpu0ISelLowering.cpp
-.. code-block:: c++
-
-  Cpu0TargetLowering::
-  Cpu0TargetLowering(Cpu0TargetMachine &TM)
-    : TargetLowering(TM, new Cpu0TargetObjectFile()),
-      Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
-    ...
-    // Cpu0 does not have i1 type, so use i32 for
-    // setcc operations results (slt, sgt, ...).
-    setBooleanContents(ZeroOrOneBooleanContent);
-    setBooleanVectorContents(ZeroOrNegativeOneBooleanContent);
-
-    // Load extented operations for i1 types must be promoted
-    setLoadExtAction(ISD::EXTLOAD,  MVT::i1,  Promote);
-    setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
-    setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
-    ...
-  }
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: } // lbd document - mark - getTargetNodeName
+    :end-before: // Set up the register classes
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
+    :end-before: // Used by legalize types to correctly generate the setcc result.
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: computeRegisterProperties();
+    :end-before: static SDValue PerformDivRemCombine(SDNode *N, SelectionDAG& DAG,
 
 Above code setLoadExtAction() are work enough. The setBooleanContents() purpose
 as following, but I don't know it well. Without it, the ch7_3.ll still works 

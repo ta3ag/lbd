@@ -148,35 +148,9 @@ Chapter5_1.
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
   :start-after: MO_GOT_LO16,
   :end-before:  enum {
-.. code-block:: c++
-
-  inline static std::pair<const MCSymbolRefExpr*, int64_t>
-  Cpu0GetSymAndOffset(const MCFixup &Fixup) {
-    MCFixupKind FixupKind = Fixup.getKind();
-
-    if ((FixupKind < FirstTargetFixupKind) ||
-        (FixupKind >= MCFixupKind(Cpu0::LastTargetFixupKind)))
-      return std::make_pair((const MCSymbolRefExpr*)0, (int64_t)0);
-
-    const MCExpr *Expr = Fixup.getValue();
-    MCExpr::ExprKind Kind = Expr->getKind();
-
-    if (Kind == MCExpr::Binary) {
-      const MCBinaryExpr *BE = static_cast<const MCBinaryExpr*>(Expr);
-      const MCExpr *LHS = BE->getLHS();
-      const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(BE->getRHS());
-
-      if ((LHS->getKind() != MCExpr::SymbolRef) || !CE)
-        return std::make_pair((const MCSymbolRefExpr*)0, (int64_t)0);
-
-      return std::make_pair(cast<MCSymbolRefExpr>(LHS), CE->getValue());
-    }
-
-    if (Kind != MCExpr::SymbolRef)
-      return std::make_pair((const MCSymbolRefExpr*)0, (int64_t)0);
-
-    return std::make_pair(cast<MCSymbolRefExpr>(Expr), 0);
-  } // Cpu0GetSymAndOffset
+.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0BaseInfo.h
+  :start-after: } // lbd document - mark - getCpu0RegisterNumbering
+  :end-before:  } // lbd document - mark - namespace llvm - end
 
 .. rubric:: lbdex/Chapter5_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0ELFObjectWriter.cpp

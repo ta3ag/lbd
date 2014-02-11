@@ -244,70 +244,16 @@ We define it as follows,
     return CLI.Chain;
   }
   ...
-  /// LowerFormalArguments - transform physical registers into virtual registers
-  /// and generate load operations for arguments places on the stack.
-  SDValue
-  Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
-                                           CallingConv::ID CallConv,
-                                           bool isVarArg,
-                                        const SmallVectorImpl<ISD::InputArg> &Ins,
-                                           SDLoc DL, SelectionDAG &DAG,
-                                           SmallVectorImpl<SDValue> &InVals)
-                                            const {
-    MachineFunction &MF = DAG.getMachineFunction();
-    MachineFrameInfo *MFI = MF.getFrameInfo();
-    Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
 
-    Cpu0FI->setVarArgsFrameIndex(0);
-
-    // Used with vargs to acumulate store chains.
-    std::vector<SDValue> OutChains;
-
-    // Assign locations to all of the incoming arguments.
-    SmallVector<CCValAssign, 16> ArgLocs;
-    CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
-                   getTargetMachine(), ArgLocs, *DAG.getContext());
-                           
-    CCInfo.AnalyzeFormalArguments(Ins, CC_Cpu0);
-
-    Function::const_arg_iterator FuncArg =
-      DAG.getMachineFunction().getFunction()->arg_begin();
-    int LastFI = 0;// Cpu0FI->LastInArgFI is 0 at the entry of this function.
-
-    for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i, ++FuncArg) {
-      CCValAssign &VA = ArgLocs[i];
-      EVT ValVT = VA.getValVT();
-      ISD::ArgFlagsTy Flags = Ins[i].Flags;
-      bool IsRegLoc = VA.isRegLoc();
-
-      if (Flags.isByVal()) {
-        assert(Flags.getByValSize() &&
-               "ByVal args of size 0 should have been ignored by front-end."); 
-        continue;
-      }
-      // sanity check
-      assert(VA.isMemLoc());
-
-      // The stack pointer offset is relative to the caller stack frame.
-      LastFI = MFI->CreateFixedObject(ValVT.getSizeInBits()/8,
-                                      VA.getLocMemOffset(), true);
-
-      // Create load nodes to retrieve arguments from the stack
-      SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
-      InVals.push_back(DAG.getLoad(ValVT, DL, Chain, FIN,
-                                   MachinePointerInfo::getFixedStack(LastFI),
-                                   false, false, false, 0));
-    }
-    Cpu0FI->setLastInArgFI(LastFI);
-    // All stores are grouped in one node to allow the matching between
-    // the size of Ins and InVals. This only happens when on varg functions
-    if (!OutChains.empty()) {
-      OutChains.push_back(Chain);
-      Chain = DAG.getNode(ISD::TokenFactor, DL, MVT::Other,
-                          &OutChains[0], OutChains.size());
-    }
-    return Chain;
-  }
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: } // lbd document - mark - ReadByValArg
+    :end-before: unsigned NumWords = (Flags.getByValSize() + 3) / 4;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: &*FuncArg);
+    :end-before: #if 1 // Incomming. Without this, it will use $3 instead of $2 as return
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: } // lbd document - mark - if (isVarArg)
+    :end-before: //               Return Value Calling Convention Implementation
 
 .. rubric:: lbdex/Chapter9_1/Cpu0ISelLowering.h
 .. code-block:: c++
@@ -1382,53 +1328,22 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
 
   
 .. rubric:: lbdex/Chapter9_3/Cpu0AsmPrinter.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
+    :start-after: using namespace llvm;
+    :end-before: bool Cpu0AsmPrinter::runOnMachineFunction(MachineFunction &MF) {
 .. code-block:: c++
 
-  void Cpu0AsmPrinter::EmitInstrWithMacroNoAT(const MachineInstr *MI) {
-    MCInst TmpInst;
-  
-    MCInstLowering.Lower(MI, TmpInst);
-    OutStreamer.EmitRawText(StringRef("\t.set\tmacro"));
-    if (Cpu0FI->getEmitNOAT())
-      OutStreamer.EmitRawText(StringRef("\t.set\tat"));
-    OutStreamer.EmitInstruction(TmpInst);
-    if (Cpu0FI->getEmitNOAT())
-      OutStreamer.EmitRawText(StringRef("\t.set\tnoat"));
-    OutStreamer.EmitRawText(StringRef("\t.set\tnomacro"));
-  }
   ...
   void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
     ...
     unsigned Opc = MI->getOpcode();
     ...
-    SmallVector<MCInst, 4> MCInsts;
-  
-    switch (Opc) {
-    case Cpu0::CPRESTORE: {
-      const MachineOperand &MO = MI->getOperand(0);
-      assert(MO.isImm() && "CPRESTORE's operand must be an immediate.");
-      int64_t Offset = MO.getImm();
-  
-      if (OutStreamer.hasRawTextSupport()) {
-        if (!isInt<16>(Offset)) {
-          EmitInstrWithMacroNoAT(MI);
-          return;
-        }
-      } else {
-        MCInstLowering.LowerCPRESTORE(Offset, MCInsts);
-  
-        for (SmallVector<MCInst, 4>::iterator I = MCInsts.begin();
-           I != MCInsts.end(); ++I)
-        OutStreamer.EmitInstruction(*I);
-  
-        return;
-      }
-  
-      break;
-    }
-    default:
-      break;
-    }
+
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
+    :start-after: MCInst TmpInst0;
+    :end-before: MCInstLowering.Lower(MI, TmpInst0);
+.. code-block:: c++
+
     ...
   }
   
@@ -2392,8 +2307,9 @@ List the code and their effect as follows,
                        SmallVectorImpl<SDValue> &InVals)
                         const {
     ...
-    // The cpu0 ABIs for returning structs by value requires that we copy
-    // the sret argument into $v0 for the return. Save the argument into
+  #if 1 // Incomming. Without this, it will use $3 instead of $2 as return 
+    // register. The cpu0 ABIs for returning structs by value requires that we 
+    // copy the sret argument into $v0 for the return. Save the argument into
     // a virtual register so that we can access it from the return points.
     if (DAG.getMachineFunction().getFunction()->hasStructRetAttr()) {
       unsigned Reg = Cpu0FI->getSRetReturnReg();
@@ -2404,6 +2320,7 @@ List the code and their effect as follows,
       SDValue Copy = DAG.getCopyToReg(DAG.getEntryNode(), DL, Reg, InVals[0]);
       Chain = DAG.getNode(ISD::TokenFactor, DL, MVT::Other, Copy, Chain);
     }
+  #endif // lbd document - mark - endif - hasStructRetAttr()
     ...
   }
 
@@ -2426,23 +2343,25 @@ List the code and their effect as follows,
                   const SmallVectorImpl<SDValue> &OutVals,
                   SDLoc DL, SelectionDAG &DAG) const {
     ...
-    // The cpu0 ABIs for returning structs by value requires that we copy
-    // the sret argument into $v0 for the return. We saved the argument into
-    // a virtual register in the entry block, so now we copy the value out
-    // and into $v0.
+  #if 1 // structure return begin. Without this, it will use $3 instead of $2 
+    // as return register. The cpu0 ABIs for returning structs by value requires 
+    // that we copy the sret argument into $v0 for the return. We saved the 
+    // argument into a virtual register in the entry block, so now we copy the 
+    // value out and into $v0.
     if (DAG.getMachineFunction().getFunction()->hasStructRetAttr()) {
       MachineFunction &MF      = DAG.getMachineFunction();
       Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
       unsigned Reg = Cpu0FI->getSRetReturnReg();
-    
+
       if (!Reg)
         llvm_unreachable("sret virtual register not created in the entry block");
       SDValue Val = DAG.getCopyFromReg(Chain, DL, Reg, getPointerTy());
-    
+
       Chain = DAG.getCopyToReg(Chain, DL, Cpu0::V0, Val, Flag);
       Flag = Chain.getValue(1);
       RetOps.push_back(DAG.getRegister(Cpu0::V0, getPointerTy()));
     }
+  #endif // structure return end
     ...
   }
 
