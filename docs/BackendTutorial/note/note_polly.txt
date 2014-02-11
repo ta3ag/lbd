@@ -1,0 +1,6 @@
+1. Install cloog which depend on GMP as follows,
+  http://www.cloog.org/
+  https://gmplib.org/
+2. Install llvm, clang and polly:
+  clang and polly put in llvm/tools/
+
