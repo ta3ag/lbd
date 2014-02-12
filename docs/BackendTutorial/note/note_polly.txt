@@ -4,3 +4,14 @@
 2. Install llvm, clang and polly:
   clang and polly put in llvm/tools/
 
+3. Use polly:
+alias pollycc="~/test/polly/cmake_debug_build/bin/clang -Xclang -load -Xclang ~/test/polly/cmake_debug_build/lib/LLVMPolly.so"
+pollycc -mllvm -polly -O3 ch8_1_3.cpp -o a.polly.out
+or, 
+~/test/polly/cmake_debug_build/bin/clang -Xclang -load -Xclang ~/test/polly/cmake_debug_build/lib/LLVMPolly.so -mllvm -polly -O3 ch8_1_3.cpp -o a.polly.out
+
+4. Reference:
+http://comments.gmane.org/gmane.comp.compilers.llvm.devel/60547
+Polly-basic:  clang -Xclang -load -Xclang LLVMPolly.so -O3  (! load polly but no use of polly optimization)
+Polly-optimize: clang -Xclang -load -Xclang LLVMPolly.so -mllvm -polly -O3 (use polly optimization)
+
