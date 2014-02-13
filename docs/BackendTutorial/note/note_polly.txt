@@ -1,3 +1,5 @@
+Can build with c11 option.
+
 1. Install cloog which depend on GMP as follows,
   http://www.cloog.org/
   https://gmplib.org/
