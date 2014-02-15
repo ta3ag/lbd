@@ -13,7 +13,8 @@ to Verilog Cpu0 machine and run on your PC/Laptop.
 
 About lld please refer LLD web site here [#]_ and LLD install requirement on 
 Linux here [#]_. 
-Currently, lld can be built by gcc and clang 3.4 compiler on Linux. 
+Currently, lld can be built by gcc and clang 3.4 compiler on Ubuntu Linux and 
+gcc on Fedora Linux. 
 On iMac, lld can be built by clang with the OS X and Xcode version as the next 
 sub section.
 If you run with Virtual Machine (VM), please keep your phisical memory size 
