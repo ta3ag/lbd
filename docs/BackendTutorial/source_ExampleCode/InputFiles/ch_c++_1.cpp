@@ -1,4 +1,5 @@
-// clang -c ch_c++_1.cpp -emit-llvm -o ch_c++_1.bc
+// clang -c ch_c++_1.cpp -emit-llvm -DTEST_RUN -o ch_c++_1.bc
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llvm-dis ch_c++_1.bc -o -
 // /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch_c++_1.bc -o -
 
 //#include <iostream>
@@ -7,20 +8,20 @@
 extern "C" int printf(const char *format, ...);
 extern "C" int sprintf(char *out, const char *format, ...);
 
-class CPolygon {
+class CPolygon {	// _ZTVN10__cxxabiv117__class_type_infoE
   protected:
     int width, height;
   public:
     void set_values (int a, int b)
     { width=a; height=b; }
-    virtual int area (void) =0;
+    virtual int area (void) =0; // __cxa_pure_virtual
 //    virtual int area (void) { return 0;};
     void printarea (void)
     { printf("%d\n", this->area()); }
 //    { cout << this->area() << endl; }
   };
 
-class CRectangle: public CPolygon {
+class CRectangle: public CPolygon {	// _ZTVN10__cxxabiv120__si_class_type_infoE
   public:
     int area (void)
     { return (width * height); }
@@ -39,13 +40,13 @@ class CAngle: public CPolygon {
 };
 #if 0
 int test_cpp_polymorphism() {
-  CPolygon * ppoly1 = new CRectangle;
+  CPolygon * ppoly1 = new CRectangle;	// _Znwm
   CPolygon * ppoly2 = new CTriangle;
   ppoly1->set_values (4,5);
   ppoly2->set_values (4,5);
   ppoly1->printarea();
   ppoly2->printarea();
-  delete ppoly1;
+  delete ppoly1;	// _ZdlPv
   delete ppoly2;
   return 0;
 }
