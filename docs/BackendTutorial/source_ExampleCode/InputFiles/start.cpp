@@ -2,7 +2,6 @@
 /// start
 
 #include "Cpu0Config.h"
-#include "print.h"
 #include "dynamic_linker.h"
 #include "start.h"
 
@@ -26,13 +25,3 @@ void start() {
   asm("addiu $lr, $ZERO, -1");
   asm("ret $lr");
 }
-
-// For memory IO
-extern "C" int putchar(int c)
-{
-  char *p = (char*)OUT_MEM;
-  *p = c;
-
-  return 0;
-}
-

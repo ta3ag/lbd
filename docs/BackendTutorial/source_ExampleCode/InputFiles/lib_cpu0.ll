@@ -8,6 +8,11 @@ entry:
   ret void
 }
 
+define void @__start() nounwind {
+entry:
+  ret void
+}
+
 define void @__stack_chk_fail() nounwind {
 entry:
   ret void

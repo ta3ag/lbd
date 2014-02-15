@@ -752,6 +752,10 @@ below.
 .. literalinclude:: ../lbdex/InputFiles/printf-stdarg-2.cpp
     :start-after: /// start
 
+.. rubric:: lbdex/InputFiles/printf-stdarg-def.c
+.. literalinclude:: ../lbdex/InputFiles/printf-stdarg-def.c
+    :start-after: /// start
+
 .. rubric:: lbdex/InputFiles/printf-stdarg.c
 .. literalinclude:: ../lbdex/InputFiles/printf-stdarg.c
     :start-after: /// start
