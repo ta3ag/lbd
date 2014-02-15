@@ -8,7 +8,7 @@
 extern "C" int printf(const char *format, ...);
 extern "C" int sprintf(char *out, const char *format, ...);
 
-class CPolygon {	// _ZTVN10__cxxabiv117__class_type_infoE
+class CPolygon {	// _ZTVN10__cxxabiv117__class_type_infoE for parent class
   protected:
     int width, height;
   public:
@@ -21,7 +21,7 @@ class CPolygon {	// _ZTVN10__cxxabiv117__class_type_infoE
 //    { cout << this->area() << endl; }
   };
 
-class CRectangle: public CPolygon {	// _ZTVN10__cxxabiv120__si_class_type_infoE
+class CRectangle: public CPolygon {	// _ZTVN10__cxxabiv120__si_class_type_infoE for derived class
   public:
     int area (void)
     { return (width * height); }

@@ -3,7 +3,6 @@
 
 extern int test_alloc();
 extern int test_select(int a, int b);
-extern int test_cpp_polymorphism();
 
 int test_staticlink()
 {
@@ -48,7 +47,6 @@ int test_staticlink()
     printf(", PASS\n");
   else
     printf(", FAIL\n");
-//  a = test_cpp_polymorphism();
 
   return 0;
 }

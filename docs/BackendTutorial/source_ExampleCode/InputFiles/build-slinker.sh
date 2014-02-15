@@ -25,6 +25,7 @@ clang -target mips-unknown-linux-gnu -c start.cpp -emit-llvm -o start.bc
 clang -target mips-unknown-linux-gnu -c printf-stdarg.c -emit-llvm \
 -o printf-stdarg.bc
 clang -c ch9_4.cpp -emit-llvm -o ch9_4.bc
+clang -c ch_c++_1.cpp -emit-llvm -o ch_c++_1.bc
 clang -O1 -target mips-unknown-linux-gnu -c ch12_4.cpp -emit-llvm -o ch12_4.bc
 clang -target mips-unknown-linux-gnu -c ch_slinker.cpp -emit-llvm \
 -o ch_slinker.bc
@@ -34,6 +35,8 @@ ${TOOLDIR}/llc -march=cpu0 -mcpu=${CPU} -relocation-model=static -filetype=obj \
 printf-stdarg.bc -o printf-stdarg.cpu0.o
 ${TOOLDIR}/llc -march=cpu0 -mcpu=${CPU} -relocation-model=static -filetype=obj \
 ch9_4.bc -o ch9_4.cpu0.o
+${TOOLDIR}/llc -march=cpu0 -mcpu=${CPU} -relocation-model=static -filetype=obj \
+ch_c++_1.bc -o ch_c++_1.cpu0.o
 ${TOOLDIR}/llc -march=cpu0 -mcpu=${CPU} -relocation-model=static -filetype=obj \
 ch12_4.bc -o ch12_4.cpu0.o
 ${TOOLDIR}/llc -march=cpu0 -mcpu=${CPU} -relocation-model=static -filetype=obj \
