@@ -317,6 +317,7 @@ static void PrintDataSection(const ObjectFile *o, uint64_t& lastDumpAddr,
     // save the end address of this section to lastDumpAddr
     lastDumpAddr = BaseAddr + Contents.size();
   }
+#if 0
   else if (Name == ".bss" || Name == ".sbss") {
     if (Contents.size() <= 0) {
       return;
@@ -364,64 +365,12 @@ static void PrintDataSection(const ObjectFile *o, uint64_t& lastDumpAddr,
     // save the end address of this section to lastDumpAddr
     lastDumpAddr = BaseAddr + Contents.size();
   }
-  else if (DumpSo) {
-    if (Name == ".dynsym") {
-      int num_dyn_entry = 0;
-      FILE *fd_num_dyn_entry;
-      fd_num_dyn_entry = fopen("num_dyn_entry", "r");
-      if (fd_num_dyn_entry != NULL) {
-        fscanf(fd_num_dyn_entry, "%d", &num_dyn_entry);
-      }
-      fclose(fd_num_dyn_entry);
-      raw_fd_ostream fd_dynsym("dynsym", Error);
-      int count = 0;
-      for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
-        fd_dynsym << hexdigit((Contents[addr] >> 4) & 0xF, true)
-                   << hexdigit(Contents[addr] & 0xF, true) << " ";
-        fd_dynsym << hexdigit((Contents[addr+1] >> 4) & 0xF, true)
-                   << hexdigit(Contents[addr+1] & 0xF, true) << " ";
-        fd_dynsym << hexdigit((Contents[addr+2] >> 4) & 0xF, true)
-                   << hexdigit(Contents[addr+2] & 0xF, true) << " ";
-        fd_dynsym << hexdigit((Contents[addr+3] >> 4) & 0xF, true)
-                   << hexdigit(Contents[addr+3] & 0xF, true) << " ";
-        count++;
-      }
-      for (int i = count; i < num_dyn_entry; i++) {
-        fd_dynsym << "00 00 00 00 ";
-      }
-    }
-    else if (Name == ".dynstr") {
-      raw_fd_ostream fd_dynstr("dynstr", Error);
-      raw_fd_ostream fd_dynstrAscii("dynstrAscii", Error);
-      for (std::size_t addr = 0, end = Contents.size(); addr < end; addr++) {
-        fd_dynstr << hexdigit((Contents[addr] >> 4) & 0xF, true)
-                   << hexdigit(Contents[addr] & 0xF, true) << " ";
-        if (addr == 0)
-          return;
-        if (Contents[addr] == '\0')
-          fd_dynstrAscii << "\n";
-        else
-          fd_dynstrAscii << Contents[addr];
-      }
-    }
-  }
-  else if (!DumpSo) {
-    if (Name == ".got.plt") {
-      uint64_t BaseAddr;
-      if (error(si->getAddress(BaseAddr))) 
-        assert(1 && "Cannot get BaseAddr of section .got.plt");
-      raw_fd_ostream fd_global_offset("global_offset", Error);
-      fd_global_offset << format("%02" PRIx64 " ", BaseAddr >> 24);
-      fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 16) & 0xFF);
-      fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 8) & 0xFF);
-      fd_global_offset << format("%02" PRIx64 "    ", BaseAddr & 0xFF);
-    }
-  }
+#endif
 }
 
 // Modified from DisassembleObject()
 static void DisassembleObjectInHexFormat(const ObjectFile *Obj
-/*, bool InlineRelocs*/  , uint64_t& lastDumpAddr) {
+/*, bool InlineRelocs*/  , StringRef secName, uint64_t& lastDumpAddr) {
   std::string Error;
   uint64_t soLastPrintAddr = 0;
   FILE *fd_so_func_offset;
@@ -553,11 +502,14 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
         PrintDataSection(Obj, lastDumpAddr, i);
       continue;
     }
+    StringRef name;
+    if (error(i->getName(name))) break;
+    if (name != secName) continue;
 
     uint64_t SectionAddr;
     if (error(i->getAddress(SectionAddr))) break;
 
-    if (!DumpSo)
+    if (!DumpSo && lastDumpAddr != 0)
       Fill0s(lastDumpAddr, SectionAddr);
 
     // Make a list of all the symbols in this section.
@@ -601,7 +553,7 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
       DataRefImpl DR = i->getRawDataRefImpl();
       SegmentName = MachO->getSectionFinalSegmentName(DR);
     }
-    StringRef name;
+//    StringRef name;
     if (error(i->getName(name))) break;
     if (DumpSo && name == ".plt") continue;
     outs() << "/*" << "Disassembly of section ";
@@ -810,6 +762,157 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
 }
 
 #define DYNSYM_LIB_OFFSET 9
+#if 0
+static void DisassemblePltSecInHexFormat(const ObjectFile *o) {
+  error_code ec;
+  std::string Error;
+  std::size_t addr, end;
+  StringRef Name;
+  StringRef Contents;
+  uint64_t BaseAddr;
+  bool BSS;
+  for (section_iterator si = o->begin_sections(),
+                        se = o->end_sections();
+                        si != se; si.increment(ec)) {
+    if (error(ec)) return;
+    if (error(si->getName(Name))) return;
+    if (error(si->getContents(Contents))) return;
+    if (error(si->getAddress(BaseAddr))) return;
+    if (error(si->isBSS(BSS))) return;
+    if (Name == ".plt") {
+    
+    StringRef Bytes;
+    if (error(si->getContents(Bytes))) break;
+    StringRefMemoryObject memoryObject(Bytes, SectionAddr);
+    uint64_t Size;
+    uint64_t Index;
+    uint64_t SectSize;
+    if (error(si->getSize(SectSize))) break;
+
+#ifndef NDEBUG
+    raw_ostream &DebugOut = DebugFlag ? dbgs() : nulls();
+#else
+    raw_ostream &DebugOut = nulls();
+#endif
+  
+    for (Index = 0; Index < 4; Index += Size) {
+      MCInst Inst;
+
+      if (DisAsm->getInstruction(Inst, Size, memoryObject,
+                                 SectionAddr + Index,
+                                 DebugOut, CommentStream)) {
+        outs() << format("/*%8" PRIx64 ":*/", /*SectionAddr + */lastDumpAddr+Index);
+        if (!NoShowRawInsn) {
+          outs() << "\t";
+          DumpBytes(StringRef(Bytes.data() + Index, Size));
+        }
+        outs() << "/*";
+        IP->printInst(&Inst, outs(), "");
+        outs() << CommentStream.str();
+        outs() << "*/";
+        Comments.clear();
+        outs() << "\n";
+      } else {
+        errs() << ToolName << ": warning: invalid instruction encoding\n";
+        if (Size == 0)
+          Size = 1; // skip illegible bytes
+      }
+    }
+  }
+}
+#endif
+
+static void DisassemblePltSecInHexFormat(const ObjectFile *o, 
+  uint64_t& lastDumpAddr) {
+  DisassembleObjectInHexFormat(o, ".plt", lastDumpAddr);
+}
+
+static void DumpSoSectionsInfoToFile(const ObjectFile *o) {
+  error_code ec;
+  std::string Error;
+  std::size_t addr, end;
+  StringRef Name;
+  StringRef Contents;
+  uint64_t BaseAddr;
+  bool BSS;
+  for (section_iterator si = o->begin_sections(),
+                        se = o->end_sections();
+                        si != se; si.increment(ec)) {
+    if (error(ec)) return;
+    if (error(si->getName(Name))) return;
+    if (error(si->getContents(Contents))) return;
+    if (error(si->getAddress(BaseAddr))) return;
+    if (error(si->isBSS(BSS))) return;
+    if (Name == ".dynsym") {
+      int num_dyn_entry = 0;
+      FILE *fd_num_dyn_entry;
+      fd_num_dyn_entry = fopen("num_dyn_entry", "r");
+      if (fd_num_dyn_entry != NULL) {
+        fscanf(fd_num_dyn_entry, "%d", &num_dyn_entry);
+      }
+      fclose(fd_num_dyn_entry);
+      raw_fd_ostream fd_dynsym("dynsym", Error);
+      int count = 0;
+      for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
+        fd_dynsym << hexdigit((Contents[addr] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr] & 0xF, true) << " ";
+        fd_dynsym << hexdigit((Contents[addr+1] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr+1] & 0xF, true) << " ";
+        fd_dynsym << hexdigit((Contents[addr+2] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr+2] & 0xF, true) << " ";
+        fd_dynsym << hexdigit((Contents[addr+3] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr+3] & 0xF, true) << " ";
+        count++;
+      }
+      for (int i = count; i < num_dyn_entry; i++) {
+        fd_dynsym << "00 00 00 00 ";
+      }
+    }
+    else if (Name == ".dynstr") {
+      raw_fd_ostream fd_dynstr("dynstr", Error);
+      raw_fd_ostream fd_dynstrAscii("dynstrAscii", Error);
+      for (std::size_t addr = 0, end = Contents.size(); addr < end; addr++) {
+        fd_dynstr << hexdigit((Contents[addr] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr] & 0xF, true) << " ";
+        if (addr == 0)
+          continue;
+        if (Contents[addr] == '\0')
+          fd_dynstrAscii << "\n";
+        else
+          fd_dynstrAscii << Contents[addr];
+      }
+    }
+  }
+}
+
+static void DumpExeSectionsInfoToFile(const ObjectFile *o) {
+  error_code ec;
+  std::string Error;
+  std::size_t addr, end;
+  StringRef Name;
+  StringRef Contents;
+  uint64_t BaseAddr;
+  bool BSS;
+  for (section_iterator si = o->begin_sections(),
+                        se = o->end_sections();
+                        si != se; si.increment(ec)) {
+    if (error(ec)) return;
+    if (error(si->getName(Name))) return;
+    if (error(si->getContents(Contents))) return;
+    if (error(si->getAddress(BaseAddr))) return;
+    if (error(si->isBSS(BSS))) return;
+    if (Name == ".got.plt") {
+      uint64_t BaseAddr;
+      if (error(si->getAddress(BaseAddr))) 
+        assert(1 && "Cannot get BaseAddr of section .got.plt");
+      raw_fd_ostream fd_global_offset("global_offset", Error);
+      fd_global_offset << format("%02" PRIx64 " ", BaseAddr >> 24);
+      fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 16) & 0xFF);
+      fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 8) & 0xFF);
+      fd_global_offset << format("%02" PRIx64 "    ", BaseAddr & 0xFF);
+    }
+  }
+}
 
 // Modified from PrintSectionContents()
 static void PrintDataSections(const ObjectFile *o, uint64_t& lastDumpAddr) {
@@ -836,15 +939,22 @@ static void Elf2Hex(const ObjectFile *o) {
   uint64_t lastDumpAddr = 0;
   uint64_t startAddr = GetSectionHeaderStartAddress(o, "_start");
 //  outs() << format("_start address:%08" PRIx64 "\n", startAddr);
-  if (LinkSo)
+  if (DumpSo) { // .so
+    DisassembleObjectInHexFormat(o, ".text", lastDumpAddr);
+    // outs() << format("lastDumpAddr:%08" PRIx64 "\n", lastDumpAddr);
+    PrintDataSections(o, lastDumpAddr);
+    DumpSoSectionsInfoToFile(o);
+  }
+  else if (LinkSo) { // exe refer to .so
     cpu0DynFunIndex.createPltName(o);
-  if (!DumpSo) {
+    DisassemblePltSecInHexFormat(o, lastDumpAddr);
+    DisassembleObjectInHexFormat(o, ".text", lastDumpAddr);
+    // outs() << format("lastDumpAddr:%08" PRIx64 "\n", lastDumpAddr);
+    DumpExeSectionsInfoToFile(o);
+  }
+  else { // exe without refer to .so
     OutputBoot();
     lastDumpAddr = 16;
-  }
-  DisassembleObjectInHexFormat(o, lastDumpAddr);
-  if (DumpSo) {
-    outs() << format("lastDumpAddr:%08" PRIx64 "\n", lastDumpAddr);
-    PrintDataSections(o, lastDumpAddr);
+    DisassembleObjectInHexFormat(o, ".text", lastDumpAddr);
   }
 }
