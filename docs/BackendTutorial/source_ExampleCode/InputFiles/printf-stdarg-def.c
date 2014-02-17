@@ -3,6 +3,7 @@
 
 #include "print.h"
 
+// Definition putchar(int c) for printf-stdarg.c
 // For memory IO
 int putchar(int c)
 {
@@ -11,4 +12,3 @@ int putchar(int c)
 
   return 0;
 }
-
