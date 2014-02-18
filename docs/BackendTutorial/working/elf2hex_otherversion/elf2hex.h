@@ -247,7 +247,7 @@ static void Fill0s(uint64_t& lastDumpAddr, uint64_t BaseAddr) {
   uint64_t cellingLastAddr4 = ((lastDumpAddr + 3) / 4) * 4;
   assert((lastDumpAddr <= BaseAddr) && "lastDumpAddr must <= BaseAddr");
   // Fill /*address*/ bytes is odd for 4 by 00 
-  outs() << format("/*%8" PRIx64 " */", lastDumpAddr);
+  outs() << format("/*%8" PRIx64 " */\t", lastDumpAddr);
   if (cellingLastAddr4 > BaseAddr) {
     for (std::size_t i = lastDumpAddr; i < BaseAddr; ++i) {
       outs() << "00 ";
@@ -264,7 +264,7 @@ static void Fill0s(uint64_t& lastDumpAddr, uint64_t BaseAddr) {
   }
   // Fill /*address*/ 00 00 00 00 for 4 bytes (1 Cpu0 word size)
   for (addr = lastDumpAddr, end = BaseAddr; addr < end; addr += 4) {
-    outs() << format("/*%8" PRIx64 " */", addr);
+    outs() << format("/*%8" PRIx64 " */\t", addr);
     outs() << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) \
     << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) << '\n';
   }
@@ -840,16 +840,6 @@ static void DisassemblePltSecInHexFormat(const ObjectFile *Obj,
       uint64_t SectSize;
       if (error(i->getSize(SectSize))) break;
 
-       // Correct offset address for "jmp start" where start is at .text section. 
-       // Since we move .plt from address 0x140 to 0x00 and keep .text at where 
-       // it is.
-        uint64_t addrA = SectionAddr + (((uint64_t) (Bytes[1]) & 0xff) << 16) | 
-          (((int64_t) (Bytes[2]) & 0xff) << 8) | ((uint8_t) (Bytes[3]) & 0xff);
-        outs() << "/*       0:*/	36 " << format("%02" PRIx64, (addrA & 0xff0000) >> 16) 
-          << format(" %02" PRIx64, (addrA & 0xff00) >> 8)
-          << format(" %02" PRIx64, (addrA & 0xff)) 
-          << "\t\t\t\t     /* jmp	" << addrA << "*/\n";
-
       std::vector<RelocationRef>::const_iterator rel_cur = Rels.begin();
       std::vector<RelocationRef>::const_iterator rel_end = Rels.end();
       // Disassemble symbol by symbol.
@@ -888,31 +878,45 @@ static void DisassemblePltSecInHexFormat(const ObjectFile *Obj,
           MCInst Inst;
 
           if (LinkSo && funIndex && Index == Start) {
-            outs() << format("/*%8" PRIx64 ":*/\t", /*SectionAddr + */lastDumpAddr+Index);
+            outs() << format("/*%8" PRIx64 ":*/\t", Index);
             outs() << "01 6b " << format("%02" PRIx64, (funIndex*4+16) & 0xff00)
                     << format(" %02" PRIx64, (funIndex*4+16) & 0x00ff);
             outs() << "                                  /* ld\t$t9, " 
                    << funIndex*4+16 << "($gp)\n";
           }
           else {
-            if (DisAsm->getInstruction(Inst, Size, memoryObject,
-                                       SectionAddr + Index,
-                                       DebugOut, CommentStream)) {
-              outs() << format("/*%8" PRIx64 ":*/", Index);
-              if (!NoShowRawInsn) {
-                outs() << "\t";
-                DumpBytes(StringRef(Bytes.data() + Index, Size));
+            if (Index == 0) {
+             // Correct offset address for "jmp start" where start is at .text section. 
+             // Since we move .plt from address 0x140 to 0x00 and keep .text at where 
+             // it is.
+              uint64_t addrA = SectionAddr + (((uint64_t) (Bytes[1]) & 0xff) << 16) | 
+                (((int64_t) (Bytes[2]) & 0xff) << 8) | ((uint8_t) (Bytes[3]) & 0xff);
+              outs() << "/*       0:*/	36 " << format("%02" PRIx64, (addrA & 0xff0000) >> 16) 
+                << format(" %02" PRIx64, (addrA & 0xff00) >> 8)
+                << format(" %02" PRIx64, (addrA & 0xff)) 
+                << "\t\t\t\t     /* jmp	" << addrA << "*/\n";
+              Size = 4;
+            }
+            else {
+              if (DisAsm->getInstruction(Inst, Size, memoryObject,
+                                         SectionAddr + Index,
+                                         DebugOut, CommentStream)) {
+                outs() << format("/*%8" PRIx64 ":*/", Index);
+                if (!NoShowRawInsn) {
+                  outs() << "\t";
+                  DumpBytes(StringRef(Bytes.data() + Index, Size));
+                }
+                outs() << "/*";
+                IP->printInst(&Inst, outs(), "");
+                outs() << CommentStream.str();
+                outs() << "*/";
+                Comments.clear();
+                outs() << "\n";
+              } else {
+                errs() << ToolName << ": warning: invalid instruction encoding\n";
+                if (Size == 0)
+                  Size = 1; // skip illegible bytes
               }
-              outs() << "/*";
-              IP->printInst(&Inst, outs(), "");
-              outs() << CommentStream.str();
-              outs() << "*/";
-              Comments.clear();
-              outs() << "\n";
-            } else {
-              errs() << ToolName << ": warning: invalid instruction encoding\n";
-              if (Size == 0)
-                Size = 1; // skip illegible bytes
             }
           }
         }
