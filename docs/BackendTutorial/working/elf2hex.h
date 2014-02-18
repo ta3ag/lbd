@@ -247,7 +247,7 @@ static void Fill0s(uint64_t& lastDumpAddr, uint64_t BaseAddr) {
   uint64_t cellingLastAddr4 = ((lastDumpAddr + 3) / 4) * 4;
   assert((lastDumpAddr <= BaseAddr) && "lastDumpAddr must <= BaseAddr");
   // Fill /*address*/ bytes is odd for 4 by 00 
-  outs() << format("/*%04" PRIx64 " */", lastDumpAddr);
+  outs() << format("/*%8" PRIx64 " */", lastDumpAddr);
   if (cellingLastAddr4 > BaseAddr) {
     for (std::size_t i = lastDumpAddr; i < BaseAddr; ++i) {
       outs() << "00 ";
@@ -264,7 +264,7 @@ static void Fill0s(uint64_t& lastDumpAddr, uint64_t BaseAddr) {
   }
   // Fill /*address*/ 00 00 00 00 for 4 bytes (1 Cpu0 word size)
   for (addr = lastDumpAddr, end = BaseAddr; addr < end; addr += 4) {
-    outs() << format("/*%04" PRIx64 " */", addr);
+    outs() << format("/*%8" PRIx64 " */", addr);
     outs() << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) \
     << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) << '\n';
   }
@@ -295,7 +295,7 @@ static void PrintDataSection(const ObjectFile *o, uint64_t& lastDumpAddr,
     outs() << "/*Contents of section " << Name << ":*/\n";
     // Dump out the content as hex and printable ascii characters.
     for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
-      outs() << format("/*%04" PRIx64 " */", BaseAddr + addr);
+      outs() << format("/*%8" PRIx64 " */", BaseAddr + addr);
       // Dump line of hex.
       for (std::size_t i = 0; i < 16; ++i) {
         if (i != 0 && i % 4 == 0)
@@ -317,7 +317,7 @@ static void PrintDataSection(const ObjectFile *o, uint64_t& lastDumpAddr,
     // save the end address of this section to lastDumpAddr
     lastDumpAddr = BaseAddr + Contents.size();
   }
-#if 0
+#if 1
   else if (Name == ".bss" || Name == ".sbss") {
     if (Contents.size() <= 0) {
       return;
@@ -553,7 +553,7 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
       DataRefImpl DR = i->getRawDataRefImpl();
       SegmentName = MachO->getSectionFinalSegmentName(DR);
     }
-//    StringRef name;
+    // StringRef name;
     if (error(i->getName(name))) break;
     if (DumpSo && name == ".plt") continue;
     outs() << "/*" << "Disassembly of section ";
@@ -762,70 +762,207 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
 }
 
 #define DYNSYM_LIB_OFFSET 9
-#if 0
-static void DisassemblePltSecInHexFormat(const ObjectFile *o) {
-  error_code ec;
+
+#if 1
+static void DisassemblePltSecInHexFormat(const ObjectFile *Obj, 
+  uint64_t secOffset, uint64_t secDistance, uint64_t& lastDumpAddr) {
   std::string Error;
-  std::size_t addr, end;
-  StringRef Name;
-  StringRef Contents;
-  uint64_t BaseAddr;
-  bool BSS;
-  for (section_iterator si = o->begin_sections(),
-                        se = o->end_sections();
-                        si != se; si.increment(ec)) {
-    if (error(ec)) return;
-    if (error(si->getName(Name))) return;
-    if (error(si->getContents(Contents))) return;
-    if (error(si->getAddress(BaseAddr))) return;
-    if (error(si->isBSS(BSS))) return;
-    if (Name == ".plt") {
-    
-    StringRef Bytes;
-    if (error(si->getContents(Bytes))) break;
-    StringRefMemoryObject memoryObject(Bytes, SectionAddr);
-    uint64_t Size;
-    uint64_t Index;
-    uint64_t SectSize;
-    if (error(si->getSize(SectSize))) break;
+  const Target *TheTarget = getTarget(Obj);
+  // getTarget() will have already issued a diagnostic if necessary, so
+  // just bail here if it failed.
+  if (!TheTarget)
+    return;
 
-#ifndef NDEBUG
-    raw_ostream &DebugOut = DebugFlag ? dbgs() : nulls();
-#else
-    raw_ostream &DebugOut = nulls();
-#endif
-  
-    for (Index = 0; Index < 4; Index += Size) {
-      MCInst Inst;
+  // Package up features to be passed to target/subtarget
+  std::string FeaturesStr;
+  if (MAttrs.size()) {
+    SubtargetFeatures Features;
+    for (unsigned i = 0; i != MAttrs.size(); ++i)
+      Features.AddFeature(MAttrs[i]);
+    FeaturesStr = Features.getString();
+  }
 
-      if (DisAsm->getInstruction(Inst, Size, memoryObject,
-                                 SectionAddr + Index,
-                                 DebugOut, CommentStream)) {
-        outs() << format("/*%8" PRIx64 ":*/", /*SectionAddr + */lastDumpAddr+Index);
-        if (!NoShowRawInsn) {
-          outs() << "\t";
-          DumpBytes(StringRef(Bytes.data() + Index, Size));
+  OwningPtr<const MCRegisterInfo> MRI(TheTarget->createMCRegInfo(TripleName));
+  if (!MRI) {
+    errs() << "error: no register info for target " << TripleName << "\n";
+    return;
+  }
+
+  // Set up disassembler.
+  OwningPtr<const MCAsmInfo> AsmInfo(
+    TheTarget->createMCAsmInfo(*MRI, TripleName));
+  if (!AsmInfo) {
+    errs() << "error: no assembly info for target " << TripleName << "\n";
+    return;
+  }
+
+  OwningPtr<const MCSubtargetInfo> STI(
+    TheTarget->createMCSubtargetInfo(TripleName, "", FeaturesStr));
+  if (!STI) {
+    errs() << "error: no subtarget info for target " << TripleName << "\n";
+    return;
+  }
+
+  OwningPtr<const MCInstrInfo> MII(TheTarget->createMCInstrInfo());
+  if (!MII) {
+    errs() << "error: no instruction info for target " << TripleName << "\n";
+    return;
+  }
+
+  OwningPtr<MCDisassembler> DisAsm(TheTarget->createMCDisassembler(*STI));
+  if (!DisAsm) {
+    errs() << "error: no disassembler for target " << TripleName << "\n";
+    return;
+  }
+
+  OwningPtr<const MCObjectFileInfo> MOFI;
+  OwningPtr<MCContext> Ctx;
+
+  if (Symbolize) {
+    MOFI.reset(new MCObjectFileInfo);
+    Ctx.reset(new MCContext(AsmInfo.get(), MRI.get(), MOFI.get()));
+    OwningPtr<MCRelocationInfo> RelInfo(
+      TheTarget->createMCRelocationInfo(TripleName, *Ctx.get()));
+    if (RelInfo) {
+      OwningPtr<MCSymbolizer> Symzer(
+        MCObjectSymbolizer::createObjectSymbolizer(*Ctx.get(), RelInfo, Obj));
+      if (Symzer)
+        DisAsm->setSymbolizer(Symzer);
+    }
+  }
+
+  OwningPtr<const MCInstrAnalysis>
+    MIA(TheTarget->createMCInstrAnalysis(MII.get()));
+
+  int AsmPrinterVariant = AsmInfo->getAssemblerDialect();
+  OwningPtr<MCInstPrinter> IP(TheTarget->createMCInstPrinter(
+      AsmPrinterVariant, *AsmInfo, *MII, *MRI, *STI));
+  if (!IP) {
+    errs() << "error: no instruction printer for target " << TripleName
+      << '\n';
+    return;
+  }
+
+  if (CFG) {
+    OwningPtr<MCObjectDisassembler> OD(
+      new MCObjectDisassembler(*Obj, *DisAsm, *MIA));
+    OwningPtr<MCModule> Mod(OD->buildModule(/* withCFG */ true));
+    for (MCModule::const_atom_iterator AI = Mod->atom_begin(),
+                                       AE = Mod->atom_end();
+                                       AI != AE; ++AI) {
+      outs() << "Atom " << (*AI)->getName() << ": \n";
+      if (const MCTextAtom *TA = dyn_cast<MCTextAtom>(*AI)) {
+        for (MCTextAtom::const_iterator II = TA->begin(), IE = TA->end();
+             II != IE;
+             ++II) {
+          IP->printInst(&II->Inst, outs(), "");
+          outs() << "\n";
         }
-        outs() << "/*";
-        IP->printInst(&Inst, outs(), "");
-        outs() << CommentStream.str();
-        outs() << "*/";
-        Comments.clear();
-        outs() << "\n";
-      } else {
-        errs() << ToolName << ": warning: invalid instruction encoding\n";
-        if (Size == 0)
-          Size = 1; // skip illegible bytes
       }
+    }
+    for (MCModule::const_func_iterator FI = Mod->func_begin(),
+                                       FE = Mod->func_end();
+                                       FI != FE; ++FI) {
+      static int filenum = 0;
+      emitDOTFile((Twine((*FI)->getName()) + "_" +
+                   utostr(filenum) + ".dot").str().c_str(),
+                    **FI, IP.get());
+      ++filenum;
+    }
+  }
+
+  error_code ec;
+  for (section_iterator i = Obj->begin_sections(),
+                        e = Obj->end_sections();
+                        i != e; i.increment(ec)) {
+    if (error(ec)) break;
+    bool text;
+    if (error(i->isText(text))) break;
+    if (!text) {
+      continue;
+    }
+    StringRef name;
+    if (error(i->getName(name))) break;
+    if (name == ".plt") {
+      uint64_t SectionAddr;
+      if (error(i->getAddress(SectionAddr))) break;
+      StringRef Bytes;
+      if (error(i->getContents(Bytes))) break;
+      StringRefMemoryObject memoryObject(Bytes, SectionAddr);
+      uint64_t Size;
+      uint64_t Index;
+      uint64_t SectSize;
+      if (error(i->getSize(SectSize))) break;
+
+      StringRef SegmentName = "";
+      if (const MachOObjectFile *MachO =
+          dyn_cast<const MachOObjectFile>(Obj)) {
+        DataRefImpl DR = i->getRawDataRefImpl();
+        SegmentName = MachO->getSectionFinalSegmentName(DR);
+      }
+      if (error(i->getName(name))) break;
+      outs() << "/*" << "Disassembly of section ";
+      if (!SegmentName.empty())
+        outs() << SegmentName << ",";
+      outs() << name << ':' << "*/\n";
+
+      SmallString<40> Comments;
+      raw_svector_ostream CommentStream(Comments);
+
+  #ifndef NDEBUG
+      raw_ostream &DebugOut = DebugFlag ? dbgs() : nulls();
+  #else
+      raw_ostream &DebugOut = nulls();
+  #endif
+    
+     // Correct offset address for "jmp start" where start is at .text section. 
+     // Since we move .plt from address 0x140 to 0x00 and keep .text at where 
+     // it is.
+      int64_t aa = (((uint64_t) (Bytes[1]) & 0xff) << 16);
+      int64_t bb = (((int64_t) (Bytes[2]) & 0xff) << 8);
+      int64_t cc = ((uint8_t) (Bytes[3]) & 0xff);
+      uint64_t addrA = SectionAddr + (((uint64_t) (Bytes[1]) & 0xff) << 16) | 
+        (((int64_t) (Bytes[2]) & 0xff) << 8) | ((uint8_t) (Bytes[3]) & 0xff);
+      outs() << "/*       0:*/	36 " << format("%02" PRIx64, (addrA & 0xff0000) >> 16) 
+        << format(" %02" PRIx64, (addrA & 0xff00) >> 8)
+        << format(" %02" PRIx64, (addrA & 0xff)) 
+        << "\t\t\t\t     /* jmp	" << addrA << "*/\n";
+
+      uint64_t End = SectSize;
+      for (Index = 4; Index < End; Index += Size) {
+        MCInst Inst;
+
+        if (DisAsm->getInstruction(Inst, Size, memoryObject,
+                                   SectionAddr + Index,
+                                   DebugOut, CommentStream)) {
+          outs() << format("/*%8" PRIx64 ":*/", Index);
+          if (!NoShowRawInsn) {
+            outs() << "\t";
+            DumpBytes(StringRef(Bytes.data() + Index, Size));
+          }
+          outs() << "/*";
+          IP->printInst(&Inst, outs(), "");
+          outs() << CommentStream.str();
+          outs() << "*/";
+          Comments.clear();
+          outs() << "\n";
+        } else {
+          errs() << ToolName << ": warning: invalid instruction encoding\n";
+          if (Size == 0)
+            Size = 1; // skip illegible bytes
+        }
+      }
+      lastDumpAddr = Index;
+      return;
     }
   }
 }
-#endif
-
+#else
 static void DisassemblePltSecInHexFormat(const ObjectFile *o, 
-  uint64_t& lastDumpAddr) {
+  uint64_t secDistance, uint64_t& lastDumpAddr) {
   DisassembleObjectInHexFormat(o, ".plt", lastDumpAddr);
 }
+#endif
 
 static void DumpSoSectionsInfoToFile(const ObjectFile *o) {
   error_code ec;
@@ -935,6 +1072,60 @@ static void OutputBoot() {
   return;
 }
 
+// return 0x80000000 if fail
+// return (BaseAddrB - BaseAddrA)
+static uint64_t SectionsDistance(const ObjectFile *o, StringRef secA, 
+  StringRef secB) {
+  error_code ec;
+  uint64_t BaseAddrA = 0;
+  uint64_t BaseAddrB = 0;
+
+  for (section_iterator si = o->begin_sections(),
+                        se = o->end_sections();
+                        si != se; si.increment(ec)) {
+    if (error(ec)) return 0x80000000;
+    StringRef Name;
+    StringRef Contents;
+    uint64_t BaseAddr;
+    bool BSS;
+    if (error(si->getName(Name))) return 0x80000000;
+    if (error(si->getContents(Contents))) return 0x80000000;
+    if (error(si->getAddress(BaseAddr))) return 0x80000000;
+    if (error(si->isBSS(BSS))) return 0x80000000;
+
+    if (Name == secA)
+      BaseAddrA = BaseAddr;
+    if (Name == secB)
+      BaseAddrB = BaseAddr;
+  }
+  if (BaseAddrA == 0 || BaseAddrB == 0)
+    return 0x80000000;
+  else
+    return (BaseAddrB - BaseAddrA);
+}
+
+static uint64_t SectionOffset(const ObjectFile *o, StringRef secName) {
+  error_code ec;
+
+  for (section_iterator si = o->begin_sections(),
+                        se = o->end_sections();
+                        si != se; si.increment(ec)) {
+    if (error(ec)) return 0;
+    StringRef Name;
+    StringRef Contents;
+    uint64_t BaseAddr;
+    bool BSS;
+    if (error(si->getName(Name))) return 0;
+    if (error(si->getContents(Contents))) return 0;
+    if (error(si->getAddress(BaseAddr))) return 0;
+    if (error(si->isBSS(BSS))) return 0;
+
+    if (Name == secName)
+      return BaseAddr;
+  }
+  return 0;
+}
+
 static void Elf2Hex(const ObjectFile *o) {
   uint64_t lastDumpAddr = 0;
   uint64_t startAddr = GetSectionHeaderStartAddress(o, "_start");
@@ -947,14 +1138,17 @@ static void Elf2Hex(const ObjectFile *o) {
   }
   else if (LinkSo) { // exe refer to .so
     cpu0DynFunIndex.createPltName(o);
-    DisassemblePltSecInHexFormat(o, lastDumpAddr);
+    uint64_t secOffset = SectionOffset(o, ".plt");
+    uint64_t secDistance = SectionsDistance(o, ".plt", ".text");
+    DisassemblePltSecInHexFormat(o, secOffset, secDistance, lastDumpAddr);
     DisassembleObjectInHexFormat(o, ".text", lastDumpAddr);
     // outs() << format("lastDumpAddr:%08" PRIx64 "\n", lastDumpAddr);
     DumpExeSectionsInfoToFile(o);
   }
   else { // exe without refer to .so
-    OutputBoot();
-    lastDumpAddr = 16;
+    uint64_t secOffset = SectionOffset(o, ".plt");
+    uint64_t secDistance = SectionsDistance(o, ".plt", ".text");
+    DisassemblePltSecInHexFormat(o, secOffset, secDistance, lastDumpAddr);
     DisassembleObjectInHexFormat(o, ".text", lastDumpAddr);
   }
 }
