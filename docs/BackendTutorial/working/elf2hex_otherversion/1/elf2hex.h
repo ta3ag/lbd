@@ -287,8 +287,8 @@ static void PrintDataSection(const ObjectFile *o, uint64_t& lastDumpAddr,
   if (error(si->isBSS(BSS))) return;
 
   size = (Contents.size()+3)/4*4;
-  if (Name == ".rodata" || Name == ".rodata1" || Name == ".data" || 
-    Name == ".data1" || Name == ".sdata") {
+//  if (Name == ".rodata" || Name == ".rodata1" || Name == ".data" || 
+//    Name == ".data1" || Name == ".sdata") {
     if (Contents.size() <= 0) {
       return;
     }
@@ -321,8 +321,8 @@ static void PrintDataSection(const ObjectFile *o, uint64_t& lastDumpAddr,
     outs() << "\n";
     // save the end address of this section to lastDumpAddr
     lastDumpAddr = BaseAddr + Contents.size();
-  }
-#if 1
+//  }
+#if 0
   else if (Name == ".bss" || Name == ".sbss") {
     if (Contents.size() <= 0) {
       return;
@@ -515,9 +515,64 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
       if (error(i->getName(Name))) continue;
       if (error(i->getContents(Contents))) continue;
       if (error(i->getAddress(BaseAddr))) continue;
-      if (Name == ".rodata") {
+      if (BaseAddr < 0x140)
+        continue;
+//      if (Name == ".rodata") {
         PrintDataSection(Obj, lastDumpAddr, i);
-        havePrintRodata = true;
+//        havePrintRodata = true;
+//      }
+      if (DumpSo) {
+        if (Name == ".dynsym") {
+          int num_dyn_entry = 0;
+          FILE *fd_num_dyn_entry;
+          fd_num_dyn_entry = fopen("num_dyn_entry", "r");
+          if (fd_num_dyn_entry != NULL) {
+            fscanf(fd_num_dyn_entry, "%d", &num_dyn_entry);
+          }
+          fclose(fd_num_dyn_entry);
+          raw_fd_ostream fd_dynsym("dynsym", Error);
+          int count = 0;
+          for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
+            fd_dynsym << hexdigit((Contents[addr] >> 4) & 0xF, true)
+                       << hexdigit(Contents[addr] & 0xF, true) << " ";
+            fd_dynsym << hexdigit((Contents[addr+1] >> 4) & 0xF, true)
+                       << hexdigit(Contents[addr+1] & 0xF, true) << " ";
+            fd_dynsym << hexdigit((Contents[addr+2] >> 4) & 0xF, true)
+                       << hexdigit(Contents[addr+2] & 0xF, true) << " ";
+            fd_dynsym << hexdigit((Contents[addr+3] >> 4) & 0xF, true)
+                       << hexdigit(Contents[addr+3] & 0xF, true) << " ";
+            count++;
+          }
+          for (int i = count; i < num_dyn_entry; i++) {
+            fd_dynsym << "00 00 00 00 ";
+          }
+        }
+        else if (Name == ".dynstr") {
+          raw_fd_ostream fd_dynstr("dynstr", Error);
+          raw_fd_ostream fd_dynstrAscii("dynstrAscii", Error);
+          for (std::size_t addr = 0, end = Contents.size(); addr < end; addr++) {
+            fd_dynstr << hexdigit((Contents[addr] >> 4) & 0xF, true)
+                       << hexdigit(Contents[addr] & 0xF, true) << " ";
+            if (addr == 0)
+              continue;
+            if (Contents[addr] == '\0')
+              fd_dynstrAscii << "\n";
+            else
+              fd_dynstrAscii << Contents[addr];
+          }
+        }
+      }
+      else if (!DumpSo) {
+        if (Name == ".got.plt") {
+          uint64_t BaseAddr;
+          if (error(i->getAddress(BaseAddr))) 
+            assert(1 && "Cannot get BaseAddr of section .got.plt");
+          raw_fd_ostream fd_global_offset("global_offset", Error);
+          fd_global_offset << format("%02" PRIx64 " ", BaseAddr >> 24);
+          fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 16) & 0xFF);
+          fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 8) & 0xFF);
+          fd_global_offset << format("%02" PRIx64 "    ", BaseAddr & 0xFF);
+        }
       }
       continue;
     }
@@ -964,5 +1019,5 @@ static void Elf2Hex(const ObjectFile *o) {
   Fill0s(lastDumpAddr, 0x140);
   DisassembleObjectInHexFormat(o, lastDumpAddr);
 //  outs() << format("lastDumpAddr:%08" PRIx64 "\n", lastDumpAddr);
-  PrintDataSections(o, lastDumpAddr);
+//  PrintDataSections(o, lastDumpAddr);
 }
