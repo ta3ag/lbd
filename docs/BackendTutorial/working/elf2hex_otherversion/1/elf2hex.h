@@ -244,11 +244,11 @@ static void Fill0s(uint64_t& lastDumpAddr, uint64_t BaseAddr) {
 
   // Fill /*address*/ 00 00 00 00 between lastDumpAddr( = the address of last
   // end section + 1) and BaseAddr
-  uint64_t cellingLastAddr4 = ((lastDumpAddr + 3) / 4) * 4;
+  uint64_t cellingLastAddr4 = ((BaseAddr + 3) / 4) * 4;
   assert((lastDumpAddr <= BaseAddr) && "lastDumpAddr must <= BaseAddr");
   // Fill /*address*/ bytes is odd for 4 by 00 
   outs() << format("/*%8" PRIx64 " */", lastDumpAddr);
-  if (cellingLastAddr4 > BaseAddr) {
+/*  if (cellingLastAddr4 > BaseAddr) {
     for (std::size_t i = lastDumpAddr; i < BaseAddr; ++i) {
       outs() << "00 ";
     }
@@ -261,7 +261,7 @@ static void Fill0s(uint64_t& lastDumpAddr, uint64_t BaseAddr) {
     }
     outs() << "\n";
     lastDumpAddr = cellingLastAddr4;
-  }
+  }*/
   // Fill /*address*/ 00 00 00 00 for 4 bytes (1 Cpu0 word size)
   for (addr = lastDumpAddr, end = BaseAddr; addr < end; addr += 4) {
     outs() << format("/*%8" PRIx64 " */", addr);
@@ -506,19 +506,21 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
                         e = Obj->end_sections();
                         i != e; i.increment(ec)) {
     if (error(ec)) break;
+    StringRef Name;
+    StringRef Contents;
+    uint64_t BaseAddr;
+    if (error(i->getName(Name))) continue;
+    if (error(i->getContents(Contents))) continue;
+    if (error(i->getAddress(BaseAddr))) continue;
     bool text;
     if (error(i->isText(text))) break;
     if (!text) {
-      StringRef Name;
-      StringRef Contents;
-      uint64_t BaseAddr;
-      if (error(i->getName(Name))) continue;
-      if (error(i->getContents(Contents))) continue;
-      if (error(i->getAddress(BaseAddr))) continue;
       if (BaseAddr < 0x140)
         continue;
+      if (lastDumpAddr < BaseAddr)
+        Fill0s(lastDumpAddr, BaseAddr - 1);
 //      if (Name == ".rodata") {
-        PrintDataSection(Obj, lastDumpAddr, i);
+      PrintDataSection(Obj, lastDumpAddr, i);
 //        havePrintRodata = true;
 //      }
       if (DumpSo) {
@@ -576,6 +578,7 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
       }
       continue;
     }
+    // It's .text section
     uint64_t SectionAddr;
     if (error(i->getAddress(SectionAddr))) break;
 
@@ -781,11 +784,12 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
         skip_print_rel:
           ++rel_cur;
         }
+        lastDumpAddr += Index;
       }
       if (DumpSo)
         soLastPrintAddr = End;
     }
-    lastDumpAddr += Index;
+//    lastDumpAddr += Contents.size();
   }
   if (DumpSo) {
 // Fix the issue that __tls_get_addr appear as file offset 0.
