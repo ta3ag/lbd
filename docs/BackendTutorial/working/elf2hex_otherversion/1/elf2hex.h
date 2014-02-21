@@ -501,6 +501,7 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
   }
 
 
+  errs() << format("!lastDumpAddr %8" PRIx64 "\n", lastDumpAddr);
   error_code ec;
   for (section_iterator i = Obj->begin_sections(),
                         e = Obj->end_sections();
@@ -512,11 +513,13 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
     if (error(i->getName(Name))) continue;
     if (error(i->getContents(Contents))) continue;
     if (error(i->getAddress(BaseAddr))) continue;
+    if (BaseAddr < 0x100)
+      continue;
+    errs() << "Name " << Name << format("  BaseAddr %8" PRIx64 "\n", BaseAddr);
+    errs() << format("!!lastDumpAddr %8" PRIx64 "\n", lastDumpAddr);
     bool text;
     if (error(i->isText(text))) break;
     if (!text) {
-      if (BaseAddr < 0x140)
-        continue;
       if (lastDumpAddr < BaseAddr)
         Fill0s(lastDumpAddr, BaseAddr - 1);
 //      if (Name == ".rodata") {
@@ -784,12 +787,17 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
         skip_print_rel:
           ++rel_cur;
         }
-        lastDumpAddr += Index;
+//        lastDumpAddr += Index;
       }
       if (DumpSo)
         soLastPrintAddr = End;
+      errs() << format("SectionAddr + Index = %8" PRIx64 "\n", SectionAddr + Index);
+      errs() << format("lastDumpAddr %8" PRIx64 "\n", lastDumpAddr);
     }
-//    lastDumpAddr += Contents.size();
+    if (Contents.size() < (SectionAddr + Index))
+      lastDumpAddr = SectionAddr + Index;
+    else
+      lastDumpAddr = SectionAddr + Contents.size();
   }
   if (DumpSo) {
 // Fix the issue that __tls_get_addr appear as file offset 0.
@@ -1006,11 +1014,39 @@ static void PrintDataSections(const ObjectFile *o, uint64_t lastDumpAddr) {
   }
 }
 
-static void PrintBootSection() {
-  outs() << "/*       0:*/	36 00 01 3c                                  /*	jmp	0x13c*/\n" <<
-  "/*       4:*/	36 00 00 04                                  /*	jmp	4*/\n" <<
-  "/*       8:*/	36 00 00 04                                  /*	jmp	4*/\n" <<
-  "/*       c:*/	36 ff ff fc                                  /*	jmp	-4*/\n";
+static uint64_t SectionOffset(const ObjectFile *o, StringRef secName) {
+  error_code ec;
+
+  for (section_iterator si = o->begin_sections(),
+                        se = o->end_sections();
+                        si != se; si.increment(ec)) {
+    if (error(ec)) return 0;
+    StringRef Name;
+    StringRef Contents;
+    uint64_t BaseAddr;
+    bool BSS;
+    if (error(si->getName(Name))) return 0;
+    if (error(si->getContents(Contents))) return 0;
+    if (error(si->getAddress(BaseAddr))) return 0;
+    if (error(si->isBSS(BSS))) return 0;
+
+    if (Name == secName)
+      return BaseAddr;
+  }
+  return 0;
+}
+
+static void PrintBootSection(uint64_t pltOffset) {
+  uint64_t offset = pltOffset - 4;
+  outs() << "/*       0:*/	36 00 ";
+  outs() << format("%02" PRIx64 " ", (offset & 0xff00) >> 8);
+  outs() << format("%02" PRIx64 "", (offset & 0xff));
+  outs() << "                                  /*	jmp	0x";
+  outs() << format("%8" PRIx64 " */\n", offset); 
+  outs() <<
+    "/*       4:*/	36 00 00 04                                  /*	jmp	4*/\n" <<
+    "/*       8:*/	36 00 00 04                                  /*	jmp	4*/\n" <<
+    "/*       c:*/	36 ff ff fc                                  /*	jmp	-4*/\n";
 }
 
 static void Elf2Hex(const ObjectFile *o) {
@@ -1018,9 +1054,11 @@ static void Elf2Hex(const ObjectFile *o) {
 //  outs() << format("_start address:%08" PRIx64 "\n", startAddr);
   if (LinkSo)
     cpu0DynFunIndex.createPltName(o);
-  PrintBootSection();
+  uint64_t pltOffset = SectionOffset(o, ".plt");
+  PrintBootSection(pltOffset);
   uint64_t lastDumpAddr = 16;
-  Fill0s(lastDumpAddr, 0x140);
+  Fill0s(lastDumpAddr, 0x100);
+  lastDumpAddr = 0x100;
   DisassembleObjectInHexFormat(o, lastDumpAddr);
 //  outs() << format("lastDumpAddr:%08" PRIx64 "\n", lastDumpAddr);
 //  PrintDataSections(o, lastDumpAddr);
