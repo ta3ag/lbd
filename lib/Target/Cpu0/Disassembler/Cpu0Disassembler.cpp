@@ -58,13 +58,6 @@ static const unsigned CPURegsTable[] = {
   Cpu0::FP, Cpu0::SP, Cpu0::LR, Cpu0::PC
 };
 
-static const unsigned GPROutTable[] = {
-  Cpu0::ZERO, Cpu0::AT, Cpu0::V0, Cpu0::V1,
-  Cpu0::A0, Cpu0::A1, Cpu0::T9, Cpu0::T0, 
-  Cpu0::S0, Cpu0::S1, Cpu0::GP, 
-  Cpu0::FP, Cpu0::SP, Cpu0::LR, Cpu0::PC
-};
-
 static DecodeStatus DecodeCPURegsRegisterClass(MCInst &Inst,
                                                unsigned RegNo,
                                                uint64_t Address,
@@ -206,11 +199,7 @@ static DecodeStatus DecodeGPROutRegisterClass(MCInst &Inst,
                                                unsigned RegNo,
                                                uint64_t Address,
                                                const void *Decoder) {
-  if (RegNo > 16)
-    return MCDisassembler::Fail;
-
-  Inst.addOperand(MCOperand::CreateReg(GPROutTable[RegNo]));
-  return MCDisassembler::Success;
+  return DecodeCPURegsRegisterClass(Inst, RegNo, Address, Decoder);
 }
 
 static DecodeStatus DecodeMem(MCInst &Inst,
@@ -258,7 +247,6 @@ static DecodeStatus DecodeCMPInstruction(MCInst &Inst,
                                        const void *Decoder) {
   int Reg_a = (int)fieldFromInstruction(Insn, 20, 4);
   int Reg_b = (int)fieldFromInstruction(Insn, 16, 4);
-  int Reg_c = (int)fieldFromInstruction(Insn, 12, 4);
 
   Inst.addOperand(MCOperand::CreateReg(Cpu0::SW));
   Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_a]));

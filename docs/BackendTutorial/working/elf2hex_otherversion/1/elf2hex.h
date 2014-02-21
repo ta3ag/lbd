@@ -319,8 +319,12 @@ static void PrintDataSection(const ObjectFile *o, uint64_t& lastDumpAddr,
       outs() << "00 ";
     }
     outs() << "\n";
+    errs() << "Name " << Name << "  BaseAddr ";
+    errs() << format("%8" PRIx64 " Contents.size() ", BaseAddr);
+    errs() << format("%8" PRIx64 " size ", Contents.size());
+    errs() << format("%8" PRIx64 " \n", size);
     // save the end address of this section to lastDumpAddr
-    lastDumpAddr = BaseAddr + Contents.size();
+    lastDumpAddr = BaseAddr + size;
 //  }
 #if 0
   else if (Name == ".bss" || Name == ".sbss") {
@@ -412,9 +416,10 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
     bool text;
     if (error(i->isText(text))) break;
     if (!text) {
-      PrintDataSection(Obj, lastDumpAddr, i);
+      errs() << "!text\n";
       if (lastDumpAddr < BaseAddr)
         Fill0s(lastDumpAddr, BaseAddr - 1);
+      PrintDataSection(Obj, lastDumpAddr, i);
 //      if (Name == ".rodata") {
 //        havePrintRodata = true;
 //      }
@@ -430,6 +435,8 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
       }
       continue;
     }
+      if (lastDumpAddr < BaseAddr)
+        Fill0s(lastDumpAddr, BaseAddr - 1);
     // It's .text section
     uint64_t SectionAddr;
     if (error(i->getAddress(SectionAddr))) break;

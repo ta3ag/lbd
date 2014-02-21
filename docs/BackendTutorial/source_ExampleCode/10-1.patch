@@ -1,6 +1,6 @@
 diff -Naur Chapter9_4/CMakeLists.txt Chapter10_1/CMakeLists.txt
---- Chapter9_4/CMakeLists.txt	2014-02-11 14:03:42.458933945 +0800
-+++ Chapter10_1/CMakeLists.txt	2014-02-11 14:03:42.458933945 +0800
+--- Chapter9_4/CMakeLists.txt	2014-02-21 17:48:39.074150260 +0800
++++ Chapter10_1/CMakeLists.txt	2014-02-21 17:48:39.078150260 +0800
 @@ -9,7 +9,7 @@
  #  came from Cpu0InstrInfo.td.
  tablegen(LLVM Cpu0GenRegisterInfo.inc -gen-register-info)
@@ -18,8 +18,8 @@ diff -Naur Chapter9_4/CMakeLists.txt Chapter10_1/CMakeLists.txt
  add_subdirectory(TargetInfo)
  add_subdirectory(MCTargetDesc)
 diff -Naur Chapter9_4/Cpu0InstrInfo.td Chapter10_1/Cpu0InstrInfo.td
---- Chapter9_4/Cpu0InstrInfo.td	2014-02-11 14:03:42.458933945 +0800
-+++ Chapter10_1/Cpu0InstrInfo.td	2014-02-11 14:03:42.462933945 +0800
+--- Chapter9_4/Cpu0InstrInfo.td	2014-02-21 17:48:39.074150260 +0800
++++ Chapter10_1/Cpu0InstrInfo.td	2014-02-21 17:48:39.078150260 +0800
 @@ -196,6 +196,7 @@
    let rc = 0;
    let shamt = 0;
@@ -46,7 +46,7 @@ diff -Naur Chapter9_4/Cpu0InstrInfo.td Chapter10_1/Cpu0InstrInfo.td
    def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
 diff -Naur Chapter9_4/Disassembler/CMakeLists.txt Chapter10_1/Disassembler/CMakeLists.txt
 --- Chapter9_4/Disassembler/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter10_1/Disassembler/CMakeLists.txt	2014-02-11 14:03:42.462933945 +0800
++++ Chapter10_1/Disassembler/CMakeLists.txt	2014-02-21 17:48:39.078150260 +0800
 @@ -0,0 +1,15 @@
 +include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
 +
@@ -65,8 +65,8 @@ diff -Naur Chapter9_4/Disassembler/CMakeLists.txt Chapter10_1/Disassembler/CMake
 +add_dependencies(LLVMCpu0Disassembler Cpu0CommonTableGen)
 diff -Naur Chapter9_4/Disassembler/Cpu0Disassembler.cpp Chapter10_1/Disassembler/Cpu0Disassembler.cpp
 --- Chapter9_4/Disassembler/Cpu0Disassembler.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter10_1/Disassembler/Cpu0Disassembler.cpp	2014-02-11 14:03:42.462933945 +0800
-@@ -0,0 +1,324 @@
++++ Chapter10_1/Disassembler/Cpu0Disassembler.cpp	2014-02-21 17:53:23.742150226 +0800
+@@ -0,0 +1,312 @@
 +//===- Cpu0Disassembler.cpp - Disassembler for Cpu0 -------------*- C++ -*-===//
 +//
 +//                     The LLVM Compiler Infrastructure
@@ -124,13 +124,6 @@ diff -Naur Chapter9_4/Disassembler/Cpu0Disassembler.cpp Chapter10_1/Disassembler
 +  Cpu0::ZERO, Cpu0::AT, Cpu0::V0, Cpu0::V1,
 +  Cpu0::A0, Cpu0::A1, Cpu0::T9, Cpu0::T0, 
 +  Cpu0::S0, Cpu0::S1, Cpu0::SW, Cpu0::GP, 
-+  Cpu0::FP, Cpu0::SP, Cpu0::LR, Cpu0::PC
-+};
-+
-+static const unsigned GPROutTable[] = {
-+  Cpu0::ZERO, Cpu0::AT, Cpu0::V0, Cpu0::V1,
-+  Cpu0::A0, Cpu0::A1, Cpu0::T9, Cpu0::T0, 
-+  Cpu0::S0, Cpu0::S1, Cpu0::GP, 
 +  Cpu0::FP, Cpu0::SP, Cpu0::LR, Cpu0::PC
 +};
 +
@@ -270,11 +263,7 @@ diff -Naur Chapter9_4/Disassembler/Cpu0Disassembler.cpp Chapter10_1/Disassembler
 +                                               unsigned RegNo,
 +                                               uint64_t Address,
 +                                               const void *Decoder) {
-+  if (RegNo > 16)
-+    return MCDisassembler::Fail;
-+
-+  Inst.addOperand(MCOperand::CreateReg(GPROutTable[RegNo]));
-+  return MCDisassembler::Success;
++  return DecodeCPURegsRegisterClass(Inst, RegNo, Address, Decoder);
 +}
 +
 +static DecodeStatus DecodeMem(MCInst &Inst,
@@ -322,7 +311,6 @@ diff -Naur Chapter9_4/Disassembler/Cpu0Disassembler.cpp Chapter10_1/Disassembler
 +                                       const void *Decoder) {
 +  int Reg_a = (int)fieldFromInstruction(Insn, 20, 4);
 +  int Reg_b = (int)fieldFromInstruction(Insn, 16, 4);
-+  int Reg_c = (int)fieldFromInstruction(Insn, 12, 4);
 +
 +  Inst.addOperand(MCOperand::CreateReg(Cpu0::SW));
 +  Inst.addOperand(MCOperand::CreateReg(CPURegsTable[Reg_a]));
@@ -393,7 +381,7 @@ diff -Naur Chapter9_4/Disassembler/Cpu0Disassembler.cpp Chapter10_1/Disassembler
 +
 diff -Naur Chapter9_4/Disassembler/LLVMBuild.txt Chapter10_1/Disassembler/LLVMBuild.txt
 --- Chapter9_4/Disassembler/LLVMBuild.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter10_1/Disassembler/LLVMBuild.txt	2014-02-11 14:03:42.462933945 +0800
++++ Chapter10_1/Disassembler/LLVMBuild.txt	2014-02-21 17:48:39.078150260 +0800
 @@ -0,0 +1,23 @@
 +;===- ./lib/Target/Cpu0/Disassembler/LLVMBuild.txt --------------*- Conf -*--===;
 +;
@@ -419,8 +407,8 @@ diff -Naur Chapter9_4/Disassembler/LLVMBuild.txt Chapter10_1/Disassembler/LLVMBu
 +required_libraries = MC Support Cpu0Info
 +add_to_library_groups = Cpu0
 diff -Naur Chapter9_4/LLVMBuild.txt Chapter10_1/LLVMBuild.txt
---- Chapter9_4/LLVMBuild.txt	2014-02-11 14:03:42.458933945 +0800
-+++ Chapter10_1/LLVMBuild.txt	2014-02-11 14:03:42.462933945 +0800
+--- Chapter9_4/LLVMBuild.txt	2014-02-21 17:48:39.078150260 +0800
++++ Chapter10_1/LLVMBuild.txt	2014-02-21 17:48:39.078150260 +0800
 @@ -19,6 +19,7 @@
  
  [common]
