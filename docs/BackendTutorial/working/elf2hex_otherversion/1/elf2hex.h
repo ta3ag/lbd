@@ -381,124 +381,16 @@ bool havePrintRodata = false;
 
 // Modified from DisassembleObject()
 static void DisassembleObjectInHexFormat(const ObjectFile *Obj
-/*, bool InlineRelocs*/  , uint64_t& lastDumpAddr) {
+/*, bool InlineRelocs*/  , OwningPtr<MCDisassembler>& DisAsm, 
+  OwningPtr<MCInstPrinter>& IP, uint64_t& lastDumpAddr) {
   std::string Error;
   uint64_t soLastPrintAddr = 0;
   FILE *fd_so_func_offset;
   int num_dyn_entry = 0;
-  if (DumpSo) {
-    fd_so_func_offset = fopen("so_func_offset", "w");
-    if (fd_so_func_offset == NULL)
-      fclose(fd_so_func_offset);
-    assert(fd_so_func_offset != NULL && "fd_so_func_offset == NULL");
-  }
   if (LinkSo) {
     cpu0DynFunIndex.createStrtab();
   }
 
-  const Target *TheTarget = getTarget(Obj);
-  // getTarget() will have already issued a diagnostic if necessary, so
-  // just bail here if it failed.
-  if (!TheTarget)
-    return;
-
-  // Package up features to be passed to target/subtarget
-  std::string FeaturesStr;
-  if (MAttrs.size()) {
-    SubtargetFeatures Features;
-    for (unsigned i = 0; i != MAttrs.size(); ++i)
-      Features.AddFeature(MAttrs[i]);
-    FeaturesStr = Features.getString();
-  }
-
-  OwningPtr<const MCRegisterInfo> MRI(TheTarget->createMCRegInfo(TripleName));
-  if (!MRI) {
-    errs() << "error: no register info for target " << TripleName << "\n";
-    return;
-  }
-
-  // Set up disassembler.
-  OwningPtr<const MCAsmInfo> AsmInfo(
-    TheTarget->createMCAsmInfo(*MRI, TripleName));
-  if (!AsmInfo) {
-    errs() << "error: no assembly info for target " << TripleName << "\n";
-    return;
-  }
-
-  OwningPtr<const MCSubtargetInfo> STI(
-    TheTarget->createMCSubtargetInfo(TripleName, "", FeaturesStr));
-  if (!STI) {
-    errs() << "error: no subtarget info for target " << TripleName << "\n";
-    return;
-  }
-
-  OwningPtr<const MCInstrInfo> MII(TheTarget->createMCInstrInfo());
-  if (!MII) {
-    errs() << "error: no instruction info for target " << TripleName << "\n";
-    return;
-  }
-
-  OwningPtr<MCDisassembler> DisAsm(TheTarget->createMCDisassembler(*STI));
-  if (!DisAsm) {
-    errs() << "error: no disassembler for target " << TripleName << "\n";
-    return;
-  }
-
-  OwningPtr<const MCObjectFileInfo> MOFI;
-  OwningPtr<MCContext> Ctx;
-
-  if (Symbolize) {
-    MOFI.reset(new MCObjectFileInfo);
-    Ctx.reset(new MCContext(AsmInfo.get(), MRI.get(), MOFI.get()));
-    OwningPtr<MCRelocationInfo> RelInfo(
-      TheTarget->createMCRelocationInfo(TripleName, *Ctx.get()));
-    if (RelInfo) {
-      OwningPtr<MCSymbolizer> Symzer(
-        MCObjectSymbolizer::createObjectSymbolizer(*Ctx.get(), RelInfo, Obj));
-      if (Symzer)
-        DisAsm->setSymbolizer(Symzer);
-    }
-  }
-
-  OwningPtr<const MCInstrAnalysis>
-    MIA(TheTarget->createMCInstrAnalysis(MII.get()));
-
-  int AsmPrinterVariant = AsmInfo->getAssemblerDialect();
-  OwningPtr<MCInstPrinter> IP(TheTarget->createMCInstPrinter(
-      AsmPrinterVariant, *AsmInfo, *MII, *MRI, *STI));
-  if (!IP) {
-    errs() << "error: no instruction printer for target " << TripleName
-      << '\n';
-    return;
-  }
-
-  if (CFG) {
-    OwningPtr<MCObjectDisassembler> OD(
-      new MCObjectDisassembler(*Obj, *DisAsm, *MIA));
-    OwningPtr<MCModule> Mod(OD->buildModule(/* withCFG */ true));
-    for (MCModule::const_atom_iterator AI = Mod->atom_begin(),
-                                       AE = Mod->atom_end();
-                                       AI != AE; ++AI) {
-      outs() << "Atom " << (*AI)->getName() << ": \n";
-      if (const MCTextAtom *TA = dyn_cast<MCTextAtom>(*AI)) {
-        for (MCTextAtom::const_iterator II = TA->begin(), IE = TA->end();
-             II != IE;
-             ++II) {
-          IP->printInst(&II->Inst, outs(), "");
-          outs() << "\n";
-        }
-      }
-    }
-    for (MCModule::const_func_iterator FI = Mod->func_begin(),
-                                       FE = Mod->func_end();
-                                       FI != FE; ++FI) {
-      static int filenum = 0;
-      emitDOTFile((Twine((*FI)->getName()) + "_" +
-                   utostr(filenum) + ".dot").str().c_str(),
-                    **FI, IP.get());
-      ++filenum;
-    }
-  }
 
 
   errs() << format("!lastDumpAddr %8" PRIx64 "\n", lastDumpAddr);
@@ -520,64 +412,21 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
     bool text;
     if (error(i->isText(text))) break;
     if (!text) {
+      PrintDataSection(Obj, lastDumpAddr, i);
       if (lastDumpAddr < BaseAddr)
         Fill0s(lastDumpAddr, BaseAddr - 1);
 //      if (Name == ".rodata") {
-      PrintDataSection(Obj, lastDumpAddr, i);
 //        havePrintRodata = true;
 //      }
-      if (DumpSo) {
-        if (Name == ".dynsym") {
-          int num_dyn_entry = 0;
-          FILE *fd_num_dyn_entry;
-          fd_num_dyn_entry = fopen("num_dyn_entry", "r");
-          if (fd_num_dyn_entry != NULL) {
-            fscanf(fd_num_dyn_entry, "%d", &num_dyn_entry);
-          }
-          fclose(fd_num_dyn_entry);
-          raw_fd_ostream fd_dynsym("dynsym", Error);
-          int count = 0;
-          for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
-            fd_dynsym << hexdigit((Contents[addr] >> 4) & 0xF, true)
-                       << hexdigit(Contents[addr] & 0xF, true) << " ";
-            fd_dynsym << hexdigit((Contents[addr+1] >> 4) & 0xF, true)
-                       << hexdigit(Contents[addr+1] & 0xF, true) << " ";
-            fd_dynsym << hexdigit((Contents[addr+2] >> 4) & 0xF, true)
-                       << hexdigit(Contents[addr+2] & 0xF, true) << " ";
-            fd_dynsym << hexdigit((Contents[addr+3] >> 4) & 0xF, true)
-                       << hexdigit(Contents[addr+3] & 0xF, true) << " ";
-            count++;
-          }
-          for (int i = count; i < num_dyn_entry; i++) {
-            fd_dynsym << "00 00 00 00 ";
-          }
-        }
-        else if (Name == ".dynstr") {
-          raw_fd_ostream fd_dynstr("dynstr", Error);
-          raw_fd_ostream fd_dynstrAscii("dynstrAscii", Error);
-          for (std::size_t addr = 0, end = Contents.size(); addr < end; addr++) {
-            fd_dynstr << hexdigit((Contents[addr] >> 4) & 0xF, true)
-                       << hexdigit(Contents[addr] & 0xF, true) << " ";
-            if (addr == 0)
-              continue;
-            if (Contents[addr] == '\0')
-              fd_dynstrAscii << "\n";
-            else
-              fd_dynstrAscii << Contents[addr];
-          }
-        }
-      }
-      else if (!DumpSo) {
-        if (Name == ".got.plt") {
-          uint64_t BaseAddr;
-          if (error(i->getAddress(BaseAddr))) 
-            assert(1 && "Cannot get BaseAddr of section .got.plt");
-          raw_fd_ostream fd_global_offset("global_offset", Error);
-          fd_global_offset << format("%02" PRIx64 " ", BaseAddr >> 24);
-          fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 16) & 0xFF);
-          fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 8) & 0xFF);
-          fd_global_offset << format("%02" PRIx64 "    ", BaseAddr & 0xFF);
-        }
+      if (Name == ".got.plt") {
+        uint64_t BaseAddr;
+        if (error(i->getAddress(BaseAddr))) 
+          assert(1 && "Cannot get BaseAddr of section .got.plt");
+        raw_fd_ostream fd_global_offset("global_offset", Error);
+        fd_global_offset << format("%02" PRIx64 " ", BaseAddr >> 24);
+        fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 16) & 0xFF);
+        fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 8) & 0xFF);
+        fd_global_offset << format("%02" PRIx64 "    ", BaseAddr & 0xFF);
       }
       continue;
     }
@@ -799,36 +648,255 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
     else
       lastDumpAddr = SectionAddr + Contents.size();
   }
+}
+
+static void DisassembleSoInHexFormat(const ObjectFile *Obj
+/*, bool InlineRelocs*/  , OwningPtr<MCDisassembler>& DisAsm, 
+  OwningPtr<MCInstPrinter>& IP, uint64_t& lastDumpAddr) {
+  std::string Error;
+  uint64_t soLastPrintAddr = 0;
+  FILE *fd_so_func_offset;
+  int num_dyn_entry = 0;
   if (DumpSo) {
+    fd_so_func_offset = fopen("so_func_offset", "w");
+    if (fd_so_func_offset == NULL)
+      fclose(fd_so_func_offset);
+    assert(fd_so_func_offset != NULL && "fd_so_func_offset == NULL");
+  }
+
+  errs() << format("!lastDumpAddr %8" PRIx64 "\n", lastDumpAddr);
+  error_code ec;
+  for (section_iterator i = Obj->begin_sections(),
+                        e = Obj->end_sections();
+                        i != e; i.increment(ec)) {
+    if (error(ec)) break;
+    StringRef Name;
+    StringRef Contents;
+    uint64_t BaseAddr;
+    if (error(i->getName(Name))) continue;
+    if (error(i->getContents(Contents))) continue;
+    if (error(i->getAddress(BaseAddr))) continue;
+    errs() << "Name " << Name << format("  BaseAddr %8" PRIx64 "\n", BaseAddr);
+    errs() << format("!!lastDumpAddr %8" PRIx64 "\n", lastDumpAddr);
+    bool text;
+    if (error(i->isText(text))) break;
+    if (!text) {
+      continue;
+    }
+    // It's .text section
+    uint64_t SectionAddr;
+    if (error(i->getAddress(SectionAddr))) break;
+
+    // Make a list of all the symbols in this section.
+    std::vector<std::pair<uint64_t, StringRef> > Symbols;
+    for (symbol_iterator si = Obj->begin_symbols(),
+                         se = Obj->end_symbols();
+                         si != se; si.increment(ec)) {
+      bool contains;
+      if (!error(i->containsSymbol(*si, contains)) && contains) {
+        uint64_t Address;
+        if (error(si->getAddress(Address))) break;
+        if (Address == UnknownAddressOrSize) continue;
+        Address -= SectionAddr;
+
+        StringRef Name;
+        if (error(si->getName(Name))) break;
+        Symbols.push_back(std::make_pair(Address, Name));
+      }
+    }
+
+    // Sort the symbols by address, just in case they didn't come in that way.
+    array_pod_sort(Symbols.begin(), Symbols.end());
+
+    // Make a list of all the relocations for this section.
+    std::vector<RelocationRef> Rels;
+
+    // Sort relocations by address.
+    std::sort(Rels.begin(), Rels.end(), RelocAddressLess);
+
+    StringRef SegmentName = "";
+    if (const MachOObjectFile *MachO =
+        dyn_cast<const MachOObjectFile>(Obj)) {
+      DataRefImpl DR = i->getRawDataRefImpl();
+      SegmentName = MachO->getSectionFinalSegmentName(DR);
+    }
+    StringRef name;
+    if (error(i->getName(name))) break;
+    if (name == ".plt") continue;
+    outs() << "/*" << "Disassembly of section ";
+    if (!SegmentName.empty())
+      outs() << SegmentName << ",";
+    outs() << name << ':' << "*/";
+
+    // If the section has no symbols just insert a dummy one and disassemble
+    // the whole section.
+    if (Symbols.empty())
+      Symbols.push_back(std::make_pair(0, name));
+
+    SmallString<40> Comments;
+    raw_svector_ostream CommentStream(Comments);
+
+    StringRef Bytes;
+    if (error(i->getContents(Bytes))) break;
+    StringRefMemoryObject memoryObject(Bytes, SectionAddr);
+    uint64_t Size;
+    uint64_t Index;
+    uint64_t SectSize;
+    if (error(i->getSize(SectSize))) break;
+
+    std::vector<RelocationRef>::const_iterator rel_cur = Rels.begin();
+    std::vector<RelocationRef>::const_iterator rel_end = Rels.end();
+    // Disassemble symbol by symbol.
+    for (unsigned si = 0, se = Symbols.size(); si != se; ++si) {
+      uint64_t Start = Symbols[si].first;
+      uint64_t End;
+      // The end is either the size of the section or the beginning of the next
+      // symbol.
+      if (si == se - 1)
+        End = SectSize;
+      // Make sure this symbol takes up space.
+      else if (Symbols[si + 1].first != Start)
+        End = Symbols[si + 1].first - 1;
+      else {
+        // This symbol has the same address as the next symbol. Skip it.
+        fprintf(fd_so_func_offset, "%02x ", 
+                (uint8_t)(Symbols[si].first >> 24));
+        fprintf(fd_so_func_offset, "%02x ", 
+                (uint8_t)((Symbols[si].first >> 16) & 0xFF));
+        fprintf(fd_so_func_offset, "%02x ", 
+                (uint8_t)((Symbols[si].first >> 8) & 0xFF));
+        fprintf(fd_so_func_offset, "%02x    ", 
+                (uint8_t)((Symbols[si].first) & 0xFF));
+        std::string str = Symbols[si].second.str();
+        std::size_t idx = 0;
+        std::size_t strSize = 0;
+        for (idx = 0, strSize = str.size(); idx < strSize; idx++) {
+          fprintf(fd_so_func_offset, "%c%c ", 
+                  hexdigit((str[idx] >> 4) & 0xF, true),
+                  hexdigit(str[idx] & 0xF, true));
+        }
+        for (idx = strSize; idx < 48; idx++) {
+          fprintf(fd_so_func_offset, "%02x ", 0);
+        }
+        fprintf(fd_so_func_offset, "/* %s */\n", Symbols[si].second.begin());
+        num_dyn_entry++;
+
+        outs() << '\n' << "/*" << Symbols[si].second << ":*/\n";
+        continue;
+      }
+
+      soLastPrintAddr = Symbols[si].first;
+      fprintf(fd_so_func_offset, "%02x ", (uint8_t)(Symbols[si].first >> 24));
+      fprintf(fd_so_func_offset, "%02x ", 
+              (uint8_t)((Symbols[si].first >> 16) & 0xFF));
+      fprintf(fd_so_func_offset, "%02x ", 
+              (uint8_t)((Symbols[si].first >> 8) & 0xFF));
+      fprintf(fd_so_func_offset, "%02x    ", 
+              (uint8_t)((Symbols[si].first) & 0xFF));
+      std::string str = Symbols[si].second.str();
+      std::size_t idx = 0;
+      std::size_t strSize = 0;
+      for (idx = 0, strSize = str.size(); idx < strSize; idx++) {
+        fprintf(fd_so_func_offset, "%c%c ", 
+                hexdigit((str[idx] >> 4) & 0xF, true), 
+                hexdigit(str[idx] & 0xF, true));
+      }
+      for (idx = strSize; idx < 48; idx++) {
+        fprintf(fd_so_func_offset, "%02x ", 0);
+      }
+      fprintf(fd_so_func_offset, "/* %s */\n", Symbols[si].second.begin());
+      num_dyn_entry++;
+
+      outs() << '\n' << "/*" << Symbols[si].second << ":*/\n";
+      uint16_t funIndex = 0;
+#ifndef NDEBUG
+        raw_ostream &DebugOut = DebugFlag ? dbgs() : nulls();
+#else
+        raw_ostream &DebugOut = nulls();
+#endif
+
+      for (Index = Start; Index < End; Index += Size) {
+        MCInst Inst;
+        if (DisAsm->getInstruction(Inst, Size, memoryObject,
+                                   SectionAddr + Index,
+                                   DebugOut, CommentStream)) {
+          outs() << format("/*%8" PRIx64 ":*/", lastDumpAddr + Index);
+          if (!NoShowRawInsn) {
+            outs() << "\t";
+            DumpBytes(StringRef(Bytes.data() + Index, Size));
+          }
+          outs() << "/*";
+          IP->printInst(&Inst, outs(), "");
+          outs() << CommentStream.str();
+          outs() << "*/";
+          Comments.clear();
+          outs() << "\n";
+        } else {
+          errs() << ToolName << ": warning: invalid instruction encoding\n";
+          if (Size == 0)
+            Size = 1; // skip illegible bytes
+        }
+
+        //  outs() << "Size = " << Size <<  "Index = " << Index << "lastDumpAddr = "
+        //         << lastDumpAddr << "\n"; // debug
+        // Print relocation for instruction.
+        while (rel_cur != rel_end) {
+          bool hidden = false;
+          uint64_t addr;
+          SmallString<16> name;
+          SmallString<32> val;
+
+          // If this relocation is hidden, skip it.
+          if (error(rel_cur->getHidden(hidden))) goto skip_print_rel;
+          if (hidden) goto skip_print_rel;
+
+          if (error(rel_cur->getOffset(addr))) goto skip_print_rel;
+          // Stop when rel_cur's address is past the current instruction.
+          if (addr >= Index + Size) break;
+          if (error(rel_cur->getTypeName(name))) goto skip_print_rel;
+          if (error(rel_cur->getValueString(val))) goto skip_print_rel;
+
+          outs() << format("\t\t\t/*%8" PRIx64 ": ", SectionAddr + addr) << name
+                 << "\t" << val << "*/\n";
+
+        skip_print_rel:
+          ++rel_cur;
+        }
+        lastDumpAddr += Index;
+      }
+      if (DumpSo)
+        soLastPrintAddr = End;
+      errs() << format("SectionAddr + Index = %8" PRIx64 "\n", SectionAddr + Index);
+      errs() << format("lastDumpAddr %8" PRIx64 "\n", lastDumpAddr);
+    }
+  }
+// Dump share obj or lib
 // Fix the issue that __tls_get_addr appear as file offset 0.
 // Old lld version the __tls_get_addr appear at the last function name.
-    std::pair<uint64_t, StringRef> dummy(soLastPrintAddr, "dummy");
-    fprintf(fd_so_func_offset, "%02x ", (uint8_t)(dummy.first >> 24));
-    fprintf(fd_so_func_offset, "%02x ", (uint8_t)((dummy.first >> 16) & 0xFF));
-    fprintf(fd_so_func_offset, "%02x ", (uint8_t)((dummy.first >> 8) & 0xFF));
-    fprintf(fd_so_func_offset, "%02x    ", (uint8_t)((dummy.first) & 0xFF));
-    std::string str = dummy.second.str();
-    std::size_t idx = 0;
-    std::size_t strSize = 0;
-    for (idx = 0, strSize = str.size(); idx < strSize; idx++) {
-      fprintf(fd_so_func_offset, "%c%c ", hexdigit((str[idx] >> 4) & 0xF, true)
-              , hexdigit(str[idx] & 0xF, true));
-    }
-    for (idx = strSize; idx < 48; idx++) {
-      fprintf(fd_so_func_offset, "%02x ", 0);
-    }
-    fprintf(fd_so_func_offset, "/* %s */\n", dummy.second.begin());
-    num_dyn_entry++;
-    outs() << '\n' << "/*" << dummy.second << ":*/\n";
+  std::pair<uint64_t, StringRef> dummy(soLastPrintAddr, "dummy");
+  fprintf(fd_so_func_offset, "%02x ", (uint8_t)(dummy.first >> 24));
+  fprintf(fd_so_func_offset, "%02x ", (uint8_t)((dummy.first >> 16) & 0xFF));
+  fprintf(fd_so_func_offset, "%02x ", (uint8_t)((dummy.first >> 8) & 0xFF));
+  fprintf(fd_so_func_offset, "%02x    ", (uint8_t)((dummy.first) & 0xFF));
+  std::string str = dummy.second.str();
+  std::size_t idx = 0;
+  std::size_t strSize = 0;
+  for (idx = 0, strSize = str.size(); idx < strSize; idx++) {
+    fprintf(fd_so_func_offset, "%c%c ", hexdigit((str[idx] >> 4) & 0xF, true)
+            , hexdigit(str[idx] & 0xF, true));
   }
-  if (DumpSo) {
-    FILE *fd_num_dyn_entry;
-    fd_num_dyn_entry = fopen("num_dyn_entry", "w");
-    if (fd_num_dyn_entry != NULL) {
-      fprintf(fd_num_dyn_entry, "%d\n", num_dyn_entry);
-    }
-    fclose(fd_num_dyn_entry);
+  for (idx = strSize; idx < 48; idx++) {
+    fprintf(fd_so_func_offset, "%02x ", 0);
   }
+  fprintf(fd_so_func_offset, "/* %s */\n", dummy.second.begin());
+  num_dyn_entry++;
+  outs() << '\n' << "/*" << dummy.second << ":*/\n";
+  FILE *fd_num_dyn_entry;
+  fd_num_dyn_entry = fopen("num_dyn_entry", "w");
+  if (fd_num_dyn_entry != NULL) {
+    fprintf(fd_num_dyn_entry, "%d\n", num_dyn_entry);
+  }
+  fclose(fd_num_dyn_entry);
 }
 
 #define DYNSYM_LIB_OFFSET 9
@@ -1049,17 +1117,192 @@ static void PrintBootSection(uint64_t pltOffset) {
     "/*       c:*/	36 ff ff fc                                  /*	jmp	-4*/\n";
 }
 
+static void PrintSoDataSections(const ObjectFile *o, uint64_t& lastDumpAddr) {
+  error_code ec;
+  std::string Error;
+
+  for (section_iterator si = o->begin_sections(),
+                        se = o->end_sections();
+                        si != se; si.increment(ec)) {
+    if (error(ec)) return;
+    StringRef Name;
+    StringRef Contents;
+    uint64_t BaseAddr;
+    bool BSS;
+    if (error(si->getName(Name))) continue;
+    if (error(si->getContents(Contents))) continue;
+    if (error(si->getAddress(BaseAddr))) continue;
+    if (error(si->isBSS(BSS))) continue;
+    if (Name == ".dynsym") {
+      int num_dyn_entry = 0;
+      FILE *fd_num_dyn_entry;
+      fd_num_dyn_entry = fopen("num_dyn_entry", "r");
+      if (fd_num_dyn_entry != NULL) {
+        fscanf(fd_num_dyn_entry, "%d", &num_dyn_entry);
+      }
+      fclose(fd_num_dyn_entry);
+      raw_fd_ostream fd_dynsym("dynsym", Error);
+      int count = 0;
+      for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
+        fd_dynsym << hexdigit((Contents[addr] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr] & 0xF, true) << " ";
+        fd_dynsym << hexdigit((Contents[addr+1] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr+1] & 0xF, true) << " ";
+        fd_dynsym << hexdigit((Contents[addr+2] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr+2] & 0xF, true) << " ";
+        fd_dynsym << hexdigit((Contents[addr+3] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr+3] & 0xF, true) << " ";
+        count++;
+      }
+      for (int i = count; i < num_dyn_entry; i++) {
+        fd_dynsym << "00 00 00 00 ";
+      }
+    }
+    else if (Name == ".dynstr") {
+      raw_fd_ostream fd_dynstr("dynstr", Error);
+      raw_fd_ostream fd_dynstrAscii("dynstrAscii", Error);
+      for (std::size_t addr = 0, end = Contents.size(); addr < end; addr++) {
+        fd_dynstr << hexdigit((Contents[addr] >> 4) & 0xF, true)
+                   << hexdigit(Contents[addr] & 0xF, true) << " ";
+        if (addr == 0)
+          continue;
+        if (Contents[addr] == '\0')
+          fd_dynstrAscii << "\n";
+        else
+          fd_dynstrAscii << Contents[addr];
+      }
+    }
+  }
+}
+
 static void Elf2Hex(const ObjectFile *o) {
+  uint64_t lastDumpAddr = 0;
+
+  const Target *TheTarget = getTarget(o);
+  // getTarget() will have already issued a diagnostic if necessary, so
+  // just bail here if it failed.
+  if (!TheTarget)
+    return;
+
+  // Package up features to be passed to target/subtarget
+  std::string FeaturesStr;
+  if (MAttrs.size()) {
+    SubtargetFeatures Features;
+    for (unsigned i = 0; i != MAttrs.size(); ++i)
+      Features.AddFeature(MAttrs[i]);
+    FeaturesStr = Features.getString();
+  }
+
+  OwningPtr<const MCRegisterInfo> MRI(TheTarget->createMCRegInfo(TripleName));
+  if (!MRI) {
+    errs() << "error: no register info for target " << TripleName << "\n";
+    return;
+  }
+
+  // Set up disassembler.
+  OwningPtr<const MCAsmInfo> AsmInfo(
+    TheTarget->createMCAsmInfo(*MRI, TripleName));
+  if (!AsmInfo) {
+    errs() << "error: no assembly info for target " << TripleName << "\n";
+    return;
+  }
+
+  OwningPtr<const MCSubtargetInfo> STI(
+    TheTarget->createMCSubtargetInfo(TripleName, "", FeaturesStr));
+  if (!STI) {
+    errs() << "error: no subtarget info for target " << TripleName << "\n";
+    return;
+  }
+
+  OwningPtr<const MCInstrInfo> MII(TheTarget->createMCInstrInfo());
+  if (!MII) {
+    errs() << "error: no instruction info for target " << TripleName << "\n";
+    return;
+  }
+
+  OwningPtr<MCDisassembler> DisAsm(TheTarget->createMCDisassembler(*STI));
+  if (!DisAsm) {
+    errs() << "error: no disassembler for target " << TripleName << "\n";
+    return;
+  }
+
+  OwningPtr<const MCObjectFileInfo> MOFI;
+  OwningPtr<MCContext> Ctx;
+
+  if (Symbolize) {
+    MOFI.reset(new MCObjectFileInfo);
+    Ctx.reset(new MCContext(AsmInfo.get(), MRI.get(), MOFI.get()));
+    OwningPtr<MCRelocationInfo> RelInfo(
+      TheTarget->createMCRelocationInfo(TripleName, *Ctx.get()));
+    if (RelInfo) {
+      OwningPtr<MCSymbolizer> Symzer(
+        MCObjectSymbolizer::createObjectSymbolizer(*Ctx.get(), RelInfo, o));
+      if (Symzer)
+        DisAsm->setSymbolizer(Symzer);
+    }
+  }
+
+  OwningPtr<const MCInstrAnalysis>
+    MIA(TheTarget->createMCInstrAnalysis(MII.get()));
+
+  int AsmPrinterVariant = AsmInfo->getAssemblerDialect();
+  OwningPtr<MCInstPrinter> IP(TheTarget->createMCInstPrinter(
+      AsmPrinterVariant, *AsmInfo, *MII, *MRI, *STI));
+  if (!IP) {
+    errs() << "error: no instruction printer for target " << TripleName
+      << '\n';
+    return;
+  }
+
+  if (CFG) {
+    OwningPtr<MCObjectDisassembler> OD(
+      new MCObjectDisassembler(*o, *DisAsm, *MIA));
+    OwningPtr<MCModule> Mod(OD->buildModule(/* withCFG */ true));
+    for (MCModule::const_atom_iterator AI = Mod->atom_begin(),
+                                       AE = Mod->atom_end();
+                                       AI != AE; ++AI) {
+      outs() << "Atom " << (*AI)->getName() << ": \n";
+      if (const MCTextAtom *TA = dyn_cast<MCTextAtom>(*AI)) {
+        for (MCTextAtom::const_iterator II = TA->begin(), IE = TA->end();
+             II != IE;
+             ++II) {
+          IP->printInst(&II->Inst, outs(), "");
+          outs() << "\n";
+        }
+      }
+    }
+    for (MCModule::const_func_iterator FI = Mod->func_begin(),
+                                       FE = Mod->func_end();
+                                       FI != FE; ++FI) {
+      static int filenum = 0;
+      emitDOTFile((Twine((*FI)->getName()) + "_" +
+                   utostr(filenum) + ".dot").str().c_str(),
+                    **FI, IP.get());
+      ++filenum;
+    }
+  }
+
   uint64_t startAddr = GetSectionHeaderStartAddress(o, "_start");
 //  outs() << format("_start address:%08" PRIx64 "\n", startAddr);
-  if (LinkSo)
-    cpu0DynFunIndex.createPltName(o);
-  uint64_t pltOffset = SectionOffset(o, ".plt");
-  PrintBootSection(pltOffset);
-  uint64_t lastDumpAddr = 16;
-  Fill0s(lastDumpAddr, 0x100);
-  lastDumpAddr = 0x100;
-  DisassembleObjectInHexFormat(o, lastDumpAddr);
+  if (!DumpSo) {
+    std::string Error;
+    if (LinkSo)
+      cpu0DynFunIndex.createPltName(o);
+    uint64_t pltOffset = SectionOffset(o, ".plt");
+    PrintBootSection(pltOffset);
+    if (LinkSo) {
+      raw_fd_ostream fd_plt_offset("plt_offset", Error);
+      fd_plt_offset << format("%08" PRIx64 " ", pltOffset);
+    }
+    lastDumpAddr = 16;
+    Fill0s(lastDumpAddr, 0x100);
+    lastDumpAddr = 0x100;
+    DisassembleObjectInHexFormat(o, DisAsm, IP, lastDumpAddr);
+  }
+  else {
+    DisassembleSoInHexFormat(o, DisAsm, IP, lastDumpAddr);
+    PrintSoDataSections(o, lastDumpAddr);
+  }
 //  outs() << format("lastDumpAddr:%08" PRIx64 "\n", lastDumpAddr);
 //  PrintDataSections(o, lastDumpAddr);
 }
